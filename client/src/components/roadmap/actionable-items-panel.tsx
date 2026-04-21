@@ -10,8 +10,9 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
+import { useCreateUpdateMutation } from '@/lib/common-hooks';
 import { useToast } from '@/hooks/use-toast';
 import type { ActionableItem, Feature } from '@shared/schema';
 import { CheckCircle2, Circle, Clock, AlertCircle, Copy, ChevronRight, Zap } from 'lucide-react';
@@ -42,13 +43,13 @@ export function ActionableItemsPanel({ feature, onClose }: ActionableItemsPanelP
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
   // Fetch actionable items
-  const { _data: items = [], isLoading } = useQuery<ActionableItem[]>({
+  const { data: items = [], isLoading } = useQuery<ActionableItem[]>({
     queryKey: [`/api/features/${feature.id}/actionable-items`],
     enabled: !!feature.id && feature.status === 'ai-analyzed',
   });
 
   // Update item mutation
-  const updateItemMutation = useMutation({
+  const updateItemMutation = useCreateUpdateMutation<unknown, { id: string; updates: Partial<ActionableItem> }>({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<ActionableItem> }) => {
       const response = await fetch(`/api/actionable-items/${id}`, {
         method: 'PUT',
@@ -60,14 +61,13 @@ export function ActionableItemsPanel({ feature, onClose }: ActionableItemsPanelP
       }
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/features/${feature.id}/actionable-items`] });
-      queryClient.invalidateQueries({ queryKey: ['/api/features'] });
-      toast({
-        title: 'Item Updated',
-        description: 'The actionable item has been updated successfully.',
-      });
-    },
+    successTitle: 'Item Updated',
+    successMessage: 'The actionable item has been updated successfully.',
+    silentError: true,
+    queryKeysToInvalidate: [
+      [`/api/features/${feature.id}/actionable-items`],
+      ['/api/features'],
+    ],
   });
 
   const getStatusIcon = (status: string, onClick?: () => void) => {
@@ -131,6 +131,7 @@ export function ActionableItemsPanel({ feature, onClose }: ActionableItemsPanelP
         description:
           'The implementation prompt has been copied to your clipboard. You can now paste it directly into Replit AI.',
       });
+    } catch (_error) {
       // Fallback to creating a text area and selecting the text
       try {
         const textArea = document.createElement('textarea');
@@ -143,28 +144,7 @@ export function ActionableItemsPanel({ feature, onClose }: ActionableItemsPanelP
           title: '📋 Prompt Copied!',
           description: 'The implementation prompt has been copied using fallback method.',
         });
-      } catch (___fallbackError) {
-        toast({
-          title: 'Copy Failed',
-          description:
-            'Failed to copy prompt to clipboard. Please manually select and copy the text.',
-          variant: 'destructive',
-        });
-      }
-    } catch (error) {
-      // Fallback to creating a text area and selecting the text
-      try {
-        const textArea = document.createElement('textarea');
-        textArea.value = prompt;
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-        toast({
-          title: '📋 Prompt Copied!',
-          description: 'The implementation prompt has been copied using fallback method.',
-        });
-      } catch (fallbackError) {
+      } catch (_fallbackError) {
         toast({
           title: 'Copy Failed',
           description:
@@ -239,7 +219,7 @@ export function ActionableItemsPanel({ feature, onClose }: ActionableItemsPanelP
             onValueChange={setExpandedItems}
             className='space-y-4'
           >
-            {items.map((item, _index) => (
+            {items.map((item, index) => (
               <AccordionItem
                 key={item.id}
                 value={item.id}

@@ -7,6 +7,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SearchableFormSelect } from '@/components/common/SearchableFormSelect';
+import { CollapsibleFilters } from '@/components/ui/collapsible-filters';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Dialog,
   DialogContent,
@@ -34,10 +42,6 @@ import { toastUtils } from '@/lib/toastUtils';
 import { sanitizeDescription } from '@/utils/sanitize';
 import { Header } from '@/components/layout/header';
 import DemandDetailsPopup from '@/components/demands/demand-details-popup';
-import { SearchInput } from '@/components/common/SearchInput';
-import { FilterDropdown } from '@/components/common/FilterDropdown';
-import { DemandCard } from '@/components/common/DemandCard';
-import { DemandFilters } from '@/components/common/DemandFilters';
 import { SharedUploader } from '@/components/document-management';
 import type { UploadContext } from '@shared/config/upload-config';
 import { useLanguage } from '@/hooks/use-language';
@@ -76,7 +80,7 @@ interface Demand {
     firstName: string;
     lastName: string;
     email: string;
-  };
+  } | null;
   residence?: {
     id: string;
     unitNumber: string;
@@ -155,13 +159,7 @@ ResidentDemandsPage() {
   const [uploadedAttachments, setUploadedAttachments] = useState<string[]>([]);
   const itemsPerPage = 10;
 
-  // Fetch demands
-  const { data: demands = [], isLoading } = useQuery({
-    queryKey: ['/api/demands'],
-    refetchInterval: 30000, // Refresh every 30 seconds
-  });
-
-  // Fetch current user
+  // Fetch current user first
   const { data: currentUser } = useQuery({
     queryKey: ['/api/auth/user'],
   });
@@ -188,6 +186,22 @@ ResidentDemandsPage() {
         })
       : { id: '', role: 'tenant', email: '' };
 
+  // Fetch demands - always filter by current user (my demands only)
+  const { data: demands = [], isLoading } = useQuery({
+    queryKey: ['/api/demands', 'submitter', defaultUser.id],
+    queryFn: async () => {
+      const res = await fetch(`/api/demands?submitterId=${defaultUser.id}`, {
+        credentials: 'include',
+      });
+      if (!res.ok) {
+        throw new Error(`${res.status}: ${res.statusText}`);
+      }
+      return res.json();
+    },
+    enabled: !!defaultUser.id, // Only fetch when we have a user ID
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+
   // Fetch buildings based on user role
   const { data: buildings = [] } = useQuery<Building[]>({
     queryKey: defaultUser?.role === 'admin' 
@@ -212,30 +226,60 @@ ResidentDemandsPage() {
     userId: defaultUser?.id
   }), [defaultUser?.role, defaultUser?.id]);
 
-  // File upload helper function
-  const uploadFiles = async (files: File[]): Promise<Array<{ url: string; originalName: string; size: number } | string>> => {
+  // File upload helper function - uses object storage with signed URLs
+  const uploadFiles = async (files: File[]): Promise<Array<{ url: string; originalName: string; size: number }>> => {
     if (files.length === 0) return [];
     
-    const formData = new FormData();
-    files.forEach((file) => {
-      formData.append('file', file);
-    });
+    const uploadedFiles: Array<{ url: string; originalName: string; size: number }> = [];
     
-    const response = await fetch('/api/upload', {
-      method: 'POST',
-      body: formData,
-    });
-    
-    if (!response.ok) {
-      throw new Error('Failed to upload files');
+    for (const file of files) {
+      try {
+        // Get signed upload URL from backend
+        const urlResponse = await fetch('/api/demands/upload-url', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ filename: file.name }),
+          credentials: 'include',
+        });
+        
+        if (!urlResponse.ok) {
+          console.error('Failed to get upload URL');
+          throw new Error('Failed to get upload URL');
+        }
+        
+        const { uploadUrl, objectPath } = await urlResponse.json();
+        
+        // Upload file directly to object storage using signed URL
+        const uploadResponse = await fetch(uploadUrl, {
+          method: 'PUT',
+          body: file,
+          headers: { 
+            'Content-Type': file.type || 'application/octet-stream',
+          },
+        });
+        
+        if (!uploadResponse.ok) {
+          console.error('Failed to upload file to object storage');
+          throw new Error('Failed to upload file');
+        }
+        
+        uploadedFiles.push({
+          url: objectPath,
+          originalName: file.name,
+          size: file.size,
+        });
+      } catch (error) {
+        console.error('Error uploading file:', file.name, error);
+        throw error;
+      }
     }
     
-    const result = await response.json();
-    // Return file objects with original names if available, otherwise fall back to URLs
-    return result.files || result.fileUrls?.map((url: string) => url) || [];
+    return uploadedFiles;
   };
 
   // Create demand mutation
+  // Exception (task #229): uses `toastUtils` create/error helpers for shared
+  // success/error messaging conventions — kept as raw `useMutation`.
   const createDemandMutation = useMutation({
     mutationFn: async (data: DemandFormData) => {
       // Upload files first if any are selected
@@ -362,6 +406,12 @@ ResidentDemandsPage() {
 
   const handleDemandUpdated = () => {
     queryClient.invalidateQueries({ queryKey: ['/api/demands'] });
+  };
+
+  const handleResetFilters = () => {
+    setSearchTerm('');
+    setStatusFilter('all');
+    setTypeFilter('all');
   };
 
   const DemandCard = ({ demand }: { demand: Demand }) => {
@@ -541,18 +591,73 @@ ResidentDemandsPage() {
           </div>
 
           {/* Filters */}
-          <DemandFilters
-            filters={{
-              searchTerm,
-              statusFilter,
-              typeFilter,
-            }}
-            handlers={{
-              onSearchChange: setSearchTerm,
-              onStatusChange: setStatusFilter,
-              onTypeChange: setTypeFilter,
-            }}
-            userRole='resident'
+          <CollapsibleFilters
+            title={t('filters')}
+            defaultExpanded={false}
+            onReset={handleResetFilters}
+            resetLabel={t('clearFilters') || 'Clear filters'}
+            filters={[
+              {
+                id: 'search',
+                label: t('searchDemands'),
+                type: 'custom',
+                customComponent: (
+                  <Input
+                    placeholder={t('searchDemands')}
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    data-testid='input-search-demands'
+                  />
+                ),
+                value: searchTerm,
+                onChange: (value) => setSearchTerm(value as string),
+              },
+              {
+                id: 'status',
+                label: t('status'),
+                type: 'custom',
+                customComponent: (
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger data-testid='select-status-filter'>
+                      <SelectValue placeholder={t('allStatus')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value='all'>{t('allStatus')}</SelectItem>
+                      <SelectItem value='submitted'>{t('submitted')}</SelectItem>
+                      <SelectItem value='under_review'>{t('underReview') || 'Under Review'}</SelectItem>
+                      <SelectItem value='approved'>{t('approved') || 'Approved'}</SelectItem>
+                      <SelectItem value='rejected'>{t('rejected') || 'Rejected'}</SelectItem>
+                      <SelectItem value='in_progress'>{t('inProgress')}</SelectItem>
+                      <SelectItem value='completed'>{t('completed')}</SelectItem>
+                      <SelectItem value='cancelled'>{t('cancelled')}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                ),
+                value: statusFilter,
+                onChange: (value) => setStatusFilter(value as string),
+              },
+              {
+                id: 'type',
+                label: t('type'),
+                type: 'custom',
+                customComponent: (
+                  <Select value={typeFilter} onValueChange={setTypeFilter}>
+                    <SelectTrigger data-testid='select-type-filter'>
+                      <SelectValue placeholder={t('allTypes')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value='all'>{t('allTypes')}</SelectItem>
+                      <SelectItem value='maintenance'>{t('maintenanceType')}</SelectItem>
+                      <SelectItem value='complaint'>{t('complaintType')}</SelectItem>
+                      <SelectItem value='information'>{t('informationType')}</SelectItem>
+                      <SelectItem value='other'>{t('otherType')}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                ),
+                value: typeFilter,
+                onChange: (value) => setTypeFilter(value as string),
+              },
+            ]}
           />
 
           {/* Demands List */}

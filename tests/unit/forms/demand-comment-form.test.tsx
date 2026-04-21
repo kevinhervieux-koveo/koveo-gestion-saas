@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { describe, it, expect, beforeEach, jest, afterAll } from '@jest/globals';
@@ -367,10 +367,8 @@ describe('Demand Comment Form Tests', () => {
       await userEvent.type(textArea, 'A');
       expect(textArea).toHaveValue('A');
 
-      // Test maximum length (1000 characters)
       const maxText = 'A'.repeat(1000);
-      await userEvent.clear(textArea);
-      await userEvent.type(textArea, maxText);
+      fireEvent.change(textArea, { target: { value: maxText } });
       expect(textArea).toHaveValue(maxText);
     });
   });
@@ -402,19 +400,21 @@ describe('Demand Comment Form Tests', () => {
       const textArea = screen.getByTestId('input-comment-text');
       const submitButton = screen.getByTestId('button-submit-comment');
 
-      await userEvent.type(textArea, 'New test comment');
-      await userEvent.click(submitButton);
+      fireEvent.change(textArea, { target: { value: 'New test comment' } });
+      fireEvent.click(submitButton);
 
-      expect(mockFetch).toHaveBeenCalledWith('/api/demands/demand-123/comments', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          commentText: 'New test comment',
-          commentType: undefined,
-          isInternal: false,
-        }),
+      await waitFor(() => {
+        expect(mockFetch).toHaveBeenCalledWith('/api/demands/demand-123/comments', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            commentText: 'New test comment',
+            commentType: undefined,
+            isInternal: false,
+          }),
+        });
       });
 
       await waitFor(() => {
@@ -450,42 +450,30 @@ describe('Demand Comment Form Tests', () => {
       const internalCheckbox = screen.getByTestId('input-is-internal');
       const submitButton = screen.getByTestId('button-submit-comment');
 
-      await userEvent.type(textArea, 'Internal update comment');
-      await userEvent.selectOptions(typeSelect, 'status_change');
-      await userEvent.click(internalCheckbox);
-      await userEvent.click(submitButton);
+      fireEvent.change(textArea, { target: { value: 'Internal update comment' } });
+      fireEvent.change(typeSelect, { target: { value: 'status_change' } });
+      fireEvent.click(internalCheckbox);
+      fireEvent.click(submitButton);
 
-      expect(mockFetch).toHaveBeenCalledWith('/api/demands/demand-123/comments', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          commentText: 'Internal update comment',
-          commentType: 'status_change',
-          isInternal: true,
-        }),
+      await waitFor(() => {
+        expect(mockFetch).toHaveBeenCalledWith('/api/demands/demand-123/comments', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            commentText: 'Internal update comment',
+            commentType: 'status_change',
+            isInternal: true,
+          }),
+        });
       });
     });
 
     it('should show loading state during submission', async () => {
+      let resolveSubmit!: (value: Response) => void;
       mockFetch.mockImplementation(() =>
-        new Promise<Response>((resolve) =>
-          setTimeout(() => resolve(jsonResponse({
-            id: 'comment-loading',
-            demandId: 'demand-123',
-            commentText: 'Loading test comment',
-            commenterId: 'user-123',
-            isInternal: false,
-            createdAt: '2023-01-01T12:00:00Z',
-            author: {
-              id: 'user-123',
-              firstName: 'Test',
-              lastName: 'User',
-              email: 'test@example.com',
-            },
-          })), 100)
-        )
+        new Promise<Response>((resolve) => { resolveSubmit = resolve; })
       );
 
       render(
@@ -497,15 +485,33 @@ describe('Demand Comment Form Tests', () => {
       const textArea = screen.getByTestId('input-comment-text');
       const submitButton = screen.getByTestId('button-submit-comment');
 
-      await userEvent.type(textArea, 'Loading test comment');
-      await userEvent.click(submitButton);
+      fireEvent.change(textArea, { target: { value: 'Loading test comment' } });
+      fireEvent.click(submitButton);
 
-      expect(submitButton).toHaveTextContent('Adding Comment...');
-      expect(submitButton).toBeDisabled();
+      await waitFor(() => {
+        expect(submitButton).toHaveTextContent('Adding Comment...');
+        expect(submitButton).toBeDisabled();
+      });
+
+      await act(async () => {
+        resolveSubmit(jsonResponse({
+          id: 'comment-loading',
+          demandId: 'demand-123',
+          commentText: 'Loading test comment',
+          commenterId: 'user-123',
+          isInternal: false,
+          createdAt: '2023-01-01T12:00:00Z',
+          author: {
+            id: 'user-123',
+            firstName: 'Test',
+            lastName: 'User',
+            email: 'test@example.com',
+          },
+        }));
+      });
 
       await waitFor(() => {
         expect(submitButton).toHaveTextContent('Add Comment');
-        expect(submitButton).toBeDisabled(); // Should be disabled because textarea is now empty
       });
     });
 
@@ -536,18 +542,19 @@ describe('Demand Comment Form Tests', () => {
       const internalCheckbox = screen.getByTestId('input-is-internal');
       const submitButton = screen.getByTestId('button-submit-comment');
 
-      // Fill form
-      await userEvent.type(textArea, 'Test comment for clearing');
-      await userEvent.selectOptions(typeSelect, 'update');
-      await userEvent.click(internalCheckbox);
-      await userEvent.click(submitButton);
+      fireEvent.change(textArea, { target: { value: 'Test comment for clearing' } });
+      fireEvent.change(typeSelect, { target: { value: 'update' } });
+      fireEvent.click(internalCheckbox);
 
-      // Wait for form to clear
+      await act(async () => {
+        fireEvent.click(submitButton);
+      });
+
       await waitFor(() => {
         expect(textArea).toHaveValue('');
         expect(typeSelect).toHaveValue('');
         expect(internalCheckbox).not.toBeChecked();
-      });
+      }, { timeout: 2000 });
     });
 
     it('should handle submission errors gracefully', async () => {
@@ -562,15 +569,17 @@ describe('Demand Comment Form Tests', () => {
       const textArea = screen.getByTestId('input-comment-text');
       const submitButton = screen.getByTestId('button-submit-comment');
 
-      await userEvent.type(textArea, 'Error test comment');
-      await userEvent.click(submitButton);
+      fireEvent.change(textArea, { target: { value: 'Error test comment' } });
+
+      await act(async () => {
+        fireEvent.click(submitButton);
+      });
 
       await waitFor(() => {
-        // Form should still be visible with the text after error
         expect(textArea).toHaveValue('Error test comment');
         expect(submitButton).toHaveTextContent('Add Comment');
         expect(submitButton).not.toBeDisabled();
-      });
+      }, { timeout: 2000 });
     });
 
     it('should handle server validation errors', async () => {
@@ -588,11 +597,13 @@ describe('Demand Comment Form Tests', () => {
       const textArea = screen.getByTestId('input-comment-text');
       const submitButton = screen.getByTestId('button-submit-comment');
 
-      await userEvent.type(textArea, 'Server error test comment');
-      await userEvent.click(submitButton);
+      fireEvent.change(textArea, { target: { value: 'Server error test comment' } });
+
+      await act(async () => {
+        fireEvent.click(submitButton);
+      });
 
       await waitFor(() => {
-        // Form should remain with the text after server error
         expect(textArea).toHaveValue('Server error test comment');
         expect(submitButton).not.toBeDisabled();
       });

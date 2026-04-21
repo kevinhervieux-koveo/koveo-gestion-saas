@@ -26,7 +26,9 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 // import { useBuildingContext } from '@/hooks/use-building-context';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/hooks/use-language';
 import { apiRequest, queryClient } from '@/lib/queryClient';
+import { handleApiError } from '@/lib/demo-error-handler';
 import { EvaluationSuggestion, MaintenanceProject } from '@shared/schemas/maintenance';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -80,6 +82,7 @@ export function SuggestionsIntegration({
   // Simplified placeholder - no context for now
   const hasPermission = () => true;
   const { toast } = useToast();
+  const { language } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
@@ -137,6 +140,9 @@ export function SuggestionsIntegration({
   }, [suggestions, searchTerm, priorityFilter, typeFilter]);
 
   // Convert suggestions to projects mutation (using individual conversion endpoint)
+  // Exception (task #229): mutation produces a per-suggestion result toast
+  // whose content depends on the input variables, which `useCreateUpdateMutation`
+  // does not model — kept as raw `useMutation`.
   const createProjectsMutation = useMutation({
     mutationFn: async (selectedSuggestionIds: string[]) => {
       const createdProjects = [];
@@ -175,11 +181,13 @@ export function SuggestionsIntegration({
       });
     },
     onError: (error) => {
-      toast({
-        title: "Creation Failed",
-        description: "Failed to create projects from suggestions. Please try again.",
-        variant: "destructive",
-      });
+      handleApiError(
+        error,
+        language,
+        language === 'fr'
+          ? 'Échec de la création des projets. Veuillez réessayer.'
+          : 'Failed to create projects. Please try again.'
+      );
       console.error('Project creation failed:', error);
     },
   });

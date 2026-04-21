@@ -19,6 +19,7 @@ import {
 import { and, eq, count, sql, or, inArray, isNull, ne, exists } from 'drizzle-orm';
 import { requireAuth } from '../auth';
 
+import { asyncHandler } from '../utils/async-handler';
 /**
  *
  * @param app
@@ -33,8 +34,7 @@ export function registerOrganizationRoutes(app: Express): void {
    * GET /api/organizations - Retrieves organizations accessible to the current user
    * Returns array of organizations directly for frontend components.
    */
-  app.get('/api/organizations', requireAuth, async (req: any, res) => {
-    try {
+  app.get('/api/organizations', requireAuth, asyncHandler(async (req: any, res) => {
       const currentUser = req.user || req.session?.user;
       if (!currentUser) {
         return res.status(401).json({
@@ -104,21 +104,13 @@ export function registerOrganizationRoutes(app: Express): void {
 
       // Return array directly (not wrapped in object)
       res.json(accessibleOrganizations);
-    } catch (error: any) {
-      // console.error('❌ Error fetching organizations:', error);
-      res.status(500).json({
-        _error: 'Internal server error',
-        message: 'Failed to fetch organizations',
-      });
-    }
-  });
+    }, { errorMessage: 'Failed to fetch organizations', errorLogPrefix: '❌ Error fetch organizations', extraErrorFields: { '_error': 'Internal server error' } }));
 
   /**
    * GET /api/organizations/accessible-building-counts - Get accessible building counts per organization for current user
    * Used for bottom-up filtering in hierarchical selection components
    */
-  app.get('/api/organizations/accessible-building-counts', requireAuth, async (req: any, res) => {
-    try {
+  app.get('/api/organizations/accessible-building-counts', requireAuth, asyncHandler(async (req: any, res) => {
       const currentUser = req.user || req.session?.user;
       if (!currentUser) {
         return res.status(401).json({
@@ -240,21 +232,13 @@ export function registerOrganizationRoutes(app: Express): void {
 
       // console.log(`✅ Building counts calculated:`, counts);
       res.json(counts);
-    } catch (error: any) {
-      // console.error('❌ Error fetching accessible building counts:', error);
-      res.status(500).json({
-        error: 'Internal server error',
-        message: 'Failed to fetch accessible building counts',
-      });
-    }
-  });
+    }, { errorMessage: 'Failed to fetch accessible building counts', errorLogPrefix: '❌ Error fetch accessible building counts', extraErrorFields: { error: 'Internal server error' } }));
 
   /**
    * GET /api/admin/organizations - Retrieves all organizations for admin users
    * Only admin users can access all organizations.
    */
-  app.get('/api/admin/organizations', requireAuth, async (req: any, res) => {
-    try {
+  app.get('/api/admin/organizations', requireAuth, asyncHandler(async (req: any, res) => {
       // Check if user is admin
       const currentUser = req.user || req.session?.user;
       if (!currentUser) {
@@ -297,21 +281,13 @@ export function registerOrganizationRoutes(app: Express): void {
       res.json({
         organizations: allOrganizations,
       });
-    } catch (error: any) {
-      // console.error('❌ Error fetching organizations:', error);
-      res.status(500).json({
-        _error: 'Internal server error',
-        message: 'Failed to fetch organizations',
-      });
-    }
-  });
+    }, { errorMessage: 'Failed to fetch organizations', errorLogPrefix: '❌ Error fetch organizations', extraErrorFields: { '_error': 'Internal server error' } }));
 
   /**
    * POST /api/organizations - Create a new organization
    * Allows authorized users to create organizations.
    */
-  app.post('/api/organizations', requireAuth, async (req: any, res) => {
-    try {
+  app.post('/api/organizations', requireAuth, asyncHandler(async (req: any, res) => {
       const currentUser = req.user || req.session?.user;
       if (!currentUser) {
         return res.status(401).json({
@@ -366,14 +342,7 @@ export function registerOrganizationRoutes(app: Express): void {
       // console.log('Organization created - storage hierarchy will be created on first document upload');
 
       res.status(201).json(newOrganization);
-    } catch (error: any) {
-      // console.error('❌ Error creating organization:', error);
-      res.status(500).json({
-        _error: 'Internal server error',
-        message: 'Failed to create organization',
-      });
-    }
-  });
+    }, { errorMessage: 'Failed to create organization', errorLogPrefix: '❌ Error create organization', extraErrorFields: { '_error': 'Internal server error' } }));
 
   /**
    * GET /api/organizations/:id - Get organization by ID
@@ -417,8 +386,7 @@ export function registerOrganizationRoutes(app: Express): void {
    * PUT /api/organizations/:id - Update an existing organization
    * Allows authorized users to update organization details.
    */
-  app.put('/api/organizations/:id', requireAuth, async (req: any, res) => {
-    try {
+  app.put('/api/organizations/:id', requireAuth, asyncHandler(async (req: any, res) => {
       const currentUser = req.user || req.session?.user;
       if (!currentUser) {
         return res.status(401).json({
@@ -488,14 +456,7 @@ export function registerOrganizationRoutes(app: Express): void {
         });
 
       res.json(updatedOrganization);
-    } catch (error: any) {
-      // console.error('❌ Error updating organization:', error);
-      res.status(500).json({
-        error: 'Internal server error',
-        message: 'Failed to update organization',
-      });
-    }
-  });
+    }, { errorMessage: 'Failed to update organization', errorLogPrefix: '❌ Error update organization', extraErrorFields: { error: 'Internal server error' } }));
 
   /**
    * GET /api/organizations/:id/deletion-impact - Get deletion impact analysis
@@ -601,8 +562,7 @@ export function registerOrganizationRoutes(app: Express): void {
    * DELETE /api/organizations/:id - Cascade delete an organization
    * Deletes organization and all related entities (buildings, residences, documents). Users are preserved for data safety.
    */
-  app.delete('/api/organizations/:id', requireAuth, async (req: any, res) => {
-    try {
+  app.delete('/api/organizations/:id', requireAuth, asyncHandler(async (req: any, res) => {
       const currentUser = req.user || req.session?.user;
       if (!currentUser) {
         return res.status(401).json({
@@ -656,6 +616,31 @@ export function registerOrganizationRoutes(app: Express): void {
           .returning({ id: residences.id, unitNumber: residences.unitNumber });
 
         // console.log(`🗑️ Soft deleted ${affectedResidences.length} residences in buildings: ${orgBuildingIds.join(', ')}`);
+
+        // 2b. Soft-end user-residence links for the residences we just
+        // deactivated. Per the Task #144 contract on `userResidences`,
+        // ending a residency MUST set both `isActive: false` and
+        // `endDate: today` so the canonical `isActive` flag is the
+        // sole source of truth for "current tenancy" while the
+        // informational `endDate` stays aligned. Restrict the UPDATE
+        // to currently-active links so historical rows keep their
+        // original `endDate`.
+        const affectedResidenceIds = affectedResidences.map((r) => r.id);
+        if (affectedResidenceIds.length > 0) {
+          await db
+            .update(userResidences)
+            .set({
+              isActive: false,
+              endDate: new Date().toISOString().split('T')[0],
+              updatedAt: new Date(),
+            })
+            .where(
+              and(
+                inArray(userResidences.residenceId, affectedResidenceIds),
+                eq(userResidences.isActive, true)
+              )
+            );
+        }
 
         // 3. Soft delete buildings
         const affectedBuildings = await db
@@ -716,21 +701,13 @@ export function registerOrganizationRoutes(app: Express): void {
         message: 'Organization and related entities deleted successfully',
         deletedOrganization: organization[0].name,
       });
-    } catch (error: any) {
-      // console.error('❌ Error deleting organization:', error);
-      res.status(500).json({
-        _error: 'Internal server error',
-        message: 'Failed to delete organization and related entities',
-      });
-    }
-  });
+    }, { errorMessage: 'Failed to delete organization and related entities', errorLogPrefix: '❌ Error delete organization and related entities', extraErrorFields: { '_error': 'Internal server error' } }));
 
   /**
    * GET /api/organizations/:organizationId/buildings - Get buildings within a specific organization
    * Returns buildings that the authenticated user has access to within the specified organization
    */
-  app.get('/api/organizations/:organizationId/buildings', requireAuth, async (req: any, res) => {
-    try {
+  app.get('/api/organizations/:organizationId/buildings', requireAuth, asyncHandler(async (req: any, res) => {
       const currentUser = req.user || req.session?.user;
       if (!currentUser) {
         return res.status(401).json({
@@ -937,12 +914,5 @@ export function registerOrganizationRoutes(app: Express): void {
       // console.log(`✅ Found ${buildingsList.length} buildings for user ${currentUser.id} in organization ${organizationId}`);
 
       res.json(buildingsList);
-    } catch (error: any) {
-      // console.error('❌ Error fetching organization buildings:', error);
-      res.status(500).json({
-        _error: 'Internal server error',
-        message: 'Failed to fetch buildings for organization',
-      });
-    }
-  });
+    }, { errorMessage: 'Failed to fetch buildings for organization', errorLogPrefix: '❌ Error fetch buildings for organization', extraErrorFields: { '_error': 'Internal server error' } }));
 }

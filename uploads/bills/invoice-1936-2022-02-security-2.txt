@@ -1,0 +1,33 @@
+FACTURE / INVOICE
+===================
+
+Numéro de facture / Invoice Number: 1936-2022-02-SECURITY-2
+Date: 2022-02-18
+
+FACTURER À / BILL TO:
+1936 Nitzsche Track Building 5
+2536 montée Sainte-Catherine
+Québec, Canada
+
+FOURNISSEUR / VENDOR:
+Securitas
+
+DESCRIPTION / DESCRIPTION:
+Security - Securitas
+
+CATÉGORIE / CATEGORY: Security
+
+MONTANT / AMOUNT:
+Sous-total / Subtotal: $1281.00 CAD
+TPS (5%) / GST: $64.05 CAD
+TVQ (9.975%) / QST: $127.78 CAD
+TOTAL: $1472.83 CAD
+
+CONDITIONS DE PAIEMENT / PAYMENT TERMS:
+Net 30 jours / Net 30 days
+
+Merci de votre confiance / Thank you for your business
+===============================================
+
+Ce document est généré automatiquement pour les besoins de test du système Koveo Gestion.
+This document is automatically generated for Koveo Gestion system testing purposes.

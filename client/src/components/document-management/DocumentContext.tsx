@@ -97,7 +97,7 @@ export function DocumentProvider({
               canView: hasOrgAccess,
               canCreate: hasOrgAccess,
               canEdit: hasOrgAccess,
-              canDelete: false, // Residents manage their own documents
+              canDelete: hasOrgAccess, // Managers can delete documents in any residence within their organization
               canManage: hasOrgAccess,
             };
           default:
@@ -144,15 +144,24 @@ export function DocumentProvider({
         }
       }
 
-      // Tenant permissions - very limited, view-only for visible documents
+      // Tenant permissions - can view visible documents and create in their own residence
       if (role === 'tenant') {
         const canViewBuilding = buildingId ? true : false;
+        const isOwnResidence = residenceId === entityId;
         
         switch (entityType) {
           case 'building':
             return {
               canView: canViewBuilding, // Only if marked as visible to tenants
               canCreate: false,
+              canEdit: false,
+              canDelete: false,
+              canManage: false,
+            };
+          case 'residence':
+            return {
+              canView: isOwnResidence, // Can view documents in their own residence if marked as visible
+              canCreate: isOwnResidence, // Can create documents in their own residence
               canEdit: false,
               canDelete: false,
               canManage: false,

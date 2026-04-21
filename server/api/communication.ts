@@ -31,7 +31,9 @@ import { z } from 'zod';
 import { communicationService } from '../services/consolidated-communication-service';
 import { populateDefaultPreferences } from '../scripts/populate-default-notification-preferences';
 import { checkBuildingAccess } from './buildings/access-control';
+import { logDebug, logInfo, logWarn, logError } from '../utils/logger';
 
+import { asyncHandler } from '../utils/async-handler';
 // In-memory rate limiting store for urgent communications
 const urgentRateLimit = new Map<string, { count: number; resetTime: number }>();
 
@@ -138,8 +140,7 @@ export function registerCommunicationRoutes(app: Express): void {
    * GET /api/communication/organizations - Get available organizations for communication
    * Returns all organizations that user has access to for sending communications.
    */
-  app.get('/api/communication/organizations', requireAuth, async (req: any, res) => {
-    try {
+  app.get('/api/communication/organizations', requireAuth, asyncHandler(async (req: any, res) => {
       const currentUser = req.user || req.session?.user;
       if (!currentUser) {
         return res.status(401).json({
@@ -190,20 +191,13 @@ export function registerCommunicationRoutes(app: Express): void {
         userRole: currentUser.role,
         canAccessAll: userOrgs.some(org => org.canAccessAll),
       });
-    } catch (error: any) {
-      res.status(500).json({
-        _error: 'Internal server error',
-        message: 'Failed to fetch organizations',
-      });
-    }
-  });
+    }, { errorMessage: 'Failed to fetch organizations', errorLogPrefix: '❌ Error fetch organizations', extraErrorFields: { '_error': 'Internal server error' } }));
 
   /**
    * GET /api/communication/buildings/:organizationId - Get buildings for an organization
    * Returns buildings that user has access to within a specific organization.
    */
-  app.get('/api/communication/buildings/:organizationId', requireAuth, async (req: any, res) => {
-    try {
+  app.get('/api/communication/buildings/:organizationId', requireAuth, asyncHandler(async (req: any, res) => {
       const currentUser = req.user || req.session?.user;
       if (!currentUser) {
         return res.status(401).json({
@@ -240,8 +234,8 @@ export function registerCommunicationRoutes(app: Express): void {
         });
       }
 
-      // Get buildings for this organization
-      const buildingList = await db
+      // Get all buildings for this organization
+      const allBuildings = await db
         .select({
           id: buildings.id,
           name: buildings.name,
@@ -254,14 +248,22 @@ export function registerCommunicationRoutes(app: Express): void {
         ))
         .orderBy(buildings.name);
 
+      // For admins, return all buildings
+      // For managers, filter to only buildings they have access to
+      let buildingList = allBuildings;
+      if (currentUser.role === 'manager' || currentUser.role === 'demo_manager') {
+        const accessibleBuildings = [];
+        for (const building of allBuildings) {
+          const access = await checkBuildingAccess(currentUser.id, building.id, currentUser.role);
+          if (access.hasAccess) {
+            accessibleBuildings.push(building);
+          }
+        }
+        buildingList = accessibleBuildings;
+      }
+
       res.json({ buildings: buildingList });
-    } catch (error: any) {
-      res.status(500).json({
-        _error: 'Internal server error',
-        message: 'Failed to fetch buildings',
-      });
-    }
-  });
+    }, { errorMessage: 'Failed to fetch buildings', errorLogPrefix: '❌ Error fetch buildings', extraErrorFields: { '_error': 'Internal server error' } }));
 
   /**
    * GET /api/communication/organization-context - Get organization context for communication
@@ -408,16 +410,18 @@ export function registerCommunicationRoutes(app: Express): void {
    */
   app.put('/api/communication/settings', requireAuth, async (req: any, res) => {
     try {
-      // console.log('🔍 [DEBUG] PUT /api/communication/settings endpoint called');
+      logDebug('[DEBUG] PUT /api/communication/settings endpoint called');
       
       const currentUser = req.user || req.session?.user;
       if (!currentUser) {
-        // console.log('❌ [DEBUG] No valid session found for settings update');
+        logWarn('[DEBUG] No valid session found for settings update');
         return res.status(401).json({
           message: 'Authentication required',
           code: 'AUTH_REQUIRED',
         });
       }
+
+      // Security: Don't log request body to prevent sensitive data exposure
 
       // Validate request body
       const settingsSchema = z.object({
@@ -426,7 +430,7 @@ export function registerCommunicationRoutes(app: Express): void {
 
       const { startingDate } = settingsSchema.parse(req.body);
 
-      // console.log(`🔍 [DEBUG] User ${currentUser.id} updating notification settings, starting date: ${startingDate}`);
+      logDebug('[DEBUG] User updating notification settings', { userId: currentUser.id, metadata: { startingDate } });
 
       // Update user's notification starting date
       const [updatedUser] = await db
@@ -442,20 +446,20 @@ export function registerCommunicationRoutes(app: Express): void {
         });
 
       if (!updatedUser) {
-        // console.log(`❌ [DEBUG] Failed to update settings for user ${currentUser.id}`);
+        logWarn('[DEBUG] Failed to update settings for user', { userId: currentUser.id });
         return res.status(404).json({
           message: 'User not found',
           code: 'USER_NOT_FOUND',
         });
       }
 
-      // console.log(`✅ [DEBUG] Updated notification settings for user ${currentUser.id}`);
+      logInfo('[DEBUG] Updated notification settings for user', { userId: currentUser.id });
 
       res.json({
         startingDate: updatedUser.notificationsStartingDate,
       });
     } catch (error: any) {
-      // console.error('❌ [DEBUG] Error updating settings:', error);
+      logError('[DEBUG] Error updating settings', error);
       
       if (error.name === 'ZodError') {
         return res.status(400).json({
@@ -481,8 +485,7 @@ export function registerCommunicationRoutes(app: Express): void {
    * GET /api/communication/preferences - Get user's current notification preferences
    * Returns all notification types with user's current preferences, creating defaults if none exist.
    */
-  app.get('/api/communication/preferences', requireAuth, async (req: any, res) => {
-    try {
+  app.get('/api/communication/preferences', requireAuth, asyncHandler(async (req: any, res) => {
       const currentUser = req.user || req.session?.user;
       if (!currentUser) {
         return res.status(401).json({
@@ -531,7 +534,7 @@ export function registerCommunicationRoutes(app: Express): void {
           userId: currentUser.id,
           notificationType: type,
           frequency: 'monthly',
-          isEnabled: true,
+          isEnabled: false,
           createdAt: null,
           updatedAt: null,
         };
@@ -546,7 +549,7 @@ export function registerCommunicationRoutes(app: Express): void {
           userId: currentUser.id,
           notificationType: type as any,
           frequency: 'monthly' as any,
-          isEnabled: true,
+          isEnabled: false,
           startingDate: new Date(),
         }));
 
@@ -570,14 +573,7 @@ export function registerCommunicationRoutes(app: Express): void {
 
       // console.log(`✅ Returning ${preferences.length} notification preferences`);
       res.json(preferences);
-    } catch (error: any) {
-      // console.error('❌ Error fetching notification preferences:', error);
-      res.status(500).json({
-        _error: 'Internal server error',
-        message: 'Failed to fetch notification preferences',
-      });
-    }
-  });
+    }, { errorMessage: 'Failed to fetch notification preferences', errorLogPrefix: '❌ Error fetch notification preferences', extraErrorFields: { '_error': 'Internal server error' } }));
 
   /**
    * PUT /api/communication/preferences - Update user's notification preferences
@@ -614,12 +610,10 @@ export function registerCommunicationRoutes(app: Express): void {
         ]),
         frequency: z.enum(['immediate', 'weekly', 'bi_weekly', 'monthly', 'quarterly', 'bi-annually', 'annually']),
         isEnabled: z.boolean(),
-        startingDate: z.date().optional(),
+        startingDate: z.coerce.date().optional(),
       }));
 
       const validatedUpdates = updateSchema.parse(req.body);
-
-      // console.log(`📝 Updating ${validatedUpdates.length} notification preferences for user ${currentUser.id}`);
 
       // Update each preference
       for (const update of validatedUpdates) {
@@ -637,7 +631,7 @@ export function registerCommunicationRoutes(app: Express): void {
             set: {
               frequency: update.frequency,
               isEnabled: update.isEnabled,
-              startingDate: update.startingDate || sql`starting_date`,
+              startingDate: update.startingDate || sql`${userNotificationPreferences.startingDate}`,
               updatedAt: sql`now()`,
             },
           });
@@ -649,10 +643,9 @@ export function registerCommunicationRoutes(app: Express): void {
         .from(userNotificationPreferences)
         .where(eq(userNotificationPreferences.userId, currentUser.id));
 
-      // console.log(`✅ Updated notification preferences successfully`);
       res.json(updatedPreferences);
     } catch (error: any) {
-      // console.error('❌ Error updating notification preferences:', error);
+      logError('Error updating notification preferences', error);
       
       if (error.name === 'ZodError') {
         return res.status(400).json({
@@ -722,8 +715,7 @@ export function registerCommunicationRoutes(app: Express): void {
    * POST /api/communication/preferences/reset - Reset to default preferences
    * Resets all notification preferences to defaults (monthly frequency, enabled).
    */
-  app.post('/api/communication/preferences/reset', requireAuth, async (req: any, res) => {
-    try {
+  app.post('/api/communication/preferences/reset', requireAuth, asyncHandler(async (req: any, res) => {
       const currentUser = req.user || req.session?.user;
       if (!currentUser) {
         return res.status(401).json({
@@ -762,7 +754,7 @@ export function registerCommunicationRoutes(app: Express): void {
         userId: currentUser.id,
         notificationType: type as any,
         frequency: 'monthly' as any,
-        isEnabled: true,
+        isEnabled: false,
       }));
 
       await db.insert(userNotificationPreferences).values(defaultPreferences);
@@ -775,14 +767,7 @@ export function registerCommunicationRoutes(app: Express): void {
 
       // console.log(`✅ Reset notification preferences to defaults`);
       res.json(newPreferences);
-    } catch (error: any) {
-      // console.error('❌ Error resetting notification preferences:', error);
-      res.status(500).json({
-        _error: 'Internal server error',
-        message: 'Failed to reset notification preferences',
-      });
-    }
-  });
+    }, { errorMessage: 'Failed to reset notification preferences', errorLogPrefix: '❌ Error reset notification preferences', extraErrorFields: { '_error': 'Internal server error' } }));
 
   // ==========================================
   // GENERAL COMMUNICATIONS ROUTES
@@ -795,8 +780,7 @@ export function registerCommunicationRoutes(app: Express): void {
   /**
    * GET /api/communication/organizations/:id/member-counts - Get organization member counts by role
    */
-  app.get('/api/communication/organizations/:id/member-counts', requireAuth, async (req: any, res) => {
-    try {
+  app.get('/api/communication/organizations/:id/member-counts', requireAuth, asyncHandler(async (req: any, res) => {
       const currentUser = req.user || req.session?.user;
       if (!currentUser) {
         return res.status(401).json({
@@ -859,17 +843,9 @@ export function registerCommunicationRoutes(app: Express): void {
       // console.log(`📊 Organization ${organizationId} member counts:`, counts);
 
       res.json(counts);
-    } catch (error: any) {
-      // console.error('❌ Error fetching organization member counts:', error);
-      res.status(500).json({
-        _error: 'Internal server error',
-        message: 'Failed to fetch organization member counts',
-      });
-    }
-  });
+    }, { errorMessage: 'Failed to fetch organization member counts', errorLogPrefix: '❌ Error fetch organization member counts', extraErrorFields: { '_error': 'Internal server error' } }));
 
-  app.get('/api/communication/general', requireAuth, async (req: any, res) => {
-    try {
+  app.get('/api/communication/general', requireAuth, asyncHandler(async (req: any, res) => {
       const currentUser = req.user || req.session?.user;
       if (!currentUser) {
         return res.status(401).json({
@@ -956,7 +932,30 @@ export function registerCommunicationRoutes(app: Express): void {
           .from(generalCommunications)
           .innerJoin(organizations, eq(generalCommunications.organizationId, organizations.id))
           .innerJoin(users, eq(generalCommunications.createdBy, users.id))
-          .where(inArray(generalCommunications.organizationId, orgIds))
+          .where(
+            and(
+              inArray(generalCommunications.organizationId, orgIds),
+              // A communication is visible to the caller when:
+              //   - recipientRoles IS NULL (broadcast to everyone), OR
+              //   - recipientRoles is an empty array (also broadcast), OR
+              //   - the caller's organization-scoped role for THIS comm's
+              //     organization is contained in recipientRoles.
+              // We derive the per-organization role from user_organizations
+              // (organization_role) so that a user who is, e.g., a manager in
+              // org A and a tenant in org B is filtered correctly per row.
+              sql`(
+                ${generalCommunications.recipientRoles} IS NULL
+                OR cardinality(${generalCommunications.recipientRoles}) = 0
+                OR EXISTS (
+                  SELECT 1 FROM user_organizations uo
+                  WHERE uo.user_id = ${currentUser.id}
+                    AND uo.organization_id = ${generalCommunications.organizationId}
+                    AND uo.is_active = true
+                    AND uo.organization_role = ANY(${generalCommunications.recipientRoles})
+                )
+              )`
+            )
+          )
           .orderBy(desc(generalCommunications.createdAt));
 
         // console.log(`🔒 Filtering communications for organizations: [${orgIds.join(', ')}]`);
@@ -964,14 +963,7 @@ export function registerCommunicationRoutes(app: Express): void {
 
       // console.log(`✅ Found ${communications.length} general communications`);
       res.json(communications);
-    } catch (error: any) {
-      // console.error('❌ Error fetching general communications:', error);
-      res.status(500).json({
-        _error: 'Internal server error',
-        message: 'Failed to fetch general communications',
-      });
-    }
-  });
+    }, { errorMessage: 'Failed to fetch general communications', errorLogPrefix: '❌ Error fetch general communications', extraErrorFields: { '_error': 'Internal server error' } }));
 
   /**
    * POST /api/communication/general - Send general communication (managers/admins only)
@@ -995,8 +987,19 @@ export function registerCommunicationRoutes(app: Express): void {
         });
       }
 
+      // Extract isTestMode before validation (not part of shared schema)
+      const isTestMode = req.body.isTestMode === true;
+      
+      // Set createdBy from authenticated user before validation
+      // Remove isTestMode from request body as it's not part of the schema
+      const { isTestMode: _, ...requestBodyWithoutTestMode } = req.body;
+      const requestData = {
+        ...requestBodyWithoutTestMode,
+        createdBy: currentUser.id,
+      };
+
       // Validate request body
-      const validatedData = insertGeneralCommunicationSchema.parse(req.body);
+      const validatedData = insertGeneralCommunicationSchema.parse(requestData);
 
       // Additional authorization check for urgent communications
       if (validatedData.isUrgent && !['admin', 'manager'].includes(currentUser.role)) {
@@ -1011,7 +1014,7 @@ export function registerCommunicationRoutes(app: Express): void {
       if (validatedData.isUrgent) {
         const rateLimitCheck = checkUrgentRateLimit(currentUser.id, validatedData.organizationId);
         if (!rateLimitCheck.allowed) {
-          console.warn(`⚠️ Rate limit exceeded for urgent communication by user ${currentUser.email} in org ${validatedData.organizationId}`);
+          logWarn('Rate limit exceeded for urgent communication', { userId: currentUser.id, metadata: { organizationId: validatedData.organizationId } });
           return res.status(429).json({
             message: 'Rate limit exceeded for urgent communications. Maximum 3 urgent messages per hour per organization.',
             code: 'URGENT_RATE_LIMIT_EXCEEDED',
@@ -1044,17 +1047,16 @@ export function registerCommunicationRoutes(app: Express): void {
         }
       }
 
-      // Set the creator
+      // Add timestamp (createdBy already set and validated)
       const communicationData = {
         ...validatedData,
-        createdBy: currentUser.id,
         sentAt: new Date(), // Mark as sent immediately
-      };
+      } as typeof generalCommunications.$inferInsert;
 
       // Create the communication
       const [newCommunication] = await db
         .insert(generalCommunications)
-        .values(communicationData)
+        .values([communicationData])
         .returning();
 
       // Fetch the complete communication with related data
@@ -1120,7 +1122,36 @@ export function registerCommunicationRoutes(app: Express): void {
 
         // console.log(`📧 Found ${recipientsQuery.length} recipient records, deduplicated to ${recipients.length} unique recipients`);
 
-        if (recipients.length > 0) {
+        // Handle test mode - send only to current user
+        if (isTestMode) {
+          // Test mode: only send to the current user
+          logDebug('Test mode enabled - sending only to current user', { userId: currentUser.id });
+          const finalRecipients = [{
+            email: currentUser.email,
+            firstName: currentUser.firstName,
+            lastName: currentUser.lastName,
+            language: (currentUser.language as 'fr' | 'en') || 'fr',
+            userId: currentUser.id,
+          }];
+          
+          // Send test email
+          const fullName = `${currentUser.firstName} ${currentUser.lastName}`;
+          await communicationService.sendCombinedTestEmail(
+            [{
+              type: 'announcement',
+              title: `[TEST] ${completeComm.title}`,
+              message: completeComm.content
+            }],
+            completeComm.organization.name,
+            [{
+              email: currentUser.email,
+              name: fullName,
+              language: finalRecipients[0].language
+            }]
+          );
+          
+          logInfo('Test email sent', { userId: currentUser.id });
+        } else if (recipients.length > 0) {
           // For urgent communications, send to all recipients immediately
           // For non-urgent communications, check user notification preferences
           let finalRecipients = recipients;
@@ -1156,18 +1187,23 @@ export function registerCommunicationRoutes(app: Express): void {
           }
 
           if (finalRecipients.length > 0) {
-            // Send emails to each recipient individually using existing notification method
+            // Send emails to each recipient individually with announcement notification type
             for (const recipient of finalRecipients) {
               const fullName = `${recipient.firstName} ${recipient.lastName}`;
               const language = (recipient.language as 'fr' | 'en') || 'fr';
               
-              await communicationService.sendPasswordResetEmail(
-                recipient.email,
-                fullName,
-                completeComm.title,
-                completeComm.content,
-                'announcement',
-                language
+              await communicationService.sendCombinedTestEmail(
+                [{
+                  type: 'announcement',
+                  title: completeComm.title,
+                  message: completeComm.content
+                }],
+                completeComm.organization.name,
+                [{
+                  email: recipient.email,
+                  name: fullName,
+                  language: language
+                }]
               );
             }
 
@@ -1231,8 +1267,7 @@ export function registerCommunicationRoutes(app: Express): void {
    * GET /api/communication/general/:id - Get specific communication details
    * Returns detailed information about a specific communication with organization access check.
    */
-  app.get('/api/communication/general/:id', requireAuth, async (req: any, res) => {
-    try {
+  app.get('/api/communication/general/:id', requireAuth, asyncHandler(async (req: any, res) => {
       const currentUser = req.user || req.session?.user;
       if (!currentUser) {
         return res.status(401).json({
@@ -1306,14 +1341,7 @@ export function registerCommunicationRoutes(app: Express): void {
 
       // console.log(`✅ Returning communication ${communicationId}`);
       res.json(communication);
-    } catch (error: any) {
-      // console.error('❌ Error fetching communication:', error);
-      res.status(500).json({
-        _error: 'Internal server error',
-        message: 'Failed to fetch communication',
-      });
-    }
-  });
+    }, { errorMessage: 'Failed to fetch communication', errorLogPrefix: '❌ Error fetch communication', extraErrorFields: { '_error': 'Internal server error' } }));
 
   // ==========================================
   // MEETINGS ROUTES
@@ -1323,8 +1351,7 @@ export function registerCommunicationRoutes(app: Express): void {
    * GET /api/communication/meetings - Get meetings for user's organization(s)
    * Returns meetings based on user's role and organization access.
    */
-  app.get('/api/communication/meetings', requireAuth, async (req: any, res) => {
-    try {
+  app.get('/api/communication/meetings', requireAuth, asyncHandler(async (req: any, res) => {
       const currentUser = req.user || req.session?.user;
       if (!currentUser) {
         return res.status(401).json({
@@ -1421,14 +1448,7 @@ export function registerCommunicationRoutes(app: Express): void {
 
       // console.log(`✅ Found ${meetingList.length} meetings`);
       res.json(meetingList);
-    } catch (error: any) {
-      // console.error('❌ Error fetching meetings:', error);
-      res.status(500).json({
-        _error: 'Internal server error',
-        message: 'Failed to fetch meetings',
-      });
-    }
-  });
+    }, { errorMessage: 'Failed to fetch meetings', errorLogPrefix: '❌ Error fetch meetings', extraErrorFields: { '_error': 'Internal server error' } }));
 
   /**
    * POST /api/communication/meetings - Create meeting and send invites (managers/admins only)
@@ -1484,12 +1504,12 @@ export function registerCommunicationRoutes(app: Express): void {
         ...validatedData,
         createdBy: currentUser.id,
         sentAt: new Date(), // Mark invites as sent immediately
-      };
+      } as typeof meetings.$inferInsert;
 
       // Create the meeting
       const [newMeeting] = await db
         .insert(meetings)
-        .values(meetingData)
+        .values([meetingData])
         .returning();
 
       // Fetch the complete meeting with related data
@@ -1559,17 +1579,17 @@ export function registerCommunicationRoutes(app: Express): void {
           // Send meeting invitations for each language group
           for (const [language, emailAddresses] of Object.entries(recipientsByLanguage)) {
             await communicationService.sendMeetingInvitation(
+              emailAddresses,
               {
                 title: completeMeeting.title,
                 description: completeMeeting.description || undefined,
                 location: completeMeeting.location,
                 scheduledDate: completeMeeting.scheduledDate,
                 duration: completeMeeting.duration,
-                organizationName: completeMeeting.organization.name,
                 organizerName: `${completeMeeting.creator.firstName} ${completeMeeting.creator.lastName}`,
                 organizerEmail: completeMeeting.creator.email,
+                organizationName: completeMeeting.organization.name,
               },
-              emailAddresses,
               language as 'fr' | 'en'
             );
           }
@@ -1708,8 +1728,7 @@ export function registerCommunicationRoutes(app: Express): void {
    * DELETE /api/communication/meetings/:id - Cancel meeting (creators/admins only)
    * Cancels an existing meeting by deleting it.
    */
-  app.delete('/api/communication/meetings/:id', requireAuth, async (req: any, res) => {
-    try {
+  app.delete('/api/communication/meetings/:id', requireAuth, asyncHandler(async (req: any, res) => {
       const currentUser = req.user || req.session?.user;
       if (!currentUser) {
         return res.status(401).json({
@@ -1751,14 +1770,7 @@ export function registerCommunicationRoutes(app: Express): void {
 
       // console.log(`✅ Cancelled meeting ${meetingId}`);
       res.status(204).send();
-    } catch (error: any) {
-      // console.error('❌ Error cancelling meeting:', error);
-      res.status(500).json({
-        _error: 'Internal server error',
-        message: 'Failed to cancel meeting',
-      });
-    }
-  });
+    }, { errorMessage: 'Failed to cancel meeting', errorLogPrefix: '❌ Error cancel meeting', extraErrorFields: { '_error': 'Internal server error' } }));
 
   // ==========================================
   // NOTIFICATION CONFIGURATIONS ROUTES
@@ -1842,7 +1854,7 @@ export function registerCommunicationRoutes(app: Express): void {
           timezone: notificationConfigurations.timezone,
           createdAt: notificationConfigurations.createdAt,
           updatedAt: notificationConfigurations.updatedAt,
-          creatorName: sql<string>`${users.firstName} || ' ' || ${users.lastName}`.as('creatorName'),
+          createdByName: sql<string>`${users.firstName} || ' ' || ${users.lastName}`.as('createdByName'),
         })
         .from(notificationConfigurations)
         .leftJoin(users, eq(notificationConfigurations.createdBy, users.id))
@@ -1899,7 +1911,7 @@ export function registerCommunicationRoutes(app: Express): void {
       const validatedData = insertNotificationConfigurationSchema.parse({
         ...req.body,
         createdBy: currentUser.id,
-      });
+      }) as typeof notificationConfigurations.$inferInsert;
 
       // SECURITY FIX: Verify user has access to this specific building
       const hasAccess = await authorizeBuildingAccess(
@@ -1919,7 +1931,7 @@ export function registerCommunicationRoutes(app: Express): void {
       // Create the notification configuration
       const [newConfig] = await db
         .insert(notificationConfigurations)
-        .values(validatedData)
+        .values([validatedData])
         .returning();
 
       // console.log(`✅ Created notification configuration ${newConfig.id} by user ${currentUser.id}`);
@@ -2006,10 +2018,24 @@ export function registerCommunicationRoutes(app: Express): void {
       }
 
       // Create partial update schema by making most fields optional
-      const partialUpdateSchema = insertNotificationConfigurationSchema.partial().omit({
-        organizationId: true,
-        buildingId: true,
-        createdBy: true,
+      // Note: Cannot use .partial() on refined schema, so we manually define optional fields
+      const partialUpdateSchema = z.object({
+        type: z.enum(['seasonal_reminder', 'announcement']).optional(),
+        title: z.string().min(1, 'Title is required').optional(),
+        message: z.string().min(1, 'Message is required').optional(),
+        frequency: z.enum(['unique', 'weekly', 'bi_weekly', 'monthly', 'quarterly', 'bi-annually', 'annually']).optional(),
+        startDate: z.coerce.date().optional(),
+        isActive: z.boolean().optional(),
+        endsAt: z.coerce.date().optional(),
+        timezone: z.string().optional(),
+      }).refine((data) => {
+        if (data.endsAt && data.startDate) {
+          return data.endsAt >= data.startDate;
+        }
+        return true;
+      }, {
+        message: 'End date must be on or after the start date',
+        path: ['endsAt'],
       });
 
       // Validate the partial update data
@@ -2051,8 +2077,7 @@ export function registerCommunicationRoutes(app: Express): void {
    * DELETE /api/communication/notification-configs/:id - Delete notification configuration
    * Soft deletes a notification configuration by setting isActive to false.
    */
-  app.delete('/api/communication/notification-configs/:id', requireAuth, async (req: any, res) => {
-    try {
+  app.delete('/api/communication/notification-configs/:id', requireAuth, asyncHandler(async (req: any, res) => {
       const currentUser = req.user || req.session?.user;
       if (!currentUser) {
         return res.status(401).json({
@@ -2120,14 +2145,7 @@ export function registerCommunicationRoutes(app: Express): void {
       // console.log(`✅ Soft deleted notification configuration ${id} by user ${currentUser.id}`);
 
       res.status(204).send();
-    } catch (error: any) {
-      // console.error('❌ Error deleting notification configuration:', error);
-      res.status(500).json({
-        _error: 'Internal server error',
-        message: 'Failed to delete notification configuration',
-      });
-    }
-  });
+    }, { errorMessage: 'Failed to delete notification configuration', errorLogPrefix: '❌ Error delete notification configuration', extraErrorFields: { '_error': 'Internal server error' } }));
 
   /**
    * POST /api/communication/notification-configs/:id/preview - Send notification preview
@@ -2229,8 +2247,6 @@ export function registerCommunicationRoutes(app: Express): void {
         recipient.email,
         recipient.name,
         config.title,
-        config.message,
-        config.type,
         recipient.language
       );
 
@@ -2290,7 +2306,7 @@ export function registerCommunicationRoutes(app: Express): void {
 
       const { language } = testEmailSchema.parse(req.body);
 
-      // console.log(`📧 Sending combined test email to user ${currentUser.email} in ${language}`);
+      logInfo('Sending combined test email to user', { userId: currentUser.id, metadata: { language } });
 
       // Get user's organization for context
       const [userOrganization] = await db
@@ -2346,28 +2362,27 @@ export function registerCommunicationRoutes(app: Express): void {
       }];
 
       // Send combined test email
-      const success = await communicationService.sendSystemNotification(
+      const success = await communicationService.sendCombinedTestEmail(
         notificationsData,
         userOrganization.name,
-        recipients,
-        true // isTestEmail
+        recipients
       );
 
       if (success) {
-        // console.log(`✅ Combined test email sent successfully to ${currentUser.email}`);
+        logInfo('Combined test email sent successfully', { userId: currentUser.id });
         res.json({
           success: true,
           message: `Combined test email sent to ${currentUser.email}`,
         });
       } else {
-        // console.error(`❌ Failed to send combined test email to ${currentUser.email}`);
+        logError('Failed to send combined test email');
         res.status(500).json({
           success: false,
           message: 'Failed to send combined test email',
         });
       }
     } catch (error: any) {
-      // console.error('❌ Error sending combined test email:', error);
+      logError('Error sending combined test email', error);
       
       if (error.name === 'ZodError') {
         return res.status(400).json({
@@ -2438,14 +2453,19 @@ export function registerCommunicationRoutes(app: Express): void {
       // Generate sample notification content based on type
       const notificationContent = generateTestNotificationContent(notificationType, currentUser, userOrganization, language);
 
-      // Send the test email using the email service
-      const success = await communicationService.sendPasswordResetEmail(
-        currentUser.email,
-        `${currentUser.firstName} ${currentUser.lastName}`,
-        notificationContent.subject,
-        notificationContent.message,
-        notificationType,
-        language
+      // Send the test email using the combined test email service (with single notification)
+      const success = await communicationService.sendCombinedTestEmail(
+        [{
+          type: notificationType,
+          title: notificationContent.subject.replace(` - ${userOrganization.name}`, ''),
+          message: notificationContent.message,
+        }],
+        userOrganization.name,
+        [{
+          email: currentUser.email,
+          name: `${currentUser.firstName} ${currentUser.lastName}`,
+          language: language as 'fr' | 'en',
+        }]
       );
 
       if (success) {
@@ -2532,6 +2552,30 @@ function generateTestNotificationContent(
         subject: `Confirmation de paiement - ${orgName}`,
         message: `Bonjour ${userName}, confirmation de votre paiement pour ${orgName}:\n\nDate de paiement: 20 décembre 2024\nMontant: 850,00 $\nFournisseur: Gestion ABC Inc.\nNote: Paiement reçu et traité - merci`,
       },
+      system: {
+        subject: `Notification système - ${orgName}`,
+        message: `Bonjour ${userName}, notification système importante pour ${orgName}: Les paramètres de sécurité ont été mis à jour. Veuillez vérifier vos informations.`,
+      },
+      new_building_document: {
+        subject: `Nouveau document disponible - ${orgName}`,
+        message: `Bonjour ${userName}, un nouveau document important a été ajouté pour ${orgName}: "Règlements de copropriété mis à jour". Consultez-le dans votre espace documents.`,
+      },
+      meeting_invite: {
+        subject: `Invitation à une réunion - ${orgName}`,
+        message: `Bonjour ${userName}, vous êtes invité à l'assemblée générale annuelle de ${orgName} le 15 février 2025 à 19h00 dans la salle communautaire.`,
+      },
+      maintenance_completed: {
+        subject: `Travaux complétés - ${orgName}`,
+        message: `Bonjour ${userName}, les travaux de rénovation du hall d'entrée de ${orgName} sont maintenant complétés. Merci pour votre patience durant les travaux.`,
+      },
+      policy_change: {
+        subject: `Changement de politique - ${orgName}`,
+        message: `Bonjour ${userName}, une mise à jour importante des politiques de ${orgName}: Les heures d'utilisation de la salle commune sont maintenant de 8h à 22h. Consultez le règlement complet.`,
+      },
+      seasonal_reminder: {
+        subject: `Rappel saisonnier - ${orgName}`,
+        message: `Bonjour ${userName}, rappel saisonnier pour ${orgName}: N'oubliez pas de fermer les fenêtres avant votre départ en vacances et de vérifier les thermostats.`,
+      },
     },
     en: {
       bill_reminder: {
@@ -2569,6 +2613,30 @@ function generateTestNotificationContent(
       bill_paid_last_month: {
         subject: `Payment Confirmation - ${orgName}`,
         message: `Hello ${userName}, confirmation of your payment for ${orgName}:\n\nPayment Date: December 20, 2024\nPayment: $850.00\nVendor: ABC Management Inc.\nNote: Payment received and processed - thank you`,
+      },
+      system: {
+        subject: `System Notification - ${orgName}`,
+        message: `Hello ${userName}, important system notification for ${orgName}: Security settings have been updated. Please verify your information.`,
+      },
+      new_building_document: {
+        subject: `New Document Available - ${orgName}`,
+        message: `Hello ${userName}, a new important document has been added for ${orgName}: "Updated Condo Regulations". View it in your documents section.`,
+      },
+      meeting_invite: {
+        subject: `Meeting Invitation - ${orgName}`,
+        message: `Hello ${userName}, you are invited to the annual general assembly of ${orgName} on February 15, 2025 at 7:00 PM in the community room.`,
+      },
+      maintenance_completed: {
+        subject: `Work Completed - ${orgName}`,
+        message: `Hello ${userName}, the entrance hall renovation work at ${orgName} is now complete. Thank you for your patience during the work.`,
+      },
+      policy_change: {
+        subject: `Policy Change - ${orgName}`,
+        message: `Hello ${userName}, an important policy update for ${orgName}: Common room usage hours are now 8am to 10pm. View the complete regulations.`,
+      },
+      seasonal_reminder: {
+        subject: `Seasonal Reminder - ${orgName}`,
+        message: `Hello ${userName}, seasonal reminder for ${orgName}: Don't forget to close windows before leaving for vacation and check your thermostats.`,
       },
     },
   };

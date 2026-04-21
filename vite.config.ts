@@ -2,7 +2,6 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 import runtimeErrorOverlay from '@replit/vite-plugin-runtime-error-modal';
-
 export default defineConfig({
   plugins: [react(), runtimeErrorOverlay()],
   resolve: {
@@ -18,26 +17,34 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       output: {
-        manualChunks: {
-          // Vendor chunks - group large libraries
-          'vendor-react': ['react', 'react-dom'],
-          'vendor-ui': [
-            '@radix-ui/react-dialog',
-            '@radix-ui/react-dropdown-menu',
-            '@radix-ui/react-tabs',
-            '@radix-ui/react-toast',
-            '@radix-ui/react-select',
-            '@radix-ui/react-accordion',
-            '@radix-ui/react-popover',
-          ],
-          'vendor-forms': ['react-hook-form', '@hookform/resolvers', 'zod'],
-          'vendor-query': ['@tanstack/react-query'],
-          'vendor-charts': ['recharts'],
-          'vendor-utils': ['clsx', 'tailwind-merge', 'class-variance-authority'],
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('react-dom') || (id.includes('/react/') && !id.includes('react-'))) return 'vendor-react';
+            if (id.includes('@radix-ui')) return 'vendor-ui';
+            if (id.includes('react-hook-form') || id.includes('@hookform') || id.includes('/zod/')) return 'vendor-forms';
+            if (id.includes('@tanstack/react-query')) return 'vendor-query';
+            if (id.includes('recharts') || id.includes('d3-') || id.includes('victory-vendor')) return 'vendor-charts';
+            if (id.includes('clsx') || id.includes('tailwind-merge') || id.includes('class-variance-authority')) return 'vendor-utils';
+            if (id.includes('date-fns')) return 'vendor-date-fns';
+            if (id.includes('lucide-react')) return 'vendor-icons';
+            if (id.includes('cmdk')) return 'vendor-cmdk';
+            if (id.includes('dompurify') || id.includes('isomorphic-dompurify') || id.includes('purify')) return 'vendor-sanitize';
+            if (id.includes('marked')) return 'vendor-markdown';
+            if (id.includes('wouter')) return 'vendor-router';
+            if (id.includes('embla-carousel')) return 'vendor-carousel';
+            if (id.includes('framer-motion')) return 'vendor-motion';
+            if (id.includes('input-otp')) return 'vendor-otp';
+            if (id.includes('react-day-picker')) return 'vendor-datepicker';
+            if (id.includes('react-resizable-panels')) return 'vendor-panels';
+            if (id.includes('vaul')) return 'vendor-drawer';
+            if (id.includes('sonner')) return 'vendor-sonner';
+          }
         },
       },
     },
-    chunkSizeWarningLimit: 800, // Increase the warning limit
+    // Default Vite warning limit. Kept explicit so chunk-size regressions
+    // are surfaced loudly during build.
+    chunkSizeWarningLimit: 500,
   },
   server: {
     host: '0.0.0.0',

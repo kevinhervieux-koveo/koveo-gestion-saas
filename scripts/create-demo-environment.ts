@@ -825,12 +825,24 @@ async function seedBookings(
       
       console.log(`   Creating ${BOOKINGS_PER_RESERVABLE_SPACE} bookings for ${space.name}`);
       
+      // Bias roughly half of bookings to within ±30 days of today (and at least 4),
+      // so demo environments always show fresh data on the current-month calendar.
+      const today = new Date();
+      const nearWindowStart = new Date(today);
+      nearWindowStart.setDate(today.getDate() - 30);
+      const nearWindowEnd = new Date(today);
+      nearWindowEnd.setDate(today.getDate() + 30);
+      const nearCount = Math.max(4, Math.ceil(BOOKINGS_PER_RESERVABLE_SPACE / 2));
+      
       for (let i = 0; i < BOOKINGS_PER_RESERVABLE_SPACE; i++) {
         const user = spaceUsers[Math.floor(Math.random() * spaceUsers.length)];
-        const startDate = faker.date.between({
-          from: new Date(new Date().getFullYear(), 0, 1),
-          to: new Date(new Date().getFullYear(), 11, 31)
-        });
+        const useNearWindow = i < nearCount;
+        const startDate = useNearWindow
+          ? faker.date.between({ from: nearWindowStart, to: nearWindowEnd })
+          : faker.date.between({
+              from: new Date(today.getFullYear(), 0, 1),
+              to: new Date(today.getFullYear(), 11, 31)
+            });
         
         const startTime = new Date(startDate);
         startTime.setHours(faker.number.int({ min: 8, max: 20 }), 0, 0, 0);

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCreateUpdateMutation } from '@/lib/common-hooks';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -69,24 +70,16 @@ export function OrganizationsCard({ className }: OrganizationsCardProps) {
   });
 
   // Delete organization mutation
-  const deleteMutation = useMutation({
+  const deleteMutation = useCreateUpdateMutation<unknown, string>({
     mutationFn: async (organizationId: string) => {
       return apiRequest('DELETE', `/api/organizations/${organizationId}`);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/organizations'] });
-      toast({
-        title: 'Organization Deleted',
-        description: 'Organization deleted successfully',
-      });
+    successTitle: 'Organization Deleted',
+    successMessage: 'Organization deleted successfully',
+    errorMessage: (error) => error?.message || 'Failed to delete organization',
+    queryKeysToInvalidate: [['/api/organizations']],
+    onSuccessCallback: () => {
       setDeletingOrganization(null);
-    },
-    onError: (_error: Error) => {
-      toast({
-        title: 'Error',
-        description: _error.message || 'Failed to delete organization',
-        variant: 'destructive',
-      });
     },
   });
 

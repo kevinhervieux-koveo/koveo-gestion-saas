@@ -28,6 +28,8 @@ interface UniformatCode {
   descriptionEn?: string;
   typicalLifespan?: number;
   category: string;
+  synonymsEn?: string[];
+  synonymsFr?: string[];
 }
 
 interface UniformatBrowserProps {
@@ -102,37 +104,66 @@ export function UniformatBrowser({
   const treeData = useMemo(() => {
     if (!uniformatCodes.length) return [];
 
-    // Filter codes based on search and filters
-    let filteredCodes = uniformatCodes;
-
-    if (searchTerm) {
-      const search = searchTerm.toLowerCase();
-      filteredCodes = uniformatCodes.filter(code => 
-        code.code.toLowerCase().includes(search) ||
+    // Helper to check if a code matches search criteria
+    const matchesSearch = (code: UniformatCode, search: string): boolean => {
+      return code.code.toLowerCase().includes(search) ||
         code.nameEn.toLowerCase().includes(search) ||
         code.nameFr.toLowerCase().includes(search) ||
         (code.descriptionEn && code.descriptionEn.toLowerCase().includes(search)) ||
-        (code.descriptionFr && code.descriptionFr.toLowerCase().includes(search))
+        (code.descriptionFr && code.descriptionFr.toLowerCase().includes(search)) ||
+        (code.synonymsEn && code.synonymsEn.some(syn => syn.toLowerCase().includes(search))) ||
+        (code.synonymsFr && code.synonymsFr.some(syn => syn.toLowerCase().includes(search)));
+    };
+
+    // Helper to get all parent codes for a given code
+    const getParentCodes = (code: UniformatCode): string[] => {
+      const parents: string[] = [];
+      let currentParent = code.parentCode;
+      while (currentParent) {
+        parents.push(currentParent);
+        const parentCode = uniformatCodes.find(c => c.code === currentParent);
+        currentParent = parentCode?.parentCode;
+      }
+      return parents;
+    };
+
+    // Filter codes based on search and filters
+    let matchingCodes = uniformatCodes;
+
+    if (searchTerm) {
+      const search = searchTerm.toLowerCase();
+      const directMatches = uniformatCodes.filter(code => matchesSearch(code, search));
+      
+      // Collect all parent codes needed to display the hierarchy
+      const parentCodesNeeded = new Set<string>();
+      directMatches.forEach(code => {
+        getParentCodes(code).forEach(pc => parentCodesNeeded.add(pc));
+      });
+      
+      // Include both direct matches and their parents
+      const matchingCodeSet = new Set(directMatches.map(c => c.code));
+      matchingCodes = uniformatCodes.filter(code => 
+        matchingCodeSet.has(code.code) || parentCodesNeeded.has(code.code)
       );
     }
 
     if (levelFilter !== 'all') {
-      filteredCodes = filteredCodes.filter(code => code.level === parseInt(levelFilter));
+      matchingCodes = matchingCodes.filter(code => code.level === parseInt(levelFilter));
     }
 
     if (categoryFilter !== 'all') {
-      filteredCodes = filteredCodes.filter(code => code.category === categoryFilter);
+      matchingCodes = matchingCodes.filter(code => code.category === categoryFilter);
     }
 
     if (showFavorites) {
-      filteredCodes = filteredCodes.filter(code => favoritesCodes.includes(code.code));
+      matchingCodes = matchingCodes.filter(code => favoritesCodes.includes(code.code));
     }
 
     // Create tree structure
     const nodeMap = new Map<string, TreeNode>();
     
     // Initialize all nodes
-    filteredCodes.forEach(code => {
+    matchingCodes.forEach(code => {
       nodeMap.set(code.code, {
         ...code,
         children: [],
@@ -144,7 +175,7 @@ export function UniformatBrowser({
     // Build parent-child relationships
     const rootNodes: TreeNode[] = [];
     
-    filteredCodes.forEach(code => {
+    matchingCodes.forEach(code => {
       const node = nodeMap.get(code.code);
       if (!node) return;
 

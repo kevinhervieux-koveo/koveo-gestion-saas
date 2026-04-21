@@ -32,13 +32,10 @@ export {
 
 // Export bill-related queries
 export {
-  getBillsForUser,
-  getBillsForResidence,
-  getOverdueBills,
-  getBillsByStatus,
-  getBillsByDateRange,
-  getBillById,
+  getBillWithPayments,
+  getBillsWithPayments,
   getBillSummary,
+  type BillWithPayments,
 } from './bills-queries';
 
 // Export maintenance request queries
@@ -55,15 +52,11 @@ export {
 
 // Export building-related queries
 export {
-  getBuildingsForUser,
-  getBuildingById,
-  getBuildingsByOrganization,
-  searchBuildings,
-  getBuildingStatistics,
-  getBuildingsWithOccupancy,
-  getBuildingsByType,
-  getBuildingSummary,
-} from './building-queries';
+  getAllBuildings,
+  getBuildingsByOrganizationIds,
+  getBuildingsByIds,
+  getBuildingIdsForResident,
+} from './buildings-queries';
 
 // Export user-related queries
 export {

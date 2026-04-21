@@ -1,18 +1,9 @@
 import express from 'express';
 import { z } from 'zod';
-import { MailService } from '@sendgrid/mail';
+import { emailService } from '../services/email-service';
+import { maskEmail } from '../utils/logger';
 
 const router = express.Router();
-
-// Initialize SendGrid
-if (!process.env.SENDGRID_API_KEY) {
-  // console.warn('⚠️ SENDGRID_API_KEY environment variable is not set');
-}
-
-const mailService = new MailService();
-if (process.env.SENDGRID_API_KEY) {
-  mailService.setApiKey(process.env.SENDGRID_API_KEY);
-}
 
 // Validation schema for trial request
 const trialRequestSchema = z.object({
@@ -28,15 +19,17 @@ const trialRequestSchema = z.object({
   numberOfBuildings: z.string().refine((val) => parseInt(val) > 0, 'Must be a positive number'),
   numberOfResidences: z.string().refine((val) => parseInt(val) > 0, 'Must be a positive number'),
   message: z.string().optional(),
+  language: z.enum(['fr', 'en']).optional().default('fr'),
 });
 
 type TrialRequestData = z.infer<typeof trialRequestSchema>;
 
 /**
- * POST /api/trial-request
+ * POST /api/trial-requests
  * Sends a trial request email to Koveo Gestion.
+ * Sends both admin notification and user confirmation emails.
  */
-router.post('/trial-request', async (req, res) => {
+router.post('/trial-requests', async (req, res) => {
   try {
     // Validate request data
     const validationResult = trialRequestSchema.safeParse(req.body);
@@ -49,188 +42,148 @@ router.post('/trial-request', async (req, res) => {
     }
 
     const data: TrialRequestData = validationResult.data;
+    const language = data.language || 'fr';
 
-    // Check if SendGrid is configured
-    if (!process.env.SENDGRID_API_KEY) {
-      return res.status(500).json({
-        message: 'Email service not configured',
+    // Track email sending results
+    let adminEmailSent = false;
+    let confirmationEmailSent = false;
+    const errors: string[] = [];
+
+    // Attempt to send admin notification email
+    try {
+      console.log(`📧 Sending admin notification for trial request from ${data.company} (${maskEmail(data.email)})`);
+      adminEmailSent = await emailService.sendTrialRequestAdminNotification({
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        phone: data.phone,
+        company: data.company,
+        address: data.address,
+        city: data.city,
+        province: data.province,
+        postalCode: data.postalCode,
+        numberOfBuildings: data.numberOfBuildings,
+        numberOfResidences: data.numberOfResidences,
+        message: data.message,
       });
-    }
 
-    // Prepare email content
-    const emailSubject = `Nouvelle demande d'essai gratuit - ${data.company}`;
-
-    const emailText = `
-Nouvelle demande d'essai gratuit pour Koveo Gestion
-
-INFORMATIONS DU CONTACT:
-- Nom: ${data.firstName} ${data.lastName}
-- Entreprise: ${data.company}
-- Courriel: ${data.email}
-- Téléphone: ${data.phone}
-
-ADRESSE:
-${data.address ? `- Adresse: ${data.address}` : ''}
-${data.city ? `- Ville: ${data.city}` : ''}
-${data.province ? `- Province: ${data.province}` : ''}
-${data.postalCode ? `- Code postal: ${data.postalCode}` : ''}
-
-INFORMATIONS SUR LES PROPRIÉTÉS:
-- Nombre de bâtiments: ${data.numberOfBuildings}
-- Nombre de résidences: ${data.numberOfResidences}
-
-${data.message ? `MESSAGE ADDITIONNEL:\n${data.message}` : ''}
-
----
-Cette demande a été soumise via le site web Koveo Gestion.
-    `.trim();
-
-    const emailHtml = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8">
-  <title>Nouvelle demande d'essai gratuit</title>
-  <style>
-    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-    .header { background-color: #2563eb; color: white; padding: 20px; text-align: center; }
-    .content { padding: 20px; background-color: #f9fafb; }
-    .section { margin-bottom: 20px; }
-    .section h3 { color: #2563eb; margin-bottom: 10px; }
-    .info-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; margin-bottom: 10px; }
-    .label { font-weight: bold; }
-    .highlight { background-color: #dbeafe; padding: 15px; border-radius: 5px; }
-    .footer { text-align: center; color: #666; font-size: 12px; margin-top: 30px; }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h1>Nouvelle demande d'essai gratuit</h1>
-      <p>Koveo Gestion</p>
-    </div>
-    
-    <div class="content">
-      <div class="section">
-        <h3>Informations du contact</h3>
-        <div class="info-grid">
-          <span class="label">Nom:</span>
-          <span>${data.firstName} ${data.lastName}</span>
-          <span class="label">Entreprise:</span>
-          <span>${data.company}</span>
-          <span class="label">Courriel:</span>
-          <span><a href="mailto:${data.email}">${data.email}</a></span>
-          <span class="label">Téléphone:</span>
-          <span><a href="tel:${data.phone}">${data.phone}</a></span>
-        </div>
-      </div>
-
-      ${
-        data.address || data.city || data.province || data.postalCode
-          ? `
-      <div class="section">
-        <h3>Adresse</h3>
-        <div class="info-grid">
-          ${data.address ? `<span class="label">Adresse:</span><span>${data.address}</span>` : ''}
-          ${data.city ? `<span class="label">Ville:</span><span>${data.city}</span>` : ''}
-          ${data.province ? `<span class="label">Province:</span><span>${data.province}</span>` : ''}
-          ${data.postalCode ? `<span class="label">Code postal:</span><span>${data.postalCode}</span>` : ''}
-        </div>
-      </div>
-      `
-          : ''
+      if (!adminEmailSent) {
+        const errorMsg = 'Failed to send admin notification email';
+        console.error(`❌ ${errorMsg}`);
+        errors.push(errorMsg);
       }
-
-      <div class="section highlight">
-        <h3>Informations sur les propriétés</h3>
-        <div class="info-grid">
-          <span class="label">Nombre de bâtiments:</span>
-          <span><strong>${data.numberOfBuildings}</strong></span>
-          <span class="label">Nombre de résidences:</span>
-          <span><strong>${data.numberOfResidences}</strong></span>
-        </div>
-      </div>
-
-      ${
-        data.message
-          ? `
-      <div class="section">
-        <h3>Message additionnel</h3>
-        <p>${data.message.replace(/\n/g, '<br>')}</p>
-      </div>
-      `
-          : ''
+    } catch (adminError: any) {
+      const errorMsg = `Admin email error: ${adminError.message || 'Unknown error'}`;
+      console.error('❌ Error sending admin notification:', adminError);
+      
+      // Log detailed SendGrid error information
+      if (adminError.response) {
+        console.error('SendGrid API response:', {
+          statusCode: adminError.response?.statusCode,
+          body: adminError.response?.body,
+          headers: adminError.response?.headers,
+        });
       }
       
-      <div class="footer">
-        <p>Cette demande a été soumise via le site web Koveo Gestion</p>
-        <p>Date: ${new Date().toLocaleDateString('fr-CA', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-          timeZone: 'America/Toronto',
-        })}</p>
-      </div>
-    </div>
-  </div>
-</body>
-</html>
-    `.trim();
+      errors.push(errorMsg);
+    }
 
-    // Send email via SendGrid
-    const emailData = {
-      to: 'info@koveo-gestion.com',
-      from: {
-        email: 'noreply@koveo-gestion.com',
-        name: "Koveo Gestion - Demandes d'essai",
-      },
-      replyTo: {
-        email: data.email,
-        name: `${data.firstName} ${data.lastName}`,
-      },
-      subject: emailSubject,
-      text: emailText,
-      html: emailHtml,
-      trackingSettings: {
-        clickTracking: { enable: false },
-        openTracking: { enable: false },
-        subscriptionTracking: { enable: false },
-      },
-      mailSettings: {
-        sandboxMode: { enable: false },
-      },
-    };
+    // Attempt to send user confirmation email
+    try {
+      console.log(`📧 Sending confirmation email to ${maskEmail(data.email)} in ${language}`);
+      confirmationEmailSent = await emailService.sendTrialRequestConfirmation(
+        {
+          firstName: data.firstName,
+          lastName: data.lastName,
+          email: data.email,
+          company: data.company,
+          numberOfBuildings: data.numberOfBuildings,
+          numberOfResidences: data.numberOfResidences,
+        },
+        language
+      );
 
-    await mailService.send(emailData);
+      if (!confirmationEmailSent) {
+        const errorMsg = 'Failed to send confirmation email to requester';
+        console.error(`❌ ${errorMsg}`);
+        errors.push(errorMsg);
+      }
+    } catch (confirmError: any) {
+      const errorMsg = `Confirmation email error: ${confirmError.message || 'Unknown error'}`;
+      console.error('❌ Error sending confirmation email:', confirmError);
+      
+      // Log detailed SendGrid error information
+      if (confirmError.response) {
+        console.error('SendGrid API response:', {
+          statusCode: confirmError.response?.statusCode,
+          body: confirmError.response?.body,
+          headers: confirmError.response?.headers,
+        });
+      }
+      
+      errors.push(errorMsg);
+    }
 
-    // Log successful request
-    console.log(`✅ Trial request sent successfully for ${data.company} (${data.email})`);
-
-    res.status(200).json({
-      message: 'Trial request sent successfully',
-      success: true,
-    });
+    // Determine overall success status
+    if (!adminEmailSent && !confirmationEmailSent) {
+      // Both emails failed
+      console.error(`❌ Both trial request emails failed for ${data.company} (${maskEmail(data.email)})`);
+      return res.status(500).json({
+        message: 'Failed to send trial request emails',
+        success: false,
+        errors,
+      });
+    } else if (!adminEmailSent) {
+      // Only admin email failed
+      console.warn(`⚠️ Admin notification failed but confirmation sent for ${data.company} (${maskEmail(data.email)})`);
+      return res.status(207).json({
+        message: 'Trial request partially processed - admin notification failed',
+        success: true,
+        partial: true,
+        adminEmailSent: false,
+        confirmationEmailSent: true,
+        errors,
+      });
+    } else if (!confirmationEmailSent) {
+      // Only confirmation email failed
+      console.warn(`⚠️ Confirmation email failed but admin notified for ${data.company} (${maskEmail(data.email)})`);
+      return res.status(207).json({
+        message: 'Trial request partially processed - confirmation email failed',
+        success: true,
+        partial: true,
+        adminEmailSent: true,
+        confirmationEmailSent: false,
+        errors,
+      });
+    } else {
+      // Both emails succeeded
+      console.log(`✅ Trial request processed successfully for ${data.company} (${maskEmail(data.email)})`);
+      return res.status(200).json({
+        message: 'Trial request sent successfully',
+        success: true,
+        adminEmailSent: true,
+        confirmationEmailSent: true,
+      });
+    }
 
   } catch (error: any) {
     console.error('❌ Error processing trial request:', error);
 
-    // Send appropriate error response
-    if (error.code) {
-      const sgError = error as { code: number; message: string };
-      console.error('SendGrid error details:', sgError);
-
-      return res.status(500).json({
-        message: 'Failed to send trial request email',
-        error: 'Email service error',
+    // Log detailed error information
+    if (error.response) {
+      console.error('SendGrid API error details:', {
+        statusCode: error.response?.statusCode,
+        body: error.response?.body,
+        headers: error.response?.headers,
       });
+    } else if (error.code) {
+      console.error('Error code:', error.code);
     }
 
-    res.status(500).json({
-      message: 'Internal server error',
-      error: 'Failed to process request',
+    return res.status(500).json({
+      message: 'Internal server error while processing trial request',
+      error: error.message || 'Failed to process request',
+      success: false,
     });
   }
 });

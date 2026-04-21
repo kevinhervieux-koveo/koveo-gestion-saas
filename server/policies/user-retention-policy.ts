@@ -8,6 +8,7 @@
 import { db } from '../db';
 import * as schema from '../../shared/schema';
 import { eq, and, inArray, isNull } from 'drizzle-orm';
+import { maskEmail } from '../utils/logger';
 
 export interface UserRetentionResult {
   usersAffected: number;
@@ -93,7 +94,7 @@ export async function preserveUsersInCascadeOperation(
   
   if (affectedUsers.length > 0) {
     console.log(`🛡️ User Retention Policy: Preserving ${affectedUsers.length} users from automatic deletion`);
-    console.log(`🛡️ Preserved users: ${affectedUsers.map(u => u.email).join(', ')}`);
+    console.log(`🛡️ Preserved users: ${affectedUsers.map(u => maskEmail(u.email)).join(', ')}`);
     
     result.recommendedActions = [
       'Review preserved users to determine if they should be reassigned to other organizations',

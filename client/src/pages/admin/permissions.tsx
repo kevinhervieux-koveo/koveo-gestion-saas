@@ -22,6 +22,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useQuery, useMutation } from '@tanstack/react-query';
+import { useCreateUpdateMutation } from '@/lib/common-hooks';
 import { useLanguage } from '@/hooks/use-language';
 import {
   Shield,
@@ -300,23 +301,14 @@ export default function Permissions() {
   };
 
   // Mutations for managing permissions
-  const grantUserPermissionMutation = useMutation({
-    mutationFn: (data: { userId: string; permissionId: string; reason?: string }) =>
+  const grantUserPermissionMutation = useCreateUpdateMutation<unknown, { userId: string; permissionId: string; reason?: string }>({
+    mutationFn: (data) =>
       apiRequest('POST', '/api/user-permissions', data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/user-permissions'] });
-      toast({
-        title: 'Permission Granted',
-        description: 'User permission has been successfully granted.',
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: 'Error',
-        description: error.response?.data?.message || 'Failed to grant permission',
-        variant: 'destructive',
-      });
-    },
+    successTitle: 'Permission Granted',
+    successMessage: 'User permission has been successfully granted.',
+    errorTitle: 'Error',
+    errorMessage: (error: any) => error?.response?.data?.message || error?.message || 'Failed to grant permission',
+    queryKeysToInvalidate: [['/api/user-permissions']],
   });
 
   const validatePermissionMutation = useMutation({

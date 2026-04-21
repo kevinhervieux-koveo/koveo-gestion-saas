@@ -1,7 +1,8 @@
 import { useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
+import { useCreateUpdateMutation } from '@/lib/common-hooks';
 import { z } from 'zod';
 import { addMonths, format } from 'date-fns';
 import { FormModal } from '@/components/maintenance/FormModal';
@@ -30,7 +31,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { useBuildingContext } from '@/hooks/use-building-context';
 import { apiRequest } from '@/lib/queryClient';
-import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import {
   CalendarIcon,
@@ -83,8 +83,6 @@ export function SuggestionForm({
   mode = 'create',
 }: SuggestionFormProps) {
   const { hasPermission } = useBuildingContext();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
 
   // Fetch building elements for selection
   const {
@@ -141,39 +139,34 @@ export function SuggestionForm({
   const watchedAutoCalculate = form.watch('autoCalculate');
 
   // Create/Update mutation
-  const createMutation = useMutation({
-    mutationFn: async (data: SuggestionFormData) => {
-      const endpoint = mode === 'edit' && suggestion?.id 
+  const createMutation = useCreateUpdateMutation<any, SuggestionFormData>({
+    mutationFn: async (data) => {
+      const endpoint = mode === 'edit' && suggestion?.id
         ? `/api/maintenance/suggestions/${suggestion.id}`
         : '/api/maintenance/suggestions';
-      
+
       const method = mode === 'edit' ? 'PATCH' : 'POST';
-      
+
       const response = await apiRequest(method, endpoint, {
         ...data,
         suggestedDate: data.suggestedDate?.toISOString(),
       });
       return response.json();
     },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/maintenance/suggestions'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/maintenance/buildings', buildingId, 'suggestions'] });
-      
-      toast({
-        title: mode === 'edit' ? "Suggestion Updated" : "Suggestion Created",
-        description: `The suggestion has been ${mode === 'edit' ? 'updated' : 'created'} successfully.`,
-      });
-      
+    queryKeysToInvalidate: [
+      '/api/maintenance/suggestions',
+      ['/api/maintenance/buildings', buildingId, 'suggestions'],
+    ],
+    successTitle: mode === 'edit' ? 'Suggestion Updated' : 'Suggestion Created',
+    successMessage: `The suggestion has been ${mode === 'edit' ? 'updated' : 'created'} successfully.`,
+    errorTitle: 'Error',
+    errorMessage: `Failed to ${mode === 'edit' ? 'update' : 'create'} suggestion. Please try again.`,
+    onSuccessCallback: (data) => {
       onSubmit?.(data.suggestion);
       onOpenChange(false);
       form.reset();
     },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: `Failed to ${mode === 'edit' ? 'update' : 'create'} suggestion. Please try again.`,
-        variant: "destructive",
-      });
+    onErrorCallback: (error) => {
       console.error('Suggestion mutation failed:', error);
     },
   });

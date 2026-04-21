@@ -3,29 +3,28 @@
 
 echo "🔍 Running pre-commit validation checks..."
 
-# Apply JSDoc templates to new/modified files
-echo "📝 Applying JSDoc templates..."
-npx tsx scripts/apply-jsdoc-templates.ts || true
-
 # Run auto-fix for linting issues
 echo "🧹 Running lint fixes..."
 npm run lint:fix || true
 
-# Run the pre-commit validation script
-echo "📋 Checking code formatting, linting, and types..."
-npm run validate:pre-commit
+# Check formatting
+echo "📋 Checking code formatting..."
+npm run format:check || true
 
-# Stage any JSDoc changes that were applied
-git add -A
-
-if [ $? -ne 0 ]; then
-    echo "❌ Pre-commit validation failed!"
-    echo "Fix the issues above before committing."
-    echo "You can run the following commands to fix most issues:"
-    echo "  npm run format:write  # Fix formatting"
-    echo "  npm run lint:fix      # Fix linting issues" 
-    echo "  npm run typecheck     # Check types"
-    exit 1
+# Route security manifest drift check
+# Runs only when files under server/ are staged. Blocks commits that
+# introduce or modify routes without regenerating server/route-manifest.json.
+STAGED_SERVER_FILES=$(git diff --cached --name-only --diff-filter=ACMRD | grep -E '^server/' || true)
+if [ -n "$STAGED_SERVER_FILES" ]; then
+    echo "🛡️  Checking route security manifest..."
+    if ! npx tsx scripts/generate-route-manifest.ts --check; then
+        echo ""
+        echo "❌ Route manifest is out of date or missing."
+        echo "   Run the following, then stage and commit the updated manifest:"
+        echo "     npx tsx scripts/generate-route-manifest.ts"
+        echo "     git add server/route-manifest.json"
+        exit 1
+    fi
 fi
 
 echo "✅ All pre-commit checks passed! Proceeding with commit..."

@@ -237,11 +237,16 @@ describe('Calendar Features Unit Tests', () => {
         };
       };
 
+      // Use a relative future date so tests don't go stale as years pass.
+      const futureStart = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+      futureStart.setUTCHours(14, 0, 0, 0);
+      const futureEnd = new Date(futureStart.getTime() + 2 * 60 * 60 * 1000);
+
       const validBooking = {
         spaceId: '75c4f108-3ec1-437d-bdec-35d1f8e2a44d', // Real demo space ID
         userId: DEMO_USERS.RESIDENT.id, // Real demo user ID
-        startTime: '2025-12-20T14:00:00Z',
-        endTime: '2025-12-20T16:00:00Z',
+        startTime: futureStart.toISOString(),
+        endTime: futureEnd.toISOString(),
       };
 
       const validation = validateBooking(validBooking);
@@ -539,11 +544,18 @@ describe('Calendar Features Unit Tests', () => {
         },
       };
 
+      // Use a relative future date so this test stays valid as years pass.
+      const bookingStart = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+      bookingStart.setUTCHours(14, 0, 0, 0);
+      const bookingEnd = new Date(bookingStart.getTime() + 2 * 60 * 60 * 1000);
+      const conflictStart = new Date(bookingStart.getTime() + 60 * 60 * 1000);
+      const conflictEnd = new Date(bookingStart.getTime() + 3 * 60 * 60 * 1000);
+
       const testBooking = bookingIntegration.createBooking(
         '75c4f108-3ec1-437d-bdec-35d1f8e2a44d', // Real demo space ID
         DEMO_USERS.RESIDENT.id, // Real demo user ID
-        '2025-12-25T14:00:00Z',
-        '2025-12-25T16:00:00Z'
+        bookingStart.toISOString(),
+        bookingEnd.toISOString()
       );
 
       expect(testBooking.status).toBe('confirmed');
@@ -555,8 +567,8 @@ describe('Calendar Features Unit Tests', () => {
 
       const hasConflict = bookingIntegration.checkConflicts(
         '75c4f108-3ec1-437d-bdec-35d1f8e2a44d', // Real demo space ID
-        '2025-12-25T15:00:00Z',
-        '2025-12-25T17:00:00Z',
+        conflictStart.toISOString(),
+        conflictEnd.toISOString(),
         [testBooking]
       );
       expect(hasConflict).toBe(true);

@@ -16,41 +16,28 @@ export class FinancialAutomationService {
    * @param action
    */
   async handleBillUpdate(billId: string, action: 'create' | 'update' | 'delete'): Promise<void> {
+    const bill = await db
+      .select({
+        buildingId: bills.buildingId,
+        billNumber: bills.billNumber,
+        paymentType: bills.paymentType,
+      })
+      .from(bills)
+      .where(eq(bills.id, billId))
+      .limit(1);
 
-    try {
-      // Get the bill and its building
-      const bill = await db
-        .select({
-          buildingId: bills.buildingId,
-          billNumber: bills.billNumber,
-          paymentType: bills.paymentType,
-        })
-        .from(bills)
-        .where(eq(bills.id, billId))
-        .limit(1);
+    if (bill.length === 0 && action !== 'delete') {
+      throw new Error(`Bill ${billId} not found`);
+    }
 
-      if (bill.length === 0 && action !== 'delete') {
-        throw new Error(`Bill ${billId} not found`);
-      }
+    const buildingId = bill[0]?.buildingId;
+    const billNumber = bill[0]?.billNumber;
 
-      const buildingId = bill[0]?.buildingId;
-      const billNumber = bill[0]?.billNumber;
-
-      if (buildingId) {
-        // Invalidate financial cache for the affected building
-        await dynamicFinancialCalculator.invalidateCache(
-          buildingId,
-          `bill ${action}: ${billNumber}`
-        );
-
-      }
-
-      // If this is a recurrent bill, it might affect long-term projections
-      if (bill[0]?.paymentType === 'recurrent') {
-          `📊 Recurrent bill ${billNumber} ${action}d - future projections will be recalculated`
-        );
-      }
-      throw error;
+    if (buildingId) {
+      await dynamicFinancialCalculator.invalidateCache(
+        buildingId,
+        `bill ${action}: ${billNumber}`
+      );
     }
   }
 
@@ -63,54 +50,36 @@ export class FinancialAutomationService {
     residenceId: string,
     action: 'create' | 'update' | 'delete'
   ): Promise<void> {
+    const residence = await db
+      .select({
+        buildingId: residences.buildingId,
+        unitNumber: residences.unitNumber,
+        monthlyFees: residences.monthlyFees,
+      })
+      .from(residences)
+      .where(eq(residences.id, residenceId))
+      .limit(1);
 
-    try {
-      // Get the residence and its building
-      const residence = await db
-        .select({
-          buildingId: residences.buildingId,
-          unitNumber: residences.unitNumber,
-          monthlyFees: residences.monthlyFees,
-        })
-        .from(residences)
-        .where(eq(residences.id, residenceId))
-        .limit(1);
+    if (residence.length === 0 && action !== 'delete') {
+      throw new Error(`Residence ${residenceId} not found`);
+    }
 
-      if (residence.length === 0 && action !== 'delete') {
-        throw new Error(`Residence ${residenceId} not found`);
-      }
+    const buildingId = residence[0]?.buildingId;
+    const unitNumber = residence[0]?.unitNumber;
 
-      const buildingId = residence[0]?.buildingId;
-      const unitNumber = residence[0]?.unitNumber;
-
-      if (buildingId) {
-        // Invalidate financial cache for the affected building
-        await dynamicFinancialCalculator.invalidateCache(
-          buildingId,
-          `residence ${action}: Unit ${unitNumber}`
-        );
-
-      }
-      throw error;
+    if (buildingId) {
+      await dynamicFinancialCalculator.invalidateCache(
+        buildingId,
+        `residence ${action}: Unit ${unitNumber}`
+      );
     }
   }
 
-  /**
-   * Handle building updates by invalidating all related caches.
-   * @param buildingId
-   * @param action
-   */
   async handleBuildingUpdate(
     buildingId: string,
     action: 'create' | 'update' | 'delete'
   ): Promise<void> {
-
-    try {
-      // Always invalidate cache for the building
-      await dynamicFinancialCalculator.invalidateCache(buildingId, `building ${action}`);
-
-      throw error;
-    }
+    await dynamicFinancialCalculator.invalidateCache(buildingId, `building ${action}`);
   }
 
   /**
@@ -155,6 +124,7 @@ export class FinancialAutomationService {
         lastCalculation: cacheStats.newestEntry,
         systemHealth,
       };
+    } catch (error) {
       return {
         activeBills: 0,
         activeResidences: 0,
@@ -192,6 +162,7 @@ export class FinancialAutomationService {
         cacheEntriesRemoved: removedEntries,
         systemHealth: systemStats.systemHealth,
       };
+    } catch (error) {
       return {
         cacheEntriesRemoved: 0,
         systemHealth: 'unhealthy',
@@ -203,36 +174,29 @@ export class FinancialAutomationService {
    * Initialize the financial system (create cache table if needed).
    */
   async initialize(): Promise<void> {
+    await db.execute(sql`
+      CREATE TABLE IF NOT EXISTS financial_cache (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        building_id UUID NOT NULL REFERENCES buildings(id),
+        cache_key VARCHAR(255) NOT NULL,
+        cache_data JSONB NOT NULL,
+        start_date DATE NOT NULL,
+        end_date DATE NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW(),
+        expires_at TIMESTAMP NOT NULL,
+        UNIQUE(building_id, cache_key, start_date, end_date)
+      )
+    `);
 
-    try {
-      // Create cache table
-      await db.execute(sql`
-        CREATE TABLE IF NOT EXISTS financial_cache (
-          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-          building_id UUID NOT NULL REFERENCES buildings(id),
-          cache_key VARCHAR(255) NOT NULL,
-          cache_data JSONB NOT NULL,
-          start_date DATE NOT NULL,
-          end_date DATE NOT NULL,
-          created_at TIMESTAMP DEFAULT NOW(),
-          expires_at TIMESTAMP NOT NULL,
-          UNIQUE(building_id, cache_key, start_date, end_date)
-        )
-      `);
+    await db.execute(sql`
+      CREATE INDEX IF NOT EXISTS idx_financial_cache_lookup 
+        ON financial_cache(building_id, cache_key, expires_at)
+    `);
 
-      // Create indexes
-      await db.execute(sql`
-        CREATE INDEX IF NOT EXISTS idx_financial_cache_lookup 
-          ON financial_cache(building_id, cache_key, expires_at)
-      `);
-
-      await db.execute(sql`
-        CREATE INDEX IF NOT EXISTS idx_financial_cache_expires 
-          ON financial_cache(expires_at) WHERE expires_at < NOW()
-      `);
-
-      throw error;
-    }
+    await db.execute(sql`
+      CREATE INDEX IF NOT EXISTS idx_financial_cache_expires 
+        ON financial_cache(expires_at) WHERE expires_at < NOW()
+    `);
   }
 }
 

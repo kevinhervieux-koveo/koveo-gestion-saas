@@ -1,0 +1,203 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+budget-ajc-bqeO.js:16 🔍 [BUDGET] Component mounted {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984'}
+budget-ajc-bqeO.js:16 🔍 [BUDGET] Context changed: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984'}
+budget-ajc-bqeO.js:16 🔍 [BUDGET] Filters updated: {viewType: 'month', periodLength: 12, startMonth: 11, startYear: 2025, dataVisibility: {…}}
+budget-ajc-bqeO.js:16 🔍 [BUDGET] Filters updated: {viewType: 'month', periodLength: 12, startMonth: 1, startYear: 2025, dataVisibility: {…}}
+index-DrkDBl1u.js:23 [Violation] 'message' handler took 175ms
+index-DrkDBl1u.js:185 [Violation] 'setTimeout' handler took 69ms
+budget-ajc-bqeO.js:16 🔍 [BUDGET] Filters updated: {viewType: 'month', periodLength: 12, startMonth: 2, startYear: 2025, dataVisibility: {…}}
+index-DrkDBl1u.js:185 [Violation] 'setTimeout' handler took 120ms
+index-DrkDBl1u.js:233 Each child in a list should have a unique "key" prop.
+
+Check the render method of `ForwardRef`. It was passed a child from $k. See https://react.dev/link/warning-keys for more information.
+overrideMethod @ hook.js:608
+(anonymous) @ index-DrkDBl1u.js:233
+X @ index-DrkDBl1u.js:45
+A @ index-DrkDBl1u.js:233
+I @ index-DrkDBl1u.js:127
+ee @ index-DrkDBl1u.js:127
+ye @ index-DrkDBl1u.js:127
+(anonymous) @ index-DrkDBl1u.js:127
+dt @ index-DrkDBl1u.js:141
+vd @ index-DrkDBl1u.js:150
+X @ index-DrkDBl1u.js:45
+Jg @ index-DrkDBl1u.js:163
+Zg @ index-DrkDBl1u.js:163
+Rd @ index-DrkDBl1u.js:163
+Gg @ index-DrkDBl1u.js:163
+mv @ index-DrkDBl1u.js:185
+Rs @ index-DrkDBl1u.js:185
+Od @ index-DrkDBl1u.js:185
+(anonymous) @ index-DrkDBl1u.js:185
+<circle>
+Mw.Nu.jsxDEV @ index-DrkDBl1u.js:15
+dot @ budget-ajc-bqeO.js:16
+Dk @ vendor-charts-DbITUqjm.js:75
+(anonymous) @ vendor-charts-DbITUqjm.js:75
+$k @ vendor-charts-DbITUqjm.js:75
+react_stack_bottom_frame @ index-DrkDBl1u.js:229
+jc @ index-DrkDBl1u.js:120
+ud @ index-DrkDBl1u.js:141
+vd @ index-DrkDBl1u.js:150
+X @ index-DrkDBl1u.js:45
+Jg @ index-DrkDBl1u.js:163
+Zg @ index-DrkDBl1u.js:163
+Rd @ index-DrkDBl1u.js:163
+Gg @ index-DrkDBl1u.js:163
+mv @ index-DrkDBl1u.js:185
+Rs @ index-DrkDBl1u.js:185
+Od @ index-DrkDBl1u.js:185
+(anonymous) @ index-DrkDBl1u.js:185
+<$k>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Mu @ vendor-charts-DbITUqjm.js:75
+react_stack_bottom_frame @ index-DrkDBl1u.js:229
+jc @ index-DrkDBl1u.js:120
+ud @ index-DrkDBl1u.js:141
+vd @ index-DrkDBl1u.js:150
+X @ index-DrkDBl1u.js:45
+Jg @ index-DrkDBl1u.js:163
+Zg @ index-DrkDBl1u.js:163
+Rd @ index-DrkDBl1u.js:163
+Gg @ index-DrkDBl1u.js:163
+mv @ index-DrkDBl1u.js:185
+Rs @ index-DrkDBl1u.js:185
+Od @ index-DrkDBl1u.js:185
+(anonymous) @ index-DrkDBl1u.js:185
+<Mu>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+(anonymous) @ vendor-charts-DbITUqjm.js:75
+Nm @ vendor-charts-DbITUqjm.js:75
+react_stack_bottom_frame @ index-DrkDBl1u.js:229
+jc @ index-DrkDBl1u.js:120
+ud @ index-DrkDBl1u.js:141
+vd @ index-DrkDBl1u.js:150
+X @ index-DrkDBl1u.js:45
+Jg @ index-DrkDBl1u.js:163
+Zg @ index-DrkDBl1u.js:163
+Rd @ index-DrkDBl1u.js:163
+Gg @ index-DrkDBl1u.js:163
+mv @ index-DrkDBl1u.js:185
+Rs @ index-DrkDBl1u.js:185
+Od @ index-DrkDBl1u.js:185
+(anonymous) @ index-DrkDBl1u.js:185
+<Nm>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Lk @ vendor-charts-DbITUqjm.js:75
+react_stack_bottom_frame @ index-DrkDBl1u.js:229
+jc @ index-DrkDBl1u.js:120
+ud @ index-DrkDBl1u.js:141
+vd @ index-DrkDBl1u.js:150
+X @ index-DrkDBl1u.js:45
+Jg @ index-DrkDBl1u.js:163
+Zg @ index-DrkDBl1u.js:163
+Rd @ index-DrkDBl1u.js:163
+Gg @ index-DrkDBl1u.js:163
+mv @ index-DrkDBl1u.js:185
+Rs @ index-DrkDBl1u.js:185
+Od @ index-DrkDBl1u.js:185
+(anonymous) @ index-DrkDBl1u.js:185
+<Lk>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Bk @ vendor-charts-DbITUqjm.js:75
+react_stack_bottom_frame @ index-DrkDBl1u.js:229
+jc @ index-DrkDBl1u.js:120
+ud @ index-DrkDBl1u.js:141
+vd @ index-DrkDBl1u.js:150
+X @ index-DrkDBl1u.js:45
+Jg @ index-DrkDBl1u.js:163
+Zg @ index-DrkDBl1u.js:163
+Rd @ index-DrkDBl1u.js:163
+Gg @ index-DrkDBl1u.js:163
+mv @ index-DrkDBl1u.js:185
+Rs @ index-DrkDBl1u.js:185
+Od @ index-DrkDBl1u.js:185
+(anonymous) @ index-DrkDBl1u.js:185
+<Bk>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+render @ vendor-charts-DbITUqjm.js:75
+react_stack_bottom_frame @ index-DrkDBl1u.js:229
+mg @ index-DrkDBl1u.js:149
+vd @ index-DrkDBl1u.js:150
+X @ index-DrkDBl1u.js:45
+Jg @ index-DrkDBl1u.js:163
+Zg @ index-DrkDBl1u.js:163
+Rd @ index-DrkDBl1u.js:163
+Gg @ index-DrkDBl1u.js:163
+mv @ index-DrkDBl1u.js:185
+Rs @ index-DrkDBl1u.js:185
+Od @ index-DrkDBl1u.js:185
+(anonymous) @ index-DrkDBl1u.js:185
+<zk>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Kk @ vendor-charts-DbITUqjm.js:75
+react_stack_bottom_frame @ index-DrkDBl1u.js:229
+jc @ index-DrkDBl1u.js:120
+ud @ index-DrkDBl1u.js:141
+vd @ index-DrkDBl1u.js:150
+X @ index-DrkDBl1u.js:45
+Jg @ index-DrkDBl1u.js:163
+Zg @ index-DrkDBl1u.js:163
+Rd @ index-DrkDBl1u.js:163
+Gg @ index-DrkDBl1u.js:163
+mv @ index-DrkDBl1u.js:185
+Rs @ index-DrkDBl1u.js:185
+Od @ index-DrkDBl1u.js:185
+(anonymous) @ index-DrkDBl1u.js:185
+<Kk>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+(anonymous) @ vendor-charts-DbITUqjm.js:75
+Mm @ vendor-charts-DbITUqjm.js:75
+react_stack_bottom_frame @ index-DrkDBl1u.js:229
+jc @ index-DrkDBl1u.js:120
+ud @ index-DrkDBl1u.js:141
+vd @ index-DrkDBl1u.js:150
+X @ index-DrkDBl1u.js:45
+Jg @ index-DrkDBl1u.js:163
+Zg @ index-DrkDBl1u.js:163
+Rd @ index-DrkDBl1u.js:163
+Gg @ index-DrkDBl1u.js:163
+mv @ index-DrkDBl1u.js:185
+Rs @ index-DrkDBl1u.js:185
+Od @ index-DrkDBl1u.js:185
+(anonymous) @ index-DrkDBl1u.js:185
+<Mm>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Wk @ vendor-charts-DbITUqjm.js:75
+react_stack_bottom_frame @ index-DrkDBl1u.js:229
+jc @ index-DrkDBl1u.js:120
+ud @ index-DrkDBl1u.js:141
+vd @ index-DrkDBl1u.js:150
+X @ index-DrkDBl1u.js:45
+Jg @ index-DrkDBl1u.js:163
+Zg @ index-DrkDBl1u.js:163
+Rd @ index-DrkDBl1u.js:163
+Gg @ index-DrkDBl1u.js:163
+mv @ index-DrkDBl1u.js:185
+Rs @ index-DrkDBl1u.js:185
+Od @ index-DrkDBl1u.js:185
+(anonymous) @ index-DrkDBl1u.js:185
+<Line>
+Mw.Nu.jsxDEV @ index-DrkDBl1u.js:15
+qn @ budget-ajc-bqeO.js:16
+react_stack_bottom_frame @ index-DrkDBl1u.js:229
+jc @ index-DrkDBl1u.js:120
+ud @ index-DrkDBl1u.js:141
+vd @ index-DrkDBl1u.js:150
+X @ index-DrkDBl1u.js:45
+Jg @ index-DrkDBl1u.js:163
+Zg @ index-DrkDBl1u.js:163
+Rd @ index-DrkDBl1u.js:163
+Gg @ index-DrkDBl1u.js:163
+mv @ index-DrkDBl1u.js:185
+Rs @ index-DrkDBl1u.js:185
+Od @ index-DrkDBl1u.js:185
+(anonymous) @ index-DrkDBl1u.js:185
+index-DrkDBl1u.js:185 [Violation] 'setTimeout' handler took 395ms
+index-DrkDBl1u.js:23 [Violation] 'message' handler took 235ms

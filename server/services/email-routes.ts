@@ -48,6 +48,8 @@ async function createInvitationAuditLog(
       currentValue,
       metadata: metadata ? JSON.stringify(metadata) : null,
     });
+  } catch (error) {
+    console.error('Failed to create invitation audit log:', error);
   }
 }
 
@@ -127,6 +129,7 @@ export function registerEmailRoutes(app: Express) {
         } else {
           res.status(500).json({ message: 'Failed to send reminder email' });
         }
+      } catch (error) {
         res.status(500).json({ message: 'Failed to send reminder email' });
       }
     }
@@ -194,6 +197,7 @@ export function registerEmailRoutes(app: Express) {
             } else {
               failureCount++;
             }
+          } catch (error) {
             failureCount++;
           }
         }
@@ -204,6 +208,7 @@ export function registerEmailRoutes(app: Express) {
           failureCount,
           totalProcessed: pendingInvitations.length,
         });
+      } catch (error) {
         res.status(500).json({ message: 'Failed to send bulk reminder emails' });
       }
     }
@@ -256,6 +261,7 @@ export function registerEmailRoutes(app: Express) {
         </body>
         </html>
       `);
+    } catch (error) {
       res.status(500).send('Erreur lors du désabonnement. Veuillez réessayer.');
     }
   });
@@ -298,6 +304,7 @@ export function registerEmailRoutes(app: Express) {
         ];
 
         res.json({ templates });
+      } catch (error) {
         res.status(500).json({ message: 'Failed to fetch email templates' });
       }
     }
@@ -329,6 +336,7 @@ export function registerEmailRoutes(app: Express) {
           message: 'Template content would be returned here',
           note: 'Templates are currently embedded in the email service class',
         });
+      } catch (error) {
         res.status(500).json({ message: 'Failed to fetch template' });
       }
     }

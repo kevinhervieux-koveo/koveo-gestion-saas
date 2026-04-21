@@ -8,6 +8,41 @@
       "when": 1755315141211,
       "tag": "0000_sparkling_korg",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1776489600000,
+      "tag": "0005_oauth_tables",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1781568000000,
+      "tag": "0006_invitations_and_audit_log",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1808870400001,
+      "tag": "0007a_add_replaced_enum",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1808870400002,
+      "tag": "0007b_invitation_audit_set_null",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1808956800000,
+      "tag": "0008_invitations_pending_unique_index",
+      "breakpoints": true
     }
   ]
 }

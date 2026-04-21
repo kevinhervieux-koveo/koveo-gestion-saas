@@ -26,23 +26,16 @@ export class MonthlyBudgetService {
     let buildingsProcessed = 0;
 
     try {
-      // Get all active buildings
       const activeBuildings = await db.select().from(buildings).where(eq(buildings.isActive, true));
 
-
-      // OPTIMIZATION: Process buildings in parallel batches to improve performance
-      const batchSize = 3; // Process 3 buildings concurrently
+      const batchSize = 3;
       for (let i = 0; i < activeBuildings.length; i += batchSize) {
         const batch = activeBuildings.slice(i, i + batchSize);
         
         const batchResults = await Promise.allSettled(
           batch.map(async (building) => {
-            try {
-              const buildingBudgets = await this.populateBudgetsForBuilding(building);
-              return { buildingBudgets, buildingName: building.name };
-            } catch (error: any) {
-              throw error;
-            }
+            const buildingBudgets = await this.populateBudgetsForBuilding(building);
+            return { buildingBudgets, buildingName: building.name };
           })
         );
         
@@ -60,7 +53,8 @@ export class MonthlyBudgetService {
         budgetsCreated,
         buildingsProcessed,
       };
-    } catch (error: any) {
+    } catch (error) {
+      console.error('Failed to populate monthly budgets:', error);
       throw error;
     }
   }

@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
+import { logDebug, logError } from '@/lib/logger';
 import { useLocation, useSearch } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { SelectionGrid, SelectionGridItem } from '@/components/common/SelectionGrid';
 import { Header } from '@/components/layout/header';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
@@ -16,6 +18,7 @@ interface HierarchyConfig {
   checkResidenceAccess?: boolean;
   title?: string; // Custom title for the page
   subtitle?: string; // Custom subtitle for the page
+  onResidenceSelect?: (residenceId: string, buildingId?: string, organizationId?: string) => string; // Custom navigation when residence is selected
 }
 
 /**
@@ -28,7 +31,7 @@ interface HierarchyProps {
   buildingName?: string; // Add building name
   // Back navigation props
   showBackButton?: boolean;
-  backButtonLabel?: string;
+  backButtonLabel?: React.ReactNode;
   onBack?: () => void;
 }
 
@@ -72,6 +75,9 @@ export function withHierarchicalSelection<T extends object>(
       // Location effect for debugging
     }, [location, search]);
     
+    // Navigation guard to prevent duplicate auto-forwards
+    const lastAutoForwardRef = useRef<string | null>(null);
+    
     // Parse URL query parameters using wouter's useSearch
     const urlParams = new URLSearchParams(search);
     const organizationId = urlParams.get('organization');
@@ -81,10 +87,13 @@ export function withHierarchicalSelection<T extends object>(
     // Determine current selection level
     const currentLevel = getCurrentLevel(config.hierarchy, { organizationId, buildingId, residenceId });
     
-    // Navigate to update URL parameters
-    const navigate = (updates: Record<string, string | null>) => {
+    // Navigate to update URL parameters - wrapped in useCallback to prevent stale closures
+    const navigate = useCallback((updates: Record<string, string | null>) => {
+      // Decode the location first to handle any URL-encoded characters (e.g., %3F for ?)
+      const decodedLocation = decodeURIComponent(location);
+      
       // Start with current URL params
-      const currentSearchParams = location.includes('?') ? location.split('?')[1] : '';
+      const currentSearchParams = decodedLocation.includes('?') ? decodedLocation.split('?')[1] : '';
       const newParams = new URLSearchParams(currentSearchParams);
       
       Object.entries(updates).forEach(([key, value]) => {
@@ -96,21 +105,25 @@ export function withHierarchicalSelection<T extends object>(
       });
 
       const newSearch = newParams.toString();
-      const basePath = location.split('?')[0];
+      const basePath = decodedLocation.split('?')[0];
       const newUrl = newSearch ? `${basePath}?${newSearch}` : basePath;
       
       setLocation(newUrl);
-    };
+    }, [location, setLocation]);
 
     // Fetch organizations
     const {
       data: organizations = [],
-      isLoading: isLoadingOrganizations
+      isLoading: isLoadingOrganizations,
+      isFetching: isFetchingOrganizations
     } = useQuery<Organization[]>({
       queryKey: ['/api/users/me/organizations'],
-      enabled: Boolean(currentLevel === 'organization'),
+      // Fetch whenever organization is part of the hierarchy so back-button
+      // labels can resolve to the actual organization name on deep-links.
+      enabled: Boolean(config.hierarchy.includes('organization')),
       staleTime: 5 * 60 * 1000, // 5 minutes cache
-      gcTime: 10 * 60 * 1000, // 10 minutes garbage collection
+      gcTime: 15 * 60 * 1000, // 15 minutes garbage collection
+      refetchOnWindowFocus: false,
       retry: 2,
       retryDelay: 1000
     });
@@ -119,12 +132,14 @@ export function withHierarchicalSelection<T extends object>(
     const {
       data: buildingCounts = {},
       isLoading: isLoadingBuildingCounts,
+      isFetching: isFetchingBuildingCounts,
       error: buildingCountsError
     } = useQuery<Record<string, number>>({
       queryKey: ['/api/organizations/accessible-building-counts', user?.role, config.checkResidenceAccess || false],
       enabled: Boolean(currentLevel === 'organization' && organizations.length > 0),
-      staleTime: 2 * 60 * 1000, // 2 minutes cache (shorter for better consistency)
-      gcTime: 5 * 60 * 1000, // 5 minutes garbage collection
+      staleTime: 5 * 60 * 1000, // 5 minutes cache
+      gcTime: 15 * 60 * 1000, // 15 minutes garbage collection
+      refetchOnWindowFocus: false,
       retry: 2,
       retryDelay: 1000,
       queryFn: async () => {
@@ -156,6 +171,7 @@ export function withHierarchicalSelection<T extends object>(
     const {
       data: buildings = [],
       isLoading: isLoadingBuildings,
+      isFetching: isFetchingBuildings,
       error: buildingsError
     } = useQuery<Building[]>({
       queryKey: organizationId ? ['/api/users/me/buildings', organizationId, config.checkResidenceAccess || false] : ['/api/users/me/buildings', config.checkResidenceAccess || false],
@@ -204,8 +220,9 @@ export function withHierarchicalSelection<T extends object>(
         (currentLevel === 'building' || currentLevel === 'complete' || (buildingId && config.hierarchy.includes('building'))) && 
         (!!organizationId || config.hierarchy.length === 1)
       ),
-      staleTime: 2 * 60 * 1000, // 2 minutes cache (shorter for better consistency)
-      gcTime: 5 * 60 * 1000, // 5 minutes garbage collection
+      staleTime: 5 * 60 * 1000, // 5 minutes cache
+      gcTime: 15 * 60 * 1000, // 15 minutes garbage collection
+      refetchOnWindowFocus: false,
       retry: 2,
       retryDelay: 1000
     });
@@ -215,15 +232,23 @@ export function withHierarchicalSelection<T extends object>(
     const {
       data: residences = [],
       isLoading: isLoadingResidences,
+      isFetching: isFetchingResidences,
       error: residencesError
     } = useQuery<Residence[]>({
-      queryKey: ['residences', buildingId, user?.role],
+      queryKey: ['residences', buildingId, user?.role, config.checkResidenceAccess],
       queryFn: async () => {
         const isResidentOrTenant = ['resident', 'tenant', 'demo_resident', 'demo_tenant'].includes(user?.role || '');
+        const isManager = ['manager', 'demo_manager'].includes(user?.role || '');
         
-        const url = isResidentOrTenant 
+        // When checkResidenceAccess is true, all roles (including managers) should use user-specific endpoint
+        // This ensures users only see residences they're assigned to
+        const useUserSpecificEndpoint = isResidentOrTenant || (isManager && config.checkResidenceAccess);
+        
+        const url = useUserSpecificEndpoint
           ? `/api/users/me/residences?building_id=${buildingId}`
           : `/api/buildings/${buildingId}/residences`;
+        
+        logDebug(`🏠 [HOC] Fetching residences - Role: ${user?.role}, checkResidenceAccess: ${config.checkResidenceAccess}, URL: ${url}`);
           
         const response = await fetch(url, {
           credentials: 'include'
@@ -231,40 +256,98 @@ export function withHierarchicalSelection<T extends object>(
         
         if (!response.ok) {
           const errorText = await response.text();
+          logError(`🏠 [HOC] Failed to fetch residences: ${response.status}`, errorText);
           throw new Error(`Failed to fetch residences: ${response.status}`);
         }
         
         const data = await response.json();
+        logDebug(`🏠 [HOC] Received ${data.length} residences:`, data);
         return data;
       },
       enabled: Boolean(currentLevel === 'residence' && !!buildingId),
-      staleTime: 2 * 60 * 1000, // 2 minutes cache (shorter for better consistency)
-      gcTime: 5 * 60 * 1000, // 5 minutes garbage collection
+      staleTime: 5 * 60 * 1000, // 5 minutes cache
+      gcTime: 15 * 60 * 1000, // 15 minutes garbage collection
+      refetchOnWindowFocus: false,
       retry: 2,
       retryDelay: 1000
     });
-
-
-    // Auto-forwarding logic
+    
+    // Debug logging
     React.useEffect(() => {
-      if (currentLevel === 'organization' && organizations.length === 1 && !organizationId && !isLoadingOrganizations) {
-        // Auto-forward if only one organization
-        navigate({ organization: organizations[0].id });
+      if (currentLevel === 'residence') {
+        logDebug(`🏠 [HOC DEBUG] currentLevel: ${currentLevel}, buildingId: ${buildingId}, enabled: ${Boolean(currentLevel === 'residence' && !!buildingId)}, isLoading: ${isLoadingResidences}, residences count: ${residences.length}, error:`, residencesError);
+      }
+    }, [currentLevel, buildingId, isLoadingResidences, residences.length, residencesError]);
+
+    // Create memoized stable counts to prevent unnecessary re-renders
+    const organizationsCount = useMemo(() => organizations.length, [organizations]);
+    const buildingsCount = useMemo(() => buildings.length, [buildings]);
+    const residencesCount = useMemo(() => residences.length, [residences]);
+
+    // Capture the first item id (or null) into a stable primitive so the
+    // auto-forward effect doesn't have to depend on the array references
+    // themselves. The destructured queries default to a fresh `[]` on every
+    // render when the query is disabled, which would otherwise re-fire this
+    // effect on every parent render and contribute to "Maximum update depth
+    // exceeded" loops in wrapped pages such as Budget.
+    const firstOrganizationId = organizations[0]?.id ?? null;
+    const firstBuildingId = buildings[0]?.id ?? null;
+    const firstResidenceId = residences[0]?.id ?? null;
+
+    // Auto-forwarding logic with navigation guards
+    React.useEffect(() => {
+      // Organization level auto-forward
+      if (currentLevel === 'organization' && organizationsCount === 1 && !organizationId && !isLoadingOrganizations && !isFetchingOrganizations && firstOrganizationId) {
+        const autoForwardKey = `organization-${firstOrganizationId}`;
+        if (lastAutoForwardRef.current === autoForwardKey) return;
+        
+        lastAutoForwardRef.current = autoForwardKey;
+        navigate({ organization: firstOrganizationId });
         return;
       }
       
-      if (currentLevel === 'building' && buildings.length === 1 && !buildingId && !isLoadingBuildings) {
-        // Auto-forward if only one building (preserve organization)  
-        navigate({ organization: organizationId, building: buildings[0].id });
+      // Building level auto-forward
+      if (currentLevel === 'building' && buildingsCount === 1 && !buildingId && !isLoadingBuildings && !isFetchingBuildings && firstBuildingId) {
+        const autoForwardKey = `building-${firstBuildingId}`;
+        if (lastAutoForwardRef.current === autoForwardKey) return;
+        
+        lastAutoForwardRef.current = autoForwardKey;
+        navigate({ organization: organizationId, building: firstBuildingId });
         return;
       }
       
-      if (currentLevel === 'residence' && residences.length === 1 && !residenceId && !isLoadingResidences) {
-        // Auto-forward if only one residence (preserve organization and building)
-        navigate({ organization: organizationId, building: buildingId, residence: residences[0].id });
+      // Residence level auto-forward
+      if (currentLevel === 'residence' && residencesCount === 1 && !residenceId && !isLoadingResidences && !isFetchingResidences && firstResidenceId) {
+        const autoForwardKey = `residence-${firstResidenceId}`;
+        if (lastAutoForwardRef.current === autoForwardKey) return;
+        
+        lastAutoForwardRef.current = autoForwardKey;
+        navigate({ organization: organizationId, building: buildingId, residence: firstResidenceId });
         return;
       }
-    }, [organizations.length, buildings.length, residences.length, currentLevel, organizationId, buildingId, residenceId, isLoadingOrganizations, isLoadingBuildings, isLoadingResidences]);
+    }, [
+      organizationsCount,
+      buildingsCount,
+      residencesCount,
+      currentLevel,
+      organizationId,
+      buildingId,
+      residenceId,
+      isLoadingOrganizations,
+      isFetchingOrganizations,
+      isLoadingBuildings,
+      isFetchingBuildings,
+      isLoadingResidences,
+      isFetchingResidences,
+      navigate,
+      // Use stable primitive ids instead of array references. The destructured
+      // query results default to a fresh `[]` each render when disabled, which
+      // would otherwise re-fire this effect on every parent render and could
+      // contribute to "Maximum update depth exceeded" loops downstream.
+      firstOrganizationId,
+      firstBuildingId,
+      firstResidenceId,
+    ]);
 
     // Handle selection
     const handleSelection = (id: string) => {      
@@ -274,8 +357,14 @@ export function withHierarchicalSelection<T extends object>(
         // Preserve organization when selecting building
         navigate({ organization: organizationId, building: id });
       } else if (currentLevel === 'residence') {
-        // Preserve organization and building when selecting residence
-        navigate({ organization: organizationId, building: buildingId, residence: id });
+        // Check if custom residence navigation is provided
+        if (config.onResidenceSelect) {
+          const navigationPath = config.onResidenceSelect(id, buildingId || undefined, organizationId || undefined);
+          setLocation(navigationPath);
+        } else {
+          // Preserve organization and building when selecting residence
+          navigate({ organization: organizationId, building: buildingId, residence: id });
+        }
       }
     };
 
@@ -300,8 +389,8 @@ export function withHierarchicalSelection<T extends object>(
       const items: SelectionGridItem[] = accessibleOrganizations.map(org => {
         const buildingCount = buildingCounts[org.id] ?? 0;
         const buildingLabel = config.checkResidenceAccess 
-          ? (buildingCount === 1 ? 'building with residences' : 'buildings with residences')
-          : (buildingCount === 1 ? 'building' : 'buildings');
+          ? (buildingCount === 1 ? t('buildingWithResidences' as any) : t('buildingsWithResidences' as any))
+          : (buildingCount === 1 ? t('building' as any) : t('buildings' as any));
         
         return {
           id: org.id,
@@ -345,16 +434,26 @@ export function withHierarchicalSelection<T extends object>(
           
           {/* Back to Organization Navigation - only show if user has multiple organizations */}
           {config.hierarchy.includes('organization') && organizations.length > 1 && (
-            <div className="px-6 pt-6 pb-0">
-              <Button
-                variant="outline"
-                onClick={handleBack}
-                className="flex items-center gap-2"
-                data-testid="button-back-to-organization"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Organization
-              </Button>
+            <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+              <div className="flex items-center px-6 py-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleBack}
+                  className="flex items-center gap-2"
+                  data-testid="button-back-to-organization"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  {(() => {
+                    const orgName = organizations.find(o => o.id === organizationId)?.name;
+                    if (orgName) return orgName;
+                    if (isLoadingOrganizations || isFetchingOrganizations) {
+                      return <Skeleton className="h-4 w-24" data-testid="skeleton-back-organization" />;
+                    }
+                    return t('organization' as any);
+                  })()}
+                </Button>
+              </div>
             </div>
           )}
           
@@ -390,16 +489,26 @@ export function withHierarchicalSelection<T extends object>(
           
           {/* Back to Building Navigation - only show if user has multiple buildings */}
           {showBackToBuilding && (
-            <div className="px-6 pt-6 pb-0">
-              <Button
-                variant="outline"
-                onClick={handleBack}
-                className="flex items-center gap-2"
-                data-testid="button-back-to-building"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                {buildings.find(b => b.id === buildingId)?.name || 'Building'}
-              </Button>
+            <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+              <div className="flex items-center px-6 py-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleBack}
+                  className="flex items-center gap-2"
+                  data-testid="button-back-to-building"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  {(() => {
+                    const bName = buildings.find(b => b.id === buildingId)?.name;
+                    if (bName) return bName;
+                    if (isLoadingBuildings || isFetchingBuildings) {
+                      return <Skeleton className="h-4 w-24" data-testid="skeleton-back-building" />;
+                    }
+                    return t('building' as any);
+                  })()}
+                </Button>
+              </div>
             </div>
           )}
           
@@ -421,14 +530,39 @@ export function withHierarchicalSelection<T extends object>(
     const currentBuilding = buildings.find(b => b.id === buildingId);
     const buildingName = currentBuilding?.name;
 
-    // Determine back navigation props
+    // Helper to render a name with a skeleton placeholder while the
+    // underlying parent query is loading. Prevents the visible flicker of a
+    // generic translated fallback ("Building" / "Organization") on deep-link
+    // before the real name resolves.
+    const renderLabel = (name: string | undefined, isLoading: boolean, fallback: string, testId: string): React.ReactNode => {
+      if (name) return name;
+      if (isLoading) return <Skeleton className="h-4 w-24" data-testid={testId} />;
+      return fallback;
+    };
+
+    // Determine back navigation props.
+    //
+    // Convention (Task #121): the back-button label names the DESTINATION
+    // the user lands on after pressing it — i.e. the parent entity in the
+    // hierarchy — not the entity they are currently viewing. This matches
+    // the residence-level case (label = building name = the parent the
+    // user returns to) and the organization-level case (label = building
+    // selection's enclosing organization name when going back to the
+    // organization picker).
+    //
+    // Building-only hierarchies (no organization in the hierarchy) are
+    // the one exception: there is no parent entity above the building,
+    // so we keep labelling with the current building's name as a hint
+    // that pressing back will deselect it.
     const getBackNavigationProps = () => {
-      // For residents with building hierarchy, always show back button if they have a buildingId
-      // This means they selected a building and should be able to go back
+      // Building-only hierarchy (e.g. resident with multiple buildings):
+      // there is no organization parent, so label with the current
+      // building name (which the user is deselecting) and navigate to
+      // the URL root.
       if (config.hierarchy.includes('building') && config.hierarchy.length === 1 && buildingId && buildings.length > 1) {
         return {
           showBackButton: true,
-          backButtonLabel: buildingName || 'Building',
+          backButtonLabel: renderLabel(buildingName, isLoadingBuildings || isFetchingBuildings, t('building' as any), 'skeleton-back-building'),
           onBack: () => {
             const basePath = location.split('?')[0];
             window.history.pushState(null, '', basePath);
@@ -436,23 +570,66 @@ export function withHierarchicalSelection<T extends object>(
           }
         };
       }
-      
-      // Check if we should show back to building for multi-level hierarchies
+
+      // Multi-building, multi-level hierarchy. Two sub-cases under
+      // destination semantics:
+      //
+      //   a) Residence-level wrapped page (residenceId set): the parent
+      //      is the BUILDING, so label with the current building name.
+      //      onBack clears the residence so the user lands on the
+      //      residence-selection screen for that building.
+      //
+      //   b) Building-level wrapped page (residenceId not set): the
+      //      parent is the ORGANIZATION (when present in the
+      //      hierarchy), so label with the current organization name.
+      //      onBack clears the building so the user lands on the
+      //      building-selection screen for that organization. When
+      //      there is no organization in the hierarchy, fall back to
+      //      the current building name.
       if (config.hierarchy.includes('building') && buildings.length > 1 && buildingId) {
+        const onResidencePage = config.hierarchy.includes('residence') && !!residenceId;
+
+        if (onResidencePage) {
+          return {
+            showBackButton: true,
+            backButtonLabel: renderLabel(
+              buildingName,
+              isLoadingBuildings || isFetchingBuildings,
+              t('building' as any),
+              'skeleton-back-building'
+            ),
+            onBack: () => {
+              navigate({ residence: null });
+            }
+          };
+        }
+
+        const orgInHierarchy = config.hierarchy.includes('organization');
+        const currentOrgName = orgInHierarchy
+          ? organizations.find(o => o.id === organizationId)?.name
+          : undefined;
+        const label = orgInHierarchy
+          ? renderLabel(currentOrgName, isLoadingOrganizations || isFetchingOrganizations, t('organization' as any), 'skeleton-back-organization')
+          : renderLabel(buildingName, isLoadingBuildings || isFetchingBuildings, t('building' as any), 'skeleton-back-building');
         return {
           showBackButton: true,
-          backButtonLabel: buildingName || 'Building',
+          backButtonLabel: label,
           onBack: () => {
             navigate({ building: null, residence: null });
           }
         };
       }
-      
-      // Check if we should show back to organization  
+
+      // Single-building, multi-organization hierarchy: pressing back
+      // clears the organization selection, so the destination is the
+      // organization picker. Label with the current organization's
+      // name (the entity the user is leaving and the level the
+      // destination picker enumerates).
       if (config.hierarchy.includes('organization') && organizations.length > 1 && organizationId) {
+        const currentOrgName = organizations.find(o => o.id === organizationId)?.name;
         return {
           showBackButton: true,
-          backButtonLabel: 'Organization',
+          backButtonLabel: renderLabel(currentOrgName, isLoadingOrganizations || isFetchingOrganizations, t('organization' as any), 'skeleton-back-organization'),
           onBack: () => navigate({ organization: null, building: null, residence: null })
         };
       }

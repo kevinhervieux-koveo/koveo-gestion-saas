@@ -1,0 +1,134 @@
+ content loaded
+ Content Script: Initializing
+ 🔍 [BILLS] Component mounted Object
+ 🔍 [BILLS] Context changed: Object
+ 🔍 [BILLS] Filters updated: Object
+ 🔍 [BILLS] Fetching bills with params: Object
+ 🔍 [BILLS] Filters updated: Object
+ 🔍 [BILLS] Fetching bills with params: Object
+/api/auth/user:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+ 🔍 [BILLS] Component mounted Object
+ 🔍 [BILLS] Context changed: Object
+ 🔍 [BILLS] Filters updated: Object
+ 🔍 [BILLS] Fetching bills with params: Object
+koveo-logo-FasO0tcB.jpg:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+/api/users/me/buildings?has_common_spaces=true:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+/api/manager/buildings/c3052c3c-b694-41a6-bd65-3bc3ae9a5984:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+/api/bills?buildingId=c3052c3c-b694-41a6-bd65-3bc3ae9a5984&year=2025-2026:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+ ❌ [BILLS PAGE] Failed to fetch bills: 502 Bad Gateway
+overrideMethod @ installHook.js:1
+/api/bills/year-range?buildingId=c3052c3c-b694-41a6-bd65-3bc3ae9a5984:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+/api/organizations/e9bb7862-4ba5-4822-848f-f3692e826e73/buildings:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+/favicon.ico:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+koveo-logo-FasO0tcB.jpg:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+koveo-logo-FasO0tcB.jpg:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+/api/auth/login:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+/api/auth/login:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+/api/auth/login:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+web-vitals:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+web-vitals:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+ [FinancialOverview] Query state: Object
+ [FinancialOverview] Aggregating projects: Object
+ [FinancialOverview] No buildings available
+ [FinancialOverview] Query state: Object
+ [FinancialOverview] Aggregating projects: Object
+ [FinancialOverview] No buildings available
+ [FinancialOverview] Query state: Object
+ [FinancialOverview] Aggregating projects: Object
+ [FinancialOverview] Building 0 (1936 Nitzsche Track Building 5): Object
+ [FinancialOverview] Building 1 (4958 E Oak Street Building 4): Object
+ [FinancialOverview] Building 2 (54716 N Cedar Street Building 1): Object
+ [FinancialOverview] Building 3 (70342 Dare Cliffs Building 3): Object
+ [FinancialOverview] Total projects aggregated: 0
+ [FinancialOverview] Query state: Object
+ [FinancialOverview] Aggregating projects: Object
+ [FinancialOverview] Building 0 (1936 Nitzsche Track Building 5): Object
+ [FinancialOverview] Building 1 (4958 E Oak Street Building 4): Object
+ [FinancialOverview] Building 2 (54716 N Cedar Street Building 1): Object
+ [FinancialOverview] Building 3 (70342 Dare Cliffs Building 3): Object
+ [FinancialOverview] Total projects aggregated: 0
+ [FinancialOverview] Making API request: Object
+ [FinancialOverview] Query state: Object
+ [FinancialOverview] Aggregating projects: Object
+ [FinancialOverview] Building 0 (1936 Nitzsche Track Building 5): Object
+ [FinancialOverview] Building 1 (4958 E Oak Street Building 4): Object
+ [FinancialOverview] Building 2 (54716 N Cedar Street Building 1): Object
+ [FinancialOverview] Building 3 (70342 Dare Cliffs Building 3): Object
+ [FinancialOverview] Total projects aggregated: 0
+ [FinancialOverview] Query state: Object
+ [FinancialOverview] Aggregating projects: Object
+ [FinancialOverview] Building 0 (1936 Nitzsche Track Building 5): Object
+ [FinancialOverview] Building 1 (4958 E Oak Street Building 4): Object
+ [FinancialOverview] Building 2 (54716 N Cedar Street Building 1): Object
+ [FinancialOverview] Building 3 (70342 Dare Cliffs Building 3): Object
+ [FinancialOverview] Total projects aggregated: 0
+ [FinancialOverview] Query state: Object
+ [FinancialOverview] Aggregating projects: Object
+ [FinancialOverview] Building 0 (1936 Nitzsche Track Building 5): Object
+ [FinancialOverview] Building 1 (4958 E Oak Street Building 4): Object
+ [FinancialOverview] Building 2 (54716 N Cedar Street Building 1): Object
+ [FinancialOverview] Added 3 projects from 54716 N Cedar Street Building 1
+ [FinancialOverview] Building 3 (70342 Dare Cliffs Building 3): Object
+ [FinancialOverview] Total projects aggregated: 3
+ [FinancialOverview] Query state: Object
+ [FinancialOverview] Aggregating projects: Object
+ [FinancialOverview] Building 0 (1936 Nitzsche Track Building 5): Object
+ [FinancialOverview] Building 1 (4958 E Oak Street Building 4): Object
+ [FinancialOverview] Building 2 (54716 N Cedar Street Building 1): Object
+ [FinancialOverview] Added 3 projects from 54716 N Cedar Street Building 1
+ [FinancialOverview] Building 3 (70342 Dare Cliffs Building 3): Object
+ [FinancialOverview] Added 0 projects from 70342 Dare Cliffs Building 3
+ [FinancialOverview] Total projects aggregated: 3
+overview-qOFNDVTp.js:1 [FinancialOverview] Query state: Object
+overview-qOFNDVTp.js:1 [FinancialOverview] Aggregating projects: Object
+overview-qOFNDVTp.js:1 [FinancialOverview] Building 0 (1936 Nitzsche Track Building 5): Object
+overview-qOFNDVTp.js:1 [FinancialOverview] Added 0 projects from 1936 Nitzsche Track Building 5
+overview-qOFNDVTp.js:1 [FinancialOverview] Building 1 (4958 E Oak Street Building 4): Object
+overview-qOFNDVTp.js:1 [FinancialOverview] Added 0 projects from 4958 E Oak Street Building 4
+overview-qOFNDVTp.js:1 [FinancialOverview] Building 2 (54716 N Cedar Street Building 1): Object
+overview-qOFNDVTp.js:1 [FinancialOverview] Added 3 projects from 54716 N Cedar Street Building 1
+overview-qOFNDVTp.js:1 [FinancialOverview] Building 3 (70342 Dare Cliffs Building 3): Object
+overview-qOFNDVTp.js:1 [FinancialOverview] Added 0 projects from 70342 Dare Cliffs Building 3
+overview-qOFNDVTp.js:1 [FinancialOverview] Total projects aggregated: 3
+overview-qOFNDVTp.js:1 [FinancialOverview] Query state: Object
+overview-qOFNDVTp.js:1 [FinancialOverview] Aggregating projects: Object
+overview-qOFNDVTp.js:1 [FinancialOverview] Building 0 (1936 Nitzsche Track Building 5): Object
+overview-qOFNDVTp.js:1 [FinancialOverview] Added 0 projects from 1936 Nitzsche Track Building 5
+overview-qOFNDVTp.js:1 [FinancialOverview] Building 1 (4958 E Oak Street Building 4): Object
+overview-qOFNDVTp.js:1 [FinancialOverview] Added 0 projects from 4958 E Oak Street Building 4
+overview-qOFNDVTp.js:1 [FinancialOverview] Building 2 (54716 N Cedar Street Building 1): Object
+overview-qOFNDVTp.js:1 [FinancialOverview] Added 3 projects from 54716 N Cedar Street Building 1
+overview-qOFNDVTp.js:1 [FinancialOverview] Building 3 (70342 Dare Cliffs Building 3): Object
+overview-qOFNDVTp.js:1 [FinancialOverview] Added 0 projects from 70342 Dare Cliffs Building 3
+overview-qOFNDVTp.js:1 [FinancialOverview] Total projects aggregated: 3
+overview-qOFNDVTp.js:1 [FinancialOverview] Making API request: Object
+overview-qOFNDVTp.js:1 [FinancialOverview] API response: Object
+overview-qOFNDVTp.js:1 [FinancialOverview] API response: Object
+overview-qOFNDVTp.js:1 [FinancialOverview] Query state: Object
+overview-qOFNDVTp.js:1 [FinancialOverview] Aggregating projects: Object
+overview-qOFNDVTp.js:1 [FinancialOverview] Building 0 (1936 Nitzsche Track Building 5): Object
+overview-qOFNDVTp.js:1 [FinancialOverview] Added 0 projects from 1936 Nitzsche Track Building 5
+overview-qOFNDVTp.js:1 [FinancialOverview] Building 1 (4958 E Oak Street Building 4): Object
+overview-qOFNDVTp.js:1 [FinancialOverview] Added 0 projects from 4958 E Oak Street Building 4
+overview-qOFNDVTp.js:1 [FinancialOverview] Building 2 (54716 N Cedar Street Building 1): Object
+overview-qOFNDVTp.js:1 [FinancialOverview] Added 3 projects from 54716 N Cedar Street Building 1
+overview-qOFNDVTp.js:1 [FinancialOverview] Building 3 (70342 Dare Cliffs Building 3): Object
+overview-qOFNDVTp.js:1 [FinancialOverview] Added 0 projects from 70342 Dare Cliffs Building 3
+overview-qOFNDVTp.js:1 [FinancialOverview] Total projects aggregated: 3
+overview-qOFNDVTp.js:1 [FinancialOverview] Query state: Object
+overview-qOFNDVTp.js:1 [FinancialOverview] Aggregating projects: Object
+overview-qOFNDVTp.js:1 [FinancialOverview] Building 0 (1936 Nitzsche Track Building 5): Object
+overview-qOFNDVTp.js:1 [FinancialOverview] Added 0 projects from 1936 Nitzsche Track Building 5
+overview-qOFNDVTp.js:1 [FinancialOverview] Building 1 (4958 E Oak Street Building 4): Object
+overview-qOFNDVTp.js:1 [FinancialOverview] Added 0 projects from 4958 E Oak Street Building 4
+overview-qOFNDVTp.js:1 [FinancialOverview] Building 2 (54716 N Cedar Street Building 1): Object
+overview-qOFNDVTp.js:1 [FinancialOverview] Added 3 projects from 54716 N Cedar Street Building 1
+overview-qOFNDVTp.js:1 [FinancialOverview] Building 3 (70342 Dare Cliffs Building 3): Object
+overview-qOFNDVTp.js:1 [FinancialOverview] Added 0 projects from 70342 Dare Cliffs Building 3
+overview-qOFNDVTp.js:1 [FinancialOverview] Total projects aggregated: 3
+bills-AFHcVMzj.js:6 🔍 [BILLS] Component mounted Object
+bills-AFHcVMzj.js:6 🔍 [BILLS] Context changed: Object
+bills-AFHcVMzj.js:6 🔍 [BILLS] Filters updated: Object
+bills-AFHcVMzj.js:6 🔍 [BILLS] Fetching bills with params: Object
+hook.js:608 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+overrideMethod @ hook.js:608

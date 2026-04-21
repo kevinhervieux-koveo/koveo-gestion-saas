@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequest, ApiError } from '@/lib/queryClient';
 import type { User } from '@shared/schema';
 
 /**
@@ -36,25 +36,27 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
  */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [lastAuthCheck, setLastAuthCheck] = useState<number>(0);
 
   // Check if we're on a public page that doesn't need auth
+  // Use location from wouter for reactivity on navigation changes
   const isPublicPage =
-    window.location.pathname.includes('/register') ||
-    window.location.pathname.includes('/login') ||
-    window.location.pathname.includes('/forgot-password') ||
-    window.location.pathname.includes('/reset-password') ||
-    window.location.pathname.includes('/accept-invitation') ||
-    window.location.pathname === '/' ||
-    window.location.pathname === '/features' ||
-    window.location.pathname === '/pricing' ||
-    window.location.pathname === '/security' ||
-    window.location.pathname === '/story' ||
-    window.location.pathname === '/privacy-policy' ||
-    window.location.pathname === '/terms-of-service';
+    location.includes('/register') ||
+    location.includes('/login') ||
+    location.includes('/forgot-password') ||
+    location.includes('/reset-password') ||
+    location.includes('/accept-invitation') ||
+    location === '/' ||
+    location === '/features' ||
+    location === '/pricing' ||
+    location === '/enterprise' ||
+    location === '/security' ||
+    location === '/story' ||
+    location === '/privacy-policy' ||
+    location === '/terms-of-service';
 
   // Query to get current user with optimized caching and minimal refetches
   const {
@@ -111,6 +113,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   });
 
   useEffect(() => {
+    // Self-heal: if a previous bug or mis-configured query polluted the
+    // ['/api/auth/user'] cache with a non-plain object (e.g. a raw fetch
+    // Response), wipe it and refetch so the sidebar/menu never render
+    // "undefined undefined" with an empty navigation.
+    if (
+      userData &&
+      typeof userData === 'object' &&
+      (userData instanceof Response ||
+        typeof (userData as any).id !== 'string' ||
+        typeof (userData as any).role !== 'string')
+    ) {
+      queryClient.removeQueries({ queryKey: ['/api/auth/user'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      return;
+    }
+
     // Optimistic state management - maintain user state during refetches
     if (userData !== undefined) {
       setUser(userData);
@@ -125,13 +143,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       !isFetching && 
       !isAuthenticating && 
       !isError &&
-      Date.now() - lastAuthCheck > 2000 // Increased to 2 second delay for stability
+      Date.now() - lastAuthCheck > 500 // 500ms stability window
     ) {
-      // Add longer delay to prevent flash redirects and allow for network issues
       const redirectTimer = setTimeout(() => {
-        // Redirecting to login due to authentication failure
         setLocation('/login');
-      }, 1000); // Increased delay
+      }, 200);
       
       return () => clearTimeout(redirectTimer);
     }
@@ -150,8 +166,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Login failed');
+        // Preserve the server's structured error shape (code /
+        // fieldPath / fieldLabel from Task #166) so the login form
+        // can pin DANGEROUS_INPUT rejections to the offending field
+        // inline instead of showing a generic "Login failed" toast.
+        let parsed: unknown;
+        try {
+          parsed = await response.json();
+        } catch {
+          parsed = undefined;
+        }
+        const body = parsed as
+          | { message?: string; code?: string; fieldPath?: string; fieldLabel?: string }
+          | undefined;
+        throw new ApiError(body?.message || 'Login failed', {
+          status: response.status,
+          body,
+          code: body?.code,
+          fieldPath: body?.fieldPath,
+          fieldLabel: body?.fieldLabel,
+        });
       }
 
       return response.json();
@@ -160,8 +194,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(data.user);
       queryClient.setQueryData(['/api/auth/user'], data.user);
       queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
-      // Redirect to dashboard after successful login
-      setLocation('/dashboard/quick-actions');
+      // Honor a `?next=` parameter so flows that bounced through login
+      // (e.g. the OAuth `/oauth/consent` screen) come back to where they
+      // started. We only allow same-origin paths to prevent open redirects.
+      let next: string | null = null;
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const candidate = params.get('next');
+        if (candidate && candidate.startsWith('/') && !candidate.startsWith('//')) {
+          next = candidate;
+        }
+      } catch {
+        // ignore — fall through to default redirect
+      }
+      setLocation(next ?? '/dashboard/overview');
     },
   });
 

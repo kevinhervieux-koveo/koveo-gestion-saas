@@ -3,6 +3,7 @@ import type { Express } from 'express';
 import { requireAuth, authorize } from '../auth';
 import { storage } from '../storage';
 
+import { asyncHandler } from '../utils/async-handler';
 /**
  * Transform a permission string into a structured permission object.
  * @param permission - Permission string in format "action:resource".
@@ -58,30 +59,19 @@ function transformPermission(permission: string) {
  */
 export function registerPermissionsRoutes(app: Express) {
   // Get all system permissions from database
-  app.get('/api/permissions', requireAuth, async (req, res) => {
-    try {
+  app.get('/api/permissions', requireAuth, asyncHandler(async (req, res) => {
       const permissions = await storage.getPermissions();
       res.json(permissions);
-    } catch (error: any) {
-      console.error('❌ Error fetching permissions:', error);
-      res.status(500).json({ message: 'Failed to fetch permissions' });
-    }
-  });
+    }, { errorMessage: 'Failed to fetch permissions', errorLogPrefix: '❌ Error fetching permissions' }));
 
   // Get role-based permissions from database
-  app.get('/api/role-permissions', requireAuth, async (req, res) => {
-    try {
+  app.get('/api/role-permissions', requireAuth, asyncHandler(async (req, res) => {
       const rolePermissions = await storage.getRolePermissions();
       res.json(rolePermissions);
-    } catch (error: any) {
-      console.error('❌ Error fetching role permissions:', error);
-      res.status(500).json({ message: 'Failed to fetch role permissions' });
-    }
-  });
+    }, { errorMessage: 'Failed to fetch role permissions', errorLogPrefix: '❌ Error fetching role permissions' }));
 
   // Get permissions matrix for admin dashboard
-  app.get('/api/permissions-matrix', requireAuth, async (req, res) => {
-    try {
+  app.get('/api/permissions-matrix', requireAuth, asyncHandler(async (req, res) => {
       const permissions = await storage.getPermissions();
       const rolePermissions = await storage.getRolePermissions();
 
@@ -108,30 +98,20 @@ export function registerPermissionsRoutes(app: Express) {
         permissions,
         rolePermissions,
       });
-    } catch (error: any) {
-      console.error('❌ Error fetching permissions matrix:', error);
-      res.status(500).json({ message: 'Failed to fetch permissions matrix' });
-    }
-  });
+    }, { errorMessage: 'Failed to fetch permissions matrix', errorLogPrefix: '❌ Error fetching permissions matrix' }));
 
   // Get user-specific permissions (overrides)
-  app.get('/api/user-permissions', requireAuth, async (req, res) => {
-    try {
+  app.get('/api/user-permissions', requireAuth, asyncHandler(async (req, res) => {
       const userPermissions = await storage.getUserPermissions();
       res.json(userPermissions);
-    } catch (error: any) {
-      console.error('❌ Error fetching user permissions:', error);
-      res.status(500).json({ message: 'Failed to fetch user permissions' });
-    }
-  });
+    }, { errorMessage: 'Failed to fetch user permissions', errorLogPrefix: '❌ Error fetching user permissions' }));
 
   // Grant permission to user
   app.post(
     '/api/user-permissions',
     requireAuth,
     authorize('manage_permissions:users'),
-    async (req, res) => {
-      try {
+    asyncHandler(async (req, res) => {
         const { userId, permissionId, reason } = req.body;
 
         if (!userId || !permissionId) {
@@ -158,11 +138,7 @@ export function registerPermissionsRoutes(app: Express) {
           message: 'User permission overrides not yet implemented',
           note: 'This feature requires additional database schema for user_permission_overrides table',
         });
-      } catch (error: any) {
-        console.error('❌ Error granting user permission:', error);
-        res.status(500).json({ message: 'Failed to grant user permission' });
-      }
-    }
+      }, { errorMessage: 'Failed to grant user permission', errorLogPrefix: '❌ Error granting user permission' })
   );
 
   // Revoke permission from user
@@ -170,8 +146,7 @@ export function registerPermissionsRoutes(app: Express) {
     '/api/user-permissions/:userId/:permissionId',
     requireAuth,
     authorize('manage:user_roles'),
-    async (req, res) => {
-      try {
+    asyncHandler(async (req, res) => {
         const { userId, permissionId } = req.params;
 
         // User permission revocation would delete from user_permission_overrides table
@@ -180,11 +155,7 @@ export function registerPermissionsRoutes(app: Express) {
           message: 'User permission overrides not yet implemented',
           note: 'This feature requires additional database schema for user_permission_overrides table',
         });
-      } catch (error: any) {
-        console.error('❌ Error revoking user permission:', error);
-        res.status(500).json({ message: 'Failed to revoke user permission' });
-      }
-    }
+      }, { errorMessage: 'Failed to revoke user permission', errorLogPrefix: '❌ Error revoking user permission' })
   );
 
   // Update role permissions (admin only)
@@ -192,8 +163,7 @@ export function registerPermissionsRoutes(app: Express) {
     '/api/role-permissions/:role',
     requireAuth,
     authorize('manage:user_roles'),
-    async (req, res) => {
-      try {
+    asyncHandler(async (req, res) => {
         const { role } = req.params;
         const { permissions } = req.body;
 
@@ -212,16 +182,11 @@ export function registerPermissionsRoutes(app: Express) {
           message: 'Role permission updates not yet implemented',
           note: 'This feature requires implementing a mechanism to update permissions.json or move permissions to database',
         });
-      } catch (error: any) {
-        console.error('❌ Error updating role permissions:', error);
-        res.status(500).json({ message: 'Failed to update role permissions' });
-      }
-    }
+      }, { errorMessage: 'Failed to update role permissions', errorLogPrefix: '❌ Error updating role permissions' })
   );
 
   // Get permission categories for organization
-  app.get('/api/permission-categories', requireAuth, async (req, res) => {
-    try {
+  app.get('/api/permission-categories', requireAuth, asyncHandler(async (req, res) => {
       // Generate categories based on database permissions
       const permissions = await storage.getPermissions();
       const categoryMap: { [key: string]: any[] } = {};
@@ -256,15 +221,10 @@ export function registerPermissionsRoutes(app: Express) {
       }));
 
       res.json(categories);
-    } catch (error: any) {
-      console.error('❌ Error fetching permission categories:', error);
-      res.status(500).json({ message: 'Failed to fetch permission categories' });
-    }
-  });
+    }, { errorMessage: 'Failed to fetch permission categories', errorLogPrefix: '❌ Error fetching permission categories' }));
 
   // Validate user has specific permission
-  app.post('/api/permissions/validate', requireAuth, async (req, res) => {
-    try {
+  app.post('/api/permissions/validate', requireAuth, asyncHandler(async (req, res) => {
       const { permission } = req.body;
 
       if (!permission) {
@@ -284,9 +244,5 @@ export function registerPermissionsRoutes(app: Express) {
         permission,
         message: hasPermission ? 'Permission granted' : 'Permission denied',
       });
-    } catch (error: any) {
-      console.error('❌ Error validating permission:', error);
-      res.status(500).json({ message: 'Failed to validate permission' });
-    }
-  });
+    }, { errorMessage: 'Failed to validate permission', errorLogPrefix: '❌ Error validating permission' }));
 }

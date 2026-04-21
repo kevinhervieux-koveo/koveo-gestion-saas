@@ -14,7 +14,11 @@ import { eq, and, or, inArray, desc, asc, sql } from 'drizzle-orm';
 import { requireAuth } from '../auth/index';
 import { insertDemandSchema, insertDemandCommentSchema } from '../../shared/schemas/operations';
 import { z } from 'zod';
+import { demandNotificationService } from '../services/demand-notification-service';
+import { ObjectStorageService } from '../objectStorage';
+import { canUserAccessOrganization, getUserAccessibleOrganizations } from '../rbac';
 
+import { asyncHandler } from '../utils/async-handler';
 /**
  * Register demand routes for managing resident demands and complaints.
  *
@@ -27,10 +31,9 @@ import { z } from 'zod';
  */
 export function registerDemandRoutes(app: Express) {
   // Get demands for a user (residents and managers)
-  app.get('/api/demands', requireAuth, async (req: any, res: any) => {
-    try {
+  app.get('/api/demands', requireAuth, asyncHandler(async (req: any, res: any) => {
       const user = req.user;
-      const { buildingId, residenceId, type, status, search } = req.query;
+      const { buildingId, residenceId, type, status, search, submitterId } = req.query;
 
       // Base query with joins - use left joins to handle optional residence relationships
       let query = db
@@ -77,23 +80,25 @@ export function registerDemandRoutes(app: Express) {
       // Apply role-based access control
       const conditions = [];
       
-      if (user.role === 'admin') {
+      // If submitterId is provided, use it to filter (allows "my demands only" view for all roles)
+      if (submitterId) {
+        // Security: users can only request their own demands via submitterId
+        if (submitterId !== user.id) {
+          return res.status(403).json({ message: 'Access denied: cannot view other users\' demands' });
+        }
+        conditions.push(eq(demands.submitterId, user.id));
+      } else if (user.role === 'admin') {
         // Admins can see all demands - no additional conditions needed
-      } else if (user.role === 'manager') {
-        // Managers can see demands from their organization's buildings
-        const userOrganizationData = await db
-          .select({ organizationId: userOrganizations.organizationId })
-          .from(userOrganizations)
-          .where(eq(userOrganizations.userId, user.id));
+      } else if (user.role === 'manager' || user.role === 'demo_manager') {
+        // Managers can see demands from all their accessible organizations' buildings
+        const accessibleOrgIds = await getUserAccessibleOrganizations(user.id);
           
-        if (userOrganizationData.length > 0) {
-          const organizationId = userOrganizationData[0].organizationId;
-          
-          // Get buildings belonging to the manager's organization
+        if (accessibleOrgIds.length > 0) {
+          // Get buildings belonging to all accessible organizations
           const organizationBuildings = await db
             .select({ buildingId: buildings.id })
             .from(buildings)
-            .where(eq(buildings.organizationId, organizationId));
+            .where(inArray(buildings.organizationId, accessibleOrgIds));
             
           if (organizationBuildings.length > 0) {
             const buildingIds = organizationBuildings.map(b => b.buildingId);
@@ -143,7 +148,7 @@ export function registerDemandRoutes(app: Express) {
 
       // Post-process to fetch residence data for demands with assignationResidenceId but null residence
       const demandsNeedingResidenceData = results.filter(
-        demand => !demand.residence.id && demand.assignationResidenceId
+        demand => !demand.residence?.id && demand.assignationResidenceId
       );
       
       if (demandsNeedingResidenceData.length > 0) {
@@ -182,20 +187,16 @@ export function registerDemandRoutes(app: Express) {
             demand.description.toLowerCase().includes(searchTerm) ||
             demand.submitter.firstName?.toLowerCase().includes(searchTerm) ||
             demand.submitter.lastName?.toLowerCase().includes(searchTerm) ||
-            demand.residence.unitNumber?.toLowerCase().includes(searchTerm) ||
+            demand.residence?.unitNumber?.toLowerCase().includes(searchTerm) ||
             demand.building.name.toLowerCase().includes(searchTerm)
         );
       }
 
       res.json(filteredResults);
-    } catch (error: any) {
-      res.status(500).json({ message: 'Failed to fetch demands' });
-    }
-  });
+    }, { errorMessage: 'Failed to fetch demands', errorLogPrefix: 'Error fetching demands' }));
 
   // Get a specific demand
-  app.get('/api/demands/:id', requireAuth, async (req: any, res: any) => {
-    try {
+  app.get('/api/demands/:id', requireAuth, asyncHandler(async (req: any, res: any) => {
       const { id } = req.params;
       const user = req.user;
 
@@ -254,26 +255,16 @@ export function registerDemandRoutes(app: Express) {
       if (user.role === 'admin') {
         // Admins can view all demands
         hasAccess = true;
-      } else if (user.role === 'manager') {
-        // Managers can view demands from their organization's buildings
-        const userOrganizationData = await db
-          .select({ organizationId: userOrganizations.organizationId })
-          .from(userOrganizations)
-          .where(eq(userOrganizations.userId, user.id));
+      } else if (user.role === 'manager' || user.role === 'demo_manager') {
+        // Managers can view demands from all their accessible organizations' buildings
+        const buildingOrganization = await db
+          .select({ organizationId: buildings.organizationId })
+          .from(buildings)
+          .where(eq(buildings.id, demandData.buildingId))
+          .limit(1);
           
-        if (userOrganizationData.length > 0) {
-          const organizationId = userOrganizationData[0].organizationId;
-          
-          // Check if the demand's building belongs to the manager's organization
-          const buildingOrganization = await db
-            .select({ organizationId: buildings.organizationId })
-            .from(buildings)
-            .where(eq(buildings.id, demandData.buildingId))
-            .limit(1);
-            
-          if (buildingOrganization.length > 0 && buildingOrganization[0].organizationId === organizationId) {
-            hasAccess = true;
-          }
+        if (buildingOrganization.length > 0) {
+          hasAccess = await canUserAccessOrganization(user.id, buildingOrganization[0].organizationId);
         }
       } else {
         // Residents and tenants can only view demands they personally created
@@ -285,7 +276,7 @@ export function registerDemandRoutes(app: Express) {
       }
 
       // Post-process to fetch residence data if needed
-      if (!demandData.residence.id && demandData.assignationResidenceId) {
+      if (!demandData.residence?.id && demandData.assignationResidenceId) {
         const assignationResidenceData = await db
           .select({
             id: residences.id,
@@ -302,10 +293,7 @@ export function registerDemandRoutes(app: Express) {
       }
 
       res.json(demandData);
-    } catch (error: any) {
-      res.status(500).json({ message: 'Failed to fetch demand' });
-    }
-  });
+    }, { errorMessage: 'Failed to fetch demand', errorLogPrefix: 'Error fetching demand' }));
 
   // Create a new demand
   app.post('/api/demands', requireAuth, async (req: any, res: any) => {
@@ -328,30 +316,25 @@ export function registerDemandRoutes(app: Express) {
         if (!validatedData.buildingId) {
           return res.status(400).json({ message: 'Building is required' });
         }
-      } else if (user.role === 'manager') {
-        // Manager can assign demands to all buildings assigned to them and their residences
+      } else if (user.role === 'manager' || user.role === 'demo_manager') {
+        // Manager can assign demands to all buildings in their accessible organizations
         if (!validatedData.buildingId) {
           return res.status(400).json({ message: 'Building is required' });
         }
         
-        // Verify manager has access to the specified building
-        const userOrganizationData = await db
-          .select({ organizationId: userOrganizations.organizationId })
-          .from(userOrganizations)
-          .where(eq(userOrganizations.userId, user.id));
-          
-        if (userOrganizationData.length === 0) {
-          return res.status(403).json({ message: 'Manager not assigned to any organization' });
-        }
-        
-        const organizationId = userOrganizationData[0].organizationId;
-        const buildingAccess = await db
-          .select({ id: buildings.id })
+        // Verify manager has access to the specified building's organization
+        const buildingData = await db
+          .select({ organizationId: buildings.organizationId })
           .from(buildings)
-          .where(and(eq(buildings.id, validatedData.buildingId), eq(buildings.organizationId, organizationId)))
+          .where(eq(buildings.id, validatedData.buildingId))
           .limit(1);
           
-        if (buildingAccess.length === 0) {
+        if (buildingData.length === 0) {
+          return res.status(404).json({ message: 'Building not found' });
+        }
+        
+        const hasAccess = await canUserAccessOrganization(user.id, buildingData[0].organizationId);
+        if (!hasAccess) {
           return res.status(403).json({ message: 'Access denied to specified building' });
         }
         
@@ -376,7 +359,14 @@ export function registerDemandRoutes(app: Express) {
           })
           .from(userResidences)
           .innerJoin(residences, eq(userResidences.residenceId, residences.id))
-          .where(eq(userResidences.userId, user.id));
+          .where(
+            and(
+              eq(userResidences.userId, user.id),
+              // Task #144: only currently-active residency links grant
+              // a tenant the right to create demands on a residence.
+              eq(userResidences.isActive, true)
+            )
+          );
 
         if (userResidenceData.length === 0) {
           return res.status(400).json({ message: 'User must be assigned to a residence to create demands' });
@@ -472,8 +462,22 @@ export function registerDemandRoutes(app: Express) {
 
       const newDemand = await db.insert(demands).values([demandInsertData]).returning();
 
+      // Set ACL on object storage file if it's an object storage path
+      if (fileInfo.filePath && fileInfo.filePath.startsWith('/objects/')) {
+        try {
+          const objectStorageService = new ObjectStorageService();
+          await objectStorageService.trySetObjectEntityAclPolicy(fileInfo.filePath, {
+            visibility: 'private',
+            owner: user.id,
+          });
+        } catch (aclError) {
+          if (process.env.NODE_ENV === 'development') console.error('Failed to set ACL on demand file:', aclError);
+        }
+      }
+
       res.status(201).json(newDemand[0]);
     } catch (error: any) {
+      if (process.env.NODE_ENV === 'development') console.error('Error creating demand:', error);
       if (error.name === 'ZodError') {
         return res.status(400).json({ message: 'Invalid demand data', errors: error.errors });
       }
@@ -482,8 +486,7 @@ export function registerDemandRoutes(app: Express) {
   });
 
   // Update a demand
-  app.put('/api/demands/:id', requireAuth, async (req: any, res: any) => {
-    try {
+  app.put('/api/demands/:id', requireAuth, asyncHandler(async (req: any, res: any) => {
       const { id } = req.params;
       const user = req.user;
       const updates = req.body;
@@ -505,24 +508,17 @@ export function registerDemandRoutes(app: Express) {
         // Admins can update any demand and any field
         canUpdate = true;
         allowedFields = ['status', 'reviewNotes', 'reviewedBy', 'reviewedAt', 'description', 'type'];
-      } else if (user.role === 'manager') {
-        // Managers can update demands from their organization's buildings (status/review fields only)
-        const userOrganizationData = await db
-          .select({ organizationId: userOrganizations.organizationId })
-          .from(userOrganizations)
-          .where(eq(userOrganizations.userId, user.id));
+      } else if (user.role === 'manager' || user.role === 'demo_manager') {
+        // Managers can update demands from all their accessible organizations' buildings (status/review fields only)
+        const buildingOrganization = await db
+          .select({ organizationId: buildings.organizationId })
+          .from(buildings)
+          .where(eq(buildings.id, demand.buildingId))
+          .limit(1);
           
-        if (userOrganizationData.length > 0) {
-          const organizationId = userOrganizationData[0].organizationId;
-          
-          // Check if the demand's building belongs to the manager's organization
-          const buildingOrganization = await db
-            .select({ organizationId: buildings.organizationId })
-            .from(buildings)
-            .where(eq(buildings.id, demand.buildingId))
-            .limit(1);
-            
-          if (buildingOrganization.length > 0 && buildingOrganization[0].organizationId === organizationId) {
+        if (buildingOrganization.length > 0) {
+          const hasAccess = await canUserAccessOrganization(user.id, buildingOrganization[0].organizationId);
+          if (hasAccess) {
             canUpdate = true;
             allowedFields = ['status', 'reviewNotes', 'reviewedBy', 'reviewedAt'];
           }
@@ -546,7 +542,7 @@ export function registerDemandRoutes(app: Express) {
       }
       
       // Add metadata for manager/admin updates
-      if (user.role === 'admin' || user.role === 'manager') {
+      if (user.role === 'admin' || user.role === 'manager' || user.role === 'demo_manager') {
         if (updates.status && updates.status !== demand.status) {
           filteredUpdates['reviewedBy'] = user.id;
           filteredUpdates['reviewedAt'] = new Date();
@@ -559,15 +555,25 @@ export function registerDemandRoutes(app: Express) {
         .where(eq(demands.id, id))
         .returning();
 
+      if (
+        (user.role === 'admin' || user.role === 'manager' || user.role === 'demo_manager') &&
+        demand.submitterId &&
+        demand.submitterId !== user.id
+      ) {
+        try {
+          demandNotificationService.notifyDemandEdited(id, user.id, demand.submitterId).catch(err => {
+            if (process.env.NODE_ENV === 'development') console.error('Failed to send demand edit notification:', err);
+          });
+        } catch (notificationError) {
+          if (process.env.NODE_ENV === 'development') console.error('Error initiating demand edit notification:', notificationError);
+        }
+      }
+
       res.json(updatedDemand[0]);
-    } catch (error: any) {
-      res.status(500).json({ message: 'Failed to update demand' });
-    }
-  });
+    }, { errorMessage: 'Failed to update demand', errorLogPrefix: 'Error updating demand' }));
 
   // Delete a demand
-  app.delete('/api/demands/:id', requireAuth, async (req: any, res: any) => {
-    try {
+  app.delete('/api/demands/:id', requireAuth, asyncHandler(async (req: any, res: any) => {
       const { id } = req.params;
       const user = req.user;
 
@@ -586,26 +592,16 @@ export function registerDemandRoutes(app: Express) {
       if (user.role === 'admin') {
         // Admins can delete any demand
         canDelete = true;
-      } else if (user.role === 'manager') {
-        // Managers can delete demands from their organization's buildings
-        const userOrganizationData = await db
-          .select({ organizationId: userOrganizations.organizationId })
-          .from(userOrganizations)
-          .where(eq(userOrganizations.userId, user.id));
+      } else if (user.role === 'manager' || user.role === 'demo_manager') {
+        // Managers can delete demands from all their accessible organizations' buildings
+        const buildingOrganization = await db
+          .select({ organizationId: buildings.organizationId })
+          .from(buildings)
+          .where(eq(buildings.id, demand.buildingId))
+          .limit(1);
           
-        if (userOrganizationData.length > 0) {
-          const organizationId = userOrganizationData[0].organizationId;
-          
-          // Check if the demand's building belongs to the manager's organization
-          const buildingOrganization = await db
-            .select({ organizationId: buildings.organizationId })
-            .from(buildings)
-            .where(eq(buildings.id, demand.buildingId))
-            .limit(1);
-            
-          if (buildingOrganization.length > 0 && buildingOrganization[0].organizationId === organizationId) {
-            canDelete = true;
-          }
+        if (buildingOrganization.length > 0) {
+          canDelete = await canUserAccessOrganization(user.id, buildingOrganization[0].organizationId);
         }
       } else if (demand.submitterId === user.id) {
         // Users can delete their own demands
@@ -616,21 +612,18 @@ export function registerDemandRoutes(app: Express) {
         return res.status(403).json({ message: 'Access denied' });
       }
 
-      // Delete associated comments first (cascade delete)
-      await db.delete(demandComments).where(eq(demandComments.demandId, id));
-      
-      // Then delete the demand
-      await db.delete(demands).where(eq(demands.id, id));
+      // Delete comments + demand atomically: a failure on the second
+      // statement must not leave the demand row alive with no comments.
+      await db.transaction(async (tx) => {
+        await tx.delete(demandComments).where(eq(demandComments.demandId, id));
+        await tx.delete(demands).where(eq(demands.id, id));
+      });
 
       res.json({ message: 'Demand deleted successfully' });
-    } catch (error: any) {
-      res.status(500).json({ message: 'Failed to delete demand' });
-    }
-  });
+    }, { errorMessage: 'Failed to delete demand', errorLogPrefix: 'Error deleting demand' }));
 
   // Get comments for a demand
-  app.get('/api/demands/:id/comments', requireAuth, async (req: any, res: any) => {
-    try {
+  app.get('/api/demands/:id/comments', requireAuth, asyncHandler(async (req: any, res: any) => {
       const { id } = req.params;
       const user = req.user;
 
@@ -649,26 +642,16 @@ export function registerDemandRoutes(app: Express) {
       if (user.role === 'admin') {
         // Admins can view all demands
         hasAccess = true;
-      } else if (user.role === 'manager') {
-        // Managers can view demands from their organization's buildings
-        const userOrganizationData = await db
-          .select({ organizationId: userOrganizations.organizationId })
-          .from(userOrganizations)
-          .where(eq(userOrganizations.userId, user.id));
+      } else if (user.role === 'manager' || user.role === 'demo_manager') {
+        // Managers can view demands from all their accessible organizations' buildings
+        const buildingOrganization = await db
+          .select({ organizationId: buildings.organizationId })
+          .from(buildings)
+          .where(eq(buildings.id, demandData.buildingId))
+          .limit(1);
           
-        if (userOrganizationData.length > 0) {
-          const organizationId = userOrganizationData[0].organizationId;
-          
-          // Check if the demand's building belongs to the manager's organization
-          const buildingOrganization = await db
-            .select({ organizationId: buildings.organizationId })
-            .from(buildings)
-            .where(eq(buildings.id, demandData.buildingId))
-            .limit(1);
-            
-          if (buildingOrganization.length > 0 && buildingOrganization[0].organizationId === organizationId) {
-            hasAccess = true;
-          }
+        if (buildingOrganization.length > 0) {
+          hasAccess = await canUserAccessOrganization(user.id, buildingOrganization[0].organizationId);
         }
       } else {
         // Residents and tenants can only view their own demands
@@ -701,10 +684,7 @@ export function registerDemandRoutes(app: Express) {
         .orderBy(asc(demandComments.createdAt));
 
       res.json(comments);
-    } catch (error: any) {
-      res.status(500).json({ message: 'Failed to fetch demand comments' });
-    }
-  });
+    }, { errorMessage: 'Failed to fetch demand comments', errorLogPrefix: 'Error fetching demand comments' }));
 
   // Create a comment on a demand
   app.post('/api/demands/:id/comments', requireAuth, async (req: any, res: any) => {
@@ -733,31 +713,21 @@ export function registerDemandRoutes(app: Express) {
       let hasAccess = false;
       
       if (user.role === 'admin') {
-        // Admins can view all demands
+        // Admins can comment on all demands
         hasAccess = true;
-      } else if (user.role === 'manager') {
-        // Managers can view demands from their organization's buildings
-        const userOrganizationData = await db
-          .select({ organizationId: userOrganizations.organizationId })
-          .from(userOrganizations)
-          .where(eq(userOrganizations.userId, user.id));
+      } else if (user.role === 'manager' || user.role === 'demo_manager') {
+        // Managers can comment on demands from all their accessible organizations' buildings
+        const buildingOrganization = await db
+          .select({ organizationId: buildings.organizationId })
+          .from(buildings)
+          .where(eq(buildings.id, demandData.buildingId))
+          .limit(1);
           
-        if (userOrganizationData.length > 0) {
-          const organizationId = userOrganizationData[0].organizationId;
-          
-          // Check if the demand's building belongs to the manager's organization
-          const buildingOrganization = await db
-            .select({ organizationId: buildings.organizationId })
-            .from(buildings)
-            .where(eq(buildings.id, demandData.buildingId))
-            .limit(1);
-            
-          if (buildingOrganization.length > 0 && buildingOrganization[0].organizationId === organizationId) {
-            hasAccess = true;
-          }
+        if (buildingOrganization.length > 0) {
+          hasAccess = await canUserAccessOrganization(user.id, buildingOrganization[0].organizationId);
         }
       } else {
-        // Residents and tenants can only view their own demands
+        // Residents and tenants can only comment on their own demands
         hasAccess = demandData.submitterId === user.id;
       }
       
@@ -767,8 +737,25 @@ export function registerDemandRoutes(app: Express) {
 
       const newComment = await db.insert(demandComments).values(validatedData).returning();
 
+      if (demandData.submitterId) {
+        try {
+          demandNotificationService.notifyDemandCommented(
+            id,
+            user.id,
+            user.role,
+            demandData.submitterId,
+            demandData.buildingId
+          ).catch(err => {
+            if (process.env.NODE_ENV === 'development') console.error('Failed to send demand comment notification:', err);
+          });
+        } catch (notificationError) {
+          if (process.env.NODE_ENV === 'development') console.error('Error initiating demand comment notification:', notificationError);
+        }
+      }
+
       res.status(201).json(newComment[0]);
     } catch (error: any) {
+      if (process.env.NODE_ENV === 'development') console.error('Error creating comment:', error);
       if (error.name === 'ZodError') {
         return res.status(400).json({ message: 'Invalid comment data', errors: error.errors });
       }

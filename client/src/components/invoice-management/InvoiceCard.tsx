@@ -17,7 +17,8 @@ import {
   MoreHorizontal,
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
+import { useCreateUpdateMutation } from '@/lib/common-hooks';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import type { Invoice } from '@shared/schemas/invoices';
@@ -51,7 +52,7 @@ export function InvoiceCard({ invoice, onUpdate, compact = false }: InvoiceCardP
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const deleteMutation = useMutation({
+  const deleteMutation = useCreateUpdateMutation<unknown, void>({
     mutationFn: async () => {
       const response = await apiRequest('DELETE', `/api/invoices/${invoice.id}`);
       if (!response.ok) {
@@ -60,20 +61,12 @@ export function InvoiceCard({ invoice, onUpdate, compact = false }: InvoiceCardP
       }
       return response.json();
     },
-    onSuccess: () => {
-      toast({
-        title: 'Success',
-        description: 'Invoice deleted successfully',
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/invoices'] });
+    successTitle: 'Success',
+    successMessage: 'Invoice deleted successfully',
+    errorMessage: (error) => error?.message || '',
+    queryKeysToInvalidate: [['/api/invoices']],
+    onSuccessCallback: () => {
       onUpdate?.();
-    },
-    onError: (error: Error) => {
-      toast({
-        title: 'Error',
-        description: error.message,
-        variant: 'destructive',
-      });
     },
   });
 
@@ -188,6 +181,7 @@ export function InvoiceCard({ invoice, onUpdate, compact = false }: InvoiceCardP
             <DialogTitle>Edit Invoice</DialogTitle>
           </DialogHeader>
           <InvoiceForm
+            invoice={invoice}
             buildingId={invoice.buildingId}
             residenceId={invoice.residenceId}
             initialData={{

@@ -1,10 +1,13 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { logDebug, logError } from '@/lib/logger';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Header } from '@/components/layout/header';
 import { FilterSort } from '@/components/filter-sort/FilterSort';
 import { useLanguage } from '@/hooks/use-language';
 import { useToast } from '@/hooks/use-toast';
+import { handleApiError } from '@/lib/demo-error-handler';
 import { apiRequest, queryClient } from '@/lib/queryClient';
+import { useTableState } from '@/lib/common-hooks';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -90,7 +93,7 @@ const deleteUserSchema = z.object({
  * Provides comprehensive user administration with role-based access controls.
  */
 export default function UserManagement() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { toast } = useToast();
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
   const [showInviteDialog, setShowInviteDialog] = useState(false);
@@ -102,7 +105,7 @@ export default function UserManagement() {
 
   // Component initialization logging
   useEffect(() => {
-    console.log('🔍 [USER_MANAGEMENT] Component mounted');
+    logDebug('🔍 [USER_MANAGEMENT] Component mounted');
   }, []);
 
   // Cascading filter states for user edit tabs
@@ -175,19 +178,26 @@ export default function UserManagement() {
     });
   };
 
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
+  // Shared table state hook handles pagination and the search input
+  // (resetting to page 1 whenever the search term changes).
   const usersPerPage = 10;
+  const tableState = useTableState({ initialPageSize: usersPerPage });
+  const {
+    currentPage,
+    setCurrentPage,
+    searchTerm: searchInput,
+    setSearchTerm: setSearchInput,
+  } = tableState;
 
-  // Filter and search state - simplified for quick fix
-  const [searchInput, setSearchInput] = useState(''); // Input field value
-  const [search, setSearch] = useState(''); // Debounced search value for API
+  // Filter state - the dropdown filters live alongside the table state
+  // because they don't share useTableState's generic shape.
   const [roleFilter, setRoleFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [organizationFilter, setOrganizationFilter] = useState('');
   const [orphanFilter, setOrphanFilter] = useState('');
 
-  // Debounce search input - wait 1.5 seconds after user stops typing
+  // Debounced search value used for the actual API query.
+  const [search, setSearch] = useState('');
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       setSearch(searchInput);
@@ -257,13 +267,45 @@ export default function UserManagement() {
     queryKey: ['/api/users/filter-options'],
   });
 
+  // Get current user to check permissions (must be before useEffect that uses it)
+  const { data: currentUser, isLoading: currentUserLoading, error: currentUserError } = useQuery<User>({
+    queryKey: ['/api/auth/user'],
+  });
+
+  // Debug logging for currentUser query
+  useEffect(() => {
+    logDebug('🔍 [USER_MANAGEMENT] Current user query status:', {
+      currentUser: currentUser ? { id: currentUser.id, email: currentUser.email, role: currentUser.role } : null,
+      isLoading: currentUserLoading,
+      error: currentUserError,
+    });
+  }, [currentUser, currentUserLoading, currentUserError]);
+
   // Fetch organizations - ensure always an array
-  const { data: organizationsData } = useQuery<Organization[]>({
+  const { data: organizationsData, isLoading: organizationsLoading } = useQuery<Organization[]>({
     queryKey: ['/api/organizations'],
-    queryFn: () => apiRequest('GET', '/api/organizations') as unknown as Promise<Organization[]>,
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/organizations');
+      const result = await response.json();
+      logDebug('🏢 [USER_MANAGEMENT] /api/organizations returned:', {
+        count: Array.isArray(result) ? result.length : 'not an array',
+        data: result
+      });
+      return result as Organization[];
+    },
     enabled: true,
   });
   const organizations = Array.isArray(organizationsData) ? organizationsData : [];
+  
+  // Debug log when organizations changes
+  useEffect(() => {
+    logDebug('🏢 [USER_MANAGEMENT] Organizations state updated:', {
+      currentUser: currentUser?.email,
+      currentUserRole: currentUser?.role,
+      organizationsCount: organizations.length,
+      organizationsLoading
+    });
+  }, [organizations.length, currentUser, organizationsLoading]);
 
   // Fetch buildings - ensure always an array
   const { data: buildingsData } = useQuery<Building[]>({
@@ -299,20 +341,6 @@ export default function UserManagement() {
   });
   const residences = Array.isArray(residencesData) ? residencesData : [];
 
-  // Get current user to check permissions
-  const { data: currentUser, isLoading: currentUserLoading, error: currentUserError } = useQuery<User>({
-    queryKey: ['/api/auth/user'],
-  });
-
-  // Debug logging for currentUser query
-  useEffect(() => {
-    console.log('🔍 [USER_MANAGEMENT] Current user query status:', {
-      currentUser: currentUser ? { id: currentUser.id, email: currentUser.email, role: currentUser.role } : null,
-      isLoading: currentUserLoading,
-      error: currentUserError,
-    });
-  }, [currentUser, currentUserLoading, currentUserError]);
-
   // Fetch current user's organizations independently
   const { data: currentUserOrganizations, isLoading: orgsLoading, error: orgsError } = useQuery<Organization[]>({
     queryKey: ['/api/users/me/organizations'],
@@ -324,7 +352,7 @@ export default function UserManagement() {
         throw new Error(`Failed to fetch organizations: ${response.statusText}`);
       }
       const data = await response.json();
-      console.log('🔍 [QUERY] /api/users/me/organizations returned:', data);
+      logDebug('🔍 [QUERY] /api/users/me/organizations returned:', data);
       return Array.isArray(data) ? data : [];
     },
     enabled: !!currentUser,
@@ -342,7 +370,7 @@ export default function UserManagement() {
         throw new Error(`Failed to fetch buildings: ${response.statusText}`);
       }
       const data = await response.json();
-      console.log('🔍 [QUERY] /api/users/me/buildings returned:', data);
+      logDebug('🔍 [QUERY] /api/users/me/buildings returned:', data);
       return Array.isArray(data) ? data : [];
     },
     enabled: !!currentUser,
@@ -360,7 +388,7 @@ export default function UserManagement() {
         throw new Error(`Failed to fetch residences: ${response.statusText}`);
       }
       const data = await response.json();
-      console.log('🔍 [QUERY] /api/users/me/residences returned:', data);
+      logDebug('🔍 [QUERY] /api/users/me/residences returned:', data);
       return Array.isArray(data) ? data : [];
     },
     enabled: !!currentUser,
@@ -369,7 +397,7 @@ export default function UserManagement() {
 
   // Debug logging for all assignment queries
   useEffect(() => {
-    console.log('🔍 [USER_MANAGEMENT] Assignment queries data received:', {
+    logDebug('🔍 [USER_MANAGEMENT] Assignment queries data received:', {
       organizations: currentUserOrganizations ? `${currentUserOrganizations.length} orgs` : 'null',
       buildings: currentUserBuildings ? `${currentUserBuildings.length} buildings` : 'null',
       residences: currentUserResidences ? `${currentUserResidences.length} residences` : 'null',
@@ -384,7 +412,7 @@ export default function UserManagement() {
 
   // Debug logging for current user assignment queries
   useEffect(() => {
-    console.log('🔍 [USER_MANAGEMENT] Current user assignment queries status:', {
+    logDebug('🔍 [USER_MANAGEMENT] Current user assignment queries status:', {
       currentUser: currentUser?.email,
       orgsLoading,
       buildingsLoading,
@@ -486,6 +514,28 @@ export default function UserManagement() {
 
     // Manager role assignment restrictions
     if (role === 'manager') {
+      // Check if editing user has demo organizations
+      if (editingUser && users && Array.isArray(users)) {
+        const editingUserWithAssignments = users.find(u => u.id === editingUser.id);
+        if (editingUserWithAssignments?.organizations && Array.isArray(editingUserWithAssignments.organizations)) {
+          const editingUserHasDemoOrgs = editingUserWithAssignments.organizations.some(org => {
+            const orgId = typeof org === 'string' ? org : org.id;
+            return organizations.find(o => o.id === orgId)?.type === 'demo';
+          });
+          
+          if (editingUserHasDemoOrgs) {
+            return [
+              { value: 'manager', label: 'Manager' },
+              { value: 'tenant', label: 'Tenant' },
+              { value: 'resident', label: 'Resident' },
+              { value: 'demo_manager', label: 'Demo Manager' },
+              { value: 'demo_tenant', label: 'Demo Tenant' },
+              { value: 'demo_resident', label: 'Demo Resident' },
+            ];
+          }
+        }
+      }
+      
       return [
         { value: 'manager', label: 'Manager' },
         { value: 'tenant', label: 'Tenant' },
@@ -504,7 +554,7 @@ export default function UserManagement() {
 
     // Other roles cannot assign roles
     return [];
-  }, [currentUser, userOrganizationContext]);
+  }, [currentUser, userOrganizationContext, editingUser, users, organizations]);
 
   // Dynamic edit user schema based on available roles
   const editUserSchema = useMemo(() => {
@@ -514,6 +564,9 @@ export default function UserManagement() {
   }, [getAvailableRoles]);
 
   // Bulk action handler
+  // Exception (task #229): mutations in this file route errors through
+  // `handleApiError` for demo-mode/locale-aware messaging and special cases,
+  // which `useCreateUpdateMutation` cannot model — kept as raw `useMutation`.
   const bulkActionMutation = useMutation({
     mutationFn: async ({ action, data }: { action: string; data?: Record<string, unknown> }) => {
       const selectedUserIds = Array.from(selectedUsers);
@@ -535,11 +588,11 @@ export default function UserManagement() {
       queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], exact: false });
     },
     onError: (_error: Error) => {
-      toast({
-        title: t('error'),
-        description: getErrorMessage(_error, 'bulk user actions'),
-        variant: 'destructive',
-      });
+      handleApiError(
+        _error,
+        language,
+        language === 'fr' ? 'Échec de l\'action groupée sur les utilisateurs' : 'Failed to perform bulk user action'
+      );
     },
   });
 
@@ -575,12 +628,12 @@ export default function UserManagement() {
       }
     },
     onError: (error: Error) => {
-      console.error('❌ [editUserMutation] User update failed:', error);
-      toast({
-        title: t('error'),
-        description: getErrorMessage(error, 'user profile updates'),
-        variant: 'destructive',
-      });
+      logError('❌ [editUserMutation] User update failed:', error);
+      handleApiError(
+        error,
+        language,
+        language === 'fr' ? 'Échec de la mise à jour du profil utilisateur' : 'Failed to update user profile'
+      );
     },
   });
 
@@ -665,7 +718,7 @@ export default function UserManagement() {
 
   // Get current user's access information for role-based filtering
   const currentUserAccess = useMemo(() => {
-    console.log('🔍 [USER_MANAGEMENT] Computing currentUserAccess memo:', {
+    logDebug('🔍 [USER_MANAGEMENT] Computing currentUserAccess memo:', {
       currentUser: currentUser?.email,
       currentUserOrganizationsType: typeof currentUserOrganizations,
       currentUserOrganizationsIsArray: Array.isArray(currentUserOrganizations),
@@ -682,7 +735,7 @@ export default function UserManagement() {
     });
 
     if (!currentUser) {
-      console.log('❌ [USER_MANAGEMENT] No current user, returning empty access');
+      logDebug('❌ [USER_MANAGEMENT] No current user, returning empty access');
       return {
         organizationIds: [],
         buildingIds: [],
@@ -706,7 +759,7 @@ export default function UserManagement() {
       ? currentUserResidences.map((residence: any) => residence.id).filter((id): id is string => !!id)
       : [];
 
-    console.log('✅ [USER_MANAGEMENT] Extracted access IDs:', {
+    logDebug('✅ [USER_MANAGEMENT] Extracted access IDs:', {
       organizationIds,
       buildingIds,
       residenceIds,
@@ -817,7 +870,7 @@ export default function UserManagement() {
         description: "User information updated successfully"
       });
     } catch (error) {
-      console.error('❌ [handleEditUser] Error saving user:', error);
+      logError('❌ [handleEditUser] Error saving user:', error);
       toast({
         title: "Error",
         description: "Failed to update user information",
@@ -913,7 +966,7 @@ export default function UserManagement() {
       
       
     } catch (error) {
-      console.error('❌ [Unified Save] Unified save failed:', error);
+      logError('❌ [Unified Save] Unified save failed:', error);
       toast({
         title: t('error'), 
         description: 'Failed to save all changes. Please try again.',
@@ -979,11 +1032,11 @@ export default function UserManagement() {
       }
     },
     onError: (error: Error) => {
-      toast({
-        title: t('error'),
-        description: getErrorMessage(error, 'organization assignments'),
-        variant: 'destructive',
-      });
+      handleApiError(
+        error,
+        language,
+        language === 'fr' ? 'Échec de la mise à jour des affectations d\'organisation' : 'Failed to update organization assignments'
+      );
     },
   });
 
@@ -1017,11 +1070,11 @@ export default function UserManagement() {
       }
     },
     onError: (error: Error) => {
-      toast({
-        title: t('error'),
-        description: getErrorMessage(error, 'building assignments'),
-        variant: 'destructive',
-      });
+      handleApiError(
+        error,
+        language,
+        language === 'fr' ? 'Échec de la mise à jour des affectations de bâtiment' : 'Failed to update building assignments'
+      );
     },
   });
 
@@ -1059,11 +1112,11 @@ export default function UserManagement() {
       }
     },
     onError: (error: Error) => {
-      toast({
-        title: t('error'),
-        description: getErrorMessage(error, 'residence assignments'),
-        variant: 'destructive',
-      });
+      handleApiError(
+        error,
+        language,
+        language === 'fr' ? 'Échec de la mise à jour des affectations de résidence' : 'Failed to update residence assignments'
+      );
     },
   });
 
@@ -1129,6 +1182,8 @@ export default function UserManagement() {
       queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], exact: false });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/all-user-organizations'] });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/all-user-residences'] });
+      // Force refetch to update the table immediately
+      queryClient.refetchQueries({ queryKey: ['/api/users'], exact: false });
     },
     onError: (error: Error, variables, context) => {
       // If the mutation fails, restore the previous data
@@ -1144,11 +1199,11 @@ export default function UserManagement() {
         }], context.previousUsers);
       }
       
-      toast({
-        title: t('deletionFailed'),
-        description: getErrorMessage(error, 'user deletion'),
-        variant: 'destructive',
-      });
+      handleApiError(
+        error,
+        language,
+        language === 'fr' ? 'Échec de la suppression de l\'utilisateur' : 'Failed to delete user'
+      );
     },
   });
 
@@ -1273,7 +1328,7 @@ export default function UserManagement() {
     if (currentUserOrganizations.length === 1) {
       const orgId = currentUserOrganizations[0].id;
       if (organizationFilter !== orgId) {
-        console.log(`🔍 [USER_MANAGEMENT] Pre-filtering manager to their organization: ${orgId}`);
+        logDebug(`🔍 [USER_MANAGEMENT] Pre-filtering manager to their organization: ${orgId}`);
         setOrganizationFilter(orgId);
       }
     }
@@ -1290,7 +1345,7 @@ export default function UserManagement() {
       
       if (!response.ok) {
         const error = await response.json();
-        console.error('❌ [FRONTEND] API Error response:', error);
+        logError('❌ [FRONTEND] API Error response:', error);
         throw new Error(error.error || 'Failed to delete orphan users');
       }
       
@@ -1308,7 +1363,7 @@ export default function UserManagement() {
       setShowDeleteOrphansDialog(false);
     },
     onError: (error) => {
-      console.error('💥 [FRONTEND] Delete orphans mutation failed:', error);
+      logError('💥 [FRONTEND] Delete orphans mutation failed:', error);
       toast({
         title: 'Error',
         description: getErrorMessage(error instanceof Error ? error : new Error('Failed to delete orphan users'), 'orphan user deletion'),

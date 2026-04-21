@@ -1,5 +1,6 @@
 import { useMemo, useState, useCallback } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCreateUpdateMutation } from '@/lib/common-hooks';
 import { ColumnDef, Row } from '@tanstack/react-table';
 import { format, formatDistanceToNow } from 'date-fns';
 import { Button } from '@/components/ui/button';
@@ -98,7 +99,7 @@ export function SuggestionTable({
   const isLoading = externalLoading || isLoadingSuggestions;
 
   // Bulk action mutations
-  const bulkAcceptMutation = useMutation({
+  const bulkAcceptMutation = useCreateUpdateMutation<unknown, string[]>({
     mutationFn: async (suggestionIds: string[]) => {
       const response = await apiRequest('PATCH', `/api/maintenance/suggestions/bulk`, {
         action: 'accept',
@@ -107,26 +108,19 @@ export function SuggestionTable({
       });
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/maintenance/suggestions'] });
-      toast({
-        title: "Suggestions Accepted",
-        description: `${selectedSuggestions.length} suggestions have been accepted.`,
-      });
+    successTitle: 'Suggestions Accepted',
+    successMessage: () => `${selectedSuggestions.length} suggestions have been accepted.`,
+    errorTitle: 'Error',
+    errorMessage: 'Failed to accept suggestions. Please try again.',
+    queryKeysToInvalidate: [['/api/maintenance/suggestions']],
+    onSuccessCallback: () => {
       setSelectedSuggestions([]);
       setShowBulkDialog(false);
     },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to accept suggestions. Please try again.",
-        variant: "destructive",
-      });
-    },
   });
 
-  const bulkScheduleMutation = useMutation({
-    mutationFn: async (data: { suggestionIds: string[]; date: Date }) => {
+  const bulkScheduleMutation = useCreateUpdateMutation<unknown, { suggestionIds: string[]; date: Date }>({
+    mutationFn: async (data) => {
       const response = await apiRequest('PATCH', `/api/maintenance/suggestions/bulk`, {
         action: 'schedule',
         suggestionIds: data.suggestionIds,
@@ -135,21 +129,14 @@ export function SuggestionTable({
       });
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/maintenance/suggestions'] });
-      toast({
-        title: "Suggestions Scheduled",
-        description: `${selectedSuggestions.length} suggestions have been scheduled.`,
-      });
+    successTitle: 'Suggestions Scheduled',
+    successMessage: () => `${selectedSuggestions.length} suggestions have been scheduled.`,
+    errorTitle: 'Error',
+    errorMessage: 'Failed to schedule suggestions. Please try again.',
+    queryKeysToInvalidate: [['/api/maintenance/suggestions']],
+    onSuccessCallback: () => {
       setSelectedSuggestions([]);
       setShowBulkDialog(false);
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to schedule suggestions. Please try again.",
-        variant: "destructive",
-      });
     },
   });
 

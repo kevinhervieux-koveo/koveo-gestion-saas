@@ -54,7 +54,7 @@ export function TopNavigationBar() {
               {/* User Avatar/Initials */}
               <div
                 className='h-10 w-10 rounded-full bg-slate-700 flex items-center justify-center text-white font-medium cursor-pointer hover:bg-slate-600 transition-colors'
-                onClick={() => setLocation('/dashboard/quick-actions')}
+                onClick={() => setLocation('/dashboard/overview')}
                 data-testid='user-avatar'
               >
                 {user?.firstName ? user.firstName.charAt(0).toUpperCase() : 

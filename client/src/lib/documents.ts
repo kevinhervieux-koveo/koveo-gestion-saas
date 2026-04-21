@@ -207,3 +207,28 @@ export function /**
 getCategoryLabel(categories: readonly { _value: string; label: string }[], _value: string): string {
   return categories.find((cat) => cat._value === _value)?.label || _value;
 }
+
+/**
+ * Map document type to translation key
+ * @param documentType - The document type value
+ * @returns The translation key for the category
+ */
+export function getDocumentTypeTranslationKey(documentType: string): string {
+  const typeMap: Record<string, string> = {
+    'bylaw': 'categoryBylaws',
+    'financial': 'categoryFinancial',
+    'maintenance': 'categoryMaintenance',
+    'legal': 'categoryLegal',
+    'meeting_minutes': 'categoryMeetingMinutes',
+    'insurance': 'categoryInsurance',
+    'contracts': 'categoryContracts',
+    'permits': 'categoryPermits',
+    'inspection': 'categoryInspection',
+    'other': 'categoryOther',
+    'lease': 'categoryOther',
+    'correspondence': 'categoryOther',
+    'utilities': 'categoryOther',
+  };
+  
+  return typeMap[documentType] || 'categoryOther';
+}

@@ -1,0 +1,120 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+budget-hD77Dy2J.js:16 🔍 [BUDGET] Component mounted {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984'}
+budget-hD77Dy2J.js:16 🔍 [BUDGET] Context changed: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984'}
+budget-hD77Dy2J.js:16 🔍 [BUDGET] Filters updated: {viewType: 'month', periodLength: 12, startMonth: 10, startYear: 2025, dataVisibility: {…}}
+budget-hD77Dy2J.js:16 🔍 [BUDGET] Filters updated: {viewType: 'month', periodLength: 12, startMonth: 2, startYear: 2025, dataVisibility: {…}}
+index-vnv_FNJS.js:136 TypeError: (Qe(...).totalAmount || 0).toFixed is not a function
+    at Yn (budget-hD77Dy2J.js:16:59649)
+    at Object.react_stack_bottom_frame (index-vnv_FNJS.js:229:12449)
+    at Uc (index-vnv_FNJS.js:120:806)
+    at ud (index-vnv_FNJS.js:141:5839)
+    at vd (index-vnv_FNJS.js:150:10147)
+    at X (index-vnv_FNJS.js:45:108)
+    at Jg (index-vnv_FNJS.js:163:29811)
+    at Zg (index-vnv_FNJS.js:163:28480)
+    at Rd (index-vnv_FNJS.js:163:28313)
+    at Gg (index-vnv_FNJS.js:163:24807)
+
+The above error occurred in the <Yn> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, cE.
+
+overrideMethod @ hook.js:608
+ag @ index-vnv_FNJS.js:136
+og @ index-vnv_FNJS.js:141
+X @ index-vnv_FNJS.js:45
+s.componentDidCatch.e.callback @ index-vnv_FNJS.js:141
+Ah @ index-vnv_FNJS.js:107
+xh @ index-vnv_FNJS.js:107
+X @ index-vnv_FNJS.js:45
+Ag @ index-vnv_FNJS.js:163
+Rg @ index-vnv_FNJS.js:163
+ea @ index-vnv_FNJS.js:163
+Rg @ index-vnv_FNJS.js:163
+ea @ index-vnv_FNJS.js:163
+Rg @ index-vnv_FNJS.js:163
+ea @ index-vnv_FNJS.js:163
+Rg @ index-vnv_FNJS.js:163
+ea @ index-vnv_FNJS.js:163
+Rg @ index-vnv_FNJS.js:163
+ea @ index-vnv_FNJS.js:163
+Rg @ index-vnv_FNJS.js:163
+ea @ index-vnv_FNJS.js:163
+Rg @ index-vnv_FNJS.js:163
+tv @ index-vnv_FNJS.js:163
+Nd @ index-vnv_FNJS.js:163
+Yg @ index-vnv_FNJS.js:163
+Gg @ index-vnv_FNJS.js:163
+mv @ index-vnv_FNJS.js:185
+Rs @ index-vnv_FNJS.js:185
+Od @ index-vnv_FNJS.js:185
+(anonymous) @ index-vnv_FNJS.js:185
+<Yn>
+M1.Nu.jsxDEV @ index-vnv_FNJS.js:15
+(anonymous) @ withHierarchicalSelection-BuxYqPKA.js:1
+react_stack_bottom_frame @ index-vnv_FNJS.js:229
+Uc @ index-vnv_FNJS.js:120
+ud @ index-vnv_FNJS.js:141
+vd @ index-vnv_FNJS.js:150
+X @ index-vnv_FNJS.js:45
+Jg @ index-vnv_FNJS.js:163
+EA @ index-vnv_FNJS.js:163
+CA @ index-vnv_FNJS.js:163
+Gg @ index-vnv_FNJS.js:163
+dv @ index-vnv_FNJS.js:185
+l @ index-vnv_FNJS.js:23
+<...>
+M1.Nu.jsxDEV @ index-vnv_FNJS.js:15
+children @ index-vnv_FNJS.js:456
+H0 @ index-vnv_FNJS.js:240
+$ @ index-vnv_FNJS.js:240
+react_stack_bottom_frame @ index-vnv_FNJS.js:229
+Uc @ index-vnv_FNJS.js:120
+ud @ index-vnv_FNJS.js:141
+vd @ index-vnv_FNJS.js:150
+X @ index-vnv_FNJS.js:45
+Jg @ index-vnv_FNJS.js:163
+EA @ index-vnv_FNJS.js:163
+CA @ index-vnv_FNJS.js:163
+Gg @ index-vnv_FNJS.js:163
+dv @ index-vnv_FNJS.js:185
+l @ index-vnv_FNJS.js:23
+<$>
+M1.Nu.jsxDEV @ index-vnv_FNJS.js:15
+vR @ index-vnv_FNJS.js:456
+react_stack_bottom_frame @ index-vnv_FNJS.js:229
+Uc @ index-vnv_FNJS.js:120
+ud @ index-vnv_FNJS.js:141
+vd @ index-vnv_FNJS.js:150
+X @ index-vnv_FNJS.js:45
+Jg @ index-vnv_FNJS.js:163
+Zg @ index-vnv_FNJS.js:163
+Rd @ index-vnv_FNJS.js:163
+Gg @ index-vnv_FNJS.js:163
+mv @ index-vnv_FNJS.js:185
+Rs @ index-vnv_FNJS.js:185
+Od @ index-vnv_FNJS.js:185
+(anonymous) @ index-vnv_FNJS.js:185
+<vR>
+M1.Nu.jsxDEV @ index-vnv_FNJS.js:15
+bR @ index-vnv_FNJS.js:456
+react_stack_bottom_frame @ index-vnv_FNJS.js:229
+Uc @ index-vnv_FNJS.js:120
+ud @ index-vnv_FNJS.js:141
+vd @ index-vnv_FNJS.js:150
+X @ index-vnv_FNJS.js:45
+Jg @ index-vnv_FNJS.js:163
+Zg @ index-vnv_FNJS.js:163
+Rd @ index-vnv_FNJS.js:163
+Gg @ index-vnv_FNJS.js:163
+dv @ index-vnv_FNJS.js:185
+l @ index-vnv_FNJS.js:23
+<bR>
+M1.Nu.jsxDEV @ index-vnv_FNJS.js:15
+(anonymous) @ index-vnv_FNJS.js:456

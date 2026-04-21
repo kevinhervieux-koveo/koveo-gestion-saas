@@ -39,10 +39,7 @@ const allPages = [
   { path: '/admin/compliance', name: 'Admin Compliance' },
   { path: '/admin/documentation', name: 'Admin Documentation' },
   { path: '/admin/permissions', name: 'Admin Permissions' },
-  { path: '/admin/pillars', name: 'Admin Pillars' },
   { path: '/admin/quality', name: 'Admin Quality' },
-  { path: '/admin/roadmap', name: 'Admin Roadmap' },
-  { path: '/admin/suggestions', name: 'Admin Suggestions' },
   
   // Manager pages (require manager role)
   { path: '/manager/bills', name: 'Manager Bills' },
@@ -85,10 +82,7 @@ const pageComponents = {
   '/admin/compliance': () => import('@/pages/admin/compliance'),
   '/admin/documentation': () => import('@/pages/admin/documentation'),
   '/admin/permissions': () => import('@/pages/admin/permissions'),
-  '/admin/pillars': () => import('@/pages/admin/pillars'),
   '/admin/quality': () => import('@/pages/admin/quality'),
-  '/admin/roadmap': () => import('@/pages/admin/roadmap'),
-  '/admin/suggestions': () => import('@/pages/admin/suggestions'),
   '/manager/bills': () => import('@/pages/manager/bills'),
   '/manager/budget': () => import('@/pages/manager/budget'),
   '/manager/buildings': () => import('@/pages/manager/buildings'),

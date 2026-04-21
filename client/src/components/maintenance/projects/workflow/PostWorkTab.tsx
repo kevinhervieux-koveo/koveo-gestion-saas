@@ -82,19 +82,9 @@ interface ElementLifespanUpdate {
  * Handles post-work task management, element lifespan tracking, and progress confirmation
  */
 export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }: PostWorkTabProps) {
-  const { toast } = useToast();
-  
-  // Local state for task editing to prevent API calls on every keystroke
-  const [localTaskEdits, setLocalTaskEdits] = useState<Record<string, any>>({});
-  const [hasChanges, setHasChanges] = useState(false);
-  
-  // Local state for element lifespan updates (non-confirmation data)
-  const [elementLifespanUpdates, setElementLifespanUpdates] = useState<Record<string, Omit<ElementLifespanUpdate, 'confirmed'>>>({});
-  
-  // State for completion confirmation dialog
-  const [showCompletionDialog, setShowCompletionDialog] = useState(false);
-
-  // Defensive null check for project data
+  // Defensive null check for project data — must come BEFORE any hook calls
+  // to comply with the Rules of Hooks. The parent modal already guards against
+  // a missing project, but this provides a defensive fallback render.
   if (!project) {
     return (
       <div className="p-6">
@@ -107,6 +97,25 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
       </div>
     );
   }
+
+  const { toast } = useToast();
+  
+  // Local state for task editing to prevent API calls on every keystroke
+  const [localTaskEdits, setLocalTaskEdits] = useState<Record<string, any>>({});
+  const [hasChanges, setHasChanges] = useState(false);
+  
+  // Local state for element lifespan updates (non-confirmation data)
+  const [elementLifespanUpdates, setElementLifespanUpdates] = useState<Record<string, Omit<ElementLifespanUpdate, 'confirmed'>>>({});
+
+  // Track which element intervention types the user has manually overridden
+  // within this post-work session. Manual overrides are preserved when server
+  // data refreshes; non-overridden entries stay in sync with the latest
+  // server-side `project_elements.projectType` value (i.e. changes made in
+  // the submission step are reflected here when the user reopens post-work).
+  const userOverriddenElementsRef = useRef<Set<string>>(new Set());
+  
+  // State for completion confirmation dialog
+  const [showCompletionDialog, setShowCompletionDialog] = useState(false);
 
   const { 
     data: postWorkTasks = [], 
@@ -188,8 +197,14 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
   const canAdvance = workflowState.canAdvance && workflowState.currentStatus === 'post_work' && allTasksCompleted && allElementsConfirmed;
 
   // Smart calculation for lifespan impact based on intervention type and UNIFORMAT data
-  const calculateLifespanSuggestion = (interventionType: InterventionType, element: BuildingElement & { typicalLifespan?: number }): number => {
-    const typicalLifespan = element.typicalLifespan || 25; // Fallback to 25 years if no UNIFORMAT data
+  const calculateLifespanSuggestion = (
+    interventionType: InterventionType,
+    element: (BuildingElement & { typicalLifespan?: number }) | null | undefined
+  ): number => {
+    // Null-safe: if the element record is missing (e.g. the underlying
+    // building_element row was deleted), fall back to 25 years instead of
+    // crashing the render.
+    const typicalLifespan = element?.typicalLifespan || 25;
     
     switch (interventionType) {
       case 'repair': 
@@ -220,44 +235,77 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
     }
   };
 
-  // Initialize element lifespan updates when elements load (non-confirmation data)
-  // Preserve existing local changes to prevent resetting intervention types on data refresh
+  // Initialize / re-sync element lifespan updates when project elements load
+  // or change server-side. Manual user overrides made within this post-work
+  // session are preserved; entries that were auto-initialized are kept in
+  // sync with the latest server-side `project_elements.projectType` so that
+  // changes made in the submission step are reflected here.
   useEffect(() => {
-    if (projectElements.length > 0) {
-      setElementLifespanUpdates(prev => {
-        const newUpdates = { ...prev };
-        
-        projectElements.forEach(element => {
-          // Only initialize if this element doesn't already have local updates
-          if (!newUpdates[element.elementId]) {
-            // Map database 'replacement' to frontend 'replace'
-            let interventionType: InterventionType = (element.projectType as InterventionType) || 'nothing';
-            if (interventionType === 'replacement' as any) {
-              interventionType = 'replace';
-            }
-            
-            newUpdates[element.elementId] = {
-              elementId: element.elementId,
-              interventionType,
-              lifespanImpactYears: calculateLifespanSuggestion(interventionType, element.element),
-            };
-          }
-        });
-        
-        return newUpdates;
+    if (projectElements.length === 0) return;
+
+    setElementLifespanUpdates(prev => {
+      const newUpdates = { ...prev };
+      let didChange = false;
+
+      projectElements.forEach(element => {
+        // Map database 'replacement' to frontend 'replace'
+        let serverInterventionType: InterventionType =
+          (element.projectType as InterventionType) || 'nothing';
+        if ((serverInterventionType as string) === 'replacement') {
+          serverInterventionType = 'replace';
+        }
+
+        const existing = newUpdates[element.elementId];
+        const isUserOverridden = userOverriddenElementsRef.current.has(element.elementId);
+
+        if (!existing) {
+          // First time we see this element — auto-initialize from server.
+          newUpdates[element.elementId] = {
+            elementId: element.elementId,
+            interventionType: serverInterventionType,
+            lifespanImpactYears: calculateLifespanSuggestion(serverInterventionType, element.element),
+          };
+          didChange = true;
+          return;
+        }
+
+        // Skip server re-sync if the user has manually overridden this element
+        // within the post-work session.
+        if (isUserOverridden) return;
+
+        // Re-sync intervention type and recalculated lifespan suggestion
+        // when the server value has changed since auto-initialization.
+        if (existing.interventionType !== serverInterventionType) {
+          newUpdates[element.elementId] = {
+            elementId: element.elementId,
+            interventionType: serverInterventionType,
+            lifespanImpactYears: calculateLifespanSuggestion(serverInterventionType, element.element),
+          };
+          didChange = true;
+        }
       });
-    }
+
+      return didChange ? newUpdates : prev;
+    });
   }, [projectElements]);
 
   // Handle element intervention type change
   const handleInterventionTypeChange = (elementId: string, interventionType: InterventionType) => {
+    // Element row may be missing (e.g. underlying building_element was
+    // deleted). calculateLifespanSuggestion already null-guards and falls
+    // back to a 25-year typical lifespan, so we still record the user's
+    // intent rather than silently no-op'ing.
     const element = projectElements.find(e => e.elementId === elementId)?.element;
-    if (!element) return;
+
+    // Mark this element as user-overridden so subsequent server refreshes
+    // don't clobber the user's explicit choice within this post-work session.
+    userOverriddenElementsRef.current.add(elementId);
 
     setElementLifespanUpdates(prev => ({
       ...prev,
       [elementId]: {
         ...prev[elementId],
+        elementId,
         interventionType,
         lifespanImpactYears: calculateLifespanSuggestion(interventionType, element),
       }
@@ -266,10 +314,15 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
 
   // Handle element lifespan impact change
   const handleLifespanImpactChange = (elementId: string, lifespanImpactYears: number) => {
+    // A manual lifespan edit is also a user override — server changes to
+    // projectType should not silently overwrite it on the next refetch.
+    userOverriddenElementsRef.current.add(elementId);
+
     setElementLifespanUpdates(prev => ({
       ...prev,
       [elementId]: {
         ...prev[elementId],
+        elementId,
         lifespanImpactYears,
       }
     }));
@@ -407,31 +460,51 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
         setHasChanges(false);
       }
 
-      // Apply inventory changes based on element lifespan updates
-      await applyInventoryChanges();
-      
+      // Apply inventory changes based on element lifespan updates.
+      // Wrap each stage independently so the catch block can give a precise
+      // error message instead of always blaming the inventory step.
+      try {
+        await applyInventoryChanges();
+      } catch (inventoryError: any) {
+        toast({
+          title: 'Error',
+          description: 'Failed to apply inventory changes. Please try again.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
       // Close dialog
       setShowCompletionDialog(false);
-      
+
       // Complete the project
-      if (onMarkComplete) {
-        // Use parent modal's completion handler for navigation
-        onMarkComplete();
-      } else {
-        // Fallback to direct completion without navigation
-        markComplete({
-          projectId: project.id,
-          currentStatus: 'post_work',
-        }, {
-          onSuccess: () => {
-            onUpdate();
-          },
+      try {
+        if (onMarkComplete) {
+          // Use parent modal's completion handler for navigation
+          await Promise.resolve(onMarkComplete());
+        } else {
+          // Fallback to direct completion without navigation
+          markComplete({
+            projectId: project.id,
+            currentStatus: 'post_work',
+          }, {
+            onSuccess: () => {
+              onUpdate();
+            },
+          });
+        }
+      } catch (completionError: any) {
+        toast({
+          title: 'Completion Failed',
+          description: completionError?.message || 'Failed to mark the project complete. Please try again.',
+          variant: 'destructive',
         });
       }
     } catch (error: any) {
+      // Catch-all for any unexpected errors (e.g. saving pending edits)
       toast({
         title: 'Error',
-        description: 'Failed to apply inventory changes. Please try again.',
+        description: error?.message || 'An unexpected error occurred. Please try again.',
         variant: 'destructive',
       });
     }
@@ -846,9 +919,15 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
                               <p className="mt-1">
                                 This work will{' '}
                                 {update.lifespanImpactYears > 0 ? (
-                                  <span className="font-medium text-blue-600">
-                                    add {update.lifespanImpactYears} year{update.lifespanImpactYears !== 1 ? 's' : ''} to the element's remaining lifespan
-                                  </span>
+                                  update.interventionType === 'replace' ? (
+                                    <span className="font-medium text-blue-600">
+                                      set the element's lifespan to {update.lifespanImpactYears} year{update.lifespanImpactYears !== 1 ? 's' : ''} starting from the date of the work
+                                    </span>
+                                  ) : (
+                                    <span className="font-medium text-blue-600">
+                                      add {update.lifespanImpactYears} year{update.lifespanImpactYears !== 1 ? 's' : ''} to the element's remaining lifespan
+                                    </span>
+                                  )
                                 ) : (
                                   <span className="font-medium text-gray-600">not change the remaining lifespan</span>
                                 )}

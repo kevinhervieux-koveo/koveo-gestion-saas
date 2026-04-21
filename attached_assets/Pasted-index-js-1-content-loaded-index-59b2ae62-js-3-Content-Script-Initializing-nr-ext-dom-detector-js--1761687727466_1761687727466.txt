@@ -1,0 +1,97 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+budget-CCteyUjF.js:16 🔍 [BUDGET] Component mounted {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984'}
+budget-CCteyUjF.js:16 🔍 [BUDGET] Context changed: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984'}
+budget-CCteyUjF.js:16 🔍 [BUDGET] Filters updated: {viewType: 'month', periodLength: 12, startMonth: 10, startYear: 2025, dataVisibility: {…}}
+budget-CCteyUjF.js:16 🔍 [BUDGET] Filters updated: {viewType: 'month', periodLength: 12, startMonth: 1, startYear: 2025, dataVisibility: {…}}
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+budget-CCteyUjF.js:16 🔍 [BUDGET] Filters updated: {viewType: 'month', periodLength: 12, startMonth: 2, startYear: 2025, dataVisibility: {…}}
+[Violation] 'input' handler took 352ms
+[Violation] 'input' handler took 264ms
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+[Violation] 'click' handler took <N>ms
+[Violation] 'click' handler took <N>ms
+[Violation] 'click' handler took <N>ms
+[Violation] 'click' handler took <N>ms
+[Violation] 'click' handler took <N>ms
+[Violation] 'click' handler took <N>ms
+[Violation] 'click' handler took <N>ms
+[Violation] 'click' handler took <N>ms

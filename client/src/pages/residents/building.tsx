@@ -4,7 +4,8 @@ import { useLocation } from 'wouter';
 import { Header } from '@/components/layout/header';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Building as BuildingIcon, Search } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft, Building as BuildingIcon, Search } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 import { withHierarchicalSelection } from '@/components/hoc/withHierarchicalSelection';
 import { BuildingCard, BuildingData } from '@/components/buildings/BuildingCard';
@@ -14,11 +15,11 @@ interface MyBuildingProps {
   buildingId?: string;
   organizationId?: string;
   showBackButton?: boolean;
-  backButtonLabel?: string;
+  backButtonLabel?: React.ReactNode;
   onBack?: () => void;
 }
 
-function MyBuilding({ buildingId, organizationId, showBackButton, backButtonLabel, onBack }: MyBuildingProps) {
+function MyBuilding({ organizationId, showBackButton, backButtonLabel, onBack }: MyBuildingProps) {
   const [, navigate] = useLocation();
   const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
@@ -80,12 +81,12 @@ function MyBuilding({ buildingId, organizationId, showBackButton, backButtonLabe
   if (isLoadingBuildings) {
     return (
       <div className='flex-1 flex flex-col overflow-hidden'>
-        <Header title='My Buildings' subtitle='View accessible buildings and documents' />
+        <Header title={t('myBuildings')} subtitle={t('viewAccessibleBuildingsAndDocuments')} />
         <div className='flex-1 overflow-auto p-6'>
           <div className='max-w-6xl mx-auto'>
             <div className='text-center py-8'>
               <div className='animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full mx-auto'></div>
-              <p className='text-muted-foreground mt-2'>Loading buildings...</p>
+              <p className='text-muted-foreground mt-2'>{t('loadingBuildings')}</p>
             </div>
           </div>
         </div>
@@ -96,17 +97,17 @@ function MyBuilding({ buildingId, organizationId, showBackButton, backButtonLabe
   if (error) {
     return (
       <div className='flex-1 flex flex-col overflow-hidden'>
-        <Header title='My Buildings' subtitle='View accessible buildings and documents' />
+        <Header title={t('myBuildings')} subtitle={t('viewAccessibleBuildingsAndDocuments')} />
         <div className='flex-1 overflow-auto p-6'>
           <div className='max-w-6xl mx-auto'>
             <Card>
               <CardContent className='p-8 text-center'>
                 <BuildingIcon className='w-16 h-16 mx-auto text-red-400 mb-4' />
                 <h3 className='text-lg font-semibold text-red-600 mb-2'>
-                  Error Loading Buildings
+                  {t('errorLoadingBuildings')}
                 </h3>
                 <p className='text-red-500'>
-                  Failed to load building information. Please try again later.
+                  {t('failedToLoadBuildingInformation')}
                 </p>
               </CardContent>
             </Card>
@@ -118,7 +119,24 @@ function MyBuilding({ buildingId, organizationId, showBackButton, backButtonLabe
 
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
-      <Header title='My Buildings' subtitle='View accessible buildings and documents' />
+      <Header title={t('myBuildings')} subtitle={t('viewAccessibleBuildingsAndDocuments')} />
+
+      {showBackButton && onBack && (
+        <div className='border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
+          <div className='flex items-center px-6 py-4'>
+            <Button
+              variant='outline'
+              size='sm'
+              onClick={onBack}
+              className='flex items-center gap-2'
+              data-testid='button-back-to-organization'
+            >
+              <ArrowLeft className='w-4 h-4' />
+              {backButtonLabel}
+            </Button>
+          </div>
+        </div>
+      )}
 
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-6xl mx-auto space-y-6'>
@@ -127,7 +145,7 @@ function MyBuilding({ buildingId, organizationId, showBackButton, backButtonLabe
             <div className='relative w-full sm:w-96'>
               <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4' />
               <Input
-                placeholder='Search buildings by name or address...'
+                placeholder={t('searchBuildingsByNameOrAddress')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className='pl-10'
@@ -156,10 +174,10 @@ function MyBuilding({ buildingId, organizationId, showBackButton, backButtonLabe
               <CardContent className='p-8 text-center'>
                 <BuildingIcon className='w-16 h-16 mx-auto text-gray-400 mb-4' />
                 <h3 className='text-lg font-semibold text-gray-600 mb-2'>
-                  No Buildings Found
+                  {t('noBuildingsFound')}
                 </h3>
                 <p className='text-gray-500'>
-                  You don't have access to any buildings yet. Contact your administrator for access.
+                  {t('noBuildingsAccess')}
                 </p>
               </CardContent>
             </Card>
@@ -168,10 +186,10 @@ function MyBuilding({ buildingId, organizationId, showBackButton, backButtonLabe
               <CardContent className='p-8 text-center'>
                 <BuildingIcon className='w-16 h-16 mx-auto text-gray-400 mb-4' />
                 <h3 className='text-lg font-semibold text-gray-600 mb-2'>
-                  No Matching Buildings
+                  {t('noMatchingBuildings')}
                 </h3>
                 <p className='text-gray-500'>
-                  No buildings match your search criteria. Try adjusting your search terms.
+                  {t('noMatchingBuildingsDescription')}
                 </p>
               </CardContent>
             </Card>

@@ -23,13 +23,12 @@ const extractionRateLimit = rateLimit({
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
   keyGenerator: (req: any) => {
-    // Rate limit per authenticated user ID (preferred) or use IP as fallback with IPv6 support
     return req.user?.id || ipKeyGenerator(req);
   },
   skip: (req: any) => {
-    // Skip rate limiting if user is not authenticated (handled by requireAuth)
     return !req.user?.id;
-  }
+  },
+  validate: { keyGeneratorIpFallback: false },
 });
 
 export function registerInvoiceRoutes(app: Express) {

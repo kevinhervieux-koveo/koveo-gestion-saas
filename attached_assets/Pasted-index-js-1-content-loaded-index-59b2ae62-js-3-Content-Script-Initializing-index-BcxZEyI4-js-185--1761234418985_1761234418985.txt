@@ -1,0 +1,141 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+index-BcxZEyI4.js:185 [Violation] 'setTimeout' handler took 60ms
+communication-RtZ5BL-C.js:11 🔍 [FRONTEND] Saving notification preferences with data: {preferences: Array(15)}
+communication-RtZ5BL-C.js:11 🔍 [FRONTEND] Preferences array: [
+  {
+    "notificationType": "bill_reminder",
+    "frequency": "weekly",
+    "isEnabled": true
+  },
+  {
+    "notificationType": "maintenance_update",
+    "frequency": "monthly",
+    "isEnabled": true
+  },
+  {
+    "notificationType": "announcement",
+    "frequency": "monthly",
+    "isEnabled": true
+  },
+  {
+    "notificationType": "system",
+    "frequency": "monthly",
+    "isEnabled": true
+  },
+  {
+    "notificationType": "upcoming_payment",
+    "frequency": "monthly",
+    "isEnabled": true
+  },
+  {
+    "notificationType": "upcoming_bills",
+    "frequency": "monthly",
+    "isEnabled": true
+  },
+  {
+    "notificationType": "bill_paid_last_month",
+    "frequency": "monthly",
+    "isEnabled": true
+  },
+  {
+    "notificationType": "bills_overdue",
+    "frequency": "monthly",
+    "isEnabled": true
+  },
+  {
+    "notificationType": "payment_overdue",
+    "frequency": "monthly",
+    "isEnabled": true
+  },
+  {
+    "notificationType": "new_building_document",
+    "frequency": "monthly",
+    "isEnabled": true
+  },
+  {
+    "notificationType": "meeting_invite",
+    "frequency": "monthly",
+    "isEnabled": true
+  },
+  {
+    "notificationType": "maintenance_completed",
+    "frequency": "monthly",
+    "isEnabled": true
+  },
+  {
+    "notificationType": "budget_update",
+    "frequency": "monthly",
+    "isEnabled": true
+  },
+  {
+    "notificationType": "policy_change",
+    "frequency": "monthly",
+    "isEnabled": true
+  },
+  {
+    "notificationType": "seasonal_reminder",
+    "frequency": "monthly",
+    "isEnabled": true
+  }
+]
+index-BcxZEyI4.js:240  PUT https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/communication/preferences 500 (Internal Server Error)
+AR @ index-BcxZEyI4.js:240
+mutationFn @ communication-RtZ5BL-C.js:11
+fn @ vendor-query-DvoEABeW.js:1
+m @ vendor-query-DvoEABeW.js:1
+start @ vendor-query-DvoEABeW.js:1
+execute @ vendor-query-DvoEABeW.js:1
+await in execute
+mutate @ vendor-query-DvoEABeW.js:1
+(anonymous) @ vendor-query-DvoEABeW.js:1
+le @ communication-RtZ5BL-C.js:11
+(anonymous) @ vendor-forms-D0xB6YWv.js:1
+await in (anonymous)
+Al @ index-BcxZEyI4.js:185
+X @ index-BcxZEyI4.js:45
+gv @ index-BcxZEyI4.js:185
+(anonymous) @ index-BcxZEyI4.js:185
+Ip @ index-BcxZEyI4.js:83
+Vd @ index-BcxZEyI4.js:185
+Jd @ index-BcxZEyI4.js:194
+mx @ index-BcxZEyI4.js:194
+communication-RtZ5BL-C.js:11 ❌ [FRONTEND] Preferences mutation error: Error: 500: {"_error":"Internal server error","message":"Failed to update notification preferences"}
+    at PS (index-BcxZEyI4.js:240:6784)
+    at async AR (index-BcxZEyI4.js:240:7046)
+    at async Object.mutationFn (communication-RtZ5BL-C.js:11:82737)
+overrideMethod @ hook.js:608
+onError @ communication-RtZ5BL-C.js:11
+execute @ vendor-query-DvoEABeW.js:1
+await in execute
+mutate @ vendor-query-DvoEABeW.js:1
+(anonymous) @ vendor-query-DvoEABeW.js:1
+le @ communication-RtZ5BL-C.js:11
+(anonymous) @ vendor-forms-D0xB6YWv.js:1
+await in (anonymous)
+Al @ index-BcxZEyI4.js:185
+X @ index-BcxZEyI4.js:45
+gv @ index-BcxZEyI4.js:185
+(anonymous) @ index-BcxZEyI4.js:185
+Ip @ index-BcxZEyI4.js:83
+Vd @ index-BcxZEyI4.js:185
+Jd @ index-BcxZEyI4.js:194
+mx @ index-BcxZEyI4.js:194
+communication-RtZ5BL-C.js:11 ❌ [FRONTEND] Error details: {}
+overrideMethod @ hook.js:608
+onError @ communication-RtZ5BL-C.js:11
+execute @ vendor-query-DvoEABeW.js:1
+await in execute
+mutate @ vendor-query-DvoEABeW.js:1
+(anonymous) @ vendor-query-DvoEABeW.js:1
+le @ communication-RtZ5BL-C.js:11
+(anonymous) @ vendor-forms-D0xB6YWv.js:1
+await in (anonymous)
+Al @ index-BcxZEyI4.js:185
+X @ index-BcxZEyI4.js:45
+gv @ index-BcxZEyI4.js:185
+(anonymous) @ index-BcxZEyI4.js:185
+Ip @ index-BcxZEyI4.js:83
+Vd @ index-BcxZEyI4.js:185
+Jd @ index-BcxZEyI4.js:194
+mx @ index-BcxZEyI4.js:194

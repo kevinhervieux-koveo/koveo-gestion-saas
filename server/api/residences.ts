@@ -13,6 +13,7 @@ import { requireAuth } from '../auth/index';
 import { delayedUpdateService } from '../services/delayed-update-service';
 import { cacheInvalidationService, createInvalidationMiddleware } from '../services/cache-invalidation-service';
 
+import { asyncHandler } from '../utils/async-handler';
 /**
  *
  * @param app
@@ -24,8 +25,7 @@ import { cacheInvalidationService, createInvalidationMiddleware } from '../servi
  */
 export function registerResidenceRoutes(app: Express) {
   // Get user's residences
-  app.get('/api/user/residences', requireAuth, async (req: any, res: any) => {
-    try {
+  app.get('/api/user/residences', requireAuth, asyncHandler(async (req: any, res: any) => {
       const user = req.user;
       const userResidencesList = await db
         .select({
@@ -34,18 +34,13 @@ export function registerResidenceRoutes(app: Express) {
         .from(userResidences)
         .where(and(eq(userResidences.userId, user.id), eq(userResidences.isActive, true)));
       res.json(userResidencesList);
-    } catch (error: any) {
-      console.error('❌ Error fetching user residences:', error);
-      res.status(500).json({ message: 'Failed to fetch user residences' });
-    }
-  });
+    }, { errorMessage: 'Failed to fetch user residences', errorLogPrefix: '❌ Error fetching user residences' }));
 
   // Get assigned users for a specific residence
   app.get(
     '/api/residences/:residenceId/assigned-users',
     requireAuth,
-    async (req: any, res: any) => {
-      try {
+    asyncHandler(async (req: any, res: any) => {
         const { residenceId } = req.params;
         const currentUser = req.user;
 
@@ -70,11 +65,7 @@ export function registerResidenceRoutes(app: Express) {
           );
 
         res.json(assignedUsers);
-      } catch (error: any) {
-        console.error('❌ Error fetching assigned users:', error);
-        res.status(500).json({ message: 'Failed to fetch assigned users' });
-      }
-    }
+      }, { errorMessage: 'Failed to fetch assigned users', errorLogPrefix: '❌ Error fetching assigned users' })
   );
 
   // Update assigned user information
@@ -86,8 +77,7 @@ export function registerResidenceRoutes(app: Express) {
       extractAffectedUsers: async (req) => [req.params.userId],
       operation: 'update'
     }),
-    async (req: any, res: any) => {
-      try {
+    asyncHandler(async (req: any, res: any) => {
         const { userId } = req.params;
         const { firstName, lastName, email, phone } = req.body;
         const currentUser = req.user;
@@ -105,11 +95,7 @@ export function registerResidenceRoutes(app: Express) {
           .where(eq(users.id, userId));
 
         res.json({ message: 'User updated successfully' });
-      } catch (error: any) {
-        console.error('❌ Error updating assigned user:', error);
-        res.status(500).json({ message: 'Failed to update assigned user' });
-      }
-    }
+      }, { errorMessage: 'Failed to update assigned user', errorLogPrefix: '❌ Error updating assigned user' })
   );
 
   // Get all residences with filtering and search
@@ -150,9 +136,9 @@ export function registerResidenceRoutes(app: Express) {
         userOrgs.some((org) => org.organizationName === 'Koveo' || org.canAccessAllOrganizations);
 
       if (hasGlobalAccess) {
-        console.log(
-          `🌟 Admin user or user with global access detected - granting access to ALL residences`
-        );
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`🌟 Admin user or user with global access detected - granting access to ALL residences`);
+        }
 
         // Koveo users can see ALL residences from ALL buildings
         const allBuildings = await db
@@ -182,9 +168,9 @@ export function registerResidenceRoutes(app: Express) {
         }
 
         // For ALL roles (Admin, Manager, Resident, Tenant): Get buildings from their residences
-        console.log(
-          `🔍 [ACCESS DEBUG] Checking residence access for user ${user.id} with role ${user.role}`
-        );
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`🔍 [ACCESS DEBUG] Checking residence access for user ${user.id} with role ${user.role}`);
+        }
         const userResidenceRecords = await db
           .select({
             residenceId: userResidences.residenceId,
@@ -192,9 +178,9 @@ export function registerResidenceRoutes(app: Express) {
           .from(userResidences)
           .where(and(eq(userResidences.userId, user.id), eq(userResidences.isActive, true)));
 
-        console.log(
-          `🔍 [ACCESS DEBUG] Found ${userResidenceRecords.length} residence records for user ${user.id}`
-        );
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`🔍 [ACCESS DEBUG] Found ${userResidenceRecords.length} residence records for user ${user.id}`);
+        }
 
         if (userResidenceRecords.length > 0) {
           const residenceIds = userResidenceRecords.map((ur) => ur.residenceId);
@@ -213,10 +199,9 @@ export function registerResidenceRoutes(app: Express) {
       }
 
       // Add building access filter to conditions
-      console.log(
-        `🔍 [ACCESS DEBUG] User ${user.id} has access to ${accessibleBuildingIds.size} buildings:`,
-        Array.from(accessibleBuildingIds)
-      );
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`🔍 [ACCESS DEBUG] User ${user.id} has access to ${accessibleBuildingIds.size} buildings:`, Array.from(accessibleBuildingIds));
+      }
       if (accessibleBuildingIds.size > 0) {
         conditions.push(inArray(residences.buildingId, Array.from(accessibleBuildingIds)));
       } else {
@@ -234,7 +219,14 @@ export function registerResidenceRoutes(app: Express) {
         .from(residences)
         .leftJoin(buildings, eq(residences.buildingId, buildings.id))
         .leftJoin(organizations, eq(buildings.organizationId, organizations.id))
-        .where(and(...conditions));
+        .where(and(...conditions))
+        // Sort numerically when unit_number is purely digits, otherwise
+        // fall back to lexicographic order. Using CAST(... AS INTEGER)
+        // unconditionally throws on values like "P1", "RDC", "101A".
+        .orderBy(
+          sql`CASE WHEN ${residences.unitNumber} ~ '^[0-9]+$' THEN ${residences.unitNumber}::integer ELSE NULL END NULLS LAST`,
+          sql`${residences.unitNumber}`
+        );
 
       let results = await baseQuery;
 
@@ -294,14 +286,17 @@ export function registerResidenceRoutes(app: Express) {
 
       res.json(residencesList);
     } catch (error: any) {
-      console.error('❌ Error fetching residences:', error);
+      // Always log so production failures are visible in deployment logs.
+      console.error('❌ Error fetching residences:', error?.message || error);
+      if (process.env.NODE_ENV === 'development' && error?.stack) {
+        console.error(error.stack);
+      }
       res.status(500).json({ message: 'Failed to fetch residences' });
     }
   });
 
   // Get a specific residence by ID
-  app.get('/api/residences/:id', requireAuth, async (req: any, res: any) => {
-    try {
+  app.get('/api/residences/:id', requireAuth, asyncHandler(async (req: any, res: any) => {
       const { id } = req.params;
       const user = req.user;
 
@@ -324,7 +319,9 @@ export function registerResidenceRoutes(app: Express) {
 
       // Apply RBAC check
       if (user.role !== 'admin' && !user.canAccessAllOrganizations) {
-        // Check if user has access to this residence's organization
+        // Check if user has access to this residence's organization.
+        // Per Task #144, "current tenancy" reads MUST require an
+        // active link (`userResidences.isActive = true`).
         const userHasAccess = await db
           .select({ count: sql<number>`count(*)` })
           .from(userResidences)
@@ -333,6 +330,7 @@ export function registerResidenceRoutes(app: Express) {
           .where(
             and(
               eq(userResidences.userId, user.id),
+              eq(userResidences.isActive, true),
               eq(buildings.organizationId, residence.organization.id)
             )
           );
@@ -363,11 +361,7 @@ export function registerResidenceRoutes(app: Express) {
         organization: residence.organization,
         tenants,
       });
-    } catch (error: any) {
-      console.error('❌ Error fetching residence:', error);
-      res.status(500).json({ message: 'Failed to fetch residence' });
-    }
-  });
+    }, { errorMessage: 'Failed to fetch residence', errorLogPrefix: '❌ Error fetching residence' }));
 
   // Update a residence
   app.put('/api/residences/:id', requireAuth, async (req: any, res: any) => {
@@ -375,7 +369,7 @@ export function registerResidenceRoutes(app: Express) {
       const { id } = req.params;
       const updateData = req.body;
 
-      console.log(`🏠 Updating residence ${id} with data:`, updateData);
+      if (process.env.NODE_ENV === 'development') console.log(`🏠 Updating residence ${id} with data:`, updateData);
 
       // Remove readonly fields
       delete updateData.id;
@@ -402,7 +396,7 @@ export function registerResidenceRoutes(app: Express) {
         processedData.monthlyFees = null;
       }
 
-      console.log(`🏠 Processed data for residence ${id}:`, processedData);
+      if (process.env.NODE_ENV === 'development') console.log(`🏠 Processed data for residence ${id}:`, processedData);
 
       const updated = await db
         .update(residences)
@@ -414,7 +408,7 @@ export function registerResidenceRoutes(app: Express) {
         return res.status(404).json({ message: 'Residence not found' });
       }
 
-      console.log(`✅ Successfully updated residence ${id}`);
+      if (process.env.NODE_ENV === 'development') console.log(`✅ Successfully updated residence ${id}`);
 
       // Schedule delayed money flow and budget update for the updated residence
       try {
@@ -426,9 +420,9 @@ export function registerResidenceRoutes(app: Express) {
 
       res.json(updated[0]);
     } catch (error: any) {
-      console.error('❌ Error updating residence:', error);
-      console.error('❌ Error details:', error.message);
-      console.error('❌ Error stack:', error.stack);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('❌ Error updating residence:', error);
+      }
       res.status(500).json({ 
         message: 'Failed to update residence',
         error: error.message,
@@ -441,8 +435,7 @@ export function registerResidenceRoutes(app: Express) {
   app.post(
     '/api/buildings/:buildingId/generate-residences',
     requireAuth,
-    async (req: any, res: any) => {
-      try {
+    asyncHandler(async (req: any, res: any) => {
         const { buildingId } = req.params;
 
         // Get building details
@@ -503,10 +496,6 @@ export function registerResidenceRoutes(app: Express) {
           message: `Successfully created ${createdResidences.length} residences`,
           residences: createdResidences,
         });
-      } catch (error: any) {
-        console.error('❌ Error generating residences:', error);
-        res.status(500).json({ message: 'Failed to generate residences' });
-      }
-    }
+      }, { errorMessage: 'Failed to generate residences', errorLogPrefix: '❌ Error generating residences' })
   );
 }

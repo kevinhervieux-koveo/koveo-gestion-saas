@@ -17,6 +17,7 @@ import {
 import { FilterSortConfig, FilterValue, SortValue, FilterConfig } from '@/lib/filter-sort/types';
 import { getDefaultOperators, getOperatorLabel } from '@/lib/filter-sort/utils';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/hooks/use-language';
 
 /**
  * Props for the FilterSort component.
@@ -81,6 +82,7 @@ export function FilterSort({
   totalCount,
   className,
 }: FilterSortProps) {
+  const { t } = useLanguage();
   const [filterOpen, setFilterOpen] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<FilterConfig | null>(null);
@@ -121,7 +123,7 @@ export function FilterSort({
             <Search className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400' />
             <Input
               type='text'
-              placeholder={config.searchPlaceholder || 'Search...'}
+              placeholder={config.searchPlaceholder || t('searchPlaceholder')}
               value={search}
               onChange={(e) => onSetSearch(e.target.value)}
               className='pl-9 pr-9'
@@ -142,7 +144,7 @@ export function FilterSort({
           <PopoverTrigger asChild>
             <Button variant='outline' size='default'>
               <Filter className='h-4 w-4 mr-2' />
-              Filter
+              {t('filter')}
               {activeFilterCount > 0 && (
                 <Badge variant='secondary' className='ml-2'>
                   {activeFilterCount}
@@ -152,7 +154,7 @@ export function FilterSort({
           </PopoverTrigger>
           <PopoverContent className='w-80' align='start'>
             <div className='space-y-3'>
-              <h4 className='font-medium text-sm'>Add Filter</h4>
+              <h4 className='font-medium text-sm'>{t('addFilter')}</h4>
 
               {/* Filter Field Selection */}
               <SearchableSelect
@@ -169,8 +171,8 @@ export function FilterSort({
                   value: filter.id,
                   label: filter.label,
                 }))}
-                placeholder="Select field"
-                searchPlaceholder="Search fields..."
+                placeholder={t('selectField')}
+                searchPlaceholder={t('searchFields')}
                 width="w-full"
               />
 
@@ -185,8 +187,8 @@ export function FilterSort({
                       label: getOperatorLabel(op),
                     })
                   )}
-                  placeholder="Select operator"
-                  searchPlaceholder="Search operators..."
+                  placeholder={t('selectOperator')}
+                  searchPlaceholder={t('searchOperators')}
                   width="w-full"
                 />
               )}
@@ -204,14 +206,14 @@ export function FilterSort({
                           value: String(option._value),
                           label: option.label,
                         }))}
-                        placeholder={selectedFilter.placeholder || 'Select value'}
-                        searchPlaceholder="Search values..."
+                        placeholder={selectedFilter.placeholder || t('selectValue')}
+                        searchPlaceholder={t('searchValues')}
                         width="w-full"
                       />
                     ) : (
                       <Input
                         type={selectedFilter.type === 'number' ? 'number' : 'text'}
-                        placeholder={selectedFilter.placeholder || 'Enter value'}
+                        placeholder={selectedFilter.placeholder || t('enterValue')}
                         value={filterValue}
                         onChange={(e) => setFilterValue(e.target.value)}
                       />

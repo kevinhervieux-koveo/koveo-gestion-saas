@@ -2,18 +2,33 @@ import { useEffect, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 
+interface FieldConfidence {
+  vendorName: number;
+  totalAmount: number;
+  dueDate: number;
+  category: number;
+  paymentType: number;
+  frequency: number;
+}
+
+interface ExtractionResult {
+  success: boolean;
+  formData?: any;
+  confidence?: number;
+  fieldConfidence?: FieldConfidence;
+  extractionNotes?: string[];
+  error?: string;
+  rawData?: any;
+  isLoading?: boolean;
+}
+
 interface GeminiBillExtractorProps {
   /** The bill/receipt file to process with AI extraction */
   file: File | null;
+  /** Current language for AI extraction */
+  language?: 'en' | 'fr';
   /** Callback function to return extracted data to the parent component */
-  onExtractionComplete: (data: {
-    success: boolean;
-    formData?: any;
-    confidence?: number;
-    error?: string;
-    rawData?: any;
-    isLoading?: boolean;
-  }) => void;
+  onExtractionComplete: (data: ExtractionResult) => void;
 }
 
 /**
@@ -31,11 +46,13 @@ interface GeminiBillExtractorProps {
  * - Confidence scoring and extraction metadata
  * - Specialized for bills, receipts, and vendor invoices
  */
-export function GeminiBillExtractor({ file, onExtractionComplete }: GeminiBillExtractorProps) {
+export function GeminiBillExtractor({ file, language = 'en', onExtractionComplete }: GeminiBillExtractorProps) {
   const [retryCount, setRetryCount] = useState(0);
   const maxRetries = 2;
   
   // Mutation for AI bill data extraction
+  // Exception (task #229): extraction emits state-driven UI rather than a single
+  // success/error toast pair, so it does not map onto `useCreateUpdateMutation`.
   const extractionMutation = useMutation({
     retry: (failureCount, error: any) => {
       // Retry up to maxRetries times for network errors or 5xx errors
@@ -60,6 +77,7 @@ export function GeminiBillExtractor({ file, onExtractionComplete }: GeminiBillEx
       // Create FormData for file upload
       const formData = new FormData();
       formData.append('invoiceFile', billFile);
+      formData.append('language', language);
       
       // Make API request to bill extraction endpoint
       const response = await apiRequest('POST', '/api/bills/extract-data', formData);
@@ -69,16 +87,39 @@ export function GeminiBillExtractor({ file, onExtractionComplete }: GeminiBillEx
       return jsonResponse;
     },
     onSuccess: (data) => {
-      // Extraction successful - data processing continues
+      // Guard for non-success responses or missing data
+      if (!data || !data.success || !data.data) {
+        onExtractionComplete({
+          success: false,
+          error: data?.message || data?.error || 'Failed to extract bill data - invalid response'
+        });
+        return;
+      }
       
       // Convert AI response to form data format for bills
       const formData = convertBillResponseToFormData(data.data);
       
-      // Call the success callback with structured data
+      // Extract field confidence with defaults for missing values
+      const rawConfidence = data.data?.fieldConfidence || {};
+      const fieldConfidence: FieldConfidence = {
+        vendorName: typeof rawConfidence.vendorName === 'number' ? rawConfidence.vendorName : 0.5,
+        totalAmount: typeof rawConfidence.totalAmount === 'number' ? rawConfidence.totalAmount : 0.5,
+        dueDate: typeof rawConfidence.dueDate === 'number' ? rawConfidence.dueDate : 0.5,
+        category: typeof rawConfidence.category === 'number' ? rawConfidence.category : 0.5,
+        paymentType: typeof rawConfidence.paymentType === 'number' ? rawConfidence.paymentType : 0.5,
+        frequency: typeof rawConfidence.frequency === 'number' ? rawConfidence.frequency : 0.5
+      };
+      
+      const extractionNotes = Array.isArray(data.data?.extractionNotes) ? data.data.extractionNotes : [];
+      const overallConfidence = data.data?.overallConfidence || data.metadata?.confidence || 0.9;
+      
+      // Call the success callback with structured data including confidence info
       onExtractionComplete({
         success: true,
         formData,
-        confidence: data.metadata?.confidence,
+        confidence: overallConfidence,
+        fieldConfidence,
+        extractionNotes,
         rawData: data.data
       });
     },
@@ -148,46 +189,120 @@ export function GeminiBillExtractor({ file, onExtractionComplete }: GeminiBillEx
 }
 
 /**
+ * Helper function to safely parse an amount (handles both string and number)
+ */
+function parseAmount(value: any): string {
+  if (value === null || value === undefined) {
+    return '';
+  }
+  if (typeof value === 'number' && !isNaN(value)) {
+    return value.toFixed(2);
+  }
+  if (typeof value === 'string') {
+    const cleaned = value.replace(/[^0-9.-]/g, '');
+    const parsed = parseFloat(cleaned);
+    if (!isNaN(parsed)) {
+      return parsed.toFixed(2);
+    }
+  }
+  return '';
+}
+
+/**
  * Convert AI response to form data format suitable for bill forms
  * Maps AI-extracted fields to the expected form structure
+ * Now handles the new logical sequence extraction format with field confidence
  */
 function convertBillResponseToFormData(aiData: any) {
   try {
-    // Raw AI data conversion - processing data structure
-    
     // Handle null or undefined data gracefully
     if (!aiData || typeof aiData !== 'object') {
-      // AI data is null or invalid - returning empty object
       return {};
     }
     
     // Map AI payment type to new payment structure
     const paymentTypeMapping = mapPaymentTypeToStructure(aiData.paymentType);
     
-    // Map AI response to bill form fields with more robust null checking
-    const formData = {
-      title: aiData.description || aiData.vendorName || 'Extracted Bill',
+    // CRITICAL: Override payment structure if we have custom payment dates or custom frequency
+    // This ensures installment plans are correctly detected
+    const hasCustomPayments = Array.isArray(aiData.customPaymentDates) && aiData.customPaymentDates.length > 0;
+    const isCustomFrequency = aiData.frequency === 'custom';
+    
+    if (hasCustomPayments || isCustomFrequency) {
+      paymentTypeMapping.billType = 'recurrent';
+      paymentTypeMapping.paymentStructure = 'installment';
+      paymentTypeMapping.paymentCount = 'multiple';
+      paymentTypeMapping.recurrence = true;
+    }
+    
+    // Determine category - use AI category if valid, otherwise infer from vendor
+    const validCategories = [
+      'insurance', 'maintenance', 'salary', 'utilities', 'cleaning', 'security', 
+      'landscaping', 'professional_services', 'administration', 'repairs', 
+      'supplies', 'taxes', 'technology', 'reserves', 'other'
+    ];
+    const category = validCategories.includes(aiData.category) 
+      ? aiData.category 
+      : mapVendorToCategory(aiData.vendorName);
+    
+    // Create a descriptive title from the extracted data
+    let title = '';
+    if (aiData.description && aiData.description.length > 0) {
+      title = aiData.description;
+    } else if (aiData.vendorName) {
+      title = `Bill from ${aiData.vendorName}`;
+    } else {
+      title = 'Extracted Bill';
+    }
+    
+    // Parse the amount safely (handles both string and number)
+    const parsedAmount = parseAmount(aiData.totalAmount);
+    
+    // Map AI response to bill form fields with robust null checking
+    const formData: any = {
+      title,
       vendor: aiData.vendorName || '',
-      singlePaymentAmount: paymentTypeMapping.paymentCount === '1' ? (aiData.totalAmount !== null && aiData.totalAmount !== undefined ? aiData.totalAmount.toString() : '') : '',
-      totalAmount: (aiData.totalAmount !== null && aiData.totalAmount !== undefined) ? aiData.totalAmount.toString() : '',
-      category: aiData.category || mapVendorToCategory(aiData.vendorName),
+      singlePaymentAmount: paymentTypeMapping.paymentStructure === 'single' ? parsedAmount : '',
+      totalAmount: parsedAmount,
+      category,
+      billType: paymentTypeMapping.billType,
+      paymentStructure: paymentTypeMapping.paymentStructure,
       paymentCount: paymentTypeMapping.paymentCount,
       recurrence: paymentTypeMapping.recurrence,
       description: aiData.description || (aiData.vendorName ? `Bill from ${aiData.vendorName}` : 'Extracted bill'),
       startDate: aiData.dueDate || aiData.startDate || '',
-      endDate: aiData.endDate || '',
       schedulePayment: mapFrequencyToSchedule(aiData.frequency),
-      customPayments: aiData.customPaymentDates?.map((date: string, index: number) => ({
-        amount: (aiData.totalAmount || 0).toString(),
-        date: date,
-        description: `Payment ${index + 1}`
-      })) || []
+      customPayments: aiData.customPaymentDates?.map((date: string, index: number) => {
+        // Calculate individual payment amount by dividing total by number of payments
+        const numPayments = aiData.customPaymentDates?.length || 1;
+        const totalAmount = parseFloat(parsedAmount || '0');
+        const individualAmount = numPayments > 0 ? (totalAmount / numPayments).toFixed(2) : parsedAmount;
+        return {
+          amount: individualAmount || '0.00',
+          date: date,
+          description: `Payment ${index + 1}`
+        };
+      }) || []
     };
+    
+    // Don't set endDate for installment plans - they should continue indefinitely
+    if (aiData.endDate && paymentTypeMapping.paymentStructure !== 'installment') {
+      formData.endDate = aiData.endDate;
+    }
+    
+    // Include issue date if available (new field from logical extraction)
+    if (aiData.issueDate) {
+      formData.issueDate = aiData.issueDate;
+    }
+    
+    // Include bill number if available (new field from logical extraction)
+    if (aiData.billNumber) {
+      formData.billNumber = aiData.billNumber;
+    }
 
-    // Form data conversion completed
     return formData;
   } catch (error) {
-    // Error converting AI response - returning empty object
+    console.error('Error converting AI response to form data:', error);
     return {};
   }
 }
@@ -232,19 +347,38 @@ function mapVendorToCategory(vendorName: string): string {
 }
 
 /**
- * Map AI payment type to new payment structure (paymentCount + recurrence)
+ * Map AI payment type to new payment structure (billType + paymentStructure)
+ * Also returns legacy fields for backward compatibility
  */
-function mapPaymentTypeToStructure(aiPaymentType: string): { paymentCount: '1' | 'multiple', recurrence: boolean } {
+function mapPaymentTypeToStructure(aiPaymentType: string): { 
+  billType: 'unique' | 'recurrent', 
+  paymentStructure: 'single' | 'installment',
+  paymentCount: '1' | 'multiple', 
+  recurrence: boolean 
+} {
   if (!aiPaymentType) {
-    return { paymentCount: '1', recurrence: false };
+    return { 
+      billType: 'unique',
+      paymentStructure: 'single',
+      paymentCount: '1', 
+      recurrence: false 
+    };
   }
   
   const type = aiPaymentType.toLowerCase();
-  if (type.includes('recurring') || type.includes('repeat')) {
-    return { paymentCount: 'multiple', recurrence: true };
-  }
   
-  return { paymentCount: '1', recurrence: false };
+  // Determine if it's recurring
+  const isRecurring = type.includes('recurring') || type.includes('repeat');
+  
+  // Determine if it's installment (multiple payments)
+  const isInstallment = type.includes('installment') || type.includes('multiple') || type.includes('payment plan');
+  
+  return {
+    billType: isRecurring ? 'recurrent' : 'unique',
+    paymentStructure: isInstallment ? 'installment' : 'single',
+    paymentCount: isInstallment ? 'multiple' : '1',
+    recurrence: isRecurring
+  };
 }
 
 /**

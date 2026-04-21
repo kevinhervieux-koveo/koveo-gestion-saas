@@ -17,7 +17,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -31,6 +30,7 @@ export interface WorkflowSkipConfigDialogProps {
   workflowState: ProjectWorkflowState;
   onUpdate: () => void;
   onDelete?: () => void; // Callback when project is deleted
+  isQuickProject?: boolean; // Only quick projects can be deleted
 }
 
 const STEP_CONFIG = {
@@ -67,9 +67,11 @@ export function WorkflowSkipConfigDialog({
   projectId, 
   workflowState, 
   onUpdate,
-  onDelete 
+  onDelete,
+  isQuickProject = false
 }: WorkflowSkipConfigDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const { mutate: updateSkipFlags, isPending } = useUpdateSkipFlags();
   const { mutate: deleteProject, isPending: isDeleting } = useDeleteProject();
 
@@ -100,6 +102,7 @@ export function WorkflowSkipConfigDialog({
   const handleDeleteProject = () => {
     deleteProject(projectId, {
       onSuccess: () => {
+        setShowDeleteConfirm(false);
         setIsOpen(false);
         if (onDelete) {
           onDelete();
@@ -122,6 +125,7 @@ export function WorkflowSkipConfigDialog({
   };
 
   return (
+    <>
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button
@@ -234,39 +238,17 @@ export function WorkflowSkipConfigDialog({
 
         <div className="flex items-center justify-between pt-4 border-t">
           <div className="flex items-center gap-3">
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button 
-                  variant="destructive" 
-                  size="sm"
-                  disabled={isDeleting}
-                  data-testid="button-delete-project"
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  {isDeleting ? 'Deleting...' : 'Delete Project'}
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Delete Project</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Are you sure you want to permanently delete this project? This action cannot be undone.
-                    All project data, tasks, vendor submissions, and workflow history will be permanently removed.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction 
-                    onClick={handleDeleteProject}
-                    className="bg-red-600 hover:bg-red-700"
-                    data-testid="confirm-delete-project"
-                  >
-                    Delete Permanently
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-            
+            <Button
+              variant="destructive"
+              size="sm"
+              disabled={isDeleting}
+              onClick={() => setShowDeleteConfirm(true)}
+              data-testid="button-delete-project"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              {isDeleting ? 'Deleting...' : 'Delete Project'}
+            </Button>
+
             <div className="text-sm text-muted-foreground">
               Changes are applied immediately
             </div>
@@ -278,5 +260,30 @@ export function WorkflowSkipConfigDialog({
         </div>
       </DialogContent>
     </Dialog>
+
+    {/* Rendered at top level so the nested AlertDialog does not conflict with the
+        outer Dialog's focus/overlay management (radix-ui modal interaction bug). */}
+    <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Delete Project</AlertDialogTitle>
+          <AlertDialogDescription>
+            Are you sure you want to permanently delete this project? This action cannot be undone.
+            All project data, tasks, vendor submissions, and workflow history will be permanently removed.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={handleDeleteProject}
+            className="bg-red-600 hover:bg-red-700"
+            data-testid="confirm-delete-project"
+          >
+            Delete Permanently
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 }

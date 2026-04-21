@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useCreateUpdateMutation } from '@/lib/common-hooks';
 import { format, differenceInDays, parseISO, isPast } from 'date-fns';
 import { StandardCard } from '@/components/common/StandardCard';
 import { Button } from '@/components/ui/button';
@@ -156,26 +156,19 @@ export function ProjectCard({
 
   const metrics = useMemo(() => calculateMetrics(project), [project]);
 
-  const updateStatusMutation = useMutation({
+  const updateStatusMutation = useCreateUpdateMutation<unknown, string>({
     mutationFn: async (newStatus: string) => {
       const response = await apiRequest('PATCH', `/api/maintenance/projects/${project.id}`, {
         status: newStatus,
       });
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/maintenance/buildings', buildingId, 'projects'] });
-      toast({
-        title: "Status Updated",
-        description: `Project status has been updated successfully.`,
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Update Failed",
-        description: "Failed to update project status. Please try again.",
-        variant: "destructive",
-      });
+    successTitle: 'Status Updated',
+    successMessage: 'Project status has been updated successfully.',
+    errorTitle: 'Update Failed',
+    errorMessage: 'Failed to update project status. Please try again.',
+    queryKeysToInvalidate: [['/api/maintenance/buildings', buildingId, 'projects']],
+    onErrorCallback: (error) => {
       console.error('Status update failed:', error);
     },
   });

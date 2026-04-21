@@ -1,6 +1,29 @@
 // Enhanced database mock for complete drizzle-orm isolation
 // Jest is already available globally in test environment - no need to redefine
 
+const resolveTableName = (table) => {
+  if (!table) return undefined;
+  if (table?._?.name) return table._.name;
+  if (typeof table?.name === 'string' && table.name) return table.name;
+  const symbols = Object.getOwnPropertySymbols(table);
+  const baseNameSym = symbols.find(s => s.description === 'drizzle:BaseName');
+  if (baseNameSym) return table[baseNameSym];
+  return undefined;
+};
+
+const snakeToCamel = (str) => str.replace(/_([a-z])/g, (_, c) => c.toUpperCase());
+
+const getItemValue = (item, colName, projectionMap) => {
+  if (colName in item) return item[colName];
+  const camel = snakeToCamel(colName);
+  if (camel in item) return item[camel];
+  if (projectionMap && projectionMap[colName]) {
+    const projKey = projectionMap[colName];
+    if (projKey in item) return item[projKey];
+  }
+  return undefined;
+};
+
 // Mock all drizzle-orm functions
 const mockQuery = jest.fn().mockResolvedValue([]);
 const mockInsert = jest.fn().mockReturnValue({
@@ -142,11 +165,29 @@ const store = {
 // Enhanced predicate evaluator with support for column-to-column comparisons
 const evaluatePredicate = (item, condition, context = {}) => {
   if (!condition) return true;
-  
+  const pm = context.projectionMap;
+
+  if (condition.queryChunks) {
+    const chunks = condition.queryChunks;
+    if (chunks.length >= 4) {
+      const col = chunks[1];
+      const val = chunks[3];
+      if (col?.name) {
+        const leftValue = getItemValue(item, col.name, pm);
+        if (val && typeof val === 'object' && val.name) {
+          const rightValue = context.right ? getItemValue(context.right, val.name, pm) : getItemValue(item, val.name, pm);
+          return leftValue === rightValue;
+        }
+        return leftValue === val;
+      }
+    }
+    return true;
+  }
+
   if (condition.type === 'eq') {
-    const leftValue = condition.column?.name ? item[condition.column.name] : condition.column;
+    const leftValue = condition.column?.name ? getItemValue(item, condition.column.name, pm) : condition.column;
     const rightValue = condition.value?.name ? 
-      (context.right && context.right[condition.value.name]) || item[condition.value.name] :
+      (context.right ? getItemValue(context.right, condition.value.name, pm) : getItemValue(item, condition.value.name, pm)) :
       condition.value;
     
     return leftValue === rightValue;
@@ -254,34 +295,32 @@ const mockDb = {
   
   insert: jest.fn().mockImplementation((table) => ({
     values: jest.fn().mockImplementation((data) => {
-      const tableName = table?._.name || table?.name;
+      const tableName = resolveTableName(table);
       const tableStore = store[tableName] || [];
-      
-      // Handle array of values
+
       const items = Array.isArray(data) ? data : [data];
-      
+      const inserted = [];
+
       items.forEach(item => {
-        // Check unique constraints for invitations
         if (tableName === 'invitations' && item.token) {
           const existing = tableStore.find(inv => inv.token === item.token || inv.tokenHash === item.tokenHash);
           if (existing) {
             throw new Error('Unique constraint violation: token already exists');
           }
         }
-        
-        // Add to store with proper ID generation
-        const newItem = { 
-          id: item.id || `${tableName}_${Date.now()}_${Math.random()}`, 
-          ...item 
+
+        const newItem = {
+          id: item.id || `${tableName}_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+          ...item
         };
-        
-        // Ensure we're modifying the actual store reference
+
         if (!store[tableName]) store[tableName] = [];
         store[tableName].push(newItem);
+        inserted.push(newItem);
       });
-      
+
       return {
-        returning: jest.fn().mockImplementation(() => Promise.resolve(items))
+        returning: jest.fn().mockImplementation(() => Promise.resolve(inserted))
       };
     }),
     returning: jest.fn().mockImplementation(() => Promise.resolve([]))
@@ -291,7 +330,7 @@ const mockDb = {
   
   delete: jest.fn().mockImplementation((table) => ({
     where: jest.fn().mockImplementation((condition) => {
-      const tableName = table?._.name || table?.name;
+      const tableName = resolveTableName(table);
       const tableStore = store[tableName] || [];
       
       const initialLength = tableStore.length;
@@ -307,59 +346,65 @@ const mockDb = {
   
   select: jest.fn().mockImplementation((projection) => ({
     from: jest.fn().mockImplementation((table) => {
-      const tableName = table?._.name || table?.name;
+      const tableName = resolveTableName(table);
       let dataset = store[tableName] || [];
-      
-      return {
-        where: jest.fn().mockImplementation((condition) => {
-          const filtered = dataset.filter(item => evaluatePredicate(item, condition));
-          
-          return {
-            leftJoin: jest.fn().mockImplementation((joinTable, joinCondition) => {
-              const joinTableName = joinTable?._.name || joinTable?.name;
-              const joinDataset = store[joinTableName] || [];
-              
-              // Enhanced leftJoin with column-to-column support
-              const joined = filtered.map(item => {
-                const match = joinDataset.find(joinItem => 
-                  evaluatePredicate(item, joinCondition, { right: joinItem })
-                );
-                
-                // Apply projection mapping if provided
-                let result = { ...item, ...(match || {}) };
-                if (projection && typeof projection === 'object') {
-                  const projected = {};
-                  Object.keys(projection).forEach(key => {
-                    const column = projection[key];
-                    if (column?.name) {
-                      projected[key] = result[column.name] || (match && match[column.name]);
-                    } else {
-                      projected[key] = result[key];
-                    }
-                  });
-                  result = projected;
+
+
+      const makeThenable = (data) => {
+        const obj = {
+          leftJoin: jest.fn().mockImplementation((joinTable, joinCondition) => {
+            const joinTableName = resolveTableName(joinTable);
+            const joinDataset = store[joinTableName] || [];
+
+            const joined = data.map(item => {
+              const match = joinDataset.find(joinItem =>
+                evaluatePredicate(item, joinCondition, { right: joinItem })
+              );
+              let result = { ...item, ...(match || {}) };
+              if (projection && typeof projection === 'object') {
+                const projected = {};
+                Object.keys(projection).forEach(key => {
+                  const column = projection[key];
+                  if (column?.name) {
+                    const val = getItemValue(result, column.name);
+                    projected[key] = val !== undefined ? val : (match ? getItemValue(match, column.name) : undefined);
+                  } else {
+                    projected[key] = result[key];
+                  }
+                });
+                result = projected;
+              }
+              return result;
+            });
+            return makeThenable(joined);
+          }),
+          where: jest.fn().mockImplementation((condition) => {
+            let projMap = null;
+            if (projection && typeof projection === 'object') {
+              projMap = {};
+              Object.keys(projection).forEach(key => {
+                const col = projection[key];
+                if (col?.name && col.name !== key) {
+                  projMap[col.name] = key;
                 }
-                
-                return result;
               });
-              
-              return {
-                where: jest.fn().mockImplementation((cond) => 
-                  Promise.resolve(joined.filter(item => evaluatePredicate(item, cond)))
-                ),
-                execute: jest.fn().mockImplementation(() => Promise.resolve(joined))
-              };
-            }),
-            limit: jest.fn().mockImplementation(() => Promise.resolve(filtered)),
-            orderBy: jest.fn().mockImplementation(() => Promise.resolve(filtered)),
-            execute: jest.fn().mockImplementation(() => Promise.resolve(filtered))
-          };
-        }),
-        leftJoin: jest.fn().mockImplementation(() => Promise.resolve(dataset)),
-        limit: jest.fn().mockImplementation(() => Promise.resolve(dataset)),
-        orderBy: jest.fn().mockImplementation(() => Promise.resolve(dataset)),
-        execute: jest.fn().mockImplementation(() => Promise.resolve(dataset))
+            }
+            const filtered = data.filter(item => {
+              const result = evaluatePredicate(item, condition, { projectionMap: projMap });
+
+              return result;
+            });
+            return makeThenable(filtered);
+          }),
+          limit: jest.fn().mockImplementation(() => Promise.resolve(data)),
+          orderBy: jest.fn().mockImplementation(() => makeThenable(data)),
+          execute: jest.fn().mockImplementation(() => Promise.resolve(data)),
+          then: (resolve, reject) => Promise.resolve(data).then(resolve, reject),
+        };
+        return obj;
       };
+
+      return makeThenable(dataset);
     })
   }))
 };
@@ -367,7 +412,6 @@ const mockDb = {
 // Mock schema with proper table structure matching Drizzle-ORM format
 const mockSchema = {
   organizations: { 
-    name: 'organizations',
     _: { name: 'organizations' },
     id: { name: 'id' },
     name: { name: 'name' },
@@ -401,7 +445,6 @@ const mockSchema = {
     expiresAt: { name: 'expiresAt' }
   },
   buildings: { 
-    name: 'buildings',
     _: { name: 'buildings' },
     id: { name: 'id' },
     name: { name: 'name' }

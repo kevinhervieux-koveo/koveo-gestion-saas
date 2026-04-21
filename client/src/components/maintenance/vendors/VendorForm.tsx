@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation } from '@tanstack/react-query';
 import { z } from 'zod';
 import { FormModal } from '@/components/maintenance/FormModal';
 import {
@@ -21,8 +20,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
-import { apiRequest, queryClient } from '@/lib/queryClient';
+import { apiRequest } from '@/lib/queryClient';
+import { useCreateUpdateMutation } from '@/lib/common-hooks';
 import { insertVendorSchema, Vendor } from '@shared/schemas/maintenance';
 import { User, Phone, Mail, Building2, FileText } from 'lucide-react';
 
@@ -77,8 +76,6 @@ export function VendorForm({
   organizationId,
   buildingId,
 }: VendorFormProps) {
-  const { toast } = useToast();
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Initialize form with default values
@@ -103,14 +100,14 @@ export function VendorForm({
   }, [organizationId, form]);
 
   // Create/Update mutation
-  const saveMutation = useMutation({
-    mutationFn: async (data: VendorFormData) => {
-      const endpoint = vendor 
+  const saveMutation = useCreateUpdateMutation<any, VendorFormData>({
+    mutationFn: async (data) => {
+      const endpoint = vendor
         ? `/api/maintenance/vendors/${vendor.id}`
         : '/api/maintenance/vendors';
-      
+
       const method = vendor ? 'PUT' : 'POST';
-      
+
       const response = await apiRequest(method, endpoint, {
         ...data,
         // Ensure empty strings are converted to null for optional fields
@@ -120,59 +117,48 @@ export function VendorForm({
         email: data.email || null,
         notes: data.notes || null,
       });
-      
+
       return response.json();
     },
-    onSuccess: (response) => {
-      // Invalidate all vendor-related queries to ensure UI refreshes
-      // This is more comprehensive to handle any edge cases with query key matching
-      queryClient.invalidateQueries({ 
-        queryKey: ['/api/maintenance/vendors']
-      });
-      
-      // Also invalidate building-specific vendor queries if buildingId is available
-      // This ensures the ProjectForm's vendor dropdown refreshes immediately
+    successTitle: mode === 'create' ? 'Vendor Created' : 'Vendor Updated',
+    successMessage: (response) =>
+      `Vendor "${response.data?.name}" has been ${mode === 'create' ? 'created' : 'updated'} successfully.`,
+    errorTitle: mode === 'create' ? 'Creation Failed' : 'Update Failed',
+    errorMessage: (error: any) =>
+      error?.response?.data?.error || error?.message || 'An error occurred',
+    invalidateQueries: (_data, queryClient) => {
+      // Invalidate all vendor-related queries
+      queryClient.invalidateQueries({ queryKey: ['/api/maintenance/vendors'] });
+      // Building-specific vendor queries
       if (buildingId) {
-        queryClient.invalidateQueries({ 
-          queryKey: ['/api/maintenance/vendors', buildingId] 
+        queryClient.invalidateQueries({
+          queryKey: ['/api/maintenance/vendors', buildingId],
         });
       }
-      
-      // Additional invalidation to catch any other vendor-related queries
+      // Catch any other vendor-related queries
       queryClient.invalidateQueries({
         predicate: (query) => {
           const queryKey = query.queryKey;
-          return Array.isArray(queryKey) && 
-                 typeof queryKey[0] === 'string' && 
-                 queryKey[0].includes('/api/maintenance/vendors');
-        }
+          return (
+            Array.isArray(queryKey) &&
+            typeof queryKey[0] === 'string' &&
+            queryKey[0].includes('/api/maintenance/vendors')
+          );
+        },
       });
-      
-      toast({
-        title: mode === 'create' ? "Vendor Created" : "Vendor Updated",
-        description: `Vendor "${response.data?.name}" has been ${mode === 'create' ? 'created' : 'updated'} successfully.`,
-      });
-      
+    },
+    onSuccessCallback: (response) => {
       onSuccess?.(response.data);
       onOpenChange(false);
       form.reset();
     },
-    onError: (error: any) => {
-      const message = error.response?.data?.error || error.message || 'An error occurred';
+    onErrorCallback: (error: any) => {
+      const message = error?.response?.data?.error || error?.message || 'An error occurred';
       setError(message);
-      toast({
-        title: mode === 'create' ? "Creation Failed" : "Update Failed",
-        description: message,
-        variant: "destructive",
-      });
-    },
-    onSettled: () => {
-      setIsSubmitting(false);
     },
   });
 
   const handleSubmit = async (data: VendorFormData) => {
-    setIsSubmitting(true);
     setError(null);
     saveMutation.mutate(data);
   };
@@ -190,7 +176,7 @@ export function VendorForm({
       description={description}
       form={form}
       onSubmit={handleSubmit}
-      isSubmitting={isSubmitting}
+      isSubmitting={saveMutation.isPending}
       submitLabel={mode === 'create' ? 'Create Vendor' : 'Update Vendor'}
       size="lg"
       error={error}

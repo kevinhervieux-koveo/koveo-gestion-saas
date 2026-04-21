@@ -11,10 +11,8 @@ beforeAll(async () => {
   (global as any).__authTestData = {
     users: new Map(),
     sessions: new Map(),
-    permissions: new Map(),
     organizations: new Map(),
     
-    // Add demo users for testing
     demoUsers: {
       'admin@demo.com': {
         id: 'demo-admin-id',

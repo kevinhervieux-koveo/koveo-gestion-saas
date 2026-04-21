@@ -1,0 +1,84 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+user-management-FOF-tfBg.js:1 🔍 [USER_MANAGEMENT] Computing currentUserAccess memo: {currentUser: 'kevin.hervieux@koveo-gestion.com', currentUserOrganizationsType: 'undefined', currentUserOrganizationsIsArray: false, currentUserOrganizationsLength: 'N/A', currentUserBuildingsType: 'undefined', …}
+user-management-FOF-tfBg.js:1 ✅ [USER_MANAGEMENT] Extracted access IDs: {organizationIds: Array(0), buildingIds: Array(0), residenceIds: Array(0), organizationIdsCount: 0, buildingIdsCount: 0, …}
+user-management-FOF-tfBg.js:1 🔍 [USER_MANAGEMENT] Component mounted
+user-management-FOF-tfBg.js:1 🔍 [USER_MANAGEMENT] Current user query status: {currentUser: {…}, isLoading: false, error: null}
+user-management-FOF-tfBg.js:1 🏢 [USER_MANAGEMENT] Organizations state updated: {currentUser: 'kevin.hervieux@koveo-gestion.com', currentUserRole: 'admin', organizationsCount: 0, organizationsLoading: true}
+user-management-FOF-tfBg.js:1 🔍 [USER_MANAGEMENT] Assignment queries data received: {organizations: 'null', buildings: 'null', residences: 'null', orgsLoading: true, buildingsLoading: true, …}
+user-management-FOF-tfBg.js:1 🔍 [USER_MANAGEMENT] Current user assignment queries status: {currentUser: 'kevin.hervieux@koveo-gestion.com', orgsLoading: true, buildingsLoading: true, residencesLoading: true, orgsError: undefined, …}
+user-management-FOF-tfBg.js:1 🔍 [QUERY] /api/users/me/organizations returned: (8) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+user-management-FOF-tfBg.js:1 🔍 [USER_MANAGEMENT] Computing currentUserAccess memo: {currentUser: 'kevin.hervieux@koveo-gestion.com', currentUserOrganizationsType: 'object', currentUserOrganizationsIsArray: true, currentUserOrganizationsLength: 8, currentUserBuildingsType: 'undefined', …}
+user-management-FOF-tfBg.js:1 ✅ [USER_MANAGEMENT] Extracted access IDs: {organizationIds: Array(8), buildingIds: Array(0), residenceIds: Array(0), organizationIdsCount: 8, buildingIdsCount: 0, …}
+user-management-FOF-tfBg.js:1 🔍 [USER_MANAGEMENT] Assignment queries data received: {organizations: '8 orgs', buildings: 'null', residences: 'null', orgsLoading: false, buildingsLoading: true, …}
+user-management-FOF-tfBg.js:1 🔍 [USER_MANAGEMENT] Current user assignment queries status: {currentUser: 'kevin.hervieux@koveo-gestion.com', orgsLoading: false, buildingsLoading: true, residencesLoading: true, orgsError: undefined, …}
+user-management-FOF-tfBg.js:1 🏢 [USER_MANAGEMENT] /api/organizations returned: {count: 8, data: Array(8)}
+user-management-FOF-tfBg.js:1 🏢 [USER_MANAGEMENT] Organizations state updated: {currentUser: 'kevin.hervieux@koveo-gestion.com', currentUserRole: 'admin', organizationsCount: 8, organizationsLoading: false}
+user-management-FOF-tfBg.js:1 🔍 [QUERY] /api/users/me/buildings returned: (15) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+user-management-FOF-tfBg.js:1 🔍 [USER_MANAGEMENT] Computing currentUserAccess memo: {currentUser: 'kevin.hervieux@koveo-gestion.com', currentUserOrganizationsType: 'object', currentUserOrganizationsIsArray: true, currentUserOrganizationsLength: 8, currentUserBuildingsType: 'object', …}
+user-management-FOF-tfBg.js:1 ✅ [USER_MANAGEMENT] Extracted access IDs: {organizationIds: Array(8), buildingIds: Array(15), residenceIds: Array(0), organizationIdsCount: 8, buildingIdsCount: 15, …}
+user-management-FOF-tfBg.js:1 🔍 [USER_MANAGEMENT] Assignment queries data received: {organizations: '8 orgs', buildings: '15 buildings', residences: 'null', orgsLoading: false, buildingsLoading: false, …}
+user-management-FOF-tfBg.js:1 🔍 [USER_MANAGEMENT] Current user assignment queries status: {currentUser: 'kevin.hervieux@koveo-gestion.com', orgsLoading: false, buildingsLoading: false, residencesLoading: true, orgsError: undefined, …}
+user-management-FOF-tfBg.js:1 🔍 [QUERY] /api/users/me/residences returned: (3) [{…}, {…}, {…}]
+user-management-FOF-tfBg.js:1 🔍 [USER_MANAGEMENT] Computing currentUserAccess memo: {currentUser: 'kevin.hervieux@koveo-gestion.com', currentUserOrganizationsType: 'object', currentUserOrganizationsIsArray: true, currentUserOrganizationsLength: 8, currentUserBuildingsType: 'object', …}
+user-management-FOF-tfBg.js:1 ✅ [USER_MANAGEMENT] Extracted access IDs: {organizationIds: Array(8), buildingIds: Array(15), residenceIds: Array(3), organizationIdsCount: 8, buildingIdsCount: 15, …}
+user-management-FOF-tfBg.js:1 🔍 [USER_MANAGEMENT] Assignment queries data received: {organizations: '8 orgs', buildings: '15 buildings', residences: '3 residences', orgsLoading: false, buildingsLoading: false, …}
+user-management-FOF-tfBg.js:1 🔍 [USER_MANAGEMENT] Current user assignment queries status: {currentUser: 'kevin.hervieux@koveo-gestion.com', orgsLoading: false, buildingsLoading: false, residencesLoading: false, orgsError: undefined, …}
+user-management-FOF-tfBg.js:1 🏢 [ORG_TAB] Component render: {userEmail: 'kevin.hervieux@koveo-gestion.com', userRole: 'admin', totalOrganizations: 8, currentUserOrganizationIds: Array(8), availableOrganizationsCount: 8, …}
+index-Dl5ZH6LS.js:185 [Violation] 'click' handler took 167ms
+index-Dl5ZH6LS.js:136 Error: Rendered fewer hooks than expected. This may be caused by an accidental early return statement.
+    at wh (index-Dl5ZH6LS.js:120:1336)
+    at jc (index-Dl5ZH6LS.js:120:896)
+    at ud (index-Dl5ZH6LS.js:141:5839)
+    at vd (index-Dl5ZH6LS.js:150:10147)
+    at X (index-Dl5ZH6LS.js:45:108)
+    at Jg (index-Dl5ZH6LS.js:163:29811)
+    at Zg (index-Dl5ZH6LS.js:163:28480)
+    at Rd (index-Dl5ZH6LS.js:163:28313)
+    at Gg (index-Dl5ZH6LS.js:163:24807)
+    at mv (index-Dl5ZH6LS.js:185:2133)
+
+The above error occurred in the <qs> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, cE.
+
+overrideMethod @ hook.js:608
+ag @ index-Dl5ZH6LS.js:136
+og @ index-Dl5ZH6LS.js:141
+X @ index-Dl5ZH6LS.js:45
+s.componentDidCatch.e.callback @ index-Dl5ZH6LS.js:141
+Ah @ index-Dl5ZH6LS.js:107
+xh @ index-Dl5ZH6LS.js:107
+X @ index-Dl5ZH6LS.js:45
+Ag @ index-Dl5ZH6LS.js:163
+Rg @ index-Dl5ZH6LS.js:163
+ea @ index-Dl5ZH6LS.js:163
+Rg @ index-Dl5ZH6LS.js:163
+ea @ index-Dl5ZH6LS.js:163
+Rg @ index-Dl5ZH6LS.js:163
+ea @ index-Dl5ZH6LS.js:163
+Rg @ index-Dl5ZH6LS.js:163
+ea @ index-Dl5ZH6LS.js:163
+Rg @ index-Dl5ZH6LS.js:163
+ea @ index-Dl5ZH6LS.js:163
+Rg @ index-Dl5ZH6LS.js:163
+ea @ index-Dl5ZH6LS.js:163
+Rg @ index-Dl5ZH6LS.js:163
+tv @ index-Dl5ZH6LS.js:163
+Nd @ index-Dl5ZH6LS.js:163
+Yg @ index-Dl5ZH6LS.js:163
+Gg @ index-Dl5ZH6LS.js:163
+mv @ index-Dl5ZH6LS.js:185
+Rs @ index-Dl5ZH6LS.js:185
+Ki @ index-Dl5ZH6LS.js:163
+f @ index-Dl5ZH6LS.js:233
+We._.flushSync @ vendor-react-BZXSkU7I.js:33
+jn @ vendor-ui-FpgPax8G.js:14
+Zo @ vendor-ui-FpgPax8G.js:14
+u @ vendor-ui-FpgPax8G.js:14
+s @ vendor-ui-FpgPax8G.js:14

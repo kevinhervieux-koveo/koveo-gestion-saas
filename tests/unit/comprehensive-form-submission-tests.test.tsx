@@ -22,7 +22,7 @@
  */
 
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -219,12 +219,15 @@ describe('Comprehensive Form Submission Tests', () => {
 
       await userEvent.type(emailInput, 'wrong@example.com');
       await userEvent.type(passwordInput, 'wrongpassword');
-      await userEvent.click(submitButton);
+
+      await act(async () => {
+        fireEvent.click(submitButton);
+      });
 
       await waitFor(() => {
         const errorElement = screen.getByTestId('error-message');
         expect(errorElement.textContent).toBe('Invalid credentials');
-      });
+      }, { timeout: 2000 });
     });
   });
 
@@ -694,12 +697,14 @@ describe('Comprehensive Form Submission Tests', () => {
 
       render(<TestForm />, { wrapper: TestWrapper });
 
-      await userEvent.click(screen.getByTestId('submit-button'));
+      await act(async () => {
+        fireEvent.click(screen.getByTestId('submit-button'));
+      });
 
       await waitFor(() => {
         const errorElement = screen.getByTestId('error-display');
         expect(errorElement.textContent).toBe('Network error');
-      });
+      }, { timeout: 2000 });
     });
 
     it('should prevent multiple submissions', async () => {
@@ -786,13 +791,15 @@ describe('Comprehensive Form Submission Tests', () => {
       await userEvent.type(input, 'test value');
       expect((input as HTMLInputElement).value).toBe('test value');
 
-      await userEvent.click(submitButton);
+      await act(async () => {
+        fireEvent.click(submitButton);
+      });
 
       await waitFor(() => {
         const successElement = screen.getByTestId('success-message');
         expect(successElement).toBeTruthy();
-        expect((input as HTMLInputElement).value).toBe(''); // Form should be reset
-      });
+        expect((input as HTMLInputElement).value).toBe('');
+      }, { timeout: 2000 });
     });
   });
 });

@@ -1,0 +1,68 @@
+ content loaded
+ Content Script: Initializing
+ [FinancialOverview] Bank account query: Object
+ [FinancialOverview] Query state: Object
+ [FinancialOverview] Aggregating projects: Object
+ [FinancialOverview] No buildings available
+ [FinancialOverview] Bank account query: Object
+ [FinancialOverview] Query state: Object
+ [FinancialOverview] Aggregating projects: Object
+ [FinancialOverview] No buildings available
+ [FinancialOverview] Bank account query: Object
+ [FinancialOverview] Query state: Object
+overview-DuYN650r.js:1 [FinancialOverview] Aggregating projects: Object
+overview-DuYN650r.js:1 [FinancialOverview] Building 0 (563 montée des pionniers): Object
+overview-DuYN650r.js:1 [FinancialOverview] Total projects aggregated: 0
+overview-DuYN650r.js:1 [FinancialOverview] Bank account query: Object
+overview-DuYN650r.js:1 [FinancialOverview] Query state: Object
+overview-DuYN650r.js:1 [FinancialOverview] Aggregating projects: Object
+overview-DuYN650r.js:1 [FinancialOverview] Building 0 (563 montée des pionniers): Object
+overview-DuYN650r.js:1 [FinancialOverview] Total projects aggregated: 0
+overview-DuYN650r.js:1 [FinancialOverview] Fetching bank account config for: 409986ca-8e25-4547-b00d-6dae6e4ac26b
+overview-DuYN650r.js:1 [FinancialOverview] Bank account query: Object
+overview-DuYN650r.js:1 [FinancialOverview] Query state: Object
+overview-DuYN650r.js:1 [FinancialOverview] Aggregating projects: Object
+overview-DuYN650r.js:1 [FinancialOverview] Building 0 (563 montée des pionniers): Object
+overview-DuYN650r.js:1 [FinancialOverview] Total projects aggregated: 0
+overview-DuYN650r.js:1 [FinancialOverview] Bank account query: Object
+overview-DuYN650r.js:1 [FinancialOverview] Query state: Object
+overview-DuYN650r.js:1 [FinancialOverview] Aggregating projects: Object
+overview-DuYN650r.js:1 [FinancialOverview] Building 0 (563 montée des pionniers): Object
+overview-DuYN650r.js:1 [FinancialOverview] Total projects aggregated: 0
+overview-DuYN650r.js:1 [FinancialOverview] Bank account query: Object
+overview-DuYN650r.js:1 [FinancialOverview] Query state: Object
+overview-DuYN650r.js:1 [FinancialOverview] Aggregating projects: Object
+overview-DuYN650r.js:1 [FinancialOverview] Building 0 (563 montée des pionniers): Object
+overview-DuYN650r.js:1 [FinancialOverview] Added 2 projects from 563 montée des pionniers
+overview-DuYN650r.js:1 [FinancialOverview] Total projects aggregated: 2
+overview-DuYN650r.js:1 [FinancialOverview] Bank account query: Object
+overview-DuYN650r.js:1 [FinancialOverview] Query state: Object
+overview-DuYN650r.js:1 [FinancialOverview] Aggregating projects: Object
+overview-DuYN650r.js:1 [FinancialOverview] Building 0 (563 montée des pionniers): Object
+overview-DuYN650r.js:1 [FinancialOverview] Added 2 projects from 563 montée des pionniers
+overview-DuYN650r.js:1 [FinancialOverview] Total projects aggregated: 2
+overview-DuYN650r.js:1 [FinancialOverview] Bank account config response: Object
+overview-DuYN650r.js:1 [FinancialOverview] Bank account query: Object
+overview-DuYN650r.js:1 [FinancialOverview] Query state: Object
+overview-DuYN650r.js:1 [FinancialOverview] Aggregating projects: Object
+overview-DuYN650r.js:1 [FinancialOverview] Building 0 (563 montée des pionniers): Object
+overview-DuYN650r.js:1 [FinancialOverview] Added 2 projects from 563 montée des pionniers
+overview-DuYN650r.js:1 [FinancialOverview] Total projects aggregated: 2
+overview-DuYN650r.js:1 [FinancialOverview] Making API request: Object
+overview-DuYN650r.js:1 [FinancialOverview] API response: Object
+overview-DuYN650r.js:1 [FinancialOverview] Bank account query: Object
+overview-DuYN650r.js:1 [FinancialOverview] Query state: Object
+overview-DuYN650r.js:1 [FinancialOverview] Aggregating projects: Object
+overview-DuYN650r.js:1 [FinancialOverview] Building 0 (563 montée des pionniers): Object
+overview-DuYN650r.js:1 [FinancialOverview] Added 2 projects from 563 montée des pionniers
+overview-DuYN650r.js:1 [FinancialOverview] Total projects aggregated: 2
+bills-DHz6L2GZ.js:1 🔍 [BILLS] Component mounted Object
+bills-DHz6L2GZ.js:1 🔍 [BILLS] Context changed: Object
+bills-DHz6L2GZ.js:1 🔍 [BILLS] Filters updated: Object
+bills-DHz6L2GZ.js:1 🔍 [BILLS] Fetching bills with params: Object
+bills-DHz6L2GZ.js:1 🔍 [BILLS] Filters updated: Object
+bills-DHz6L2GZ.js:1 🔍 [BILLS] Fetching bills with params: Object
+/api/ai/analyze-document:1  Failed to load resource: the server responded with a status of 500 ()
+/api/bills/extract-data:1  Failed to load resource: the server responded with a status of 500 ()
+/api/bills/extract-data:1  Failed to load resource: the server responded with a status of 500 ()
+/api/bills/extract-data:1  Failed to load resource: the server responded with a status of 500 ()

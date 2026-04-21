@@ -58,9 +58,8 @@ run_security_test "React-Security" "timeout 30s semgrep --config=p/react --json 
 # Security Test Categories
 run_security_test "Security-Permissions" "npx jest tests/security/database-permissions.test.ts --passWithNoTests=false --maxWorkers=1" "Database permissions and access control"
 run_security_test "Security-Demo-User" "npx jest tests/security/comprehensive-demo-user-security.test.ts --passWithNoTests=false --maxWorkers=1" "Demo user security restrictions"
-run_security_test "Security-Headers" "npx jest tests/unit/security/security-headers.test.ts --passWithNoTests=false --maxWorkers=1" "Security headers validation"
-run_security_test "Security-Auth" "npx jest tests/unit/auth/ --passWithNoTests=false --maxWorkers=1" "Authentication security tests"
-run_security_test "Security-RBAC" "npx jest tests/unit/auth/rbac-comprehensive.test.ts --passWithNoTests=false --maxWorkers=1" "Role-based access control security"
+run_security_test "Security-Headers" "npx jest tests/integration/security-headers.test.ts --passWithNoTests=false --maxWorkers=1" "Security headers validation"
+run_security_test "Security-Auth" "npx jest tests/integration/user-registration.test.ts tests/integration/user-deletion.test.ts --passWithNoTests=false --maxWorkers=1" "Authentication security tests"
 
 # Quebec Law 25 Compliance
 run_security_test "Quebec-Law25" "npx jest tests/unit/i18n/quebec-compliance.test.ts --passWithNoTests=false --maxWorkers=1" "Quebec Law 25 compliance validation"

@@ -1,4 +1,5 @@
 import { LogOut, ChevronDown, ChevronRight, X } from 'lucide-react';
+import { SiLinkedin } from 'react-icons/si';
 import { Link, useLocation, useSearch } from 'wouter';
 import { useLanguage } from '@/hooks/use-language';
 import { translations } from '@/lib/i18n';
@@ -218,8 +219,30 @@ export function Sidebar() {
     }
   };
 
+  // Derive safe display values so the UI never renders the literal "undefined".
+  const displayName = (() => {
+    if (!user) return 'Guest';
+    const first = (user.firstName || '').trim();
+    const last = (user.lastName || '').trim();
+    const full = `${first} ${last}`.trim();
+    return full || (user as any).username || (user as any).email || 'User';
+  })();
+  const initials = (() => {
+    if (!user) return '?';
+    const f = (user.firstName || '').trim().charAt(0);
+    const l = (user.lastName || '').trim().charAt(0);
+    const combined = `${f}${l}`;
+    if (combined) return combined.toUpperCase();
+    const fallback = ((user as any).username || (user as any).email || '').trim().charAt(0);
+    return (fallback || '?').toUpperCase();
+  })();
+  // Fall back to the lowest-privilege role so authenticated users always see
+  // at least the resident/tenant navigation instead of an empty list.
+  const effectiveRole = user?.role || (user ? 'tenant' : undefined);
+  const roleLabel = user?.role || 'User';
+
   // Get filtered navigation based on user role and common spaces access
-  const menuSections = getFilteredNavigation(user?.role).map((section) => ({
+  const menuSections = getFilteredNavigation(effectiveRole).map((section) => ({
     ...section,
     items: section.items.filter((item) => {
       // Filter out common spaces item if user has no access to buildings with common spaces
@@ -252,7 +275,7 @@ export function Sidebar() {
         <div className='p-6 border-b border-gray-200'>
           <div className='flex items-center justify-between'>
             <div className='flex items-center space-x-3'>
-              <Link href='/dashboard/quick-actions' onClick={handleNavItemClick}>
+              <Link href='/dashboard/overview' onClick={handleNavItemClick}>
                 <div className='h-12 flex items-center cursor-pointer hover:opacity-80 transition-opacity'>
                   <img src={koveoLogo} alt='Koveo Gestion' className='h-10 w-auto object-contain' />
                 </div>
@@ -303,18 +326,29 @@ export function Sidebar() {
         <div className='p-6 border-t border-gray-200'>
           <div className='flex items-center space-x-3'>
             <div className='w-8 h-8 bg-koveo-navy rounded-full flex items-center justify-center'>
-              <span className='text-white text-sm font-medium'>
-                {user?.firstName?.charAt(0).toUpperCase()}
-                {user?.lastName?.charAt(0).toUpperCase()}
-              </span>
+              <span className='text-white text-sm font-medium'>{initials}</span>
             </div>
             <div>
-              <p className='text-sm font-medium text-gray-900'>
-                {user ? `${user.firstName} ${user.lastName}` : 'Guest'}
-              </p>
-              <p className='text-xs text-gray-500'>{user?.role || 'User'}</p>
+              <p className='text-sm font-medium text-gray-900'>{displayName}</p>
+              <p className='text-xs text-gray-500'>{roleLabel}</p>
             </div>
           </div>
+        </div>
+
+        {/* Follow Us */}
+        <div className='px-6 pb-4 border-t border-gray-200 pt-4'>
+          <p className='text-xs text-gray-500 mb-2 text-center'>
+            {language === 'fr' ? 'Suivez-nous' : 'Follow Us'}
+          </p>
+          <a
+            href='https://www.linkedin.com/company/koveo-gestion-inc/'
+            target='_blank'
+            rel='noopener noreferrer'
+            className='flex items-center justify-center gap-2 bg-[#0A66C2] hover:bg-[#004182] text-white px-3 py-2 rounded-lg transition-colors text-sm w-full'
+          >
+            <SiLinkedin className='h-4 w-4' />
+            <span>LinkedIn</span>
+          </a>
         </div>
       </aside>
     </>

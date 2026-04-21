@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Header } from '@/components/layout/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -35,6 +35,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useCreateUpdateMutation } from '@/lib/common-hooks';
 import { apiRequest } from '@/lib/queryClient';
 import {
   Settings as SettingsIcon,
@@ -124,6 +125,20 @@ export default function Settings() {
     },
   });
 
+  // Reset profile form when user data changes (e.g., after a successful update)
+  useEffect(() => {
+    if (user) {
+      profileForm.reset({
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        email: user.email || '',
+        username: user.username || '',
+        phone: user.phone || '',
+        language: (user.language as 'fr' | 'en') || 'fr',
+      });
+    }
+  }, [user?.firstName, user?.lastName, user?.email, user?.username, user?.phone, user?.language]);
+
   // Password form
   const passwordForm = useForm<PasswordFormData>({
     resolver: zodResolver(passwordSchema),
@@ -144,7 +159,7 @@ export default function Settings() {
   });
 
   // Profile update mutation
-  const profileMutation = useMutation({
+  const profileMutation = useCreateUpdateMutation<unknown, ProfileFormData>({
     mutationFn: async (data: ProfileFormData) => {
       const response = await fetch('/api/users/me', {
         method: 'PUT',
@@ -160,24 +175,15 @@ export default function Settings() {
       }
       return response.json();
     },
-    onSuccess: () => {
-      toast({
-        title: 'Profile updated',
-        description: 'Your profile has been updated successfully.',
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
-    },
-    onError: (error: any) => {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to update profile',
-        variant: 'destructive',
-      });
-    },
+    successTitle: 'Profile updated',
+    successMessage: 'Your profile has been updated successfully.',
+    errorTitle: 'Error',
+    errorMessage: (error: any) => error?.message || 'Failed to update profile',
+    queryKeysToInvalidate: [['/api/auth/user']],
   });
 
   // Password change mutation
-  const passwordMutation = useMutation({
+  const passwordMutation = useCreateUpdateMutation<unknown, PasswordFormData>({
     mutationFn: async (data: PasswordFormData) => {
       const response = await fetch('/api/users/me/change-password', {
         method: 'POST',
@@ -196,19 +202,12 @@ export default function Settings() {
       }
       return response.json();
     },
-    onSuccess: () => {
-      toast({
-        title: 'Password changed',
-        description: 'Your password has been changed successfully.',
-      });
+    successTitle: 'Password changed',
+    successMessage: 'Your password has been changed successfully.',
+    errorTitle: 'Error',
+    errorMessage: (error: any) => error?.message || 'Failed to change password',
+    onSuccessCallback: () => {
       passwordForm.reset();
-    },
-    onError: (error: any) => {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to change password',
-        variant: 'destructive',
-      });
     },
   });
 
@@ -247,7 +246,7 @@ export default function Settings() {
   });
 
   // Account deletion mutation
-  const deleteMutation = useMutation({
+  const deleteMutation = useCreateUpdateMutation<unknown, DeleteAccountFormData>({
     mutationFn: async (data: DeleteAccountFormData) => {
       const response = await fetch('/api/users/me/delete-account', {
         method: 'POST',
@@ -263,19 +262,12 @@ export default function Settings() {
       }
       return response.json();
     },
-    onSuccess: () => {
-      toast({
-        title: 'Account deleted',
-        description: 'Your account and all associated data have been permanently deleted.',
-      });
+    successTitle: 'Account deleted',
+    successMessage: 'Your account and all associated data have been permanently deleted.',
+    errorTitle: 'Deletion failed',
+    errorMessage: (error) => error?.message || 'Failed to delete account',
+    onSuccessCallback: () => {
       logout();
-    },
-    onError: (error: any) => {
-      toast({
-        title: 'Deletion failed',
-        description: error.message || 'Failed to delete account',
-        variant: 'destructive',
-      });
     },
   });
 

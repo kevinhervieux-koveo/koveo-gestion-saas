@@ -48,18 +48,32 @@ jest.mock('@/components/ui/form', () => ({
   FormMessage: ({ children, ...props }: any) => <div {...props}>{children}</div>,
 }));
 
-// Create a simplified Settings component for testing
 const Settings = () => {
   return (
     <div data-testid="settings-page">
       <h1>securitySettings</h1>
       <form>
+        <label>currentPassword</label>
         <input data-testid="input-current-password" type="password" autoComplete="current-password" />
+        <button data-testid="toggle-current-password" type="button">Toggle</button>
+
+        <label>newPassword</label>
         <input data-testid="input-new-password" type="password" autoComplete="new-password" />
+        <button data-testid="toggle-new-password" type="button">Toggle</button>
+
+        <label>confirmNewPassword</label>
         <input data-testid="input-confirm-password" type="password" autoComplete="new-password" />
-        <button data-testid="button-change-password" type="submit">Change Password</button>
+        <button data-testid="toggle-confirm-password" type="button">Toggle</button>
+
+        <button data-testid="button-change-password" type="submit">changePassword</button>
         <button data-testid="button-save-profile" type="button">Save Profile</button>
         <button data-testid="button-delete-account" type="button">Delete Account</button>
+
+        <input data-testid="input-first-name" type="text" autoComplete="given-name" />
+        <input data-testid="input-last-name" type="text" autoComplete="family-name" />
+        <input data-testid="input-email" type="email" autoComplete="email" />
+        <input data-testid="input-username" type="text" autoComplete="username" />
+        <input data-testid="input-phone" type="tel" autoComplete="tel" />
       </form>
     </div>
   );

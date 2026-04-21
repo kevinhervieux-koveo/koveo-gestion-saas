@@ -23,9 +23,9 @@ jest.mock('@/hooks/use-language', () => ({
 
 // Mock Collapsible to always be open (expanded) for testing
 jest.mock('@/components/ui/collapsible', () => ({
-  Collapsible: ({ children, ...props }: any) => <div {...props}>{children}</div>,
-  CollapsibleTrigger: ({ children, ...props }: any) => <div {...props}>{children}</div>,
-  CollapsibleContent: ({ children, ...props }: any) => <div {...props}>{children}</div>,
+  Collapsible: ({ children, ...props }: React.PropsWithChildren<Record<string, unknown>>) => <div {...props}>{children}</div>,
+  CollapsibleTrigger: ({ children, ...props }: React.PropsWithChildren<Record<string, unknown>>) => <div {...props}>{children}</div>,
+  CollapsibleContent: ({ children, ...props }: React.PropsWithChildren<Record<string, unknown>>) => <div {...props}>{children}</div>,
 }));
 
 // Mock NotificationConfigurations component
@@ -45,7 +45,7 @@ const mockQueryClient = {
 };
 
 jest.mock('@/lib/queryClient', () => ({
-  apiRequest: (...args: any[]) => mockApiRequest(...args),
+  apiRequest: (...args: unknown[]) => mockApiRequest(...args),
   queryClient: mockQueryClient,
 }));
 
@@ -262,7 +262,7 @@ describe('Communication Page Test Suite', () => {
     jest.clearAllMocks();
     
     // Mock fetch for React Query's default queryFn
-    global.fetch = jest.fn((url: string, options?: any) => {
+    global.fetch = jest.fn((url: string, options?: RequestInit) => {
       const urlStr = url.toString();
       
       // GET requests
@@ -333,8 +333,7 @@ describe('Communication Page Test Suite', () => {
     }) as jest.Mock;
 
     // Mock apiRequest for mutations
-    mockApiRequest.mockImplementation((method: string, url: string, data?: any) => {
-      // PUT requests
+    mockApiRequest.mockImplementation((method: string, url: string, data?: unknown) => {
       if (method === 'PUT' && url === '/api/communication/preferences') {
         return Promise.resolve({ 
           json: async () => ({
@@ -479,11 +478,11 @@ describe('Communication Page Test Suite', () => {
 
       // Categories are now always expanded due to Collapsible mock
       await waitFor(() => {
-        expect(screen.getByTestId('switch-bill_reminder-enabled')).toBeInTheDocument();
+        expect(screen.getByTestId('switch-category-financial-enabled')).toBeInTheDocument();
       });
       
       // Check that select element exists (testid is now on SelectTrigger)
-      expect(screen.getByTestId('select-bill_reminder-frequency')).toBeInTheDocument();
+      expect(screen.getByTestId('select-category-financial-frequency')).toBeInTheDocument();
     });
 
     it('should toggle notification preference enabled state', async () => {
@@ -495,10 +494,10 @@ describe('Communication Page Test Suite', () => {
 
       // Categories are now always expanded due to Collapsible mock
       await waitFor(() => {
-        expect(screen.getByTestId('switch-bill_reminder-enabled')).toBeInTheDocument();
+        expect(screen.getByTestId('switch-category-financial-enabled')).toBeInTheDocument();
       });
 
-      const enableSwitch = screen.getByTestId('switch-bill_reminder-enabled');
+      const enableSwitch = screen.getByTestId('switch-category-financial-enabled');
       
       // Switch should be checked initially (from mock data)
       expect(enableSwitch).toBeChecked();
@@ -521,16 +520,16 @@ describe('Communication Page Test Suite', () => {
 
       // Categories are now always expanded due to Collapsible mock
       await waitFor(() => {
-        expect(screen.getByTestId('switch-bill_reminder-enabled')).toBeInTheDocument();
+        expect(screen.getByTestId('switch-category-financial-enabled')).toBeInTheDocument();
       });
 
       // Verify select trigger renders (testid is now on SelectTrigger)
-      const selectTrigger = screen.getByTestId('select-bill_reminder-frequency');
+      const selectTrigger = screen.getByTestId('select-category-financial-frequency');
       expect(selectTrigger).toBeInTheDocument();
       expect(selectTrigger).toHaveAttribute('role', 'combobox');
       
       // Verify the select has a value displayed (current frequency)
-      expect(selectTrigger).toHaveTextContent(/monthly|weekly|immediate|quarterly|bi-annually|annually|2weeks/i);
+      expect(selectTrigger).toHaveTextContent(/monthly|weekly|immediate|quarterly|bi-annually|annually|bi_weekly/i);
     });
 
     it('should save preference changes', async () => {
@@ -542,11 +541,11 @@ describe('Communication Page Test Suite', () => {
 
       // Categories are now always expanded due to Collapsible mock
       await waitFor(() => {
-        expect(screen.getByTestId('switch-bill_reminder-enabled')).toBeInTheDocument();
+        expect(screen.getByTestId('switch-category-financial-enabled')).toBeInTheDocument();
       });
 
       // Toggle a switch to create changes
-      const enableSwitch = screen.getByTestId('switch-bill_reminder-enabled');
+      const enableSwitch = screen.getByTestId('switch-category-financial-enabled');
       await userEvent.click(enableSwitch);
 
       await waitFor(() => {
@@ -557,14 +556,11 @@ describe('Communication Page Test Suite', () => {
       const saveButton = screen.getByTestId('button-save-preferences');
       await userEvent.click(saveButton);
 
-      // Should call apiRequest
       await waitFor(() => {
         expect(mockApiRequest).toHaveBeenCalledWith(
           'PUT',
           '/api/communication/preferences',
-          expect.objectContaining({
-            preferences: expect.any(Array)
-          })
+          expect.any(Array)
         );
       });
 
@@ -587,11 +583,11 @@ describe('Communication Page Test Suite', () => {
 
       // Categories are now always expanded due to Collapsible mock
       await waitFor(() => {
-        expect(screen.getByTestId('switch-bill_reminder-enabled')).toBeInTheDocument();
+        expect(screen.getByTestId('switch-category-financial-enabled')).toBeInTheDocument();
       });
 
       // Toggle a switch to create changes
-      const enableSwitch = screen.getByTestId('switch-bill_reminder-enabled');
+      const enableSwitch = screen.getByTestId('switch-category-financial-enabled');
       await userEvent.click(enableSwitch);
 
       await waitFor(() => {
@@ -757,7 +753,7 @@ describe('Communication Page Test Suite', () => {
     });
 
     it('should send test email', async () => {
-      mockApiRequest.mockImplementation((method: string, url: string, data?: any) => {
+      mockApiRequest.mockImplementation((method: string, url: string, data?: unknown) => {
         if (method === 'POST' && url === '/api/communication/preferences/test-combined-email') {
           return Promise.resolve({ 
             json: async () => ({ success: true })

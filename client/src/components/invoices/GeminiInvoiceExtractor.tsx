@@ -33,6 +33,8 @@ interface GeminiInvoiceExtractorProps {
 export function GeminiInvoiceExtractor({ file, onExtractionComplete }: GeminiInvoiceExtractorProps) {
   
   // Mutation for AI invoice data extraction
+  // Exception (task #229): error handler classifies multiple Gemini error codes
+  // and delegates to a callback prop instead of toasts — kept as raw `useMutation`.
   const extractionMutation = useMutation({
     mutationFn: async (invoiceFile: File) => {
       // Create FormData for file upload

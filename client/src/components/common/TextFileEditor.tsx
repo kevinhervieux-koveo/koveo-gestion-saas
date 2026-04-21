@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
+import { useCreateUpdateMutation } from '@/lib/common-hooks';
 import {
   Dialog,
   DialogContent,
@@ -41,7 +42,6 @@ export default function TextFileEditor({
   readOnly = false,
 }: TextFileEditorProps) {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   const [content, setContent] = useState('');
   const [editedName, setEditedName] = useState(document.name);
   const [editedDescription, setEditedDescription] = useState(document.description || '');
@@ -81,7 +81,7 @@ export default function TextFileEditor({
   }, [document]);
 
   // Save content mutation
-  const saveContentMutation = useMutation({
+  const saveContentMutation = useCreateUpdateMutation<Document, { content: string; name: string; description: string }>({
     mutationFn: async ({
       content,
       name,
@@ -120,21 +120,14 @@ export default function TextFileEditor({
 
       throw new Error('Document ID is required for updates');
     },
-    onSuccess: (updatedDocument) => {
-      queryClient.invalidateQueries({ queryKey: [`/api/documents/${document.id}/content`] });
-      toast({
-        title: 'Success',
-        description: 'Text file saved successfully!',
-      });
+    successTitle: 'Success',
+    successMessage: 'Text file saved successfully!',
+    errorTitle: 'Error',
+    errorMessage: (error: any) => error?.message || 'Failed to save text file',
+    queryKeysToInvalidate: [[`/api/documents/${document.id}/content`]],
+    onSuccessCallback: (updatedDocument) => {
       onSave?.(updatedDocument);
       onClose();
-    },
-    onError: (error: any) => {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to save text file',
-        variant: 'destructive',
-      });
     },
   });
 

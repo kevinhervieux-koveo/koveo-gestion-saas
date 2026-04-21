@@ -1,0 +1,137 @@
+name: Route Security Manifest
+
+on:
+  pull_request:
+    branches: [main, develop]
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main, develop]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  route-manifest-check:
+    name: Route Manifest Freshness
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Capture base manifest (PRs only)
+        if: github.event_name == 'pull_request'
+        run: |
+          mkdir -p .route-manifest-tmp
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          if git cat-file -e "${BASE_SHA}:server/route-manifest.json" 2>/dev/null; then
+            git show "${BASE_SHA}:server/route-manifest.json" > .route-manifest-tmp/base.json
+            echo "Captured base manifest from ${BASE_SHA}."
+          else
+            echo "No base manifest at ${BASE_SHA}; diff will show totals only."
+          fi
+
+      - name: Verify route security manifest is up to date
+        id: check
+        run: |
+          set +e
+          npx tsx scripts/generate-route-manifest.ts --check > .route-manifest-tmp-check.log 2>&1
+          status=$?
+          cat .route-manifest-tmp-check.log
+          echo "status=${status}" >> "$GITHUB_OUTPUT"
+          stale=false
+          script_error=false
+          if [ "${status}" -ne 0 ]; then
+            if grep -q "\[route-manifest\]" .route-manifest-tmp-check.log; then
+              stale=true
+            else
+              script_error=true
+            fi
+          fi
+          echo "stale=${stale}" >> "$GITHUB_OUTPUT"
+          echo "script_error=${script_error}" >> "$GITHUB_OUTPUT"
+          # Fail immediately on true script errors — don't mask as drift.
+          if [ "${script_error}" = "true" ]; then
+            echo "::error::generate-route-manifest.ts exited with status ${status} but did not report drift. Treating this as a script error."
+            exit "${status}"
+          fi
+          exit 0
+
+      - name: Build route manifest diff report (PRs only)
+        if: github.event_name == 'pull_request'
+        run: |
+          BASE_ARG=""
+          if [ -f .route-manifest-tmp/base.json ]; then
+            BASE_ARG="--base .route-manifest-tmp/base.json"
+          fi
+          STALE_ARG=""
+          if [ "${{ steps.check.outputs.stale }}" = "true" ]; then
+            STALE_ARG="--stale"
+          fi
+          npx tsx scripts/diff-route-manifest.ts \
+            ${BASE_ARG} ${STALE_ARG} \
+            --out .route-manifest-tmp/report.md
+          echo "--- report preview ---"
+          cat .route-manifest-tmp/report.md
+          {
+            echo "### Route manifest diff"
+            echo ""
+            cat .route-manifest-tmp/report.md
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Comment route manifest diff on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const reportPath = '.route-manifest-tmp/report.md';
+            if (!fs.existsSync(reportPath)) {
+              core.info('No report file found; skipping comment.');
+              return;
+            }
+            const body = fs.readFileSync(reportPath, 'utf-8');
+            const marker = '<!-- route-manifest-bot -->';
+            const fullBody = `${marker}\n${body}`;
+            const { owner, repo } = context.repo;
+            const issue_number = context.payload.pull_request.number;
+            const existing = await github.paginate(
+              github.rest.issues.listComments,
+              { owner, repo, issue_number, per_page: 100 }
+            );
+            const prior = existing.find(
+              (c) => c.user && c.user.type === 'Bot' && c.body && c.body.startsWith(marker)
+            );
+            if (prior) {
+              await github.rest.issues.updateComment({
+                owner, repo, comment_id: prior.id, body: fullBody,
+              });
+              core.info(`Updated existing comment ${prior.id}.`);
+            } else {
+              await github.rest.issues.createComment({
+                owner, repo, issue_number, body: fullBody,
+              });
+              core.info('Created new route manifest comment.');
+            }
+
+      - name: Fail if manifest was stale
+        if: steps.check.outputs.stale == 'true'
+        run: |
+          echo "::error::Route manifest is out of date. Run 'npx tsx scripts/generate-route-manifest.ts' and commit server/route-manifest.json."
+          exit 1

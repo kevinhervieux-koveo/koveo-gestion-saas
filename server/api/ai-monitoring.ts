@@ -20,6 +20,7 @@ type InsertAIInsight = any;
 type InsertAIMetrics = any;
 import { eq, desc, and, gte, sql } from 'drizzle-orm';
 
+import { asyncHandler } from '../utils/async-handler';
 /**
  * Retrieves AI performance metrics for dashboard display.
  * Calculates and returns aggregated metrics including interaction counts,
@@ -323,6 +324,7 @@ export async function triggerAIAnalysis(req: Request, res: Response) {
       message: 'AI analysis triggered successfully',
       insightsGenerated: numberOfInsights,
     });
+  } catch (error) {
     res.status(500).json({ _error: 'Failed to trigger AI analysis' });
   }
 }
@@ -399,6 +401,7 @@ export async function applyAISuggestion(req: Request, res: Response) {
       message: 'Suggestion applied successfully',
       insight: updatedInsight,
     });
+  } catch (error) {
     res.status(500).json({ _error: 'Failed to apply AI suggestion' });
   }
 }
@@ -524,6 +527,7 @@ export async function recordAIInteraction(req: Request, res: Response) {
     await updateAIMetrics();
 
     res.json(newInteraction);
+  } catch (error) {
     res.status(500).json({ _error: 'Failed to record AI interaction' });
   }
 }
@@ -546,13 +550,13 @@ export function registerAIMonitoringRoutes(app: Express): void {
         message: 'AI analysis triggered successfully',
         insightsGenerated,
       });
+    } catch (error) {
       res.status(500).json({ _error: 'Failed to trigger AI analysis' });
     }
   });
 
   // Apply AI suggestion
-  app.post('/api/ai/insights/:id/apply', requireAuth, async (req: any, res) => {
-    try {
+  app.post('/api/ai/insights/:id/apply', requireAuth, asyncHandler(async (req: any, res) => {
       const insightId = req.params.id;
 
       // Find the insight
@@ -580,9 +584,7 @@ export function registerAIMonitoringRoutes(app: Express): void {
         message: 'Suggestion applied successfully',
         insight: updatedInsight,
       });
-      res.status(500).json({ message: 'Internal server error' });
-    }
-  });
+    }, { errorMessage: 'Internal server error' }));
 }
 
 export { addAIInteraction, generateAIInsight };

@@ -82,6 +82,7 @@ export const authConfig = {
 
 // Mock middleware for various auth scenarios
 export const requireAuth = jest.fn().mockImplementation((req: any, res: any, next: any) => next());
+export const requireRole = jest.fn().mockImplementation((roles: string[]) => (req: any, res: any, next: any) => next());
 export const requireAdmin = jest.fn().mockImplementation((req: any, res: any, next: any) => next());
 export const requireManager = jest.fn().mockImplementation((req: any, res: any, next: any) => next());
 

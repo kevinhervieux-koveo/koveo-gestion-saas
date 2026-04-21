@@ -27,6 +27,7 @@ import {
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/use-language';
+import { handleApiError } from '@/lib/demo-error-handler';
 import DemandDetailsPopup from '@/components/demands/demand-details-popup';
 import { Header } from '@/components/layout/header';
 import type { Demand as DemandType } from '@/../../shared/schema';
@@ -39,7 +40,7 @@ interface Demand extends Omit<DemandType, 'createdAt' | 'updatedAt'> {
     firstName: string;
     lastName: string;
     email: string;
-  };
+  } | null;
   residence?: {
     id: string;
     unitNumber: string;
@@ -74,7 +75,7 @@ const ITEMS_PER_PAGE = 10;
 
 export default function ManagerDemandsPage() {
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   const [selectedDemand, setSelectedDemand] = useState<Demand | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -137,6 +138,8 @@ export default function ManagerDemandsPage() {
     queryKey: ['/api/residences'],
   });
 
+  // Exception (task #229): mutations in this file route errors through
+  // `handleApiError` for demo-mode/locale-aware messaging — kept as raw `useMutation`.
   const bulkUpdateMutation = useMutation({
     mutationFn: async ({ demandIds, status }: { demandIds: string[]; status: string }) => {
       const results = await Promise.all(
@@ -154,12 +157,12 @@ export default function ManagerDemandsPage() {
         description: `${selectedDemands.size} demands updated successfully`,
       });
     },
-    onError: () => {
-      toast({
-        title: t('error'),
-        description: 'Failed to update demands',
-        variant: 'destructive',
-      });
+    onError: (error: any) => {
+      handleApiError(
+        error,
+        language,
+        language === 'fr' ? 'Échec de la mise à jour groupée des demandes' : 'Failed to update demands'
+      );
     },
   });
 
@@ -180,12 +183,12 @@ export default function ManagerDemandsPage() {
         description: `${selectedDemands.size} demands deleted successfully`,
       });
     },
-    onError: () => {
-      toast({
-        title: t('error'),
-        description: 'Failed to delete demands',
-        variant: 'destructive',
-      });
+    onError: (error: any) => {
+      handleApiError(
+        error,
+        language,
+        language === 'fr' ? 'Échec de la suppression groupée des demandes' : 'Failed to delete demands'
+      );
     },
   });
 
@@ -466,8 +469,9 @@ export default function ManagerDemandsPage() {
         <CardContent className='pt-0 pl-12'>
           <div className='text-sm text-muted-foreground space-y-1'>
             <p>
-              <strong>{t('submittedBy')}:</strong> {demand.submitter?.firstName}{' '}
-              {demand.submitter?.lastName}
+              <strong>{t('submittedBy')}:</strong> {demand.submitter 
+                ? `${demand.submitter.firstName} ${demand.submitter.lastName}`
+                : 'Utilisateur supprimé'}
             </p>
             <p>
               <strong>{t('building')}:</strong> {building?.name || t('unknown')}

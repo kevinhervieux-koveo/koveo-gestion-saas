@@ -5,6 +5,18 @@
 
 // Ensure we use the same global mock instance
 const { db } = require('./db');
+const bcrypt = require('bcryptjs');
+
+// Helper: Always prefer the global mock data store (set by the auto-mocked db.ts)
+// over the local module copy. This ensures the test code and the route handlers
+// share the same mockDataStore instance (otherwise mutations like
+// setInvitationExpired in tests are invisible to routes).
+function getActiveMockDataStore(): any {
+  const globalStore = (global as any).__mockDataStore;
+  if (globalStore) return globalStore;
+  // Fallback to local module's data store (loaded via require above)
+  return (db as any)._mockDataStore;
+}
 
 // Mock the registerRoutes function with comprehensive auth test support
 export const registerRoutes = jest.fn().mockImplementation((app: any) => {
@@ -13,7 +25,7 @@ export const registerRoutes = jest.fn().mockImplementation((app: any) => {
   
   // Use the global mock data store to ensure same instance as tests
   const globalMockDataStore = (global as any).__mockDataStore;
-  const mockDataStore = globalMockDataStore || (db as any)._mockDataStore;
+  const mockDataStore = globalMockDataStore || getActiveMockDataStore();
   
   console.log('Routes: Global mock data store available?', !!globalMockDataStore);
   console.log('Routes: Mock data store available during registration?', !!mockDataStore);
@@ -28,7 +40,7 @@ export const registerRoutes = jest.fn().mockImplementation((app: any) => {
     // Mock invitation validation route
     app.get('/api/invitations/validate/:token', (req: any, res: any) => {
       const { token } = req.params;
-      const mockDataStore = (db as any)._mockDataStore;
+      const mockDataStore = getActiveMockDataStore();
       
       console.log('Route: Validating token:', token);
       
@@ -86,12 +98,12 @@ export const registerRoutes = jest.fn().mockImplementation((app: any) => {
     });
     
     // Mock invitation acceptance route
-    app.post('/api/invitations/accept/:token', (req: any, res: any) => {
+    app.post('/api/invitations/accept/:token', async (req: any, res: any) => {
       const { token } = req.params;
       const userData = req.body;
       
       // Get mock data store from db
-      const mockDataStore = (db as any)._mockDataStore;
+      const mockDataStore = getActiveMockDataStore();
       
       if (!mockDataStore) {
         return res.status(500).json({ error: 'Mock data store not available' });
@@ -159,6 +171,9 @@ export const registerRoutes = jest.fn().mockImplementation((app: any) => {
       // Generate unique user ID
       const userId = `mock-user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       
+      // Hash the password using bcrypt so tests can verify with bcrypt.compare
+      const hashedPassword = await bcrypt.hash(userData.password, 10);
+
       // Create new user
       const newUser = {
         id: userId,
@@ -170,7 +185,7 @@ export const registerRoutes = jest.fn().mockImplementation((app: any) => {
         language: userData.language || 'en',
         phone: userData.phone,
         isActive: true,
-        password: 'mock-hashed-password', // Would be hashed in real implementation
+        password: hashedPassword,
         dataCollectionConsent: userData.dataCollectionConsent || false,
         marketingConsent: userData.marketingConsent || false,
         analyticsConsent: userData.analyticsConsent || false,

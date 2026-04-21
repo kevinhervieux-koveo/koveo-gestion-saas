@@ -44,6 +44,8 @@ export interface DocumentFilters {
   organizationId?: string;
   buildingIds?: string[];
   residenceIds?: string[];
+  attachedToType?: string;
+  attachedToId?: string;
   onlyBuildingLevel?: boolean; // If true, exclude residence documents (residenceId must be NULL)
   limit?: number;
   offset?: number;
@@ -85,6 +87,15 @@ export async function getDocumentsWithRelations(
 
   if (filters.organizationId) {
     conditions.push(eq(buildings.organizationId, filters.organizationId));
+  }
+
+  // Filter by attached entity (e.g., documents attached to bills)
+  if (filters.attachedToType) {
+    conditions.push(eq(documents.attachedToType, filters.attachedToType));
+  }
+
+  if (filters.attachedToId) {
+    conditions.push(eq(documents.attachedToId, filters.attachedToId));
   }
 
   // Filter to only building-level documents (exclude residence documents)
@@ -272,8 +283,36 @@ export async function getDocumentsForUser(
     ...additionalFilters,
   };
 
-  if (userRole === 'manager') {
-    // Manager sees documents in their organization's buildings
+  if (userRole === 'manager' || userRole === 'demo_manager') {
+    // Extract specific filters from additionalFilters
+    const { buildingId, residenceId, ...commonFilters } = additionalFilters;
+    
+    // If a specific building is requested, only fetch that building's documents
+    if (buildingId) {
+      // Verify manager has access to this building
+      if (!scope.buildingIds.includes(buildingId)) {
+        return []; // Manager doesn't have access to this building
+      }
+      return getDocumentsWithRelations({
+        ...commonFilters,
+        buildingIds: [buildingId],
+        onlyBuildingLevel: true, // Exclude residence documents
+      });
+    }
+    
+    // If a specific residence is requested, only fetch that residence's documents
+    if (residenceId) {
+      // Verify manager has access to this residence
+      if (!scope.residenceIds.includes(residenceId)) {
+        return []; // Manager doesn't have access to this residence
+      }
+      return getDocumentsWithRelations({
+        ...commonFilters,
+        residenceIds: [residenceId],
+      });
+    }
+    
+    // Otherwise, manager sees documents in their organization's buildings
     filters.buildingIds = scope.buildingIds;
   } else if (userRole === 'resident' || userRole === 'tenant' || userRole === 'demo_resident' || userRole === 'demo_tenant') {
     // Separate filters for residence and building documents to avoid conflicts

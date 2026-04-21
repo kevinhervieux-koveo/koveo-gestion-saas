@@ -20,7 +20,6 @@ export class NotificationService {
     daysUntilExpiry: number
   ): Promise<void> {
     try {
-      // Get all admin users
       const adminUsers = await db
         .select({
           id: users.id,
@@ -51,20 +50,21 @@ export class NotificationService {
             ? `CRITICAL: SSL certificate for ${domain} expires tomorrow (${formattedExpiryDate}). Please renew immediately.`
             : `SSL certificate for ${domain} expires in ${daysUntilExpiry} days on ${formattedExpiryDate}. Please ensure renewal is scheduled.`;
 
-      // Create notifications for all administrators
       const notificationInserts: InsertNotification[] = adminUsers.map((admin) => ({
         userId: admin.id,
         type: 'system' as const,
         title,
         message,
-        relatedEntityId: null, // Could be SSL certificate ID if needed
+        relatedEntityId: null,
         relatedEntityType: 'system',
       }));
 
       await db.insert(notifications).values(notificationInserts);
 
+      console.log(
         `SSL expiry notification sent to ${adminUsers.length} administrators for domain: ${domain}`
       );
+    } catch (error) {
       throw new Error(
         `Failed to send SSL expiry notification: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
@@ -86,7 +86,6 @@ export class NotificationService {
     maxAttempts: number
   ): Promise<void> {
     try {
-      // Get all admin users
       const adminUsers = await db
         .select({
           id: users.id,
@@ -103,7 +102,7 @@ export class NotificationService {
       const title = `SSL Certificate Renewal Failed: ${domain}`;
       const message =
         attemptCount >= maxAttempts
-          ? `CRITICAL: SSL certificate renewal for ${domain} has failed ${attemptCount}/${maxAttempts} times. Manual intervention required. Last _error: ${errorMessage}`
+          ? `CRITICAL: SSL certificate renewal for ${domain} has failed ${attemptCount}/${maxAttempts} times. Manual intervention required. Last error: ${errorMessage}`
           : `SSL certificate renewal attempt ${attemptCount}/${maxAttempts} failed for ${domain}. Error: ${errorMessage}. Automatic retry will be attempted.`;
 
       const notificationInserts: InsertNotification[] = adminUsers.map((admin) => ({
@@ -117,8 +116,10 @@ export class NotificationService {
 
       await db.insert(notifications).values(notificationInserts);
 
+      console.log(
         `SSL renewal failure notification sent to ${adminUsers.length} administrators for domain: ${domain}`
       );
+    } catch (error) {
       throw new Error(
         `Failed to send SSL renewal failure notification: ${error instanceof Error ? error.message : 'Unknown error'}`
       );
@@ -138,7 +139,6 @@ export class NotificationService {
     newExpiryDate: Date,
     previousAttempts: number = 0
   ): Promise<void> {
-    // Only send success notifications for certificates that had previous failures
     if (previousAttempts === 0) {
       return;
     }
@@ -178,9 +178,11 @@ export class NotificationService {
 
       await db.insert(notifications).values(notificationInserts);
 
+      console.log(
         `SSL renewal success notification sent to ${adminUsers.length} administrators for domain: ${domain}`
       );
-      // Don't throw error for success notifications
+    } catch (error) {
+      console.error('Failed to send SSL renewal success notification:', error);
     }
   }
 
@@ -204,10 +206,11 @@ export class NotificationService {
         );
 
       return result.length;
+    } catch (error) {
+      console.error('Failed to get unread SSL notification count:', error);
       return 0;
     }
   }
 }
 
-// Export singleton instance
 export const notificationService = new NotificationService();

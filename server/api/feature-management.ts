@@ -4,14 +4,14 @@ import { db } from '../db';
 import { sql, eq } from 'drizzle-orm';
 import { features } from '../../shared/schema';
 
+import { asyncHandler } from '../utils/async-handler';
 /**
  * Register feature management routes.
  * @param app Express application.
  */
 export function registerFeatureManagementRoutes(app: Express): void {
   // Feature status update route
-  app.post('/api/features/:id/update-status', requireAuth, async (req: any, res) => {
-    try {
+  app.post('/api/features/:id/update-status', requireAuth, asyncHandler(async (req: any, res) => {
       const { status } = req.body;
       const featureId = req.params.id;
 
@@ -45,15 +45,10 @@ export function registerFeatureManagementRoutes(app: Express): void {
       const feature = result[0];
 
       res.json(feature);
-    } catch (error) {
-      console.error('Error updating feature:', error);
-      res.status(500).json({ message: 'Internal server error' });
-    }
-  });
+    }, { errorMessage: 'Internal server error', errorLogPrefix: 'Error updating feature' }));
 
   // Toggle strategic path route
-  app.post('/api/features/:id/toggle-strategic', requireAuth, async (req: any, res) => {
-    try {
+  app.post('/api/features/:id/toggle-strategic', requireAuth, asyncHandler(async (req: any, res) => {
       const { isStrategicPath } = req.body;
       const featureId = req.params.id;
 
@@ -78,15 +73,10 @@ export function registerFeatureManagementRoutes(app: Express): void {
       const feature = result[0];
 
       res.json(feature);
-    } catch (error) {
-      console.error('Error updating feature:', error);
-      res.status(500).json({ message: 'Internal server error' });
-    }
-  });
+    }, { errorMessage: 'Internal server error', errorLogPrefix: 'Error updating feature' }));
 
   // Feature analysis route
-  app.post('/api/features/:id/analyze', requireAuth, async (req: any, res) => {
-    try {
+  app.post('/api/features/:id/analyze', requireAuth, asyncHandler(async (req: any, res) => {
       const featureId = req.params.id;
 
       // Check if feature exists and is in correct status
@@ -121,11 +111,7 @@ export function registerFeatureManagementRoutes(app: Express): void {
         message: 'Analysis completed successfully',
         feature,
       });
-    } catch (error) {
-      console.error('Error analyzing feature:', error);
-      res.status(500).json({ message: 'Internal server error' });
-    }
-  });
+    }, { errorMessage: 'Internal server error', errorLogPrefix: 'Error analyzing feature' }));
 
   // Features sync to production route
   app.post('/api/features/trigger-sync', requireAuth, async (req: any, res) => {

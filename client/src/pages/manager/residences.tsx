@@ -1,4 +1,6 @@
+import type { ReactNode } from 'react';
 import { useState, useEffect } from 'react';
+import { logDebug } from '@/lib/logger';
 import { useQuery } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { Header } from '@/components/layout/header';
@@ -82,7 +84,7 @@ interface ManagerResidencesProps {
   buildingId?: string;
   buildingName?: string;
   showBackButton?: boolean;
-  backButtonLabel?: string;
+  backButtonLabel?: ReactNode;
   onBack?: () => void;
 }
 
@@ -96,17 +98,17 @@ function ManagerResidences({ organizationId, buildingId, showBackButton, backBut
 
   // Component initialization logging
   useEffect(() => {
-    console.log('🔍 [RESIDENCES] Component mounted', { organizationId, buildingId });
+    logDebug('🔍 [RESIDENCES] Component mounted', { organizationId, buildingId });
   }, []);
 
   // Log context changes
   useEffect(() => {
-    console.log('🔍 [RESIDENCES] Context changed:', { organizationId, buildingId });
+    logDebug('🔍 [RESIDENCES] Context changed:', { organizationId, buildingId });
   }, [organizationId, buildingId]);
 
   // Log filter changes
   useEffect(() => {
-    console.log('🔍 [RESIDENCES] Filters updated:', { searchTerm, selectedFloor, currentPage });
+    logDebug('🔍 [RESIDENCES] Filters updated:', { searchTerm, selectedFloor, currentPage });
   }, [searchTerm, selectedFloor, currentPage]);
 
 
@@ -118,7 +120,7 @@ function ManagerResidences({ organizationId, buildingId, showBackButton, backBut
   } = useQuery({
     queryKey: ['/api/residences', searchTerm, selectedFloor, buildingId],
     queryFn: async () => {
-      console.log('🔍 [RESIDENCES] Fetching residences with params:', { searchTerm, selectedFloor, buildingId });
+      logDebug('🔍 [RESIDENCES] Fetching residences with params:', { searchTerm, selectedFloor, buildingId });
       const params = new URLSearchParams(); /**
        * If function.
        * @param searchTerm - SearchTerm parameter.
@@ -169,27 +171,32 @@ function ManagerResidences({ organizationId, buildingId, showBackButton, backBut
         throw new Error('Failed to fetch residences');
       }
       const data = await response.json() as Residence[];
-      console.log('🔍 [RESIDENCES] Received residences data:', { count: data?.length });
+      logDebug('🔍 [RESIDENCES] Received residences data:', { count: data?.length });
       return data;
     },
   });
 
 
-  // Fetch all residences to get complete floor list for filter (without search/filter params)
-  const { data: allResidences } = useQuery({
-    queryKey: ['/api/residences/all'],
+  // Fetch residences for floor filter (respecting building filter but not floor/search filters)
+  const { data: residencesForFloorFilter } = useQuery({
+    queryKey: ['/api/residences/for-floor-filter', buildingId],
     queryFn: async () => {
-      const response = await fetch('/api/residences');
+      const params = new URLSearchParams();
+      // Only apply building filter to get floors for the selected building
+      if (buildingId) {
+        params.append('buildingId', buildingId);
+      }
+      const response = await fetch(`/api/residences?${params}`);
       if (!response.ok) {
-        throw new Error('Failed to fetch all residences');
+        throw new Error('Failed to fetch residences for floor filter');
       }
       return response.json() as Promise<Residence[]>;
     },
   });
 
-  // Get unique floors from all residences for filter dropdown
-  const availableFloors = allResidences
-    ? [...new Set(allResidences.map((r) => r.floor).filter((floor) => floor != null))].sort(
+  // Get unique floors from residences (respecting building filter only)
+  const availableFloors = residencesForFloorFilter
+    ? [...new Set(residencesForFloorFilter.map((r) => r.floor).filter((floor) => floor != null))].sort(
         (a, b) => a - b
       )
     : [];
@@ -197,13 +204,13 @@ function ManagerResidences({ organizationId, buildingId, showBackButton, backBut
   // Reset page when filters change
 
   const handleFloorChange = (value: string) => {
-    console.log('🔍 [RESIDENCES] User action: Floor filter changed', { floor: value });
+    logDebug('🔍 [RESIDENCES] User action: Floor filter changed', { floor: value });
     setSelectedFloor(value);
     setCurrentPage(1);
   };
 
   const handleSearchChange = (value: string) => {
-    console.log('🔍 [RESIDENCES] User action: Search term changed', { searchTerm: value });
+    logDebug('🔍 [RESIDENCES] User action: Search term changed', { searchTerm: value });
     setSearchTerm(value);
     setCurrentPage(1);
   };

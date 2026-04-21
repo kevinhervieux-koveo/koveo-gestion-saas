@@ -1,0 +1,60 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+budget-BOEYY8yt.js:16 🔍 [BUDGET] Component mounted {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984'}
+budget-BOEYY8yt.js:16 🔍 [BUDGET] Context changed: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984'}
+budget-BOEYY8yt.js:16 🔍 [BUDGET] Filters updated: {viewType: 'month', periodLength: 12, startMonth: 11, startYear: 2025, dataVisibility: {…}}
+budget-BOEYY8yt.js:16 🔍 [BUDGET] Filters updated: {viewType: 'month', periodLength: 12, startMonth: 1, startYear: 2025, dataVisibility: {…}}
+index-Bq5Qy6sz.js:23 [Violation] 'message' handler took 166ms
+index-Bq5Qy6sz.js:185 [Violation] 'setTimeout' handler took 69ms
+index-Bq5Qy6sz.js:136 Error: Maximum update depth exceeded. This can happen when a component repeatedly calls setState inside componentWillUpdate or componentDidUpdate. React limits the number of nested updates to prevent infinite loops.
+    at Gr (index-Bq5Qy6sz.js:83:16795)
+    at mc (index-Bq5Qy6sz.js:83:16313)
+    at ys (index-Bq5Qy6sz.js:120:18366)
+    at $h (index-Bq5Qy6sz.js:120:17962)
+    at xo (vendor-ui-FpgPax8G.js:14:1708)
+    at vendor-ui-FpgPax8G.js:14:1800
+    at Array.map (<anonymous>)
+    at vendor-ui-FpgPax8G.js:14:1784
+    at xo (vendor-ui-FpgPax8G.js:14:1708)
+    at vendor-ui-FpgPax8G.js:14:1800
+
+The above error occurred in the <button> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, cE.
+
+overrideMethod @ hook.js:608
+ag @ index-Bq5Qy6sz.js:136
+og @ index-Bq5Qy6sz.js:141
+X @ index-Bq5Qy6sz.js:45
+s.componentDidCatch.e.callback @ index-Bq5Qy6sz.js:141
+Ah @ index-Bq5Qy6sz.js:107
+xh @ index-Bq5Qy6sz.js:107
+X @ index-Bq5Qy6sz.js:45
+Ag @ index-Bq5Qy6sz.js:163
+Rg @ index-Bq5Qy6sz.js:163
+ea @ index-Bq5Qy6sz.js:163
+Rg @ index-Bq5Qy6sz.js:163
+ea @ index-Bq5Qy6sz.js:163
+Rg @ index-Bq5Qy6sz.js:163
+ea @ index-Bq5Qy6sz.js:163
+Rg @ index-Bq5Qy6sz.js:163
+ea @ index-Bq5Qy6sz.js:163
+Rg @ index-Bq5Qy6sz.js:163
+ea @ index-Bq5Qy6sz.js:163
+Rg @ index-Bq5Qy6sz.js:163
+ea @ index-Bq5Qy6sz.js:163
+Rg @ index-Bq5Qy6sz.js:163
+tv @ index-Bq5Qy6sz.js:163
+Nd @ index-Bq5Qy6sz.js:163
+Yg @ index-Bq5Qy6sz.js:163
+Gg @ index-Bq5Qy6sz.js:163
+mv @ index-Bq5Qy6sz.js:185
+Rs @ index-Bq5Qy6sz.js:185
+Od @ index-Bq5Qy6sz.js:185
+(anonymous) @ index-Bq5Qy6sz.js:185
+index-Bq5Qy6sz.js:185 [Violation] 'setTimeout' handler took 827ms

@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useCreateUpdateMutation } from '@/lib/common-hooks';
 import { Header } from '@/components/layout/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -71,44 +72,6 @@ import { SharedUploader } from '@/components/document-management';
 import { AttachedFileSection } from '@/components/common/AttachedFileSection';
 import type { UploadContext } from '@shared/config/upload-config';
 
-// Feature request form schema
-const featureRequestFormSchema = z.object({
-  title: z.string().min(1, 'Feature title is required').max(200, 'Title must be less than 200 characters'),
-  description: z
-    .string()
-    .min(10, 'Description must be at least 10 characters long')
-    .max(2000, 'Description must be less than 2000 characters'),
-  need: z
-    .string()
-    .min(5, 'Need explanation must be at least 5 characters long')
-    .max(500, 'Need explanation must be less than 500 characters'),
-  category: z.enum([
-    'dashboard',
-    'property_management',
-    'resident_management',
-    'financial_management',
-    'maintenance',
-    'document_management',
-    'communication',
-    'reports',
-    'mobile_app',
-    'integrations',
-    'security',
-    'performance',
-    'other',
-  ]),
-  page: z.string().min(1, 'Page location is required').max(100, 'Page location must be less than 100 characters'),
-});
-
-// Enhanced edit form schema for role-based editing
-const editFormSchema = featureRequestFormSchema.extend({
-  status: z.enum(['submitted', 'under_review', 'planned', 'in_progress', 'completed', 'rejected']).optional(),
-  adminNotes: z.string().max(1000, 'Admin notes must be less than 1000 characters').optional(),
-});
-
-type FeatureRequestFormData = z.infer<typeof featureRequestFormSchema>;
-type EditFormData = z.infer<typeof editFormSchema>;
-
 interface FeatureRequest {
   id: string;
   title: string;
@@ -131,22 +94,6 @@ interface FeatureRequest {
   fileSize?: number | null;
   file_content?: string | null; // Text content for text-only documents
 }
-
-const categoryLabels = {
-  dashboard: 'Dashboard',
-  property_management: 'Property Management',
-  resident_management: 'Resident Management',
-  financial_management: 'Financial Management',
-  maintenance: 'Maintenance',
-  document_management: 'Document Management',
-  communication: 'Communication',
-  reports: 'Reports',
-  mobile_app: 'Mobile App',
-  integrations: 'Integrations',
-  security: 'Security',
-  performance: 'Performance',
-  other: 'Other',
-};
 
 const statusColors = {
   submitted: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
@@ -174,13 +121,14 @@ const categoryIcons = {
 };
 
 // Idea Card Component
-function IdeaCard({ idea, onView, onEdit, onUpvote, canEdit, canUpvote }: {
+function IdeaCard({ idea, onView, onEdit, onUpvote, canEdit, canUpvote, t }: {
   idea: FeatureRequest;
   onView: (idea: FeatureRequest) => void;
   onEdit: (idea: FeatureRequest) => void;
   onUpvote: (idea: FeatureRequest) => void;
   canEdit: boolean;
   canUpvote: boolean;
+  t: (key: string) => string;
 }) {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -188,10 +136,10 @@ function IdeaCard({ idea, onView, onEdit, onUpvote, canEdit, canUpvote }: {
     const diffMs = now.getTime() - date.getTime();
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
     
-    if (diffDays === 0) return 'Today';
-    if (diffDays === 1) return 'Yesterday';
-    if (diffDays < 7) return `${diffDays} days ago`;
-    if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+    if (diffDays === 0) return t('today');
+    if (diffDays === 1) return t('yesterday');
+    if (diffDays < 7) return `${diffDays} ${t('daysAgo')}`;
+    if (diffDays < 30) return `${Math.floor(diffDays / 7)} ${t('weeksAgo')}`;
     return date.toLocaleDateString();
   };
 
@@ -249,7 +197,7 @@ function IdeaCard({ idea, onView, onEdit, onUpvote, canEdit, canUpvote }: {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Badge className={statusColors[idea.status as keyof typeof statusColors]} data-testid={`badge-status-${idea.id}`}>
-              {idea.status.replace('_', ' ')}
+              {t(idea.status.replace('_', '') as any)}
             </Badge>
             <span className="text-xs text-gray-500 dark:text-gray-400" data-testid={`text-page-${idea.id}`}>
               {idea.page}
@@ -304,6 +252,64 @@ export default function IdeaBox() {
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+
+  // Category label translation function
+  const getCategoryLabel = (category: string): string => {
+    const labels: Record<string, string> = {
+      dashboard: t('dashboard'),
+      property_management: t('propertyManagement'),
+      resident_management: t('residentManagement'),
+      financial_management: t('financialManagement'),
+      maintenance: t('maintenance'),
+      document_management: t('documentManagement'),
+      communication: t('communication'),
+      reports: t('reports'),
+      mobile_app: t('mobileApp'),
+      integrations: t('integrations'),
+      security: t('security'),
+      performance: t('performance'),
+      other: t('other'),
+    };
+    return labels[category] || category;
+  };
+
+  // Feature request form schema
+  const featureRequestFormSchema = z.object({
+    title: z.string().min(1, t('featureTitleRequired')).max(200, t('titleMaxLength200')),
+    description: z
+      .string()
+      .min(10, t('descriptionMinLength10'))
+      .max(2000, t('descriptionMaxLength2000')),
+    need: z
+      .string()
+      .min(5, t('needMinLength5'))
+      .max(500, t('needMaxLength500')),
+    category: z.enum([
+      'dashboard',
+      'property_management',
+      'resident_management',
+      'financial_management',
+      'maintenance',
+      'document_management',
+      'communication',
+      'reports',
+      'mobile_app',
+      'integrations',
+      'security',
+      'performance',
+      'other',
+    ]),
+    page: z.string().min(1, t('pageLocationRequired')).max(100, t('pageLocationMaxLength100')),
+  });
+
+  // Enhanced edit form schema for role-based editing
+  const editFormSchema = featureRequestFormSchema.extend({
+    status: z.enum(['submitted', 'under_review', 'planned', 'in_progress', 'completed', 'rejected']).optional(),
+    adminNotes: z.string().max(1000, t('adminNotesMaxLength1000')).optional(),
+  });
+
+  type FeatureRequestFormData = z.infer<typeof featureRequestFormSchema>;
+  type EditFormData = z.infer<typeof editFormSchema>;
   
   // Upload context for secure storage
   const uploadContext: UploadContext = {
@@ -388,8 +394,8 @@ export default function IdeaBox() {
   }, [filteredIdeas]);
 
   // Create feature request mutation with file upload support
-  const createMutation = useMutation({
-    mutationFn: async (data: FeatureRequestFormData & { file?: File }) => {
+  const createMutation = useCreateUpdateMutation<unknown, FeatureRequestFormData & { file?: File }>({
+    mutationFn: async (data) => {
       const formData = new FormData();
       Object.entries(data).forEach(([key, value]) => {
         if (key !== 'file' && value !== undefined) {
@@ -406,30 +412,23 @@ export default function IdeaBox() {
         body: formData,
       }).then(res => res.json());
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/feature-requests'] });
+    successTitle: t('success'),
+    successMessage: t('ideaSubmittedSuccessfully'),
+    errorTitle: t('error'),
+    errorMessage: (error: any) => error?.message || t('failedToSubmitIdea'),
+    queryKeysToInvalidate: [['/api/feature-requests']],
+    onSuccessCallback: () => {
       setIsCreateDialogOpen(false);
       form.reset();
       setAttachmentText('');
       setAttachmentMode('file');
       setUploadedFiles([]); // Clear uploaded files
-      toast({
-        title: 'Idea submitted!',
-        description: 'Your feature idea has been submitted successfully.',
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to submit idea',
-        variant: 'destructive',
-      });
     },
   });
 
   // Update feature request mutation with file upload support  
-  const updateMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: EditFormData & { file?: File } }) => {
+  const updateMutation = useCreateUpdateMutation<unknown, { id: string; data: EditFormData & { file?: File } }>({
+    mutationFn: async ({ id, data }) => {
       const formData = new FormData();
       Object.entries(data).forEach(([key, value]) => {
         if (key !== 'file' && value !== undefined && value !== null) {
@@ -446,64 +445,41 @@ export default function IdeaBox() {
         body: formData,
       }).then(res => res.json());
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/feature-requests'] });
+    successTitle: t('success'),
+    successMessage: t('ideaUpdatedSuccessfully'),
+    errorTitle: t('error'),
+    errorMessage: (error: any) => error?.message || t('failedToUpdateIdea'),
+    queryKeysToInvalidate: [['/api/feature-requests']],
+    onSuccessCallback: () => {
       setIsEditDialogOpen(false);
       setEditingFeatureRequest(null);
       editForm.reset();
       setEditAttachmentText('');
       setEditAttachmentMode('file');
-      toast({
-        title: 'Idea updated!',
-        description: 'Feature idea has been updated successfully.',
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to update idea',
-        variant: 'destructive',
-      });
     },
   });
 
   // Upvote mutation
-  const upvoteMutation = useMutation({
+  const upvoteMutation = useCreateUpdateMutation<unknown, string>({
     mutationFn: (id: string) => apiRequest('POST', `/api/feature-requests/${id}/upvote`),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/feature-requests'] });
-      toast({
-        title: 'Upvoted!',
-        description: 'Your upvote has been recorded.',
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to upvote',
-        variant: 'destructive',
-      });
-    },
+    successTitle: t('success'),
+    successMessage: t('upvoteRecorded'),
+    errorTitle: t('error'),
+    errorMessage: (error) => error?.message || t('failedToUpvote'),
+    queryKeysToInvalidate: [['/api/feature-requests']],
   });
 
   // Delete mutation (admin only)
-  const deleteMutation = useMutation({
+  const deleteMutation = useCreateUpdateMutation<unknown, string>({
     mutationFn: (id: string) => apiRequest('DELETE', `/api/feature-requests/${id}`),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/feature-requests'] });
+    successTitle: t('success'),
+    successMessage: t('ideaDeletedSuccessfully'),
+    errorTitle: t('error'),
+    errorMessage: (error) => error?.message || t('failedToDeleteIdea'),
+    queryKeysToInvalidate: [['/api/feature-requests']],
+    onSuccessCallback: () => {
       setIsEditDialogOpen(false);
       setEditingFeatureRequest(null);
-      toast({
-        title: 'Idea deleted!',
-        description: 'The feature idea has been deleted successfully.',
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to delete idea',
-        variant: 'destructive',
-      });
     },
   });
 
@@ -584,7 +560,7 @@ export default function IdeaBox() {
   };
 
   const handleDeleteIdea = (idea: FeatureRequest) => {
-    if (window.confirm(`Are you sure you want to delete "${idea.title}"? This action cannot be undone.`)) {
+    if (window.confirm(t('confirmDeleteIdea').replace('{title}', idea.title))) {
       deleteMutation.mutate(idea.id);
     }
   };
@@ -603,7 +579,7 @@ export default function IdeaBox() {
     return (
       <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
         <div className="flex items-center justify-between space-y-2">
-          <h2 className="text-3xl font-bold tracking-tight">Idea Box</h2>
+          <h2 className="text-3xl font-bold tracking-tight">{t('ideaBox')}</h2>
         </div>
         <div className="grid gap-4">
           {[1, 2, 3].map(i => (
@@ -625,7 +601,7 @@ export default function IdeaBox() {
             <div></div>
             <Button onClick={() => setIsCreateDialogOpen(true)} data-testid="button-create-idea">
               <Plus className="mr-2 h-4 w-4" />
-              Submit New Idea
+              {t('submitNewIdea')}
             </Button>
           </div>
 
@@ -634,17 +610,17 @@ export default function IdeaBox() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Search className="w-5 h-5" />
-                Search & Filters
+                {t('searchAndFilters')}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Search</label>
+                  <label className="text-sm font-medium">{t('search')}</label>
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                     <Input
-                      placeholder="Search ideas..."
+                      placeholder={t('searchIdeas')}
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="pl-10"
@@ -654,35 +630,35 @@ export default function IdeaBox() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Status</label>
+                  <label className="text-sm font-medium">{t('status')}</label>
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
                     <SelectTrigger data-testid="select-status-filter">
-                      <SelectValue placeholder="All Statuses" />
+                      <SelectValue placeholder={t('allStatuses')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All Statuses</SelectItem>
-                      <SelectItem value="submitted">Submitted</SelectItem>
-                      <SelectItem value="under_review">Under Review</SelectItem>
-                      <SelectItem value="planned">Planned</SelectItem>
-                      <SelectItem value="in_progress">In Progress</SelectItem>
-                      <SelectItem value="completed">Completed</SelectItem>
-                      <SelectItem value="rejected">Rejected</SelectItem>
+                      <SelectItem value="all">{t('allStatuses')}</SelectItem>
+                      <SelectItem value="submitted">{t('submitted')}</SelectItem>
+                      <SelectItem value="under_review">{t('underReview')}</SelectItem>
+                      <SelectItem value="planned">{t('planned')}</SelectItem>
+                      <SelectItem value="in_progress">{t('inProgress')}</SelectItem>
+                      <SelectItem value="completed">{t('completed')}</SelectItem>
+                      <SelectItem value="rejected">{t('rejected')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Category & Sort</label>
+                  <label className="text-sm font-medium">{t('categoryAndSort')}</label>
                   <div className="flex gap-2">
                     <Select value={categoryFilter} onValueChange={setCategoryFilter}>
                       <SelectTrigger data-testid="select-category-filter">
-                        <SelectValue placeholder="All Categories" />
+                        <SelectValue placeholder={t('allCategories')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">All Categories</SelectItem>
-                        {Object.entries(categoryLabels).map(([key, label]) => (
+                        <SelectItem value="all">{t('allCategories')}</SelectItem>
+                        {['dashboard', 'property_management', 'resident_management', 'financial_management', 'maintenance', 'document_management', 'communication', 'reports', 'mobile_app', 'integrations', 'security', 'performance', 'other'].map((key) => (
                           <SelectItem key={key} value={key}>
-                            {label}
+                            {getCategoryLabel(key)}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -692,9 +668,9 @@ export default function IdeaBox() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="newest">Newest</SelectItem>
-                        <SelectItem value="oldest">Oldest</SelectItem>
-                        <SelectItem value="upvotes">Most Upvoted</SelectItem>
+                        <SelectItem value="newest">{t('newest')}</SelectItem>
+                        <SelectItem value="oldest">{t('oldest')}</SelectItem>
+                        <SelectItem value="upvotes">{t('mostUpvotes')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -705,7 +681,7 @@ export default function IdeaBox() {
 
           {/* Category-grouped cards */}
           <div className="space-y-6">
-            {Object.entries(categoryLabels).map(([categoryKey, categoryLabel]) => {
+            {['dashboard', 'property_management', 'resident_management', 'financial_management', 'maintenance', 'document_management', 'communication', 'reports', 'mobile_app', 'integrations', 'security', 'performance', 'other'].map((categoryKey) => {
               const categoryIdeas = ideasByCategory[categoryKey] || [];
               if (categoryIdeas.length === 0) return null;
               
@@ -721,7 +697,7 @@ export default function IdeaBox() {
                         <ChevronRight className="h-4 w-4" />
                       )}
                       <span className="text-lg font-semibold">
-                        {categoryLabel}
+                        {getCategoryLabel(categoryKey)}
                       </span>
                       <Badge variant="secondary" className="ml-2">
                         {categoryIdeas.length}
@@ -739,6 +715,7 @@ export default function IdeaBox() {
                             onUpvote={handleUpvoteIdea}
                             canEdit={canEditIdea(idea)}
                             canUpvote={canUpvoteIdea(idea)}
+                            t={t}
                           />
                         ))}
                       </div>
@@ -750,11 +727,11 @@ export default function IdeaBox() {
             
             {filteredIdeas.length === 0 && (
               <div className="text-center py-12">
-                <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">No ideas found</h3>
+                <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-gray-100">{t('noIdeasFound')}</h3>
                 <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                   {searchTerm || statusFilter !== 'all' || categoryFilter !== 'all'
-                    ? 'Try adjusting your search or filters.'
-                    : 'Get started by submitting your first idea.'}
+                    ? t('tryAdjustingSearchOrFilters')
+                    : t('getStartedBySubmittingFirstIdea')}
                 </p>
               </div>
             )}
@@ -766,15 +743,15 @@ export default function IdeaBox() {
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
         <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Submit New Idea</DialogTitle>
+            <DialogTitle>{t('submitNewIdea')}</DialogTitle>
           </DialogHeader>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="title">Feature Title *</Label>
+              <Label htmlFor="title">{t('featureTitle')} *</Label>
               <Input
                 id="title"
                 {...form.register('title')}
-                placeholder="e.g. Add bulk export for documents"
+                placeholder={t('featureTitlePlaceholder')}
                 data-testid="input-title"
               />
               {form.formState.errors.title && (
@@ -783,11 +760,11 @@ export default function IdeaBox() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description">Description *</Label>
+              <Label htmlFor="description">{t('description')} *</Label>
               <Textarea
                 id="description"
                 {...form.register('description')}
-                placeholder="Describe your feature idea in detail..."
+                placeholder={t('featureDescriptionPlaceholder')}
                 rows={4}
                 data-testid="textarea-description"
               />
@@ -797,11 +774,11 @@ export default function IdeaBox() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="need">Why is this needed? *</Label>
+              <Label htmlFor="need">{t('whyIsThisNeeded')} *</Label>
               <Textarea
                 id="need"
                 {...form.register('need')}
-                placeholder="Explain the specific need this feature addresses..."
+                placeholder={t('whyIsThisNeededPlaceholder')}
                 rows={3}
                 data-testid="textarea-need"
               />
@@ -812,15 +789,15 @@ export default function IdeaBox() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="category">Category *</Label>
+                <Label htmlFor="category">{t('category')} *</Label>
                 <Select value={form.watch('category')} onValueChange={(value) => form.setValue('category', value as any)}>
                   <SelectTrigger data-testid="select-category">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {Object.entries(categoryLabels).map(([key, label]) => (
+                    {['dashboard', 'property_management', 'resident_management', 'financial_management', 'maintenance', 'document_management', 'communication', 'reports', 'mobile_app', 'integrations', 'security', 'performance', 'other'].map((key) => (
                       <SelectItem key={key} value={key}>
-                        {label}
+                        {getCategoryLabel(key)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -831,11 +808,11 @@ export default function IdeaBox() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="page">Page/Location *</Label>
+                <Label htmlFor="page">{t('pageLocation')} *</Label>
                 <Input
                   id="page"
                   {...form.register('page')}
-                  placeholder="e.g. Document Management"
+                  placeholder={t('pageLocationPlaceholder')}
                   data-testid="input-page"
                 />
                 {form.formState.errors.page && (
@@ -846,7 +823,7 @@ export default function IdeaBox() {
 
             {/* Choose Document Type Section */}
             <div className="space-y-4 border-t pt-4">
-              <Label className="text-sm font-medium">Attach Documents (Optional)</Label>
+              <Label className="text-sm font-medium">{t('attachDocumentsOptional')}</Label>
               <SharedUploader
                 onDocumentChange={(file, text) => {
                   if (file) {
@@ -864,10 +841,10 @@ export default function IdeaBox() {
 
             <div className="flex justify-end space-x-2 pt-4">
               <Button type="button" variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
-                Cancel
+                {t('cancel')}
               </Button>
               <Button type="submit" disabled={createMutation.isPending} data-testid="button-submit">
-                {createMutation.isPending ? 'Submitting...' : 'Submit Idea'}
+                {createMutation.isPending ? t('submitting') : t('submitIdea')}
               </Button>
             </div>
           </form>
@@ -878,11 +855,11 @@ export default function IdeaBox() {
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Edit Idea</DialogTitle>
+            <DialogTitle>{t('editIdea')}</DialogTitle>
           </DialogHeader>
           <form onSubmit={editForm.handleSubmit(handleEditSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="edit-title">Feature Title *</Label>
+              <Label htmlFor="edit-title">{t('featureTitle')} *</Label>
               <Input
                 id="edit-title"
                 {...editForm.register('title')}
@@ -894,7 +871,7 @@ export default function IdeaBox() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="edit-description">Description *</Label>
+              <Label htmlFor="edit-description">{t('description')} *</Label>
               <Textarea
                 id="edit-description"
                 {...editForm.register('description')}
@@ -907,7 +884,7 @@ export default function IdeaBox() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="edit-need">Why is this needed? *</Label>
+              <Label htmlFor="edit-need">{t('whyIsThisNeeded')} *</Label>
               <Textarea
                 id="edit-need"
                 {...editForm.register('need')}
@@ -921,15 +898,15 @@ export default function IdeaBox() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="edit-category">Category *</Label>
+                <Label htmlFor="edit-category">{t('category')} *</Label>
                 <Select value={editForm.watch('category')} onValueChange={(value) => editForm.setValue('category', value as any)}>
                   <SelectTrigger data-testid="select-edit-category">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {Object.entries(categoryLabels).map(([key, label]) => (
+                    {['dashboard', 'property_management', 'resident_management', 'financial_management', 'maintenance', 'document_management', 'communication', 'reports', 'mobile_app', 'integrations', 'security', 'performance', 'other'].map((key) => (
                       <SelectItem key={key} value={key}>
-                        {label}
+                        {getCategoryLabel(key)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -940,7 +917,7 @@ export default function IdeaBox() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="edit-page">Page/Location *</Label>
+                <Label htmlFor="edit-page">{t('pageLocation')} *</Label>
                 <Input
                   id="edit-page"
                   {...editForm.register('page')}
@@ -955,28 +932,28 @@ export default function IdeaBox() {
             {user?.role === 'admin' && (
               <>
                 <div className="space-y-2">
-                  <Label htmlFor="edit-status">Status</Label>
+                  <Label htmlFor="edit-status">{t('status')}</Label>
                   <Select value={editForm.watch('status')} onValueChange={(value) => editForm.setValue('status', value as any)}>
                     <SelectTrigger data-testid="select-edit-status">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="submitted">Submitted</SelectItem>
-                      <SelectItem value="under_review">Under Review</SelectItem>
-                      <SelectItem value="planned">Planned</SelectItem>
-                      <SelectItem value="in_progress">In Progress</SelectItem>
-                      <SelectItem value="completed">Completed</SelectItem>
-                      <SelectItem value="rejected">Rejected</SelectItem>
+                      <SelectItem value="submitted">{t('submitted')}</SelectItem>
+                      <SelectItem value="under_review">{t('underReview')}</SelectItem>
+                      <SelectItem value="planned">{t('planned')}</SelectItem>
+                      <SelectItem value="in_progress">{t('inProgress')}</SelectItem>
+                      <SelectItem value="completed">{t('completed')}</SelectItem>
+                      <SelectItem value="rejected">{t('rejected')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="edit-admin-notes">Admin Notes</Label>
+                  <Label htmlFor="edit-admin-notes">{t('adminNotes')}</Label>
                   <Textarea
                     id="edit-admin-notes"
                     {...editForm.register('adminNotes')}
-                    placeholder="Internal notes (visible to admins only)"
+                    placeholder={t('internalNotesVisibleAdmins')}
                     rows={2}
                     data-testid="textarea-admin-notes"
                   />
@@ -986,7 +963,7 @@ export default function IdeaBox() {
 
             {/* Choose Document Type Section for Edit */}
             <div className="space-y-4 border-t pt-4">
-              <Label className="text-sm font-medium">Choose Document Type</Label>
+              <Label className="text-sm font-medium">{t('chooseDocumentType')}</Label>
               <div className="flex space-x-3">
                 <button
                   type="button"
@@ -998,7 +975,7 @@ export default function IdeaBox() {
                   }`}
                   data-testid="button-edit-file-mode"
                 >
-                  📁 Upload File
+                  📁 {t('uploadFile')}
                 </button>
                 <button
                   type="button"
@@ -1010,7 +987,7 @@ export default function IdeaBox() {
                   }`}
                   data-testid="button-edit-text-mode"
                 >
-                  📝 Text Document
+                  📝 {t('textDocument')}
                 </button>
               </div>
 
@@ -1019,7 +996,7 @@ export default function IdeaBox() {
                 <div>
                   {editingFeatureRequest?.filePath && (
                     <div className="space-y-2 mb-4">
-                      <Label>Current Attachment</Label>
+                      <Label>{t('currentAttachment')}</Label>
                       <AttachedFileSection
                         entityType="feature-request"
                         entityId={editingFeatureRequest.id}
@@ -1029,7 +1006,7 @@ export default function IdeaBox() {
                       />
                     </div>
                   )}
-                  <Label htmlFor="edit-file-upload">Select File to Upload</Label>
+                  <Label htmlFor="edit-file-upload">{t('selectFileToUpload')}</Label>
                   <Input
                     id="edit-file-upload"
                     type="file"
@@ -1038,23 +1015,23 @@ export default function IdeaBox() {
                     className="mt-1"
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    {editingFeatureRequest?.filePath ? 'Upload a new file to replace the current attachment' : 'Attach a screenshot, mockup, or document'}
+                    {editingFeatureRequest?.filePath ? t('uploadNewFileToReplace') : t('attachScreenshot')}
                   </p>
                 </div>
               ) : (
                 <div>
-                  <Label htmlFor="edit-text-content">Document Content</Label>
+                  <Label htmlFor="edit-text-content">{t('documentContent')}</Label>
                   <Textarea
                     id="edit-text-content"
                     value={editAttachmentText}
                     onChange={(e) => setEditAttachmentText(e.target.value)}
                     rows={5}
                     className="w-full mt-1"
-                    placeholder="Add detailed notes, specifications, or any additional information..."
+                    placeholder={t('addDetailedNotes')}
                     data-testid="textarea-edit-text-content"
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    This will show as additional notes with your idea
+                    {t('thisWillShowAsAdditionalNotes')}
                   </p>
                 </div>
               )}
@@ -1070,16 +1047,16 @@ export default function IdeaBox() {
                     disabled={deleteMutation.isPending}
                     data-testid="button-delete-idea"
                   >
-                    {deleteMutation.isPending ? 'Deleting...' : 'Delete Idea'}
+                    {deleteMutation.isPending ? t('deleting') : t('deleteIdea')}
                   </Button>
                 )}
               </div>
               <div className="flex space-x-2">
                 <Button type="button" variant="outline" onClick={() => setIsEditDialogOpen(false)}>
-                  Cancel
+                  {t('cancel')}
                 </Button>
                 <Button type="submit" disabled={updateMutation.isPending} data-testid="button-update">
-                  {updateMutation.isPending ? 'Updating...' : 'Update Idea'}
+                  {updateMutation.isPending ? t('updating') : t('updateIdea')}
                 </Button>
               </div>
             </div>
@@ -1098,10 +1075,10 @@ export default function IdeaBox() {
                     <DialogTitle className="text-xl">{viewingFeatureRequest.title}</DialogTitle>
                     <div className="flex items-center gap-2 mt-2">
                       <Badge className={statusColors[viewingFeatureRequest.status as keyof typeof statusColors]}>
-                        {viewingFeatureRequest.status.replace('_', ' ')}
+                        {t(viewingFeatureRequest.status.replace('_', '') as any)}
                       </Badge>
                       <span className="text-sm text-gray-500">
-                        {categoryLabels[viewingFeatureRequest.category as keyof typeof categoryLabels]}
+                        {t(viewingFeatureRequest.category.replace(/_/g, '') as any)}
                       </span>
                       <span className="text-sm text-gray-500">•</span>
                       <span className="text-sm text-gray-500">{viewingFeatureRequest.page}</span>
@@ -1127,7 +1104,7 @@ export default function IdeaBox() {
                         }}
                       >
                         <Edit2 className="h-4 w-4 mr-1" />
-                        Edit
+                        {t('edit')}
                       </Button>
                     )}
                   </div>
@@ -1136,14 +1113,14 @@ export default function IdeaBox() {
               
               <div className="space-y-4">
                 <div>
-                  <h4 className="font-semibold mb-2">Description</h4>
+                  <h4 className="font-semibold mb-2">{t('description')}</h4>
                   <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
                     {viewingFeatureRequest.description}
                   </p>
                 </div>
                 
                 <div>
-                  <h4 className="font-semibold mb-2">Why is this needed?</h4>
+                  <h4 className="font-semibold mb-2">{t('whyIsThisNeeded')}</h4>
                   <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
                     {viewingFeatureRequest.need}
                   </p>
@@ -1152,7 +1129,7 @@ export default function IdeaBox() {
                 {/* Show file attachment if exists */}
                 {viewingFeatureRequest.filePath && (
                   <div>
-                    <h4 className="font-semibold mb-2">Attachment</h4>
+                    <h4 className="font-semibold mb-2">{t('attachment')}</h4>
                     <AttachedFileSection
                       entityType="feature-request"
                       entityId={viewingFeatureRequest.id}
@@ -1166,7 +1143,7 @@ export default function IdeaBox() {
                 {/* Show text content if exists */}
                 {viewingFeatureRequest.file_content && (
                   <div>
-                    <h4 className="font-semibold mb-2">Document Content</h4>
+                    <h4 className="font-semibold mb-2">{t('documentContent')}</h4>
                     <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
                       <pre className="whitespace-pre-wrap text-sm text-gray-700 dark:text-gray-300 font-mono">
                         {viewingFeatureRequest.file_content}
@@ -1177,7 +1154,7 @@ export default function IdeaBox() {
                 
                 {user?.role === 'admin' && viewingFeatureRequest.adminNotes && (
                   <div>
-                    <h4 className="font-semibold mb-2">Admin Notes</h4>
+                    <h4 className="font-semibold mb-2">{t('adminNotes')}</h4>
                     <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap bg-gray-50 dark:bg-gray-800 p-3 rounded">
                       {viewingFeatureRequest.adminNotes}
                     </p>
@@ -1185,9 +1162,9 @@ export default function IdeaBox() {
                 )}
                 
                 <div className="text-sm text-gray-500 pt-2 border-t">
-                  <p>Submitted on {new Date(viewingFeatureRequest.createdAt).toLocaleDateString()}</p>
+                  <p>{t('submittedOn')} {new Date(viewingFeatureRequest.createdAt).toLocaleDateString()}</p>
                   {viewingFeatureRequest.updatedAt !== viewingFeatureRequest.createdAt && (
-                    <p>Last updated on {new Date(viewingFeatureRequest.updatedAt).toLocaleDateString()}</p>
+                    <p>{t('lastUpdatedOn')} {new Date(viewingFeatureRequest.updatedAt).toLocaleDateString()}</p>
                   )}
                 </div>
               </div>

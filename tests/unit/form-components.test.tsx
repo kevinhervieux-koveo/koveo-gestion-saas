@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, test, expect } from '@jest/globals';
 import { useForm } from 'react-hook-form';
@@ -116,25 +116,23 @@ const TestFormComponent = () => {
 describe('Form Component Validation UI', () => {
   describe('FormLabel Red Color Display', () => {
     test('should display field labels in red when validation errors occur', async () => {
-      const user = userEvent.setup();
       render(<TestFormComponent />);
 
-      // Submit form with invalid data to trigger validation errors
-      const submitButton = screen.getByTestId('submit-button');
-      await user.click(submitButton);
+      const form = screen.getByTestId('test-form');
+      await act(async () => {
+        fireEvent.submit(form);
+      });
 
-      // Wait for validation errors to appear
       await waitFor(() => {
-        const emailError = screen.getByTestId('error-email');
+        const emailError = screen.queryByTestId('error-email');
+        expect(emailError).toBeTruthy();
         expect(emailError).toBeInTheDocument();
       });
 
-      // Check that FormLabel has error styling when field has error
       const emailLabel = screen.getByTestId('label-email');
       const nameLabel = screen.getByTestId('label-name');
       const amountLabel = screen.getByTestId('label-amount');
 
-      // Labels for required fields with errors should have error styling
       expect(emailLabel).toHaveClass('text-red-600');
       expect(nameLabel).toHaveClass('text-red-600');
       expect(amountLabel).toHaveClass('text-red-600');
@@ -237,14 +235,14 @@ describe('Form Component Validation UI', () => {
       const user = userEvent.setup();
       render(<TestFormComponent />);
 
-      // First trigger an error
       const emailInput = screen.getByTestId('input-email');
       await user.type(emailInput, 'invalid');
       
-      const submitButton = screen.getByTestId('submit-button');
-      await user.click(submitButton);
+      const form = screen.getByTestId('test-form');
+      await act(async () => {
+        fireEvent.submit(form);
+      });
 
-      // Wait for error to appear
       await waitFor(() => {
         const emailError = screen.queryByTestId('error-email');
         expect(emailError).toBeTruthy();
@@ -253,14 +251,13 @@ describe('Form Component Validation UI', () => {
         }
       });
 
-      // Then fix the email
       await user.clear(emailInput);
       await user.type(emailInput, 'user@domain.com');
 
-      // Trigger validation again
-      await user.click(submitButton);
+      await act(async () => {
+        fireEvent.submit(form);
+      });
 
-      // Wait for error to clear
       await waitFor(() => {
         const emailError = screen.queryByTestId('error-email');
         if (emailError) {
@@ -290,24 +287,24 @@ describe('Form Component Validation UI', () => {
     });
 
     test('should associate error messages with form fields', async () => {
-      const user = userEvent.setup();
       render(<TestFormComponent />);
 
-      // Trigger validation error
-      const submitButton = screen.getByTestId('submit-button');
-      await user.click(submitButton);
+      const form = screen.getByTestId('test-form');
+      await act(async () => {
+        fireEvent.submit(form);
+      });
 
       await waitFor(() => {
-        const emailInput = screen.getByTestId('input-email');
-        const emailError = screen.getByTestId('error-email');
-
-        // Error message should be associated with the input
-        expect(emailError).toBeInTheDocument();
-        expect(emailError.textContent).toBeTruthy();
-        
-        // Input should have aria-describedby or similar accessibility attribute
-        expect(emailInput).toBeInTheDocument();
+        const emailError = screen.queryByTestId('error-email');
+        expect(emailError).toBeTruthy();
       });
+
+      const emailInput = screen.getByTestId('input-email');
+      const emailError = screen.getByTestId('error-email');
+
+      expect(emailError).toBeInTheDocument();
+      expect(emailError.textContent).toBeTruthy();
+      expect(emailInput).toBeInTheDocument();
     });
   });
 });

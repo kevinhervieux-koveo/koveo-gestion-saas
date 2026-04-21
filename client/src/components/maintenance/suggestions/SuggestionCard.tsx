@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
+import { useCreateUpdateMutation } from '@/lib/common-hooks';
 import { format, formatDistanceToNow, addMonths } from 'date-fns';
 import { StandardCard } from '@/components/common/StandardCard';
 import { Button } from '@/components/ui/button';
@@ -134,7 +135,7 @@ export function SuggestionCard({
   }, [suggestion.seasonalFactor]);
 
   // Accept suggestion mutation
-  const acceptMutation = useMutation({
+  const acceptMutation = useCreateUpdateMutation({
     mutationFn: async () => {
       const response = await apiRequest('PATCH', `/api/maintenance/suggestions/${suggestion.id}`, {
         status: 'completed',
@@ -142,25 +143,18 @@ export function SuggestionCard({
       });
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/maintenance/suggestions'] });
-      toast({
-        title: "Suggestion Accepted",
-        description: "The suggestion has been accepted and marked as completed.",
-      });
+    successTitle: 'Suggestion Accepted',
+    successMessage: 'The suggestion has been accepted and marked as completed.',
+    errorTitle: 'Error',
+    errorMessage: 'Failed to accept suggestion. Please try again.',
+    queryKeysToInvalidate: [['/api/maintenance/suggestions']],
+    onSuccessCallback: () => {
       onAccept?.(suggestion);
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to accept suggestion. Please try again.",
-        variant: "destructive",
-      });
     },
   });
 
   // Dismiss suggestion mutation
-  const dismissMutation = useMutation({
+  const dismissMutation = useCreateUpdateMutation<unknown, string>({
     mutationFn: async (reason: string) => {
       const response = await apiRequest('PATCH', `/api/maintenance/suggestions/${suggestion.id}`, {
         status: 'dismissed',
@@ -169,22 +163,15 @@ export function SuggestionCard({
       });
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/maintenance/suggestions'] });
-      toast({
-        title: "Suggestion Dismissed",
-        description: "The suggestion has been dismissed.",
-      });
+    successTitle: 'Suggestion Dismissed',
+    successMessage: 'The suggestion has been dismissed.',
+    errorTitle: 'Error',
+    errorMessage: 'Failed to dismiss suggestion. Please try again.',
+    queryKeysToInvalidate: [['/api/maintenance/suggestions']],
+    onSuccessCallback: () => {
       onDismiss?.(suggestion, dismissReason);
       setShowDismissDialog(false);
       setDismissReason('');
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to dismiss suggestion. Please try again.",
-        variant: "destructive",
-      });
     },
   });
 

@@ -1,0 +1,35 @@
+user-management-Diohe_Dd.js:1 🔍 [USER_MANAGEMENT] Computing currentUserAccess memo: Object
+user-management-Diohe_Dd.js:1 ✅ [USER_MANAGEMENT] Extracted access IDs: Object
+user-management-Diohe_Dd.js:1 🔍 [USER_MANAGEMENT] Component mounted
+user-management-Diohe_Dd.js:1 🔍 [USER_MANAGEMENT] Current user query status: Object
+user-management-Diohe_Dd.js:1 🏢 [USER_MANAGEMENT] Organizations state updated: Object
+user-management-Diohe_Dd.js:1 🔍 [USER_MANAGEMENT] Assignment queries data received: Object
+user-management-Diohe_Dd.js:1 🔍 [USER_MANAGEMENT] Current user assignment queries status: Object
+user-management-Diohe_Dd.js:1 🏢 [USER_MANAGEMENT] /api/organizations returned: Object
+user-management-Diohe_Dd.js:1 🏢 [USER_MANAGEMENT] Organizations state updated: Object
+user-management-Diohe_Dd.js:1 🔍 [QUERY] /api/users/me/residences returned: Array(0)
+user-management-Diohe_Dd.js:1 🔍 [USER_MANAGEMENT] Computing currentUserAccess memo: Object
+user-management-Diohe_Dd.js:1 ✅ [USER_MANAGEMENT] Extracted access IDs: Object
+user-management-Diohe_Dd.js:1 🔍 [USER_MANAGEMENT] Assignment queries data received: Object
+user-management-Diohe_Dd.js:1 🔍 [USER_MANAGEMENT] Current user assignment queries status: Object
+user-management-Diohe_Dd.js:1 🔍 [QUERY] /api/users/me/organizations returned: Array(3)
+user-management-Diohe_Dd.js:1 🔍 [QUERY] /api/users/me/buildings returned: Array(8)
+user-management-Diohe_Dd.js:1 🔍 [USER_MANAGEMENT] Computing currentUserAccess memo: Object
+user-management-Diohe_Dd.js:1 ✅ [USER_MANAGEMENT] Extracted access IDs: Object
+user-management-Diohe_Dd.js:1 🔍 [USER_MANAGEMENT] Assignment queries data received: Object
+user-management-Diohe_Dd.js:1 🔍 [USER_MANAGEMENT] Current user assignment queries status: Object
+user-management-Diohe_Dd.js:1 🏢 [ORG_TAB] Component render: Object
+user-management-Diohe_Dd.js:1 🏢 [ORG_TAB] Component render: Object
+user-management-Diohe_Dd.js:1 🏢 [ORG_TAB] Component render: Object
+hook.js:608 Error: Minified React error #300; visit https://react.dev/errors/300 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+    at Qc (index-S6iGtK_Q.js:25:34283)
+    at jo (index-S6iGtK_Q.js:25:34173)
+    at Zo (index-S6iGtK_Q.js:25:62064)
+    at tm (index-S6iGtK_Q.js:25:72569)
+    at wm (index-S6iGtK_Q.js:25:106605)
+    at Kh (index-S6iGtK_Q.js:25:105670)
+    at yr (index-S6iGtK_Q.js:25:105502)
+    at Dm (index-S6iGtK_Q.js:25:102613)
+    at Fm (index-S6iGtK_Q.js:25:114036)
+    at MessagePort.$e (index-S6iGtK_Q.js:10:1630)
+overrideMethod @ hook.js:608

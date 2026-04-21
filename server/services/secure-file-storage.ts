@@ -67,7 +67,8 @@ export class SecureFileStorageService {
   private readonly baseUploadDir: string;
 
   constructor() {
-    this.baseUploadDir = path.join(process.cwd(), 'uploads');
+    // Use /tmp/uploads for persistent storage in Replit
+    this.baseUploadDir = path.join('/tmp', 'uploads');
   }
 
   /**

@@ -84,8 +84,40 @@ jobs:
       - name: Run integration tests
         run: npm run test:integration
 
+      - name: Install Chromium for e2e tests
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y chromium-browser || sudo apt-get install -y chromium
+
+      - name: Start dev server for e2e tests
+        run: |
+          npm run dev > /tmp/dev-server.log 2>&1 &
+          echo $! > /tmp/dev-server.pid
+          echo "Waiting for dev server to be reachable on http://localhost:5000 ..."
+          for i in $(seq 1 60); do
+            if curl -fsS http://localhost:5000/api/health > /dev/null; then
+              echo "Dev server is up"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Dev server failed to start. Logs:"
+          tail -200 /tmp/dev-server.log
+          exit 1
+        env:
+          NODE_ENV: development
+
       - name: Run end-to-end tests
         run: npm run test:e2e
+        env:
+          E2E_BASE_URL: http://localhost:5000
+
+      - name: Stop dev server
+        if: always()
+        run: |
+          if [ -f /tmp/dev-server.pid ]; then
+            kill "$(cat /tmp/dev-server.pid)" 2>/dev/null || true
+          fi
 
       - name: Generate test coverage
         run: npm run test:coverage
@@ -312,11 +344,6 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-<<<<<<< HEAD
-
-=======
-            
->>>>>>> origin/main
             const comment = `## 🎯 Quality Check Results
 
             ✅ **All quality gates passed!**
@@ -336,7 +363,6 @@ jobs:
             - Bilingual support: ≥80% coverage (enforced)
 
             This PR is ready for code review! 🚀`;
-<<<<<<< HEAD
 
             try {
               await github.rest.issues.createComment({
@@ -350,12 +376,3 @@ jobs:
               console.log('⚠️ Could not post quality comment (insufficient permissions):', error.message);
               console.log('📊 Quality results logged to workflow output instead');
             }
-=======
-            
-            await github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: comment
-            });
->>>>>>> origin/main

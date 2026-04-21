@@ -115,9 +115,7 @@ export function TrialRequestForm({ children }: TrialRequestFormProps) {
     setIsSubmitting(true);
 
     try {
-      const response = await apiRequest('POST', '/api/trial-requests', {
-        data: formData,
-      });
+      const response = await apiRequest('POST', '/api/trial-requests', formData);
 
       if (response.ok) {
         toast({

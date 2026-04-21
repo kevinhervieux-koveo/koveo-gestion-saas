@@ -12,6 +12,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { apiRequest, queryClient } from '@/lib/queryClient';
+import { useCreateUpdateMutation } from '@/lib/common-hooks';
 import { format, parseISO } from 'date-fns';
 import { fr, enUS } from 'date-fns/locale';
 import { insertNotificationConfigurationSchema } from '@shared/schemas/operations';
@@ -90,6 +91,12 @@ interface BuildingsResponse {
   buildings: { id: string; name: string; address: string }[];
 }
 
+interface OrganizationsResponse {
+  organizations: { id: string; name: string }[];
+  userRole?: string;
+  canAccessAll?: boolean;
+}
+
 interface OrganizationContext {
   id: string;
   name: string;
@@ -133,6 +140,7 @@ const notificationTypes = [
 
 // Frequency options - matching the schema enum
 const frequencyOptions = [
+  { value: 'unique', labelEn: 'One-time', labelFr: 'Une fois', descriptionEn: 'Send notification once within a date range', descriptionFr: 'Envoyer une notification une fois dans une plage de dates' },
   { value: 'weekly', labelEn: 'Weekly', labelFr: 'Hebdomadaire' },
   { value: 'bi_weekly', labelEn: 'Bi-weekly', labelFr: 'Bi-hebdomadaire' },
   { value: 'monthly', labelEn: 'Monthly', labelFr: 'Mensuel' },
@@ -141,14 +149,26 @@ const frequencyOptions = [
   { value: 'annually', labelEn: 'Annually', labelFr: 'Annuel' },
 ] as const;
 
-// Use shared schema from operations.ts with UI-specific validation
-const configurationFormSchema = insertNotificationConfigurationSchema.omit({
-  createdBy: true,
-}).extend({
+// Create form schema based on shared schema with UI-specific validation
+const configurationFormSchema = z.object({
   organizationId: z.string().min(1, 'Organization is required'),
   buildingId: z.string().min(1, 'Building is required'),
+  type: z.enum(['seasonal_reminder', 'announcement']),
   title: z.string().min(1, 'Title is required').max(200, 'Title must be 200 characters or less'),
   message: z.string().min(1, 'Message is required').max(2000, 'Message must be 2000 characters or less'),
+  frequency: z.enum(['unique', 'weekly', 'bi_weekly', 'monthly', 'quarterly', 'bi-annually', 'annually']),
+  startDate: z.coerce.date(),
+  isActive: z.boolean().default(true),
+  endsAt: z.coerce.date().optional(),
+  timezone: z.string().optional(),
+}).refine((data) => {
+  if (data.endsAt && data.startDate) {
+    return data.endsAt >= data.startDate;
+  }
+  return true;
+}, {
+  message: 'End date must be on or after the start date',
+  path: ['endsAt'],
 });
 
 type ConfigurationFormData = z.infer<typeof configurationFormSchema>;
@@ -321,11 +341,14 @@ function ConfigurationForm({
   const { user } = useAuth();
   const isEditing = !!config;
 
-  // Fetch user's organizations
-  const { data: organizations = [] } = useQuery<OrganizationOption[]>({
-    queryKey: ['/api/organizations'],
+  // Fetch user's organizations using the same endpoint as the rest of the
+  // communication page so both dropdowns are populated consistently and
+  // honor the same access rules.
+  const { data: organizationsResponse } = useQuery<OrganizationsResponse>({
+    queryKey: ['/api/communication/organizations'],
     enabled: !!user,
   });
+  const organizations: OrganizationOption[] = organizationsResponse?.organizations ?? [];
 
   const form = useForm({
     resolver: zodResolver(configurationFormSchema),
@@ -335,7 +358,7 @@ function ConfigurationForm({
       type: (config?.type || 'seasonal_reminder') as 'seasonal_reminder' | 'announcement',
       title: config?.title || '',
       message: config?.message || '',
-      frequency: (config?.frequency || 'annually') as 'weekly' | 'bi_weekly' | 'monthly' | 'quarterly' | 'bi-annually' | 'annually',
+      frequency: (config?.frequency || 'unique') as 'unique' | 'weekly' | 'bi_weekly' | 'monthly' | 'quarterly' | 'bi-annually' | 'annually',
       startDate: config?.startDate ? parseISO(config.startDate as any) : new Date(),
       isActive: config?.isActive ?? true,
       endsAt: config?.endsAt ? parseISO(config.endsAt as any) : undefined,
@@ -344,10 +367,24 @@ function ConfigurationForm({
 
   const selectedOrganizationId = form.watch('organizationId');
 
-  // Fetch buildings for the selected organization
+  // Fetch buildings for the selected organization. The endpoint requires
+  // the organization id as a path segment (`/api/communication/buildings/:organizationId`),
+  // so we provide an explicit queryFn rather than relying on the default
+  // queryKey-join behavior — this makes the URL deterministic and resilient
+  // to any future change in fetcher conventions.
   const { data: buildingsData } = useQuery<BuildingsResponse>({
     queryKey: ['/api/communication/buildings', selectedOrganizationId],
     enabled: !!selectedOrganizationId,
+    queryFn: async () => {
+      const response = await fetch(
+        `/api/communication/buildings/${selectedOrganizationId}`,
+        { credentials: 'include' }
+      );
+      if (!response.ok) {
+        throw new Error(`Failed to load buildings (${response.status})`);
+      }
+      return response.json();
+    },
   });
 
   // Pre-select organization if user has only one
@@ -367,9 +404,10 @@ function ConfigurationForm({
 
   const selectedType = form.watch('type');
   const selectedTypeConfig = notificationTypes.find(t => t.value === selectedType);
+  const selectedFrequency = form.watch('frequency');
 
   // Create/Update mutation
-  const configMutation = useMutation({
+  const configMutation = useCreateUpdateMutation<unknown, ConfigurationFormData>({
     mutationFn: async (data: ConfigurationFormData) => {
       // Convert Date objects to ISO strings for API compatibility
       const payload = {
@@ -385,29 +423,23 @@ function ConfigurationForm({
         return apiRequest('POST', '/api/communication/notification-configs', payload);
       }
     },
-    onSuccess: (_, variables) => {
-      // Invalidate scoped cache keys for proper cache management
-      const orgId = variables.organizationId;
+    successTitle: language === 'en' ? 'Success' : 'Succès',
+    successMessage: isEditing
+      ? (language === 'en' ? 'Configuration updated successfully' : 'Configuration mise à jour avec succès')
+      : (language === 'en' ? 'Configuration created successfully' : 'Configuration créée avec succès'),
+    errorTitle: language === 'en' ? 'Error' : 'Erreur',
+    errorMessage: (error: any) => error?.message || (language === 'en' ? 'An error occurred' : 'Une erreur s\'est produite'),
+    invalidateQueries: (_data, qc) => {
+      const orgId = form.getValues('organizationId');
       if (orgId) {
-        queryClient.invalidateQueries({ 
+        qc.invalidateQueries({
           queryKey: ['/api/communication/notification-configs', orgId],
-          exact: false // This will invalidate all queries that start with this pattern
+          exact: false,
         });
       }
-      toast({
-        title: language === 'en' ? 'Success' : 'Succès',
-        description: isEditing
-          ? (language === 'en' ? 'Configuration updated successfully' : 'Configuration mise à jour avec succès')
-          : (language === 'en' ? 'Configuration created successfully' : 'Configuration créée avec succès'),
-      });
-      onSuccess();
     },
-    onError: (error: any) => {
-      toast({
-        title: language === 'en' ? 'Error' : 'Erreur',
-        description: error.message || (language === 'en' ? 'An error occurred' : 'Une erreur s\'est produite'),
-        variant: 'destructive',
-      });
+    onSuccessCallback: () => {
+      onSuccess();
     },
   });
 
@@ -421,6 +453,13 @@ function ConfigurationForm({
       form.setValue('frequency', selectedTypeConfig.defaultFrequency);
     }
   }, [selectedType, selectedTypeConfig, form, isEditing]);
+
+  // Clear end date when switching to 'unique' frequency
+  React.useEffect(() => {
+    if (selectedFrequency === 'unique' && form.getValues('endsAt')) {
+      form.setValue('endsAt', undefined);
+    }
+  }, [selectedFrequency, form]);
 
   return (
     <Form {...form}>
@@ -598,11 +637,26 @@ function ConfigurationForm({
                 <SelectContent>
                   {frequencyOptions.map((option) => (
                     <SelectItem key={option.value} value={option.value}>
-                      {language === 'en' ? option.labelEn : option.labelFr}
+                      <div className="flex flex-col">
+                        <span className="font-medium">
+                          {language === 'en' ? option.labelEn : option.labelFr}
+                        </span>
+                        {option.descriptionEn && (
+                          <span className="text-xs text-muted-foreground">
+                            {language === 'en' ? option.descriptionEn : option.descriptionFr}
+                          </span>
+                        )}
+                      </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              <FormDescription>
+                {language === 'en' 
+                  ? 'Choose how often this notification should be sent.'
+                  : 'Choisissez la fréquence d\'envoi de cette notification.'
+                }
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -655,52 +709,56 @@ function ConfigurationForm({
           )}
         />
 
-        {/* End Date (Optional) */}
-        <FormField
-          control={form.control}
-          name="endsAt"
-          render={({ field }) => (
-            <FormItem className="flex flex-col">
-              <FormLabel>{language === 'en' ? 'End Date (Optional)' : 'Date de fin (Optionnel)'}</FormLabel>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant="outline"
-                      className="w-full pl-3 text-left font-normal"
-                      data-testid="button-end-date"
-                    >
-                      {field.value ? (
-                        format(field.value as Date, "PPP", { locale: language === 'en' ? enUS : fr })
-                      ) : (
-                        <span className="text-muted-foreground">
-                          {language === 'en' ? 'Pick a date (optional)' : 'Choisir une date (optionnel)'}
-                        </span>
-                      )}
-                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={field.value as Date | undefined}
-                    onSelect={field.onChange}
-                    disabled={(date) => date < new Date()}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-              <FormDescription>
-                {language === 'en' 
-                  ? 'Optional end date. Leave empty for indefinite notifications.'
-                  : 'Date de fin optionnelle. Laisser vide pour des notifications indéfinies.'
-                }
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        {/* End Date (Optional for recurring frequencies, Hidden for one-time) */}
+        {selectedFrequency !== 'unique' && (
+          <FormField
+            control={form.control}
+            name="endsAt"
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel>
+                  {language === 'en' ? 'End Date (Optional)' : 'Date de fin (Optionnel)'}
+                </FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        className="w-full pl-3 text-left font-normal"
+                        data-testid="button-end-date"
+                      >
+                        {field.value ? (
+                          format(field.value as Date, "PPP", { locale: language === 'en' ? enUS : fr })
+                        ) : (
+                          <span className="text-muted-foreground">
+                            {language === 'en' ? 'Pick a date (optional)' : 'Choisir une date (optionnel)'}
+                          </span>
+                        )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value as Date | undefined}
+                      onSelect={field.onChange}
+                      disabled={(date) => date < new Date()}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+                <FormDescription>
+                  {language === 'en' 
+                    ? 'Optional end date. Leave empty for indefinite notifications.'
+                    : 'Date de fin optionnelle. Laisser vide pour des notifications indéfinies.'
+                  }
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
         {/* Active Status */}
         <FormField
@@ -871,31 +929,26 @@ export function NotificationConfigurations({
   }, [configs, selectedBuilding]);
 
   // Delete configuration mutation
-  const deleteMutation = useMutation({
+  const deleteMutation = useCreateUpdateMutation<unknown, NotificationConfiguration>({
     mutationFn: async (config: NotificationConfiguration) => {
       return apiRequest('DELETE', `/api/communication/notification-configs/${config.id}`);
     },
-    onSuccess: (_, config) => {
+    successTitle: language === 'en' ? 'Success' : 'Succès',
+    successMessage: language === 'en' ? 'Configuration deleted successfully' : 'Configuration supprimée avec succès',
+    errorTitle: language === 'en' ? 'Error' : 'Erreur',
+    errorMessage: (error) => error?.message || (language === 'en' ? 'Failed to delete configuration' : 'Échec de la suppression de la configuration'),
+    invalidateQueries: (_data, qc) => {
       // Invalidate scoped cache keys for proper cache management
-      queryClient.invalidateQueries({ 
+      qc.invalidateQueries({
         queryKey: ['/api/communication/notification-configs'],
-        exact: false // This will invalidate all queries that start with this pattern
-      });
-      toast({
-        title: language === 'en' ? 'Success' : 'Succès',
-        description: language === 'en' ? 'Configuration deleted successfully' : 'Configuration supprimée avec succès',
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: language === 'en' ? 'Error' : 'Erreur',
-        description: error.message || (language === 'en' ? 'Failed to delete configuration' : 'Échec de la suppression de la configuration'),
-        variant: 'destructive',
+        exact: false,
       });
     },
   });
 
   // Preview mutation
+  // Exception (task #229): emits a "preview sent" state-driven flow whose copy
+  // varies by language but uses helpers consistent with neighboring action mutations.
   const previewMutation = useMutation({
     mutationFn: async (configId: string) => {
       return apiRequest('POST', `/api/communication/notification-configs/${configId}/preview`);

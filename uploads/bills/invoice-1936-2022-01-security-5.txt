@@ -1,0 +1,33 @@
+FACTURE / INVOICE
+===================
+
+Numéro de facture / Invoice Number: 1936-2022-01-SECURITY-5
+Date: 2022-01-24
+
+FACTURER À / BILL TO:
+1936 Nitzsche Track Building 5
+2536 montée Sainte-Catherine
+Québec, Canada
+
+FOURNISSEUR / VENDOR:
+GardaWorld
+
+DESCRIPTION / DESCRIPTION:
+Security - GardaWorld
+
+CATÉGORIE / CATEGORY: Security
+
+MONTANT / AMOUNT:
+Sous-total / Subtotal: $1167.00 CAD
+TPS (5%) / GST: $58.35 CAD
+TVQ (9.975%) / QST: $116.41 CAD
+TOTAL: $1341.76 CAD
+
+CONDITIONS DE PAIEMENT / PAYMENT TERMS:
+Net 30 jours / Net 30 days
+
+Merci de votre confiance / Thank you for your business
+===============================================
+
+Ce document est généré automatiquement pour les besoins de test du système Koveo Gestion.
+This document is automatically generated for Koveo Gestion system testing purposes.

@@ -17,74 +17,64 @@ import {
   MessageSquare,
   Calendar,
   DollarSign,
-  Lock,
+  Wrench,
 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
+import { TrialRequestForm } from '@/components/ui/trial-request-form';
+import { SeoHead } from '@/components/seo/SeoHead';
+import { seoContent } from '@/components/seo/seo-content';
 
-/**
- * Features page component for Koveo Gestion.
- * Detailed presentation of platform features for Quebec property management.
- */
-export default function /**
- * Features page function.
- */ /**
- * Features page function.
- */
-
-FeaturesPage() {
+export default function FeaturesPage() {
   const [, setLocation] = useLocation();
-  const { t } = useLanguage();
-  const { isAuthenticated } = useAuth();
+  const { t, language } = useLanguage();
+  const { isAuthenticated, logout } = useAuth();
+  const seo = seoContent.features[language];
 
   const coreFeatures = [
     {
       icon: Building,
-      title: 'Gestion de bâtiments complète',
-      description:
-        'Supervisez tous vos bâtiments avec suivi des maintenances, gestion des résidents, et surveillance de la conformité réglementaire québécoise.',
+      title: t('featuresBuildingManagementTitle'),
+      description: t('featuresBuildingManagementDesc'),
       features: [
-        'Suivi des maintenances préventives et correctives',
-        'Gestion des espaces communs',
-        'Surveillance de la conformité québécoise',
-        'Rapports de performance des bâtiments',
+        t('featuresBuildingManagement1'),
+        t('featuresBuildingManagement2'),
+        t('featuresBuildingManagement3'),
+        t('featuresBuildingManagement4'),
       ],
     },
     {
       icon: Users,
-      title: 'Portail résident autonome',
-      description:
-        'Portail en libre-service pour les résidents afin de consulter les factures, soumettre des demandes, et communiquer avec la gestion immobilière.',
+      title: t('featuresResidentPortalTitle'),
+      description: t('featuresResidentPortalDesc'),
       features: [
-        'Consultation des factures et paiements en ligne',
-        'Soumission de demandes de maintenance',
-        'Communication directe avec la gestion',
-        'Historique des interactions et documents',
+        t('featuresResidentPortal1'),
+        t('featuresResidentPortal2'),
+        t('featuresResidentPortal3'),
+        t('featuresResidentPortal4'),
       ],
     },
     {
       icon: BarChart3,
-      title: 'Rapports financiers détaillés',
-      description:
-        'Analyses financières approfondies, suivi budgétaire, et rapports conformes aux réglementations québécoises pour la transparence.',
+      title: t('featuresFinancialReportsTitle'),
+      description: t('featuresFinancialReportsDesc'),
       features: [
-        'Tableaux de bord financiers en temps réel',
-        'Suivi budgétaire et prévisions',
-        'Rapports conformes aux normes québécoises',
-        'Analyses de rentabilité par propriété',
+        t('featuresFinancialReports1'),
+        t('featuresFinancialReports2'),
+        t('featuresFinancialReports3'),
+        t('featuresFinancialReports4'),
       ],
     },
     {
       icon: Shield,
-      title: 'Conformité Loi 25 du Québec',
-      description:
-        'Conformité intégrée à la Loi 25 du Québec et aux réglementations de gestion immobilière. Protection des données garantie.',
+      title: t('featuresLaw25Title'),
+      description: t('featuresLaw25Desc'),
       features: [
-        'Protection des données selon la Loi 25',
-        'Conformité aux réglementations immobilières',
-        'Audit de sécurité régulier',
-        'Gestion des consentements et de la vie privée',
+        t('featuresLaw251'),
+        t('featuresLaw252'),
+        t('featuresLaw253'),
+        t('featuresLaw254'),
       ],
     },
   ];
@@ -92,98 +82,109 @@ FeaturesPage() {
   const advancedFeatures = [
     {
       icon: FileText,
-      title: 'Gestion documentaire',
-      description: 'Stockage sécurisé et organisation de tous vos documents immobiliers',
-      features: ['Stockage cloud sécurisé', 'Partage de documents', 'Versions et historique'],
+      title: t('featuresDocMgmtTitle'),
+      description: t('featuresDocMgmtDesc'),
+      features: [t('featuresDocMgmt1'), t('featuresDocMgmt2'), t('featuresDocMgmt3')],
     },
     {
       icon: Bell,
-      title: 'Notifications intelligentes',
-      description: 'Alertes automatiques pour maintenances, paiements et événements importants',
-      features: ['Alertes personnalisables', 'Notifications par courriel', 'Rappels automatiques'],
+      title: t('featuresNotificationsTitle'),
+      description: t('featuresNotificationsDesc'),
+      features: [t('featuresNotifications1'), t('featuresNotifications2'), t('featuresNotifications3')],
     },
     {
       icon: CreditCard,
-      title: 'Facturation électronique',
-      description: 'Système de facturation numérique pour suivre les paiements',
-      features: ['Factures électroniques', 'Suivi des paiements', 'Historique des factures'],
+      title: t('featuresBillingTitle'),
+      description: t('featuresBillingDesc'),
+      features: [t('featuresBilling1'), t('featuresBilling2'), t('featuresBilling3')],
     },
     {
       icon: MessageSquare,
-      title: 'Communication centralisée',
-      description: 'Plateforme de communication unifiée entre gestionnaires et résidents',
-      features: ['Messages intégrés', 'Suivi des conversations', 'Communication de masse'],
+      title: t('featuresCommTitle'),
+      description: t('featuresCommDesc'),
+      features: [t('featuresComm1'), t('featuresComm2'), t('featuresComm3')],
     },
     {
       icon: Calendar,
-      title: 'Planification des maintenances',
-      description: "Système de planification intelligent pour l'entretien des propriétés",
-      features: ['Calendrier intégré', 'Programmation récurrente', 'Suivi des interventions'],
+      title: t('featuresPlanningTitle'),
+      description: t('featuresPlanningDesc'),
+      features: [t('featuresPlanning1'), t('featuresPlanning2'), t('featuresPlanning3')],
     },
     {
       icon: Settings,
-      title: 'Gestion des processus',
-      description: 'Outils pour organiser et gérer les processus de gestion immobilière',
-      features: ['Flux de travail organisés', 'Règles de gestion', 'Configuration système'],
-    },
-  ];
-
-  const quebecCompliance = [
-    {
-      title: 'Loi 25 - Protection des renseignements personnels',
-      description:
-        'Conformité complète aux exigences de protection des données personnelles du Québec',
+      title: t('featuresProcessTitle'),
+      description: t('featuresProcessDesc'),
+      features: [t('featuresProcess1'), t('featuresProcess2'), t('featuresProcess3')],
     },
     {
-      title: 'Réglementation de la copropriété',
-      description: 'Respect des lois québécoises sur la gestion des copropriétés et syndicats',
-    },
-    {
-      title: 'Normes de transparence financière',
-      description: 'Rapports financiers conformes aux exigences québécoises de transparence',
-    },
-    {
-      title: 'Accessibilité et bilinguisme',
-      description: "Interface bilingue français-anglais et conformité aux normes d'accessibilité",
+      icon: Wrench,
+      title: t('featuresProjectMgmtTitle'),
+      description: t('featuresProjectMgmtDesc'),
+      features: [t('featuresProjectMgmt1'), t('featuresProjectMgmt2'), t('featuresProjectMgmt3'), t('featuresProjectMgmt4')],
     },
   ];
 
   return (
     <div className='min-h-screen bg-gradient-to-br from-blue-50 via-white to-gray-50'>
-      {/* Navigation Header */}
+      <SeoHead title={seo.title} description={seo.description} path="/features" />
       <TopNavigationBar />
 
-      {/* Hero Section */}
       <section className='container mx-auto px-4 py-16 text-center'>
         <div className='max-w-4xl mx-auto'>
           <h1 className='text-5xl font-bold text-gray-900 mb-6 leading-tight'>
-            Fonctionnalités complètes pour
-            <span className='text-blue-600'> la gestion immobilière au Québec</span>
+            {t('featuresPageTitle')}
+            <span className='text-blue-600'> {t('featuresPageTitleHighlight')}</span>
           </h1>
           <p className='text-xl text-gray-600 mb-8 leading-relaxed'>
-            Découvrez toutes les fonctionnalités de notre plateforme conçue spécifiquement pour
-            répondre aux besoins des gestionnaires immobiliers et résidents du Québec.
+            {t('featuresPageSubtitle')}
           </p>
-          <div className='flex flex-col sm:flex-row gap-4 justify-center'>
+          <div className='flex flex-col sm:flex-row gap-4 justify-center items-center'>
+            {isAuthenticated ? (
+              <Button
+                size='lg'
+                className='bg-blue-600 hover:bg-blue-700 text-lg px-8 py-3'
+                onClick={() => setLocation('/dashboard/overview')}
+                data-testid='button-go-to-dashboard'
+              >
+                {t('goToDashboard') || 'Go to Dashboard'}
+                <ArrowRight className='ml-2 h-5 w-5' />
+              </Button>
+            ) : (
+              <TrialRequestForm>
+                <Button
+                  size='lg'
+                  className='bg-blue-600 hover:bg-blue-700 text-lg px-8 py-3'
+                  data-testid='button-start-trial'
+                >
+                  {t('startFreeTrial')}
+                  <ArrowRight className='ml-2 h-5 w-5' />
+                </Button>
+              </TrialRequestForm>
+            )}
             <Button
               size='lg'
-              className='bg-blue-600 hover:bg-blue-700 text-lg px-8 py-3'
-              onClick={() => setLocation('/login')}
-              data-testid='button-try-features'
+              variant='outline'
+              className='border-blue-600 text-blue-600 hover:bg-blue-50 text-lg px-8 py-3'
+              onClick={async () => {
+                if (isAuthenticated) {
+                  await logout();
+                }
+                setLocation('/login?demo=true');
+              }}
+              data-testid='button-try-demo-top'
             >
-              Essayer maintenant
-              <ArrowRight className='ml-2 h-5 w-5' />
+              {t('tryDemo')}
+              <Users className='ml-2 h-5 w-5' />
             </Button>
           </div>
         </div>
       </section>
 
-      {/* Core Features Section */}
       <section className='container mx-auto px-4 py-16'>
         <div className='text-center mb-16'>
-          <h2 className='text-3xl font-bold text-gray-900 mb-4'>Fonctionnalités principales</h2>
+          <h2 className='text-3xl font-bold text-gray-900 mb-4'>{t('featuresCoreFeaturesTitle')}</h2>
           <p className='text-lg text-gray-600 max-w-2xl mx-auto'>
-            Quatre piliers essentiels pour une gestion immobilière efficace et conforme au Québec.
+            {t('featuresCoreFeaturesSubtitle')}
           </p>
         </div>
 
@@ -213,13 +214,12 @@ FeaturesPage() {
         </div>
       </section>
 
-      {/* Advanced Features Grid */}
       <section className='bg-gray-50 py-16'>
         <div className='container mx-auto px-4'>
           <div className='text-center mb-12'>
-            <h2 className='text-3xl font-bold text-gray-900 mb-4'>Fonctionnalités avancées</h2>
+            <h2 className='text-3xl font-bold text-gray-900 mb-4'>{t('featuresAdvancedTitle')}</h2>
             <p className='text-lg text-gray-600 max-w-2xl mx-auto'>
-              Outils complémentaires pour optimiser votre gestion immobilière quotidienne.
+              {t('featuresAdvancedSubtitle')}
             </p>
           </div>
 
@@ -247,59 +247,57 @@ FeaturesPage() {
         </div>
       </section>
 
-      {/* Quebec Compliance Section */}
-      <section className='container mx-auto px-4 py-16'>
-        <div className='text-center mb-12'>
-          <h2 className='text-3xl font-bold text-gray-900 mb-4'>
-            Conformité réglementaire québécoise
-          </h2>
-          <p className='text-lg text-gray-600 max-w-2xl mx-auto'>
-            Notre plateforme respecte toutes les exigences légales et réglementaires du Québec.
-          </p>
-        </div>
-
-        <div className='grid md:grid-cols-2 gap-8'>
-          {quebecCompliance.map((item, _index) => (
-            <div
-              key={_index}
-              className='flex items-start space-x-4'
-              data-testid={`compliance-item-${_index}`}
-            >
-              <Lock className='h-6 w-6 text-blue-600 mt-1 flex-shrink-0' />
-              <div>
-                <h3 className='font-semibold text-gray-900 mb-2'>{item.title}</h3>
-                <p className='text-gray-600'>{item.description}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* CTA Section */}
       <section className='bg-blue-600 text-white py-16'>
         <div className='container mx-auto px-4 text-center'>
           <div className='max-w-2xl mx-auto'>
             <h2 className='text-3xl font-bold mb-4'>
-              Prêt à transformer votre gestion immobilière?
+              {t('featuresReadyToTransform')}
             </h2>
             <p className='text-lg mb-8 text-blue-100'>
-              Rejoignez les gestionnaires immobiliers du Québec qui font confiance à Koveo Gestion
-              pour leurs besoins de gestion immobilière.
+              {t('featuresJoinManagers')}
             </p>
-            <Button
-              size='lg'
-              className='bg-white text-blue-600 hover:bg-gray-100 text-lg px-8 py-3'
-              onClick={() => setLocation('/login')}
-              data-testid='button-start-now'
-            >
-              Commencer maintenant
-              <ArrowRight className='ml-2 h-5 w-5' />
-            </Button>
+            <div className='flex flex-col sm:flex-row gap-4 justify-center items-center'>
+              {isAuthenticated ? (
+                <Button
+                  size='lg'
+                  className='bg-white text-blue-600 hover:bg-gray-100 text-lg px-8 py-3'
+                  onClick={() => setLocation('/dashboard/overview')}
+                  data-testid='button-go-to-dashboard-bottom'
+                >
+                  {t('goToDashboard') || 'Go to Dashboard'}
+                  <ArrowRight className='ml-2 h-5 w-5' />
+                </Button>
+              ) : (
+                <TrialRequestForm>
+                  <Button
+                    size='lg'
+                    className='bg-white text-blue-600 hover:bg-gray-100 text-lg px-8 py-3'
+                    data-testid='button-start-trial-bottom'
+                  >
+                    {t('startFreeTrial')}
+                    <ArrowRight className='ml-2 h-5 w-5' />
+                  </Button>
+                </TrialRequestForm>
+              )}
+              <Button
+                size='lg'
+                className='bg-transparent border-2 border-white text-white hover:bg-white hover:text-blue-600 text-lg px-8 py-3'
+                onClick={async () => {
+                  if (isAuthenticated) {
+                    await logout();
+                  }
+                  setLocation('/login?demo=true');
+                }}
+                data-testid='button-try-demo-bottom'
+              >
+                {t('tryDemo')}
+                <Users className='ml-2 h-5 w-5' />
+              </Button>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Footer */}
       <StandardFooter />
     </div>
   );

@@ -498,8 +498,8 @@ describe('CommonSpacesStatsPage', () => {
         expect(screen.getByTestId('button-back-to-building')).toBeInTheDocument();
       });
 
-      // Verify button text
-      expect(screen.getByText('Building')).toBeInTheDocument();
+      // Verify button text uses the provided back button label
+      expect(screen.getByText('Back to Buildings')).toBeInTheDocument();
     });
   });
 

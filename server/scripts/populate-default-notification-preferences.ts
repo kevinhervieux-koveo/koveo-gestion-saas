@@ -4,7 +4,7 @@
  * Script to populate default notification preferences for existing users.
  * Creates default preferences for all 15 notification types with:
  * - frequency: 'monthly'
- * - isEnabled: true
+ * - isEnabled: false
  * 
  * Only creates preferences for users who don't already have them.
  * Safe to run multiple times - won't overwrite existing preferences.
@@ -82,7 +82,7 @@ async function main() {
         userId: user.id,
         notificationType: notificationType as any,
         frequency: 'monthly' as any,
-        isEnabled: true,
+        isEnabled: false,
       }));
       
       try {
@@ -151,7 +151,7 @@ export async function populateDefaultPreferences(): Promise<{
         userId: user.id,
         notificationType: notificationType as any,
         frequency: 'monthly' as any,
-        isEnabled: true,
+        isEnabled: false,
       }));
       
       await db.insert(userNotificationPreferences).values(defaultPreferences);

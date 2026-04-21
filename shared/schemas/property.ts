@@ -18,7 +18,12 @@ import { z } from 'zod';
 import { relations } from 'drizzle-orm';
 import { users, organizations } from './core';
 
-// Property enums
+/**
+ * Building type enum.
+ * NOTE: 'apartment' and 'appartement' are duplicates (English/French).
+ * Both must be kept for backward compatibility with existing database records.
+ * New code should use 'apartment' only; 'appartement' is treated as an alias.
+ */
 export const buildingTypeEnum = pgEnum('building_type', ['apartment', 'appartement', 'condo', 'rental']);
 
 export const contactEntityEnum = pgEnum('contact_entity', [
@@ -123,6 +128,38 @@ export const residences = pgTable('residences', {
 /**
  * User-Residence relationship table to track user assignments to residences.
  * Supports owner, tenant, and occupant relationships with date ranges.
+ *
+ * ## Field semantics (Task #144 — single source of truth for "is this tenancy current?")
+ *
+ * - `isActive` is the **canonical** flag for "this user-residence link
+ *   represents a currently effective tenancy/ownership/occupancy". All
+ *   read paths across the codebase (REST, MCP, scope queries, ACL,
+ *   storage) MUST filter on `isActive = true` when they need to limit
+ *   results to current residents. There are no exceptions: the MCP
+ *   tenant tools (`list_residences`, `get_residence`, `create_demand`,
+ *   `create_maintenance_request`, etc.) all apply the strict rule, as
+ *   do REST/scope/ACL/storage reads.
+ *
+ * - `endDate` is **informational only** — it records when a residency
+ *   ended (or is scheduled to end) for display, audit, and reporting. It
+ *   MUST NOT be used as a filter to determine whether a tenancy is
+ *   current. When a write path ends a residency, it SHOULD set BOTH
+ *   `isActive = false` AND `endDate = <today>` so the two fields stay
+ *   aligned, but only `isActive` is consulted by reads.
+ *
+ * - `startDate` is similarly informational and recorded for history.
+ *
+ * ## Write contract for ending a residency
+ *
+ * Any code path that ends a user-residence link (move-out, deactivation,
+ * cascade delete, organization deactivation, orphan cleanup, etc.) MUST
+ * either:
+ *   1. Hard-delete the row (acceptable — `onDelete: 'cascade'` from
+ *      users/residences is wired up), OR
+ *   2. Soft-delete by setting `isActive = false` and `endDate = today`
+ *      (and bump `updatedAt`).
+ * It MUST NOT set only `endDate` without flipping `isActive`, because
+ * read paths do not consult `endDate`.
  */
 export const userResidences = pgTable('user_residences', {
   id: varchar('id')
@@ -136,7 +173,18 @@ export const userResidences = pgTable('user_residences', {
     .references(() => residences.id, { onDelete: 'cascade' }),
   relationshipType: text('relationship_type').notNull(), // 'owner', 'tenant', 'occupant'
   startDate: date('start_date').notNull(),
+  /**
+   * Informational end date (see table-level docstring). Reads MUST NOT
+   * use this column to determine whether a tenancy is current — they
+   * use `isActive`. Writes that end a residency SHOULD set this to the
+   * effective end date alongside `isActive = false`.
+   */
   endDate: date('end_date'),
+  /**
+   * Canonical "is this tenancy currently effective?" flag. Reads MUST
+   * filter on this when they need only current residents. Writes that
+   * end a residency MUST set this to false (or hard-delete the row).
+   */
   isActive: boolean('is_active').notNull().default(true),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),

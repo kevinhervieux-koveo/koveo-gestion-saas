@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { CheckCircle, ArrowLeft, Home } from 'lucide-react';
+import { SiLinkedin } from 'react-icons/si';
 import { useLanguage } from '@/hooks/use-language';
 import { RegistrationWizard, type WizardStep } from '@/components/auth/registration-wizard';
 import { TokenValidationStep } from '@/components/auth/steps/token-validation-step';
@@ -18,11 +19,33 @@ import { QuebecPrivacyConsentStep } from '@/components/auth/steps/quebec-privacy
  * Implements Quebec Law 25 compliance and secure password creation.
  */
 export default function InvitationAcceptancePage() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [, setLocation] = useLocation();
   const [isCompleted, setIsCompleted] = useState(false);
   const [completedUser, setCompletedUser] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  // Task #166: field-scoped submission error (DANGEROUS_INPUT) routed
+  // to the wizard so the offending step re-opens with an inline,
+  // field-level error under the exact input that was rejected.
+  const [submissionError, setSubmissionError] = useState<
+    { stepId?: string; fieldPath: string; message: string } | null
+  >(null);
+
+  // Map the server's flat fieldPath to the wizard step that owns it.
+  // Keys mirror the top-level request-body keys posted by
+  // `handleWizardComplete` below.
+  const FIELD_PATH_TO_STEP: Record<string, string> = {
+    firstName: 'profile-completion',
+    lastName: 'profile-completion',
+    phone: 'profile-completion',
+    language: 'profile-completion',
+    password: 'password-creation',
+    dataCollectionConsent: 'quebec-privacy-consent',
+    marketingConsent: 'quebec-privacy-consent',
+    analyticsConsent: 'quebec-privacy-consent',
+    thirdPartyConsent: 'quebec-privacy-consent',
+    acknowledgedRights: 'quebec-privacy-consent',
+  };
 
   // Define the registration wizard steps
   const wizardSteps: WizardStep[] = [
@@ -64,6 +87,7 @@ export default function InvitationAcceptancePage() {
   const handleWizardComplete = useCallback(async (wizardData: unknown) => {
     try {
       setError(null);
+      setSubmissionError(null);
 
       // Extract data from wizard steps
       const tokenData = wizardData['token-validation'] || {};
@@ -113,9 +137,33 @@ export default function InvitationAcceptancePage() {
       // API response received
 
       if (!response.ok) {
-        const errorData = await response.json();
-        // API response error data
-        throw new Error(errorData.message || 'Erreur lors de la création du compte');
+        const errorData = (await response.json()) as {
+          message?: string;
+          code?: string;
+          fieldPath?: string;
+          fieldLabel?: string;
+        };
+        // Task #166: for DANGEROUS_INPUT, route the error back to the
+        // step that owns the offending field so the wizard navigates
+        // there and the step renders a red-underlined, French,
+        // field-named error under the exact input the user must fix.
+        if (
+          errorData.code === 'DANGEROUS_INPUT' &&
+          errorData.fieldPath &&
+          errorData.message
+        ) {
+          const topLevel = errorData.fieldPath.split('.')[0].replace(/\[\d+\]$/, '');
+          setSubmissionError({
+            stepId: FIELD_PATH_TO_STEP[topLevel],
+            fieldPath: topLevel,
+            message: errorData.message,
+          });
+        }
+        const message =
+          errorData.code === 'DANGEROUS_INPUT' && errorData.message
+            ? errorData.message
+            : errorData.message || 'Erreur lors de la création du compte';
+        throw new Error(message);
       }
 
       const result = await response.json();
@@ -236,10 +284,27 @@ export default function InvitationAcceptancePage() {
           onCancel={handleCancel}
           title='Création de votre compte'
           className='bg-transparent'
+          submissionError={submissionError}
         />
 
+        {/* Follow Us */}
+        <div className='text-center mt-8'>
+          <p className='text-sm text-gray-500 mb-2'>
+            {language === 'fr' ? 'Suivez-nous' : 'Follow Us'}
+          </p>
+          <a
+            href='https://www.linkedin.com/company/koveo-gestion-inc/'
+            target='_blank'
+            rel='noopener noreferrer'
+            className='inline-flex items-center justify-center gap-2 bg-[#0A66C2] hover:bg-[#004182] text-white px-4 py-2 rounded-lg transition-colors text-sm'
+          >
+            <SiLinkedin className='h-4 w-4' />
+            <span>LinkedIn</span>
+          </a>
+        </div>
+
         {/* Footer */}
-        <div className='text-center mt-8 text-sm text-gray-500'>
+        <div className='text-center mt-4 text-sm text-gray-500'>
           <p>
             En vous inscrivant, vous acceptez nos conditions d'utilisation et notre politique de
             confidentialité conforme à la Loi 25 du Québec.

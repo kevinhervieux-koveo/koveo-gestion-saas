@@ -89,8 +89,8 @@ export async function checkBuildingAccess(
     };
   }
 
-  // Check organization-based access for Admin and Manager
-  if (userRole === 'admin' || userRole === 'manager') {
+  // Check organization-based access for Admin and Manager (including demo_manager)
+  if (userRole === 'admin' || userRole === 'manager' || userRole === 'demo_manager') {
     if (userAccess.organizationIds.length > 0) {
       // Check if building belongs to user's organizations
       const buildingOrg = await db
@@ -171,8 +171,8 @@ export async function getAccessibleBuildingIds(
 
   const buildingIds = new Set<string>();
 
-  // Organization-based access for Admin and Manager
-  if ((userRole === 'admin' || userRole === 'manager') && userAccess.organizationIds.length > 0) {
+  // Organization-based access for Admin and Manager (including demo_manager)
+  if ((userRole === 'admin' || userRole === 'manager' || userRole === 'demo_manager') && userAccess.organizationIds.length > 0) {
     const orgBuildings = await db
       .select({ id: buildings.id })
       .from(buildings)

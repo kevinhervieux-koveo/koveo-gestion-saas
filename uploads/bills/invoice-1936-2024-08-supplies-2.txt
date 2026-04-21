@@ -1,0 +1,33 @@
+FACTURE / INVOICE
+===================
+
+Numéro de facture / Invoice Number: 1936-2024-08-SUPPLIES-2
+Date: 2024-08-26
+
+FACTURER À / BILL TO:
+1936 Nitzsche Track Building 5
+2536 montée Sainte-Catherine
+Québec, Canada
+
+FOURNISSEUR / VENDOR:
+Équipements & Fournitures
+
+DESCRIPTION / DESCRIPTION:
+Supplies - Équipements & Fournitures
+
+CATÉGORIE / CATEGORY: Supplies
+
+MONTANT / AMOUNT:
+Sous-total / Subtotal: $219.00 CAD
+TPS (5%) / GST: $10.95 CAD
+TVQ (9.975%) / QST: $21.85 CAD
+TOTAL: $251.80 CAD
+
+CONDITIONS DE PAIEMENT / PAYMENT TERMS:
+Net 30 jours / Net 30 days
+
+Merci de votre confiance / Thank you for your business
+===============================================
+
+Ce document est généré automatiquement pour les besoins de test du système Koveo Gestion.
+This document is automatically generated for Koveo Gestion system testing purposes.

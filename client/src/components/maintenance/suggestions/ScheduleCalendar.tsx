@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCreateUpdateMutation } from '@/lib/common-hooks';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addMonths, subMonths, startOfDay, endOfDay } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -132,53 +133,37 @@ export function ScheduleCalendar({
   const projects = externalProjects || [];
 
   // Schedule suggestion mutation
-  const scheduleMutation = useMutation({
-    mutationFn: async (data: { suggestionId: string; date: Date; duration?: number }) => {
+  const scheduleMutation = useCreateUpdateMutation<unknown, { suggestionId: string; date: Date; duration?: number }>({
+    mutationFn: async (data) => {
       const response = await apiRequest('POST', `/api/maintenance/suggestions/${data.suggestionId}/schedule`, {
         scheduledDate: data.date.toISOString(),
         estimatedDuration: data.duration || 2,
       });
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/maintenance/buildings', buildingId, 'calendar'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/maintenance/suggestions'] });
-      toast({
-        title: "Event Scheduled",
-        description: "The suggestion has been scheduled successfully.",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Scheduling Failed",
-        description: "Failed to schedule the suggestion. Please try again.",
-        variant: "destructive",
-      });
-    },
+    successTitle: 'Event Scheduled',
+    successMessage: 'The suggestion has been scheduled successfully.',
+    errorTitle: 'Scheduling Failed',
+    errorMessage: 'Failed to schedule the suggestion. Please try again.',
+    queryKeysToInvalidate: [
+      ['/api/maintenance/buildings', buildingId, 'calendar'],
+      ['/api/maintenance/suggestions'],
+    ],
   });
 
   // Move event mutation
-  const moveEventMutation = useMutation({
-    mutationFn: async (data: { eventId: string; newDate: Date }) => {
+  const moveEventMutation = useCreateUpdateMutation<unknown, { eventId: string; newDate: Date }>({
+    mutationFn: async (data) => {
       const response = await apiRequest('PATCH', `/api/maintenance/calendar/events/${data.eventId}`, {
         date: data.newDate.toISOString(),
       });
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/maintenance/buildings', buildingId, 'calendar'] });
-      toast({
-        title: "Event Moved",
-        description: "The event has been rescheduled successfully.",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Move Failed",
-        description: "Failed to move the event. Please try again.",
-        variant: "destructive",
-      });
-    },
+    successTitle: 'Event Moved',
+    successMessage: 'The event has been rescheduled successfully.',
+    errorTitle: 'Move Failed',
+    errorMessage: 'Failed to move the event. Please try again.',
+    queryKeysToInvalidate: [['/api/maintenance/buildings', buildingId, 'calendar']],
   });
 
   // Get events for a specific date

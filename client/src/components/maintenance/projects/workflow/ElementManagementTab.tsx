@@ -337,6 +337,88 @@ export function ElementManagementTab({ project, workflowState, onUpdate, onNavig
         </CardContent>
       </Card>
 
+      {/* Available Elements */}
+      {filteredAvailableElements.length > 0 && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div 
+                className="flex items-center gap-2 cursor-pointer" 
+                onClick={() => setIsAvailableElementsCollapsed(!isAvailableElementsCollapsed)}
+              >
+                {isAvailableElementsCollapsed ? (
+                  <ChevronRight className="h-5 w-5" />
+                ) : (
+                  <ChevronDown className="h-5 w-5" />
+                )}
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Plus className="h-5 w-5" />
+                    Available Building Elements ({searchTerm ? filteredAvailableElements.length : availableElements.length})
+                  </CardTitle>
+                  <CardDescription>
+                    Add elements to this maintenance project
+                    {searchTerm && ` • Filtered by "${searchTerm}"`}
+                  </CardDescription>
+                </div>
+              </div>
+              {selectedElements.length > 0 && (
+                <Button
+                  onClick={handleAddSelectedElements}
+                  disabled={addElementsMutation.isPending}
+                  data-testid="button-add-selected-elements"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Selected ({selectedElements.length})
+                </Button>
+              )}
+            </div>
+          </CardHeader>
+          {!isAvailableElementsCollapsed && (
+          <CardContent>
+            <div className="grid gap-3">
+              {filteredAvailableElements.map((element) => {
+                const isSelected = selectedElements.includes(element.id);
+
+                return (
+                  <Card key={element.id} className={cn("transition-all", isSelected && "ring-2 ring-primary")}>
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-4">
+                        <Checkbox
+                          checked={isSelected}
+                          onCheckedChange={(checked) => 
+                            handleElementSelect(element.id, checked as boolean)
+                          }
+                          data-testid={`checkbox-available-element-${element.id}`}
+                        />
+                        
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h4 className="font-medium">{element.name}</h4>
+                            <Badge variant="outline">
+                              {element.uniformatCode}
+                            </Badge>
+                            <Badge variant="secondary">
+                              {safeCapitalize(element.currentCondition || 'unknown')}
+                            </Badge>
+                          </div>
+                          {element.description && (
+                            <p className="text-sm text-muted-foreground">
+                              {element.description}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </CardContent>
+          )}
+        </Card>
+      )}
+
       {/* Project Elements */}
       <Card>
         <CardHeader>
@@ -487,88 +569,6 @@ export function ElementManagementTab({ project, workflowState, onUpdate, onNavig
         </CardContent>
         )}
       </Card>
-
-      {/* Available Elements */}
-      {filteredAvailableElements.length > 0 && (
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div 
-                className="flex items-center gap-2 cursor-pointer" 
-                onClick={() => setIsAvailableElementsCollapsed(!isAvailableElementsCollapsed)}
-              >
-                {isAvailableElementsCollapsed ? (
-                  <ChevronRight className="h-5 w-5" />
-                ) : (
-                  <ChevronDown className="h-5 w-5" />
-                )}
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    <Plus className="h-5 w-5" />
-                    Available Building Elements ({searchTerm ? filteredAvailableElements.length : availableElements.length})
-                  </CardTitle>
-                  <CardDescription>
-                    Add elements to this maintenance project
-                    {searchTerm && ` • Filtered by "${searchTerm}"`}
-                  </CardDescription>
-                </div>
-              </div>
-              {selectedElements.length > 0 && (
-                <Button
-                  onClick={handleAddSelectedElements}
-                  disabled={addElementsMutation.isPending}
-                  data-testid="button-add-selected-elements"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Selected ({selectedElements.length})
-                </Button>
-              )}
-            </div>
-          </CardHeader>
-          {!isAvailableElementsCollapsed && (
-          <CardContent>
-            <div className="grid gap-3">
-              {filteredAvailableElements.map((element) => {
-                const isSelected = selectedElements.includes(element.id);
-
-                return (
-                  <Card key={element.id} className={cn("transition-all", isSelected && "ring-2 ring-primary")}>
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-4">
-                        <Checkbox
-                          checked={isSelected}
-                          onCheckedChange={(checked) => 
-                            handleElementSelect(element.id, checked as boolean)
-                          }
-                          data-testid={`checkbox-available-element-${element.id}`}
-                        />
-                        
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <h4 className="font-medium">{element.name}</h4>
-                            <Badge variant="outline">
-                              {element.uniformatCode}
-                            </Badge>
-                            <Badge variant="secondary">
-                              {safeCapitalize(element.currentCondition || 'unknown')}
-                            </Badge>
-                          </div>
-                          {element.description && (
-                            <p className="text-sm text-muted-foreground">
-                              {element.description}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          </CardContent>
-          )}
-        </Card>
-      )}
 
       {/* Bulk Edit Dialog */}
       <Dialog open={showBulkEdit} onOpenChange={setShowBulkEdit}>

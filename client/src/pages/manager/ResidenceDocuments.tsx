@@ -19,7 +19,6 @@ export default function ResidenceDocuments() {
       type="residence"
       userRole="manager"
       backPath="/manager/residences"
-      backLabel="Back to Residences"
       entityIdParam="residenceId"
     />
   );

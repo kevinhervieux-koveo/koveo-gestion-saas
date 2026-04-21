@@ -1,6 +1,15 @@
-import { neon } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-http';
+import { neon, neonConfig, Pool, type WebSocketConstructor } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-serverless';
+import ws from 'ws';
 import { config } from './config/index';
+
+// neon-serverless's Pool talks WebSockets; in Node we have to wire up
+// a WebSocket implementation ourselves (the browser/runtime build
+// picks one up automatically). Without this the Pool throws on first
+// use. See https://github.com/neondatabase/serverless/blob/main/CONFIG.md
+if (!neonConfig.webSocketConstructor) {
+  neonConfig.webSocketConstructor = ws as unknown as WebSocketConstructor;
+}
 
 // Import only tables that exist, not relations to avoid circular dependency issues in production
 import {
@@ -42,11 +51,13 @@ import {
 // Use correct database URL based on environment (production uses DATABASE_URL_KOVEO)
 const databaseUrl = config.database.url;
 
-console.log('🔍 [DB DEBUG] Environment:', config.server.nodeEnv);
-console.log('🔍 [DB DEBUG] Is Production:', config.server.isProduction);
-console.log('🔍 [DB DEBUG] Database URL (masked):', databaseUrl ? databaseUrl.replace(/\/\/[^:]+:[^@]+@/, '//***:***@') : 'UNDEFINED');
-console.log('🔍 [DB DEBUG] DATABASE_URL_KOVEO available:', !!process.env.DATABASE_URL_KOVEO);
-console.log('🔍 [DB DEBUG] DATABASE_URL available:', !!process.env.DATABASE_URL);
+if (process.env.NODE_ENV !== 'production') {
+  console.log('🔍 [DB DEBUG] Environment:', config.server.nodeEnv);
+  console.log('🔍 [DB DEBUG] Is Production:', config.server.isProduction);
+  console.log('🔍 [DB DEBUG] Database URL (masked):', databaseUrl ? databaseUrl.replace(/\/\/[^:]+:[^@]+@/, '//***:***@') : 'UNDEFINED');
+  console.log('🔍 [DB DEBUG] DATABASE_URL_KOVEO available:', !!process.env.DATABASE_URL_KOVEO);
+  console.log('🔍 [DB DEBUG] DATABASE_URL available:', !!process.env.DATABASE_URL);
+}
 
 if (!databaseUrl) {
   console.error('❌ [DB DEBUG] No database URL found!');
@@ -54,18 +65,100 @@ if (!databaseUrl) {
 }
 
 const isUsingKoveoDb = databaseUrl.includes('DATABASE_URL_KOVEO') || (config.server.isProduction && process.env.DATABASE_URL_KOVEO);
-console.log('🔍 [DB DEBUG] Using Koveo DB:', isUsingKoveoDb);
-// Database connection established
+if (process.env.NODE_ENV !== 'production') {
+  console.log('🔍 [DB DEBUG] Using Koveo DB:', isUsingKoveoDb);
+}
 
 /**
- * Enhanced Neon serverless database connection with stability improvements.
- * Uses the same pattern as your successful test code.
- * Optimized for serverless environments like Replit deployments.
+ * Tagged-template Neon HTTP client. Kept for raw `sql\`...\`` usage in
+ * tests and ad-hoc scripts (see tests/utils/budget-test-utils.ts). The
+ * application's drizzle instance below uses the WebSocket Pool so that
+ * `db.transaction(...)` works — neon-http does NOT support transactions.
  */
 export const sql = neon(databaseUrl, {
   arrayMode: false,
   fullResults: false,
 });
+
+/**
+ * Real PostgreSQL connection pool over Neon's WebSocket protocol.
+ * Required for transactional drizzle queries (`db.transaction(tx => ...)`)
+ * — the previous neon-http driver silently dropped BEGIN/COMMIT.
+ *
+ * Tuning notes (Task #162, after observing Task #152 defaults under load):
+ *
+ * - max: 10. The earlier value of 5 was a safe placeholder. Express
+ *   handles requests concurrently and a single inbound request can
+ *   chain several queries (auth lookup -> RBAC permission check ->
+ *   route handler -> response shaping), so even modest in-flight
+ *   request counts can serialise on a 5-slot pool. All scheduled cron
+ *   jobs run overnight on daily/weekly cadences (see server/jobs/*),
+ *   so they do not stack with peak request load. 10 gives ~2× headroom
+ *   over the typical observed in-flight request count without
+ *   approaching Neon's per-branch connection ceiling.
+ *
+ * - idleTimeoutMillis: 60_000. Bumped from 30s to reduce
+ *   open/close churn on bursty request patterns (a connection that
+ *   served one request is highly likely to be reused within the next
+ *   minute). Still well below any cloud-provider idle-kill window.
+ *
+ * - connectionTimeoutMillis: 10_000. Lowered from 30s so that pool
+ *   exhaustion or a Neon stall surfaces as a fast 5xx instead of a
+ *   30-second hang for the end user. 10s is comfortably above normal
+ *   Neon WebSocket handshake latency.
+ *
+ * Pool saturation is observable via the periodic stats log below;
+ * if `waitingCount` becomes non-zero with any regularity, raise `max`.
+ */
+const POOL_MAX = 10;
+const POOL_IDLE_TIMEOUT_MS = 60_000;
+const POOL_CONNECT_TIMEOUT_MS = 10_000;
+
+export const pool = new Pool({
+  connectionString: databaseUrl,
+  max: POOL_MAX,
+  idleTimeoutMillis: POOL_IDLE_TIMEOUT_MS,
+  connectionTimeoutMillis: POOL_CONNECT_TIMEOUT_MS,
+});
+
+pool.on('error', (err: Error & { code?: string }) => {
+  console.error('[db pool] unexpected error', {
+    message: err.message,
+    code: err.code,
+  });
+});
+
+/**
+ * Lightweight pool saturation logger. Emits a single line every 60s
+ * only when the pool shows signs of pressure: either clients are
+ * actually queued waiting for a connection (waitingCount > 0), or
+ * every open connection is currently in use (active >= max, i.e. no
+ * idle capacity left). Silent during quiet periods so this does not
+ * pollute logs. Disabled in tests where NODE_ENV=test to keep test
+ * output clean.
+ */
+if (process.env.NODE_ENV !== 'test') {
+  const POOL_STATS_INTERVAL_MS = 60_000;
+  const statsTimer = setInterval(() => {
+    const total = pool.totalCount;
+    const idle = pool.idleCount;
+    const waiting = pool.waitingCount;
+    const active = total - idle;
+    // True pressure means clients had to queue, or every open connection
+    // is currently in use (idle capacity is what makes `total === max`
+    // benign). Logging on `total >= max` alone produced false positives
+    // at steady state.
+    if (waiting > 0) {
+      console.warn('[db pool] saturation: clients queued', { active, idle, waiting, total, max: POOL_MAX });
+    } else if (active >= POOL_MAX) {
+      console.warn('[db pool] saturation: all connections busy', { active, idle, waiting, total, max: POOL_MAX });
+    }
+  }, POOL_STATS_INTERVAL_MS);
+  // Don't keep the event loop alive just for stats logging.
+  if (typeof statsTimer.unref === 'function') {
+    statsTimer.unref();
+  }
+}
 
 // Enhanced connection test with retry logic
 (async () => {
@@ -126,12 +219,9 @@ const schema = {
  * Provides type-safe database operations for the Quebec property management system.
  * Uses HTTP connection for better compatibility with serverless environments.
  */
-export const db = drizzle(sql, { 
+export const db = drizzle(pool, {
   schema,
-  logger: process.env.NODE_ENV === 'development' 
+  logger: process.env.NODE_ENV === 'development',
 });
 
 // Database schema initialized
-
-// For compatibility, export sql as pool for session store
-export const pool = sql;

@@ -8,7 +8,7 @@ import * as bcrypt from 'bcryptjs';
 // Database-based permissions - no config imports needed
 import { db } from '../db';
 import * as schema from '../../shared/schema';
-import { eq, and, inArray, sql, lt, count } from 'drizzle-orm';
+import { eq, and, or, inArray, isNull, sql, lt, count, desc } from 'drizzle-orm';
 import {
   sanitizeString,
   sanitizeName,
@@ -19,7 +19,35 @@ import {
 import { logUserCreation } from '../utils/user-creation-logger';
 import { queryCache, CacheInvalidator } from '../query-cache';
 import { emailService } from '../services/email-service';
+import {
+  createInvitationWithSoftReplace,
+  InvitationSoftReplaceRaceLostError,
+  type InvitationRole,
+} from '../services/invitation-soft-replace';
 import { cacheInvalidationService, createInvalidationMiddleware } from '../services/cache-invalidation-service';
+import { logDebug, logInfo, logWarn, logError } from '../utils/logger';
+
+import { asyncHandler } from '../utils/async-handler';
+/**
+ * Helper function to get the correct base URL from REPLIT_DOMAINS.
+ * REPLIT_DOMAINS can contain multiple domains separated by commas.
+ * We prefer custom domains (non-replit.app) over replit.app domains.
+ */
+function getBaseUrlFromReplitDomains(): string | null {
+  const replitDomains = process.env.REPLIT_DOMAINS;
+  if (!replitDomains) return null;
+
+  // Split by comma and trim whitespace
+  const domains = replitDomains.split(',').map(d => d.trim()).filter(d => d);
+  
+  if (domains.length === 0) return null;
+  
+  // Prefer custom domains (non-replit.app) over replit.app domains
+  const customDomain = domains.find(d => !d.includes('.replit.app'));
+  const selectedDomain = customDomain || domains[0];
+  
+  return `https://${selectedDomain}`;
+}
 
 /**
  * Registers all user-related API endpoints.
@@ -35,8 +63,7 @@ export function registerUserRoutes(app: Express): void {
   /**
    * GET /api/users - Retrieves users with their assignments based on current user's role and organizations.
    */
-  app.get('/api/users', requireAuth, async (req: any, res) => {
-    try {
+  app.get('/api/users', requireAuth, asyncHandler(async (req: any, res) => {
       const currentUser = req.user || req.session?.user;
       if (!currentUser) {
         return res.status(401).json({
@@ -67,23 +94,17 @@ export function registerUserRoutes(app: Express): void {
         search: req.query.search as string,
       };
       
-      console.log('🎯 [API] Raw query parameters:', {
-        role: req.query.role,
-        status: req.query.status,
-        organization: req.query.organization,
-        orphan: req.query.orphan,
-        search: req.query.search
-      });
+      logDebug('[API] Raw query parameters', { metadata: { role: req.query.role, status: req.query.status, organization: req.query.organization, orphan: req.query.orphan, search: req.query.search } });
       
 
       // Apply role-based prefiltering at database level
       let roleBasedFilters = { ...filters };
       
-      console.log(`🔐 [USER FILTER] Current user role: ${currentUser.role}, applying role-based filters...`);
+      logDebug('[USER FILTER] Applying role-based filters', { metadata: { role: currentUser.role } });
       
       if (currentUser.role === 'admin') {
         // Only admin can see all users - no additional filtering
-        console.log('🔓 [ADMIN] No role-based filtering applied - admin can see all users');
+        logDebug('[ADMIN] No role-based filtering applied - admin can see all users');
       } else if (['demo_manager', 'demo_tenant', 'demo_resident'].includes(currentUser.role)) {
         // All demo users (including demo_manager) can only see other demo users in their organizations
         // SECURITY: Validate role parameter against whitelist for demo users
@@ -93,12 +114,12 @@ export function registerUserRoutes(app: Express): void {
           // If demo user provided a role filter, validate it against whitelist
           if (!allowedDemoRoles.includes(roleBasedFilters.role)) {
             // SECURITY: Demo user trying to access non-demo role - block and force demo-only
-            console.log(`🚫 [SECURITY] Demo user ${currentUser.role} attempted to access role "${roleBasedFilters.role}" - blocking and forcing demo-only`);
+            logWarn('[SECURITY] Demo user attempted to access non-demo role - blocking', { userId: currentUser.id, metadata: { role: currentUser.role, attemptedRole: roleBasedFilters.role } });
             roleBasedFilters.role = undefined; // Remove invalid role filter
             roleBasedFilters.demoOnly = 'true'; // Force demo-only restriction
           } else {
             // Valid demo role requested, but still restrict to demo users only
-            console.log(`✅ [SECURITY] Demo user ${currentUser.role} requesting valid demo role "${roleBasedFilters.role}"`);
+            logDebug('[SECURITY] Demo user requesting valid demo role', { metadata: { role: currentUser.role, requestedRole: roleBasedFilters.role } });
             roleBasedFilters.demoOnly = 'true'; // Ensure demo-only restriction is always applied
           }
         } else {
@@ -107,12 +128,12 @@ export function registerUserRoutes(app: Express): void {
         }
         
         // Also restrict to users from their organizations
-        console.log('🎭 [DEMO] Restricting to users from demo user\'s organizations');
+        logDebug('[DEMO] Restricting to users from demo user organizations');
         const userOrgIds = (await storage.getUserOrganizations(currentUser.id)).map(org => org.organizationId);
-        console.log(`   → Demo user organizations: [${userOrgIds.join(', ')}]`);
+        logDebug('[DEMO] Demo user organizations', { metadata: { organizationIds: userOrgIds } });
         if (userOrgIds.length > 0) {
           roleBasedFilters.managerOrganizations = userOrgIds.join(',');
-          console.log('   → Added organization filter for demo user');
+          logDebug('[DEMO] Added organization filter for demo user');
         } else {
           // Demo user has no organizations, return empty result
           return res.json({
@@ -129,12 +150,12 @@ export function registerUserRoutes(app: Express): void {
         }
       } else {
         // Regular managers can only see users from their organizations
-        console.log('👔 [MANAGER] Restricting to users from manager\'s organizations');
+        logDebug('[MANAGER] Restricting to users from manager organizations');
         const userOrgIds = (await storage.getUserOrganizations(currentUser.id)).map(org => org.organizationId);
-        console.log(`   → Manager organizations: [${userOrgIds.join(', ')}]`);
+        logDebug('[MANAGER] Manager organizations', { metadata: { organizationIds: userOrgIds } });
         if (userOrgIds.length > 0) {
           roleBasedFilters.managerOrganizations = userOrgIds.join(',');
-          console.log('   → Added managerOrganizations filter');
+          logDebug('[MANAGER] Added managerOrganizations filter');
         } else {
           // Manager has no organizations, return empty result
           return res.json({
@@ -152,9 +173,9 @@ export function registerUserRoutes(app: Express): void {
       }
 
       // Get users with their full assignment data and pagination (now with role-based prefiltering)
-      console.log('📊 [QUERY] Applying filters:', JSON.stringify(roleBasedFilters, null, 2));
+      logDebug('[QUERY] Applying filters', { metadata: { filters: roleBasedFilters } });
       const result = await storage.getUsersWithAssignmentsPaginated(offset, limit, roleBasedFilters);
-      console.log(`📈 [RESULT] Found ${result.users.length} users out of ${result.total} total (page ${page})`);
+      logDebug('[RESULT] Users found', { metadata: { count: result.users.length, total: result.total, page } });
 
       
 
@@ -174,20 +195,12 @@ export function registerUserRoutes(app: Express): void {
           hasPrev: page > 1
         }
       });
-    } catch (error: any) {
-      console.error('❌ Error fetching users:', error);
-      res.status(500).json({
-        error: 'Internal server error',
-        message: 'Failed to fetch users',
-      });
-    }
-  });
+    }, { errorMessage: 'Failed to fetch users', errorLogPrefix: '❌ Error fetching users', extraErrorFields: { error: 'Internal server error' } }));
 
   /**
    * GET /api/users/filter-options - Get distinct values for filter dropdowns
    */
-  app.get('/api/users/filter-options', requireAuth, async (req: any, res) => {
-    try {
+  app.get('/api/users/filter-options', requireAuth, asyncHandler(async (req: any, res) => {
       const currentUser = req.user || req.session?.user;
       if (!currentUser) {
         return res.status(401).json({
@@ -301,26 +314,28 @@ export function registerUserRoutes(app: Express): void {
         organizations: organizationOptions,
         orphanOptions
       });
-    } catch (error: any) {
-      console.error('❌ Error fetching filter options:', error);
-      res.status(500).json({
-        error: 'Internal server error',
-        message: 'Failed to fetch filter options',
-      });
-    }
-  });
+    }, { errorMessage: 'Failed to fetch filter options', errorLogPrefix: '❌ Error fetching filter options', extraErrorFields: { error: 'Internal server error' } }));
 
   /**
    * GET /api/users/:id - Retrieves a specific user by ID.
    */
-  app.get('/api/users/:id', async (req, res) => {
-    try {
+  app.get('/api/users/:id', requireAuth, asyncHandler(async (req, res) => {
       const { id } = req.params;
 
       if (!id) {
         return res.status(400).json({
           _error: 'Bad request',
           message: 'User ID is required',
+        });
+      }
+
+      const currentUser = (req as any).user;
+      const isSelf = currentUser?.id === id;
+      const isPrivileged = ['admin', 'manager', 'demo_manager'].includes(currentUser?.role);
+      if (!isSelf && !isPrivileged) {
+        return res.status(403).json({
+          error: 'Forbidden',
+          message: 'You can only view your own profile',
         });
       }
 
@@ -335,26 +350,28 @@ export function registerUserRoutes(app: Express): void {
       // Remove sensitive information before sending response
       const { password, ...userWithoutPassword } = user;
       res.json(userWithoutPassword);
-    } catch (error: any) {
-      console.error('❌ Error fetching user:', error);
-      res.status(500).json({
-        error: 'Internal server error',
-        message: 'Failed to fetch user',
-      });
-    }
-  });
+    }, { errorMessage: 'Failed to fetch user', errorLogPrefix: '❌ Error fetching user', extraErrorFields: { error: 'Internal server error' } }));
 
   /**
    * GET /api/users/email/:email - Retrieves a user by email address.
    */
-  app.get('/api/users/email/:email', async (req, res) => {
-    try {
+  app.get('/api/users/email/:email', requireAuth, asyncHandler(async (req, res) => {
       const { email } = req.params;
 
       if (!email) {
         return res.status(400).json({
           _error: 'Bad request',
           message: 'Email is required',
+        });
+      }
+
+      const currentUser = (req as any).user;
+      const isPrivileged = ['admin', 'manager', 'demo_manager'].includes(currentUser?.role);
+      const isSelf = currentUser?.email?.toLowerCase() === email.toLowerCase();
+      if (!isSelf && !isPrivileged) {
+        return res.status(403).json({
+          error: 'Forbidden',
+          message: 'You can only look up your own email',
         });
       }
 
@@ -369,20 +386,33 @@ export function registerUserRoutes(app: Express): void {
       // Remove sensitive information before sending response
       const { password, ...userWithoutPassword } = user;
       res.json(userWithoutPassword);
-    } catch (error: any) {
-      console.error('❌ Error fetching user by email:', error);
-      res.status(500).json({
-        error: 'Internal server error',
-        message: 'Failed to fetch user',
-      });
-    }
-  });
+    }, { errorMessage: 'Failed to fetch user', errorLogPrefix: '❌ Error fetching user by email', extraErrorFields: { error: 'Internal server error' } }));
 
   /**
-   * POST /api/users - Creates a new user.
+   * POST /api/users - Creates a new user (public self-registration).
+   * Privileged roles (admin, manager) require an authenticated admin session.
    */
   app.post('/api/users', async (req, res) => {
     try {
+      const requestedRole = req.body.role;
+      const privilegedRoles = ['admin', 'manager', 'demo_manager'];
+      if (requestedRole && privilegedRoles.includes(requestedRole)) {
+        const sessionUserId = (req as any).session?.userId;
+        if (!sessionUserId) {
+          return res.status(403).json({
+            error: 'Forbidden',
+            message: 'Creating users with privileged roles requires authentication',
+          });
+        }
+        const requestingUser = await storage.getUser(sessionUserId);
+        if (!requestingUser || requestingUser.role !== 'admin') {
+          return res.status(403).json({
+            error: 'Forbidden',
+            message: 'Only admins can create users with privileged roles',
+          });
+        }
+      }
+
       // Enhanced password validation using utility
       if (req.body.password) {
         const passwordValidation = validatePasswordStrength(req.body.password);
@@ -480,13 +510,49 @@ export function registerUserRoutes(app: Express): void {
         });
       }
 
-      console.error('❌ Error creating user:', error);
+      logError('Error creating user', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to create user',
       });
     }
   });
+
+  /**
+   * PUT /api/users/me - Update current user's profile.
+   * NOTE: This route MUST be defined before /api/users/:id to prevent Express from matching "me" as an ID
+   */
+  app.put('/api/users/me', requireAuth, asyncHandler(async (req: any, res) => {
+      const currentUser = req.user || req.session?.user;
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED',
+        });
+      }
+
+      // Validate the update data (excluding password updates for security)
+      const updateSchema = insertUserSchema
+        .partial()
+        .omit({ password: true, id: true, role: true });
+      const validatedData = updateSchema.parse(req.body);
+
+      const user = await storage.updateUser(currentUser.id, {
+        ...validatedData,
+        updatedAt: new Date(),
+      } as any);
+
+      if (!user) {
+        return res.status(404).json({
+          message: 'User not found',
+          code: 'USER_NOT_FOUND',
+        });
+      }
+
+      // Remove sensitive information before sending response
+      const { password, ...userWithoutPassword } = user;
+      res.json(userWithoutPassword);
+    }, { errorMessage: 'Failed to update profile', errorLogPrefix: '❌ Error updating user profile', extraErrorFields: { error: 'Internal server error' } }));
 
   /**
    * PUT /api/users/:id - Updates an existing user.
@@ -648,7 +714,7 @@ export function registerUserRoutes(app: Express): void {
         });
       }
 
-      console.error('❌ Error updating user:', error);
+      logError('Error updating user', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to update user',
@@ -691,14 +757,7 @@ export function registerUserRoutes(app: Express): void {
       res.json(responseData);
 
     } catch (error) {
-      console.error('💥 [DELETE ORPHANS API] ===== CRITICAL ERROR =====');
-      console.error('❌ [DELETE ORPHANS API] Error details:', {
-        message: error instanceof Error ? error.message : 'Unknown error',
-        stack: error instanceof Error ? error.stack : undefined,
-        name: error instanceof Error ? error.name : undefined,
-        timestamp: new Date().toISOString()
-      });
-      console.error('💥 [DELETE ORPHANS API] ===== END CRITICAL ERROR =====');
+      logError('[DELETE ORPHANS API] Critical error deleting orphan users', error instanceof Error ? error : new Error('Unknown error'));
       
       res.status(500).json({ 
         error: 'Failed to delete orphan users',
@@ -718,31 +777,24 @@ export function registerUserRoutes(app: Express): void {
     const startTime = Date.now();
     const deleteId = `DELETE_${Date.now()}_${Math.random().toString(36).substring(7)}`;
     
-    console.log(`🔥 [DELETE USER API] ===== DELETE USER REQUEST STARTED (${deleteId}) =====`);
-    console.log(`⏰ [DELETE USER API] Request timestamp: ${new Date().toISOString()}`);
+    logInfo('[DELETE USER API] Delete user request started', { requestId: deleteId });
     
     try {
       const { id } = req.params;
       const currentUser = req.user || req.session?.user;
 
       if (!currentUser) {
-        console.log(`❌ [DELETE USER API] ${deleteId}: No authenticated user found`);
+        logWarn('[DELETE USER API] No authenticated user found', { requestId: deleteId });
         return res.status(401).json({
           message: 'Authentication required',
           code: 'AUTH_REQUIRED',
         });
       }
 
-      console.log(`🛡️ [DELETE USER API] ${deleteId}: Request authentication info:`, {
-        requesterId: currentUser.id,
-        requesterEmail: currentUser.email,
-        requesterRole: currentUser.role,
-        targetUserId: id,
-        sessionExists: !!req.session,
-      });
+      logDebug('[DELETE USER API] Request authentication info', { requestId: deleteId, userId: currentUser.id, metadata: { role: currentUser.role, targetUserId: id } });
 
       if (!id) {
-        console.log(`❌ [DELETE USER API] ${deleteId}: Missing user ID parameter`);
+        logWarn('[DELETE USER API] Missing user ID parameter', { requestId: deleteId });
         return res.status(400).json({
           error: 'Bad request',
           message: 'User ID is required',
@@ -751,7 +803,7 @@ export function registerUserRoutes(app: Express): void {
 
       // Validate user ID format
       if (typeof id !== 'string' || id.trim().length === 0) {
-        console.log(`❌ [DELETE USER API] ${deleteId}: Invalid user ID format:`, id);
+        logWarn('[DELETE USER API] Invalid user ID format', { requestId: deleteId });
         return res.status(400).json({
           error: 'Bad request',
           message: 'Invalid user ID format',
@@ -761,23 +813,18 @@ export function registerUserRoutes(app: Express): void {
       // Get the target user to delete
       const targetUser = await storage.getUser(id);
       if (!targetUser) {
-        console.log(`❌ [DELETE USER API] ${deleteId}: Target user not found:`, id);
+        logDebug('[DELETE USER API] Target user not found', { requestId: deleteId });
         return res.status(404).json({
           error: 'Not found',
           message: 'User not found',
         });
       }
 
-      console.log(`👤 [DELETE USER API] ${deleteId}: Target user found:`, {
-        targetId: targetUser.id,
-        targetEmail: targetUser.email,
-        targetRole: targetUser.role,
-        targetIsActive: targetUser.isActive,
-      });
+      logDebug('[DELETE USER API] Target user found', { requestId: deleteId, metadata: { targetRole: targetUser.role, targetIsActive: targetUser.isActive } });
 
       // Prevent self-deletion
       if (targetUser.id === currentUser.id) {
-        console.log(`🚫 [DELETE USER API] ${deleteId}: Self-deletion attempt blocked`);
+        logWarn('[DELETE USER API] Self-deletion attempt blocked', { requestId: deleteId, userId: currentUser.id });
         return res.status(403).json({
           error: 'Forbidden',
           message: 'You cannot delete your own account',
@@ -787,41 +834,25 @@ export function registerUserRoutes(app: Express): void {
       // Role-based authorization
       const hasDeletePermission = await checkDeletePermission(currentUser, targetUser, deleteId);
       if (!hasDeletePermission.allowed) {
-        console.log(`🚫 [DELETE USER API] ${deleteId}: Authorization failed:`, hasDeletePermission.reason);
+        logWarn('[DELETE USER API] Authorization failed', { requestId: deleteId, metadata: { reason: hasDeletePermission.reason } });
         return res.status(403).json({
           error: 'Forbidden',
           message: hasDeletePermission.reason,
         });
       }
 
-      console.log(`✅ [DELETE USER API] ${deleteId}: Authorization passed - ${hasDeletePermission.reason}`);
+      logInfo('[DELETE USER API] Authorization passed', { requestId: deleteId, metadata: { reason: hasDeletePermission.reason } });
 
       // Perform hard delete with comprehensive cleanup
-      console.log(`🗑️ [DELETE USER API] ${deleteId}: Starting hard delete process...`);
+      logInfo('[DELETE USER API] Starting hard delete process', { requestId: deleteId });
       const deletionResult = await performHardDelete(targetUser.id, currentUser.id, deleteId);
 
       const endTime = Date.now();
       const duration = endTime - startTime;
 
-      console.log(`✅ [DELETE USER API] ${deleteId}: Deletion completed successfully:`, {
-        ...deletionResult,
-        duration: `${duration}ms`,
-      });
+      logInfo('[DELETE USER API] Deletion completed successfully', { requestId: deleteId, metadata: { duration: `${duration}ms` } });
 
-      // Security audit log
-      console.log(`🔐 [SECURITY AUDIT] User deletion completed:`, {
-        operationId: deleteId,
-        deletedUserId: targetUser.id,
-        deletedUserEmail: targetUser.email,
-        deletedUserRole: targetUser.role,
-        deletedByUserId: currentUser.id,
-        deletedByUserEmail: currentUser.email,
-        deletedByUserRole: currentUser.role,
-        timestamp: new Date().toISOString(),
-        duration: `${duration}ms`,
-      });
-
-      console.log(`🔥 [DELETE USER API] ===== DELETE USER REQUEST COMPLETED (${deleteId}) =====`);
+      logInfo('[SECURITY AUDIT] User deletion completed', { requestId: deleteId, userId: currentUser.id, action: 'delete_user', metadata: { deletedUserRole: targetUser.role, duration: `${duration}ms` } });
 
       res.json({
         success: true,
@@ -837,15 +868,7 @@ export function registerUserRoutes(app: Express): void {
       const endTime = Date.now();
       const duration = endTime - startTime;
 
-      console.error(`💥 [DELETE USER API] ${deleteId}: ===== CRITICAL ERROR =====`);
-      console.error(`❌ [DELETE USER API] ${deleteId}: Error details:`, {
-        message: error instanceof Error ? error.message : 'Unknown error',
-        stack: error instanceof Error ? error.stack : undefined,
-        name: error instanceof Error ? error.name : undefined,
-        duration: `${duration}ms`,
-        timestamp: new Date().toISOString(),
-      });
-      console.error(`💥 [DELETE USER API] ${deleteId}: ===== END CRITICAL ERROR =====`);
+      logError('[DELETE USER API] Critical error during user deletion', error instanceof Error ? error : new Error('Unknown error'), { requestId: deleteId, metadata: { duration: `${duration}ms` } });
       
       res.status(500).json({
         error: 'Internal server error',
@@ -860,32 +883,32 @@ export function registerUserRoutes(app: Express): void {
    * Check if the current user has permission to delete the target user.
    */
   async function checkDeletePermission(currentUser: User, targetUser: User, operationId: string): Promise<{allowed: boolean, reason: string}> {
-    console.log(`🔍 [PERMISSION CHECK] ${operationId}: Checking delete permissions...`);
+    logDebug('[PERMISSION CHECK] Checking delete permissions', { requestId: operationId });
     
     // Admin can delete any user
     if (currentUser.role === 'admin') {
-      console.log(`👑 [PERMISSION CHECK] ${operationId}: Admin access granted`);
+      logDebug('[PERMISSION CHECK] Admin access granted', { requestId: operationId });
       return { allowed: true, reason: 'Admin has full delete access' };
     }
 
     // Only admin, manager, and demo_manager can delete users
     if (!['manager', 'demo_manager'].includes(currentUser.role)) {
-      console.log(`🚫 [PERMISSION CHECK] ${operationId}: Role ${currentUser.role} has no delete permissions`);
+      logDebug('[PERMISSION CHECK] Role has no delete permissions', { requestId: operationId, metadata: { role: currentUser.role } });
       return { allowed: false, reason: 'Your role does not have permission to delete users' };
     }
 
     // Managers can only delete users within their organizations
     if (currentUser.role === 'manager' || currentUser.role === 'demo_manager') {
-      console.log(`👔 [PERMISSION CHECK] ${operationId}: Checking manager permissions...`);
+      logDebug('[PERMISSION CHECK] Checking manager permissions', { requestId: operationId });
       
       // Get manager's organizations
       const managerOrgs = await storage.getUserOrganizations(currentUser.id);
       const managerOrgIds = managerOrgs.map(org => org.organizationId);
       
-      console.log(`📊 [PERMISSION CHECK] ${operationId}: Manager organizations:`, managerOrgIds);
+      logDebug('[PERMISSION CHECK] Manager organizations', { requestId: operationId, metadata: { organizationIds: managerOrgIds } });
       
       if (managerOrgIds.length === 0) {
-        console.log(`🚫 [PERMISSION CHECK] ${operationId}: Manager has no organizations`);
+        logDebug('[PERMISSION CHECK] Manager has no organizations', { requestId: operationId });
         return { allowed: false, reason: 'Manager has no assigned organizations' };
       }
 
@@ -893,13 +916,13 @@ export function registerUserRoutes(app: Express): void {
       const targetOrgs = await storage.getUserOrganizations(targetUser.id);
       const targetOrgIds = targetOrgs.map(org => org.organizationId);
       
-      console.log(`📊 [PERMISSION CHECK] ${operationId}: Target user organizations:`, targetOrgIds);
+      logDebug('[PERMISSION CHECK] Target user organizations', { requestId: operationId, metadata: { organizationIds: targetOrgIds } });
 
       // Check if any of the target user's organizations match the manager's organizations
       const hasCommonOrg = targetOrgIds.some(orgId => managerOrgIds.includes(orgId));
       
       if (!hasCommonOrg) {
-        console.log(`🚫 [PERMISSION CHECK] ${operationId}: No common organizations between manager and target user`);
+        logDebug('[PERMISSION CHECK] No common organizations between manager and target user', { requestId: operationId });
         return { allowed: false, reason: 'You can only delete users within your assigned organizations' };
       }
 
@@ -907,18 +930,18 @@ export function registerUserRoutes(app: Express): void {
       if (currentUser.role === 'demo_manager') {
         const demoRoles = ['demo_manager', 'demo_tenant', 'demo_resident'];
         if (!demoRoles.includes(targetUser.role)) {
-          console.log(`🚫 [PERMISSION CHECK] ${operationId}: Demo manager trying to delete non-demo user`);
+          logWarn('[PERMISSION CHECK] Demo manager trying to delete non-demo user', { requestId: operationId });
           return { allowed: false, reason: 'Demo managers can only delete demo users' };
         }
       }
       
       // Regular managers cannot delete admin users
       if (currentUser.role === 'manager' && targetUser.role === 'admin') {
-        console.log(`🚫 [PERMISSION CHECK] ${operationId}: Manager trying to delete admin user`);
+        logWarn('[PERMISSION CHECK] Manager trying to delete admin user', { requestId: operationId });
         return { allowed: false, reason: 'Managers cannot delete admin users' };
       }
 
-      console.log(`✅ [PERMISSION CHECK] ${operationId}: Manager permission granted for common organization`);
+      logInfo('[PERMISSION CHECK] Manager permission granted for common organization', { requestId: operationId });
       return { allowed: true, reason: 'Manager has access to user within shared organization' };
     }
 
@@ -930,7 +953,7 @@ export function registerUserRoutes(app: Express): void {
    * The database handles most cascading deletes automatically via foreign key constraints.
    */
   async function performHardDelete(userId: string, deletedByUserId: string, operationId: string): Promise<any> {
-    console.log(`🗑️ [HARD DELETE] ${operationId}: Starting hard delete for user:`, userId);
+    logInfo('[HARD DELETE] Starting hard delete for user', { requestId: operationId });
 
     const deletionSummary = {
       userDeleted: false,
@@ -946,12 +969,7 @@ export function registerUserRoutes(app: Express): void {
         throw new Error('User not found at deletion time');
       }
 
-      console.log(`📋 [HARD DELETE] ${operationId}: User data before deletion:`, {
-        id: userData.id,
-        email: userData.email,
-        role: userData.role,
-        isActive: userData.isActive,
-      });
+      logDebug('[HARD DELETE] User data before deletion', { requestId: operationId, metadata: { role: userData.role, isActive: userData.isActive } });
 
       // The database will automatically handle cascade deletes for:
       // - userOrganizations (onDelete: 'cascade')
@@ -976,8 +994,136 @@ export function registerUserRoutes(app: Express): void {
         'commonSpaces (contactPersonId set to null)',
       ];
 
+      // Manually clean up tables that reference users.id but don't have CASCADE deletes
+      logDebug('[HARD DELETE] Cleaning up foreign key references', { requestId: operationId });
+      
+      try {
+        // Delete from improvement suggestions (suggestedBy, assignedTo)
+        const improvementSuggestionsDeleted = await db
+          .delete(schema.improvementSuggestions)
+          .where(
+            or(
+              eq(schema.improvementSuggestions.suggestedBy, userId),
+              eq(schema.improvementSuggestions.assignedTo, userId)
+            )
+          );
+        deletionSummary.manualCleanupPerformed.push('improvementSuggestions');
+        logDebug('[HARD DELETE] Deleted improvement suggestions', { requestId: operationId });
+
+        // Delete from actionable items (assignedTo)
+        const actionableItemsDeleted = await db
+          .delete(schema.actionableItems)
+          .where(eq(schema.actionableItems.assignedTo, userId));
+        deletionSummary.manualCleanupPerformed.push('actionableItems');
+        logDebug('[HARD DELETE] Deleted actionable items', { requestId: operationId });
+
+        // Delete from notifications
+        const notificationsDeleted = await db
+          .delete(schema.notifications)
+          .where(eq(schema.notifications.userId, userId));
+        deletionSummary.manualCleanupPerformed.push('notifications');
+        logDebug('[HARD DELETE] Deleted notifications', { requestId: operationId });
+
+        // Delete from user notification preferences
+        const userNotificationPreferencesDeleted = await db
+          .delete(schema.userNotificationPreferences)
+          .where(eq(schema.userNotificationPreferences.userId, userId));
+        deletionSummary.manualCleanupPerformed.push('userNotificationPreferences');
+        logDebug('[HARD DELETE] Deleted user notification preferences', { requestId: operationId });
+
+        // Nullify bills.createdBy (preserve bills)
+        await db
+          .update(schema.bills)
+          .set({ createdBy: null })
+          .where(eq(schema.bills.createdBy, userId));
+        deletionSummary.manualCleanupPerformed.push('bills (createdBy nullified)');
+        logDebug('[HARD DELETE] Nullified bills createdBy', { requestId: operationId });
+
+        // Nullify budgets.createdBy and approvedBy (preserve budgets)
+        await db
+          .update(schema.budgets)
+          .set({ createdBy: null })
+          .where(eq(schema.budgets.createdBy, userId));
+        await db
+          .update(schema.budgets)
+          .set({ approvedBy: null })
+          .where(eq(schema.budgets.approvedBy, userId));
+        deletionSummary.manualCleanupPerformed.push('budgets (createdBy/approvedBy nullified)');
+        logDebug('[HARD DELETE] Nullified budgets createdBy and approvedBy', { requestId: operationId });
+
+        // Nullify maintenanceRequests.submittedBy and assignedTo (preserve requests)
+        await db
+          .update(schema.maintenanceRequests)
+          .set({ submittedBy: null })
+          .where(eq(schema.maintenanceRequests.submittedBy, userId));
+        await db
+          .update(schema.maintenanceRequests)
+          .set({ assignedTo: null })
+          .where(eq(schema.maintenanceRequests.assignedTo, userId));
+        deletionSummary.manualCleanupPerformed.push('maintenanceRequests (submittedBy/assignedTo nullified)');
+        logDebug('[HARD DELETE] Nullified maintenance requests submittedBy and assignedTo', { requestId: operationId });
+
+        // Nullify demands.submitterId and reviewedBy (preserve demands)
+        await db
+          .update(schema.demands)
+          .set({ submitterId: null })
+          .where(eq(schema.demands.submitterId, userId));
+        await db
+          .update(schema.demands)
+          .set({ reviewedBy: null })
+          .where(eq(schema.demands.reviewedBy, userId));
+        deletionSummary.manualCleanupPerformed.push('demands (submitterId/reviewedBy nullified)');
+        logDebug('[HARD DELETE] Nullified demands submitterId and reviewedBy', { requestId: operationId });
+
+        // Nullify documents.uploadedById (preserve documents)
+        await db
+          .update(schema.documents)
+          .set({ uploadedById: null })
+          .where(eq(schema.documents.uploadedById, userId));
+        deletionSummary.manualCleanupPerformed.push('documents (uploadedById nullified)');
+        logDebug('[HARD DELETE] Nullified documents uploadedById', { requestId: operationId });
+
+        // Nullify invoices.createdBy (preserve invoices)
+        const invoices = await import('@shared/schemas/invoices');
+        await db
+          .update(invoices.invoices)
+          .set({ createdBy: null })
+          .where(eq(invoices.invoices.createdBy, userId));
+        deletionSummary.manualCleanupPerformed.push('invoices (createdBy nullified)');
+        logDebug('[HARD DELETE] Nullified invoices createdBy', { requestId: operationId });
+
+        // Nullify bugs.createdBy (preserve bugs)
+        await db
+          .update(schema.bugs)
+          .set({ createdBy: null })
+          .where(eq(schema.bugs.createdBy, userId));
+        deletionSummary.manualCleanupPerformed.push('bugs (createdBy nullified)');
+        logDebug('[HARD DELETE] Nullified bugs createdBy', { requestId: operationId });
+
+        // Nullify featureRequests.createdBy (preserve feature requests)
+        await db
+          .update(schema.featureRequests)
+          .set({ createdBy: null })
+          .where(eq(schema.featureRequests.createdBy, userId));
+        deletionSummary.manualCleanupPerformed.push('featureRequests (createdBy nullified)');
+        logDebug('[HARD DELETE] Nullified feature requests createdBy', { requestId: operationId });
+
+        // Delete demand comments (these are user-generated comments, not preserved)
+        const demandCommentsDeleted = await db
+          .delete(schema.demandComments)
+          .where(eq(schema.demandComments.commenterId, userId));
+        deletionSummary.manualCleanupPerformed.push('demandComments');
+        logDebug('[HARD DELETE] Deleted demand comments', { requestId: operationId });
+
+        logInfo('[HARD DELETE] Foreign key reference cleanup completed', { requestId: operationId });
+      } catch (cleanupError) {
+        logWarn('[HARD DELETE] Some cleanup operations failed', { requestId: operationId });
+        deletionSummary.errors.push(`Cleanup warning: ${cleanupError.message}`);
+        // Continue with deletion even if some cleanup fails
+      }
+
       // Perform the hard delete using raw database query to ensure complete removal
-      console.log(`💥 [HARD DELETE] ${operationId}: Executing hard delete from database...`);
+      logInfo('[HARD DELETE] Executing hard delete from database', { requestId: operationId });
       
       const deleteResult = await db
         .delete(schema.users)
@@ -989,23 +1135,23 @@ export function registerUserRoutes(app: Express): void {
       }
 
       deletionSummary.userDeleted = true;
-      console.log(`✅ [HARD DELETE] ${operationId}: User successfully deleted from database:`, deleteResult[0]);
+      logInfo('[HARD DELETE] User successfully deleted from database', { requestId: operationId });
 
       // Clear any cached data related to this user
       try {
         CacheInvalidator.invalidateUserCaches(userId);
         deletionSummary.manualCleanupPerformed.push('Query cache cleared');
-        console.log(`🧹 [HARD DELETE] ${operationId}: User cache invalidated`);
+        logDebug('[HARD DELETE] User cache invalidated', { requestId: operationId });
       } catch (cacheError) {
-        console.error(`⚠️ [HARD DELETE] ${operationId}: Cache invalidation failed:`, cacheError);
+        logWarn('[HARD DELETE] Cache invalidation failed', { requestId: operationId });
         deletionSummary.errors.push('Cache invalidation failed');
       }
 
-      console.log(`✅ [HARD DELETE] ${operationId}: Hard delete completed successfully`);
+      logInfo('[HARD DELETE] Hard delete completed successfully', { requestId: operationId });
       return deletionSummary;
 
     } catch (error: any) {
-      console.error(`❌ [HARD DELETE] ${operationId}: Hard delete failed:`, error);
+      logError('[HARD DELETE] Hard delete failed', error);
       deletionSummary.errors.push(error.message || 'Unknown error during deletion');
       throw new Error(`Hard delete failed: ${error.message}`);
     }
@@ -1014,8 +1160,7 @@ export function registerUserRoutes(app: Express): void {
   /**
    * GET /api/user-organizations - Get current user's organizations.
    */
-  app.get('/api/user-organizations', requireAuth, async (req: any, res) => {
-    try {
+  app.get('/api/user-organizations', requireAuth, asyncHandler(async (req: any, res) => {
       const currentUser = req.user || req.session?.user;
       if (!currentUser) {
         return res.status(401).json({
@@ -1026,20 +1171,12 @@ export function registerUserRoutes(app: Express): void {
 
       const organizations = await storage.getUserOrganizations(currentUser.id);
       res.json(organizations);
-    } catch (error: any) {
-      console.error('❌ Error getting user organizations:', error);
-      res.status(500).json({
-        error: 'Internal server error',
-        message: 'Failed to get user organizations',
-      });
-    }
-  });
+    }, { errorMessage: 'Failed to get user organizations', errorLogPrefix: '❌ Error getting user organizations', extraErrorFields: { error: 'Internal server error' } }));
 
   /**
    * GET /api/user-residences - Get current user's residences.
    */
-  app.get('/api/user-residences', requireAuth, async (req: any, res) => {
-    try {
+  app.get('/api/user-residences', requireAuth, asyncHandler(async (req: any, res) => {
       const currentUser = req.user || req.session?.user;
       if (!currentUser) {
         return res.status(401).json({
@@ -1050,20 +1187,13 @@ export function registerUserRoutes(app: Express): void {
 
       const residences = await storage.getUserResidences(currentUser.id);
       res.json(residences);
-    } catch (error: any) {
-      console.error('❌ Error getting user residences:', error);
-      res.status(500).json({
-        error: 'Internal server error',
-        message: 'Failed to get user residences',
-      });
-    }
-  });
+    }, { errorMessage: 'Failed to get user residences', errorLogPrefix: '❌ Error getting user residences', extraErrorFields: { error: 'Internal server error' } }));
 
   /**
    * GET /api/admin/all-user-organizations - Get user-organization relationships (admin: all, manager: filtered by their orgs).
    */
   app.get('/api/admin/all-user-organizations', requireAuth, async (req: any, res) => {
-    console.log('🔍 [API] all-user-organizations endpoint called by user:', req.user?.email);
+    logDebug('[API] all-user-organizations endpoint called');
     try {
       const currentUser = req.user || req.session?.user;
       if (!currentUser) {
@@ -1130,7 +1260,7 @@ export function registerUserRoutes(app: Express): void {
 
       res.json(userOrganizations);
     } catch (error: any) {
-      console.error('❌ Error getting all user organizations:', error);
+      logError('Error getting all user organizations', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to get user organizations',
@@ -1142,7 +1272,7 @@ export function registerUserRoutes(app: Express): void {
    * GET /api/admin/all-user-residences - Get user-residence relationships (admin: all, manager: filtered by their orgs).
    */
   app.get('/api/admin/all-user-residences', requireAuth, async (req: any, res) => {
-    console.log('🔍 [API] all-user-residences endpoint called by user:', req.user?.email);
+    logDebug('[API] all-user-residences endpoint called', { userId: req.user?.id });
     try {
       const currentUser = req.user || req.session?.user;
       if (!currentUser) {
@@ -1231,7 +1361,7 @@ export function registerUserRoutes(app: Express): void {
 
       res.json(userResidences);
     } catch (error: any) {
-      console.error('❌ Error getting all user residences:', error);
+      logError('Error getting all user residences', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to get user residences',
@@ -1288,7 +1418,7 @@ export function registerUserRoutes(app: Express): void {
         });
       }
 
-      console.error('❌ Error fetching user permissions:', error);
+      logError('Error fetching user permissions', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to fetch user permissions',
@@ -1308,8 +1438,7 @@ export function registerUserRoutes(app: Express): void {
       extractAffectedUsers: async (req) => [req.params.id],
       operation: 'update'
     }),
-    async (req: any, res) => {
-    try {
+    asyncHandler(async (req: any, res) => {
       const currentUser = req.user || req.session?.user;
       const { id: userId } = req.params;
       const { organizationIds } = req.body;
@@ -1365,7 +1494,7 @@ export function registerUserRoutes(app: Express): void {
         const hasOverlap = targetUserOrgIds.some(orgId => currentUserOrgIds.includes(orgId));
         
         if (!hasOverlap && targetUserOrgIds.length > 0) {
-          console.warn(`🚨 [SECURITY] Manager ${currentUser.id} attempted to modify user ${userId} with no organizational overlap`);
+          logWarn('[SECURITY] Manager attempted to modify user with no organizational overlap', { userId: currentUser.id, metadata: { targetUserId: userId } });
           return res.status(403).json({
             message: 'Cannot modify users outside your organization scope',
             code: 'USER_SCOPE_VIOLATION',
@@ -1379,7 +1508,7 @@ export function registerUserRoutes(app: Express): void {
           );
           
           if (invalidOrgIds.length > 0) {
-            console.warn(`🚨 [SECURITY] Manager ${currentUser.id} attempted to assign out-of-scope organizations:`, invalidOrgIds);
+            logWarn('[SECURITY] Manager attempted to assign out-of-scope organizations', { userId: currentUser.id, metadata: { invalidOrgIds } });
             return res.status(403).json({
               message: 'Cannot assign organizations outside your scope',
               code: 'ORGANIZATION_SCOPE_VIOLATION',
@@ -1389,7 +1518,7 @@ export function registerUserRoutes(app: Express): void {
         }
 
         // SECURITY FIX: Scoped deletion - only delete assignments within manager's scope, preserve out-of-scope assignments
-        console.log(`🔐 [SECURITY] Manager ${currentUser.id} updating user ${userId} organizations - using scoped deletion`);
+        logInfo('[SECURITY] Manager updating user organizations - using scoped deletion', { userId: currentUser.id, metadata: { targetUserId: userId } });
         
         // Get current user's organization assignments to understand what can be modified
         const currentAssignments = await db
@@ -1405,54 +1534,58 @@ export function registerUserRoutes(app: Express): void {
           !currentUserOrgIds.includes(assignment.organizationId)
         );
 
-        console.log(`🔍 [SECURITY] User ${userId} has ${inScopeAssignments.length} in-scope and ${outOfScopeAssignments.length} out-of-scope assignments`);
+        logDebug('[SECURITY] User assignment scope analysis', { userId, metadata: { inScopeCount: inScopeAssignments.length, outOfScopeCount: outOfScopeAssignments.length } });
 
         // Delete only in-scope assignments - preserve out-of-scope assignments
-        if (inScopeAssignments.length > 0) {
+        // Wrap delete + reinsert in a transaction so a partial failure
+        // (e.g. duplicate-row violation on the insert) doesn't leave the
+        // user with their previous in-scope assignments wiped out and
+        // nothing in their place.
+        if (inScopeAssignments.length > 0 || organizationIds.length > 0) {
           const inScopeOrgIds = inScopeAssignments.map(assignment => assignment.organizationId);
-          await db
-            .delete(schema.userOrganizations)
-            .where(
-              and(
-                eq(schema.userOrganizations.userId, userId),
-                inArray(schema.userOrganizations.organizationId, inScopeOrgIds)
-              )
-            );
-          console.log(`🗑️ [SECURITY] Deleted ${inScopeAssignments.length} in-scope assignments, preserved ${outOfScopeAssignments.length} out-of-scope assignments`);
+          await db.transaction(async (tx) => {
+            if (inScopeAssignments.length > 0) {
+              await tx
+                .delete(schema.userOrganizations)
+                .where(
+                  and(
+                    eq(schema.userOrganizations.userId, userId),
+                    inArray(schema.userOrganizations.organizationId, inScopeOrgIds)
+                  )
+                );
+            }
+            if (organizationIds.length > 0) {
+              const newAssignments = organizationIds.map((orgId: string) => ({
+                userId,
+                organizationId: orgId,
+                organizationRole: user.role,
+                isActive: true,
+              }));
+              await tx.insert(schema.userOrganizations).values(newAssignments);
+            }
+          });
+          logInfo('[SECURITY] Replaced in-scope assignments atomically', { metadata: { deletedCount: inScopeAssignments.length, preservedCount: outOfScopeAssignments.length, addedCount: organizationIds.length } });
         }
 
-        // Add new organization assignments (only in-scope ones - already validated above)
-        if (organizationIds.length > 0) {
-          const newAssignments = organizationIds.map((orgId: string) => ({
-            userId,
-            organizationId: orgId,
-            organizationRole: user.role,
-            isActive: true,
-          }));
-
-          await db.insert(schema.userOrganizations).values(newAssignments);
-          console.log(`➕ [SECURITY] Added ${newAssignments.length} new in-scope assignments for user ${userId}`);
-        }
-
-        console.log(`✅ [SECURITY] Manager ${currentUser.id} successfully updated user ${userId} organizations within scope`);
+        logInfo('[SECURITY] Manager successfully updated user organizations within scope', { userId: currentUser.id, metadata: { targetUserId: userId } });
       } else {
         // Admin can modify any assignments - original behavior preserved
-        console.log(`🔓 [ADMIN] Admin ${currentUser.id} updating user ${userId} organizations - full access`);
-        
-        // Remove all existing organization assignments (admin has full access)
-        await db.delete(schema.userOrganizations).where(eq(schema.userOrganizations.userId, userId));
+        logInfo('[ADMIN] Admin updating user organizations - full access', { userId: currentUser.id, metadata: { targetUserId: userId } });
 
-        // Add new organization assignments
-        if (organizationIds.length > 0) {
-          const newAssignments = organizationIds.map((orgId: string) => ({
-            userId,
-            organizationId: orgId,
-            organizationRole: user.role,
-            isActive: true,
-          }));
-
-          await db.insert(schema.userOrganizations).values(newAssignments);
-        }
+        // Wrap the delete-all + reinsert in a transaction so an admin
+        // assignment update is all-or-nothing.
+        await db.transaction(async (tx) => {
+          await tx.delete(schema.userOrganizations).where(eq(schema.userOrganizations.userId, userId));
+          if (organizationIds.length > 0) {
+            const newAssignments = organizationIds.map((orgId: string) => ({
+              userId,
+              organizationId: orgId,
+              organizationRole: user.role,
+              isActive: true,
+            }));
+            await tx.insert(schema.userOrganizations).values(newAssignments);
+          }
+        });
       }
 
       res.json({
@@ -1460,21 +1593,13 @@ export function registerUserRoutes(app: Express): void {
         userId,
         organizationIds,
       });
-    } catch (error: any) {
-      console.error('❌ Error updating organization assignments:', error);
-      res.status(500).json({
-        error: 'Internal server error',
-        message: 'Failed to update organization assignments',
-      });
-    }
-  });
+    }, { errorMessage: 'Failed to update organization assignments', errorLogPrefix: '❌ Error updating organization assignments', extraErrorFields: { error: 'Internal server error' } }));
 
   /**
    * PUT /api/users/:id/buildings - Updates user's building assignments.
    * Admin and Manager: can assign/remove buildings they have access to
    */
-  app.put('/api/users/:id/buildings', requireAuth, async (req: any, res) => {
-    try {
+  app.put('/api/users/:id/buildings', requireAuth, asyncHandler(async (req: any, res) => {
       const currentUser = req.user || req.session?.user;
       const { id: userId } = req.params;
       const { buildingIds } = req.body;
@@ -1510,40 +1635,74 @@ export function registerUserRoutes(app: Express): void {
         });
       }
 
-      // Remove existing building assignments for this user
-      await db.delete(schema.userBuildings).where(eq(schema.userBuildings.userId, userId));
-
-      // Add new building assignments
-      if (buildingIds.length > 0) {
-        const newAssignments = buildingIds.map((buildingId: string) => ({
-          userId,
-          buildingId,
-          relationshipType: user.role === 'manager' ? 'manager' : 'tenant',
-          isActive: true,
-        }));
-
-        await db.insert(schema.userBuildings).values(newAssignments);
-      }
+      // Remove existing assignments and add the new set atomically so a
+      // partial failure (e.g. duplicate (userId, buildingId) row) does
+      // not wipe out the user's prior assignments without replacing them.
+      await db.transaction(async (tx) => {
+        await tx.delete(schema.userBuildings).where(eq(schema.userBuildings.userId, userId));
+        if (buildingIds.length > 0) {
+          const newAssignments = buildingIds.map((buildingId: string) => ({
+            userId,
+            buildingId,
+            relationshipType: user.role === 'manager' ? 'manager' : 'tenant',
+            isActive: true,
+          }));
+          await tx.insert(schema.userBuildings).values(newAssignments);
+        }
+      });
 
       res.json({
         message: 'Building assignments updated successfully',
         userId,
         buildingIds,
       });
-    } catch (error: any) {
-      console.error('❌ Error updating building assignments:', error);
-      res.status(500).json({
-        error: 'Internal server error',
-        message: 'Failed to update building assignments',
-      });
-    }
-  });
+    }, { errorMessage: 'Failed to update building assignments', errorLogPrefix: '❌ Error updating building assignments', extraErrorFields: { error: 'Internal server error' } }));
+
+  /**
+   * GET /api/users/me/residences - Get current user's accessible residences, optionally filtered by building
+   */
+  app.get('/api/users/me/residences', requireAuth, asyncHandler(async (req: any, res) => {
+      logDebug('[RESIDENCES API] /api/users/me/residences called', { userId: req.user?.id, metadata: { role: req.user?.role, queryParams: req.query } });
+      
+      const userId = req.user.id;
+      const { building_id } = req.query;
+      logDebug('[USER_MANAGEMENT] Fetching residences for user', { userId, metadata: { role: req.user.role, buildingId: building_id } });
+
+      // For all user roles, get only their assigned residences from user_residences table
+      // This ensures strict access control: users can only see residences they're explicitly assigned to
+      let whereConditions = [
+        eq(schema.userResidences.userId, userId),
+        eq(schema.userResidences.isActive, true),
+        eq(schema.residences.isActive, true)
+      ];
+
+      // Add building filter if specified
+      if (building_id) {
+        whereConditions.push(eq(schema.residences.buildingId, building_id));
+      }
+
+      const userResidences = await db
+        .select({
+          id: schema.residences.id,
+          unitNumber: schema.residences.unitNumber,
+          floor: schema.residences.floor,
+          buildingId: schema.residences.buildingId,
+          buildingName: schema.buildings.name,
+        })
+        .from(schema.userResidences)
+        .innerJoin(schema.residences, eq(schema.userResidences.residenceId, schema.residences.id))
+        .innerJoin(schema.buildings, eq(schema.residences.buildingId, schema.buildings.id))
+        .where(and(...whereConditions))
+        .orderBy(schema.buildings.name, sql`CAST(${schema.residences.unitNumber} AS INTEGER)`);
+
+      logDebug('[USER_MANAGEMENT] Returning residences for user', { userId, metadata: { count: userResidences.length, role: req.user.role } });
+      return res.json(userResidences);
+    }, { errorMessage: 'Failed to get user residences', errorLogPrefix: '❌ Error getting user residences', extraErrorFields: { error: 'Internal server error' } }));
 
   /**
    * GET /api/users/:id/residences - Get user's accessible residences.
    */
-  app.get('/api/users/:id/residences', requireAuth, async (req: any, res) => {
-    try {
+  app.get('/api/users/:id/residences', requireAuth, asyncHandler(async (req: any, res) => {
       const currentUser = req.user || req.session?.user;
       const { id: userId } = req.params;
 
@@ -1554,8 +1713,8 @@ export function registerUserRoutes(app: Express): void {
         });
       }
 
-      // Users can only access their own residences unless they're admin/manager
-      if (currentUser.id !== userId && !['admin', 'manager'].includes(currentUser.role)) {
+      // All users can only access their own residences
+      if (currentUser.id !== userId) {
         return res.status(403).json({
           message: 'Insufficient permissions',
           code: 'INSUFFICIENT_PERMISSIONS',
@@ -1589,14 +1748,7 @@ export function registerUserRoutes(app: Express): void {
       }));
 
       res.json(residences);
-    } catch (error: any) {
-      console.error('❌ Error getting user residences:', error);
-      res.status(500).json({
-        error: 'Internal server error',
-        message: 'Failed to get user residences',
-      });
-    }
-  });
+    }, { errorMessage: 'Failed to get user residences', errorLogPrefix: '❌ Error getting user residences', extraErrorFields: { error: 'Internal server error' } }));
 
   /**
    * GET /api/users/me/buildings - Get current user's accessible buildings based on their residences.
@@ -1605,9 +1757,10 @@ export function registerUserRoutes(app: Express): void {
     try {
       const userId = req.user.id;
       const { has_common_spaces, organization_id } = req.query;
-      console.log(`📊 [USER_MANAGEMENT] Fetching buildings for user ${userId} (${req.user.role})`, { has_common_spaces, organization_id });
+      logDebug('[USER_MANAGEMENT] Fetching buildings for user', { userId, metadata: { role: req.user.role, hasCommonSpaces: has_common_spaces, organizationId: organization_id } });
 
       // For residents and tenants (including demo roles), get buildings through their residences  
+      // Note: demo_manager uses userBuildings table like regular managers, so it falls through to the manager path
       if (['resident', 'tenant', 'demo_resident', 'demo_tenant'].includes(req.user.role)) {
         
         // Get user's residences with building information using Drizzle
@@ -1659,6 +1812,8 @@ export function registerUserRoutes(app: Express): void {
               city: schema.buildings.city,
               province: schema.buildings.province,
               postalCode: schema.buildings.postalCode,
+              buildingType: schema.buildings.buildingType,
+              totalUnits: schema.buildings.totalUnits,
               organizationId: schema.buildings.organizationId,
               isActive: schema.buildings.isActive,
             })
@@ -1676,6 +1831,8 @@ export function registerUserRoutes(app: Express): void {
               city: schema.buildings.city,
               province: schema.buildings.province,
               postalCode: schema.buildings.postalCode,
+              buildingType: schema.buildings.buildingType,
+              totalUnits: schema.buildings.totalUnits,
               organizationId: schema.buildings.organizationId,
               isActive: schema.buildings.isActive,
             })
@@ -1685,28 +1842,63 @@ export function registerUserRoutes(app: Express): void {
         }
 
         const buildingDetails = await buildingQuery;
-        console.log(`✅ [USER_MANAGEMENT] Returning ${buildingDetails.length} buildings for resident/tenant ${userId}`);
+        logDebug('[USER_MANAGEMENT] Returning buildings for resident/tenant', { userId, metadata: { count: buildingDetails.length } });
         return res.json(buildingDetails);
       }
 
       // For admins, get ALL buildings
       if (req.user.role === 'admin') {
-        const buildingDetails = await db
-          .select({
-            id: schema.buildings.id,
-            name: schema.buildings.name,
-            address: schema.buildings.address,
-            city: schema.buildings.city,
-            province: schema.buildings.province,
-            postalCode: schema.buildings.postalCode,
-            organizationId: schema.buildings.organizationId,
-            isActive: schema.buildings.isActive,
-          })
-          .from(schema.buildings)
-          .where(eq(schema.buildings.isActive, true))
-          .orderBy(schema.buildings.name);
+        let buildingQuery;
+        
+        const whereConditions = [eq(schema.buildings.isActive, true)];
+        
+        // Add organization filter if specified
+        if (organization_id) {
+          whereConditions.push(eq(schema.buildings.organizationId, organization_id));
+        }
+        
+        if (has_common_spaces === 'true') {
+          // Only buildings with common spaces
+          buildingQuery = db
+            .selectDistinct({
+              id: schema.buildings.id,
+              name: schema.buildings.name,
+              address: schema.buildings.address,
+              city: schema.buildings.city,
+              province: schema.buildings.province,
+              postalCode: schema.buildings.postalCode,
+              buildingType: schema.buildings.buildingType,
+              totalUnits: schema.buildings.totalUnits,
+              organizationId: schema.buildings.organizationId,
+              isActive: schema.buildings.isActive,
+            })
+            .from(schema.buildings)
+            .innerJoin(schema.commonSpaces, eq(schema.commonSpaces.buildingId, schema.buildings.id))
+            .where(and(...whereConditions))
+            .orderBy(schema.buildings.name);
+        } else {
+          // All buildings
+          buildingQuery = db
+            .select({
+              id: schema.buildings.id,
+              name: schema.buildings.name,
+              address: schema.buildings.address,
+              city: schema.buildings.city,
+              province: schema.buildings.province,
+              postalCode: schema.buildings.postalCode,
+              buildingType: schema.buildings.buildingType,
+              totalUnits: schema.buildings.totalUnits,
+              organizationId: schema.buildings.organizationId,
+              isActive: schema.buildings.isActive,
+            })
+            .from(schema.buildings)
+            .where(and(...whereConditions))
+            .orderBy(schema.buildings.name);
+        }
+        
+        const buildingDetails = await buildingQuery;
 
-        console.log(`✅ [USER_MANAGEMENT] Returning ${buildingDetails.length} buildings for admin ${userId}`);
+        logDebug('[USER_MANAGEMENT] Returning buildings for admin', { userId, metadata: { count: buildingDetails.length } });
         return res.json(buildingDetails);
       }
 
@@ -1756,6 +1948,8 @@ export function registerUserRoutes(app: Express): void {
             city: schema.buildings.city,
             province: schema.buildings.province,
             postalCode: schema.buildings.postalCode,
+            buildingType: schema.buildings.buildingType,
+            totalUnits: schema.buildings.totalUnits,
             organizationId: schema.buildings.organizationId,
             isActive: schema.buildings.isActive,
           })
@@ -1773,6 +1967,8 @@ export function registerUserRoutes(app: Express): void {
             city: schema.buildings.city,
             province: schema.buildings.province,
             postalCode: schema.buildings.postalCode,
+            buildingType: schema.buildings.buildingType,
+            totalUnits: schema.buildings.totalUnits,
             organizationId: schema.buildings.organizationId,
             isActive: schema.buildings.isActive,
           })
@@ -1783,11 +1979,11 @@ export function registerUserRoutes(app: Express): void {
 
       const buildingDetails = await buildingQuery;
 
-      console.log(`✅ [USER_MANAGEMENT] Returning ${buildingDetails.length} buildings for manager ${userId} (from userBuildings table)`);
+      logDebug('[USER_MANAGEMENT] Returning buildings for manager', { userId, metadata: { count: buildingDetails.length, source: 'userBuildings table' } });
       res.json(buildingDetails);
 
     } catch (error) {
-      console.error('Error fetching user buildings:', error);
+      logError('Error fetching user buildings', error);
       res.status(500).json({ 
         error: 'Failed to fetch user buildings',
         details: process.env.NODE_ENV === 'development' ? error.message : undefined
@@ -1796,99 +1992,9 @@ export function registerUserRoutes(app: Express): void {
   });
 
   /**
-   * GET /api/users/me/residences - Get current user's accessible residences, optionally filtered by building
-   */
-  app.get('/api/users/me/residences', requireAuth, async (req: any, res) => {
-    try {
-      const userId = req.user.id;
-      const { building_id } = req.query;
-      console.log(`📊 [USER_MANAGEMENT] Fetching residences for user ${userId} (${req.user.role})`, { building_id });
-
-      // For residents and tenants, get only their assigned residences
-      if (['resident', 'tenant', 'demo_resident', 'demo_tenant'].includes(req.user.role)) {
-        
-        let whereConditions = [
-          eq(schema.userResidences.userId, userId),
-          eq(schema.userResidences.isActive, true),
-          eq(schema.residences.isActive, true)
-        ];
-
-        // Add building filter if specified
-        if (building_id) {
-          whereConditions.push(eq(schema.residences.buildingId, building_id));
-        }
-
-        const userResidences = await db
-          .select({
-            id: schema.residences.id,
-            unitNumber: schema.residences.unitNumber,
-            floor: schema.residences.floor,
-            buildingId: schema.residences.buildingId,
-            buildingName: schema.buildings.name,
-          })
-          .from(schema.userResidences)
-          .innerJoin(schema.residences, eq(schema.userResidences.residenceId, schema.residences.id))
-          .innerJoin(schema.buildings, eq(schema.residences.buildingId, schema.buildings.id))
-          .where(and(...whereConditions))
-          .orderBy(schema.buildings.name, schema.residences.unitNumber);
-
-        console.log(`✅ [USER_MANAGEMENT] Returning ${userResidences.length} residences for resident/tenant ${userId}`);
-        return res.json(userResidences);
-      }
-
-      // For managers and admins, get residences in their accessible buildings
-      const userOrgs = await db
-        .select({ organizationId: schema.userOrganizations.organizationId })
-        .from(schema.userOrganizations)
-        .where(eq(schema.userOrganizations.userId, userId));
-
-      const orgIds = userOrgs.map(org => org.organizationId);
-
-      if (orgIds.length === 0) {
-        console.log(`⚠️ [USER_MANAGEMENT] No organizations found for manager/admin ${userId}`);
-        return res.json([]);
-      }
-
-      let whereConditions = [
-        inArray(schema.buildings.organizationId, orgIds),
-        eq(schema.buildings.isActive, true),
-        eq(schema.residences.isActive, true)
-      ];
-
-      // Add building filter if specified
-      if (building_id) {
-        whereConditions.push(eq(schema.residences.buildingId, building_id));
-      }
-
-      const residences = await db
-        .select({
-          id: schema.residences.id,
-          unitNumber: schema.residences.unitNumber,
-          floor: schema.residences.floor,
-          buildingId: schema.residences.buildingId,
-          buildingName: schema.buildings.name,
-        })
-        .from(schema.residences)
-        .innerJoin(schema.buildings, eq(schema.residences.buildingId, schema.buildings.id))
-        .where(and(...whereConditions))
-        .orderBy(schema.buildings.name, schema.residences.unitNumber);
-
-      console.log(`✅ [USER_MANAGEMENT] Returning ${residences.length} residences for manager/admin ${userId}`);
-      return res.json(residences);
-    } catch (error: any) {
-      console.error('❌ Error getting user residences:', error);
-      res.status(500).json({
-        error: 'Internal server error',
-        message: 'Failed to get user residences',
-      });
-    }
-  });
-
-  /**
    * GET /api/users/:id/buildings - Get user's accessible buildings based on their residences.
    */
-  app.get('/api/users/:id/buildings', requireAuth, async (req: any, res) => {
-    try {
+  app.get('/api/users/:id/buildings', requireAuth, asyncHandler(async (req: any, res) => {
       const currentUser = req.user || req.session?.user;
       const { id: userId } = req.params;
 
@@ -1957,7 +2063,8 @@ export function registerUserRoutes(app: Express): void {
         .where(and(
           inArray(schema.buildings.id, buildingIds),
           eq(schema.buildings.isActive, true)
-        ));
+        ))
+        .orderBy(schema.buildings.name);
 
       // Calculate stats for each building
       const buildingsWithStats = await Promise.all(
@@ -1995,14 +2102,7 @@ export function registerUserRoutes(app: Express): void {
       );
 
       res.json({ buildings: buildingsWithStats });
-    } catch (error: any) {
-      console.error('❌ Error getting user buildings:', error);
-      res.status(500).json({
-        error: 'Internal server error',
-        message: 'Failed to get user buildings',
-      });
-    }
-  });
+    }, { errorMessage: 'Failed to get user buildings', errorLogPrefix: '❌ Error getting user buildings', extraErrorFields: { error: 'Internal server error' } }));
 
   /**
    * PUT /api/users/:id/residences - Updates user's residence assignments.
@@ -2015,8 +2115,7 @@ export function registerUserRoutes(app: Express): void {
       extractAffectedUsers: async (req) => [req.params.id],
       operation: 'update'
     }),
-    async (req: any, res) => {
-    try {
+    asyncHandler(async (req: any, res) => {
       const currentUser = req.user || req.session?.user;
       const { id: userId } = req.params;
       const { residenceAssignments } = req.body; // Array of { residenceId, relationshipType, startDate, endDate }
@@ -2106,43 +2205,36 @@ export function registerUserRoutes(app: Express): void {
         }
       }
 
-      // Remove existing residence assignments
-      await db.delete(schema.userResidences).where(eq(schema.userResidences.userId, userId));
-
-      // Add new residence assignments
-      if (residenceAssignments.length > 0) {
-        const newAssignments = residenceAssignments.map((assignment: any) => ({
-          userId,
-          residenceId: assignment.residenceId,
-          relationshipType: assignment.relationshipType || 'tenant',
-          startDate: assignment.startDate || new Date().toISOString().split('T')[0],
-          endDate: assignment.endDate || null,
-          isActive: true,
-        }));
-
-        await db.insert(schema.userResidences).values(newAssignments);
-      }
+      // Replace residence assignments atomically so a partial failure
+      // (e.g. duplicate (userId, residenceId) row, FK violation) doesn't
+      // strip a user of their existing residences with no replacement.
+      await db.transaction(async (tx) => {
+        await tx.delete(schema.userResidences).where(eq(schema.userResidences.userId, userId));
+        if (residenceAssignments.length > 0) {
+          const newAssignments = residenceAssignments.map((assignment: any) => ({
+            userId,
+            residenceId: assignment.residenceId,
+            relationshipType: assignment.relationshipType || 'tenant',
+            startDate: assignment.startDate || new Date().toISOString().split('T')[0],
+            endDate: assignment.endDate || null,
+            isActive: true,
+          }));
+          await tx.insert(schema.userResidences).values(newAssignments);
+        }
+      });
 
       res.json({
         message: 'Residence assignments updated successfully',
         userId,
         assignmentCount: residenceAssignments.length,
       });
-    } catch (error: any) {
-      console.error('❌ Error updating residence assignments:', error);
-      res.status(500).json({
-        error: 'Internal server error',
-        message: 'Failed to update residence assignments',
-      });
-    }
-  });
+    }, { errorMessage: 'Failed to update residence assignments', errorLogPrefix: '❌ Error updating residence assignments', extraErrorFields: { error: 'Internal server error' } }));
 
   /**
    * GET /api/users/me/organizations - Get organizations accessible to current user.
    * Used by invite form to populate organization dropdown.
    */
-  app.get('/api/users/me/organizations', requireAuth, async (req: any, res) => {
-    try {
+  app.get('/api/users/me/organizations', requireAuth, asyncHandler(async (req: any, res) => {
       const currentUser = req.user || req.session?.user;
       if (!currentUser) {
         return res.status(401).json({
@@ -2151,7 +2243,7 @@ export function registerUserRoutes(app: Express): void {
         });
       }
 
-      console.log(`📊 Fetching user-accessible organizations for ${currentUser.email} (${currentUser.role})`);
+      logDebug('Fetching user-accessible organizations', { userId: currentUser.id, metadata: { role: currentUser.role } });
 
       // Get organizations based on user role - same logic as /api/organizations
       let organizationsQuery;
@@ -2208,24 +2300,16 @@ export function registerUserRoutes(app: Express): void {
       }
 
       const accessibleOrganizations = await organizationsQuery;
-      console.log(`✅ Found ${accessibleOrganizations.length} organizations for user ${currentUser.id}`);
+      logDebug('Found accessible organizations for user', { userId: currentUser.id, metadata: { count: accessibleOrganizations.length } });
 
       // Return array directly (not wrapped in object) - same format as /api/organizations
       res.json(accessibleOrganizations);
-    } catch (error: any) {
-      console.error('❌ Error fetching user organizations:', error);
-      res.status(500).json({
-        error: 'Internal server error',
-        message: 'Failed to fetch user organizations',
-      });
-    }
-  });
+    }, { errorMessage: 'Failed to fetch user organizations', errorLogPrefix: '❌ Error fetching user organizations', extraErrorFields: { error: 'Internal server error' } }));
 
   /**
    * GET /api/users/me/data-export - Download user data for Law 25 compliance.
    */
-  app.get('/api/users/me/data-export', requireAuth, async (req: any, res) => {
-    try {
+  app.get('/api/users/me/data-export', requireAuth, asyncHandler(async (req: any, res) => {
       const currentUser = req.user || req.session?.user;
       if (!currentUser) {
         return res.status(401).json({
@@ -2297,20 +2381,12 @@ export function registerUserRoutes(app: Express): void {
         `attachment; filename="user-data-export-${currentUser.id}-${new Date().toISOString().split('T')[0]}.json"`
       );
       res.json(exportData);
-    } catch (error: any) {
-      console.error('❌ Error exporting user data:', error);
-      res.status(500).json({
-        error: 'Internal server error',
-        message: 'Failed to export user data',
-      });
-    }
-  });
+    }, { errorMessage: 'Failed to export user data', errorLogPrefix: '❌ Error exporting user data', extraErrorFields: { error: 'Internal server error' } }));
 
   /**
    * POST /api/users/me/delete-account - Complete account deletion for Law 25 compliance.
    */
-  app.post('/api/users/me/delete-account', requireAuth, async (req: any, res) => {
-    try {
+  app.post('/api/users/me/delete-account', requireAuth, asyncHandler(async (req: any, res) => {
       const currentUser = req.user || req.session?.user;
       if (!currentUser) {
         return res.status(401).json({
@@ -2329,40 +2405,93 @@ export function registerUserRoutes(app: Express): void {
         });
       }
 
-      // Delete all related data in the correct order to handle foreign key constraints
-      await Promise.all([
-        // Delete user relationships
-        db
-          .delete(schema.userOrganizations)
-          .where(eq(schema.userOrganizations.userId, currentUser.id)),
-        db.delete(schema.userResidences).where(eq(schema.userResidences.userId, currentUser.id)),
-        db
-          .delete(schema.documents)
-          .where(eq(schema.documents.uploadedById, currentUser.id)),
+      // Wrap the full account-deletion sequence in one transaction so
+      // a mid-way failure cannot leave the user partially nullified.
+      // Statements are serialised because a drizzle transaction shares
+      // one connection and cannot multiplex Promise.all writes.
+      await db.transaction(async (tx) => {
+        // Step 1: Delete comments made by the user on demands
+        await tx.delete(schema.demandComments).where(eq(schema.demandComments.commenterId, currentUser.id));
 
-        // Delete user-created content
-        db.delete(schema.notifications).where(eq(schema.notifications.userId, currentUser.id)),
-        db
-          .delete(schema.maintenanceRequests)
-          .where(eq(schema.maintenanceRequests.submittedBy, currentUser.id)),
+        // Step 2: SET NULL for all user references to preserve bills, demands, documents, and maintenance requests
+        // Preserve demands - nullify submitter and reviewer references
+        await tx.update(schema.demands).set({ submitterId: null }).where(eq(schema.demands.submitterId, currentUser.id));
+        await tx.update(schema.demands).set({ reviewedBy: null }).where(eq(schema.demands.reviewedBy, currentUser.id));
+
+        // Preserve maintenance requests - nullify submitter and assignee references
+        await tx.update(schema.maintenanceRequests).set({ submittedBy: null }).where(eq(schema.maintenanceRequests.submittedBy, currentUser.id));
+        await tx.update(schema.maintenanceRequests).set({ assignedTo: null }).where(eq(schema.maintenanceRequests.assignedTo, currentUser.id));
+
+        // Preserve documents - nullify uploader reference
+        await tx.update(schema.documents).set({ uploadedById: null }).where(eq(schema.documents.uploadedById, currentUser.id));
+
+        // Preserve bills - nullify creator reference
+        await tx.update(schema.bills).set({ createdBy: null }).where(eq(schema.bills.createdBy, currentUser.id));
+
+        // Preserve invoices - nullify creator reference
+        await tx.update(schema.invoices).set({ createdBy: null }).where(eq(schema.invoices.createdBy, currentUser.id));
+
+        // Preserve budgets - nullify creator and approver references
+        await tx.update(schema.budgets).set({ createdBy: null }).where(eq(schema.budgets.createdBy, currentUser.id));
+        await tx.update(schema.budgets).set({ approvedBy: null }).where(eq(schema.budgets.approvedBy, currentUser.id));
+        await tx.update(schema.monthlyBudgets).set({ approvedBy: null }).where(eq(schema.monthlyBudgets.approvedBy, currentUser.id));
+
+        // Nullify bug and feature request references
+        await tx.update(schema.bugs).set({ createdBy: null }).where(eq(schema.bugs.createdBy, currentUser.id));
+        await tx.update(schema.bugs).set({ assignedTo: null }).where(eq(schema.bugs.assignedTo, currentUser.id));
+        await tx.update(schema.bugs).set({ resolvedBy: null }).where(eq(schema.bugs.resolvedBy, currentUser.id));
+        await tx.update(schema.featureRequests).set({ createdBy: null }).where(eq(schema.featureRequests.createdBy, currentUser.id));
+        await tx.update(schema.featureRequests).set({ assignedTo: null }).where(eq(schema.featureRequests.assignedTo, currentUser.id));
+        await tx.update(schema.featureRequests).set({ reviewedBy: null }).where(eq(schema.featureRequests.reviewedBy, currentUser.id));
+
+        // Step 3: Delete records with NOT NULL user references (cannot be nullified)
+        // Delete communications and meetings created by user (NOT NULL createdBy)
+        await tx.delete(schema.generalCommunications).where(eq(schema.generalCommunications.createdBy, currentUser.id));
+        await tx.delete(schema.meetings).where(eq(schema.meetings.createdBy, currentUser.id));
+
+        // Delete notification configurations and dispatch logs (NOT NULL user references)
+        await tx.delete(schema.notificationDispatchLog).where(eq(schema.notificationDispatchLog.userId, currentUser.id));
+        await tx.delete(schema.notificationConfigurations).where(eq(schema.notificationConfigurations.createdBy, currentUser.id));
+
+        // Delete maintenance projects created by user (NOT NULL createdBy)
+        await tx.delete(schema.maintenanceProjects).where(eq(schema.maintenanceProjects.createdBy, currentUser.id));
+
+        // Delete element documents and history (NOT NULL user references)
+        await tx.delete(schema.elementDocuments).where(eq(schema.elementDocuments.uploadedBy, currentUser.id));
+        await tx.delete(schema.elementHistory).where(eq(schema.elementHistory.createdBy, currentUser.id));
+
+        // Delete SSL certificates created by user (NOT NULL createdBy)
+        await tx.delete(schema.sslCertificates).where(eq(schema.sslCertificates.createdBy, currentUser.id));
+
+        // Step 4: Delete user-specific data that should be removed with the user
+        // Delete user relationships
+        await tx.delete(schema.userOrganizations).where(eq(schema.userOrganizations.userId, currentUser.id));
+        await tx.delete(schema.userResidences).where(eq(schema.userResidences.userId, currentUser.id));
+
+        // Delete user-specific content
+        await tx.delete(schema.notifications).where(eq(schema.notifications.userId, currentUser.id));
 
         // Delete invitations
-        db.delete(schema.invitations).where(eq(schema.invitations.email, currentUser.email)),
-      ]);
+        await tx.delete(schema.invitations).where(eq(schema.invitations.email, currentUser.email));
 
-      // Finally, delete the user account
-      await db.delete(schema.users).where(eq(schema.users.id, currentUser.id));
+        // Delete user notification preferences
+        await tx.delete(schema.userNotificationPreferences).where(eq(schema.userNotificationPreferences.userId, currentUser.id));
+
+        // Delete feature request upvotes
+        await tx.delete(schema.featureRequestUpvotes).where(eq(schema.featureRequestUpvotes.userId, currentUser.id));
+
+        // Finally, delete the user account itself
+        await tx.delete(schema.users).where(eq(schema.users.id, currentUser.id));
+      });
 
       // Log the deletion for audit purposes
-      console.log(
-        `User account deleted: ${currentUser.email} (${currentUser.id}). Reason: ${reason || 'Not provided'}`
-      );
+      logInfo('User account deleted', { userId: currentUser.id, action: 'account_deletion', metadata: { reason: reason || 'Not provided' } });
 
       // Clear session
       if (req.session) {
         req.session.destroy((err: any) => {
           if (err) {
-            console.error('Failed to destroy session after account deletion:', err);
+            logError('Failed to destroy session after account deletion', err);
           }
         });
       }
@@ -2372,57 +2501,7 @@ export function registerUserRoutes(app: Express): void {
           'Account successfully deleted. All personal data has been permanently removed from our systems.',
         deletionDate: new Date().toISOString(),
       });
-    } catch (error: any) {
-      console.error('❌ Error deleting account:', error);
-      res.status(500).json({
-        error: 'Internal server error',
-        message: 'Failed to delete account. Please contact support.',
-      });
-    }
-  });
-
-  /**
-   * PUT /api/users/me - Update current user's profile.
-   */
-  app.put('/api/users/me', requireAuth, async (req: any, res) => {
-    try {
-      const currentUser = req.user || req.session?.user;
-      if (!currentUser) {
-        return res.status(401).json({
-          message: 'Authentication required',
-          code: 'AUTH_REQUIRED',
-        });
-      }
-
-      // Validate the update data (excluding password updates for security)
-      const updateSchema = insertUserSchema
-        .partial()
-        .omit({ password: true, id: true, role: true });
-      const validatedData = updateSchema.parse(req.body);
-
-      const user = await storage.updateUser(currentUser.id, {
-        ...validatedData,
-        updatedAt: new Date(),
-      } as any);
-
-      if (!user) {
-        return res.status(404).json({
-          message: 'User not found',
-          code: 'USER_NOT_FOUND',
-        });
-      }
-
-      // Remove sensitive information before sending response
-      const { password, ...userWithoutPassword } = user;
-      res.json(userWithoutPassword);
-    } catch (error: any) {
-      console.error('❌ Error updating user profile:', error);
-      res.status(500).json({
-        error: 'Internal server error',
-        message: 'Failed to update profile',
-      });
-    }
-  });
+    }, { errorMessage: 'Failed to delete account. Please contact support.', errorLogPrefix: '❌ Error deleting account', extraErrorFields: { error: 'Internal server error' } }));
 
   /**
    * POST /api/users/:id/delete-account - RESTRICTED Admin endpoint to delete any user account.
@@ -2450,7 +2529,7 @@ export function registerUserRoutes(app: Express): void {
       }
       
       // Additional safety check: Log this critical operation
-      console.warn(`⚠️  CRITICAL: ${currentUser.role} ${currentUser.email} attempting to delete user ${targetUserId}`);
+      logWarn('CRITICAL: Admin attempting to delete user', { userId: currentUser.id, action: 'delete_user', metadata: { targetUserId } });
 
       if (!targetUserId) {
         return res.status(400).json({
@@ -2470,76 +2549,101 @@ export function registerUserRoutes(app: Express): void {
 
       const { confirmEmail, reason } = req.body;
 
-      // Verify email confirmation
-      if (confirmEmail !== targetUser.email) {
+      // Validate that confirmEmail is provided
+      if (!confirmEmail || typeof confirmEmail !== 'string' || confirmEmail.trim() === '') {
+        return res.status(400).json({
+          message: 'Email confirmation is required to delete user account',
+          code: 'MISSING_EMAIL_CONFIRMATION',
+        });
+      }
+
+      // Verify email confirmation matches
+      if (confirmEmail.trim() !== targetUser.email) {
         return res.status(400).json({
           message: 'Email confirmation does not match',
           code: 'EMAIL_MISMATCH',
         });
       }
 
-      // Delete all related data in the correct order to handle foreign key constraints
-      const deletionPromises = [
+      // Wrap the full admin-driven account-deletion sequence in one
+      // transaction so a mid-way failure cannot leave the target user
+      // half-purged. Statements are serialised because a drizzle
+      // transaction shares one connection and cannot multiplex
+      // Promise.all writes.
+      await db.transaction(async (tx) => {
+        // Step 1: Delete comments made by the user on demands
+        await tx.delete(schema.demandComments).where(eq(schema.demandComments.commenterId, targetUserId));
+
+        // Step 2: SET NULL for all user references to preserve bills, demands, documents, and maintenance requests
+        // Preserve demands - nullify submitter and reviewer references
+        await tx.update(schema.demands).set({ submitterId: null }).where(eq(schema.demands.submitterId, targetUserId));
+        await tx.update(schema.demands).set({ reviewedBy: null }).where(eq(schema.demands.reviewedBy, targetUserId));
+
+        // Preserve maintenance requests - nullify submitter and assignee references
+        await tx.update(schema.maintenanceRequests).set({ submittedBy: null }).where(eq(schema.maintenanceRequests.submittedBy, targetUserId));
+        await tx.update(schema.maintenanceRequests).set({ assignedTo: null }).where(eq(schema.maintenanceRequests.assignedTo, targetUserId));
+
+        // Preserve documents - nullify uploader reference
+        await tx.update(schema.documents).set({ uploadedById: null }).where(eq(schema.documents.uploadedById, targetUserId));
+
+        // Preserve bills - nullify creator reference
+        await tx.update(schema.bills).set({ createdBy: null }).where(eq(schema.bills.createdBy, targetUserId));
+
+        // Preserve invoices - nullify creator reference
+        await tx.update(schema.invoices).set({ createdBy: null }).where(eq(schema.invoices.createdBy, targetUserId));
+
+        // Preserve budgets - nullify creator and approver references
+        await tx.update(schema.budgets).set({ createdBy: null }).where(eq(schema.budgets.createdBy, targetUserId));
+        await tx.update(schema.budgets).set({ approvedBy: null }).where(eq(schema.budgets.approvedBy, targetUserId));
+        await tx.update(schema.monthlyBudgets).set({ approvedBy: null }).where(eq(schema.monthlyBudgets.approvedBy, targetUserId));
+
+        // Nullify bug and feature request references
+        await tx.update(schema.bugs).set({ createdBy: null }).where(eq(schema.bugs.createdBy, targetUserId));
+        await tx.update(schema.bugs).set({ assignedTo: null }).where(eq(schema.bugs.assignedTo, targetUserId));
+        await tx.update(schema.bugs).set({ resolvedBy: null }).where(eq(schema.bugs.resolvedBy, targetUserId));
+        await tx.update(schema.featureRequests).set({ createdBy: null }).where(eq(schema.featureRequests.createdBy, targetUserId));
+        await tx.update(schema.featureRequests).set({ assignedTo: null }).where(eq(schema.featureRequests.assignedTo, targetUserId));
+        await tx.update(schema.featureRequests).set({ reviewedBy: null }).where(eq(schema.featureRequests.reviewedBy, targetUserId));
+
+        // Step 3: Delete records with NOT NULL user references (cannot be nullified)
+        // Delete communications and meetings created by user (NOT NULL createdBy)
+        await tx.delete(schema.generalCommunications).where(eq(schema.generalCommunications.createdBy, targetUserId));
+        await tx.delete(schema.meetings).where(eq(schema.meetings.createdBy, targetUserId));
+
+        // Delete notification configurations and dispatch logs (NOT NULL user references)
+        await tx.delete(schema.notificationDispatchLog).where(eq(schema.notificationDispatchLog.userId, targetUserId));
+        await tx.delete(schema.notificationConfigurations).where(eq(schema.notificationConfigurations.createdBy, targetUserId));
+
+        // Delete maintenance projects created by user (NOT NULL createdBy)
+        await tx.delete(schema.maintenanceProjects).where(eq(schema.maintenanceProjects.createdBy, targetUserId));
+
+        // Delete element documents and history (NOT NULL user references)
+        await tx.delete(schema.elementDocuments).where(eq(schema.elementDocuments.uploadedBy, targetUserId));
+        await tx.delete(schema.elementHistory).where(eq(schema.elementHistory.createdBy, targetUserId));
+
+        // Delete SSL certificates created by user (NOT NULL createdBy)
+        await tx.delete(schema.sslCertificates).where(eq(schema.sslCertificates.createdBy, targetUserId));
+
+        // Step 4: Delete user-specific data that should be removed with the user
         // Delete user relationships
-        db
-          .delete(schema.userOrganizations)
-          .where(eq(schema.userOrganizations.userId, targetUserId)),
-        db.delete(schema.userResidences).where(eq(schema.userResidences.userId, targetUserId)),
-        db
-          .delete(schema.documents)
-          .where(eq(schema.documents.uploadedById, targetUserId)),
+        await tx.delete(schema.userOrganizations).where(eq(schema.userOrganizations.userId, targetUserId));
+        await tx.delete(schema.userResidences).where(eq(schema.userResidences.userId, targetUserId));
 
         // Delete invitations
-        db.delete(schema.invitations).where(eq(schema.invitations.email, targetUser.email)),
-        
-        // Delete demands and related comments (must be done before deleting user)
-        db.delete(schema.demandComments).where(eq(schema.demandComments.commenterId, targetUserId)),
-        db.delete(schema.demands).where(eq(schema.demands.submitterId, targetUserId)),
-        
-        // Delete bugs and feature requests submitted by the user
-        db.delete(schema.bugs).where(eq(schema.bugs.createdBy, targetUserId)),
-        db.delete(schema.featureRequests).where(eq(schema.featureRequests.createdBy, targetUserId)),
-        db.delete(schema.featureRequestUpvotes).where(eq(schema.featureRequestUpvotes.userId, targetUserId)),
-      ];
+        await tx.delete(schema.invitations).where(eq(schema.invitations.email, targetUser.email));
 
-      // Try to delete from optional tables that might not exist
-      const optionalDeletions = [
-        async () => {
-          try {
-            await db
-              .delete(schema.notifications)
-              .where(eq(schema.notifications.userId, targetUserId));
-          } catch (error: any) {
-            if (error.cause?.code === '42P01') {
-              console.log('Notifications table not found, skipping...');
-            } else {
-              throw error;
-            }
-          }
-        },
-        async () => {
-          try {
-            await db
-              .delete(schema.maintenanceRequests)
-              .where(eq(schema.maintenanceRequests.submittedBy, targetUserId));
-          } catch (error: any) {
-            if (error.cause?.code === '42P01') {
-              console.log('Maintenance requests table not found, skipping...');
-            } else {
-              throw error;
-            }
-          }
-        },
-      ];
+        // Delete user notification preferences
+        await tx.delete(schema.userNotificationPreferences).where(eq(schema.userNotificationPreferences.userId, targetUserId));
 
-      // Execute core deletions first
-      await Promise.all(deletionPromises);
+        // Delete feature request upvotes
+        await tx.delete(schema.featureRequestUpvotes).where(eq(schema.featureRequestUpvotes.userId, targetUserId));
 
-      // Execute optional deletions
-      await Promise.all(optionalDeletions.map((fn) => fn()));
+        // Delete notifications
+        await tx.delete(schema.notifications).where(eq(schema.notifications.userId, targetUserId));
 
-      // Finally, delete the user account
-      await db.delete(schema.users).where(eq(schema.users.id, targetUserId));
+        // Finally, delete the user account itself
+        await tx.delete(schema.users).where(eq(schema.users.id, targetUserId));
+      });
 
       // Clear all caches to ensure the user list updates immediately
       queryCache.invalidate('users', 'all_users');
@@ -2547,9 +2651,7 @@ export function registerUserRoutes(app: Express): void {
       queryCache.invalidate('users', `user_email:${targetUser.email}`);
 
       // Log the deletion for audit purposes
-      console.log(
-        `User account deleted by admin ${currentUser.email} (${currentUser.id}): ${targetUser.email} (${targetUserId}). Reason: ${reason || 'Not provided'}`
-      );
+      logInfo('User account deleted by admin', { userId: currentUser.id, action: 'admin_delete_user', metadata: { targetUserId, reason: reason || 'Not provided' } });
 
       res.json({
         message: 'User account and all associated data have been permanently deleted',
@@ -2557,10 +2659,11 @@ export function registerUserRoutes(app: Express): void {
         deletedUserEmail: targetUser.email,
       });
     } catch (error: any) {
-      console.error('❌ Error deleting user account:', error);
+      logError('Error deleting user account', error, { userId: req.params.id, metadata: { confirmEmailProvided: !!req.body.confirmEmail } });
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to delete user account',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined,
       });
     }
   });
@@ -2568,8 +2671,7 @@ export function registerUserRoutes(app: Express): void {
   /**
    * POST /api/users/me/change-password - Change current user's password.
    */
-  app.post('/api/users/me/change-password', requireAuth, async (req: any, res) => {
-    try {
+  app.post('/api/users/me/change-password', requireAuth, asyncHandler(async (req: any, res) => {
       const currentUser = req.user || req.session?.user;
       if (!currentUser) {
         return res.status(401).json({
@@ -2608,20 +2710,12 @@ export function registerUserRoutes(app: Express): void {
       res.json({
         message: 'Password changed successfully',
       });
-    } catch (error: any) {
-      console.error('❌ Error changing password:', error);
-      res.status(500).json({
-        error: 'Internal server error',
-        message: 'Failed to change password',
-      });
-    }
-  });
+    }, { errorMessage: 'Failed to change password', errorLogPrefix: '❌ Error changing password', extraErrorFields: { error: 'Internal server error' } }));
 
   /**
    * POST /api/users/demo - Creates a demo user directly without invitation
    */
-  app.post('/api/users/demo', requireAuth, async (req: any, res) => {
-    try {
+  app.post('/api/users/demo', requireAuth, asyncHandler(async (req: any, res) => {
       const currentUser = req.user || req.session?.user;
       if (!currentUser) {
         return res.status(401).json({
@@ -2708,14 +2802,7 @@ export function registerUserRoutes(app: Express): void {
           role: newUser.role,
         },
       });
-    } catch (error: any) {
-      console.error('❌ Error creating demo user:', error);
-      res.status(500).json({
-        error: 'Internal server error',
-        message: 'Failed to create demo user',
-      });
-    }
-  });
+    }, { errorMessage: 'Failed to create demo user', errorLogPrefix: '❌ Error creating demo user', extraErrorFields: { error: 'Internal server error' } }));
 
   /**
    * POST /api/invitations - Creates a new invitation
@@ -2810,54 +2897,44 @@ export function registerUserRoutes(app: Express): void {
         });
       }
 
-      // Check for existing pending invitations for the same email and organization
-      // If found, delete them to replace with new invitation
-      const existingInvitations = await db
-        .select()
-        .from(schema.invitations)
-        .where(
-          and(
-            eq(schema.invitations.email, email),
-            eq(schema.invitations.organizationId, organizationId),
-            eq(schema.invitations.status, 'pending')
-          )
-        );
-
-      if (existingInvitations.length > 0) {
-        console.log(`🔄 Replacing ${existingInvitations.length} existing invitation(s) for email: ${email}`);
-        // Delete existing pending invitations for this email/organization
-        await db
-          .delete(schema.invitations)
-          .where(
-            and(
-              eq(schema.invitations.email, email),
-              eq(schema.invitations.organizationId, organizationId),
-              eq(schema.invitations.status, 'pending')
-            )
-          );
-      }
-
       // Generate secure invitation token
       const token = randomBytes(32).toString('hex');
       const tokenHash = createHash('sha256').update(token).digest('hex');
 
-      // Create invitation record
-      const invitationData = {
-        organizationId,
-        residenceId: residenceId || null,
-        email,
-        token,
-        tokenHash,
-        role: role as any,
-        invitedByUserId: currentUser.id,
-        expiresAt: new Date(expiresAt),
-        personalMessage: personalMessage || null,
-      };
-
-      const [newInvitation] = await db
-        .insert(schema.invitations)
-        .values(invitationData)
-        .returning();
+      // Soft-replace prior pending invitations for the same
+      // (organization, email, residence) tuple, insert the new invitation
+      // row, and write the lifecycle audit log entries. Shared with the MCP
+      // `invite_user` tool via createInvitationWithSoftReplace so the two
+      // paths cannot drift.
+      const ipAddress =
+        (req.headers['x-forwarded-for'] as string | undefined)?.split(',')[0]?.trim() ||
+        req.ip ||
+        null;
+      const userAgent = (req.headers['user-agent'] as string | undefined) || null;
+      const { invitation: newInvitation, replacedInvitationIds } =
+        await createInvitationWithSoftReplace({
+          organizationId,
+          residenceId: residenceId || null,
+          email,
+          role: role as InvitationRole,
+          token,
+          tokenHash,
+          expiresAt: new Date(expiresAt),
+          personalMessage: personalMessage || null,
+          invitedByUserId: currentUser.id,
+          audit: {
+            source: 'rest',
+            route: 'POST /api/invitations',
+            ipAddress,
+            userAgent,
+          },
+          logError: (msg, err) => logError(msg, err),
+        });
+      if (replacedInvitationIds.length > 0) {
+        logDebug('Soft-replacing existing invitation(s) for email', {
+          metadata: { count: replacedInvitationIds.length },
+        });
+      }
 
       // Get organization details for email
       const [organization] = await db
@@ -2869,7 +2946,10 @@ export function registerUserRoutes(app: Express): void {
       // Send invitation email
       const organizationName = organization?.name || 'Koveo Gestion';
       const inviterName = `${currentUser.firstName || currentUser.email} ${currentUser.lastName || ''}`.trim();
-      const invitationUrl = `${process.env.APP_URL || 'http://localhost:5000'}/accept-invitation?token=${token}`;
+      
+      // Construct the base URL - use REPLIT_DOMAINS for dev, APP_URL for production, localhost as fallback
+      const baseUrl = getBaseUrlFromReplitDomains() || process.env.APP_URL || 'http://localhost:5000';
+      const invitationUrl = `${baseUrl}/accept-invitation?token=${token}`;
       
       const emailSent = await emailService.sendInvitationEmail(
         email,
@@ -2879,8 +2959,10 @@ export function registerUserRoutes(app: Express): void {
         'fr'
       );
 
-      // Log invitation creation
-      console.log('✅ Invitation created:', {
+      // Log invitation creation. Email addresses are masked at info level
+      // for Quebec Law 25 compliance; full details remain available at
+      // debug level for local development.
+      logInfo('Invitation created', {
         id: newInvitation.id,
         email,
         role,
@@ -2888,11 +2970,21 @@ export function registerUserRoutes(app: Express): void {
         invitedBy: currentUser.email,
         emailSent,
       });
+      logDebug('Invitation created (full email)', {
+        metadata: {
+          id: newInvitation.id,
+          email,
+          role,
+          organizationId,
+          invitedBy: currentUser.email,
+          emailSent,
+        },
+      });
 
       // For tests, we'll treat email failure as success since tests may not have email configured
       if (!emailSent && process.env.NODE_ENV !== 'test') {
         // If email failed but invitation was created, log the issue
-        console.error('⚠️ Invitation created but email failed to send');
+        logWarn('Invitation created but email failed to send');
         return res.status(207).json({
           message: 'Invitation created but email failed to send',
           invitationId: newInvitation.id,
@@ -2906,7 +2998,22 @@ export function registerUserRoutes(app: Express): void {
         emailSent: true,
       });
     } catch (error: any) {
-      console.error('❌ Error creating invitation:', error);
+      // Task #204 — when the soft-replace helper exhausts its retry against
+      // a concurrent invite winning the unique-constraint race, surface a
+      // 409 with a friendly translated message instead of a generic 500.
+      // The full error is still logged server-side for operators.
+      if (error instanceof InvitationSoftReplaceRaceLostError) {
+        logWarn('Invitation soft-replace race lost after retry', {
+          metadata: { route: 'POST /api/invitations' },
+        });
+        return res.status(409).json({
+          error: 'Conflict',
+          code: 'INVITATION_ALREADY_PENDING',
+          message:
+            'A pending invitation already exists for this email. Please wait a moment and try again.',
+        });
+      }
+      logError('Error creating invitation', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to create invitation',
@@ -2917,8 +3024,7 @@ export function registerUserRoutes(app: Express): void {
   /**
    * GET /api/invitations - Gets all invitations (admin/manager only)
    */
-  app.get('/api/invitations', requireAuth, async (req: any, res) => {
-    try {
+  app.get('/api/invitations', requireAuth, asyncHandler(async (req: any, res) => {
       const currentUser = req.user || req.session?.user;
       if (!currentUser) {
         return res.status(401).json({
@@ -2952,14 +3058,7 @@ export function registerUserRoutes(app: Express): void {
       }
 
       res.json(invitations);
-    } catch (error: any) {
-      console.error('❌ Error fetching invitations:', error);
-      res.status(500).json({
-        error: 'Internal server error',
-        message: 'Failed to fetch invitations',
-      });
-    }
-  });
+    }, { errorMessage: 'Failed to fetch invitations', errorLogPrefix: '❌ Error fetching invitations', extraErrorFields: { error: 'Internal server error' } }));
 
   /**
    * POST /api/invitations/validate - Validates an invitation token
@@ -3045,7 +3144,7 @@ export function registerUserRoutes(app: Express): void {
         inviterName: inviter ? `${inviter.firstName} ${inviter.lastName}`.trim() : 'Unknown User',
       });
     } catch (error: any) {
-      console.error('❌ Error validating invitation:', error);
+      logError('Error validating invitation', error);
       res.status(500).json({
         isValid: false,
         message: 'Internal server error during validation',
@@ -3099,6 +3198,67 @@ export function registerUserRoutes(app: Express): void {
       const now = new Date();
       const expiresAt = new Date(invitation.expiresAt);
       if (now > expiresAt) {
+        // Lazily transition the row to status='expired' the first time we
+        // notice it so the audit log captures the lifecycle event. The
+        // conditional WHERE (id AND status='pending') gives us
+        // single-writer semantics under concurrent accepts: only one
+        // request will see a non-zero rowCount and therefore only one
+        // audit row will be written, even if two clients race.
+        if (invitation.status === 'pending') {
+          let didTransition = false;
+          try {
+            // Use RETURNING so we can detect whether this request was the
+            // one that actually flipped status pending -> expired without
+            // depending on driver-specific rowCount fields. Concurrent
+            // accepts will see an empty returned array on the losing
+            // side and skip the audit insert below.
+            const transitioned = await db
+              .update(schema.invitations)
+              .set({ status: 'expired', updatedAt: new Date() })
+              .where(
+                and(
+                  eq(schema.invitations.id, invitation.id),
+                  eq(schema.invitations.status, 'pending')
+                )
+              )
+              .returning({ id: schema.invitations.id });
+            didTransition = transitioned.length > 0;
+          } catch (transitionErr) {
+            // Surface (don't swallow) the primary state transition
+            // failure — this is business state, not just audit. We log
+            // and continue returning the EXPIRED response so the user
+            // still sees a meaningful error, but we deliberately skip
+            // the audit insert below since the row may not be in
+            // 'expired' status.
+            logError('Failed to transition invitation to expired', transitionErr);
+          }
+          if (didTransition) {
+            // Audit-only block: failures here must NOT break the
+            // primary expired response.
+            try {
+              await db.insert(schema.invitationAuditLog).values({
+                invitationId: invitation.id,
+                action: 'expired',
+                performedBy: null,
+                ipAddress:
+                  (req.headers['x-forwarded-for'] as string | undefined)?.split(',')[0]?.trim() ||
+                  req.ip ||
+                  null,
+                userAgent: (req.headers['user-agent'] as string | undefined) || null,
+                previousStatus: 'pending',
+                newStatus: 'expired',
+                details: {
+                  source: 'rest',
+                  route: 'POST /api/invitations/accept/:token',
+                  detectedAt: now.toISOString(),
+                  expiresAt: expiresAt.toISOString(),
+                },
+              });
+            } catch (auditErr) {
+              logError('Failed to write invitation_audit_log entry on EXPIRE', auditErr);
+            }
+          }
+        }
         return res.status(400).json({
           message: 'Invitation has expired',
           code: 'INVITATION_EXPIRED',
@@ -3110,6 +3270,22 @@ export function registerUserRoutes(app: Express): void {
         return res.status(400).json({
           message: 'Invitation has already been used',
           code: 'INVITATION_ALREADY_USED',
+        });
+      }
+
+      // Soft-replaced invitations retain their token; the user must use the
+      // newer invitation that replaced this one.
+      if (invitation.status === 'replaced') {
+        return res.status(400).json({
+          message: 'Invitation has been replaced by a newer invitation. Please use the latest invitation email.',
+          code: 'INVITATION_REPLACED',
+        });
+      }
+
+      if (invitation.status === 'cancelled') {
+        return res.status(400).json({
+          message: 'Invitation has been cancelled',
+          code: 'INVITATION_CANCELLED',
         });
       }
 
@@ -3132,63 +3308,169 @@ export function registerUserRoutes(app: Express): void {
       // Hash password
       const hashedPassword = await bcrypt.hash(password, 12);
 
-      // Create user account
-      const userData = {
+      // Resolve a unique username before opening the transaction. The
+      // unique-constraint on users.username will still backstop a race,
+      // but pre-checking outside the tx keeps the transaction short and
+      // matches the existing storage.createUser behaviour.
+      const baseUsername = generateUsernameFromEmail(invitation.email);
+      let uniqueUsername = baseUsername;
+      {
+        let attempts = 0;
+        const maxAttempts = 10;
+        let collision = await db
+          .select({ username: schema.users.username })
+          .from(schema.users)
+          .where(eq(schema.users.username, uniqueUsername))
+          .limit(1);
+        while (collision.length > 0 && attempts < maxAttempts) {
+          const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+          uniqueUsername = `${baseUsername}${randomSuffix}`;
+          attempts++;
+          collision = await db
+            .select({ username: schema.users.username })
+            .from(schema.users)
+            .where(eq(schema.users.username, uniqueUsername))
+            .limit(1);
+        }
+        if (attempts >= maxAttempts && collision.length > 0) {
+          throw new Error('Unable to generate unique username after maximum attempts');
+        }
+      }
+
+      // Demo roles share a fixed password hash from env, mirroring the
+      // legacy storage.createUser logic that previously wrapped this
+      // insert.
+      const isDemoRole = ['demo_manager', 'demo_tenant', 'demo_resident'].includes(
+        invitation.role as string
+      );
+      const finalPassword =
+        isDemoRole && process.env.DEMO_PASSWORD_HASH ? process.env.DEMO_PASSWORD_HASH : hashedPassword;
+
+      const userInsertData = {
         firstName: sanitizeName(firstName),
         lastName: sanitizeName(lastName),
         email: normalizeEmail(invitation.email),
-        username: generateUsernameFromEmail(invitation.email),
-        password: hashedPassword,
+        username: uniqueUsername,
+        password: finalPassword,
         phone: phone ? sanitizeString(phone) : '',
         language: language || 'fr',
         role: invitation.role as any,
         isActive: true,
-        organizationId: invitation.organizationId,
       };
 
-      const newUser = await storage.createUser(userData as InsertUser);
+      // Wrap user creation, every assignment row, the invitation status
+      // update, and the audit row in a single transaction so a partial
+      // failure (e.g. duplicate user_organizations row, residence FK
+      // violation) rolls back the entire accept and leaves no orphan
+      // user without org/residence links.
+      const newUser = await db.transaction(async (tx) => {
+        const inserted = await tx.insert(schema.users).values([userInsertData]).returning();
+        const createdUser = inserted[0];
 
-      // Create organization assignment if organizationId is provided
-      if (invitation.organizationId) {
-        await db.insert(schema.userOrganizations).values({
-          userId: newUser.id,
-          organizationId: invitation.organizationId,
-          organizationRole: invitation.role,
-          isActive: true,
+        if (invitation.organizationId) {
+          await tx.insert(schema.userOrganizations).values({
+            userId: createdUser.id,
+            organizationId: invitation.organizationId,
+            organizationRole: invitation.role,
+            isActive: true,
+          });
+
+          // For managers, automatically assign ALL buildings in the organization to user_buildings table
+          if (invitation.role === 'manager' || invitation.role === 'admin') {
+            const organizationBuildings = await tx
+              .select({ id: schema.buildings.id })
+              .from(schema.buildings)
+              .where(
+                and(
+                  eq(schema.buildings.organizationId, invitation.organizationId),
+                  eq(schema.buildings.isActive, true)
+                )
+              );
+
+            if (organizationBuildings.length > 0) {
+              const buildingAssignments = organizationBuildings.map((building) => ({
+                userId: createdUser.id,
+                buildingId: building.id,
+                relationshipType: 'manager',
+                isActive: true,
+              }));
+
+              await tx.insert(schema.userBuildings).values(buildingAssignments);
+            }
+          }
+        }
+
+        if (invitation.residenceId) {
+          // Map invitation role to residence relationship type
+          // Valid invitation roles: 'manager', 'tenant' (and demo variants)
+          // For residences, only tenants should be assigned (managers don't live in residences)
+          const relationshipType =
+            invitation.role === 'tenant' || invitation.role === 'demo_tenant'
+              ? 'tenant'
+              : 'occupant';
+
+          await tx.insert(schema.userResidences).values({
+            userId: createdUser.id,
+            residenceId: invitation.residenceId,
+            relationshipType,
+            startDate: new Date().toISOString().split('T')[0],
+            isActive: true,
+          });
+        }
+
+        await tx
+          .update(schema.invitations)
+          .set({
+            status: 'accepted',
+            acceptedAt: new Date(),
+            acceptedBy: createdUser.id,
+            updatedAt: new Date(),
+          })
+          .where(eq(schema.invitations.id, invitation.id));
+
+        // Audit row participates in the same transaction so the
+        // accepted-status flip and the audit trail commit or roll back
+        // together. A genuine audit failure here will roll back the
+        // accept, which is the desired behaviour now that the rest of
+        // the multi-table writes are also atomic.
+        await tx.insert(schema.invitationAuditLog).values({
+          invitationId: invitation.id,
+          action: 'accepted',
+          performedBy: createdUser.id,
+          ipAddress:
+            (req.headers['x-forwarded-for'] as string | undefined)?.split(',')[0]?.trim() ||
+            req.ip ||
+            null,
+          userAgent: (req.headers['user-agent'] as string | undefined) || null,
+          previousStatus: 'pending',
+          newStatus: 'accepted',
+          details: {
+            source: 'rest',
+            route: 'POST /api/invitations/accept/:token',
+            acceptedByUserId: createdUser.id,
+          },
         });
-        console.log('✅ User assigned to organization:', {
+
+        return createdUser;
+      });
+
+      // Invalidate user caches now that the transaction has committed.
+      // (storage.createUser used to do this; we mirror it here since we
+      // bypassed the storage layer for atomicity.)
+      CacheInvalidator.invalidateUserCaches('*');
+
+      logInfo('User assigned to organization (via invitation)', {
+        userId: newUser.id,
+        organizationId: invitation.organizationId,
+        role: invitation.role,
+      });
+      if (invitation.residenceId) {
+        logInfo('User assigned to residence (via invitation)', {
           userId: newUser.id,
-          organizationId: invitation.organizationId,
+          residenceId: invitation.residenceId,
           role: invitation.role,
         });
       }
-
-      // Create residence assignment if residenceId is provided
-      if (invitation.residenceId) {
-        await db.insert(schema.userResidences).values({
-          userId: newUser.id,
-          residenceId: invitation.residenceId,
-          relationshipType: invitation.role === 'tenant' ? 'tenant' : 'occupant',
-          startDate: new Date().toISOString().split('T')[0], // Convert Date to YYYY-MM-DD string format
-          isActive: true,
-        });
-        console.log('✅ User assigned to residence:', {
-          userId: newUser.id,
-          residenceId: invitation.residenceId,
-          relationshipType: invitation.role === 'tenant' ? 'tenant' : 'occupant',
-        });
-      }
-
-      // Mark invitation as accepted
-      await db
-        .update(schema.invitations)
-        .set({
-          status: 'accepted',
-          acceptedAt: new Date(),
-          acceptedBy: newUser.id,
-          updatedAt: new Date(),
-        })
-        .where(eq(schema.invitations.id, invitation.id));
 
       // Log user creation
       logUserCreation({
@@ -3204,7 +3486,7 @@ export function registerUserRoutes(app: Express): void {
       queryCache.invalidate('users', 'all_users');
       queryCache.invalidate('invitations');
 
-      console.log('✅ User created via invitation acceptance:', {
+      logInfo('User created via invitation acceptance', {
         userId: newUser.id,
         email: newUser.email,
         role: newUser.role,
@@ -3226,7 +3508,7 @@ export function registerUserRoutes(app: Express): void {
         },
       });
     } catch (error: any) {
-      console.error('❌ Error accepting invitation:', error);
+      logError('Error accepting invitation', error);
       res.status(500).json({
         message: 'Internal server error during account creation',
         code: 'INVITATION_ACCEPT_ERROR',
@@ -3237,8 +3519,7 @@ export function registerUserRoutes(app: Express): void {
   /**
    * POST /api/invitations/:id/resend - Resends an invitation
    */
-  app.post('/api/invitations/:id/resend', requireAuth, async (req: any, res) => {
-    try {
+  app.post('/api/invitations/:id/resend', requireAuth, asyncHandler(async (req: any, res) => {
       const currentUser = req.user || req.session?.user;
       if (!currentUser) {
         return res.status(401).json({
@@ -3271,6 +3552,17 @@ export function registerUserRoutes(app: Express): void {
         });
       }
 
+      // Reject resend for terminal/replaced states. A 'replaced' invitation
+      // was soft-deleted by a newer invite for the same (org, email,
+      // residence) tuple; resurrecting it would silently undo the
+      // replacement.
+      if (invitation.status === 'replaced' || invitation.status === 'accepted' || invitation.status === 'cancelled') {
+        return res.status(400).json({
+          message: `Cannot resend invitation: status is "${invitation.status}"`,
+          code: 'INVITATION_NOT_RESENDABLE',
+        });
+      }
+
       // Update invitation with new expiry
       const newExpiresAt = new Date();
       newExpiresAt.setDate(newExpiresAt.getDate() + 7); // Extend by 7 days
@@ -3284,6 +3576,31 @@ export function registerUserRoutes(app: Express): void {
         })
         .where(eq(schema.invitations.id, id));
 
+      // Audit trail: record the resend lifecycle event. Status stays
+      // 'pending' before/after; the action+details capture the renewed
+      // expiry. Failure to write must NOT mask the successful resend.
+      try {
+        await db.insert(schema.invitationAuditLog).values({
+          invitationId: id,
+          action: 'resent',
+          performedBy: currentUser.id,
+          ipAddress:
+            (req.headers['x-forwarded-for'] as string | undefined)?.split(',')[0]?.trim() ||
+            req.ip ||
+            null,
+          userAgent: (req.headers['user-agent'] as string | undefined) || null,
+          previousStatus: invitation.status,
+          newStatus: 'pending',
+          details: {
+            source: 'rest',
+            route: 'POST /api/invitations/:id/resend',
+            newExpiresAt: newExpiresAt.toISOString(),
+          },
+        });
+      } catch (auditErr) {
+        logError('Failed to write invitation_audit_log entry on RESEND', auditErr);
+      }
+
       // Get organization details for email
       const [organization] = await db
         .select()
@@ -3294,7 +3611,10 @@ export function registerUserRoutes(app: Express): void {
       // Send invitation email again
       const organizationName = organization?.name || 'Koveo Gestion';
       const inviterName = `${currentUser.firstName || currentUser.email} ${currentUser.lastName || ''}`.trim();
-      const invitationUrl = `${process.env.APP_URL || 'http://localhost:5000'}/accept-invitation?token=${invitation.token}`;
+      
+      // Construct the base URL - use REPLIT_DOMAINS for dev, APP_URL for production, localhost as fallback
+      const baseUrl = getBaseUrlFromReplitDomains() || process.env.APP_URL || 'http://localhost:5000';
+      const invitationUrl = `${baseUrl}/accept-invitation?token=${invitation.token}`;
       
       const emailSent = await emailService.sendInvitationEmail(
         invitation.email,
@@ -3304,7 +3624,7 @@ export function registerUserRoutes(app: Express): void {
         'fr'
       );
 
-      console.log('✅ Invitation resent:', {
+      logInfo('Invitation resent', {
         id,
         email: invitation.email,
         newExpiresAt,
@@ -3312,7 +3632,7 @@ export function registerUserRoutes(app: Express): void {
       });
 
       if (!emailSent) {
-        console.error('⚠️ Invitation updated but email failed to resend');
+        logWarn('Invitation updated but email failed to resend');
         return res.status(207).json({
           message: 'Invitation updated but email failed to resend',
           emailSent: false,
@@ -3323,22 +3643,14 @@ export function registerUserRoutes(app: Express): void {
         message: 'Invitation resent successfully',
         emailSent: true,
       });
-    } catch (error: any) {
-      console.error('❌ Error resending invitation:', error);
-      res.status(500).json({
-        error: 'Internal server error',
-        message: 'Failed to resend invitation',
-      });
-    }
-  });
+    }, { errorMessage: 'Failed to resend invitation', errorLogPrefix: '❌ Error resending invitation', extraErrorFields: { error: 'Internal server error' } }));
 
   /**
    * GET /api/invitations/pending - Get pending invitations with role-based filtering.
    * Admin: can see all pending invitations
    * Manager: can only see pending invitations in their organizations
    */
-  app.get('/api/invitations/pending', requireAuth, async (req: any, res) => {
-    try {
+  app.get('/api/invitations/pending', requireAuth, asyncHandler(async (req: any, res) => {
       const currentUser = req.user || req.session?.user;
       if (!currentUser) {
         return res.status(401).json({
@@ -3443,22 +3755,14 @@ export function registerUserRoutes(app: Express): void {
       const invitations = await invitationsQuery;
 
       res.json(invitations);
-    } catch (error: any) {
-      console.error('❌ Error fetching pending invitations:', error);
-      res.status(500).json({
-        error: 'Internal server error',
-        message: 'Failed to fetch pending invitations',
-      });
-    }
-  });
+    }, { errorMessage: 'Failed to fetch pending invitations', errorLogPrefix: '❌ Error fetching pending invitations', extraErrorFields: { error: 'Internal server error' } }));
 
   /**
    * DELETE /api/invitations/:id - Delete a pending invitation.
    * Admin: can delete any invitation
    * Manager: can only delete invitations from their organizations
    */
-  app.delete('/api/invitations/:id', requireAuth, async (req: any, res) => {
-    try {
+  app.delete('/api/invitations/:id', requireAuth, asyncHandler(async (req: any, res) => {
       const currentUser = req.user || req.session?.user;
       const { id: invitationId } = req.params;
 
@@ -3500,6 +3804,16 @@ export function registerUserRoutes(app: Express): void {
 
       const invitationData = invitation[0];
 
+      // Status guard: only pending invitations can be cancelled. Mirrors
+      // the MCP cancel_invitation handler so we don't transition
+      // accepted/expired/already-cancelled rows back to 'cancelled'.
+      if (invitationData.status !== 'pending') {
+        return res.status(400).json({
+          message: `Invitation cannot be cancelled (current status: ${invitationData.status})`,
+          code: 'INVALID_INVITATION_STATUS',
+        });
+      }
+
       // Check if manager has permission to delete this invitation
       if (currentUser.role === 'manager') {
         const managerOrgs = await db
@@ -3522,19 +3836,143 @@ export function registerUserRoutes(app: Express): void {
         }
       }
 
-      // Delete the invitation
-      await db.delete(schema.invitations).where(eq(schema.invitations.id, invitationId));
+      // Soft-cancel instead of physical delete so the audit trail row
+      // we write below survives. The invitation_audit_log.invitationId
+      // FK is `onDelete: cascade`, which means a hard DELETE of the
+      // invitation would also wipe out the just-inserted audit record
+      // and defeat the purpose of task #151.
+      await db
+        .update(schema.invitations)
+        .set({ status: 'cancelled', updatedAt: new Date() })
+        .where(eq(schema.invitations.id, invitationId));
+
+      // Audit trail: record who cancelled this invitation. Mirrors the
+      // MCP cancel_invitation handler so admins see REST and chat
+      // cancellations side-by-side. Failure to write the audit row
+      // should NOT mask the successful cancellation, so we
+      // log-and-swallow.
+      try {
+        await db.insert(schema.invitationAuditLog).values({
+          invitationId: invitationData.id,
+          action: 'cancelled',
+          performedBy: currentUser.id,
+          ipAddress:
+            (req.headers['x-forwarded-for'] as string | undefined)?.split(',')[0]?.trim() ||
+            req.ip ||
+            null,
+          userAgent: (req.headers['user-agent'] as string | undefined) || null,
+          previousStatus: invitationData.status,
+          newStatus: 'cancelled',
+          details: { source: 'rest', route: 'DELETE /api/invitations/:id' },
+        });
+      } catch (auditErr) {
+        logError('Failed to write invitation_audit_log entry on DELETE', auditErr);
+      }
 
       res.json({
-        message: 'Invitation deleted successfully',
+        message: 'Invitation cancelled successfully',
         invitationId,
       });
-    } catch (error: any) {
-      console.error('❌ Error deleting invitation:', error);
-      res.status(500).json({
-        error: 'Internal server error',
-        message: 'Failed to delete invitation',
+    }, { errorMessage: 'Failed to delete invitation', errorLogPrefix: '❌ Error deleting invitation', extraErrorFields: { error: 'Internal server error' } }));
+
+  /**
+   * GET /api/invitations/:id/history - Returns the audit log entries for a single invitation.
+   * Mirrors the MCP `get_invitation_history` tool:
+   *   - tenants are denied
+   *   - admins can read history for any invitation
+   *   - managers can only read history for invitations they themselves originally sent
+   * Pagination via `limit` (default 25, max 100) and `offset` (default 0).
+   */
+  app.get('/api/invitations/:id/history', requireAuth, asyncHandler(async (req: any, res) => {
+      const currentUser = req.user || req.session?.user;
+      const { id: invitationId } = req.params;
+
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED',
+        });
+      }
+
+      if (!['admin', 'manager'].includes(currentUser.role)) {
+        return res.status(403).json({
+          message: 'Insufficient permissions to view invitation history',
+          code: 'INSUFFICIENT_PERMISSIONS',
+        });
+      }
+
+      const parsedLimit = Number.parseInt(String(req.query.limit ?? ''), 10);
+      const parsedOffset = Number.parseInt(String(req.query.offset ?? ''), 10);
+      const pageLimit = Number.isFinite(parsedLimit)
+        ? Math.min(Math.max(parsedLimit, 1), 100)
+        : 25;
+      const pageOffset = Number.isFinite(parsedOffset) ? Math.max(parsedOffset, 0) : 0;
+
+      const [invitation] = await db
+        .select({
+          id: schema.invitations.id,
+          invitedByUserId: schema.invitations.invitedByUserId,
+        })
+        .from(schema.invitations)
+        .where(eq(schema.invitations.id, invitationId))
+        .limit(1);
+
+      if (!invitation) {
+        return res.status(404).json({
+          message: 'Invitation not found',
+          code: 'INVITATION_NOT_FOUND',
+        });
+      }
+
+      if (
+        currentUser.role === 'manager' &&
+        invitation.invitedByUserId !== currentUser.id
+      ) {
+        return res.status(403).json({
+          message: 'You can only view history for invitations you sent',
+          code: 'INSUFFICIENT_PERMISSIONS',
+        });
+      }
+
+      const totalRows = await db
+        .select({ value: count() })
+        .from(schema.invitationAuditLog)
+        .where(eq(schema.invitationAuditLog.invitationId, invitationId));
+      const total = Number(totalRows[0]?.value ?? 0);
+
+      const items = await db
+        .select({
+          id: schema.invitationAuditLog.id,
+          invitationId: schema.invitationAuditLog.invitationId,
+          action: schema.invitationAuditLog.action,
+          previousStatus: schema.invitationAuditLog.previousStatus,
+          newStatus: schema.invitationAuditLog.newStatus,
+          performedBy: schema.invitationAuditLog.performedBy,
+          ipAddress: schema.invitationAuditLog.ipAddress,
+          userAgent: schema.invitationAuditLog.userAgent,
+          details: schema.invitationAuditLog.details,
+          createdAt: schema.invitationAuditLog.createdAt,
+          performedByName: sql<
+            string | null
+          >`CASE WHEN users.first_name IS NULL AND users.last_name IS NULL THEN NULL ELSE CONCAT(COALESCE(users.first_name, ''), ' ', COALESCE(users.last_name, '')) END`,
+          performedByEmail: schema.users.email,
+        })
+        .from(schema.invitationAuditLog)
+        .leftJoin(
+          schema.users,
+          eq(schema.invitationAuditLog.performedBy, schema.users.id)
+        )
+        .where(eq(schema.invitationAuditLog.invitationId, invitationId))
+        .orderBy(desc(schema.invitationAuditLog.createdAt))
+        .limit(pageLimit)
+        .offset(pageOffset);
+
+      res.json({
+        items,
+        total,
+        limit: pageLimit,
+        offset: pageOffset,
+        hasMore: pageOffset + items.length < total,
       });
-    }
-  });
+    }, { errorMessage: 'Failed to fetch invitation history', errorLogPrefix: '❌ Error fetching invitation history', extraErrorFields: { error: 'Internal server error' } }));
 }

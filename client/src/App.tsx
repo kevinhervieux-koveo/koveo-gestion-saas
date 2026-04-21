@@ -1,4 +1,5 @@
 import { Switch, Route, useLocation } from 'wouter';
+import { HelmetProvider } from 'react-helmet-async';
 import { queryClient } from './lib/queryClient';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/toaster';
@@ -9,7 +10,7 @@ import { Sidebar } from '@/components/layout/sidebar';
 import { Suspense, useEffect } from 'react';
 import React from 'react';
 import { memoryOptimizer } from '@/utils/memory-monitor';
-import { optimizedPageLoaders, createOptimizedLoader } from '@/utils/component-loader';
+import { optimizedPageLoaders, createOptimizedLoader, smartPreload } from '@/utils/component-loader';
 import { LoadingSpinner } from './components/ui/loading-spinner';
 import { useSmoothNavigation } from '@/hooks/use-smooth-navigation';
 import { webVitalsMonitor } from '@/utils/web-vitals-monitor';
@@ -35,6 +36,7 @@ import { HelpProvider } from '@/contexts/HelpContext';
 import { HelpButton } from '@/components/help/HelpButton';
 import { HelpOverlay } from '@/components/help/HelpOverlay';
 import { HelpHighlighter } from '@/components/help/HelpHighlighter';
+import { ProtectedRoute } from '@/components/common/ProtectedRoute';
 
 // Optimized lazy-loaded Admin pages
 const AdminOrganizations = optimizedPageLoaders.AdminOrganizations;
@@ -43,16 +45,7 @@ const AdminDocumentation = createOptimizedLoader(
   'admin-documentation',
   { enableMemoryCleanup: true }
 );
-const AdminPillars = createOptimizedLoader(() => import('@/pages/admin/pillars'), 'admin-pillars', {
-  enableMemoryCleanup: true,
-});
-const AdminRoadmap = optimizedPageLoaders.AdminRoadmap;
 const AdminQuality = optimizedPageLoaders.AdminQuality;
-const AdminSuggestions = createOptimizedLoader(
-  () => import('@/pages/admin/suggestions'),
-  'admin-suggestions',
-  { enableMemoryCleanup: true }
-);
 const AdminPermissions = createOptimizedLoader(
   () => import('@/pages/admin/permissions'),
   'admin-permissions',
@@ -172,44 +165,38 @@ const SettingsIdeaBox = createOptimizedLoader(
 );
 
 // Optimized lazy-loaded Legacy pages
-const PillarsPage = AdminPillars; // Reuse admin pillars
 const NotFound = createOptimizedLoader(() => import('@/pages/not-found'), 'not-found', {
   enableMemoryCleanup: true,
 });
 
 // Authentication pages (high priority)
 const LoginPage = createOptimizedLoader(() => import('@/pages/auth/login'), 'login-page', {
-  preloadDelay: 500,
   enableMemoryCleanup: true,
 });
 const ForgotPasswordPage = createOptimizedLoader(
   () => import('@/pages/auth/forgot-password'),
   'forgot-password-page',
-  { preloadDelay: 500, enableMemoryCleanup: true }
+  { enableMemoryCleanup: true }
 );
 const ResetPasswordPage = createOptimizedLoader(
   () => import('@/pages/auth/reset-password'),
   'reset-password-page',
-  { preloadDelay: 500, enableMemoryCleanup: true }
+  { enableMemoryCleanup: true }
 );
 
 // Home page (public route)
 const HomePage = createOptimizedLoader(() => import('@/pages/home'), 'home-page', {
-  preloadDelay: 100,
   enableMemoryCleanup: true,
 });
 
 // New public pages
 const FeaturesPage = createOptimizedLoader(() => import('@/pages/features'), 'features-page', {
-  preloadDelay: 200,
   enableMemoryCleanup: true,
 });
 const SecurityPage = createOptimizedLoader(() => import('@/pages/security'), 'security-page', {
-  preloadDelay: 200,
   enableMemoryCleanup: true,
 });
 const StoryPage = createOptimizedLoader(() => import('@/pages/story'), 'story-page', {
-  preloadDelay: 200,
   enableMemoryCleanup: true,
 });
 const PrivacyPolicyPage = createOptimizedLoader(
@@ -223,42 +210,36 @@ const TermsOfServicePage = createOptimizedLoader(
   { enableMemoryCleanup: true }
 );
 const PricingPage = createOptimizedLoader(() => import('@/pages/pricing'), 'pricing-page', {
-  preloadDelay: 200,
+  enableMemoryCleanup: true,
+});
+const EnterprisePage = createOptimizedLoader(() => import('@/pages/enterprise'), 'enterprise-page', {
   enableMemoryCleanup: true,
 });
 
-// Main Dashboard page
-const DashboardPage = createOptimizedLoader(() => import('@/pages/dashboard'), 'dashboard-page', {
-  preloadDelay: 200,
+// Main Dashboard page (Financial Overview)
+const DashboardPage = createOptimizedLoader(() => import('@/pages/dashboard/overview'), 'dashboard-page', {
   enableMemoryCleanup: true,
 });
-
-// Dashboard Calendar page
-const DashboardCalendarPage = createOptimizedLoader(
-  () => import('@/pages/dashboard/calendar'),
-  'dashboard-calendar-page',
-  { preloadDelay: 200, enableMemoryCleanup: true }
-);
 
 // Dashboard Communication page
 const DashboardCommunicationPage = createOptimizedLoader(
   () => import('@/pages/dashboard/communication'),
   'dashboard-communication-page',
-  { preloadDelay: 200, enableMemoryCleanup: true }
+  { enableMemoryCleanup: true }
 );
 
 // Invitation acceptance page (public route)
 const InvitationAcceptancePage = createOptimizedLoader(
   () => import('@/pages/auth/invitation-acceptance'),
   'invitation-acceptance-page',
-  { preloadDelay: 500, enableMemoryCleanup: true }
+  { enableMemoryCleanup: true }
 );
 
 // Performance Dashboard page (admin route)
 const PerformanceDashboardPage = createOptimizedLoader(
   () => import('@/components/dashboard/PerformanceDashboard'),
   'performance-dashboard-page',
-  { preloadDelay: 200, enableMemoryCleanup: true }
+  { enableMemoryCleanup: true }
 );
 
 /**
@@ -276,6 +257,11 @@ function Router() {
   
   // Enable smooth scroll-to-top on navigation
   useSmoothNavigation();
+
+  // Preload likely next pages for the current section during browser idle time
+  useEffect(() => {
+    smartPreload(location);
+  }, [location]);
 
   // Show loading spinner while authentication is being determined
   if (isLoading || isAuthenticating) {
@@ -296,6 +282,7 @@ function Router() {
     '/register',
     '/features',
     '/pricing',
+    '/enterprise',
     '/security',
     '/story',
     '/privacy-policy',
@@ -310,6 +297,7 @@ function Router() {
           <Route path='/' component={HomePage} />
           <Route path='/features' component={FeaturesPage} />
           <Route path='/pricing' component={PricingPage} />
+          <Route path='/enterprise' component={EnterprisePage} />
           <Route path='/security' component={SecurityPage} />
           <Route path='/story' component={StoryPage} />
           <Route path='/privacy-policy' component={PrivacyPolicyPage} />
@@ -356,46 +344,34 @@ function Router() {
             <Route path='/auth/login' component={LoginRedirect} />
 
             {/* Main Dashboard */}
-            <Route path='/dashboard/quick-actions' component={DashboardPage} />
-            <Route path='/dashboard/calendar' component={DashboardCalendarPage} />
+            <Route path='/dashboard/overview' component={DashboardPage} />
             <Route path='/dashboard/communication' component={DashboardCommunicationPage} />
 
             {/* Admin routes */}
-            <Route path='/admin/organizations' component={AdminOrganizations} />
-            <Route path='/admin/documentation' component={AdminDocumentation} />
-            <Route path='/admin/pillars' component={AdminPillars} />
-            <Route path='/admin/roadmap' component={AdminRoadmap} />
-            <Route path='/admin/quality' component={AdminQuality} />
-            <Route path='/admin/compliance' component={AdminCompliance} />
-            <Route path='/admin/suggestions' component={AdminSuggestions} />
-            <Route path='/admin/permissions' component={AdminPermissions} />
-            <Route path='/admin/performance' component={PerformanceDashboardPage} />
+            <Route path='/admin/organizations'>{() => <ProtectedRoute requiredRole="admin"><AdminOrganizations /></ProtectedRoute>}</Route>
+            <Route path='/admin/documentation'>{() => <ProtectedRoute requiredRole="admin"><AdminDocumentation /></ProtectedRoute>}</Route>
+            <Route path='/admin/quality'>{() => <ProtectedRoute requiredRole="admin"><AdminQuality /></ProtectedRoute>}</Route>
+            <Route path='/admin/compliance'>{() => <ProtectedRoute requiredRole="admin"><AdminCompliance /></ProtectedRoute>}</Route>
+            <Route path='/admin/permissions'>{() => <ProtectedRoute requiredRole="admin"><AdminPermissions /></ProtectedRoute>}</Route>
+            <Route path='/admin/performance'>{() => <ProtectedRoute requiredRole="admin"><PerformanceDashboardPage /></ProtectedRoute>}</Route>
 
             {/* Owner routes removed - documentation consolidated under admin section */}
 
             {/* Manager routes */}
-            <Route path='/manager/buildings'>{() => <ManagerBuildings />}</Route>
-            <Route path='/manager/buildings/documents' component={() => <BuildingDocuments />} />
-            {/* Support dynamic building ID in URL path */}
-            <Route
-              path='/manager/buildings/:buildingId/documents'
-              component={() => <BuildingDocuments />}
-            />
-            <Route path='/manager/residences'>{() => <ManagerResidences />}</Route>
-            <Route path='/manager/residences/documents' component={() => <ResidenceDocuments />} />
-            {/* Support dynamic residence ID in URL path */}
-            <Route
-              path='/manager/residences/:residenceId/documents'
-              component={() => <ResidenceDocuments />}
-            />
-            <Route path='/manager/budget'>{() => <ManagerBudget />}</Route>
-            <Route path='/manager/bills'>{() => <ManagerBills />}</Route>
-            <Route path='/manager/invoices' component={ManagerInvoices} />
-            <Route path='/manager/demands' component={ManagerDemands} />
-            <Route path='/manager/user-management' component={ManagerUserManagement} />
-            <Route path='/manager/common-spaces-stats'>{() => <ManagerCommonSpacesStats />}</Route>
-            <Route path='/manager/maintenance/inventory'>{() => <ManagerMaintenanceInventory />}</Route>
-            <Route path='/manager/maintenance/projects'>{() => <ManagerMaintenanceProjects />}</Route>
+            <Route path='/manager/buildings'>{() => <ProtectedRoute requiredRole="manager"><ManagerBuildings /></ProtectedRoute>}</Route>
+            <Route path='/manager/buildings/documents'>{() => <ProtectedRoute requiredRole="manager"><BuildingDocuments /></ProtectedRoute>}</Route>
+            <Route path='/manager/buildings/:buildingId/documents'>{() => <ProtectedRoute requiredRole="manager"><BuildingDocuments /></ProtectedRoute>}</Route>
+            <Route path='/manager/residences'>{() => <ProtectedRoute requiredRole="manager"><ManagerResidences /></ProtectedRoute>}</Route>
+            <Route path='/manager/residences/documents'>{() => <ProtectedRoute requiredRole="manager"><ResidenceDocuments /></ProtectedRoute>}</Route>
+            <Route path='/manager/residences/:residenceId/documents'>{() => <ProtectedRoute requiredRole="manager"><ResidenceDocuments /></ProtectedRoute>}</Route>
+            <Route path='/manager/budget'>{() => <ProtectedRoute requiredRole="manager"><ManagerBudget /></ProtectedRoute>}</Route>
+            <Route path='/manager/bills'>{() => <ProtectedRoute requiredRole="manager"><ManagerBills /></ProtectedRoute>}</Route>
+            <Route path='/manager/invoices'>{() => <ProtectedRoute requiredRole="manager"><ManagerInvoices /></ProtectedRoute>}</Route>
+            <Route path='/manager/demands'>{() => <ProtectedRoute requiredRole="manager"><ManagerDemands /></ProtectedRoute>}</Route>
+            <Route path='/manager/user-management'>{() => <ProtectedRoute requiredRole="manager"><ManagerUserManagement /></ProtectedRoute>}</Route>
+            <Route path='/manager/common-spaces-stats'>{() => <ProtectedRoute requiredRole="manager"><ManagerCommonSpacesStats /></ProtectedRoute>}</Route>
+            <Route path='/manager/maintenance/inventory'>{() => <ProtectedRoute requiredRole="manager"><ManagerMaintenanceInventory /></ProtectedRoute>}</Route>
+            <Route path='/manager/maintenance/projects'>{() => <ProtectedRoute requiredRole="manager"><ManagerMaintenanceProjects /></ProtectedRoute>}</Route>
 
 
             {/* Residents routes */}
@@ -428,9 +404,6 @@ function Router() {
             <Route path='/settings/bug-reports' component={SettingsBugReports} />
             <Route path='/settings/idea-box' component={SettingsIdeaBox} />
 
-            {/* Legacy routes */}
-            <Route path='/pillars' component={PillarsPage} />
-
             {/* 404 */}
             <Route component={NotFound} />
           </Switch>
@@ -458,7 +431,7 @@ function LoginRedirect() {
   const [, setLocation] = useLocation();
 
   useEffect(() => {
-    setLocation('/dashboard/quick-actions');
+    setLocation('/dashboard/overview');
   }, [setLocation]);
 
   return <LoadingSpinner />;
@@ -487,6 +460,7 @@ function App() {
   }, []);
 
   return (
+    <HelmetProvider>
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
         <AuthErrorBoundary>
@@ -503,6 +477,7 @@ function App() {
         </AuthErrorBoundary>
       </LanguageProvider>
     </QueryClientProvider>
+    </HelmetProvider>
   );
 }
 

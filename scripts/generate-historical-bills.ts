@@ -2,15 +2,9 @@
 
 import { db } from '../server/db';
 import { bills } from '../shared/schemas/financial';
-import { buildings } from '../shared/schemas/property';
-import { eq } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 import fs from 'fs';
 import path from 'path';
-import { 
-  generateStorageDirectory, 
-  type UploadContext 
-} from '../shared/config/upload-config';
 
 // Building and user details
 const BUILDING_ID = 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984';
@@ -121,7 +115,7 @@ This document is automatically generated for Koveo Gestion system testing purpos
 `;
 }
 
-// Create attachment file using hierarchical storage structure
+// Create attachment file
 async function createBillAttachment(
   billId: string,
   billNumber: string,
@@ -131,47 +125,23 @@ async function createBillAttachment(
   date: string,
   category: string
 ): Promise<{ filePath: string; fileName: string; fileSize: number }> {
-  // Get organization ID for the building
-  const [building] = await db
-    .select({ organizationId: buildings.organizationId })
-    .from(buildings)
-    .where(eq(buildings.id, BUILDING_ID))
-    .limit(1);
-  
-  const organizationId = building?.organizationId || 'da67894c-fbbe-4f0f-b686-ee1d1cb13891'; // Fallback to Demo organization
-  
-  // Create upload context for hierarchical storage
-  const uploadContext: UploadContext = {
-    type: 'bills',
-    organizationId,
-    buildingId: BUILDING_ID,
-    userRole: 'manager',
-    userId: ADMIN_USER_ID
-  };
-  
-  // Generate hierarchical storage path
-  const storageDir = generateStorageDirectory(uploadContext);
-  const fileName = `invoice-${billNumber.toLowerCase().replace(/[^a-z0-9-]/g, '-')}.txt`;
-  const relativePath = `${storageDir}/${fileName}`;
-  
-  // Full path from uploads directory
-  const uploadsBaseDir = path.join(process.cwd(), 'uploads');
-  const fullPath = path.join(uploadsBaseDir, relativePath);
-  const dir = path.dirname(fullPath);
+  const uploadsDir = path.join(process.cwd(), 'uploads', 'bills');
   
   // Ensure directory exists
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
   }
 
+  const fileName = `invoice-${billNumber.toLowerCase().replace(/[^a-z0-9-]/g, '-')}.txt`;
+  const filePath = path.join(uploadsDir, fileName);
   const content = generateBillAttachmentContent(billNumber, title, vendor, amount, date, category);
   
   // Write file
-  fs.writeFileSync(fullPath, content, 'utf8');
-  const fileSize = fs.statSync(fullPath).size;
+  fs.writeFileSync(filePath, content, 'utf8');
+  const fileSize = fs.statSync(filePath).size;
   
   return {
-    filePath: relativePath, // Return relative path for database storage
+    filePath: `uploads/bills/${fileName}`,
     fileName,
     fileSize
   };

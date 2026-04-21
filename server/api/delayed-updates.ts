@@ -41,6 +41,7 @@ export function registerDelayedUpdateRoutes(app: Express) {
           ],
         },
       });
+    } catch (_error) {
       res.status(500).json({
         message: 'Failed to get delayed update status',
         _error: _error instanceof Error ? _error.message : 'Unknown error',
@@ -78,6 +79,7 @@ export function registerDelayedUpdateRoutes(app: Express) {
         triggeredBy: user.id,
         timestamp: new Date().toISOString(),
       });
+    } catch (_error) {
       res.status(500).json({
         message: 'Failed to force immediate bill update',
         _error: _error instanceof Error ? _error.message : 'Unknown error',
@@ -105,10 +107,6 @@ export function registerDelayedUpdateRoutes(app: Express) {
         });
       }
 
-        `⚡ Force immediate update for residence ${residenceId} requested by user ${user.id}`
-      );
-
-      // Force immediate update
       await delayedUpdateService.forceImmediateResidenceUpdate(residenceId);
 
       res.json({
@@ -117,6 +115,7 @@ export function registerDelayedUpdateRoutes(app: Express) {
         triggeredBy: user.id,
         timestamp: new Date().toISOString(),
       });
+    } catch (_error) {
       res.status(500).json({
         message: 'Failed to force immediate residence update',
         _error: _error instanceof Error ? _error.message : 'Unknown error',
@@ -157,6 +156,7 @@ export function registerDelayedUpdateRoutes(app: Express) {
         },
         message: 'Delayed update system is operational',
       });
+    } catch (_error) {
       res.status(500).json({
         status: 'unhealthy',
         _error: _error instanceof Error ? _error.message : 'Unknown error',

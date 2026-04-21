@@ -1,0 +1,275 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+budget-BuFvP9Zd.js:16 🔍 [BUDGET] Component mounted {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984'}
+budget-BuFvP9Zd.js:16 🔍 [BUDGET] Context changed: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984'}
+budget-BuFvP9Zd.js:16 🔍 [BUDGET] Filters updated: {viewType: 'month', periodLength: 12, startMonth: 11, startYear: 2025, dataVisibility: {…}}
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+budget-BuFvP9Zd.js:16 🔍 [BUDGET] Filters updated: {viewType: 'month', periodLength: 12, startMonth: 2, startYear: 2025, dataVisibility: {…}}
+index-Cn4eQUd4.js:233 Each child in a list should have a unique "key" prop.
+
+Check the render method of `ForwardRef`. It was passed a child from $k. See https://react.dev/link/warning-keys for more information.
+overrideMethod @ hook.js:608
+(anonymous) @ index-Cn4eQUd4.js:233
+X @ index-Cn4eQUd4.js:45
+A @ index-Cn4eQUd4.js:233
+I @ index-Cn4eQUd4.js:127
+ee @ index-Cn4eQUd4.js:127
+ye @ index-Cn4eQUd4.js:127
+(anonymous) @ index-Cn4eQUd4.js:127
+dt @ index-Cn4eQUd4.js:141
+vd @ index-Cn4eQUd4.js:150
+X @ index-Cn4eQUd4.js:45
+Jg @ index-Cn4eQUd4.js:163
+Zg @ index-Cn4eQUd4.js:163
+Rd @ index-Cn4eQUd4.js:163
+Gg @ index-Cn4eQUd4.js:163
+mv @ index-Cn4eQUd4.js:185
+Rs @ index-Cn4eQUd4.js:185
+Od @ index-Cn4eQUd4.js:185
+(anonymous) @ index-Cn4eQUd4.js:185
+<circle>
+Mw.Nu.jsxDEV @ index-Cn4eQUd4.js:15
+dot @ budget-BuFvP9Zd.js:16
+Dk @ vendor-charts-DbITUqjm.js:75
+(anonymous) @ vendor-charts-DbITUqjm.js:75
+$k @ vendor-charts-DbITUqjm.js:75
+react_stack_bottom_frame @ index-Cn4eQUd4.js:229
+jc @ index-Cn4eQUd4.js:120
+ud @ index-Cn4eQUd4.js:141
+vd @ index-Cn4eQUd4.js:150
+X @ index-Cn4eQUd4.js:45
+Jg @ index-Cn4eQUd4.js:163
+Zg @ index-Cn4eQUd4.js:163
+Rd @ index-Cn4eQUd4.js:163
+Gg @ index-Cn4eQUd4.js:163
+mv @ index-Cn4eQUd4.js:185
+Rs @ index-Cn4eQUd4.js:185
+Od @ index-Cn4eQUd4.js:185
+(anonymous) @ index-Cn4eQUd4.js:185
+<$k>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Mu @ vendor-charts-DbITUqjm.js:75
+react_stack_bottom_frame @ index-Cn4eQUd4.js:229
+jc @ index-Cn4eQUd4.js:120
+ud @ index-Cn4eQUd4.js:141
+vd @ index-Cn4eQUd4.js:150
+X @ index-Cn4eQUd4.js:45
+Jg @ index-Cn4eQUd4.js:163
+Zg @ index-Cn4eQUd4.js:163
+Rd @ index-Cn4eQUd4.js:163
+Gg @ index-Cn4eQUd4.js:163
+mv @ index-Cn4eQUd4.js:185
+Rs @ index-Cn4eQUd4.js:185
+Od @ index-Cn4eQUd4.js:185
+(anonymous) @ index-Cn4eQUd4.js:185
+<Mu>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+(anonymous) @ vendor-charts-DbITUqjm.js:75
+Nm @ vendor-charts-DbITUqjm.js:75
+react_stack_bottom_frame @ index-Cn4eQUd4.js:229
+jc @ index-Cn4eQUd4.js:120
+ud @ index-Cn4eQUd4.js:141
+vd @ index-Cn4eQUd4.js:150
+X @ index-Cn4eQUd4.js:45
+Jg @ index-Cn4eQUd4.js:163
+Zg @ index-Cn4eQUd4.js:163
+Rd @ index-Cn4eQUd4.js:163
+Gg @ index-Cn4eQUd4.js:163
+mv @ index-Cn4eQUd4.js:185
+Rs @ index-Cn4eQUd4.js:185
+Od @ index-Cn4eQUd4.js:185
+(anonymous) @ index-Cn4eQUd4.js:185
+<Nm>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Lk @ vendor-charts-DbITUqjm.js:75
+react_stack_bottom_frame @ index-Cn4eQUd4.js:229
+jc @ index-Cn4eQUd4.js:120
+ud @ index-Cn4eQUd4.js:141
+vd @ index-Cn4eQUd4.js:150
+X @ index-Cn4eQUd4.js:45
+Jg @ index-Cn4eQUd4.js:163
+Zg @ index-Cn4eQUd4.js:163
+Rd @ index-Cn4eQUd4.js:163
+Gg @ index-Cn4eQUd4.js:163
+mv @ index-Cn4eQUd4.js:185
+Rs @ index-Cn4eQUd4.js:185
+Od @ index-Cn4eQUd4.js:185
+(anonymous) @ index-Cn4eQUd4.js:185
+<Lk>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Bk @ vendor-charts-DbITUqjm.js:75
+react_stack_bottom_frame @ index-Cn4eQUd4.js:229
+jc @ index-Cn4eQUd4.js:120
+ud @ index-Cn4eQUd4.js:141
+vd @ index-Cn4eQUd4.js:150
+X @ index-Cn4eQUd4.js:45
+Jg @ index-Cn4eQUd4.js:163
+Zg @ index-Cn4eQUd4.js:163
+Rd @ index-Cn4eQUd4.js:163
+Gg @ index-Cn4eQUd4.js:163
+mv @ index-Cn4eQUd4.js:185
+Rs @ index-Cn4eQUd4.js:185
+Od @ index-Cn4eQUd4.js:185
+(anonymous) @ index-Cn4eQUd4.js:185
+<Bk>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+render @ vendor-charts-DbITUqjm.js:75
+react_stack_bottom_frame @ index-Cn4eQUd4.js:229
+mg @ index-Cn4eQUd4.js:149
+vd @ index-Cn4eQUd4.js:150
+X @ index-Cn4eQUd4.js:45
+Jg @ index-Cn4eQUd4.js:163
+Zg @ index-Cn4eQUd4.js:163
+Rd @ index-Cn4eQUd4.js:163
+Gg @ index-Cn4eQUd4.js:163
+mv @ index-Cn4eQUd4.js:185
+Rs @ index-Cn4eQUd4.js:185
+Od @ index-Cn4eQUd4.js:185
+(anonymous) @ index-Cn4eQUd4.js:185
+<zk>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Kk @ vendor-charts-DbITUqjm.js:75
+react_stack_bottom_frame @ index-Cn4eQUd4.js:229
+jc @ index-Cn4eQUd4.js:120
+ud @ index-Cn4eQUd4.js:141
+vd @ index-Cn4eQUd4.js:150
+X @ index-Cn4eQUd4.js:45
+Jg @ index-Cn4eQUd4.js:163
+Zg @ index-Cn4eQUd4.js:163
+Rd @ index-Cn4eQUd4.js:163
+Gg @ index-Cn4eQUd4.js:163
+mv @ index-Cn4eQUd4.js:185
+Rs @ index-Cn4eQUd4.js:185
+Od @ index-Cn4eQUd4.js:185
+(anonymous) @ index-Cn4eQUd4.js:185
+<Kk>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+(anonymous) @ vendor-charts-DbITUqjm.js:75
+Mm @ vendor-charts-DbITUqjm.js:75
+react_stack_bottom_frame @ index-Cn4eQUd4.js:229
+jc @ index-Cn4eQUd4.js:120
+ud @ index-Cn4eQUd4.js:141
+vd @ index-Cn4eQUd4.js:150
+X @ index-Cn4eQUd4.js:45
+Jg @ index-Cn4eQUd4.js:163
+Zg @ index-Cn4eQUd4.js:163
+Rd @ index-Cn4eQUd4.js:163
+Gg @ index-Cn4eQUd4.js:163
+mv @ index-Cn4eQUd4.js:185
+Rs @ index-Cn4eQUd4.js:185
+Od @ index-Cn4eQUd4.js:185
+(anonymous) @ index-Cn4eQUd4.js:185
+<Mm>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Wk @ vendor-charts-DbITUqjm.js:75
+react_stack_bottom_frame @ index-Cn4eQUd4.js:229
+jc @ index-Cn4eQUd4.js:120
+ud @ index-Cn4eQUd4.js:141
+vd @ index-Cn4eQUd4.js:150
+X @ index-Cn4eQUd4.js:45
+Jg @ index-Cn4eQUd4.js:163
+Zg @ index-Cn4eQUd4.js:163
+Rd @ index-Cn4eQUd4.js:163
+Gg @ index-Cn4eQUd4.js:163
+mv @ index-Cn4eQUd4.js:185
+Rs @ index-Cn4eQUd4.js:185
+Od @ index-Cn4eQUd4.js:185
+(anonymous) @ index-Cn4eQUd4.js:185
+<Line>
+Mw.Nu.jsxDEV @ index-Cn4eQUd4.js:15
+Yn @ budget-BuFvP9Zd.js:16
+react_stack_bottom_frame @ index-Cn4eQUd4.js:229
+jc @ index-Cn4eQUd4.js:120
+ud @ index-Cn4eQUd4.js:141
+vd @ index-Cn4eQUd4.js:150
+X @ index-Cn4eQUd4.js:45
+Jg @ index-Cn4eQUd4.js:163
+Zg @ index-Cn4eQUd4.js:163
+Rd @ index-Cn4eQUd4.js:163
+Gg @ index-Cn4eQUd4.js:163
+mv @ index-Cn4eQUd4.js:185
+Rs @ index-Cn4eQUd4.js:185
+Od @ index-Cn4eQUd4.js:185
+(anonymous) @ index-Cn4eQUd4.js:185
+budget-BuFvP9Zd.js:16 🔍 [BUDGET] Filters updated: {viewType: 'month', periodLength: 24, startMonth: 2, startYear: 2025, dataVisibility: {…}}
+index-Cn4eQUd4.js:185 [Violation] 'pointerup' handler took 292ms
+budget-BuFvP9Zd.js:16 🔍 [BUDGET] Filters updated: {viewType: 'month', periodLength: 36, startMonth: 2, startYear: 2025, dataVisibility: {…}}
+index-Cn4eQUd4.js:185 [Violation] 'pointerup' handler took 400ms
+index-Cn4eQUd4.js:185 [Violation] 'click' handler took 239ms
+index-Cn4eQUd4.js:185 [Violation] 'click' handler took 233ms
+index-Cn4eQUd4.js:185 [Violation] 'click' handler took 242ms
+index-Cn4eQUd4.js:23 [Violation] 'message' handler took 302ms
+overview-DhRtpl6t.js:1 [FinancialOverview] Query state: {selectedBuildingId: '', filters: {…}, forecastData: undefined, forecastLoading: false, forecastError: null, …}
+overview-DhRtpl6t.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 0, projectQueriesCount: 0}
+overview-DhRtpl6t.js:1 [FinancialOverview] No buildings available
+overview-DhRtpl6t.js:1 [FinancialOverview] Query state: {selectedBuildingId: '', filters: {…}, forecastData: undefined, forecastLoading: false, forecastError: null, …}
+overview-DhRtpl6t.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 0, projectQueriesCount: 0}
+overview-DhRtpl6t.js:1 [FinancialOverview] No buildings available
+overview-DhRtpl6t.js:1 [FinancialOverview] Query state: {selectedBuildingId: '', filters: {…}, forecastData: undefined, forecastLoading: false, forecastError: null, …}
+overview-DhRtpl6t.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 3, projectQueriesCount: 3}
+overview-DhRtpl6t.js:1 [FinancialOverview] Building 0 (1936 Nitzsche Track Building 5): {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-DhRtpl6t.js:1 [FinancialOverview] Added 0 projects from 1936 Nitzsche Track Building 5
+overview-DhRtpl6t.js:1 [FinancialOverview] Building 1 (4958 E Oak Street Building 4): {buildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-DhRtpl6t.js:1 [FinancialOverview] Building 2 (70342 Dare Cliffs Building 3): {buildingId: '66653f30-2d10-4907-bebc-9e3757d2ef0e', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-DhRtpl6t.js:1 [FinancialOverview] Total projects aggregated: 0
+overview-DhRtpl6t.js:1 [FinancialOverview] Query state: {selectedBuildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', filters: {…}, forecastData: undefined, forecastLoading: true, forecastError: null, …}
+overview-DhRtpl6t.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 3, projectQueriesCount: 3}
+overview-DhRtpl6t.js:1 [FinancialOverview] Building 0 (1936 Nitzsche Track Building 5): {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-DhRtpl6t.js:1 [FinancialOverview] Added 0 projects from 1936 Nitzsche Track Building 5
+overview-DhRtpl6t.js:1 [FinancialOverview] Building 1 (4958 E Oak Street Building 4): {buildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-DhRtpl6t.js:1 [FinancialOverview] Building 2 (70342 Dare Cliffs Building 3): {buildingId: '66653f30-2d10-4907-bebc-9e3757d2ef0e', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-DhRtpl6t.js:1 [FinancialOverview] Total projects aggregated: 0
+overview-DhRtpl6t.js:1 [FinancialOverview] Making API request: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', params: {…}, url: '/api/budgets/c3052c3c-b694-41a6-bd65-3bc3ae9a5984/forecast'}
+overview-DhRtpl6t.js:1 [FinancialOverview] Query state: {selectedBuildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', filters: {…}, forecastData: undefined, forecastLoading: true, forecastError: null, …}
+overview-DhRtpl6t.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 3, projectQueriesCount: 3}
+overview-DhRtpl6t.js:1 [FinancialOverview] Building 0 (1936 Nitzsche Track Building 5): {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-DhRtpl6t.js:1 [FinancialOverview] Added 0 projects from 1936 Nitzsche Track Building 5
+overview-DhRtpl6t.js:1 [FinancialOverview] Building 1 (4958 E Oak Street Building 4): {buildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f', hasData: true, success: true, projectsCount: 1, rawData: {…}}
+overview-DhRtpl6t.js:1 [FinancialOverview] Added 1 projects from 4958 E Oak Street Building 4
+overview-DhRtpl6t.js:1 [FinancialOverview] Building 2 (70342 Dare Cliffs Building 3): {buildingId: '66653f30-2d10-4907-bebc-9e3757d2ef0e', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-DhRtpl6t.js:1 [FinancialOverview] Total projects aggregated: 1
+overview-DhRtpl6t.js:1 [FinancialOverview] Query state: {selectedBuildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', filters: {…}, forecastData: undefined, forecastLoading: true, forecastError: null, …}
+overview-DhRtpl6t.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 3, projectQueriesCount: 3}
+overview-DhRtpl6t.js:1 [FinancialOverview] Building 0 (1936 Nitzsche Track Building 5): {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-DhRtpl6t.js:1 [FinancialOverview] Added 0 projects from 1936 Nitzsche Track Building 5
+overview-DhRtpl6t.js:1 [FinancialOverview] Building 1 (4958 E Oak Street Building 4): {buildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f', hasData: true, success: true, projectsCount: 1, rawData: {…}}
+overview-DhRtpl6t.js:1 [FinancialOverview] Added 1 projects from 4958 E Oak Street Building 4
+overview-DhRtpl6t.js:1 [FinancialOverview] Building 2 (70342 Dare Cliffs Building 3): {buildingId: '66653f30-2d10-4907-bebc-9e3757d2ef0e', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-DhRtpl6t.js:1 [FinancialOverview] Added 0 projects from 70342 Dare Cliffs Building 3
+overview-DhRtpl6t.js:1 [FinancialOverview] Total projects aggregated: 1
+overview-DhRtpl6t.js:1 [FinancialOverview] Query state: {selectedBuildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', filters: {…}, forecastData: undefined, forecastLoading: true, forecastError: null, …}
+overview-DhRtpl6t.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 3, projectQueriesCount: 3}
+overview-DhRtpl6t.js:1 [FinancialOverview] Building 0 (1936 Nitzsche Track Building 5): {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-DhRtpl6t.js:1 [FinancialOverview] Added 0 projects from 1936 Nitzsche Track Building 5
+overview-DhRtpl6t.js:1 [FinancialOverview] Building 1 (4958 E Oak Street Building 4): {buildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f', hasData: true, success: true, projectsCount: 1, rawData: {…}}
+overview-DhRtpl6t.js:1 [FinancialOverview] Added 1 projects from 4958 E Oak Street Building 4
+overview-DhRtpl6t.js:1 [FinancialOverview] Building 2 (70342 Dare Cliffs Building 3): {buildingId: '66653f30-2d10-4907-bebc-9e3757d2ef0e', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-DhRtpl6t.js:1 [FinancialOverview] Added 0 projects from 70342 Dare Cliffs Building 3
+overview-DhRtpl6t.js:1 [FinancialOverview] Total projects aggregated: 1
+overview-DhRtpl6t.js:1 [FinancialOverview] Making API request: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', params: {…}, url: '/api/budgets/c3052c3c-b694-41a6-bd65-3bc3ae9a5984/forecast'}
+overview-DhRtpl6t.js:1 [FinancialOverview] API response: {data: {…}, hasForecast: true, forecastLength: 12}
+overview-DhRtpl6t.js:1 [FinancialOverview] API response: {data: {…}, hasForecast: true, forecastLength: 12}
+overview-DhRtpl6t.js:1 [FinancialOverview] Query state: {selectedBuildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', filters: {…}, forecastData: {…}, forecastLoading: false, forecastError: null, …}
+overview-DhRtpl6t.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 3, projectQueriesCount: 3}
+overview-DhRtpl6t.js:1 [FinancialOverview] Building 0 (1936 Nitzsche Track Building 5): {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-DhRtpl6t.js:1 [FinancialOverview] Added 0 projects from 1936 Nitzsche Track Building 5
+overview-DhRtpl6t.js:1 [FinancialOverview] Building 1 (4958 E Oak Street Building 4): {buildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f', hasData: true, success: true, projectsCount: 1, rawData: {…}}
+overview-DhRtpl6t.js:1 [FinancialOverview] Added 1 projects from 4958 E Oak Street Building 4
+overview-DhRtpl6t.js:1 [FinancialOverview] Building 2 (70342 Dare Cliffs Building 3): {buildingId: '66653f30-2d10-4907-bebc-9e3757d2ef0e', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-DhRtpl6t.js:1 [FinancialOverview] Added 0 projects from 70342 Dare Cliffs Building 3
+overview-DhRtpl6t.js:1 [FinancialOverview] Total projects aggregated: 1
+index-BA8Bo78J.js:48 🔍 [PROJECTS] Component initialized {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', residenceId: undefined, buildingName: '1936 Nitzsche Track Building 5', showBackButton: true}
+index-BA8Bo78J.js:48 🔍 [PROJECTS] Project overview section toggled: {expanded: false}
+index-BA8Bo78J.js:48 🔍 [PROJECTS] Projects table section toggled: {expanded: false}
+index-BA8Bo78J.js:48 🔍 [PROJECTS] Projects table section toggled: {expanded: true}

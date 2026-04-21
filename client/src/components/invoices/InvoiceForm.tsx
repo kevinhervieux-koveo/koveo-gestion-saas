@@ -1,8 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useForm, useFieldArray, type UseFormReturn } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CalendarIcon, Plus, X, Upload, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
-import { format } from 'date-fns';
+import { Plus, X, Upload, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 
 import { SharedUploader } from '@/components/document-management/SharedUploader';
 import { GeminiInvoiceExtractor } from './GeminiInvoiceExtractor';
@@ -11,15 +10,55 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
+import { CurrencyInputField } from '@/components/common/CurrencyInputField';
+import { StandardFormGrid } from '@/components/common/StandardFormGrid';
+import { DatePickerField } from '@/components/common/DatePickerField';
+import { apiRequest } from '@/lib/queryClient';
+import { useCreateUpdateMutation } from '@/lib/common-hooks';
 
-import { invoiceFormSchema, InvoiceFormData } from '@shared/schema';
-import { cn } from '@/lib/utils';
+import { invoiceFormSchema, InvoiceFormData, Invoice } from '@shared/schema';
+
+const toIsoDateString = (date?: Date | string | null): string | undefined => {
+  if (!date) return undefined;
+  const value = date instanceof Date ? date : new Date(date);
+  if (Number.isNaN(value.getTime())) return undefined;
+  return value.toISOString().slice(0, 10);
+};
+
+const buildInvoicePayload = (data: InvoiceFormData) => {
+  const payload: Record<string, unknown> = {
+    vendorName: data.vendorName,
+    invoiceNumber: data.invoiceNumber,
+    totalAmount: data.totalAmount,
+    dueDate: toIsoDateString(data.dueDate),
+    paymentType: data.paymentType,
+    isAiExtracted: data.isAiExtracted ?? false,
+  };
+
+  if (data.paymentType === 'recurring' && data.frequency) {
+    payload.frequency = data.frequency;
+    if (data.frequency === 'custom') {
+      payload.customPaymentDates = (data.customPaymentDates ?? [])
+        .map((d) => toIsoDateString(d))
+        .filter((d): d is string => Boolean(d));
+    } else {
+      payload.startDate = toIsoDateString(data.startDate);
+    }
+  }
+
+  if (data.documentId) payload.documentId = data.documentId;
+  if (data.buildingId) payload.buildingId = data.buildingId;
+  if (data.residenceId) payload.residenceId = data.residenceId;
+  if (typeof data.extractionConfidence === 'number') {
+    payload.extractionConfidence = data.extractionConfidence;
+  }
+
+  return payload;
+};
 
 interface InvoiceFormProps {
   /** Optional building ID to associate the invoice with */
@@ -32,6 +71,8 @@ interface InvoiceFormProps {
   onCancel?: () => void;
   /** Initial data for editing mode */
   initialData?: Partial<InvoiceFormData>;
+  /** Existing invoice (required for edit mode so we know which record to update) */
+  invoice?: Pick<Invoice, 'id'> & Partial<Invoice>;
   /** Form mode */
   mode?: 'create' | 'edit';
 }
@@ -57,7 +98,8 @@ export function InvoiceForm({
   onSuccess,
   onCancel,
   initialData,
-  mode = 'create'
+  invoice,
+  mode = invoice ? 'edit' : 'create'
 }: InvoiceFormProps) {
   const { toast } = useToast();
   
@@ -165,49 +207,42 @@ export function InvoiceForm({
     remove(index);
   };
 
+  // Create/update mutation - mirrors the pattern used in VendorForm/ElementForm/ProjectForm.
+  const saveMutation = useCreateUpdateMutation<{ data: Invoice }, InvoiceFormData>({
+    mutationFn: async (data) => {
+      const payload = buildInvoicePayload(data);
+      const endpoint = mode === 'edit' && invoice?.id
+        ? `/api/invoices/${invoice.id}`
+        : '/api/invoices';
+      const method = mode === 'edit' && invoice?.id ? 'PUT' : 'POST';
+
+      const response = await apiRequest(method, endpoint, payload);
+      return response.json();
+    },
+    successTitle: mode === 'edit' ? 'Invoice Updated' : 'Invoice Created',
+    successMessage: 'Invoice has been successfully saved.',
+    errorTitle: mode === 'edit' ? 'Update Failed' : 'Creation Failed',
+    errorMessage: (error: any) => error?.message || 'Failed to save invoice',
+    invalidateQueries: (_data, qc) => {
+      qc.invalidateQueries({
+        predicate: (query) => {
+          const key = query.queryKey;
+          return (
+            Array.isArray(key) &&
+            typeof key[0] === 'string' &&
+            key[0].startsWith('/api/invoices')
+          );
+        },
+      });
+    },
+    onSuccessCallback: (response) => {
+      onSuccess?.(response?.data);
+    },
+  });
+
   // Form submission
-  const onSubmit = async (data: InvoiceFormData) => {
-    try {
-      // Submitting invoice data
-      
-      // NOTE: API call to create/update invoice not yet implemented.
-      // The invoice form is fully functional with AI extraction and validation,
-      // but backend integration is pending. To complete this feature:
-      // 
-      // 1. Create backend API endpoint:
-      //    POST   /api/invoices          - Create new invoice
-      //    PATCH  /api/invoices/:id      - Update existing invoice
-      // 
-      // 2. Add invoice to database schema (shared/schema.ts):
-      //    - invoiceNumber, date, dueDate, status
-      //    - supplier info (name, address, contact)
-      //    - line items (description, quantity, unitPrice, totalPrice)
-      //    - payment terms and custom payment dates
-      //    - building/residence association
-      //    - AI extraction metadata
-      // 
-      // 3. Implement the API call here:
-      //    const response = mode === 'create' 
-      //      ? await apiRequest('/api/invoices', { method: 'POST', body: data })
-      //      : await apiRequest(`/api/invoices/${invoice.id}`, { method: 'PATCH', body: data });
-      // 
-      // 4. Invalidate invoice queries after success
-      
-      toast({
-        title: mode === 'create' ? "Invoice Created" : "Invoice Updated",
-        description: "Invoice has been successfully saved.",
-      });
-      
-      onSuccess?.(data);
-    } catch (error: any) {
-      console.error('[INVOICE FORM] Submission error:', error);
-      
-      toast({
-        title: "Error",
-        description: error.message || "Failed to save invoice",
-        variant: "destructive",
-      });
-    }
+  const onSubmit = (data: InvoiceFormData) => {
+    saveMutation.mutate(data);
   };
 
   return (
@@ -287,7 +322,7 @@ export function InvoiceForm({
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               
               {/* Basic Invoice Information */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <StandardFormGrid gap="lg">
                 
                 {/* Vendor Name */}
                 <FormField
@@ -328,69 +363,24 @@ export function InvoiceForm({
                 />
 
                 {/* Total Amount */}
-                <FormField
+                <CurrencyInputField
                   control={form.control}
                   name="totalAmount"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Total Amount (CAD) *</FormLabel>
-                      <FormControl>
-                        <Input 
-                          {...field}
-                          type="number"
-                          step="0.01"
-                          placeholder="0.00"
-                          onChange={(e) => field.onChange(e.target.value)}
-                          data-testid="input-total-amount"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label="Total Amount"
+                  required
+                  data-testid="input-total-amount"
                 />
 
                 {/* Due Date */}
-                <FormField
+                <DatePickerField
                   control={form.control}
                   name="dueDate"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Due Date *</FormLabel>
-                      <Popover>
-                        <PopoverTrigger asChild>
-                          <FormControl>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "w-full pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
-                              )}
-                              data-testid="button-due-date"
-                            >
-                              {field.value ? (
-                                format(field.value, "PPP")
-                              ) : (
-                                <span>Pick a date</span>
-                              )}
-                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                            </Button>
-                          </FormControl>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="start">
-                          <Calendar
-                            mode="single"
-                            selected={field.value}
-                            onSelect={field.onChange}
-                            disabled={(date) => date < new Date("1900-01-01")}
-                            initialFocus
-                          />
-                        </PopoverContent>
-                      </Popover>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+                  label="Due Date"
+                  required
+                  minDate={new Date("1900-01-01")}
+                  data-testid="button-due-date"
                 />
-              </div>
+              </StandardFormGrid>
 
               <Separator />
 
@@ -473,45 +463,14 @@ export function InvoiceForm({
 
                     {/* Start Date for Standard Frequencies */}
                     {frequency && ['monthly', 'quarterly', 'annually'].includes(frequency) && (
-                      <FormField
+                      <DatePickerField
                         control={form.control}
                         name="startDate"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Start Date *</FormLabel>
-                            <Popover>
-                              <PopoverTrigger asChild>
-                                <FormControl>
-                                  <Button
-                                    variant="outline"
-                                    className={cn(
-                                      "w-full pl-3 text-left font-normal",
-                                      !field.value && "text-muted-foreground"
-                                    )}
-                                    data-testid="button-start-date"
-                                  >
-                                    {field.value ? (
-                                      format(field.value, "PPP")
-                                    ) : (
-                                      <span>Pick start date</span>
-                                    )}
-                                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                  </Button>
-                                </FormControl>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar
-                                  mode="single"
-                                  selected={field.value}
-                                  onSelect={field.onChange}
-                                  disabled={(date) => date < new Date("1900-01-01")}
-                                  initialFocus
-                                />
-                              </PopoverContent>
-                            </Popover>
-                            <FormMessage />
-                          </FormItem>
-                        )}
+                        label="Start Date"
+                        required
+                        placeholder="Pick start date"
+                        minDate={new Date("1900-01-01")}
+                        data-testid="button-start-date"
                       />
                     )}
 
@@ -541,44 +500,13 @@ export function InvoiceForm({
                         <div className="space-y-3">
                           {fields.map((field, index) => (
                             <div key={field.id} className="flex items-center gap-3">
-                              <FormField
+                              <DatePickerField<InvoiceFormData>
                                 control={form.control}
-                                name={`customPaymentDates.${index}`}
-                                render={({ field: dateField }) => (
-                                  <FormItem className="flex-1">
-                                    <Popover>
-                                      <PopoverTrigger asChild>
-                                        <FormControl>
-                                          <Button
-                                            variant="outline"
-                                            className={cn(
-                                              "w-full pl-3 text-left font-normal",
-                                              !dateField.value && "text-muted-foreground"
-                                            )}
-                                            data-testid={`button-custom-date-${index}`}
-                                          >
-                                            {dateField.value ? (
-                                              format(dateField.value, "PPP")
-                                            ) : (
-                                              <span>Pick a date</span>
-                                            )}
-                                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                          </Button>
-                                        </FormControl>
-                                      </PopoverTrigger>
-                                      <PopoverContent className="w-auto p-0" align="start">
-                                        <Calendar
-                                          mode="single"
-                                          selected={dateField.value}
-                                          onSelect={dateField.onChange}
-                                          disabled={(date) => date < new Date()}
-                                          initialFocus
-                                        />
-                                      </PopoverContent>
-                                    </Popover>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
+                                name={`customPaymentDates.${index}` as `customPaymentDates.${number}`}
+                                label=""
+                                className="flex-1"
+                                disabledDates={(date) => date < new Date()}
+                                data-testid={`button-custom-date-${index}`}
                               />
                               <Button
                                 type="button"
@@ -612,8 +540,12 @@ export function InvoiceForm({
                 )}
                 <Button 
                   type="submit"
+                  disabled={saveMutation.isPending}
                   data-testid="button-submit"
                 >
+                  {saveMutation.isPending && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
                   {mode === 'create' ? 'Create Invoice' : 'Update Invoice'}
                 </Button>
               </div>

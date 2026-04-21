@@ -320,6 +320,8 @@ async function main() {
 
     console.log('\n' + chalk.green.bold('✅ Cleanup completed successfully!'));
     console.log(chalk.blue('Recommendation: Run the orphan detection tests to verify cleanup.'));
+  } catch (error) {
+    console.error('Cleanup failed:', error);
     process.exit(1);
   }
 }

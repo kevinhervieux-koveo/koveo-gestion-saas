@@ -1,0 +1,120 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+budget-CyKYWTJ1.js:16 🔍 [BUDGET] Component mounted {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984'}
+budget-CyKYWTJ1.js:16 🔍 [BUDGET] Context changed: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984'}
+budget-CyKYWTJ1.js:16 🔍 [BUDGET] Filters updated: {viewType: 'month', periodLength: 12, startMonth: 10, startYear: 2025, dataVisibility: {…}}
+budget-CyKYWTJ1.js:16 🔍 [BUDGET] Filters updated: {viewType: 'month', periodLength: 12, startMonth: 2, startYear: 2025, dataVisibility: {…}}
+index-B6LAAsvr.js:136 TypeError: _e(...).totalAmount.toFixed is not a function
+    at Sn (budget-CyKYWTJ1.js:16:58420)
+    at Object.react_stack_bottom_frame (index-B6LAAsvr.js:229:12449)
+    at Uc (index-B6LAAsvr.js:120:806)
+    at ud (index-B6LAAsvr.js:141:5839)
+    at vd (index-B6LAAsvr.js:150:10147)
+    at X (index-B6LAAsvr.js:45:108)
+    at Jg (index-B6LAAsvr.js:163:29811)
+    at Zg (index-B6LAAsvr.js:163:28480)
+    at Rd (index-B6LAAsvr.js:163:28313)
+    at Gg (index-B6LAAsvr.js:163:24807)
+
+The above error occurred in the <Sn> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, cE.
+
+overrideMethod @ hook.js:608
+ag @ index-B6LAAsvr.js:136
+og @ index-B6LAAsvr.js:141
+X @ index-B6LAAsvr.js:45
+s.componentDidCatch.e.callback @ index-B6LAAsvr.js:141
+Ah @ index-B6LAAsvr.js:107
+xh @ index-B6LAAsvr.js:107
+X @ index-B6LAAsvr.js:45
+Ag @ index-B6LAAsvr.js:163
+Rg @ index-B6LAAsvr.js:163
+ea @ index-B6LAAsvr.js:163
+Rg @ index-B6LAAsvr.js:163
+ea @ index-B6LAAsvr.js:163
+Rg @ index-B6LAAsvr.js:163
+ea @ index-B6LAAsvr.js:163
+Rg @ index-B6LAAsvr.js:163
+ea @ index-B6LAAsvr.js:163
+Rg @ index-B6LAAsvr.js:163
+ea @ index-B6LAAsvr.js:163
+Rg @ index-B6LAAsvr.js:163
+ea @ index-B6LAAsvr.js:163
+Rg @ index-B6LAAsvr.js:163
+tv @ index-B6LAAsvr.js:163
+Nd @ index-B6LAAsvr.js:163
+Yg @ index-B6LAAsvr.js:163
+Gg @ index-B6LAAsvr.js:163
+mv @ index-B6LAAsvr.js:185
+Rs @ index-B6LAAsvr.js:185
+Od @ index-B6LAAsvr.js:185
+(anonymous) @ index-B6LAAsvr.js:185
+<Sn>
+M1.Nu.jsxDEV @ index-B6LAAsvr.js:15
+(anonymous) @ withHierarchicalSelection-B7uMuK2Y.js:1
+react_stack_bottom_frame @ index-B6LAAsvr.js:229
+Uc @ index-B6LAAsvr.js:120
+ud @ index-B6LAAsvr.js:141
+vd @ index-B6LAAsvr.js:150
+X @ index-B6LAAsvr.js:45
+Jg @ index-B6LAAsvr.js:163
+EA @ index-B6LAAsvr.js:163
+CA @ index-B6LAAsvr.js:163
+Gg @ index-B6LAAsvr.js:163
+dv @ index-B6LAAsvr.js:185
+l @ index-B6LAAsvr.js:23
+<...>
+M1.Nu.jsxDEV @ index-B6LAAsvr.js:15
+children @ index-B6LAAsvr.js:456
+H0 @ index-B6LAAsvr.js:240
+$ @ index-B6LAAsvr.js:240
+react_stack_bottom_frame @ index-B6LAAsvr.js:229
+Uc @ index-B6LAAsvr.js:120
+ud @ index-B6LAAsvr.js:141
+vd @ index-B6LAAsvr.js:150
+X @ index-B6LAAsvr.js:45
+Jg @ index-B6LAAsvr.js:163
+EA @ index-B6LAAsvr.js:163
+CA @ index-B6LAAsvr.js:163
+Gg @ index-B6LAAsvr.js:163
+dv @ index-B6LAAsvr.js:185
+l @ index-B6LAAsvr.js:23
+<$>
+M1.Nu.jsxDEV @ index-B6LAAsvr.js:15
+vR @ index-B6LAAsvr.js:456
+react_stack_bottom_frame @ index-B6LAAsvr.js:229
+Uc @ index-B6LAAsvr.js:120
+ud @ index-B6LAAsvr.js:141
+vd @ index-B6LAAsvr.js:150
+X @ index-B6LAAsvr.js:45
+Jg @ index-B6LAAsvr.js:163
+Zg @ index-B6LAAsvr.js:163
+Rd @ index-B6LAAsvr.js:163
+Gg @ index-B6LAAsvr.js:163
+mv @ index-B6LAAsvr.js:185
+Rs @ index-B6LAAsvr.js:185
+Od @ index-B6LAAsvr.js:185
+(anonymous) @ index-B6LAAsvr.js:185
+<vR>
+M1.Nu.jsxDEV @ index-B6LAAsvr.js:15
+bR @ index-B6LAAsvr.js:456
+react_stack_bottom_frame @ index-B6LAAsvr.js:229
+Uc @ index-B6LAAsvr.js:120
+ud @ index-B6LAAsvr.js:141
+vd @ index-B6LAAsvr.js:150
+X @ index-B6LAAsvr.js:45
+Jg @ index-B6LAAsvr.js:163
+Zg @ index-B6LAAsvr.js:163
+Rd @ index-B6LAAsvr.js:163
+Gg @ index-B6LAAsvr.js:163
+dv @ index-B6LAAsvr.js:185
+l @ index-B6LAAsvr.js:23
+<bR>
+M1.Nu.jsxDEV @ index-B6LAAsvr.js:15
+(anonymous) @ index-B6LAAsvr.js:456

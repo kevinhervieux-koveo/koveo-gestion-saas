@@ -101,6 +101,157 @@ export class DemoManagementService {
   }
 
   /**
+   * Sample a handful of `filePath` values that look like seeded object-storage
+   * attachments (they start with `/objects/`) across documents, bills, bugs,
+   * and feature requests, and verify that the underlying files actually exist
+   * in object storage.
+   *
+   * When a demo environment is cloned or restored without re-running the seed
+   * script, the database rows still reference `/objects/...` paths whose
+   * bytes were never uploaded. This check surfaces that drift so admins (or
+   * server-start logs) can recommend re-running the seed script instead of
+   * leaving users with silent "File not found" errors.
+   *
+   * @param sampleSize Maximum number of file paths to probe per table.
+   */
+  public static async checkSeededDocumentIntegrity(sampleSize: number = 5): Promise<{
+    healthy: boolean;
+    totalSampled: number;
+    totalMissing: number;
+    missing: Array<{ table: string; filePath: string }>;
+    errors: Array<{ table: string; error: string }>;
+    remediation: string;
+    timestamp: string;
+  }> {
+    const { db } = await import('../db');
+    const { isNotNull, and, like } = await import('drizzle-orm');
+    const schema = await import('../../shared/schema');
+    const { ObjectStorageService, ObjectNotFoundError } = await import(
+      '../objectStorage'
+    );
+
+    const objectStorage = new ObjectStorageService();
+
+    const sources: Array<{ table: string; select: () => Promise<Array<{ filePath: string | null }>> }> = [
+      {
+        table: 'documents',
+        select: () =>
+          db
+            .select({ filePath: schema.documents.filePath })
+            .from(schema.documents)
+            .where(like(schema.documents.filePath, '/objects/%'))
+            .limit(sampleSize),
+      },
+      {
+        table: 'bills',
+        select: () =>
+          db
+            .select({ filePath: schema.bills.filePath })
+            .from(schema.bills)
+            .where(
+              and(
+                isNotNull(schema.bills.filePath),
+                like(schema.bills.filePath, '/objects/%'),
+              ),
+            )
+            .limit(sampleSize),
+      },
+      {
+        table: 'bugs',
+        select: () =>
+          db
+            .select({ filePath: schema.bugs.filePath })
+            .from(schema.bugs)
+            .where(
+              and(
+                isNotNull(schema.bugs.filePath),
+                like(schema.bugs.filePath, '/objects/%'),
+              ),
+            )
+            .limit(sampleSize),
+      },
+      {
+        table: 'feature_requests',
+        select: () =>
+          db
+            .select({ filePath: schema.featureRequests.filePath })
+            .from(schema.featureRequests)
+            .where(
+              and(
+                isNotNull(schema.featureRequests.filePath),
+                like(schema.featureRequests.filePath, '/objects/%'),
+              ),
+            )
+            .limit(sampleSize),
+      },
+    ];
+    let totalSampled = 0;
+    const missing: Array<{ table: string; filePath: string }> = [];
+    const errors: Array<{ table: string; error: string }> = [];
+
+    for (const source of sources) {
+      let rows: Array<{ filePath: string | null }>;
+      try {
+        rows = await source.select();
+      } catch (error) {
+        // Only swallow the narrow "relation does not exist" case (older
+        // schemas); all other query failures must bubble up into `errors`
+        // and force an unhealthy verdict so real problems stay visible.
+        const message = error instanceof Error ? error.message : String(error);
+        const code = (error as { code?: string } | null)?.code;
+        const isRelationMissing =
+          code === '42P01' || /relation .* does not exist/i.test(message);
+        if (isRelationMissing) continue;
+        errors.push({ table: source.table, error: message });
+        continue;
+      }
+      for (const row of rows) {
+        if (!row.filePath) continue;
+        totalSampled++;
+        try {
+          await objectStorage.getObjectEntityFile(row.filePath);
+        } catch (error) {
+          if (error instanceof ObjectNotFoundError) {
+            missing.push({ table: source.table, filePath: row.filePath });
+          } else {
+            // Non-"not found" failures (bucket auth, env misconfig,
+            // network) are infrastructure problems — not seed drift — and
+            // belong in `errors` so the remediation message stays
+            // accurate.
+            errors.push({
+              table: source.table,
+              error: `${row.filePath}: ${
+                error instanceof Error ? error.message : 'unknown error'
+              }`,
+            });
+          }
+        }
+      }
+    }
+
+    const healthy = missing.length === 0 && errors.length === 0;
+    let remediation: string;
+    if (healthy) {
+      remediation = 'All sampled seeded documents are present in object storage.';
+    } else if (errors.length > 0) {
+      remediation =
+        'Document integrity probe failed for one or more sources. Inspect the `errors` field and fix database or storage access before trusting the result.';
+    } else {
+      remediation =
+        'Some seeded documents reference object-storage paths whose bytes are missing. Re-run the marketing demo seed script (npm run db:seed:marketing or scripts/setup-marketing-demo-data.ts) to repopulate the files.';
+    }
+    return {
+      healthy,
+      totalSampled,
+      totalMissing: missing.length,
+      missing,
+      errors,
+      remediation,
+      timestamp: new Date().toISOString(),
+    };
+  }
+
+  /**
    * PRODUCTION FIX: Create basic demo organizations if they don't exist.
    * This ensures the database has the required organizations for production.
    */

@@ -100,7 +100,7 @@ class AuthSecurityTester {
       this.log('info', '🧪 Running authentication unit tests...');
       
       const configFlag = this.options.useSelectiveMocking ? '--config=jest.config.auth.cjs' : '';
-      const cmd = `npx jest ${configFlag} tests/unit/auth/ --passWithNoTests=false --maxWorkers=1 --forceExit`;
+      const cmd = `npx jest ${configFlag} tests/integration/user-registration.test.ts tests/integration/user-deletion.test.ts --passWithNoTests=false --maxWorkers=1 --forceExit`;
       
       if (this.options.verbose) {
         this.log('info', `Command: ${cmd}`);
@@ -161,7 +161,7 @@ class AuthSecurityTester {
     try {
       console.log('📝 Running user registration security tests...');
       const { stdout, stderr } = await execAsync(
-        'npx jest tests/unit/auth/user-registration.test.ts --passWithNoTests=false --silent --forceExit'
+        'npx jest tests/integration/user-registration.test.ts --passWithNoTests=false --silent --forceExit'
       );
       
       this.results.push({
@@ -247,7 +247,7 @@ class AuthSecurityTester {
       this.log('info', '🔒 Running security header tests...');
       
       const configFlag = this.options.useSelectiveMocking ? '--config=jest.config.auth.cjs' : '';
-      const cmd = `npx jest ${configFlag} tests/unit/security/security-headers.test.ts --passWithNoTests=false --maxWorkers=1 --forceExit`;
+      const cmd = `npx jest ${configFlag} tests/integration/security-headers.test.ts --passWithNoTests=false --maxWorkers=1 --forceExit`;
       
       if (this.options.verbose) {
         this.log('info', `Command: ${cmd}`);

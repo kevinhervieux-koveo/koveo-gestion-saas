@@ -1,5 +1,7 @@
 import React, { useState, useCallback, useRef } from 'react';
+import { logDebug, logError } from '@/lib/logger';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useCreateUpdateMutation } from '@/lib/common-hooks';
 import { useAuth } from '@/hooks/use-auth';
 import { useLanguage } from '@/hooks/use-language';
 import { useToast } from '@/hooks/use-toast';
@@ -46,7 +48,7 @@ import { Switch } from '@/components/ui/switch';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { parse } from 'date-fns';
+import { parse, format } from 'date-fns';
 import {
   Bell,
   Settings,
@@ -247,7 +249,7 @@ const notificationTypes: NotificationTypeConfig[] = [
 const frequencyOptions = [
   { value: 'immediate', labelEn: 'Immediate', labelFr: 'Immédiat' },
   { value: 'weekly', labelEn: 'Weekly', labelFr: 'Hebdomadaire' },
-  { value: '2weeks', labelEn: 'Bi-weekly', labelFr: 'Bi-hebdomadaire' },
+  { value: 'bi_weekly', labelEn: 'Bi-weekly', labelFr: 'Bi-hebdomadaire' },
   { value: 'monthly', labelEn: 'Monthly', labelFr: 'Mensuel' },
   { value: 'quarterly', labelEn: 'Quarterly', labelFr: 'Trimestriel' },
   { value: 'bi-annually', labelEn: 'Bi-annually', labelFr: 'Bi-annuel' },
@@ -255,7 +257,7 @@ const frequencyOptions = [
 ];
 
 // Define the frequency type to match the shared schema
-type FrequencyType = 'immediate' | 'weekly' | '2weeks' | 'monthly' | 'quarterly' | 'bi-annually' | 'annually';
+type FrequencyType = 'immediate' | 'weekly' | 'bi_weekly' | 'monthly' | 'quarterly' | 'bi-annually' | 'annually';
 
 // Use shared notification preference type from @shared/schemas
 type NotificationPreference = UserNotificationPreference;
@@ -264,7 +266,7 @@ type NotificationPreference = UserNotificationPreference;
 const preferencesSchema = z.object({
   preferences: z.array(z.object({
     notificationType: z.string(),
-    frequency: z.enum(['immediate', 'weekly', '2weeks', 'monthly', 'quarterly', 'bi-annually', 'annually']),
+    frequency: z.enum(['immediate', 'weekly', 'bi_weekly', 'monthly', 'quarterly', 'bi-annually', 'annually']),
     isEnabled: z.boolean(),
   })),
 });
@@ -276,7 +278,7 @@ const settingsSchema = z.object({
 
 // Helper function to ensure frequency is valid - moved outside component to prevent re-renders
 const ensureValidFrequency = (frequency: string | undefined, defaultFreq: FrequencyType): FrequencyType => {
-  const validFrequencies: FrequencyType[] = ['immediate', 'weekly', '2weeks', 'monthly', 'quarterly', 'bi-annually', 'annually'];
+  const validFrequencies: FrequencyType[] = ['immediate', 'weekly', 'bi_weekly', 'monthly', 'quarterly', 'bi-annually', 'annually'];
   return (frequency && validFrequencies.includes(frequency as FrequencyType)) 
     ? frequency as FrequencyType 
     : defaultFreq;
@@ -328,8 +330,8 @@ const urgencyLevels: UrgencyLevel[] = [
     value: 'urgent',
     labelEn: 'Urgent',
     labelFr: 'Urgent',
-    descriptionEn: 'Critical communication requiring immediate attention',
-    descriptionFr: 'Communication critique nécessitant une attention immédiate',
+    descriptionEn: 'Message will be sent immediately to all selected users',
+    descriptionFr: 'Le message sera envoyé immédiatement à tous les utilisateurs sélectionnés',
     icon: Zap,
     color: 'text-red-600 dark:text-red-400',
   },
@@ -351,13 +353,16 @@ const recipientRoles: RecipientRole[] = [
 ];
 
 // General communication form schema
-// Extend shared schema to include frontend-specific urgencyLevel field for UI
-const generalCommunicationFormSchema = insertGeneralCommunicationSchema.extend({
+// Create a new schema based on shared schema but with frontend-specific modifications
+const generalCommunicationFormSchema = z.object({
+  organizationId: z.string().uuid(),
+  title: z.string().min(1, 'Title is required'),
+  content: z.string().min(1, 'Content is required'),
   urgencyLevel: z.enum(['low', 'medium', 'high', 'urgent']),
+  scheduledFor: z.date().optional(),
+  recipientRoles: z.array(z.string()).optional(),
   buildingIds: z.array(z.string()).optional(), // Multiple building selection
-}).omit({
-  isUrgent: true, // We'll derive this from urgencyLevel
-  createdBy: true, // Will be set server-side
+  isTestMode: z.boolean().optional(),
 });
 
 type GeneralCommunicationFormData = z.infer<typeof generalCommunicationFormSchema>;
@@ -560,9 +565,19 @@ function GeneralCommunicationForm({
     enabled: !!user,
   });
 
-  // Fetch buildings for selected organization
-  const { data: buildingsData, isLoading: loadingBuildings } = useQuery<BuildingsResponse>({
-    queryKey: ['/api/communication/buildings', selectedOrganizationId],
+  // Fetch buildings for selected organization (filtered by user access)
+  const { data: buildingsData, isLoading: loadingBuildings } = useQuery<{ buildings: Array<{ id: string; name: string; address: string }> }>({
+    queryKey: ['/api/users/me/buildings', selectedOrganizationId],
+    queryFn: async () => {
+      const params = new URLSearchParams();
+      if (selectedOrganizationId) {
+        params.append('organization_id', selectedOrganizationId);
+      }
+      const response = await fetch(`/api/users/me/buildings?${params.toString()}`);
+      if (!response.ok) throw new Error('Failed to fetch buildings');
+      const buildings = await response.json();
+      return { buildings };
+    },
     enabled: !!selectedOrganizationId,
   });
 
@@ -577,6 +592,7 @@ function GeneralCommunicationForm({
       scheduledFor: undefined,
       organizationId: '',
       buildingIds: [],
+      isTestMode: false,
     },
   });
 
@@ -586,14 +602,14 @@ function GeneralCommunicationForm({
       const defaultOrg = organizationsData.organizations[0];
       setSelectedOrganizationId(defaultOrg.id);
       communicationForm.setValue('organizationId', defaultOrg.id);
-    } else if (organizationContext?.id) {
+    } else if (organizationsData?.organizations.length > 1 && organizationContext?.id) {
       setSelectedOrganizationId(organizationContext.id);
       communicationForm.setValue('organizationId', organizationContext.id);
     }
-  }, [organizationsData, organizationContext, communicationForm]);
+  }, [organizationsData, organizationContext]);
 
   // Communication mutation
-  const sendCommunicationMutation = useMutation({
+  const sendCommunicationMutation = useCreateUpdateMutation<any, GeneralCommunicationFormData>({
     mutationFn: async (data: GeneralCommunicationFormData) => {
       // Map form data to shared schema format
       const payload: InsertGeneralCommunication = {
@@ -603,42 +619,58 @@ function GeneralCommunicationForm({
         isUrgent: data.urgencyLevel === 'urgent',
         scheduledFor: data.urgencyLevel === 'urgent' ? undefined : data.scheduledFor, // Clear scheduling for urgent communications
         recipientRoles: data.recipientRoles,
-        createdBy: '', // Will be set server-side from authenticated user
+        // createdBy will be set server-side from authenticated user
       };
       
-      // Include building IDs if specified
-      const requestBody = data.buildingIds?.length 
-        ? { ...payload, buildingIds: data.buildingIds }
-        : payload;
+      // Include building IDs and test mode if specified
+      const requestBody = {
+        ...payload,
+        ...(data.buildingIds?.length ? { buildingIds: data.buildingIds } : {}),
+        ...(data.isTestMode ? { isTestMode: true } : {}),
+      };
       
       const response = await apiRequest('POST', '/api/communication/general', requestBody);
-      return response.json();
+      return { ...await response.json(), isTestMode: data.isTestMode };
     },
-    onSuccess: () => {
-      toast({
-        title: language === 'en' ? 'Communication Sent' : 'Communication envoyée',
-        description: language === 'en' 
-          ? 'Your communication has been sent successfully.'
-          : 'Votre communication a été envoyée avec succès.',
-      });
-      
+    successTitle: (data: any) => {
+      const isTest = data?.isTestMode;
+      return isTest 
+        ? (language === 'en' ? 'Test Email Sent' : 'Email de test envoyé')
+        : (language === 'en' ? 'Communication Sent' : 'Communication envoyée');
+    },
+    successMessage: (data: any) => {
+      const isTest = data?.isTestMode;
+      return isTest
+        ? (language === 'en' 
+            ? 'A test email has been sent to your email address only.'
+            : 'Un email de test a été envoyé à votre adresse email uniquement.')
+        : (language === 'en' 
+            ? 'Your communication has been sent successfully.'
+            : 'Votre communication a été envoyée avec succès.');
+    },
+    errorTitle: language === 'en' ? 'Error' : 'Erreur',
+    errorMessage: (error: any) => error?.message || (language === 'en' ? 'Failed to send communication' : 'Échec de l\'envoi de la communication'),
+    queryKeysToInvalidate: [['/api/communication/general']],
+    onSuccessCallback: () => {
       // Reset form
       communicationForm.reset();
       setShowConfirmDialog(false);
-      
-      // Invalidate communication cache
-      queryClient.invalidateQueries({ queryKey: ['/api/communication/general'] });
-    },
-    onError: (error: any) => {
-      toast({
-        variant: 'destructive',
-        title: language === 'en' ? 'Error' : 'Erreur',
-        description: error.message || (language === 'en' ? 'Failed to send communication' : 'Échec de l\'envoi de la communication'),
-      });
     },
   });
 
   const handleSubmit = (data: GeneralCommunicationFormData) => {
+    // Validate organizationId is set
+    if (!data.organizationId) {
+      toast({
+        variant: 'destructive',
+        title: language === 'en' ? 'Error' : 'Erreur',
+        description: language === 'en' 
+          ? 'Organization not selected. Please refresh the page and try again.'
+          : 'Organisation non sélectionnée. Veuillez actualiser la page et réessayer.',
+      });
+      return;
+    }
+    
     // Show confirmation for high/urgent communications
     if (data.urgencyLevel === 'high' || data.urgencyLevel === 'urgent') {
       setShowConfirmDialog(true);
@@ -879,6 +911,31 @@ function GeneralCommunicationForm({
             )}
           />
 
+          {/* Test Mode Checkbox */}
+          <FormField
+            control={communicationForm.control}
+            name="isTestMode"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                <FormControl>
+                  <Checkbox
+                    id="test-mode"
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                    data-testid="checkbox-test-mode"
+                  />
+                </FormControl>
+                <label 
+                  htmlFor="test-mode" 
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-1 cursor-pointer"
+                >
+                  <TestTube className="h-4 w-4" />
+                  {language === 'en' ? 'Send as test (to myself only)' : 'Envoyer en test (à moi-même seulement)'}
+                </label>
+              </FormItem>
+            )}
+          />
+
           {/* Action Buttons */}
           <div className="flex items-center gap-3 pt-4">
             <Button
@@ -1009,16 +1066,19 @@ export default function CommunicationDashboard() {
         return {
           notificationType: type.key,
           frequency: ensureValidFrequency(existing?.frequency, type.defaultFrequency),
-          isEnabled: existing?.isEnabled ?? true,
+          isEnabled: existing?.isEnabled ?? false,
         };
       }),
     },
   });
 
-  // Helper function to get January 1st of current year
+  // Helper function to get user's creation date or January 1st of current year as fallback
   const getDefaultStartingDate = () => {
+    if (user?.createdAt) {
+      return new Date(user.createdAt);
+    }
     const currentYear = new Date().getFullYear();
-    return new Date(currentYear, 0, 1); // January 1st of current year
+    return new Date(currentYear, 0, 1); // January 1st of current year as fallback
   };
 
   // Form setup for settings (global starting date)
@@ -1029,6 +1089,48 @@ export default function CommunicationDashboard() {
     },
   });
 
+  // Helper functions for category-level controls
+  const getCategoryState = useCallback((category: string) => {
+    const currentPrefs = form.getValues().preferences;
+    const categoryTypes = notificationTypes.filter(t => t.category === category);
+    const categoryPrefs = currentPrefs.filter(p => 
+      categoryTypes.some(t => t.key === p.notificationType)
+    );
+    
+    if (categoryPrefs.length === 0) return { isEnabled: false, frequency: 'monthly' as FrequencyType };
+    
+    const allEnabled = categoryPrefs.every(p => p.isEnabled);
+    const firstFrequency = categoryPrefs[0]?.frequency || 'monthly';
+    
+    return { isEnabled: allEnabled, frequency: firstFrequency };
+  }, [form]);
+
+  const setCategoryEnabled = useCallback((category: string, enabled: boolean) => {
+    const currentPrefs = form.getValues().preferences;
+    const categoryTypes = notificationTypes.filter(t => t.category === category);
+    
+    const updatedPrefs = currentPrefs.map(pref => {
+      const isCategoryType = categoryTypes.some(t => t.key === pref.notificationType);
+      return isCategoryType ? { ...pref, isEnabled: enabled } : pref;
+    });
+    
+    form.setValue('preferences', updatedPrefs);
+    setHasUnsavedChanges(true);
+  }, [form]);
+
+  const setCategoryFrequency = useCallback((category: string, frequency: FrequencyType) => {
+    const currentPrefs = form.getValues().preferences;
+    const categoryTypes = notificationTypes.filter(t => t.category === category);
+    
+    const updatedPrefs = currentPrefs.map(pref => {
+      const isCategoryType = categoryTypes.some(t => t.key === pref.notificationType);
+      return isCategoryType ? { ...pref, frequency } : pref;
+    });
+    
+    form.setValue('preferences', updatedPrefs);
+    setHasUnsavedChanges(true);
+  }, [form]);
+
   // Update form values when preferences are loaded - fixed to prevent form reset loop
   React.useEffect(() => {
     if (preferences.length > 0 && !formInitializedRef.current) {
@@ -1037,7 +1139,7 @@ export default function CommunicationDashboard() {
         return {
           notificationType: type.key,
           frequency: ensureValidFrequency(existing?.frequency, type.defaultFrequency),
-          isEnabled: existing?.isEnabled ?? true,
+          isEnabled: existing?.isEnabled ?? false,
         };
       });
       
@@ -1065,33 +1167,33 @@ export default function CommunicationDashboard() {
   }, [form]);
 
   // Save preferences mutation - using apiRequest for proper error handling
-  const saveMutation = useMutation({
+  const saveMutation = useCreateUpdateMutation<unknown, PreferencesFormData>({
     mutationFn: async (data: PreferencesFormData) => {
-      const response = await apiRequest('PUT', '/api/communication/preferences', { 
-        preferences: data.preferences 
-      });
-      return response.json();
+      logDebug('🔍 [FRONTEND] Saving notification preferences with data:', data);
+      logDebug('🔍 [FRONTEND] Preferences array:', JSON.stringify(data.preferences, null, 2));
+      const response = await apiRequest('PUT', '/api/communication/preferences', data.preferences);
+      const result = await response.json();
+      logDebug('✅ [FRONTEND] Preferences save response:', result);
+      return result;
     },
-    onSuccess: () => {
-      toast({
-        title: language === 'fr' ? 'Préférences mises à jour' : 'Preferences updated',
-        description: language === 'fr' 
-          ? 'Vos préférences de notification ont été enregistrées avec succès.'
-          : 'Your notification preferences have been saved successfully.',
-      });
+    successTitle: language === 'fr' ? 'Préférences mises à jour' : 'Preferences updated',
+    successMessage: language === 'fr' 
+      ? 'Vos préférences de notification ont été enregistrées avec succès.'
+      : 'Your notification preferences have been saved successfully.',
+    errorTitle: language === 'fr' ? 'Erreur' : 'Error',
+    errorMessage: (error: any) => error?.message || (language === 'fr' 
+      ? 'Échec de la mise à jour des préférences'
+      : 'Failed to update preferences'),
+    queryKeysToInvalidate: [['/api/communication/preferences']],
+    onSuccessCallback: () => {
+      logDebug('✅ [FRONTEND] Preferences mutation succeeded');
       setHasUnsavedChanges(false);
-      queryClient.invalidateQueries({ queryKey: ['/api/communication/preferences'] });
       // Reset form initialization flag in case user wants to reload
       formInitializedRef.current = false;
     },
-    onError: (error: any) => {
-      toast({
-        title: language === 'fr' ? 'Erreur' : 'Error',
-        description: error.message || (language === 'fr' 
-          ? 'Échec de la mise à jour des préférences'
-          : 'Failed to update preferences'),
-        variant: 'destructive',
-      });
+    onErrorCallback: (error: any) => {
+      logError('❌ [FRONTEND] Preferences mutation error:', error);
+      logError('❌ [FRONTEND] Error details:', JSON.stringify(error, null, 2));
     },
   });
 
@@ -1124,30 +1226,32 @@ export default function CommunicationDashboard() {
 
 
   // Settings save mutation
-  const saveSettingsMutation = useMutation({
+  const saveSettingsMutation = useCreateUpdateMutation<unknown, SettingsFormData>({
     mutationFn: async (data: SettingsFormData) => {
-      const response = await apiRequest('PUT', '/api/communication/settings', { 
+      logDebug('🔍 [FRONTEND] Saving notification settings with data:', data);
+      const payload = { 
         startingDate: data.startingDate.toISOString().split('T')[0] // Convert to YYYY-MM-DD format safely
-      });
-      return response.json();
+      };
+      logDebug('🔍 [FRONTEND] Sending payload to /api/communication/settings:', payload);
+      const response = await apiRequest('PUT', '/api/communication/settings', payload);
+      const result = await response.json();
+      logDebug('✅ [FRONTEND] Settings save response:', result);
+      return result;
     },
-    onSuccess: () => {
-      toast({
-        title: language === 'fr' ? 'Paramètres mis à jour' : 'Settings updated',
-        description: language === 'fr' 
-          ? 'Votre date de début pour les notifications a été enregistrée avec succès.'
-          : 'Your notification starting date has been saved successfully.',
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/communication/settings'] });
+    successTitle: language === 'fr' ? 'Paramètres mis à jour' : 'Settings updated',
+    successMessage: language === 'fr' 
+      ? 'Votre date de début pour les notifications a été enregistrée avec succès.'
+      : 'Your notification starting date has been saved successfully.',
+    errorTitle: language === 'fr' ? 'Erreur' : 'Error',
+    errorMessage: (error: any) => error?.message || (language === 'fr' 
+      ? 'Échec de la mise à jour des paramètres'
+      : 'Failed to update settings'),
+    queryKeysToInvalidate: [['/api/communication/settings']],
+    onSuccessCallback: () => {
+      logDebug('✅ [FRONTEND] Settings mutation succeeded');
     },
-    onError: (error: any) => {
-      toast({
-        title: language === 'fr' ? 'Erreur' : 'Error',
-        description: error.message || (language === 'fr' 
-          ? 'Échec de la mise à jour des paramètres'
-          : 'Failed to update settings'),
-        variant: 'destructive',
-      });
+    onErrorCallback: (error: any) => {
+      logError('❌ [FRONTEND] Settings mutation error:', error);
     },
   });
 
@@ -1286,7 +1390,7 @@ export default function CommunicationDashboard() {
               <div className="mb-6 p-4 bg-muted/50 rounded-lg">
                 <Form {...settingsForm}>
                   <form onSubmit={settingsForm.handleSubmit((data) => saveSettingsMutation.mutate(data))} className="space-y-4">
-                    <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                    <div className="flex flex-col gap-4">
                       <div className="flex-1">
                         <h4 className="font-medium mb-1">
                           {language === 'fr' ? 'Date de début pour toutes les notifications' : 'Starting Date for All Notifications'}
@@ -1298,26 +1402,55 @@ export default function CommunicationDashboard() {
                           }
                         </p>
                       </div>
-                      <div className="flex items-center gap-4">
-                        <Button
-                          type="submit"
-                          disabled={saveSettingsMutation.isPending}
-                          size="sm"
-                          data-testid="button-save-settings"
-                        >
-                          {saveSettingsMutation.isPending ? (
-                            <>
-                              <LoadingSpinner />
-                              {language === 'fr' ? 'Enregistrement...' : 'Saving...'}
-                            </>
-                          ) : (
-                            <>
-                              <Save className="w-4 h-4 mr-1" />
-                              {language === 'fr' ? 'Enregistrer' : 'Save'}
-                            </>
-                          )}
-                        </Button>
-                      </div>
+                      
+                      <FormField
+                        control={settingsForm.control}
+                        name="startingDate"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-col">
+                            <FormLabel>
+                              {language === 'fr' ? 'Date de début' : 'Starting Date'}
+                            </FormLabel>
+                            <div className="flex gap-2 items-center">
+                              <FormControl>
+                                <Input
+                                  type="date"
+                                  value={field.value ? format(field.value, 'yyyy-MM-dd') : ''}
+                                  onChange={(e) => {
+                                    if (e.target.value) {
+                                      const dateValue = parse(e.target.value, 'yyyy-MM-dd', new Date());
+                                      field.onChange(dateValue);
+                                    } else {
+                                      field.onChange(undefined);
+                                    }
+                                  }}
+                                  max={format(new Date(), 'yyyy-MM-dd')}
+                                  min="1900-01-01"
+                                  data-testid="input-starting-date"
+                                />
+                              </FormControl>
+                              <Button
+                                type="submit"
+                                disabled={saveSettingsMutation.isPending}
+                                data-testid="button-save-settings"
+                              >
+                                {saveSettingsMutation.isPending ? (
+                                  <>
+                                    <LoadingSpinner />
+                                    {language === 'fr' ? 'Enregistrement...' : 'Saving...'}
+                                  </>
+                                ) : (
+                                  <>
+                                    <Save className="w-4 h-4 mr-1" />
+                                    {language === 'fr' ? 'Enregistrer' : 'Save'}
+                                  </>
+                                )}
+                              </Button>
+                            </div>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     </div>
                   </form>
                 </Form>
@@ -1375,6 +1508,7 @@ export default function CommunicationDashboard() {
               {Object.entries(groupedNotifications).map(([category, types]) => {
                 const CategoryIcon = categoryIcons[category as keyof typeof categoryIcons];
                 const categoryLabel = categoryLabels[category as keyof typeof categoryLabels];
+                const categoryState = getCategoryState(category);
                 
                 return (
                   <Card key={category}>
@@ -1399,78 +1533,58 @@ export default function CommunicationDashboard() {
                       </CollapsibleTrigger>
                       <CollapsibleContent>
                         <CardContent>
-                          <div className="space-y-6">
-                            {types.map((type, index) => {
-                              const formIndex = notificationTypes.findIndex(nt => nt.key === type.key);
-                              const IconComponent = type.icon;
+                          {/* Category-level controls */}
+                          <div className="mb-6 p-4 bg-muted/30 rounded-lg border-2 border-primary/20">
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 justify-between">
+                              <div className="flex-1">
+                                <h4 className="font-medium mb-1">
+                                  {language === 'fr' 
+                                    ? 'Paramètres de la catégorie' 
+                                    : 'Category Settings'}
+                                </h4>
+                                <p className="text-sm text-muted-foreground">
+                                  {language === 'fr'
+                                    ? 'Ces paramètres s\'appliquent à toutes les notifications listées ci-dessous.'
+                                    : 'These settings apply to all notifications listed below.'}
+                                </p>
+                              </div>
                               
-                              return (
-                                <div key={type.key} className="flex flex-col sm:flex-row sm:items-center gap-4 p-4 border rounded-lg">
-                                  <div className="flex items-start gap-3 flex-1 min-w-0">
-                                    <div className="p-2 bg-muted rounded-lg shrink-0">
-                                      <IconComponent className="w-4 h-4" />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                      <h4 className="font-medium">
-                                        {language === 'fr' ? type.labelFr : type.labelEn}
-                                      </h4>
-                                      <p className="text-sm text-muted-foreground">
-                                        {language === 'fr' ? type.descriptionFr : type.descriptionEn}
-                                      </p>
-                                    </div>
-                                  </div>
-                                  
-                                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 shrink-0">
-                                    <div className="flex items-center gap-4">
-                                      <FormField
-                                        control={form.control}
-                                        name={`preferences.${formIndex}.isEnabled`}
-                                        render={({ field }) => (
-                                          <FormItem className="flex items-center gap-2">
-                                            <FormControl>
-                                              <Switch
-                                                checked={field.value}
-                                                onCheckedChange={field.onChange}
-                                                data-testid={`switch-${type.key}-enabled`}
-                                              />
-                                            </FormControl>
-                                            <FormLabel className="text-sm">
-                                              {language === 'fr' ? 'Activé' : 'Enabled'}
-                                            </FormLabel>
-                                          </FormItem>
-                                        )}
-                                      />
-                                      
-                                      <FormField
-                                        control={form.control}
-                                        name={`preferences.${formIndex}.frequency`}
-                                        render={({ field }) => (
-                                          <FormItem className="w-40">
-                                            <Select
-                                              onValueChange={field.onChange}
-                                              value={field.value}
-                                            >
-                                              <FormControl>
-                                                <SelectTrigger data-testid={`select-${type.key}-frequency`}>
-                                                  <SelectValue />
-                                                </SelectTrigger>
-                                              </FormControl>
-                                              <SelectContent>
-                                                {frequencyOptions.map((option) => (
-                                                  <SelectItem key={option.value} value={option.value}>
-                                                    {language === 'fr' ? option.labelFr : option.labelEn}
-                                                  </SelectItem>
-                                                ))}
-                                              </SelectContent>
-                                            </Select>
-                                          </FormItem>
-                                        )}
-                                      />
-                                    </div>
-                                  </div>
+                              <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-2">
+                                  <Switch
+                                    checked={categoryState.isEnabled}
+                                    onCheckedChange={(checked) => setCategoryEnabled(category, checked)}
+                                    data-testid={`switch-category-${category}-enabled`}
+                                  />
+                                  <span className="text-sm font-medium">
+                                    {categoryState.isEnabled 
+                                      ? (language === 'fr' ? 'Activé' : 'Enabled')
+                                      : (language === 'fr' ? 'Désactivé' : 'Disabled')
+                                    }
+                                  </span>
                                 </div>
-                              );
-                            })}
+                                
+                                <Select
+                                  value={categoryState.frequency}
+                                  onValueChange={(value) => setCategoryFrequency(category, value as FrequencyType)}
+                                  disabled={!categoryState.isEnabled}
+                                >
+                                  <SelectTrigger 
+                                    className="w-40" 
+                                    data-testid={`select-category-${category}-frequency`}
+                                  >
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {frequencyOptions.map((option) => (
+                                      <SelectItem key={option.value} value={option.value}>
+                                        {language === 'fr' ? option.labelFr : option.labelEn}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
                           </div>
                         </CardContent>
                       </CollapsibleContent>
@@ -1490,7 +1604,7 @@ export default function CommunicationDashboard() {
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <MessageSquare className="w-5 h-5" />
-                    {language === 'en' ? 'Send Communication to Organization' : 'Envoyer une communication à l\'organisation'}
+                    {language === 'en' ? 'Send Communication' : 'Envoyer une communication'}
                   </CardTitle>
                   <p className="text-sm text-muted-foreground">
                     {language === 'en'

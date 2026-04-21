@@ -74,6 +74,66 @@ export const sessions = pgTable('session', {
   expireIdx: index('sessions_expire_idx').on(table.expire),
 }));
 
+/**
+ * OAuth 2.0 dynamically-registered clients (Claude.ai web connector, etc).
+ * One row per client registered through RFC 7591 dynamic client registration.
+ */
+export const oauthClients = pgTable('oauth_clients', {
+  clientId: text('client_id').primaryKey(),
+  clientSecret: text('client_secret'),
+  clientIdIssuedAt: integer('client_id_issued_at').notNull(),
+  clientSecretExpiresAt: integer('client_secret_expires_at'),
+  clientInfo: json('client_info').notNull(),
+});
+
+/**
+ * OAuth 2.0 authorization flows + issued authorization codes.
+ * A row is inserted as `pending` when authorize() begins, then updated to
+ * `issued` (with the user/role chosen at consent) when the consent screen is
+ * approved. Codes are short-lived and consumed at the token endpoint.
+ */
+export const oauthAuthCodes = pgTable('oauth_auth_codes', {
+  code: text('code').primaryKey(),
+  clientId: text('client_id').notNull(),
+  redirectUri: text('redirect_uri').notNull(),
+  codeChallenge: text('code_challenge').notNull(),
+  codeChallengeMethod: text('code_challenge_method').notNull().default('S256'),
+  scopes: text('scopes').array().notNull().default(sql`ARRAY[]::text[]`),
+  state: text('state'),
+  resource: text('resource'),
+  status: text('status').notNull().default('pending'),
+  userId: text('user_id'),
+  role: text('role'),
+  expiresAt: timestamp('expires_at').notNull(),
+  used: boolean('used').notNull().default(false),
+}, (table) => ({
+  clientIdx: index('oauth_auth_codes_client_idx').on(table.clientId),
+  expiresIdx: index('oauth_auth_codes_expires_idx').on(table.expiresAt),
+}));
+
+/**
+ * OAuth 2.0 issued access and refresh tokens.
+ */
+export const oauthTokens = pgTable('oauth_tokens', {
+  token: text('token').primaryKey(),
+  tokenType: text('token_type').notNull(),
+  clientId: text('client_id').notNull(),
+  userId: text('user_id').notNull(),
+  role: text('role').notNull(),
+  scopes: text('scopes').array().notNull().default(sql`ARRAY[]::text[]`),
+  resource: text('resource'),
+  expiresAt: timestamp('expires_at').notNull(),
+  refreshTokenFor: text('refresh_token_for'),
+}, (table) => ({
+  clientIdx: index('oauth_tokens_client_idx').on(table.clientId),
+  expiresIdx: index('oauth_tokens_expires_idx').on(table.expiresAt),
+  typeIdx: index('oauth_tokens_type_idx').on(table.tokenType),
+}));
+
+export type OauthClient = typeof oauthClients.$inferSelect;
+export type OauthAuthCode = typeof oauthAuthCodes.$inferSelect;
+export type OauthToken = typeof oauthTokens.$inferSelect;
+
 // Insert schemas
 export const insertSslCertificateSchema = z.object({
   domain: z.string(),

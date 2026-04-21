@@ -610,7 +610,7 @@ export class OptimizedScopeQueryManager {
         .where(eq(users.isActive, true))
         .limit(50);
 
-      console.log(`⚙️ Warming up contexts for ${activeUsers.length} users...`);
+      if (process.env.NODE_ENV !== 'production') console.log(`⚙️ Warming up contexts for ${activeUsers.length} users...`);
 
       // Batch warm up user contexts - process in smaller groups to avoid overwhelming the database
       const batchSize = 10;
@@ -627,7 +627,7 @@ export class OptimizedScopeQueryManager {
 
         const results = await Promise.allSettled(warmupPromises);
         const successful = results.filter(r => r.status === 'fulfilled' && r.value !== null).length;
-        console.log(`✅ Batch ${Math.floor(i/batchSize) + 1}: ${successful}/${batch.length} users warmed up`);
+        if (process.env.NODE_ENV !== 'production') console.log(`✅ Batch ${Math.floor(i/batchSize) + 1}: ${successful}/${batch.length} users warmed up`);
         
         // Small delay between batches to avoid overwhelming the database
         if (i + batchSize < activeUsers.length) {
@@ -635,7 +635,7 @@ export class OptimizedScopeQueryManager {
         }
       }
       
-      console.log(`✅ Scope cache warmup completed for ${activeUsers.length} users`);
+      if (process.env.NODE_ENV !== 'production') console.log(`✅ Scope cache warmup completed for ${activeUsers.length} users`);
     } catch (error) {
       console.error('❌ Error during scope cache warmup:', error);
     }

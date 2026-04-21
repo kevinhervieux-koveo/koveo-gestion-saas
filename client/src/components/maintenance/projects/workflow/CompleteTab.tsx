@@ -58,10 +58,8 @@ type CompleteTabData = z.infer<typeof completeTabSchema>;
  * Displays project summary, final comments, and completion status
  */
 export function CompleteTab({ project, workflowState, onUpdate }: CompleteTabProps) {
-  const { toast } = useToast();
-  const [hasChanges, setHasChanges] = useState(false);
-
-  // Defensive null check for project data
+  // Defensive null check for project data — must come BEFORE any hook calls
+  // to comply with the Rules of Hooks.
   if (!project) {
     return (
       <div className="p-6">
@@ -74,6 +72,9 @@ export function CompleteTab({ project, workflowState, onUpdate }: CompleteTabPro
       </div>
     );
   }
+
+  const { toast } = useToast();
+  const [hasChanges, setHasChanges] = useState(false);
 
   const { mutate: updateProject, isPending: isUpdating } = useUpdateProjectDetails();
 

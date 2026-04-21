@@ -1,0 +1,33 @@
+FACTURE / INVOICE
+===================
+
+Numéro de facture / Invoice Number: 1936-2023-05-CLEANING-5
+Date: 2023-05-13
+
+FACTURER À / BILL TO:
+1936 Nitzsche Track Building 5
+2536 montée Sainte-Catherine
+Québec, Canada
+
+FOURNISSEUR / VENDOR:
+Entretien Ménager Plus
+
+DESCRIPTION / DESCRIPTION:
+Cleaning - Entretien Ménager Plus
+
+CATÉGORIE / CATEGORY: Cleaning
+
+MONTANT / AMOUNT:
+Sous-total / Subtotal: $766.00 CAD
+TPS (5%) / GST: $38.30 CAD
+TVQ (9.975%) / QST: $76.41 CAD
+TOTAL: $880.71 CAD
+
+CONDITIONS DE PAIEMENT / PAYMENT TERMS:
+Net 30 jours / Net 30 days
+
+Merci de votre confiance / Thank you for your business
+===============================================
+
+Ce document est généré automatiquement pour les besoins de test du système Koveo Gestion.
+This document is automatically generated for Koveo Gestion system testing purposes.

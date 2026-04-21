@@ -1,0 +1,84 @@
+common-spaces-stats-KaY2nIZv.js:11 🔍 [COMMON_SPACES_STATS] Component mounted Object
+common-spaces-stats-KaY2nIZv.js:11 🔍 [COMMON_SPACES_STATS] Context changed: Object
+common-spaces-stats-KaY2nIZv.js:11 🔍 [COMMON_SPACES_STATS] Selected space changed: Object
+common-spaces-stats-KaY2nIZv.js:11 🔍 [COMMON_SPACES_STATS] Fetching buildings with params: Object
+common-spaces-stats-KaY2nIZv.js:11 🔍 [COMMON_SPACES_STATS] Fetching common spaces for building: Object
+common-spaces-stats-KaY2nIZv.js:11 🔍 [COMMON_SPACES_STATS] Received buildings: Object
+common-spaces-stats-KaY2nIZv.js:11 🔍 [COMMON_SPACES_STATS] Received common spaces: Object
+buildings-DM8ODBCg.js:1 🔍 [BUILDINGS] Component mounted Object
+buildings-DM8ODBCg.js:1 🔍 [BUILDINGS] Organization context changed: Object
+buildings-DM8ODBCg.js:1 🔍 [BUILDINGS] Search term updated: 
+BuildingDocuments-Css4punJ.js:1 🔍 [BUILDING_DOCUMENTS] Component initialized Object
+hook.js:608 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+overrideMethod @ hook.js:608
+/api/documents/5bfa22c8-3211-4f27-a53a-85c7294a0402/file:1  Failed to load resource: the server responded with a status of 404 ()
+hook.js:608 [VIEW] View failed: Error: View failed: 404 
+    at O (ModularDocumentPageWrapper-d0sqmm28.js:11:1375)
+overrideMethod @ hook.js:608
+hook.js:608 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+overrideMethod @ hook.js:608
+/api/documents/69cfed32-44bf-48fd-9cee-5444f713b54e/file:1  Failed to load resource: the server responded with a status of 404 ()
+hook.js:608 [VIEW] View failed: Error: View failed: 404 
+    at O (ModularDocumentPageWrapper-d0sqmm28.js:11:1375)
+overrideMethod @ hook.js:608
+hook.js:608 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+overrideMethod @ hook.js:608
+/api/documents/692d277d-d29c-4e03-b16c-266edd0514fb/file:1  Failed to load resource: the server responded with a status of 404 ()
+hook.js:608 [VIEW] View failed: Error: View failed: 404 
+    at O (ModularDocumentPageWrapper-d0sqmm28.js:11:1375)
+overrideMethod @ hook.js:608
+hook.js:608 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+overrideMethod @ hook.js:608
+/api/documents/d5302bcd-0042-45db-ac6b-3afde1583bf0/file:1  Failed to load resource: the server responded with a status of 404 ()
+hook.js:608 [VIEW] View failed: Error: View failed: 404 
+    at O (ModularDocumentPageWrapper-d0sqmm28.js:11:1375)
+overrideMethod @ hook.js:608
+hook.js:608 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+overrideMethod @ hook.js:608
+common-spaces-stats-KaY2nIZv.js:11 🔍 [COMMON_SPACES_STATS] Component mounted Object
+common-spaces-stats-KaY2nIZv.js:11 🔍 [COMMON_SPACES_STATS] Context changed: Object
+common-spaces-stats-KaY2nIZv.js:11 🔍 [COMMON_SPACES_STATS] Selected space changed: Object
+common-spaces-stats-KaY2nIZv.js:11 🔍 [COMMON_SPACES_STATS] Fetching buildings with params: Object
+common-spaces-stats-KaY2nIZv.js:11 🔍 [COMMON_SPACES_STATS] Fetching common spaces for building: Object
+common-spaces-stats-KaY2nIZv.js:11 🔍 [COMMON_SPACES_STATS] Received common spaces: Object
+common-spaces-stats-KaY2nIZv.js:11 🔍 [COMMON_SPACES_STATS] Received buildings: Object
+common-spaces-stats-KaY2nIZv.js:11 🔍 [COMMON_SPACES_STATS] Selected space changed: Object
+index-ByG_Cy6j.js:25 Error: A <Select.Item /> must have a value prop that is not an empty string. This is because the Select value can be set to an empty string to clear the selection and show the placeholder.
+    at vendor-ui-oDVeZEU7.js:53:12763
+    at jo (index-ByG_Cy6j.js:25:34140)
+    at Qd (index-ByG_Cy6j.js:25:60268)
+    at tm (index-ByG_Cy6j.js:25:74585)
+    at Mm (index-ByG_Cy6j.js:25:106605)
+    at Jh (index-ByG_Cy6j.js:25:105670)
+    at yr (index-ByG_Cy6j.js:25:105502)
+    at Tm (index-ByG_Cy6j.js:25:102613)
+    at Hm (index-ByG_Cy6j.js:25:114157)
+    at Ei (index-ByG_Cy6j.js:25:112729)
+overrideMethod @ hook.js:608
+Ld @ index-ByG_Cy6j.js:25
+Vd @ index-ByG_Cy6j.js:25
+Hd.r.componentDidCatch.e.callback @ index-ByG_Cy6j.js:25
+Qc @ index-ByG_Cy6j.js:25
+Yc @ index-ByG_Cy6j.js:25
+im @ index-ByG_Cy6j.js:25
+cm @ index-ByG_Cy6j.js:25
+cn @ index-ByG_Cy6j.js:25
+cm @ index-ByG_Cy6j.js:25
+cn @ index-ByG_Cy6j.js:25
+cm @ index-ByG_Cy6j.js:25
+cn @ index-ByG_Cy6j.js:25
+cm @ index-ByG_Cy6j.js:25
+cn @ index-ByG_Cy6j.js:25
+cm @ index-ByG_Cy6j.js:25
+cn @ index-ByG_Cy6j.js:25
+cm @ index-ByG_Cy6j.js:25
+cn @ index-ByG_Cy6j.js:25
+cm @ index-ByG_Cy6j.js:25
+Um @ index-ByG_Cy6j.js:25
+jm @ index-ByG_Cy6j.js:25
+xm @ index-ByG_Cy6j.js:25
+Tm @ index-ByG_Cy6j.js:25
+Hm @ index-ByG_Cy6j.js:25
+Ei @ index-ByG_Cy6j.js:25
+Pm @ index-ByG_Cy6j.js:25
+(anonymous) @ index-ByG_Cy6j.js:25

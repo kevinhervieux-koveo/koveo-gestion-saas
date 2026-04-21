@@ -1,6 +1,7 @@
 import cron from 'node-cron';
 import { db } from '../db';
 import { emailService } from '../services/email-service';
+import { maskEmail } from '../utils/logger';
 import { eq, and, isNull, gte, lte, inArray, or, not, isNotNull } from 'drizzle-orm';
 import { 
   notificationConfigurations, 
@@ -409,7 +410,7 @@ export class NotificationAutomationJobScheduler {
         config.type
       );
     } catch (error: any) {
-      console.error(`❌ Error sending notification email to ${recipient.email}:`, error);
+      console.error(`❌ Error sending notification email to ${maskEmail(recipient.email)}:`, error);
       return false;
     }
   }

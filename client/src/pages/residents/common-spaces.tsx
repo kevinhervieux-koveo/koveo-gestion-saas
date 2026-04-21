@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
@@ -18,6 +19,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Header } from '@/components/layout/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -74,6 +76,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
 import { useLanguage } from '@/hooks/use-language';
 import { apiRequest } from '@/lib/queryClient';
+import { handleApiError } from '@/lib/demo-error-handler';
 import { CalendarView } from '@/components/common-spaces/calendar-view';
 import { CommonSpaceCalendar } from '@/components/common-spaces/common-space-calendar';
 
@@ -290,22 +293,22 @@ function BookingCalendar({
               language === 'fr' ? 'V' : 'F',
               language === 'fr' ? 'S' : 'S',
               language === 'fr' ? 'D' : 'S',
-            ].map((day, index) => (
-              <div key={index} className='p-1 text-center text-xs font-medium text-gray-500'>
+            ].map((day, i) => (
+              <div key={`weekday-${i}`} className='p-1 text-center text-xs font-medium text-gray-500'>
                 {day}
               </div>
             ))}
           </div>
 
           <div className='grid grid-cols-7 gap-1'>
-            {monthDays.map((day, index) => {
+            {monthDays.map((day) => {
               const dayBookings = getBookingsForDay(day);
               const isCurrentDay = isToday(day);
               const isSelected = selected && isSameDay(day, selected);
               const isAvailable = isDayAvailable(day);
 
               return (
-                <Tooltip key={index}>
+                <Tooltip key={day.toISOString()}>
                   <TooltipTrigger asChild>
                     <div
                       className={`
@@ -350,8 +353,8 @@ function BookingCalendar({
                             {dayBookings.length}{' '}
                             {language === 'fr' ? 'réservation(s)' : 'booking(s)'}
                           </p>
-                          {dayBookings.slice(0, 2).map((booking, idx) => (
-                            <p key={idx} className='text-gray-600'>
+                          {dayBookings.slice(0, 2).map((booking) => (
+                            <p key={booking.id} className='text-gray-600'>
                               {format(parseISO(booking.startTime), 'HH:mm')} -{' '}
                               {format(parseISO(booking.endTime), 'HH:mm')}
                             </p>
@@ -447,7 +450,7 @@ function generateICS(bookings: Booking[], allSpaces?: boolean): string {
 interface CommonSpacesProps {
   buildingId?: string;
   showBackButton?: boolean;
-  backButtonLabel?: string;
+  backButtonLabel?: ReactNode;
   onBack?: () => void;
 }
 
@@ -507,6 +510,7 @@ function CommonSpacesPageInner({ buildingId, showBackButton, backButtonLabel, on
   });
 
   // Create booking mutation
+  // Exception (task #229): error handled via `handleApiError` for demo-mode/locale-aware messaging.
   const createBookingMutation = useMutation({
     mutationFn: async (data: BookingFormData) => {
       if (!selectedSpace) {
@@ -549,12 +553,13 @@ function CommonSpacesPageInner({ buildingId, showBackButton, backButtonLabel, on
       form.reset();
     },
     onError: (error: any) => {
-      toast({
-        title: 'Erreur de réservation',
-        description:
-          error.message || 'Une erreur est survenue lors de la création de la réservation.',
-        variant: 'destructive',
-      });
+      handleApiError(
+        error,
+        language,
+        language === 'fr'
+          ? 'Échec de la création de la réservation. Veuillez réessayer.'
+          : 'Failed to create booking. Please try again.'
+      );
     },
   });
 
@@ -759,11 +764,19 @@ function CommonSpacesPageInner({ buildingId, showBackButton, backButtonLabel, on
 
       {/* Back Navigation */}
       {showBackButton && onBack && (
-        <div className="px-6 pt-6 pb-0">
-          <Button variant="outline" onClick={onBack} className="flex items-center gap-2">
-            <ArrowLeft className="w-4 h-4" />
-            {backButtonLabel}
-          </Button>
+        <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="flex items-center px-6 py-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onBack}
+              className="flex items-center gap-2"
+              data-testid="button-back-to-building"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              {backButtonLabel}
+            </Button>
+          </div>
         </div>
       )}
 
@@ -807,8 +820,24 @@ function CommonSpacesPageInner({ buildingId, showBackButton, backButtonLabel, on
 
           {spacesLoading ? (
             <div className='space-y-4'>
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className='h-32 bg-gray-200 rounded-lg animate-pulse' />
+              {[1, 2, 3].map((i) => (
+                <Card key={`skel-space-${i}`}>
+                  <CardHeader className='pb-3'>
+                    <div className='flex items-start justify-between'>
+                      <div className='space-y-2'>
+                        <Skeleton className='h-5 w-40' />
+                        <Skeleton className='h-4 w-60' />
+                      </div>
+                      <Skeleton className='h-6 w-20 rounded-full' />
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className='flex gap-4'>
+                      <Skeleton className='h-4 w-24' />
+                      <Skeleton className='h-4 w-24' />
+                    </div>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           ) : (
@@ -959,7 +988,7 @@ function CommonSpacesPageInner({ buildingId, showBackButton, backButtonLabel, on
                                       const dayName = form.watch('date').toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
                                       if (hours.day.toLowerCase() === dayName) {
                                         return (
-                                          <div key={index} className='text-sm text-green-800'>
+                                          <div key={hours.day} className='text-sm text-green-800'>
                                             {hours.open} - {hours.close}
                                           </div>
                                         );

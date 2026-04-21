@@ -250,7 +250,7 @@ const ChartTooltipContent = React.forwardRef<
       >
         {!nestLabel ? tooltipLabel : null}
         <div className='grid gap-1.5'>
-          {payload.map((item, _index) => {
+          {payload.filter((item) => item.value != null).filter((item, idx, arr) => arr.findIndex(i => i.dataKey === item.dataKey) === idx).map((item, _index) => {
             const key = `${nameKey || item.name || item.dataKey || 'value'}`;
             const itemConfig = getPayloadConfigFromPayload(config, item, key);
             const indicatorColor = color || item.payload.fill || item.color;
@@ -303,7 +303,7 @@ const ChartTooltipContent = React.forwardRef<
                           {itemConfig?.label || item.name}
                         </span>
                       </div>
-                      {item.value && (
+                      {item.value != null && (
                         <span className='font-mono font-medium tabular-nums text-foreground'>
                           {item.value.toLocaleString()}
                         </span>

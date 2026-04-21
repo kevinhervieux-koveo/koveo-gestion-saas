@@ -13,6 +13,7 @@ export interface BuildingData {
   postalCode: string;
   buildingType: string;
   totalUnits: number;
+  commonSpacesCount?: number;
   organizationId: string;
   organization_id?: string;
   isActive: boolean;
@@ -83,6 +84,10 @@ export function BuildingCard({
       text: `${building.totalUnits} ${t('unitsCount')}`,
       variant: 'outline' as const,
     },
+    ...(building.commonSpacesCount !== undefined && building.commonSpacesCount > 0 ? [{
+      text: `${building.commonSpacesCount} ${t('commonSpacesCount')}`,
+      variant: 'outline' as const,
+    }] : []),
     {
       text: building.buildingType,
       variant: 'secondary' as const,

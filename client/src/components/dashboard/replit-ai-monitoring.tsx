@@ -20,6 +20,7 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { useQuery, useMutation } from '@tanstack/react-query';
+import { useCreateUpdateMutation } from '@/lib/common-hooks';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 
@@ -102,34 +103,22 @@ export function ReplitAIMonitoring() {
   });
 
   // Trigger AI analysis
-  const analysisMutation = useMutation({
+  const analysisMutation = useCreateUpdateMutation<unknown, void>({
     mutationFn: () => apiRequest('POST', '/api/ai/analyze'),
-    onSuccess: () => {
-      toast({
-        title: 'AI Analysis Started',
-        description: 'The AI agent is analyzing your application for improvements.',
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/ai'] });
-    },
-    onError: () => {
-      toast({
-        title: 'Analysis Failed',
-        description: 'Unable to start AI analysis. Please try again.',
-        variant: 'destructive',
-      });
-    },
+    successTitle: 'AI Analysis Started',
+    successMessage: 'The AI agent is analyzing your application for improvements.',
+    errorTitle: 'Analysis Failed',
+    errorMessage: 'Unable to start AI analysis. Please try again.',
+    queryKeysToInvalidate: [['/api/ai']],
   });
 
   // Apply AI suggestion
-  const applySuggestionMutation = useMutation({
+  const applySuggestionMutation = useCreateUpdateMutation<unknown, string>({
     mutationFn: (insightId: string) => apiRequest('POST', `/api/ai/insights/${insightId}/apply`),
-    onSuccess: () => {
-      toast({
-        title: 'Suggestion Applied',
-        description: 'The AI suggestion has been successfully implemented.',
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/ai/insights'] });
-    },
+    successTitle: 'Suggestion Applied',
+    successMessage: 'The AI suggestion has been successfully implemented.',
+    silentError: true,
+    queryKeysToInvalidate: [['/api/ai/insights']],
   });
 
   const getStatusColor = (status: string) => {

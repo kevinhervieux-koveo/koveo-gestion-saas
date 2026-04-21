@@ -213,6 +213,7 @@ export interface SubmissionTabProps {
   project: MaintenanceProject;
   workflowState: ProjectWorkflowState;
   onUpdate: () => void;
+  onMarkComplete?: () => void;
   onNavigateToTab?: (tabId: string) => void;
 }
 
@@ -220,7 +221,7 @@ export interface SubmissionTabProps {
  * Submission tab component for vendor management and selection
  * Displays vendor submissions, payment plans, and selection interface
  */
-export function SubmissionTab({ project, workflowState, onUpdate, onNavigateToTab }: SubmissionTabProps) {
+export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete, onNavigateToTab }: SubmissionTabProps) {
   const [editingPaymentPlan, setEditingPaymentPlan] = useState<SubmissionVendor | null>(null);
   const [editingVendor, setEditingVendor] = useState<SubmissionVendor | null>(null);
   const [showSubmissionDialog, setShowSubmissionDialog] = useState(false);
@@ -440,6 +441,18 @@ export function SubmissionTab({ project, workflowState, onUpdate, onNavigateToTa
   const handleSaveVendorEdit = (data: EditVendorForm) => {
     if (!editingVendor) return;
 
+    // Block submit while any attachment upload is still pending.
+    const hasPendingUpload = editVendorDocuments.some(
+      doc => doc.file && (doc.uploadProgress ?? 0) < 100
+    );
+    if (hasPendingUpload) {
+      toast({
+        title: 'Upload in progress',
+        description: 'Please wait for document uploads to finish before saving.',
+      });
+      return;
+    }
+
     // Convert payment plan data from bills format to submission vendor format
     let paymentPlanCosts: string[] = [];
     let paymentPlanSchedule: string | undefined;
@@ -547,6 +560,12 @@ export function SubmissionTab({ project, workflowState, onUpdate, onNavigateToTa
   };
 
   const handleMarkComplete = () => {
+    if (onMarkComplete) {
+      // Delegate to parent so it can advance the workflow tab after success.
+      onMarkComplete();
+      return;
+    }
+
     markComplete({
       projectId: project.id,
       currentStatus: 'submission',
@@ -616,6 +635,21 @@ export function SubmissionTab({ project, workflowState, onUpdate, onNavigateToTa
   };
 
   const handleSubmissionSubmit = (data: NewSubmissionForm) => {
+    // Block submit while any attachment upload is still in flight. This
+    // prevents the client-side temporary UUID from being persisted into
+    // submissionVendors.documents (which would cause later file lookups to
+    // fail since that id does not exist in the documents table).
+    const hasPendingUpload = uploadedDocuments.some(
+      doc => doc.file && (doc.uploadProgress ?? 0) < 100
+    );
+    if (hasPendingUpload) {
+      toast({
+        title: 'Upload in progress',
+        description: 'Please wait for document uploads to finish before submitting.',
+      });
+      return;
+    }
+
     // Convert payment plan data from bills format to submission vendor format
     let paymentPlanCosts: number[] = [];
     let paymentPlanSchedule: string | undefined;
@@ -698,15 +732,88 @@ export function SubmissionTab({ project, workflowState, onUpdate, onNavigateToTa
     );
   };
 
+  // Upload a file to /api/documents/upload and return the created document
+  // record. We use the real `document.id` as the AttachedFile id so that the
+  // id persisted into submissionVendors.documents JSONB matches the primary
+  // key in the documents table — letting the file-serving endpoint look up
+  // the actual filePath instead of guessing from the filename on disk.
+  const uploadFileToDocumentsApi = async (file: File, tempId: string, onProgress?: (pct: number) => void): Promise<{ id: string; filePath: string } | null> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('name', file.name);
+    formData.append('documentType', 'maintenance');
+    formData.append('buildingId', project.buildingId);
+    formData.append('attachedToType', 'submission_vendor');
+    formData.append('attachedToId', project.id);
+    formData.append('isVisibleToTenants', 'false');
+
+    return new Promise((resolve) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', '/api/documents/upload');
+      xhr.withCredentials = true;
+      xhr.upload.addEventListener('progress', (event) => {
+        if (event.lengthComputable && onProgress) {
+          onProgress(Math.round((event.loaded / event.total) * 100));
+        }
+      });
+      xhr.addEventListener('load', () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const response = JSON.parse(xhr.responseText);
+            resolve(response.document ? { id: response.document.id, filePath: response.document.filePath } : null);
+          } catch {
+            resolve(null);
+          }
+        } else {
+          resolve(null);
+        }
+      });
+      xhr.addEventListener('error', () => resolve(null));
+      xhr.send(formData);
+    });
+  };
+
   // Handle document changes from StandardDocumentAttachments
-  const handleDocumentChange = (file: File | null, text: string | null) => {
-    if (file) {
-      const newAttachment: AttachedFile = {
-        id: crypto.randomUUID(),
-        file,
-        uploadProgress: 0,
-      };
-      setUploadedDocuments(prev => [...prev, newAttachment]);
+  const handleDocumentChange = async (file: File | null, text: string | null) => {
+    if (!file) return;
+
+    const tempId = crypto.randomUUID();
+    const newAttachment: AttachedFile = {
+      id: tempId,
+      file,
+      uploadProgress: 0,
+    };
+    setUploadedDocuments(prev => [...prev, newAttachment]);
+    setUploadProgress(prev => ({ ...prev, [tempId]: 0 }));
+
+    const uploaded = await uploadFileToDocumentsApi(file, tempId, (pct) => {
+      setUploadProgress(prev => ({ ...prev, [tempId]: pct }));
+    });
+
+    if (uploaded) {
+      setUploadedDocuments(prev =>
+        prev.map(doc =>
+          doc.id === tempId
+            ? { ...doc, id: uploaded.id, url: `/api/maintenance/documents/${uploaded.id}/file`, uploadProgress: 100 }
+            : doc
+        )
+      );
+      setUploadProgress(prev => {
+        const { [tempId]: _, ...rest } = prev;
+        return { ...rest, [uploaded.id]: 100 };
+      });
+    } else {
+      // Upload failed — remove the attachment and notify the user
+      setUploadedDocuments(prev => prev.filter(doc => doc.id !== tempId));
+      setUploadProgress(prev => {
+        const { [tempId]: _, ...rest } = prev;
+        return rest;
+      });
+      toast({
+        title: 'Upload failed',
+        description: `Could not upload ${file.name}. Please try again.`,
+        variant: 'destructive',
+      });
     }
   };
 
@@ -716,14 +823,45 @@ export function SubmissionTab({ project, workflowState, onUpdate, onNavigateToTa
   };
 
   // Handle document changes from StandardDocumentAttachments for edit vendor
-  const handleEditDocumentChange = (file: File | null, text: string | null) => {
-    if (file) {
-      const newAttachment: AttachedFile = {
-        id: crypto.randomUUID(),
-        file,
-        uploadProgress: 0,
-      };
-      setEditVendorDocuments(prev => [...prev, newAttachment]);
+  const handleEditDocumentChange = async (file: File | null, text: string | null) => {
+    if (!file) return;
+
+    const tempId = crypto.randomUUID();
+    const newAttachment: AttachedFile = {
+      id: tempId,
+      file,
+      uploadProgress: 0,
+    };
+    setEditVendorDocuments(prev => [...prev, newAttachment]);
+    setEditUploadProgress(prev => ({ ...prev, [tempId]: 0 }));
+
+    const uploaded = await uploadFileToDocumentsApi(file, tempId, (pct) => {
+      setEditUploadProgress(prev => ({ ...prev, [tempId]: pct }));
+    });
+
+    if (uploaded) {
+      setEditVendorDocuments(prev =>
+        prev.map(doc =>
+          doc.id === tempId
+            ? { ...doc, id: uploaded.id, url: `/api/maintenance/documents/${uploaded.id}/file`, uploadProgress: 100 }
+            : doc
+        )
+      );
+      setEditUploadProgress(prev => {
+        const { [tempId]: _, ...rest } = prev;
+        return { ...rest, [uploaded.id]: 100 };
+      });
+    } else {
+      setEditVendorDocuments(prev => prev.filter(doc => doc.id !== tempId));
+      setEditUploadProgress(prev => {
+        const { [tempId]: _, ...rest } = prev;
+        return rest;
+      });
+      toast({
+        title: 'Upload failed',
+        description: `Could not upload ${file.name}. Please try again.`,
+        variant: 'destructive',
+      });
     }
   };
 
@@ -1188,8 +1326,8 @@ export function SubmissionTab({ project, workflowState, onUpdate, onNavigateToTa
                               </Button>
                             </div>
                             
-                            {submissionForm.watch('customPayments')?.map((_, index) => (
-                              <div key={index} className="flex items-center gap-2 p-3 border rounded">
+                            {submissionForm.watch('customPayments')?.map((payment, index) => (
+                              <div key={`sub-payment-${payment.date || ''}-${index}`} className="flex items-center gap-2 p-3 border rounded">
                                 <div className="flex-1 space-y-2">
                                   <FormField
                                     control={submissionForm.control}
@@ -1508,9 +1646,9 @@ export function SubmissionTab({ project, workflowState, onUpdate, onNavigateToTa
                         <div>
                           <span>Payment breakdown:</span>
                           <div className="ml-4 mt-1">
-                            {vendor.paymentPlanCosts.map((cost, index) => (
-                              <div key={index} className="text-xs">
-                                Payment {index + 1}: {formatCurrency(cost)}
+                            {vendor.paymentPlanCosts.map((cost, i) => (
+                              <div key={`plan-cost-${formatCurrency(cost)}-${i}`} className="text-xs">
+                                Payment {i + 1}: {formatCurrency(cost)}
                               </div>
                             ))}
                           </div>
@@ -1942,8 +2080,8 @@ export function SubmissionTab({ project, workflowState, onUpdate, onNavigateToTa
                             </Button>
                           </div>
                           
-                          {editVendorForm.watch('customPayments')?.map((_, index) => (
-                            <div key={index} className="flex items-center gap-2 p-3 border rounded">
+                          {editVendorForm.watch('customPayments')?.map((payment, index) => (
+                            <div key={`edit-payment-${payment.date || ''}-${payment.amount || ''}-${index}`} className="flex items-center gap-2 p-3 border rounded">
                               <div className="flex-1 space-y-2">
                                 <FormField
                                   control={editVendorForm.control}
@@ -2128,7 +2266,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onNavigateToTa
         
         {canAdvance && hasPreferredVendor && (
           <Button 
-            onClick={() => markComplete({ projectId: project.id, currentStatus: 'submission' })}
+            onClick={handleMarkComplete}
             disabled={isMarkingComplete}
             className="flex items-center gap-2"
             data-testid="button-complete-submission"

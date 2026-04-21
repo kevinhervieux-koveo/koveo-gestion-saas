@@ -21,7 +21,7 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Copy, FileText, Zap, Save, Clock, Trash2, Plus, Paperclip } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useCreateUpdateMutation } from '@/lib/common-hooks';
 import type { Feature } from '@shared/schema';
 import { SharedUploader } from '@/components/document-management';
 
@@ -54,23 +54,22 @@ interface FeatureFormProps {
  */
 export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
 
   // Mutation to create feature in roadmap
-  const createFeatureMutation = useMutation({
-    mutationFn: async (featureData: {
-      name: string;
-      description: string;
-      category: string;
-      status?: string;
-      priority?: string;
-      businessObjective?: string;
-      targetUsers?: string;
-      successMetrics?: string;
-      technicalComplexity?: string;
-      dependencies?: string;
-      userFlow?: string;
-    }) => {
+  const createFeatureMutation = useCreateUpdateMutation<any, {
+    name: string;
+    description: string;
+    category: string;
+    status?: string;
+    priority?: string;
+    businessObjective?: string;
+    targetUsers?: string;
+    successMetrics?: string;
+    technicalComplexity?: string;
+    dependencies?: string;
+    userFlow?: string;
+  }>({
+    mutationFn: async (featureData) => {
       const response = await fetch('/api/features', {
         method: 'POST',
         headers: {
@@ -85,29 +84,19 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
 
       return response.json();
     },
-    onSuccess: (newFeature) => {
-      // Invalidate queries to refresh roadmap data
-      queryClient.invalidateQueries({ queryKey: ['/api/features'] });
-
-      toast({
-        title: 'Feature Integrated',
-        description: `"${newFeature.name}" has been successfully added to the roadmap.`,
-      });
-
-      // Close the dialog
+    successTitle: 'Feature Integrated',
+    successMessage: (newFeature) =>
+      `"${newFeature.name}" has been successfully added to the roadmap.`,
+    errorTitle: 'Integration Failed',
+    errorMessage: 'Failed to add the feature to the roadmap. Please try again.',
+    queryKeysToInvalidate: [['/api/features']],
+    onSuccessCallback: () => {
       handleClose(false);
-    },
-    onError: () => {
-      toast({
-        title: 'Integration Failed',
-        description: 'Failed to add the feature to the roadmap. Please try again.',
-        variant: 'destructive',
-      });
     },
   });
 
   // Mutation to save generated prompt as actionable item
-  const savePromptMutation = useMutation({
+  const savePromptMutation = useCreateUpdateMutation<unknown, { featureId: string; prompt: string; title: string }>({
     mutationFn: async ({
       featureId,
       prompt,
@@ -135,25 +124,16 @@ export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
 
       return response.json();
     },
-    onSuccess: () => {
-      // Invalidate queries to refresh data
+    successTitle: 'Prompt Saved',
+    successMessage: 'The development prompt has been saved as an actionable item.',
+    errorTitle: 'Save Failed',
+    errorMessage: 'Failed to save the prompt as an actionable item.',
+    invalidateQueries: (_data, queryClient) => {
       if (feature?.id) {
         queryClient.invalidateQueries({
           queryKey: [`/api/features/${feature.id}/actionable-items`],
         });
       }
-
-      toast({
-        title: 'Prompt Saved',
-        description: 'The development prompt has been saved as an actionable item.',
-      });
-    },
-    onError: () => {
-      toast({
-        title: 'Save Failed',
-        description: 'Failed to save the prompt as an actionable item.',
-        variant: 'destructive',
-      });
     },
   });
   const [formData, setFormData] = useState({

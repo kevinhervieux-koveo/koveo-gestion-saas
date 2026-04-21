@@ -28,6 +28,8 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 import { BuildingElement, ElementHistory, ElementDocument } from '@shared/schemas/maintenance';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/hooks/use-language';
+import { handleApiError } from '@/lib/demo-error-handler';
 import {
   X,
   Edit2,
@@ -74,8 +76,10 @@ export function ElementDetailsPanel({
 }: ElementDetailsPanelProps) {
   const [activeTab, setActiveTab] = useState('overview');
   const { toast } = useToast();
+  const { language } = useLanguage();
   
   // Delete element mutation
+  // Exception (task #229): error handled via `handleApiError` for demo-mode/locale-aware messaging.
   const deleteElementMutation = useMutation({
     mutationFn: async (element: BuildingElement) => {
       const response = await apiRequest('DELETE', `/api/maintenance/buildings/${element.buildingId}/elements/${element.id}`);
@@ -97,11 +101,13 @@ export function ElementDetailsPanel({
       }
     },
     onError: (error: any) => {
-      toast({
-        title: 'Delete failed',
-        description: error.message || 'Failed to delete building element',
-        variant: 'destructive',
-      });
+      handleApiError(
+        error,
+        language,
+        language === 'fr'
+          ? 'Échec de la suppression de l\'élément. Veuillez réessayer.'
+          : 'Failed to delete element. Please try again.'
+      );
     },
   });
 

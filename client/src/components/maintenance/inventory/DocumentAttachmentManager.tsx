@@ -204,8 +204,7 @@ export function DocumentAttachmentManager({
 
   // Handle view document
   const handleViewDocument = useCallback((doc: DocumentFile) => {
-    const viewUrl = `/api/maintenance/documents/${doc.id}`;
-    window.open(viewUrl, '_blank');
+    window.open(`/api/maintenance/documents/${doc.id}`, '_blank', 'noopener,noreferrer');
   }, []);
 
   // Handle download document

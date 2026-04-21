@@ -4,28 +4,71 @@ import { insertBugSchema, type Bug, type InsertBug } from '@shared/schema';
 import { z } from 'zod';
 import { requireAuth } from '../middleware/auth-middleware';
 import multer from 'multer';
-import path from 'path';
-import fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
+import { ObjectStorageService } from '../objectStorage';
 
-// Configure multer for file uploads
-const storage_config = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = path.join(process.cwd(), 'uploads', 'general');
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueId = uuidv4();
-    const originalName = file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_');
-    const fileName = `${uniqueId}-${originalName}`;
-    cb(null, fileName);
-  },
+import { asyncHandler } from '../utils/async-handler';
+const objectStorageService = new ObjectStorageService();
+
+// Configure multer for memory storage (files go to object storage)
+const upload = multer({ 
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+  }
 });
 
-const upload = multer({ storage: storage_config });
+// Helper function to sanitize filenames
+function sanitizeFilePath(filePath: string): string {
+  return filePath.replace(/[^a-zA-Z0-9._\/-]/g, '_');
+}
+
+// Helper function to upload file to object storage
+async function uploadToObjectStorage(
+  buffer: Buffer, 
+  path: string, 
+  contentType: string,
+  userId?: string
+): Promise<string> {
+  try {
+    // Get presigned URL for upload
+    const uploadUrl = await objectStorageService.getCustomPathUploadURL(path);
+    
+    // Upload file buffer to object storage
+    const response = await fetch(uploadUrl, {
+      method: 'PUT',
+      body: buffer,
+      headers: {
+        'Content-Type': contentType,
+        'Content-Length': buffer.length.toString(),
+      },
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Upload failed with status: ${response.status}`);
+    }
+    
+    // Normalized path with /objects/ prefix
+    const normalizedPath = `/objects/${path}`;
+    
+    // Set ACL on the uploaded file
+    if (userId) {
+      try {
+        await objectStorageService.trySetObjectEntityAclPolicy(normalizedPath, {
+          visibility: 'private',
+          owner: userId,
+        });
+      } catch (aclError) {
+        console.error('Failed to set ACL on bug file:', aclError);
+      }
+    }
+    
+    return normalizedPath;
+  } catch (error) {
+    console.error('Failed to upload to object storage:', error);
+    throw error;
+  }
+}
 
 /**
  * Registers all bug-related API endpoints.
@@ -36,8 +79,7 @@ export function registerBugRoutes(app: Express): void {
   /**
    * GET /api/bugs - Retrieves bugs based on current user's role and access.
    */
-  app.get('/api/bugs', requireAuth, async (req: any, res) => {
-    try {
+  app.get('/api/bugs', requireAuth, asyncHandler(async (req: any, res) => {
       const currentUser = req.user || req.session?.user;
       if (!currentUser) {
         return res.status(401).json({
@@ -64,20 +106,12 @@ export function registerBugRoutes(app: Express): void {
       });
       
       res.json(bugs);
-    } catch (error: any) {
-      // console.error('❌ Error fetching bugs:', error);
-      res.status(500).json({
-        error: 'Internal server error',
-        message: 'Failed to fetch bugs',
-      });
-    }
-  });
+    }, { errorMessage: 'Failed to fetch bugs', errorLogPrefix: '❌ Error fetch bugs', extraErrorFields: { error: 'Internal server error' } }));
 
   /**
    * GET /api/bugs/:id - Retrieves a specific bug by ID.
    */
-  app.get('/api/bugs/:id', requireAuth, async (req: any, res) => {
-    try {
+  app.get('/api/bugs/:id', requireAuth, asyncHandler(async (req: any, res) => {
       const { id } = req.params;
       const currentUser = req.user || req.session?.user;
 
@@ -110,20 +144,12 @@ export function registerBugRoutes(app: Express): void {
       }
 
       res.json(bug);
-    } catch (error: any) {
-      // console.error('❌ Error fetching bug:', error);
-      res.status(500).json({
-        error: 'Internal server error',
-        message: 'Failed to fetch bug',
-      });
-    }
-  });
+    }, { errorMessage: 'Failed to fetch bug', errorLogPrefix: '❌ Error fetch bug', extraErrorFields: { error: 'Internal server error' } }));
 
   /**
    * POST /api/bugs - Creates a new bug report with optional single file attachment.
    */
-  app.post('/api/bugs', requireAuth, upload.single('attachment'), async (req: any, res) => {
-    try {
+  app.post('/api/bugs', requireAuth, upload.single('attachment'), asyncHandler(async (req: any, res) => {
       const currentUser = req.user || req.session?.user;
       if (!currentUser) {
         return res.status(401).json({
@@ -148,50 +174,68 @@ export function registerBugRoutes(app: Express): void {
 
       let bugData = validation.data;
 
+      // Generate bug ID first (BEFORE upload)
+      const bugId = uuidv4();
+      
       // Handle single file attachment if present
       if (req.file) {
-        // Fix filename encoding issues and sanitize
-        const originalname = Buffer.from(req.file.originalname, 'latin1').toString('utf8');
-        const sanitizeFilePath = (filePath: string): string => {
-          return filePath.replace(/[^a-zA-Z0-9._\/-]/g, '_');
-        };
-        const sanitizedFilename = sanitizeFilePath(originalname);
-        // console.log(`📎 Processing attachment for new bug:`, {
-        //   originalname: originalname,
-        //   sanitizedFilename: sanitizedFilename,
-        //   filename: req.file.filename,
-        //   size: req.file.size,
-        //   mimetype: req.file.mimetype
-        // });
-        bugData = {
-          ...bugData,
-          filePath: `general/${req.file.filename}`,
-          fileName: sanitizedFilename,
-          fileSize: req.file.size,
-        };
-      }
-
-      // Handle text content if present - save as .txt file
-      if (req.body.file_content && !req.file) {
         try {
-          const textFilePath = path.join(process.cwd(), 'uploads', 'bugs');
-          if (!fs.existsSync(textFilePath)) {
-            fs.mkdirSync(textFilePath, { recursive: true });
-          }
+          // Fix filename encoding issues and sanitize
+          const originalname = Buffer.from(req.file.originalname, 'latin1').toString('utf8');
+          const sanitizedFilename = sanitizeFilePath(originalname);
           
-          const fileName = `${uuidv4()}-text-document.txt`;
-          const fullPath = path.join(textFilePath, fileName);
-          fs.writeFileSync(fullPath, req.body.file_content, 'utf8');
+          // Generate unique path: bugs/{bugId}/{uuid}_{sanitized_filename}
+          const uniqueId = uuidv4();
+          const objectPath = `bugs/${bugId}/${uniqueId}_${sanitizedFilename}`;
           
-          // Set file fields for text content
+          // Upload to object storage BEFORE creating database record
+          const normalizedPath = await uploadToObjectStorage(
+            req.file.buffer,
+            objectPath,
+            req.file.mimetype,
+            currentUser.id
+          );
+          
+          // Add file information to bugData
           bugData = {
             ...bugData,
-            filePath: `bugs/${fileName}`,
-            fileName: `${bugData.title}-text-content.txt`,
-            fileSize: Buffer.byteLength(req.body.file_content, 'utf8'),
+            filePath: normalizedPath,
+            fileName: sanitizedFilename,
+            fileSize: req.file.size,
           };
-        } catch (fsError) {
-          // console.error('Error saving bug text content:', fsError);
+        } catch (uploadError) {
+          console.error('Error uploading bug attachment:', uploadError);
+          return res.status(500).json({ 
+            error: 'Internal server error',
+            message: 'Failed to upload attachment' 
+          });
+        }
+      }
+
+      // Handle text content if present - save as .txt file to object storage
+      if (req.body.file_content && !req.file) {
+        try {
+          const textBuffer = Buffer.from(req.body.file_content, 'utf8');
+          const fileName = `${uuidv4()}_text-document.txt`;
+          const objectPath = `bugs/${bugId}/${fileName}`;
+          
+          // Upload to object storage BEFORE creating database record
+          const normalizedPath = await uploadToObjectStorage(
+            textBuffer,
+            objectPath,
+            'text/plain',
+            currentUser.id
+          );
+          
+          // Add file information to bugData
+          bugData = {
+            ...bugData,
+            filePath: normalizedPath,
+            fileName: `${bugData.title}-text-content.txt`,
+            fileSize: textBuffer.length,
+          };
+        } catch (uploadError) {
+          console.error('Error uploading bug text content:', uploadError);
           return res.status(500).json({ 
             error: 'Internal server error',
             message: 'Failed to save text content as file' 
@@ -199,34 +243,21 @@ export function registerBugRoutes(app: Express): void {
         }
       }
 
-      // Log the final bugData before saving
-      // console.log(`🐛 Creating bug with data:`, {
-      //   title: bugData.title,
-      //   hasFile: !!bugData.filePath,
-      //   filePath: bugData.filePath,
-      //   fileName: bugData.fileName,
-      //   fileSize: bugData.fileSize
-      // });
-
-      const bug = await storage.createBug(bugData);
+      // Create the bug with pre-generated ID (AFTER successful upload)
+      const bug = await storage.createBug({
+        ...bugData,
+        id: bugId,
+      });
 
       // console.log(`✅ Created new bug ${bug.id} by user ${currentUser.id}`);
       res.status(201).json(bug);
-    } catch (error: any) {
-      // console.error('❌ Error creating bug:', error);
-      res.status(500).json({
-        error: 'Internal server error',
-        message: 'Failed to create bug',
-      });
-    }
-  });
+    }, { errorMessage: 'Failed to create bug', errorLogPrefix: '❌ Error create bug', extraErrorFields: { error: 'Internal server error' } }));
 
   /**
-   * PATCH /api/bugs/:id - Updates an existing bug.
+   * PATCH /api/bugs/:id - Updates an existing bug with optional file upload.
    * Users can edit their own bugs, admins and managers can edit any bug.
    */
-  app.patch('/api/bugs/:id', requireAuth, async (req: any, res) => {
-    try {
+  app.patch('/api/bugs/:id', requireAuth, upload.single('attachment'), asyncHandler(async (req: any, res) => {
       const { id } = req.params;
       const currentUser = req.user || req.session?.user;
 
@@ -287,7 +318,43 @@ export function registerBugRoutes(app: Express): void {
         });
       }
 
-      const updates = validation.data;
+      let updates = validation.data;
+      
+      // Handle file upload if present
+      if (req.file) {
+        try {
+          // Fix filename encoding issues and sanitize
+          const originalname = Buffer.from(req.file.originalname, 'latin1').toString('utf8');
+          const sanitizedFilename = sanitizeFilePath(originalname);
+          
+          // Generate unique path: bugs/{bugId}/{uuid}_{sanitized_filename}
+          const uniqueId = uuidv4();
+          const objectPath = `bugs/${id}/${uniqueId}_${sanitizedFilename}`;
+          
+          // Upload to object storage
+          const normalizedPath = await uploadToObjectStorage(
+            req.file.buffer,
+            objectPath,
+            req.file.mimetype,
+            currentUser.id
+          );
+          
+          // Add file information to updates
+          updates = {
+            ...updates,
+            filePath: normalizedPath,
+            fileName: sanitizedFilename,
+            fileSize: req.file.size,
+          };
+        } catch (uploadError) {
+          console.error('Error uploading bug attachment during update:', uploadError);
+          return res.status(500).json({ 
+            error: 'Internal server error',
+            message: 'Failed to upload attachment' 
+          });
+        }
+      }
+      
       const bug = await storage.updateBug(id, updates, currentUser.id, currentUser.role);
 
       if (!bug) {
@@ -299,22 +366,14 @@ export function registerBugRoutes(app: Express): void {
 
       // console.log(`📝 Updated bug ${id} by user ${currentUser.id}`);
       res.json(bug);
-    } catch (error: any) {
-      // console.error('❌ Error updating bug:', error);
-      res.status(500).json({
-        error: 'Internal server error',
-        message: 'Failed to update bug',
-      });
-    }
-  });
+    }, { errorMessage: 'Failed to update bug', errorLogPrefix: '❌ Error update bug', extraErrorFields: { error: 'Internal server error' } }));
 
   /**
-   * GET /api/bugs/:id/file - Serves the file attachment for a bug.
+   * GET /api/bugs/:id/file - Serves the file attachment for a bug from object storage.
    */
   app.get('/api/bugs/:id/file', requireAuth, async (req: any, res) => {
     try {
       const { id } = req.params;
-      const { download } = req.query;
       const currentUser = req.user || req.session?.user;
 
       if (!currentUser) {
@@ -332,8 +391,6 @@ export function registerBugRoutes(app: Express): void {
         currentUser.organizationId
       );
 
-      // console.log('🐛 getBug result:', bug ? { id: bug.id, filePath: bug.filePath, fileName: bug.fileName } : 'undefined');
-
       if (!bug) {
         return res.status(404).json({
           error: 'Not found',
@@ -341,9 +398,7 @@ export function registerBugRoutes(app: Express): void {
         });
       }
 
-      // Use camelCase field names consistently
       const filePath = bug.filePath;
-      const fileName = bug.fileName || (bug as any).file_name;
       
       if (!filePath) {
         return res.status(404).json({
@@ -352,64 +407,25 @@ export function registerBugRoutes(app: Express): void {
         });
       }
 
-      // Handle different path formats (absolute vs relative)
-      const fullPath = path.isAbsolute(filePath) 
-        ? filePath 
-        : path.join(process.cwd(), 'uploads', filePath);
-      
-      // Check if file exists
-      if (!fs.existsSync(fullPath)) {
+      // Get file from object storage
+      try {
+        const objectFile = await objectStorageService.getObjectEntityFile(filePath);
+        await objectStorageService.downloadObject(objectFile, res);
+      } catch (error) {
+        console.error('Error downloading bug file from object storage:', error);
         return res.status(404).json({
           error: 'Not found',
-          message: 'File not found on server',
+          message: 'File not found in object storage',
         });
       }
-      
-      // Detect MIME type based on file extension
-      const getContentType = (filename: string) => {
-        const ext = filename.toLowerCase().split('.').pop();
-        switch (ext) {
-          case 'pdf': return 'application/pdf';
-          case 'jpg': case 'jpeg': return 'image/jpeg';
-          case 'png': return 'image/png';
-          case 'gif': return 'image/gif';
-          case 'doc': return 'application/msword';
-          case 'docx': return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-          case 'txt': return 'text/plain';
-          default: return 'application/octet-stream';
-        }
-      };
-
-      // Set proper content type for viewing
-      const contentType = getContentType(fileName || 'attachment');
-      res.setHeader('Content-Type', contentType);
-      
-      // Properly encode filename for French characters and other special characters
-      const encodedFilename = Buffer.from(fileName || 'attachment', 'utf8').toString('binary');
-
-      // Set appropriate headers
-      if (download === 'true') {
-        res.setHeader('Content-Disposition', `attachment; filename="${encodedFilename}"; filename*=UTF-8''${encodeURIComponent(fileName || 'attachment')}`);
-      } else {
-        res.setHeader('Content-Disposition', `inline; filename="${encodedFilename}"; filename*=UTF-8''${encodeURIComponent(fileName || 'attachment')}`);
-      }
-
-      // Stream the file
-      const fileStream = fs.createReadStream(fullPath);
-      fileStream.pipe(res);
-      
-      fileStream.on('error', (error) => {
-        // console.error(`❌ Error streaming file for bug ${id}:`, error);
-        if (!res.headersSent) {
-          res.status(500).json({ error: 'Failed to stream file' });
-        }
-      });
     } catch (error: any) {
-      // console.error('❌ Error serving bug file:', error);
-      res.status(500).json({
-        error: 'Internal server error',
-        message: 'Failed to serve file',
-      });
+      console.error('Error serving bug file:', error);
+      if (!res.headersSent) {
+        res.status(500).json({
+          error: 'Internal server error',
+          message: 'Failed to serve file',
+        });
+      }
     }
   });
 
@@ -417,8 +433,7 @@ export function registerBugRoutes(app: Express): void {
    * DELETE /api/bugs/:id - Deletes a bug.
    * Only admins can delete bugs.
    */
-  app.delete('/api/bugs/:id', requireAuth, async (req: any, res) => {
-    try {
+  app.delete('/api/bugs/:id', requireAuth, asyncHandler(async (req: any, res) => {
       const { id } = req.params;
       const currentUser = req.user || req.session?.user;
 
@@ -447,12 +462,5 @@ export function registerBugRoutes(app: Express): void {
 
       // console.log(`🗑️ Deleted bug ${id} by user ${currentUser.id}`);
       res.status(204).send();
-    } catch (error: any) {
-      // console.error('❌ Error deleting bug:', error);
-      res.status(500).json({
-        error: 'Internal server error',
-        message: 'Failed to delete bug',
-      });
-    }
-  });
+    }, { errorMessage: 'Failed to delete bug', errorLogPrefix: '❌ Error delete bug', extraErrorFields: { error: 'Internal server error' } }));
 }

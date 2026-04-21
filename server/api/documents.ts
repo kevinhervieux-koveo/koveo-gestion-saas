@@ -18,7 +18,11 @@ import crypto from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
 import { sql, eq } from 'drizzle-orm';
 import { db } from '../db';
+import { normalizeFilename } from '../utils/filenameNormalization';
+import { documentService, type DocumentType } from '../services/document-service';
+import { logDebug, logInfo, logWarn, logError } from '../utils/logger';
 
+import { asyncHandler } from '../utils/async-handler';
 // Enhanced security configuration for file uploads
 const SECURITY_CONFIG = {
   MAX_FILE_SIZE: 10 * 1024 * 1024, // Reduced to 10MB for better security
@@ -84,6 +88,153 @@ function sanitizeFilePath(filePath: string): string {
   }
   
   return sanitized;
+}
+
+// Folder mapping for different document types
+// This allows easy extension for future document types
+const DOCUMENT_FOLDER_MAPPING: Record<string, string> = {
+  'inventory_item': 'inventory',
+  'maintenance_project': 'projects',
+  'submission_vendor': 'projects',
+  'demand': 'demands',
+  'bill': 'documents', // Bills stay in general documents folder
+  // Add more mappings as needed
+};
+
+/**
+ * Maps attachedToType string to DocumentType for use with documentService
+ * @param attachedToType - The attached entity type (e.g., 'inventory_item', 'maintenance_project')
+ * @returns The corresponding DocumentType for documentService
+ */
+function mapAttachedToTypeToDocumentType(attachedToType?: string): DocumentType {
+  if (!attachedToType) return 'documents';
+  
+  const typeMapping: Record<string, DocumentType> = {
+    'inventory_item': 'inventory',
+    'maintenance_project': 'projects',
+    'submission_vendor': 'projects',
+    'demand': 'demands',
+    'bill': 'bills',
+    'maintenance': 'maintenance',
+  };
+  
+  return typeMapping[attachedToType] || 'documents';
+}
+
+/**
+ * @deprecated Use documentService.buildHierarchicalPath() instead.
+ * This function is kept for backward compatibility but will be removed in a future version.
+ * 
+ * Example migration:
+ * ```typescript
+ * // Old way (deprecated):
+ * const path = await buildHierarchicalPath({
+ *   organizationId, buildingId, residenceId, originalFilename, attachedToType
+ * });
+ * 
+ * // New way (recommended):
+ * const path = documentService.buildHierarchicalPath({
+ *   type: mapAttachedToTypeToDocumentType(attachedToType),
+ *   buildingId,
+ *   residenceId,
+ * }, originalFilename);
+ * ```
+ */
+async function buildHierarchicalPath(params: {
+  organizationId: string;
+  buildingId: string;
+  residenceId?: string;
+  originalFilename: string;
+  attachedToType?: string;
+}): Promise<string> {
+  const { organizationId, buildingId, residenceId, originalFilename, attachedToType } = params;
+  
+  const uuid = uuidv4();
+  const normalizedName = normalizeFilename(originalFilename);
+  const filename = `${uuid}_${normalizedName}`;
+  
+  // For residence-specific documents, always use residences/{residenceId}/documents/
+  if (residenceId) {
+    return `buildings/${buildingId}/residences/${residenceId}/documents/${filename}`;
+  }
+  
+  // For building-level documents, route based on attachedToType
+  if (attachedToType && DOCUMENT_FOLDER_MAPPING[attachedToType]) {
+    const folder = DOCUMENT_FOLDER_MAPPING[attachedToType];
+    return `buildings/${buildingId}/${folder}/${filename}`;
+  }
+  
+  // Default fallback for unrecognized types
+  return `buildings/${buildingId}/documents/${filename}`;
+}
+
+async function resolveDocumentContext(params: {
+  user: any;
+  buildingId?: string;
+  residenceId?: string;
+  attachedToType?: string;
+  attachedToId?: string;
+}): Promise<{ buildingId: string; organizationId: string; residenceId?: string }> {
+  const { user, buildingId, residenceId, attachedToType, attachedToId } = params;
+  
+  if (buildingId) {
+    const building = await storage.getBuilding(buildingId);
+    if (!building) {
+      throw new Error('Building not found');
+    }
+    
+    return {
+      buildingId,
+      organizationId: building.organizationId,
+      residenceId
+    };
+  }
+  
+  if (residenceId) {
+    const residence = await storage.getResidence(residenceId);
+    if (!residence) {
+      throw new Error('Residence not found');
+    }
+    const building = await storage.getBuilding(residence.buildingId);
+    if (!building) {
+      throw new Error('Building not found');
+    }
+    
+    return {
+      buildingId: residence.buildingId,
+      organizationId: building.organizationId,
+      residenceId
+    };
+  }
+  
+  if (attachedToType === 'demand' && attachedToId) {
+    const { demands } = await import('../../shared/schemas/operations');
+    const { eq } = await import('drizzle-orm');
+    const [demand] = await db.select().from(demands)
+      .where(eq(demands.id, attachedToId))
+      .limit(1);
+    
+    if (!demand) {
+      throw new Error('Demand not found');
+    }
+    
+    if (!demand.buildingId) {
+      throw new Error('Demand does not have an associated building');
+    }
+    
+    const building = await storage.getBuilding(demand.buildingId);
+    if (!building) {
+      throw new Error('Building not found');
+    }
+    
+    return {
+      buildingId: demand.buildingId,
+      organizationId: building.organizationId,
+      residenceId: demand.residenceId || undefined
+    };
+  }
+  
+  throw new Error('Unable to resolve document context: buildingId, residenceId, or valid demand attachment required');
 }
 
 // Enhanced file validation function with content scanning and magic number validation
@@ -189,8 +340,24 @@ function checkUploadRateLimit(userId: string): { allowed: boolean; error?: strin
 }
 
 // Configure multer for file uploads with enhanced security
+const documentStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    // Use /tmp/uploads for persistent storage in Replit
+    const uploadDir = path.join('/tmp', 'uploads', 'documents');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const sanitizedName = file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
+    cb(null, `document-${uniqueSuffix}-${sanitizedName}`);
+  }
+});
+
 const upload = multer({
-  dest: '/tmp/uploads/',
+  storage: documentStorage,
   limits: {
     fileSize: SECURITY_CONFIG.MAX_FILE_SIZE,
     files: 1, // Only allow one file at a time
@@ -265,7 +432,7 @@ const uploadDocumentRecordSchema = z.object({
  * @returns Function result.
  */
 export function registerDocumentRoutes(app: Express): void {
-  // console.log(`[${new Date().toISOString()}] 🔧 Registering document routes...`);
+  logInfo('[DOCUMENT ROUTES] Registering document routes');
   
   // Security audit logging
   const auditLog: Array<{
@@ -430,7 +597,7 @@ export function registerDocumentRoutes(app: Express): void {
   };
   
   // Enum cleanup endpoint for safe schema migration  
-  app.post('/api/documents/cleanup-enum', async (req, res) => {
+  app.post('/api/documents/cleanup-enum', requireAuth, requireRole(['admin']), async (req, res) => {
     try {
       // First, verify no users have the 'owner' role
       const userCheck = await db.execute(sql`
@@ -469,7 +636,7 @@ export function registerDocumentRoutes(app: Express): void {
   });
 
   // Fix user-organization relationships
-  app.post('/api/documents/fix-user-links', async (req, res) => {
+  app.post('/api/documents/fix-user-links', requireAuth, requireRole(['admin']), async (req, res) => {
     try {
       // Step 1: Find users without organization links
       const orphanUsers = await db.execute(sql`
@@ -538,7 +705,7 @@ export function registerDocumentRoutes(app: Express): void {
   });
 
   // Safe enum migration endpoint
-  app.post('/api/documents/fix-enum-migration', async (req, res) => {
+  app.post('/api/documents/fix-enum-migration', requireAuth, requireRole(['admin']), async (req, res) => {
     try {
       // Step 1: Check current enum values and usage
       const enumCheck = await db.execute(sql`
@@ -618,7 +785,7 @@ export function registerDocumentRoutes(app: Express): void {
   });
 
   // Fix invitations table enum dependency
-  app.post('/api/documents/fix-invitations-dependency', async (req, res) => {
+  app.post('/api/documents/fix-invitations-dependency', requireAuth, requireRole(['admin']), async (req, res) => {
     try {
       // Step 1: Check current invitations table structure
       const invitationsSchema = await db.execute(sql`
@@ -664,7 +831,7 @@ export function registerDocumentRoutes(app: Express): void {
   });
 
   // Restore invitations default value after schema sync
-  app.post('/api/documents/restore-invitations-default', async (req, res) => {
+  app.post('/api/documents/restore-invitations-default', requireAuth, requireRole(['admin']), async (req, res) => {
     try {
       // Restore default value to 'tenant' for invitations.role column
       await db.execute(sql`
@@ -695,7 +862,7 @@ export function registerDocumentRoutes(app: Express): void {
   });
 
   // Migrate owner users to admin before enum cleanup
-  app.post('/api/documents/migrate-owner-to-admin', async (req, res) => {
+  app.post('/api/documents/migrate-owner-to-admin', requireAuth, requireRole(['admin']), async (req, res) => {
     try {
       // Step 1: Check how many users have 'owner' role
       const ownerUsersCheck = await db.execute(sql`
@@ -799,7 +966,7 @@ export function registerDocumentRoutes(app: Express): void {
   });
 
   // Remove all remaining enum dependencies
-  app.post('/api/documents/remove-all-enum-dependencies', async (req, res) => {
+  app.post('/api/documents/remove-all-enum-dependencies', requireAuth, requireRole(['admin']), async (req, res) => {
     try {
       const results = [];
 
@@ -856,7 +1023,7 @@ export function registerDocumentRoutes(app: Express): void {
   });
 
   // Restore all default values after schema sync
-  app.post('/api/documents/restore-all-defaults', async (req, res) => {
+  app.post('/api/documents/restore-all-defaults', requireAuth, requireRole(['admin']), async (req, res) => {
     try {
       const results = [];
 
@@ -909,7 +1076,7 @@ export function registerDocumentRoutes(app: Express): void {
   });
 
   // Complete database schema sync endpoint
-  app.post('/api/documents/complete-schema-sync', async (req, res) => {
+  app.post('/api/documents/complete-schema-sync', requireAuth, requireRole(['admin']), async (req, res) => {
     try {
       const results = [];
 
@@ -1034,7 +1201,7 @@ export function registerDocumentRoutes(app: Express): void {
   });
 
   // Enhanced diagnostic endpoint with database schema check
-  app.get('/api/documents/diagnostic', async (req, res) => {
+  app.get('/api/documents/diagnostic', requireAuth, requireRole(['admin']), async (req, res) => {
     try {
       // Check if documents table exists
       let tableExists = false;
@@ -1148,12 +1315,15 @@ export function registerDocumentRoutes(app: Express): void {
           dbConfigured: !!process.env.DATABASE_URL
         }
       }, 'DEBUG');
-      const documentType = req.query.type as string; // 'building', 'resident', or undefined for both
       const specificDocumentType = req.query.documentType as string; // Filter by document type (legal, maintenance, etc.)
       const specificResidenceId = req.query.residenceId as string; // Filter by specific residence
       const specificBuildingId = req.query.buildingId as string; // Filter by specific building
       const attachedToType = req.query.attachedToType as string; // Filter by attached entity type
       const attachedToId = req.query.attachedToId as string; // Filter by attached entity ID
+      
+      // Infer view type from which ID parameter is provided:
+      // - If buildingId is provided (and no residenceId), it's a building documents view
+      // - If residenceId is provided, it's a residence documents view
 
       // OPTIMIZED: Use single query to get user access scope instead of 3 separate queries
       logDocumentOperation('USER_ACCESS_SCOPE_FETCH_START', { userId, userRole }, 'DEBUG');
@@ -1186,32 +1356,28 @@ export function registerDocumentRoutes(app: Express): void {
       // If specific residence ID provided, filter to only that residence
       let residenceIds: string[];
       if (specificResidenceId) {
-        // Admin users have access to all residences
-        if (userRole === 'admin' || userRole === 'manager') {
-          residenceIds = [specificResidenceId];
-        } else {
-          // Verify user has access to this specific residence
-          // Handle both simple {residenceId: string} and complex nested structures
-          const hasAccess = userResidences.some((ur: any) => {
-            // Handle simple structure
-            if (ur.residenceId === specificResidenceId) {
-              return true;
-            }
-            // Handle complex nested structure
-            if (ur.userResidence?.residenceId === specificResidenceId) {
-              return true;
-            }
-            // Handle residence nested structure
-            if (ur.residence?.id === specificResidenceId) {
-              return true;
-            }
-            return false;
-          });
-          if (!hasAccess) {
-            return res.status(403).json({ message: 'Access denied to this residence' });
+        // All users (including admins and managers) must have explicit access via user_residences table
+        // Verify user has access to this specific residence
+        // Handle both simple {residenceId: string} and complex nested structures
+        const hasAccess = userResidences.some((ur: any) => {
+          // Handle simple structure
+          if (ur.residenceId === specificResidenceId) {
+            return true;
           }
-          residenceIds = [specificResidenceId];
+          // Handle complex nested structure
+          if (ur.userResidence?.residenceId === specificResidenceId) {
+            return true;
+          }
+          // Handle residence nested structure
+          if (ur.residence?.id === specificResidenceId) {
+            return true;
+          }
+          return false;
+        });
+        if (!hasAccess) {
+          return res.status(403).json({ message: 'Access denied to this residence' });
         }
+        residenceIds = [specificResidenceId];
       } else {
         // Extract residence IDs from both simple and complex structures
         residenceIds = userResidences
@@ -1261,13 +1427,13 @@ export function registerDocumentRoutes(app: Express): void {
         filters.attachedToId = attachedToId;
       }
 
-      if (documentType === 'building') {
-        // For building documents, search in buildings user has access to
+      if (specificBuildingId && !specificResidenceId) {
+        // For building documents view, search in buildings user has access to
         if (buildingIds.length > 0) {
           // Get all documents for buildings, will filter later to show only building-level documents
         }
-      } else if (documentType === 'resident') {
-        // For resident documents, search in residences user has access to
+      } else if (specificResidenceId) {
+        // For residence documents view, search in residences user has access to
         if (residenceIds.length > 0) {
           // Get all documents for residences, will filter later
         }
@@ -1293,11 +1459,17 @@ export function registerDocumentRoutes(app: Express): void {
         if (specificResidenceId) {
           additionalFilters.residenceId = specificResidenceId;
         }
-        if (documentType) {
-          additionalFilters.documentType = documentType;
-        }
+        // Note: documentType query param ('building' or 'resident') is NOT a document category filter
+        // Document categories (legal, maintenance, etc.) are passed via specificDocumentType
         if (specificDocumentType) {
           additionalFilters.specificDocumentType = specificDocumentType;
+        }
+        // Pass attachedToType and attachedToId to optimize the query
+        if (attachedToType) {
+          additionalFilters.attachedToType = attachedToType;
+        }
+        if (attachedToId) {
+          additionalFilters.attachedToId = attachedToId;
         }
         
         documents = await getDocumentsForUser(userId, userRole, additionalFilters);
@@ -1364,14 +1536,16 @@ export function registerDocumentRoutes(app: Express): void {
             return false;
           }
           
-          // When viewing Building Documents, only show building-level documents (not residence-level)
-          if (documentType === 'building' && doc.filePath && doc.filePath.includes('residences/')) {
+          // When viewing Building Documents, only show building-level documents (exclude residence documents)
+          // A building-level document has buildingId but no residenceId
+          if (specificBuildingId && !specificResidenceId && doc.residenceId) {
             return false;
           }
         }
 
-        // When viewing Building Documents (documentType === 'building'), filter out residence-level documents
-        if (documentType === 'building' && doc.filePath && doc.filePath.includes('residences/')) {
+        // When viewing Building Documents (buildingId provided without residenceId), filter out residence-level documents
+        // Only show documents that belong to the building but not to a specific residence
+        if (specificBuildingId && !specificResidenceId && doc.residenceId) {
           return false;
         }
 
@@ -1454,7 +1628,7 @@ export function registerDocumentRoutes(app: Express): void {
       // Log successful document access
       logSecurityEvent('DOCUMENT_LIST_ACCESS', user, true, undefined, {
         documentsReturned: allDocumentRecords.length,
-        filters: { documentType, specificResidenceId, specificBuildingId }
+        filters: { specificDocumentType, specificResidenceId, specificBuildingId, attachedToType, attachedToId }
       });
       
       // Keep useful logging for bill documents
@@ -1480,83 +1654,35 @@ export function registerDocumentRoutes(app: Express): void {
       const userRole = user.role;
       const userId = user.id;
       const documentId = req.params.id;
-      const documentType = req.query.type as string; // Optional type hint
 
-      // Get user's organization and residences for filtering
+      // Get user's organizations for permission checking - check ALL organizations (not just the first)
       const organizations = await storage.getUserOrganizations(userId);
-      const residences = await storage.getUserResidences(userId);
-      const buildings = await storage.getBuildings();
+      const organizationIds = organizations.map((org) => org.organizationId);
 
-      const organizationId = organizations.length > 0 ? organizations[0].organizationId : undefined;
-      const residenceIds = residences.map((ur) => ur.residenceId);
-      const buildingIds = buildings.map((b) => b.id);
-
-      let document: DocumentRecord | null = null;
-
-      // Try to find the document in the appropriate table(s)
-      const hasNewDocumentRecordMethods = 'getBuildingDocumentRecord' in storage;
-
-      if (hasNewDocumentRecordMethods) {
-        if (!documentType || documentType === 'building') {
-          try {
-            document = await (storage as any).getBuildingDocumentRecord(
-              documentId,
-              userId,
-              userRole,
-              organizationId,
-              buildingIds
-            );
-            if (document) {
-              (document as any).documentCategory = 'building';
-              (document as any).entityType = 'building';
-              (document as any).entityId = (document as any).buildingId;
-            }
-          } catch (e) {
-            // console.warn('⚠️ Error fetching building document:', e);
-          }
-        }
-
-        if (!document && (!documentType || documentType === 'resident')) {
-          try {
-            document = await (storage as any).getResidentDocumentRecord(
-              documentId,
-              userId,
-              userRole,
-              organizationId,
-              residenceIds
-            );
-            if (document) {
-              (document as any).documentCategory = 'resident';
-              (document as any).entityType = 'residence';
-              (document as any).entityId = (document as any).residenceId;
-            }
-          } catch (e) {
-            // console.warn('⚠️ Error fetching resident document:', e);
-          }
-        }
-      }
-
-      // Fallback to legacy documents if not found and no type specified
-      if (!document && !documentType) {
-        try {
-          document = await storage.getDocument(documentId);
-          if (document) {
-            (document as any).documentCategory = 'legacy';
-            (document as any).entityType = 'legacy';
-            (document as any).entityId = null;
-          }
-        } catch (e) {
-          // console.warn('⚠️ Error fetching legacy document:', e);
-        }
-      }
+      // Use the new permission-aware method with all organization IDs
+      const document = await storage.getDocumentWithScope(
+        documentId,
+        userId,
+        userRole,
+        organizationIds
+      );
 
       if (!document) {
-        return res.status(404).json({ message: 'DocumentRecord not found or access denied' });
+        return res.status(404).json({ message: 'Document not found or access denied' });
+      }
+
+      // Add entity metadata for frontend compatibility
+      if (document.buildingId) {
+        (document as any).entityType = 'building';
+        (document as any).entityId = document.buildingId;
+      } else if (document.residenceId) {
+        (document as any).entityType = 'residence';
+        (document as any).entityId = document.residenceId;
       }
 
       res.json(document);
     } catch (error: any) {
-      // console.error('❌ Error fetching document:', error);
+      logError('Error fetching document', error);
       res.status(500).json({ message: 'Failed to fetch document' });
     }
   });
@@ -1694,6 +1820,57 @@ export function registerDocumentRoutes(app: Express): void {
         userId
       }, 'DEBUG');
 
+      let resolvedBuildingId = buildingId;
+      let resolvedResidenceId = residenceId;
+      let resolvedOrganizationId: string | undefined;
+
+      if (otherData.attachedToType === 'demand' && otherData.attachedToId && !buildingId && !residenceId) {
+        try {
+          logDocumentOperation('RESOLVING_DEMAND_CONTEXT', {
+            operationId,
+            attachedToId: otherData.attachedToId,
+            userId
+          }, 'DEBUG');
+
+          const context = await resolveDocumentContext({
+            user,
+            buildingId,
+            residenceId,
+            attachedToType: otherData.attachedToType,
+            attachedToId: otherData.attachedToId
+          });
+
+          resolvedBuildingId = context.buildingId;
+          resolvedResidenceId = context.residenceId;
+          resolvedOrganizationId = context.organizationId;
+
+          logDocumentOperation('DEMAND_CONTEXT_RESOLVED', {
+            operationId,
+            resolvedBuildingId,
+            resolvedResidenceId,
+            resolvedOrganizationId,
+            demandId: otherData.attachedToId
+          }, 'DEBUG');
+        } catch (error: any) {
+          logDocumentOperation('DEMAND_CONTEXT_RESOLUTION_FAILED', {
+            operationId,
+            error: error.message,
+            attachedToId: otherData.attachedToId
+          }, 'ERROR');
+
+          if (error.message === 'Demand not found') {
+            return res.status(404).json({ message: 'Demand not found' });
+          }
+          if (error.message === 'Building not found') {
+            return res.status(404).json({ message: 'Associated building not found' });
+          }
+          if (error.message === 'Demand does not have an associated building') {
+            return res.status(400).json({ message: 'Demand does not have an associated building' });
+          }
+          return res.status(400).json({ message: error.message || 'Failed to resolve demand context' });
+        }
+      }
+
       // Enhanced document type classification
       const isTextDocumentRecord = !req.file && textContent;
       const isFileDocumentRecord = !!req.file;
@@ -1746,12 +1923,12 @@ export function registerDocumentRoutes(app: Express): void {
           uploadedById: userId,
         };
 
-        // Permission checks
+        // Permission checks - validate against ALL user organizations (not just the first)
         if (buildingId && userRole === 'manager') {
           const organizations = await storage.getUserOrganizations(userId);
-          const organizationId = organizations.length > 0 ? organizations[0].organizationId : undefined;
+          const userOrgIds = organizations.map((org) => org.organizationId);
           const building = await storage.getBuilding(buildingId);
-          if (!building || building.organizationId !== organizationId) {
+          if (!building || !userOrgIds.includes(building.organizationId)) {
             return res.status(403).json({ message: 'Cannot assign document to building outside your organization' });
           }
         }
@@ -1838,12 +2015,12 @@ export function registerDocumentRoutes(app: Express): void {
           });
         }
 
-        // Permission checks
+        // Permission checks - validate against ALL user organizations (not just the first)
         if (buildingId && userRole === 'manager') {
           const organizations = await storage.getUserOrganizations(userId);
-          const organizationId = organizations.length > 0 ? organizations[0].organizationId : undefined;
+          const userOrgIds = organizations.map((org) => org.organizationId);
           const building = await storage.getBuilding(buildingId);
-          if (!building || building.organizationId !== organizationId) {
+          if (!building || !userOrgIds.includes(building.organizationId)) {
             return res.status(403).json({ message: 'Cannot assign document to building outside your organization' });
           }
         }
@@ -1876,16 +2053,16 @@ export function registerDocumentRoutes(app: Express): void {
       // Handle file uploads (existing logic)
       // console.log(`📄 [DOCUMENTS UPLOAD] Starting file document processing`);
       
-      // Determine document record type based on buildingId/residenceId (not from documentType field)
+      // Determine document record type based on resolvedBuildingId/resolvedResidenceId (not from documentType field)
       let finalDocumentRecordType;
-      if (buildingId && !residenceId) {
+      if (resolvedBuildingId && !resolvedResidenceId) {
         finalDocumentRecordType = 'building';
-        // console.log(`📄 [DOCUMENTS UPLOAD] Determined document type: BUILDING (ID: ${buildingId})`);
-      } else if (residenceId && !buildingId) {
+        // console.log(`📄 [DOCUMENTS UPLOAD] Determined document type: BUILDING (ID: ${resolvedBuildingId})`);
+      } else if (resolvedResidenceId && !resolvedBuildingId) {
         finalDocumentRecordType = 'resident';
-        // console.log(`📄 [DOCUMENTS UPLOAD] Determined document type: RESIDENCE (ID: ${residenceId})`);
-      } else if (buildingId && residenceId) {
-        // console.log(`❌ [DOCUMENTS UPLOAD] Both buildingId and residenceId provided: ${buildingId}, ${residenceId}`);
+        // console.log(`📄 [DOCUMENTS UPLOAD] Determined document type: RESIDENCE (ID: ${resolvedResidenceId})`);
+      } else if (resolvedBuildingId && resolvedResidenceId) {
+        // console.log(`❌ [DOCUMENTS UPLOAD] Both buildingId and residenceId provided: ${resolvedBuildingId}, ${resolvedResidenceId}`);
         return res.status(400).json({
           message: 'Cannot provide both buildingId and residenceId',
         });
@@ -1898,10 +2075,10 @@ export function registerDocumentRoutes(app: Express): void {
       }
 
       if (finalDocumentRecordType === 'building') {
-        // console.log(`🏢 [BUILDING UPLOAD] Processing building document for building ID: ${buildingId}`);
+        // console.log(`🏢 [BUILDING UPLOAD] Processing building document for building ID: ${resolvedBuildingId}`);
         
         // Validate and create building document
-        if (!buildingId) {
+        if (!resolvedBuildingId) {
           // console.log(`❌ [BUILDING UPLOAD] Missing buildingId`);
           return res.status(400).json({ message: 'buildingId is required for building documents' });
         }
@@ -1911,35 +2088,98 @@ export function registerDocumentRoutes(app: Express): void {
         let fileName: string | undefined;
         
         if (req.file) {
-          // console.log(`🏢 [BUILDING UPLOAD] Processing file upload for building ${buildingId}`);
+          logDebug('[BUILDING UPLOAD] Starting object storage upload process for building', { metadata: { buildingId: resolvedBuildingId } });
           
-          // Generate unique filename with sanitization and move to permanent location
-          const unsanitizedFileName = `${uuidv4()}-${req.file.originalname}`;
-          fileName = sanitizeFilePath(unsanitizedFileName);
-          const permanentDir = path.join(process.cwd(), 'uploads', 'buildings', buildingId);
-          
-          // console.log(`🏢 [BUILDING UPLOAD] File paths:`, {
-          //   originalName: req.file.originalname,
-          //   newFileName: fileName,
-          //   tempPath: req.file.path,
-          //   permanentDir,
-          //   directoryExists: fs.existsSync(permanentDir)
-          // });
-          
-          // Ensure directory exists
-          if (!fs.existsSync(permanentDir)) {
-            // console.log(`🏢 [BUILDING UPLOAD] Creating directory: ${permanentDir}`);
-            fs.mkdirSync(permanentDir, { recursive: true });
+          // Attempt object storage upload FIRST
+          try {
+            const { ObjectStorageService } = await import('../objectStorage');
+            const { ObjectAccessGroupType, ObjectPermission } = await import('../objectAcl');
+            const objectStorageService = new ObjectStorageService();
+
+            // Fetch building to get organization ID (use cached if available from context resolver)
+            let organizationId = resolvedOrganizationId;
+            if (!organizationId) {
+              const building = await storage.getBuilding(resolvedBuildingId);
+              if (!building) {
+                throw new Error('Building not found');
+              }
+              organizationId = building.organizationId;
+            }
+
+            // Build hierarchical path with normalized filename using DocumentService
+            const hierarchicalPath = documentService.buildHierarchicalPath({
+              type: mapAttachedToTypeToDocumentType(otherData.attachedToType),
+              buildingId: resolvedBuildingId,
+              organizationId,
+            }, req.file.originalname);
+            logDebug('[BUILDING UPLOAD] Generated hierarchical path', { metadata: { path: hierarchicalPath } });
+
+            // Get presigned URL for custom hierarchical path
+            const uploadURL = await objectStorageService.getCustomPathUploadURL(hierarchicalPath);
+            logDebug('[BUILDING UPLOAD] Got presigned upload URL for hierarchical path');
+
+            // Upload file to object storage using presigned URL
+            const fileBuffer = fs.readFileSync(req.file.path);
+            const uploadResponse = await fetch(uploadURL, {
+              method: 'PUT',
+              body: fileBuffer,
+              headers: {
+                'Content-Type': req.file.mimetype,
+              },
+            });
+
+            if (!uploadResponse.ok) {
+              throw new Error(`Failed to upload to object storage: ${uploadResponse.status}`);
+            }
+            logDebug('[BUILDING UPLOAD] File uploaded to object storage');
+
+            // Build ACL policy based on building
+            const aclPolicy = {
+              owner: userId,
+              visibility: 'private' as const,
+              aclRules: [{
+                group: {
+                  type: ObjectAccessGroupType.BUILDING,
+                  id: resolvedBuildingId
+                },
+                permission: ObjectPermission.READ
+              }]
+            };
+
+            // Set ACL policy on the hierarchical path
+            const objectStoragePath = await objectStorageService.trySetObjectEntityAclPolicy(uploadURL, aclPolicy);
+            logDebug('[BUILDING UPLOAD] ACL policy set', { metadata: { normalizedPath: objectStoragePath } });
+
+            // Update filePath to use hierarchical path with normalized /objects/ prefix
+            filePath = documentService.normalizePath(hierarchicalPath);
+            fileName = documentService.normalizeFilename(req.file.originalname);
+            
+            // Clean up temporary file after successful upload
+            if (fs.existsSync(req.file.path)) {
+              fs.unlinkSync(req.file.path);
+            }
+          } catch (objectStorageError: any) {
+            logError('[BUILDING UPLOAD] Object storage error', objectStorageError);
+            logWarn('[BUILDING UPLOAD] Falling back to local filesystem storage');
+            
+            // Fallback to local filesystem
+            const unsanitizedFileName = `${uuidv4()}-${req.file.originalname}`;
+            fileName = sanitizeFilePath(unsanitizedFileName);
+            const permanentDir = path.join(process.cwd(), 'uploads', 'buildings', resolvedBuildingId);
+            
+            // Ensure directory exists
+            if (!fs.existsSync(permanentDir)) {
+              logDebug('[BUILDING UPLOAD] Creating directory', { metadata: { dir: permanentDir } });
+              fs.mkdirSync(permanentDir, { recursive: true });
+            }
+            
+            // Move file from temporary to permanent location
+            const permanentPath = path.join(permanentDir, fileName);
+            fs.copyFileSync(req.file.path, permanentPath);
+            fs.unlinkSync(req.file.path); // Clean up temporary file
+            filePath = `buildings/${resolvedBuildingId}/${fileName}`;
+            logDebug('[BUILDING UPLOAD] File saved to local storage (fallback)', { metadata: { filePath } });
           }
-          
-          // Move file from temporary to permanent location (copy + delete for cross-filesystem)
-          const permanentPath = path.join(permanentDir, fileName);
-          // console.log(`🏢 [BUILDING UPLOAD] Copying file from ${req.file.path} to ${permanentPath}`);
-          fs.copyFileSync(req.file.path, permanentPath);
-          // console.log(`🏢 [BUILDING UPLOAD] Cleaning up temporary file: ${req.file.path}`);
-          fs.unlinkSync(req.file.path); // Clean up temporary file
-          filePath = `buildings/${buildingId}/${fileName}`;
-          // console.log(`🏢 [BUILDING UPLOAD] File successfully moved to: ${filePath}`);
         } else {
           // console.log(`🏢 [BUILDING UPLOAD] No file provided, creating placeholder path`);
           filePath = `temp-path-${Date.now()}`;
@@ -1950,7 +2190,7 @@ export function registerDocumentRoutes(app: Express): void {
         
         const dataToValidate = {
           ...otherData,
-          buildingId,
+          buildingId: resolvedBuildingId,
           uploadedById: userId,
           filePath,
           fileName,
@@ -1961,7 +2201,7 @@ export function registerDocumentRoutes(app: Express): void {
         };
         
         // console.log(`🏢 [BUILDING UPLOAD] Data to validate:`, {
-        //   buildingId,
+        //   buildingId: resolvedBuildingId,
         //   uploadedById: userId,
         //   filePath,
         //   fileName,
@@ -1974,9 +2214,9 @@ export function registerDocumentRoutes(app: Express): void {
         let validatedData;
         try {
           validatedData = insertDocumentSchema.parse(dataToValidate);
-          // console.log(`✅ [BUILDING UPLOAD] Document validation successful for building ${buildingId}`);
+          // console.log(`✅ [BUILDING UPLOAD] Document validation successful for building ${resolvedBuildingId}`);
         } catch (validationError) {
-          // console.log(`❌ [BUILDING UPLOAD] Document validation failed for building ${buildingId}:`, validationError);
+          // console.log(`❌ [BUILDING UPLOAD] Document validation failed for building ${resolvedBuildingId}:`, validationError);
           return res.status(400).json({ 
             message: 'Validation failed', 
             error: validationError.message || 'Invalid data',
@@ -1984,20 +2224,19 @@ export function registerDocumentRoutes(app: Express): void {
           });
         }
 
-        // Permission checks for building documents
+        // Permission checks for building documents - validate against ALL user organizations (not just the first)
         // console.log(`🏢 [BUILDING UPLOAD] Checking permissions for role: ${userRole}`);
         
         if (userRole === 'manager') {
-          // console.log(`🏢 [BUILDING UPLOAD] Manager permission check for building ${buildingId}`);
+          // console.log(`🏢 [BUILDING UPLOAD] Manager permission check for building ${resolvedBuildingId}`);
           const organizations = await storage.getUserOrganizations(userId);
-          const organizationId =
-            organizations.length > 0 ? organizations[0].organizationId : undefined;
-          // console.log(`🏢 [BUILDING UPLOAD] Manager organization: ${organizationId}`);
+          const userOrgIds = organizations.map((org) => org.organizationId);
+          // console.log(`🏢 [BUILDING UPLOAD] Manager organizations: ${userOrgIds.join(', ')}`);
           
-          const building = await storage.getBuilding(buildingId);
+          const building = await storage.getBuilding(resolvedBuildingId);
           // console.log(`🏢 [BUILDING UPLOAD] Building organization: ${building?.organizationId}`);
           
-          if (!building || building.organizationId !== organizationId) {
+          if (!building || !userOrgIds.includes(building.organizationId)) {
             // console.log(`❌ [BUILDING UPLOAD] Manager permission denied - organization mismatch`);
             return res
               .status(403)
@@ -2007,15 +2246,15 @@ export function registerDocumentRoutes(app: Express): void {
         }
 
         if (userRole === 'resident') {
-          // console.log(`🏢 [BUILDING UPLOAD] Resident permission check for building ${buildingId}`);
+          // console.log(`🏢 [BUILDING UPLOAD] Resident permission check for building ${resolvedBuildingId}`);
           const residences = await storage.getUserResidences(userId);
           // console.log(`🏢 [BUILDING UPLOAD] User residences count: ${residences.length}`);
           
           const hasResidenceInBuilding = await Promise.all(
             residences.map(async (ur) => {
               const residence = await storage.getResidence(ur.residenceId);
-              const isInBuilding = residence && residence.buildingId === buildingId;
-              // console.log(`🏢 [BUILDING UPLOAD] Residence ${ur.residenceId} in building ${buildingId}: ${isInBuilding}`);
+              const isInBuilding = residence && residence.buildingId === resolvedBuildingId;
+              // console.log(`🏢 [BUILDING UPLOAD] Residence ${ur.residenceId} in building ${resolvedBuildingId}: ${isInBuilding}`);
               return isInBuilding;
             })
           );
@@ -2066,10 +2305,10 @@ export function registerDocumentRoutes(app: Express): void {
           entityId: document.buildingId,
         });
       } else if (finalDocumentRecordType === 'resident') {
-        // console.log(`🏠 [RESIDENCE UPLOAD] Processing residence document for residence ID: ${residenceId}`);
+        // console.log(`🏠 [RESIDENCE UPLOAD] Processing residence document for residence ID: ${resolvedResidenceId}`);
         
         // Validate and create resident document
-        if (!residenceId) {
+        if (!resolvedResidenceId) {
           // console.log(`❌ [RESIDENCE UPLOAD] Missing residenceId`);
           return res
             .status(400)
@@ -2081,35 +2320,107 @@ export function registerDocumentRoutes(app: Express): void {
         let fileName: string | undefined;
         
         if (req.file) {
-          // console.log(`🏠 [RESIDENCE UPLOAD] Processing file upload for residence ${residenceId}`);
+          logDebug('[RESIDENCE UPLOAD] Starting object storage upload process for residence', { metadata: { residenceId: resolvedResidenceId } });
           
-          // Generate unique filename with sanitization and move to permanent location
-          const unsanitizedFileName = `${uuidv4()}-${req.file.originalname}`;
-          fileName = sanitizeFilePath(unsanitizedFileName);
-          const permanentDir = path.join(process.cwd(), 'uploads', 'residences', residenceId);
-          
-          // console.log(`🏠 [RESIDENCE UPLOAD] File paths:`, {
-          //   originalName: req.file.originalname,
-          //   newFileName: fileName,
-          //   tempPath: req.file.path,
-          //   permanentDir,
-          //   directoryExists: fs.existsSync(permanentDir)
-          // });
-          
-          // Ensure directory exists
-          if (!fs.existsSync(permanentDir)) {
-            // console.log(`🏠 [RESIDENCE UPLOAD] Creating directory: ${permanentDir}`);
-            fs.mkdirSync(permanentDir, { recursive: true });
+          // Attempt object storage upload FIRST
+          try {
+            const { ObjectStorageService } = await import('../objectStorage');
+            const { ObjectAccessGroupType, ObjectPermission } = await import('../objectAcl');
+            const objectStorageService = new ObjectStorageService();
+
+            // Fetch residence and building to get organization ID (use cached if available from context resolver)
+            let organizationId = resolvedOrganizationId;
+            let buildingIdForPath = resolvedBuildingId;
+            
+            if (!organizationId || !buildingIdForPath) {
+              const residence = await storage.getResidence(resolvedResidenceId);
+              if (!residence) {
+                throw new Error('Residence not found');
+              }
+              buildingIdForPath = residence.buildingId;
+              
+              const building = await storage.getBuilding(residence.buildingId);
+              if (!building) {
+                throw new Error('Building not found');
+              }
+              organizationId = building.organizationId;
+            }
+
+            // Build hierarchical path with normalized filename using DocumentService
+            const hierarchicalPath = documentService.buildHierarchicalPath({
+              type: mapAttachedToTypeToDocumentType(otherData.attachedToType),
+              buildingId: buildingIdForPath,
+              residenceId: resolvedResidenceId,
+              organizationId,
+            }, req.file.originalname);
+            logDebug('[RESIDENCE UPLOAD] Generated hierarchical path', { metadata: { path: hierarchicalPath } });
+
+            // Get presigned URL for custom hierarchical path
+            const uploadURL = await objectStorageService.getCustomPathUploadURL(hierarchicalPath);
+            logDebug('[RESIDENCE UPLOAD] Got presigned upload URL for hierarchical path');
+
+            // Upload file to object storage using presigned URL
+            const fileBuffer = fs.readFileSync(req.file.path);
+            const uploadResponse = await fetch(uploadURL, {
+              method: 'PUT',
+              body: fileBuffer,
+              headers: {
+                'Content-Type': req.file.mimetype,
+              },
+            });
+
+            if (!uploadResponse.ok) {
+              throw new Error(`Failed to upload to object storage: ${uploadResponse.status}`);
+            }
+            logDebug('[RESIDENCE UPLOAD] File uploaded to object storage');
+
+            // Build ACL policy based on residence
+            const aclPolicy = {
+              owner: userId,
+              visibility: 'private' as const,
+              aclRules: [{
+                group: {
+                  type: ObjectAccessGroupType.RESIDENCE,
+                  id: resolvedResidenceId
+                },
+                permission: ObjectPermission.READ
+              }]
+            };
+
+            // Set ACL policy on the hierarchical path
+            const objectStoragePath = await objectStorageService.trySetObjectEntityAclPolicy(uploadURL, aclPolicy);
+            logDebug('[RESIDENCE UPLOAD] ACL policy set', { metadata: { normalizedPath: objectStoragePath } });
+
+            // Update filePath to use hierarchical path with normalized /objects/ prefix
+            filePath = documentService.normalizePath(hierarchicalPath);
+            fileName = documentService.normalizeFilename(req.file.originalname);
+            
+            // Clean up temporary file after successful upload
+            if (fs.existsSync(req.file.path)) {
+              fs.unlinkSync(req.file.path);
+            }
+          } catch (objectStorageError: any) {
+            logError('[RESIDENCE UPLOAD] Object storage error', objectStorageError);
+            logWarn('[RESIDENCE UPLOAD] Falling back to local filesystem storage');
+            
+            // Fallback to local filesystem
+            const unsanitizedFileName = `${uuidv4()}-${req.file.originalname}`;
+            fileName = sanitizeFilePath(unsanitizedFileName);
+            const permanentDir = path.join(process.cwd(), 'uploads', 'residences', resolvedResidenceId);
+            
+            // Ensure directory exists
+            if (!fs.existsSync(permanentDir)) {
+              logDebug('[RESIDENCE UPLOAD] Creating directory', { metadata: { dir: permanentDir } });
+              fs.mkdirSync(permanentDir, { recursive: true });
+            }
+            
+            // Move file from temporary to permanent location
+            const permanentPath = path.join(permanentDir, fileName);
+            fs.copyFileSync(req.file.path, permanentPath);
+            fs.unlinkSync(req.file.path); // Clean up temporary file
+            filePath = `residences/${resolvedResidenceId}/${fileName}`;
+            logDebug('[RESIDENCE UPLOAD] File saved to local storage (fallback)', { metadata: { filePath } });
           }
-          
-          // Move file from temporary to permanent location (copy + delete for cross-filesystem)
-          const permanentPath = path.join(permanentDir, fileName);
-          // console.log(`🏠 [RESIDENCE UPLOAD] Copying file from ${req.file.path} to ${permanentPath}`);
-          fs.copyFileSync(req.file.path, permanentPath);
-          // console.log(`🏠 [RESIDENCE UPLOAD] Cleaning up temporary file: ${req.file.path}`);
-          fs.unlinkSync(req.file.path); // Clean up temporary file
-          filePath = `residences/${residenceId}/${fileName}`;
-          // console.log(`🏠 [RESIDENCE UPLOAD] File successfully moved to: ${filePath}`);
         } else {
           // console.log(`🏠 [RESIDENCE UPLOAD] No file provided, creating placeholder path`);
           filePath = `temp-path-${Date.now()}`;
@@ -2120,7 +2431,7 @@ export function registerDocumentRoutes(app: Express): void {
         
         const dataToValidate = {
           ...otherData,
-          residenceId,
+          residenceId: resolvedResidenceId,
           uploadedById: userId,
           filePath,
           fileName,
@@ -2151,18 +2462,17 @@ export function registerDocumentRoutes(app: Express): void {
         }
 
         // Fetch residence to get buildingId for access control
-        const residence = await storage.getResidence(residenceId);
+        const residence = await storage.getResidence(resolvedResidenceId);
         if (!residence) {
           return res.status(404).json({ message: 'Residence not found' });
         }
 
-        // Permission checks for resident documents
+        // Permission checks for resident documents - validate against ALL user organizations (not just the first)
         if (userRole === 'manager') {
           const organizations = await storage.getUserOrganizations(userId);
-          const organizationId =
-            organizations.length > 0 ? organizations[0].organizationId : undefined;
+          const userOrgIds = organizations.map((org) => org.organizationId);
           const building = await storage.getBuilding(residence.buildingId);
-          if (!building || building.organizationId !== organizationId) {
+          if (!building || !userOrgIds.includes(building.organizationId)) {
             return res
               .status(403)
               .json({ message: 'Cannot assign document to residence outside your organization' });
@@ -2173,7 +2483,7 @@ export function registerDocumentRoutes(app: Express): void {
           const residences = await storage.getUserResidences(userId);
           const residenceIds = residences.map((ur) => ur.residenceId);
 
-          if (!residenceIds.includes(residenceId)) {
+          if (!residenceIds.includes(resolvedResidenceId)) {
             return res
               .status(403)
               .json({ message: 'Cannot assign document to residence you do not own' });
@@ -2274,7 +2584,7 @@ export function registerDocumentRoutes(app: Express): void {
       if (userRole === 'admin') {
         hasAccess = true;
         // console.log(`✅ [DOCUMENT UPDATE] Admin access granted`);
-      } else if (userRole === 'manager') {
+      } else if (userRole === 'manager' || userRole === 'demo_manager') {
         // Manager should have access to documents in their organization
         const organizations = await storage.getUserOrganizations(userId);
         const buildings = await storage.getBuildings();
@@ -2287,7 +2597,29 @@ export function registerDocumentRoutes(app: Express): void {
           const orgBuildingIds = orgBuildings.map(b => b.id);
           hasAccess = orgBuildingIds.includes(existingDocument.buildingId);
         }
+        
+        if (existingDocument.residenceId && !hasAccess) {
+          const residences = await storage.getResidences();
+          const orgResidences = residences.filter(residence => {
+            const building = buildings.find(b => b.id === residence.buildingId);
+            return building && userOrganizations.includes(building.organizationId || '');
+          });
+          const orgResidenceIds = orgResidences.map(r => r.id);
+          hasAccess = orgResidenceIds.includes(existingDocument.residenceId);
+        }
         // console.log(`📝 [DOCUMENT UPDATE] Manager access: ${hasAccess}`);
+      } else if (userRole === 'resident' || userRole === 'demo_resident') {
+        // Residents can only edit documents in their residences (not building documents)
+        if (existingDocument.residenceId) {
+          const userResidences = await storage.getUserResidences(userId);
+          const userResidenceIds = userResidences.map(r => r.residenceId);
+          hasAccess = userResidenceIds.includes(existingDocument.residenceId);
+        }
+        // Residents cannot edit building-level documents (view-only access)
+        if (existingDocument.buildingId && !existingDocument.residenceId) {
+          hasAccess = false;
+        }
+        // console.log(`📝 [DOCUMENT UPDATE] Resident access: ${hasAccess}`);
       }
 
       if (!hasAccess) {
@@ -2417,9 +2749,127 @@ export function registerDocumentRoutes(app: Express): void {
     }
   });
 
-  // Security audit endpoint - admin only
-  app.get('/api/documents/security/audit-log', requireAuth, async (req: any, res) => {
+  // Set file path after object storage upload
+  app.put('/api/documents/:id/file-path', requireAuth, async (req: any, res) => {
     try {
+      const user = req.user;
+      const userId = user.id;
+      const documentId = req.params.id;
+      const { filePath } = req.body;
+
+      if (!filePath) {
+        return res.status(400).json({ message: 'File path is required' });
+      }
+
+      // Get existing document to check permissions
+      const existingDocument = await storage.getDocuments({ userId, userRole: user.role }).then(docs => docs.find(doc => doc.id === documentId));
+      
+      if (!existingDocument) {
+        return res.status(404).json({ message: 'Document not found' });
+      }
+
+      // Check permissions (admin, manager, and resident can update)
+      let hasAccess = false;
+      if (user.role === 'admin') {
+        hasAccess = true;
+      } else if (user.role === 'manager' || user.role === 'demo_manager') {
+        // Manager should have access to documents in their organization
+        const organizations = await storage.getUserOrganizations(userId);
+        const buildings = await storage.getBuildings();
+        const userOrganizations = organizations.map(org => org.organizationId);
+        
+        if (existingDocument.buildingId) {
+          const orgBuildings = buildings.filter(building => 
+            userOrganizations.includes(building.organizationId || '')
+          );
+          const orgBuildingIds = orgBuildings.map(b => b.id);
+          hasAccess = orgBuildingIds.includes(existingDocument.buildingId);
+        }
+        
+        if (existingDocument.residenceId && !hasAccess) {
+          const residences = await storage.getResidences();
+          const orgResidences = residences.filter(residence => {
+            const building = buildings.find(b => b.id === residence.buildingId);
+            return building && userOrganizations.includes(building.organizationId || '');
+          });
+          const orgResidenceIds = orgResidences.map(r => r.id);
+          hasAccess = orgResidenceIds.includes(existingDocument.residenceId);
+        }
+      } else if (user.role === 'resident' || user.role === 'demo_resident') {
+        // Residents can only update documents in their residences (not building documents)
+        if (existingDocument.residenceId) {
+          const userResidences = await storage.getUserResidences(userId);
+          const userResidenceIds = userResidences.map(r => r.residenceId);
+          hasAccess = userResidenceIds.includes(existingDocument.residenceId);
+        }
+        // Residents cannot update building-level documents (view-only access)
+        if (existingDocument.buildingId && !existingDocument.residenceId) {
+          hasAccess = false;
+        }
+      }
+
+      if (!hasAccess) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
+
+      // Set ACL policy for the object
+      const { ObjectStorageService } = await import('../objectStorage');
+      const { ObjectAccessGroupType, ObjectPermission } = await import('../objectAcl');
+      
+      const objectStorageService = new ObjectStorageService();
+      
+      // Build ACL policy based on document properties
+      const aclPolicy = {
+        owner: userId,
+        visibility: existingDocument.isVisibleToTenants ? 'public' as const : 'private' as const,
+        aclRules: []
+      };
+
+      // Add access rules based on building/residence
+      if (existingDocument.buildingId) {
+        aclPolicy.aclRules!.push({
+          group: {
+            type: ObjectAccessGroupType.BUILDING,
+            id: existingDocument.buildingId
+          },
+          permission: ObjectPermission.READ
+        });
+      }
+
+      if (existingDocument.residenceId) {
+        aclPolicy.aclRules!.push({
+          group: {
+            type: ObjectAccessGroupType.RESIDENCE,
+            id: existingDocument.residenceId
+          },
+          permission: ObjectPermission.READ
+        });
+      }
+
+      // Set ACL policy and get normalized path
+      const normalizedPath = await objectStorageService.trySetObjectEntityAclPolicy(filePath, aclPolicy);
+
+      // Update document with normalized file path
+      const updatedDocument = await storage.updateDocument(documentId, {
+        filePath: normalizedPath
+      });
+
+      if (!updatedDocument) {
+        return res.status(500).json({ message: 'Failed to update document' });
+      }
+
+      res.json(updatedDocument);
+    } catch (error: any) {
+      logError('Error setting file path', error);
+      res.status(500).json({ 
+        message: 'Failed to set file path',
+        error: error.message 
+      });
+    }
+  });
+
+  // Security audit endpoint - admin only
+  app.get('/api/documents/security/audit-log', requireAuth, asyncHandler(async (req: any, res) => {
       const user = req.user;
       
       // Only admins can access audit logs
@@ -2442,11 +2892,7 @@ export function registerDocumentRoutes(app: Express): void {
         limit,
         offset
       });
-    } catch (error: any) {
-      // console.error('Error accessing audit log:', error);
-      res.status(500).json({ message: 'Failed to retrieve audit log' });
-    }
-  });
+    }, { errorMessage: 'Failed to retrieve audit log' }));
   
   // Delete document with comprehensive security checks and audit logging
   app.delete('/api/documents/:id', requireAuth, async (req: any, res) => {
@@ -2483,21 +2929,25 @@ export function registerDocumentRoutes(app: Express): void {
         });
       }
 
-      // SECURITY CHECK 2: Document existence and ownership verification
+      // Get user's organizations for permission checking - check ALL organizations (not just the first)
+      const organizations = await storage.getUserOrganizations(userId);
+      const userOrganizationIds = organizations.map((org) => org.organizationId);
+
+      // SECURITY CHECK 2: Document existence and permission verification using new scope-based method
       let document;
       try {
-        // Get all documents the user has access to and find the specific one
-        const documents = await storage.getDocuments({
+        document = await storage.getDocumentWithScope(
+          documentId,
           userId,
           userRole,
-        });
-        document = documents.find((doc) => doc.id === documentId);
+          userOrganizationIds
+        );
       } catch (error: any) {
         logSecurityEvent('DELETE_ERROR_DOCUMENT_LOOKUP', user, false, documentId, { 
           operationId,
           error: error.message 
         });
-        // console.error('❌ Error looking up document for deletion:', error);
+        logError('Error looking up document for deletion', error);
         return res.status(500).json({ message: 'Error verifying document access' });
       }
 
@@ -2515,10 +2965,8 @@ export function registerDocumentRoutes(app: Express): void {
       }
 
       // SECURITY CHECK 3: Organization membership verification
-      const organizations = await storage.getUserOrganizations(userId);
-      const userOrganizationId = organizations.length > 0 ? organizations[0].organizationId : undefined;
 
-      if (!userOrganizationId) {
+      if (!userOrganizationIds.length) {
         logSecurityEvent('DELETE_DENIED_NO_ORGANIZATION', user, false, documentId, { 
           operationId 
         });
@@ -2583,10 +3031,11 @@ export function registerDocumentRoutes(app: Express): void {
       }
 
       // SECURITY CHECK 5: Organization access verification (admin bypass allowed)
-      if (userRole !== 'admin' && documentOrganizationId !== userOrganizationId) {
+      // Check if the document's organization is in the user's list of organizations
+      if (userRole !== 'admin' && documentOrganizationId && !userOrganizationIds.includes(documentOrganizationId)) {
         logSecurityEvent('DELETE_DENIED_ORGANIZATION_MISMATCH', user, false, documentId, { 
           operationId,
-          userOrganizationId,
+          userOrganizationIds,
           documentOrganizationId 
         });
         logDocumentOperation('DELETE_DENIED_CROSS_ORGANIZATION_ACCESS', {
@@ -2594,7 +3043,7 @@ export function registerDocumentRoutes(app: Express): void {
           documentId,
           userId,
           userRole,
-          userOrganizationId,
+          userOrganizationIds,
           documentOrganizationId
         }, 'WARN');
         return res.status(403).json({ 
@@ -2603,10 +3052,10 @@ export function registerDocumentRoutes(app: Express): void {
       }
 
       // Log admin cross-organization access for audit purposes
-      if (userRole === 'admin' && documentOrganizationId !== userOrganizationId) {
+      if (userRole === 'admin' && documentOrganizationId && !userOrganizationIds.includes(documentOrganizationId)) {
         logSecurityEvent('ADMIN_CROSS_ORGANIZATION_DELETE', user, true, documentId, { 
           operationId,
-          userOrganizationId,
+          userOrganizationIds,
           documentOrganizationId,
           justification: 'Admin privilege bypass'
         });
@@ -2615,7 +3064,7 @@ export function registerDocumentRoutes(app: Express): void {
           documentId,
           userId,
           userRole,
-          userOrganizationId,
+          userOrganizationIds,
           documentOrganizationId,
           action: 'Cross-organization delete authorized via admin privilege'
         }, 'INFO');
@@ -2630,7 +3079,7 @@ export function registerDocumentRoutes(app: Express): void {
             documentId,
             buildingId: document.buildingId,
             userId,
-            organizationId: userOrganizationId
+            organizationIds: userOrganizationIds
           }, 'DEBUG');
         } else if (document.residenceId) {
           // Manager can delete residence documents if the residence building is in their organization
@@ -2639,7 +3088,7 @@ export function registerDocumentRoutes(app: Express): void {
             documentId,
             residenceId: document.residenceId,
             userId,
-            organizationId: userOrganizationId
+            organizationIds: userOrganizationIds
           }, 'DEBUG');
         }
       }
@@ -2699,7 +3148,7 @@ export function registerDocumentRoutes(app: Express): void {
         documentType: document.documentType,
         buildingId: document.buildingId,
         residenceId: document.residenceId,
-        organizationId: userOrganizationId
+        organizationIds: userOrganizationIds
       });
 
       // Attempt to delete the document
@@ -2737,7 +3186,7 @@ export function registerDocumentRoutes(app: Express): void {
         documentName: document.name,
         userId,
         userRole,
-        organizationId: userOrganizationId,
+        organizationIds: userOrganizationIds,
         timestamp: new Date().toISOString()
       }, 'INFO');
 
@@ -2833,14 +3282,99 @@ export function registerDocumentRoutes(app: Express): void {
             .json({ message: 'DocumentRecord must be associated with a building or residence' });
         }
 
-        // Note: File upload to external storage removed
-
-        // Update document with file information (with sanitized filename)
+        // Upload to Object Storage for persistent file storage
+        logDebug('[DOCUMENT UPLOAD] Starting object storage upload process for existing document');
+        
         const sanitizedName = sanitizeFilePath(req.file.originalname);
+        let filePath: string;
+        let uploadedToObjectStorage = false;
+
+        try {
+          const { ObjectStorageService } = await import('../objectStorage');
+          const { ObjectAccessGroupType, ObjectPermission } = await import('../objectAcl');
+          const objectStorageService = new ObjectStorageService();
+
+          // Get presigned URL for upload
+          const uploadURL = await objectStorageService.getObjectEntityUploadURL();
+          logDebug('[DOCUMENT UPLOAD] Got presigned upload URL');
+
+          // Upload file to object storage using presigned URL
+          const fileBuffer = fs.readFileSync(req.file.path);
+          const uploadResponse = await fetch(uploadURL, {
+            method: 'PUT',
+            body: fileBuffer,
+            headers: {
+              'Content-Type': req.file.mimetype,
+            },
+          });
+
+          if (!uploadResponse.ok) {
+            throw new Error(`Failed to upload to object storage: ${uploadResponse.status}`);
+          }
+          logDebug('[DOCUMENT UPLOAD] File uploaded to object storage');
+
+          // Build ACL policy based on document properties
+          const aclPolicy = {
+            owner: userId,
+            visibility: existingDocument.isVisibleToTenants ? 'public' as const : 'private' as const,
+            aclRules: []
+          };
+
+          // Determine ACL type based on building vs residence
+          if (existingDocument.residenceId) {
+            // Residence-level document
+            aclPolicy.aclRules.push({
+              group: {
+                type: ObjectAccessGroupType.RESIDENCE,
+                id: existingDocument.residenceId
+              },
+              permission: ObjectPermission.READ
+            });
+            logDebug('[DOCUMENT UPLOAD] Added residence-level ACL rule');
+          } else if (existingDocument.buildingId) {
+            // Building-level document
+            aclPolicy.aclRules.push({
+              group: {
+                type: ObjectAccessGroupType.BUILDING,
+                id: existingDocument.buildingId
+              },
+              permission: ObjectPermission.READ
+            });
+            logDebug('[DOCUMENT UPLOAD] Added building-level ACL rule');
+          }
+
+          // Set ACL policy and get normalized path
+          filePath = await objectStorageService.trySetObjectEntityAclPolicy(uploadURL, aclPolicy);
+          uploadedToObjectStorage = true;
+          logDebug('[DOCUMENT UPLOAD] ACL policy set', { metadata: { normalizedPath: filePath } });
+
+        } catch (objectStorageError: any) {
+          // Fall back to local filesystem path on object storage failure
+          logWarn('[DOCUMENT UPLOAD] Object storage upload failed, falling back to local path', { metadata: { error: objectStorageError.message } });
+          
+          // Determine fallback path based on building vs residence
+          if (existingDocument.residenceId) {
+            filePath = `uploads/documents/org_${organizationId}/residence_${existingDocument.residenceId}/${sanitizedName}`;
+          } else if (existingDocument.buildingId) {
+            filePath = `uploads/documents/org_${organizationId}/building_${existingDocument.buildingId}/${sanitizedName}`;
+          } else {
+            filePath = `prod_org_${organizationId}/${sanitizedName}`;
+          }
+          
+          logDebug('[DOCUMENT UPLOAD] Using fallback local path', { metadata: { filePath } });
+        }
+
+        // Update document with file information
         const updatedDocument = await storage.updateDocument(documentId, {
-          filePath: `prod_org_${organizationId}/${sanitizedName}`,
+          filePath,
           name: sanitizedName,
           // Remove mimeType as it's not in schema
+        });
+
+        logInfo('[DOCUMENT UPLOAD] Document updated successfully', {
+          documentId,
+          filePath,
+          uploadedToObjectStorage
         });
 
         // Clean up temporary file
@@ -3004,13 +3538,7 @@ export function registerDocumentRoutes(app: Express): void {
   // POST /api/documents/upload - Upload file to GCS and create unified document record
   app.post('/api/documents/upload', requireAuth, upload.single('file'), async (req: any, res) => {
     const timestamp = new Date().toISOString();
-    // console.log(`[${timestamp}] 📋 POST /api/documents/upload - Starting upload`, {
-    //   hasFile: !!req.file,
-    //   fileName: req.file?.originalname,
-    //   fileSize: req.file?.size,
-    //   body: req.body,
-    //   userId: req.user?.id
-    // });
+    logDebug('[UPLOAD HANDLER] Document upload endpoint hit', { metadata: { hasFile: !!req.file, fileName: req.file?.originalname } });
     
     try {
       // Check if we have either a file or text content
@@ -3078,70 +3606,126 @@ export function registerDocumentRoutes(app: Express): void {
         actualBuildingId = residence.buildingId;
       }
 
-      // GCS DISABLED: Skip bucket configuration (using local storage only)
-      // console.log('📁 GCS disabled - skipping bucket configuration check');
-
-      // Generate unique file path with sanitized filename
-      const fileExtension = path.extname(req.file.originalname);
-      const baseFileName = path.basename(req.file.originalname, fileExtension);
-      const unsanitizedName = `${uuidv4()}-${baseFileName}${fileExtension}`;
+      // Upload to Object Storage for persistent file storage
+      logDebug('[DOCUMENT UPLOAD] Starting object storage upload process');
       
-      // Sanitize filename to prevent path traversal and ensure consistent naming
-      const sanitizedFileName = sanitizeFilePath(unsanitizedName);
-
       let filePath: string;
-      if (validatedData.residenceId) {
-        filePath = `residences/${validatedData.residenceId}/${sanitizedFileName}`;
-      } else if (actualBuildingId) {
-        filePath = `buildings/${actualBuildingId}/${sanitizedFileName}`;
-      } else {
-        filePath = `general/${sanitizedFileName}`;
-      }
-
-      // DISABLED GCS: Force local storage for all environments
-      // console.log('📁 GCS disabled - using local storage for all document operations');
-      
-      // Always use local storage (GCS disabled)
       try {
-        // Use local storage with robust error handling
+        const { ObjectStorageService } = await import('../objectStorage');
+        const { ObjectAccessGroupType, ObjectPermission } = await import('../objectAcl');
+        const objectStorageService = new ObjectStorageService();
+
+        // Determine organization ID based on building
+        if (!actualBuildingId) {
+          throw new Error('Building ID is required for hierarchical storage');
+        }
+        
+        const building = await storage.getBuilding(actualBuildingId);
+        if (!building) {
+          throw new Error('Building not found');
+        }
+        const organizationId = building.organizationId;
+
+        // Build hierarchical path with normalized filename using DocumentService
+        const hierarchicalPath = documentService.buildHierarchicalPath({
+          type: mapAttachedToTypeToDocumentType(validatedData.attachedToType),
+          buildingId: actualBuildingId,
+          residenceId: validatedData.residenceId,
+          organizationId,
+        }, req.file!.originalname);
+        logDebug('[DOCUMENT UPLOAD] Generated hierarchical path', { metadata: { path: hierarchicalPath } });
+
+        // Get presigned URL for custom hierarchical path
+        const uploadURL = await objectStorageService.getCustomPathUploadURL(hierarchicalPath);
+        logDebug('[DOCUMENT UPLOAD] Got presigned upload URL for hierarchical path');
+
+        // Upload file to object storage using presigned URL
+        const fileBuffer = fs.readFileSync(req.file!.path);
+        const uploadResponse = await fetch(uploadURL, {
+          method: 'PUT',
+          body: fileBuffer,
+          headers: {
+            'Content-Type': req.file!.mimetype,
+          },
+        });
+
+        if (!uploadResponse.ok) {
+          throw new Error(`Failed to upload to object storage: ${uploadResponse.status}`);
+        }
+        logDebug('[DOCUMENT UPLOAD] File uploaded to object storage');
+
+        // Build ACL policy based on document properties
+        const aclPolicy = {
+          owner: userId,
+          visibility: validatedData.isVisibleToTenants ? 'public' as const : 'private' as const,
+          aclRules: []
+        };
+
+        // Add access rules based on building/residence
+        if (actualBuildingId) {
+          aclPolicy.aclRules!.push({
+            group: {
+              type: ObjectAccessGroupType.BUILDING,
+              id: actualBuildingId
+            },
+            permission: ObjectPermission.READ
+          });
+        }
+
+        if (validatedData.residenceId) {
+          aclPolicy.aclRules!.push({
+            group: {
+              type: ObjectAccessGroupType.RESIDENCE,
+              id: validatedData.residenceId
+            },
+            permission: ObjectPermission.READ
+          });
+        }
+
+        // Set ACL policy on the hierarchical path
+        const objectStoragePath = await objectStorageService.trySetObjectEntityAclPolicy(uploadURL, aclPolicy);
+        logDebug('[DOCUMENT UPLOAD] ACL policy set', { metadata: { normalizedPath: objectStoragePath } });
+
+        // Update filePath to use hierarchical path with normalized /objects/ prefix
+        filePath = documentService.normalizePath(hierarchicalPath);
+      } catch (objectStorageError: any) {
+        logError('[DOCUMENT UPLOAD] Object storage error', objectStorageError);
+        logWarn('[DOCUMENT UPLOAD] Falling back to local storage');
+        
+        // Generate unique file path with sanitized filename for fallback
+        const fileExtension = path.extname(req.file!.originalname);
+        const baseFileName = path.basename(req.file!.originalname, fileExtension);
+        const unsanitizedName = `${uuidv4()}-${baseFileName}${fileExtension}`;
+        const sanitizedFileName = sanitizeFilePath(unsanitizedName);
+
+        // Create fallback local path
+        if (validatedData.residenceId) {
+          filePath = `residences/${validatedData.residenceId}/${sanitizedFileName}`;
+        } else if (actualBuildingId) {
+          filePath = `buildings/${actualBuildingId}/${sanitizedFileName}`;
+        } else {
+          filePath = `general/${sanitizedFileName}`;
+        }
+        
+        // Fallback to local storage if object storage fails
         const localStoragePath = path.join(process.cwd(), 'uploads');
         
         // Ensure uploads directory exists
-        try {
-          if (!fs.existsSync(localStoragePath)) {
-            fs.mkdirSync(localStoragePath, { recursive: true });
-            // console.log(`📁 Created uploads directory: ${localStoragePath}`);
-          }
-        } catch (dirError) {
-          // console.error('Failed to create uploads directory:', dirError);
-          throw new Error('Cannot create uploads directory - check permissions');
+        if (!fs.existsSync(localStoragePath)) {
+          fs.mkdirSync(localStoragePath, { recursive: true });
         }
 
         // Create directory structure for file
         const localFilePath = path.join(localStoragePath, filePath);
         const localFileDir = path.dirname(localFilePath);
         
-        try {
-          if (!fs.existsSync(localFileDir)) {
-            fs.mkdirSync(localFileDir, { recursive: true });
-            // console.log(`📁 Created subdirectory: ${localFileDir}`);
-          }
-        } catch (subdirError) {
-          // console.error('Failed to create file subdirectory:', subdirError);
-          throw new Error('Cannot create file directory - check permissions');
+        if (!fs.existsSync(localFileDir)) {
+          fs.mkdirSync(localFileDir, { recursive: true });
         }
 
         // Copy uploaded file to local storage
-        try {
-          fs.copyFileSync(req.file!.path, localFilePath);
-          // File saved successfully
-        } catch (copyError) {
-          // console.error('Failed to copy file:', copyError);
-          throw new Error('Cannot save file - check disk space and permissions');
-        }
-      } catch (localError) {
-        // console.error('Local storage error:', localError);
-        throw new Error('Failed to save file locally');
+        fs.copyFileSync(req.file!.path, localFilePath);
+        logDebug('[DOCUMENT UPLOAD] File saved to local storage (fallback)');
       }
 
       // Create document record in database with buildingId from residence if applicable
@@ -3150,6 +3734,9 @@ export function registerDocumentRoutes(app: Express): void {
         description: validatedData.description,
         documentType: validatedData.documentType,
         filePath: filePath,
+        fileName: normalizeFilename(req.file!.originalname),
+        fileSize: req.file!.size,
+        mimeType: req.file!.mimetype,
         isVisibleToTenants: validatedData.isVisibleToTenants,
         isQuarantined: false, // File uploads are validated and safe
         residenceId: validatedData.residenceId,
@@ -3489,303 +4076,97 @@ export function registerDocumentRoutes(app: Express): void {
         });
       }
 
-      // Serve from local storage
-      if (document.filePath) {
-        try {
-          // SECURITY: Properly sanitize file path to prevent directory traversal
-          let cleanFilePath: string;
-          try {
-            cleanFilePath = sanitizeFilePath(document.filePath);
-            
-            logSecurityEvent('FILE_PATH_SANITIZED', user, true, documentId, {
-              originalPath: document.filePath,
-              sanitizedPath: cleanFilePath
-            });
-          } catch (sanitizationError: any) {
-            logSecurityEvent('FILE_PATH_SANITIZATION_FAILED', user, false, documentId, {
-              originalPath: document.filePath,
-              error: sanitizationError.message
-            });
-            return res.status(400).json({ 
-              message: 'Invalid file path',
-              error: 'File path contains invalid characters'
-            });
-          }
-          
-          // Remove leading 'uploads/' if it exists to prevent double-prefix
-          if (cleanFilePath.startsWith('uploads/')) {
-            cleanFilePath = cleanFilePath.substring('uploads/'.length);
-          }
-          
-          // Handle quarantine paths
-          if (cleanFilePath.includes('_quarantine_')) {
-            const quarantinePaths = [
-              path.join(process.cwd(), 'uploads', cleanFilePath),
-              path.join(process.cwd(), cleanFilePath),
-            ];
-            
-            for (const quarantinePath of quarantinePaths) {
-              if (fs.existsSync(quarantinePath)) {
-                return res.status(410).json({ 
-                  message: 'Document quarantined or unavailable',
-                  reason: 'This document has been moved to quarantine'
-                });
-              }
-            }
-          }
-
-          let filePathToServe = null;
-
-          // SECURITY: Only try safe path combinations - no direct filesystem access
-          const baseUploadDir = path.resolve(process.cwd(), 'uploads');
-          const tmpUploadDir = '/tmp/uploads';
-          
-          // Build comprehensive list of possible file locations
-          const possiblePaths = [
-            // Check /tmp/uploads first (where multer saves files)
-            path.join(tmpUploadDir, cleanFilePath),
-            // Standard uploads directory
-            path.join(baseUploadDir, cleanFilePath),
-            // Demo data paths
-            path.join(baseUploadDir, 'demo', cleanFilePath),
-            path.join(baseUploadDir, 'demo', 'residences', cleanFilePath),
-            path.join(baseUploadDir, 'demo', 'buildings', cleanFilePath),
-          ];
-
-          // Add quarantine directory paths (legacy files that were quarantined)
-          let quarantineDirs: string[] = [];
-          try {
-            if (fs.existsSync(baseUploadDir)) {
-              quarantineDirs = fs.readdirSync(baseUploadDir)
-                .filter(dir => dir.startsWith('_quarantine_'))
-                .map(dir => path.join(baseUploadDir, dir));
-            }
-          } catch (e) {
-            // If directory doesn't exist or can't be read, continue without quarantine paths
-            logDocumentOperation('QUARANTINE_DIR_READ_ERROR', { error: e.message }, 'DEBUG');
-          }
-          
-          for (const quarantineDir of quarantineDirs) {
-            // Files in quarantine are in 'directories' subdirectory with original structure
-            possiblePaths.push(path.join(quarantineDir, 'directories', cleanFilePath));
-          }
-
-          // Add hierarchical organization paths for modern file structure
-          // Pattern: {type}/org_{orgId}/building_{buildingId}/residence_{residenceId}/role_{role}/
-          if (document.buildingId) {
-            const docType = cleanFilePath.split('/')[0]; // e.g., 'bills', 'documents', etc.
-            const filename = path.basename(cleanFilePath);
-            
-            // Search in organization-based hierarchical paths
-            let orgDirs: string[] = [];
-            try {
-              if (fs.existsSync(baseUploadDir)) {
-                const allDirs = fs.readdirSync(baseUploadDir);
-                orgDirs = allDirs.filter(dir => {
-                  // Safely check if directory matches or exists, wrapped in try/catch
-                  try {
-                    if (dir === docType) return true;
-                    const fullPath = path.join(baseUploadDir, dir);
-                    return fs.existsSync(fullPath);
-                  } catch (e) {
-                    // If any error occurs during check, skip this directory
-                    return false;
-                  }
-                });
-              }
-            } catch (e) {
-              // If directory doesn't exist or can't be read, continue without hierarchical paths
-              logDocumentOperation('HIERARCHICAL_DIR_READ_ERROR', { error: e.message }, 'DEBUG');
-            }
-            
-            for (const dir of orgDirs) {
-              const dirPath = path.join(baseUploadDir, dir);
-              
-              // Safely check if path is a directory using existsSync + lstatSync with try/catch
-              let isDirectory = false;
-              try {
-                if (fs.existsSync(dirPath)) {
-                  const stats = fs.lstatSync(dirPath);
-                  isDirectory = stats.isDirectory();
-                }
-              } catch (e) {
-                // If lstatSync fails (ENOENT, ENOTDIR, permission errors), skip this directory
-                logDocumentOperation('DIRECTORY_STAT_ERROR', { dirPath, error: e.message }, 'DEBUG');
-                continue;
-              }
-              
-              if (isDirectory) {
-                // Check for org_* subdirectories
-                try {
-                  const subDirs = fs.readdirSync(dirPath).filter(d => d.startsWith('org_') || d.startsWith('building_'));
-                  for (const subDir of subDirs) {
-                    possiblePaths.push(path.join(dirPath, subDir, filename));
-                    possiblePaths.push(path.join(dirPath, subDir, `building_${document.buildingId}`, filename));
-                    if (document.residenceId) {
-                      possiblePaths.push(path.join(dirPath, subDir, `building_${document.buildingId}`, `residence_${document.residenceId}`, filename));
-                    }
-                  }
-                } catch (e) {
-                  // Skip if directory read fails
-                  logDocumentOperation('SUBDIR_READ_ERROR', { dirPath, error: e.message }, 'DEBUG');
-                }
-              }
-            }
-          }
-
-          // Add legacy path patterns for backward compatibility
-          const pathVariants = [
-            // Legacy uploads/uploads structure
-            path.join(baseUploadDir, 'uploads', cleanFilePath),
-            path.join(baseUploadDir, 'uploads', 'demo', cleanFilePath),
-          ];
-          
-          possiblePaths.push(...pathVariants);
-
-          logDocumentOperation('PATH_RESOLUTION_START', {
-            operationId,
-            originalPath: document.filePath,
-            cleanedPath: cleanFilePath,
-            searchPaths: possiblePaths.length,
-            includesQuarantine: quarantineDirs.length > 0
-          }, 'DEBUG');
-
-          // Try to find the file in any of these locations
-          for (const possiblePath of possiblePaths) {
-            if (fs.existsSync(possiblePath)) {
-              // SECURITY: Strict path validation - only allow files within uploads directory
-              const resolvedPath = path.resolve(possiblePath);
-              const allowedBaseDirs = [
-                path.resolve(process.cwd(), 'uploads'),
-                path.resolve(tmpUploadDir)
-              ];
-              
-              // Use path.relative to ensure the file is within one of the allowed directories
-              let isPathSafe = false;
-              for (const allowedBaseDir of allowedBaseDirs) {
-                const relativePath = path.relative(allowedBaseDir, resolvedPath);
-                if (!relativePath.startsWith('..') && !path.isAbsolute(relativePath)) {
-                  isPathSafe = true;
-                  break;
-                }
-              }
-              
-              if (isPathSafe) {
-                filePathToServe = resolvedPath;
-                logDocumentOperation('FILE_FOUND', {
-                  operationId,
-                  resolvedPath: filePathToServe,
-                  searchAttempts: possiblePaths.indexOf(possiblePath) + 1
-                }, 'DEBUG');
-                break;
-              } else {
-                logDocumentOperation('UNSAFE_PATH_REJECTED', {
-                  operationId,
-                  rejectedPath: resolvedPath,
-                  allowedBaseDirs
-                }, 'WARN');
-              }
-            }
-          }
-
-          // Try to serve the file if we found one
-          if (filePathToServe && fs.existsSync(filePathToServe)) {
-            // Preparing to serve file
-            
-            // Get the original filename with extension, or construct one from the document name
-            let fileName = (document as any).fileName || document.name || path.basename(document.filePath);
-
-            // If the fileName doesn't have an extension, add it from the original file path
-            if (!path.extname(fileName) && document.filePath) {
-              const originalExt = path.extname(document.filePath);
-              if (originalExt) {
-                fileName += originalExt;
-              }
-            }
-
-            // Setting file details for download
-
-            if (isDownload) {
-              res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
-            } else {
-              res.setHeader('Content-Disposition', `inline; filename="${fileName}"`);
-            }
-
-            // Set appropriate content type based on file extension
-            const ext = path.extname(fileName).toLowerCase();
-            // Setting content type
-            
-            if (ext === '.pdf') {
-              res.setHeader('Content-Type', 'application/pdf');
-            } else if (ext === '.jpg' || ext === '.jpeg') {
-              res.setHeader('Content-Type', 'image/jpeg');
-            } else if (ext === '.png') {
-              res.setHeader('Content-Type', 'image/png');
-            } else if (ext === '.gif') {
-              res.setHeader('Content-Type', 'image/gif');
-            } else if (ext === '.doc' || ext === '.docx') {
-              res.setHeader(
-                'Content-Type',
-                'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-              );
-            } else if (ext === '.txt') {
-              res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-            } else {
-              res.setHeader('Content-Type', 'application/octet-stream');
-            }
-
-            // Production cache busting for documents
-            if (process.env.NODE_ENV === 'production') {
-              const fileStats = fs.statSync(filePathToServe);
-              res.set({
-                'Cache-Control': 'no-cache, no-store, must-revalidate',
-                'Pragma': 'no-cache',
-                'Expires': '0',
-                'ETag': `"${document.id}-${fileStats.mtime.getTime()}"`,
-                'Last-Modified': fileStats.mtime.toUTCString(),
-              });
-            }
-
-            const totalTime = performance.now() - startTime;
-          logDocumentOperation('FILE_SERVE_SUCCESS', {
-            operationId,
-            documentId,
-            filePath: filePathToServe,
-            fileName,
-            totalRequestTime: `${totalTime.toFixed(2)}ms`,
-            isDownload,
-            fileDetails: {
-              exists: true,
-              resolvedPath: path.resolve(filePathToServe)
-            }
-          }, 'INFO');
-          
-          return res.sendFile(path.resolve(filePathToServe));
-          }
-
-          const totalTime = performance.now() - startTime;
-          logDocumentOperation('FILE_NOT_FOUND_ON_DISK', {
-            operationId,
-            documentId,
-            originalFilePath: document.filePath,
-            attemptedFilePath: filePathToServe,
-            totalRequestTime: `${totalTime.toFixed(2)}ms`,
-            searchedPaths: [
-              path.join(process.cwd(), 'uploads', document.filePath),
-              path.join(process.cwd(), document.filePath),
-              `/tmp/uploads/${document.filePath}`
-            ]
-          }, 'ERROR');
-          
-          return res.status(404).json({ message: 'File not found on server' });
-        } catch (fileError: any) {
-          // console.error('❌ [DOCUMENT DOWNLOAD] Error serving file:', fileError);
-          return res.status(500).json({ message: 'Failed to serve file' });
-        }
+      // Download document using Object Storage via documentService (unified approach)
+      // This is the ONLY download method - no local filesystem fallbacks for Autoscale compatibility
+      if (!document.filePath) {
+        logDocumentOperation('NO_FILE_PATH', {
+          operationId,
+          documentId
+        }, 'WARN');
+        return res.status(404).json({ 
+          message: 'No file associated with this document',
+          hint: 'This document record exists but has no file attached'
+        });
       }
 
-      // console.log(`❌ [DOCUMENT DOWNLOAD] No file associated with document ${documentId}`);
-      return res.status(404).json({ message: 'No file associated with this document' });
+      try {
+        const normalizedPath = documentService.normalizePath(document.filePath);
+        
+        logDocumentOperation('ATTEMPTING_OBJECT_STORAGE_DOWNLOAD', {
+          operationId,
+          documentId,
+          originalPath: document.filePath,
+          normalizedPath
+        }, 'DEBUG');
+        
+        // Get filename for Content-Disposition header
+        const fileName = (document as any).fileName || document.name || path.basename(document.filePath);
+        const downloadOptions = {
+          cacheTtlSec: 3600,
+          filename: fileName,
+          inline: !isDownload,
+          mimeType: (document as any).mimeType ?? undefined,
+        };
+        
+        const success = await documentService.downloadDocument(
+          document.filePath, 
+          res, 
+          downloadOptions
+        );
+        
+        if (success) {
+          const totalTime = performance.now() - startTime;
+          logDocumentOperation('DOCUMENT_DOWNLOAD_SUCCESS', {
+            operationId,
+            documentId,
+            filePath: document.filePath,
+            totalRequestTime: `${totalTime.toFixed(2)}ms`
+          }, 'INFO');
+          return; // Response already sent by documentService
+        }
+        
+        // If documentService returns false without sending a response, return 404
+        if (!res.headersSent) {
+          const totalTime = performance.now() - startTime;
+          logDocumentOperation('FILE_NOT_FOUND_IN_OBJECT_STORAGE', {
+            operationId,
+            documentId,
+            filePath: document.filePath,
+            normalizedPath,
+            totalRequestTime: `${totalTime.toFixed(2)}ms`
+          }, 'WARN');
+          
+          return res.status(404).json({ 
+            message: 'File not found',
+            hint: 'The document record exists but the file could not be found in storage. It may have been deleted or not yet uploaded.'
+          });
+        }
+      } catch (downloadError: any) {
+        const totalTime = performance.now() - startTime;
+        logDocumentOperation('DOCUMENT_DOWNLOAD_ERROR', {
+          operationId,
+          documentId,
+          error: downloadError.message,
+          filePath: document.filePath,
+          totalRequestTime: `${totalTime.toFixed(2)}ms`
+        }, 'ERROR');
+        
+        // Only send error response if headers haven't been sent
+        if (!res.headersSent) {
+          // Check for specific error types
+          if (downloadError?.name === 'ObjectNotFoundError' || downloadError?.message?.includes('not found')) {
+            return res.status(404).json({ 
+              message: 'File not found',
+              hint: 'The document record exists but the file could not be found in storage.'
+            });
+          }
+          
+          return res.status(500).json({ 
+            message: 'Failed to download file',
+            error: 'An error occurred while retrieving the file from storage'
+          });
+        }
+      }
     } catch (error: any) {
       // console.error('❌ [DOCUMENT DOWNLOAD] Error serving document file:', error);
       res.status(500).json({ message: 'Failed to serve document file' });

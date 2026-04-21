@@ -22,6 +22,7 @@ export interface BillData {
   category: string;
   costs: string[];
   schedulePayment: 'weekly' | 'monthly' | 'quarterly' | 'yearly';
+  yearInterval?: number;
   startDate: Date;
   endDate: Date | null;
 }
@@ -40,18 +41,18 @@ export interface BaselineBudgetData {
 }
 
 /**
- * Convert different payment schedules to monthly amounts
+ * Convert different payment schedules to averaged monthly amounts (for baseline/summary calculations)
+ * Note: For actual monthly forecasts, use calculateRecurringCostsForMonth instead
  * @param bills - Array of recurring bills
- * @returns Total monthly cost
+ * @returns Total averaged monthly cost
  */
 export function calculateMonthlyRecurringCosts(bills: BillData[]): number {
   return bills.reduce((total, bill) => {
     if (bill.costs && bill.costs.length > 0) {
       // Sum all costs in the array (payment plan installments or cost components)
-      // This matches how costs are used in server/api/budgets.ts (lines 913, 1079)
       const totalBillCost = bill.costs.reduce((sum, cost) => sum + parseFloat(cost), 0);
       
-      // Convert to monthly based on schedule
+      // Convert to monthly based on schedule (averaging for baseline calculations)
       switch (bill.schedulePayment) {
         case 'yearly':
           return total + (totalBillCost / 12);
@@ -63,6 +64,72 @@ export function calculateMonthlyRecurringCosts(bills: BillData[]): number {
           return total + (totalBillCost * 4.33); // 52 weeks / 12 months
         default:
           return total + totalBillCost; // Assume monthly if unknown
+      }
+    }
+    return total;
+  }, 0);
+}
+
+/**
+ * Calculate recurring bill costs due in a specific month (actual payment timing)
+ * @param bills - Array of recurring bills
+ * @param targetYear - The year to check
+ * @param targetMonth - The month to check (1-12)
+ * @returns Total recurring costs actually due in this month
+ */
+export function calculateRecurringCostsForMonth(
+  bills: BillData[], 
+  targetYear: number, 
+  targetMonth: number
+): number {
+  const targetDate = new Date(targetYear, targetMonth - 1, 1);
+  
+  return bills.reduce((total, bill) => {
+    const billStartDate = new Date(bill.startDate);
+    const billEndDate = bill.endDate ? new Date(bill.endDate) : null;
+    
+    // Check if bill is active during this month
+    if (targetDate < billStartDate || (billEndDate && targetDate > billEndDate)) {
+      return total;
+    }
+    
+    if (bill.costs && bill.costs.length > 0) {
+      const totalBillCost = bill.costs.reduce((sum, cost) => sum + parseFloat(cost), 0);
+      let isPaymentDue = false;
+      let monthlyAmount = 0;
+      
+      switch (bill.schedulePayment) {
+        case 'monthly':
+          isPaymentDue = true;
+          monthlyAmount = totalBillCost;
+          break;
+        case 'quarterly':
+          const monthsSinceStart = (targetYear - billStartDate.getFullYear()) * 12 + 
+                                   (targetMonth - 1 - billStartDate.getMonth());
+          isPaymentDue = monthsSinceStart >= 0 && monthsSinceStart % 3 === 0;
+          monthlyAmount = totalBillCost;
+          break;
+        case 'yearly':
+          const billStartMonth = billStartDate.getMonth() + 1; // 1-12
+          const yearsSinceStart = targetYear - billStartDate.getFullYear();
+          const yearInterval = bill.yearInterval || 1;
+          isPaymentDue = targetMonth === billStartMonth && 
+                         yearsSinceStart >= 0 && 
+                         yearsSinceStart % yearInterval === 0;
+          monthlyAmount = totalBillCost;
+          break;
+        case 'weekly':
+          isPaymentDue = true;
+          monthlyAmount = totalBillCost * 4.33; // 52 weeks / 12 months
+          break;
+        default:
+          isPaymentDue = true;
+          monthlyAmount = totalBillCost;
+          break;
+      }
+      
+      if (isPaymentDue) {
+        return total + monthlyAmount;
       }
     }
     return total;

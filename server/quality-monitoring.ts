@@ -84,8 +84,8 @@ export function addQualityMetricMonitoring(config: QualityMetricConfig): void {
       // Check against thresholds in order of severity
       if (config.thresholds.critical !== undefined && numericValue >= config.thresholds.critical) {
         suggestions.push(config.generateSuggestion(value, 'critical', config.thresholds.critical));
-      } else if (
-      ) {
+      } else if (config.thresholds.warning !== undefined && numericValue >= config.thresholds.warning) {
+        suggestions.push(config.generateSuggestion(value, 'warning', config.thresholds.warning));
       }
 
       return suggestions;

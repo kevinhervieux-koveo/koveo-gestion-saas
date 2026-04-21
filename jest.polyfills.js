@@ -38,6 +38,15 @@ Object.defineProperties(globalThis, {
   MessagePort: { value: MockMessagePort },
 });
 
+// Capture the real DATABASE_URL before jest.setup.simple.ts overwrites it with
+// the placeholder test URL. Behavioural integration tests that need a real
+// database connection (see tests/integration/user-residences-end-residency.test.ts)
+// restore process.env.DATABASE_URL from this captured value before importing
+// the db module. Other tests are unaffected.
+if (process.env.DATABASE_URL && !process.env._INTEGRATION_DB_URL) {
+  process.env._INTEGRATION_DB_URL = process.env.DATABASE_URL;
+}
+
 // Use cross-fetch for better JSDOM compatibility
 const fetch = require('cross-fetch');
 

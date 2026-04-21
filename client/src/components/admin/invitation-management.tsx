@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useCreateUpdateMutation } from '@/lib/common-hooks';
 import { apiRequest } from '@/lib/queryClient';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
@@ -53,7 +53,7 @@ interface Invitation {
   id: string;
   email: string;
   role: string;
-  status: 'pending' | 'accepted' | 'expired' | 'cancelled';
+  status: 'pending' | 'accepted' | 'expired' | 'cancelled' | 'replaced';
   organizationId?: string;
   buildingId?: string;
   invitedByUserId: string;
@@ -95,11 +95,10 @@ export function InvitationManagement({
   const { t } = useLanguage();
   const { hasRole } = useAuth();
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   const [cancellingInvitation, setCancellingInvitation] = useState<string | null>(null);
 
   // Cancel invitation mutation
-  const cancelInvitationMutation = useMutation({
+  const cancelInvitationMutation = useCreateUpdateMutation<unknown, string>({
     mutationFn: async (invitationId: string) => {
       const response = await apiRequest('PUT', `/api/invitations/${invitationId}`, {
         status: 'cancelled',
@@ -107,42 +106,24 @@ export function InvitationManagement({
       });
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/invitations'] });
-      toast({
-        title: t('invitationCancelled'),
-        description: t('invitationCancelledSuccessfully'),
-      });
+    successTitle: t('invitationCancelled'),
+    successMessage: t('invitationCancelledSuccessfully'),
+    errorMessage: (error) => error?.message || '',
+    queryKeysToInvalidate: [['/api/invitations']],
+    onSuccessCallback: () => {
       setCancellingInvitation(null);
-    },
-    onError: (_error: Error) => {
-      toast({
-        title: 'Error',
-        description: _error.message,
-        variant: 'destructive',
-      });
     },
   });
 
   // Resend invitation mutation
-  const resendInvitationMutation = useMutation({
+  const resendInvitationMutation = useCreateUpdateMutation<unknown, string>({
     mutationFn: async (invitationId: string) => {
       const response = await apiRequest('POST', `/api/invitations/${invitationId}/resend`);
       return response.json();
     },
-    onSuccess: () => {
-      toast({
-        title: t('invitationResent'),
-        description: t('invitationResentSuccessfully'),
-      });
-    },
-    onError: (_error: Error) => {
-      toast({
-        title: 'Error',
-        description: _error.message,
-        variant: 'destructive',
-      });
-    },
+    successTitle: t('invitationResent'),
+    successMessage: t('invitationResentSuccessfully'),
+    errorMessage: (error) => error?.message || '',
   });
 
   const handleCopyInvitationLink = (invitation: Invitation) => {
@@ -197,6 +178,13 @@ export function InvitationManagement({
           <Badge variant='destructive'>
             <XCircle className='h-3 w-3 mr-1' />
             {t('cancelled')}
+          </Badge>
+        );
+      case 'replaced':
+        return (
+          <Badge variant='secondary' className='bg-gray-100 text-gray-800'>
+            <XCircle className='h-3 w-3 mr-1' />
+            {t('replaced') || 'Replaced'}
           </Badge>
         );
       default:

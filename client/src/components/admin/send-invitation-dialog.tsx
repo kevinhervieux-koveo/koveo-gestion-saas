@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
+import { useCreateUpdateMutation } from '@/lib/common-hooks';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
 import { useForm } from 'react-hook-form';
@@ -205,12 +206,20 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
 
   // Fetch organizations (filtered by user access)
   const { data: organizations } = useQuery<Organization[]>({
-    queryKey: ['/api/organizations'],
+    queryKey: ['/api/organizations', open],
     queryFn: async () => {
-      const response = await apiRequest('GET', '/api/organizations');
-      return response.json();
+      const response = await fetch('/api/organizations', {
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to fetch organizations: ${response.statusText}`);
+      }
+      const data = await response.json();
+      console.log('🔍 [INVITE_DIALOG] Fetched organizations:', data);
+      return Array.isArray(data) ? data : [];
     },
     enabled: open,
+    staleTime: 0, // Always fetch fresh data
   });
 
   // Auto-select organization if user has access to only one
@@ -252,6 +261,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
   // Helper functions for filtering data based on selections
   const getFilteredOrganizations = () => {
     if (!organizations || !Array.isArray(organizations)) {
+      console.log('🔍 [INVITE_DIALOG] No organizations or not array:', organizations);
       return [];
     }
 
@@ -269,6 +279,8 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
 
       return isValid;
     });
+
+    console.log('🔍 [INVITE_DIALOG] Valid organizations after filtering:', validOrgs);
 
     if (currentUser?.role === 'admin') {
       // Admins can add users to any organization
@@ -340,7 +352,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
   };
 
   // Single invitation mutation
-  const invitationMutation = useMutation({
+  const invitationMutation = useCreateUpdateMutation<unknown, InvitationFormData>({
     mutationFn: async (data: InvitationFormData) => {
       const expiresAt = new Date();
       expiresAt.setDate(expiresAt.getDate() + data.expiryDays);
@@ -369,24 +381,21 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
       });
       return response.json();
     },
-    onSuccess: (_, variables) => {
+    successTitle: (_, variables) => {
       const isDemoRole = ['demo_manager', 'demo_tenant', 'demo_resident'].includes(variables.role);
-      toast({
-        title: isDemoRole ? 'Demo User Created' : t('invitationSent'),
-        description: isDemoRole
-          ? 'Demo user has been created successfully'
-          : t('invitationSentSuccessfully'),
-      });
+      return isDemoRole ? 'Demo User Created' : t('invitationSent');
+    },
+    successMessage: (_, variables) => {
+      const isDemoRole = ['demo_manager', 'demo_tenant', 'demo_resident'].includes(variables.role);
+      return isDemoRole
+        ? 'Demo user has been created successfully'
+        : t('invitationSentSuccessfully');
+    },
+    errorTitle: 'Error',
+    onSuccessCallback: () => {
       form.reset();
       onSuccess();
       onOpenChange(false);
-    },
-    onError: (error: Error) => {
-      toast({
-        title: 'Error',
-        description: error.message,
-        variant: 'destructive',
-      });
     },
   });
 
@@ -477,7 +486,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                             selectedOrg?.type === 'demo' ? 'demo_tenant' : 'tenant'
                           );
                         }}
-                        disabled={currentUser?.role === 'manager'}
+                        disabled={currentUser?.role === 'manager' && organizations && organizations.length === 1}
                         className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
                       >
                         <option value=''>{t('selectOrganization')}</option>
@@ -497,7 +506,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                       </select>
                     </FormControl>
                     <FormDescription>
-                      {currentUser?.role === 'manager'
+                      {currentUser?.role === 'manager' && organizations && organizations.length === 1
                         ? 'Managers can only invite to their organization'
                         : 'Select target organization'}
                     </FormDescription>
@@ -610,7 +619,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        {'Building'} ({t('optional')})
+                        {'Building'}
                       </FormLabel>
                       <FormControl>
                         <select
@@ -623,7 +632,9 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                           className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
                         >
                           <option value=''>{'Select building'}</option>
-                          <option value='none'>{'No specific building'}</option>
+                          {['manager', 'demo_manager'].includes(form.watch('role')) && (
+                            <option value='all'>{'All buildings'}</option>
+                          )}
                           {getFilteredBuildings(form.watch('organizationId')).map((building) => (
                             <option key={building.id} value={building.id}>
                               {building.name} - {building.address}
@@ -641,8 +652,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
               {['tenant', 'resident', 'demo_tenant', 'demo_resident'].includes(
                 form.watch('role')
               ) &&
-                form.watch('buildingId') &&
-                form.watch('buildingId') !== 'none' && (
+                form.watch('buildingId') && (
                   <FormField
                     control={form.control}
                     name='residenceId'
@@ -656,6 +666,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                             className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
                           >
                             <option value=''>{'Select residence'}</option>
+                            <option value='none'>{'No specific residence'}</option>
                             {getFilteredResidences(form.watch('buildingId'), form.watch('organizationId')).map((residence) => (
                               <option key={residence.id} value={residence.id}>
                                 {'Unit'} {residence.unitNumber}

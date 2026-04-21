@@ -18,8 +18,10 @@ const authConfig = {
     '<rootDir>/tests/integration/authentication*.test.{ts,tsx}',
     '<rootDir>/tests/integration/api-authorization*.test.{ts,tsx}',
     '<rootDir>/tests/security/**/*.test.{ts,tsx}',
-    '<rootDir>/tests/unit/auth/**/*.test.{ts,tsx}',
     '<rootDir>/tests/unit/security/**/*.test.{ts,tsx}',
+    '<rootDir>/tests/integration/user-registration.test.{ts,tsx}',
+    '<rootDir>/tests/integration/user-deletion.test.{ts,tsx}',
+    '<rootDir>/tests/integration/security-headers.test.{ts,tsx}',
   ],
   
   // Enhanced module name mapping for selective unmocking of auth

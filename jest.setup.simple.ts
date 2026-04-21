@@ -7,6 +7,13 @@ import '@testing-library/jest-dom';
 import { afterEach, beforeAll, afterAll } from '@jest/globals';
 import { cleanup } from '@testing-library/react';
 
+// React 19 requires this flag so React Testing Library and React's scheduler
+// know they are running in an act() environment. Without it, async state
+// updates triggered from outside React event handlers (e.g. fetch resolutions
+// inside useEffect) may not commit during `waitFor` polling, causing flaky
+// "stuck on loading" tests.
+(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
+
 // =============================================================================
 // ESSENTIAL TEST SETUP
 // =============================================================================
@@ -41,14 +48,12 @@ afterAll(() => {
 
 // Note: TextEncoder/TextDecoder and fetch are now polyfilled in jest.polyfills.js
 
-// Enhanced ResizeObserver mock - required for Radix UI components
-class ResizeObserverMock {
-  observe() {}
-  unobserve() {}
-  disconnect() {}
-}
-
-(global as any).ResizeObserver = ResizeObserverMock;
+// Basic ResizeObserver mock
+(global as any).ResizeObserver = jest.fn().mockImplementation(() => ({
+  observe: jest.fn(),
+  unobserve: jest.fn(),
+  disconnect: jest.fn(),
+}));
 
 // Basic matchMedia mock
 if (typeof window !== 'undefined') {

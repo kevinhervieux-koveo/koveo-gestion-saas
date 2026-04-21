@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
 import {
   Dialog,
@@ -28,8 +27,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { useCreateUpdateMutation } from '@/lib/common-hooks';
 import type { Organization } from '@shared/schema';
 
 // Organization form schema matching the database schema
@@ -80,8 +79,6 @@ export function OrganizationFormDialog({
   organization,
   onSuccess,
 }: OrganizationFormDialogProps) {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
   const isEditing = !!organization;
 
   const form = useForm<OrganizationFormData>({
@@ -131,30 +128,22 @@ export function OrganizationFormDialog({
     }
   }, [organization, form]);
 
-  const mutation = useMutation({
+  const mutation = useCreateUpdateMutation<unknown, OrganizationFormData>({
     mutationFn: async (_data: OrganizationFormData) => {
       const url = isEditing ? `/api/organizations/${organization.id}` : '/api/organizations';
       const method = isEditing ? 'PUT' : 'POST';
       return apiRequest(method, url, _data);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/organizations'] });
-      toast({
-        title: isEditing ? 'Organization Updated' : 'Organization Created',
-        description: isEditing
-          ? 'Organization updated successfully'
-          : 'Organization created successfully',
-      });
+    successTitle: () => (isEditing ? 'Organization Updated' : 'Organization Created'),
+    successMessage: () =>
+      isEditing ? 'Organization updated successfully' : 'Organization created successfully',
+    errorTitle: 'Error',
+    errorMessage: (error: any) => error?.message || 'Something went wrong',
+    queryKeysToInvalidate: [['/api/organizations']],
+    onSuccessCallback: () => {
       onOpenChange(false);
       form.reset();
       onSuccess?.();
-    },
-    onError: (_error: Error) => {
-      toast({
-        title: 'Error',
-        description: _error.message || 'Something went wrong',
-        variant: 'destructive',
-      });
     },
   });
 

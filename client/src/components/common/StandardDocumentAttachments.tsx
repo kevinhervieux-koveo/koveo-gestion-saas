@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { DocumentInlineViewer } from '@/components/common/DocumentInlineViewer';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -94,6 +95,7 @@ export function StandardDocumentAttachments({
   
   const [activeUploadTab, setActiveUploadTab] = useState<'file' | 'text'>(defaultUploadTab);
   const [uploadedAiFile, setUploadedAiFile] = useState<File | null>(null);
+  const [viewingAttachment, setViewingAttachment] = useState<{ url: string; name?: string } | null>(null);
 
   // Handle AI file upload specifically for analysis
   const handleAiDocumentChange = (file: File | null, text: string | null) => {
@@ -318,9 +320,9 @@ export function StandardDocumentAttachments({
                               size="sm"
                               onClick={() => {
                                 if (attachment.isExisting && attachment.url) {
-                                  window.open(attachment.url, '_blank');
+                                  setViewingAttachment({ url: attachment.url, name: attachment.name });
                                 } else if (attachment.preview) {
-                                  window.open(attachment.preview, '_blank');
+                                  setViewingAttachment({ url: attachment.preview, name: attachment.name });
                                 }
                               }}
                               data-testid={`button-view-${attachment.id}`}
@@ -391,6 +393,15 @@ export function StandardDocumentAttachments({
           )}
         </CardContent>
       </Card>
+
+      {viewingAttachment && (
+        <DocumentInlineViewer
+          isOpen={!!viewingAttachment}
+          onClose={() => setViewingAttachment(null)}
+          fileUrl={viewingAttachment.url}
+          fileName={viewingAttachment.name}
+        />
+      )}
     </div>
   );
 }

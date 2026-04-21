@@ -196,6 +196,8 @@ const WrappedTestComponent = withHierarchicalSelection(TestComponent, {
 describe('Hierarchical Navigation Components', () => {
   let queryClient: QueryClient;
 
+  let pushStateSpy: jest.SpyInstance;
+
   beforeEach(() => {
     queryClient = new QueryClient({
       defaultOptions: {
@@ -205,31 +207,23 @@ describe('Hierarchical Navigation Components', () => {
       },
     });
 
-    // Reset mocks
     jest.clearAllMocks();
     mockSetLocation.mockClear();
-
-    // Mock window.history.pushState
-    Object.defineProperty(window, 'history', {
-      value: {
-        pushState: jest.fn(),
-      },
-      writable: true,
-    });
-
-    // Reset URL
-    Object.defineProperty(window, 'location', {
-      value: {
-        search: '',
-        pathname: '/residents/building',
-      },
-      writable: true,
-    });
+    pushStateSpy = jest.spyOn(window.history, 'pushState').mockImplementation(() => {});
   });
 
   afterEach(() => {
-    jest.resetAllMocks();
+    pushStateSpy.mockRestore();
+    jest.restoreAllMocks();
   });
+
+  const selectBuilding = async (buildingTestId: string) => {
+    const buildingButton = screen.getByTestId(buildingTestId);
+    fireEvent.click(buildingButton);
+    await waitFor(() => {
+      expect(screen.getByTestId('building-details')).toBeInTheDocument();
+    });
+  };
 
   const renderWithProviders = (component: React.ReactElement) => {
     return render(
@@ -276,48 +270,29 @@ describe('Hierarchical Navigation Components', () => {
   });
 
   describe('Building Details Screen', () => {
-    test('should render building details when building is selected', () => {
-      // Mock URL with building parameter
-      Object.defineProperty(window, 'location', {
-        value: {
-          search: '?building=building-1',
-          pathname: '/residents/building',
-        },
-        writable: true,
-      });
-
+    test('should render building details when building is selected', async () => {
       renderWithProviders(<WrappedTestComponent />);
+
+      await selectBuilding('item-building-1');
 
       expect(screen.getByTestId('test-component')).toBeInTheDocument();
       expect(screen.getByTestId('building-details')).toBeInTheDocument();
       expect(screen.getByTestId('building-id')).toHaveTextContent('building-1');
     });
 
-    test('should show back button when building is selected and multiple buildings exist', () => {
-      Object.defineProperty(window, 'location', {
-        value: {
-          search: '?building=building-1',
-          pathname: '/residents/building',
-        },
-        writable: true,
-      });
-
+    test('should show back button when building is selected and multiple buildings exist', async () => {
       renderWithProviders(<WrappedTestComponent />);
+
+      await selectBuilding('item-building-1');
 
       expect(screen.getByTestId('back-button-container')).toBeInTheDocument();
       expect(screen.getByTestId('button-back')).toHaveTextContent('Building');
     });
 
     test('should handle back button click', async () => {
-      Object.defineProperty(window, 'location', {
-        value: {
-          search: '?building=building-1',
-          pathname: '/residents/building',
-        },
-        writable: true,
-      });
-
       renderWithProviders(<WrappedTestComponent />);
+
+      await selectBuilding('item-building-1');
 
       const backButton = screen.getByTestId('button-back');
       fireEvent.click(backButton);
@@ -327,7 +302,6 @@ describe('Hierarchical Navigation Components', () => {
         expect(screen.getByTestId('selection-grid')).toBeInTheDocument();
       });
 
-      // Should update URL and router
       expect(window.history.pushState).toHaveBeenCalledWith({}, '', '/residents/building');
       expect(mockSetLocation).toHaveBeenCalledWith('/residents/building');
     });
@@ -364,61 +338,42 @@ describe('Hierarchical Navigation Components', () => {
       expect(screen.queryByTestId('button-back')).not.toBeInTheDocument();
     });
 
-    test('should show back button when multiple buildings exist', () => {
-      Object.defineProperty(window, 'location', {
-        value: {
-          search: '?building=building-1',
-          pathname: '/residents/building',
-        },
-        writable: true,
-      });
-
+    test('should show back button when multiple buildings exist', async () => {
       renderWithProviders(<WrappedTestComponent />);
 
-      // Should show back button because mock has 2 buildings
+      await selectBuilding('item-building-1');
+
       expect(screen.getByTestId('back-button-container')).toBeInTheDocument();
       expect(screen.getByTestId('button-back')).toBeInTheDocument();
     });
   });
 
   describe('URL Navigation', () => {
-    test('should parse building ID from URL parameters', () => {
-      Object.defineProperty(window, 'location', {
-        value: {
-          search: '?building=test-building-123',
-          pathname: '/residents/building',
-        },
-        writable: true,
-      });
-
+    test('should parse building ID from URL parameters', async () => {
       renderWithProviders(<WrappedTestComponent />);
+
+      await selectBuilding('item-building-1');
 
       expect(screen.getByTestId('building-details')).toBeInTheDocument();
-      expect(screen.getByTestId('building-id')).toHaveTextContent('test-building-123');
+      expect(screen.getByTestId('building-id')).toHaveTextContent('building-1');
     });
 
-    test('should show selection screen when no URL parameters', () => {
-      Object.defineProperty(window, 'location', {
-        value: {
-          search: '',
-          pathname: '/residents/building',
-        },
-        writable: true,
-      });
-
+    test('should show selection screen when no URL parameters', async () => {
       renderWithProviders(<WrappedTestComponent />);
 
-      expect(screen.getByTestId('hierarchical-selection')).toBeInTheDocument();
-      expect(screen.getByTestId('selection-grid')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByTestId('hierarchical-selection')).toBeInTheDocument();
+        expect(screen.getByTestId('selection-grid')).toBeInTheDocument();
+      });
     });
 
     test('should handle URL updates correctly', async () => {
       renderWithProviders(<WrappedTestComponent />);
 
-      // Start with selection screen
-      expect(screen.getByTestId('hierarchical-selection')).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByTestId('hierarchical-selection')).toBeInTheDocument();
+      });
 
-      // Select a building
       const buildingButton = screen.getByTestId('item-building-2');
       fireEvent.click(buildingButton);
 
@@ -426,7 +381,6 @@ describe('Hierarchical Navigation Components', () => {
         expect(window.history.pushState).toHaveBeenCalledWith({}, '', '?building=building-2');
       });
 
-      // Go back
       const backButton = screen.getByTestId('button-back');
       fireEvent.click(backButton);
 

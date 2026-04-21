@@ -4,6 +4,7 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
+import { ZodError } from 'zod';
 import { logSecurity } from '../utils/logger';
 
 /**
@@ -47,10 +48,28 @@ function sanitizeErrorMessage(error: any, isDevelopment: boolean): any {
  */
 export function secureErrorHandler(error: any, req: Request, res: Response, next: NextFunction): void {
   const isDevelopment = process.env.NODE_ENV === 'development';
-  
-  // Log the actual error for debugging
+
+  // If headers were already sent, defer to the default Express handler so we
+  // don't try to write a second response body.
+  if (res.headersSent) {
+    return next(error);
+  }
+
+  // Per-route context attached by `asyncHandler` (when used).
+  const routeErrorMessage: string | undefined = res.locals?.errorMessage;
+  const routeErrorLogPrefix: string | undefined = res.locals?.errorLogPrefix;
+  const routeErrorExtraFields: Record<string, unknown> | undefined = res.locals?.errorExtraFields;
+
+  // Preserve the historical per-route dev log line (`❌ <prefix>: <error>`)
+  // for routes that opted in via asyncHandler. This keeps the existing
+  // logging shape that those try/catch blocks used inline.
+  if (isDevelopment && routeErrorLogPrefix) {
+    console.error(`${routeErrorLogPrefix}:`, error);
+  }
+
+  // Log the actual error for debugging / SIEM (always — production too).
   const errorId = `err_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-  
+
   logSecurity('application_error', {
     requestId: req.headers['x-request-id'] as string || 'unknown',
     errorId,
@@ -68,10 +87,15 @@ export function secureErrorHandler(error: any, req: Request, res: Response, next
     }
   });
 
-  // Determine status code
+  // Determine status code. Honor explicit `statusCode`/`status` first
+  // (e.g. ApiError), then fall back to well-known error type names.
   let statusCode = 500;
-  if (error.status) {
+  if (typeof error.statusCode === 'number') {
+    statusCode = error.statusCode;
+  } else if (typeof error.status === 'number') {
     statusCode = error.status;
+  } else if (error instanceof ZodError || error.name === 'ZodError') {
+    statusCode = 400;
   } else if (error.name === 'ValidationError') {
     statusCode = 400;
   } else if (error.name === 'UnauthorizedError' || error.name === 'AuthenticationError') {
@@ -84,9 +108,33 @@ export function secureErrorHandler(error: any, req: Request, res: Response, next
     statusCode = 429;
   }
 
-  // Send sanitized error response
+  // Routes wrapped in `asyncHandler` opted into the simple
+  // `{ message: '...' }` response shape that the old per-route try/catch
+  // blocks used. Honor that contract so frontend behavior is unchanged.
+  if (routeErrorMessage) {
+    if (error instanceof ZodError || error.name === 'ZodError') {
+      return res.status(statusCode).json({
+        message: 'Validation failed',
+        errors: Array.isArray(error.errors) ? error.errors : undefined,
+      });
+    }
+    if (statusCode !== 500) {
+      return res.status(statusCode).json({
+        message: error.message || routeErrorMessage,
+      });
+    }
+    // Only merge extra static label fields on the 500 path — they describe
+    // unexpected server errors and shouldn't leak onto typed 4xx responses.
+    return res.status(500).json({
+      ...(routeErrorExtraFields ?? {}),
+      message: routeErrorMessage,
+    });
+  }
+
+  // Unwrapped routes: keep the existing sanitized response shape so we
+  // don't change any response contract callers may already depend on.
   const sanitizedError = sanitizeErrorMessage(error, isDevelopment);
-  
+
   res.status(statusCode).json({
     error: true,
     ...sanitizedError,

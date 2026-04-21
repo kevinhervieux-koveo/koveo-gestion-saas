@@ -315,18 +315,6 @@ export function TokenValidationStep({ _data, onDataChange, onValidationChange }:
               <p className='text-gray-900'>{getTimeRemaining(validationResult.expiresAt)}</p>
             </div>
           </div>
-
-          {/* Quebec Law 25 Notice */}
-          <div className='mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg'>
-            <h4 className='text-sm font-medium text-blue-900 mb-2'>
-              🛡️ Protection des données personnelles (Loi 25 - Québec)
-            </h4>
-            <p className='text-xs text-blue-800'>
-              En acceptant cette invitation, vous reconnaissez avoir été informé(e) de la collecte
-              et de l'utilisation de vos données personnelles conformément à la Loi 25 du Québec sur
-              la protection des renseignements personnels dans le secteur privé.
-            </p>
-          </div>
         </CardContent>
       </Card>
     </div>

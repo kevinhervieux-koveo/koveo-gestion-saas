@@ -1,0 +1,310 @@
+index-DO7Aec5r.js:191  GET https://koveo-gestion.com/api/auth/user 401 (Unauthorized)
+queryFn @ index-DO7Aec5r.js:191
+r @ vendor-query-BXpRV_b-.js:1
+m @ vendor-query-BXpRV_b-.js:1
+start @ vendor-query-BXpRV_b-.js:1
+fetch @ vendor-query-BXpRV_b-.js:1
+#p @ vendor-query-BXpRV_b-.js:1
+onSubscribe @ vendor-query-BXpRV_b-.js:1
+subscribe @ vendor-query-BXpRV_b-.js:1
+(anonymous) @ vendor-query-BXpRV_b-.js:1
+Wc @ index-DO7Aec5r.js:25
+Si @ index-DO7Aec5r.js:25
+hm @ index-DO7Aec5r.js:25
+zt @ index-DO7Aec5r.js:25
+hm @ index-DO7Aec5r.js:25
+zt @ index-DO7Aec5r.js:25
+hm @ index-DO7Aec5r.js:25
+zt @ index-DO7Aec5r.js:25
+hm @ index-DO7Aec5r.js:25
+zt @ index-DO7Aec5r.js:25
+hm @ index-DO7Aec5r.js:25
+zt @ index-DO7Aec5r.js:25
+hm @ index-DO7Aec5r.js:25
+zt @ index-DO7Aec5r.js:25
+hm @ index-DO7Aec5r.js:25
+zt @ index-DO7Aec5r.js:25
+hm @ index-DO7Aec5r.js:25
+Om @ index-DO7Aec5r.js:25
+Ys @ index-DO7Aec5r.js:25
+km @ index-DO7Aec5r.js:25
+Mi @ index-DO7Aec5r.js:25
+qm @ index-DO7Aec5r.js:25
+jm @ index-DO7Aec5r.js:25
+Tm @ index-DO7Aec5r.js:25
+Cm @ index-DO7Aec5r.js:25
+Fm @ index-DO7Aec5r.js:25
+$e @ index-DO7Aec5r.js:10
+overview-D73K4vtq.js:1 [FinancialOverview] Query state: {selectedBuildingId: '', filters: {…}, forecastData: undefined, forecastLoading: false, forecastError: null, …}
+overview-D73K4vtq.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 0, projectQueriesCount: 0}
+overview-D73K4vtq.js:1 [FinancialOverview] No buildings available
+overview-D73K4vtq.js:1 [FinancialOverview] Query state: {selectedBuildingId: '', filters: {…}, forecastData: undefined, forecastLoading: false, forecastError: null, …}
+overview-D73K4vtq.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 0, projectQueriesCount: 0}
+overview-D73K4vtq.js:1 [FinancialOverview] No buildings available
+overview-D73K4vtq.js:1 [FinancialOverview] Query state: {selectedBuildingId: '', filters: {…}, forecastData: undefined, forecastLoading: false, forecastError: null, …}
+overview-D73K4vtq.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 0, projectQueriesCount: 0}
+overview-D73K4vtq.js:1 [FinancialOverview] No buildings available
+overview-D73K4vtq.js:1 [FinancialOverview] Query state: {selectedBuildingId: '', filters: {…}, forecastData: undefined, forecastLoading: false, forecastError: null, …}
+overview-D73K4vtq.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 8, projectQueriesCount: 8}
+overview-D73K4vtq.js:1 [FinancialOverview] Building 0 (4647 Meggie Pass Building 2): {buildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-D73K4vtq.js:1 [FinancialOverview] Building 1 (4804 Stuart Gateway Building 1): {buildingId: '5fd273e9-328f-4e31-98f0-8e82526c79e8', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-D73K4vtq.js:1 [FinancialOverview] Building 2 (563 montée des pionniers): {buildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-D73K4vtq.js:1 [FinancialOverview] Building 3 (64671 Green Close Building 4): {buildingId: 'ad5ed375-3319-46bc-8093-c4341174bebd', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-D73K4vtq.js:1 [FinancialOverview] Building 4 (68391 Brent Shoals Building 3): {buildingId: '2a4e811b-8ccf-4f1e-8fe0-79746dc7ed1d', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-D73K4vtq.js:1 [FinancialOverview] Building 5 (7393 Abernathy Green Building 5): {buildingId: '17f65eef-a91f-4268-82ec-91727b9fe7f8', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-D73K4vtq.js:1 [FinancialOverview] Building 6 (Demo Condo): {buildingId: 'e55c083e-a5c4-4371-9aaa-a2204f23e679', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-D73K4vtq.js:1 [FinancialOverview] Building 7 (Démo Appartement): {buildingId: 'fbc1bb8b-a63c-4712-8d1e-c03f32c5c586', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-D73K4vtq.js:1 [FinancialOverview] Total projects aggregated: 0
+overview-D73K4vtq.js:1 [FinancialOverview] Query state: {selectedBuildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', filters: {…}, forecastData: undefined, forecastLoading: true, forecastError: null, …}
+overview-D73K4vtq.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 8, projectQueriesCount: 8}
+overview-D73K4vtq.js:1 [FinancialOverview] Building 0 (4647 Meggie Pass Building 2): {buildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-D73K4vtq.js:1 [FinancialOverview] Building 1 (4804 Stuart Gateway Building 1): {buildingId: '5fd273e9-328f-4e31-98f0-8e82526c79e8', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-D73K4vtq.js:1 [FinancialOverview] Building 2 (563 montée des pionniers): {buildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-D73K4vtq.js:1 [FinancialOverview] Building 3 (64671 Green Close Building 4): {buildingId: 'ad5ed375-3319-46bc-8093-c4341174bebd', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-D73K4vtq.js:1 [FinancialOverview] Building 4 (68391 Brent Shoals Building 3): {buildingId: '2a4e811b-8ccf-4f1e-8fe0-79746dc7ed1d', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-D73K4vtq.js:1 [FinancialOverview] Building 5 (7393 Abernathy Green Building 5): {buildingId: '17f65eef-a91f-4268-82ec-91727b9fe7f8', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-D73K4vtq.js:1 [FinancialOverview] Building 6 (Demo Condo): {buildingId: 'e55c083e-a5c4-4371-9aaa-a2204f23e679', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-D73K4vtq.js:1 [FinancialOverview] Building 7 (Démo Appartement): {buildingId: 'fbc1bb8b-a63c-4712-8d1e-c03f32c5c586', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-D73K4vtq.js:1 [FinancialOverview] Total projects aggregated: 0
+overview-D73K4vtq.js:1 [FinancialOverview] Making API request: {buildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', params: {…}, url: '/api/budgets/bfee4e0b-aa89-44b8-b3b2-0419bab47897/forecast'}
+overview-D73K4vtq.js:1 [FinancialOverview] Query state: {selectedBuildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', filters: {…}, forecastData: undefined, forecastLoading: true, forecastError: null, …}
+ [FinancialOverview] Aggregating projects: {buildingsCount: 8, projectQueriesCount: 8}
+ [FinancialOverview] Building 0 (4647 Meggie Pass Building 2): {buildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+ [FinancialOverview] Building 1 (4804 Stuart Gateway Building 1): {buildingId: '5fd273e9-328f-4e31-98f0-8e82526c79e8', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+ [FinancialOverview] Building 2 (563 montée des pionniers): {buildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+ [FinancialOverview] Building 3 (64671 Green Close Building 4): {buildingId: 'ad5ed375-3319-46bc-8093-c4341174bebd', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+ [FinancialOverview] Added 0 projects from 64671 Green Close Building 4
+ [FinancialOverview] Building 4 (68391 Brent Shoals Building 3): {buildingId: '2a4e811b-8ccf-4f1e-8fe0-79746dc7ed1d', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+ [FinancialOverview] Added 0 projects from 68391 Brent Shoals Building 3
+ [FinancialOverview] Building 5 (7393 Abernathy Green Building 5): {buildingId: '17f65eef-a91f-4268-82ec-91727b9fe7f8', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+ [FinancialOverview] Building 6 (Demo Condo): {buildingId: 'e55c083e-a5c4-4371-9aaa-a2204f23e679', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+ [FinancialOverview] Building 7 (Démo Appartement): {buildingId: 'fbc1bb8b-a63c-4712-8d1e-c03f32c5c586', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+ [FinancialOverview] Total projects aggregated: 0
+ [FinancialOverview] Query state: {selectedBuildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', filters: {…}, forecastData: undefined, forecastLoading: true, forecastError: null, …}
+ [FinancialOverview] Aggregating projects: {buildingsCount: 8, projectQueriesCount: 8}
+ [FinancialOverview] Building 0 (4647 Meggie Pass Building 2): {buildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+ [FinancialOverview] Added 0 projects from 4647 Meggie Pass Building 2
+ [FinancialOverview] Building 1 (4804 Stuart Gateway Building 1): {buildingId: '5fd273e9-328f-4e31-98f0-8e82526c79e8', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+ [FinancialOverview] Building 2 (563 montée des pionniers): {buildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+ [FinancialOverview] Building 3 (64671 Green Close Building 4): {buildingId: 'ad5ed375-3319-46bc-8093-c4341174bebd', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+ [FinancialOverview] Added 0 projects from 64671 Green Close Building 4
+ [FinancialOverview] Building 4 (68391 Brent Shoals Building 3): {buildingId: '2a4e811b-8ccf-4f1e-8fe0-79746dc7ed1d', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+ [FinancialOverview] Added 0 projects from 68391 Brent Shoals Building 3
+ [FinancialOverview] Building 5 (7393 Abernathy Green Building 5): {buildingId: '17f65eef-a91f-4268-82ec-91727b9fe7f8', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+ [FinancialOverview] Added 0 projects from 7393 Abernathy Green Building 5
+ [FinancialOverview] Building 6 (Demo Condo): {buildingId: 'e55c083e-a5c4-4371-9aaa-a2204f23e679', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-D73K4vtq.js:1 [FinancialOverview] Building 7 (Démo Appartement): {buildingId: 'fbc1bb8b-a63c-4712-8d1e-c03f32c5c586', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from Démo Appartement
+overview-D73K4vtq.js:1 [FinancialOverview] Total projects aggregated: 0
+overview-D73K4vtq.js:1 [FinancialOverview] Query state: {selectedBuildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', filters: {…}, forecastData: undefined, forecastLoading: true, forecastError: null, …}
+overview-D73K4vtq.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 8, projectQueriesCount: 8}
+overview-D73K4vtq.js:1 [FinancialOverview] Building 0 (4647 Meggie Pass Building 2): {buildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from 4647 Meggie Pass Building 2
+overview-D73K4vtq.js:1 [FinancialOverview] Building 1 (4804 Stuart Gateway Building 1): {buildingId: '5fd273e9-328f-4e31-98f0-8e82526c79e8', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from 4804 Stuart Gateway Building 1
+overview-D73K4vtq.js:1 [FinancialOverview] Building 2 (563 montée des pionniers): {buildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-D73K4vtq.js:1 [FinancialOverview] Building 3 (64671 Green Close Building 4): {buildingId: 'ad5ed375-3319-46bc-8093-c4341174bebd', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from 64671 Green Close Building 4
+overview-D73K4vtq.js:1 [FinancialOverview] Building 4 (68391 Brent Shoals Building 3): {buildingId: '2a4e811b-8ccf-4f1e-8fe0-79746dc7ed1d', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from 68391 Brent Shoals Building 3
+overview-D73K4vtq.js:1 [FinancialOverview] Building 5 (7393 Abernathy Green Building 5): {buildingId: '17f65eef-a91f-4268-82ec-91727b9fe7f8', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from 7393 Abernathy Green Building 5
+overview-D73K4vtq.js:1 [FinancialOverview] Building 6 (Demo Condo): {buildingId: 'e55c083e-a5c4-4371-9aaa-a2204f23e679', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-D73K4vtq.js:1 [FinancialOverview] Building 7 (Démo Appartement): {buildingId: 'fbc1bb8b-a63c-4712-8d1e-c03f32c5c586', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from Démo Appartement
+overview-D73K4vtq.js:1 [FinancialOverview] Total projects aggregated: 0
+overview-D73K4vtq.js:1 [FinancialOverview] Query state: {selectedBuildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', filters: {…}, forecastData: undefined, forecastLoading: true, forecastError: null, …}
+overview-D73K4vtq.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 8, projectQueriesCount: 8}
+overview-D73K4vtq.js:1 [FinancialOverview] Building 0 (4647 Meggie Pass Building 2): {buildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from 4647 Meggie Pass Building 2
+overview-D73K4vtq.js:1 [FinancialOverview] Building 1 (4804 Stuart Gateway Building 1): {buildingId: '5fd273e9-328f-4e31-98f0-8e82526c79e8', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from 4804 Stuart Gateway Building 1
+overview-D73K4vtq.js:1 [FinancialOverview] Building 2 (563 montée des pionniers): {buildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-D73K4vtq.js:1 [FinancialOverview] Building 3 (64671 Green Close Building 4): {buildingId: 'ad5ed375-3319-46bc-8093-c4341174bebd', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from 64671 Green Close Building 4
+overview-D73K4vtq.js:1 [FinancialOverview] Building 4 (68391 Brent Shoals Building 3): {buildingId: '2a4e811b-8ccf-4f1e-8fe0-79746dc7ed1d', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from 68391 Brent Shoals Building 3
+overview-D73K4vtq.js:1 [FinancialOverview] Building 5 (7393 Abernathy Green Building 5): {buildingId: '17f65eef-a91f-4268-82ec-91727b9fe7f8', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from 7393 Abernathy Green Building 5
+overview-D73K4vtq.js:1 [FinancialOverview] Building 6 (Demo Condo): {buildingId: 'e55c083e-a5c4-4371-9aaa-a2204f23e679', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from Demo Condo
+overview-D73K4vtq.js:1 [FinancialOverview] Building 7 (Démo Appartement): {buildingId: 'fbc1bb8b-a63c-4712-8d1e-c03f32c5c586', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from Démo Appartement
+overview-D73K4vtq.js:1 [FinancialOverview] Total projects aggregated: 0
+overview-D73K4vtq.js:1 [FinancialOverview] Query state: {selectedBuildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', filters: {…}, forecastData: undefined, forecastLoading: true, forecastError: null, …}
+overview-D73K4vtq.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 8, projectQueriesCount: 8}
+overview-D73K4vtq.js:1 [FinancialOverview] Building 0 (4647 Meggie Pass Building 2): {buildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from 4647 Meggie Pass Building 2
+overview-D73K4vtq.js:1 [FinancialOverview] Building 1 (4804 Stuart Gateway Building 1): {buildingId: '5fd273e9-328f-4e31-98f0-8e82526c79e8', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from 4804 Stuart Gateway Building 1
+overview-D73K4vtq.js:1 [FinancialOverview] Building 2 (563 montée des pionniers): {buildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', hasData: true, success: true, projectsCount: 2, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 2 projects from 563 montée des pionniers
+overview-D73K4vtq.js:1 [FinancialOverview] Building 3 (64671 Green Close Building 4): {buildingId: 'ad5ed375-3319-46bc-8093-c4341174bebd', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from 64671 Green Close Building 4
+overview-D73K4vtq.js:1 [FinancialOverview] Building 4 (68391 Brent Shoals Building 3): {buildingId: '2a4e811b-8ccf-4f1e-8fe0-79746dc7ed1d', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from 68391 Brent Shoals Building 3
+overview-D73K4vtq.js:1 [FinancialOverview] Building 5 (7393 Abernathy Green Building 5): {buildingId: '17f65eef-a91f-4268-82ec-91727b9fe7f8', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from 7393 Abernathy Green Building 5
+overview-D73K4vtq.js:1 [FinancialOverview] Building 6 (Demo Condo): {buildingId: 'e55c083e-a5c4-4371-9aaa-a2204f23e679', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from Demo Condo
+overview-D73K4vtq.js:1 [FinancialOverview] Building 7 (Démo Appartement): {buildingId: 'fbc1bb8b-a63c-4712-8d1e-c03f32c5c586', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from Démo Appartement
+overview-D73K4vtq.js:1 [FinancialOverview] Total projects aggregated: 2
+overview-D73K4vtq.js:1 [FinancialOverview] Query state: {selectedBuildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', filters: {…}, forecastData: undefined, forecastLoading: true, forecastError: null, …}
+overview-D73K4vtq.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 8, projectQueriesCount: 8}
+overview-D73K4vtq.js:1 [FinancialOverview] Building 0 (4647 Meggie Pass Building 2): {buildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from 4647 Meggie Pass Building 2
+overview-D73K4vtq.js:1 [FinancialOverview] Building 1 (4804 Stuart Gateway Building 1): {buildingId: '5fd273e9-328f-4e31-98f0-8e82526c79e8', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from 4804 Stuart Gateway Building 1
+overview-D73K4vtq.js:1 [FinancialOverview] Building 2 (563 montée des pionniers): {buildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', hasData: true, success: true, projectsCount: 2, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 2 projects from 563 montée des pionniers
+overview-D73K4vtq.js:1 [FinancialOverview] Building 3 (64671 Green Close Building 4): {buildingId: 'ad5ed375-3319-46bc-8093-c4341174bebd', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from 64671 Green Close Building 4
+overview-D73K4vtq.js:1 [FinancialOverview] Building 4 (68391 Brent Shoals Building 3): {buildingId: '2a4e811b-8ccf-4f1e-8fe0-79746dc7ed1d', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from 68391 Brent Shoals Building 3
+overview-D73K4vtq.js:1 [FinancialOverview] Building 5 (7393 Abernathy Green Building 5): {buildingId: '17f65eef-a91f-4268-82ec-91727b9fe7f8', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from 7393 Abernathy Green Building 5
+overview-D73K4vtq.js:1 [FinancialOverview] Building 6 (Demo Condo): {buildingId: 'e55c083e-a5c4-4371-9aaa-a2204f23e679', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from Demo Condo
+overview-D73K4vtq.js:1 [FinancialOverview] Building 7 (Démo Appartement): {buildingId: 'fbc1bb8b-a63c-4712-8d1e-c03f32c5c586', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from Démo Appartement
+overview-D73K4vtq.js:1 [FinancialOverview] Total projects aggregated: 2
+overview-D73K4vtq.js:1 [FinancialOverview] Making API request: {buildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', params: {…}, url: '/api/budgets/bfee4e0b-aa89-44b8-b3b2-0419bab47897/forecast'}
+overview-D73K4vtq.js:1 [FinancialOverview] API response: {data: {…}, hasForecast: true, forecastLength: 12}
+overview-D73K4vtq.js:1 [FinancialOverview] API response: {data: {…}, hasForecast: true, forecastLength: 12}
+overview-D73K4vtq.js:1 [FinancialOverview] Query state: {selectedBuildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', filters: {…}, forecastData: {…}, forecastLoading: false, forecastError: null, …}
+overview-D73K4vtq.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 8, projectQueriesCount: 8}
+overview-D73K4vtq.js:1 [FinancialOverview] Building 0 (4647 Meggie Pass Building 2): {buildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from 4647 Meggie Pass Building 2
+overview-D73K4vtq.js:1 [FinancialOverview] Building 1 (4804 Stuart Gateway Building 1): {buildingId: '5fd273e9-328f-4e31-98f0-8e82526c79e8', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from 4804 Stuart Gateway Building 1
+overview-D73K4vtq.js:1 [FinancialOverview] Building 2 (563 montée des pionniers): {buildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', hasData: true, success: true, projectsCount: 2, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 2 projects from 563 montée des pionniers
+overview-D73K4vtq.js:1 [FinancialOverview] Building 3 (64671 Green Close Building 4): {buildingId: 'ad5ed375-3319-46bc-8093-c4341174bebd', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from 64671 Green Close Building 4
+overview-D73K4vtq.js:1 [FinancialOverview] Building 4 (68391 Brent Shoals Building 3): {buildingId: '2a4e811b-8ccf-4f1e-8fe0-79746dc7ed1d', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from 68391 Brent Shoals Building 3
+overview-D73K4vtq.js:1 [FinancialOverview] Building 5 (7393 Abernathy Green Building 5): {buildingId: '17f65eef-a91f-4268-82ec-91727b9fe7f8', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from 7393 Abernathy Green Building 5
+overview-D73K4vtq.js:1 [FinancialOverview] Building 6 (Demo Condo): {buildingId: 'e55c083e-a5c4-4371-9aaa-a2204f23e679', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from Demo Condo
+overview-D73K4vtq.js:1 [FinancialOverview] Building 7 (Démo Appartement): {buildingId: 'fbc1bb8b-a63c-4712-8d1e-c03f32c5c586', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from Démo Appartement
+overview-D73K4vtq.js:1 [FinancialOverview] Total projects aggregated: 2
+overview-D73K4vtq.js:1 [FinancialOverview] Query state: {selectedBuildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', filters: {…}, forecastData: {…}, forecastLoading: false, forecastError: null, …}
+overview-D73K4vtq.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 8, projectQueriesCount: 8}
+overview-D73K4vtq.js:1 [FinancialOverview] Building 0 (4647 Meggie Pass Building 2): {buildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from 4647 Meggie Pass Building 2
+overview-D73K4vtq.js:1 [FinancialOverview] Building 1 (4804 Stuart Gateway Building 1): {buildingId: '5fd273e9-328f-4e31-98f0-8e82526c79e8', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from 4804 Stuart Gateway Building 1
+overview-D73K4vtq.js:1 [FinancialOverview] Building 2 (563 montée des pionniers): {buildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', hasData: true, success: true, projectsCount: 2, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 2 projects from 563 montée des pionniers
+overview-D73K4vtq.js:1 [FinancialOverview] Building 3 (64671 Green Close Building 4): {buildingId: 'ad5ed375-3319-46bc-8093-c4341174bebd', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from 64671 Green Close Building 4
+overview-D73K4vtq.js:1 [FinancialOverview] Building 4 (68391 Brent Shoals Building 3): {buildingId: '2a4e811b-8ccf-4f1e-8fe0-79746dc7ed1d', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from 68391 Brent Shoals Building 3
+overview-D73K4vtq.js:1 [FinancialOverview] Building 5 (7393 Abernathy Green Building 5): {buildingId: '17f65eef-a91f-4268-82ec-91727b9fe7f8', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from 7393 Abernathy Green Building 5
+overview-D73K4vtq.js:1 [FinancialOverview] Building 6 (Demo Condo): {buildingId: 'e55c083e-a5c4-4371-9aaa-a2204f23e679', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from Demo Condo
+overview-D73K4vtq.js:1 [FinancialOverview] Building 7 (Démo Appartement): {buildingId: 'fbc1bb8b-a63c-4712-8d1e-c03f32c5c586', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from Démo Appartement
+overview-D73K4vtq.js:1 [FinancialOverview] Total projects aggregated: 2
+overview-D73K4vtq.js:1 [FinancialOverview] Query state: {selectedBuildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', filters: {…}, forecastData: undefined, forecastLoading: true, forecastError: null, …}
+overview-D73K4vtq.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 8, projectQueriesCount: 8}
+overview-D73K4vtq.js:1 [FinancialOverview] Building 0 (4647 Meggie Pass Building 2): {buildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from 4647 Meggie Pass Building 2
+overview-D73K4vtq.js:1 [FinancialOverview] Building 1 (4804 Stuart Gateway Building 1): {buildingId: '5fd273e9-328f-4e31-98f0-8e82526c79e8', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from 4804 Stuart Gateway Building 1
+overview-D73K4vtq.js:1 [FinancialOverview] Building 2 (563 montée des pionniers): {buildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', hasData: true, success: true, projectsCount: 2, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 2 projects from 563 montée des pionniers
+overview-D73K4vtq.js:1 [FinancialOverview] Building 3 (64671 Green Close Building 4): {buildingId: 'ad5ed375-3319-46bc-8093-c4341174bebd', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from 64671 Green Close Building 4
+overview-D73K4vtq.js:1 [FinancialOverview] Building 4 (68391 Brent Shoals Building 3): {buildingId: '2a4e811b-8ccf-4f1e-8fe0-79746dc7ed1d', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from 68391 Brent Shoals Building 3
+overview-D73K4vtq.js:1 [FinancialOverview] Building 5 (7393 Abernathy Green Building 5): {buildingId: '17f65eef-a91f-4268-82ec-91727b9fe7f8', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from 7393 Abernathy Green Building 5
+overview-D73K4vtq.js:1 [FinancialOverview] Building 6 (Demo Condo): {buildingId: 'e55c083e-a5c4-4371-9aaa-a2204f23e679', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from Demo Condo
+overview-D73K4vtq.js:1 [FinancialOverview] Building 7 (Démo Appartement): {buildingId: 'fbc1bb8b-a63c-4712-8d1e-c03f32c5c586', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from Démo Appartement
+overview-D73K4vtq.js:1 [FinancialOverview] Total projects aggregated: 2
+overview-D73K4vtq.js:1 [FinancialOverview] Making API request: {buildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', params: {…}, url: '/api/budgets/409986ca-8e25-4547-b00d-6dae6e4ac26b/forecast'}
+overview-D73K4vtq.js:1 [FinancialOverview] API response: {data: {…}, hasForecast: true, forecastLength: 12}
+overview-D73K4vtq.js:1 [FinancialOverview] Query state: {selectedBuildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', filters: {…}, forecastData: {…}, forecastLoading: false, forecastError: null, …}
+overview-D73K4vtq.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 8, projectQueriesCount: 8}
+overview-D73K4vtq.js:1 [FinancialOverview] Building 0 (4647 Meggie Pass Building 2): {buildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from 4647 Meggie Pass Building 2
+overview-D73K4vtq.js:1 [FinancialOverview] Building 1 (4804 Stuart Gateway Building 1): {buildingId: '5fd273e9-328f-4e31-98f0-8e82526c79e8', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from 4804 Stuart Gateway Building 1
+overview-D73K4vtq.js:1 [FinancialOverview] Building 2 (563 montée des pionniers): {buildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', hasData: true, success: true, projectsCount: 2, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 2 projects from 563 montée des pionniers
+overview-D73K4vtq.js:1 [FinancialOverview] Building 3 (64671 Green Close Building 4): {buildingId: 'ad5ed375-3319-46bc-8093-c4341174bebd', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from 64671 Green Close Building 4
+overview-D73K4vtq.js:1 [FinancialOverview] Building 4 (68391 Brent Shoals Building 3): {buildingId: '2a4e811b-8ccf-4f1e-8fe0-79746dc7ed1d', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from 68391 Brent Shoals Building 3
+overview-D73K4vtq.js:1 [FinancialOverview] Building 5 (7393 Abernathy Green Building 5): {buildingId: '17f65eef-a91f-4268-82ec-91727b9fe7f8', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from 7393 Abernathy Green Building 5
+overview-D73K4vtq.js:1 [FinancialOverview] Building 6 (Demo Condo): {buildingId: 'e55c083e-a5c4-4371-9aaa-a2204f23e679', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from Demo Condo
+overview-D73K4vtq.js:1 [FinancialOverview] Building 7 (Démo Appartement): {buildingId: 'fbc1bb8b-a63c-4712-8d1e-c03f32c5c586', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-D73K4vtq.js:1 [FinancialOverview] Added 0 projects from Démo Appartement
+overview-D73K4vtq.js:1 [FinancialOverview] Total projects aggregated: 2
+user-management-WXnoMju0.js:1 🔍 [USER_MANAGEMENT] Computing currentUserAccess memo: {currentUser: 'kevin.hervieux@koveo-gestion.com', currentUserOrganizationsType: 'undefined', currentUserOrganizationsIsArray: false, currentUserOrganizationsLength: 'N/A', currentUserBuildingsType: 'object', …}
+user-management-WXnoMju0.js:1 ✅ [USER_MANAGEMENT] Extracted access IDs: {organizationIds: Array(0), buildingIds: Array(8), residenceIds: Array(0), organizationIdsCount: 0, buildingIdsCount: 8, …}
+user-management-WXnoMju0.js:1 🔍 [USER_MANAGEMENT] Component mounted
+user-management-WXnoMju0.js:1 🔍 [USER_MANAGEMENT] Current user query status: {currentUser: {…}, isLoading: false, error: null}
+user-management-WXnoMju0.js:1 🔍 [USER_MANAGEMENT] Assignment queries data received: {organizations: 'null', buildings: '8 buildings', residences: 'null', orgsLoading: true, buildingsLoading: false, …}
+user-management-WXnoMju0.js:1 🔍 [USER_MANAGEMENT] Current user assignment queries status: {currentUser: 'kevin.hervieux@koveo-gestion.com', orgsLoading: true, buildingsLoading: false, residencesLoading: true, orgsError: undefined, …}
+user-management-WXnoMju0.js:1 🔍 [QUERY] /api/users/me/organizations returned: (3) [{…}, {…}, {…}]
+user-management-WXnoMju0.js:1 🔍 [QUERY] /api/users/me/residences returned: []
+user-management-WXnoMju0.js:1 🔍 [USER_MANAGEMENT] Computing currentUserAccess memo: {currentUser: 'kevin.hervieux@koveo-gestion.com', currentUserOrganizationsType: 'object', currentUserOrganizationsIsArray: true, currentUserOrganizationsLength: 3, currentUserBuildingsType: 'object', …}
+user-management-WXnoMju0.js:1 ✅ [USER_MANAGEMENT] Extracted access IDs: {organizationIds: Array(3), buildingIds: Array(8), residenceIds: Array(0), organizationIdsCount: 3, buildingIdsCount: 8, …}
+user-management-WXnoMju0.js:1 🔍 [USER_MANAGEMENT] Assignment queries data received: {organizations: '3 orgs', buildings: '8 buildings', residences: '0 residences', orgsLoading: false, buildingsLoading: false, …}
+user-management-WXnoMju0.js:1 🔍 [USER_MANAGEMENT] Current user assignment queries status: {currentUser: 'kevin.hervieux@koveo-gestion.com', orgsLoading: false, buildingsLoading: false, residencesLoading: false, orgsError: undefined, …}
+user-management-WXnoMju0.js:1 🔍 [QUERY] /api/users/me/buildings returned: (8) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+manager/user-management:1 Blocked aria-hidden on an element because its descendant retained focus. The focus must not be hidden from assistive technology users. Avoid using aria-hidden on a focused element or its ancestor. Consider using the inert attribute instead, which will also prevent focus. For more details, see the aria-hidden section of the WAI-ARIA specification at https://w3c.github.io/aria/#aria-hidden.
+Element with focus: <button.px-2 py-1 text-xs bg-red-50 text-red-700 rounded hover:bg-red-100>
+Ancestor with aria-hidden: <div#root> <div id=​"root" data-aria-hidden=​"true" aria-hidden=​"true">​…​</div>​
+index-DO7Aec5r.js:26  POST https://koveo-gestion.com/api/users/61eb5aad-41ef-46fc-a07f-11821c6e7553/delete-account 500 (Internal Server Error)
+sA @ index-DO7Aec5r.js:26
+mutationFn @ user-management-WXnoMju0.js:1
+fn @ vendor-query-BXpRV_b-.js:1
+m @ vendor-query-BXpRV_b-.js:1
+start @ vendor-query-BXpRV_b-.js:1
+execute @ vendor-query-BXpRV_b-.js:1
+await in execute
+mutate @ vendor-query-BXpRV_b-.js:1
+aa @ user-management-WXnoMju0.js:1
+(anonymous) @ vendor-forms-Bj8H2n7H.js:1
+await in (anonymous)
+Gm @ index-DO7Aec5r.js:25
+(anonymous) @ index-DO7Aec5r.js:25
+$u @ index-DO7Aec5r.js:25
+wr @ index-DO7Aec5r.js:25
+Fr @ index-DO7Aec5r.js:26
+Bv @ index-DO7Aec5r.js:26
+index-DO7Aec5r.js:26 Uncaught (in promise) Error: 500: {"error":"Internal server error","message":"Failed to delete user account"}
+    at Ep (index-DO7Aec5r.js:26:39921)
+    at async sA (index-DO7Aec5r.js:26:40183)
+    at async Object.mutationFn (user-management-WXnoMju0.js:1:47426)
+Ep @ index-DO7Aec5r.js:26
+await in Ep
+sA @ index-DO7Aec5r.js:26
+await in sA
+mutationFn @ user-management-WXnoMju0.js:1
+fn @ vendor-query-BXpRV_b-.js:1
+m @ vendor-query-BXpRV_b-.js:1
+start @ vendor-query-BXpRV_b-.js:1
+execute @ vendor-query-BXpRV_b-.js:1
+await in execute
+mutate @ vendor-query-BXpRV_b-.js:1
+aa @ user-management-WXnoMju0.js:1
+(anonymous) @ vendor-forms-Bj8H2n7H.js:1
+await in (anonymous)
+Gm @ index-DO7Aec5r.js:25
+(anonymous) @ index-DO7Aec5r.js:25
+$u @ index-DO7Aec5r.js:25
+wr @ index-DO7Aec5r.js:25
+Fr @ index-DO7Aec5r.js:26
+Bv @ index-DO7Aec5r.js:26

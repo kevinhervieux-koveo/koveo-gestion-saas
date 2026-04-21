@@ -127,6 +127,28 @@ export function ElementTable({
 
   const allElements: BuildingElement[] = elementsData?.data || [];
 
+  // Fetch UNIFORMAT codes for synonym search
+  const { data: uniformatData } = useQuery({
+    queryKey: ['/api/maintenance/uniformat'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/maintenance/uniformat');
+      return await response.json();
+    },
+    staleTime: 30 * 60 * 1000,
+  });
+
+  // Create a map of UNIFORMAT codes to their synonyms for efficient lookup
+  const uniformatSynonymsMap = useMemo(() => {
+    const map = new Map<string, { synonymsEn?: string[]; synonymsFr?: string[] }>();
+    const codes = uniformatData?.data || [];
+    codes.forEach((code: any) => {
+      if (code.synonymsEn || code.synonymsFr) {
+        map.set(code.code, { synonymsEn: code.synonymsEn, synonymsFr: code.synonymsFr });
+      }
+    });
+    return map;
+  }, [uniformatData]);
+
   // Calculate element age and urgency
   const calculateElementAge = useCallback((constructionDate: string | null): number => {
     if (!constructionDate) return 0;
@@ -150,14 +172,33 @@ export function ElementTable({
   const elements = useMemo(() => {
     let filteredElements = allElements;
 
-    // Search filter
+    // Search filter - includes element name, code, description, and UNIFORMAT synonyms
     if (searchTerm.trim()) {
       const searchLower = searchTerm.toLowerCase();
-      filteredElements = filteredElements.filter(element => 
-        element.name.toLowerCase().includes(searchLower) ||
-        element.uniformatCode.toLowerCase().includes(searchLower) ||
-        element.description?.toLowerCase().includes(searchLower)
-      );
+      filteredElements = filteredElements.filter(element => {
+        // Direct matches on element properties
+        if (element.name.toLowerCase().includes(searchLower) ||
+            element.uniformatCode.toLowerCase().includes(searchLower) ||
+            element.description?.toLowerCase().includes(searchLower)) {
+          return true;
+        }
+        
+        // Check UNIFORMAT synonyms for this element's code
+        const synonyms = uniformatSynonymsMap.get(element.uniformatCode);
+        if (synonyms) {
+          const matchesEnglishSynonym = synonyms.synonymsEn?.some(
+            syn => syn.toLowerCase().includes(searchLower)
+          );
+          const matchesFrenchSynonym = synonyms.synonymsFr?.some(
+            syn => syn.toLowerCase().includes(searchLower)
+          );
+          if (matchesEnglishSynonym || matchesFrenchSynonym) {
+            return true;
+          }
+        }
+        
+        return false;
+      });
     }
 
     // Condition filter
@@ -184,7 +225,7 @@ export function ElementTable({
     }
 
     return filteredElements;
-  }, [allElements, searchTerm, conditionFilter, uniformatFilter, showOverdueOnly, getEvaluationUrgency]);
+  }, [allElements, searchTerm, conditionFilter, uniformatFilter, showOverdueOnly, getEvaluationUrgency, uniformatSynonymsMap]);
 
   // Row selection handling
   const handleRowSelection = useCallback((updater: any) => {

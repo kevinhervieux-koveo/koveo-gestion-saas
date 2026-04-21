@@ -1,0 +1,205 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+budget-CpOPocrH.js:16 🔍 [BUDGET] Component mounted {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984'}
+budget-CpOPocrH.js:16 🔍 [BUDGET] Context changed: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984'}
+budget-CpOPocrH.js:16 🔍 [BUDGET] Filters updated: {viewType: 'month', periodLength: 12, startMonth: 11, startYear: 2025, dataVisibility: {…}}
+index-C6GgKNfo.js:23 [Violation] 'message' handler took 223ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+budget-CpOPocrH.js:16 🔍 [BUDGET] Filters updated: {viewType: 'month', periodLength: 12, startMonth: 2, startYear: 2025, dataVisibility: {…}}
+index-C6GgKNfo.js:233 Each child in a list should have a unique "key" prop.
+
+Check the render method of `ForwardRef`. It was passed a child from $k. See https://react.dev/link/warning-keys for more information.
+overrideMethod @ hook.js:608
+(anonymous) @ index-C6GgKNfo.js:233
+X @ index-C6GgKNfo.js:45
+A @ index-C6GgKNfo.js:233
+I @ index-C6GgKNfo.js:127
+ee @ index-C6GgKNfo.js:127
+ye @ index-C6GgKNfo.js:127
+(anonymous) @ index-C6GgKNfo.js:127
+dt @ index-C6GgKNfo.js:141
+vd @ index-C6GgKNfo.js:150
+X @ index-C6GgKNfo.js:45
+Jg @ index-C6GgKNfo.js:163
+Zg @ index-C6GgKNfo.js:163
+Rd @ index-C6GgKNfo.js:163
+Gg @ index-C6GgKNfo.js:163
+mv @ index-C6GgKNfo.js:185
+Rs @ index-C6GgKNfo.js:185
+Od @ index-C6GgKNfo.js:185
+(anonymous) @ index-C6GgKNfo.js:185
+<circle>
+Mw.Nu.jsxDEV @ index-C6GgKNfo.js:15
+dot @ budget-CpOPocrH.js:16
+Dk @ vendor-charts-DbITUqjm.js:75
+(anonymous) @ vendor-charts-DbITUqjm.js:75
+$k @ vendor-charts-DbITUqjm.js:75
+react_stack_bottom_frame @ index-C6GgKNfo.js:229
+jc @ index-C6GgKNfo.js:120
+ud @ index-C6GgKNfo.js:141
+vd @ index-C6GgKNfo.js:150
+X @ index-C6GgKNfo.js:45
+Jg @ index-C6GgKNfo.js:163
+Zg @ index-C6GgKNfo.js:163
+Rd @ index-C6GgKNfo.js:163
+Gg @ index-C6GgKNfo.js:163
+mv @ index-C6GgKNfo.js:185
+Rs @ index-C6GgKNfo.js:185
+Od @ index-C6GgKNfo.js:185
+(anonymous) @ index-C6GgKNfo.js:185
+<$k>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Mu @ vendor-charts-DbITUqjm.js:75
+react_stack_bottom_frame @ index-C6GgKNfo.js:229
+jc @ index-C6GgKNfo.js:120
+ud @ index-C6GgKNfo.js:141
+vd @ index-C6GgKNfo.js:150
+X @ index-C6GgKNfo.js:45
+Jg @ index-C6GgKNfo.js:163
+Zg @ index-C6GgKNfo.js:163
+Rd @ index-C6GgKNfo.js:163
+Gg @ index-C6GgKNfo.js:163
+mv @ index-C6GgKNfo.js:185
+Rs @ index-C6GgKNfo.js:185
+Od @ index-C6GgKNfo.js:185
+(anonymous) @ index-C6GgKNfo.js:185
+<Mu>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+(anonymous) @ vendor-charts-DbITUqjm.js:75
+Nm @ vendor-charts-DbITUqjm.js:75
+react_stack_bottom_frame @ index-C6GgKNfo.js:229
+jc @ index-C6GgKNfo.js:120
+ud @ index-C6GgKNfo.js:141
+vd @ index-C6GgKNfo.js:150
+X @ index-C6GgKNfo.js:45
+Jg @ index-C6GgKNfo.js:163
+Zg @ index-C6GgKNfo.js:163
+Rd @ index-C6GgKNfo.js:163
+Gg @ index-C6GgKNfo.js:163
+mv @ index-C6GgKNfo.js:185
+Rs @ index-C6GgKNfo.js:185
+Od @ index-C6GgKNfo.js:185
+(anonymous) @ index-C6GgKNfo.js:185
+<Nm>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Lk @ vendor-charts-DbITUqjm.js:75
+react_stack_bottom_frame @ index-C6GgKNfo.js:229
+jc @ index-C6GgKNfo.js:120
+ud @ index-C6GgKNfo.js:141
+vd @ index-C6GgKNfo.js:150
+X @ index-C6GgKNfo.js:45
+Jg @ index-C6GgKNfo.js:163
+Zg @ index-C6GgKNfo.js:163
+Rd @ index-C6GgKNfo.js:163
+Gg @ index-C6GgKNfo.js:163
+mv @ index-C6GgKNfo.js:185
+Rs @ index-C6GgKNfo.js:185
+Od @ index-C6GgKNfo.js:185
+(anonymous) @ index-C6GgKNfo.js:185
+<Lk>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Bk @ vendor-charts-DbITUqjm.js:75
+react_stack_bottom_frame @ index-C6GgKNfo.js:229
+jc @ index-C6GgKNfo.js:120
+ud @ index-C6GgKNfo.js:141
+vd @ index-C6GgKNfo.js:150
+X @ index-C6GgKNfo.js:45
+Jg @ index-C6GgKNfo.js:163
+Zg @ index-C6GgKNfo.js:163
+Rd @ index-C6GgKNfo.js:163
+Gg @ index-C6GgKNfo.js:163
+mv @ index-C6GgKNfo.js:185
+Rs @ index-C6GgKNfo.js:185
+Od @ index-C6GgKNfo.js:185
+(anonymous) @ index-C6GgKNfo.js:185
+<Bk>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+render @ vendor-charts-DbITUqjm.js:75
+react_stack_bottom_frame @ index-C6GgKNfo.js:229
+mg @ index-C6GgKNfo.js:149
+vd @ index-C6GgKNfo.js:150
+X @ index-C6GgKNfo.js:45
+Jg @ index-C6GgKNfo.js:163
+Zg @ index-C6GgKNfo.js:163
+Rd @ index-C6GgKNfo.js:163
+Gg @ index-C6GgKNfo.js:163
+mv @ index-C6GgKNfo.js:185
+Rs @ index-C6GgKNfo.js:185
+Od @ index-C6GgKNfo.js:185
+(anonymous) @ index-C6GgKNfo.js:185
+<zk>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Kk @ vendor-charts-DbITUqjm.js:75
+react_stack_bottom_frame @ index-C6GgKNfo.js:229
+jc @ index-C6GgKNfo.js:120
+ud @ index-C6GgKNfo.js:141
+vd @ index-C6GgKNfo.js:150
+X @ index-C6GgKNfo.js:45
+Jg @ index-C6GgKNfo.js:163
+Zg @ index-C6GgKNfo.js:163
+Rd @ index-C6GgKNfo.js:163
+Gg @ index-C6GgKNfo.js:163
+mv @ index-C6GgKNfo.js:185
+Rs @ index-C6GgKNfo.js:185
+Od @ index-C6GgKNfo.js:185
+(anonymous) @ index-C6GgKNfo.js:185
+<Kk>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+(anonymous) @ vendor-charts-DbITUqjm.js:75
+Mm @ vendor-charts-DbITUqjm.js:75
+react_stack_bottom_frame @ index-C6GgKNfo.js:229
+jc @ index-C6GgKNfo.js:120
+ud @ index-C6GgKNfo.js:141
+vd @ index-C6GgKNfo.js:150
+X @ index-C6GgKNfo.js:45
+Jg @ index-C6GgKNfo.js:163
+Zg @ index-C6GgKNfo.js:163
+Rd @ index-C6GgKNfo.js:163
+Gg @ index-C6GgKNfo.js:163
+mv @ index-C6GgKNfo.js:185
+Rs @ index-C6GgKNfo.js:185
+Od @ index-C6GgKNfo.js:185
+(anonymous) @ index-C6GgKNfo.js:185
+<Mm>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Wk @ vendor-charts-DbITUqjm.js:75
+react_stack_bottom_frame @ index-C6GgKNfo.js:229
+jc @ index-C6GgKNfo.js:120
+ud @ index-C6GgKNfo.js:141
+vd @ index-C6GgKNfo.js:150
+X @ index-C6GgKNfo.js:45
+Jg @ index-C6GgKNfo.js:163
+Zg @ index-C6GgKNfo.js:163
+Rd @ index-C6GgKNfo.js:163
+Gg @ index-C6GgKNfo.js:163
+mv @ index-C6GgKNfo.js:185
+Rs @ index-C6GgKNfo.js:185
+Od @ index-C6GgKNfo.js:185
+(anonymous) @ index-C6GgKNfo.js:185
+<Line>
+Mw.Nu.jsxDEV @ index-C6GgKNfo.js:15
+Yn @ budget-CpOPocrH.js:16
+react_stack_bottom_frame @ index-C6GgKNfo.js:229
+jc @ index-C6GgKNfo.js:120
+ud @ index-C6GgKNfo.js:141
+vd @ index-C6GgKNfo.js:150
+X @ index-C6GgKNfo.js:45
+Jg @ index-C6GgKNfo.js:163
+Zg @ index-C6GgKNfo.js:163
+Rd @ index-C6GgKNfo.js:163
+Gg @ index-C6GgKNfo.js:163
+mv @ index-C6GgKNfo.js:185
+Rs @ index-C6GgKNfo.js:185
+Od @ index-C6GgKNfo.js:185
+(anonymous) @ index-C6GgKNfo.js:185
+[Violation] Forced reflow while executing JavaScript took 37ms
+index-C6GgKNfo.js:23 [Violation] 'message' handler took 158ms

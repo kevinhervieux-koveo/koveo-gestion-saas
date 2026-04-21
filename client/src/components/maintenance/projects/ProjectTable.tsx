@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
+import { useCreateUpdateMutation } from '@/lib/common-hooks';
 import { ColumnDef, Row } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { DataTable } from '@/components/ui/data-table';
@@ -158,61 +159,53 @@ export function ProjectTable({
     });
   }, [allProjects, searchTerm, statusFilter, priorityFilter, showOverdueOnly]);
 
+  const projectsQueryKey: readonly unknown[] = ['/api/maintenance/buildings', buildingId, 'projects'];
+
   // Bulk status update mutation
-  const updateStatusMutation = useMutation({
-    mutationFn: async ({ projectIds, status }: { projectIds: string[]; status: string }) => {
+  const updateStatusMutation = useCreateUpdateMutation<unknown, { projectIds: string[]; status: string }>({
+    mutationFn: async ({ projectIds, status }) => {
       const response = await apiRequest('PATCH', '/api/maintenance/projects/bulk-status', {
         projectIds,
         status,
       });
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/maintenance/buildings', buildingId, 'projects'] });
+    successTitle: 'Status Updated',
+    successMessage: 'Project statuses have been updated successfully.',
+    errorTitle: 'Update Failed',
+    errorMessage: 'Failed to update project statuses. Please try again.',
+    queryKeysToInvalidate: [projectsQueryKey],
+    onSuccessCallback: () => {
       setSelectedProjects([]);
-      toast({
-        title: "Status Updated",
-        description: "Project statuses have been updated successfully.",
-      });
     },
-    onError: (error) => {
-      toast({
-        title: "Update Failed",
-        description: "Failed to update project statuses. Please try again.",
-        variant: "destructive",
-      });
+    onErrorCallback: (error) => {
       console.error('Bulk status update failed:', error);
     },
   });
 
   // Archive projects mutation
-  const archiveProjectsMutation = useMutation({
+  const archiveProjectsMutation = useCreateUpdateMutation<unknown, string[]>({
     mutationFn: async (projectIds: string[]) => {
       const response = await apiRequest('POST', '/api/maintenance/projects/archive', {
         projectIds,
       });
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/maintenance/buildings', buildingId, 'projects'] });
+    successTitle: 'Projects Archived',
+    successMessage: 'Selected projects have been archived successfully.',
+    errorTitle: 'Archive Failed',
+    errorMessage: 'Failed to archive projects. Please try again.',
+    queryKeysToInvalidate: [projectsQueryKey],
+    onSuccessCallback: () => {
       setSelectedProjects([]);
-      toast({
-        title: "Projects Archived",
-        description: "Selected projects have been archived successfully.",
-      });
     },
-    onError: (error) => {
-      toast({
-        title: "Archive Failed",
-        description: "Failed to archive projects. Please try again.",
-        variant: "destructive",
-      });
+    onErrorCallback: (error) => {
       console.error('Archive projects failed:', error);
     },
   });
 
   // Export projects mutation
-  const exportProjectsMutation = useMutation({
+  const exportProjectsMutation = useCreateUpdateMutation<Blob, string[]>({
     mutationFn: async (projectIds: string[]) => {
       const response = await apiRequest('POST', '/api/maintenance/projects/export', {
         projectIds,
@@ -220,7 +213,11 @@ export function ProjectTable({
       });
       return response.blob();
     },
-    onSuccess: (blob) => {
+    successTitle: 'Export Complete',
+    successMessage: 'Projects have been exported successfully.',
+    errorTitle: 'Export Failed',
+    errorMessage: 'Failed to export projects. Please try again.',
+    onSuccessCallback: (blob) => {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -229,18 +226,8 @@ export function ProjectTable({
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
-      
-      toast({
-        title: "Export Complete",
-        description: "Projects have been exported successfully.",
-      });
     },
-    onError: (error) => {
-      toast({
-        title: "Export Failed",
-        description: "Failed to export projects. Please try again.",
-        variant: "destructive",
-      });
+    onErrorCallback: (error) => {
       console.error('Export projects failed:', error);
     },
   });

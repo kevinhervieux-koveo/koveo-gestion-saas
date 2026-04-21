@@ -14,15 +14,79 @@ const cleanupOldQueries = () => {
 };
 
 /**
- * Throws an error if the HTTP response is not successful (status not ok).
- * Extracts error message from response body or uses status text as fallback.
- * @param res - Fetch API Response object to check.
- * @throws Error with status code and message if response is not ok.
+ * Shape of a structured API error. `status`, `body`, and (when present)
+ * the Task #166 `fieldPath`/`fieldLabel` are attached to every Error
+ * thrown from `apiRequest`, so callers can surface field-level errors
+ * inline without re-parsing response text.
  */
+export interface ApiErrorDetails {
+  status: number;
+  body?: unknown;
+  code?: string;
+  fieldPath?: string;
+  fieldLabel?: string;
+}
+
+export class ApiError extends Error {
+  status: number;
+  body?: unknown;
+  code?: string;
+  fieldPath?: string;
+  fieldLabel?: string;
+
+  constructor(message: string, details: ApiErrorDetails) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = details.status;
+    this.body = details.body;
+    this.code = details.code;
+    this.fieldPath = details.fieldPath;
+    this.fieldLabel = details.fieldLabel;
+  }
+}
+
+/**
+ * Throws an ApiError if the HTTP response is not successful.
+ * Parses the body as JSON when possible so callers can read
+ * `fieldPath` / `code` / `message` off of the thrown error.
+ */
+interface ParsedErrorBody {
+  message?: string;
+  code?: string;
+  fieldPath?: string;
+  fieldLabel?: string;
+}
+
+function asParsedErrorBody(value: unknown): ParsedErrorBody | undefined {
+  if (!value || typeof value !== 'object') return undefined;
+  const v = value as Record<string, unknown>;
+  return {
+    message: typeof v.message === 'string' ? v.message : undefined,
+    code: typeof v.code === 'string' ? v.code : undefined,
+    fieldPath: typeof v.fieldPath === 'string' ? v.fieldPath : undefined,
+    fieldLabel: typeof v.fieldLabel === 'string' ? v.fieldLabel : undefined,
+  };
+}
+
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
-    const text = (await res.text()) || res.statusText;
-    throw new Error(`${res.status}: ${text}`);
+    const rawText = (await res.text()) || res.statusText;
+    let parsedRaw: unknown;
+    try {
+      parsedRaw = rawText ? JSON.parse(rawText) : undefined;
+    } catch {
+      // Non-JSON body (HTML error page, plain text) — keep `parsedRaw`
+      // undefined and fall back to the legacy "status: text" message.
+    }
+    const body = asParsedErrorBody(parsedRaw);
+    const message = body?.message || `${res.status}: ${rawText}`;
+    throw new ApiError(message, {
+      status: res.status,
+      body: parsedRaw ?? rawText,
+      code: body?.code,
+      fieldPath: body?.fieldPath,
+      fieldLabel: body?.fieldLabel,
+    });
   }
 }
 
@@ -72,9 +136,10 @@ type UnauthorizedBehavior = 'returnNull' | 'throw';
  */
 export const getQueryFn: <T>(_options: { on401: UnauthorizedBehavior }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
-  async ({ queryKey }) => {
+  async ({ queryKey, signal }) => {
     const res = await fetch(queryKey.join('/') as string, {
       credentials: 'include',
+      signal,
     });
 
     if (unauthorizedBehavior === 'returnNull' && res.status === 401) {

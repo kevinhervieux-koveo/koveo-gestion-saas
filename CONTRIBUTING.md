@@ -69,6 +69,38 @@ npm run dev
 
 ## Code Standards
 
+### Pre-commit Hooks
+
+A Husky `pre-commit` hook runs locally on every `git commit`. In addition to
+formatting, linting, and type checks, it enforces the **route security
+manifest** whenever any file under `server/` is staged:
+
+```bash
+npx tsx scripts/generate-route-manifest.ts --check
+```
+
+If the check fails, the manifest at `server/route-manifest.json` is stale or
+missing — typically because you added, removed, or modified an Express route
+without regenerating it. Fix it by running:
+
+```bash
+npx tsx scripts/generate-route-manifest.ts
+git add server/route-manifest.json
+```
+
+Then re-run `git commit`. The check only runs when `server/` files are part of
+the commit, so unrelated changes are not slowed down.
+
+#### CI enforcement
+
+The same check also runs in CI via the **Route Security Manifest** GitHub
+Actions workflow (`.github/workflows/route-manifest-check.yml`) on every pull
+request and push to `main` / `develop`. This is a safety net for commits made
+with `git commit --no-verify` or from environments where Husky is not
+installed — if `server/route-manifest.json` is stale or missing, the build
+fails with the same remediation message shown locally. Regenerate the manifest
+and commit it to unblock the build.
+
 ### TypeScript Guidelines
 
 ```typescript

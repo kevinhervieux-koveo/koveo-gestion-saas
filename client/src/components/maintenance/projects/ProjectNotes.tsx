@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
+import { useCreateUpdateMutation } from '@/lib/common-hooks';
 import { format, formatDistanceToNow } from 'date-fns';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -194,8 +195,10 @@ export function ProjectNotes({
     });
   }, [allNotes, filterCategory, searchQuery]);
 
+  const notesQueryKey: readonly unknown[] = ['/api/maintenance/projects', project.id, 'notes'];
+
   // Add note mutation
-  const addNoteMutation = useMutation({
+  const addNoteMutation = useCreateUpdateMutation<unknown, NoteFormData>({
     mutationFn: async (noteData: NoteFormData) => {
       const formData = new FormData();
       formData.append('content', noteData.content);
@@ -214,96 +217,61 @@ export function ProjectNotes({
       });
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ 
-        queryKey: ['/api/maintenance/projects', project.id, 'notes'] 
-      });
-      toast({
-        title: "Note Added",
-        description: "Project note has been added successfully.",
-      });
+    successTitle: 'Note Added',
+    successMessage: 'Project note has been added successfully.',
+    errorTitle: 'Failed to Add Note',
+    errorMessage: (error: any) => error?.response?.data?.message || 'Please try again.',
+    queryKeysToInvalidate: [notesQueryKey],
+    onSuccessCallback: () => {
       form.reset();
       setAttachments([]);
       setIsAddingNote(false);
     },
-    onError: (error: any) => {
-      toast({
-        title: "Failed to Add Note",
-        description: error.response?.data?.message || "Please try again.",
-        variant: "destructive",
-      });
-    },
   });
 
   // Update note mutation
-  const updateNoteMutation = useMutation({
-    mutationFn: async ({ noteId, data }: { noteId: string; data: Partial<NoteFormData> }) => {
+  const updateNoteMutation = useCreateUpdateMutation<unknown, { noteId: string; data: Partial<NoteFormData> }>({
+    mutationFn: async ({ noteId, data }) => {
       const response = await apiRequest('PATCH', `/api/maintenance/project-notes/${noteId}`, data);
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ 
-        queryKey: ['/api/maintenance/projects', project.id, 'notes'] 
-      });
-      toast({
-        title: "Note Updated",
-        description: "Note has been updated successfully.",
-      });
+    successTitle: 'Note Updated',
+    successMessage: 'Note has been updated successfully.',
+    errorTitle: 'Update Failed',
+    errorMessage: (error: any) => error?.response?.data?.message || 'Please try again.',
+    queryKeysToInvalidate: [notesQueryKey],
+    onSuccessCallback: () => {
       setEditingNote(null);
       form.reset();
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Update Failed",
-        description: error.response?.data?.message || "Please try again.",
-        variant: "destructive",
-      });
     },
   });
 
   // Delete note mutation
-  const deleteNoteMutation = useMutation({
+  const deleteNoteMutation = useCreateUpdateMutation<unknown, string>({
     mutationFn: async (noteId: string) => {
       const response = await apiRequest('DELETE', `/api/maintenance/project-notes/${noteId}`);
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ 
-        queryKey: ['/api/maintenance/projects', project.id, 'notes'] 
-      });
-      toast({
-        title: "Note Deleted",
-        description: "Note has been deleted successfully.",
-      });
+    successTitle: 'Note Deleted',
+    successMessage: 'Note has been deleted successfully.',
+    errorTitle: 'Delete Failed',
+    errorMessage: (error: any) => error?.response?.data?.message || 'Please try again.',
+    queryKeysToInvalidate: [notesQueryKey],
+    onSuccessCallback: () => {
       setNoteToDelete(null);
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Delete Failed",
-        description: error.response?.data?.message || "Please try again.",
-        variant: "destructive",
-      });
     },
   });
 
   // Pin/unpin note mutation
-  const togglePinMutation = useMutation({
-    mutationFn: async ({ noteId, isPinned }: { noteId: string; isPinned: boolean }) => {
+  const togglePinMutation = useCreateUpdateMutation<unknown, { noteId: string; isPinned: boolean }>({
+    mutationFn: async ({ noteId, isPinned }) => {
       const response = await apiRequest('PATCH', `/api/maintenance/project-notes/${noteId}`, { isPinned });
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ 
-        queryKey: ['/api/maintenance/projects', project.id, 'notes'] 
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Update Failed",
-        description: "Failed to update note pin status.",
-        variant: "destructive",
-      });
-    },
+    silentSuccess: true,
+    errorTitle: 'Update Failed',
+    errorMessage: 'Failed to update note pin status.',
+    queryKeysToInvalidate: [notesQueryKey],
   });
 
   const handleSubmitNote = (data: NoteFormData) => {

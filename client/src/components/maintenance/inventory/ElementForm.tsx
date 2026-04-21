@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useForm, UseFormReturn, FieldValues } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
+import { useCreateUpdateMutation } from '@/lib/common-hooks';
 import { format, addYears } from 'date-fns';
 import { z } from 'zod';
 import { FormModal, FormFieldWrapper } from '@/components/maintenance/FormModal';
@@ -599,8 +600,8 @@ export function ElementForm({
   // Check if form should be disabled
 
   // Create/update mutation
-  const mutation = useMutation({
-    mutationFn: async (data: ElementFormData) => {
+  const mutation = useCreateUpdateMutation<any, ElementFormData>({
+    mutationFn: async (data) => {
       // Convert Date objects back to ISO strings for API
       const formatDate = (date: Date | undefined): string | undefined => {
         if (!date) return undefined;
@@ -650,56 +651,50 @@ export function ElementForm({
         }
       }
     },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/maintenance/buildings', buildingId, 'elements'] });
+    queryKeysToInvalidate: [['/api/maintenance/buildings', buildingId, 'elements']],
+    successTitle: (data) => {
+      const createdCount = data?.createdCount || 1;
+      const isMultiple = createdCount > 1;
+      return mode === 'create'
+        ? isMultiple
+          ? `${createdCount} Elements created`
+          : 'Element created'
+        : 'Element updated';
+    },
+    successMessage: (data) => {
+      const createdCount = data?.createdCount || 1;
+      const isMultiple = createdCount > 1;
+      return mode === 'create'
+        ? isMultiple
+          ? `Successfully created ${createdCount} numbered elements`
+          : `${data?.data?.name} has been created successfully`
+        : `${data?.data?.name} has been updated successfully`;
+    },
+    errorTitle: mode === 'create' ? 'Creation failed' : 'Update failed',
+    errorMessage: (error: any) => error?.message || `Failed to ${mode} element`,
+    onSuccessCallback: (data) => {
       onSuccess?.(data.data);
       onOpenChange(false);
-      
-      const createdCount = data.createdCount || 1;
-      const isMultiple = createdCount > 1;
-      
-      toast({
-        title: mode === 'create' ? 
-          (isMultiple ? `${createdCount} Elements created` : 'Element created') : 
-          'Element updated',
-        description: mode === 'create' ? 
-          (isMultiple ? `Successfully created ${createdCount} numbered elements` : `${data.data.name} has been created successfully`) :
-          `${data.data.name} has been updated successfully`,
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: mode === 'create' ? 'Creation failed' : 'Update failed',
-        description: error.message || `Failed to ${mode} element`,
-        variant: 'destructive',
-      });
     },
   });
 
   // Delete mutation for removing elements
-  const deleteMutation = useMutation({
+  const deleteMutation = useCreateUpdateMutation({
     mutationFn: async () => {
       if (!element?.id) throw new Error('No element to delete');
       const response = await apiRequest('DELETE', `/api/maintenance/elements/${element.id}`);
       return response;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['building-elements'] });
+    successTitle: 'Element deleted',
+    successMessage: 'Building element has been successfully removed from the inventory.',
+    errorTitle: 'Deletion failed',
+    errorMessage: (error: any) => error?.message || 'Failed to delete element',
+    queryKeysToInvalidate: ['building-elements'],
+    onSuccessCallback: () => {
       onOpenChange(false);
-      toast({
-        title: 'Element deleted',
-        description: 'Building element has been successfully removed from the inventory.',
-      });
       if (onSuccess && element) {
         onSuccess(element);
       }
-    },
-    onError: (error: any) => {
-      toast({
-        title: 'Deletion failed',
-        description: error.message || 'Failed to delete element',
-        variant: 'destructive',
-      });
     },
   });
 

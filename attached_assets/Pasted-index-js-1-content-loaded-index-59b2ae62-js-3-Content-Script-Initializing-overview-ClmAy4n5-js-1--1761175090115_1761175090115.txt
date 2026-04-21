@@ -1,0 +1,83 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+overview-ClmAy4n5.js:1 [FinancialOverview] Query state: {selectedBuildingId: '', filters: {…}, forecastData: undefined, forecastLoading: false, forecastError: null, …}
+overview-ClmAy4n5.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 0, projectQueriesCount: 0}
+overview-ClmAy4n5.js:1 [FinancialOverview] No buildings available
+overview-ClmAy4n5.js:1 [FinancialOverview] Query state: {selectedBuildingId: '', filters: {…}, forecastData: undefined, forecastLoading: false, forecastError: null, …}
+overview-ClmAy4n5.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 0, projectQueriesCount: 0}
+overview-ClmAy4n5.js:1 [FinancialOverview] No buildings available
+overview-ClmAy4n5.js:1 [FinancialOverview] Query state: {selectedBuildingId: '', filters: {…}, forecastData: undefined, forecastLoading: false, forecastError: null, …}
+overview-ClmAy4n5.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 2, projectQueriesCount: 2}
+overview-ClmAy4n5.js:1 [FinancialOverview] Building 0 (4958 E Oak Street Building 4): {buildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-ClmAy4n5.js:1 [FinancialOverview] Building 1 (70342 Dare Cliffs Building 3): {buildingId: '66653f30-2d10-4907-bebc-9e3757d2ef0e', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-ClmAy4n5.js:1 [FinancialOverview] Total projects aggregated: 0
+overview-ClmAy4n5.js:1 [FinancialOverview] Query state: {selectedBuildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f', filters: {…}, forecastData: undefined, forecastLoading: true, forecastError: null, …}
+overview-ClmAy4n5.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 2, projectQueriesCount: 2}
+overview-ClmAy4n5.js:1 [FinancialOverview] Building 0 (4958 E Oak Street Building 4): {buildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-ClmAy4n5.js:1 [FinancialOverview] Building 1 (70342 Dare Cliffs Building 3): {buildingId: '66653f30-2d10-4907-bebc-9e3757d2ef0e', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-ClmAy4n5.js:1 [FinancialOverview] Total projects aggregated: 0
+overview-ClmAy4n5.js:1 [FinancialOverview] Making API request: {buildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f', params: {…}, url: '/api/budgets/18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f/forecast'}
+index-CDhpdxpa.js:185 [Violation] 'setTimeout' handler took 70ms
+overview-ClmAy4n5.js:1 [FinancialOverview] Query state: {selectedBuildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f', filters: {…}, forecastData: undefined, forecastLoading: true, forecastError: null, …}
+overview-ClmAy4n5.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 2, projectQueriesCount: 2}
+overview-ClmAy4n5.js:1 [FinancialOverview] Building 0 (4958 E Oak Street Building 4): {buildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-ClmAy4n5.js:1 [FinancialOverview] Building 1 (70342 Dare Cliffs Building 3): {buildingId: '66653f30-2d10-4907-bebc-9e3757d2ef0e', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-ClmAy4n5.js:1 [FinancialOverview] Added 0 projects from 70342 Dare Cliffs Building 3
+overview-ClmAy4n5.js:1 [FinancialOverview] Total projects aggregated: 0
+overview-ClmAy4n5.js:1 [FinancialOverview] Query state: {selectedBuildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f', filters: {…}, forecastData: undefined, forecastLoading: true, forecastError: null, …}
+overview-ClmAy4n5.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 2, projectQueriesCount: 2}
+overview-ClmAy4n5.js:1 [FinancialOverview] Building 0 (4958 E Oak Street Building 4): {buildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f', hasData: true, success: true, projectsCount: 1, rawData: {…}}
+overview-ClmAy4n5.js:1 [FinancialOverview] Added 1 projects from 4958 E Oak Street Building 4
+overview-ClmAy4n5.js:1 [FinancialOverview] Building 1 (70342 Dare Cliffs Building 3): {buildingId: '66653f30-2d10-4907-bebc-9e3757d2ef0e', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-ClmAy4n5.js:1 [FinancialOverview] Added 0 projects from 70342 Dare Cliffs Building 3
+overview-ClmAy4n5.js:1 [FinancialOverview] Total projects aggregated: 1
+overview-ClmAy4n5.js:1 [FinancialOverview] API response: {data: {…}, hasForecast: true, forecastLength: 12}
+overview-ClmAy4n5.js:1 [FinancialOverview] Query state: {selectedBuildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f', filters: {…}, forecastData: {…}, forecastLoading: false, forecastError: null, …}
+overview-ClmAy4n5.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 2, projectQueriesCount: 2}
+overview-ClmAy4n5.js:1 [FinancialOverview] Building 0 (4958 E Oak Street Building 4): {buildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f', hasData: true, success: true, projectsCount: 1, rawData: {…}}
+overview-ClmAy4n5.js:1 [FinancialOverview] Added 1 projects from 4958 E Oak Street Building 4
+overview-ClmAy4n5.js:1 [FinancialOverview] Building 1 (70342 Dare Cliffs Building 3): {buildingId: '66653f30-2d10-4907-bebc-9e3757d2ef0e', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-ClmAy4n5.js:1 [FinancialOverview] Added 0 projects from 70342 Dare Cliffs Building 3
+overview-ClmAy4n5.js:1 [FinancialOverview] Total projects aggregated: 1
+index-CDhpdxpa.js:185 [Violation] 'setTimeout' handler took 83ms
+overview-ClmAy4n5.js:1 [FinancialOverview] Query state: {selectedBuildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f', filters: {…}, forecastData: {…}, forecastLoading: false, forecastError: null, …}
+overview-ClmAy4n5.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 2, projectQueriesCount: 2}
+overview-ClmAy4n5.js:1 [FinancialOverview] Building 0 (4958 E Oak Street Building 4): {buildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f', hasData: true, success: true, projectsCount: 1, rawData: {…}}
+overview-ClmAy4n5.js:1 [FinancialOverview] Added 1 projects from 4958 E Oak Street Building 4
+overview-ClmAy4n5.js:1 [FinancialOverview] Building 1 (70342 Dare Cliffs Building 3): {buildingId: '66653f30-2d10-4907-bebc-9e3757d2ef0e', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-ClmAy4n5.js:1 [FinancialOverview] Added 0 projects from 70342 Dare Cliffs Building 3
+overview-ClmAy4n5.js:1 [FinancialOverview] Total projects aggregated: 1
+overview-ClmAy4n5.js:1 [FinancialOverview] Query state: {selectedBuildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f', filters: {…}, forecastData: undefined, forecastLoading: true, forecastError: null, …}
+overview-ClmAy4n5.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 2, projectQueriesCount: 2}
+overview-ClmAy4n5.js:1 [FinancialOverview] Building 0 (4958 E Oak Street Building 4): {buildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f', hasData: true, success: true, projectsCount: 1, rawData: {…}}
+overview-ClmAy4n5.js:1 [FinancialOverview] Added 1 projects from 4958 E Oak Street Building 4
+overview-ClmAy4n5.js:1 [FinancialOverview] Building 1 (70342 Dare Cliffs Building 3): {buildingId: '66653f30-2d10-4907-bebc-9e3757d2ef0e', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-ClmAy4n5.js:1 [FinancialOverview] Added 0 projects from 70342 Dare Cliffs Building 3
+overview-ClmAy4n5.js:1 [FinancialOverview] Total projects aggregated: 1
+overview-ClmAy4n5.js:1 [FinancialOverview] Making API request: {buildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f', params: {…}, url: '/api/budgets/18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f/forecast'}
+overview-ClmAy4n5.js:1 [FinancialOverview] API response: {data: {…}, hasForecast: true, forecastLength: 24}
+overview-ClmAy4n5.js:1 [FinancialOverview] Query state: {selectedBuildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f', filters: {…}, forecastData: {…}, forecastLoading: false, forecastError: null, …}
+overview-ClmAy4n5.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 2, projectQueriesCount: 2}
+overview-ClmAy4n5.js:1 [FinancialOverview] Building 0 (4958 E Oak Street Building 4): {buildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f', hasData: true, success: true, projectsCount: 1, rawData: {…}}
+overview-ClmAy4n5.js:1 [FinancialOverview] Added 1 projects from 4958 E Oak Street Building 4
+overview-ClmAy4n5.js:1 [FinancialOverview] Building 1 (70342 Dare Cliffs Building 3): {buildingId: '66653f30-2d10-4907-bebc-9e3757d2ef0e', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-ClmAy4n5.js:1 [FinancialOverview] Added 0 projects from 70342 Dare Cliffs Building 3
+overview-ClmAy4n5.js:1 [FinancialOverview] Total projects aggregated: 1
+index-CDhpdxpa.js:185 [Violation] 'setTimeout' handler took 69ms
+overview-ClmAy4n5.js:1 [FinancialOverview] Query state: {selectedBuildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f', filters: {…}, forecastData: undefined, forecastLoading: true, forecastError: null, …}
+overview-ClmAy4n5.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 2, projectQueriesCount: 2}
+overview-ClmAy4n5.js:1 [FinancialOverview] Building 0 (4958 E Oak Street Building 4): {buildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f', hasData: true, success: true, projectsCount: 1, rawData: {…}}
+overview-ClmAy4n5.js:1 [FinancialOverview] Added 1 projects from 4958 E Oak Street Building 4
+overview-ClmAy4n5.js:1 [FinancialOverview] Building 1 (70342 Dare Cliffs Building 3): {buildingId: '66653f30-2d10-4907-bebc-9e3757d2ef0e', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-ClmAy4n5.js:1 [FinancialOverview] Added 0 projects from 70342 Dare Cliffs Building 3
+overview-ClmAy4n5.js:1 [FinancialOverview] Total projects aggregated: 1
+overview-ClmAy4n5.js:1 [FinancialOverview] Making API request: {buildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f', params: {…}, url: '/api/budgets/18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f/forecast'}
+overview-ClmAy4n5.js:1 [FinancialOverview] API response: {data: {…}, hasForecast: true, forecastLength: 24}
+overview-ClmAy4n5.js:1 [FinancialOverview] Query state: {selectedBuildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f', filters: {…}, forecastData: {…}, forecastLoading: false, forecastError: null, …}
+overview-ClmAy4n5.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 2, projectQueriesCount: 2}
+overview-ClmAy4n5.js:1 [FinancialOverview] Building 0 (4958 E Oak Street Building 4): {buildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f', hasData: true, success: true, projectsCount: 1, rawData: {…}}
+overview-ClmAy4n5.js:1 [FinancialOverview] Added 1 projects from 4958 E Oak Street Building 4
+overview-ClmAy4n5.js:1 [FinancialOverview] Building 1 (70342 Dare Cliffs Building 3): {buildingId: '66653f30-2d10-4907-bebc-9e3757d2ef0e', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-ClmAy4n5.js:1 [FinancialOverview] Added 0 projects from 70342 Dare Cliffs Building 3
+overview-ClmAy4n5.js:1 [FinancialOverview] Total projects aggregated: 1
+index-CDhpdxpa.js:185 [Violation] 'setTimeout' handler took 61ms

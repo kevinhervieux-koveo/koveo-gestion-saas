@@ -4,8 +4,38 @@
  */
 
 import { useState, useCallback } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import {
+  useMutation,
+  useQueryClient,
+  type QueryClient,
+  type QueryKey,
+} from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
+
+type InvalidationKey = string | readonly unknown[];
+
+function resolveText<TArg, TArg2 = unknown>(
+  value: string | ((arg: TArg, arg2: TArg2) => string) | undefined,
+  arg: TArg,
+  arg2OrFallback: TArg2 | string,
+  maybeFallback?: string,
+): string {
+  const fallback =
+    maybeFallback !== undefined ? maybeFallback : (arg2OrFallback as string);
+  const arg2 = maybeFallback !== undefined ? (arg2OrFallback as TArg2) : (undefined as unknown as TArg2);
+  if (typeof value === 'function') {
+    try {
+      return value(arg, arg2) || fallback;
+    } catch {
+      return fallback;
+    }
+  }
+  return value ?? fallback;
+}
+
+function normalizeKey(key: InvalidationKey): QueryKey {
+  return Array.isArray(key) ? (key as QueryKey) : ([key] as QueryKey);
+}
 
 /**
  * Custom hook for managing loading state with utility functions.
@@ -105,96 +135,82 @@ export function useDeleteMutation({
 }
 
 /**
- * Common create/update mutation hook.
- * @param config - Configuration for the mutation.
- * @param config.mutationFn
- * @param config.successMessage
- * @param config.errorMessage
- * @param config.queryKeysToInvalidate
- * @param config.onSuccessCallback
- * @returns Create/update mutation.
+ * Shared create/update mutation hook used to centralize toast + cache invalidation
+ * patterns across the app. Toast title/description fields accept either a static
+ * string or a function for variable-dependent text; pass `silentSuccess`/`silentError`
+ * to suppress the corresponding toast while still running invalidations and callbacks.
+ *
+ * @param config - Mutation configuration.
+ * @returns A TanStack `useMutation` instance.
  */
-/**
- * UseCreateUpdateMutation component.
- * @param props - Component props.
- * @param props.mutationFn - MutationFn parameter.
- * @param props.successMessage = 'Item saved successfully' - successMessage = 'Item saved successfully' parameter.
- * @param props.errorMessage = 'Failed to save item' - errorMessage = 'Failed to save item' parameter.
- * @param props.queryKeysToInvalidate = [] - queryKeysToInvalidate = [] parameter.
- * @param props.onSuccessCallback - OnSuccessCallback parameter.
- * @returns JSX element.
- */
-/**
- * UseCreateUpdateMutation component.
- * @param props - Component props.
- * @param props.mutationFn - MutationFn parameter.
- * @param props.successMessage = 'Item saved successfully' - successMessage = 'Item saved successfully' parameter.
- * @param props.errorMessage = 'Failed to save item' - errorMessage = 'Failed to save item' parameter.
- * @param props.queryKeysToInvalidate = [] - queryKeysToInvalidate = [] parameter.
- * @param props.onSuccessCallback - OnSuccessCallback parameter.
- * @returns JSX element.
- */
-export function useCreateUpdateMutation({
+export function useCreateUpdateMutation<TData = unknown, TVariables = unknown>({
   mutationFn,
-  successMessage = 'Item saved successfully',
-  errorMessage = 'Failed to save item',
+  successTitle,
+  successMessage,
+  errorTitle,
+  errorMessage,
   queryKeysToInvalidate = [],
+  invalidateQueries,
   onSuccessCallback,
+  onErrorCallback,
+  silentSuccess,
+  silentError,
 }: {
-  mutationFn: (_data: unknown) => Promise<unknown>;
-  successMessage?: string;
-  errorMessage?: string;
-  queryKeysToInvalidate?: string[];
-  onSuccessCallback?: () => void;
+  mutationFn: (data: TVariables) => Promise<TData>;
+  successTitle?: string | ((data: TData, variables: TVariables) => string);
+  successMessage?: string | ((data: TData, variables: TVariables) => string);
+  errorTitle?: string | ((error: any) => string);
+  errorMessage?: string | ((error: any) => string);
+  queryKeysToInvalidate?: InvalidationKey[];
+  invalidateQueries?: (data: TData, queryClient: QueryClient) => void;
+  onSuccessCallback?: (data: TData, variables: TVariables) => void;
+  onErrorCallback?: (error: any) => void;
+  silentSuccess?: boolean;
+  silentError?: boolean;
 }) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useMutation<TData, any, TVariables>({
     mutationFn,
-    onSuccess: () => {
-      toast({
-        title: 'Success',
-        description: successMessage,
-      });
+    onSuccess: (data, variables) => {
+      if (!silentSuccess) {
+        toast({
+          title: resolveText(successTitle, data, variables, 'Success'),
+          description: resolveText(successMessage, data, variables, 'Item saved successfully'),
+        });
+      }
       // Invalidate related queries
       queryKeysToInvalidate.forEach((queryKey) => {
-        queryClient.invalidateQueries({ queryKey: [queryKey] });
+        queryClient.invalidateQueries({ queryKey: normalizeKey(queryKey) });
       });
-      onSuccessCallback?.();
+      invalidateQueries?.(data, queryClient);
+      onSuccessCallback?.(data, variables);
     },
-    onError: () => {
-      toast({
-        title: 'Error',
-        description: errorMessage,
-        variant: 'destructive',
-      });
+    onError: (error) => {
+      if (!silentError) {
+        const description =
+          resolveText(errorMessage, error, '') ||
+          (error instanceof Error ? error.message : '') ||
+          'Failed to save item';
+        toast({
+          title: resolveText(errorTitle, error, 'Error'),
+          description,
+          variant: 'destructive',
+        });
+      }
+      onErrorCallback?.(error);
     },
   });
 }
 
 /**
- * Common form state hook.
+ * Common form/dialog state hook used by simple open/close + selected-item forms.
+ *
  * @param initialOpen - Initial dialog/modal open state.
- * @returns Form state management.
+ * @returns Form state management helpers.
  */
-/**
- * UseFormState custom hook.
- * @returns Hook return value.
- */
-/**
- * Use form state function.
- * @param initialOpen = false - initialOpen = false parameter.
- */
-export function /**
- * Use form state function.
- * @param initialOpen = false - initialOpen = false parameter.
- */ /**
- * Use form state function.
- * @param initialOpen = false - initialOpen = false parameter.
- */
-
-useFormState(initialOpen = false) {
+export function useFormState(initialOpen = false) {
   const [isOpen, setIsOpen] = useState(initialOpen);
   const [selectedItem, setSelectedItem] = useState<unknown>(null);
 
@@ -338,6 +354,13 @@ export function useTableState<T = Record<string, unknown>>(options: {
     searchFilter.clearFilters();
   }, [initialPageSize, initialSortField, initialSortDirection, searchFilter]);
 
+  // Reset to first page whenever the search term changes so users
+  // don't end up viewing an empty page after narrowing results.
+  const setSearchTermAndResetPage = useCallback((value: string) => {
+    searchFilter.setSearchTerm(value);
+    setCurrentPage(1);
+  }, [searchFilter]);
+
   return {
     // Pagination
     currentPage,
@@ -355,11 +378,88 @@ export function useTableState<T = Record<string, unknown>>(options: {
     // Search and filters
     searchTerm: searchFilter.searchTerm,
     filters: searchFilter.filters,
-    setSearchTerm: searchFilter.setSearchTerm,
+    setSearchTerm: setSearchTermAndResetPage,
+    setFilters: searchFilter.setFilters,
     updateFilter: searchFilter.updateFilter,
     clearFilters: searchFilter.clearFilters,
     
     // Utilities
     resetTable,
+  };
+}
+
+/**
+ * Shared multi-step wizard state hook. Tracks the active step index and
+ * exposes consistent next/previous/goTo helpers and a 0-100 progress value
+ * so wizards across the app can stop hand-rolling the same logic.
+ *
+ * @param totalSteps - Total number of steps in the wizard. Must be >= 1.
+ * @param options - Optional initial step index and onChange callback.
+ */
+export function useStepper(
+  totalSteps: number,
+  options: { initialStep?: number; onStepChange?: (index: number) => void } = {},
+) {
+  const { initialStep, onStepChange } = options;
+  const safeTotal = Math.max(1, totalSteps);
+  const initial = Math.min(Math.max(0, initialStep ?? 0), safeTotal - 1);
+  const [currentStep, setCurrentStep] = useState(initial);
+
+  const clamp = useCallback(
+    (index: number) => Math.min(Math.max(0, index), safeTotal - 1),
+    [safeTotal],
+  );
+
+  const goTo = useCallback((index: number) => {
+    setCurrentStep((prev) => {
+      const next = clamp(index);
+      if (next !== prev) {
+        onStepChange?.(next);
+      }
+      return next;
+    });
+  }, [clamp, onStepChange]);
+
+  const next = useCallback(() => {
+    setCurrentStep((prev) => {
+      const value = clamp(prev + 1);
+      if (value !== prev) {
+        onStepChange?.(value);
+      }
+      return value;
+    });
+  }, [clamp, onStepChange]);
+
+  const previous = useCallback(() => {
+    setCurrentStep((prev) => {
+      const value = clamp(prev - 1);
+      if (value !== prev) {
+        onStepChange?.(value);
+      }
+      return value;
+    });
+  }, [clamp, onStepChange]);
+
+  const reset = useCallback(() => {
+    setCurrentStep(initial);
+  }, [initial]);
+
+  const isFirstStep = currentStep === 0;
+  const isLastStep = currentStep === safeTotal - 1;
+  // Progress reflects the step the user is actively on, so step 2 of 4
+  // shows 50% (not 25%).
+  const progress = ((currentStep + 1) / safeTotal) * 100;
+
+  return {
+    currentStep,
+    setCurrentStep: goTo,
+    totalSteps: safeTotal,
+    next,
+    previous,
+    goTo,
+    reset,
+    isFirstStep,
+    isLastStep,
+    progress,
   };
 }

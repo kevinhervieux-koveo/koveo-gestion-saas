@@ -134,7 +134,7 @@ export function ProjectWorkflowModal({
   const [activeTab, setActiveTab] = useState<string>('');
 
   // Mark status complete hook
-  const { mutate: markComplete, isPending: isMarkingComplete } = useMarkStatusComplete();
+  const { mutateAsync: markCompleteAsync, isPending: isMarkingComplete } = useMarkStatusComplete();
 
   // Set initial active tab when workflow state loads
   useEffect(() => {
@@ -163,58 +163,55 @@ export function ProjectWorkflowModal({
     }
   };
 
-  // Handle mark current step complete
-  const handleMarkCurrentStepComplete = () => {
+  // Handle mark current step complete. Returns a promise so callers (e.g.
+  // PostWorkTab.handleConfirmedCompletion) can `await` and react to backend
+  // failures with their own error UI rather than silently relying on the
+  // useMarkStatusComplete onError toast.
+  const handleMarkCurrentStepComplete = async (): Promise<void> => {
     if (!workflowState?.canAdvance || !workflowState.currentStatus) {
       return;
     }
 
     // Special handling for final project completion
     if (workflowState.currentStatus === 'completed') {
-      markComplete({
+      await markCompleteAsync({
         projectId: project.id,
         currentStatus: workflowState.currentStatus,
-      }, {
-        onSuccess: () => {
-          // Refresh workflow state to reflect final completion
-          handleWorkflowUpdate();
-          
-          // Close modal after successful project completion
-          setTimeout(() => {
-            onOpenChange(false);
-          }, 1000);
-        },
       });
+      // Refresh workflow state to reflect final completion
+      handleWorkflowUpdate();
+
+      // Close modal after successful project completion
+      setTimeout(() => {
+        onOpenChange(false);
+      }, 1000);
       return;
     }
 
     // Standard workflow advancement
-    markComplete({
+    const data = await markCompleteAsync({
       projectId: project.id,
       currentStatus: workflowState.currentStatus,
-    }, {
-      onSuccess: async (data) => {
-        // Navigate immediately to the new status from mutation response
-        // The backend has already validated this transition, so it's safe to navigate
-        if (data.newStatus && data.newStatus !== activeTab) {
-          setActiveTab(data.newStatus);
-        }
-        
-        // Refresh workflow state after navigation to get fresh data
-        // Use await to ensure the refetch completes and provides fresh data
-        try {
-          await refetchWorkflow();
-          // Call handleWorkflowUpdate to trigger onProjectUpdate callback if provided
-          if (onProjectUpdate && workflowState?.project) {
-            onProjectUpdate(workflowState.project);
-          }
-        } catch (error) {
-          console.error('Failed to refresh workflow state after advancement:', error);
-          // Still call handleWorkflowUpdate as fallback
-          handleWorkflowUpdate();
-        }
-      },
     });
+
+    // Navigate immediately to the new status from mutation response
+    // The backend has already validated this transition, so it's safe to navigate
+    if (data.newStatus && data.newStatus !== activeTab) {
+      setActiveTab(data.newStatus);
+    }
+
+    // Refresh workflow state after navigation to get fresh data
+    try {
+      await refetchWorkflow();
+      // Call handleWorkflowUpdate to trigger onProjectUpdate callback if provided
+      if (onProjectUpdate && workflowState?.project) {
+        onProjectUpdate(workflowState.project);
+      }
+    } catch (error) {
+      console.error('Failed to refresh workflow state after advancement:', error);
+      // Still call handleWorkflowUpdate as fallback
+      handleWorkflowUpdate();
+    }
   };
 
   // Get appropriate button text based on current status
@@ -409,6 +406,7 @@ export function ProjectWorkflowModal({
               projectId={project.id}
               workflowState={workflowState}
               onUpdate={handleWorkflowUpdate}
+              isQuickProject={project.isQuickProject}
             />
           </div>
           

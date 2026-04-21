@@ -110,15 +110,6 @@ export function PasswordCreationStep({ _data, onDataChange, onValidationChange }
 
   return (
     <div className='space-y-6 max-w-2xl mx-auto'>
-      {/* Security Notice */}
-      <Alert className='border-blue-200 bg-blue-50'>
-        <Shield className='h-4 w-4 text-blue-600' />
-        <AlertDescription className='text-blue-800'>
-          <strong>Sécurité renforcée:</strong> Créez un mot de passe sécurisé pour protéger votre
-          compte et respecter les standards de sécurité québécois.
-        </AlertDescription>
-      </Alert>
-
       <Card>
         <CardContent className='pt-6 space-y-6'>
           {/* Password Field */}
@@ -236,18 +227,6 @@ export function PasswordCreationStep({ _data, onDataChange, onValidationChange }
               <li>• Ne réutilisez pas un mot de passe d'un autre compte</li>
               <li>• Considérez l'utilisation d'un gestionnaire de mots de passe</li>
             </ul>
-          </div>
-
-          {/* Quebec Compliance Notice */}
-          <div className='bg-blue-50 border border-blue-200 p-4 rounded-lg'>
-            <h4 className='text-sm font-medium text-blue-900 mb-2'>
-              🛡️ Conformité Québécoise - Sécurité des données
-            </h4>
-            <p className='text-xs text-blue-800'>
-              Votre mot de passe est chiffré selon les standards de l'industrie et stocké de manière
-              sécurisée conformément à la Loi 25 du Québec. Nous ne pouvons pas voir votre mot de
-              passe une fois qu'il est enregistré.
-            </p>
           </div>
         </CardContent>
       </Card>

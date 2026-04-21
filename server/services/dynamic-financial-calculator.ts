@@ -1,9 +1,9 @@
 import { db } from '../db';
-import { eq, and, gte, lte, sql } from 'drizzle-orm';
-import type { FinancialPeriodData, FinancialCacheEntry, Bill, Residence } from '@shared/schema';
+import { eq, and, gte, lte, sql, or } from 'drizzle-orm';
+import type { FinancialPeriodData, FinancialCacheEntry, Bill, Residence, Payment } from '@shared/schema';
 import * as schema from '@shared/schema';
 
-const { bills, residences, buildings } = schema;
+const { bills, residences, buildings, payments } = schema;
 
 // Type definition for monthly data points
 type MonthlyData = FinancialPeriodData['monthlyData'][0];
@@ -64,17 +64,31 @@ export class DynamicFinancialCalculator {
     startDate: string,
     endDate: string
   ): Promise<FinancialPeriodData> {
-    // Get active bills for the building
+    // Get all active bills for the building (both recurrent and unique)
     const activeBills = await db
       .select()
       .from(bills)
       .where(
         and(
           eq(bills.buildingId, buildingId),
-          eq(bills.paymentType, 'recurrent'),
-          sql`${bills.status} IN ('sent', 'draft')`
+          sql`${bills.status} IN ('sent', 'draft', 'paid')`
         )
       );
+
+    // Get all payments for these bills within the date range
+    const billIds = activeBills.map(b => b.id);
+    const allPayments = billIds.length > 0 
+      ? await db
+          .select()
+          .from(payments)
+          .where(
+            and(
+              sql`${payments.billId} IN (${sql.join(billIds.map(id => sql`${id}`), sql`, `)})`,
+              gte(payments.scheduledDate, startDate),
+              lte(payments.scheduledDate, endDate)
+            )
+          )
+      : [];
 
     // Get active residences with fees
     const activeResidences = await db
@@ -88,9 +102,10 @@ export class DynamicFinancialCalculator {
         )
       );
 
-    // Generate monthly data points
-    const monthlyData = this.generateMonthlyDataPoints(
+    // Generate monthly data points using actual payments
+    const monthlyData = this.generateMonthlyDataPointsFromPayments(
       activeBills,
+      allPayments,
       activeResidences,
       startDate,
       endDate
@@ -155,6 +170,90 @@ export class DynamicFinancialCalculator {
           const category = this.mapBillCategoryToExpenseCategory(bill.category);
           expensesByCategory[category] = (expensesByCategory[category] || 0) + monthlyExpense;
           totalExpenses += monthlyExpense;
+        }
+      }
+
+      monthlyData.push({
+        year,
+        month,
+        totalIncome,
+        totalExpenses,
+        netCashFlow: totalIncome - totalExpenses,
+        incomeByCategory,
+        expensesByCategory,
+      });
+
+      // Move to next month
+      currentDate.setMonth(currentDate.getMonth() + 1);
+    }
+
+    return monthlyData;
+  }
+
+  /**
+   * Generate monthly financial data points using actual payment records.
+   * This provides accurate expense timing based on payment scheduled dates.
+   */
+  private generateMonthlyDataPointsFromPayments(
+    billsList: Bill[],
+    paymentsList: Payment[],
+    residencesList: Residence[],
+    startDateStr: string,
+    endDateStr: string
+  ): MonthlyData[] {
+    const monthlyData: MonthlyData[] = [];
+    const startDate = new Date(startDateStr);
+    const endDate = new Date(endDateStr);
+
+    // Create a map of bill IDs to bills for quick lookup
+    const billMap = new Map(billsList.map(b => [b.id, b]));
+
+    // Group payments by year-month
+    const paymentsByMonth = new Map<string, Payment[]>();
+    for (const payment of paymentsList) {
+      const paymentDate = new Date(payment.scheduledDate);
+      const key = `${paymentDate.getFullYear()}-${paymentDate.getMonth() + 1}`;
+      if (!paymentsByMonth.has(key)) {
+        paymentsByMonth.set(key, []);
+      }
+      paymentsByMonth.get(key)!.push(payment);
+    }
+
+    // Iterate through each month in the range
+    const currentDate = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
+
+    while (currentDate <= endDate) {
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth() + 1;
+      const monthKey = `${year}-${month}`;
+
+      // Calculate income for this month (mainly from residences)
+      const incomeByCategory: Record<string, number> = {};
+      let totalIncome = 0;
+
+      // Process residence monthly fees
+      for (const residence of residencesList) {
+        const monthlyFee = parseFloat(residence.monthlyFees || '0');
+        if (monthlyFee > 0) {
+          incomeByCategory.monthly_fees = (incomeByCategory.monthly_fees || 0) + monthlyFee;
+          totalIncome += monthlyFee;
+        }
+      }
+
+      // Calculate expenses for this month from actual payments
+      const expensesByCategory: Record<string, number> = {};
+      let totalExpenses = 0;
+
+      const monthPayments = paymentsByMonth.get(monthKey) || [];
+      for (const payment of monthPayments) {
+        const bill = billMap.get(payment.billId);
+        if (bill) {
+          const paymentAmount = parseFloat(payment.amount || '0');
+          if (paymentAmount > 0) {
+            const category = this.mapBillCategoryToExpenseCategory(bill.category);
+            expensesByCategory[category] = (expensesByCategory[category] || 0) + paymentAmount;
+            totalExpenses += paymentAmount;
+          }
         }
       }
 

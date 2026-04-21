@@ -7,7 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Invitation history preservation**: Re-inviting the same email no longer destroys
+  the prior invitation row or its audit trail. Duplicate invites now soft-replace the
+  prior pending invitation (`status = 'replaced'`) and write a `replaced` entry to
+  `invitation_audit_log` linking the old and new invitation IDs. Both the REST
+  `POST /api/invitations` endpoint and the MCP `invite_user` tool follow the new flow.
+- **Invitation dedup scoping**: Duplicate-detection now keys on
+  (organization, email, residence) using `IS NOT DISTINCT FROM` semantics for
+  `residence_id`. The previous (organization, email)-only predicate silently
+  destroyed pending invites for the same email at *different* units in the same org.
+- **Audit log foreign key**: `invitation_audit_log.invitation_id` is now
+  `ON DELETE SET NULL` (was `CASCADE`). Audit history now survives even if an
+  invitation row is hard-deleted; the denormalized context lives in the
+  `details` JSON column.
+
 ### Added
+
+- **Invitation status `replaced`**: New value in the `invitation_status` enum used
+  by the soft-replace flow above.
+
+### Changed
+
+- **MCP role downgrade attribution (clarification)**: When an OAuth-bound MCP
+  caller downgrades to a lower-privileged role (e.g. admin → tenant), the
+  caller identity used for audit attribution (`performed_by`, `invitedByUserId`,
+  etc.) remains the OAuth user — *not* the MCP service principal. The downgrade
+  narrows scope/visibility only; it does not impersonate. This is intentional so
+  that audit logs always point at the human responsible for an action.
 
 - **Documentation Updates**: Comprehensive review and update of all project documentation (September 2025)
 - **Translation Coverage**: Extended bilingual validation across 19+ routes with Quebec French compliance

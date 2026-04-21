@@ -27,7 +27,10 @@ const clearAuditLog = () => {
   mockAuditLog.length = 0;
 };
 
-const logSecurityEvent = jest.fn((event: string, user: any, success: boolean, details?: any) => {
+// NOTE: defined as a plain function (not jest.fn) so it survives `resetMocks: true`
+// in jest.config.auth.cjs. The tests assert against `mockAuditLog`, not against
+// jest.fn call records, so there is no value in wrapping it with jest.fn here.
+const logSecurityEvent = (event: string, user: any, success: boolean, details?: any) => {
   mockAuditLog.push({
     id: `audit-${Date.now()}-${Math.random()}`,
     timestamp: new Date().toISOString(),
@@ -40,7 +43,7 @@ const logSecurityEvent = jest.fn((event: string, user: any, success: boolean, de
     ipAddress: '127.0.0.1',
     userAgent: 'test-agent'
   });
-});
+};
 
 // Rate limiting implementation
 const rateLimitStore = new Map<string, number[]>();

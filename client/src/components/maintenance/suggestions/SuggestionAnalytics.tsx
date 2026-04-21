@@ -26,22 +26,11 @@ import {
   XAxis, 
   YAxis, 
   CartesianGrid, 
-  Tooltip as RechartsTooltip, 
-  ResponsiveContainer,
   BarChart,
   Bar,
-  Legend,
-  ScatterChart,
-  Scatter,
-  RadarChart,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  Radar,
-  Cell,
-  PieChart,
-  Pie,
 } from 'recharts';
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
+import { chartColors, buildChartConfig } from '@/lib/chart-colors';
 import { useBuildingContext } from '@/hooks/use-building-context';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -76,19 +65,7 @@ import {
 } from 'lucide-react';
 import { SuggestionAnalyticsProps, AnalyticsInsight } from './types';
 
-// Chart color palette
-const colors = {
-  primary: '#3b82f6',
-  secondary: '#10b981', 
-  warning: '#f59e0b',
-  danger: '#ef4444',
-  info: '#6366f1',
-  success: '#22c55e',
-  purple: '#8b5cf6',
-  pink: '#ec4899',
-  teal: '#14b8a6',
-  orange: '#f97316',
-};
+const colors = chartColors;
 
 // Seasonal patterns for Quebec climate
 const seasonalFactors = {
@@ -442,13 +419,16 @@ export function SuggestionAnalytics({
                       <CardTitle className="text-lg">Maintenance Predictions</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <ResponsiveContainer width="100%" height={300}>
+                      <ChartContainer config={buildChartConfig({
+                        predicted: { label: 'Predicted', color: colors.primary },
+                        actual: { label: 'Actual', color: colors.success },
+                      })} className="h-[300px] w-full">
                         <LineChart data={predictiveData}>
                           <CartesianGrid strokeDasharray="3 3" />
                           <XAxis dataKey="month" />
                           <YAxis />
-                          <RechartsTooltip />
-                          <Legend />
+                          <ChartTooltip content={<ChartTooltipContent />} />
+                          <ChartLegend content={<ChartLegendContent />} />
                           <Line 
                             type="monotone" 
                             dataKey="predicted" 
@@ -463,7 +443,7 @@ export function SuggestionAnalytics({
                             name="Actual"
                           />
                         </LineChart>
-                      </ResponsiveContainer>
+                      </ChartContainer>
                     </CardContent>
                   </Card>
 
@@ -504,22 +484,32 @@ export function SuggestionAnalytics({
                       <CardTitle className="text-lg">Maintenance Approach Comparison</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <ResponsiveContainer width="100%" height={300}>
+                      <ChartContainer config={buildChartConfig({
+                        cost: { label: 'Annual Cost', color: colors.danger },
+                        downtime: { label: 'Downtime', color: colors.warning },
+                        satisfaction: { label: 'Satisfaction', color: colors.success },
+                      })} className="h-[300px] w-full">
                         <BarChart data={costBenefitData}>
                           <CartesianGrid strokeDasharray="3 3" />
                           <XAxis dataKey="approach" />
                           <YAxis />
-                          <RechartsTooltip formatter={(value, name) => [
-                            name === 'cost' ? `$${Number(value).toLocaleString()}` : value,
-                            name === 'cost' ? 'Annual Cost' : 
-                            name === 'downtime' ? 'Downtime (hours)' : 'Satisfaction (%)'
-                          ]} />
-                          <Legend />
+                          <ChartTooltip content={<ChartTooltipContent formatter={(value, name) => {
+                            const label = name === 'cost' ? 'Annual Cost' : 
+                              name === 'downtime' ? 'Downtime (hours)' : 'Satisfaction (%)';
+                            const formatted = name === 'cost' ? `$${Number(value).toLocaleString()}` : String(value);
+                            return (
+                              <div className="flex flex-1 justify-between items-center leading-none">
+                                <span className="text-muted-foreground">{label}</span>
+                                <span className="font-mono font-medium tabular-nums text-foreground ml-2">{formatted}</span>
+                              </div>
+                            );
+                          }} />} />
+                          <ChartLegend content={<ChartLegendContent />} />
                           <Bar dataKey="cost" fill={colors.danger} name="Annual Cost" />
                           <Bar dataKey="downtime" fill={colors.warning} name="Downtime" />
                           <Bar dataKey="satisfaction" fill={colors.success} name="Satisfaction" />
                         </BarChart>
-                      </ResponsiveContainer>
+                      </ChartContainer>
                     </CardContent>
                   </Card>
 
@@ -566,17 +556,20 @@ export function SuggestionAnalytics({
                       <CardTitle className="text-lg">Seasonal Maintenance Patterns</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <ResponsiveContainer width="100%" height={300}>
+                      <ChartContainer config={buildChartConfig({
+                        emergencies: { label: 'Emergency Repairs', color: colors.danger },
+                        planned: { label: 'Planned Maintenance', color: colors.success },
+                      })} className="h-[300px] w-full">
                         <BarChart data={seasonalData}>
                           <CartesianGrid strokeDasharray="3 3" />
                           <XAxis dataKey="season" />
                           <YAxis />
-                          <RechartsTooltip />
-                          <Legend />
+                          <ChartTooltip content={<ChartTooltipContent />} />
+                          <ChartLegend content={<ChartLegendContent />} />
                           <Bar dataKey="emergencies" fill={colors.danger} name="Emergency Repairs" />
                           <Bar dataKey="planned" fill={colors.success} name="Planned Maintenance" />
                         </BarChart>
-                      </ResponsiveContainer>
+                      </ChartContainer>
                     </CardContent>
                   </Card>
 
@@ -621,17 +614,20 @@ export function SuggestionAnalytics({
                       <CardTitle className="text-lg">Element Lifespan Optimization</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <ResponsiveContainer width="100%" height={300}>
+                      <ChartContainer config={buildChartConfig({
+                        current: { label: 'Current Lifespan', color: colors.info },
+                        potential: { label: 'Potential Lifespan', color: colors.success },
+                      })} className="h-[300px] w-full">
                         <BarChart data={lifespanData} layout="horizontal">
                           <CartesianGrid strokeDasharray="3 3" />
                           <XAxis type="number" />
                           <YAxis dataKey="element" type="category" width={100} />
-                          <RechartsTooltip />
-                          <Legend />
+                          <ChartTooltip content={<ChartTooltipContent />} />
+                          <ChartLegend content={<ChartLegendContent />} />
                           <Bar dataKey="current" fill={colors.info} name="Current Lifespan" />
                           <Bar dataKey="potential" fill={colors.success} name="Potential Lifespan" />
                         </BarChart>
-                      </ResponsiveContainer>
+                      </ChartContainer>
                     </CardContent>
                   </Card>
 

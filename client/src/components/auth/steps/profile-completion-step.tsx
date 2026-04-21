@@ -53,6 +53,7 @@ export function ProfileCompletionStep({
   _data,
   onDataChange,
   onValidationChange,
+  submissionError,
 }: WizardStepProps) {
   const { t: _t } = useLanguage();
   const [formData, setFormData] = useState<ProfileCompletionData>({
@@ -111,6 +112,15 @@ export function ProfileCompletionStep({
   };
 
   const getFieldError = (field: keyof ProfileCompletionData, label: string) => {
+    // Task #166: a DANGEROUS_INPUT 400 from the sanitization middleware
+    // is forwarded here as `submissionError`. It wins over local
+    // validation because the server is telling us the value is
+    // actually rejected (and the server-supplied French message names
+    // the field explicitly).
+    if (submissionError && submissionError.fieldPath === field) {
+      return submissionError.message;
+    }
+
     if (!touched[field]) {
       return null;
     }
@@ -234,19 +244,6 @@ export function ProfileCompletionStep({
                 </Select>
               </div>
             </div>
-          </div>
-
-          {/* Quebec Compliance Notice */}
-          <div className='bg-blue-50 border border-blue-200 p-4 rounded-lg'>
-            <h4 className='text-sm font-medium text-blue-900 mb-2'>
-              🛡️ Protection de la vie privée
-            </h4>
-            <p className='text-xs text-blue-800'>
-              Vos informations personnelles sont collectées et utilisées uniquement pour les
-              services de gestion immobilière, conformément à la Loi 25 du Québec. Vous pouvez
-              demander l'accès, la correction ou la suppression de vos données à tout moment en
-              contactant l'administrateur.
-            </p>
           </div>
         </CardContent>
       </Card>

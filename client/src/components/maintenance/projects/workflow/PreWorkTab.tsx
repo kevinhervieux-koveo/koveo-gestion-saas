@@ -129,27 +129,57 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
     });
   };
 
-  // Handle new task creation
-  const handleCreateTask = () => {
-    const newTaskIndex = preWorkTasks.length;
-    createTask.mutate({
-      projectId: project.id,
-      taskData: {
-        phase: 'pre_work',
-        taskName: 'New Task',
-        description: '',
-        orderIndex: newTaskIndex,
-        isCompleted: false,
-      },
-    });
-  };
-
   // State for notification editing
   const [editingNotification, setEditingNotification] = useState<string | null>(null);
-  
+
   // Local state for task editing
   const [localTaskEdits, setLocalTaskEdits] = useState<Record<string, any>>({});
   const [hasChanges, setHasChanges] = useState(false);
+
+  // Auto-focus target for the next task to render after creation
+  const [pendingFocusTaskId, setPendingFocusTaskId] = useState<string | null>(null);
+  // Ref map keyed by task id so we can focus the correct input once it renders
+  const taskNameRefs = useRef<Record<string, HTMLInputElement | null>>({});
+
+  // When a newly created task shows up in preWorkTasks, focus + select its name
+  useEffect(() => {
+    if (!pendingFocusTaskId) return;
+    const el = taskNameRefs.current[pendingFocusTaskId];
+    if (el) {
+      el.focus();
+      el.select();
+      setPendingFocusTaskId(null);
+    }
+  }, [pendingFocusTaskId, preWorkTasks]);
+
+  // Handle new task creation
+  const handleCreateTask = () => {
+    const newTaskIndex = preWorkTasks.length;
+    createTask.mutate(
+      {
+        projectId: project.id,
+        taskData: {
+          phase: 'pre_work',
+          taskName: 'New Task',
+          description: '',
+          orderIndex: newTaskIndex,
+          isCompleted: false,
+        },
+      },
+      {
+        onSuccess: (response) => {
+          // Server returns either the raw row or { data: row } — handle both.
+          const createdCandidate =
+            response && typeof response === 'object' && 'data' in response
+              ? (response as { data?: { id?: string } }).data
+              : (response as { id?: string } | undefined);
+          if (createdCandidate?.id) {
+            setPendingFocusTaskId(createdCandidate.id);
+          }
+        },
+      }
+    );
+  };
 
   // Handle task edit (local state only)
   const handleTaskEdit = (taskId: string, field: string, value: any) => {
@@ -161,6 +191,49 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
       }
     }));
     setHasChanges(true);
+  };
+
+  // Auto-save the pending local edits for a single task (e.g. on input blur).
+  // This removes the easy-to-miss "Save Changes" step: any field change is
+  // persisted as soon as the user leaves the field. Pending edits are kept
+  // in local state until the mutation resolves so that the "Save Changes"
+  // button remains a true fallback if the autosave fails.
+  const handleTaskFieldBlur = (taskId: string) => {
+    const pendingEdits = localTaskEdits[taskId];
+    if (!pendingEdits || Object.keys(pendingEdits).length === 0) return;
+
+    // Defensive normalization: `cost` inputs can temporarily hold empty or
+    // NaN values while the user is mid-edit. Drop the cost key if it is not
+    // a finite non-negative number so we don't accidentally persist 0 over
+    // a previously-valid value.
+    const normalized: Record<string, any> = { ...pendingEdits };
+    if ('cost' in normalized) {
+      const cost = Number(normalized.cost);
+      if (!Number.isFinite(cost) || cost < 0) {
+        delete normalized.cost;
+      } else {
+        normalized.cost = cost;
+      }
+    }
+    if (Object.keys(normalized).length === 0) return;
+
+    updateTask.mutate(
+      {
+        projectId: project.id,
+        taskId,
+        updates: normalized,
+      },
+      {
+        onSuccess: () => {
+          setLocalTaskEdits(prev => {
+            const { [taskId]: _removed, ...rest } = prev;
+            // If no more tasks have pending edits, reset the hasChanges flag.
+            setHasChanges(Object.keys(rest).length > 0);
+            return rest;
+          });
+        },
+      }
+    );
   };
 
   // Get the current value for a task field (local edit or original value)
@@ -255,6 +328,17 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
   };
 
   const handleMarkComplete = () => {
+    // Block completion while any task mutation is still in flight — otherwise
+    // blur-autosaves or create-task requests could race against phase
+    // completion and leave stale/inconsistent task state on the server.
+    if (createTask.isPending || updateTask.isPending || deleteTask.isPending) {
+      toast({
+        title: 'Please wait',
+        description: 'Saving task changes. Try again in a moment.',
+      });
+      return;
+    }
+
     // Save any pending changes first
     if (hasChanges && Object.keys(localTaskEdits).length > 0) {
       // Save changes first, then complete phase
@@ -378,8 +462,10 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
                         <GripVertical className="h-4 w-4 text-muted-foreground mt-1" />
                         <div className="flex-1 space-y-2">
                           <Input
+                            ref={(el) => { taskNameRefs.current[task.id] = el; }}
                             value={getTaskValue(task, 'taskName')}
                             onChange={(e) => handleTaskEdit(task.id, 'taskName', e.target.value)}
+                            onBlur={() => handleTaskFieldBlur(task.id)}
                             placeholder="Task description (required)"
                             className="font-medium"
                             data-testid={`input-task-description-${index}`}
@@ -391,8 +477,9 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
                                 type="number"
                                 step="0.01"
                                 min="0"
-                                value={getTaskValue(task, 'cost') || ''}
-                                onChange={(e) => handleTaskEdit(task.id, 'cost', parseFloat(e.target.value) || 0)}
+                                value={getTaskValue(task, 'cost') ?? ''}
+                                onChange={(e) => handleTaskEdit(task.id, 'cost', e.target.value)}
+                                onBlur={() => handleTaskFieldBlur(task.id)}
                                 placeholder="0.00"
                                 className="w-20 text-sm"
                                 data-testid={`input-task-cost-${index}`}

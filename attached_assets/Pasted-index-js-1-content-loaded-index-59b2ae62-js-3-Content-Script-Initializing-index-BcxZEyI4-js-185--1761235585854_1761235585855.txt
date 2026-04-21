@@ -1,0 +1,102 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+index-BcxZEyI4.js:185 [Violation] 'setTimeout' handler took 59ms
+index-BcxZEyI4.js:240  POST https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/communication/preferences/test-combined-email 500 (Internal Server Error)
+AR @ index-BcxZEyI4.js:240
+mutationFn @ communication-RtZ5BL-C.js:11
+fn @ vendor-query-DvoEABeW.js:1
+m @ vendor-query-DvoEABeW.js:1
+start @ vendor-query-DvoEABeW.js:1
+execute @ vendor-query-DvoEABeW.js:1
+await in execute
+mutate @ vendor-query-DvoEABeW.js:1
+(anonymous) @ vendor-query-DvoEABeW.js:1
+onClick @ communication-RtZ5BL-C.js:11
+Al @ index-BcxZEyI4.js:185
+X @ index-BcxZEyI4.js:45
+gv @ index-BcxZEyI4.js:185
+(anonymous) @ index-BcxZEyI4.js:185
+Ip @ index-BcxZEyI4.js:83
+Vd @ index-BcxZEyI4.js:185
+Jd @ index-BcxZEyI4.js:194
+mx @ index-BcxZEyI4.js:194
+<button>
+MA.Nu.jsxDEV @ index-BcxZEyI4.js:15
+Button @ index-BcxZEyI4.js:405
+react_stack_bottom_frame @ index-BcxZEyI4.js:229
+Uc @ index-BcxZEyI4.js:120
+sg @ index-BcxZEyI4.js:141
+vd @ index-BcxZEyI4.js:150
+X @ index-BcxZEyI4.js:45
+Jg @ index-BcxZEyI4.js:163
+Zg @ index-BcxZEyI4.js:163
+Rd @ index-BcxZEyI4.js:163
+Gg @ index-BcxZEyI4.js:163
+mv @ index-BcxZEyI4.js:185
+Rs @ index-BcxZEyI4.js:185
+Od @ index-BcxZEyI4.js:185
+(anonymous) @ index-BcxZEyI4.js:185
+<Button>
+MA.Nu.jsxDEV @ index-BcxZEyI4.js:15
+Ji @ communication-RtZ5BL-C.js:11
+react_stack_bottom_frame @ index-BcxZEyI4.js:229
+Uc @ index-BcxZEyI4.js:120
+ud @ index-BcxZEyI4.js:141
+vd @ index-BcxZEyI4.js:150
+X @ index-BcxZEyI4.js:45
+Jg @ index-BcxZEyI4.js:163
+Zg @ index-BcxZEyI4.js:163
+Rd @ index-BcxZEyI4.js:163
+Gg @ index-BcxZEyI4.js:163
+mv @ index-BcxZEyI4.js:185
+Rs @ index-BcxZEyI4.js:185
+Od @ index-BcxZEyI4.js:185
+(anonymous) @ index-BcxZEyI4.js:185
+<...>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+_0 @ index-BcxZEyI4.js:240
+$ @ index-BcxZEyI4.js:240
+react_stack_bottom_frame @ index-BcxZEyI4.js:229
+Uc @ index-BcxZEyI4.js:120
+ud @ index-BcxZEyI4.js:141
+vd @ index-BcxZEyI4.js:150
+X @ index-BcxZEyI4.js:45
+Jg @ index-BcxZEyI4.js:163
+E1 @ index-BcxZEyI4.js:163
+C1 @ index-BcxZEyI4.js:163
+Gg @ index-BcxZEyI4.js:163
+dv @ index-BcxZEyI4.js:185
+l @ index-BcxZEyI4.js:23
+<$>
+MA.Nu.jsxDEV @ index-BcxZEyI4.js:15
+vR @ index-BcxZEyI4.js:456
+react_stack_bottom_frame @ index-BcxZEyI4.js:229
+Uc @ index-BcxZEyI4.js:120
+ud @ index-BcxZEyI4.js:141
+vd @ index-BcxZEyI4.js:150
+X @ index-BcxZEyI4.js:45
+Jg @ index-BcxZEyI4.js:163
+Zg @ index-BcxZEyI4.js:163
+Rd @ index-BcxZEyI4.js:163
+Gg @ index-BcxZEyI4.js:163
+mv @ index-BcxZEyI4.js:185
+Rs @ index-BcxZEyI4.js:185
+Od @ index-BcxZEyI4.js:185
+(anonymous) @ index-BcxZEyI4.js:185
+<vR>
+MA.Nu.jsxDEV @ index-BcxZEyI4.js:15
+bR @ index-BcxZEyI4.js:456
+react_stack_bottom_frame @ index-BcxZEyI4.js:229
+Uc @ index-BcxZEyI4.js:120
+ud @ index-BcxZEyI4.js:141
+vd @ index-BcxZEyI4.js:150
+X @ index-BcxZEyI4.js:45
+Jg @ index-BcxZEyI4.js:163
+Zg @ index-BcxZEyI4.js:163
+Rd @ index-BcxZEyI4.js:163
+Gg @ index-BcxZEyI4.js:163
+dv @ index-BcxZEyI4.js:185
+l @ index-BcxZEyI4.js:23
+<bR>
+MA.Nu.jsxDEV @ index-BcxZEyI4.js:15
+(anonymous) @ index-BcxZEyI4.js:456

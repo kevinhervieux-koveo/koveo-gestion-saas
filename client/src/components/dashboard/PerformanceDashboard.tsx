@@ -10,7 +10,9 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { chartColors, buildChartConfig } from '@/lib/chart-colors';
 import { AlertTriangle, Activity, Zap, Timer, Database, Cpu, MemoryStick, TrendingUp, TrendingDown, RefreshCw } from 'lucide-react';
 import { useWebVitals, WebVitalsMetrics } from '@/utils/web-vitals-monitor';
 import { complexityAnalyzer } from '@/utils/component-complexity-analyzer';
@@ -265,21 +267,21 @@ export function PerformanceDashboard() {
                 <CardDescription>Real-time Web Vitals performance tracking</CardDescription>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
+                <ChartContainer config={buildChartConfig({ score: { label: 'Performance Score', color: chartColors.purple } })} className="h-[300px] w-full">
                   <LineChart data={webVitalsChartData}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="time" />
                     <YAxis domain={[0, 100]} />
-                    <Tooltip />
+                    <ChartTooltip content={<ChartTooltipContent />} />
                     <Line 
                       type="monotone" 
                       dataKey="score" 
-                      stroke="#8884d8" 
+                      stroke={chartColors.purple}
                       strokeWidth={2}
                       dot={{ r: 4 }}
                     />
                   </LineChart>
-                </ResponsiveContainer>
+                </ChartContainer>
               </CardContent>
             </Card>
 

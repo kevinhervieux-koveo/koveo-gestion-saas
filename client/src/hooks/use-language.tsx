@@ -31,11 +31,17 @@ interface LanguageProviderProps {
  * @returns {JSX.Element} Language context provider wrapper.
  */
 export function LanguageProvider({ children }: LanguageProviderProps) {
-  // Initialize language from localStorage or default to French for Quebec
+  // Initialize language from URL param (?lang=fr|en), then localStorage,
+  // then default to French for Quebec.
   const [language, setLanguage] = useState<Language>(() => {
     if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const queryLang = params.get('lang');
+      if (queryLang === 'fr' || queryLang === 'en') {
+        return queryLang;
+      }
       const savedLanguage = localStorage.getItem('koveo-language') as Language;
-      return savedLanguage || 'fr'; // Default to French for Quebec
+      return savedLanguage || 'fr';
     }
     return 'fr';
   });

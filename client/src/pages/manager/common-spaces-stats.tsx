@@ -1,4 +1,6 @@
+import type { ReactNode } from 'react';
 import { useState, useMemo, useEffect } from 'react';
+import { logDebug } from '@/lib/logger';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/use-auth';
 import { useLanguage } from '@/hooks/use-language';
@@ -9,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { NoDataCard } from '@/components/ui/no-data-card';
 import { withHierarchicalSelection } from '@/components/hoc/withHierarchicalSelection';
 import { useLocation } from 'wouter';
+import { preserveManagerContext } from '@/utils/manager-navigation';
 import {
   Select,
   SelectContent,
@@ -33,6 +36,16 @@ import {
   DialogDescription,
   DialogFooter,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -54,6 +67,7 @@ import {
   Eye,
   Edit,
   ArrowLeft,
+  Trash2,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
@@ -64,10 +78,9 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
 } from 'recharts';
+import { ChartContainer, ChartTooltip, ChartTooltipContent, ChartLegend, ChartLegendContent } from '@/components/ui/chart';
+import { chartColors, buildChartConfig } from '@/lib/chart-colors';
 import { CalendarView } from '@/components/common-spaces/calendar-view';
 import { CommonSpaceCalendar } from '@/components/common-spaces/common-space-calendar';
 
@@ -179,12 +192,15 @@ interface CommonSpacesStatsProps {
   organizationId?: string;
   buildingId?: string;
   buildingName?: string;
+  showBackButton?: boolean;
+  backButtonLabel?: ReactNode;
+  onBack?: () => void;
 }
 
 /**
  * Manager Common Spaces Statistics Page.
  */
-function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpacesStatsProps) {
+function CommonSpacesStatsPageInner({ organizationId, buildingId, showBackButton, backButtonLabel, onBack }: CommonSpacesStatsProps) {
   const { user } = useAuth();
   const { language } = useLanguage();
   const { toast } = useToast();
@@ -193,12 +209,12 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
 
   // Component initialization logging
   useEffect(() => {
-    console.log('🔍 [COMMON_SPACES_STATS] Component mounted', { organizationId, buildingId });
+    logDebug('🔍 [COMMON_SPACES_STATS] Component mounted', { organizationId, buildingId });
   }, []);
 
   // Log context changes
   useEffect(() => {
-    console.log('🔍 [COMMON_SPACES_STATS] Context changed:', { organizationId, buildingId });
+    logDebug('🔍 [COMMON_SPACES_STATS] Context changed:', { organizationId, buildingId });
   }, [organizationId, buildingId]);
 
   // Always use buildingId from hierarchy
@@ -207,12 +223,13 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
   
   // Log space selection changes
   useEffect(() => {
-    console.log('🔍 [COMMON_SPACES_STATS] Selected space changed:', { selectedSpaceId });
+    logDebug('🔍 [COMMON_SPACES_STATS] Selected space changed:', { selectedSpaceId });
   }, [selectedSpaceId]);
   const [restrictionDialogOpen, setRestrictionDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserStats | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [createFormData, setCreateFormData] = useState({
     name: '',
     description: '',
@@ -242,7 +259,7 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
       saturday: true,
       sunday: true,
     },
-    default_time_limit_type: '' as '' | 'monthly' | 'yearly',
+    default_time_limit_type: 'none' as 'none' | 'monthly' | 'yearly',
     default_time_limit_hours: '',
   });
   const [timeLimitDialogOpen, setTimeLimitDialogOpen] = useState(false);
@@ -253,13 +270,13 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
   });
 
   const handleBackToOrganization = () => {
-    console.log('🔍 [COMMON_SPACES_STATS] Navigating back to organization selection');
+    logDebug('🔍 [COMMON_SPACES_STATS] Navigating back to organization selection');
     navigate('/manager/common-spaces-stats');
   };
 
   const handleBackToBuilding = () => {
-    console.log('🔍 [COMMON_SPACES_STATS] Navigating back to building selection');
-    navigate(`/manager/common-spaces-stats?organization=${organizationId}`);
+    logDebug('🔍 [COMMON_SPACES_STATS] Navigating back to building selection');
+    navigate(preserveManagerContext('/manager/common-spaces-stats', organizationId, buildingId));
   };
 
   // Remove effect since we're always using buildingId directly
@@ -270,11 +287,11 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
   }>({
     queryKey: ['/api/manager/buildings', organizationId],
     queryFn: async () => {
-      console.log('🔍 [COMMON_SPACES_STATS] Fetching buildings with params:', { organizationId });
+      logDebug('🔍 [COMMON_SPACES_STATS] Fetching buildings with params:', { organizationId });
       const url = organizationId ? `/api/manager/buildings?organizationId=${organizationId}` : '/api/manager/buildings';
       const response = await fetch(url);
       const data = await response.json();
-      console.log('🔍 [COMMON_SPACES_STATS] Received buildings:', { count: data?.buildings?.length });
+      logDebug('🔍 [COMMON_SPACES_STATS] Received buildings:', { count: data?.buildings?.length });
       return data;
     },
     enabled: !!user,
@@ -286,10 +303,10 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
   const { data: commonSpaces = [], isLoading: spacesLoading } = useQuery<CommonSpace[]>({
     queryKey: ['/api/common-spaces', selectedBuildingId],
     queryFn: async () => {
-      console.log('🔍 [COMMON_SPACES_STATS] Fetching common spaces for building:', { buildingId: selectedBuildingId });
+      logDebug('🔍 [COMMON_SPACES_STATS] Fetching common spaces for building:', { buildingId: selectedBuildingId });
       const response = await fetch(`/api/common-spaces?building_id=${selectedBuildingId}`);
       const data = await response.json();
-      console.log('🔍 [COMMON_SPACES_STATS] Received common spaces:', { count: data?.length });
+      logDebug('🔍 [COMMON_SPACES_STATS] Received common spaces:', { count: data?.length });
       return data;
     },
     enabled: !!selectedBuildingId,
@@ -303,6 +320,9 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
   });
 
   // Block/Unblock user mutation
+  // Exception (task #229): mutations in this file route errors through
+  // `handleApiError` for demo-mode/locale-aware messaging and special cases,
+  // which `useCreateUpdateMutation` cannot model — kept as raw `useMutation`.
   const toggleUserRestrictionMutation = useMutation({
     mutationFn: async ({
       userId,
@@ -404,7 +424,7 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
           saturday: true,
           sunday: true,
         },
-        default_time_limit_type: '',
+        default_time_limit_type: 'none',
         default_time_limit_hours: '',
       });
     } catch (error) {
@@ -429,6 +449,64 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
         : 'An error occurred while processing the request.'
       );
     }
+  });
+
+  // Mutation to delete a common space
+  const deleteSpaceMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest('DELETE', `/api/common-spaces/${selectedSpaceId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/common-spaces'] });
+      toast({
+        title: language === 'fr' ? 'Succès' : 'Success',
+        description: language === 'fr' 
+          ? 'Espace commun supprimé avec succès'
+          : 'Common space deleted successfully',
+      });
+      setDeleteConfirmOpen(false);
+      setCreateDialogOpen(false);
+      setIsEditMode(false);
+      setSelectedSpaceId('');
+      setCreateFormData({
+        name: '',
+        description: '',
+        building_id: '',
+        is_reservable: true,
+        capacity: '',
+        hours_mode: 'same',
+        opening_hours: {
+          start: '08:00',
+          end: '22:00',
+        },
+        weekly_hours: {
+          monday: { start: '08:00', end: '22:00' },
+          tuesday: { start: '08:00', end: '22:00' },
+          wednesday: { start: '08:00', end: '22:00' },
+          thursday: { start: '08:00', end: '22:00' },
+          friday: { start: '08:00', end: '22:00' },
+          saturday: { start: '09:00', end: '21:00' },
+          sunday: { start: '09:00', end: '21:00' },
+        },
+        available_days: {
+          monday: true,
+          tuesday: true,
+          wednesday: true,
+          thursday: true,
+          friday: true,
+          saturday: true,
+          sunday: true,
+        },
+        default_time_limit_type: 'none',
+        default_time_limit_hours: '',
+      });
+    },
+    onError: (error: any) => {
+      handleApiError(error, language, language === 'fr' 
+        ? 'Une erreur est survenue lors de la suppression'
+        : 'An error occurred while deleting'
+      );
+    },
   });
 
   const handleCreateSpace = () => {
@@ -461,7 +539,7 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
       available_days: Object.entries(createFormData.available_days)
         .filter(([_, isAvailable]) => isAvailable)
         .map(([day, _]) => day),
-      default_time_limit_type: createFormData.default_time_limit_type || undefined,
+      default_time_limit_type: createFormData.default_time_limit_type === 'none' ? undefined : createFormData.default_time_limit_type,
       default_time_limit_hours: createFormData.default_time_limit_hours ? parseInt(createFormData.default_time_limit_hours) : undefined,
     };
 
@@ -495,15 +573,11 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
       setTimeLimitDialogOpen(false);
     },
     onError: (error: any) => {
-      // Error setting time limit
-      toast({
-        title: language === 'fr' ? 'Erreur' : 'Error',
-        description:
-          language === 'fr'
-            ? 'Impossible de définir la limite de temps.'
-            : 'Failed to set time limit.',
-        variant: 'destructive',
-      });
+      handleApiError(
+        error,
+        language,
+        language === 'fr' ? 'Impossible de définir la limite de temps' : 'Failed to set time limit'
+      );
     },
   });
 
@@ -565,17 +639,20 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
       />
 
       {/* Back Navigation */}
-      {(organizationId || buildingId) && (
-        <div className="p-4 border-b border-gray-200">
-          <Button
-            variant="outline"
-            onClick={buildingId ? handleBackToBuilding : handleBackToOrganization}
-            className="flex items-center gap-2"
-            data-testid={buildingId ? "button-back-to-building" : "button-back-to-organization"}
-          >
-            <ArrowLeft className="w-4 h-4" />
-            {buildingId ? (language === 'fr' ? 'Bâtiment' : 'Building') : (language === 'fr' ? 'Organisation' : 'Organization')}
-          </Button>
+      {showBackButton && onBack && (
+        <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="flex items-center px-6 py-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onBack}
+              className="flex items-center gap-2"
+              data-testid={buildingId ? "button-back-to-building" : "button-back-to-organization"}
+            >
+              <ArrowLeft className="w-4 h-4" />
+              {backButtonLabel || (buildingId ? (language === 'fr' ? 'Bâtiment' : 'Building') : (language === 'fr' ? 'Organisation' : 'Organization'))}
+            </Button>
+          </div>
         </div>
       )}
 
@@ -907,7 +984,7 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
                               onValueChange={(value) =>
                                 setCreateFormData({ 
                                   ...createFormData, 
-                                  default_time_limit_type: value as '' | 'monthly' | 'yearly'
+                                  default_time_limit_type: value as 'none' | 'monthly' | 'yearly'
                                 })
                               }
                             >
@@ -915,7 +992,7 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
                                 <SelectValue placeholder={language === 'fr' ? 'Aucune limite' : 'No limit'} />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value=''>
+                                <SelectItem value='none'>
                                   {language === 'fr' ? 'Aucune limite' : 'No limit'}
                                 </SelectItem>
                                 <SelectItem value='monthly'>
@@ -944,7 +1021,7 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
                                   default_time_limit_hours: e.target.value 
                                 })
                               }
-                              disabled={!createFormData.default_time_limit_type}
+                              disabled={createFormData.default_time_limit_type === 'none'}
                               data-testid='input-default-time-limit-hours'
                             />
                           </div>
@@ -953,45 +1030,96 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
                     </div>
                   </div>
 
-                  <DialogFooter className='flex-shrink-0 mt-4'>
-                    <Button
-                      variant='outline'
-                      onClick={() => {
-                        setCreateDialogOpen(false);
-                        setIsEditMode(false);
-                      }}
-                      data-testid='button-cancel-create'
-                    >
-                      {language === 'fr' ? 'Annuler' : 'Cancel'}
-                    </Button>
-                    <Button
-                      onClick={handleCreateSpace}
-                      disabled={
-                        createSpaceMutation.isPending ||
-                        !createFormData.name.trim() ||
-                        !createFormData.building_id
-                      }
-                      data-testid='button-confirm-create'
-                    >
-                      {createSpaceMutation.isPending
-                        ? isEditMode
-                          ? language === 'fr'
-                            ? 'Modification...'
-                            : 'Updating...'
-                          : language === 'fr'
-                            ? 'Création...'
-                            : 'Creating...'
-                        : isEditMode
-                          ? language === 'fr'
-                            ? "Modifier l'espace"
-                            : 'Update Space'
-                          : language === 'fr'
-                            ? "Créer l'espace"
-                            : 'Create Space'}
-                    </Button>
+                  <DialogFooter className='flex-shrink-0 mt-4 flex justify-between'>
+                    <div>
+                      {isEditMode && (
+                        <Button
+                          variant='destructive'
+                          onClick={() => setDeleteConfirmOpen(true)}
+                          disabled={deleteSpaceMutation.isPending}
+                          className='flex items-center gap-2'
+                          data-testid='button-delete-space'
+                        >
+                          <Trash2 className='w-4 h-4' />
+                          {language === 'fr' ? 'Supprimer' : 'Delete'}
+                        </Button>
+                      )}
+                    </div>
+                    <div className='flex gap-2'>
+                      <Button
+                        variant='outline'
+                        onClick={() => {
+                          setCreateDialogOpen(false);
+                          setIsEditMode(false);
+                        }}
+                        data-testid='button-cancel-create'
+                      >
+                        {language === 'fr' ? 'Annuler' : 'Cancel'}
+                      </Button>
+                      <Button
+                        onClick={handleCreateSpace}
+                        disabled={
+                          createSpaceMutation.isPending ||
+                          !createFormData.name.trim() ||
+                          !createFormData.building_id
+                        }
+                        data-testid='button-confirm-create'
+                      >
+                        {createSpaceMutation.isPending
+                          ? isEditMode
+                            ? language === 'fr'
+                              ? 'Modification...'
+                              : 'Updating...'
+                            : language === 'fr'
+                              ? 'Création...'
+                              : 'Creating...'
+                          : isEditMode
+                            ? language === 'fr'
+                              ? "Modifier l'espace"
+                              : 'Update Space'
+                            : language === 'fr'
+                              ? "Créer l'espace"
+                              : 'Create Space'}
+                      </Button>
+                    </div>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
+
+              {/* Delete Confirmation AlertDialog */}
+              <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>
+                      {language === 'fr' ? "Supprimer l'espace commun ?" : 'Delete Common Space?'}
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      {language === 'fr'
+                        ? "Êtes-vous sûr de vouloir supprimer cet espace commun ? Cette action est irréversible."
+                        : 'Are you sure you want to delete this common space? This action cannot be undone.'}
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel data-testid='button-cancel-delete'>
+                      {language === 'fr' ? 'Annuler' : 'Cancel'}
+                    </AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => deleteSpaceMutation.mutate()}
+                      disabled={deleteSpaceMutation.isPending}
+                      className='bg-destructive text-destructive-foreground hover:bg-destructive/90'
+                      data-testid='button-confirm-delete'
+                    >
+                      {deleteSpaceMutation.isPending
+                        ? language === 'fr'
+                          ? 'Suppression...'
+                          : 'Deleting...'
+                        : language === 'fr'
+                          ? 'Supprimer définitivement'
+                          : 'Delete Permanently'}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -1173,7 +1301,7 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
                         saturday: true,
                         sunday: true,
                       },
-                      default_time_limit_type: (selectedSpace as any).defaultTimeLimitType || '',
+                      default_time_limit_type: (selectedSpace as any).defaultTimeLimitType || 'none',
                       default_time_limit_hours: (selectedSpace as any).defaultTimeLimitHours?.toString() || '',
                     });
                     setIsEditMode(true);
@@ -1204,42 +1332,26 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
                     </CardHeader>
                     <CardContent>
                       <div className='h-96' data-testid='usage-chart'>
-                        <ResponsiveContainer width='100%' height='100%'>
+                        <ChartContainer config={buildChartConfig({
+                          hours: { label: language === 'fr' ? 'Heures' : 'Hours', color: chartColors.primary },
+                          bookings: { label: language === 'fr' ? 'Réservations' : 'Bookings', color: chartColors.secondary },
+                        })} className="h-full w-full">
                           <BarChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                             <CartesianGrid strokeDasharray='3 3' />
                             <XAxis dataKey='name' angle={-45} textAnchor='end' height={100} />
                             <YAxis />
-                            <Tooltip
-                              formatter={(value, name) => [
-                                value,
-                                name === 'hours'
-                                  ? language === 'fr'
-                                    ? 'Heures'
-                                    : 'Hours'
-                                  : language === 'fr'
-                                    ? 'Réservations'
-                                    : 'Bookings',
-                              ]}
-                              contentStyle={{ zIndex: 1000 }}
+                            <ChartTooltip
+                              content={<ChartTooltipContent />}
                               wrapperStyle={{ zIndex: 1000 }}
                             />
-                            <Legend
+                            <ChartLegend
                               verticalAlign='top'
-                              height={36}
-                              formatter={(value) =>
-                                value === 'hours'
-                                  ? language === 'fr'
-                                    ? 'Heures'
-                                    : 'Hours'
-                                  : language === 'fr'
-                                    ? 'Réservations'
-                                    : 'Bookings'
-                              }
+                              content={<ChartLegendContent />}
                             />
-                            <Bar dataKey='hours' fill='#3b82f6' name='hours' />
-                            <Bar dataKey='bookings' fill='#10b981' name='bookings' />
+                            <Bar dataKey='hours' fill={chartColors.primary} name='hours' />
+                            <Bar dataKey='bookings' fill={chartColors.secondary} name='bookings' />
                           </BarChart>
-                        </ResponsiveContainer>
+                        </ChartContainer>
                       </div>
                     </CardContent>
                   </Card>

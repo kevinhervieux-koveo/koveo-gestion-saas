@@ -1,0 +1,119 @@
+user-management-CxzuqnZA.js:1 🔍 [USER_MANAGEMENT] Computing currentUserAccess memo: {currentUser: 'kevin.hervieux@koveo-gestion.com', currentUserOrganizationsType: 'undefined', currentUserOrganizationsIsArray: false, currentUserOrganizationsLength: 'N/A', currentUserBuildingsType: 'undefined', …}
+user-management-CxzuqnZA.js:1 ✅ [USER_MANAGEMENT] Extracted access IDs: {organizationIds: Array(0), buildingIds: Array(0), residenceIds: Array(0), organizationIdsCount: 0, buildingIdsCount: 0, …}
+user-management-CxzuqnZA.js:1 🔍 [USER_MANAGEMENT] Component mounted
+user-management-CxzuqnZA.js:1 🔍 [USER_MANAGEMENT] Current user query status: {currentUser: {…}, isLoading: false, error: null}
+user-management-CxzuqnZA.js:1 🏢 [USER_MANAGEMENT] Organizations state updated: {currentUser: 'kevin.hervieux@koveo-gestion.com', currentUserRole: 'admin', organizationsCount: 0, organizationsLoading: true}
+user-management-CxzuqnZA.js:1 🔍 [USER_MANAGEMENT] Assignment queries data received: {organizations: 'null', buildings: 'null', residences: 'null', orgsLoading: true, buildingsLoading: true, …}
+user-management-CxzuqnZA.js:1 🔍 [USER_MANAGEMENT] Current user assignment queries status: {currentUser: 'kevin.hervieux@koveo-gestion.com', orgsLoading: true, buildingsLoading: true, residencesLoading: true, orgsError: undefined, …}
+user-management-CxzuqnZA.js:1 🔍 [QUERY] /api/users/me/buildings returned: (8) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+user-management-CxzuqnZA.js:1 🔍 [USER_MANAGEMENT] Computing currentUserAccess memo: {currentUser: 'kevin.hervieux@koveo-gestion.com', currentUserOrganizationsType: 'undefined', currentUserOrganizationsIsArray: false, currentUserOrganizationsLength: 'N/A', currentUserBuildingsType: 'object', …}
+user-management-CxzuqnZA.js:1 ✅ [USER_MANAGEMENT] Extracted access IDs: {organizationIds: Array(0), buildingIds: Array(8), residenceIds: Array(0), organizationIdsCount: 0, buildingIdsCount: 8, …}
+user-management-CxzuqnZA.js:1 🔍 [USER_MANAGEMENT] Assignment queries data received: {organizations: 'null', buildings: '8 buildings', residences: 'null', orgsLoading: true, buildingsLoading: false, …}
+user-management-CxzuqnZA.js:1 🔍 [USER_MANAGEMENT] Current user assignment queries status: {currentUser: 'kevin.hervieux@koveo-gestion.com', orgsLoading: true, buildingsLoading: false, residencesLoading: true, orgsError: undefined, …}
+user-management-CxzuqnZA.js:1 🔍 [QUERY] /api/users/me/residences returned: []
+user-management-CxzuqnZA.js:1 🔍 [QUERY] /api/users/me/organizations returned: (3) [{…}, {…}, {…}]
+user-management-CxzuqnZA.js:1 🔍 [USER_MANAGEMENT] Computing currentUserAccess memo: {currentUser: 'kevin.hervieux@koveo-gestion.com', currentUserOrganizationsType: 'object', currentUserOrganizationsIsArray: true, currentUserOrganizationsLength: 3, currentUserBuildingsType: 'object', …}
+user-management-CxzuqnZA.js:1 ✅ [USER_MANAGEMENT] Extracted access IDs: {organizationIds: Array(3), buildingIds: Array(8), residenceIds: Array(0), organizationIdsCount: 3, buildingIdsCount: 8, …}
+user-management-CxzuqnZA.js:1 🔍 [USER_MANAGEMENT] Assignment queries data received: {organizations: '3 orgs', buildings: '8 buildings', residences: '0 residences', orgsLoading: false, buildingsLoading: false, …}
+user-management-CxzuqnZA.js:1 🔍 [USER_MANAGEMENT] Current user assignment queries status: {currentUser: 'kevin.hervieux@koveo-gestion.com', orgsLoading: false, buildingsLoading: false, residencesLoading: false, orgsError: undefined, …}
+user-management-CxzuqnZA.js:1 🏢 [USER_MANAGEMENT] /api/organizations returned: {count: 3, data: Array(3)}
+user-management-CxzuqnZA.js:1 🏢 [USER_MANAGEMENT] Organizations state updated: {currentUser: 'kevin.hervieux@koveo-gestion.com', currentUserRole: 'admin', organizationsCount: 3, organizationsLoading: false}
+user-management:1 Blocked aria-hidden on an element because its descendant retained focus. The focus must not be hidden from assistive technology users. Avoid using aria-hidden on a focused element or its ancestor. Consider using the inert attribute instead, which will also prevent focus. For more details, see the aria-hidden section of the WAI-ARIA specification at https://w3c.github.io/aria/#aria-hidden.
+Element with focus: <button.px-2 py-1 text-xs bg-red-50 text-red-700 rounded hover:bg-red-100>
+Ancestor with aria-hidden: <div#root> <div id=​"root" data-aria-hidden=​"true" aria-hidden=​"true">​…​</div>​
+index-BntpFPzN.js:26  POST https://koveo-gestion.com/api/users/61eb5aad-41ef-46fc-a07f-11821c6e7553/delete-account 500 (Internal Server Error)
+sA @ index-BntpFPzN.js:26
+mutationFn @ user-management-CxzuqnZA.js:1
+fn @ vendor-query-BXpRV_b-.js:1
+m @ vendor-query-BXpRV_b-.js:1
+start @ vendor-query-BXpRV_b-.js:1
+execute @ vendor-query-BXpRV_b-.js:1
+await in execute
+mutate @ vendor-query-BXpRV_b-.js:1
+na @ user-management-CxzuqnZA.js:1
+(anonymous) @ vendor-forms-Bj8H2n7H.js:1
+await in (anonymous)
+Gm @ index-BntpFPzN.js:25
+(anonymous) @ index-BntpFPzN.js:25
+$u @ index-BntpFPzN.js:25
+wr @ index-BntpFPzN.js:25
+Fr @ index-BntpFPzN.js:26
+Bv @ index-BntpFPzN.js:26
+index-BntpFPzN.js:26 Uncaught (in promise) Error: 500: Internal Server Error
+    at Ep (index-BntpFPzN.js:26:39921)
+    at async sA (index-BntpFPzN.js:26:40183)
+    at async Object.mutationFn (user-management-CxzuqnZA.js:1:48347)
+Ep @ index-BntpFPzN.js:26
+await in Ep
+sA @ index-BntpFPzN.js:26
+await in sA
+mutationFn @ user-management-CxzuqnZA.js:1
+fn @ vendor-query-BXpRV_b-.js:1
+m @ vendor-query-BXpRV_b-.js:1
+start @ vendor-query-BXpRV_b-.js:1
+execute @ vendor-query-BXpRV_b-.js:1
+await in execute
+mutate @ vendor-query-BXpRV_b-.js:1
+na @ user-management-CxzuqnZA.js:1
+(anonymous) @ vendor-forms-Bj8H2n7H.js:1
+await in (anonymous)
+Gm @ index-BntpFPzN.js:25
+(anonymous) @ index-BntpFPzN.js:25
+$u @ index-BntpFPzN.js:25
+wr @ index-BntpFPzN.js:25
+Fr @ index-BntpFPzN.js:26
+Bv @ index-BntpFPzN.js:26
+index-BntpFPzN.js:195  POST https://koveo-gestion.com/api/performance/web-vitals 500 (Internal Server Error)
+sendToAnalytics @ index-BntpFPzN.js:195
+onMetric @ index-BntpFPzN.js:195
+(anonymous) @ index-BntpFPzN.js:195
+(anonymous) @ index-BntpFPzN.js:195
+ru @ index-BntpFPzN.js:195
+index-BntpFPzN.js:195  POST https://koveo-gestion.com/api/performance/web-vitals 500 (Internal Server Error)
+sendToAnalytics @ index-BntpFPzN.js:195
+onMetric @ index-BntpFPzN.js:195
+(anonymous) @ index-BntpFPzN.js:195
+(anonymous) @ index-BntpFPzN.js:195
+ru @ index-BntpFPzN.js:195
+index-BntpFPzN.js:26  POST https://koveo-gestion.com/api/users/61eb5aad-41ef-46fc-a07f-11821c6e7553/delete-account 500 (Internal Server Error)
+sA @ index-BntpFPzN.js:26
+mutationFn @ user-management-CxzuqnZA.js:1
+fn @ vendor-query-BXpRV_b-.js:1
+m @ vendor-query-BXpRV_b-.js:1
+start @ vendor-query-BXpRV_b-.js:1
+execute @ vendor-query-BXpRV_b-.js:1
+await in execute
+mutate @ vendor-query-BXpRV_b-.js:1
+na @ user-management-CxzuqnZA.js:1
+(anonymous) @ vendor-forms-Bj8H2n7H.js:1
+await in (anonymous)
+Gm @ index-BntpFPzN.js:25
+(anonymous) @ index-BntpFPzN.js:25
+$u @ index-BntpFPzN.js:25
+wr @ index-BntpFPzN.js:25
+Fr @ index-BntpFPzN.js:26
+Bv @ index-BntpFPzN.js:26
+index-BntpFPzN.js:26 Uncaught (in promise) Error: 500: Internal Server Error
+    at Ep (index-BntpFPzN.js:26:39921)
+    at async sA (index-BntpFPzN.js:26:40183)
+    at async Object.mutationFn (user-management-CxzuqnZA.js:1:48347)
+Ep @ index-BntpFPzN.js:26
+await in Ep
+sA @ index-BntpFPzN.js:26
+await in sA
+mutationFn @ user-management-CxzuqnZA.js:1
+fn @ vendor-query-BXpRV_b-.js:1
+m @ vendor-query-BXpRV_b-.js:1
+start @ vendor-query-BXpRV_b-.js:1
+execute @ vendor-query-BXpRV_b-.js:1
+await in execute
+mutate @ vendor-query-BXpRV_b-.js:1
+na @ user-management-CxzuqnZA.js:1
+(anonymous) @ vendor-forms-Bj8H2n7H.js:1
+await in (anonymous)
+Gm @ index-BntpFPzN.js:25
+(anonymous) @ index-BntpFPzN.js:25
+$u @ index-BntpFPzN.js:25
+wr @ index-BntpFPzN.js:25
+Fr @ index-BntpFPzN.js:26
+Bv @ index-BntpFPzN.js:26

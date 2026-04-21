@@ -38,28 +38,17 @@ export interface HelpContent {
 
 export const helpContentMap: Record<string, HelpContent> = {
   // ===== DASHBOARD PAGES =====
-  '/dashboard/quick-actions': {
+  '/dashboard/overview': {
     title: { en: 'Main Dashboard', fr: 'Tableau de Bord Principal' },
     description: { en: 'Your central hub for quick access to all features and recent activity.', fr: 'Votre hub central pour un accès rapide à toutes les fonctionnalités et l\'activité récente.' },
     goal: { en: 'Get a quick overview of your property management tasks and navigate to specific areas.', fr: 'Obtenez un aperçu rapide de vos tâches de gestion immobilière et naviguez vers des zones spécifiques.' },
     howToUse: { en: 'Click on any card to navigate to that section. The dashboard shows your most important information at a glance.', fr: 'Cliquez sur n\'importe quelle carte pour naviguer vers cette section. Le tableau de bord affiche vos informations les plus importantes en un coup d\'œil.' },
     buttons: [
       { label: { en: 'Fullscreen Toggle', fr: 'Basculer Plein Écran' }, description: { en: 'Expand the view to use the full screen for better visibility', fr: 'Agrandissez la vue pour utiliser le plein écran et améliorer la visibilité' } },
-      { label: { en: 'Quick Action Cards', fr: 'Cartes d\'Actions Rapides' }, description: { en: 'Click any card to navigate to that specific feature area', fr: 'Cliquez sur n\'importe quelle carte pour naviguer vers cette zone de fonctionnalité spécifique' } },
+      { label: { en: 'Quick Action Cards', fr: 'Cartes d\'Actions Rapides' }, description: { en: 'Click any card to navigate to that specific feature area', fr: 'Cliquez sur n\'importe quelle carte pour naviger vers cette zone de fonctionnalité spécifique' } },
     ],
     relationships: [
       { page: { en: 'All Pages', fr: 'Toutes les Pages' }, description: { en: 'The dashboard provides quick links to all major sections of the application', fr: 'Le tableau de bord fournit des liens rapides vers toutes les sections principales de l\'application' } },
-    ],
-  },
-  '/dashboard/calendar': {
-    title: { en: 'Calendar', fr: 'Calendrier' },
-    description: { en: 'View and manage all scheduled events, maintenance appointments, and important dates.', fr: 'Consultez et gérez tous les événements planifiés, rendez-vous d\'entretien et dates importantes.' },
-    goal: { en: 'Keep track of all events, bookings, and scheduled activities across your properties.', fr: 'Gardez une trace de tous les événements, réservations et activités planifiées pour vos immeubles.' },
-    howToUse: { en: 'View events by day, week, or month. Click on an event to see details or create new events using the Add button.', fr: 'Visualisez les événements par jour, semaine ou mois. Cliquez sur un événement pour voir les détails ou créez de nouveaux événements avec le bouton Ajouter.' },
-    buttons: [
-      { label: { en: 'Add Event', fr: 'Ajouter Événement' }, description: { en: 'Create a new calendar event or appointment', fr: 'Créer un nouvel événement ou rendez-vous au calendrier' } },
-      { label: { en: 'View Toggle', fr: 'Basculer Affichage' }, description: { en: 'Switch between day, week, and month views', fr: 'Basculer entre les vues par jour, semaine et mois' } },
-      { label: { en: 'Today', fr: 'Aujourd\'hui' }, description: { en: 'Jump to today\'s date quickly', fr: 'Accéder rapidement à la date d\'aujourd\'hui' } },
     ],
   },
   '/dashboard/communication': {
@@ -95,18 +84,6 @@ export const helpContentMap: Record<string, HelpContent> = {
     goal: { en: 'Provide comprehensive documentation for administrators and users.', fr: 'Fournir une documentation complète pour les administrateurs et les utilisateurs.' },
     howToUse: { en: 'Browse documentation by category, search for specific topics, and manage documentation files.', fr: 'Parcourez la documentation par catégorie, recherchez des sujets spécifiques et gérez les fichiers de documentation.' },
   },
-  '/admin/pillars': {
-    title: { en: 'Pillars Management', fr: 'Gestion des Piliers' },
-    description: { en: 'Define the core pillars and principles of the property management system.', fr: 'Définissez les piliers et principes fondamentaux du système de gestion immobilière.' },
-    goal: { en: 'Establish and maintain the fundamental principles that guide property management operations.', fr: 'Établissez et maintenez les principes fondamentaux qui guident les opérations de gestion immobilière.' },
-    howToUse: { en: 'View, add, or edit the pillars that define your management approach.', fr: 'Consultez, ajoutez ou modifiez les piliers qui définissent votre approche de gestion.' },
-  },
-  '/admin/roadmap': {
-    title: { en: 'Product Roadmap', fr: 'Feuille de Route Produit' },
-    description: { en: 'View and manage the product development roadmap.', fr: 'Consultez et gérez la feuille de route du développement du produit.' },
-    goal: { en: 'Track upcoming features, improvements, and the development timeline.', fr: 'Suivez les fonctionnalités à venir, les améliorations et le calendrier de développement.' },
-    howToUse: { en: 'See planned features, their status, and expected release dates.', fr: 'Consultez les fonctionnalités planifiées, leur statut et les dates de sortie prévues.' },
-  },
   '/admin/quality': {
     title: { en: 'Quality Management', fr: 'Gestion de la Qualité' },
     description: { en: 'Monitor and manage quality metrics across the system.', fr: 'Surveillez et gérez les indicateurs de qualité dans le système.' },
@@ -118,12 +95,6 @@ export const helpContentMap: Record<string, HelpContent> = {
     description: { en: 'Track and manage regulatory compliance requirements.', fr: 'Suivez et gérez les exigences de conformité réglementaire.' },
     goal: { en: 'Ensure all properties and operations meet legal and regulatory standards.', fr: 'Assurez que tous les immeubles et opérations respectent les normes légales et réglementaires.' },
     howToUse: { en: 'Monitor compliance status, view requirements, and manage compliance documentation.', fr: 'Surveillez le statut de conformité, consultez les exigences et gérez la documentation de conformité.' },
-  },
-  '/admin/suggestions': {
-    title: { en: 'Suggestions Management', fr: 'Gestion des Suggestions' },
-    description: { en: 'Review and manage suggestions from users across the system.', fr: 'Examinez et gérez les suggestions des utilisateurs dans le système.' },
-    goal: { en: 'Collect and evaluate improvement suggestions to enhance the platform.', fr: 'Collectez et évaluez les suggestions d\'amélioration pour améliorer la plateforme.' },
-    howToUse: { en: 'Review submitted suggestions, categorize them, and decide on implementation.', fr: 'Examinez les suggestions soumises, catégorisez-les et décidez de leur mise en œuvre.' },
   },
   '/admin/permissions': {
     title: { en: 'Permissions Management', fr: 'Gestion des Permissions' },
@@ -222,13 +193,22 @@ export const helpContentMap: Record<string, HelpContent> = {
       { label: { en: 'Close', fr: 'Fermer' }, description: { en: 'Close this dialog', fr: 'Fermer cette fenêtre' } },
     ],
     formFields: [
-      { label: { en: 'Supplier/Vendor', fr: 'Fournisseur' }, description: { en: 'Who the bill is from', fr: 'De qui provient le compte' }, required: true },
-      { label: { en: 'Amount', fr: 'Montant' }, description: { en: 'Total bill amount in dollars', fr: 'Montant total du compte en dollars' }, required: true },
-      { label: { en: 'Category', fr: 'Catégorie' }, description: { en: 'Type of expense (utilities, maintenance, etc.)', fr: 'Type de dépense (services publics, entretien, etc.)' }, required: true },
-      { label: { en: 'Due Date', fr: 'Date d\'Échéance' }, description: { en: 'When payment is due', fr: 'Quand le paiement est dû' } },
-      { label: { en: 'Payment Type', fr: 'Type de Paiement' }, description: { en: 'Recurring (repeats automatically) or Unique (one-time expense)', fr: 'Récurrent (se répète automatiquement) ou Unique (dépense ponctuelle)' }, required: true },
-      { label: { en: 'Status', fr: 'Statut' }, description: { en: 'Pending, Paid, or Overdue', fr: 'En attente, Payé ou En retard' } },
-      { label: { en: 'Recurrence', fr: 'Récurrence' }, description: { en: 'For recurring bills: how often it repeats (monthly, quarterly, yearly)', fr: 'Pour les comptes récurrents : fréquence de répétition (mensuelle, trimestrielle, annuelle)' } },
+      { label: { en: 'Title', fr: 'Titre' }, description: { en: 'A descriptive name for this bill', fr: 'Un nom descriptif pour ce compte' }, required: true },
+      { label: { en: 'Description', fr: 'Description' }, description: { en: 'Additional details about this bill', fr: 'Détails supplémentaires sur ce compte' } },
+      { label: { en: 'Category', fr: 'Catégorie' }, description: { en: 'Type of expense (utilities, maintenance, insurance, etc.)', fr: 'Type de dépense (services publics, entretien, assurance, etc.)' }, required: true },
+      { label: { en: 'Vendor', fr: 'Fournisseur' }, description: { en: 'The company or person you pay for this bill', fr: 'L\'entreprise ou la personne que vous payez pour ce compte' } },
+      { label: { en: 'Status', fr: 'Statut' }, description: { en: 'Current state of the bill. Draft bills are saved but not finalized - ideal for bills you\'re still working on before sending or approving.', fr: 'État actuel du compte. Les comptes brouillons sont enregistrés mais non finalisés - idéal pour les comptes sur lesquels vous travaillez encore avant de les envoyer ou approuver.' } },
+      { label: { en: 'Bill Type', fr: 'Type de Compte' }, description: { en: 'Unique bills occur once. Recurring bills repeat automatically (e.g., yearly with single payment, or monthly installments)', fr: 'Les factures uniques se produisent une fois. Les factures récurrentes se répètent automatiquement (p. ex., annuellement avec paiement unique, ou versements mensuels)' }, required: true },
+      { label: { en: 'Payment Structure', fr: 'Structure de Paiement' }, description: { en: 'Single payment = paid in one lump sum. Installment plan = split into multiple scheduled payments', fr: 'Paiement unique = payé en une seule somme. Plan de versements = divisé en plusieurs paiements planifiés' }, required: true },
+      { label: { en: 'Payment Amount', fr: 'Montant du Paiement' }, description: { en: 'Enter the amount for this single payment', fr: 'Entrez le montant pour ce paiement unique' }, required: true },
+      { label: { en: 'Start Date', fr: 'Date de Début' }, description: { en: 'When this bill starts or when the first payment is due', fr: 'Quand ce compte commence ou quand le premier paiement est dû' }, required: true },
+      { label: { en: 'Year Interval', fr: 'Intervalle d\'Années' }, description: { en: 'How many years between each occurrence (1-99). For example, enter 3 for bills that occur every 3 years.', fr: 'Nombre d\'années entre chaque occurrence (1-99). Par exemple, entrez 3 pour les factures qui se produisent tous les 3 ans.' } },
+      { label: { en: 'Recurrence End Date', fr: 'Date de fin de récurrence' }, description: { en: 'Optional. Specify when this recurring bill should stop. Leave empty for ongoing bills. For example, a yearly bill starting in 2024 with no end date will recur every year indefinitely.', fr: 'Optionnel. Spécifiez quand cette facture récurrente devrait cesser. Laissez vide pour les factures continues. Par exemple, une facture annuelle commençant en 2024 sans date de fin se répétera chaque année indéfiniment.' } },
+      { label: { en: 'Payment Schedule', fr: 'Échéancier de Paiement' }, description: { en: 'How often installment payments occur (weekly, monthly, quarterly, yearly, or custom)', fr: 'Fréquence des versements (hebdomadaire, mensuel, trimestriel, annuel ou personnalisé)' } },
+      { label: { en: 'Initial Payment', fr: 'Paiement Initial' }, description: { en: 'Is there an upfront payment different from recurring amounts?', fr: 'Y a-t-il un paiement initial différent des montants récurrents?' } },
+      { label: { en: 'Equal Recurring Payments', fr: 'Paiements Récurrents Égaux' }, description: { en: 'Are all recurring payment amounts the same?', fr: 'Tous les montants de paiement récurrents sont-ils les mêmes?' } },
+      { label: { en: 'Initial Payment Amount', fr: 'Montant du Paiement Initial' }, description: { en: 'Amount for the upfront payment', fr: 'Montant du paiement initial' } },
+      { label: { en: 'Recurring Payment Amount', fr: 'Montant du Paiement Récurrent' }, description: { en: 'Amount for each recurring payment', fr: 'Montant de chaque paiement récurrent' } },
     ],
     relationships: [
       { page: { en: 'Budget', fr: 'Budget' }, description: { en: 'Bills are used to calculate budget forecasts. Recurring bills create automatic future expenses, while unique bills are one-time entries.', fr: 'Les comptes sont utilisés pour calculer les prévisions budgétaires. Les comptes récurrents créent des dépenses futures automatiques, tandis que les comptes uniques sont des entrées ponctuelles.' } },
@@ -237,23 +217,32 @@ export const helpContentMap: Record<string, HelpContent> = {
   },
   '/manager/budget': {
     title: { en: 'Budget & Forecast', fr: 'Budget et Prévisions' },
-    description: { en: 'View financial forecasts and manage budget settings.', fr: 'Consultez les prévisions financières et gérez les paramètres budgétaires.' },
-    goal: { en: 'Plan finances, forecast cash flow, and ensure sufficient funds for operations.', fr: 'Planifiez les finances, prévoyez les flux de trésorerie et assurez des fonds suffisants pour les opérations.' },
-    howToUse: { en: 'View projected income and expenses over time. Adjust settings like inflation rates and starting balance to get accurate forecasts.', fr: 'Consultez les revenus et dépenses projetés dans le temps. Ajustez les paramètres comme les taux d\'inflation et le solde de départ pour obtenir des prévisions précises.' },
+    description: { en: 'View financial forecasts and manage budget settings including revenue configuration, bills management, and capital investment scenarios.', fr: 'Consultez les prévisions financières et gérez les paramètres budgétaires incluant la configuration des revenus, la gestion des comptes et les scénarios d\'investissements en capital.' },
+    goal: { en: 'Plan finances, forecast cash flow, ensure sufficient funds for operations, and strategize capital investments to maintain building health and financial stability.', fr: 'Planifiez les finances, prévoyez les flux de trésorerie, assurez des fonds suffisants pour les opérations et stratégisez les investissements en capital pour maintenir la santé de l\'immeuble et la stabilité financière.' },
+    howToUse: { en: 'View projected income and expenses over time. Configure revenue growth rates, plan punctual fee increases, manage unplanned bills, and choose capital investment strategies. The forecast shows solid lines for past/current data and dotted lines for future projections.', fr: 'Consultez les revenus et dépenses projetés dans le temps. Configurez les taux de croissance des revenus, planifiez les augmentations ponctuelles de frais, gérez les comptes imprévus et choisissez les stratégies d\'investissements en capital. Les prévisions affichent des lignes pleines pour les données passées/actuelles et des lignes pointillées pour les projections futures.' },
     buttons: [
       { label: { en: 'Settings', fr: 'Paramètres' }, description: { en: 'Configure budget parameters like starting balance, inflation rates, and financial year start', fr: 'Configurez les paramètres budgétaires comme le solde de départ, les taux d\'inflation et le début de l\'année financière' } },
       { label: { en: 'Refresh', fr: 'Actualiser' }, description: { en: 'Recalculate the forecast with current data', fr: 'Recalculer les prévisions avec les données actuelles' } },
       { label: { en: 'Filter', fr: 'Filtrer' }, description: { en: 'Adjust what data is shown in the forecast', fr: 'Ajuster les données affichées dans les prévisions' } },
+      { label: { en: 'Add Punctual Growth', fr: 'Ajouter Croissance Ponctuelle' }, description: { en: 'Plan a specific condo fee increase for a particular month and year', fr: 'Planifier une augmentation spécifique des frais de copropriété pour un mois et une année particuliers' } },
+      { label: { en: 'Save Revenue Configuration', fr: 'Enregistrer Configuration des Revenus' }, description: { en: 'Save changes to revenue growth rates and punctual increases', fr: 'Enregistrer les modifications aux taux de croissance des revenus et augmentations ponctuelles' } },
+      { label: { en: 'Save Bills Configuration', fr: 'Enregistrer Configuration des Comptes' }, description: { en: 'Save unplanned bills settings and inflation configurations', fr: 'Enregistrer les paramètres de comptes imprévus et configurations d\'inflation' } },
     ],
     formFields: [
-      { label: { en: 'Bank Account Start Amount', fr: 'Montant de Départ du Compte Bancaire' }, description: { en: 'Your current or starting bank balance', fr: 'Votre solde bancaire actuel ou de départ' }, required: true },
+      { label: { en: 'Bank Account Start Amount', fr: 'Montant de Départ du Compte Bancaire' }, description: { en: 'Your current or starting bank balance for the forecast', fr: 'Votre solde bancaire actuel ou de départ pour les prévisions' }, required: true },
       { label: { en: 'Start Date', fr: 'Date de Début' }, description: { en: 'When to begin the forecast from', fr: 'À partir de quand commencer les prévisions' } },
-      { label: { en: 'Minimum Balance', fr: 'Solde Minimum' }, description: { en: 'Alert threshold for low funds', fr: 'Seuil d\'alerte pour fonds insuffisants' } },
-      { label: { en: 'General Inflation Rate', fr: 'Taux d\'Inflation Général' }, description: { en: 'Expected annual inflation percentage for cost increases', fr: 'Pourcentage d\'inflation annuel prévu pour les augmentations de coûts' } },
+      { label: { en: 'Minimum Balance', fr: 'Solde Minimum' }, description: { en: 'Alert threshold for low funds - used in capital investment calculations', fr: 'Seuil d\'alerte pour fonds insuffisants - utilisé dans les calculs d\'investissements en capital' } },
+      { label: { en: 'General Inflation Rate', fr: 'Taux d\'Inflation Général' }, description: { en: 'Expected annual inflation percentage applied to costs', fr: 'Pourcentage d\'inflation annuel prévu appliqué aux coûts' } },
+      { label: { en: 'Revenue Growth Rate (%)', fr: 'Taux de Croissance des Revenus (%)' }, description: { en: 'Annual baseline percentage increase applied to all revenues every year, representing regular inflation and cost adjustments. This is applied automatically unless overridden by punctual revenue growth with inflation included.', fr: 'Pourcentage d\'augmentation annuelle de base appliqué à tous les revenus chaque année, représentant l\'inflation régulière et les ajustements de coûts. Ceci est appliqué automatiquement sauf si remplacé par une croissance ponctuelle des revenus avec inflation incluse.' }, required: false },
+      { label: { en: 'Punctual Revenue Growth', fr: 'Croissance Ponctuelle des Revenus' }, description: { en: 'Specific condo fee increases planned for particular months and years, such as special assessments or one-time rate adjustments. Each entry includes a year, month, percentage increase, and "Inflation Included" toggle.', fr: 'Augmentations spécifiques des frais de copropriété prévues pour des mois et années particuliers, comme les évaluations spéciales ou les ajustements ponctuels de tarifs. Chaque entrée inclut une année, un mois, un pourcentage d\'augmentation et un bouton "Inflation Incluse".' }, required: false },
+      { label: { en: 'Inflation Included', fr: 'Inflation Incluse' }, description: { en: 'When enabled for a punctual growth entry, this indicates that the percentage increase already accounts for inflation. The system will skip applying the regular Revenue Growth Rate for that specific period to avoid double-counting inflation. Use this when planning fee increases that already factor in yearly inflation.', fr: 'Lorsqu\'activé pour une entrée de croissance ponctuelle, ceci indique que le pourcentage d\'augmentation tient déjà compte de l\'inflation. Le système n\'appliquera pas le taux de croissance des revenus régulier pour cette période spécifique afin d\'éviter de compter l\'inflation deux fois. Utilisez ceci lors de la planification d\'augmentations de frais qui tiennent déjà compte de l\'inflation annuelle.' }, required: false },
+      { label: { en: 'Unplanned Bills Amount', fr: 'Montant des Comptes Imprévus' }, description: { en: 'Annual budget allocation for unexpected expenses. Based on historical data from your unique (non-recurring) bills.', fr: 'Allocation budgétaire annuelle pour les dépenses imprévues. Basé sur les données historiques de vos comptes uniques (non récurrents).' }, required: false },
+      { label: { en: 'Capital Investment Mode', fr: 'Mode d\'Investissement en Capital' }, description: { en: 'Choose your investment strategy: Urgent (prevents balance from falling below $0), Suggested (prevents balance from falling below minimum requirement), or Custom (manual entries only).', fr: 'Choisissez votre stratégie d\'investissement : Urgent (empêche le solde de tomber sous 0$), Suggéré (empêche le solde de tomber sous l\'exigence minimale), ou Personnalisé (entrées manuelles seulement).' }, required: false },
     ],
     relationships: [
-      { page: { en: 'Bills', fr: 'Comptes' }, description: { en: 'The budget uses your bills to forecast expenses. Recurring bills appear as repeating expenses in future months, while unique bills appear only once. This helps predict your cash flow over time.', fr: 'Le budget utilise vos comptes pour prévoir les dépenses. Les comptes récurrents apparaissent comme dépenses répétées dans les mois futurs, tandis que les comptes uniques n\'apparaissent qu\'une fois. Ceci aide à prédire votre flux de trésorerie dans le temps.' } },
-      { page: { en: 'Invoices', fr: 'Factures' }, description: { en: 'Income from invoices contributes to the revenue forecast', fr: 'Les revenus des factures contribuent aux prévisions de revenus' } },
+      { page: { en: 'Bills', fr: 'Comptes' }, description: { en: 'The budget uses your bills to forecast expenses. Recurring bills appear as repeating expenses in future months, while unique bills appear only once. Historical unique bills data informs the unplanned bills budget recommendation.', fr: 'Le budget utilise vos comptes pour prévoir les dépenses. Les comptes récurrents apparaissent comme dépenses répétées dans les mois futurs, tandis que les comptes uniques n\'apparaissent qu\'une fois. Les données historiques des comptes uniques informent la recommandation du budget des comptes imprévus.' } },
+      { page: { en: 'Invoices', fr: 'Factures' }, description: { en: 'Income from invoices contributes to the revenue forecast and is affected by revenue growth rate settings', fr: 'Les revenus des factures contribuent aux prévisions de revenus et sont affectés par les paramètres du taux de croissance des revenus' } },
+      { page: { en: 'Projects', fr: 'Projets' }, description: { en: 'Capital investment scenarios use your maintenance projects to determine when to fund major repairs and improvements', fr: 'Les scénarios d\'investissements en capital utilisent vos projets d\'entretien pour déterminer quand financer les réparations et améliorations majeures' } },
     ],
   },
   '/manager/invoices': {
@@ -310,10 +299,6 @@ export const helpContentMap: Record<string, HelpContent> = {
       { label: { en: 'Statistics', fr: 'Statistiques' }, description: { en: 'View detailed usage statistics and booking data', fr: 'Voir les statistiques d\'utilisation détaillées et les données de réservation' } },
       { label: { en: 'Calendar', fr: 'Calendrier' }, description: { en: 'See booking calendar and availability schedule', fr: 'Voir le calendrier de réservations et l\'horaire de disponibilité' } },
       { label: { en: 'Edit', fr: 'Modifier' }, description: { en: 'Edit the selected common space details and settings', fr: 'Modifier les détails et paramètres de l\'espace commun sélectionné' } },
-      { label: { en: 'edit', fr: 'modifier' }, description: { en: 'Edit the selected common space details and settings', fr: 'Modifier les détails et paramètres de l\'espace commun sélectionné' } },
-      { label: { en: 'EDIT', fr: 'MODIFIER' }, description: { en: 'Edit the selected common space details and settings', fr: 'Modifier les détails et paramètres de l\'espace commun sélectionné' } },
-      { label: { en: 'Edit Space', fr: 'Modifier Espace' }, description: { en: 'Edit the selected common space details and settings', fr: 'Modifier les détails et paramètres de l\'espace commun sélectionné' } },
-      { label: { en: 'edit space', fr: 'modifier espace' }, description: { en: 'Edit the selected common space details and settings', fr: 'Modifier les détails et paramètres de l\'espace commun sélectionné' } },
       { label: { en: 'Save', fr: 'Enregistrer' }, description: { en: 'Save your changes and close the form', fr: 'Enregistrer vos modifications et fermer le formulaire' } },
       { label: { en: 'Cancel', fr: 'Annuler' }, description: { en: 'Discard changes and close the form without saving', fr: 'Annuler les modifications et fermer le formulaire sans enregistrer' } },
       { label: { en: 'Delete', fr: 'Supprimer' }, description: { en: 'Permanently delete this item (requires confirmation)', fr: 'Supprimer définitivement cet élément (nécessite une confirmation)' } },
@@ -417,7 +402,7 @@ export const helpContentMap: Record<string, HelpContent> = {
       { label: { en: 'Location', fr: 'Emplacement' }, description: { en: 'Where in your unit the issue is located', fr: 'Où se situe le problème dans votre unité' } },
     ],
   },
-  '/residents/common-spaces': {
+  '/resident/common-spaces': {
     title: { en: 'Common Spaces', fr: 'Espaces Communs' },
     description: { en: 'Book and manage shared amenity reservations.', fr: 'Réservez et gérez les réservations d\'installations partagées.' },
     goal: { en: 'Reserve common areas like gyms, pools, and party rooms.', fr: 'Réservez des espaces communs comme les gymnases, piscines et salles de fête.' },
@@ -428,7 +413,7 @@ export const helpContentMap: Record<string, HelpContent> = {
       { label: { en: 'Cancel', fr: 'Annuler' }, description: { en: 'Cancel an existing booking', fr: 'Annuler une réservation existante' } },
     ],
   },
-  '/residents/my-calendar': {
+  '/resident/my-calendar': {
     title: { en: 'My Calendar', fr: 'Mon Calendrier' },
     description: { en: 'View your personal calendar of bookings and events.', fr: 'Consultez votre calendrier personnel de réservations et événements.' },
     goal: { en: 'Track your reservations and building events.', fr: 'Suivez vos réservations et les événements de l\'immeuble.' },
@@ -664,28 +649,27 @@ export const helpUIText = {
 };
 
 export function getHelpContent(route: string): HelpContent | null {
-  // Exact match
-  if (helpContentMap[route]) {
-    return helpContentMap[route];
+  const normalizedRoute = route.replace(/\/+$/, '') || '/';
+
+  if (helpContentMap[normalizedRoute]) {
+    return helpContentMap[normalizedRoute];
   }
 
-  // Try to match dynamic routes (e.g., /manager/buildings/:id/documents)
   for (const [key, value] of Object.entries(helpContentMap)) {
-    if (key.includes(':') || route.includes(key)) {
+    if (key.includes(':')) {
       const keyPattern = key.replace(/:[^/]+/g, '[^/]+');
       const regex = new RegExp(`^${keyPattern}$`);
-      if (regex.test(route)) {
+      if (regex.test(normalizedRoute)) {
         return value;
       }
     }
   }
 
-  // Try partial match for dynamic routes
-  if (route.includes('/documents')) {
-    if (route.includes('/manager/buildings')) return helpContentMap['/manager/buildings/documents'];
-    if (route.includes('/manager/residences')) return helpContentMap['/manager/residences/documents'];
-    if (route.includes('/residents/residence')) return helpContentMap['/residents/residence/documents'];
-    if (route.includes('/residents/building')) return helpContentMap['/residents/building/documents'];
+  if (normalizedRoute.includes('/documents')) {
+    if (normalizedRoute.includes('/manager/buildings')) return helpContentMap['/manager/buildings/documents'] || null;
+    if (normalizedRoute.includes('/manager/residences')) return helpContentMap['/manager/residences/documents'] || null;
+    if (normalizedRoute.includes('/residents/residence')) return helpContentMap['/residents/residence/documents'] || null;
+    if (normalizedRoute.includes('/residents/building')) return helpContentMap['/residents/building/documents'] || null;
   }
 
   return null;

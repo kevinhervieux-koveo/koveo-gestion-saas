@@ -123,6 +123,22 @@ export interface IStorage {
     userRole?: string;
   }): Promise<Document[]>;
   getDocument(_id: string): Promise<Document | undefined>;
+  getDocumentWithScope(
+    _documentId: string,
+    _userId: string,
+    _userRole: string,
+    _organizationIds?: string[]
+  ): Promise<Document | null>;
+  listDocumentsByScope(
+    _filters: {
+      buildingId?: string;
+      residenceId?: string;
+      documentType?: string;
+    },
+    _userId: string,
+    _userRole: string,
+    _organizationIds?: string[]
+  ): Promise<Document[]>;
   createDocument(_document: InsertDocument): Promise<Document>;
   updateDocument(_id: string, _updates: Partial<Document>): Promise<Document | undefined>;
   deleteDocument(_id: string): Promise<boolean>;
@@ -623,10 +639,10 @@ export class MemStorage implements IStorage {
       updatedAt: new Date(),
     };
   }
-  async updateContact(): Promise<Contact | undefined> {
+  async updateContact(_id: string, _updates: Partial<Contact>): Promise<Contact | undefined> {
     return undefined;
   }
-  async deleteContact(): Promise<boolean> {
+  async deleteContact(_id: string): Promise<boolean> {
     return false;
   }
 
@@ -957,7 +973,7 @@ export class MemStorage implements IStorage {
       id,
       name: feature.name,
       description: feature.description,
-      category: (feature.category as 'Dashboard & Home' | 'Property Management' | 'Resident Management' | 'Financial Management' | 'Maintenance & Requests' | 'Document Management' | 'Communication' | 'AI & Automation' | 'Development Tools' | 'Reporting & Analytics' | 'Integrations' | 'Website'),
+      category: (feature.category as 'Dashboard & Home' | 'Property Management' | 'Resident Management' | 'Financial Management' | 'Maintenance & Requests' | 'Document Management' | 'Communication' | 'AI & Automation' | 'Compliance & Security' | 'Analytics & Reporting' | 'Integration & API' | 'Infrastructure & Performance' | 'Website'),
       status: (feature.status as 'submitted' | 'planned' | 'in-progress' | 'ai-analyzed' | 'completed' | 'cancelled') || 'submitted',
       priority: (feature.priority as 'low' | 'medium' | 'high' | 'critical') || 'medium',
       isPublicRoadmap: true,
@@ -1054,18 +1070,32 @@ export class MemStorage implements IStorage {
   }
   async createInvitation(invitation: InsertInvitation): Promise<Invitation> {
     const id = randomUUID();
+    const token = randomUUID();
     const newInvitation: Invitation = {
       ...invitation,
       id,
-      token: randomUUID(),
+      email: invitation.email,
+      role: invitation.role,
+      invitedByUserId: invitation.invitedByUserId,
+      expiresAt: invitation.expiresAt,
+      token,
+      tokenHash: token,
+      organizationId: (invitation as any).organizationId || null,
+      buildingId: (invitation as any).buildingId || null,
+      residenceId: (invitation as any).residenceId || null,
+      usageCount: 0,
+      maxUsageCount: (invitation as any).maxUsageCount || 1,
+      personalMessage: (invitation as any).personalMessage || null,
+      invitationContext: (invitation as any).invitationContext || null,
+      securityLevel: (invitation as any).securityLevel || null,
+      requires2fa: (invitation as any).requires2fa || false,
       createdAt: new Date(),
       updatedAt: new Date(),
-      status: 'pending' as 'pending' | 'accepted' | 'expired' | 'cancelled',
+      status: 'pending' as 'pending' | 'accepted' | 'expired' | 'cancelled' | 'replaced',
       ipAddress: '',
       userAgent: '',
-      tokenHash: null,
       acceptedAt: null,
-      revokedByUserId: null,
+      acceptedBy: null,
       lastAccessedAt: null,
     };
     this.invitations.set(id, newInvitation);
@@ -1265,9 +1295,13 @@ export class MemStorage implements IStorage {
       title: request.title,
       description: request.description,
       category: request.category,
-      priority: request.priority,
+      need: request.need || '',
+      page: request.page || '',
       filePath: request.filePath || null,
+      fileName: request.fileName || null,
+      fileSize: request.fileSize || null,
       status: 'submitted',
+      createdBy: request.createdBy,
       createdAt: new Date(),
       updatedAt: new Date(),
       upvoteCount: 0,
@@ -1390,15 +1424,8 @@ class ProductionFallbackStorage implements IStorage {
 
   // User operations with fallback
   async getUserByEmail(email: string): Promise<User | undefined> {
-    // Debug logging removed
-    try {
-      const user = await this.safeDbOperation(() => this.dbStorage.getUserByEmail(email));
-      // Debug logging removed
-      return user;
-    } catch (error: any) {
-      // Error handling maintained without debug logging
-      throw error;
-    }
+    const user = await this.safeDbOperation(() => this.dbStorage.getUserByEmail(email));
+    return user;
   }
 
   async getUsers(): Promise<User[]> {
@@ -1695,6 +1722,21 @@ class ProductionFallbackStorage implements IStorage {
     return {
       ...doc,
       id,
+      name: doc.name,
+      description: doc.description || null,
+      documentType: doc.documentType,
+      filePath: doc.filePath,
+      fileName: doc.fileName || null,
+      fileSize: doc.fileSize || null,
+      mimeType: doc.mimeType || null,
+      isVisibleToTenants: doc.isVisibleToTenants || false,
+      isQuarantined: doc.isQuarantined || false,
+      residenceId: doc.residenceId || null,
+      buildingId: doc.buildingId || null,
+      uploadedById: doc.uploadedById,
+      attachedToType: doc.attachedToType || null,
+      attachedToId: doc.attachedToId || null,
+      effectiveDate: doc.effectiveDate ? new Date(doc.effectiveDate) : null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -1711,6 +1753,21 @@ class ProductionFallbackStorage implements IStorage {
     return {
       ...doc,
       id,
+      name: doc.name,
+      description: doc.description || null,
+      documentType: doc.documentType,
+      filePath: doc.filePath,
+      fileName: doc.fileName || null,
+      fileSize: doc.fileSize || null,
+      mimeType: doc.mimeType || null,
+      isVisibleToTenants: doc.isVisibleToTenants || false,
+      isQuarantined: doc.isQuarantined || false,
+      residenceId: doc.residenceId || null,
+      buildingId: doc.buildingId || null,
+      uploadedById: doc.uploadedById,
+      attachedToType: doc.attachedToType || null,
+      attachedToId: doc.attachedToId || null,
+      effectiveDate: doc.effectiveDate ? new Date(doc.effectiveDate) : null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -1908,9 +1965,85 @@ class ProductionFallbackStorage implements IStorage {
     return { success: true, message: 'Fallback mode' };
   }
 
+  async getOrganizationByName(name: string): Promise<Organization | undefined> {
+    try {
+      return await this.safeDbOperation(() => this.dbStorage.getOrganizationByName(name));
+    } catch {
+      return this.memStorage.getOrganizationByName(name);
+    }
+  }
 
+  async getContactsByEntity(entityId: string, entity: 'organization' | 'building' | 'residence'): Promise<Contact[]> {
+    return [];
+  }
 
+  async getContactsForResidence(residenceId: string): Promise<Array<Contact & { user: User }>> {
+    return [];
+  }
 
+  async getInvoices(filters?: { buildingId?: string; residenceId?: string; userId?: string; userRole?: string }): Promise<Invoice[]> {
+    return [];
+  }
+
+  async getInvoice(id: string): Promise<Invoice | undefined> {
+    return undefined;
+  }
+
+  async createInvoice(invoice: InsertInvoice): Promise<Invoice> {
+    throw new Error('Not implemented in fallback');
+  }
+
+  async updateInvoice(id: string, updates: Partial<Invoice>): Promise<Invoice | undefined> {
+    return undefined;
+  }
+
+  async deleteInvoice(id: string): Promise<boolean> {
+    return false;
+  }
+
+  async getInvitationAuditLogs(): Promise<InvitationAuditLog[]> {
+    return [];
+  }
+
+  async createInvitationAuditLog(log: InsertInvitationAuditLog): Promise<InvitationAuditLog> {
+    throw new Error('Not implemented in fallback');
+  }
+
+  async getCommentsByDemand(demandId: string): Promise<DemandComment[]> {
+    return [];
+  }
+
+  async createDemandComment(comment: InsertDemandComment): Promise<DemandComment> {
+    throw new Error('Not implemented in fallback');
+  }
+
+  async getFeatureRequestsForUser(userId: string, role: string, organizationId?: string): Promise<FeatureRequest[]> {
+    return [];
+  }
+
+  async deleteActionableItem(id: string): Promise<boolean> {
+    return false;
+  }
+
+  async clearNewSuggestions(): Promise<void> {
+    return;
+  }
+
+  async updateSuggestionStatus(id: string, status: string): Promise<ImprovementSuggestion | undefined> {
+    return undefined;
+  }
+
+  async getTopImprovementSuggestions(limit: number): Promise<ImprovementSuggestion[]> {
+    return [];
+  }
+
+  async getFeaturesByStatus(status: string): Promise<Feature[]> {
+    return [];
+  }
+
+  async getPublicRoadmapFeatures(): Promise<Feature[]> {
+    return [];
+  }
 }
 
 // Use optimized database storage for production

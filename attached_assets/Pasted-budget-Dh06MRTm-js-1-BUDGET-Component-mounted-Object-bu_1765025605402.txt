@@ -1,0 +1,64 @@
+budget-Dh06MRTm.js:1 🔍 [BUDGET] Component mounted Object
+budget-Dh06MRTm.js:1 🔍 [BUDGET] Context changed: Object
+budget-Dh06MRTm.js:1 🔍 [BUDGET] Filters updated: Object
+budget-Dh06MRTm.js:1 🔍 [BUDGET] Filters updated: Object
+budget-Dh06MRTm.js:1 🔍 [BUDGET] Filters updated: Object
+budget-Dh06MRTm.js:1 🔍 [BUDGET] Filters updated: Object
+budget-Dh06MRTm.js:1 🔍 [BUDGET] Filters updated: Object
+budget-Dh06MRTm.js:1 🔍 [BUDGET] Filters updated: Object
+bills-DHz6L2GZ.js:1 🔍 [BILLS] Component mounted Object
+bills-DHz6L2GZ.js:1 🔍 [BILLS] Context changed: Object
+bills-DHz6L2GZ.js:1 🔍 [BILLS] Filters updated: Object
+bills-DHz6L2GZ.js:1 🔍 [BILLS] Fetching bills with params: Object
+bills-DHz6L2GZ.js:1 🔍 [BILLS] Filters updated: Object
+bills-DHz6L2GZ.js:1 🔍 [BILLS] Fetching bills with params: Object
+bills-DHz6L2GZ.js:1 🔍 [BILLS] Filters updated: Object
+bills-DHz6L2GZ.js:1 🔍 [BILLS] Fetching bills with params: Object
+budget-Dh06MRTm.js:1 🔍 [BUDGET] Component mounted Object
+budget-Dh06MRTm.js:1 🔍 [BUDGET] Context changed: Object
+budget-Dh06MRTm.js:1 🔍 [BUDGET] Filters updated: Object
+budget-Dh06MRTm.js:1 🔍 [BUDGET] Filters updated: Object
+budget-Dh06MRTm.js:1 🔍 [BUDGET] Filters updated: Object
+budget-Dh06MRTm.js:1 🔍 [BUDGET] Filters updated: Object
+budget-Dh06MRTm.js:1 🔍 [BUDGET] Filters updated: Object
+index-rZ_-a5tj.js:6 🔍 [PROJECTS] Component initialized Object
+index-rZ_-a5tj.js:6 🔍 [PROJECTS] Project overview section toggled: Object
+index-rZ_-a5tj.js:6 🔍 [PROJECTS] Projects table section toggled: Object
+index-rZ_-a5tj.js:6 🔍 [PROJECTS] Projects table section toggled: Object
+index-rZ_-a5tj.js:6 🔍 [PROJECTS] User action: View project Object
+index-rZ_-a5tj.js:6 🔍 [PROJECTS] Modal opened: Project workflow Object
+/api/maintenance/projects/2b9c29bf-0e86-4e1c-88fb-a6ef32f9b679:1  Failed to load resource: the server responded with a status of 403 ()
+installHook.js:1 Failed to delete project: Error: 403: {"error":"Only quick projects can be deleted. Regular projects must be archived instead."}
+    at Mp (index-BXhGZWvI.js:10:39921)
+    at async tA (index-BXhGZWvI.js:10:40183)
+    at async Object.mutationFn (useProjectWorkflow-8MFghFJl.js:1:12535)
+overrideMethod @ installHook.js:1
+index-rZ_-a5tj.js:6 🔍 [PROJECTS] User action: Edit project Object
+index-rZ_-a5tj.js:6 🔍 [PROJECTS] User action: View project Object
+index-rZ_-a5tj.js:6 🔍 [PROJECTS] Modal opened: Project workflow Object
+/api/maintenance/projects/2b9c29bf-0e86-4e1c-88fb-a6ef32f9b679:1  Failed to load resource: the server responded with a status of 403 ()
+installHook.js:1 Failed to delete project: Error: 403: {"error":"Only quick projects can be deleted. Regular projects must be archived instead."}
+    at Mp (index-BXhGZWvI.js:10:39921)
+    at async tA (index-BXhGZWvI.js:10:40183)
+    at async Object.mutationFn (useProjectWorkflow-8MFghFJl.js:1:12535)
+overrideMethod @ installHook.js:1
+budget-Dh06MRTm.js:1 🔍 [BUDGET] Component mounted Object
+budget-Dh06MRTm.js:1 🔍 [BUDGET] Context changed: Object
+budget-Dh06MRTm.js:1 🔍 [BUDGET] Filters updated: Object
+budget-Dh06MRTm.js:1 🔍 [BUDGET] Filters updated: Object
+budget-Dh06MRTm.js:1 🔍 [BUDGET] Filters updated: Object
+budget-Dh06MRTm.js:1 🔍 [BUDGET] Filters updated: Object
+budget-Dh06MRTm.js:1 🔍 [BUDGET] Filters updated: Object
+index-rZ_-a5tj.js:6 🔍 [PROJECTS] Component initialized Object
+index-rZ_-a5tj.js:6 🔍 [PROJECTS] Project overview section toggled: Object
+index-rZ_-a5tj.js:6 🔍 [PROJECTS] Projects table section toggled: Object
+index-rZ_-a5tj.js:6 🔍 [PROJECTS] Projects table section toggled: Object
+index-rZ_-a5tj.js:6 🔍 [PROJECTS] User action: Edit project Object
+index-rZ_-a5tj.js:6 🔍 [PROJECTS] User action: View project Object
+index-rZ_-a5tj.js:6 🔍 [PROJECTS] Modal opened: Project workflow Object
+/api/maintenance/projects/2b9c29bf-0e86-4e1c-88fb-a6ef32f9b679:1  Failed to load resource: the server responded with a status of 403 ()
+installHook.js:1 Failed to delete project: Error: 403: {"error":"Only quick projects can be deleted. Regular projects must be archived instead."}
+    at Mp (index-BXhGZWvI.js:10:39921)
+    at async tA (index-BXhGZWvI.js:10:40183)
+    at async Object.mutationFn (useProjectWorkflow-8MFghFJl.js:1:12535)
+overrideMethod @ installHook.js:1

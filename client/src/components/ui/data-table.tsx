@@ -426,7 +426,9 @@ export function DataTable<TData, TValue>({
                     data-testid={`table-row-${row.id}`}
                   >
                     {enableRowSelection && (
-                      <TableCell>
+                      <TableCell
+                        onClick={(e) => e.stopPropagation()}
+                      >
                         <Checkbox
                           checked={row.getIsSelected()}
                           onCheckedChange={(value) => row.toggleSelected(!!value)}

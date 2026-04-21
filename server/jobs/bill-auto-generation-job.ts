@@ -13,27 +13,28 @@ export class BillAutoGenerationJobScheduler {
   /**
    * Initialize the job scheduler.
    */
+  private isDev = process.env.NODE_ENV === 'development';
+
   init(): void {
-    console.log('🕐 Initializing bill auto-generation job scheduler...');
+    if (this.isDev) console.log('🕐 Initializing bill auto-generation job scheduler...');
     
-    // Schedule for the first day of each month at 2:00 AM
-    // This gives time for building managers to update recurrent bills in December
     cron.schedule('0 2 1 1 *', async () => {
       await this.runMonthlyGeneration();
     }, {
-      timezone: 'America/Montreal' // Quebec timezone
+      timezone: 'America/Montreal'
     });
 
-    // Optional: Daily check for any missed generations (runs at 3:00 AM)
     cron.schedule('0 3 * * *', async () => {
       await this.runDailyCheck();
     }, {
       timezone: 'America/Montreal'
     });
 
-    console.log('✅ Bill auto-generation jobs scheduled');
-    console.log('📅 Monthly generation: 1st January at 2:00 AM (America/Montreal)');
-    console.log('🔍 Daily check: Every day at 3:00 AM (America/Montreal)');
+    if (this.isDev) {
+      console.log('✅ Bill auto-generation jobs scheduled');
+      console.log('📅 Monthly generation: 1st January at 2:00 AM (America/Montreal)');
+      console.log('🔍 Daily check: Every day at 3:00 AM (America/Montreal)');
+    }
   }
 
   /**
@@ -41,7 +42,7 @@ export class BillAutoGenerationJobScheduler {
    */
   private async runMonthlyGeneration(): Promise<void> {
     if (this.isRunning) {
-      console.log('⏭️ Monthly generation already running, skipping...');
+      if (this.isDev) console.log('⏭️ Monthly generation already running, skipping...');
       return;
     }
 
@@ -50,19 +51,16 @@ export class BillAutoGenerationJobScheduler {
       this.lastRun = new Date();
       this.runCount++;
 
-      console.log('🗓️ Starting monthly auto-generation job (January)...');
+      if (this.isDev) console.log('🗓️ Starting monthly auto-generation job (January)...');
       
       const result = await billAutoGenerationService.runScheduledGeneration();
       
       if (result.success) {
-        console.log('✅ Monthly auto-generation completed successfully');
-        console.log(`📊 ${result.summary}`);
+        if (this.isDev) console.log(`✅ Monthly auto-generation completed: ${result.summary}`);
       } else {
-        console.error('❌ Monthly auto-generation failed');
-        console.error(`💥 ${result.summary}`);
+        console.error(`❌ Monthly auto-generation failed: ${result.summary}`);
       }
 
-      // Log to application for monitoring
       this.logJobResult('monthly', result);
 
     } catch (error: any) {
@@ -77,24 +75,22 @@ export class BillAutoGenerationJobScheduler {
    */
   private async runDailyCheck(): Promise<void> {
     try {
-      console.log('🔍 Running daily auto-generation health check...');
+      if (this.isDev) console.log('🔍 Running daily auto-generation health check...');
       
-      // Check if it's January and we haven't run this month
       const now = new Date();
       if (now.getMonth() === 0 && (!this.lastRun || this.lastRun.getMonth() !== 0)) {
-        console.log('📅 January detected but monthly job hasn\'t run - triggering backup generation');
+        if (this.isDev) console.log('📅 January detected but monthly job hasn\'t run - triggering backup generation');
         await this.runMonthlyGeneration();
         return;
       }
 
-      // Basic health check - count pending recurrent bills
       const stats = await this.getGenerationStats();
       
       if (stats.pendingRecurrentBills > 0 && now.getMonth() === 0) {
-        console.log(`⚠️ Found ${stats.pendingRecurrentBills} recurrent bills that may need generation`);
+        if (this.isDev) console.log(`⚠️ Found ${stats.pendingRecurrentBills} recurrent bills that may need generation`);
       }
       
-      console.log('✅ Daily check completed');
+      if (this.isDev) console.log('✅ Daily check completed');
       
     } catch (error: any) {
       console.error('❌ Error in daily check job:', error);
@@ -109,7 +105,7 @@ export class BillAutoGenerationJobScheduler {
     buildingIds?: string[];
     forceRegenerate?: boolean;
   } = {}): Promise<any> {
-    console.log('🔄 Manual trigger requested for auto-generation job...');
+    if (this.isDev) console.log('🔄 Manual trigger requested for auto-generation job...');
     
     try {
       const result = await billAutoGenerationService.triggerManualGeneration(options);
@@ -192,17 +188,16 @@ export class BillAutoGenerationJobScheduler {
       details: result.details
     };
     
-    // In a production environment, this would write to a proper logging system
-    console.log('📋 Job Log:', JSON.stringify(logEntry, null, 2));
+    if (this.isDev) console.log('📋 Job Log:', JSON.stringify(logEntry, null, 2));
   }
 
   /**
    * Stop all scheduled jobs (for graceful shutdown).
    */
   destroy(): void {
-    console.log('🛑 Stopping bill auto-generation job scheduler...');
+    if (this.isDev) console.log('🛑 Stopping bill auto-generation job scheduler...');
     cron.getTasks().forEach(task => task.destroy());
-    console.log('✅ Job scheduler stopped');
+    if (this.isDev) console.log('✅ Job scheduler stopped');
   }
 }
 

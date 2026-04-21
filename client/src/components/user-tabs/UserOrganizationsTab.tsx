@@ -59,8 +59,6 @@ export function UserOrganizationsTab({
     onSave(selectedOrganizations);
   };
 
-  if (!user) return null;
-
   // Filter organizations based on current user's access
   // Users can only assign organizations they have access to
   const availableOrganizations = organizations.filter(org => {
@@ -71,18 +69,41 @@ export function UserOrganizationsTab({
     return currentUserOrganizations.includes(org.id);
   }).sort((a, b) => a.name.localeCompare(b.name)); // Sort alphabetically
 
+  // Debug logging to identify issues
+  useEffect(() => {
+    console.log('🏢 [ORG_TAB] Component render:', {
+      userEmail: currentUser?.email,
+      userRole: currentUser?.role,
+      totalOrganizations: organizations.length,
+      currentUserOrganizationIds: currentUserOrganizations,
+      availableOrganizationsCount: availableOrganizations.length,
+      isAdmin: currentUser?.role === 'admin',
+      isLoading
+    });
+  }, [currentUser, organizations, currentUserOrganizations, availableOrganizations.length, isLoading]);
+
+  if (!user) return null;
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Organization Assignments</CardTitle>
         <p className="text-sm text-muted-foreground">
-          Select organizations to grant access to. You can only assign organizations you have access to.
+          {currentUser?.role === 'admin' 
+            ? 'As an admin, you can assign any organization in the system.'
+            : 'Select organizations to grant access to. You can only assign organizations you have access to.'
+          }
         </p>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid gap-4 max-h-60 overflow-y-auto">
-          {availableOrganizations.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No organizations available to assign.</p>
+          {isLoading || organizations.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Loading organizations...</p>
+          ) : availableOrganizations.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No organizations available to assign. 
+              {currentUser?.role !== 'admin' && ' (Non-admin users can only assign organizations they have access to)'}
+            </p>
           ) : (
             availableOrganizations.map((org) => (
               <div key={org.id} className="flex items-center space-x-2">

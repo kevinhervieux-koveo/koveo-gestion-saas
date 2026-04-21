@@ -6,14 +6,7 @@ import bcrypt from 'bcryptjs';
 const mockModule = require('../../../__mocks__/enhanced-database-mock.js');
 const { mockDb, testUtils, mockSchema, eq, and, or, sql } = mockModule;
 
-console.log('Enhanced mock loaded - mockDb available:', !!mockDb);
-console.log('Enhanced mock loaded - testUtils available:', !!testUtils);
-console.log('Enhanced mock loaded - mockSchema available:', !!mockSchema);
-
-// Verify mock is working
 if (!mockDb) {
-  console.error('CRITICAL: mockDb is not available');
-  console.error('Available mock exports:', Object.keys(mockModule));
   throw new Error('Database mock is not available');
 }
 
@@ -235,15 +228,15 @@ describe('Invitation Table Integration Tests', () => {
     it('should join with organizations table for admin view', async () => {
       const invitationsWithOrgs = await mockDb
         .select({
-          id: schema.invitations.id,
-          email: schema.invitations.email,
-          role: schema.invitations.role,
-          status: schema.invitations.status,
-          organizationName: schema.organizations.name,
+          id: mockSchema.invitations.id,
+          email: mockSchema.invitations.email,
+          role: mockSchema.invitations.role,
+          status: mockSchema.invitations.status,
+          organizationName: mockSchema.organizations.name,
         })
-        .from(schema.invitations)
-        .leftJoin(schema.organizations, eq(schema.invitations.organizationId, schema.organizations.id))
-        .where(eq(schema.invitations.status, 'pending')) as any[];
+        .from(mockSchema.invitations)
+        .leftJoin(mockSchema.organizations, eq(mockSchema.invitations.organizationId, mockSchema.organizations.id))
+        .where(eq(mockSchema.invitations.status, 'pending')) as any[];
 
       expect(invitationsWithOrgs).toHaveLength(2);
       

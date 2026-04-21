@@ -5,7 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useBuildingContext } from '@/hooks/use-building-context';
 import { apiRequest } from '@/lib/queryClient';
 import { MaintenanceProject } from '@shared/schemas/maintenance';
-import { ProjectTable } from '@/components/maintenance/projects';
+import { ProjectTable } from '@/components/maintenance/projects/ProjectTable';
 import { cn } from '@/lib/utils';
 import {
   AlertTriangle,

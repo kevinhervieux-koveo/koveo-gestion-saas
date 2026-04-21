@@ -14,6 +14,7 @@ import * as schema from '../shared/schema';
 import { eq, and } from 'drizzle-orm';
 import { emailService } from './services/email-service';
 import { queryCache } from './query-cache';
+import { canUserAccessOrganization } from './rbac';
 
 /**
  * Check if a user role has a specific permission via database lookup.
@@ -207,9 +208,14 @@ try {
   sessionStore = undefined; // Will fall back to memory store
 }
 
+// Security: Ensure SESSION_SECRET is set - no fallback allowed
+if (!process.env.SESSION_SECRET) {
+  throw new Error('SECURITY: SESSION_SECRET environment variable is required. Cannot start with insecure fallback secret.');
+}
+
 export const sessionConfig = session({
   store: sessionStore, // Use PostgreSQL session store for persistence
-  secret: process.env.SESSION_SECRET || 'fallback-secret-change-in-production',
+  secret: process.env.SESSION_SECRET,
   resave: false, // Don't save unchanged sessions
   saveUninitialized: false,
   rolling: true, // Reset expiry on each request
@@ -580,12 +586,10 @@ export function setupAuthRoutes(app: any) {
       }
 
       // Use bcrypt for password verification
-      // Verifying password for user
-      // Password verification initiated
       const isValidPassword = await verifyPassword(password, user.password);
-      // Password verification completed
 
       if (!isValidPassword) {
+        // Security: Don't log specific password validation failures to prevent enumeration
         return res.status(401).json({
           message: 'Invalid credentials',
           code: 'INVALID_CREDENTIALS',
@@ -770,7 +774,11 @@ export function setupAuthRoutes(app: any) {
 
     req.session.save((err) => {
       if (err) {
-        return res.status(500).json({ error: 'Failed to save session', details: err.message });
+        console.error('Failed to save session', err);
+        return res.status(500).json({
+          error: 'Internal server error',
+          message: 'Failed to save session',
+        });
       }
 
       res.json({
@@ -1057,25 +1065,31 @@ export async function canViewDocument(
       return true;
     }
 
-    // Manager: Can view all documents in their organization
-    if (user.role === 'manager') {
-      // Check if document belongs to manager's organization
+    // Manager: Can view all documents in their organizations (supports multi-org)
+    if (user.role === 'manager' || user.role === 'demo_manager') {
+      // Check if document belongs to any of manager's organizations
       if (document.buildingId) {
         const building = await storage.getBuilding(document.buildingId);
-        return building?.organizationId === user.organizationId;
+        if (building) {
+          return await canUserAccessOrganization(user.id, building.organizationId);
+        }
+        return false;
       }
       if (document.residenceId) {
         const residence = await storage.getResidence(document.residenceId);
         if (residence) {
           const building = await storage.getBuilding(residence.buildingId);
-          return building?.organizationId === user.organizationId;
+          if (building) {
+            return await canUserAccessOrganization(user.id, building.organizationId);
+          }
         }
+        return false;
       }
       return true; // Manager can view organization-level docs
     }
 
     // Resident: Can view documents in their residence/building
-    if (user.role === 'resident') {
+    if (user.role === 'resident' || user.role === 'demo_resident') {
       if (document.residenceId) {
         return userResidences?.some(ur => ur.residenceId === document.residenceId) || false;
       }
@@ -1092,7 +1106,7 @@ export async function canViewDocument(
     }
 
     // Tenant: Can only view documents marked as visible to tenants
-    if (user.role === 'tenant') {
+    if (user.role === 'tenant' || user.role === 'demo_tenant') {
       if (!document.isVisibleToTenants) {
         return false;
       }
@@ -1136,24 +1150,30 @@ export async function canEditDocument(
       return true;
     }
 
-    // Manager: Can edit all documents in their organization
-    if (user.role === 'manager') {
+    // Manager: Can edit all documents in their organizations (supports multi-org)
+    if (user.role === 'manager' || user.role === 'demo_manager') {
       if (document.buildingId) {
         const building = await storage.getBuilding(document.buildingId);
-        return building?.organizationId === user.organizationId;
+        if (building) {
+          return await canUserAccessOrganization(user.id, building.organizationId);
+        }
+        return false;
       }
       if (document.residenceId) {
         const residence = await storage.getResidence(document.residenceId);
         if (residence) {
           const building = await storage.getBuilding(residence.buildingId);
-          return building?.organizationId === user.organizationId;
+          if (building) {
+            return await canUserAccessOrganization(user.id, building.organizationId);
+          }
         }
+        return false;
       }
       return true;
     }
 
     // Resident: Can edit documents they created or in their residence
-    if (user.role === 'resident') {
+    if (user.role === 'resident' || user.role === 'demo_resident') {
       // Can edit own documents
       if (document.uploadedBy === user.id) {
         return true;
@@ -1192,24 +1212,30 @@ export async function canDeleteDocument(
       return true;
     }
 
-    // Manager: Can delete documents in their organization
-    if (user.role === 'manager') {
+    // Manager: Can delete documents in their organizations (supports multi-org)
+    if (user.role === 'manager' || user.role === 'demo_manager') {
       if (document.buildingId) {
         const building = await storage.getBuilding(document.buildingId);
-        return building?.organizationId === user.organizationId;
+        if (building) {
+          return await canUserAccessOrganization(user.id, building.organizationId);
+        }
+        return false;
       }
       if (document.residenceId) {
         const residence = await storage.getResidence(document.residenceId);
         if (residence) {
           const building = await storage.getBuilding(residence.buildingId);
-          return building?.organizationId === user.organizationId;
+          if (building) {
+            return await canUserAccessOrganization(user.id, building.organizationId);
+          }
         }
+        return false;
       }
       return true;
     }
 
     // Resident: Can only delete documents they uploaded
-    if (user.role === 'resident') {
+    if (user.role === 'resident' || user.role === 'demo_resident') {
       return document.uploadedBy === user.id;
     }
 
@@ -1237,27 +1263,33 @@ export async function canCreateDocument(
       return true;
     }
 
-    // Manager: Can create documents in their organization
-    if (user.role === 'manager') {
+    // Manager: Can create documents in their organizations (supports multi-org)
+    if (user.role === 'manager' || user.role === 'demo_manager') {
       if (context.organizationId) {
-        return context.organizationId === user.organizationId;
+        return await canUserAccessOrganization(user.id, context.organizationId);
       }
       if (context.buildingId) {
         const building = await storage.getBuilding(context.buildingId);
-        return building?.organizationId === user.organizationId;
+        if (building) {
+          return await canUserAccessOrganization(user.id, building.organizationId);
+        }
+        return false;
       }
       if (context.residenceId) {
         const residence = await storage.getResidence(context.residenceId);
         if (residence) {
           const building = await storage.getBuilding(residence.buildingId);
-          return building?.organizationId === user.organizationId;
+          if (building) {
+            return await canUserAccessOrganization(user.id, building.organizationId);
+          }
         }
+        return false;
       }
       return true;
     }
 
     // Resident: Can create documents in their residence
-    if (user.role === 'resident') {
+    if (user.role === 'resident' || user.role === 'demo_resident') {
       if (context.residenceId) {
         // Check if user lives in this residence
         const userResidences = await storage.getUserResidences(user.id);

@@ -1,0 +1,33 @@
+FACTURE / INVOICE
+===================
+
+Numéro de facture / Invoice Number: 1936-2021-08-CLEANING-2
+Date: 2021-08-21
+
+FACTURER À / BILL TO:
+1936 Nitzsche Track Building 5
+2536 montée Sainte-Catherine
+Québec, Canada
+
+FOURNISSEUR / VENDOR:
+Pro-Clean Services
+
+DESCRIPTION / DESCRIPTION:
+Cleaning - Pro-Clean Services
+
+CATÉGORIE / CATEGORY: Cleaning
+
+MONTANT / AMOUNT:
+Sous-total / Subtotal: $514.00 CAD
+TPS (5%) / GST: $25.70 CAD
+TVQ (9.975%) / QST: $51.27 CAD
+TOTAL: $590.97 CAD
+
+CONDITIONS DE PAIEMENT / PAYMENT TERMS:
+Net 30 jours / Net 30 days
+
+Merci de votre confiance / Thank you for your business
+===============================================
+
+Ce document est généré automatiquement pour les besoins de test du système Koveo Gestion.
+This document is automatically generated for Koveo Gestion system testing purposes.

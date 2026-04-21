@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useCreateUpdateMutation } from '@/lib/common-hooks';
 import { Header } from '@/components/layout/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -55,23 +56,6 @@ import { SharedUploader } from '@/components/document-management';
 import { AttachedFileSection } from '@/components/common/AttachedFileSection';
 import type { UploadContext } from '@shared/config/upload-config';
 
-// Bug creation form schema (no status - new bugs are always created with "new" status)
-const bugFormSchema = z.object({
-  title: z.string().min(1, 'Title is required'),
-  description: z.string().min(10, 'Description must be at least 10 characters'),
-  category: z.enum(['ui_ux', 'functionality', 'performance', 'data', 'security', 'integration', 'other']),
-  page: z.string().min(1, 'Page/location is required'),
-  priority: z.enum(['low', 'medium', 'high', 'critical']),
-  reproductionSteps: z.string().optional(),
-});
-
-// Bug edit form schema (includes status for admin editing)
-const bugEditSchema = bugFormSchema.extend({
-  status: z.enum(['new', 'acknowledged', 'in_progress', 'resolved', 'closed']),
-});
-
-type BugFormData = z.infer<typeof bugFormSchema>;
-
 interface Bug {
   id: string;
   title: string;
@@ -99,16 +83,6 @@ interface Bug {
   }>;
 }
 
-const categoryLabels = {
-  ui_ux: 'UI/UX',
-  functionality: 'Functionality',
-  performance: 'Performance',
-  data: 'Data',
-  security: 'Security',
-  integration: 'Integration',
-  other: 'Other',
-};
-
 const priorityColors = {
   low: 'bg-gray-100 text-gray-800',
   medium: 'bg-yellow-100 text-yellow-800',
@@ -129,6 +103,37 @@ export default function BugReports() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Category label translation function
+  const getCategoryLabel = (category: string): string => {
+    const labels: Record<string, string> = {
+      ui_ux: t('uiUx'),
+      functionality: t('functionality'),
+      performance: t('performance'),
+      data: t('data'),
+      security: t('security'),
+      integration: t('integration'),
+      other: t('other'),
+    };
+    return labels[category] || category;
+  };
+
+  // Bug creation form schema (no status - new bugs are always created with "new" status)
+  const bugFormSchema = z.object({
+    title: z.string().min(1, t('titleRequired')),
+    description: z.string().min(10, t('descriptionMinLength')),
+    category: z.enum(['ui_ux', 'functionality', 'performance', 'data', 'security', 'integration', 'other']),
+    page: z.string().min(1, t('pageLocationRequired')),
+    priority: z.enum(['low', 'medium', 'high', 'critical']),
+    reproductionSteps: z.string().optional(),
+  });
+
+  // Bug edit form schema (includes status for admin editing)
+  const bugEditSchema = bugFormSchema.extend({
+    status: z.enum(['new', 'acknowledged', 'in_progress', 'resolved', 'closed']),
+  });
+
+  type BugFormData = z.infer<typeof bugFormSchema>;
 
   // State management
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -189,31 +194,24 @@ export default function BugReports() {
   });
 
   // Create bug mutation
-  const createBugMutation = useMutation({
+  const createBugMutation = useCreateUpdateMutation<unknown, BugFormData>({
     mutationFn: (data: BugFormData) => apiRequest('POST', '/api/bugs', data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/bugs'] });
+    successTitle: t('success'),
+    successMessage: t('bugReportCreatedSuccessfully'),
+    errorTitle: t('error'),
+    errorMessage: (error: any) => error?.message || t('failedToCreateBugReport'),
+    queryKeysToInvalidate: [['/api/bugs']],
+    onSuccessCallback: () => {
       setIsCreateDialogOpen(false);
       createForm.reset();
       setAttachedFiles([]);
       setAttachmentText('');
-      toast({
-        title: 'Success',
-        description: 'Bug report created successfully',
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to create bug report',
-        variant: 'destructive',
-      });
     },
   });
 
   // Update bug mutation
-  const updateBugMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: z.infer<typeof bugEditSchema> }) => {
+  const updateBugMutation = useCreateUpdateMutation<unknown, { id: string; data: z.infer<typeof bugEditSchema> }>({
+    mutationFn: ({ id, data }) => {
       const formData = new FormData();
       
       // Add form fields
@@ -235,37 +233,28 @@ export default function BugReports() {
 
       return apiRequest('PATCH', '/api/bugs/' + id, formData);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/bugs'] });
+    successTitle: t('success'),
+    successMessage: t('bugReportUpdatedSuccessfully'),
+    errorTitle: t('error'),
+    errorMessage: (error: any) => error?.message || t('failedToUpdateBugReport'),
+    queryKeysToInvalidate: [['/api/bugs']],
+    onSuccessCallback: () => {
       setIsEditDialogOpen(false);
       setEditingBug(null);
       editForm.reset();
       setAttachedFiles([]);
       setEditAttachmentText('');
-      toast({
-        title: 'Success',
-        description: 'Bug report updated successfully',
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to update bug report',
-        variant: 'destructive',
-      });
     },
   });
 
-  // Delete bug mutation
-  const deleteBugMutation = useMutation({
+  // Delete bug mutation (uses shared helper)
+  const deleteBugMutation = useCreateUpdateMutation<unknown, string>({
     mutationFn: (id: string) => apiRequest('DELETE', '/api/bugs/' + id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/bugs'] });
-      toast({
-        title: 'Success',
-        description: 'Bug report deleted successfully',
-      });
-    },
+    successTitle: t('success'),
+    successMessage: t('bugReportDeletedSuccessfully'),
+    errorTitle: t('error'),
+    errorMessage: (error: any) => error?.message || t('failedToDeleteBugReport'),
+    queryKeysToInvalidate: [['/api/bugs']],
   });
 
   // Handle form submissions
@@ -299,7 +288,7 @@ export default function BugReports() {
       })
         .then(response => {
           if (!response.ok) {
-            throw new Error('Failed to create bug report');
+            throw new Error(t('failedToCreateBugReport'));
           }
           return response.json();
         })
@@ -310,14 +299,14 @@ export default function BugReports() {
           createForm.reset();
           setIsCreateDialogOpen(false);
           toast({
-            title: 'Success',
-            description: 'Bug report created successfully',
+            title: t('success'),
+            description: t('bugReportCreatedSuccessfully'),
           });
         })
         .catch(error => {
           toast({
-            title: 'Error',
-            description: error.message || 'Failed to create bug report',
+            title: t('error'),
+            description: error.message || t('failedToCreateBugReport'),
             variant: 'destructive',
           });
         });
@@ -405,7 +394,7 @@ export default function BugReports() {
   });
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <div>{t('loading')}</div>;
   }
 
   return (
@@ -420,7 +409,7 @@ export default function BugReports() {
               <div className="flex-1 relative">
                 <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <Input
-                  placeholder="Search bugs..."
+                  placeholder={t('searchBugs')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -433,12 +422,12 @@ export default function BugReports() {
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Status</SelectItem>
-                    <SelectItem value="new">New</SelectItem>
-                    <SelectItem value="acknowledged">Acknowledged</SelectItem>
-                    <SelectItem value="in_progress">In Progress</SelectItem>
-                    <SelectItem value="resolved">Resolved</SelectItem>
-                    <SelectItem value="closed">Closed</SelectItem>
+                    <SelectItem value="all">{t('allStatus')}</SelectItem>
+                    <SelectItem value="new">{t('new')}</SelectItem>
+                    <SelectItem value="acknowledged">{t('acknowledged')}</SelectItem>
+                    <SelectItem value="in_progress">{t('inProgress')}</SelectItem>
+                    <SelectItem value="resolved">{t('resolved')}</SelectItem>
+                    <SelectItem value="closed">{t('closed')}</SelectItem>
                   </SelectContent>
                 </Select>
                 <Select value={priorityFilter} onValueChange={setPriorityFilter}>
@@ -446,16 +435,16 @@ export default function BugReports() {
                     <SelectValue placeholder="Priority" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Priority</SelectItem>
-                    <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
-                    <SelectItem value="critical">Critical</SelectItem>
+                    <SelectItem value="all">{t('allPriority')}</SelectItem>
+                    <SelectItem value="low">{t('low')}</SelectItem>
+                    <SelectItem value="medium">{t('medium')}</SelectItem>
+                    <SelectItem value="high">{t('high')}</SelectItem>
+                    <SelectItem value="critical">{t('critical')}</SelectItem>
                   </SelectContent>
                 </Select>
                 <Button onClick={() => setIsCreateDialogOpen(true)} data-testid="button-report-bug">
                   <Plus className="w-4 h-4 mr-2" />
-                  Report Bug
+                  {t('reportBug')}
                 </Button>
               </div>
             </div>
@@ -464,14 +453,14 @@ export default function BugReports() {
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
               <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" data-testid="create-bug-dialog">
                 <DialogHeader>
-                  <DialogTitle>Report New Bug</DialogTitle>
+                  <DialogTitle>{t('reportNewBug')}</DialogTitle>
                 </DialogHeader>
                 <form onSubmit={createForm.handleSubmit(onCreateSubmit)} className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* TOP SECTION: Manual Input Fields */}
                     <div className="space-y-2">
                       <Label htmlFor="create-title" className="text-sm font-medium">
-                        Title <span className="text-red-500">*</span>
+                        {t('title')} <span className="text-red-500">*</span>
                       </Label>
                       <Input
                         id="create-title"
@@ -487,23 +476,23 @@ export default function BugReports() {
 
                     <div className="space-y-2">
                       <Label htmlFor="create-category" className="text-sm font-medium">
-                        Category <span className="text-red-500">*</span>
+                        {t('category')} <span className="text-red-500">*</span>
                       </Label>
                       <Select
                         value={createForm.watch('category')}
                         onValueChange={(value) => createForm.setValue('category', value as any)}
                       >
                         <SelectTrigger data-testid="select-create-category">
-                          <SelectValue placeholder="Select category" />
+                          <SelectValue placeholder={t('selectCategory')} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="ui_ux">UI/UX</SelectItem>
-                          <SelectItem value="functionality">Functionality</SelectItem>
-                          <SelectItem value="performance">Performance</SelectItem>
-                          <SelectItem value="data">Data</SelectItem>
-                          <SelectItem value="security">Security</SelectItem>
-                          <SelectItem value="integration">Integration</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
+                          <SelectItem value="ui_ux">{t('uiUx')}</SelectItem>
+                          <SelectItem value="functionality">{t('functionality')}</SelectItem>
+                          <SelectItem value="performance">{t('performance')}</SelectItem>
+                          <SelectItem value="data">{t('data')}</SelectItem>
+                          <SelectItem value="security">{t('security')}</SelectItem>
+                          <SelectItem value="integration">{t('integration')}</SelectItem>
+                          <SelectItem value="other">{t('other')}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -511,7 +500,7 @@ export default function BugReports() {
 
                   <div className="space-y-2">
                     <Label htmlFor="create-description" className="text-sm font-medium">
-                      Description <span className="text-red-500">*</span>
+                      {t('description')} <span className="text-red-500">*</span>
                     </Label>
                     <Textarea
                       id="create-description"
@@ -529,32 +518,32 @@ export default function BugReports() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="create-priority" className="text-sm font-medium">
-                        Priority <span className="text-red-500">*</span>
+                        {t('priority')} <span className="text-red-500">*</span>
                       </Label>
                       <Select
                         value={createForm.watch('priority')}
                         onValueChange={(value) => createForm.setValue('priority', value as any)}
                       >
                         <SelectTrigger data-testid="select-create-priority">
-                          <SelectValue placeholder="Select priority" />
+                          <SelectValue placeholder={t('selectPriority')} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="low">Low</SelectItem>
-                          <SelectItem value="medium">Medium</SelectItem>
-                          <SelectItem value="high">High</SelectItem>
-                          <SelectItem value="critical">Critical</SelectItem>
+                          <SelectItem value="low">{t('low')}</SelectItem>
+                          <SelectItem value="medium">{t('medium')}</SelectItem>
+                          <SelectItem value="high">{t('high')}</SelectItem>
+                          <SelectItem value="critical">{t('critical')}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="create-page" className="text-sm font-medium">
-                        Page/Location <span className="text-red-500">*</span>
+                        {t('pageLocation')} <span className="text-red-500">*</span>
                       </Label>
                       <Input
                         id="create-page"
                         {...createForm.register('page')}
-                        placeholder="e.g. Dashboard, Login page, Settings"
+                        placeholder={t('locationPlaceholder')}
                         data-testid="input-create-page"
                       />
                       {createForm.formState.errors.page && (
@@ -567,20 +556,20 @@ export default function BugReports() {
 
                   <div className="space-y-2">
                     <Label htmlFor="create-steps" className="text-sm font-medium">
-                      Steps to Reproduce (Optional)
+                      {t('stepsToReproduce')}
                     </Label>
                     <Textarea
                       id="create-steps"
                       {...createForm.register('reproductionSteps')}
                       rows={3}
-                      placeholder="Describe the steps to reproduce this issue..."
+                      placeholder={t('reproducePlaceholder')}
                       data-testid="textarea-create-steps"
                     />
                   </div>
 
                   {/* BOTTOM SECTION: Document Upload */}
                   <div className="space-y-4 border-t pt-4">
-                    <Label className="text-sm font-medium">Attach Documents (Optional)</Label>
+                    <Label className="text-sm font-medium">{t('attachDocumentsOptional')}</Label>
                     <SharedUploader
                       onDocumentChange={(file, text) => {
                         if (file) {
@@ -604,14 +593,14 @@ export default function BugReports() {
                       variant="outline"
                       onClick={() => setIsCreateDialogOpen(false)}
                     >
-                      Cancel
+                      {t('cancel')}
                     </Button>
                     <Button
                       type="submit"
                       disabled={createBugMutation.isPending}
                       data-testid="button-submit-bug"
                     >
-                      {createBugMutation.isPending ? 'Submitting...' : 'Submit Bug Report'}
+                      {createBugMutation.isPending ? t('submitting') : t('submitBugReport')}
                     </Button>
                   </div>
                 </form>
@@ -622,13 +611,13 @@ export default function BugReports() {
             <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
               <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" data-testid="edit-bug-dialog">
                 <DialogHeader>
-                  <DialogTitle>Edit Bug Report</DialogTitle>
+                  <DialogTitle>{t('editBugReport')}</DialogTitle>
                 </DialogHeader>
                 <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="edit-title" className="text-sm font-medium">
-                        Title <span className="text-red-500">*</span>
+                        {t('title')} <span className="text-red-500">*</span>
                       </Label>
                       <Input
                         id="edit-title"
@@ -644,23 +633,23 @@ export default function BugReports() {
 
                     <div className="space-y-2">
                       <Label htmlFor="edit-category" className="text-sm font-medium">
-                        Category <span className="text-red-500">*</span>
+                        {t('category')} <span className="text-red-500">*</span>
                       </Label>
                       <Select
                         value={editForm.watch('category')}
                         onValueChange={(value) => editForm.setValue('category', value as any)}
                       >
                         <SelectTrigger data-testid="select-edit-category">
-                          <SelectValue placeholder="Select category" />
+                          <SelectValue placeholder={t('selectCategory')} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="ui_ux">UI/UX</SelectItem>
-                          <SelectItem value="functionality">Functionality</SelectItem>
-                          <SelectItem value="performance">Performance</SelectItem>
-                          <SelectItem value="data">Data</SelectItem>
-                          <SelectItem value="security">Security</SelectItem>
-                          <SelectItem value="integration">Integration</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
+                          <SelectItem value="ui_ux">{t('uiUx')}</SelectItem>
+                          <SelectItem value="functionality">{t('functionality')}</SelectItem>
+                          <SelectItem value="performance">{t('performance')}</SelectItem>
+                          <SelectItem value="data">{t('data')}</SelectItem>
+                          <SelectItem value="security">{t('security')}</SelectItem>
+                          <SelectItem value="integration">{t('integration')}</SelectItem>
+                          <SelectItem value="other">{t('other')}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -668,7 +657,7 @@ export default function BugReports() {
 
                   <div className="space-y-2">
                     <Label htmlFor="edit-description" className="text-sm font-medium">
-                      Description <span className="text-red-500">*</span>
+                      {t('description')} <span className="text-red-500">*</span>
                     </Label>
                     <Textarea
                       id="edit-description"
@@ -686,53 +675,53 @@ export default function BugReports() {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="edit-priority" className="text-sm font-medium">
-                        Priority <span className="text-red-500">*</span>
+                        {t('priority')} <span className="text-red-500">*</span>
                       </Label>
                       <Select
                         value={editForm.watch('priority')}
                         onValueChange={(value) => editForm.setValue('priority', value as any)}
                       >
                         <SelectTrigger data-testid="select-edit-priority">
-                          <SelectValue placeholder="Select priority" />
+                          <SelectValue placeholder={t('selectPriority')} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="low">Low</SelectItem>
-                          <SelectItem value="medium">Medium</SelectItem>
-                          <SelectItem value="high">High</SelectItem>
-                          <SelectItem value="critical">Critical</SelectItem>
+                          <SelectItem value="low">{t('low')}</SelectItem>
+                          <SelectItem value="medium">{t('medium')}</SelectItem>
+                          <SelectItem value="high">{t('high')}</SelectItem>
+                          <SelectItem value="critical">{t('critical')}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="edit-status" className="text-sm font-medium">
-                        Status
+                        {t('status')}
                       </Label>
                       <Select
                         value={editForm.watch('status')}
                         onValueChange={(value) => editForm.setValue('status', value as any)}
                       >
                         <SelectTrigger data-testid="select-edit-status">
-                          <SelectValue placeholder="Select status" />
+                          <SelectValue placeholder={t('selectStatus')} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="new">New</SelectItem>
-                          <SelectItem value="acknowledged">Acknowledged</SelectItem>
-                          <SelectItem value="in_progress">In Progress</SelectItem>
-                          <SelectItem value="resolved">Resolved</SelectItem>
-                          <SelectItem value="closed">Closed</SelectItem>
+                          <SelectItem value="new">{t('new')}</SelectItem>
+                          <SelectItem value="acknowledged">{t('acknowledged')}</SelectItem>
+                          <SelectItem value="in_progress">{t('inProgress')}</SelectItem>
+                          <SelectItem value="resolved">{t('resolved')}</SelectItem>
+                          <SelectItem value="closed">{t('closed')}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
 
                     <div className="space-y-2">
                       <Label htmlFor="edit-page" className="text-sm font-medium">
-                        Page/Location <span className="text-red-500">*</span>
+                        {t('pageLocation')} <span className="text-red-500">*</span>
                       </Label>
                       <Input
                         id="edit-page"
                         {...editForm.register('page')}
-                        placeholder="e.g. Dashboard, Login page, Settings"
+                        placeholder={t('locationPlaceholder')}
                         data-testid="input-edit-page"
                       />
                       {editForm.formState.errors.page && (
@@ -745,20 +734,20 @@ export default function BugReports() {
 
                   <div className="space-y-2">
                     <Label htmlFor="edit-steps" className="text-sm font-medium">
-                      Steps to Reproduce (Optional)
+                      {t('stepsToReproduce')}
                     </Label>
                     <Textarea
                       id="edit-steps"
                       {...editForm.register('reproductionSteps')}
                       rows={3}
-                      placeholder="Describe the steps to reproduce this issue..."
+                      placeholder={t('reproducePlaceholder')}
                       data-testid="textarea-edit-steps"
                     />
                   </div>
 
                   {/* Choose Document Type Section */}
                   <div className="space-y-4 border-t pt-4">
-                    <Label className="text-sm font-medium">Choose Document Type</Label>
+                    <Label className="text-sm font-medium">{t('chooseDocumentType')}</Label>
                     <div className="flex space-x-3">
                       <button
                         type="button"
@@ -770,7 +759,7 @@ export default function BugReports() {
                         }`}
                         data-testid="button-edit-file-mode"
                       >
-                        📁 Upload File
+                        📁 {t('uploadFile')}
                       </button>
                       <button
                         type="button"
@@ -782,17 +771,17 @@ export default function BugReports() {
                         }`}
                         data-testid="button-edit-text-mode"
                       >
-                        📝 Text Document
+                        📝 {t('textDocument')}
                       </button>
                     </div>
 
                     {/* Dynamic Content Based on Selection */}
                     {editAttachmentMode === 'file' ? (
                       <div>
-                        <Label htmlFor="edit-file-upload">Select File to Upload</Label>
+                        <Label htmlFor="edit-file-upload">{t('selectFileToUpload')}</Label>
                         {editingBug?.filePath && (
                           <div className="space-y-2 mb-4">
-                            <Label>Current Attachment</Label>
+                            <Label>{t('currentAttachment')}</Label>
                             <AttachedFileSection
                               entityType="bug"
                               entityId={editingBug.id}
@@ -810,12 +799,12 @@ export default function BugReports() {
                           className="mt-1"
                         />
                         <p className="text-xs text-gray-500 mt-1">
-                          {editingBug?.filePath ? 'Upload a new file to replace the current attachment' : 'Attach a screenshot or document'}
+                          {editingBug?.filePath ? t('uploadNewFileToReplace') : t('attachScreenshot')}
                         </p>
                       </div>
                     ) : (
                       <div>
-                        <Label htmlFor="edit-text-content">Document Content</Label>
+                        <Label htmlFor="edit-text-content">{t('documentContent')}</Label>
                         <Textarea
                           id="edit-text-content"
                           value={editAttachmentText}
@@ -837,14 +826,14 @@ export default function BugReports() {
                       variant="outline"
                       onClick={() => setIsEditDialogOpen(false)}
                     >
-                      Cancel
+                      {t('cancel')}
                     </Button>
                     <Button
                       type="submit"
                       disabled={updateBugMutation.isPending}
                       data-testid="button-update-bug"
                     >
-                      {updateBugMutation.isPending ? 'Updating...' : 'Update Bug Report'}
+                      {updateBugMutation.isPending ? t('updating') : t('updateBugReport')}
                     </Button>
                   </div>
                 </form>
@@ -861,15 +850,15 @@ export default function BugReports() {
                 <Bug className="h-12 w-12 text-gray-400 mb-4" />
                 <p className="text-lg text-gray-500">
                   {searchTerm || statusFilter !== 'all' || priorityFilter !== 'all'
-                    ? 'No bugs match your current filters.'
-                    : 'No bug reports have been submitted yet.'}
+                    ? t('noBugsMatchFilters')
+                    : t('noBugReportsYet')}
                 </p>
               </CardContent>
             </Card>
           ) : (
             <div className="space-y-6">
               {/* Category View - Group bugs by category */}
-              {Object.entries(categoryLabels).map(([categoryKey, categoryLabel]) => {
+              {['ui_ux', 'functionality', 'performance', 'data', 'security', 'integration', 'other'].map((categoryKey) => {
                 const categoryBugs = filteredBugs.filter((bug: Bug) => bug.category === categoryKey);
                 if (categoryBugs.length === 0) {
                   return null;
@@ -880,7 +869,7 @@ export default function BugReports() {
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
                         <Bug className="h-5 w-5" />
-                        {categoryLabel}
+                        {getCategoryLabel(categoryKey)}
                         <Badge variant="secondary">{categoryBugs.length}</Badge>
                       </CardTitle>
                     </CardHeader>
@@ -963,7 +952,7 @@ export default function BugReports() {
                               </div>
                               {bug.filePath && (
                                 <Badge variant="secondary" className="text-xs">
-                                  📎 File attached
+                                  📎 {t('fileAttached')}
                                 </Badge>
                               )}
                             </CardContent>
@@ -983,7 +972,7 @@ export default function BugReports() {
       <Dialog open={isBugDetailsOpen} onOpenChange={setIsBugDetailsOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Bug Report Details</DialogTitle>
+            <DialogTitle>{t('bugReportDetails')}</DialogTitle>
           </DialogHeader>
           {selectedBug && (
             <form onSubmit={bugForm.handleSubmit((data) => {
@@ -999,7 +988,7 @@ export default function BugReports() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="details-title" className="text-sm font-medium">
-                    Title <span className="text-red-500">*</span>
+                    {t('title')} <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="details-title"
@@ -1012,7 +1001,7 @@ export default function BugReports() {
 
                 <div className="space-y-2">
                   <Label htmlFor="details-category" className="text-sm font-medium">
-                    Category <span className="text-red-500">*</span>
+                    {t('category')} <span className="text-red-500">*</span>
                   </Label>
                   <Select
                     value={bugForm.watch('category')}
@@ -1020,16 +1009,16 @@ export default function BugReports() {
                     disabled={!canEditBug(selectedBug)}
                   >
                     <SelectTrigger data-testid="select-details-category">
-                      <SelectValue placeholder="Select category" />
+                      <SelectValue placeholder={t('selectCategory')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="ui_ux">UI/UX</SelectItem>
-                      <SelectItem value="functionality">Functionality</SelectItem>
-                      <SelectItem value="performance">Performance</SelectItem>
-                      <SelectItem value="data">Data</SelectItem>
-                      <SelectItem value="security">Security</SelectItem>
-                      <SelectItem value="integration">Integration</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
+                      <SelectItem value="ui_ux">{t('uiUx')}</SelectItem>
+                      <SelectItem value="functionality">{t('functionality')}</SelectItem>
+                      <SelectItem value="performance">{t('performance')}</SelectItem>
+                      <SelectItem value="data">{t('data')}</SelectItem>
+                      <SelectItem value="security">{t('security')}</SelectItem>
+                      <SelectItem value="integration">{t('integration')}</SelectItem>
+                      <SelectItem value="other">{t('other')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -1037,7 +1026,7 @@ export default function BugReports() {
 
               <div className="space-y-2">
                 <Label htmlFor="details-description" className="text-sm font-medium">
-                  Description <span className="text-red-500">*</span>
+                  {t('description')} <span className="text-red-500">*</span>
                 </Label>
                 <Textarea
                   id="details-description"
@@ -1052,7 +1041,7 @@ export default function BugReports() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="details-priority" className="text-sm font-medium">
-                    Priority <span className="text-red-500">*</span>
+                    {t('priority')} <span className="text-red-500">*</span>
                   </Label>
                   <Select
                     value={bugForm.watch('priority')}
@@ -1060,13 +1049,13 @@ export default function BugReports() {
                     disabled={!canEditBug(selectedBug)}
                   >
                     <SelectTrigger data-testid="select-details-priority">
-                      <SelectValue placeholder="Select priority" />
+                      <SelectValue placeholder={t('selectPriority')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="low">Low</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
-                      <SelectItem value="critical">Critical</SelectItem>
+                      <SelectItem value="low">{t('low')}</SelectItem>
+                      <SelectItem value="medium">{t('medium')}</SelectItem>
+                      <SelectItem value="high">{t('high')}</SelectItem>
+                      <SelectItem value="critical">{t('critical')}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -1074,7 +1063,7 @@ export default function BugReports() {
                 {user?.role === 'admin' && (
                   <div className="space-y-2">
                     <Label htmlFor="details-status" className="text-sm font-medium">
-                      Status
+                      {t('status')}
                     </Label>
                     <Select
                       value={selectedBug.status}
@@ -1084,14 +1073,14 @@ export default function BugReports() {
                       }}
                     >
                       <SelectTrigger data-testid="select-details-status">
-                        <SelectValue placeholder="Select status" />
+                        <SelectValue placeholder={t('selectStatus')} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="new">New</SelectItem>
-                        <SelectItem value="acknowledged">Acknowledged</SelectItem>
-                        <SelectItem value="in_progress">In Progress</SelectItem>
-                        <SelectItem value="resolved">Resolved</SelectItem>
-                        <SelectItem value="closed">Closed</SelectItem>
+                        <SelectItem value="new">{t('new')}</SelectItem>
+                        <SelectItem value="acknowledged">{t('acknowledged')}</SelectItem>
+                        <SelectItem value="in_progress">{t('inProgress')}</SelectItem>
+                        <SelectItem value="resolved">{t('resolved')}</SelectItem>
+                        <SelectItem value="closed">{t('closed')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -1099,14 +1088,14 @@ export default function BugReports() {
 
                 <div className="space-y-2">
                   <Label htmlFor="details-page" className="text-sm font-medium">
-                    Page/Location <span className="text-red-500">*</span>
+                    {t('pageLocation')} <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="details-page"
                     {...bugForm.register('page')}
                     readOnly={!canEditBug(selectedBug)}
                     className={!canEditBug(selectedBug) ? 'bg-gray-50' : ''}
-                    placeholder="e.g. Dashboard, Login page, Settings"
+                    placeholder={t('locationPlaceholder')}
                     data-testid="input-details-page"
                   />
                 </div>
@@ -1114,7 +1103,7 @@ export default function BugReports() {
 
               <div className="space-y-2">
                 <Label htmlFor="details-steps" className="text-sm font-medium">
-                  Steps to Reproduce (Optional)
+                  {t('stepsToReproduce')}
                 </Label>
                 <Textarea
                   id="details-steps"
@@ -1122,7 +1111,7 @@ export default function BugReports() {
                   rows={3}
                   readOnly={!canEditBug(selectedBug)}
                   className={!canEditBug(selectedBug) ? 'bg-gray-50' : ''}
-                  placeholder="Describe the steps to reproduce this issue..."
+                  placeholder={t('reproducePlaceholder')}
                   data-testid="textarea-details-steps"
                 />
               </div>
@@ -1131,10 +1120,10 @@ export default function BugReports() {
               <div className="border-t pt-4">
                 <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
                   <div>
-                    <strong>Created:</strong> {new Date(selectedBug.createdAt).toLocaleDateString()}
+                    <strong>{t('created')}:</strong> {new Date(selectedBug.createdAt).toLocaleDateString()}
                   </div>
                   <div>
-                    <strong>Status:</strong> 
+                    <strong>{t('status')}:</strong> 
                     <Badge 
                       className={statusColors[selectedBug.status as keyof typeof statusColors]} 
                       variant="outline"
@@ -1163,14 +1152,14 @@ export default function BugReports() {
                       type="button"
                       variant="outline"
                       onClick={() => {
-                        if (window.confirm('Are you sure you want to delete this bug report?')) {
+                        if (window.confirm(t('areYouSureDeleteBugReport'))) {
                           handleDelete(selectedBug.id);
                         }
                       }}
                       className="text-red-600 hover:text-red-700"
                     >
                       <Trash2 className="w-4 h-4 mr-2" />
-                      Delete
+                      {t('delete')}
                     </Button>
                   )}
                 </div>
@@ -1180,7 +1169,7 @@ export default function BugReports() {
                     variant="outline"
                     onClick={() => setIsBugDetailsOpen(false)}
                   >
-                    {canEditBug(selectedBug) ? 'Cancel' : 'Close'}
+                    {canEditBug(selectedBug) ? t('cancel') : t('close')}
                   </Button>
                   {canEditBug(selectedBug) && (
                     <Button
@@ -1188,7 +1177,7 @@ export default function BugReports() {
                       disabled={updateBugMutation.isPending}
                       data-testid="button-save-bug"
                     >
-                      {updateBugMutation.isPending ? 'Saving...' : 'Save Changes'}
+                      {updateBugMutation.isPending ? t('savingChanges') : t('saveChanges')}
                     </Button>
                   )}
                 </div>

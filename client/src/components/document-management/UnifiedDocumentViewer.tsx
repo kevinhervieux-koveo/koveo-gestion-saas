@@ -1,13 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { FileText, AlertCircle, Loader2, Plus, Search, Filter } from 'lucide-react';
 import { DocumentCard } from '@/components/document-management/DocumentCard';
+import { DocumentInlineViewer } from '@/components/common/DocumentInlineViewer';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
 import { useDocumentPermissions } from '@/components/document-management/DocumentContext';
+import { useLanguage } from '@/hooks/use-language';
+import { getDocumentTypeTranslationKey } from '@/lib/documents';
 
 interface Document {
   id: string;
@@ -55,20 +57,6 @@ interface UnifiedDocumentViewerProps {
   onCategoryChange?: (category: string) => void;
 }
 
-const DOCUMENT_CATEGORIES = [
-  { value: 'all', label: 'All Categories' },
-  { value: 'bylaw', label: 'Bylaws' },
-  { value: 'financial', label: 'Financial' },
-  { value: 'maintenance', label: 'Maintenance' },
-  { value: 'legal', label: 'Legal' },
-  { value: 'meeting_minutes', label: 'Meeting Minutes' },
-  { value: 'insurance', label: 'Insurance' },
-  { value: 'contracts', label: 'Contracts' },
-  { value: 'permits', label: 'Permits' },
-  { value: 'inspection', label: 'Inspection' },
-  { value: 'other', label: 'Other' },
-];
-
 /**
  * UnifiedDocumentViewer - A consistent document viewer for all entity types
  * Provides standardized document display patterns across the application
@@ -83,7 +71,21 @@ export function UnifiedDocumentViewer({
   selectedCategory = 'all',
   onCategoryChange,
 }: UnifiedDocumentViewerProps) {
-  const { toast } = useToast();
+  const { t } = useLanguage();
+  
+  const DOCUMENT_CATEGORIES = [
+    { value: 'all', label: t('allCategories') },
+    { value: 'bylaw', label: t('categoryBylaws') },
+    { value: 'financial', label: t('categoryFinancial') },
+    { value: 'maintenance', label: t('categoryMaintenance') },
+    { value: 'legal', label: t('categoryLegal') },
+    { value: 'meeting_minutes', label: t('categoryMeetingMinutes') },
+    { value: 'insurance', label: t('categoryInsurance') },
+    { value: 'contracts', label: t('categoryContracts') },
+    { value: 'permits', label: t('categoryPermits') },
+    { value: 'inspection', label: t('categoryInspection') },
+    { value: 'other', label: t('categoryOther') },
+  ];
   
   // Get permissions from context (with config overrides)
   const contextPermissions = useDocumentPermissions(config.entityType, config.entityId);
@@ -135,42 +137,16 @@ export function UnifiedDocumentViewer({
     enabled: !!config.entityId && permissions.canView,
   });
 
-  const handleViewDocument = async (documentId: string) => {
-    try {
-      // Open document in new tab using the file resolver endpoint
-      const response = await fetch(`/api/documents/${documentId}/file`, {
-        method: 'GET',
-        credentials: 'include',
-      });
-      
-      if (!response.ok) {
-        throw new Error(`Failed to load document: ${response.status}`);
-      }
-      
-      // Create blob URL and open in new tab
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const newTab = window.open(url, '_blank');
-      
-      if (!newTab) {
-        throw new Error('Popup blocked - please allow popups for this site');
-      }
-      
-      // Clean up the blob URL after a short delay
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-    } catch (e: any) {
-      console.error('[DOCUMENT VIEW] Failed to view document:', e);
-      toast({
-        title: 'Error',
-        description: `Failed to view document: ${e?.message || 'Unknown error'}`,
-        variant: 'destructive',
-      });
-    }
-  };
-
   // Support both response shapes: { documents, total } and { data, total }
   const documents = documentsResponse?.documents || documentsResponse?.data || [];
   const totalDocuments = documentsResponse?.total || documents.length;
+
+  const [viewingDoc, setViewingDoc] = useState<{ id: string; name?: string } | null>(null);
+
+  const handleViewDocument = (documentId: string) => {
+    const doc = (Array.isArray(documents) ? documents : []).find((d: Document) => d.id === documentId);
+    setViewingDoc({ id: documentId, name: doc?.name });
+  };
 
   // Filter documents based on search and category
   const filteredDocuments = Array.isArray(documents) ? documents.filter((doc: Document) => {
@@ -299,6 +275,7 @@ export function UnifiedDocumentViewer({
               documentId={doc.id}
               onViewClick={handleViewDocument}
               documentType={doc.documentType}
+              documentTypeLabel={doc.documentType ? t(getDocumentTypeTranslationKey(doc.documentType) as any) : undefined}
               description={doc.description}
               createdAt={doc.createdAt}
               fileSize={doc.fileSize}
@@ -324,6 +301,15 @@ export function UnifiedDocumentViewer({
             Showing {filteredDocuments.length} of {totalDocuments} documents
           </p>
         </div>
+      )}
+
+      {viewingDoc && (
+        <DocumentInlineViewer
+          isOpen={!!viewingDoc}
+          onClose={() => setViewingDoc(null)}
+          fileUrl={`/api/documents/${viewingDoc.id}/file`}
+          fileName={viewingDoc.name}
+        />
       )}
     </div>
   );

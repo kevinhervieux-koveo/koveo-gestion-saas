@@ -49,7 +49,9 @@ import {
   type InsertElementProjectUpdate,
 } from '@shared/schemas/maintenance';
 import { buildings, organizations, userOrganizations, userBuildings, residences } from '@shared/schema';
+import { documents } from '@shared/schemas/documents';
 import { workflowService } from '../services/workflow-service';
+import { documentService } from '../services/document-service';
 import multer from 'multer';
 import path from 'path';
 import crypto from 'crypto';
@@ -115,8 +117,24 @@ function validateFileByMagicNumbers(fileBuffer: Buffer, declaredMimeType: string
 }
 
 // Security: Configure multer for file uploads with enhanced security
+const maintenanceStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    // Use /tmp/uploads for persistent storage in Replit
+    const uploadDir = path.join('/tmp', 'uploads', 'maintenance');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const sanitizedName = file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
+    cb(null, `maintenance-${uniqueSuffix}-${sanitizedName}`);
+  }
+});
+
 const upload = multer({
-  dest: '/tmp/uploads/',
+  storage: maintenanceStorage,
   fileFilter: (req, file, cb) => {
     const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'];
     if (allowedTypes.includes(file.mimetype)) {
@@ -142,18 +160,17 @@ const uploadRateLimit = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req: any) => {
-    // Rate limit per authenticated user ID (preferred) or use IP as fallback with IPv6 support
     return req.user?.id || ipKeyGenerator(req);
   },
   skip: (req: any) => {
     return !req.user?.id;
-  }
+  },
+  validate: { keyGeneratorIpFallback: false },
 });
 
-// Security: Rate limiting for suggestion generation endpoint
 const suggestionGenerationRateLimit = rateLimit({
-  windowMs: 60 * 60 * 1000, // 1 hour
-  max: 10, // Limit each user to 10 generation requests per hour
+  windowMs: 60 * 60 * 1000,
+  max: 10,
   message: {
     error: 'Too many generation requests',
     message: 'Please wait before generating more suggestions',
@@ -166,7 +183,8 @@ const suggestionGenerationRateLimit = rateLimit({
   },
   skip: (req: any) => {
     return !req.user?.id;
-  }
+  },
+  validate: { keyGeneratorIpFallback: false },
 });
 
 // Security: UUID validation helper
@@ -259,8 +277,8 @@ const maintenanceProjectCreateSchema = z.object({
   buildingId: z.string().uuid(),
   projectNumber: z.string().min(1).max(50),
   title: z.string().min(1).max(200),
-  type: z.enum(['repair', 'minor_rehab', 'major_rehab', 'replacement', 'not_sure']),
-  priority: z.enum(['low', 'medium', 'high', 'critical']),
+  type: z.enum(['repair', 'minor_rehab', 'major_rehab', 'replacement', 'not_sure']).optional().default('not_sure'),
+  priority: z.enum(['low', 'medium', 'high', 'critical']).optional().default('medium'),
   totalBudget: z.coerce.number().positive().optional(),
   actualCost: z.coerce.number().min(0).optional(),
   plannedStartDate: z.coerce.date().optional(),
@@ -542,8 +560,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error fetching UNIFORMAT catalog:', error);
       res.status(500).json({
-        error: 'Failed to fetch UNIFORMAT catalog',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to fetch UNIFORMAT catalog',
       });
     }
   });
@@ -577,8 +595,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error fetching UNIFORMAT element:', error);
       res.status(500).json({
-        error: 'Failed to fetch UNIFORMAT element',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to fetch UNIFORMAT element',
       });
     }
   });
@@ -604,7 +622,9 @@ export function registerMaintenanceRoutes(app: Express): void {
         item.nameFr.toLowerCase().includes(searchLower) ||
         item.nameEn.toLowerCase().includes(searchLower) ||
         (item.descriptionFr && item.descriptionFr.toLowerCase().includes(searchLower)) ||
-        (item.descriptionEn && item.descriptionEn.toLowerCase().includes(searchLower))
+        (item.descriptionEn && item.descriptionEn.toLowerCase().includes(searchLower)) ||
+        (item.synonymsEn && item.synonymsEn.some(syn => syn.toLowerCase().includes(searchLower))) ||
+        (item.synonymsFr && item.synonymsFr.some(syn => syn.toLowerCase().includes(searchLower)))
       );
       
       // Apply additional filters
@@ -629,8 +649,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error searching UNIFORMAT catalog:', error);
       res.status(500).json({
-        error: 'Failed to search UNIFORMAT catalog',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to search UNIFORMAT catalog',
       });
     }
   });
@@ -702,8 +722,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error fetching vendors:', error);
       res.status(500).json({
-        error: 'Failed to fetch vendors',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to fetch vendors',
       });
     }
   });
@@ -786,8 +806,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error creating vendor:', error);
       res.status(500).json({
-        error: 'Failed to create vendor',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to create vendor',
       });
     }
   });
@@ -856,8 +876,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error updating vendor:', error);
       res.status(500).json({
-        error: 'Failed to update vendor',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to update vendor',
       });
     }
   });
@@ -921,8 +941,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error deleting vendor:', error);
       res.status(500).json({
-        error: 'Failed to delete vendor',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to delete vendor',
       });
     }
   });
@@ -986,8 +1006,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error fetching vendor projects:', error);
       res.status(500).json({
-        error: 'Failed to fetch vendor projects',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to fetch vendor projects',
       });
     }
   });
@@ -1103,8 +1123,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error fetching building elements:', error);
       res.status(500).json({
-        error: 'Failed to fetch building elements',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to fetch building elements',
       });
     }
   });
@@ -1189,8 +1209,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error creating building element:', error);
       res.status(500).json({
-        error: 'Failed to create building element',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to create building element',
       });
     }
   });
@@ -1285,8 +1305,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error updating building element:', error);
       res.status(500).json({
-        error: 'Failed to update building element',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to update building element',
       });
     }
   });
@@ -1343,8 +1363,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error deleting building element:', error);
       res.status(500).json({
-        error: 'Failed to delete building element',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to delete building element',
       });
     }
   });
@@ -1439,8 +1459,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error updating element costs:', error);
       res.status(500).json({
-        error: 'Failed to update element costs',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to update element costs',
       });
     }
   });
@@ -1562,8 +1582,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error updating element assignments:', error);
       res.status(500).json({
-        error: 'Failed to update element assignments',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to update element assignments',
       });
     }
   });
@@ -1622,8 +1642,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error fetching element details:', error);
       res.status(500).json({
-        error: 'Failed to fetch element details',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to fetch element details',
       });
     }
   });
@@ -1687,8 +1707,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error fetching element history:', error);
       res.status(500).json({
-        error: 'Failed to fetch element history',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to fetch element history',
       });
     }
   });
@@ -1776,8 +1796,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error adding element history:', error);
       res.status(500).json({
-        error: 'Failed to add element history',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to add element history',
       });
     }
   });
@@ -1859,8 +1879,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error updating element history:', error);
       res.status(500).json({
-        error: 'Failed to update element history',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to update element history',
       });
     }
   });
@@ -1915,7 +1935,10 @@ export function registerMaintenanceRoutes(app: Express): void {
       });
     } catch (error: any) {
       console.error('Error deleting element history:', error);
-      res.status(500).json({ error: 'Internal server error', details: error.message });
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to delete element history',
+      });
     }
   });
 
@@ -1996,8 +2019,8 @@ export function registerMaintenanceRoutes(app: Express): void {
       
       if (!storageResult.success) {
         return res.status(500).json({
-          error: 'Failed to store file securely',
-          details: storageResult.error
+          error: 'Internal server error',
+          message: 'Failed to store file securely',
         });
       }
       
@@ -2051,8 +2074,8 @@ export function registerMaintenanceRoutes(app: Express): void {
         }
       }
       res.status(500).json({
-        error: 'Failed to upload document',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to upload document',
       });
     }
   });
@@ -2145,8 +2168,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error fetching documents:', error);
       res.status(500).json({
-        error: 'Failed to fetch documents',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to fetch documents',
       });
     }
   });
@@ -2225,8 +2248,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error serving document:', error);
       res.status(500).json({
-        error: 'Failed to serve document',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to serve document',
       });
     }
   });
@@ -2296,8 +2319,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error deleting document:', error);
       res.status(500).json({
-        error: 'Failed to delete document',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to delete document',
       });
     }
   });
@@ -2347,9 +2370,9 @@ export function registerMaintenanceRoutes(app: Express): void {
       }
       
       // Parse the documents JSON to find the specific document
-      let documents: any[] = [];
+      let documentsList: any[] = [];
       try {
-        documents = typeof vendorSubmission.documents === 'string' 
+        documentsList = typeof vendorSubmission.documents === 'string' 
           ? JSON.parse(vendorSubmission.documents) 
           : vendorSubmission.documents || [];
       } catch (parseError) {
@@ -2357,98 +2380,93 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(500).json({ error: 'Invalid document data' });
       }
       
-      const document = documents.find((doc: any) => doc.id === id);
-      if (!document) {
+      const submissionDocument = documentsList.find((doc: any) => doc.id === id);
+      if (!submissionDocument) {
         return res.status(404).json({ error: 'Document not found in submission' });
       }
-      
-      // Try to find the file using the secure file storage pattern
-      // The file should be stored in the uploads directory with a structure like:
-      // uploads/maintenance/org_{orgId}/building_{buildingId}/...
-      const UPLOADS_ROOT = path.resolve(process.cwd(), 'uploads');
-      
-      // Search for the file in the uploads directory by the document ID
-      const findFileRecursively = async (dir: string, targetId: string): Promise<string | null> => {
-        try {
-          const entries = await fs.promises.readdir(dir, { withFileTypes: true });
-          
-          for (const entry of entries) {
-            const fullPath = path.join(dir, entry.name);
-            
-            if (entry.isDirectory()) {
-              const found = await findFileRecursively(fullPath, targetId);
-              if (found) return found;
-            } else if (entry.isFile()) {
-              // Check if filename contains the document ID directly
-              if (entry.name.includes(targetId)) {
-                return fullPath;
-              }
-              
-              // Also check metadata files for document mapping
-              if (entry.name.endsWith('.metadata.json')) {
-                try {
-                  const metadataContent = await fs.promises.readFile(fullPath, 'utf-8');
-                  const metadata = JSON.parse(metadataContent);
-                  // Check if this metadata might be related to our document
-                  // We'll look at the corresponding actual file
-                  const actualFileName = entry.name.replace('.metadata.json', '');
-                  const actualFilePath = path.join(dir, actualFileName);
-                  if (await fs.promises.access(actualFilePath).then(() => true).catch(() => false)) {
-                    // For now, we'll use a simple heuristic based on timing and filename matching
-                    // This is not perfect but should work for most cases
-                    return actualFilePath;
-                  }
-                } catch (metadataError) {
-                  // Ignore metadata parsing errors
-                }
-              }
-            }
+
+      // Look up the actual stored file via the unified documents table using the
+      // id stored in the submissionVendors.documents JSONB. This replaces the
+      // previous blind recursive filename search, which failed whenever the
+      // on-disk file had a different UUID prepended to its name.
+      const documentRecord = await db
+        .select({
+          id: documents.id,
+          filePath: documents.filePath,
+          fileName: documents.fileName,
+          mimeType: documents.mimeType,
+          name: documents.name,
+          buildingId: documents.buildingId,
+          isQuarantined: documents.isQuarantined,
+        })
+        .from(documents)
+        .where(eq(documents.id, id))
+        .limit(1);
+
+      if (documentRecord.length === 0 || !documentRecord[0].filePath) {
+        return res.status(404).json({ error: 'File not found' });
+      }
+
+      // Cross-context IDOR guard: refuse to serve a document record whose
+      // building does not match the vendor submission's building. This
+      // prevents an attacker who learns a foreign document UUID from
+      // referencing it via a submission in a building they have access to.
+      if (
+        documentRecord[0].buildingId &&
+        vendorSubmission.buildingId &&
+        documentRecord[0].buildingId !== vendorSubmission.buildingId
+      ) {
+        return res.status(403).json({ error: 'Document does not belong to this submission' });
+      }
+
+      if (documentRecord[0].isQuarantined) {
+        return res.status(410).json({ error: 'Document quarantined or unavailable' });
+      }
+
+      const displayName = submissionDocument.name || documentRecord[0].fileName || documentRecord[0].name || 'document';
+      const mimeType = submissionDocument.type || documentRecord[0].mimeType;
+
+      // Pass the DB-recorded MIME type through to the document service so the
+      // response carries the correct Content-Type (e.g. application/pdf,
+      // image/jpeg) regardless of what was stamped on the GCS object metadata
+      // at upload time. Without this, files uploaded as
+      // application/octet-stream would still be downloaded by the browser
+      // even though Content-Disposition is set to inline.
+      try {
+        const success = await documentService.downloadDocument(
+          documentRecord[0].filePath,
+          res,
+          {
+            cacheTtlSec: 3600,
+            filename: displayName,
+            inline: true,
+            mimeType: mimeType || undefined,
           }
-        } catch (error: any) {
+        );
+
+        if (!success && !res.headersSent) {
+          return res.status(404).json({ error: 'File not found' });
         }
-        return null;
-      };
-      
-      const filePath = await findFileRecursively(UPLOADS_ROOT, id);
-      
-      if (!filePath) {
-        return res.status(404).json({ error: 'File not found on disk' });
-      }
-      
-      if (!fs.existsSync(filePath)) {
-        return res.status(404).json({ error: 'File not found on disk' });
-      }
-      
-      
-      // Security: ensure the resolved path is within uploads root
-      const resolvedPath = path.resolve(filePath);
-      if (!resolvedPath.startsWith(UPLOADS_ROOT)) {
-        return res.status(400).json({ error: 'Invalid file path' });
-      }
-      
-      // Set appropriate headers
-      res.set({
-        'Content-Type': document.type || 'application/octet-stream',
-        'Content-Disposition': `inline; filename="${document.name}"`,
-        'Content-Length': document.size?.toString() || '',
-      });
-      
-      // Stream the file
-      const fileStream = fs.createReadStream(filePath);
-      fileStream.on('error', (streamError) => {
+      } catch (downloadError: any) {
         if (!res.headersSent) {
-          res.status(500).json({ error: 'Failed to stream file' });
+          if (
+            downloadError?.name === 'ObjectNotFoundError' ||
+            downloadError?.message?.includes('not found')
+          ) {
+            return res.status(404).json({ error: 'File not found' });
+          }
+          return res.status(500).json({
+            error: 'Internal server error',
+            message: 'Failed to serve document',
+          });
         }
-      });
-      
-      fileStream.pipe(res);
-      
+      }
     } catch (error: any) {
       console.error('Error serving vendor submission document:', error);
       if (!res.headersSent) {
         res.status(500).json({
-          error: 'Failed to serve document',
-          details: error.message
+          error: 'Internal server error',
+          message: 'Failed to serve document',
         });
       }
     }
@@ -2516,8 +2534,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error fetching evaluation suggestions:', error);
       res.status(500).json({
-        error: 'Failed to fetch evaluation suggestions',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to fetch evaluation suggestions',
       });
     }
   });
@@ -2575,8 +2593,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error creating evaluation suggestion:', error);
       res.status(500).json({
-        error: 'Failed to create evaluation suggestion',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to create evaluation suggestion',
       });
     }
   });
@@ -2644,8 +2662,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error updating evaluation suggestion:', error);
       res.status(500).json({
-        error: 'Failed to update evaluation suggestion',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to update evaluation suggestion',
       });
     }
   });
@@ -2733,8 +2751,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error converting suggestion to project:', error);
       res.status(500).json({
-        error: 'Failed to convert suggestion to project',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to convert suggestion to project',
       });
     }
   });
@@ -2767,6 +2785,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         const projects = await db
           .select({
             id: maintenanceProjects.id,
+            projectNumber: maintenanceProjects.projectNumber,
             title: maintenanceProjects.title,
             type: maintenanceProjects.type,
             status: maintenanceProjects.status,
@@ -2775,9 +2794,13 @@ export function registerMaintenanceRoutes(app: Express): void {
             actualCost: maintenanceProjects.actualCost,
             plannedStartDate: maintenanceProjects.plannedStartDate,
             plannedEndDate: maintenanceProjects.plannedEndDate,
+            financialYear: maintenanceProjects.financialYear,
             suggestionId: maintenanceProjects.suggestionId,
             createdAt: maintenanceProjects.createdAt,
             updatedAt: maintenanceProjects.updatedAt,
+            isQuickProject: maintenanceProjects.isQuickProject,
+            origin: maintenanceProjects.origin,
+            estimatedCost: maintenanceProjects.estimatedCost,
           })
           .from(maintenanceProjects)
           .where(eq(maintenanceProjects.buildingId, buildingId))
@@ -2804,8 +2827,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error fetching maintenance projects:', error);
       res.status(500).json({
-        error: 'Failed to fetch maintenance projects',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to fetch maintenance projects',
       });
     }
   });
@@ -2896,8 +2919,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error fetching project metrics:', error);
       res.status(500).json({
-        error: 'Failed to fetch project metrics',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to fetch project metrics',
       });
     }
   });
@@ -2937,24 +2960,7 @@ export function registerMaintenanceRoutes(app: Express): void {
       
       const validation = maintenanceProjectCreateSchema.safeParse(req.body);
       if (!validation.success) {
-        // DEBUG: Log detailed validation errors
-        console.group(`❌ [VALIDATION ERROR] Project creation validation failed`);
-        console.error('Validation issues:', validation.error.issues);
-        console.error('Detailed error format:', validation.error.format());
-        console.error('Failed data:', req.body);
-        
-        // Log each validation error in detail
-        validation.error.issues.forEach((issue, index) => {
-          console.error(`Issue ${index + 1}:`, {
-            path: issue.path.join('.'),
-            message: issue.message,
-            code: issue.code,
-            received: 'received' in issue ? issue.received : 'N/A',
-            expected: 'expected' in issue ? issue.expected : 'N/A',
-            fullIssue: issue
-          });
-        });
-        console.groupEnd();
+        // Security: Log validation errors without exposing full request body
         
         return res.status(400).json({
           error: 'Invalid project data',
@@ -2963,7 +2969,8 @@ export function registerMaintenanceRoutes(app: Express): void {
           // Additional debugging info
           debugInfo: {
             receivedFields: Object.keys(req.body),
-            schemaRequiredFields: ['buildingId', 'projectNumber', 'title', 'type', 'priority'],
+            schemaRequiredFields: ['buildingId', 'projectNumber', 'title'],
+            schemaOptionalFields: ['type', 'priority', 'totalBudget', 'actualCost', 'plannedStartDate', 'plannedEndDate', 'planningDescription', 'estimatedCost', 'suggestionId', 'autoGeneratedId'],
             validationErrorsCount: validation.error.issues.length,
             timestamp: new Date().toISOString()
           }
@@ -2980,6 +2987,8 @@ export function registerMaintenanceRoutes(app: Express): void {
       
       const projectData: any = {
         ...validation.data,
+        type: validation.data.type || 'not_sure', // Default to 'not_sure' if not provided
+        priority: validation.data.priority || 'medium', // Default to 'medium' if not provided
         status: 'planned', // Default new projects to 'planned' status
         plannedStartDate: validation.data.plannedStartDate ? new Date(validation.data.plannedStartDate).toISOString().split('T')[0] : null,
         plannedEndDate: validation.data.plannedEndDate ? new Date(validation.data.plannedEndDate).toISOString().split('T')[0] : null,
@@ -3023,13 +3032,8 @@ export function registerMaintenanceRoutes(app: Express): void {
       console.groupEnd();
       
       res.status(500).json({
-        error: 'Failed to create maintenance project',
-        details: error.message,
-        debugInfo: {
-          errorType: error.constructor.name,
-          timestamp: new Date().toISOString(),
-          databaseCode: error.code || null
-        }
+        error: 'Internal server error',
+        message: 'Failed to create maintenance project',
       });
     }
   });
@@ -3133,8 +3137,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error updating maintenance project:', error);
       res.status(500).json({
-        error: 'Failed to update maintenance project',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to update maintenance project',
       });
     }
   });
@@ -3250,8 +3254,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error updating maintenance project:', error);
       res.status(500).json({
-        error: 'Failed to update maintenance project',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to update maintenance project',
       });
     }
   });
@@ -3276,7 +3280,10 @@ export function registerMaintenanceRoutes(app: Express): void {
       
       // Check project exists and user has access
       const projectResult = await db
-        .select({ buildingId: maintenanceProjects.buildingId })
+        .select({ 
+          buildingId: maintenanceProjects.buildingId,
+          isQuickProject: maintenanceProjects.isQuickProject 
+        })
         .from(maintenanceProjects)
         .where(eq(maintenanceProjects.id, id))
         .limit(1);
@@ -3292,6 +3299,9 @@ export function registerMaintenanceRoutes(app: Express): void {
         });
       }
       
+      // Delete related project data first (cascade)
+      // Note: When archive functionality is added, regular projects should be archived instead
+      
       await db
         .delete(maintenanceProjects)
         .where(eq(maintenanceProjects.id, id));
@@ -3303,8 +3313,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error deleting maintenance project:', error);
       res.status(500).json({
-        error: 'Failed to delete maintenance project',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to delete maintenance project',
       });
     }
   });
@@ -3386,8 +3396,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error fetching project details:', error);
       res.status(500).json({
-        error: 'Failed to fetch project details',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to fetch project details',
       });
     }
   });
@@ -3439,8 +3449,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error fetching project steps:', error);
       res.status(500).json({
-        error: 'Failed to fetch project steps',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to fetch project steps',
       });
     }
   });
@@ -3514,8 +3524,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error updating project step:', error);
       res.status(500).json({
-        error: 'Failed to update project step',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to update project step',
       });
     }
   });
@@ -3603,8 +3613,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error linking elements to project:', error);
       res.status(500).json({
-        error: 'Failed to link elements to project',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to link elements to project',
       });
     }
   });
@@ -3671,8 +3681,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error reopening workflow step:', error);
       res.status(500).json({
-        error: 'Failed to reopen workflow step',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to reopen workflow step',
       });
     }
   });
@@ -3717,8 +3727,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error getting reopen targets:', error);
       res.status(500).json({
-        error: 'Failed to get reopen targets',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to get reopen targets',
       });
     }
   });
@@ -3792,8 +3802,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error syncing intervention types:', error);
       res.status(500).json({
-        error: 'Failed to sync intervention types',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to sync intervention types',
       });
     }
   });
@@ -3877,8 +3887,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error fetching project elements:', error);
       res.status(500).json({
-        error: 'Failed to fetch project elements',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to fetch project elements',
       });
     }
   });
@@ -3947,8 +3957,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error removing element from project:', error);
       res.status(500).json({
-        error: 'Failed to remove element from project',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to remove element from project',
       });
     }
   });
@@ -4052,8 +4062,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error updating project element:', error);
       res.status(500).json({
-        error: 'Failed to update project element',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to update project element',
       });
     }
   });
@@ -4114,8 +4124,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error bulk updating element confirmations:', error);
       res.status(500).json({
-        error: 'Failed to bulk update element confirmations',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to bulk update element confirmations',
       });
     }
   });
@@ -4274,8 +4284,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error applying inventory changes:', error);
       res.status(500).json({
-        error: 'Failed to apply inventory changes',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to apply inventory changes',
       });
     }
   });
@@ -4342,8 +4352,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error fetching project element updates:', error);
       res.status(500).json({
-        error: 'Failed to fetch project element updates',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to fetch project element updates',
       });
     }
   });
@@ -4458,8 +4468,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error creating/updating element status:', error);
       res.status(500).json({
-        error: 'Failed to record element update',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to record element update',
       });
     }
   });
@@ -4526,8 +4536,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error deleting element update:', error);
       res.status(500).json({
-        error: 'Failed to delete element update',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to delete element update',
       });
     }
   });
@@ -4646,8 +4656,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error generating smart suggestions:', error);
       res.status(500).json({
-        error: 'Failed to generate smart suggestions',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to generate smart suggestions',
       });
     }
   });
@@ -4743,8 +4753,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error bulk importing elements:', error);
       res.status(500).json({
-        error: 'Failed to bulk import elements',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to bulk import elements',
       });
     }
   });
@@ -4905,8 +4915,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error fetching maintenance timeline:', error);
       res.status(500).json({
-        error: 'Failed to fetch maintenance timeline',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to fetch maintenance timeline',
       });
     }
   });
@@ -5040,8 +5050,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error fetching cost analysis:', error);
       res.status(500).json({
-        error: 'Failed to fetch cost analysis',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to fetch cost analysis',
       });
     }
   });
@@ -5184,8 +5194,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error fetching maintenance dashboard:', error);
       res.status(500).json({
-        error: 'Failed to fetch maintenance dashboard',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to fetch maintenance dashboard',
       });
     }
   });
@@ -5315,14 +5325,13 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(429).json({
           error: 'Rate limit exceeded',
           code: 'RATE_LIMIT_EXCEEDED',
-          details: error.message
         });
       }
 
       res.status(500).json({
-        error: 'Failed to generate maintenance suggestions',
+        error: 'Internal server error',
+        message: 'Failed to generate maintenance suggestions',
         code: 'GENERATION_ERROR',
-        details: error.message
       });
     }
   });
@@ -5374,8 +5383,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error fetching maintenance job status:', error);
       res.status(500).json({
-        error: 'Failed to fetch job status',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to fetch job status',
       });
     }
   });
@@ -5457,14 +5466,13 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(409).json({
           error: 'Job is currently running',
           code: 'JOB_RUNNING',
-          details: error.message
         });
       }
 
       res.status(500).json({
-        error: 'Failed to trigger maintenance job',
+        error: 'Internal server error',
+        message: 'Failed to trigger maintenance job',
         code: 'TRIGGER_ERROR',
-        details: error.message
       });
     }
   });
@@ -5574,8 +5582,8 @@ export function registerMaintenanceRoutes(app: Express): void {
       console.error('Error fetching auto-generated projects:', error);
       
       res.status(500).json({
-        error: 'Failed to fetch auto-generated projects',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to fetch auto-generated projects',
       });
     }
   });
@@ -5732,13 +5740,12 @@ export function registerMaintenanceRoutes(app: Express): void {
       if (error.message.includes('unique constraint')) {
         return res.status(409).json({
           error: 'Project already exists or duplicate detected',
-          details: error.message
         });
       }
 
       res.status(500).json({
-        error: 'Failed to accept auto-generated project',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to accept auto-generated project',
       });
     }
   });
@@ -5824,8 +5831,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error updating auto-generated project:', error);
       res.status(500).json({
-        error: 'Failed to update auto-generated project',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to update auto-generated project',
       });
     }
   });
@@ -5893,8 +5900,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error dismissing auto-generated project:', error);
       res.status(500).json({
-        error: 'Failed to dismiss auto-generated project',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to dismiss auto-generated project',
       });
     }
   });
@@ -6075,8 +6082,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error generating auto-projects:', error);
       res.status(500).json({
-        error: 'Failed to generate auto-projects',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to generate auto-projects',
       });
     }
   });
@@ -6099,7 +6106,10 @@ export function registerMaintenanceRoutes(app: Express): void {
       });
     } catch (error: any) {
       console.error('Error in GET element documents:', error);
-      res.status(500).json({ error: 'Internal server error', details: error.message });
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to fetch element documents',
+      });
     }
   });
   
@@ -6116,7 +6126,10 @@ export function registerMaintenanceRoutes(app: Express): void {
       });
     } catch (error: any) {
       console.error('Error in DELETE document:', error);
-      res.status(500).json({ error: 'Internal server error', details: error.message });
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to delete document',
+      });
     }
   });
 
@@ -6218,8 +6231,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error getting workflow state:', error);
       res.status(500).json({
-        error: 'Failed to get workflow state',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to get workflow state',
       });
     }
   });
@@ -6277,8 +6290,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error marking status complete:', error);
       res.status(500).json({
-        error: 'Failed to mark status complete',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to mark status complete',
       });
     }
   });
@@ -6334,8 +6347,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error updating skip flags:', error);
       res.status(500).json({
-        error: 'Failed to update skip flags',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to update skip flags',
       });
     }
   });
@@ -6404,8 +6417,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error creating vendor submission:', error);
       res.status(500).json({
-        error: 'Failed to create vendor submission',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to create vendor submission',
       });
     }
   });
@@ -6480,8 +6493,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error getting project vendors:', error);
       res.status(500).json({
-        error: 'Failed to get project vendors',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to get project vendors',
       });
     }
   });
@@ -6549,8 +6562,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error updating vendor submission:', error);
       res.status(500).json({
-        error: 'Failed to update vendor submission',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to update vendor submission',
       });
     }
   });
@@ -6604,8 +6617,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error removing vendor submission:', error);
       res.status(500).json({
-        error: 'Failed to remove vendor submission',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to remove vendor submission',
       });
     }
   });
@@ -6708,8 +6721,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error updating preferred status:', error);
       res.status(500).json({
-        error: 'Failed to update preferred status',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to update preferred status',
       });
     }
   });
@@ -6771,8 +6784,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error selecting vendor:', error);
       res.status(500).json({
-        error: 'Failed to select vendor',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to select vendor',
       });
     }
   });
@@ -6825,8 +6838,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error deselecting vendors:', error);
       res.status(500).json({
-        error: 'Failed to deselect vendors',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to deselect vendors',
       });
     }
   });
@@ -6918,8 +6931,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error generating payment plan:', error);
       res.status(500).json({
-        error: 'Failed to generate payment plan',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to generate payment plan',
       });
     }
   });
@@ -6975,8 +6988,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error getting payment plan:', error);
       res.status(500).json({
-        error: 'Failed to get payment plan',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to get payment plan',
       });
     }
   });
@@ -7029,8 +7042,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error removing payment plan:', error);
       res.status(500).json({
-        error: 'Failed to remove payment plan',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to remove payment plan',
       });
     }
   });
@@ -7098,8 +7111,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error creating workflow task:', error);
       res.status(500).json({
-        error: 'Failed to create workflow task',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to create workflow task',
       });
     }
   });
@@ -7174,8 +7187,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error getting workflow tasks:', error);
       res.status(500).json({
-        error: 'Failed to get workflow tasks',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to get workflow tasks',
       });
     }
   });
@@ -7270,8 +7283,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error updating task:', error);
       res.status(500).json({
-        error: 'Failed to update task',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to update task',
       });
     }
   });
@@ -7325,8 +7338,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error removing task:', error);
       res.status(500).json({
-        error: 'Failed to remove task',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to remove task',
       });
     }
   });
@@ -7387,8 +7400,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error completing task:', error);
       res.status(500).json({
-        error: 'Failed to complete task',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to complete task',
       });
     }
   });
@@ -7462,8 +7475,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error creating notification:', error);
       res.status(500).json({
-        error: 'Failed to create notification',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to create notification',
       });
     }
   });
@@ -7514,8 +7527,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error getting notifications:', error);
       res.status(500).json({
-        error: 'Failed to get notifications',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to get notifications',
       });
     }
   });
@@ -7591,8 +7604,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error updating notification:', error);
       res.status(500).json({
-        error: 'Failed to update notification',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to update notification',
       });
     }
   });
@@ -7646,8 +7659,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error removing notification:', error);
       res.status(500).json({
-        error: 'Failed to remove notification',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to remove notification',
       });
     }
   });
@@ -7777,8 +7790,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error advancing project status:', error);
       res.status(500).json({
-        error: 'Failed to advance project status',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to advance project status',
       });
     }
   });
@@ -7915,8 +7928,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error reopening project step:', error);
       res.status(500).json({
-        error: 'Failed to reopen project step',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to reopen project step',
       });
     }
   });
@@ -8034,8 +8047,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error updating workflow details:', error);
       res.status(500).json({
-        error: 'Failed to update workflow details',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to update workflow details',
       });
     }
   });
@@ -8108,8 +8121,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error fetching submission vendors:', error);
       res.status(500).json({
-        error: 'Failed to fetch submission vendors',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to fetch submission vendors',
       });
     }
   });
@@ -8198,8 +8211,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error creating submission vendor:', error);
       res.status(500).json({
-        error: 'Failed to create submission vendor',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to create submission vendor',
       });
     }
   });
@@ -8317,8 +8330,8 @@ export function registerMaintenanceRoutes(app: Express): void {
     } catch (error: any) {
       console.error('Error updating submission vendor:', error);
       res.status(500).json({
-        error: 'Failed to update submission vendor',
-        details: error.message
+        error: 'Internal server error',
+        message: 'Failed to update submission vendor',
       });
     }
   });

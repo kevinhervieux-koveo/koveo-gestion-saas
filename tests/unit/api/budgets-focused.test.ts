@@ -3,40 +3,62 @@ import express, { type Request, type Response, type NextFunction } from 'express
 import session from 'express-session';
 
 // Mock the database and schema imports before importing the budget router
+
+// Build a chainable query builder that resolves to data based on the table.
+// Supports: from -> [where] -> [orderBy] -> [limit] -> Promise
+// Also supports direct .then so a chain that ends after .where() resolves.
+function makeQueryBuilder(getData: () => any[]) {
+  const builder: any = {
+    from: jest.fn(() => builder),
+    where: jest.fn(() => builder),
+    orderBy: jest.fn(() => builder),
+    limit: jest.fn(() => Promise.resolve(getData())),
+    leftJoin: jest.fn(() => builder),
+    innerJoin: jest.fn(() => builder),
+    rightJoin: jest.fn(() => builder),
+    groupBy: jest.fn(() => builder),
+    having: jest.fn(() => builder),
+    offset: jest.fn(() => Promise.resolve(getData())),
+    then: (resolve: any, reject: any) => Promise.resolve(getData()).then(resolve, reject),
+    catch: (reject: any) => Promise.resolve(getData()).catch(reject),
+    finally: (cb: any) => Promise.resolve(getData()).finally(cb),
+  };
+  return builder;
+}
+
+const buildingRow = {
+  id: 'test-building-id',
+  name: 'Test Building',
+  bankAccountStartAmount: '100000',
+  bankAccountMinimums: '10000',
+  generalInflationRate: '2.0',
+  revenueInflationRate: '2.0',
+};
+
+const budgetRow = {
+  incomeTypes: ['monthly_fees'],
+  incomes: ['50000'],
+  spendingTypes: ['maintenance'],
+  spendings: ['30000'],
+};
+
 jest.mock('../../../server/db', () => ({
   db: {
     select: jest.fn().mockImplementation(() => ({
       from: jest.fn().mockImplementation((table) => {
         const tableName = table?._?.name || 'unknown';
-        return {
-          where: jest.fn().mockImplementation(() => ({
-            limit: jest.fn().mockImplementation((limitCount = 1) => {
-              if (tableName === 'buildings') {
-                return Promise.resolve([{
-                  id: 'test-building-id',
-                  name: 'Test Building',
-                  bankAccountStartAmount: '100000',
-                  bankAccountMinimums: '10000',
-                  generalInflationRate: '2.0',
-                  revenueInflationRate: '2.0'
-                }]);
-              }
-              if (tableName === 'budgets') {
-                return Promise.resolve([{
-                  incomeTypes: ['monthly_fees'],
-                  incomes: ['50000'],
-                  spendingTypes: ['maintenance'],
-                  spendings: ['30000']
-                }]);
-              }
-              if (tableName === 'bills') {
-                return Promise.resolve([]);
-              }
-              return Promise.resolve([]);
-            })
-          }))
+        const dataFor = () => {
+          if (tableName === 'buildings') return [buildingRow];
+          if (tableName === 'budgets') return [budgetRow];
+          if (tableName === 'bills') return [];
+          if (tableName === 'monthlyBudgets') return [];
+          if (tableName === 'payments') return [];
+          if (tableName === 'residences') return [];
+          if (tableName === 'capitalInvestments') return [];
+          return [];
         };
-      })
+        return makeQueryBuilder(dataFor);
+      }),
     })),
     query: {
       buildings: {
@@ -74,21 +96,51 @@ jest.mock('../../../server/db', () => ({
       bills: {
         findFirst: jest.fn().mockResolvedValue(null),
         findMany: jest.fn().mockResolvedValue([])
+      },
+      residences: {
+        findFirst: jest.fn().mockResolvedValue(null),
+        findMany: jest.fn().mockResolvedValue([])
+      },
+      monthlyBudgets: {
+        findFirst: jest.fn().mockResolvedValue(null),
+        findMany: jest.fn().mockResolvedValue([])
+      },
+      payments: {
+        findFirst: jest.fn().mockResolvedValue(null),
+        findMany: jest.fn().mockResolvedValue([])
+      },
+      capitalInvestments: {
+        findFirst: jest.fn().mockResolvedValue(null),
+        findMany: jest.fn().mockResolvedValue([])
       }
     }
   }
 }));
 
-jest.mock('@shared/schema', () => ({
-  buildings: { _: { name: 'buildings' } },
-  budgets: { _: { name: 'budgets' } },
-  bills: { _: { name: 'bills' } },
-  monthlyBudgets: { _: { name: 'monthlyBudgets' } },
-  payments: { _: { name: 'payments' } },
-  residences: { _: { name: 'residences' } },
-  capitalInvestments: { _: { name: 'capitalInvestments' } },
-  insertCapitalInvestmentSchema: jest.fn()
-}));
+jest.mock('@shared/schema', () => {
+  // Helper to make a schema table mock with column proxies that won't be undefined.
+  function makeTableMock(name: string) {
+    return new Proxy({ _: { name } }, {
+      get(target: any, prop: string) {
+        if (prop in target) return target[prop];
+        // Any column access returns a placeholder so production code that does
+        // `table.someColumn` doesn't fail with undefined.
+        return { name: prop, _: { name: prop } };
+      },
+    });
+  }
+  return {
+    buildings: makeTableMock('buildings'),
+    budgets: makeTableMock('budgets'),
+    bills: makeTableMock('bills'),
+    monthlyBudgets: makeTableMock('monthlyBudgets'),
+    payments: makeTableMock('payments'),
+    residences: makeTableMock('residences'),
+    capitalInvestments: makeTableMock('capitalInvestments'),
+    maintenanceProjects: makeTableMock('maintenanceProjects'),
+    insertCapitalInvestmentSchema: jest.fn(),
+  };
+});
 
 jest.mock('../../../server/auth', () => ({
   requireAuth: (req: Request, res: Response, next: NextFunction) => {
@@ -113,15 +165,25 @@ jest.mock('drizzle-orm', () => ({
   eq: jest.fn(),
   gte: jest.fn(),
   lte: jest.fn(),
+  lt: jest.fn(),
+  gt: jest.fn(),
   sql: jest.fn(),
   desc: jest.fn(),
   asc: jest.fn(),
   sum: jest.fn(),
   count: jest.fn(),
   ne: jest.fn(),
+  not: jest.fn(),
   inArray: jest.fn(),
+  notInArray: jest.fn(),
   or: jest.fn(),
-  isNull: jest.fn()
+  isNull: jest.fn(),
+  isNotNull: jest.fn(),
+  like: jest.fn(),
+  ilike: jest.fn(),
+  between: jest.fn(),
+  exists: jest.fn(),
+  notExists: jest.fn()
 }));
 
 // Now import the budget router after all mocks are set up

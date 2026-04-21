@@ -433,7 +433,6 @@ export class FileMigrationService {
     
     return lines.join('\n');
   }
-  }
 
   /**
    * Get current migration progress

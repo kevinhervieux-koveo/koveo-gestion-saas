@@ -1,4 +1,6 @@
+import type { ReactNode } from 'react';
 import { useState, useCallback, useMemo, useEffect } from 'react';
+import { logDebug } from '@/lib/logger';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -61,7 +63,7 @@ interface InventoryPageContentProps {
   residenceId?: string;
   buildingName?: string;
   showBackButton?: boolean;
-  backButtonLabel?: string;
+  backButtonLabel?: ReactNode;
   onBack?: () => void;
 }
 
@@ -87,7 +89,7 @@ function InventoryPageContent(props: InventoryPageContentProps) {
   const [buildingElementsExpanded, setBuildingElementsExpanded] = useState(false);
   
   useEffect(() => {
-    console.log('🔍 [INVENTORY] Building elements section toggled:', { expanded: buildingElementsExpanded });
+    logDebug('🔍 [INVENTORY] Building elements section toggled:', { expanded: buildingElementsExpanded });
   }, [buildingElementsExpanded]);
   
   
@@ -95,7 +97,7 @@ function InventoryPageContent(props: InventoryPageContentProps) {
 
   // Component initialization debug log
   useEffect(() => {
-    console.log('🔍 [INVENTORY] Component initialized', {
+    logDebug('🔍 [INVENTORY] Component initialized', {
       organizationId,
       buildingId,
       residenceId,
@@ -109,10 +111,10 @@ function InventoryPageContent(props: InventoryPageContentProps) {
     queryKey: ['/api/manager/buildings', buildingId],
     queryFn: async () => {
       if (!buildingId) return null;
-      console.log('🔍 [INVENTORY] Fetching building data with params:', { buildingId });
+      logDebug('🔍 [INVENTORY] Fetching building data with params:', { buildingId });
       const response = await apiRequest('GET', `/api/manager/buildings/${buildingId}`);
       const data = await response.json();
-      console.log('🔍 [INVENTORY] Building data received:', { buildingName: data?.name, buildingId: data?.id });
+      logDebug('🔍 [INVENTORY] Building data received:', { buildingName: data?.name, buildingId: data?.id });
       return data;
     },
     enabled: !!buildingId,
@@ -129,19 +131,19 @@ function InventoryPageContent(props: InventoryPageContentProps) {
   // Log modal state changes
   useEffect(() => {
     if (showElementForm) {
-      console.log('🔍 [INVENTORY] Modal opened: Element form', { mode: elementFormMode, elementId: selectedElement?.id });
+      logDebug('🔍 [INVENTORY] Modal opened: Element form', { mode: elementFormMode, elementId: selectedElement?.id });
     }
   }, [showElementForm, elementFormMode, selectedElement?.id]);
 
   useEffect(() => {
     if (showDocumentManager) {
-      console.log('🔍 [INVENTORY] Modal opened: Document manager', { elementId: selectedElement?.id });
+      logDebug('🔍 [INVENTORY] Modal opened: Document manager', { elementId: selectedElement?.id });
     }
   }, [showDocumentManager, selectedElement?.id]);
 
   useEffect(() => {
     if (showUniformatBrowser) {
-      console.log('🔍 [INVENTORY] Modal opened: Uniformat browser');
+      logDebug('🔍 [INVENTORY] Modal opened: Uniformat browser');
     }
   }, [showUniformatBrowser]);
 
@@ -162,21 +164,21 @@ function InventoryPageContent(props: InventoryPageContentProps) {
 
   // Element handlers
   const handleViewElement = useCallback((element: BuildingElement) => {
-    console.log('🔍 [INVENTORY] User action: View element', { elementId: element.id, elementName: element.name });
+    logDebug('🔍 [INVENTORY] User action: View element', { elementId: element.id, elementName: element.name });
     setSelectedElement(element);
     setElementFormMode('view');
     setShowElementForm(true);
   }, []);
 
   const handleEditElement = useCallback((element: BuildingElement) => {
-    console.log('🔍 [INVENTORY] User action: Edit element', { elementId: element.id, elementName: element.name });
+    logDebug('🔍 [INVENTORY] User action: Edit element', { elementId: element.id, elementName: element.name });
     setSelectedElement(element);
     setElementFormMode('edit');
     setShowElementForm(true);
   }, []);
 
   const handleAddElement = useCallback(() => {
-    console.log('🔍 [INVENTORY] User action: Add new element');
+    logDebug('🔍 [INVENTORY] User action: Add new element');
     setSelectedElement(null); // null for create mode
     setElementFormMode('create');
     setShowElementForm(true);
@@ -184,13 +186,13 @@ function InventoryPageContent(props: InventoryPageContentProps) {
 
 
   const handleViewDocuments = useCallback((element: BuildingElement) => {
-    console.log('🔍 [INVENTORY] User action: View documents', { elementId: element.id, elementName: element.name });
+    logDebug('🔍 [INVENTORY] User action: View documents', { elementId: element.id, elementName: element.name });
     setSelectedElement(element);
     setShowDocumentManager(true);
   }, []);
 
   const handleScheduleEvaluation = useCallback((element: BuildingElement) => {
-    console.log('🔍 [INVENTORY] User action: Schedule evaluation (feature not yet implemented)', { elementId: element.id });
+    logDebug('🔍 [INVENTORY] User action: Schedule evaluation (feature not yet implemented)', { elementId: element.id });
     // NOTE: Evaluation scheduling feature not yet implemented.
     // This feature should:
     // - Open a modal to schedule periodic inspections for building elements
@@ -210,7 +212,7 @@ function InventoryPageContent(props: InventoryPageContentProps) {
   }, [toast, t]);
 
   const handleDeleteElement = useCallback((element: BuildingElement) => {
-    console.log('🔍 [INVENTORY] User action: Delete element', { elementId: element.id, elementName: element.name });
+    logDebug('🔍 [INVENTORY] User action: Delete element', { elementId: element.id, elementName: element.name });
     // Close the element form first
     setShowElementForm(false);
     setSelectedElement(null);
@@ -224,7 +226,7 @@ function InventoryPageContent(props: InventoryPageContentProps) {
 
   // Import/Export handlers
   const handleImportElements = useCallback(() => {
-    console.log('🔍 [INVENTORY] User action: Import elements (feature not yet implemented)');
+    logDebug('🔍 [INVENTORY] User action: Import elements (feature not yet implemented)');
     // NOTE: Element import feature not yet implemented.
     // This feature should:
     // - Accept CSV/Excel files with building element data
@@ -245,7 +247,7 @@ function InventoryPageContent(props: InventoryPageContentProps) {
   }, [toast, t]);
 
   const handleExportReport = useCallback(() => {
-    console.log('🔍 [INVENTORY] User action: Export report (feature not yet implemented)');
+    logDebug('🔍 [INVENTORY] User action: Export report (feature not yet implemented)');
     // NOTE: Report export feature not yet implemented.
     // This feature should:
     // - Generate comprehensive inventory reports in PDF/Excel format
@@ -269,28 +271,28 @@ function InventoryPageContent(props: InventoryPageContentProps) {
 
   // Filter and search handlers
   const handleSearchChange = useCallback((term: string) => {
-    console.log('🔍 [INVENTORY] Filter changed: Search term', { searchTerm: term });
+    logDebug('🔍 [INVENTORY] Filter changed: Search term', { searchTerm: term });
     setSearchTerm(term);
   }, []);
 
   const handleConditionFilterChange = useCallback((condition: string) => {
-    console.log('🔍 [INVENTORY] Filter changed: Condition', { condition });
+    logDebug('🔍 [INVENTORY] Filter changed: Condition', { condition });
     setConditionFilter(condition);
   }, []);
 
   const handleUniformatFilterChange = useCallback((uniformat: string) => {
-    console.log('🔍 [INVENTORY] Filter changed: Uniformat category', { uniformat });
+    logDebug('🔍 [INVENTORY] Filter changed: Uniformat category', { uniformat });
     setUniformatFilter(uniformat);
   }, []);
 
   const handleShowOverdueChange = useCallback((overdue: boolean) => {
-    console.log('🔍 [INVENTORY] Filter changed: Show overdue only', { showOverdueOnly: overdue });
+    logDebug('🔍 [INVENTORY] Filter changed: Show overdue only', { showOverdueOnly: overdue });
     setShowOverdueOnly(overdue);
   }, []);
 
   // Selection handlers
   const handleSelectionChange = useCallback((selectedIds: string[]) => {
-    console.log('🔍 [INVENTORY] Selection changed', { selectedCount: selectedIds.length, selectedIds });
+    logDebug('🔍 [INVENTORY] Selection changed', { selectedCount: selectedIds.length, selectedIds });
     setSelectedElements(selectedIds);
   }, []);
 
@@ -329,7 +331,7 @@ function InventoryPageContent(props: InventoryPageContentProps) {
               variant="outline"
               size="sm"
               onClick={() => {
-                console.log('🔍 [INVENTORY] Navigating back to building', { buildingId, buildingName });
+                logDebug('🔍 [INVENTORY] Navigating back to building', { buildingId, buildingName });
                 onBack();
               }}
               className="flex items-center gap-2"

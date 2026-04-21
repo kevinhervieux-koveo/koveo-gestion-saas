@@ -20,7 +20,7 @@ class StabilityMonitor {
     if (this.isMonitoring) return;
     
     this.isMonitoring = true;
-    console.log('🔍 Starting stability monitor...');
+    if (process.env.NODE_ENV !== 'production') console.log('🔍 Starting stability monitor...');
 
     // Monitor memory usage every 30 seconds in development
     if (process.env.NODE_ENV === 'development') {
@@ -39,7 +39,7 @@ class StabilityMonitor {
       this.intervalId = null;
     }
     this.isMonitoring = false;
-    console.log('🛑 Stability monitor stopped');
+    if (process.env.NODE_ENV !== 'production') console.log('🛑 Stability monitor stopped');
   }
 
   private checkMemoryUsage() {
@@ -87,7 +87,7 @@ class StabilityMonitor {
 
     // Monitor for database connection issues
     process.on('beforeExit', (code) => {
-      console.log('⚠️ Process is about to exit with code:', code);
+      if (process.env.NODE_ENV !== 'production') console.log('⚠️ Process is about to exit with code:', code);
     });
   }
 

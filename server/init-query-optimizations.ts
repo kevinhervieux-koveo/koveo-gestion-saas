@@ -16,6 +16,7 @@ import { optimizedScopeManager } from './db/queries/optimized-scope-queries';
 import { queryCache, CacheMonitor } from './query-cache';
 import { dbPerformanceMonitor } from './performance-monitoring';
 import { db, sql } from './db';
+import { logDebug, logInfo, logWarn, logError } from './utils/logger';
 
 /**
  * Optimization initialization status
@@ -62,7 +63,7 @@ export class QueryOptimizationManager {
    */
   async initializeOptimizations(): Promise<OptimizationStatus> {
     const startTime = Date.now();
-    console.log('🚀 Initializing Query Optimization System...');
+    if (process.env.NODE_ENV !== 'production') console.log('🚀 Initializing Query Optimization System...');
 
     try {
       // Step 1: Record baseline performance metrics
@@ -84,11 +85,11 @@ export class QueryOptimizationManager {
       await this.verifyOptimizations();
 
       this.optimizationStatus.initializationTime = Date.now() - startTime;
-      console.log(`✅ Query optimization system initialized in ${this.optimizationStatus.initializationTime}ms`);
+      if (process.env.NODE_ENV !== 'production') console.log(`✅ Query optimization system initialized in ${this.optimizationStatus.initializationTime}ms`);
 
       return this.optimizationStatus;
     } catch (error: any) {
-      console.error('❌ Error initializing query optimizations:', error);
+      logError('Error initializing query optimizations', error);
       this.optimizationStatus.errors.push(error.message);
       this.optimizationStatus.initializationTime = Date.now() - startTime;
       return this.optimizationStatus;
@@ -99,7 +100,7 @@ export class QueryOptimizationManager {
    * Record baseline performance metrics before optimization
    */
   private async recordBaselineMetrics(): Promise<void> {
-    console.log('📊 Recording baseline performance metrics...');
+    if (process.env.NODE_ENV !== 'production') console.log('📊 Recording baseline performance metrics...');
 
     try {
       const performanceStats = dbPerformanceMonitor.getPerformanceStats();
@@ -120,14 +121,14 @@ export class QueryOptimizationManager {
         recordedAt: new Date(),
       };
 
-      console.log('📈 Baseline metrics recorded:', {
+      if (process.env.NODE_ENV !== 'production') console.log('📈 Baseline metrics recorded:', {
         averageQueryTime: `${this.baselineMetrics.averageQueryTime}ms`,
         totalQueries: this.baselineMetrics.totalQueries,
         slowQueries: this.baselineMetrics.slowQueryCount,
         cacheHitRate: `${this.baselineMetrics.cacheHitRate.toFixed(2)}%`,
       });
     } catch (error) {
-      console.warn('⚠️ Could not record complete baseline metrics:', error);
+      logWarn('Could not record complete baseline metrics');
     }
   }
 
@@ -135,18 +136,18 @@ export class QueryOptimizationManager {
    * Apply database optimizations (indexes, materialized views)
    */
   private async applyDatabaseOptimizations(): Promise<void> {
-    console.log('🏗️ Applying database optimizations...');
+    if (process.env.NODE_ENV !== 'production') console.log('🏗️ Applying database optimizations...');
 
     try {
       // Check if optimizations are already applied
       const indexesExist = await QueryOptimizer.areIndexesSetup();
       
       if (!indexesExist) {
-        console.log('📊 Creating database indexes...');
+        if (process.env.NODE_ENV !== 'production') console.log('📊 Creating database indexes...');
         await QueryOptimizer.applyCoreOptimizations();
-        console.log('✅ Database indexes created successfully');
+        if (process.env.NODE_ENV !== 'production') console.log('✅ Database indexes created successfully');
       } else {
-        console.log('✅ Database indexes already exist');
+        if (process.env.NODE_ENV !== 'production') console.log('✅ Database indexes already exist');
       }
 
       this.optimizationStatus.indexesApplied = true;
@@ -155,14 +156,14 @@ export class QueryOptimizationManager {
       try {
         await QueryOptimizer.refreshMaterializedViews();
         this.optimizationStatus.materializedViewsCreated = true;
-        console.log('✅ Materialized views refreshed');
+        if (process.env.NODE_ENV !== 'production') console.log('✅ Materialized views refreshed');
       } catch (error) {
-        console.log('ℹ️ Materialized views not available or need creation');
+        if (process.env.NODE_ENV !== 'production') console.log('ℹ️ Materialized views not available or need creation');
         // This is not critical, some views might not exist yet
       }
 
     } catch (error: any) {
-      console.error('❌ Error applying database optimizations:', error);
+      logError('Error applying database optimizations', error);
       this.optimizationStatus.errors.push(`Database optimization error: ${error.message}`);
     }
   }
@@ -171,7 +172,7 @@ export class QueryOptimizationManager {
    * Initialize optimization services
    */
   private async initializeOptimizationServices(): Promise<void> {
-    console.log('⚙️ Initializing optimization services...');
+    if (process.env.NODE_ENV !== 'production') console.log('⚙️ Initializing optimization services...');
 
     try {
       // Initialize the optimized query service
@@ -181,9 +182,9 @@ export class QueryOptimizationManager {
       await optimizedScopeManager.warmupScopeCaches();
 
       this.optimizationStatus.optimizationServicesReady = true;
-      console.log('✅ Optimization services initialized');
+      if (process.env.NODE_ENV !== 'production') console.log('✅ Optimization services initialized');
     } catch (error: any) {
-      console.error('❌ Error initializing optimization services:', error);
+      logError('Error initializing optimization services', error);
       this.optimizationStatus.errors.push(`Service initialization error: ${error.message}`);
     }
   }
@@ -192,7 +193,7 @@ export class QueryOptimizationManager {
    * Warm up query caches
    */
   private async warmupCaches(): Promise<void> {
-    console.log('🔥 Warming up query caches...');
+    if (process.env.NODE_ENV !== 'production') console.log('🔥 Warming up query caches...');
 
     try {
       // Warm up common reference data caches
@@ -202,9 +203,9 @@ export class QueryOptimizationManager {
       await optimizedScopeManager.warmupScopeCaches();
 
       this.optimizationStatus.cachesWarmedUp = true;
-      console.log('✅ Query caches warmed up');
+      if (process.env.NODE_ENV !== 'production') console.log('✅ Query caches warmed up');
     } catch (error: any) {
-      console.error('❌ Error warming up caches:', error);
+      logError('Error warming up caches', error);
       this.optimizationStatus.errors.push(`Cache warmup error: ${error.message}`);
     }
   }
@@ -230,9 +231,9 @@ export class QueryOptimizationManager {
       queryCache.set('buildings', 'active_buildings', buildings);
       queryCache.set('residences', 'active_residences', residences);
 
-      console.log(`📚 Cached ${organizations.length} organizations, ${buildings.length} buildings, ${residences.length} residences`);
+      if (process.env.NODE_ENV !== 'production') console.log(`📚 Cached ${organizations.length} organizations, ${buildings.length} buildings, ${residences.length} residences`);
     } catch (error) {
-      console.warn('⚠️ Could not warm up all reference caches:', error);
+      logWarn('Could not warm up all reference caches');
     }
   }
 
@@ -240,7 +241,7 @@ export class QueryOptimizationManager {
    * Enable performance monitoring
    */
   private async enablePerformanceMonitoring(): Promise<void> {
-    console.log('📊 Enabling performance monitoring...');
+    if (process.env.NODE_ENV !== 'production') console.log('📊 Enabling performance monitoring...');
 
     try {
       // Performance monitoring is already active through dbPerformanceMonitor
@@ -248,10 +249,12 @@ export class QueryOptimizationManager {
       const stats = dbPerformanceMonitor.getPerformanceStats();
       
       this.optimizationStatus.performanceMonitoringActive = true;
-      console.log('✅ Performance monitoring active');
-      console.log(`📈 Current stats: ${stats.totalQueries} queries, ${stats.averageQueryTime} avg time`);
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('✅ Performance monitoring active');
+        console.log(`📈 Current stats: ${stats.totalQueries} queries, ${stats.averageQueryTime} avg time`);
+      }
     } catch (error: any) {
-      console.error('❌ Error enabling performance monitoring:', error);
+      logError('Error enabling performance monitoring', error);
       this.optimizationStatus.errors.push(`Performance monitoring error: ${error.message}`);
     }
   }
@@ -260,7 +263,7 @@ export class QueryOptimizationManager {
    * Verify that optimizations are working
    */
   private async verifyOptimizations(): Promise<void> {
-    console.log('🔍 Verifying optimizations...');
+    if (process.env.NODE_ENV !== 'production') console.log('🔍 Verifying optimizations...');
 
     try {
       // Test 1: Basic database connectivity and query execution
@@ -275,15 +278,15 @@ export class QueryOptimizationManager {
       // Test 4: Index effectiveness
       await this.verifyIndexEffectiveness();
 
-      console.log('✅ All optimization verifications passed successfully');
+      if (process.env.NODE_ENV !== 'production') console.log('✅ All optimization verifications passed successfully');
 
     } catch (error: any) {
-      console.error('❌ Error verifying optimizations:', error);
+      logError('Error verifying optimizations', error);
       this.optimizationStatus.errors.push(`Verification error: ${error.message}`);
       
       // Add specific error context for debugging
       if (error.message.includes('getSQL')) {
-        console.error('❌ Detected getSQL error - this suggests improper Drizzle query usage');
+        logError('Detected getSQL error - this suggests improper Drizzle query usage', error);
         this.optimizationStatus.errors.push('getSQL method called on incompatible query object');
       }
     }
@@ -293,7 +296,7 @@ export class QueryOptimizationManager {
    * Verify database queries work correctly with Drizzle
    */
   private async verifyDatabaseQueries(): Promise<void> {
-    console.log('🔍 Verifying database queries...');
+    if (process.env.NODE_ENV !== 'production') console.log('🔍 Verifying database queries...');
     
     const testStartTime = Date.now();
     
@@ -310,7 +313,7 @@ export class QueryOptimizationManager {
         const userCountResult = await db.execute({ text: userQuery });
         userCount = parseInt(userCountResult.rows[0]?.[0] as string) || 0;
       } catch (dbError: any) {
-        console.warn('⚠️ User count query failed, using fallback approach:', dbError.message);
+        logWarn('User count query failed, using fallback approach');
         // Fallback: just set a placeholder value to continue verification
         userCount = 0;
       }
@@ -321,19 +324,19 @@ export class QueryOptimizationManager {
         const orgCountResult = await db.execute({ text: orgQuery });
         orgCount = parseInt(orgCountResult.rows[0]?.[0] as string) || 0;
       } catch (dbError: any) {
-        console.warn('⚠️ Organization count query failed, using fallback approach:', dbError.message);
+        logWarn('Organization count query failed, using fallback approach');
         // Fallback: just set a placeholder value to continue verification
         orgCount = 0;
       }
       
       const testTime = Date.now() - testStartTime;
       
-      console.log(`✅ Database verification successful (${testTime}ms: ${userCount} users, ${orgCount} orgs)`);
+      if (process.env.NODE_ENV !== 'production') console.log(`✅ Database verification successful (${testTime}ms: ${userCount} users, ${orgCount} orgs)`);
       
     } catch (error: any) {
-      console.error('❌ Database query verification failed:', error);
+      logError('Database query verification failed', error);
       // Don't throw the error, just log it to avoid breaking the optimization system
-      console.log('🔧 Continuing optimization system initialization despite query verification issues');
+      if (process.env.NODE_ENV !== 'production') console.log('🔧 Continuing optimization system initialization despite query verification issues');
     }
   }
 
@@ -341,15 +344,17 @@ export class QueryOptimizationManager {
    * Verify cache system functionality
    */
   private async verifyCacheSystem(): Promise<void> {
-    console.log('🔍 Verifying cache system...');
+    if (process.env.NODE_ENV !== 'production') console.log('🔍 Verifying cache system...');
     
     try {
       // Get current cache statistics
       const cacheStats = queryCache.getStats();
-      console.log('📊 Cache statistics:');
-      Object.entries(cacheStats).forEach(([type, stats]) => {
-        console.log(`   ${type}: ${stats.size}/${stats.maxSize} entries, ${stats.hitRate} hit rate`);
-      });
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('📊 Cache statistics:');
+        Object.entries(cacheStats).forEach(([type, stats]) => {
+          console.log(`   ${type}: ${stats.size}/${stats.maxSize} entries, ${stats.hitRate} hit rate`);
+        });
+      }
 
       // Test cache functionality
       const cacheTestKey = 'verification_test';
@@ -359,13 +364,13 @@ export class QueryOptimizationManager {
       const cachedData = queryCache.get('search', cacheTestKey);
       
       if (cachedData && cachedData.test === 'data') {
-        console.log('✅ Cache system verification successful');
+        if (process.env.NODE_ENV !== 'production') console.log('✅ Cache system verification successful');
       } else {
         throw new Error('Cache system verification failed - data not retrieved correctly');
       }
       
     } catch (error: any) {
-      console.error('❌ Cache system verification failed:', error);
+      logError('Cache system verification failed', error);
       throw new Error(`Cache verification failed: ${error.message}`);
     }
   }
@@ -374,7 +379,7 @@ export class QueryOptimizationManager {
    * Verify performance monitoring is working
    */
   private async verifyPerformanceMonitoring(): Promise<void> {
-    console.log('🔍 Verifying performance monitoring...');
+    if (process.env.NODE_ENV !== 'production') console.log('🔍 Verifying performance monitoring...');
     
     try {
       const stats = dbPerformanceMonitor.getPerformanceStats();
@@ -385,7 +390,7 @@ export class QueryOptimizationManager {
       }
       
       const avgTime = parseFloat(stats.averageQueryTime.replace('ms', ''));
-      console.log(`✅ Performance monitoring active: ${stats.totalQueries} queries, ${avgTime}ms avg`);
+      if (process.env.NODE_ENV !== 'production') console.log(`✅ Performance monitoring active: ${stats.totalQueries} queries, ${avgTime}ms avg`);
       
     } catch (error: any) {
       console.error('❌ Performance monitoring verification failed:', error);
@@ -397,7 +402,7 @@ export class QueryOptimizationManager {
    * Verify database indexes are effective
    */
   private async verifyIndexEffectiveness(): Promise<void> {
-    console.log('🔍 Verifying index effectiveness...');
+    if (process.env.NODE_ENV !== 'production') console.log('🔍 Verifying index effectiveness...');
     
     try {
       // Test query performance on indexed columns using safe approach
@@ -410,25 +415,23 @@ export class QueryOptimizationManager {
         const userLookupTime = Date.now() - testStartTime;
         
         if (userLookupTime > 50) {
-          console.warn(`⚠️ User lookup took ${userLookupTime}ms - indexes may need optimization`);
+          if (process.env.NODE_ENV !== 'production') console.warn(`⚠️ User lookup took ${userLookupTime}ms - indexes may need optimization`);
         } else {
-          console.log(`✅ Index effectiveness verified: user lookup in ${userLookupTime}ms`);
+          if (process.env.NODE_ENV !== 'production') console.log(`✅ Index effectiveness verified: user lookup in ${userLookupTime}ms`);
         }
       } catch (dbError: any) {
-        console.warn('⚠️ Index effectiveness test failed, using performance fallback:', dbError.message);
-        // Fallback: just check if performance monitoring shows good average times
+        if (process.env.NODE_ENV !== 'production') console.warn('⚠️ Index effectiveness test failed, using performance fallback:', dbError.message);
         const testTime = Date.now() - testStartTime;
         if (testTime < 50) {
-          console.log(`✅ Index effectiveness verified via performance fallback (${testTime}ms)`);
+          if (process.env.NODE_ENV !== 'production') console.log(`✅ Index effectiveness verified via performance fallback (${testTime}ms)`);
         } else {
-          console.warn(`⚠️ Performance fallback indicates potential index issues (${testTime}ms)`);
+          if (process.env.NODE_ENV !== 'production') console.warn(`⚠️ Performance fallback indicates potential index issues (${testTime}ms)`);
         }
       }
       
     } catch (error: any) {
       console.error('❌ Index effectiveness verification failed:', error);
-      // Don't throw the error, just log it to avoid breaking the optimization system
-      console.log('🔧 Continuing optimization system despite index verification issues');
+      if (process.env.NODE_ENV !== 'production') console.log('🔧 Continuing optimization system despite index verification issues');
     }
   }
 
@@ -515,9 +518,9 @@ export class QueryOptimizationManager {
     setInterval(async () => {
       try {
         await QueryOptimizer.refreshMaterializedViews();
-        console.log('🔄 Materialized views refreshed automatically');
+        if (process.env.NODE_ENV !== 'production') console.log('🔄 Materialized views refreshed automatically');
       } catch (error) {
-        console.warn('⚠️ Error refreshing materialized views:', error);
+        if (process.env.NODE_ENV !== 'production') console.warn('⚠️ Error refreshing materialized views:', error);
       }
     }, 60 * 60 * 1000); // 1 hour
 
@@ -525,17 +528,17 @@ export class QueryOptimizationManager {
     setInterval(() => {
       try {
         const report = this.getOptimizationReport();
-        console.log('📊 Performance Report:', {
+        if (process.env.NODE_ENV !== 'production') console.log('📊 Performance Report:', {
           queryTime: `${report.current.averageQueryTime}ms`,
           cacheHitRate: `${report.current.cacheHitRate.toFixed(2)}%`,
           improvement: report.improvement.queryTimeImprovement,
         });
       } catch (error) {
-        console.warn('⚠️ Error generating performance report:', error);
+        if (process.env.NODE_ENV !== 'production') console.warn('⚠️ Error generating performance report:', error);
       }
     }, 10 * 60 * 1000); // 10 minutes
 
-    console.log('⏰ Optimization maintenance scheduled');
+    if (process.env.NODE_ENV !== 'production') console.log('⏰ Optimization maintenance scheduled');
   }
 }
 

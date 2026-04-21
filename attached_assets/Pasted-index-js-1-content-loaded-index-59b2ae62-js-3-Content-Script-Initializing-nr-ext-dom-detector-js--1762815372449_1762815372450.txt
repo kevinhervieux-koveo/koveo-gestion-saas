@@ -1,0 +1,300 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+budget-DKcWlwPA.js:16 🔍 [BUDGET] Component mounted {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984'}
+budget-DKcWlwPA.js:16 🔍 [BUDGET] Context changed: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984'}
+budget-DKcWlwPA.js:16 🔍 [BUDGET] Filters updated: {viewType: 'month', periodLength: 12, startMonth: 11, startYear: 2025, dataVisibility: {…}}
+budget-DKcWlwPA.js:16 🔍 [BUDGET] Filters updated: {viewType: 'month', periodLength: 12, startMonth: 1, startYear: 2025, dataVisibility: {…}}
+budget-DKcWlwPA.js:16 🔍 [BUDGET] Filters updated: {viewType: 'month', periodLength: 12, startMonth: 1, startYear: 2025, dataVisibility: {…}}
+index-Z0MGCfif.js:185 [Violation] 'setTimeout' handler took 54ms
+budget-DKcWlwPA.js:16 🔍 [BUDGET] Filters updated: {viewType: 'month', periodLength: 12, startMonth: 2, startYear: 2025, dataVisibility: {…}}
+budget-DKcWlwPA.js:16 🔍 [BUDGET] Filters updated: {viewType: 'month', periodLength: 12, startMonth: 2, startYear: 2025, dataVisibility: {…}}
+index-Z0MGCfif.js:185 [Violation] 'setTimeout' handler took 95ms
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-10-28T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+index-Z0MGCfif.js:233 Each child in a list should have a unique "key" prop.
+
+Check the render method of `ForwardRef`. It was passed a child from $k. See https://react.dev/link/warning-keys for more information.
+overrideMethod @ hook.js:608
+(anonymous) @ index-Z0MGCfif.js:233
+X @ index-Z0MGCfif.js:45
+A @ index-Z0MGCfif.js:233
+I @ index-Z0MGCfif.js:127
+ee @ index-Z0MGCfif.js:127
+ye @ index-Z0MGCfif.js:127
+(anonymous) @ index-Z0MGCfif.js:127
+dt @ index-Z0MGCfif.js:141
+vd @ index-Z0MGCfif.js:150
+X @ index-Z0MGCfif.js:45
+Jg @ index-Z0MGCfif.js:163
+Zg @ index-Z0MGCfif.js:163
+Rd @ index-Z0MGCfif.js:163
+Gg @ index-Z0MGCfif.js:163
+mv @ index-Z0MGCfif.js:185
+Rs @ index-Z0MGCfif.js:185
+Od @ index-Z0MGCfif.js:185
+(anonymous) @ index-Z0MGCfif.js:185
+<circle>
+Mw.Nu.jsxDEV @ index-Z0MGCfif.js:15
+dot @ budget-DKcWlwPA.js:16
+Dk @ vendor-charts-DbITUqjm.js:75
+(anonymous) @ vendor-charts-DbITUqjm.js:75
+$k @ vendor-charts-DbITUqjm.js:75
+react_stack_bottom_frame @ index-Z0MGCfif.js:229
+jc @ index-Z0MGCfif.js:120
+ud @ index-Z0MGCfif.js:141
+vd @ index-Z0MGCfif.js:150
+X @ index-Z0MGCfif.js:45
+Jg @ index-Z0MGCfif.js:163
+Zg @ index-Z0MGCfif.js:163
+Rd @ index-Z0MGCfif.js:163
+Gg @ index-Z0MGCfif.js:163
+mv @ index-Z0MGCfif.js:185
+Rs @ index-Z0MGCfif.js:185
+Od @ index-Z0MGCfif.js:185
+(anonymous) @ index-Z0MGCfif.js:185
+<$k>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Mu @ vendor-charts-DbITUqjm.js:75
+react_stack_bottom_frame @ index-Z0MGCfif.js:229
+jc @ index-Z0MGCfif.js:120
+ud @ index-Z0MGCfif.js:141
+vd @ index-Z0MGCfif.js:150
+X @ index-Z0MGCfif.js:45
+Jg @ index-Z0MGCfif.js:163
+Zg @ index-Z0MGCfif.js:163
+Rd @ index-Z0MGCfif.js:163
+Gg @ index-Z0MGCfif.js:163
+mv @ index-Z0MGCfif.js:185
+Rs @ index-Z0MGCfif.js:185
+Od @ index-Z0MGCfif.js:185
+(anonymous) @ index-Z0MGCfif.js:185
+<Mu>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+(anonymous) @ vendor-charts-DbITUqjm.js:75
+Nm @ vendor-charts-DbITUqjm.js:75
+react_stack_bottom_frame @ index-Z0MGCfif.js:229
+jc @ index-Z0MGCfif.js:120
+ud @ index-Z0MGCfif.js:141
+vd @ index-Z0MGCfif.js:150
+X @ index-Z0MGCfif.js:45
+Jg @ index-Z0MGCfif.js:163
+Zg @ index-Z0MGCfif.js:163
+Rd @ index-Z0MGCfif.js:163
+Gg @ index-Z0MGCfif.js:163
+mv @ index-Z0MGCfif.js:185
+Rs @ index-Z0MGCfif.js:185
+Od @ index-Z0MGCfif.js:185
+(anonymous) @ index-Z0MGCfif.js:185
+<Nm>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Lk @ vendor-charts-DbITUqjm.js:75
+react_stack_bottom_frame @ index-Z0MGCfif.js:229
+jc @ index-Z0MGCfif.js:120
+ud @ index-Z0MGCfif.js:141
+vd @ index-Z0MGCfif.js:150
+X @ index-Z0MGCfif.js:45
+Jg @ index-Z0MGCfif.js:163
+Zg @ index-Z0MGCfif.js:163
+Rd @ index-Z0MGCfif.js:163
+Gg @ index-Z0MGCfif.js:163
+mv @ index-Z0MGCfif.js:185
+Rs @ index-Z0MGCfif.js:185
+Od @ index-Z0MGCfif.js:185
+(anonymous) @ index-Z0MGCfif.js:185
+<Lk>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Bk @ vendor-charts-DbITUqjm.js:75
+react_stack_bottom_frame @ index-Z0MGCfif.js:229
+jc @ index-Z0MGCfif.js:120
+ud @ index-Z0MGCfif.js:141
+vd @ index-Z0MGCfif.js:150
+X @ index-Z0MGCfif.js:45
+Jg @ index-Z0MGCfif.js:163
+Zg @ index-Z0MGCfif.js:163
+Rd @ index-Z0MGCfif.js:163
+Gg @ index-Z0MGCfif.js:163
+mv @ index-Z0MGCfif.js:185
+Rs @ index-Z0MGCfif.js:185
+Od @ index-Z0MGCfif.js:185
+(anonymous) @ index-Z0MGCfif.js:185
+<Bk>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+render @ vendor-charts-DbITUqjm.js:75
+react_stack_bottom_frame @ index-Z0MGCfif.js:229
+mg @ index-Z0MGCfif.js:149
+vd @ index-Z0MGCfif.js:150
+X @ index-Z0MGCfif.js:45
+Jg @ index-Z0MGCfif.js:163
+Zg @ index-Z0MGCfif.js:163
+Rd @ index-Z0MGCfif.js:163
+Gg @ index-Z0MGCfif.js:163
+mv @ index-Z0MGCfif.js:185
+Rs @ index-Z0MGCfif.js:185
+Od @ index-Z0MGCfif.js:185
+(anonymous) @ index-Z0MGCfif.js:185
+<zk>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Kk @ vendor-charts-DbITUqjm.js:75
+react_stack_bottom_frame @ index-Z0MGCfif.js:229
+jc @ index-Z0MGCfif.js:120
+ud @ index-Z0MGCfif.js:141
+vd @ index-Z0MGCfif.js:150
+X @ index-Z0MGCfif.js:45
+Jg @ index-Z0MGCfif.js:163
+Zg @ index-Z0MGCfif.js:163
+Rd @ index-Z0MGCfif.js:163
+Gg @ index-Z0MGCfif.js:163
+mv @ index-Z0MGCfif.js:185
+Rs @ index-Z0MGCfif.js:185
+Od @ index-Z0MGCfif.js:185
+(anonymous) @ index-Z0MGCfif.js:185
+<Kk>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+(anonymous) @ vendor-charts-DbITUqjm.js:75
+Mm @ vendor-charts-DbITUqjm.js:75
+react_stack_bottom_frame @ index-Z0MGCfif.js:229
+jc @ index-Z0MGCfif.js:120
+ud @ index-Z0MGCfif.js:141
+vd @ index-Z0MGCfif.js:150
+X @ index-Z0MGCfif.js:45
+Jg @ index-Z0MGCfif.js:163
+Zg @ index-Z0MGCfif.js:163
+Rd @ index-Z0MGCfif.js:163
+Gg @ index-Z0MGCfif.js:163
+mv @ index-Z0MGCfif.js:185
+Rs @ index-Z0MGCfif.js:185
+Od @ index-Z0MGCfif.js:185
+(anonymous) @ index-Z0MGCfif.js:185
+<Mm>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Wk @ vendor-charts-DbITUqjm.js:75
+react_stack_bottom_frame @ index-Z0MGCfif.js:229
+jc @ index-Z0MGCfif.js:120
+ud @ index-Z0MGCfif.js:141
+vd @ index-Z0MGCfif.js:150
+X @ index-Z0MGCfif.js:45
+Jg @ index-Z0MGCfif.js:163
+Zg @ index-Z0MGCfif.js:163
+Rd @ index-Z0MGCfif.js:163
+Gg @ index-Z0MGCfif.js:163
+mv @ index-Z0MGCfif.js:185
+Rs @ index-Z0MGCfif.js:185
+Od @ index-Z0MGCfif.js:185
+(anonymous) @ index-Z0MGCfif.js:185
+<Line>
+Mw.Nu.jsxDEV @ index-Z0MGCfif.js:15
+Ln @ budget-DKcWlwPA.js:16
+react_stack_bottom_frame @ index-Z0MGCfif.js:229
+jc @ index-Z0MGCfif.js:120
+ud @ index-Z0MGCfif.js:141
+vd @ index-Z0MGCfif.js:150
+X @ index-Z0MGCfif.js:45
+Jg @ index-Z0MGCfif.js:163
+Zg @ index-Z0MGCfif.js:163
+Rd @ index-Z0MGCfif.js:163
+Gg @ index-Z0MGCfif.js:163
+mv @ index-Z0MGCfif.js:185
+Rs @ index-Z0MGCfif.js:185
+Od @ index-Z0MGCfif.js:185
+(anonymous) @ index-Z0MGCfif.js:185
+index-Z0MGCfif.js:136 Error: Maximum update depth exceeded. This can happen when a component repeatedly calls setState inside componentWillUpdate or componentDidUpdate. React limits the number of nested updates to prevent infinite loops.
+    at Gr (index-Z0MGCfif.js:83:16795)
+    at mc (index-Z0MGCfif.js:83:16313)
+    at ys (index-Z0MGCfif.js:120:18366)
+    at $h (index-Z0MGCfif.js:120:17962)
+    at xo (vendor-ui-FpgPax8G.js:14:1708)
+    at vendor-ui-FpgPax8G.js:14:1800
+    at Array.map (<anonymous>)
+    at vendor-ui-FpgPax8G.js:14:1784
+    at xo (vendor-ui-FpgPax8G.js:14:1708)
+    at vendor-ui-FpgPax8G.js:14:1800
+
+The above error occurred in the <button> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, cE.
+
+overrideMethod @ hook.js:608
+ag @ index-Z0MGCfif.js:136
+og @ index-Z0MGCfif.js:141
+X @ index-Z0MGCfif.js:45
+s.componentDidCatch.e.callback @ index-Z0MGCfif.js:141
+Ah @ index-Z0MGCfif.js:107
+xh @ index-Z0MGCfif.js:107
+X @ index-Z0MGCfif.js:45
+Ag @ index-Z0MGCfif.js:163
+Rg @ index-Z0MGCfif.js:163
+ea @ index-Z0MGCfif.js:163
+Rg @ index-Z0MGCfif.js:163
+ea @ index-Z0MGCfif.js:163
+Rg @ index-Z0MGCfif.js:163
+ea @ index-Z0MGCfif.js:163
+Rg @ index-Z0MGCfif.js:163
+ea @ index-Z0MGCfif.js:163
+Rg @ index-Z0MGCfif.js:163
+ea @ index-Z0MGCfif.js:163
+Rg @ index-Z0MGCfif.js:163
+ea @ index-Z0MGCfif.js:163
+Rg @ index-Z0MGCfif.js:163
+tv @ index-Z0MGCfif.js:163
+Nd @ index-Z0MGCfif.js:163
+Yg @ index-Z0MGCfif.js:163
+Gg @ index-Z0MGCfif.js:163
+mv @ index-Z0MGCfif.js:185
+Rs @ index-Z0MGCfif.js:185
+Od @ index-Z0MGCfif.js:185
+(anonymous) @ index-Z0MGCfif.js:185
+index-Z0MGCfif.js:185 [Violation] 'setTimeout' handler took 3170ms

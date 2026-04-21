@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { logDebug } from '@/lib/logger';
 import { Header } from '@/components/layout/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CollapsibleFilters } from '@/components/ui/collapsible-filters';
@@ -76,7 +77,7 @@ export default function Invoices() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    console.log('🔍 [INVOICES] Component mounted', {
+    logDebug('🔍 [INVOICES] Component mounted', {
       initialFilters: filters,
       timestamp: new Date().toISOString()
     });
@@ -90,10 +91,10 @@ export default function Invoices() {
   } = useQuery<Building[]>({
     queryKey: ['/api/buildings'],
     queryFn: async () => {
-      console.log('🔍 [INVOICES] Fetching buildings...');
+      logDebug('🔍 [INVOICES] Fetching buildings...');
       const response = await apiRequest('GET', '/api/buildings');
       const data = await response.json();
-      console.log('🔍 [INVOICES] Buildings received:', { count: data?.length || 0 });
+      logDebug('🔍 [INVOICES] Buildings received:', { count: data?.length || 0 });
       return data;
     },
   });
@@ -122,7 +123,7 @@ export default function Invoices() {
       }
 
       const url = `/api/invoices${params.toString() ? '?' + params.toString() : ''}`;
-      console.log('🔍 [INVOICES] Fetching invoices with params:', {
+      logDebug('🔍 [INVOICES] Fetching invoices with params:', {
         buildingId: filters.buildingId,
         paymentType: filters.paymentType,
         year: filters.year,
@@ -132,12 +133,12 @@ export default function Invoices() {
       const response = await fetch(url, { credentials: 'include' });
       
       if (!response.ok) {
-        console.log('🔍 [INVOICES] Failed to fetch invoices:', response.statusText);
+        logDebug('🔍 [INVOICES] Failed to fetch invoices:', response.statusText);
         throw new Error(`Failed to fetch invoices: ${response.statusText}`);
       }
 
       const data = await response.json();
-      console.log('🔍 [INVOICES] Invoices received:', {
+      logDebug('🔍 [INVOICES] Invoices received:', {
         count: data?.data?.length || 0,
         success: data?.success
       });
@@ -158,13 +159,13 @@ export default function Invoices() {
   }, {});
 
   const handleFilterChange = (key: keyof InvoiceFilters, value: string | string[]) => {
-    console.log('🔍 [INVOICES] Filter changed:', { key, value });
+    logDebug('🔍 [INVOICES] Filter changed:', { key, value });
     setFilters((prev) => ({ ...prev, [key]: value }));
   };
 
   const handleMonthToggle = (monthValue: string) => {
     const isAdding = !filters.months.includes(monthValue);
-    console.log('🔍 [INVOICES] User action: Month toggle', {
+    logDebug('🔍 [INVOICES] User action: Month toggle', {
       action: isAdding ? 'add' : 'remove',
       month: monthValue
     });
@@ -177,7 +178,7 @@ export default function Invoices() {
   };
 
   const clearAllFilters = () => {
-    console.log('🔍 [INVOICES] User action: Clear all filters');
+    logDebug('🔍 [INVOICES] User action: Clear all filters');
     setFilters({
       buildingId: '',
       paymentType: '',
@@ -189,7 +190,7 @@ export default function Invoices() {
   const handleAllMonthsToggle = () => {
     const allMonthValues = MONTHS.map((m) => m.value);
     const isSelectingAll = filters.months.length !== allMonthValues.length;
-    console.log('🔍 [INVOICES] User action: All months toggle', {
+    logDebug('🔍 [INVOICES] User action: All months toggle', {
       action: isSelectingAll ? 'select all' : 'deselect all'
     });
     setFilters((prev) => ({
@@ -221,22 +222,22 @@ export default function Invoices() {
   };
 
   useEffect(() => {
-    console.log('🔍 [INVOICES] Filters updated:', filters);
+    logDebug('🔍 [INVOICES] Filters updated:', filters);
   }, [filters]);
 
   useEffect(() => {
-    console.log('🔍 [INVOICES] Create dialog state changed:', { isOpen: showCreateDialog });
+    logDebug('🔍 [INVOICES] Create dialog state changed:', { isOpen: showCreateDialog });
   }, [showCreateDialog]);
 
   useEffect(() => {
     if (buildingsError) {
-      console.log('🔍 [INVOICES] Buildings loading error:', buildingsError);
+      logDebug('🔍 [INVOICES] Buildings loading error:', buildingsError);
     }
   }, [buildingsError]);
 
   // Show loading state while buildings are loading
   if (buildingsLoading) {
-    console.log('🔍 [INVOICES] Loading buildings...');
+    logDebug('🔍 [INVOICES] Loading buildings...');
     return (
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header title={t('invoiceManagement')} subtitle={t('invoiceManagementSubtitle')} />
@@ -460,12 +461,12 @@ export default function Invoices() {
                   mode="create"
                   buildingId={filters.buildingId}
                   onSuccess={() => {
-                    console.log('🔍 [INVOICES] Invoice created successfully');
+                    logDebug('🔍 [INVOICES] Invoice created successfully');
                     setShowCreateDialog(false);
                     queryClient.invalidateQueries({ queryKey: ['/api/invoices'] });
                   }}
                   onCancel={() => {
-                    console.log('🔍 [INVOICES] User action: Create invoice cancelled');
+                    logDebug('🔍 [INVOICES] User action: Create invoice cancelled');
                     setShowCreateDialog(false);
                   }}
                 />
@@ -478,7 +479,7 @@ export default function Invoices() {
             <BuildingSelectionGrid
               buildings={Array.isArray(buildings) ? buildings : []}
               onBuildingSelect={(buildingId) => {
-                console.log('🔍 [INVOICES] User action: Building selected from grid', { buildingId });
+                logDebug('🔍 [INVOICES] User action: Building selected from grid', { buildingId });
                 handleFilterChange('buildingId', buildingId);
               }}
             />
@@ -498,7 +499,7 @@ export default function Invoices() {
                   No invoices found for the selected filters. Create your first invoice to get started.
                 </p>
                 <Button onClick={() => {
-                  console.log('🔍 [INVOICES] User action: Create first invoice clicked');
+                  logDebug('🔍 [INVOICES] User action: Create first invoice clicked');
                   setShowCreateDialog(true);
                 }} data-testid="button-create-first-invoice">
                   <Plus className="w-4 h-4 mr-2" />
@@ -527,7 +528,7 @@ export default function Invoices() {
                           key={invoice.id} 
                           invoice={invoice} 
                           onUpdate={() => {
-                            console.log('🔍 [INVOICES] Invoice updated:', { invoiceId: invoice.id });
+                            logDebug('🔍 [INVOICES] Invoice updated:', { invoiceId: invoice.id });
                             queryClient.invalidateQueries({ queryKey: ['/api/invoices'] });
                           }}
                         />
@@ -556,7 +557,7 @@ export default function Invoices() {
                           key={invoice.id} 
                           invoice={invoice} 
                           onUpdate={() => {
-                            console.log('🔍 [INVOICES] Invoice updated:', { invoiceId: invoice.id });
+                            logDebug('🔍 [INVOICES] Invoice updated:', { invoiceId: invoice.id });
                             queryClient.invalidateQueries({ queryKey: ['/api/invoices'] });
                           }}
                         />

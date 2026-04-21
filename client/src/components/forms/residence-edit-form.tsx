@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,8 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { X, Plus } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
+import { useCreateUpdateMutation } from '@/lib/common-hooks';
 
 /**
  *
@@ -76,9 +74,6 @@ interface ResidenceEditFormProps {
  * @returns Function result.
  */
 export function ResidenceEditForm({ residence, onSuccess }: ResidenceEditFormProps) {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-
   const [parkingSpaces, setParkingSpaces] = useState<string[]>(residence.parkingSpaceNumbers || []);
   const [storageSpaces, setStorageSpaces] = useState<string[]>(residence.storageSpaceNumbers || []);
   const [newParkingSpace, setNewParkingSpace] = useState('');
@@ -101,7 +96,7 @@ export function ResidenceEditForm({ residence, onSuccess }: ResidenceEditFormPro
     },
   });
 
-  const updateResidenceMutation = useMutation({
+  const updateResidenceMutation = useCreateUpdateMutation<unknown, ResidenceEditFormData>({
     mutationFn: async (_data: ResidenceEditFormData) => {
       // Convert empty strings to null for optional numeric fields
       const processedData = {
@@ -129,20 +124,13 @@ export function ResidenceEditForm({ residence, onSuccess }: ResidenceEditFormPro
 
       return response.json();
     },
-    onSuccess: () => {
-      toast({
-        title: 'Success',
-        description: 'Residence updated successfully',
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/residences'] });
+    successTitle: 'Success',
+    successMessage: 'Residence updated successfully',
+    errorTitle: 'Error',
+    errorMessage: (error: any) => error?.message || 'Failed to update residence',
+    queryKeysToInvalidate: [['/api/residences']],
+    onSuccessCallback: () => {
       onSuccess();
-    },
-    onError: (_error: unknown) => {
-      toast({
-        title: 'Error',
-        description: (_error as Error)?.message || 'Failed to update residence',
-        variant: 'destructive',
-      });
     },
   });
 

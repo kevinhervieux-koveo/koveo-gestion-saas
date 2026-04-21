@@ -1,9 +1,8 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
 import { apiRequest } from '@/lib/queryClient';
-import { useToast } from '@/hooks/use-toast';
+import { useCreateUpdateMutation } from '@/lib/common-hooks';
 import { useLanguage } from '@/hooks/use-language';
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -85,8 +84,6 @@ type OrganizationFormData = z.infer<typeof organizationFormSchema>;
  */
 export function OrganizationForm({ open, onOpenChange }: OrganizationFormProps) {
   const { t: _t } = useLanguage();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
 
   const form = useForm({
     resolver: zodResolver(organizationFormSchema),
@@ -104,26 +101,19 @@ export function OrganizationForm({ open, onOpenChange }: OrganizationFormProps) 
     },
   });
 
-  const createOrganizationMutation = useMutation({
+  const createOrganizationMutation = useCreateUpdateMutation<unknown, InsertOrganization>({
     mutationFn: async (_data: InsertOrganization) => {
       const response = await apiRequest('POST', '/api/organizations', _data);
       return response.json();
     },
-    onSuccess: () => {
-      toast({
-        title: 'Success',
-        description: 'Organization created successfully',
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/organizations'] });
+    successTitle: 'Success',
+    successMessage: 'Organization created successfully',
+    errorTitle: 'Error',
+    errorMessage: (error: any) => error?.message || 'Failed to create organization',
+    queryKeysToInvalidate: [['/api/organizations']],
+    onSuccessCallback: () => {
       form.reset();
       onOpenChange(false);
-    },
-    onError: (_error: unknown) => {
-      toast({
-        title: 'Error',
-        description: (_error as Error)?.message || 'Failed to create organization',
-        variant: 'destructive',
-      });
     },
   });
 

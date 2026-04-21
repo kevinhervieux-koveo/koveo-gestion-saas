@@ -1,0 +1,590 @@
+index.js:1 content loaded
+index-YKQkaOaq.js:405  GET https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/auth/user 401 (Unauthorized)
+queryFn @ index-YKQkaOaq.js:405
+r @ vendor-query-DHS8u8Dc.js:1
+m @ vendor-query-DHS8u8Dc.js:1
+start @ vendor-query-DHS8u8Dc.js:1
+fetch @ vendor-query-DHS8u8Dc.js:1
+#p @ vendor-query-DHS8u8Dc.js:1
+onSubscribe @ vendor-query-DHS8u8Dc.js:1
+subscribe @ vendor-query-DHS8u8Dc.js:1
+(anonymous) @ vendor-query-DHS8u8Dc.js:1
+Rh @ index-YKQkaOaq.js:120
+react_stack_bottom_frame @ index-YKQkaOaq.js:229
+X @ index-YKQkaOaq.js:45
+Ds @ index-YKQkaOaq.js:150
+Dg @ index-YKQkaOaq.js:163
+Pg @ index-YKQkaOaq.js:163
+Mn @ index-YKQkaOaq.js:163
+Pg @ index-YKQkaOaq.js:163
+Mn @ index-YKQkaOaq.js:163
+Pg @ index-YKQkaOaq.js:163
+Mn @ index-YKQkaOaq.js:163
+Pg @ index-YKQkaOaq.js:163
+Mn @ index-YKQkaOaq.js:163
+Pg @ index-YKQkaOaq.js:163
+Mn @ index-YKQkaOaq.js:163
+Pg @ index-YKQkaOaq.js:163
+Mn @ index-YKQkaOaq.js:163
+Pg @ index-YKQkaOaq.js:163
+Mn @ index-YKQkaOaq.js:163
+Pg @ index-YKQkaOaq.js:163
+iv @ index-YKQkaOaq.js:163
+ws @ index-YKQkaOaq.js:163
+mv @ index-YKQkaOaq.js:185
+Es @ index-YKQkaOaq.js:185
+nv @ index-YKQkaOaq.js:163
+Nd @ index-YKQkaOaq.js:163
+Yg @ index-YKQkaOaq.js:163
+Gg @ index-YKQkaOaq.js:163
+dv @ index-YKQkaOaq.js:185
+l @ index-YKQkaOaq.js:23
+<qC>
+Ew.Ru.jsxDEV @ index-YKQkaOaq.js:15
+pR @ index-YKQkaOaq.js:456
+react_stack_bottom_frame @ index-YKQkaOaq.js:229
+jc @ index-YKQkaOaq.js:120
+ud @ index-YKQkaOaq.js:141
+vd @ index-YKQkaOaq.js:150
+X @ index-YKQkaOaq.js:45
+Jg @ index-YKQkaOaq.js:163
+Zg @ index-YKQkaOaq.js:163
+Rd @ index-YKQkaOaq.js:163
+Gg @ index-YKQkaOaq.js:163
+dv @ index-YKQkaOaq.js:185
+l @ index-YKQkaOaq.js:23
+<pR>
+Ew.Ru.jsxDEV @ index-YKQkaOaq.js:15
+(anonymous) @ index-YKQkaOaq.js:456
+index.59b2ae62.js:3 Content Script: Initializing
+overview-BWwqHl9X.js:1 [FinancialOverview] Query state: {selectedBuildingId: '', filters: {…}, forecastData: undefined, forecastLoading: false, forecastError: null, …}
+overview-BWwqHl9X.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 0, projectQueriesCount: 0}
+overview-BWwqHl9X.js:1 [FinancialOverview] No buildings available
+overview-BWwqHl9X.js:1 [FinancialOverview] Query state: {selectedBuildingId: '', filters: {…}, forecastData: undefined, forecastLoading: false, forecastError: null, …}
+overview-BWwqHl9X.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 0, projectQueriesCount: 0}
+overview-BWwqHl9X.js:1 [FinancialOverview] No buildings available
+overview-BWwqHl9X.js:1 [FinancialOverview] Query state: {selectedBuildingId: '', filters: {…}, forecastData: undefined, forecastLoading: false, forecastError: null, …}
+overview-BWwqHl9X.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 15, projectQueriesCount: 15}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 0 (1936 Nitzsche Track Building 5): {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 1 (271 MacGyver Falls Building 5): {buildingId: '2e06bb1b-5d1e-4046-95a9-6575b20766bc', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 2 (32360 Jude Fields Building 2): {buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 3 (392 Georgette Trail Building 2): {buildingId: 'ece64c30-7c2f-4b28-88d7-2c9f0a8b22ea', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 4 (4958 E Oak Street Building 4): {buildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 5 (52196 Wunsch Ridge Building 1): {buildingId: '5976e5e6-7688-4caa-82da-2ad860e7cb7f', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 6 (54716 N Cedar Street Building 1): {buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 7 (70342 Dare Cliffs Building 3): {buildingId: '66653f30-2d10-4907-bebc-9e3757d2ef0e', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 8 (891 Keira Station Building 4): {buildingId: '67dc6a38-b4fb-46ae-9ff5-fcabce3da8e7', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 9 (8921 Jeff Mills Building 3): {buildingId: '2c0d7769-d2b7-4f63-8aaf-0058935de2f9', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 10 (Test Building for Documents): {buildingId: 'a3389c5c-79d1-483b-975a-d14359826e28', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 11 (Test Building for Documents): {buildingId: 'cf204f9c-a0d2-4e54-afe3-9cf31171068a', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 12 (Test Building for Documents): {buildingId: '962c9c09-8411-436a-b1ff-12344cb60987', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 13 (Test Building for Documents): {buildingId: 'adb4edb3-ac7e-4ede-b540-e63b48e8f753', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 14 (Test Building for Documents): {buildingId: '8ddf0cc9-325e-46f9-9b78-150e57ecc91a', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Total projects aggregated: 0
+overview-BWwqHl9X.js:1 [FinancialOverview] Query state: {selectedBuildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', filters: {…}, forecastData: undefined, forecastLoading: false, forecastError: null, …}
+overview-BWwqHl9X.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 15, projectQueriesCount: 15}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 0 (1936 Nitzsche Track Building 5): {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 1 (271 MacGyver Falls Building 5): {buildingId: '2e06bb1b-5d1e-4046-95a9-6575b20766bc', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 2 (32360 Jude Fields Building 2): {buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 3 (392 Georgette Trail Building 2): {buildingId: 'ece64c30-7c2f-4b28-88d7-2c9f0a8b22ea', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 4 (4958 E Oak Street Building 4): {buildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 5 (52196 Wunsch Ridge Building 1): {buildingId: '5976e5e6-7688-4caa-82da-2ad860e7cb7f', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 6 (54716 N Cedar Street Building 1): {buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 7 (70342 Dare Cliffs Building 3): {buildingId: '66653f30-2d10-4907-bebc-9e3757d2ef0e', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 8 (891 Keira Station Building 4): {buildingId: '67dc6a38-b4fb-46ae-9ff5-fcabce3da8e7', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 9 (8921 Jeff Mills Building 3): {buildingId: '2c0d7769-d2b7-4f63-8aaf-0058935de2f9', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 10 (Test Building for Documents): {buildingId: 'a3389c5c-79d1-483b-975a-d14359826e28', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 11 (Test Building for Documents): {buildingId: 'cf204f9c-a0d2-4e54-afe3-9cf31171068a', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 12 (Test Building for Documents): {buildingId: '962c9c09-8411-436a-b1ff-12344cb60987', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 13 (Test Building for Documents): {buildingId: 'adb4edb3-ac7e-4ede-b540-e63b48e8f753', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 14 (Test Building for Documents): {buildingId: '8ddf0cc9-325e-46f9-9b78-150e57ecc91a', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Total projects aggregated: 0
+overview-BWwqHl9X.js:1 [FinancialOverview] Query state: {selectedBuildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', filters: {…}, forecastData: undefined, forecastLoading: false, forecastError: null, …}
+overview-BWwqHl9X.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 15, projectQueriesCount: 15}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 0 (1936 Nitzsche Track Building 5): {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 1 (271 MacGyver Falls Building 5): {buildingId: '2e06bb1b-5d1e-4046-95a9-6575b20766bc', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 2 (32360 Jude Fields Building 2): {buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 3 (392 Georgette Trail Building 2): {buildingId: 'ece64c30-7c2f-4b28-88d7-2c9f0a8b22ea', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 4 (4958 E Oak Street Building 4): {buildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 5 (52196 Wunsch Ridge Building 1): {buildingId: '5976e5e6-7688-4caa-82da-2ad860e7cb7f', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 6 (54716 N Cedar Street Building 1): {buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 7 (70342 Dare Cliffs Building 3): {buildingId: '66653f30-2d10-4907-bebc-9e3757d2ef0e', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 8 (891 Keira Station Building 4): {buildingId: '67dc6a38-b4fb-46ae-9ff5-fcabce3da8e7', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 9 (8921 Jeff Mills Building 3): {buildingId: '2c0d7769-d2b7-4f63-8aaf-0058935de2f9', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 10 (Test Building for Documents): {buildingId: 'a3389c5c-79d1-483b-975a-d14359826e28', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 11 (Test Building for Documents): {buildingId: 'cf204f9c-a0d2-4e54-afe3-9cf31171068a', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 12 (Test Building for Documents): {buildingId: '962c9c09-8411-436a-b1ff-12344cb60987', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 13 (Test Building for Documents): {buildingId: 'adb4edb3-ac7e-4ede-b540-e63b48e8f753', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 14 (Test Building for Documents): {buildingId: '8ddf0cc9-325e-46f9-9b78-150e57ecc91a', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Total projects aggregated: 0
+overview-BWwqHl9X.js:1 [FinancialOverview] Query state: {selectedBuildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', filters: {…}, forecastData: undefined, forecastLoading: false, forecastError: null, …}
+overview-BWwqHl9X.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 15, projectQueriesCount: 15}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 0 (1936 Nitzsche Track Building 5): {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 1 (271 MacGyver Falls Building 5): {buildingId: '2e06bb1b-5d1e-4046-95a9-6575b20766bc', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 2 (32360 Jude Fields Building 2): {buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 3 (392 Georgette Trail Building 2): {buildingId: 'ece64c30-7c2f-4b28-88d7-2c9f0a8b22ea', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 4 (4958 E Oak Street Building 4): {buildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 5 (52196 Wunsch Ridge Building 1): {buildingId: '5976e5e6-7688-4caa-82da-2ad860e7cb7f', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 6 (54716 N Cedar Street Building 1): {buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 7 (70342 Dare Cliffs Building 3): {buildingId: '66653f30-2d10-4907-bebc-9e3757d2ef0e', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 8 (891 Keira Station Building 4): {buildingId: '67dc6a38-b4fb-46ae-9ff5-fcabce3da8e7', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 9 (8921 Jeff Mills Building 3): {buildingId: '2c0d7769-d2b7-4f63-8aaf-0058935de2f9', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 10 (Test Building for Documents): {buildingId: 'a3389c5c-79d1-483b-975a-d14359826e28', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 11 (Test Building for Documents): {buildingId: 'cf204f9c-a0d2-4e54-afe3-9cf31171068a', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 12 (Test Building for Documents): {buildingId: '962c9c09-8411-436a-b1ff-12344cb60987', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 13 (Test Building for Documents): {buildingId: 'adb4edb3-ac7e-4ede-b540-e63b48e8f753', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 14 (Test Building for Documents): {buildingId: '8ddf0cc9-325e-46f9-9b78-150e57ecc91a', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Total projects aggregated: 0
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+overview-BWwqHl9X.js:1 [FinancialOverview] Query state: {selectedBuildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', filters: {…}, forecastData: undefined, forecastLoading: false, forecastError: null, …}
+overview-BWwqHl9X.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 15, projectQueriesCount: 15}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 0 (1936 Nitzsche Track Building 5): {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 1 (271 MacGyver Falls Building 5): {buildingId: '2e06bb1b-5d1e-4046-95a9-6575b20766bc', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 271 MacGyver Falls Building 5
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 2 (32360 Jude Fields Building 2): {buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 3 (392 Georgette Trail Building 2): {buildingId: 'ece64c30-7c2f-4b28-88d7-2c9f0a8b22ea', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 4 (4958 E Oak Street Building 4): {buildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 5 (52196 Wunsch Ridge Building 1): {buildingId: '5976e5e6-7688-4caa-82da-2ad860e7cb7f', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 6 (54716 N Cedar Street Building 1): {buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 7 (70342 Dare Cliffs Building 3): {buildingId: '66653f30-2d10-4907-bebc-9e3757d2ef0e', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 8 (891 Keira Station Building 4): {buildingId: '67dc6a38-b4fb-46ae-9ff5-fcabce3da8e7', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 9 (8921 Jeff Mills Building 3): {buildingId: '2c0d7769-d2b7-4f63-8aaf-0058935de2f9', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 10 (Test Building for Documents): {buildingId: 'a3389c5c-79d1-483b-975a-d14359826e28', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 11 (Test Building for Documents): {buildingId: 'cf204f9c-a0d2-4e54-afe3-9cf31171068a', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 12 (Test Building for Documents): {buildingId: '962c9c09-8411-436a-b1ff-12344cb60987', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 13 (Test Building for Documents): {buildingId: 'adb4edb3-ac7e-4ede-b540-e63b48e8f753', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 14 (Test Building for Documents): {buildingId: '8ddf0cc9-325e-46f9-9b78-150e57ecc91a', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Total projects aggregated: 0
+overview-BWwqHl9X.js:1 [FinancialOverview] Query state: {selectedBuildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', filters: {…}, forecastData: undefined, forecastLoading: false, forecastError: null, …}
+overview-BWwqHl9X.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 15, projectQueriesCount: 15}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 0 (1936 Nitzsche Track Building 5): {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 1 (271 MacGyver Falls Building 5): {buildingId: '2e06bb1b-5d1e-4046-95a9-6575b20766bc', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 271 MacGyver Falls Building 5
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 2 (32360 Jude Fields Building 2): {buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 3 (392 Georgette Trail Building 2): {buildingId: 'ece64c30-7c2f-4b28-88d7-2c9f0a8b22ea', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 4 (4958 E Oak Street Building 4): {buildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 5 (52196 Wunsch Ridge Building 1): {buildingId: '5976e5e6-7688-4caa-82da-2ad860e7cb7f', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 52196 Wunsch Ridge Building 1
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 6 (54716 N Cedar Street Building 1): {buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 7 (70342 Dare Cliffs Building 3): {buildingId: '66653f30-2d10-4907-bebc-9e3757d2ef0e', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 8 (891 Keira Station Building 4): {buildingId: '67dc6a38-b4fb-46ae-9ff5-fcabce3da8e7', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 9 (8921 Jeff Mills Building 3): {buildingId: '2c0d7769-d2b7-4f63-8aaf-0058935de2f9', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 10 (Test Building for Documents): {buildingId: 'a3389c5c-79d1-483b-975a-d14359826e28', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 11 (Test Building for Documents): {buildingId: 'cf204f9c-a0d2-4e54-afe3-9cf31171068a', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 12 (Test Building for Documents): {buildingId: '962c9c09-8411-436a-b1ff-12344cb60987', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 13 (Test Building for Documents): {buildingId: 'adb4edb3-ac7e-4ede-b540-e63b48e8f753', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 14 (Test Building for Documents): {buildingId: '8ddf0cc9-325e-46f9-9b78-150e57ecc91a', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Total projects aggregated: 0
+overview-BWwqHl9X.js:1 [FinancialOverview] Query state: {selectedBuildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', filters: {…}, forecastData: undefined, forecastLoading: false, forecastError: null, …}
+overview-BWwqHl9X.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 15, projectQueriesCount: 15}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 0 (1936 Nitzsche Track Building 5): {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 1 (271 MacGyver Falls Building 5): {buildingId: '2e06bb1b-5d1e-4046-95a9-6575b20766bc', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 271 MacGyver Falls Building 5
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 2 (32360 Jude Fields Building 2): {buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 3 (392 Georgette Trail Building 2): {buildingId: 'ece64c30-7c2f-4b28-88d7-2c9f0a8b22ea', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 392 Georgette Trail Building 2
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 4 (4958 E Oak Street Building 4): {buildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 5 (52196 Wunsch Ridge Building 1): {buildingId: '5976e5e6-7688-4caa-82da-2ad860e7cb7f', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 52196 Wunsch Ridge Building 1
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 6 (54716 N Cedar Street Building 1): {buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 7 (70342 Dare Cliffs Building 3): {buildingId: '66653f30-2d10-4907-bebc-9e3757d2ef0e', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 8 (891 Keira Station Building 4): {buildingId: '67dc6a38-b4fb-46ae-9ff5-fcabce3da8e7', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 9 (8921 Jeff Mills Building 3): {buildingId: '2c0d7769-d2b7-4f63-8aaf-0058935de2f9', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 10 (Test Building for Documents): {buildingId: 'a3389c5c-79d1-483b-975a-d14359826e28', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 11 (Test Building for Documents): {buildingId: 'cf204f9c-a0d2-4e54-afe3-9cf31171068a', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 12 (Test Building for Documents): {buildingId: '962c9c09-8411-436a-b1ff-12344cb60987', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 13 (Test Building for Documents): {buildingId: 'adb4edb3-ac7e-4ede-b540-e63b48e8f753', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 14 (Test Building for Documents): {buildingId: '8ddf0cc9-325e-46f9-9b78-150e57ecc91a', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Total projects aggregated: 0
+overview-BWwqHl9X.js:1 [FinancialOverview] Query state: {selectedBuildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', filters: {…}, forecastData: undefined, forecastLoading: false, forecastError: null, …}
+overview-BWwqHl9X.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 15, projectQueriesCount: 15}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 0 (1936 Nitzsche Track Building 5): {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 1936 Nitzsche Track Building 5
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 1 (271 MacGyver Falls Building 5): {buildingId: '2e06bb1b-5d1e-4046-95a9-6575b20766bc', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 271 MacGyver Falls Building 5
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 2 (32360 Jude Fields Building 2): {buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 32360 Jude Fields Building 2
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 3 (392 Georgette Trail Building 2): {buildingId: 'ece64c30-7c2f-4b28-88d7-2c9f0a8b22ea', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 392 Georgette Trail Building 2
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 4 (4958 E Oak Street Building 4): {buildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 4958 E Oak Street Building 4
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 5 (52196 Wunsch Ridge Building 1): {buildingId: '5976e5e6-7688-4caa-82da-2ad860e7cb7f', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 52196 Wunsch Ridge Building 1
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 6 (54716 N Cedar Street Building 1): {buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 7 (70342 Dare Cliffs Building 3): {buildingId: '66653f30-2d10-4907-bebc-9e3757d2ef0e', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 8 (891 Keira Station Building 4): {buildingId: '67dc6a38-b4fb-46ae-9ff5-fcabce3da8e7', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 9 (8921 Jeff Mills Building 3): {buildingId: '2c0d7769-d2b7-4f63-8aaf-0058935de2f9', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 10 (Test Building for Documents): {buildingId: 'a3389c5c-79d1-483b-975a-d14359826e28', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 11 (Test Building for Documents): {buildingId: 'cf204f9c-a0d2-4e54-afe3-9cf31171068a', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 12 (Test Building for Documents): {buildingId: '962c9c09-8411-436a-b1ff-12344cb60987', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 13 (Test Building for Documents): {buildingId: 'adb4edb3-ac7e-4ede-b540-e63b48e8f753', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 14 (Test Building for Documents): {buildingId: '8ddf0cc9-325e-46f9-9b78-150e57ecc91a', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Total projects aggregated: 0
+overview-BWwqHl9X.js:1 [FinancialOverview] Query state: {selectedBuildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', filters: {…}, forecastData: undefined, forecastLoading: false, forecastError: null, …}
+overview-BWwqHl9X.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 15, projectQueriesCount: 15}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 0 (1936 Nitzsche Track Building 5): {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 1936 Nitzsche Track Building 5
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 1 (271 MacGyver Falls Building 5): {buildingId: '2e06bb1b-5d1e-4046-95a9-6575b20766bc', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 271 MacGyver Falls Building 5
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 2 (32360 Jude Fields Building 2): {buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 32360 Jude Fields Building 2
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 3 (392 Georgette Trail Building 2): {buildingId: 'ece64c30-7c2f-4b28-88d7-2c9f0a8b22ea', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 392 Georgette Trail Building 2
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 4 (4958 E Oak Street Building 4): {buildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 4958 E Oak Street Building 4
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 5 (52196 Wunsch Ridge Building 1): {buildingId: '5976e5e6-7688-4caa-82da-2ad860e7cb7f', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 52196 Wunsch Ridge Building 1
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 6 (54716 N Cedar Street Building 1): {buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', hasData: true, success: true, projectsCount: 3, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 3 projects from 54716 N Cedar Street Building 1
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 7 (70342 Dare Cliffs Building 3): {buildingId: '66653f30-2d10-4907-bebc-9e3757d2ef0e', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 8 (891 Keira Station Building 4): {buildingId: '67dc6a38-b4fb-46ae-9ff5-fcabce3da8e7', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 9 (8921 Jeff Mills Building 3): {buildingId: '2c0d7769-d2b7-4f63-8aaf-0058935de2f9', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 10 (Test Building for Documents): {buildingId: 'a3389c5c-79d1-483b-975a-d14359826e28', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 11 (Test Building for Documents): {buildingId: 'cf204f9c-a0d2-4e54-afe3-9cf31171068a', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 12 (Test Building for Documents): {buildingId: '962c9c09-8411-436a-b1ff-12344cb60987', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 13 (Test Building for Documents): {buildingId: 'adb4edb3-ac7e-4ede-b540-e63b48e8f753', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 14 (Test Building for Documents): {buildingId: '8ddf0cc9-325e-46f9-9b78-150e57ecc91a', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Total projects aggregated: 3
+overview-BWwqHl9X.js:1 [FinancialOverview] Query state: {selectedBuildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', filters: {…}, forecastData: undefined, forecastLoading: false, forecastError: null, …}
+overview-BWwqHl9X.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 15, projectQueriesCount: 15}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 0 (1936 Nitzsche Track Building 5): {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 1936 Nitzsche Track Building 5
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 1 (271 MacGyver Falls Building 5): {buildingId: '2e06bb1b-5d1e-4046-95a9-6575b20766bc', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 271 MacGyver Falls Building 5
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 2 (32360 Jude Fields Building 2): {buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 32360 Jude Fields Building 2
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 3 (392 Georgette Trail Building 2): {buildingId: 'ece64c30-7c2f-4b28-88d7-2c9f0a8b22ea', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 392 Georgette Trail Building 2
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 4 (4958 E Oak Street Building 4): {buildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 4958 E Oak Street Building 4
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 5 (52196 Wunsch Ridge Building 1): {buildingId: '5976e5e6-7688-4caa-82da-2ad860e7cb7f', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 52196 Wunsch Ridge Building 1
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 6 (54716 N Cedar Street Building 1): {buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', hasData: true, success: true, projectsCount: 3, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 3 projects from 54716 N Cedar Street Building 1
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 7 (70342 Dare Cliffs Building 3): {buildingId: '66653f30-2d10-4907-bebc-9e3757d2ef0e', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 8 (891 Keira Station Building 4): {buildingId: '67dc6a38-b4fb-46ae-9ff5-fcabce3da8e7', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 9 (8921 Jeff Mills Building 3): {buildingId: '2c0d7769-d2b7-4f63-8aaf-0058935de2f9', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 10 (Test Building for Documents): {buildingId: 'a3389c5c-79d1-483b-975a-d14359826e28', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 11 (Test Building for Documents): {buildingId: 'cf204f9c-a0d2-4e54-afe3-9cf31171068a', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from Test Building for Documents
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 12 (Test Building for Documents): {buildingId: '962c9c09-8411-436a-b1ff-12344cb60987', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 13 (Test Building for Documents): {buildingId: 'adb4edb3-ac7e-4ede-b540-e63b48e8f753', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 14 (Test Building for Documents): {buildingId: '8ddf0cc9-325e-46f9-9b78-150e57ecc91a', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Total projects aggregated: 3
+overview-BWwqHl9X.js:1 [FinancialOverview] Query state: {selectedBuildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', filters: {…}, forecastData: undefined, forecastLoading: false, forecastError: null, …}
+overview-BWwqHl9X.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 15, projectQueriesCount: 15}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 0 (1936 Nitzsche Track Building 5): {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 1936 Nitzsche Track Building 5
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 1 (271 MacGyver Falls Building 5): {buildingId: '2e06bb1b-5d1e-4046-95a9-6575b20766bc', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 271 MacGyver Falls Building 5
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 2 (32360 Jude Fields Building 2): {buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 32360 Jude Fields Building 2
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 3 (392 Georgette Trail Building 2): {buildingId: 'ece64c30-7c2f-4b28-88d7-2c9f0a8b22ea', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 392 Georgette Trail Building 2
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 4 (4958 E Oak Street Building 4): {buildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 4958 E Oak Street Building 4
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 5 (52196 Wunsch Ridge Building 1): {buildingId: '5976e5e6-7688-4caa-82da-2ad860e7cb7f', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 52196 Wunsch Ridge Building 1
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 6 (54716 N Cedar Street Building 1): {buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', hasData: true, success: true, projectsCount: 3, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 3 projects from 54716 N Cedar Street Building 1
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 7 (70342 Dare Cliffs Building 3): {buildingId: '66653f30-2d10-4907-bebc-9e3757d2ef0e', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 8 (891 Keira Station Building 4): {buildingId: '67dc6a38-b4fb-46ae-9ff5-fcabce3da8e7', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 891 Keira Station Building 4
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 9 (8921 Jeff Mills Building 3): {buildingId: '2c0d7769-d2b7-4f63-8aaf-0058935de2f9', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 8921 Jeff Mills Building 3
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 10 (Test Building for Documents): {buildingId: 'a3389c5c-79d1-483b-975a-d14359826e28', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from Test Building for Documents
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 11 (Test Building for Documents): {buildingId: 'cf204f9c-a0d2-4e54-afe3-9cf31171068a', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from Test Building for Documents
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 12 (Test Building for Documents): {buildingId: '962c9c09-8411-436a-b1ff-12344cb60987', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from Test Building for Documents
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 13 (Test Building for Documents): {buildingId: 'adb4edb3-ac7e-4ede-b540-e63b48e8f753', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 14 (Test Building for Documents): {buildingId: '8ddf0cc9-325e-46f9-9b78-150e57ecc91a', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Total projects aggregated: 3
+overview-BWwqHl9X.js:1 [FinancialOverview] Query state: {selectedBuildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', filters: {…}, forecastData: undefined, forecastLoading: false, forecastError: null, …}
+overview-BWwqHl9X.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 15, projectQueriesCount: 15}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 0 (1936 Nitzsche Track Building 5): {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 1936 Nitzsche Track Building 5
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 1 (271 MacGyver Falls Building 5): {buildingId: '2e06bb1b-5d1e-4046-95a9-6575b20766bc', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 271 MacGyver Falls Building 5
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 2 (32360 Jude Fields Building 2): {buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 32360 Jude Fields Building 2
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 3 (392 Georgette Trail Building 2): {buildingId: 'ece64c30-7c2f-4b28-88d7-2c9f0a8b22ea', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 392 Georgette Trail Building 2
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 4 (4958 E Oak Street Building 4): {buildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 4958 E Oak Street Building 4
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 5 (52196 Wunsch Ridge Building 1): {buildingId: '5976e5e6-7688-4caa-82da-2ad860e7cb7f', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 52196 Wunsch Ridge Building 1
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 6 (54716 N Cedar Street Building 1): {buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', hasData: true, success: true, projectsCount: 3, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 3 projects from 54716 N Cedar Street Building 1
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 7 (70342 Dare Cliffs Building 3): {buildingId: '66653f30-2d10-4907-bebc-9e3757d2ef0e', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 70342 Dare Cliffs Building 3
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 8 (891 Keira Station Building 4): {buildingId: '67dc6a38-b4fb-46ae-9ff5-fcabce3da8e7', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 891 Keira Station Building 4
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 9 (8921 Jeff Mills Building 3): {buildingId: '2c0d7769-d2b7-4f63-8aaf-0058935de2f9', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 8921 Jeff Mills Building 3
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 10 (Test Building for Documents): {buildingId: 'a3389c5c-79d1-483b-975a-d14359826e28', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from Test Building for Documents
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 11 (Test Building for Documents): {buildingId: 'cf204f9c-a0d2-4e54-afe3-9cf31171068a', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from Test Building for Documents
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 12 (Test Building for Documents): {buildingId: '962c9c09-8411-436a-b1ff-12344cb60987', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from Test Building for Documents
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 13 (Test Building for Documents): {buildingId: 'adb4edb3-ac7e-4ede-b540-e63b48e8f753', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 14 (Test Building for Documents): {buildingId: '8ddf0cc9-325e-46f9-9b78-150e57ecc91a', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Total projects aggregated: 3
+overview-BWwqHl9X.js:1 [FinancialOverview] Query state: {selectedBuildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', filters: {…}, forecastData: undefined, forecastLoading: false, forecastError: null, …}
+overview-BWwqHl9X.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 15, projectQueriesCount: 15}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 0 (1936 Nitzsche Track Building 5): {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 1936 Nitzsche Track Building 5
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 1 (271 MacGyver Falls Building 5): {buildingId: '2e06bb1b-5d1e-4046-95a9-6575b20766bc', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 271 MacGyver Falls Building 5
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 2 (32360 Jude Fields Building 2): {buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 32360 Jude Fields Building 2
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 3 (392 Georgette Trail Building 2): {buildingId: 'ece64c30-7c2f-4b28-88d7-2c9f0a8b22ea', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 392 Georgette Trail Building 2
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 4 (4958 E Oak Street Building 4): {buildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 4958 E Oak Street Building 4
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 5 (52196 Wunsch Ridge Building 1): {buildingId: '5976e5e6-7688-4caa-82da-2ad860e7cb7f', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 52196 Wunsch Ridge Building 1
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 6 (54716 N Cedar Street Building 1): {buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', hasData: true, success: true, projectsCount: 3, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 3 projects from 54716 N Cedar Street Building 1
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 7 (70342 Dare Cliffs Building 3): {buildingId: '66653f30-2d10-4907-bebc-9e3757d2ef0e', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 70342 Dare Cliffs Building 3
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 8 (891 Keira Station Building 4): {buildingId: '67dc6a38-b4fb-46ae-9ff5-fcabce3da8e7', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 891 Keira Station Building 4
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 9 (8921 Jeff Mills Building 3): {buildingId: '2c0d7769-d2b7-4f63-8aaf-0058935de2f9', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 8921 Jeff Mills Building 3
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 10 (Test Building for Documents): {buildingId: 'a3389c5c-79d1-483b-975a-d14359826e28', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from Test Building for Documents
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 11 (Test Building for Documents): {buildingId: 'cf204f9c-a0d2-4e54-afe3-9cf31171068a', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from Test Building for Documents
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 12 (Test Building for Documents): {buildingId: '962c9c09-8411-436a-b1ff-12344cb60987', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from Test Building for Documents
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 13 (Test Building for Documents): {buildingId: 'adb4edb3-ac7e-4ede-b540-e63b48e8f753', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from Test Building for Documents
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 14 (Test Building for Documents): {buildingId: '8ddf0cc9-325e-46f9-9b78-150e57ecc91a', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+overview-BWwqHl9X.js:1 [FinancialOverview] Total projects aggregated: 3
+overview-BWwqHl9X.js:1 [FinancialOverview] Query state: {selectedBuildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', filters: {…}, forecastData: undefined, forecastLoading: false, forecastError: null, …}
+overview-BWwqHl9X.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 15, projectQueriesCount: 15}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 0 (1936 Nitzsche Track Building 5): {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 1936 Nitzsche Track Building 5
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 1 (271 MacGyver Falls Building 5): {buildingId: '2e06bb1b-5d1e-4046-95a9-6575b20766bc', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 271 MacGyver Falls Building 5
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 2 (32360 Jude Fields Building 2): {buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 32360 Jude Fields Building 2
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 3 (392 Georgette Trail Building 2): {buildingId: 'ece64c30-7c2f-4b28-88d7-2c9f0a8b22ea', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 392 Georgette Trail Building 2
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 4 (4958 E Oak Street Building 4): {buildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 4958 E Oak Street Building 4
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 5 (52196 Wunsch Ridge Building 1): {buildingId: '5976e5e6-7688-4caa-82da-2ad860e7cb7f', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 52196 Wunsch Ridge Building 1
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 6 (54716 N Cedar Street Building 1): {buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', hasData: true, success: true, projectsCount: 3, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 3 projects from 54716 N Cedar Street Building 1
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 7 (70342 Dare Cliffs Building 3): {buildingId: '66653f30-2d10-4907-bebc-9e3757d2ef0e', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 70342 Dare Cliffs Building 3
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 8 (891 Keira Station Building 4): {buildingId: '67dc6a38-b4fb-46ae-9ff5-fcabce3da8e7', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 891 Keira Station Building 4
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 9 (8921 Jeff Mills Building 3): {buildingId: '2c0d7769-d2b7-4f63-8aaf-0058935de2f9', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 8921 Jeff Mills Building 3
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 10 (Test Building for Documents): {buildingId: 'a3389c5c-79d1-483b-975a-d14359826e28', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from Test Building for Documents
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 11 (Test Building for Documents): {buildingId: 'cf204f9c-a0d2-4e54-afe3-9cf31171068a', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from Test Building for Documents
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 12 (Test Building for Documents): {buildingId: '962c9c09-8411-436a-b1ff-12344cb60987', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from Test Building for Documents
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 13 (Test Building for Documents): {buildingId: 'adb4edb3-ac7e-4ede-b540-e63b48e8f753', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from Test Building for Documents
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 14 (Test Building for Documents): {buildingId: '8ddf0cc9-325e-46f9-9b78-150e57ecc91a', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from Test Building for Documents
+overview-BWwqHl9X.js:1 [FinancialOverview] Total projects aggregated: 3
+overview-BWwqHl9X.js:1 [FinancialOverview] Query state: {selectedBuildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', filters: {…}, forecastData: undefined, forecastLoading: false, forecastError: null, …}
+overview-BWwqHl9X.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 15, projectQueriesCount: 15}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 0 (1936 Nitzsche Track Building 5): {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 1936 Nitzsche Track Building 5
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 1 (271 MacGyver Falls Building 5): {buildingId: '2e06bb1b-5d1e-4046-95a9-6575b20766bc', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 271 MacGyver Falls Building 5
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 2 (32360 Jude Fields Building 2): {buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 32360 Jude Fields Building 2
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 3 (392 Georgette Trail Building 2): {buildingId: 'ece64c30-7c2f-4b28-88d7-2c9f0a8b22ea', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 392 Georgette Trail Building 2
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 4 (4958 E Oak Street Building 4): {buildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 4958 E Oak Street Building 4
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 5 (52196 Wunsch Ridge Building 1): {buildingId: '5976e5e6-7688-4caa-82da-2ad860e7cb7f', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 52196 Wunsch Ridge Building 1
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 6 (54716 N Cedar Street Building 1): {buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', hasData: true, success: true, projectsCount: 3, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 3 projects from 54716 N Cedar Street Building 1
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 7 (70342 Dare Cliffs Building 3): {buildingId: '66653f30-2d10-4907-bebc-9e3757d2ef0e', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 70342 Dare Cliffs Building 3
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 8 (891 Keira Station Building 4): {buildingId: '67dc6a38-b4fb-46ae-9ff5-fcabce3da8e7', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 891 Keira Station Building 4
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 9 (8921 Jeff Mills Building 3): {buildingId: '2c0d7769-d2b7-4f63-8aaf-0058935de2f9', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 8921 Jeff Mills Building 3
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 10 (Test Building for Documents): {buildingId: 'a3389c5c-79d1-483b-975a-d14359826e28', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from Test Building for Documents
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 11 (Test Building for Documents): {buildingId: 'cf204f9c-a0d2-4e54-afe3-9cf31171068a', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from Test Building for Documents
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 12 (Test Building for Documents): {buildingId: '962c9c09-8411-436a-b1ff-12344cb60987', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from Test Building for Documents
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 13 (Test Building for Documents): {buildingId: 'adb4edb3-ac7e-4ede-b540-e63b48e8f753', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from Test Building for Documents
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 14 (Test Building for Documents): {buildingId: '8ddf0cc9-325e-46f9-9b78-150e57ecc91a', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from Test Building for Documents
+overview-BWwqHl9X.js:1 [FinancialOverview] Total projects aggregated: 3
+overview-BWwqHl9X.js:1 [FinancialOverview] Query state: {selectedBuildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', filters: {…}, forecastData: undefined, forecastLoading: true, forecastError: null, …}
+overview-BWwqHl9X.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 15, projectQueriesCount: 15}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 0 (1936 Nitzsche Track Building 5): {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 1936 Nitzsche Track Building 5
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 1 (271 MacGyver Falls Building 5): {buildingId: '2e06bb1b-5d1e-4046-95a9-6575b20766bc', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 271 MacGyver Falls Building 5
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 2 (32360 Jude Fields Building 2): {buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 32360 Jude Fields Building 2
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 3 (392 Georgette Trail Building 2): {buildingId: 'ece64c30-7c2f-4b28-88d7-2c9f0a8b22ea', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 392 Georgette Trail Building 2
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 4 (4958 E Oak Street Building 4): {buildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 4958 E Oak Street Building 4
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 5 (52196 Wunsch Ridge Building 1): {buildingId: '5976e5e6-7688-4caa-82da-2ad860e7cb7f', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 52196 Wunsch Ridge Building 1
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 6 (54716 N Cedar Street Building 1): {buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', hasData: true, success: true, projectsCount: 3, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 3 projects from 54716 N Cedar Street Building 1
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 7 (70342 Dare Cliffs Building 3): {buildingId: '66653f30-2d10-4907-bebc-9e3757d2ef0e', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 70342 Dare Cliffs Building 3
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 8 (891 Keira Station Building 4): {buildingId: '67dc6a38-b4fb-46ae-9ff5-fcabce3da8e7', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 891 Keira Station Building 4
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 9 (8921 Jeff Mills Building 3): {buildingId: '2c0d7769-d2b7-4f63-8aaf-0058935de2f9', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 8921 Jeff Mills Building 3
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 10 (Test Building for Documents): {buildingId: 'a3389c5c-79d1-483b-975a-d14359826e28', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from Test Building for Documents
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 11 (Test Building for Documents): {buildingId: 'cf204f9c-a0d2-4e54-afe3-9cf31171068a', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from Test Building for Documents
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 12 (Test Building for Documents): {buildingId: '962c9c09-8411-436a-b1ff-12344cb60987', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from Test Building for Documents
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 13 (Test Building for Documents): {buildingId: 'adb4edb3-ac7e-4ede-b540-e63b48e8f753', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from Test Building for Documents
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 14 (Test Building for Documents): {buildingId: '8ddf0cc9-325e-46f9-9b78-150e57ecc91a', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from Test Building for Documents
+overview-BWwqHl9X.js:1 [FinancialOverview] Total projects aggregated: 3
+overview-BWwqHl9X.js:1 [FinancialOverview] Making API request: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', params: {…}, url: '/api/budgets/c3052c3c-b694-41a6-bd65-3bc3ae9a5984/forecast'}
+overview-BWwqHl9X.js:1 [FinancialOverview] API response: {data: {…}, hasForecast: true, forecastLength: 12}
+overview-BWwqHl9X.js:1 [FinancialOverview] Query state: {selectedBuildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', filters: {…}, forecastData: {…}, forecastLoading: false, forecastError: null, …}
+overview-BWwqHl9X.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 15, projectQueriesCount: 15}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 0 (1936 Nitzsche Track Building 5): {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 1936 Nitzsche Track Building 5
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 1 (271 MacGyver Falls Building 5): {buildingId: '2e06bb1b-5d1e-4046-95a9-6575b20766bc', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 271 MacGyver Falls Building 5
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 2 (32360 Jude Fields Building 2): {buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 32360 Jude Fields Building 2
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 3 (392 Georgette Trail Building 2): {buildingId: 'ece64c30-7c2f-4b28-88d7-2c9f0a8b22ea', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 392 Georgette Trail Building 2
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 4 (4958 E Oak Street Building 4): {buildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 4958 E Oak Street Building 4
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 5 (52196 Wunsch Ridge Building 1): {buildingId: '5976e5e6-7688-4caa-82da-2ad860e7cb7f', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 52196 Wunsch Ridge Building 1
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 6 (54716 N Cedar Street Building 1): {buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', hasData: true, success: true, projectsCount: 3, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 3 projects from 54716 N Cedar Street Building 1
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 7 (70342 Dare Cliffs Building 3): {buildingId: '66653f30-2d10-4907-bebc-9e3757d2ef0e', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 70342 Dare Cliffs Building 3
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 8 (891 Keira Station Building 4): {buildingId: '67dc6a38-b4fb-46ae-9ff5-fcabce3da8e7', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 891 Keira Station Building 4
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 9 (8921 Jeff Mills Building 3): {buildingId: '2c0d7769-d2b7-4f63-8aaf-0058935de2f9', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 8921 Jeff Mills Building 3
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 10 (Test Building for Documents): {buildingId: 'a3389c5c-79d1-483b-975a-d14359826e28', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from Test Building for Documents
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 11 (Test Building for Documents): {buildingId: 'cf204f9c-a0d2-4e54-afe3-9cf31171068a', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from Test Building for Documents
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 12 (Test Building for Documents): {buildingId: '962c9c09-8411-436a-b1ff-12344cb60987', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from Test Building for Documents
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 13 (Test Building for Documents): {buildingId: 'adb4edb3-ac7e-4ede-b540-e63b48e8f753', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from Test Building for Documents
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 14 (Test Building for Documents): {buildingId: '8ddf0cc9-325e-46f9-9b78-150e57ecc91a', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from Test Building for Documents
+overview-BWwqHl9X.js:1 [FinancialOverview] Total projects aggregated: 3
+overview-BWwqHl9X.js:1 [FinancialOverview] Query state: {selectedBuildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', filters: {…}, forecastData: {…}, forecastLoading: false, forecastError: null, …}
+overview-BWwqHl9X.js:1 [FinancialOverview] Aggregating projects: {buildingsCount: 15, projectQueriesCount: 15}
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 0 (1936 Nitzsche Track Building 5): {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 1936 Nitzsche Track Building 5
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 1 (271 MacGyver Falls Building 5): {buildingId: '2e06bb1b-5d1e-4046-95a9-6575b20766bc', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 271 MacGyver Falls Building 5
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 2 (32360 Jude Fields Building 2): {buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 32360 Jude Fields Building 2
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 3 (392 Georgette Trail Building 2): {buildingId: 'ece64c30-7c2f-4b28-88d7-2c9f0a8b22ea', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 392 Georgette Trail Building 2
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 4 (4958 E Oak Street Building 4): {buildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 4958 E Oak Street Building 4
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 5 (52196 Wunsch Ridge Building 1): {buildingId: '5976e5e6-7688-4caa-82da-2ad860e7cb7f', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 52196 Wunsch Ridge Building 1
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 6 (54716 N Cedar Street Building 1): {buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', hasData: true, success: true, projectsCount: 3, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 3 projects from 54716 N Cedar Street Building 1
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 7 (70342 Dare Cliffs Building 3): {buildingId: '66653f30-2d10-4907-bebc-9e3757d2ef0e', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 70342 Dare Cliffs Building 3
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 8 (891 Keira Station Building 4): {buildingId: '67dc6a38-b4fb-46ae-9ff5-fcabce3da8e7', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 891 Keira Station Building 4
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 9 (8921 Jeff Mills Building 3): {buildingId: '2c0d7769-d2b7-4f63-8aaf-0058935de2f9', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from 8921 Jeff Mills Building 3
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 10 (Test Building for Documents): {buildingId: 'a3389c5c-79d1-483b-975a-d14359826e28', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from Test Building for Documents
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 11 (Test Building for Documents): {buildingId: 'cf204f9c-a0d2-4e54-afe3-9cf31171068a', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from Test Building for Documents
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 12 (Test Building for Documents): {buildingId: '962c9c09-8411-436a-b1ff-12344cb60987', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from Test Building for Documents
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 13 (Test Building for Documents): {buildingId: 'adb4edb3-ac7e-4ede-b540-e63b48e8f753', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from Test Building for Documents
+overview-BWwqHl9X.js:1 [FinancialOverview] Building 14 (Test Building for Documents): {buildingId: '8ddf0cc9-325e-46f9-9b78-150e57ecc91a', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+overview-BWwqHl9X.js:1 [FinancialOverview] Added 0 projects from Test Building for Documents
+overview-BWwqHl9X.js:1 [FinancialOverview] Total projects aggregated: 3
+index-YKQkaOaq.js:23 [Violation] 'message' handler took 151ms
+budget-CO5Q0vgL.js:16 🔍 [BUDGET] Component mounted {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984'}
+budget-CO5Q0vgL.js:16 🔍 [BUDGET] Context changed: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984'}
+budget-CO5Q0vgL.js:16 🔍 [BUDGET] Filters updated: {viewType: 'month', periodLength: 12, startMonth: 11, startYear: 2025, dataVisibility: {…}}
+budget-CO5Q0vgL.js:16 🔍 [BUDGET] Filters updated: {viewType: 'month', periodLength: 12, startMonth: 2, startYear: 2025, dataVisibility: {…}}
+index-YKQkaOaq.js:136 Error: Maximum update depth exceeded. This can happen when a component repeatedly calls setState inside componentWillUpdate or componentDidUpdate. React limits the number of nested updates to prevent infinite loops.
+    at Fr (index-YKQkaOaq.js:83:16795)
+    at mc (index-YKQkaOaq.js:83:16313)
+    at bs (index-YKQkaOaq.js:120:18366)
+    at $h (index-YKQkaOaq.js:120:17962)
+    at uo (vendor-ui-C4PXeHfC.js:14:1708)
+    at vendor-ui-C4PXeHfC.js:14:1800
+    at Array.map (<anonymous>)
+    at vendor-ui-C4PXeHfC.js:14:1784
+    at uo (vendor-ui-C4PXeHfC.js:14:1708)
+    at vendor-ui-C4PXeHfC.js:14:1800
+
+The above error occurred in the <button> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, uE.
+
+overrideMethod @ hook.js:608
+ag @ index-YKQkaOaq.js:136
+og @ index-YKQkaOaq.js:141
+X @ index-YKQkaOaq.js:45
+s.componentDidCatch.e.callback @ index-YKQkaOaq.js:141
+Ah @ index-YKQkaOaq.js:107
+Th @ index-YKQkaOaq.js:107
+X @ index-YKQkaOaq.js:45
+Ag @ index-YKQkaOaq.js:163
+Rg @ index-YKQkaOaq.js:163
+ea @ index-YKQkaOaq.js:163
+Rg @ index-YKQkaOaq.js:163
+ea @ index-YKQkaOaq.js:163
+Rg @ index-YKQkaOaq.js:163
+ea @ index-YKQkaOaq.js:163
+Rg @ index-YKQkaOaq.js:163
+ea @ index-YKQkaOaq.js:163
+Rg @ index-YKQkaOaq.js:163
+ea @ index-YKQkaOaq.js:163
+Rg @ index-YKQkaOaq.js:163
+ea @ index-YKQkaOaq.js:163
+Rg @ index-YKQkaOaq.js:163
+tv @ index-YKQkaOaq.js:163
+Nd @ index-YKQkaOaq.js:163
+Yg @ index-YKQkaOaq.js:163
+Gg @ index-YKQkaOaq.js:163
+mv @ index-YKQkaOaq.js:185
+Es @ index-YKQkaOaq.js:185
+Od @ index-YKQkaOaq.js:185
+(anonymous) @ index-YKQkaOaq.js:185

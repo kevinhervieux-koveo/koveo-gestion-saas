@@ -1,7 +1,7 @@
 # Koveo Gestion Development Framework
 
 ## Overview
-Koveo Gestion is an AI-powered SaaS platform for property management in Quebec's residential communities. It offers tools for documentation, maintenance, financial planning, and complaint resolution, ensuring compliance with Quebec's Law 25. The platform supports both French and English, targets co-ownership properties, and aims to deliver an enterprise-grade application with high test coverage and production reliability.
+Koveo Gestion is an AI-powered SaaS platform designed for property management in Quebec's residential communities. It provides comprehensive tools for documentation, maintenance, financial planning, and complaint resolution, ensuring compliance with Quebec's Law 25. The platform supports both French and English, targets co-ownership properties, and aims to be an enterprise-grade application with high test coverage and production reliability.
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
@@ -10,64 +10,74 @@ Working Methodology: **CRITICAL** - Always restart the "Start application" workf
 ## System Architecture
 
 ### UI/UX Decisions
-The UI is built with Shadcn/ui (Radix UI) and Tailwind CSS, emphasizing responsive design. Forms feature single scroll behavior. Lucide React components are used for icons. A Hierarchical Navigation HOC (`withHierarchicalSelection`) provides intelligent auto-forwarding based on user access and implements role-based filtering for residents/tenants (server-side) and managers/admins (client-side).
-
-**Contextual Help System**: A comprehensive help system provides on-demand guidance throughout the application:
-- **Floating Help Button**: A "?" icon button positioned at the bottom right of all authenticated pages
-- **Contextual Overlays**: Clicking the help button displays page-specific guidance including page goals, usage instructions, button/action explanations, form field descriptions, and relationships to other pages
-- **Accessibility Features**: Full keyboard navigation support with focus trapping, Escape key to close, auto-focus on open, and ARIA attributes for screen readers
-- **Comprehensive Coverage**: Help content covers all major routes including admin, manager, and resident pages with explanations of bills/budget relationships, recurring vs. unique bills, and inter-page workflows
-
-**Cascading Filters (Application-Wide Rule)**: All filter dropdowns display only values that exist in the currently filtered dataset. This creates an intelligent filtering experience where each filter shows only options that would return results based on other active filters. Implementation details:
-- Each filter dropdown is populated from the currently filtered data, not the complete dataset
-- Dependent filters automatically reset to 'all' when their selected value is no longer available after parent filter changes
-- Example: In demands management, the Residence filter only shows residences with demands matching the current Status, Type, and Building filters
-- This pattern is implemented using cascading useMemo hooks with proper dependency tracking
+The UI is built using Shadcn/ui (Radix UI) and Tailwind CSS for a responsive design, complemented by Lucide React for icons. It features a Hierarchical Navigation HOC with intelligent auto-forwarding and role-based filtering, optimized caching, and a Contextual Help System with keyboard navigation and ARIA attributes. Cascading Filters provide dynamic, data-driven filtering.
 
 ### Technical Implementations
 - **Frontend**: React 18, TypeScript, Vite, Wouter for routing, TanStack Query for state management, and React Hook Form with Zod for validation.
 - **Backend**: Node.js, Express.js, TypeScript (ES modules) providing a RESTful API.
-- **Database**: PostgreSQL with Drizzle ORM and Drizzle Kit for migrations, hosted on Neon (serverless).
+- **Database**: PostgreSQL with Drizzle ORM and Drizzle Kit.
 - **Authentication**: Express sessions with PostgreSQL store, custom username/password, token-based password reset, and multi-step registration with Law 25 consent.
-- **Authorization**: Four-tier Role-Based Access Control (RBAC: Admin, Manager, Tenant, Resident) with granular permissions. Maintenance features (inventory and projects) enforce building-level access: Admin users access all buildings, while Manager users only access buildings linked via the `userBuildings` table.
-- **File Storage**: Hierarchical structure (`{type}/org_{organizationId}/building_{buildingId}/residence_{residenceId}/role_{userRole}/user_{userId}`) with a secure resolver endpoint and a quarantine system for legacy files.
+- **Authorization**: Four-tier Role-Based Access Control (RBAC: Admin, Manager, Tenant, Resident) with granular permissions, including building-level access.
+- **Demo User System**: Provides comprehensive read-only access for product demonstrations, integrated with backend middleware, frontend error handling, and RBAC.
+- **File Storage**: Replit Object Storage with a unified `DocumentService` for DRY document management. All document paths use a consistent `/objects/` prefix and hierarchical structure, with uploads using presigned URLs and ACL-based access control.
 - **Internationalization**: Custom language provider for English and French.
-- **Testing**: Comprehensive Vitest suite for unit, integration, and API routes, focusing on Law 25 compliance. Includes custom test authentication and manual Zod schemas for validation.
+- **Testing**: Jest test suite with ts-jest (`isolatedModules: true`) for unit, integration, and API routes. Run unit tests with `npm run test:unit`, integration tests with `npm run test:integration`. Jest config in `jest.config.cjs` (`testTimeout: 3000`, `forceExit: true`, `verbose: false`, cache enabled at `.jest-cache`).
 
 ### Feature Specifications
-- **Document Management**: Role-based access, hierarchical storage, secure file access, 30-day quarantine for legacy files, and categorized upload/download.
-- **Property Management**:
-    - **Buildings**: Management for Admin/Manager roles.
-    - **Residences**: Auto-generated units with advanced search, filtering, and multi-parking/storage.
-    - **Inventory Management**: Building element inventory with UNIFORMAT code support, condition tracking, and lifecycle management. Features enhanced view mode and seamless editing.
-- **Financial Management**:
-    - **Bill Management**: Enhanced payment structure with clear single/multiple payment options and auto-generation controls. Features calculated read-only total amounts, separated single payment amounts, and intelligent payment structure preservation. Both single and multiple payment bills support auto-generation for next year.
-      - **Auto-Generation**: Bills with auto-generation enabled (recurrence=true in form, paymentType='recurrent' in database) automatically generate future instances for the next year. The system properly maps form recurrence to backend paymentType='recurrent' for processing. Generated bills are properly configured with:
-        - `isAutoGenerated: true` flag for identification
-        - `sourceTemplateId` pointing to the original bill
-        - `autoGeneratedLabel` with year indicator (e.g., "Auto 2026")
-        - `paymentType: 'unique'` (converted from recurrent template)
-        - Start date calculated as `sourceStartDate + 1 year`
-        - Visual indicator (AutoGeneratedBadge) in the UI
-        - **Single Payment Recurrent Bills**: Bills with paymentType='recurrent', no schedulePayment, and costs.length=1 are supported. These bills default to yearly generation and automatically create next year's instance with the same amount.
-        - **Auto-Generated Bill Sync**: When source bills are edited, the system automatically creates, updates, or deletes companion auto-generated bills to maintain synchronization. This ensures generated bills always reflect the latest source bill configuration.
-      - **Template Creation Workflow**: ModularBillForm provides unified bill creation from templates using the `isTemplate` prop. When `isTemplate=true`, the form operates in read-only template mode with multiple safeguards:
-        - Auto-save is disabled (`if (bill?.id && !isTemplate)`) to prevent mutations to the source bill
-        - Delete button is hidden and delete handler has early return guard
-        - Form always uses POST endpoint to create new bills (never PUT)
-        - Form header displays "Create from Template" for clarity
-        - Pre-populates form with template bill values for user modification
-        - Dialog includes 100ms setTimeout delay for proper state cleanup after save
-- **Bilingual Support**: Full bilingual translation for Inventory, Projects, and Bills management pages, compliant with Quebec Law 25. All form fields, labels, and descriptions are available in both English and French with grammatically correct translations.
+- **Document Management**: Features role-based access, hierarchical storage, secure file access, 30-day quarantine, and categorized upload/download with dynamic filters and automatic folder routing.
+- **Property Management**: Includes management for Buildings and Residences with advanced search and sorting. Inventory Management supports UNIFORMAT codes, condition tracking, and lifecycle management.
+- **Financial Management**: Includes a Financial Overview Dashboard with budget trend analysis and future projections, Budget Forecast & Capital Investments with intelligent recalculation, and Bill Management supporting single/multiple payments, auto-generation for recurrent bills, and template creation with fiscal year tracking. Project costs are shown as a separate teal chart line (not included in spending line) while still counted in total monthly expense summaries. Punctual revenue growth entries apply from their specified year+month forward (not retroactively).
+- **Maintenance Projects**: Provides consistent visibility across pages, displaying unfinished projects, with quick projects and integrated project costs in budget graphs.
+- **Bilingual Support**: Full translation for Inventory, Projects, and Bills management pages, compliant with Law 25.
+- **Communication & Notification Management**: Features user-level preferences, building-level automated notifications, general broadcast communications with scheduling, and bilingual email templates.
+- **LLM Documentation System (v4.0)**: Enhanced documentation generator in Admin > Documentation Center with:
+  - Section toggles for customizing output (Schema, Hooks, Testing, Code Patterns, Workflows, APIs, Dependencies)
+  - Format selection (Text or Markdown)
+  - XML-structured sections for optimal LLM parsing (`<SECTION_NAME>...</SECTION_NAME>`)
+  - Enhanced schema analysis with entity-relationship diagrams, foreign key chains, and cascade delete behaviors
+  - Hooks & utilities documentation from client/src/hooks and client/src/lib
+  - Testing documentation extracted from tests/ directory
+  - Code pattern examples for API, React, and database patterns
+  - Business workflow documentation with steps, roles, data transformations, and error handling
+  - Optimized for Claude and ChatGPT consumption
 
 ### System Design Choices
-- **Monorepo Structure**: Single workspace for client, server, and shared code with unified TypeScript.
-- **Development Framework (Pillar Methodology)**: Emphasizes modular components, quality assurance, testing, and security, with a hot reload system.
-- **Security**: Law 25 compliant enhancements including secure database connections, malware detection for uploads, input sanitization, SSRF protection, and secure error handling. All SQL queries use parameterized statements to prevent SQL injection. Credentials and secrets are managed via environment variables (DEMO_PASSWORD_HASH, ADMIN_PASSWORD_HASH) with no hardcoded values in the codebase. SSL certificates and private keys are externalized and excluded from version control.
-- **Code Consolidation**: Achieved through standardized form patterns, unified card components (`StandardCard`), and consolidated form hooks (`useStandardForm`).
-- **Query Optimization**: Eliminated N+1 patterns and improved data lookup speeds for user and document operations.
-- **Filter Organization**: All filter dropdown options are alphabetically sorted (based on English) for improved user experience across the entire application. This applies to all filters including status, type, category, building, residence, creator, and any other filter options. The 'other' option, when present, is kept at the end after all alphabetically sorted options.
-- **Testing Infrastructure**: Comprehensive Jest-based testing suite with 37+ unit tests for bills management, covering template workflow, auto-generation features, payment type mapping, and data validation. Test files located in `tests/unit/` and `tests/integration/` directories.
+- **Monorepo Structure**: Single workspace for client, server, and shared code.
+- **Development Framework (Pillar Methodology)**: Emphasizes modular components, quality assurance, testing, and security, integrated with a hot reload system.
+- **Security**: Law 25 compliant, featuring secure database connections, malware detection, input sanitization, SSRF protection, secure error handling, parameterized SQL queries, and environment variable management.
+- **Code Consolidation**: Standardized form patterns, unified card components, consolidated form hooks, and shared chart components (`ChartContainer`/`ChartTooltipContent`/`ChartLegendContent` from `ui/chart.tsx`). Shared chart utilities in `lib/chart-colors.ts` (color palette, `buildChartConfig`, `currencyFormatter`). `DualLineChart.tsx` extracts the past/future dual-line rendering pattern used by budget and overview charts. All chart files migrated from raw Recharts `ResponsiveContainer`/`Tooltip` to shared chart components.
+- **Query Optimization**: Eliminated N+1 patterns and improved data lookup speeds. `getBillSummary` uses single scoped query instead of two sequential queries. Budget debug logging gated by NODE_ENV.
+- **Access Control**: User read endpoints (`GET /api/users/:id`, `GET /api/users/email/:email`) require authentication and object-level authorization (self or admin/manager). `POST /api/users` prevents privilege escalation (admin/manager role creation requires admin session). `GET /api/manager/buildings` uses `requireAuth` middleware. Frontend routes use `ProtectedRoute` component (`client/src/components/common/ProtectedRoute.tsx`) to enforce role-based access: admin routes require `admin` role, manager routes require `manager` role, using `hasRoleOrHigher` from `navigation.ts` role hierarchy. Unauthorized users are redirected to dashboard. Backend migration/diagnostic endpoints in `documents.ts` (`cleanup-enum`, `fix-user-links`, `fix-enum-migration`, `fix-invitations-dependency`, `restore-invitations-default`, `migrate-owner-to-admin`, `remove-all-enum-dependencies`, `restore-all-defaults`, `complete-schema-sync`, `diagnostic`) secured with `requireAuth` + `requireRole(['admin'])`. Demo security via `enforceDemoSecurity()` middleware applied globally on `/api/*`. Intentionally public routes: `GET /api/demo/users` (login page demo list), `POST /api/users` (self-registration with internal privilege guard), `POST /api/invitations/*` (invitation acceptance), `POST /api/trial-requests` (public form).
+- **Pre-commit Hooks**: Husky `pre-commit` runs JSDoc templating, lint:fix, and `validate:pre-commit`. When any staged file is under `server/`, it additionally runs `npx tsx scripts/generate-route-manifest.ts --check` to block commits that introduce/modify routes without regenerating `server/route-manifest.json`. On failure, regenerate via `npx tsx scripts/generate-route-manifest.ts` and stage the updated manifest. See CONTRIBUTING.md → Pre-commit Hooks.
+- **Schema Debt**: `paymentType` enum/field marked `@deprecated` (use `billType`+`paymentStructure`). `buildingTypeEnum` documents `apartment`/`appartement` duplicate.
+- **Filter Organization**: All filter dropdown options are alphabetically sorted.
+- **Testing Infrastructure**: Jest-based testing suite (unit + integration). Unit tests use `jest.setup.simple.ts` with DB mocking via `server/__mocks__/db.ts` and `__mocks__/server/db.ts`. DB-dependent unit tests use `jest.mock('../../server/db')` + the `describeIfDb` pattern to skip gracefully when no real DB is available. **Drizzle-orm mock policy**: no package-wide `jest.mock('drizzle-orm*', ...)` calls in any setup file or custom resolver. Suites that need stubbed drizzle behavior opt in inline via `jest.mock('drizzle-orm', () => require('../manual-mocks/drizzle-orm'))` (and `drizzle-orm/pg-core` analogously). Logger mock at `__mocks__/client/src/lib/logger.ts` is mapped first in `jest.config.cjs` `moduleNameMapper` before the generic `@/` pattern to prevent `import.meta.env` errors in Jest. The standalone `typecheck` workflow can OOM when run alongside tests — run `npx tsc --noEmit` directly when other workflows are stopped.
+
+### MCP Server (Model Context Protocol)
+The platform exposes an MCP server at `/mcp` for LLM integration (e.g., Claude Desktop, Cursor). It uses Streamable HTTP transport with API key authentication.
+
+- **Endpoint**: `POST/GET/DELETE /mcp` (Streamable HTTP)
+- **Auth**: Bearer token via `Authorization: Bearer <MCP_API_KEY>` header
+- **Files**: `server/mcp/server.ts` (tools), `server/mcp/index.ts` (Express integration), `server/mcp/seed-mcp-data.ts` (test data)
+- **Scoping**: All access is restricted to two test organizations: MCP-1 (management_company, Montréal) and MCP-2 (syndicate, Québec)
+- **Roles**: Each tool accepts a `role` parameter (`admin`, `manager`, `tenant`) to simulate different user perspectives
+- **Test Users**: mcp-admin@koveo-mcp.test, mcp-manager@koveo-mcp.test, mcp-tenant@koveo-mcp.test (password: `McpTest2024!`)
+- **Seed Data**: 3 buildings, ~13 residences, 4 bills, 4 maintenance requests, 2 demands, 3 common spaces (idempotent seeding — skipped if `MCP-1` org already exists)
+- **Production Seeding**: Sandbox seeding is disabled in production by default. To seed once after deployment, set the env var `MCP_SEED_PRODUCTION=true`, deploy (or restart), and verify the `[MCP SEED]` startup logs show "completed successfully" (or "already exists, skipping" on subsequent boots). The flag is safe to leave on — once seeded, the routine is a no-op.
+- **Tools (~30)**: list_organizations, get_organization, list_buildings, get_building, create_building, list_residences, get_residence, create_residence, link_user_to_residence, unlink_user_from_residence, list_users, get_user, list_bills, get_bill, create_bill, update_bill_status, list_maintenance_requests, get_maintenance_request, create_maintenance_request, update_maintenance_request, list_demands, get_demand, create_demand, list_common_spaces, list_communications, create_communication, list_meetings, create_meeting, list_documents, list_budgets, list_invoices, get_mcp_info
+- **Write Error Handling**: Every `server.tool(...)` handler that performs an INSERT, UPDATE, or DELETE MUST wrap the write in `try/catch`, log the full error with `console.error("[mcp:<tool>]", e)`, and return `buildWriteErrorResponse(e, '<entityLabel>', 'create' | 'update' | 'delete')` so raw driver text (SQL, bound parameters) never leaks to the LLM. The 'delete' branch parses the FK `referenced from table "X"` detail and emits `blocking_entity` JSON; create/update parse the `is not present in table "X"` detail and emit `referenced_entity`. Both actions also produce friendly `unique_violation` JSON for code 23505. `buildDeleteErrorResponse` is kept as a backwards-compatible alias for `buildWriteErrorResponse(e, label, 'delete')` (see tasks #239, #242, #243, #244). New write tools added to expand MCP coverage must follow this pattern.
+- **Dependencies**: `@modelcontextprotocol/sdk`
+
+### Deployment & Production
+- **Deployment Target**: Autoscale (configured in `.replit` `[deployment]` section)
+- **Build Command**: `npm run build:production` (runs drizzle-kit push, Vite build, esbuild server bundle)
+- **Run Command**: `npm run start` (runs `NODE_ENV=production node dist/index.js`)
+- **Rate Limiter**: All `rateLimit()` calls with custom `keyGenerator` require `validate: { keyGeneratorIpFallback: false }` to prevent `express-rate-limit` v7+ IPv6 validation crash in production
+- **Health Checks**: `/health`, `/healthz`, `/ready`, `/ping`, `/status`, `/api/health` — all return 200 OK immediately on startup before full app load
+- **Startup Strategy**: HTTP server opens port immediately; full application (routes, auth, DB) loads asynchronously in background; scope-cache warmup and query optimization are deferred and non-blocking
+- **Debug Logging**: All `[DB DEBUG]`, `[SESSION STORE DB]`, `[MCP SEED]`, and optimization diagnostic logs are silenced in `NODE_ENV=production`; errors are still logged
+- **Session Security**: In production, cookies use `secure: true`, `sameSite: 'strict'`, `httpOnly: true`; session secret must be 32+ characters
+- **Environment Variables**: See `.env.example` for all required and optional variables
 
 ## External Dependencies
 - **@neondatabase/serverless**: Serverless PostgreSQL connector.

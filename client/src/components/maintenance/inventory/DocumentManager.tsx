@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
+import { useCreateUpdateMutation } from '@/lib/common-hooks';
 import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -94,27 +95,23 @@ export function DocumentManager({
   const documents: DocumentFile[] = documentsResponse?.documents || [];
 
   // Delete document mutation
-  const deleteMutation = useMutation({
+  const deleteMutation = useCreateUpdateMutation<unknown, string>({
     mutationFn: async (documentId: string) => {
       const response = await apiRequest('DELETE', `/api/maintenance/elements/${element.id}/documents/${documentId}`);
       return await response.json();
     },
-    onSuccess: (_, documentId) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/maintenance/elements', element.id, 'documents'] });
-      onDocumentDeleted?.(documentId);
-      toast({
-        title: 'Document deleted',
-        description: 'The document has been removed successfully',
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: 'Delete failed',
-        description: error.message || 'Failed to delete document',
-        variant: 'destructive',
-      });
-    },
+    successTitle: 'Document deleted',
+    successMessage: 'The document has been removed successfully',
+    errorTitle: 'Delete failed',
+    errorMessage: (error: any) => error?.message || 'Failed to delete document',
+    queryKeysToInvalidate: [['/api/maintenance/elements', element.id, 'documents']],
   });
+
+  const handleDeleteDocument = useCallback((documentId: string) => {
+    deleteMutation.mutate(documentId, {
+      onSuccess: () => onDocumentDeleted?.(documentId),
+    });
+  }, [deleteMutation, onDocumentDeleted]);
 
   // Categorize documents
   const categorizedDocuments = useMemo(() => {
@@ -258,7 +255,7 @@ export function DocumentManager({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => window.open(doc.url, '_blank')}
+                onClick={() => window.open(doc.url, '_blank', 'noopener,noreferrer')}
                 data-testid={`preview-${doc.id}`}
               >
                 <Eye className="h-4 w-4" />
@@ -300,7 +297,7 @@ export function DocumentManager({
                     <AlertDialogFooter>
                       <AlertDialogCancel>Cancel</AlertDialogCancel>
                       <AlertDialogAction
-                        onClick={() => deleteMutation.mutate(doc.id)}
+                        onClick={() => handleDeleteDocument(doc.id)}
                         className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                       >
                         Delete
@@ -355,7 +352,7 @@ export function DocumentManager({
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => window.open(doc.url, '_blank')}
+            onClick={() => window.open(doc.url, '_blank', 'noopener,noreferrer')}
           >
             <Eye className="h-4 w-4" />
           </Button>
@@ -394,7 +391,7 @@ export function DocumentManager({
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
                   <AlertDialogAction
-                    onClick={() => deleteMutation.mutate(doc.id)}
+                    onClick={() => handleDeleteDocument(doc.id)}
                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                   >
                     Delete

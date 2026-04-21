@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { render as customRender } from '../../utils/test-utils';
 import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
@@ -204,7 +204,8 @@ describe('Form Components Test Suite', () => {
     });
 
     it('should disable submit button during submission', async () => {
-      mockApiRequest.mockImplementation(() => new Promise(resolve => setTimeout(resolve, 100)));
+      let resolveApi: () => void;
+      mockApiRequest.mockImplementation(() => new Promise(resolve => { resolveApi = resolve; }));
       
       customRender(<SimpleLoginForm />);
 
@@ -214,10 +215,15 @@ describe('Form Components Test Suite', () => {
 
       await userEvent.type(emailInput, 'test@example.com');
       await userEvent.type(passwordInput, 'password123');
-      await userEvent.click(submitButton);
 
-      expect(submitButton).toHaveTextContent('Logging in...');
-      expect(submitButton).toBeDisabled();
+      fireEvent.click(submitButton);
+
+      await waitFor(() => {
+        expect(submitButton).toHaveTextContent('Logging in...');
+        expect(submitButton).toBeDisabled();
+      });
+
+      await act(async () => { resolveApi!(); });
 
       await waitFor(() => {
         expect(submitButton).toHaveTextContent('Login');
@@ -236,12 +242,15 @@ describe('Form Components Test Suite', () => {
 
       await userEvent.type(emailInput, 'wrong@example.com');
       await userEvent.type(passwordInput, 'wrongpassword');
-      await userEvent.click(submitButton);
+      
+      await act(async () => {
+        fireEvent.click(submitButton);
+      });
 
       await waitFor(() => {
         const errorElement = screen.getByTestId('error-message');
         expect(errorElement).toHaveTextContent('Login failed');
-      });
+      }, { timeout: 2000 });
     });
   });
 

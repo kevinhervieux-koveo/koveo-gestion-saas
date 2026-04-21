@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { StandardFormGrid } from '@/components/common/StandardFormGrid';
 import {
   Dialog,
   DialogContent,
@@ -33,43 +33,17 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileText, Upload } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/hooks/use-language';
+import { useCreateUpdateMutation } from '@/lib/common-hooks';
 import { SharedUploader } from './SharedUploader';
 import type { UploadContext } from '@shared/config/upload-config';
 
-// Document categories matching the ones used in ModularDocumentPageWrapper
-const DOCUMENT_CATEGORIES = [
-  { value: 'bylaw', label: 'Bylaws' },
-  { value: 'financial', label: 'Financial' },
-  { value: 'maintenance', label: 'Maintenance' },
-  { value: 'legal', label: 'Legal' },
-  { value: 'meeting_minutes', label: 'Meeting Minutes' },
-  { value: 'insurance', label: 'Insurance' },
-  { value: 'contracts', label: 'Contracts' },
-  { value: 'permits', label: 'Permits' },
-  { value: 'inspection', label: 'Inspection' },
-  { value: 'other', label: 'Other' },
-];
-
-// Form schema for document creation
-const documentCreateSchema = z.object({
-  name: z.string().min(1, 'Document name is required').max(255, 'Name must be less than 255 characters'),
-  description: z.string().max(1000, 'Description must be less than 1000 characters').optional(),
-  category: z.enum([
-    'bylaw',
-    'financial', 
-    'maintenance',
-    'legal',
-    'meeting_minutes',
-    'insurance',
-    'contracts',
-    'permits',
-    'inspection',
-    'other'
-  ]),
-  effectiveDate: z.string().optional(),
-});
-
-type DocumentCreateData = z.infer<typeof documentCreateSchema>;
+type DocumentCreateData = {
+  name: string;
+  description?: string;
+  category: 'bylaw' | 'financial' | 'maintenance' | 'legal' | 'meeting_minutes' | 'insurance' | 'contracts' | 'permits' | 'inspection' | 'other';
+  effectiveDate?: string;
+};
 
 interface DocumentCreateFormProps {
   isOpen: boolean;
@@ -89,11 +63,44 @@ export function DocumentCreateForm({
   entityName,
 }: DocumentCreateFormProps) {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
-  
+  const { t } = useLanguage();
+
   // State for file upload
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [textContent, setTextContent] = useState<string | null>(null);
+
+  // Document categories with translations
+  const DOCUMENT_CATEGORIES = [
+    { value: 'bylaw', label: t('categoryBylaws') },
+    { value: 'financial', label: t('categoryFinancial') },
+    { value: 'maintenance', label: t('categoryMaintenance') },
+    { value: 'legal', label: t('categoryLegal') },
+    { value: 'meeting_minutes', label: t('categoryMeetingMinutes') },
+    { value: 'insurance', label: t('categoryInsurance') },
+    { value: 'contracts', label: t('categoryContracts') },
+    { value: 'permits', label: t('categoryPermits') },
+    { value: 'inspection', label: t('categoryInspection') },
+    { value: 'other', label: t('categoryOther') },
+  ];
+
+  // Form schema for document creation with translated validation messages
+  const documentCreateSchema = z.object({
+    name: z.string().min(1, t('documentNameRequired')).max(255, t('documentNameTooLong')),
+    description: z.string().max(1000, t('documentDescriptionTooLong')).optional(),
+    category: z.enum([
+      'bylaw',
+      'financial', 
+      'maintenance',
+      'legal',
+      'meeting_minutes',
+      'insurance',
+      'contracts',
+      'permits',
+      'inspection',
+      'other'
+    ]),
+    effectiveDate: z.string().optional(),
+  });
 
   // Upload context for secure storage
   const uploadContext: UploadContext = {
@@ -116,7 +123,7 @@ export function DocumentCreateForm({
   });
 
   // Create document mutation
-  const createDocumentMutation = useMutation({
+  const createDocumentMutation = useCreateUpdateMutation<any, DocumentCreateData>({
     mutationFn: async (data: DocumentCreateData) => {
       const formData = new FormData();
       
@@ -165,15 +172,12 @@ export function DocumentCreateForm({
 
       return response.json();
     },
-    onSuccess: (data) => {
-      // Invalidate documents cache to refresh the list
-      queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
-      
-      toast({
-        title: 'Document Created',
-        description: `"${data.name}" has been created successfully`,
-      });
-      
+    successTitle: t('createDocument'),
+    successMessage: (data) => `"${data.name}" ${t('documentCreatedSuccessfully')}`,
+    errorTitle: t('error'),
+    errorMessage: (error: any) => error?.message || t('failedToCreateDocument'),
+    queryKeysToInvalidate: [['/api/documents']],
+    onSuccessCallback: (data) => {
       // Reset form and close dialog
       form.reset();
       setSelectedFile(null);
@@ -181,13 +185,6 @@ export function DocumentCreateForm({
       onClose();
       onSuccess?.(data.id);
     },
-    onError: (error: any) => {
-      toast({
-        title: 'Error Creating Document',
-        description: error.message || 'Failed to create document',
-        variant: 'destructive',
-      });
-    }
   });
 
   // Handle file/text changes from SharedUploader
@@ -206,8 +203,8 @@ export function DocumentCreateForm({
     // Validate that we have either a file or text content
     if (!selectedFile && !textContent) {
       toast({
-        title: 'Missing Content',
-        description: 'Please either upload a file or enter text content for the document.',
+        title: t('missingContent'),
+        description: t('missingContentDescription'),
         variant: 'destructive',
       });
       return;
@@ -231,10 +228,10 @@ export function DocumentCreateForm({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileText className="w-5 h-5" />
-            Create New Document
+            {t('createDocument')}
           </DialogTitle>
           <DialogDescription>
-            Create a new document for {entityName || `this ${entityType}`}
+            {t('createDocumentDialogDescription')}
           </DialogDescription>
         </DialogHeader>
 
@@ -242,17 +239,17 @@ export function DocumentCreateForm({
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             {/* Document Information Section */}
             <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <StandardFormGrid>
                 {/* Document Name */}
                 <FormField
                   control={form.control}
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Document Name *</FormLabel>
+                      <FormLabel>{t('documentName')} *</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="e.g., Building Bylaws 2024"
+                          placeholder={t('enterDocumentName')}
                           {...field}
                           data-testid="input-document-name"
                         />
@@ -268,11 +265,11 @@ export function DocumentCreateForm({
                   name="category"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Category *</FormLabel>
+                      <FormLabel>{t('category')} *</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger data-testid="select-document-category">
-                            <SelectValue placeholder="Select category" />
+                            <SelectValue placeholder={t('selectCategory')} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -287,7 +284,7 @@ export function DocumentCreateForm({
                     </FormItem>
                   )}
                 />
-              </div>
+              </StandardFormGrid>
 
               {/* Effective Date */}
               <FormField
@@ -295,11 +292,10 @@ export function DocumentCreateForm({
                 name="effectiveDate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Effective Date (Optional)</FormLabel>
+                    <FormLabel>{t('effectiveDate')} ({t('optional')})</FormLabel>
                     <FormControl>
                       <Input
                         type="date"
-                        placeholder="Select effective date"
                         value={field.value || ''}
                         onChange={(e) => {
                           field.onChange(e.target.value);
@@ -318,10 +314,10 @@ export function DocumentCreateForm({
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Description (Optional)</FormLabel>
+                    <FormLabel>{t('description')} ({t('optional')})</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Describe the document content and purpose..."
+                        placeholder={t('enterDocumentDescription')}
                         className="min-h-[80px]"
                         {...field}
                         data-testid="textarea-document-description"
@@ -338,7 +334,7 @@ export function DocumentCreateForm({
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Upload className="w-5 h-5" />
-                  Document Content
+                  {t('documentContent')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -360,7 +356,7 @@ export function DocumentCreateForm({
                   defaultTab="file"
                 />
                 <p className="text-xs text-muted-foreground mt-2">
-                  Upload a file or create a text document. Maximum file size: 25MB.
+                  {t('uploadFileOrCreateText')}
                 </p>
               </CardContent>
             </Card>
@@ -372,7 +368,7 @@ export function DocumentCreateForm({
                 onClick={handleClose}
                 disabled={createDocumentMutation.isPending}
               >
-                Cancel
+                {t('cancel')}
               </Button>
               <Button
                 type="submit"
@@ -382,12 +378,12 @@ export function DocumentCreateForm({
                 {createDocumentMutation.isPending ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Creating...
+                    {t('creatingDocument')}
                   </>
                 ) : (
                   <>
                     <FileText className="w-4 h-4 mr-2" />
-                    Create Document
+                    {t('createDocument')}
                   </>
                 )}
               </Button>

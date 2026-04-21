@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCreateUpdateMutation } from '@/lib/common-hooks';
 import { format, differenceInDays } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -216,8 +217,8 @@ export function SuggestionWorkflow({
   }, [suggestion, showApprovalGates]);
 
   // Step transition mutation
-  const transitionMutation = useMutation({
-    mutationFn: async (data: { stepId: string; action: 'start' | 'complete' | 'skip'; notes?: string }) => {
+  const transitionMutation = useCreateUpdateMutation<unknown, { stepId: string; action: 'start' | 'complete' | 'skip'; notes?: string }>({
+    mutationFn: async (data) => {
       const response = await apiRequest('PATCH', `/api/maintenance/suggestions/${suggestion.id}/workflow`, {
         stepId: data.stepId,
         action: data.action,
@@ -225,27 +226,22 @@ export function SuggestionWorkflow({
       });
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/maintenance/suggestions', suggestion.id, 'workflow'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/maintenance/suggestions'] });
-      toast({
-        title: "Workflow Updated",
-        description: "The workflow step has been updated successfully.",
-      });
+    successTitle: 'Workflow Updated',
+    successMessage: 'The workflow step has been updated successfully.',
+    errorTitle: 'Error',
+    errorMessage: 'Failed to update workflow step. Please try again.',
+    queryKeysToInvalidate: [
+      ['/api/maintenance/suggestions', suggestion.id, 'workflow'],
+      ['/api/maintenance/suggestions'],
+    ],
+    onSuccessCallback: () => {
       setNotes('');
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to update workflow step. Please try again.",
-        variant: "destructive",
-      });
     },
   });
 
   // Approval mutation
-  const approvalMutation = useMutation({
-    mutationFn: async (data: { gateId: string; approved: boolean; notes?: string }) => {
+  const approvalMutation = useCreateUpdateMutation<unknown, { gateId: string; approved: boolean; notes?: string }>({
+    mutationFn: async (data) => {
       const response = await apiRequest('PATCH', `/api/maintenance/suggestions/${suggestion.id}/approval`, {
         gateId: data.gateId,
         approved: data.approved,
@@ -253,46 +249,32 @@ export function SuggestionWorkflow({
       });
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/maintenance/suggestions', suggestion.id, 'workflow'] });
-      toast({
-        title: "Approval Processed",
-        description: "The approval decision has been recorded.",
-      });
+    successTitle: 'Approval Processed',
+    successMessage: 'The approval decision has been recorded.',
+    errorTitle: 'Error',
+    errorMessage: 'Failed to process approval. Please try again.',
+    queryKeysToInvalidate: [['/api/maintenance/suggestions', suggestion.id, 'workflow']],
+    onSuccessCallback: () => {
       setShowApprovalDialog(false);
       setPendingApproval(null);
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to process approval. Please try again.",
-        variant: "destructive",
-      });
     },
   });
 
   // Vendor assignment mutation
-  const assignVendorMutation = useMutation({
+  const assignVendorMutation = useCreateUpdateMutation<unknown, string>({
     mutationFn: async (vendorId: string) => {
       const response = await apiRequest('PATCH', `/api/maintenance/suggestions/${suggestion.id}/assign`, {
         vendorId,
       });
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/maintenance/suggestions'] });
+    successTitle: 'Vendor Assigned',
+    successMessage: 'The vendor has been assigned to this suggestion.',
+    errorTitle: 'Error',
+    errorMessage: 'Failed to assign vendor. Please try again.',
+    queryKeysToInvalidate: [['/api/maintenance/suggestions']],
+    onSuccessCallback: () => {
       onAssignVendor?.(suggestion, selectedVendor);
-      toast({
-        title: "Vendor Assigned",
-        description: "The vendor has been assigned to this suggestion.",
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to assign vendor. Please try again.",
-        variant: "destructive",
-      });
     },
   });
 

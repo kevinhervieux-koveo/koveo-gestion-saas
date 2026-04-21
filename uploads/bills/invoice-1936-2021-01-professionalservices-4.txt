@@ -1,0 +1,33 @@
+FACTURE / INVOICE
+===================
+
+Numéro de facture / Invoice Number: 1936-2021-01-PROFESSIONALSERVICES-4
+Date: 2021-01-20
+
+FACTURER À / BILL TO:
+1936 Nitzsche Track Building 5
+2536 montée Sainte-Catherine
+Québec, Canada
+
+FOURNISSEUR / VENDOR:
+Comptables Associés
+
+DESCRIPTION / DESCRIPTION:
+Professional services - Comptables Associés
+
+CATÉGORIE / CATEGORY: Professional services
+
+MONTANT / AMOUNT:
+Sous-total / Subtotal: $2804.00 CAD
+TPS (5%) / GST: $140.20 CAD
+TVQ (9.975%) / QST: $279.70 CAD
+TOTAL: $3223.90 CAD
+
+CONDITIONS DE PAIEMENT / PAYMENT TERMS:
+Net 30 jours / Net 30 days
+
+Merci de votre confiance / Thank you for your business
+===============================================
+
+Ce document est généré automatiquement pour les besoins de test du système Koveo Gestion.
+This document is automatically generated for Koveo Gestion system testing purposes.

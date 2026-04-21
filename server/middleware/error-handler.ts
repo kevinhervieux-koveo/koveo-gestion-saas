@@ -238,6 +238,8 @@ export function withErrorHandling<T extends Request = Request>(
   return async (req: T, res: Response, next: NextFunction) => {
     try {
       await handler(req, res, next);
+    } catch (error) {
+      next(error);
     }
   };
 }

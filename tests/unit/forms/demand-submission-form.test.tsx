@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
@@ -359,13 +359,16 @@ describe('Demand Submission Form Tests', () => {
       const description = screen.getByTestId('input-description');
       const submitButton = screen.getByTestId('button-submit-demand');
 
-      await userEvent.selectOptions(typeSelect, 'complaint');
-      await userEvent.type(description, 'This is a valid complaint description');
-      await userEvent.click(submitButton);
+      fireEvent.change(typeSelect, { target: { value: 'complaint' } });
+      fireEvent.change(description, { target: { value: 'This is a valid complaint description' } });
+
+      await act(async () => {
+        fireEvent.click(submitButton);
+      });
 
       await waitFor(() => {
         expect(screen.getByTestId('success-message')).toBeInTheDocument();
-      });
+      }, { timeout: 2000 });
     });
 
     it('should handle submission with optional building field', async () => {
@@ -406,11 +409,9 @@ describe('Demand Submission Form Tests', () => {
     });
 
     it('should show loading state during submission', async () => {
+      let resolveSubmit!: (value: any) => void;
       mockFetch.mockImplementation(
-        () =>
-          new Promise((resolve) =>
-            setTimeout(() => resolve({ ok: true, json: async () => ({}) }), 100)
-          )
+        () => new Promise((resolve) => { resolveSubmit = resolve; })
       );
 
       render(
@@ -423,12 +424,18 @@ describe('Demand Submission Form Tests', () => {
       const description = screen.getByTestId('input-description');
       const submitButton = screen.getByTestId('button-submit-demand');
 
-      await userEvent.selectOptions(typeSelect, 'other');
-      await userEvent.type(description, 'Test description for loading state');
-      await userEvent.click(submitButton);
+      fireEvent.change(typeSelect, { target: { value: 'other' } });
+      fireEvent.change(description, { target: { value: 'Test description for loading state' } });
+      fireEvent.click(submitButton);
 
-      expect(submitButton).toHaveTextContent('Creating...');
-      expect(submitButton).toBeDisabled();
+      await waitFor(() => {
+        expect(submitButton).toHaveTextContent('Creating...');
+        expect(submitButton).toBeDisabled();
+      });
+
+      await act(async () => {
+        resolveSubmit({ ok: true, json: async () => ({}) });
+      });
 
       await waitFor(() => {
         expect(screen.getByTestId('success-message')).toBeInTheDocument();
@@ -448,15 +455,17 @@ describe('Demand Submission Form Tests', () => {
       const description = screen.getByTestId('input-description');
       const submitButton = screen.getByTestId('button-submit-demand');
 
-      await userEvent.selectOptions(typeSelect, 'maintenance');
-      await userEvent.type(description, 'Test description for error handling');
-      await userEvent.click(submitButton);
+      fireEvent.change(typeSelect, { target: { value: 'maintenance' } });
+      fireEvent.change(description, { target: { value: 'Test description for error handling' } });
+
+      await act(async () => {
+        fireEvent.click(submitButton);
+      });
 
       await waitFor(() => {
-        // Form should still be visible after error
         expect(screen.getByTestId('demand-form')).toBeInTheDocument();
         expect(submitButton).not.toBeDisabled();
-      });
+      }, { timeout: 2000 });
     });
 
     it('should handle server validation errors', async () => {
@@ -476,15 +485,17 @@ describe('Demand Submission Form Tests', () => {
       const description = screen.getByTestId('input-description');
       const submitButton = screen.getByTestId('button-submit-demand');
 
-      await userEvent.selectOptions(typeSelect, 'maintenance');
-      await userEvent.type(description, 'Test description for server error');
-      await userEvent.click(submitButton);
+      fireEvent.change(typeSelect, { target: { value: 'maintenance' } });
+      fireEvent.change(description, { target: { value: 'Test description for server error' } });
+
+      await act(async () => {
+        fireEvent.click(submitButton);
+      });
 
       await waitFor(() => {
-        // Form should still be visible after server error
         expect(screen.getByTestId('demand-form')).toBeInTheDocument();
         expect(submitButton).not.toBeDisabled();
-      });
+      }, { timeout: 2000 });
     });
   });
 

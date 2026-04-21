@@ -1,6 +1,7 @@
 import { Express } from 'express';
 import { requireAuth } from '../auth';
 
+import { asyncHandler } from '../utils/async-handler';
 /**
  * Orphan cleanup endpoints for managing orphaned database records.
  * @param app
@@ -10,8 +11,7 @@ export function registerCleanupOrphansRoutes(app: Express) {
    * POST /api/cleanup/orphans - Cleanup orphaned buildings and residences
    * Admin endpoint to clean up records that have lost their parent relationships.
    */
-  app.post('/api/cleanup/orphans', requireAuth, async (req: any, res) => {
-    try {
+  app.post('/api/cleanup/orphans', requireAuth, asyncHandler(async (req: any, res) => {
       const currentUser = req.user || req.session?.user;
       if (!currentUser) {
         return res.status(401).json({
@@ -37,19 +37,13 @@ export function registerCleanupOrphansRoutes(app: Express) {
         message: 'Orphan cleanup completed',
         report,
       });
-      res.status(500).json({
-        _error: 'Internal server error',
-        message: 'Failed to cleanup orphans',
-      });
-    }
-  });
+    }, { errorMessage: 'Failed to cleanup orphans', errorLogPrefix: '❌ Error cleanup orphans', extraErrorFields: { '_error': 'Internal server error' } }));
 
   /**
    * GET /api/cleanup/orphan-report - Generate report of orphaned records
    * Admin endpoint to view orphaned records without cleaning them up.
    */
-  app.get('/api/cleanup/orphan-report', requireAuth, async (req: any, res) => {
-    try {
+  app.get('/api/cleanup/orphan-report', requireAuth, asyncHandler(async (req: any, res) => {
       const currentUser = req.user || req.session?.user;
       if (!currentUser) {
         return res.status(401).json({
@@ -72,10 +66,5 @@ export function registerCleanupOrphansRoutes(app: Express) {
         message: 'Orphan report generated',
         report,
       });
-      res.status(500).json({
-        _error: 'Internal server error',
-        message: 'Failed to generate orphan report',
-      });
-    }
-  });
+    }, { errorMessage: 'Failed to generate orphan report', errorLogPrefix: '❌ Error generate orphan report', extraErrorFields: { '_error': 'Internal server error' } }));
 }

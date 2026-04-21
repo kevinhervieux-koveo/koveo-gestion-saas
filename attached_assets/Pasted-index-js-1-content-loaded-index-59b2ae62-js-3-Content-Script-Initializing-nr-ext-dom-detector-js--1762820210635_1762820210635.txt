@@ -1,0 +1,1450 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+bills-CryWaIOc.js:6 🔍 [BILLS] Component mounted {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+bills-CryWaIOc.js:6 🔍 [BILLS] Context changed: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+bills-CryWaIOc.js:6 🔍 [BILLS] Filters updated: {category: '', year: '2025', months: Array(0), billType: '', paymentStructure: '', …}
+bills-CryWaIOc.js:6 🔍 [BILLS] Fetching bills with params: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', filters: {…}}
+bills-CryWaIOc.js:6 🔍 [BILLS] Filters updated: {category: '', year: '2025-2026', months: Array(0), billType: '', paymentStructure: '', …}
+bills-CryWaIOc.js:6 🔍 [BILLS] Fetching bills with params: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', filters: {…}}
+vendor-ui-FpgPax8G.js:58 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+overrideMethod @ hook.js:608
+(anonymous) @ vendor-ui-FpgPax8G.js:58
+react_stack_bottom_frame @ index-B80uASDt.js:229
+X @ index-B80uASDt.js:45
+As @ index-B80uASDt.js:150
+Dg @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+iv @ index-B80uASDt.js:163
+Cs @ index-B80uASDt.js:163
+nv @ index-B80uASDt.js:163
+Nd @ index-B80uASDt.js:163
+Yg @ index-B80uASDt.js:163
+Gg @ index-B80uASDt.js:163
+mv @ index-B80uASDt.js:185
+Rs @ index-B80uASDt.js:185
+Od @ index-B80uASDt.js:185
+(anonymous) @ index-B80uASDt.js:185
+<jd>
+Je.jsx @ vendor-ui-FpgPax8G.js:14
+(anonymous) @ vendor-ui-FpgPax8G.js:54
+react_stack_bottom_frame @ index-B80uASDt.js:229
+jc @ index-B80uASDt.js:120
+sg @ index-B80uASDt.js:141
+vd @ index-B80uASDt.js:150
+X @ index-B80uASDt.js:45
+Jg @ index-B80uASDt.js:163
+Zg @ index-B80uASDt.js:163
+Rd @ index-B80uASDt.js:163
+Gg @ index-B80uASDt.js:163
+mv @ index-B80uASDt.js:185
+Rs @ index-B80uASDt.js:185
+Od @ index-B80uASDt.js:185
+(anonymous) @ index-B80uASDt.js:185
+<ForwardRef>
+Je.jsx @ vendor-ui-FpgPax8G.js:14
+(anonymous) @ vendor-ui-FpgPax8G.js:54
+react_stack_bottom_frame @ index-B80uASDt.js:229
+jc @ index-B80uASDt.js:120
+sg @ index-B80uASDt.js:141
+vd @ index-B80uASDt.js:150
+X @ index-B80uASDt.js:45
+Jg @ index-B80uASDt.js:163
+Zg @ index-B80uASDt.js:163
+Rd @ index-B80uASDt.js:163
+Gg @ index-B80uASDt.js:163
+mv @ index-B80uASDt.js:185
+Rs @ index-B80uASDt.js:185
+Od @ index-B80uASDt.js:185
+(anonymous) @ index-B80uASDt.js:185
+<ForwardRef>
+Je.jsx @ vendor-ui-FpgPax8G.js:14
+DialogContent @ vendor-ui-FpgPax8G.js:54
+react_stack_bottom_frame @ index-B80uASDt.js:229
+jc @ index-B80uASDt.js:120
+sg @ index-B80uASDt.js:141
+vd @ index-B80uASDt.js:150
+X @ index-B80uASDt.js:45
+Jg @ index-B80uASDt.js:163
+Zg @ index-B80uASDt.js:163
+Rd @ index-B80uASDt.js:163
+Gg @ index-B80uASDt.js:163
+mv @ index-B80uASDt.js:185
+Rs @ index-B80uASDt.js:185
+Od @ index-B80uASDt.js:185
+(anonymous) @ index-B80uASDt.js:185
+<DialogContent>
+Mw.Nu.jsxDEV @ index-B80uASDt.js:15
+DialogContent @ dialog-zCdwb74W.js:1
+react_stack_bottom_frame @ index-B80uASDt.js:229
+jc @ index-B80uASDt.js:120
+sg @ index-B80uASDt.js:141
+vd @ index-B80uASDt.js:150
+X @ index-B80uASDt.js:45
+Jg @ index-B80uASDt.js:163
+Zg @ index-B80uASDt.js:163
+Rd @ index-B80uASDt.js:163
+Gg @ index-B80uASDt.js:163
+mv @ index-B80uASDt.js:185
+Rs @ index-B80uASDt.js:185
+Od @ index-B80uASDt.js:185
+(anonymous) @ index-B80uASDt.js:185
+<DialogContent>
+Mw.Nu.jsxDEV @ index-B80uASDt.js:15
+Ue @ bills-CryWaIOc.js:6
+react_stack_bottom_frame @ index-B80uASDt.js:229
+jc @ index-B80uASDt.js:120
+ud @ index-B80uASDt.js:141
+vd @ index-B80uASDt.js:150
+X @ index-B80uASDt.js:45
+Jg @ index-B80uASDt.js:163
+Zg @ index-B80uASDt.js:163
+Rd @ index-B80uASDt.js:163
+Gg @ index-B80uASDt.js:163
+mv @ index-B80uASDt.js:185
+Rs @ index-B80uASDt.js:185
+Od @ index-B80uASDt.js:185
+(anonymous) @ index-B80uASDt.js:185
+<Ue>
+Mw.Nu.jsxDEV @ index-B80uASDt.js:15
+(anonymous) @ bills-CryWaIOc.js:6
+Oe @ bills-CryWaIOc.js:6
+react_stack_bottom_frame @ index-B80uASDt.js:229
+jc @ index-B80uASDt.js:120
+ud @ index-B80uASDt.js:141
+vd @ index-B80uASDt.js:150
+X @ index-B80uASDt.js:45
+Jg @ index-B80uASDt.js:163
+Zg @ index-B80uASDt.js:163
+Rd @ index-B80uASDt.js:163
+Gg @ index-B80uASDt.js:163
+mv @ index-B80uASDt.js:185
+Rs @ index-B80uASDt.js:185
+Od @ index-B80uASDt.js:185
+(anonymous) @ index-B80uASDt.js:185
+<Oe>
+Mw.Nu.jsxDEV @ index-B80uASDt.js:15
+(anonymous) @ bills-CryWaIOc.js:6
+Ie @ bills-CryWaIOc.js:6
+react_stack_bottom_frame @ index-B80uASDt.js:229
+jc @ index-B80uASDt.js:120
+ud @ index-B80uASDt.js:141
+vd @ index-B80uASDt.js:150
+X @ index-B80uASDt.js:45
+Jg @ index-B80uASDt.js:163
+Zg @ index-B80uASDt.js:163
+Rd @ index-B80uASDt.js:163
+Gg @ index-B80uASDt.js:163
+mv @ index-B80uASDt.js:185
+Rs @ index-B80uASDt.js:185
+Od @ index-B80uASDt.js:185
+(anonymous) @ index-B80uASDt.js:185
+<Ie>
+Mw.Nu.jsxDEV @ index-B80uASDt.js:15
+(anonymous) @ withHierarchicalSelection-8ayT-yDY.js:1
+react_stack_bottom_frame @ index-B80uASDt.js:229
+jc @ index-B80uASDt.js:120
+ud @ index-B80uASDt.js:141
+vd @ index-B80uASDt.js:150
+X @ index-B80uASDt.js:45
+Jg @ index-B80uASDt.js:163
+EA @ index-B80uASDt.js:163
+CA @ index-B80uASDt.js:163
+Gg @ index-B80uASDt.js:163
+dv @ index-B80uASDt.js:185
+l @ index-B80uASDt.js:23
+<...>
+Mw.Nu.jsxDEV @ index-B80uASDt.js:15
+children @ index-B80uASDt.js:456
+H0 @ index-B80uASDt.js:240
+$ @ index-B80uASDt.js:240
+react_stack_bottom_frame @ index-B80uASDt.js:229
+jc @ index-B80uASDt.js:120
+ud @ index-B80uASDt.js:141
+vd @ index-B80uASDt.js:150
+X @ index-B80uASDt.js:45
+Jg @ index-B80uASDt.js:163
+EA @ index-B80uASDt.js:163
+CA @ index-B80uASDt.js:163
+Gg @ index-B80uASDt.js:163
+dv @ index-B80uASDt.js:185
+l @ index-B80uASDt.js:23
+<$>
+Mw.Nu.jsxDEV @ index-B80uASDt.js:15
+vR @ index-B80uASDt.js:456
+react_stack_bottom_frame @ index-B80uASDt.js:229
+jc @ index-B80uASDt.js:120
+ud @ index-B80uASDt.js:141
+vd @ index-B80uASDt.js:150
+X @ index-B80uASDt.js:45
+Jg @ index-B80uASDt.js:163
+Zg @ index-B80uASDt.js:163
+Rd @ index-B80uASDt.js:163
+Gg @ index-B80uASDt.js:163
+mv @ index-B80uASDt.js:185
+Rs @ index-B80uASDt.js:185
+Od @ index-B80uASDt.js:185
+(anonymous) @ index-B80uASDt.js:185
+<vR>
+Mw.Nu.jsxDEV @ index-B80uASDt.js:15
+bR @ index-B80uASDt.js:456
+react_stack_bottom_frame @ index-B80uASDt.js:229
+jc @ index-B80uASDt.js:120
+ud @ index-B80uASDt.js:141
+vd @ index-B80uASDt.js:150
+X @ index-B80uASDt.js:45
+Jg @ index-B80uASDt.js:163
+Zg @ index-B80uASDt.js:163
+Rd @ index-B80uASDt.js:163
+Gg @ index-B80uASDt.js:163
+dv @ index-B80uASDt.js:185
+l @ index-B80uASDt.js:23
+<bR>
+Mw.Nu.jsxDEV @ index-B80uASDt.js:15
+(anonymous) @ index-B80uASDt.js:456
+[Violation] 'click' handler took <N>ms
+[Violation] 'click' handler took <N>ms
+[Violation] 'click' handler took <N>ms
+[Violation] 'click' handler took <N>ms
+[Violation] 'click' handler took <N>ms
+[Violation] 'click' handler took <N>ms
+[Violation] 'click' handler took <N>ms
+[Violation] 'click' handler took <N>ms
+ModularBillForm-BUbzWiEJ.js:1 🔄 [BILL FORM] Submitting form... {isUpdate: true, isTemplate: false, billId: '5ffd3065-c541-4ae1-ba9f-52bea9d5094b', formData: {…}}
+ModularBillForm-BUbzWiEJ.js:1 🔍 [BILL FORM] Bill data being sent to API: {method: 'PUT', endpoint: '/api/bills/5ffd3065-c541-4ae1-ba9f-52bea9d5094b', billType: 'recurrent', paymentStructure: 'single', paymentType: 'recurrent', …}
+bills-CryWaIOc.js:6 🔍 [BILLS] Fetching bills with params: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', filters: {…}}
+bills-CryWaIOc.js:6 🔍 [BILLS] Fetching bills with params: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', filters: {…}}
+bills-CryWaIOc.js:6 🔍 [BILLS] Fetching bills with params: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', filters: {…}}
+bills-CryWaIOc.js:6 🔍 [BILLS] Filters updated: {category: '', year: '2026-2027', months: Array(0), billType: '', paymentStructure: '', …}
+bills-CryWaIOc.js:6 🔍 [BILLS] Fetching bills with params: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', filters: {…}}
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+vendor-ui-FpgPax8G.js:58 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+overrideMethod @ hook.js:608
+(anonymous) @ vendor-ui-FpgPax8G.js:58
+react_stack_bottom_frame @ index-B80uASDt.js:229
+X @ index-B80uASDt.js:45
+As @ index-B80uASDt.js:150
+Dg @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+iv @ index-B80uASDt.js:163
+Cs @ index-B80uASDt.js:163
+nv @ index-B80uASDt.js:163
+Nd @ index-B80uASDt.js:163
+Yg @ index-B80uASDt.js:163
+Gg @ index-B80uASDt.js:163
+mv @ index-B80uASDt.js:185
+Rs @ index-B80uASDt.js:185
+Od @ index-B80uASDt.js:185
+(anonymous) @ index-B80uASDt.js:185
+<jd>
+Je.jsx @ vendor-ui-FpgPax8G.js:14
+(anonymous) @ vendor-ui-FpgPax8G.js:54
+react_stack_bottom_frame @ index-B80uASDt.js:229
+jc @ index-B80uASDt.js:120
+sg @ index-B80uASDt.js:141
+vd @ index-B80uASDt.js:150
+X @ index-B80uASDt.js:45
+Jg @ index-B80uASDt.js:163
+Zg @ index-B80uASDt.js:163
+Rd @ index-B80uASDt.js:163
+Gg @ index-B80uASDt.js:163
+mv @ index-B80uASDt.js:185
+Rs @ index-B80uASDt.js:185
+Od @ index-B80uASDt.js:185
+(anonymous) @ index-B80uASDt.js:185
+<ForwardRef>
+Je.jsx @ vendor-ui-FpgPax8G.js:14
+(anonymous) @ vendor-ui-FpgPax8G.js:54
+react_stack_bottom_frame @ index-B80uASDt.js:229
+jc @ index-B80uASDt.js:120
+sg @ index-B80uASDt.js:141
+vd @ index-B80uASDt.js:150
+X @ index-B80uASDt.js:45
+Jg @ index-B80uASDt.js:163
+Zg @ index-B80uASDt.js:163
+Rd @ index-B80uASDt.js:163
+Gg @ index-B80uASDt.js:163
+mv @ index-B80uASDt.js:185
+Rs @ index-B80uASDt.js:185
+Od @ index-B80uASDt.js:185
+(anonymous) @ index-B80uASDt.js:185
+<ForwardRef>
+Je.jsx @ vendor-ui-FpgPax8G.js:14
+DialogContent @ vendor-ui-FpgPax8G.js:54
+react_stack_bottom_frame @ index-B80uASDt.js:229
+jc @ index-B80uASDt.js:120
+sg @ index-B80uASDt.js:141
+vd @ index-B80uASDt.js:150
+X @ index-B80uASDt.js:45
+Jg @ index-B80uASDt.js:163
+Zg @ index-B80uASDt.js:163
+Rd @ index-B80uASDt.js:163
+Gg @ index-B80uASDt.js:163
+mv @ index-B80uASDt.js:185
+Rs @ index-B80uASDt.js:185
+Od @ index-B80uASDt.js:185
+(anonymous) @ index-B80uASDt.js:185
+<DialogContent>
+Mw.Nu.jsxDEV @ index-B80uASDt.js:15
+DialogContent @ dialog-zCdwb74W.js:1
+react_stack_bottom_frame @ index-B80uASDt.js:229
+jc @ index-B80uASDt.js:120
+sg @ index-B80uASDt.js:141
+vd @ index-B80uASDt.js:150
+X @ index-B80uASDt.js:45
+Jg @ index-B80uASDt.js:163
+Zg @ index-B80uASDt.js:163
+Rd @ index-B80uASDt.js:163
+Gg @ index-B80uASDt.js:163
+mv @ index-B80uASDt.js:185
+Rs @ index-B80uASDt.js:185
+Od @ index-B80uASDt.js:185
+(anonymous) @ index-B80uASDt.js:185
+vendor-ui-FpgPax8G.js:58 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+overrideMethod @ hook.js:608
+(anonymous) @ vendor-ui-FpgPax8G.js:58
+react_stack_bottom_frame @ index-B80uASDt.js:229
+X @ index-B80uASDt.js:45
+As @ index-B80uASDt.js:150
+Dg @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+iv @ index-B80uASDt.js:163
+Cs @ index-B80uASDt.js:163
+nv @ index-B80uASDt.js:163
+Nd @ index-B80uASDt.js:163
+Yg @ index-B80uASDt.js:163
+Gg @ index-B80uASDt.js:163
+mv @ index-B80uASDt.js:185
+Rs @ index-B80uASDt.js:185
+Od @ index-B80uASDt.js:185
+(anonymous) @ index-B80uASDt.js:185
+<jd>
+Je.jsx @ vendor-ui-FpgPax8G.js:14
+(anonymous) @ vendor-ui-FpgPax8G.js:54
+react_stack_bottom_frame @ index-B80uASDt.js:229
+jc @ index-B80uASDt.js:120
+sg @ index-B80uASDt.js:141
+vd @ index-B80uASDt.js:150
+X @ index-B80uASDt.js:45
+Jg @ index-B80uASDt.js:163
+Zg @ index-B80uASDt.js:163
+Rd @ index-B80uASDt.js:163
+Gg @ index-B80uASDt.js:163
+mv @ index-B80uASDt.js:185
+Rs @ index-B80uASDt.js:185
+Od @ index-B80uASDt.js:185
+(anonymous) @ index-B80uASDt.js:185
+<ForwardRef>
+Je.jsx @ vendor-ui-FpgPax8G.js:14
+(anonymous) @ vendor-ui-FpgPax8G.js:54
+react_stack_bottom_frame @ index-B80uASDt.js:229
+jc @ index-B80uASDt.js:120
+sg @ index-B80uASDt.js:141
+vd @ index-B80uASDt.js:150
+X @ index-B80uASDt.js:45
+Jg @ index-B80uASDt.js:163
+Zg @ index-B80uASDt.js:163
+Rd @ index-B80uASDt.js:163
+Gg @ index-B80uASDt.js:163
+mv @ index-B80uASDt.js:185
+Rs @ index-B80uASDt.js:185
+Od @ index-B80uASDt.js:185
+(anonymous) @ index-B80uASDt.js:185
+<ForwardRef>
+Je.jsx @ vendor-ui-FpgPax8G.js:14
+DialogContent @ vendor-ui-FpgPax8G.js:54
+react_stack_bottom_frame @ index-B80uASDt.js:229
+jc @ index-B80uASDt.js:120
+sg @ index-B80uASDt.js:141
+vd @ index-B80uASDt.js:150
+X @ index-B80uASDt.js:45
+Jg @ index-B80uASDt.js:163
+Zg @ index-B80uASDt.js:163
+Rd @ index-B80uASDt.js:163
+Gg @ index-B80uASDt.js:163
+mv @ index-B80uASDt.js:185
+Rs @ index-B80uASDt.js:185
+Od @ index-B80uASDt.js:185
+(anonymous) @ index-B80uASDt.js:185
+<DialogContent>
+Mw.Nu.jsxDEV @ index-B80uASDt.js:15
+DialogContent @ dialog-zCdwb74W.js:1
+react_stack_bottom_frame @ index-B80uASDt.js:229
+jc @ index-B80uASDt.js:120
+sg @ index-B80uASDt.js:141
+vd @ index-B80uASDt.js:150
+X @ index-B80uASDt.js:45
+Jg @ index-B80uASDt.js:163
+Zg @ index-B80uASDt.js:163
+Rd @ index-B80uASDt.js:163
+Gg @ index-B80uASDt.js:163
+mv @ index-B80uASDt.js:185
+Rs @ index-B80uASDt.js:185
+Od @ index-B80uASDt.js:185
+(anonymous) @ index-B80uASDt.js:185
+bills-CryWaIOc.js:6 🔍 [BILLS] Filters updated: {category: '', year: '2020-2021', months: Array(0), billType: '', paymentStructure: '', …}
+bills-CryWaIOc.js:6 🔍 [BILLS] Fetching bills with params: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', filters: {…}}
+vendor-ui-FpgPax8G.js:58 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+overrideMethod @ hook.js:608
+(anonymous) @ vendor-ui-FpgPax8G.js:58
+react_stack_bottom_frame @ index-B80uASDt.js:229
+X @ index-B80uASDt.js:45
+As @ index-B80uASDt.js:150
+Dg @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+iv @ index-B80uASDt.js:163
+Cs @ index-B80uASDt.js:163
+nv @ index-B80uASDt.js:163
+Nd @ index-B80uASDt.js:163
+Yg @ index-B80uASDt.js:163
+Gg @ index-B80uASDt.js:163
+mv @ index-B80uASDt.js:185
+Rs @ index-B80uASDt.js:185
+Od @ index-B80uASDt.js:185
+(anonymous) @ index-B80uASDt.js:185
+<jd>
+Je.jsx @ vendor-ui-FpgPax8G.js:14
+(anonymous) @ vendor-ui-FpgPax8G.js:54
+react_stack_bottom_frame @ index-B80uASDt.js:229
+jc @ index-B80uASDt.js:120
+sg @ index-B80uASDt.js:141
+vd @ index-B80uASDt.js:150
+X @ index-B80uASDt.js:45
+Jg @ index-B80uASDt.js:163
+Zg @ index-B80uASDt.js:163
+Rd @ index-B80uASDt.js:163
+Gg @ index-B80uASDt.js:163
+mv @ index-B80uASDt.js:185
+Rs @ index-B80uASDt.js:185
+Od @ index-B80uASDt.js:185
+(anonymous) @ index-B80uASDt.js:185
+<ForwardRef>
+Je.jsx @ vendor-ui-FpgPax8G.js:14
+(anonymous) @ vendor-ui-FpgPax8G.js:54
+react_stack_bottom_frame @ index-B80uASDt.js:229
+jc @ index-B80uASDt.js:120
+sg @ index-B80uASDt.js:141
+vd @ index-B80uASDt.js:150
+X @ index-B80uASDt.js:45
+Jg @ index-B80uASDt.js:163
+Zg @ index-B80uASDt.js:163
+Rd @ index-B80uASDt.js:163
+Gg @ index-B80uASDt.js:163
+mv @ index-B80uASDt.js:185
+Rs @ index-B80uASDt.js:185
+Od @ index-B80uASDt.js:185
+(anonymous) @ index-B80uASDt.js:185
+<ForwardRef>
+Je.jsx @ vendor-ui-FpgPax8G.js:14
+DialogContent @ vendor-ui-FpgPax8G.js:54
+react_stack_bottom_frame @ index-B80uASDt.js:229
+jc @ index-B80uASDt.js:120
+sg @ index-B80uASDt.js:141
+vd @ index-B80uASDt.js:150
+X @ index-B80uASDt.js:45
+Jg @ index-B80uASDt.js:163
+Zg @ index-B80uASDt.js:163
+Rd @ index-B80uASDt.js:163
+Gg @ index-B80uASDt.js:163
+mv @ index-B80uASDt.js:185
+Rs @ index-B80uASDt.js:185
+Od @ index-B80uASDt.js:185
+(anonymous) @ index-B80uASDt.js:185
+<DialogContent>
+Mw.Nu.jsxDEV @ index-B80uASDt.js:15
+DialogContent @ dialog-zCdwb74W.js:1
+react_stack_bottom_frame @ index-B80uASDt.js:229
+jc @ index-B80uASDt.js:120
+sg @ index-B80uASDt.js:141
+vd @ index-B80uASDt.js:150
+X @ index-B80uASDt.js:45
+Jg @ index-B80uASDt.js:163
+Zg @ index-B80uASDt.js:163
+Rd @ index-B80uASDt.js:163
+Gg @ index-B80uASDt.js:163
+mv @ index-B80uASDt.js:185
+Rs @ index-B80uASDt.js:185
+Od @ index-B80uASDt.js:185
+(anonymous) @ index-B80uASDt.js:185
+<DialogContent>
+Mw.Nu.jsxDEV @ index-B80uASDt.js:15
+Ue @ bills-CryWaIOc.js:6
+react_stack_bottom_frame @ index-B80uASDt.js:229
+jc @ index-B80uASDt.js:120
+ud @ index-B80uASDt.js:141
+vd @ index-B80uASDt.js:150
+X @ index-B80uASDt.js:45
+Jg @ index-B80uASDt.js:163
+Zg @ index-B80uASDt.js:163
+Rd @ index-B80uASDt.js:163
+Gg @ index-B80uASDt.js:163
+mv @ index-B80uASDt.js:185
+Rs @ index-B80uASDt.js:185
+Od @ index-B80uASDt.js:185
+(anonymous) @ index-B80uASDt.js:185
+<Ue>
+Mw.Nu.jsxDEV @ index-B80uASDt.js:15
+(anonymous) @ bills-CryWaIOc.js:6
+Oe @ bills-CryWaIOc.js:6
+react_stack_bottom_frame @ index-B80uASDt.js:229
+jc @ index-B80uASDt.js:120
+ud @ index-B80uASDt.js:141
+vd @ index-B80uASDt.js:150
+X @ index-B80uASDt.js:45
+Jg @ index-B80uASDt.js:163
+Zg @ index-B80uASDt.js:163
+Rd @ index-B80uASDt.js:163
+Gg @ index-B80uASDt.js:163
+mv @ index-B80uASDt.js:185
+Rs @ index-B80uASDt.js:185
+Od @ index-B80uASDt.js:185
+(anonymous) @ index-B80uASDt.js:185
+<Oe>
+Mw.Nu.jsxDEV @ index-B80uASDt.js:15
+(anonymous) @ bills-CryWaIOc.js:6
+Ie @ bills-CryWaIOc.js:6
+react_stack_bottom_frame @ index-B80uASDt.js:229
+jc @ index-B80uASDt.js:120
+ud @ index-B80uASDt.js:141
+vd @ index-B80uASDt.js:150
+X @ index-B80uASDt.js:45
+Jg @ index-B80uASDt.js:163
+Zg @ index-B80uASDt.js:163
+Rd @ index-B80uASDt.js:163
+Gg @ index-B80uASDt.js:163
+mv @ index-B80uASDt.js:185
+Rs @ index-B80uASDt.js:185
+Od @ index-B80uASDt.js:185
+(anonymous) @ index-B80uASDt.js:185
+bills-CryWaIOc.js:6 🔍 [BILLS] Fetching bills with params: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', filters: {…}}
+bills-CryWaIOc.js:6 🔍 [BILLS] Fetching bills with params: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', filters: {…}}
+bills-CryWaIOc.js:6 🔍 [BILLS] Fetching bills with params: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', filters: {…}}
+bills-CryWaIOc.js:6 🔍 [BILLS] Filters updated: {category: '', year: '2024-2025', months: Array(0), billType: '', paymentStructure: '', …}
+bills-CryWaIOc.js:6 🔍 [BILLS] Fetching bills with params: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', filters: {…}}
+bills-CryWaIOc.js:6 🔍 [BILLS] Filters updated: {category: '', year: '2035-2036', months: Array(0), billType: '', paymentStructure: '', …}
+bills-CryWaIOc.js:6 🔍 [BILLS] Fetching bills with params: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', filters: {…}}
+vendor-ui-FpgPax8G.js:58 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+overrideMethod @ hook.js:608
+(anonymous) @ vendor-ui-FpgPax8G.js:58
+react_stack_bottom_frame @ index-B80uASDt.js:229
+X @ index-B80uASDt.js:45
+As @ index-B80uASDt.js:150
+Dg @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+iv @ index-B80uASDt.js:163
+Cs @ index-B80uASDt.js:163
+nv @ index-B80uASDt.js:163
+Nd @ index-B80uASDt.js:163
+Yg @ index-B80uASDt.js:163
+Gg @ index-B80uASDt.js:163
+mv @ index-B80uASDt.js:185
+Rs @ index-B80uASDt.js:185
+Od @ index-B80uASDt.js:185
+(anonymous) @ index-B80uASDt.js:185
+<jd>
+Je.jsx @ vendor-ui-FpgPax8G.js:14
+(anonymous) @ vendor-ui-FpgPax8G.js:54
+react_stack_bottom_frame @ index-B80uASDt.js:229
+jc @ index-B80uASDt.js:120
+sg @ index-B80uASDt.js:141
+vd @ index-B80uASDt.js:150
+X @ index-B80uASDt.js:45
+Jg @ index-B80uASDt.js:163
+Zg @ index-B80uASDt.js:163
+Rd @ index-B80uASDt.js:163
+Gg @ index-B80uASDt.js:163
+mv @ index-B80uASDt.js:185
+Rs @ index-B80uASDt.js:185
+Od @ index-B80uASDt.js:185
+(anonymous) @ index-B80uASDt.js:185
+<ForwardRef>
+Je.jsx @ vendor-ui-FpgPax8G.js:14
+(anonymous) @ vendor-ui-FpgPax8G.js:54
+react_stack_bottom_frame @ index-B80uASDt.js:229
+jc @ index-B80uASDt.js:120
+sg @ index-B80uASDt.js:141
+vd @ index-B80uASDt.js:150
+X @ index-B80uASDt.js:45
+Jg @ index-B80uASDt.js:163
+Zg @ index-B80uASDt.js:163
+Rd @ index-B80uASDt.js:163
+Gg @ index-B80uASDt.js:163
+mv @ index-B80uASDt.js:185
+Rs @ index-B80uASDt.js:185
+Od @ index-B80uASDt.js:185
+(anonymous) @ index-B80uASDt.js:185
+<ForwardRef>
+Je.jsx @ vendor-ui-FpgPax8G.js:14
+DialogContent @ vendor-ui-FpgPax8G.js:54
+react_stack_bottom_frame @ index-B80uASDt.js:229
+jc @ index-B80uASDt.js:120
+sg @ index-B80uASDt.js:141
+vd @ index-B80uASDt.js:150
+X @ index-B80uASDt.js:45
+Jg @ index-B80uASDt.js:163
+Zg @ index-B80uASDt.js:163
+Rd @ index-B80uASDt.js:163
+Gg @ index-B80uASDt.js:163
+mv @ index-B80uASDt.js:185
+Rs @ index-B80uASDt.js:185
+Od @ index-B80uASDt.js:185
+(anonymous) @ index-B80uASDt.js:185
+<DialogContent>
+Mw.Nu.jsxDEV @ index-B80uASDt.js:15
+DialogContent @ dialog-zCdwb74W.js:1
+react_stack_bottom_frame @ index-B80uASDt.js:229
+jc @ index-B80uASDt.js:120
+sg @ index-B80uASDt.js:141
+vd @ index-B80uASDt.js:150
+X @ index-B80uASDt.js:45
+Jg @ index-B80uASDt.js:163
+Zg @ index-B80uASDt.js:163
+Rd @ index-B80uASDt.js:163
+Gg @ index-B80uASDt.js:163
+mv @ index-B80uASDt.js:185
+Rs @ index-B80uASDt.js:185
+Od @ index-B80uASDt.js:185
+(anonymous) @ index-B80uASDt.js:185
+<DialogContent>
+Mw.Nu.jsxDEV @ index-B80uASDt.js:15
+Ue @ bills-CryWaIOc.js:6
+react_stack_bottom_frame @ index-B80uASDt.js:229
+jc @ index-B80uASDt.js:120
+ud @ index-B80uASDt.js:141
+vd @ index-B80uASDt.js:150
+X @ index-B80uASDt.js:45
+Jg @ index-B80uASDt.js:163
+Zg @ index-B80uASDt.js:163
+Rd @ index-B80uASDt.js:163
+Gg @ index-B80uASDt.js:163
+mv @ index-B80uASDt.js:185
+Rs @ index-B80uASDt.js:185
+Od @ index-B80uASDt.js:185
+(anonymous) @ index-B80uASDt.js:185
+<Ue>
+Mw.Nu.jsxDEV @ index-B80uASDt.js:15
+(anonymous) @ bills-CryWaIOc.js:6
+Oe @ bills-CryWaIOc.js:6
+react_stack_bottom_frame @ index-B80uASDt.js:229
+jc @ index-B80uASDt.js:120
+ud @ index-B80uASDt.js:141
+vd @ index-B80uASDt.js:150
+X @ index-B80uASDt.js:45
+Jg @ index-B80uASDt.js:163
+Zg @ index-B80uASDt.js:163
+Rd @ index-B80uASDt.js:163
+Gg @ index-B80uASDt.js:163
+mv @ index-B80uASDt.js:185
+Rs @ index-B80uASDt.js:185
+Od @ index-B80uASDt.js:185
+(anonymous) @ index-B80uASDt.js:185
+<Oe>
+Mw.Nu.jsxDEV @ index-B80uASDt.js:15
+(anonymous) @ bills-CryWaIOc.js:6
+Ie @ bills-CryWaIOc.js:6
+react_stack_bottom_frame @ index-B80uASDt.js:229
+jc @ index-B80uASDt.js:120
+ud @ index-B80uASDt.js:141
+vd @ index-B80uASDt.js:150
+X @ index-B80uASDt.js:45
+Jg @ index-B80uASDt.js:163
+Zg @ index-B80uASDt.js:163
+Rd @ index-B80uASDt.js:163
+Gg @ index-B80uASDt.js:163
+mv @ index-B80uASDt.js:185
+Rs @ index-B80uASDt.js:185
+Od @ index-B80uASDt.js:185
+(anonymous) @ index-B80uASDt.js:185
+bills-CryWaIOc.js:6 🔍 [BILLS] Fetching bills with params: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', filters: {…}}
+bills-CryWaIOc.js:6 🔍 [BILLS] Fetching bills with params: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', filters: {…}}
+bills-CryWaIOc.js:6 🔍 [BILLS] Fetching bills with params: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', filters: {…}}
+bills-CryWaIOc.js:6 🔍 [BILLS] Filters updated: {category: '', year: '2025-2026', months: Array(0), billType: '', paymentStructure: '', …}
+bills-CryWaIOc.js:6 🔍 [BILLS] Fetching bills with params: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', filters: {…}}
+bills-CryWaIOc.js:6 🔍 [BILLS] Filters updated: {category: '', year: '2026-2027', months: Array(0), billType: '', paymentStructure: '', …}
+bills-CryWaIOc.js:6 🔍 [BILLS] Fetching bills with params: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', filters: {…}}
+bills-CryWaIOc.js:6 🔍 [BILLS] Filters updated: {category: '', year: '2025-2026', months: Array(0), billType: '', paymentStructure: '', …}
+budget-C-O7JjmW.js:16 🔍 [BUDGET] Component mounted {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984'}
+budget-C-O7JjmW.js:16 🔍 [BUDGET] Context changed: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984'}
+budget-C-O7JjmW.js:16 🔍 [BUDGET] Filters updated: {viewType: 'month', periodLength: 12, startMonth: 11, startYear: 2025, dataVisibility: {…}}
+budget-C-O7JjmW.js:16 🔍 [BUDGET] Filters updated: {viewType: 'month', periodLength: 12, startMonth: 1, startYear: 2025, dataVisibility: {…}}
+budget-C-O7JjmW.js:16 🔍 [BUDGET] Filters updated: {viewType: 'month', periodLength: 12, startMonth: 2, startYear: 2025, dataVisibility: {…}}
+index-B80uASDt.js:233 Each child in a list should have a unique "key" prop.
+
+Check the render method of `ForwardRef`. It was passed a child from $k. See https://react.dev/link/warning-keys for more information.
+overrideMethod @ hook.js:608
+(anonymous) @ index-B80uASDt.js:233
+X @ index-B80uASDt.js:45
+A @ index-B80uASDt.js:233
+I @ index-B80uASDt.js:127
+ee @ index-B80uASDt.js:127
+ye @ index-B80uASDt.js:127
+(anonymous) @ index-B80uASDt.js:127
+dt @ index-B80uASDt.js:141
+vd @ index-B80uASDt.js:150
+X @ index-B80uASDt.js:45
+Jg @ index-B80uASDt.js:163
+Zg @ index-B80uASDt.js:163
+Rd @ index-B80uASDt.js:163
+Gg @ index-B80uASDt.js:163
+mv @ index-B80uASDt.js:185
+Rs @ index-B80uASDt.js:185
+Od @ index-B80uASDt.js:185
+(anonymous) @ index-B80uASDt.js:185
+[Violation] 'message' handler took <N>ms
+[Violation] 'message' handler took <N>ms
+[Violation] 'message' handler took <N>ms
+[Violation] 'message' handler took <N>ms
+[Violation] 'message' handler took <N>ms
+[Violation] 'message' handler took <N>ms
+[Violation] 'message' handler took <N>ms
+[Violation] 'message' handler took <N>ms
+[Violation] 'message' handler took <N>ms
+[Violation] 'message' handler took <N>ms
+[Violation] 'message' handler took <N>ms
+[Violation] 'message' handler took <N>ms
+bills-CryWaIOc.js:6 🔍 [BILLS] Component mounted {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+bills-CryWaIOc.js:6 🔍 [BILLS] Context changed: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+bills-CryWaIOc.js:6 🔍 [BILLS] Filters updated: {category: '', year: '2025-2026', months: Array(0), billType: '', paymentStructure: '', …}
+bills-CryWaIOc.js:6 🔍 [BILLS] Fetching bills with params: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', filters: {…}}
+bills-CryWaIOc.js:6 🔍 [BILLS] Filters updated: {category: '', year: '2026-2027', months: Array(0), billType: '', paymentStructure: '', …}
+bills-CryWaIOc.js:6 🔍 [BILLS] Fetching bills with params: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', filters: {…}}
+budget-C-O7JjmW.js:16 🔍 [BUDGET] Component mounted {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984'}
+budget-C-O7JjmW.js:16 🔍 [BUDGET] Context changed: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984'}
+budget-C-O7JjmW.js:16 🔍 [BUDGET] Filters updated: {viewType: 'month', periodLength: 12, startMonth: 11, startYear: 2025, dataVisibility: {…}}
+budget-C-O7JjmW.js:16 🔍 [BUDGET] Filters updated: {viewType: 'month', periodLength: 12, startMonth: 2, startYear: 2025, dataVisibility: {…}}
+vendor-ui-FpgPax8G.js:58 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+overrideMethod @ hook.js:608
+(anonymous) @ vendor-ui-FpgPax8G.js:58
+react_stack_bottom_frame @ index-B80uASDt.js:229
+X @ index-B80uASDt.js:45
+As @ index-B80uASDt.js:150
+Dg @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+Mn @ index-B80uASDt.js:163
+Pg @ index-B80uASDt.js:163
+iv @ index-B80uASDt.js:163
+Cs @ index-B80uASDt.js:163
+nv @ index-B80uASDt.js:163
+Nd @ index-B80uASDt.js:163
+Yg @ index-B80uASDt.js:163
+Gg @ index-B80uASDt.js:163
+mv @ index-B80uASDt.js:185
+Rs @ index-B80uASDt.js:185
+Od @ index-B80uASDt.js:185
+(anonymous) @ index-B80uASDt.js:185
+<jd>
+Je.jsx @ vendor-ui-FpgPax8G.js:14
+(anonymous) @ vendor-ui-FpgPax8G.js:54
+react_stack_bottom_frame @ index-B80uASDt.js:229
+jc @ index-B80uASDt.js:120
+sg @ index-B80uASDt.js:141
+vd @ index-B80uASDt.js:150
+X @ index-B80uASDt.js:45
+Jg @ index-B80uASDt.js:163
+Zg @ index-B80uASDt.js:163
+Rd @ index-B80uASDt.js:163
+Gg @ index-B80uASDt.js:163
+mv @ index-B80uASDt.js:185
+Rs @ index-B80uASDt.js:185
+Od @ index-B80uASDt.js:185
+(anonymous) @ index-B80uASDt.js:185
+<ForwardRef>
+Je.jsx @ vendor-ui-FpgPax8G.js:14
+(anonymous) @ vendor-ui-FpgPax8G.js:54
+react_stack_bottom_frame @ index-B80uASDt.js:229
+jc @ index-B80uASDt.js:120
+sg @ index-B80uASDt.js:141
+vd @ index-B80uASDt.js:150
+X @ index-B80uASDt.js:45
+Jg @ index-B80uASDt.js:163
+Zg @ index-B80uASDt.js:163
+Rd @ index-B80uASDt.js:163
+Gg @ index-B80uASDt.js:163
+mv @ index-B80uASDt.js:185
+Rs @ index-B80uASDt.js:185
+Od @ index-B80uASDt.js:185
+(anonymous) @ index-B80uASDt.js:185
+<ForwardRef>
+Je.jsx @ vendor-ui-FpgPax8G.js:14
+DialogContent @ vendor-ui-FpgPax8G.js:54
+react_stack_bottom_frame @ index-B80uASDt.js:229
+jc @ index-B80uASDt.js:120
+sg @ index-B80uASDt.js:141
+vd @ index-B80uASDt.js:150
+X @ index-B80uASDt.js:45
+Jg @ index-B80uASDt.js:163
+Zg @ index-B80uASDt.js:163
+Rd @ index-B80uASDt.js:163
+Gg @ index-B80uASDt.js:163
+mv @ index-B80uASDt.js:185
+Rs @ index-B80uASDt.js:185
+Od @ index-B80uASDt.js:185
+(anonymous) @ index-B80uASDt.js:185
+<DialogContent>
+Mw.Nu.jsxDEV @ index-B80uASDt.js:15
+DialogContent @ dialog-zCdwb74W.js:1
+react_stack_bottom_frame @ index-B80uASDt.js:229
+jc @ index-B80uASDt.js:120
+sg @ index-B80uASDt.js:141
+vd @ index-B80uASDt.js:150
+X @ index-B80uASDt.js:45
+Jg @ index-B80uASDt.js:163
+Zg @ index-B80uASDt.js:163
+Rd @ index-B80uASDt.js:163
+Gg @ index-B80uASDt.js:163
+mv @ index-B80uASDt.js:185
+Rs @ index-B80uASDt.js:185
+Od @ index-B80uASDt.js:185
+(anonymous) @ index-B80uASDt.js:185
+[Violation] 'input' handler took 151ms
+[Violation] 'input' handler took 168ms
+budget-C-O7JjmW.js:16 addInvestment called {newInvestment: {…}}
+bills-CryWaIOc.js:6 🔍 [BILLS] Component mounted {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+bills-CryWaIOc.js:6 🔍 [BILLS] Context changed: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+bills-CryWaIOc.js:6 🔍 [BILLS] Filters updated: {category: '', year: '2025-2026', months: Array(0), billType: '', paymentStructure: '', …}
+bills-CryWaIOc.js:6 🔍 [BILLS] Fetching bills with params: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', filters: {…}}
+budget-C-O7JjmW.js:16 🔍 [BUDGET] Component mounted {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984'}
+budget-C-O7JjmW.js:16 🔍 [BUDGET] Context changed: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984'}
+budget-C-O7JjmW.js:16 🔍 [BUDGET] Filters updated: {viewType: 'month', periodLength: 12, startMonth: 11, startYear: 2025, dataVisibility: {…}}
+budget-C-O7JjmW.js:16 🔍 [BUDGET] Filters updated: {viewType: 'month', periodLength: 12, startMonth: 2, startYear: 2025, dataVisibility: {…}}
+bills-CryWaIOc.js:6 🔍 [BILLS] Component mounted {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+bills-CryWaIOc.js:6 🔍 [BILLS] Context changed: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+bills-CryWaIOc.js:6 🔍 [BILLS] Filters updated: {category: '', year: '2025-2026', months: Array(0), billType: '', paymentStructure: '', …}
+budget-C-O7JjmW.js:16 🔍 [BUDGET] Component mounted {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984'}
+budget-C-O7JjmW.js:16 🔍 [BUDGET] Context changed: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984'}
+budget-C-O7JjmW.js:16 🔍 [BUDGET] Filters updated: {viewType: 'month', periodLength: 12, startMonth: 11, startYear: 2025, dataVisibility: {…}}
+budget-C-O7JjmW.js:16 🔍 [BUDGET] Filters updated: {viewType: 'month', periodLength: 12, startMonth: 1, startYear: 2025, dataVisibility: {…}}
+budget-C-O7JjmW.js:16 🔍 [BUDGET] Filters updated: {viewType: 'month', periodLength: 12, startMonth: 2, startYear: 2025, dataVisibility: {…}}

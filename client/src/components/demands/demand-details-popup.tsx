@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
+import { useCreateUpdateMutation } from '@/lib/common-hooks';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { DocumentInlineViewer } from '@/components/common/DocumentInlineViewer';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -66,7 +68,7 @@ interface Demand {
     firstName: string;
     lastName: string;
     email: string;
-  };
+  } | null;
   residence?: {
     id: string;
     unitNumber: string;
@@ -95,7 +97,7 @@ interface DemandComment {
     firstName: string;
     lastName: string;
     email: string;
-  };
+  } | null;
 }
 
 /**
@@ -153,6 +155,7 @@ export default function DemandDetailsPopup({
   const [, setLocation] = useLocation();
   const [isEditing, setIsEditing] = useState(false);
   const [newComment, setNewComment] = useState('');
+  const [viewingFile, setViewingFile] = useState<{ url: string; downloadUrl?: string; name?: string } | null>(null);
 
   // Form schemas - must be inside component to access t()
   const editDemandSchema = z.object({
@@ -249,7 +252,7 @@ export default function DemandDetailsPopup({
   });
 
   // Update demand mutation
-  const updateDemandMutation = useMutation({
+  const updateDemandMutation = useCreateUpdateMutation<unknown, EditDemandFormData>({
     mutationFn: async (demandData: EditDemandFormData) => {
       const response = await fetch(`/api/demands/${demand?.id}`, {
         method: 'PUT',
@@ -263,26 +266,19 @@ export default function DemandDetailsPopup({
       }
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/demands'] });
+    successTitle: t('success'),
+    successMessage: t('demandUpdatedSuccessfully'),
+    errorTitle: t('error'),
+    errorMessage: (error: any) => error?.message || t('failedToUpdateDemand'),
+    queryKeysToInvalidate: [['/api/demands']],
+    onSuccessCallback: () => {
       setIsEditing(false);
       onDemandUpdated?.();
-      toast({
-        title: t('success'),
-        description: t('demandUpdatedSuccessfully'),
-      });
-    },
-    onError: () => {
-      toast({
-        title: t('error'),
-        description: t('failedToUpdateDemand'),
-        variant: 'destructive',
-      });
     },
   });
 
   // Delete demand mutation
-  const deleteDemandMutation = useMutation({
+  const deleteDemandMutation = useCreateUpdateMutation<unknown, void>({
     mutationFn: async () => {
       const response = await fetch(`/api/demands/${demand?.id}`, {
         method: 'DELETE',
@@ -292,26 +288,19 @@ export default function DemandDetailsPopup({
       }
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/demands'] });
+    successTitle: t('success'),
+    successMessage: t('demandDeletedSuccessfully'),
+    errorTitle: t('error'),
+    errorMessage: t('failedToDeleteDemand'),
+    queryKeysToInvalidate: [['/api/demands']],
+    onSuccessCallback: () => {
       onClose();
       onDemandUpdated?.();
-      toast({
-        title: t('success'),
-        description: t('demandDeletedSuccessfully'),
-      });
-    },
-    onError: () => {
-      toast({
-        title: t('error'),
-        description: t('failedToDeleteDemand'),
-        variant: 'destructive',
-      });
     },
   });
 
   // Add comment mutation
-  const addCommentMutation = useMutation({
+  const addCommentMutation = useCreateUpdateMutation<unknown, string>({
     mutationFn: async (comment: string) => {
       const response = await fetch(`/api/demands/${demand?.id}/comments`, {
         method: 'POST',
@@ -325,20 +314,13 @@ export default function DemandDetailsPopup({
       }
       return response.json();
     },
-    onSuccess: () => {
+    successTitle: t('success'),
+    successMessage: t('commentAddedSuccessfully'),
+    errorTitle: t('error'),
+    errorMessage: (error: any) => error?.message || t('failedToAddComment'),
+    onSuccessCallback: () => {
       refetchComments();
       setNewComment('');
-      toast({
-        title: t('success'),
-        description: t('commentAddedSuccessfully'),
-      });
-    },
-    onError: () => {
-      toast({
-        title: t('error'),
-        description: t('failedToAddComment'),
-        variant: 'destructive',
-      });
     },
   });
 
@@ -542,33 +524,8 @@ export default function DemandDetailsPopup({
                           const filename = demand.fileName;
                           const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(filename);
                           
-                          const handleView = async () => {
-                            try {
-                              const newTab = window.open('about:blank', '_blank');
-                              if (!newTab) {
-                                throw new Error('Popup blocked - please allow popups for this site');
-                              }
-                              
-                              const response = await fetch(demand.filePath, {
-                                method: 'GET',
-                                credentials: 'include',
-                              });
-
-                              if (!response.ok) {
-                                newTab.close();
-                                throw new Error(`View failed: ${response.status} ${response.statusText}`);
-                              }
-
-                              const blob = await response.blob();
-                              const url = window.URL.createObjectURL(blob);
-                              newTab.location.href = url;
-                              
-                              setTimeout(() => {
-                                window.URL.revokeObjectURL(url);
-                              }, 3000);
-                            } catch (error: any) {
-                              alert(`Failed to open file: ${error.message || 'Unknown error'}`);
-                            }
+                          const handleView = () => {
+                            setViewingFile({ url: demand.filePath!, name: filename });
                           };
 
                           const handleDownload = async () => {
@@ -637,9 +594,13 @@ export default function DemandDetailsPopup({
                     <div>
                       <Label>{t('submittedBy')}</Label>
                       <p className='mt-1'>
-                        {demand.submitter?.firstName} {demand.submitter?.lastName}
+                        {demand.submitter 
+                          ? `${demand.submitter.firstName} ${demand.submitter.lastName}`
+                          : 'Utilisateur supprimé'}
                         <br />
-                        <span className='text-muted-foreground'>{demand.submitter?.email}</span>
+                        <span className='text-muted-foreground'>
+                          {demand.submitter?.email || ''}
+                        </span>
                       </p>
                     </div>
                     <div>
@@ -690,33 +651,12 @@ export default function DemandDetailsPopup({
                   const filename = doc.fileName || doc.name;
                   const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(filename);
                   
-                  const handleView = async () => {
-                    try {
-                      const newTab = window.open('about:blank', '_blank');
-                      if (!newTab) {
-                        throw new Error('Popup blocked - please allow popups for this site');
-                      }
-                      
-                      const response = await fetch(`/api/documents/${doc.id}/file`, {
-                        method: 'GET',
-                        credentials: 'include',
-                      });
-
-                      if (!response.ok) {
-                        newTab.close();
-                        throw new Error(`View failed: ${response.status} ${response.statusText}`);
-                      }
-
-                      const blob = await response.blob();
-                      const url = window.URL.createObjectURL(blob);
-                      newTab.location.href = url;
-                      
-                      setTimeout(() => {
-                        window.URL.revokeObjectURL(url);
-                      }, 3000);
-                    } catch (error: any) {
-                      alert(`Failed to open file: ${error.message || 'Unknown error'}`);
-                    }
+                  const handleView = () => {
+                    setViewingFile({
+                      url: `/api/documents/${doc.id}/file`,
+                      downloadUrl: `/api/documents/${doc.id}/file?download=true`,
+                      name: filename,
+                    });
                   };
 
                   const handleDownload = async () => {
@@ -826,7 +766,9 @@ export default function DemandDetailsPopup({
                   <CardContent className='p-4'>
                     <div className='flex justify-between items-start mb-2'>
                       <div className='font-medium text-sm'>
-                        {comment.author.firstName} {comment.author.lastName}
+                        {comment.author 
+                          ? `${comment.author.firstName} ${comment.author.lastName}`
+                          : 'Utilisateur supprimé'}
                       </div>
                       <div className='text-xs text-muted-foreground'>
                         {new Date(comment.createdAt).toLocaleString()}
@@ -859,6 +801,16 @@ export default function DemandDetailsPopup({
           )}
         </div>
       </DialogContent>
+
+      {viewingFile && (
+        <DocumentInlineViewer
+          isOpen={!!viewingFile}
+          onClose={() => setViewingFile(null)}
+          fileUrl={viewingFile.url}
+          downloadUrl={viewingFile.downloadUrl}
+          fileName={viewingFile.name}
+        />
+      )}
     </Dialog>
   );
 }

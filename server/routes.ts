@@ -6,6 +6,10 @@ import fs from 'fs';
 import multer from 'multer';
 import { requireAuth } from './auth/index';
 import { secureErrorHandler, notFoundHandler } from './middleware/error-security';
+import { enforceDemoSecurity } from './middleware/demo-security';
+import { logDebug, logInfo, logWarn, logError } from './utils/logger';
+
+import { registerMcpRoutes, registerOAuthConsentRoutes, koveoMcpOAuthProvider } from './mcp/index';
 
 // Import API route registration functions
 import { registerOrganizationRoutes } from './api/organizations';
@@ -42,7 +46,8 @@ import { eq } from 'drizzle-orm';
 // Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadDir = path.join(process.cwd(), 'uploads', 'demands');
+    // Use /tmp/uploads for persistent storage in Replit
+    const uploadDir = path.join('/tmp', 'uploads', 'demands');
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
@@ -80,12 +85,25 @@ const upload = multer({
 
 export async function registerRoutes(app: Express) {
   
+  // Register MCP routes BEFORE session middleware (MCP /mcp endpoints use
+  // their own bearer-token / API-key auth, no session needed).
+  await registerMcpRoutes(app);
+  
   // CRITICAL: Apply session middleware BEFORE authentication routes
   app.use(sessionConfig);
+
+  // OAuth consent UI MUST be mounted AFTER sessionConfig because it reads
+  // and writes req.session to detect the signed-in Koveo user.
+  registerOAuthConsentRoutes(app, koveoMcpOAuthProvider);
   
   
   // Setup authentication routes - session middleware must be applied first
   setupAuthRoutes(app);
+  
+  // CRITICAL SECURITY: Apply demo security middleware to all API routes
+  // This must come AFTER authentication but BEFORE route registration
+  // Auth endpoints are exempted in the middleware itself (login, logout, etc.)
+  app.use('/api/*', enforceDemoSecurity());
   
   // Register all API routes
   registerOrganizationRoutes(app);
@@ -203,9 +221,11 @@ export async function registerRoutes(app: Express) {
   // Basic API routes
   // Note: /api/health endpoint is defined in index.ts with deployment-specific error handling
   
-  app.post('/api/test', (req, res) => {
-    return res.json({ message: 'API working', body: req.body });
-  });
+  if (process.env.NODE_ENV !== 'production') {
+    app.post('/api/test', (req, res) => {
+      return res.json({ message: 'API working', body: req.body });
+    });
+  }
 
   // File upload endpoint for demands and other general uploads
   app.post('/api/upload', requireAuth, upload.array('file', 5), async (req: any, res) => {
@@ -242,8 +262,9 @@ export async function registerRoutes(app: Express) {
     }
   });
   
-  // SECURITY FIX: Removed direct static file serving - replaced with authenticated endpoints below
-  // Old vulnerable code: app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+  // SECURITY FIX: Removed direct static file serving - replaced with two authenticated endpoints:
+  // 1. /uploads/demands/* — serves demand-specific attachments (checks demand ownership)
+  // 2. /uploads/:orgId/:category/:fileId — serves org-scoped files (checks org membership)
   
   // Demand file access endpoint - handles /uploads/demands/* URLs
   app.get('/uploads/demands/*', requireAuth, async (req: any, res) => {
@@ -251,7 +272,7 @@ export async function registerRoutes(app: Express) {
       const user = req.user;
       const fileName = req.params[0]; // Everything after /uploads/demands/
       
-      console.log(`[DEMAND FILE] User ${user.id} (${user.role}) requesting: ${fileName}`);
+      logDebug(`[DEMAND FILE] User requesting file`, { userId: user.id, metadata: { role: user.role, fileName } });
       
       // Find the demand with this file by matching against filePath (which contains the server-generated filename)
       // Note: fileName column now stores the original user filename for display
@@ -259,11 +280,11 @@ export async function registerRoutes(app: Express) {
       const [demand] = await db.select().from(demands).where(eq(demands.filePath, requestedPath)).limit(1);
       
       if (!demand) {
-        console.log(`[DEMAND FILE] No demand found for: ${fileName}`);
+        logDebug(`[DEMAND FILE] No demand found for file`, { metadata: { fileName } });
         return res.status(404).json({ error: 'File not found' });
       }
       
-      console.log(`[DEMAND FILE] Demand ${demand.id} by ${demand.submitterId}, checking access for ${user.id}`);
+      logDebug(`[DEMAND FILE] Checking access for demand`, { userId: user.id, metadata: { demandId: demand.id, submitterId: demand.submitterId } });
       
       // Access check: user created demand OR is admin/manager
       const hasAccess = 
@@ -273,33 +294,33 @@ export async function registerRoutes(app: Express) {
         user.role === 'demo_manager';
       
       if (!hasAccess) {
-        console.log(`[DEMAND FILE] Access DENIED for ${user.id}`);
+        logWarn(`[DEMAND FILE] Access DENIED`, { userId: user.id });
         return res.status(403).json({ error: 'Access denied' });
       }
       
-      console.log(`[DEMAND FILE] Access GRANTED for ${user.id}`);
+      logDebug(`[DEMAND FILE] Access GRANTED`, { userId: user.id });
       
-      // Build and verify file path
+      // Build and verify file path - use /tmp/uploads for persistent storage
       const sanitizedFileName = fileName.replace(/\.\./g, '').replace(/^\/+/, '');
-      const safeFilePath = path.join(process.cwd(), 'uploads', 'demands', sanitizedFileName);
-      const uploadsDir = path.resolve(process.cwd(), 'uploads');
+      const safeFilePath = path.join('/tmp', 'uploads', 'demands', sanitizedFileName);
+      const uploadsDir = path.resolve('/tmp', 'uploads');
       const resolvedPath = path.resolve(safeFilePath);
       
       if (!resolvedPath.startsWith(uploadsDir)) {
-        console.log(`[DEMAND FILE] Path traversal attempt: ${resolvedPath}`);
+        logWarn(`[DEMAND FILE] Path traversal attempt detected`, { metadata: { resolvedPath } });
         return res.status(403).json({ error: 'Invalid file path' });
       }
       
       if (!fs.existsSync(resolvedPath)) {
-        console.log(`[DEMAND FILE] File not found on disk: ${resolvedPath}`);
+        logDebug(`[DEMAND FILE] File not found on disk`, { metadata: { resolvedPath } });
         return res.status(404).json({ error: 'File not found on disk' });
       }
       
-      console.log(`[DEMAND FILE] Serving file: ${resolvedPath}`);
+      logDebug(`[DEMAND FILE] Serving file`, { metadata: { resolvedPath } });
       res.sendFile(resolvedPath);
       
     } catch (error: any) {
-      console.error(`[DEMAND FILE] Error:`, error);
+      logError(`[DEMAND FILE] Error serving file`, error);
       res.status(500).json({ error: 'Internal server error' });
     }
   });
@@ -324,9 +345,9 @@ export async function registerRoutes(app: Express) {
         return res.status(403).json({ error: 'Access denied' });
       }
       
-      // Construct safe file path within uploads directory only
-      const safeFilePath = path.join(process.cwd(), 'uploads', orgId, category, fileId);
-      const uploadsDir = path.resolve(process.cwd(), 'uploads');
+      // Construct safe file path within uploads directory only - use /tmp/uploads for persistent storage
+      const safeFilePath = path.join('/tmp', 'uploads', orgId, category, fileId);
+      const uploadsDir = path.resolve('/tmp', 'uploads');
       const requestedPath = path.resolve(safeFilePath);
       
       // Ensure the resolved path is within uploads directory (prevent directory traversal)
@@ -343,147 +364,57 @@ export async function registerRoutes(app: Express) {
       return res.sendFile(requestedPath);
       
     } catch (error: any) {
-      console.error('Secure file serving error:', error);
+      logError('Secure file serving error', error);
       res.status(500).json({ error: 'Internal server error' });
     }
   });
   
-  // Legacy support for simple file access (still authenticated)
-  app.get('/uploads/*', requireAuth, async (req: any, res) => {
-    try {
-      const user = req.user;
-      const requestedPath = req.params[0]; // Everything after /uploads/
-      
-      console.log(`[FILE ACCESS] User ${user.id} (${user.role}) requesting: ${requestedPath}`);
-      
-      // Check if this is a demand file
-      const isDemandFile = requestedPath.startsWith('demands/');
-      
-      // For demand files, verify user has access to the demand
-      if (isDemandFile) {
-        const fileName = path.basename(requestedPath);
-        console.log(`[FILE ACCESS] Demand file detected: ${fileName}`);
-        
-        // Query the database to find the demand with this file
-        const { db } = await import('./db');
-        const { demands } = await import('../shared/schemas/operations');
-        const { eq } = await import('drizzle-orm');
-        
-        const [demand] = await db.select().from(demands).where(eq(demands.fileName, fileName)).limit(1);
-        
-        if (!demand) {
-          console.log(`[FILE ACCESS] No demand found with fileName: ${fileName}`);
-          return res.status(404).json({ error: 'File not found' });
-        }
-        
-        console.log(`[FILE ACCESS] Found demand ${demand.id}, submitter: ${demand.submitterId}, user: ${user.id}, role: ${user.role}`);
-        
-        // Check if user has access to this demand
-        // Users can access demands they submitted or if they're admin/manager for the building
-        const hasAccess = 
-          demand.submitterId === user.id || // User created the demand
-          user.role === 'admin' || // Admin has access to all
-          user.role === 'manager'; // Manager has access to all (could be refined by building)
-        
-        console.log(`[FILE ACCESS] Access check result: ${hasAccess}`);
-        
-        if (!hasAccess) {
-          console.log(`[FILE ACCESS] Access denied for user ${user.id}`);
-          return res.status(403).json({ 
-            error: 'Access denied',
-            message: 'You do not have permission to access this file'
-          });
-        }
-        
-        console.log(`[FILE ACCESS] Access granted for user ${user.id}`);
-      } else {
-        // For non-demand files, only allow admin access
-        if (user.role !== 'admin') {
-          return res.status(403).json({ 
-            error: 'Direct file access requires admin privileges',
-            message: 'Please use the appropriate API endpoints for file access'
-          });
-        }
-      }
-      
-      // Sanitize the path
-      const sanitizedPath = requestedPath.replace(/\.\.[\\\/]/g, '').replace(/^[\\\/]+/, '');
-      const safeFilePath = path.join(process.cwd(), 'uploads', sanitizedPath);
-      const uploadsDir = path.resolve(process.cwd(), 'uploads');
-      const resolvedPath = path.resolve(safeFilePath);
-      
-      // Ensure the resolved path is within uploads directory
-      if (!resolvedPath.startsWith(uploadsDir)) {
-        return res.status(403).json({ error: 'Access denied - invalid file path' });
-      }
-      
-      // Check if file exists
-      if (!fs.existsSync(resolvedPath)) {
-        return res.status(404).json({ error: 'File not found' });
-      }
-      
-      // Serve the file
-      res.sendFile(resolvedPath);
-      
-    } catch (error: any) {
-      console.error('Legacy file serving error:', error);
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  });
 
-  // Simple production diagnostic endpoint
-  app.get('/api/debug/simple', (req, res) => {
-    console.log('🔍 Simple debug endpoint called');
-    res.json({ 
-      status: 'working',
-      timestamp: new Date().toISOString(),
-      environment: process.env.NODE_ENV || 'unknown',
-      databaseUrl: process.env.DATABASE_URL ? 'present' : 'missing'
-    });
-  });
-
-  // Complex storage test endpoint  
-  app.get('/api/debug/storage', async (req, res) => {
-    const timestamp = new Date().toISOString();
-    console.log(`[${timestamp}] 🔍 Storage debug endpoint called`);
-    
-    try {
-      console.log(`[${timestamp}] 📦 Testing storage import...`);
-      const { storage } = await import('./storage');
-      console.log(`[${timestamp}] ✅ Storage imported successfully`);
-      
-      console.log(`[${timestamp}] 🧪 Testing basic storage method...`);
-      const testResult = await storage.getDocuments({ residenceId: 'e27ac924-8120-4904-a791-d1e9db544d58' });
-      console.log(`[${timestamp}] ✅ Storage test successful`);
-      
+  if (process.env.NODE_ENV !== 'production') {
+    app.get('/api/debug/simple', (req, res) => {
+      logDebug('Simple debug endpoint called');
       res.json({ 
-        success: true,
-        timestamp,
-        documentsCount: testResult.length,
-        storageType: storage.constructor.name
+        status: 'working',
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'unknown',
+        databaseUrl: process.env.DATABASE_URL ? 'present' : 'missing'
       });
-    } catch (error: any) {
-      res.status(500).json({ 
-        success: false,
-        timestamp,
-        error: error.message,
-        stack: error.stack
-      });
-    }
-  });
+    });
 
-  // User info debug endpoint
-  app.get('/api/debug/user-info', async (req: any, res) => {
-    try {
-      if (!req.session?.userId && !req.session?.user) {
-        return res.status(401).json({
-          message: 'No session found',
-          session: req.session
+    app.get('/api/debug/storage', async (req, res) => {
+      const timestamp = new Date().toISOString();
+      logDebug('Storage debug endpoint called');
+      
+      try {
+        const { storage } = await import('./storage');
+        const testResult = await storage.getDocuments({ residenceId: 'e27ac924-8120-4904-a791-d1e9db544d58' });
+        
+        res.json({ 
+          success: true,
+          timestamp,
+          documentsCount: testResult.length,
+          storageType: storage.constructor.name
+        });
+      } catch (error: any) {
+        res.status(500).json({ 
+          success: false,
+          timestamp,
+          error: error.message,
         });
       }
+    });
 
-      const user = req.user || req.session?.user;
-      const userId = req.session?.userId;
+    app.get('/api/debug/user-info', async (req: any, res) => {
+      try {
+        if (!req.session?.userId && !req.session?.user) {
+          return res.status(401).json({
+            message: 'No session found',
+            session: req.session
+          });
+        }
+
+        const user = req.user || req.session?.user;
+        const userId = req.session?.userId;
 
       // Get user from database directly
       const { db } = await import('./db');
@@ -520,34 +451,176 @@ export async function registerRoutes(app: Express) {
     } catch (error: any) {
       res.status(500).json({
         error: error.message,
-        stack: error.stack
+      });
+    }
+  });
+  } // end dev-only debug endpoints
+
+  // Object Storage endpoints (from javascript_object_storage blueprint)
+  
+  // Serve private objects from object storage with ACL check
+  app.get('/objects/*', requireAuth, async (req: any, res) => {
+    const userId = req.user?.id;
+    const { ObjectStorageService, ObjectNotFoundError } = await import('./objectStorage');
+    const { ObjectPermission } = await import('./objectAcl');
+    
+    const objectStorageService = new ObjectStorageService();
+    try {
+      // Reconstruct full object key from wildcard match (req.params[0] contains everything after /objects/)
+      const objectKey = `/objects/${req.params[0]}`;
+      const objectFile = await objectStorageService.getObjectEntityFile(objectKey);
+      const canAccess = await objectStorageService.canAccessObjectEntity({
+        objectFile,
+        userId: userId,
+        requestedPermission: ObjectPermission.READ,
+      });
+      if (!canAccess) {
+        return res.sendStatus(403);
+      }
+      objectStorageService.downloadObject(objectFile, res);
+    } catch (error) {
+      logError('Error accessing object', error as Error);
+      if (error instanceof ObjectNotFoundError) {
+        return res.sendStatus(404);
+      }
+      return res.sendStatus(500);
+    }
+  });
+
+  // Get presigned URL for uploading demand files to object storage
+  app.post('/api/demands/upload-url', requireAuth, async (req: any, res) => {
+    try {
+      const { filename } = req.body;
+      
+      if (!filename) {
+        return res.status(400).json({ error: 'Filename is required' });
+      }
+      
+      const { randomUUID } = await import('crypto');
+      const demandId = randomUUID();
+      // Sanitize filename to prevent path traversal
+      const sanitizedFilename = filename.replace(/[^a-zA-Z0-9._-]/g, '_');
+      const objectPath = `demands/${demandId}/${sanitizedFilename}`;
+      
+      const { ObjectStorageService } = await import('./objectStorage');
+      const objectStorageService = new ObjectStorageService();
+      const uploadUrl = await objectStorageService.getCustomPathUploadURL(objectPath);
+      
+      res.json({ 
+        uploadUrl, 
+        objectPath: `/objects/${objectPath}`,
+        demandId 
+      });
+    } catch (error: any) {
+      logError('Error getting demand upload URL', error);
+      res.status(500).json({ 
+        error: 'Failed to get upload URL',
+        message: error.message 
+      });
+    }
+  });
+
+  // Get presigned URL for uploading a document to object storage
+  app.post('/api/objects/upload', requireAuth, async (req: any, res) => {
+    try {
+      const { ObjectStorageService } = await import('./objectStorage');
+      const objectStorageService = new ObjectStorageService();
+      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
+      res.json({ uploadURL });
+    } catch (error: any) {
+      logError('Error getting upload URL', error);
+      res.status(500).json({ 
+        error: 'Failed to get upload URL',
+        message: error.message 
       });
     }
   });
   
+  // SEO routes: robots.txt and sitemap.xml (must be before SPA catch-all)
+  const SEO_PUBLIC_PATHS = [
+    '/',
+    '/features',
+    '/pricing',
+    '/security',
+    '/story',
+    '/privacy-policy',
+    '/terms-of-service',
+  ];
+
+  app.get('/robots.txt', (req, res) => {
+    const origin = `${req.protocol}://${req.get('host')}`;
+    const body = [
+      'User-agent: *',
+      'Allow: /',
+      'Disallow: /api/',
+      'Disallow: /admin/',
+      'Disallow: /manager/',
+      'Disallow: /residents/',
+      'Disallow: /resident/',
+      'Disallow: /dashboard/',
+      'Disallow: /settings/',
+      'Disallow: /auth/',
+      'Disallow: /mcp/',
+      `Sitemap: ${origin}/sitemap.xml`,
+      '',
+    ].join('\n');
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.send(body);
+  });
+
+  app.get('/sitemap.xml', (req, res) => {
+    const origin = `${req.protocol}://${req.get('host')}`;
+    const lastmod = new Date().toISOString().slice(0, 10);
+    const urls = SEO_PUBLIC_PATHS.flatMap((p) => {
+      const base = `${origin}${p === '/' ? '' : p}`;
+      const frUrl = `${base}${base.includes('?') ? '&' : '?'}lang=fr`;
+      const enUrl = `${base}${base.includes('?') ? '&' : '?'}lang=en`;
+      const priority = p === '/' ? '1.0' : '0.7';
+      const renderEntry = (loc: string) =>
+        `  <url>\n    <loc>${loc}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>${priority}</priority>\n    <xhtml:link rel="alternate" hreflang="fr-CA" href="${frUrl}" />\n    <xhtml:link rel="alternate" hreflang="en-CA" href="${enUrl}" />\n    <xhtml:link rel="alternate" hreflang="x-default" href="${base}" />\n  </url>`;
+      return [renderEntry(base), renderEntry(frUrl), renderEntry(enUrl)];
+    }).join('\n');
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${urls}\n</urlset>\n`;
+    res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.send(xml);
+  });
+
   // Static file serving - MUST come after API routes to prevent conflicts
+  // In development mode, Vite middleware handles frontend - skip static file setup entirely
+  const isDevMode = process.env.NODE_ENV === 'development';
   const distPath = path.resolve(process.cwd(), 'dist', 'public');
   
-  if (fs.existsSync(distPath)) {
-    console.log('✅ Setting up static file serving from', distPath);
+  if (isDevMode) {
+    logDebug('Development mode: Vite will handle frontend serving');
+    // In development mode, Vite middleware is added AFTER this function returns (in index.ts)
+    // So we DO NOT add any catch-all routes or error handlers here
+    // Vite will handle all non-API routes and error handling
+  } else if (fs.existsSync(distPath)) {
+    logInfo('Setting up static file serving from ' + distPath);
     
     // Serve static assets with appropriate cache headers
     app.use(express.static(distPath, {
       // Disable caching for development to ensure fresh files
-      setHeaders: (res, path) => {
+      setHeaders: (res, filepath) => {
         if (process.env.NODE_ENV === 'development') {
           // Development: disable all caching for immediate updates
           res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
           res.setHeader('Pragma', 'no-cache');
           res.setHeader('Expires', '0');
         } else {
-          // Production: cache assets but allow revalidation
-          if (path.endsWith('.html')) {
+          // Production: cache assets based on type
+          if (filepath.endsWith('.html')) {
             // HTML files should not be cached to ensure routing works
             res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+          } else if (filepath.includes('/assets/') && /\-[A-Za-z0-9_-]{8,}\.(js|css)$/.test(filepath)) {
+            // Hashed assets (Vite content-hashed chunks) are immutable - cache for 1 year
+            // This prevents 429 errors from repeated chunk loading
+            res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
           } else {
-            // Other assets can be cached with revalidation
-            res.setHeader('Cache-Control', 'public, max-age=300, must-revalidate');
+            // Other assets (images, fonts, etc.) cached with revalidation
+            res.setHeader('Cache-Control', 'public, max-age=3600, must-revalidate');
           }
         }
       }
@@ -576,7 +649,7 @@ export async function registerRoutes(app: Express) {
     app.use(notFoundHandler);
     app.use(secureErrorHandler);
   } else {
-    console.log('⚠️ Static files not found, only API routes available');
+    logWarn('Static files not found, only API routes available');
     
     // Fallback for missing static files
     app.get('*', (req, res) => {
@@ -591,5 +664,5 @@ export async function registerRoutes(app: Express) {
     app.use(secureErrorHandler);
   }
   
-  console.log('✅ All routes registered successfully');
+  logInfo('All routes registered successfully');
 }

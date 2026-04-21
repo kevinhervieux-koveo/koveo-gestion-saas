@@ -36,6 +36,7 @@ export const maintenancePriorityEnum = pgEnum('maintenance_priority', [
 ]);
 
 export const frequencyEnum = pgEnum('frequency', [
+  'unique',
   'immediate',
   'weekly',
   'bi_weekly',
@@ -139,7 +140,6 @@ export const maintenanceRequests = pgTable('maintenance_requests', {
     .notNull()
     .references(() => residences.id),
   submittedBy: varchar('submitted_by')
-    .notNull()
     .references(() => users.id),
   assignedTo: varchar('assigned_to').references(() => users.id),
   title: text('title').notNull(),
@@ -204,7 +204,6 @@ export const demands = pgTable('demands', {
     .primaryKey()
     .default(sql`gen_random_uuid()`),
   submitterId: varchar('submitter_id')
-    .notNull()
     .references(() => users.id),
   type: demandTypeEnum('type').notNull(),
   assignationResidenceId: varchar('assignation_residence_id').references(() => residences.id),
@@ -277,7 +276,6 @@ export const bugs = pgTable('bugs', {
     .primaryKey()
     .default(sql`gen_random_uuid()`),
   createdBy: varchar('created_by')
-    .notNull()
     .references(() => users.id),
   title: text('title').notNull(),
   description: text('description').notNull(),
@@ -320,7 +318,6 @@ export const featureRequests = pgTable('feature_requests', {
     .primaryKey()
     .default(sql`gen_random_uuid()`),
   createdBy: varchar('created_by')
-    .notNull()
     .references(() => users.id),
   title: text('title').notNull(),
   description: text('description').notNull(),
@@ -387,12 +384,14 @@ export const userNotificationPreferences = pgTable('user_notification_preference
     .references(() => users.id),
   notificationType: notificationTypeEnum('notification_type').notNull(),
   frequency: frequencyEnum('frequency').notNull().default('monthly'),
-  isEnabled: boolean('is_enabled').notNull().default(true),
+  isEnabled: boolean('is_enabled').notNull().default(false),
   startingDate: timestamp('starting_date').defaultNow(),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 }, (table) => ({
   userIdIdx: index('user_notification_preferences_user_id_idx').on(table.userId),
+  // Unique constraint for upsert operations (onConflictDoUpdate)
+  userNotificationTypeUnique: unique('user_notification_type_unique').on(table.userId, table.notificationType),
   // Date indexes for range queries
   startingDateIdx: index('user_notification_preferences_starting_date_idx').on(table.startingDate),
   createdAtIdx: index('user_notification_preferences_created_at_idx').on(table.createdAt),
@@ -526,7 +525,7 @@ export const notificationDispatchLog = pgTable('notification_dispatch_log', {
 // Insert schemas
 export const insertMaintenanceRequestSchema = z.object({
   residenceId: z.string().uuid(),
-  submittedBy: z.string().uuid(),
+  submittedBy: z.string().uuid().optional(),
   assignedTo: z.string().uuid().optional(),
   title: z.string(),
   description: z.string(),
@@ -564,7 +563,7 @@ export const insertNotificationSchema = z.object({
 });
 
 export const insertDemandSchema = z.object({
-  submitterId: z.string().uuid(),
+  submitterId: z.string().uuid().optional(),
   type: z.enum(['complaint', 'information', 'maintenance', 'other']),
   assignationResidenceId: z.preprocess((val) => val === '' ? undefined : val, z.string().uuid().optional()),
   assignationBuildingId: z.preprocess((val) => val === '' ? undefined : val, z.string().uuid().optional()),
@@ -593,7 +592,7 @@ export const insertDemandCommentSchema = z.object({
 });
 
 export const insertBugSchema = z.object({
-  createdBy: z.string().uuid(),
+  createdBy: z.string().uuid().optional(),
   title: z.string().min(1, 'Title is required').max(200, 'Title must not exceed 200 characters'),
   description: z
     .string()
@@ -619,7 +618,7 @@ export const insertBugSchema = z.object({
 });
 
 export const insertFeatureRequestSchema = z.object({
-  createdBy: z.string().uuid(),
+  createdBy: z.string().uuid().optional(),
   title: z.string().min(1, 'Title is required').max(200, 'Title must not exceed 200 characters'),
   description: z
     .string()
@@ -676,7 +675,7 @@ export const insertUserNotificationPreferenceSchema = z.object({
     'seasonal_reminder',
   ]),
   frequency: z.enum(['immediate', 'weekly', 'bi_weekly', 'monthly', 'quarterly', 'bi-annually', 'annually']).default('monthly'),
-  isEnabled: z.boolean().default(true),
+  isEnabled: z.boolean().default(false),
   startingDate: z.date().optional(),
 });
 
@@ -708,7 +707,7 @@ export const insertNotificationConfigurationSchema = z.object({
   type: z.enum(['seasonal_reminder', 'announcement']),
   title: z.string().min(1, 'Title is required'),
   message: z.string().min(1, 'Message is required'),
-  frequency: z.enum(['weekly', 'bi_weekly', 'monthly', 'quarterly', 'bi-annually', 'annually']),
+  frequency: z.enum(['unique', 'weekly', 'bi_weekly', 'monthly', 'quarterly', 'bi-annually', 'annually']),
   startDate: z.coerce.date(),
   isActive: z.boolean().default(true),
   endsAt: z.coerce.date().optional(),

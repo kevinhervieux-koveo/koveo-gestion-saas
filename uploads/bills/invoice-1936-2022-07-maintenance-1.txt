@@ -1,0 +1,33 @@
+FACTURE / INVOICE
+===================
+
+Numéro de facture / Invoice Number: 1936-2022-07-MAINTENANCE-1
+Date: 2022-07-27
+
+FACTURER À / BILL TO:
+1936 Nitzsche Track Building 5
+2536 montée Sainte-Catherine
+Québec, Canada
+
+FOURNISSEUR / VENDOR:
+Reliable Building Care
+
+DESCRIPTION / DESCRIPTION:
+Maintenance - Reliable Building Care
+
+CATÉGORIE / CATEGORY: Maintenance
+
+MONTANT / AMOUNT:
+Sous-total / Subtotal: $2741.00 CAD
+TPS (5%) / GST: $137.05 CAD
+TVQ (9.975%) / QST: $273.41 CAD
+TOTAL: $3151.46 CAD
+
+CONDITIONS DE PAIEMENT / PAYMENT TERMS:
+Net 30 jours / Net 30 days
+
+Merci de votre confiance / Thank you for your business
+===============================================
+
+Ce document est généré automatiquement pour les besoins de test du système Koveo Gestion.
+This document is automatically generated for Koveo Gestion system testing purposes.

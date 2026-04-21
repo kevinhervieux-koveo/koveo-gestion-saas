@@ -25,7 +25,8 @@ const aiAnalysisRateLimit = rateLimit({
   },
   keyGenerator: (req: any) => {
     return req.user?.id || ipKeyGenerator(req);
-  }
+  },
+  validate: { keyGeneratorIpFallback: false },
 });
 
 // Configure multer for memory storage (temporary processing)

@@ -243,6 +243,7 @@ export const enforceDemoRestrictions = (req: any, res: any, next: any) => {
 export const requireAuth = authenticate;
 export const requireAdmin = jest.fn().mockImplementation((req: any, res: any, next: any) => next());
 export const requireManager = jest.fn().mockImplementation((req: any, res: any, next: any) => next());
+export const requireRole = jest.fn().mockImplementation((_roles: string[]) => (req: any, res: any, next: any) => next());
 
 // Invitation functions
 export const validateInvitation = jest.fn().mockResolvedValue({
@@ -264,68 +265,73 @@ export const acceptInvitation = jest.fn().mockResolvedValue({
   }
 });
 
-// Enhanced auth routes setup for testing
-export const setupAuthRoutes = jest.fn().mockImplementation((app: any) => {
+// Plain (non-jest.fn) authenticate middleware used by `setupAuthRoutes`. Kept
+// as a stable reference so it survives Jest's `resetMocks: true` between tests.
+const stableAuthenticate = (req: any, res: any, next: any) => {
+  if (req.session?.userId) {
+    req.user = {
+      id: req.session.userId,
+      email: req.session.user?.email || 'test@example.com',
+      role: req.session.role || req.session.user?.role || 'admin',
+      firstName: req.session.user?.firstName || 'Test',
+      lastName: req.session.user?.lastName || 'User',
+      isActive: true,
+    };
+    return next();
+  }
+  return res.status(401).json({ message: 'Not authenticated' });
+};
+
+// Enhanced auth routes setup for testing. Implemented as a plain function (not
+// `jest.fn`) so that `resetMocks: true` in `jest.config.auth.cjs` cannot strip
+// the implementation between the supertest `beforeAll` and the individual tests.
+export const setupAuthRoutes = (app: any) => {
   // Mock login route with realistic behavior
   app.post('/api/auth/login', async (req: any, res: any) => {
     const { email, password } = req.body;
-    
+
     if (!email || !password) {
       return res.status(400).json({
         message: 'Email and password are required',
         code: 'MISSING_CREDENTIALS'
       });
     }
-    
+
     // Realistic demo users for testing
-    const demoUsers = {
+    const demoUsers: Record<string, { id: string; role: string; password: string }> = {
       'admin@demo.com': { id: 'admin-demo-id', role: 'admin', password: 'demo123' },
       'manager@demo.com': { id: 'manager-demo-id', role: 'manager', password: 'demo123' },
       'tenant@demo.com': { id: 'tenant-demo-id', role: 'tenant', password: 'demo123' },
       'test@example.com': { id: 'test-user-id', role: 'admin', password: 'test123' },
     };
-    
-    const user = demoUsers[email as keyof typeof demoUsers];
-    if (!user) {
+
+    const user = demoUsers[email];
+    if (!user || user.password !== password) {
       return res.status(401).json({
         message: 'Invalid credentials',
         code: 'INVALID_CREDENTIALS'
       });
     }
-    
-    // Use real password verification when not mocked
-    const isValidPassword = shouldMockPasswords 
-      ? user.password === password
-      : await verifyPassword(password, user.password);
-      
-    if (!isValidPassword) {
-      return res.status(401).json({
-        message: 'Invalid credentials',
-        code: 'INVALID_CREDENTIALS'
-      });
-    }
-    
-    // Create session
-    const session = await createSession(user.id, { email, role: user.role });
+
     req.session = req.session || {};
     req.session.userId = user.id;
     req.session.user = { email, role: user.role };
     req.session.role = user.role;
-    
+
     res.json({
       message: 'Login successful',
       user: { id: user.id, email, role: user.role }
     });
   });
-  
+
   // Mock user info route
-  app.get('/api/auth/user', authenticate, (req: any, res: any) => {
+  app.get('/api/auth/user', stableAuthenticate, (req: any, res: any) => {
     res.json(req.user);
   });
-  
+
   // Mock logout route
   app.post('/api/auth/logout', (req: any, res: any) => {
-    if (req.session) {
+    if (req.session && typeof req.session.destroy === 'function') {
       req.session.destroy((err: any) => {
         if (err) {
           return res.status(500).json({ message: 'Logout failed' });
@@ -337,7 +343,7 @@ export const setupAuthRoutes = jest.fn().mockImplementation((app: any) => {
       res.json({ message: 'Logout successful' });
     }
   });
-});
+};
 
 // Auth configuration
 export const authConfig = {

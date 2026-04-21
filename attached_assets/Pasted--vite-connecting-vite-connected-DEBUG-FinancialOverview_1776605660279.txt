@@ -1,0 +1,897 @@
+ [vite] connecting...
+ [vite] connected.
+ [DEBUG] [FinancialOverview] Bank account query: Object
+ [DEBUG] [FinancialOverview] Query state: Object
+ [DEBUG] [FinancialOverview] Aggregating projects: Object
+ [DEBUG] [FinancialOverview] No buildings available
+ [DEBUG] [FinancialOverview] Bank account query: Object
+ [DEBUG] [FinancialOverview] Query state: Object
+ [DEBUG] [FinancialOverview] Aggregating projects: Object
+ [DEBUG] [FinancialOverview] No buildings available
+ [DEBUG] [FinancialOverview] Bank account query: Object
+ [DEBUG] [FinancialOverview] Query state: Object
+ [DEBUG] [FinancialOverview] Aggregating projects: Object
+ [DEBUG] [FinancialOverview] Building 0 (271 MacGyver Falls Building 5): Object
+ [DEBUG] [FinancialOverview] Building 1 (Condo Vieux-Québec): Object
+ [DEBUG] [FinancialOverview] Building 2 (Domaine des Pins): Object
+ [DEBUG] [FinancialOverview] Building 3 (La Citadelle): Object
+ [DEBUG] [FinancialOverview] Building 4 (Laurier Place): Object
+ [DEBUG] [FinancialOverview] Building 5 (Les Jardins du Parc): Object
+ [DEBUG] [FinancialOverview] Building 6 (Les Terrasses MCP): Object
+ [DEBUG] [FinancialOverview] Building 7 (Parkside Gardens): Object
+ [DEBUG] [FinancialOverview] Building 8 (Pine Grove Estate): Object
+ [DEBUG] [FinancialOverview] Building 9 (Riverfront Residences): Object
+ [DEBUG] [FinancialOverview] Building 10 (Résidence du Parc): Object
+ [DEBUG] [FinancialOverview] Building 11 (The Belvedere): Object
+ [DEBUG] [FinancialOverview] Building 12 (The Citadel): Object
+ [DEBUG] [FinancialOverview] Total projects aggregated: 0
+ [DEBUG] [FinancialOverview] Bank account query: Object
+ [DEBUG] [FinancialOverview] Query state: Object
+ [DEBUG] [FinancialOverview] Aggregating projects: Object
+ [DEBUG] [FinancialOverview] Building 0 (271 MacGyver Falls Building 5): Object
+ [DEBUG] [FinancialOverview] Building 1 (Condo Vieux-Québec): Object
+ [DEBUG] [FinancialOverview] Building 2 (Domaine des Pins): Object
+ [DEBUG] [FinancialOverview] Building 3 (La Citadelle): Object
+ [DEBUG] [FinancialOverview] Building 4 (Laurier Place): Object
+ [DEBUG] [FinancialOverview] Building 5 (Les Jardins du Parc): Object
+ [DEBUG] [FinancialOverview] Building 6 (Les Terrasses MCP): Object
+ [DEBUG] [FinancialOverview] Building 7 (Parkside Gardens): Object
+ [DEBUG] [FinancialOverview] Building 8 (Pine Grove Estate): Object
+ [DEBUG] [FinancialOverview] Building 9 (Riverfront Residences): Object
+ [DEBUG] [FinancialOverview] Building 10 (Résidence du Parc): Object
+ [DEBUG] [FinancialOverview] Building 11 (The Belvedere): Object
+ [DEBUG] [FinancialOverview] Building 12 (The Citadel): Object
+ [DEBUG] [FinancialOverview] Total projects aggregated: 0
+ [DEBUG] [FinancialOverview] Resetting filtersInitialized for new building: 2e06bb1b-5d1e-4046-95a9-6575b20766bc
+ [DEBUG] [FinancialOverview] Fetching bank account config for: 2e06bb1b-5d1e-4046-95a9-6575b20766bc
+ [DEBUG] [FinancialOverview] Bank account query: Object
+ [DEBUG] [FinancialOverview] Query state: Object
+ [DEBUG] [FinancialOverview] Aggregating projects: Object
+ [DEBUG] [FinancialOverview] Building 0 (271 MacGyver Falls Building 5): Object
+ [DEBUG] [FinancialOverview] Building 1 (Condo Vieux-Québec): Object
+ [DEBUG] [FinancialOverview] Building 2 (Domaine des Pins): Object
+ [DEBUG] [FinancialOverview] Building 3 (La Citadelle): Object
+ [DEBUG] [FinancialOverview] Building 4 (Laurier Place): Object
+ [DEBUG] [FinancialOverview] Building 5 (Les Jardins du Parc): Object
+ [DEBUG] [FinancialOverview] Building 6 (Les Terrasses MCP): Object
+ [DEBUG] [FinancialOverview] Building 7 (Parkside Gardens): Object
+ [DEBUG] [FinancialOverview] Building 8 (Pine Grove Estate): Object
+ [DEBUG] [FinancialOverview] Building 9 (Riverfront Residences): Object
+ [DEBUG] [FinancialOverview] Building 10 (Résidence du Parc): Object
+ [DEBUG] [FinancialOverview] Building 11 (The Belvedere): Object
+ [DEBUG] [FinancialOverview] Building 12 (The Citadel): Object
+ [DEBUG] [FinancialOverview] Total projects aggregated: 0
+ [DEBUG] [FinancialOverview] Bank account query: Object
+ [DEBUG] [FinancialOverview] Query state: Object
+ [DEBUG] [FinancialOverview] Aggregating projects: Object
+ [DEBUG] [FinancialOverview] Building 0 (271 MacGyver Falls Building 5): Object
+ [DEBUG] [FinancialOverview] Building 1 (Condo Vieux-Québec): Object
+ [DEBUG] [FinancialOverview] Building 2 (Domaine des Pins): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from Domaine des Pins
+ [DEBUG] [FinancialOverview] Building 3 (La Citadelle): Object
+ [DEBUG] [FinancialOverview] Building 4 (Laurier Place): Object
+ [DEBUG] [FinancialOverview] Building 5 (Les Jardins du Parc): Object
+ [DEBUG] [FinancialOverview] Building 6 (Les Terrasses MCP): Object
+ [DEBUG] [FinancialOverview] Building 7 (Parkside Gardens): Object
+ [DEBUG] [FinancialOverview] Building 8 (Pine Grove Estate): Object
+ [DEBUG] [FinancialOverview] Building 9 (Riverfront Residences): Object
+ [DEBUG] [FinancialOverview] Building 10 (Résidence du Parc): Object
+ [DEBUG] [FinancialOverview] Building 11 (The Belvedere): Object
+ [DEBUG] [FinancialOverview] Building 12 (The Citadel): Object
+ [DEBUG] [FinancialOverview] Total projects aggregated: 2
+ [DEBUG] [FinancialOverview] Bank account query: Object
+ [DEBUG] [FinancialOverview] Query state: Object
+ [DEBUG] [FinancialOverview] Aggregating projects: Object
+ [DEBUG] [FinancialOverview] Building 0 (271 MacGyver Falls Building 5): Object
+ [DEBUG] [FinancialOverview] Added 5 projects from 271 MacGyver Falls Building 5
+ [DEBUG] [FinancialOverview] Building 1 (Condo Vieux-Québec): Object
+ [DEBUG] [FinancialOverview] Building 2 (Domaine des Pins): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from Domaine des Pins
+ [DEBUG] [FinancialOverview] Building 3 (La Citadelle): Object
+ [DEBUG] [FinancialOverview] Building 4 (Laurier Place): Object
+ [DEBUG] [FinancialOverview] Building 5 (Les Jardins du Parc): Object
+ [DEBUG] [FinancialOverview] Building 6 (Les Terrasses MCP): Object
+ [DEBUG] [FinancialOverview] Building 7 (Parkside Gardens): Object
+ [DEBUG] [FinancialOverview] Building 8 (Pine Grove Estate): Object
+ [DEBUG] [FinancialOverview] Building 9 (Riverfront Residences): Object
+ [DEBUG] [FinancialOverview] Building 10 (Résidence du Parc): Object
+ [DEBUG] [FinancialOverview] Building 11 (The Belvedere): Object
+ [DEBUG] [FinancialOverview] Building 12 (The Citadel): Object
+ [DEBUG] [FinancialOverview] Total projects aggregated: 7
+ [DEBUG] [FinancialOverview] Bank account query: Object
+ [DEBUG] [FinancialOverview] Query state: Object
+ [DEBUG] [FinancialOverview] Aggregating projects: Object
+ [DEBUG] [FinancialOverview] Building 0 (271 MacGyver Falls Building 5): Object
+ [DEBUG] [FinancialOverview] Added 5 projects from 271 MacGyver Falls Building 5
+ [DEBUG] [FinancialOverview] Building 1 (Condo Vieux-Québec): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Condo Vieux-Québec
+ [DEBUG] [FinancialOverview] Building 2 (Domaine des Pins): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from Domaine des Pins
+ [DEBUG] [FinancialOverview] Building 3 (La Citadelle): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from La Citadelle
+ [DEBUG] [FinancialOverview] Building 4 (Laurier Place): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from Laurier Place
+ [DEBUG] [FinancialOverview] Building 5 (Les Jardins du Parc): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from Les Jardins du Parc
+ [DEBUG] [FinancialOverview] Building 6 (Les Terrasses MCP): Object
+ [DEBUG] [FinancialOverview] Building 7 (Parkside Gardens): Object
+ [DEBUG] [FinancialOverview] Building 8 (Pine Grove Estate): Object
+ [DEBUG] [FinancialOverview] Building 9 (Riverfront Residences): Object
+ [DEBUG] [FinancialOverview] Building 10 (Résidence du Parc): Object
+ [DEBUG] [FinancialOverview] Building 11 (The Belvedere): Object
+ [DEBUG] [FinancialOverview] Building 12 (The Citadel): Object
+ [DEBUG] [FinancialOverview] Total projects aggregated: 15
+ [DEBUG] [FinancialOverview] Bank account query: Object
+ [DEBUG] [FinancialOverview] Query state: Object
+ [DEBUG] [FinancialOverview] Aggregating projects: Object
+ [DEBUG] [FinancialOverview] Building 0 (271 MacGyver Falls Building 5): Object
+ [DEBUG] [FinancialOverview] Added 5 projects from 271 MacGyver Falls Building 5
+ [DEBUG] [FinancialOverview] Building 1 (Condo Vieux-Québec): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Condo Vieux-Québec
+ [DEBUG] [FinancialOverview] Building 2 (Domaine des Pins): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from Domaine des Pins
+ [DEBUG] [FinancialOverview] Building 3 (La Citadelle): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from La Citadelle
+ [DEBUG] [FinancialOverview] Building 4 (Laurier Place): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from Laurier Place
+ [DEBUG] [FinancialOverview] Building 5 (Les Jardins du Parc): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from Les Jardins du Parc
+ [DEBUG] [FinancialOverview] Building 6 (Les Terrasses MCP): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Les Terrasses MCP
+ [DEBUG] [FinancialOverview] Building 7 (Parkside Gardens): Object
+ [DEBUG] [FinancialOverview] Building 8 (Pine Grove Estate): Object
+ [DEBUG] [FinancialOverview] Building 9 (Riverfront Residences): Object
+ [DEBUG] [FinancialOverview] Building 10 (Résidence du Parc): Object
+ [DEBUG] [FinancialOverview] Building 11 (The Belvedere): Object
+ [DEBUG] [FinancialOverview] Building 12 (The Citadel): Object
+ [DEBUG] [FinancialOverview] Total projects aggregated: 15
+ [DEBUG] [FinancialOverview] Bank account query: Object
+ [DEBUG] [FinancialOverview] Query state: Object
+ [DEBUG] [FinancialOverview] Aggregating projects: Object
+ [DEBUG] [FinancialOverview] Building 0 (271 MacGyver Falls Building 5): Object
+ [DEBUG] [FinancialOverview] Added 5 projects from 271 MacGyver Falls Building 5
+ [DEBUG] [FinancialOverview] Building 1 (Condo Vieux-Québec): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Condo Vieux-Québec
+ [DEBUG] [FinancialOverview] Building 2 (Domaine des Pins): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from Domaine des Pins
+ [DEBUG] [FinancialOverview] Building 3 (La Citadelle): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from La Citadelle
+ [DEBUG] [FinancialOverview] Building 4 (Laurier Place): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from Laurier Place
+ [DEBUG] [FinancialOverview] Building 5 (Les Jardins du Parc): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from Les Jardins du Parc
+ [DEBUG] [FinancialOverview] Building 6 (Les Terrasses MCP): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Les Terrasses MCP
+ [DEBUG] [FinancialOverview] Building 7 (Parkside Gardens): Object
+ [DEBUG] [FinancialOverview] Added 3 projects from Parkside Gardens
+ [DEBUG] [FinancialOverview] Building 8 (Pine Grove Estate): Object
+ [DEBUG] [FinancialOverview] Building 9 (Riverfront Residences): Object
+ [DEBUG] [FinancialOverview] Building 10 (Résidence du Parc): Object
+ [DEBUG] [FinancialOverview] Building 11 (The Belvedere): Object
+ [DEBUG] [FinancialOverview] Building 12 (The Citadel): Object
+ [DEBUG] [FinancialOverview] Total projects aggregated: 18
+ [DEBUG] [FinancialOverview] Bank account query: Object
+ [DEBUG] [FinancialOverview] Query state: Object
+ [DEBUG] [FinancialOverview] Aggregating projects: Object
+ [DEBUG] [FinancialOverview] Building 0 (271 MacGyver Falls Building 5): Object
+ [DEBUG] [FinancialOverview] Added 5 projects from 271 MacGyver Falls Building 5
+ [DEBUG] [FinancialOverview] Building 1 (Condo Vieux-Québec): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Condo Vieux-Québec
+ [DEBUG] [FinancialOverview] Building 2 (Domaine des Pins): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from Domaine des Pins
+ [DEBUG] [FinancialOverview] Building 3 (La Citadelle): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from La Citadelle
+ [DEBUG] [FinancialOverview] Building 4 (Laurier Place): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from Laurier Place
+ [DEBUG] [FinancialOverview] Building 5 (Les Jardins du Parc): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from Les Jardins du Parc
+ [DEBUG] [FinancialOverview] Building 6 (Les Terrasses MCP): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Les Terrasses MCP
+ [DEBUG] [FinancialOverview] Building 7 (Parkside Gardens): Object
+ [DEBUG] [FinancialOverview] Added 3 projects from Parkside Gardens
+ [DEBUG] [FinancialOverview] Building 8 (Pine Grove Estate): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from Pine Grove Estate
+ [DEBUG] [FinancialOverview] Building 9 (Riverfront Residences): Object
+ [DEBUG] [FinancialOverview] Added 3 projects from Riverfront Residences
+ [DEBUG] [FinancialOverview] Building 10 (Résidence du Parc): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Résidence du Parc
+ [DEBUG] [FinancialOverview] Building 11 (The Belvedere): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from The Belvedere
+ [DEBUG] [FinancialOverview] Building 12 (The Citadel): Object
+ [DEBUG] [FinancialOverview] Total projects aggregated: 29
+ [DEBUG] [FinancialOverview] Bank account query: Object
+ [DEBUG] [FinancialOverview] Query state: Object
+ [DEBUG] [FinancialOverview] Aggregating projects: Object
+ [DEBUG] [FinancialOverview] Building 0 (271 MacGyver Falls Building 5): Object
+ [DEBUG] [FinancialOverview] Added 5 projects from 271 MacGyver Falls Building 5
+ [DEBUG] [FinancialOverview] Building 1 (Condo Vieux-Québec): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Condo Vieux-Québec
+ [DEBUG] [FinancialOverview] Building 2 (Domaine des Pins): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from Domaine des Pins
+ [DEBUG] [FinancialOverview] Building 3 (La Citadelle): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from La Citadelle
+ [DEBUG] [FinancialOverview] Building 4 (Laurier Place): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from Laurier Place
+ [DEBUG] [FinancialOverview] Building 5 (Les Jardins du Parc): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from Les Jardins du Parc
+ [DEBUG] [FinancialOverview] Building 6 (Les Terrasses MCP): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Les Terrasses MCP
+ [DEBUG] [FinancialOverview] Building 7 (Parkside Gardens): Object
+ [DEBUG] [FinancialOverview] Added 3 projects from Parkside Gardens
+ [DEBUG] [FinancialOverview] Building 8 (Pine Grove Estate): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from Pine Grove Estate
+ [DEBUG] [FinancialOverview] Building 9 (Riverfront Residences): Object
+ [DEBUG] [FinancialOverview] Added 3 projects from Riverfront Residences
+ [DEBUG] [FinancialOverview] Building 10 (Résidence du Parc): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Résidence du Parc
+ [DEBUG] [FinancialOverview] Building 11 (The Belvedere): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from The Belvedere
+ [DEBUG] [FinancialOverview] Building 12 (The Citadel): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from The Citadel
+ [DEBUG] [FinancialOverview] Total projects aggregated: 31
+ [DEBUG] [FinancialOverview] Bank account query: Object
+ [DEBUG] [FinancialOverview] Query state: Object
+ [DEBUG] [FinancialOverview] Aggregating projects: Object
+ [DEBUG] [FinancialOverview] Building 0 (271 MacGyver Falls Building 5): Object
+ [DEBUG] [FinancialOverview] Added 5 projects from 271 MacGyver Falls Building 5
+ [DEBUG] [FinancialOverview] Building 1 (Condo Vieux-Québec): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Condo Vieux-Québec
+ [DEBUG] [FinancialOverview] Building 2 (Domaine des Pins): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from Domaine des Pins
+ [DEBUG] [FinancialOverview] Building 3 (La Citadelle): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from La Citadelle
+ [DEBUG] [FinancialOverview] Building 4 (Laurier Place): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from Laurier Place
+ [DEBUG] [FinancialOverview] Building 5 (Les Jardins du Parc): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from Les Jardins du Parc
+ [DEBUG] [FinancialOverview] Building 6 (Les Terrasses MCP): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Les Terrasses MCP
+ [DEBUG] [FinancialOverview] Building 7 (Parkside Gardens): Object
+ [DEBUG] [FinancialOverview] Added 3 projects from Parkside Gardens
+ [DEBUG] [FinancialOverview] Building 8 (Pine Grove Estate): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from Pine Grove Estate
+ [DEBUG] [FinancialOverview] Building 9 (Riverfront Residences): Object
+ [DEBUG] [FinancialOverview] Added 3 projects from Riverfront Residences
+ [DEBUG] [FinancialOverview] Building 10 (Résidence du Parc): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Résidence du Parc
+ [DEBUG] [FinancialOverview] Building 11 (The Belvedere): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from The Belvedere
+ [DEBUG] [FinancialOverview] Building 12 (The Citadel): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from The Citadel
+ [DEBUG] [FinancialOverview] Total projects aggregated: 31
+ [DEBUG] [FinancialOverview] Bank account query: Object
+ [DEBUG] [FinancialOverview] Query state: Object
+ [DEBUG] [FinancialOverview] Aggregating projects: Object
+ [DEBUG] [FinancialOverview] Building 0 (271 MacGyver Falls Building 5): Object
+ [DEBUG] [FinancialOverview] Added 5 projects from 271 MacGyver Falls Building 5
+ [DEBUG] [FinancialOverview] Building 1 (Condo Vieux-Québec): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Condo Vieux-Québec
+ [DEBUG] [FinancialOverview] Building 2 (Domaine des Pins): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from Domaine des Pins
+ [DEBUG] [FinancialOverview] Building 3 (La Citadelle): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from La Citadelle
+ [DEBUG] [FinancialOverview] Building 4 (Laurier Place): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from Laurier Place
+ [DEBUG] [FinancialOverview] Building 5 (Les Jardins du Parc): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from Les Jardins du Parc
+ [DEBUG] [FinancialOverview] Building 6 (Les Terrasses MCP): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Les Terrasses MCP
+ [DEBUG] [FinancialOverview] Building 7 (Parkside Gardens): Object
+ [DEBUG] [FinancialOverview] Added 3 projects from Parkside Gardens
+ [DEBUG] [FinancialOverview] Building 8 (Pine Grove Estate): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from Pine Grove Estate
+ [DEBUG] [FinancialOverview] Building 9 (Riverfront Residences): Object
+ [DEBUG] [FinancialOverview] Added 3 projects from Riverfront Residences
+ [DEBUG] [FinancialOverview] Building 10 (Résidence du Parc): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Résidence du Parc
+ [DEBUG] [FinancialOverview] Building 11 (The Belvedere): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from The Belvedere
+ [DEBUG] [FinancialOverview] Building 12 (The Citadel): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from The Citadel
+ [DEBUG] [FinancialOverview] Total projects aggregated: 31
+ [DEBUG] [FinancialOverview] Bank account query: Object
+ [DEBUG] [FinancialOverview] Query state: Object
+ [DEBUG] [FinancialOverview] Aggregating projects: Object
+ [DEBUG] [FinancialOverview] Building 0 (271 MacGyver Falls Building 5): Object
+ [DEBUG] [FinancialOverview] Added 5 projects from 271 MacGyver Falls Building 5
+ [DEBUG] [FinancialOverview] Building 1 (Condo Vieux-Québec): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Condo Vieux-Québec
+ [DEBUG] [FinancialOverview] Building 2 (Domaine des Pins): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from Domaine des Pins
+ [DEBUG] [FinancialOverview] Building 3 (La Citadelle): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from La Citadelle
+ [DEBUG] [FinancialOverview] Building 4 (Laurier Place): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from Laurier Place
+ [DEBUG] [FinancialOverview] Building 5 (Les Jardins du Parc): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from Les Jardins du Parc
+ [DEBUG] [FinancialOverview] Building 6 (Les Terrasses MCP): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Les Terrasses MCP
+ [DEBUG] [FinancialOverview] Building 7 (Parkside Gardens): Object
+ [DEBUG] [FinancialOverview] Added 3 projects from Parkside Gardens
+ [DEBUG] [FinancialOverview] Building 8 (Pine Grove Estate): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from Pine Grove Estate
+ [DEBUG] [FinancialOverview] Building 9 (Riverfront Residences): Object
+ [DEBUG] [FinancialOverview] Added 3 projects from Riverfront Residences
+ [DEBUG] [FinancialOverview] Building 10 (Résidence du Parc): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Résidence du Parc
+ [DEBUG] [FinancialOverview] Building 11 (The Belvedere): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from The Belvedere
+ [DEBUG] [FinancialOverview] Building 12 (The Citadel): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from The Citadel
+ [DEBUG] [FinancialOverview] Total projects aggregated: 31
+ [DEBUG] [FinancialOverview] Bank account query: Object
+ [DEBUG] [FinancialOverview] Query state: Object
+ [DEBUG] [FinancialOverview] Aggregating projects: Object
+ [DEBUG] [FinancialOverview] Building 0 (271 MacGyver Falls Building 5): Object
+ [DEBUG] [FinancialOverview] Added 5 projects from 271 MacGyver Falls Building 5
+ [DEBUG] [FinancialOverview] Building 1 (Condo Vieux-Québec): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Condo Vieux-Québec
+ [DEBUG] [FinancialOverview] Building 2 (Domaine des Pins): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from Domaine des Pins
+ [DEBUG] [FinancialOverview] Building 3 (La Citadelle): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from La Citadelle
+ [DEBUG] [FinancialOverview] Building 4 (Laurier Place): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from Laurier Place
+ [DEBUG] [FinancialOverview] Building 5 (Les Jardins du Parc): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from Les Jardins du Parc
+ [DEBUG] [FinancialOverview] Building 6 (Les Terrasses MCP): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Les Terrasses MCP
+ [DEBUG] [FinancialOverview] Building 7 (Parkside Gardens): Object
+ [DEBUG] [FinancialOverview] Added 3 projects from Parkside Gardens
+ [DEBUG] [FinancialOverview] Building 8 (Pine Grove Estate): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from Pine Grove Estate
+ [DEBUG] [FinancialOverview] Building 9 (Riverfront Residences): Object
+ [DEBUG] [FinancialOverview] Added 3 projects from Riverfront Residences
+ [DEBUG] [FinancialOverview] Building 10 (Résidence du Parc): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Résidence du Parc
+ [DEBUG] [FinancialOverview] Building 11 (The Belvedere): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from The Belvedere
+ [DEBUG] [FinancialOverview] Building 12 (The Citadel): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from The Citadel
+ [DEBUG] [FinancialOverview] Total projects aggregated: 31
+ [DEBUG] [FinancialOverview] Bank account config response: Object
+ [DEBUG] [FinancialOverview] Bank account query: Object
+ [DEBUG] [FinancialOverview] Query state: Object
+ [DEBUG] [FinancialOverview] Aggregating projects: Object
+ [DEBUG] [FinancialOverview] Building 0 (271 MacGyver Falls Building 5): Object
+ [DEBUG] [FinancialOverview] Added 5 projects from 271 MacGyver Falls Building 5
+ [DEBUG] [FinancialOverview] Building 1 (Condo Vieux-Québec): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Condo Vieux-Québec
+ [DEBUG] [FinancialOverview] Building 2 (Domaine des Pins): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from Domaine des Pins
+ [DEBUG] [FinancialOverview] Building 3 (La Citadelle): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from La Citadelle
+ [DEBUG] [FinancialOverview] Building 4 (Laurier Place): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from Laurier Place
+ [DEBUG] [FinancialOverview] Building 5 (Les Jardins du Parc): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from Les Jardins du Parc
+ [DEBUG] [FinancialOverview] Building 6 (Les Terrasses MCP): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Les Terrasses MCP
+ [DEBUG] [FinancialOverview] Building 7 (Parkside Gardens): Object
+ [DEBUG] [FinancialOverview] Added 3 projects from Parkside Gardens
+ [DEBUG] [FinancialOverview] Building 8 (Pine Grove Estate): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from Pine Grove Estate
+ [DEBUG] [FinancialOverview] Building 9 (Riverfront Residences): Object
+ [DEBUG] [FinancialOverview] Added 3 projects from Riverfront Residences
+ [DEBUG] [FinancialOverview] Building 10 (Résidence du Parc): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Résidence du Parc
+ [DEBUG] [FinancialOverview] Building 11 (The Belvedere): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from The Belvedere
+ [DEBUG] [FinancialOverview] Building 12 (The Citadel): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from The Citadel
+ [DEBUG] [FinancialOverview] Total projects aggregated: 31
+ [DEBUG] [FinancialOverview] Starting fiscal year initialized for building: Object
+ [DEBUG] [FinancialOverview] Filters updated with fiscal month Object
+ [DEBUG] [FinancialOverview] Bank account query: Object
+ [DEBUG] [FinancialOverview] Query state: Object
+ [DEBUG] [FinancialOverview] Aggregating projects: Object
+ [DEBUG] [FinancialOverview] Building 0 (271 MacGyver Falls Building 5): Object
+ [DEBUG] [FinancialOverview] Added 5 projects from 271 MacGyver Falls Building 5
+ [DEBUG] [FinancialOverview] Building 1 (Condo Vieux-Québec): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Condo Vieux-Québec
+ [DEBUG] [FinancialOverview] Building 2 (Domaine des Pins): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from Domaine des Pins
+ [DEBUG] [FinancialOverview] Building 3 (La Citadelle): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from La Citadelle
+ [DEBUG] [FinancialOverview] Building 4 (Laurier Place): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from Laurier Place
+ [DEBUG] [FinancialOverview] Building 5 (Les Jardins du Parc): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from Les Jardins du Parc
+ [DEBUG] [FinancialOverview] Building 6 (Les Terrasses MCP): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Les Terrasses MCP
+ [DEBUG] [FinancialOverview] Building 7 (Parkside Gardens): Object
+ [DEBUG] [FinancialOverview] Added 3 projects from Parkside Gardens
+ [DEBUG] [FinancialOverview] Building 8 (Pine Grove Estate): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from Pine Grove Estate
+ [DEBUG] [FinancialOverview] Building 9 (Riverfront Residences): Object
+ [DEBUG] [FinancialOverview] Added 3 projects from Riverfront Residences
+ [DEBUG] [FinancialOverview] Building 10 (Résidence du Parc): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Résidence du Parc
+ [DEBUG] [FinancialOverview] Building 11 (The Belvedere): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from The Belvedere
+ [DEBUG] [FinancialOverview] Building 12 (The Citadel): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from The Citadel
+ [DEBUG] [FinancialOverview] Total projects aggregated: 31
+ [DEBUG] [FinancialOverview] Resolved start window: Object
+ [DEBUG] [FinancialOverview] Making API request: Object
+ [DEBUG] [FinancialOverview] API response: Object
+ [DEBUG] [FinancialOverview] Bank account query: Object
+ [DEBUG] [FinancialOverview] Query state: Object
+ [DEBUG] [FinancialOverview] Aggregating projects: Object
+ [DEBUG] [FinancialOverview] Building 0 (271 MacGyver Falls Building 5): Object
+ [DEBUG] [FinancialOverview] Added 5 projects from 271 MacGyver Falls Building 5
+ [DEBUG] [FinancialOverview] Building 1 (Condo Vieux-Québec): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Condo Vieux-Québec
+ [DEBUG] [FinancialOverview] Building 2 (Domaine des Pins): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from Domaine des Pins
+ [DEBUG] [FinancialOverview] Building 3 (La Citadelle): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from La Citadelle
+ [DEBUG] [FinancialOverview] Building 4 (Laurier Place): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from Laurier Place
+ [DEBUG] [FinancialOverview] Building 5 (Les Jardins du Parc): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from Les Jardins du Parc
+ [DEBUG] [FinancialOverview] Building 6 (Les Terrasses MCP): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Les Terrasses MCP
+ [DEBUG] [FinancialOverview] Building 7 (Parkside Gardens): Object
+ [DEBUG] [FinancialOverview] Added 3 projects from Parkside Gardens
+ [DEBUG] [FinancialOverview] Building 8 (Pine Grove Estate): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from Pine Grove Estate
+ [DEBUG] [FinancialOverview] Building 9 (Riverfront Residences): Object
+ [DEBUG] [FinancialOverview] Added 3 projects from Riverfront Residences
+ [DEBUG] [FinancialOverview] Building 10 (Résidence du Parc): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Résidence du Parc
+ [DEBUG] [FinancialOverview] Building 11 (The Belvedere): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from The Belvedere
+ [DEBUG] [FinancialOverview] Building 12 (The Citadel): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from The Citadel
+ [DEBUG] [FinancialOverview] Total projects aggregated: 31
+ [DEBUG] [FinancialOverview] Bank account query: Object
+ [DEBUG] [FinancialOverview] Query state: Object
+ [DEBUG] [FinancialOverview] Aggregating projects: Object
+ [DEBUG] [FinancialOverview] Building 0 (271 MacGyver Falls Building 5): Object
+ [DEBUG] [FinancialOverview] Added 5 projects from 271 MacGyver Falls Building 5
+ [DEBUG] [FinancialOverview] Building 1 (Condo Vieux-Québec): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Condo Vieux-Québec
+ [DEBUG] [FinancialOverview] Building 2 (Domaine des Pins): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from Domaine des Pins
+ [DEBUG] [FinancialOverview] Building 3 (La Citadelle): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from La Citadelle
+ [DEBUG] [FinancialOverview] Building 4 (Laurier Place): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from Laurier Place
+ [DEBUG] [FinancialOverview] Building 5 (Les Jardins du Parc): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from Les Jardins du Parc
+ [DEBUG] [FinancialOverview] Building 6 (Les Terrasses MCP): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Les Terrasses MCP
+ [DEBUG] [FinancialOverview] Building 7 (Parkside Gardens): Object
+ [DEBUG] [FinancialOverview] Added 3 projects from Parkside Gardens
+ [DEBUG] [FinancialOverview] Building 8 (Pine Grove Estate): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from Pine Grove Estate
+ [DEBUG] [FinancialOverview] Building 9 (Riverfront Residences): Object
+ [DEBUG] [FinancialOverview] Added 3 projects from Riverfront Residences
+ [DEBUG] [FinancialOverview] Building 10 (Résidence du Parc): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Résidence du Parc
+ [DEBUG] [FinancialOverview] Building 11 (The Belvedere): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from The Belvedere
+ [DEBUG] [FinancialOverview] Building 12 (The Citadel): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from The Citadel
+ [DEBUG] [FinancialOverview] Total projects aggregated: 31
+ [DEBUG] [FinancialOverview] Filters updated with fiscal month Object
+ [DEBUG] [FinancialOverview] Bank account query: Object
+ [DEBUG] [FinancialOverview] Query state: Object
+ [DEBUG] [FinancialOverview] Aggregating projects: Object
+ [DEBUG] [FinancialOverview] Building 0 (271 MacGyver Falls Building 5): Object
+ [DEBUG] [FinancialOverview] Added 5 projects from 271 MacGyver Falls Building 5
+ [DEBUG] [FinancialOverview] Building 1 (Condo Vieux-Québec): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Condo Vieux-Québec
+ [DEBUG] [FinancialOverview] Building 2 (Domaine des Pins): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from Domaine des Pins
+ [DEBUG] [FinancialOverview] Building 3 (La Citadelle): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from La Citadelle
+ [DEBUG] [FinancialOverview] Building 4 (Laurier Place): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from Laurier Place
+ [DEBUG] [FinancialOverview] Building 5 (Les Jardins du Parc): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from Les Jardins du Parc
+ [DEBUG] [FinancialOverview] Building 6 (Les Terrasses MCP): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Les Terrasses MCP
+ [DEBUG] [FinancialOverview] Building 7 (Parkside Gardens): Object
+ [DEBUG] [FinancialOverview] Added 3 projects from Parkside Gardens
+ [DEBUG] [FinancialOverview] Building 8 (Pine Grove Estate): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from Pine Grove Estate
+ [DEBUG] [FinancialOverview] Building 9 (Riverfront Residences): Object
+ [DEBUG] [FinancialOverview] Added 3 projects from Riverfront Residences
+ [DEBUG] [FinancialOverview] Building 10 (Résidence du Parc): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Résidence du Parc
+ [DEBUG] [FinancialOverview] Building 11 (The Belvedere): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from The Belvedere
+ [DEBUG] [FinancialOverview] Building 12 (The Citadel): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from The Citadel
+ [DEBUG] [FinancialOverview] Total projects aggregated: 31
+ [DEBUG] [FinancialOverview] Resolved start window: Object
+ [DEBUG] [FinancialOverview] Making API request: Object
+ [DEBUG] [FinancialOverview] API response: Object
+ [DEBUG] [FinancialOverview] Bank account query: Object
+ [DEBUG] [FinancialOverview] Query state: Object
+ [DEBUG] [FinancialOverview] Aggregating projects: Object
+ [DEBUG] [FinancialOverview] Building 0 (271 MacGyver Falls Building 5): Object
+ [DEBUG] [FinancialOverview] Added 5 projects from 271 MacGyver Falls Building 5
+ [DEBUG] [FinancialOverview] Building 1 (Condo Vieux-Québec): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Condo Vieux-Québec
+ [DEBUG] [FinancialOverview] Building 2 (Domaine des Pins): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from Domaine des Pins
+ [DEBUG] [FinancialOverview] Building 3 (La Citadelle): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from La Citadelle
+ [DEBUG] [FinancialOverview] Building 4 (Laurier Place): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from Laurier Place
+ [DEBUG] [FinancialOverview] Building 5 (Les Jardins du Parc): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from Les Jardins du Parc
+ [DEBUG] [FinancialOverview] Building 6 (Les Terrasses MCP): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Les Terrasses MCP
+ [DEBUG] [FinancialOverview] Building 7 (Parkside Gardens): Object
+ [DEBUG] [FinancialOverview] Added 3 projects from Parkside Gardens
+ [DEBUG] [FinancialOverview] Building 8 (Pine Grove Estate): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from Pine Grove Estate
+ [DEBUG] [FinancialOverview] Building 9 (Riverfront Residences): Object
+ [DEBUG] [FinancialOverview] Added 3 projects from Riverfront Residences
+ [DEBUG] [FinancialOverview] Building 10 (Résidence du Parc): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Résidence du Parc
+ [DEBUG] [FinancialOverview] Building 11 (The Belvedere): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from The Belvedere
+ [DEBUG] [FinancialOverview] Building 12 (The Citadel): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from The Citadel
+ [DEBUG] [FinancialOverview] Total projects aggregated: 31
+ [DEBUG] [FinancialOverview] Bank account query: Object
+ [DEBUG] [FinancialOverview] Query state: Object
+ [DEBUG] [FinancialOverview] Aggregating projects: Object
+ [DEBUG] [FinancialOverview] Building 0 (271 MacGyver Falls Building 5): Object
+ [DEBUG] [FinancialOverview] Added 5 projects from 271 MacGyver Falls Building 5
+ [DEBUG] [FinancialOverview] Building 1 (Condo Vieux-Québec): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Condo Vieux-Québec
+ [DEBUG] [FinancialOverview] Building 2 (Domaine des Pins): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from Domaine des Pins
+ [DEBUG] [FinancialOverview] Building 3 (La Citadelle): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from La Citadelle
+ [DEBUG] [FinancialOverview] Building 4 (Laurier Place): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from Laurier Place
+ [DEBUG] [FinancialOverview] Building 5 (Les Jardins du Parc): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from Les Jardins du Parc
+ [DEBUG] [FinancialOverview] Building 6 (Les Terrasses MCP): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Les Terrasses MCP
+ [DEBUG] [FinancialOverview] Building 7 (Parkside Gardens): Object
+ [DEBUG] [FinancialOverview] Added 3 projects from Parkside Gardens
+ [DEBUG] [FinancialOverview] Building 8 (Pine Grove Estate): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from Pine Grove Estate
+ [DEBUG] [FinancialOverview] Building 9 (Riverfront Residences): Object
+ [DEBUG] [FinancialOverview] Added 3 projects from Riverfront Residences
+ [DEBUG] [FinancialOverview] Building 10 (Résidence du Parc): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Résidence du Parc
+ [DEBUG] [FinancialOverview] Building 11 (The Belvedere): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from The Belvedere
+ [DEBUG] [FinancialOverview] Building 12 (The Citadel): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from The Citadel
+ [DEBUG] [FinancialOverview] Total projects aggregated: 31
+ [DEBUG] [FinancialOverview] Filters updated with fiscal month Object
+ [DEBUG] [FinancialOverview] Bank account query: Object
+ [DEBUG] [FinancialOverview] Query state: Object
+ [DEBUG] [FinancialOverview] Aggregating projects: Object
+ [DEBUG] [FinancialOverview] Building 0 (271 MacGyver Falls Building 5): Object
+ [DEBUG] [FinancialOverview] Added 5 projects from 271 MacGyver Falls Building 5
+ [DEBUG] [FinancialOverview] Building 1 (Condo Vieux-Québec): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Condo Vieux-Québec
+ [DEBUG] [FinancialOverview] Building 2 (Domaine des Pins): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from Domaine des Pins
+ [DEBUG] [FinancialOverview] Building 3 (La Citadelle): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from La Citadelle
+ [DEBUG] [FinancialOverview] Building 4 (Laurier Place): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from Laurier Place
+ [DEBUG] [FinancialOverview] Building 5 (Les Jardins du Parc): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from Les Jardins du Parc
+ [DEBUG] [FinancialOverview] Building 6 (Les Terrasses MCP): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Les Terrasses MCP
+ [DEBUG] [FinancialOverview] Building 7 (Parkside Gardens): Object
+ [DEBUG] [FinancialOverview] Added 3 projects from Parkside Gardens
+ [DEBUG] [FinancialOverview] Building 8 (Pine Grove Estate): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from Pine Grove Estate
+ [DEBUG] [FinancialOverview] Building 9 (Riverfront Residences): Object
+ [DEBUG] [FinancialOverview] Added 3 projects from Riverfront Residences
+ [DEBUG] [FinancialOverview] Building 10 (Résidence du Parc): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Résidence du Parc
+ [DEBUG] [FinancialOverview] Building 11 (The Belvedere): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from The Belvedere
+ [DEBUG] [FinancialOverview] Building 12 (The Citadel): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from The Citadel
+ [DEBUG] [FinancialOverview] Total projects aggregated: 31
+ [DEBUG] [FinancialOverview] Resolved start window: Object
+ [DEBUG] [FinancialOverview] Making API request: Object
+ [DEBUG] [FinancialOverview] API response: Object
+ [DEBUG] [FinancialOverview] Bank account query: Object
+ [DEBUG] [FinancialOverview] Query state: Object
+ [DEBUG] [FinancialOverview] Aggregating projects: Object
+ [DEBUG] [FinancialOverview] Building 0 (271 MacGyver Falls Building 5): Object
+ [DEBUG] [FinancialOverview] Added 5 projects from 271 MacGyver Falls Building 5
+ [DEBUG] [FinancialOverview] Building 1 (Condo Vieux-Québec): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Condo Vieux-Québec
+ [DEBUG] [FinancialOverview] Building 2 (Domaine des Pins): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from Domaine des Pins
+ [DEBUG] [FinancialOverview] Building 3 (La Citadelle): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from La Citadelle
+ [DEBUG] [FinancialOverview] Building 4 (Laurier Place): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from Laurier Place
+ [DEBUG] [FinancialOverview] Building 5 (Les Jardins du Parc): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from Les Jardins du Parc
+ [DEBUG] [FinancialOverview] Building 6 (Les Terrasses MCP): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Les Terrasses MCP
+ [DEBUG] [FinancialOverview] Building 7 (Parkside Gardens): Object
+ [DEBUG] [FinancialOverview] Added 3 projects from Parkside Gardens
+ [DEBUG] [FinancialOverview] Building 8 (Pine Grove Estate): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from Pine Grove Estate
+ [DEBUG] [FinancialOverview] Building 9 (Riverfront Residences): Object
+ [DEBUG] [FinancialOverview] Added 3 projects from Riverfront Residences
+ [DEBUG] [FinancialOverview] Building 10 (Résidence du Parc): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Résidence du Parc
+ [DEBUG] [FinancialOverview] Building 11 (The Belvedere): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from The Belvedere
+ [DEBUG] [FinancialOverview] Building 12 (The Citadel): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from The Citadel
+ [DEBUG] [FinancialOverview] Total projects aggregated: 31
+ [DEBUG] [FinancialOverview] Bank account query: Object
+ [DEBUG] [FinancialOverview] Query state: Object
+ [DEBUG] [FinancialOverview] Aggregating projects: Object
+ [DEBUG] [FinancialOverview] Building 0 (271 MacGyver Falls Building 5): Object
+ [DEBUG] [FinancialOverview] Added 5 projects from 271 MacGyver Falls Building 5
+ [DEBUG] [FinancialOverview] Building 1 (Condo Vieux-Québec): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Condo Vieux-Québec
+ [DEBUG] [FinancialOverview] Building 2 (Domaine des Pins): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from Domaine des Pins
+ [DEBUG] [FinancialOverview] Building 3 (La Citadelle): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from La Citadelle
+ [DEBUG] [FinancialOverview] Building 4 (Laurier Place): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from Laurier Place
+ [DEBUG] [FinancialOverview] Building 5 (Les Jardins du Parc): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from Les Jardins du Parc
+ [DEBUG] [FinancialOverview] Building 6 (Les Terrasses MCP): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Les Terrasses MCP
+ [DEBUG] [FinancialOverview] Building 7 (Parkside Gardens): Object
+ [DEBUG] [FinancialOverview] Added 3 projects from Parkside Gardens
+ [DEBUG] [FinancialOverview] Building 8 (Pine Grove Estate): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from Pine Grove Estate
+ [DEBUG] [FinancialOverview] Building 9 (Riverfront Residences): Object
+ [DEBUG] [FinancialOverview] Added 3 projects from Riverfront Residences
+ [DEBUG] [FinancialOverview] Building 10 (Résidence du Parc): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Résidence du Parc
+ [DEBUG] [FinancialOverview] Building 11 (The Belvedere): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from The Belvedere
+ [DEBUG] [FinancialOverview] Building 12 (The Citadel): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from The Citadel
+ [DEBUG] [FinancialOverview] Total projects aggregated: 31
+ [DEBUG] [FinancialOverview] Filters updated with fiscal month Object
+ [DEBUG] [FinancialOverview] Bank account query: Object
+ [DEBUG] [FinancialOverview] Query state: Object
+ [DEBUG] [FinancialOverview] Aggregating projects: Object
+ [DEBUG] [FinancialOverview] Building 0 (271 MacGyver Falls Building 5): Object
+ [DEBUG] [FinancialOverview] Added 5 projects from 271 MacGyver Falls Building 5
+ [DEBUG] [FinancialOverview] Building 1 (Condo Vieux-Québec): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Condo Vieux-Québec
+ [DEBUG] [FinancialOverview] Building 2 (Domaine des Pins): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from Domaine des Pins
+ [DEBUG] [FinancialOverview] Building 3 (La Citadelle): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from La Citadelle
+ [DEBUG] [FinancialOverview] Building 4 (Laurier Place): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from Laurier Place
+ [DEBUG] [FinancialOverview] Building 5 (Les Jardins du Parc): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from Les Jardins du Parc
+ [DEBUG] [FinancialOverview] Building 6 (Les Terrasses MCP): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Les Terrasses MCP
+ [DEBUG] [FinancialOverview] Building 7 (Parkside Gardens): Object
+ [DEBUG] [FinancialOverview] Added 3 projects from Parkside Gardens
+ [DEBUG] [FinancialOverview] Building 8 (Pine Grove Estate): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from Pine Grove Estate
+ [DEBUG] [FinancialOverview] Building 9 (Riverfront Residences): Object
+ [DEBUG] [FinancialOverview] Added 3 projects from Riverfront Residences
+ [DEBUG] [FinancialOverview] Building 10 (Résidence du Parc): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Résidence du Parc
+ [DEBUG] [FinancialOverview] Building 11 (The Belvedere): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from The Belvedere
+ [DEBUG] [FinancialOverview] Building 12 (The Citadel): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from The Citadel
+ [DEBUG] [FinancialOverview] Total projects aggregated: 31
+ [vite] hot updated: /src/index.css
+ [DEBUG] [FinancialOverview] Bank account query: Object
+ [DEBUG] [FinancialOverview] Query state: Object
+ [DEBUG] [FinancialOverview] Aggregating projects: Object
+ [DEBUG] [FinancialOverview] Building 0 (271 MacGyver Falls Building 5): Object
+ [DEBUG] [FinancialOverview] Added 5 projects from 271 MacGyver Falls Building 5
+ [DEBUG] [FinancialOverview] Building 1 (Condo Vieux-Québec): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Condo Vieux-Québec
+ [DEBUG] [FinancialOverview] Building 2 (Domaine des Pins): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from Domaine des Pins
+ [DEBUG] [FinancialOverview] Building 3 (La Citadelle): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from La Citadelle
+ [DEBUG] [FinancialOverview] Building 4 (Laurier Place): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from Laurier Place
+ [DEBUG] [FinancialOverview] Building 5 (Les Jardins du Parc): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from Les Jardins du Parc
+ [DEBUG] [FinancialOverview] Building 6 (Les Terrasses MCP): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Les Terrasses MCP
+ [DEBUG] [FinancialOverview] Building 7 (Parkside Gardens): Object
+ [DEBUG] [FinancialOverview] Added 3 projects from Parkside Gardens
+ [DEBUG] [FinancialOverview] Building 8 (Pine Grove Estate): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from Pine Grove Estate
+ [DEBUG] [FinancialOverview] Building 9 (Riverfront Residences): Object
+ [DEBUG] [FinancialOverview] Added 3 projects from Riverfront Residences
+ [DEBUG] [FinancialOverview] Building 10 (Résidence du Parc): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Résidence du Parc
+ [DEBUG] [FinancialOverview] Building 11 (The Belvedere): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from The Belvedere
+ [DEBUG] [FinancialOverview] Building 12 (The Citadel): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from The Citadel
+ [DEBUG] [FinancialOverview] Total projects aggregated: 31
+ [DEBUG] [FinancialOverview] Filters updated with fiscal month Object
+ [DEBUG] [FinancialOverview] Bank account query: Object
+ [DEBUG] [FinancialOverview] Query state: Object
+ [DEBUG] [FinancialOverview] Aggregating projects: Object
+ [DEBUG] [FinancialOverview] Building 0 (271 MacGyver Falls Building 5): Object
+ [DEBUG] [FinancialOverview] Added 5 projects from 271 MacGyver Falls Building 5
+ [DEBUG] [FinancialOverview] Building 1 (Condo Vieux-Québec): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Condo Vieux-Québec
+ [DEBUG] [FinancialOverview] Building 2 (Domaine des Pins): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from Domaine des Pins
+ [DEBUG] [FinancialOverview] Building 3 (La Citadelle): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from La Citadelle
+ [DEBUG] [FinancialOverview] Building 4 (Laurier Place): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from Laurier Place
+ [DEBUG] [FinancialOverview] Building 5 (Les Jardins du Parc): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from Les Jardins du Parc
+ [DEBUG] [FinancialOverview] Building 6 (Les Terrasses MCP): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Les Terrasses MCP
+ [DEBUG] [FinancialOverview] Building 7 (Parkside Gardens): Object
+ [DEBUG] [FinancialOverview] Added 3 projects from Parkside Gardens
+ [DEBUG] [FinancialOverview] Building 8 (Pine Grove Estate): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from Pine Grove Estate
+ [DEBUG] [FinancialOverview] Building 9 (Riverfront Residences): Object
+ [DEBUG] [FinancialOverview] Added 3 projects from Riverfront Residences
+ [DEBUG] [FinancialOverview] Building 10 (Résidence du Parc): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Résidence du Parc
+ [DEBUG] [FinancialOverview] Building 11 (The Belvedere): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from The Belvedere
+ [DEBUG] [FinancialOverview] Building 12 (The Citadel): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from The Citadel
+ [DEBUG] [FinancialOverview] Total projects aggregated: 31
+ [DEBUG] [FinancialOverview] Bank account query: Object
+ [DEBUG] [FinancialOverview] Query state: Object
+ [DEBUG] [FinancialOverview] Aggregating projects: Object
+ [DEBUG] [FinancialOverview] Building 0 (271 MacGyver Falls Building 5): Object
+ [DEBUG] [FinancialOverview] Added 5 projects from 271 MacGyver Falls Building 5
+ [DEBUG] [FinancialOverview] Building 1 (Condo Vieux-Québec): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Condo Vieux-Québec
+ [DEBUG] [FinancialOverview] Building 2 (Domaine des Pins): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from Domaine des Pins
+ [DEBUG] [FinancialOverview] Building 3 (La Citadelle): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from La Citadelle
+ [DEBUG] [FinancialOverview] Building 4 (Laurier Place): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from Laurier Place
+ [DEBUG] [FinancialOverview] Building 5 (Les Jardins du Parc): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from Les Jardins du Parc
+ [DEBUG] [FinancialOverview] Building 6 (Les Terrasses MCP): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Les Terrasses MCP
+ [DEBUG] [FinancialOverview] Building 7 (Parkside Gardens): Object
+ [DEBUG] [FinancialOverview] Added 3 projects from Parkside Gardens
+ [DEBUG] [FinancialOverview] Building 8 (Pine Grove Estate): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from Pine Grove Estate
+ [DEBUG] [FinancialOverview] Building 9 (Riverfront Residences): Object
+ [DEBUG] [FinancialOverview] Added 3 projects from Riverfront Residences
+ [DEBUG] [FinancialOverview] Building 10 (Résidence du Parc): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Résidence du Parc
+ [DEBUG] [FinancialOverview] Building 11 (The Belvedere): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from The Belvedere
+ [DEBUG] [FinancialOverview] Building 12 (The Citadel): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from The Citadel
+ [DEBUG] [FinancialOverview] Total projects aggregated: 31
+ [DEBUG] [FinancialOverview] Filters updated with fiscal month Object
+ [DEBUG] [FinancialOverview] Bank account query: Object
+ [DEBUG] [FinancialOverview] Query state: Object
+ [DEBUG] [FinancialOverview] Aggregating projects: Object
+ [DEBUG] [FinancialOverview] Building 0 (271 MacGyver Falls Building 5): Object
+ [DEBUG] [FinancialOverview] Added 5 projects from 271 MacGyver Falls Building 5
+ [DEBUG] [FinancialOverview] Building 1 (Condo Vieux-Québec): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Condo Vieux-Québec
+ [DEBUG] [FinancialOverview] Building 2 (Domaine des Pins): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from Domaine des Pins
+ [DEBUG] [FinancialOverview] Building 3 (La Citadelle): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from La Citadelle
+ [DEBUG] [FinancialOverview] Building 4 (Laurier Place): Object
+ [DEBUG] [FinancialOverview] Added 2 projects from Laurier Place
+ [DEBUG] [FinancialOverview] Building 5 (Les Jardins du Parc): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from Les Jardins du Parc
+ [DEBUG] [FinancialOverview] Building 6 (Les Terrasses MCP): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Les Terrasses MCP
+ [DEBUG] [FinancialOverview] Building 7 (Parkside Gardens): Object
+ [DEBUG] [FinancialOverview] Added 3 projects from Parkside Gardens
+ [DEBUG] [FinancialOverview] Building 8 (Pine Grove Estate): Object
+ [DEBUG] [FinancialOverview] Added 4 projects from Pine Grove Estate
+ [DEBUG] [FinancialOverview] Building 9 (Riverfront Residences): Object
+ [DEBUG] [FinancialOverview] Added 3 projects from Riverfront Residences
+ [DEBUG] [FinancialOverview] Building 10 (Résidence du Parc): Object
+ [DEBUG] [FinancialOverview] Added 0 projects from Résidence du Parc
+logger.ts:5 [DEBUG] [FinancialOverview] Building 11 (The Belvedere): Object
+logger.ts:5 [DEBUG] [FinancialOverview] Added 4 projects from The Belvedere
+logger.ts:5 [DEBUG] [FinancialOverview] Building 12 (The Citadel): Object
+logger.ts:5 [DEBUG] [FinancialOverview] Added 2 projects from The Citadel
+logger.ts:5 [DEBUG] [FinancialOverview] Total projects aggregated: 31
+logger.ts:5 [DEBUG] [FinancialOverview] Bank account query: Object
+logger.ts:5 [DEBUG] [FinancialOverview] Query state: Object
+logger.ts:5 [DEBUG] [FinancialOverview] Aggregating projects: Object
+logger.ts:5 [DEBUG] [FinancialOverview] Building 0 (271 MacGyver Falls Building 5): Object
+logger.ts:5 [DEBUG] [FinancialOverview] Added 5 projects from 271 MacGyver Falls Building 5
+logger.ts:5 [DEBUG] [FinancialOverview] Building 1 (Condo Vieux-Québec): Object
+logger.ts:5 [DEBUG] [FinancialOverview] Added 0 projects from Condo Vieux-Québec
+logger.ts:5 [DEBUG] [FinancialOverview] Building 2 (Domaine des Pins): Object
+logger.ts:5 [DEBUG] [FinancialOverview] Added 2 projects from Domaine des Pins
+logger.ts:5 [DEBUG] [FinancialOverview] Building 3 (La Citadelle): Object
+logger.ts:5 [DEBUG] [FinancialOverview] Added 2 projects from La Citadelle
+logger.ts:5 [DEBUG] [FinancialOverview] Building 4 (Laurier Place): Object
+logger.ts:5 [DEBUG] [FinancialOverview] Added 2 projects from Laurier Place
+logger.ts:5 [DEBUG] [FinancialOverview] Building 5 (Les Jardins du Parc): Object
+logger.ts:5 [DEBUG] [FinancialOverview] Added 4 projects from Les Jardins du Parc
+logger.ts:5 [DEBUG] [FinancialOverview] Building 6 (Les Terrasses MCP): Object
+logger.ts:5 [DEBUG] [FinancialOverview] Added 0 projects from Les Terrasses MCP
+logger.ts:5 [DEBUG] [FinancialOverview] Building 7 (Parkside Gardens): Object
+logger.ts:5 [DEBUG] [FinancialOverview] Added 3 projects from Parkside Gardens
+logger.ts:5 [DEBUG] [FinancialOverview] Building 8 (Pine Grove Estate): Object
+logger.ts:5 [DEBUG] [FinancialOverview] Added 4 projects from Pine Grove Estate
+logger.ts:5 [DEBUG] [FinancialOverview] Building 9 (Riverfront Residences): Object
+logger.ts:5 [DEBUG] [FinancialOverview] Added 3 projects from Riverfront Residences
+logger.ts:5 [DEBUG] [FinancialOverview] Building 10 (Résidence du Parc): Object
+logger.ts:5 [DEBUG] [FinancialOverview] Added 0 projects from Résidence du Parc
+logger.ts:5 [DEBUG] [FinancialOverview] Building 11 (The Belvedere): Object
+logger.ts:5 [DEBUG] [FinancialOverview] Added 4 projects from The Belvedere
+logger.ts:5 [DEBUG] [FinancialOverview] Building 12 (The Citadel): Object
+logger.ts:5 [DEBUG] [FinancialOverview] Added 2 projects from The Citadel
+logger.ts:5 [DEBUG] [FinancialOverview] Total projects aggregated: 31
+logger.ts:5 [DEBUG] [FinancialOverview] Filters updated with fiscal month Object
+logger.ts:5 [DEBUG] [FinancialOverview] Bank account query: Object
+logger.ts:5 [DEBUG] [FinancialOverview] Query state: Object
+logger.ts:5 [DEBUG] [FinancialOverview] Aggregating projects: Object
+logger.ts:5 [DEBUG] [FinancialOverview] Building 0 (271 MacGyver Falls Building 5): Object
+logger.ts:5 [DEBUG] [FinancialOverview] Added 5 projects from 271 MacGyver Falls Building 5
+logger.ts:5 [DEBUG] [FinancialOverview] Building 1 (Condo Vieux-Québec): Object
+logger.ts:5 [DEBUG] [FinancialOverview] Added 0 projects from Condo Vieux-Québec
+logger.ts:5 [DEBUG] [FinancialOverview] Building 2 (Domaine des Pins): Object
+logger.ts:5 [DEBUG] [FinancialOverview] Added 2 projects from Domaine des Pins
+logger.ts:5 [DEBUG] [FinancialOverview] Building 3 (La Citadelle): Object
+logger.ts:5 [DEBUG] [FinancialOverview] Added 2 projects from La Citadelle
+logger.ts:5 [DEBUG] [FinancialOverview] Building 4 (Laurier Place): Object
+logger.ts:5 [DEBUG] [FinancialOverview] Added 2 projects from Laurier Place
+logger.ts:5 [DEBUG] [FinancialOverview] Building 5 (Les Jardins du Parc): Object
+logger.ts:5 [DEBUG] [FinancialOverview] Added 4 projects from Les Jardins du Parc
+logger.ts:5 [DEBUG] [FinancialOverview] Building 6 (Les Terrasses MCP): Object
+logger.ts:5 [DEBUG] [FinancialOverview] Added 0 projects from Les Terrasses MCP
+logger.ts:5 [DEBUG] [FinancialOverview] Building 7 (Parkside Gardens): Object
+logger.ts:5 [DEBUG] [FinancialOverview] Added 3 projects from Parkside Gardens
+logger.ts:5 [DEBUG] [FinancialOverview] Building 8 (Pine Grove Estate): Object
+logger.ts:5 [DEBUG] [FinancialOverview] Added 4 projects from Pine Grove Estate
+logger.ts:5 [DEBUG] [FinancialOverview] Building 9 (Riverfront Residences): Object
+logger.ts:5 [DEBUG] [FinancialOverview] Added 3 projects from Riverfront Residences
+logger.ts:5 [DEBUG] [FinancialOverview] Building 10 (Résidence du Parc): Object
+logger.ts:5 [DEBUG] [FinancialOverview] Added 0 projects from Résidence du Parc
+logger.ts:5 [DEBUG] [FinancialOverview] Building 11 (The Belvedere): Object
+logger.ts:5 [DEBUG] [FinancialOverview] Added 4 projects from The Belvedere
+logger.ts:5 [DEBUG] [FinancialOverview] Building 12 (The Citadel): Object
+logger.ts:5 [DEBUG] [FinancialOverview] Added 2 projects from The Citadel
+logger.ts:5 [DEBUG] [FinancialOverview] Total projects aggregated: 31
+logger.ts:5 [DEBUG] 🔍 [BUILDINGS] Component mounted Object
+logger.ts:5 [DEBUG] 🔍 [BUILDINGS] Organization context changed: Object
+logger.ts:5 [DEBUG] 🔍 [BUILDINGS] Search term updated: 
+logger.ts:5 [DEBUG] 🔍 [BUILDINGS] Fetching buildings with params: Object
+logger.ts:5 [DEBUG] 🔍 [BUILDINGS] Component mounted Object
+logger.ts:5 [DEBUG] 🔍 [BUILDINGS] Organization context changed: Object
+logger.ts:5 [DEBUG] 🔍 [BUILDINGS] Search term updated: 
+logger.ts:5 [DEBUG] 🔍 [BUILDINGS] Received buildings data: Object
+BuildingDocuments.tsx:10 🔍 [BUILDING_DOCUMENTS] Component initialized Object
+client:865 [vite] server connection lost. Polling for restart...
+client:935 Creating a worker from 'blob:https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/57b51c3b-6e24-4aa7-9873-48bb1aa52abb' violates the following Content Security Policy directive: "script-src 'self' 'unsafe-inline' https://replit.com". Note that 'worker-src' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked.
+waitForSuccessfulPing @ client:935
+installHook.js:1 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+overrideMethod @ installHook.js:1
+react-dom_client.js?v=6843db40:8773 Framing 'blob:https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/12f42cb8-2a3a-4b2f-a4d9-78b05218636b' violates the following Content Security Policy directive: "frame-src 'none'". The request has been blocked.
+
+(index):1 Not allowed to load local resource: blob:https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/12f42cb8-2a3a-4b2f-a4d9-78b05218636b

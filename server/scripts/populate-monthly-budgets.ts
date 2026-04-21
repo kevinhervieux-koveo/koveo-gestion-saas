@@ -18,32 +18,33 @@ import { db } from '../db';
  * @returns Function result.
  */
 async function main() {
+  console.log(
     'This will create budget entries for all buildings from construction date to 3 years in the future.'
   );
 
   try {
-    // First, show some statistics
     const initialStats = await monthlyBudgetService.getBudgetStatistics();
+    console.log(
       `- Date range: ${initialStats.oldestBudgetDate || 'N/A'} to ${initialStats.newestBudgetDate || 'N/A'}`
     );
 
-    // Populate budgets for all buildings
     const result = await monthlyBudgetService.populateAllMonthlyBudgets();
+    console.log('Budgets populated:', result);
 
-
-    // Show final statistics
     const finalStats = await monthlyBudgetService.getBudgetStatistics();
+    console.log(
       `- Date range: ${finalStats.oldestBudgetDate || 'N/A'} to ${finalStats.newestBudgetDate || 'N/A'}`
     );
+  } catch (error) {
+    console.error('Failed to populate budgets:', error);
     process.exit(1);
-  } finally {
-    // Close database connection
-    process.exit(0);
   }
+  process.exit(0);
 }
 
 // Run the script if called directly
 if (import.meta.url === `file://${process.argv[1]}`) {
+  main().catch(() => {
     process.exit(1);
   });
 }

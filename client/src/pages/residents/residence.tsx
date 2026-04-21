@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Header } from '@/components/layout/header';
@@ -58,6 +59,7 @@ import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/use-language';
 import { apiRequest } from '@/lib/queryClient';
+import { handleApiError } from '@/lib/demo-error-handler';
 import { Link, useLocation } from 'wouter';
 import { withHierarchicalSelection } from '@/components/hoc/withHierarchicalSelection';
 import { useAuth } from '@/hooks/use-auth';
@@ -117,7 +119,7 @@ type ContactFormData = z.infer<typeof contactFormSchema>;
 interface ResidenceProps {
   buildingId?: string;
   showBackButton?: boolean;
-  backButtonLabel?: string;
+  backButtonLabel?: ReactNode;
   onBack?: () => void;
 }
 
@@ -127,7 +129,7 @@ interface ResidenceProps {
 function ResidencePageInner({ buildingId, showBackButton, backButtonLabel, onBack }: ResidenceProps) {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
 
@@ -166,7 +168,8 @@ function ResidencePageInner({ buildingId, showBackButton, backButtonLabel, onBac
         return [];
       }
 
-      // Get all user's residences first
+      // Get only the user's assigned residences (not all residences in the building)
+      // This ensures all roles (including managers) only see residences they're assigned to
       const response = await fetch(`/api/users/${user.id}/residences`, {
         credentials: 'include',
         headers: {
@@ -231,6 +234,8 @@ function ResidencePageInner({ buildingId, showBackButton, backButtonLabel, onBac
   });
 
   // Mutations for contact management
+  // Exception (task #229): contact mutations in this file route errors through
+  // `handleApiError` for demo-mode/locale-aware messaging — kept as raw `useMutation`.
   const addContactMutation = useMutation({
     mutationFn: async (contactData: ContactFormData) => {
       return apiRequest('POST', `/api/residences/${selectedResidenceId}/contacts`, contactData);
@@ -246,11 +251,13 @@ function ResidencePageInner({ buildingId, showBackButton, backButtonLabel, onBac
       setEditingContact(null);
     },
     onError: (error: any) => {
-      toast({
-        title: t('error'),
-        description: error?.message || t('failedToAddContact'),
-        variant: 'destructive',
-      });
+      handleApiError(
+        error,
+        language,
+        language === 'fr' 
+          ? 'Échec de l\'ajout du contact. Veuillez réessayer.'
+          : 'Failed to add contact. Please try again.'
+      );
     },
   });
 
@@ -269,11 +276,13 @@ function ResidencePageInner({ buildingId, showBackButton, backButtonLabel, onBac
       setEditingContact(null);
     },
     onError: (error: any) => {
-      toast({
-        title: t('error'),
-        description: error?.message || t('failedToUpdateContact'),
-        variant: 'destructive',
-      });
+      handleApiError(
+        error,
+        language,
+        language === 'fr' 
+          ? 'Échec de la mise à jour du contact. Veuillez réessayer.'
+          : 'Failed to update contact. Please try again.'
+      );
     },
   });
 
@@ -289,11 +298,13 @@ function ResidencePageInner({ buildingId, showBackButton, backButtonLabel, onBac
       queryClient.invalidateQueries({ queryKey: ['/api/contacts'] });
     },
     onError: (error: any) => {
-      toast({
-        title: t('error'),
-        description: error?.message || t('failedToDeleteContact'),
-        variant: 'destructive',
-      });
+      handleApiError(
+        error,
+        language,
+        language === 'fr' 
+          ? 'Échec de la suppression du contact. Veuillez réessayer.'
+          : 'Failed to delete contact. Please try again.'
+      );
     },
   });
 
@@ -370,18 +381,25 @@ function ResidencePageInner({ buildingId, showBackButton, backButtonLabel, onBac
         subtitle={t('myResidenceInfo')}
       />
 
+      {showBackButton && onBack && (
+        <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="flex items-center px-6 py-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onBack}
+              className="flex items-center gap-2"
+              data-testid="button-back-to-selection"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              {backButtonLabel}
+            </Button>
+          </div>
+        </div>
+      )}
+
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-7xl mx-auto space-y-6'>
-          {/* Back Navigation */}
-          {showBackButton && onBack && (
-            <div className="mb-6">
-              <Button variant="outline" onClick={onBack} className="flex items-center gap-2">
-                <ArrowLeft className="w-4 h-4" />
-                {backButtonLabel}
-              </Button>
-            </div>
-          )}
-
           {/* Residence Selection */}
           {filteredResidences.length > 1 && (
             <Card>
@@ -554,8 +572,9 @@ function ResidencePageInner({ buildingId, showBackButton, backButtonLabel, onBac
 
 // Wrap with hierarchical selection HOC using organization and building hierarchy (residents only see buildings they have residences in)
 const ResidencePage = withHierarchicalSelection(ResidencePageInner, {
-  hierarchy: ['organization', 'building'],
-  checkResidenceAccess: true
+  hierarchy: ['organization', 'building', 'residence'],
+  checkResidenceAccess: true,
+  onResidenceSelect: (residenceId) => `/residents/residences/${residenceId}/documents`
 });
 
 export default ResidencePage;

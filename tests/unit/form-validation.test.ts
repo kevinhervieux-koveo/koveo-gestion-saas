@@ -703,4 +703,67 @@ describe('Future Form Compliance Guards', () => {
       expect(badResult.compliance).toBe(false);
     });
   });
+
+  describe('Demand Form UUID Handling', () => {
+    const testDemandSchema = z.object({
+      type: z.string().min(1),
+      description: z.string().min(10).max(2000),
+      buildingId: z.string().uuid().optional(),
+      residenceId: z.string().uuid().optional(),
+      assignationBuildingId: z.string().uuid().optional(),
+      assignationResidenceId: z.string().uuid().optional(),
+    });
+
+    test('should handle empty string UUIDs by transforming to undefined', () => {
+      const formData = {
+        type: 'maintenance',
+        description: 'Test description for validation',
+        buildingId: '',
+        residenceId: '',
+        assignationBuildingId: '',
+        assignationResidenceId: ''
+      };
+      const transformedData = {
+        ...formData,
+        buildingId: formData.buildingId || undefined,
+        residenceId: formData.residenceId || undefined,
+        assignationBuildingId: formData.assignationBuildingId || undefined,
+        assignationResidenceId: formData.assignationResidenceId || undefined
+      };
+      expect(() => testDemandSchema.parse(transformedData)).not.toThrow();
+    });
+
+    test('should reject invalid UUIDs when provided', () => {
+      const testData = {
+        type: 'maintenance',
+        description: 'Valid description with proper length',
+        buildingId: 'not-a-valid-uuid',
+      };
+      expect(() => testDemandSchema.parse(testData)).toThrow();
+    });
+
+    test('should accept valid UUIDs', () => {
+      const testData = {
+        type: 'maintenance',
+        description: 'Valid description with proper length',
+        buildingId: '123e4567-e89b-12d3-a456-426614174000',
+        residenceId: '123e4567-e89b-12d3-a456-426614174001',
+      };
+      expect(() => testDemandSchema.parse(testData)).not.toThrow();
+    });
+
+    test('should preserve valid UUID values in transformation', () => {
+      const formData = {
+        type: 'information',
+        description: 'Test information request',
+        buildingId: '123e4567-e89b-12d3-a456-426614174000',
+        residenceId: '123e4567-e89b-12d3-a456-426614174001',
+      };
+      const transformedData = {
+        ...formData,
+        residenceId: formData.residenceId || undefined,
+      };
+      expect(transformedData.residenceId).toBe('123e4567-e89b-12d3-a456-426614174001');
+    });
+  });
 });

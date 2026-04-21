@@ -92,8 +92,7 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
     icon: LayoutDashboard,
     requiredRole: 'tenant',
     items: [
-      { nameKey: 'quickActions', href: '/dashboard/quick-actions', icon: LayoutDashboard },
-      { nameKey: 'calendar', href: '/dashboard/calendar', icon: AreaChart },
+      { nameKey: 'overview', href: '/dashboard/overview', icon: LayoutDashboard },
       { nameKey: 'communication', href: '/dashboard/communication', icon: MessageSquare },
     ],
   },
@@ -147,11 +146,8 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
     items: [
       { nameKey: 'organizations', href: '/admin/organizations', icon: Building },
       { nameKey: 'documentation', href: '/admin/documentation', icon: FileText },
-      { nameKey: 'pillars', href: '/admin/pillars', icon: Building },
-      { nameKey: 'roadmap', href: '/admin/roadmap', icon: ShieldCheck },
       { nameKey: 'navQualityAssurance', href: '/admin/quality', icon: CheckCircle },
       { nameKey: 'navLaw25Compliance', href: '/admin/compliance', icon: Shield },
-      { nameKey: 'suggestions', href: '/admin/suggestions', icon: Lightbulb },
       { nameKey: 'rbacPermissions', href: '/admin/permissions', icon: ShieldCheck },
     ],
   },

@@ -1,0 +1,71 @@
+user-management--o1HzxgT.js:1 🔍 [USER_MANAGEMENT] Computing currentUserAccess memo: {currentUser: 'kevin.hervieux@koveo-gestion.com', currentUserOrganizationsType: 'undefined', currentUserOrganizationsIsArray: false, currentUserOrganizationsLength: 'N/A', currentUserBuildingsType: 'undefined', …}
+user-management--o1HzxgT.js:1 ✅ [USER_MANAGEMENT] Extracted access IDs: {organizationIds: Array(0), buildingIds: Array(0), residenceIds: Array(0), organizationIdsCount: 0, buildingIdsCount: 0, …}
+user-management--o1HzxgT.js:1 🔍 [USER_MANAGEMENT] Component mounted
+user-management--o1HzxgT.js:1 🔍 [USER_MANAGEMENT] Current user query status: {currentUser: {…}, isLoading: false, error: null}
+user-management--o1HzxgT.js:1 🏢 [USER_MANAGEMENT] Organizations state updated: {currentUser: 'kevin.hervieux@koveo-gestion.com', currentUserRole: 'admin', organizationsCount: 0, organizationsLoading: true}
+user-management--o1HzxgT.js:1 🔍 [USER_MANAGEMENT] Assignment queries data received: {organizations: 'null', buildings: 'null', residences: 'null', orgsLoading: true, buildingsLoading: true, …}
+user-management--o1HzxgT.js:1 🔍 [USER_MANAGEMENT] Current user assignment queries status: {currentUser: 'kevin.hervieux@koveo-gestion.com', orgsLoading: true, buildingsLoading: true, residencesLoading: true, orgsError: undefined, …}
+user-management--o1HzxgT.js:1 🏢 [USER_MANAGEMENT] /api/organizations returned: {count: 'not an array', data: Response}
+user-management--o1HzxgT.js:1 🏢 [USER_MANAGEMENT] Organizations state updated: {currentUser: 'kevin.hervieux@koveo-gestion.com', currentUserRole: 'admin', organizationsCount: 0, organizationsLoading: false}
+user-management--o1HzxgT.js:1 🔍 [QUERY] /api/users/me/buildings returned: (8) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+user-management--o1HzxgT.js:1 🔍 [USER_MANAGEMENT] Computing currentUserAccess memo: {currentUser: 'kevin.hervieux@koveo-gestion.com', currentUserOrganizationsType: 'undefined', currentUserOrganizationsIsArray: false, currentUserOrganizationsLength: 'N/A', currentUserBuildingsType: 'object', …}
+user-management--o1HzxgT.js:1 ✅ [USER_MANAGEMENT] Extracted access IDs: {organizationIds: Array(0), buildingIds: Array(8), residenceIds: Array(0), organizationIdsCount: 0, buildingIdsCount: 8, …}
+user-management--o1HzxgT.js:1 🔍 [USER_MANAGEMENT] Assignment queries data received: {organizations: 'null', buildings: '8 buildings', residences: 'null', orgsLoading: true, buildingsLoading: false, …}
+user-management--o1HzxgT.js:1 🔍 [USER_MANAGEMENT] Current user assignment queries status: {currentUser: 'kevin.hervieux@koveo-gestion.com', orgsLoading: true, buildingsLoading: false, residencesLoading: true, orgsError: undefined, …}
+user-management--o1HzxgT.js:1 🔍 [QUERY] /api/users/me/residences returned: []
+user-management--o1HzxgT.js:1 🔍 [USER_MANAGEMENT] Computing currentUserAccess memo: {currentUser: 'kevin.hervieux@koveo-gestion.com', currentUserOrganizationsType: 'undefined', currentUserOrganizationsIsArray: false, currentUserOrganizationsLength: 'N/A', currentUserBuildingsType: 'object', …}
+user-management--o1HzxgT.js:1 ✅ [USER_MANAGEMENT] Extracted access IDs: {organizationIds: Array(0), buildingIds: Array(8), residenceIds: Array(0), organizationIdsCount: 0, buildingIdsCount: 8, …}
+user-management--o1HzxgT.js:1 🔍 [USER_MANAGEMENT] Assignment queries data received: {organizations: 'null', buildings: '8 buildings', residences: '0 residences', orgsLoading: true, buildingsLoading: false, …}
+user-management--o1HzxgT.js:1 🔍 [USER_MANAGEMENT] Current user assignment queries status: {currentUser: 'kevin.hervieux@koveo-gestion.com', orgsLoading: true, buildingsLoading: false, residencesLoading: false, orgsError: undefined, …}
+user-management--o1HzxgT.js:1 🔍 [QUERY] /api/users/me/organizations returned: (3) [{…}, {…}, {…}]
+user-management--o1HzxgT.js:1 🔍 [USER_MANAGEMENT] Computing currentUserAccess memo: {currentUser: 'kevin.hervieux@koveo-gestion.com', currentUserOrganizationsType: 'object', currentUserOrganizationsIsArray: true, currentUserOrganizationsLength: 3, currentUserBuildingsType: 'object', …}
+user-management--o1HzxgT.js:1 ✅ [USER_MANAGEMENT] Extracted access IDs: {organizationIds: Array(3), buildingIds: Array(8), residenceIds: Array(0), organizationIdsCount: 3, buildingIdsCount: 8, …}
+user-management--o1HzxgT.js:1 🔍 [USER_MANAGEMENT] Assignment queries data received: {organizations: '3 orgs', buildings: '8 buildings', residences: '0 residences', orgsLoading: false, buildingsLoading: false, …}
+user-management--o1HzxgT.js:1 🔍 [USER_MANAGEMENT] Current user assignment queries status: {currentUser: 'kevin.hervieux@koveo-gestion.com', orgsLoading: false, buildingsLoading: false, residencesLoading: false, orgsError: undefined, …}
+user-management--o1HzxgT.js:1 🏢 [ORG_TAB] Component render: {userEmail: 'kevin.hervieux@koveo-gestion.com', userRole: 'admin', totalOrganizations: 0, currentUserOrganizationIds: Array(3), availableOrganizationsCount: 0, …}
+user-management--o1HzxgT.js:1 🏢 [ORG_TAB] Component render: {userEmail: 'kevin.hervieux@koveo-gestion.com', userRole: 'admin', totalOrganizations: 0, currentUserOrganizationIds: Array(3), availableOrganizationsCount: 0, …}
+user-management--o1HzxgT.js:1 🏢 [ORG_TAB] Component render: {userEmail: 'kevin.hervieux@koveo-gestion.com', userRole: 'admin', totalOrganizations: 0, currentUserOrganizationIds: Array(3), availableOrganizationsCount: 0, …}
+index-X6cfXSw2.js:25 Error: Minified React error #300; visit https://react.dev/errors/300 for the full message or use the non-minified dev environment for full errors and additional helpful warnings.
+    at Qc (index-X6cfXSw2.js:25:34283)
+    at jo (index-X6cfXSw2.js:25:34173)
+    at Zo (index-X6cfXSw2.js:25:62064)
+    at tm (index-X6cfXSw2.js:25:72569)
+    at wm (index-X6cfXSw2.js:25:106605)
+    at Kh (index-X6cfXSw2.js:25:105670)
+    at yr (index-X6cfXSw2.js:25:105502)
+    at Cm (index-X6cfXSw2.js:25:102613)
+    at km (index-X6cfXSw2.js:25:114157)
+    at Mi (index-X6cfXSw2.js:25:112729)
+overrideMethod @ hook.js:608
+Pd @ index-X6cfXSw2.js:25
+Vd @ index-X6cfXSw2.js:25
+r.componentDidCatch.e.callback @ index-X6cfXSw2.js:25
+Hc @ index-X6cfXSw2.js:25
+Gc @ index-X6cfXSw2.js:25
+im @ index-X6cfXSw2.js:25
+cm @ index-X6cfXSw2.js:25
+cn @ index-X6cfXSw2.js:25
+cm @ index-X6cfXSw2.js:25
+cn @ index-X6cfXSw2.js:25
+cm @ index-X6cfXSw2.js:25
+cn @ index-X6cfXSw2.js:25
+cm @ index-X6cfXSw2.js:25
+cn @ index-X6cfXSw2.js:25
+cm @ index-X6cfXSw2.js:25
+cn @ index-X6cfXSw2.js:25
+cm @ index-X6cfXSw2.js:25
+cn @ index-X6cfXSw2.js:25
+cm @ index-X6cfXSw2.js:25
+Um @ index-X6cfXSw2.js:25
+jm @ index-X6cfXSw2.js:25
+Tm @ index-X6cfXSw2.js:25
+Cm @ index-X6cfXSw2.js:25
+km @ index-X6cfXSw2.js:25
+Mi @ index-X6cfXSw2.js:25
+Hs @ index-X6cfXSw2.js:25
+yv @ index-X6cfXSw2.js:26
+p.flushSync @ vendor-react-gH-7aFTg.js:17
+Fn @ vendor-ui-oDVeZEU7.js:9
+qo @ vendor-ui-oDVeZEU7.js:9
+u @ vendor-ui-oDVeZEU7.js:9
+s @ vendor-ui-oDVeZEU7.js:9

@@ -10,8 +10,6 @@ import { memoryOptimizer } from './memory-monitor';
  * Configuration options for optimized component loading.
  */
 interface LoaderOptions {
-  /** Preload the component after specified delay (ms) */
-  preloadDelay?: number;
   /** Retry attempts for failed loads */
   retryAttempts?: number;
   /** Custom fallback component */
@@ -26,34 +24,35 @@ interface LoaderOptions {
 const componentCache = new Map<string, LazyExoticComponent<ComponentType<any>>>();
 
 /**
+ * Track which components are currently loading to prevent cleanup during import.
+ */
+const loadingComponents = new Set<string>();
+
+/**
+ * Track which components have been fully loaded and are safe to clean up.
+ */
+const loadedComponents = new Set<string>();
+
+/**
  * Creates an optimized lazy component with memory management.
  * @param importFn Dynamic import function.
  * @param key Unique key for caching.
  * @param options Loading options.
  * @returns Lazy component with optimizations.
  */
-/**
- * CreateOptimizedLoader function.
- * @param importFn
- * @param key
- * @param options
- * @param _key
- * @param _options
- * @returns Function result.
- */
 export function createOptimizedLoader<T extends ComponentType<any>>(
   importFn: () => Promise<{ default: T }>,
   _key: string,
   _options: LoaderOptions = {}
 ): LazyExoticComponent<T> {
-  // Return cached component if available
   if (componentCache.has(_key)) {
     return componentCache.get(_key) as LazyExoticComponent<T>;
   }
 
-  const { preloadDelay = 0, retryAttempts = 3, enableMemoryCleanup = true } = _options;
+  const { retryAttempts = 3, enableMemoryCleanup = true } = _options;
 
-  // Create lazy component with retry logic
+  loadingComponents.add(_key);
+
   const LazyComponent = lazy(async () => {
     let attempts = 0;
 
@@ -61,10 +60,15 @@ export function createOptimizedLoader<T extends ComponentType<any>>(
       try {
         const module = await importFn();
 
-        // Register cleanup if enabled
+        loadingComponents.delete(_key);
+        loadedComponents.add(_key);
+
         if (enableMemoryCleanup) {
           memoryOptimizer.registerCleanup(() => {
-            componentCache.delete(_key);
+            if (!loadingComponents.has(_key)) {
+              componentCache.delete(_key);
+              loadedComponents.delete(_key);
+            }
           });
         }
 
@@ -72,6 +76,7 @@ export function createOptimizedLoader<T extends ComponentType<any>>(
       } catch (error) {
         attempts++;
         if (attempts >= retryAttempts) {
+          loadingComponents.delete(_key);
           console.error(
             `Failed to load component ${_key} after ${retryAttempts} attempts:`,
             error
@@ -79,27 +84,31 @@ export function createOptimizedLoader<T extends ComponentType<any>>(
           throw error;
         }
 
-        // Wait before retry with exponential backoff
         await new Promise((resolve) => setTimeout(resolve, Math.pow(2, attempts) * 1000));
       }
     }
 
+    loadingComponents.delete(_key);
     throw new Error(`Failed to load component ${_key}`);
   });
 
-  // Cache the component
   componentCache.set(_key, LazyComponent);
 
-  // Preload if requested
-  if (preloadDelay > 0) {
-    setTimeout(() => {
-      importFn().catch(() => {
-        // Ignore preload errors
-      });
-    }, preloadDelay);
-  }
-
   return LazyComponent;
+}
+
+/**
+ * Check if a component is currently loading.
+ */
+export function isComponentLoading(key: string): boolean {
+  return loadingComponents.has(key);
+}
+
+/**
+ * Get number of components currently loading.
+ */
+export function getLoadingComponentCount(): number {
+  return loadingComponents.size;
 }
 
 /**
@@ -169,87 +178,82 @@ export function getComponentCacheSize(): number {
  * OPTIMIZED: Enhanced preloading strategies and route-based optimization.
  */
 export const optimizedPageLoaders = {
-  // Admin pages - Higher preload delays for heavy admin components
+  // Admin pages
   AdminOrganizations: createOptimizedLoader(
     () => import('@/pages/admin/organizations'),
     'admin-organizations',
-    { preloadDelay: 2000, enableMemoryCleanup: true }
+    { enableMemoryCleanup: true }
   ),
-  AdminRoadmap: createOptimizedLoader(() => import('@/pages/admin/roadmap'), 'admin-roadmap', {
-    preloadDelay: 4000,
-    enableMemoryCleanup: true,
-  }),
   AdminQuality: createOptimizedLoader(() => import('@/pages/admin/quality'), 'admin-quality', {
-    preloadDelay: 6000,
     enableMemoryCleanup: true,
   }),
 
-  // Manager pages - Medium preload for frequently accessed pages
+  // Manager pages
   ManagerBuildings: createOptimizedLoader(
     () => import('@/pages/manager/buildings'),
     'manager-buildings',
-    { preloadDelay: 1500, enableMemoryCleanup: true }
+    { enableMemoryCleanup: true }
   ),
   ManagerResidences: createOptimizedLoader(
     () => import('@/pages/manager/residences'),
     'manager-residences',
-    { preloadDelay: 1500, enableMemoryCleanup: true }
+    { enableMemoryCleanup: true }
   ),
   ManagerBills: createOptimizedLoader(
     () => import('@/pages/manager/bills'),
     'manager-bills',
-    { preloadDelay: 2000, enableMemoryCleanup: true }
+    { enableMemoryCleanup: true }
   ),
   ManagerInvoices: createOptimizedLoader(
     () => import('@/pages/manager/invoices'),
     'manager-invoices',
-    { preloadDelay: 2000, enableMemoryCleanup: true }
+    { enableMemoryCleanup: true }
   ),
   ManagerUserManagement: createOptimizedLoader(
     () => import('@/pages/manager/user-management'),
     'manager-user-management',
-    { preloadDelay: 3000, enableMemoryCleanup: true }
+    { enableMemoryCleanup: true }
   ),
 
-  // Residents pages - Fast preload for high traffic pages
+  // Residents pages
   ResidentsDashboard: createOptimizedLoader(
     () => import('@/pages/residents/dashboard'),
     'residents-dashboard',
-    { preloadDelay: 500, enableMemoryCleanup: true }
+    { enableMemoryCleanup: true }
   ),
   ResidentsBuilding: createOptimizedLoader(
     () => import('@/pages/residents/building'),
     'residents-building',
-    { preloadDelay: 1000, enableMemoryCleanup: true }
+    { enableMemoryCleanup: true }
   ),
   ResidentsResidence: createOptimizedLoader(
     () => import('@/pages/residents/residence'),
     'residents-residence',
-    { preloadDelay: 1000, enableMemoryCleanup: true }
+    { enableMemoryCleanup: true }
   ),
 
-  // Document management pages - Critical for user workflow
+  // Document management pages
   BuildingDocuments: createOptimizedLoader(
     () => import('@/pages/manager/BuildingDocuments'),
     'building-documents',
-    { preloadDelay: 1500, enableMemoryCleanup: true }
+    { enableMemoryCleanup: true }
   ),
   ResidenceDocuments: createOptimizedLoader(
     () => import('@/pages/manager/ResidenceDocuments'),
     'residence-documents',
-    { preloadDelay: 1500, enableMemoryCleanup: true }
+    { enableMemoryCleanup: true }
   ),
 
-  // Settings pages - Lower priority
+  // Settings pages
   SettingsSettings: createOptimizedLoader(
     () => import('@/pages/settings/settings'),
     'settings-settings',
-    { preloadDelay: 5000, enableMemoryCleanup: true }
+    { enableMemoryCleanup: true }
   ),
   SettingsBugReports: createOptimizedLoader(
     () => import('@/pages/settings/bug-reports'),
     'settings-bug-reports',
-    { preloadDelay: 8000, enableMemoryCleanup: true }
+    { enableMemoryCleanup: true }
   ),
 };
 
@@ -261,7 +265,6 @@ export const routePreloadingStrategy = {
   // When user visits admin pages, preload related admin components
   '/admin/*': [
     () => import('@/pages/admin/organizations'),
-    () => import('@/pages/admin/roadmap'),
   ],
 
   // When user visits manager pages, preload commonly used manager components
@@ -281,7 +284,6 @@ export const routePreloadingStrategy = {
   // Dashboard pages should preload based on user role
   '/dashboard/*': [
     () => import('@/pages/dashboard'),
-    () => import('@/pages/dashboard/calendar'),
   ],
 };
 
@@ -291,18 +293,30 @@ export const routePreloadingStrategy = {
  * @param components Array of import functions in priority order.
  */
 export function progressivePreload(components: (() => Promise<any>)[]): void {
-  let delay = 0;
-  
-  components.forEach((componentImport, index) => {
-    setTimeout(() => {
-      componentImport().catch(() => {
-        // Ignore preload errors
-      });
-    }, delay);
-    
-    // Stagger preloads with exponential backoff
-    delay += Math.min(500 * (index + 1), 3000);
-  });
+  const schedule = (cb: () => void) => {
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      (window as unknown as {
+        requestIdleCallback: (cb: () => void, opts?: { timeout?: number }) => number;
+      }).requestIdleCallback(cb, { timeout: 2000 });
+    } else {
+      setTimeout(cb, 200);
+    }
+  };
+
+  const loadNext = (index: number) => {
+    if (index >= components.length) return;
+    schedule(() => {
+      components[index]()
+        .catch(() => {
+          // Ignore preload errors
+        })
+        .finally(() => {
+          loadNext(index + 1);
+        });
+    });
+  };
+
+  loadNext(0);
 }
 
 /**
@@ -328,10 +342,11 @@ export function smartPreload(currentPath: string): void {
 
 /**
  * Register memory cleanup for component cache.
+ * Only clears components that are not currently loading.
  */
 memoryOptimizer.registerCleanup(() => {
-  // Clear half of the cache when memory is low
   const keys = Array.from(componentCache.keys());
-  const keysToRemove = keys.slice(0, Math.floor(keys.length / 2));
+  const safeKeysToRemove = keys.filter(key => !loadingComponents.has(key));
+  const keysToRemove = safeKeysToRemove.slice(0, Math.floor(safeKeysToRemove.length / 2));
   clearComponentCache(keysToRemove);
 });

@@ -25,7 +25,7 @@ export const documents = pgTable('documents', {
   isQuarantined: boolean('is_quarantined').default(false).notNull(),
   residenceId: varchar('residence_id').references(() => residences.id),
   buildingId: varchar('building_id').references(() => buildings.id),
-  uploadedById: varchar('uploaded_by_id').notNull(),
+  uploadedById: varchar('uploaded_by_id'),
   // Support for document attachments to forms
   attachedToType: text('attached_to_type'), // 'bill', 'feature_request', 'bug_report', etc.
   attachedToId: varchar('attached_to_id'), // ID of the entity this document is attached to
@@ -64,7 +64,7 @@ export const insertDocumentSchema = z.object({
   isQuarantined: z.boolean().default(false),
   residenceId: z.string().optional(),
   buildingId: z.string().optional(),
-  uploadedById: z.string().min(1, 'Uploaded by user ID is required'),
+  uploadedById: z.string().optional(),
   attachedToType: z.string().optional(),
   attachedToId: z.string().optional(),
   effectiveDate: z.string().optional(),
@@ -80,7 +80,7 @@ export const attachDocumentSchema = z.object({
   mimeType: z.string().optional(),
   attachedToType: z.enum(['bill', 'feature_request', 'bug_report', 'maintenance_request']),
   attachedToId: z.string().min(1, 'Attached entity ID is required'),
-  uploadedById: z.string().min(1, 'Uploaded by user ID is required'),
+  uploadedById: z.string().optional(),
   effectiveDate: z.string().optional(),
 });
 

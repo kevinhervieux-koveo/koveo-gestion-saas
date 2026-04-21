@@ -68,7 +68,6 @@ export const invoices = pgTable('invoices', {
   
   // Audit fields
   createdBy: varchar('created_by')
-    .notNull()
     .references(() => users.id),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
@@ -119,7 +118,7 @@ export const insertInvoiceSchema = z.object({
   extractionConfidence: z.number().min(0).max(1).optional(),
   
   // Audit fields
-  createdBy: z.string().uuid().min(1, 'Created by user ID is required'),
+  createdBy: z.string().uuid().optional(),
 });
 
 // Base insert schema without refinements

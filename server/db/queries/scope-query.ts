@@ -217,11 +217,21 @@ export async function scopeQuery(
       return query.where(inArray(residences.id, accessibleResidenceIds));
 
     case 'bills':
-      const billResidenceIds = await getUserAccessibleResidenceIds(userContext);
-      if (billResidenceIds.length === 0) {
+      // Tenants and residents (and their demo equivalents) have NO visibility
+      // into building-level bills. Only managers and admins can see bills.
+      if (
+        role === 'tenant' ||
+        role === 'resident' ||
+        (role as string) === 'demo_tenant' ||
+        (role as string) === 'demo_resident'
+      ) {
+        return query.where(sql`false`);
+      }
+      const billBuildingIds = await getUserAccessibleBuildingIds(userContext);
+      if (billBuildingIds.length === 0) {
         return query.where(sql`false`); // No access
       }
-      return query.where(inArray(bills.residenceId, billResidenceIds));
+      return query.where(inArray(bills.buildingId, billBuildingIds));
 
     case 'maintenanceRequests':
       const maintenanceResidenceIds = await getUserAccessibleResidenceIds(userContext);

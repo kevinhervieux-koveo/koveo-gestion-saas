@@ -1,0 +1,114 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+index-DccAjBin.js:136 ReferenceError: customInvestments is not defined
+    at Pn (budget-DoonNZqL.js:16:32142)
+    at Object.react_stack_bottom_frame (index-DccAjBin.js:229:12449)
+    at Uc (index-DccAjBin.js:120:806)
+    at ud (index-DccAjBin.js:141:5839)
+    at vd (index-DccAjBin.js:150:10147)
+    at X (index-DccAjBin.js:45:108)
+    at Jg (index-DccAjBin.js:163:29811)
+    at Zg (index-DccAjBin.js:163:28480)
+    at Rd (index-DccAjBin.js:163:28313)
+    at Gg (index-DccAjBin.js:163:24807)
+
+The above error occurred in the <Pn> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, cE.
+
+overrideMethod @ hook.js:608
+ag @ index-DccAjBin.js:136
+og @ index-DccAjBin.js:141
+X @ index-DccAjBin.js:45
+s.componentDidCatch.e.callback @ index-DccAjBin.js:141
+Ah @ index-DccAjBin.js:107
+xh @ index-DccAjBin.js:107
+X @ index-DccAjBin.js:45
+Ag @ index-DccAjBin.js:163
+Rg @ index-DccAjBin.js:163
+ea @ index-DccAjBin.js:163
+Rg @ index-DccAjBin.js:163
+ea @ index-DccAjBin.js:163
+Rg @ index-DccAjBin.js:163
+ea @ index-DccAjBin.js:163
+Rg @ index-DccAjBin.js:163
+ea @ index-DccAjBin.js:163
+Rg @ index-DccAjBin.js:163
+ea @ index-DccAjBin.js:163
+Rg @ index-DccAjBin.js:163
+ea @ index-DccAjBin.js:163
+Rg @ index-DccAjBin.js:163
+tv @ index-DccAjBin.js:163
+Nd @ index-DccAjBin.js:163
+Yg @ index-DccAjBin.js:163
+Gg @ index-DccAjBin.js:163
+dv @ index-DccAjBin.js:185
+l @ index-DccAjBin.js:23
+<Pn>
+M1.Nu.jsxDEV @ index-DccAjBin.js:15
+(anonymous) @ withHierarchicalSelection-Ccy3Uo2p.js:1
+react_stack_bottom_frame @ index-DccAjBin.js:229
+Uc @ index-DccAjBin.js:120
+ud @ index-DccAjBin.js:141
+vd @ index-DccAjBin.js:150
+X @ index-DccAjBin.js:45
+Jg @ index-DccAjBin.js:163
+Zg @ index-DccAjBin.js:163
+Rd @ index-DccAjBin.js:163
+Gg @ index-DccAjBin.js:163
+dv @ index-DccAjBin.js:185
+l @ index-DccAjBin.js:23
+<...>
+M1.Nu.jsxDEV @ index-DccAjBin.js:15
+children @ index-DccAjBin.js:456
+H0 @ index-DccAjBin.js:240
+$ @ index-DccAjBin.js:240
+react_stack_bottom_frame @ index-DccAjBin.js:229
+Uc @ index-DccAjBin.js:120
+ud @ index-DccAjBin.js:141
+vd @ index-DccAjBin.js:150
+X @ index-DccAjBin.js:45
+Jg @ index-DccAjBin.js:163
+Zg @ index-DccAjBin.js:163
+Rd @ index-DccAjBin.js:163
+Gg @ index-DccAjBin.js:163
+dv @ index-DccAjBin.js:185
+l @ index-DccAjBin.js:23
+<$>
+M1.Nu.jsxDEV @ index-DccAjBin.js:15
+vR @ index-DccAjBin.js:456
+react_stack_bottom_frame @ index-DccAjBin.js:229
+Uc @ index-DccAjBin.js:120
+ud @ index-DccAjBin.js:141
+vd @ index-DccAjBin.js:150
+X @ index-DccAjBin.js:45
+Jg @ index-DccAjBin.js:163
+Zg @ index-DccAjBin.js:163
+Rd @ index-DccAjBin.js:163
+Gg @ index-DccAjBin.js:163
+mv @ index-DccAjBin.js:185
+Rs @ index-DccAjBin.js:185
+Od @ index-DccAjBin.js:185
+(anonymous) @ index-DccAjBin.js:185
+<vR>
+M1.Nu.jsxDEV @ index-DccAjBin.js:15
+bR @ index-DccAjBin.js:456
+react_stack_bottom_frame @ index-DccAjBin.js:229
+Uc @ index-DccAjBin.js:120
+ud @ index-DccAjBin.js:141
+vd @ index-DccAjBin.js:150
+X @ index-DccAjBin.js:45
+Jg @ index-DccAjBin.js:163
+Zg @ index-DccAjBin.js:163
+Rd @ index-DccAjBin.js:163
+Gg @ index-DccAjBin.js:163
+dv @ index-DccAjBin.js:185
+l @ index-DccAjBin.js:23
+<bR>
+M1.Nu.jsxDEV @ index-DccAjBin.js:15
+(anonymous) @ index-DccAjBin.js:456

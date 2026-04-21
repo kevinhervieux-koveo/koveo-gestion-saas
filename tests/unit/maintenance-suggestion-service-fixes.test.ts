@@ -34,11 +34,12 @@ jest.mock('drizzle-orm', () => ({
   and: jest.fn(),
   or: jest.fn(),
   isNull: jest.fn(),
-  inArray: jest.fn(), // This is now used instead of the broken sql ANY pattern
+  inArray: jest.fn(),
   desc: jest.fn(),
   asc: jest.fn(),
   sql: jest.fn(),
   not: jest.fn(),
+  relations: jest.fn(() => ({})),
 }));
 
 // Import after mocking
@@ -78,24 +79,12 @@ describe('MaintenanceSuggestionService - Critical Fixes Validation', () => {
 
   describe('Fix 2: Lifespan Fallback using UNIFORMAT Catalog', () => {
     test('should use UNIFORMAT catalog typicalLifespan instead of hardcoded 25', () => {
-      // Test that we're using UNIFORMAT catalog data for lifespan fallback
-      const mockElement = {
-        uniformatCode: 'B30',
-        currentLifespan: null,
-        originalLifespan: null,
-      };
-
-      const mockHistory: any[] = [];
-      
-      // Find the UNIFORMAT data for B30 (roofing)
-      const uniformatData = UNIFORMAT_CATALOG.find(u => u.code === 'B30');
+      const uniformatData = UNIFORMAT_CATALOG.find(u => u.code === 'A1010');
       expect(uniformatData).toBeDefined();
       expect(uniformatData?.typicalLifespan).toBeDefined();
 
-      // The fixed logic should use: uniformatData.typicalLifespan || 25
-      // instead of just: 25
       const expectedLifespan = uniformatData?.typicalLifespan || 25;
-      expect(expectedLifespan).not.toBe(25); // Should not fallback to hardcoded 25
+      expect(expectedLifespan).not.toBe(25);
       expect(typeof expectedLifespan).toBe('number');
       expect(expectedLifespan).toBeGreaterThan(0);
     });
@@ -104,7 +93,7 @@ describe('MaintenanceSuggestionService - Critical Fixes Validation', () => {
       // Test fallback behavior for missing UNIFORMAT data
       const mockUniformatData = { code: 'TEST', typicalLifespan: undefined };
       
-      const effectiveLifespan = undefined || undefined || mockUniformatData.typicalLifespan || 25;
+      const effectiveLifespan = mockUniformatData.typicalLifespan || 25;
       expect(effectiveLifespan).toBe(25);
     });
   });
@@ -188,9 +177,8 @@ describe('MaintenanceSuggestionService - Critical Fixes Validation', () => {
       const emptyIds: string[] = [];
       expect(emptyIds.length > 0 ? 'query' : []).toEqual([]);
       
-      // 2. UNIFORMAT lifespan usage (lifespan fix)
-      const roofingData = UNIFORMAT_CATALOG.find(u => u.code === 'B30');
-      expect(roofingData?.typicalLifespan).toBeGreaterThan(0);
+      const foundationData = UNIFORMAT_CATALOG.find(u => u.code === 'A1010');
+      expect(foundationData?.typicalLifespan).toBeGreaterThan(0);
       
       // 3. Plumbing detection (exposure factor fix)
       expect('D2010'.startsWith('D20')).toBe(true);

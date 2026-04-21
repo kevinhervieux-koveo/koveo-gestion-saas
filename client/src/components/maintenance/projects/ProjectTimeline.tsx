@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
+import { useCreateUpdateMutation } from '@/lib/common-hooks';
 import { 
   format, 
   addDays, 
@@ -254,34 +255,23 @@ export function ProjectTimeline({
   }, [rawProjects, timelineBounds, filterStatus, filterType]);
 
   // Date reschedule mutation
-  const rescheduleMutation = useMutation({
-    mutationFn: async ({ projectId, startDate, endDate }: { 
-      projectId: string; 
-      startDate: Date; 
-      endDate: Date; 
-    }) => {
+  const rescheduleMutation = useCreateUpdateMutation<unknown, {
+    projectId: string;
+    startDate: Date;
+    endDate: Date;
+  }>({
+    mutationFn: async ({ projectId, startDate, endDate }) => {
       const response = await apiRequest('PATCH', `/api/maintenance/projects/${projectId}`, {
         plannedStartDate: startDate.toISOString().split('T')[0],
         plannedEndDate: endDate.toISOString().split('T')[0],
       });
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ 
-        queryKey: ['/api/maintenance/buildings', buildingId, 'projects'] 
-      });
-      toast({
-        title: "Schedule Updated",
-        description: "Project timeline has been updated successfully.",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Update Failed",
-        description: "Failed to update project schedule. Please try again.",
-        variant: "destructive",
-      });
-    },
+    successTitle: 'Schedule Updated',
+    successMessage: 'Project timeline has been updated successfully.',
+    errorTitle: 'Update Failed',
+    errorMessage: 'Failed to update project schedule. Please try again.',
+    queryKeysToInvalidate: [['/api/maintenance/buildings', buildingId, 'projects']],
   });
 
   const handleProjectReschedule = (project: MaintenanceProject, newStartDate: Date, newEndDate: Date) => {

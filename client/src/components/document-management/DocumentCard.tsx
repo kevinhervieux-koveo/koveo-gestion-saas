@@ -10,6 +10,7 @@ interface DocumentCardProps {
   
   // Optional metadata for enhanced display
   documentType?: string;
+  documentTypeLabel?: string;
   description?: string;
   createdAt?: string;
   effectiveDate?: string;
@@ -39,6 +40,7 @@ export function DocumentCard({
   documentId,
   onViewClick,
   documentType,
+  documentTypeLabel,
   description,
   createdAt,
   effectiveDate,
@@ -109,7 +111,7 @@ export function DocumentCard({
   // Build badges array for StandardCard - only show in non-compact mode
   const badges = !compact && showMetadata ? [
     documentType && {
-      text: documentType.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()),
+      text: documentTypeLabel || documentType.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()),
       variant: 'secondary' as const,
       className: getTypeColor(documentType)
     },

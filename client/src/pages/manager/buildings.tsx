@@ -1,9 +1,11 @@
 import { useState, useMemo, useEffect } from 'react';
+import { logDebug } from '@/lib/logger';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { NoDataCard } from '@/components/ui/no-data-card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -34,6 +36,7 @@ import {
 } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/use-language';
+import { handleApiError } from '@/lib/demo-error-handler';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -304,21 +307,21 @@ function BuildingForm({
 function BuildingsInner({ organizationId }: { organizationId?: string }) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [, navigate] = useLocation();
 
   // Component initialization logging
   useEffect(() => {
-    console.log('🔍 [BUILDINGS] Component mounted', { organizationId });
+    logDebug('🔍 [BUILDINGS] Component mounted', { organizationId });
   }, []);
 
   // Log organization ID changes
   useEffect(() => {
-    console.log('🔍 [BUILDINGS] Organization context changed:', { organizationId });
+    logDebug('🔍 [BUILDINGS] Organization context changed:', { organizationId });
   }, [organizationId]);
 
   const handleBackToOrganization = () => {
-    console.log('🔍 [BUILDINGS] Navigating back to organization selection');
+    logDebug('🔍 [BUILDINGS] Navigating back to organization selection');
     navigate('/manager/buildings');
   };
 
@@ -347,19 +350,26 @@ function BuildingsInner({ organizationId }: { organizationId?: string }) {
 
   // Log search term changes
   useEffect(() => {
-    console.log('🔍 [BUILDINGS] Search term updated:', searchTerm);
+    logDebug('🔍 [BUILDINGS] Search term updated:', searchTerm);
   }, [searchTerm]);
 
-  // Get current user
-  const { data: user } = useQuery({
+  // Get current user (rely on the default queryFn — providing a custom one
+  // that returns the raw Response would corrupt the shared auth cache).
+  const { data: user } = useQuery<any>({
     queryKey: ['/api/auth/user'],
-    queryFn: () => apiRequest('GET', '/api/auth/user') as Promise<any>,
   });
 
   // Fetch user's organizations to check count
-  const { data: userOrganizations = [] } = useQuery({
+  const {
+    data: userOrganizations = [],
+    isLoading: isLoadingUserOrganizations,
+    isFetching: isFetchingUserOrganizations,
+  } = useQuery<Array<{ id: string; name: string }>>({
     queryKey: ['/api/users/me/organizations'],
-    queryFn: () => apiRequest('GET', '/api/users/me/organizations') as Promise<any[]>,
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/users/me/organizations');
+      return (await response.json()) as Array<{ id: string; name: string }>;
+    },
   });
 
   // Fetch all organizations for form (admin only)
@@ -376,11 +386,11 @@ function BuildingsInner({ organizationId }: { organizationId?: string }) {
   } = useQuery({
     queryKey: ['/api/manager/buildings', organizationId],
     queryFn: async () => {
-      console.log('🔍 [BUILDINGS] Fetching buildings with params:', { organizationId });
+      logDebug('🔍 [BUILDINGS] Fetching buildings with params:', { organizationId });
       const url = organizationId ? `/api/manager/buildings?organizationId=${organizationId}` : '/api/manager/buildings';
       const response = await apiRequest('GET', url);
       const data = await response.json();
-      console.log('🔍 [BUILDINGS] Received buildings data:', { count: data?.buildings?.length, organizationId });
+      logDebug('🔍 [BUILDINGS] Received buildings data:', { count: data?.buildings?.length, organizationId });
       return data;
     },
   });
@@ -422,6 +432,9 @@ function BuildingsInner({ organizationId }: { organizationId?: string }) {
   });
 
   // Mutations
+  // Exception (task #229): mutations in this file route errors through
+  // `handleApiError` for demo-mode/locale-aware messaging and special cases,
+  // which `useCreateUpdateMutation` cannot model — kept as raw `useMutation`.
   const createBuildingMutation = useMutation({
     mutationFn: (data: BuildingFormData) => apiRequest('POST', '/api/admin/buildings', data),
     onSuccess: () => {
@@ -434,11 +447,11 @@ function BuildingsInner({ organizationId }: { organizationId?: string }) {
       });
     },
     onError: (error: any) => {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to create building',
-        variant: 'destructive',
-      });
+      handleApiError(
+        error,
+        language,
+        language === 'fr' ? 'Échec de la création du bâtiment' : 'Failed to create building'
+      );
     },
   });
 
@@ -456,11 +469,11 @@ function BuildingsInner({ organizationId }: { organizationId?: string }) {
       });
     },
     onError: (error: any) => {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to update building',
-        variant: 'destructive',
-      });
+      handleApiError(
+        error,
+        language,
+        language === 'fr' ? 'Échec de la mise à jour du bâtiment' : 'Failed to update building'
+      );
     },
   });
 
@@ -476,22 +489,22 @@ function BuildingsInner({ organizationId }: { organizationId?: string }) {
       });
     },
     onError: (error: any) => {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to delete building',
-        variant: 'destructive',
-      });
+      handleApiError(
+        error,
+        language,
+        language === 'fr' ? 'Échec de la suppression du bâtiment' : 'Failed to delete building'
+      );
     },
   });
 
   // Event handlers
   const handleCreateBuilding = async (data: BuildingFormData) => {
-    console.log('🔍 [BUILDINGS] User action: Creating building', { buildingName: data.name, organizationId: data.organizationId });
+    logDebug('🔍 [BUILDINGS] User action: Creating building', { buildingName: data.name, organizationId: data.organizationId });
     createBuildingMutation.mutate(data);
   };
 
   const handleEditBuilding = (building: BuildingData) => {
-    console.log('🔍 [BUILDINGS] User action: Editing building', { buildingId: building.id, buildingName: building.name });
+    logDebug('🔍 [BUILDINGS] User action: Editing building', { buildingId: building.id, buildingName: building.name });
     setEditingBuilding(building);
     editForm.reset({
       name: building.name,
@@ -508,19 +521,19 @@ function BuildingsInner({ organizationId }: { organizationId?: string }) {
 
   const handleUpdateBuilding = async (data: BuildingFormData) => {
     if (editingBuilding) {
-      console.log('🔍 [BUILDINGS] User action: Updating building', { buildingId: editingBuilding.id, buildingName: data.name });
+      logDebug('🔍 [BUILDINGS] User action: Updating building', { buildingId: editingBuilding.id, buildingName: data.name });
       updateBuildingMutation.mutate({ id: editingBuilding.id, data });
     }
   };
 
   const handleDeleteBuilding = (building: BuildingData) => {
-    console.log('🔍 [BUILDINGS] User action: Initiating building deletion', { buildingId: building.id, buildingName: building.name });
+    logDebug('🔍 [BUILDINGS] User action: Initiating building deletion', { buildingId: building.id, buildingName: building.name });
     setDeletingBuilding(building);
   };
 
   const confirmDeleteBuilding = () => {
     if (deletingBuilding) {
-      console.log('🔍 [BUILDINGS] User action: Confirming building deletion', { buildingId: deletingBuilding.id });
+      logDebug('🔍 [BUILDINGS] User action: Confirming building deletion', { buildingId: deletingBuilding.id });
       deleteBuildingMutation.mutate(deletingBuilding.id);
     }
   };
@@ -565,16 +578,26 @@ function BuildingsInner({ organizationId }: { organizationId?: string }) {
       
       {/* Back to Organization Navigation - only show if user has multiple organizations */}
       {organizationId && userOrganizations.length > 1 && (
-        <div className="p-4 border-b border-gray-200">
-          <Button
-            variant="outline"
-            onClick={handleBackToOrganization}
-            className="flex items-center gap-2"
-            data-testid="button-back-to-organization"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            {t('organization')}
-          </Button>
+        <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="flex items-center px-6 py-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleBackToOrganization}
+              className="flex items-center gap-2"
+              data-testid="button-back-to-organization"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              {(() => {
+                const orgName = userOrganizations.find((o) => o.id === organizationId)?.name;
+                if (orgName) return orgName;
+                if (isLoadingUserOrganizations || isFetchingUserOrganizations) {
+                  return <Skeleton className="h-4 w-24" data-testid="skeleton-back-organization" />;
+                }
+                return t('organization');
+              })()}
+            </Button>
+          </div>
         </div>
       )}
 

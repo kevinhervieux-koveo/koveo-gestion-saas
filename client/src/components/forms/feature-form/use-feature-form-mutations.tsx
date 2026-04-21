@@ -1,5 +1,5 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
+import { useCreateUpdateMutation } from '@/lib/common-hooks';
 import type { Feature } from '@shared/schema';
 import type { FeatureFormData } from './use-feature-form-data';
 
@@ -16,23 +16,22 @@ import type { FeatureFormData } from './use-feature-form-data';
  */
 export function useFeatureFormMutations(feature: Feature | null, onClose: () => void) {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
 
   // Mutation to create feature in roadmap
-  const createFeatureMutation = useMutation({
-    mutationFn: async (featureData: {
-      name: string;
-      description: string;
-      category: string;
-      status?: string;
-      priority?: string;
-      businessObjective?: string;
-      targetUsers?: string;
-      successMetrics?: string;
-      technicalComplexity?: string;
-      dependencies?: string;
-      userFlow?: string;
-    }) => {
+  const createFeatureMutation = useCreateUpdateMutation<any, {
+    name: string;
+    description: string;
+    category: string;
+    status?: string;
+    priority?: string;
+    businessObjective?: string;
+    targetUsers?: string;
+    successMetrics?: string;
+    technicalComplexity?: string;
+    dependencies?: string;
+    userFlow?: string;
+  }>({
+    mutationFn: async (featureData) => {
       const response = await fetch('/api/features', {
         method: 'POST',
         headers: {
@@ -47,29 +46,19 @@ export function useFeatureFormMutations(feature: Feature | null, onClose: () => 
 
       return response.json();
     },
-    onSuccess: (newFeature) => {
-      // Invalidate queries to refresh roadmap data
-      queryClient.invalidateQueries({ queryKey: ['/api/features'] });
-
-      toast({
-        title: 'Feature Integrated',
-        description: `"${newFeature.name}" has been successfully added to the roadmap.`,
-      });
-
-      // Close the dialog
+    successTitle: 'Feature Integrated',
+    successMessage: (newFeature) =>
+      `"${newFeature.name}" has been successfully added to the roadmap.`,
+    errorTitle: 'Integration Failed',
+    errorMessage: 'Failed to add the feature to the roadmap. Please try again.',
+    queryKeysToInvalidate: [['/api/features']],
+    onSuccessCallback: () => {
       onClose();
-    },
-    onError: () => {
-      toast({
-        title: 'Integration Failed',
-        description: 'Failed to add the feature to the roadmap. Please try again.',
-        variant: 'destructive',
-      });
     },
   });
 
   // Mutation to save generated prompt as actionable item
-  const savePromptMutation = useMutation({
+  const savePromptMutation = useCreateUpdateMutation<unknown, { featureId: string; prompt: string; title: string }>({
     mutationFn: async ({
       featureId,
       prompt,
@@ -97,25 +86,16 @@ export function useFeatureFormMutations(feature: Feature | null, onClose: () => 
 
       return response.json();
     },
-    onSuccess: () => {
-      // Invalidate queries to refresh data
+    successTitle: 'Prompt Saved',
+    successMessage: 'Implementation prompt has been saved as an actionable item.',
+    errorTitle: 'Save Failed',
+    errorMessage: 'Failed to save the prompt. Please try again.',
+    invalidateQueries: (_data, queryClient) => {
       if (feature?.id) {
         queryClient.invalidateQueries({
           queryKey: [`/api/features/${feature.id}/actionable-items`],
         });
       }
-
-      toast({
-        title: 'Prompt Saved',
-        description: 'Implementation prompt has been saved as an actionable item.',
-      });
-    },
-    onError: () => {
-      toast({
-        title: 'Save Failed',
-        description: 'Failed to save the prompt. Please try again.',
-        variant: 'destructive',
-      });
     },
   });
 

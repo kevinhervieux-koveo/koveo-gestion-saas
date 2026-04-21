@@ -1,0 +1,32 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+user-management-C90a6tQB.js:1 🔍 [USER_MANAGEMENT] Computing currentUserAccess memo: {currentUser: 'kevhervieux@gmail.com', currentUserOrganizationsType: 'undefined', currentUserOrganizationsIsArray: false, currentUserOrganizationsLength: 'N/A', currentUserBuildingsType: 'undefined', …}
+user-management-C90a6tQB.js:1 ✅ [USER_MANAGEMENT] Extracted access IDs: {organizationIds: Array(0), buildingIds: Array(0), residenceIds: Array(0), organizationIdsCount: 0, buildingIdsCount: 0, …}
+user-management-C90a6tQB.js:1 🔍 [USER_MANAGEMENT] Component mounted
+user-management-C90a6tQB.js:1 🔍 [USER_MANAGEMENT] Current user query status: {currentUser: {…}, isLoading: false, error: null}
+user-management-C90a6tQB.js:1 🔍 [USER_MANAGEMENT] Assignment queries data received: {organizations: 'null', buildings: 'null', residences: 'null', orgsLoading: true, buildingsLoading: true, …}
+user-management-C90a6tQB.js:1 🔍 [USER_MANAGEMENT] Current user assignment queries status: {currentUser: 'kevhervieux@gmail.com', orgsLoading: true, buildingsLoading: true, residencesLoading: true, orgsError: undefined, …}
+user-management-C90a6tQB.js:1 🔍 [QUERY] /api/users/me/organizations returned: [{…}]
+user-management-C90a6tQB.js:1 🔍 [USER_MANAGEMENT] Computing currentUserAccess memo: {currentUser: 'kevhervieux@gmail.com', currentUserOrganizationsType: 'object', currentUserOrganizationsIsArray: true, currentUserOrganizationsLength: 1, currentUserBuildingsType: 'undefined', …}
+user-management-C90a6tQB.js:1 ✅ [USER_MANAGEMENT] Extracted access IDs: {organizationIds: Array(1), buildingIds: Array(0), residenceIds: Array(0), organizationIdsCount: 1, buildingIdsCount: 0, …}
+user-management-C90a6tQB.js:1 🔍 [USER_MANAGEMENT] Assignment queries data received: {organizations: '1 orgs', buildings: 'null', residences: 'null', orgsLoading: false, buildingsLoading: true, …}
+user-management-C90a6tQB.js:1 🔍 [USER_MANAGEMENT] Current user assignment queries status: {currentUser: 'kevhervieux@gmail.com', orgsLoading: false, buildingsLoading: true, residencesLoading: true, orgsError: undefined, …}
+user-management-C90a6tQB.js:1 🔍 [USER_MANAGEMENT] Pre-filtering manager to their organization: e9bb7862-4ba5-4822-848f-f3692e826e73
+user-management-C90a6tQB.js:1 🔍 [QUERY] /api/users/me/buildings returned: (3) [{…}, {…}, {…}]
+user-management-C90a6tQB.js:1 🔍 [USER_MANAGEMENT] Computing currentUserAccess memo: {currentUser: 'kevhervieux@gmail.com', currentUserOrganizationsType: 'object', currentUserOrganizationsIsArray: true, currentUserOrganizationsLength: 1, currentUserBuildingsType: 'object', …}
+user-management-C90a6tQB.js:1 ✅ [USER_MANAGEMENT] Extracted access IDs: {organizationIds: Array(1), buildingIds: Array(3), residenceIds: Array(0), organizationIdsCount: 1, buildingIdsCount: 3, …}
+user-management-C90a6tQB.js:1 🔍 [USER_MANAGEMENT] Assignment queries data received: {organizations: '1 orgs', buildings: '3 buildings', residences: 'null', orgsLoading: false, buildingsLoading: false, …}
+user-management-C90a6tQB.js:1 🔍 [USER_MANAGEMENT] Current user assignment queries status: {currentUser: 'kevhervieux@gmail.com', orgsLoading: false, buildingsLoading: false, residencesLoading: true, orgsError: undefined, …}
+user-management-C90a6tQB.js:1 🔍 [QUERY] /api/users/me/residences returned: (3) [{…}, {…}, {…}]
+user-management-C90a6tQB.js:1 🔍 [USER_MANAGEMENT] Computing currentUserAccess memo: {currentUser: 'kevhervieux@gmail.com', currentUserOrganizationsType: 'object', currentUserOrganizationsIsArray: true, currentUserOrganizationsLength: 1, currentUserBuildingsType: 'object', …}
+user-management-C90a6tQB.js:1 ✅ [USER_MANAGEMENT] Extracted access IDs: {organizationIds: Array(1), buildingIds: Array(3), residenceIds: Array(3), organizationIdsCount: 1, buildingIdsCount: 3, …}
+user-management-C90a6tQB.js:1 🔍 [USER_MANAGEMENT] Assignment queries data received: {organizations: '1 orgs', buildings: '3 buildings', residences: '3 residences', orgsLoading: false, buildingsLoading: false, …}
+user-management-C90a6tQB.js:1 🔍 [USER_MANAGEMENT] Current user assignment queries status: {currentUser: 'kevhervieux@gmail.com', orgsLoading: false, buildingsLoading: false, residencesLoading: false, orgsError: undefined, …}
+user-management-C90a6tQB.js:1 🔍 [INVITE_DIALOG] No organizations or not array: Response {type: 'basic', url: 'https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/organizations', redirected: false, status: 200, ok: true, …}
+user-management-C90a6tQB.js:1 🔍 [INVITE_DIALOG] No organizations or not array: Response {type: 'basic', url: 'https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/organizations', redirected: false, status: 200, ok: true, …}
+user-management-C90a6tQB.js:1 🔍 [INVITE_DIALOG] No organizations or not array: Response {type: 'basic', url: 'https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/organizations', redirected: false, status: 200, ok: true, …}

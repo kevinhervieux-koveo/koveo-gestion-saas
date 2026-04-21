@@ -23,6 +23,7 @@ interface ActiveFilter {
 
 interface CollapsibleFiltersProps {
   title?: string;
+  additionalInfo?: string;
   filters: FilterConfig[];
   activeFilters?: ActiveFilter[];
   onReset?: () => void;
@@ -92,6 +93,7 @@ export function /**
 
 CollapsibleFilters({
   title,
+  additionalInfo,
   filters,
   activeFilters = [],
   onReset,
@@ -119,6 +121,9 @@ CollapsibleFilters({
             <Settings className='w-5 h-5' />
             {title}
           </CardTitle>
+          {additionalInfo && (
+            <p className='text-sm text-muted-foreground mt-2'>{additionalInfo}</p>
+          )}
         </CardHeader>
       )}
       <CardContent>

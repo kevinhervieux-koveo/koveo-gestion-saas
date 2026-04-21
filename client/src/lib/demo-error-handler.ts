@@ -25,7 +25,7 @@ interface DemoRestrictionError {
  * Checks if an error response is a demo restriction error
  */
 export function isDemoRestrictionError(error: any): error is DemoRestrictionError {
-  return (
+  return Boolean(
     error &&
     typeof error === 'object' &&
     error.code &&

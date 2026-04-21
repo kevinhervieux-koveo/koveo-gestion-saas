@@ -1,0 +1,113 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+user-management-FOF-tfBg.js:1 🔍 [USER_MANAGEMENT] Computing currentUserAccess memo: {currentUser: 'kevin.hervieux@koveo-gestion.com', currentUserOrganizationsType: 'undefined', currentUserOrganizationsIsArray: false, currentUserOrganizationsLength: 'N/A', currentUserBuildingsType: 'undefined', …}
+user-management-FOF-tfBg.js:1 ✅ [USER_MANAGEMENT] Extracted access IDs: {organizationIds: Array(0), buildingIds: Array(0), residenceIds: Array(0), organizationIdsCount: 0, buildingIdsCount: 0, …}
+user-management-FOF-tfBg.js:1 🔍 [USER_MANAGEMENT] Component mounted
+user-management-FOF-tfBg.js:1 🔍 [USER_MANAGEMENT] Current user query status: {currentUser: {…}, isLoading: false, error: null}
+user-management-FOF-tfBg.js:1 🏢 [USER_MANAGEMENT] Organizations state updated: {currentUser: 'kevin.hervieux@koveo-gestion.com', currentUserRole: 'admin', organizationsCount: 0, organizationsLoading: true}
+user-management-FOF-tfBg.js:1 🔍 [USER_MANAGEMENT] Assignment queries data received: {organizations: 'null', buildings: 'null', residences: 'null', orgsLoading: true, buildingsLoading: true, …}
+user-management-FOF-tfBg.js:1 🔍 [USER_MANAGEMENT] Current user assignment queries status: {currentUser: 'kevin.hervieux@koveo-gestion.com', orgsLoading: true, buildingsLoading: true, residencesLoading: true, orgsError: undefined, …}
+user-management-FOF-tfBg.js:1 🏢 [USER_MANAGEMENT] /api/organizations returned: {count: 8, data: Array(8)}
+user-management-FOF-tfBg.js:1 🏢 [USER_MANAGEMENT] Organizations state updated: {currentUser: 'kevin.hervieux@koveo-gestion.com', currentUserRole: 'admin', organizationsCount: 8, organizationsLoading: false}
+user-management-FOF-tfBg.js:1 🔍 [QUERY] /api/users/me/organizations returned: (8) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+user-management-FOF-tfBg.js:1 🔍 [USER_MANAGEMENT] Computing currentUserAccess memo: {currentUser: 'kevin.hervieux@koveo-gestion.com', currentUserOrganizationsType: 'object', currentUserOrganizationsIsArray: true, currentUserOrganizationsLength: 8, currentUserBuildingsType: 'undefined', …}
+user-management-FOF-tfBg.js:1 ✅ [USER_MANAGEMENT] Extracted access IDs: {organizationIds: Array(8), buildingIds: Array(0), residenceIds: Array(0), organizationIdsCount: 8, buildingIdsCount: 0, …}
+user-management-FOF-tfBg.js:1 🔍 [USER_MANAGEMENT] Assignment queries data received: {organizations: '8 orgs', buildings: 'null', residences: 'null', orgsLoading: false, buildingsLoading: true, …}
+user-management-FOF-tfBg.js:1 🔍 [USER_MANAGEMENT] Current user assignment queries status: {currentUser: 'kevin.hervieux@koveo-gestion.com', orgsLoading: false, buildingsLoading: true, residencesLoading: true, orgsError: undefined, …}
+user-management-FOF-tfBg.js:1 🔍 [QUERY] /api/users/me/buildings returned: (15) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+user-management-FOF-tfBg.js:1 🔍 [USER_MANAGEMENT] Computing currentUserAccess memo: {currentUser: 'kevin.hervieux@koveo-gestion.com', currentUserOrganizationsType: 'object', currentUserOrganizationsIsArray: true, currentUserOrganizationsLength: 8, currentUserBuildingsType: 'object', …}
+user-management-FOF-tfBg.js:1 ✅ [USER_MANAGEMENT] Extracted access IDs: {organizationIds: Array(8), buildingIds: Array(15), residenceIds: Array(0), organizationIdsCount: 8, buildingIdsCount: 15, …}
+user-management-FOF-tfBg.js:1 🔍 [USER_MANAGEMENT] Assignment queries data received: {organizations: '8 orgs', buildings: '15 buildings', residences: 'null', orgsLoading: false, buildingsLoading: false, …}
+user-management-FOF-tfBg.js:1 🔍 [USER_MANAGEMENT] Current user assignment queries status: {currentUser: 'kevin.hervieux@koveo-gestion.com', orgsLoading: false, buildingsLoading: false, residencesLoading: true, orgsError: undefined, …}
+index-Dl5ZH6LS.js:185 [Violation] 'setTimeout' handler took 57ms
+user-management-FOF-tfBg.js:1 🔍 [QUERY] /api/users/me/residences returned: (3) [{…}, {…}, {…}]
+user-management-FOF-tfBg.js:1 🔍 [USER_MANAGEMENT] Computing currentUserAccess memo: {currentUser: 'kevin.hervieux@koveo-gestion.com', currentUserOrganizationsType: 'object', currentUserOrganizationsIsArray: true, currentUserOrganizationsLength: 8, currentUserBuildingsType: 'object', …}
+user-management-FOF-tfBg.js:1 ✅ [USER_MANAGEMENT] Extracted access IDs: {organizationIds: Array(8), buildingIds: Array(15), residenceIds: Array(3), organizationIdsCount: 8, buildingIdsCount: 15, …}
+user-management-FOF-tfBg.js:1 🔍 [USER_MANAGEMENT] Assignment queries data received: {organizations: '8 orgs', buildings: '15 buildings', residences: '3 residences', orgsLoading: false, buildingsLoading: false, …}
+user-management-FOF-tfBg.js:1 🔍 [USER_MANAGEMENT] Current user assignment queries status: {currentUser: 'kevin.hervieux@koveo-gestion.com', orgsLoading: false, buildingsLoading: false, residencesLoading: false, orgsError: undefined, …}
+user-management:1 Blocked aria-hidden on an element because its descendant retained focus. The focus must not be hidden from assistive technology users. Avoid using aria-hidden on a focused element or its ancestor. Consider using the inert attribute instead, which will also prevent focus. For more details, see the aria-hidden section of the WAI-ARIA specification at https://w3c.github.io/aria/#aria-hidden.
+Element with focus: <button.px-2 py-1 text-xs bg-red-50 text-red-700 rounded hover:bg-red-100>
+Ancestor with aria-hidden: <div#root> <div id=​"root" data-aria-hidden=​"true" aria-hidden=​"true">​…​</div>​
+index-Dl5ZH6LS.js:240  POST https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/users/1c56be20-c607-4068-b1b5-f74e74c59bee/delete-account 500 (Internal Server Error)
+TR @ index-Dl5ZH6LS.js:240
+mutationFn @ user-management-FOF-tfBg.js:1
+fn @ vendor-query-DvoEABeW.js:1
+m @ vendor-query-DvoEABeW.js:1
+start @ vendor-query-DvoEABeW.js:1
+execute @ vendor-query-DvoEABeW.js:1
+await in execute
+mutate @ vendor-query-DvoEABeW.js:1
+ts @ user-management-FOF-tfBg.js:1
+(anonymous) @ vendor-forms-D0xB6YWv.js:1
+await in (anonymous)
+Tl @ index-Dl5ZH6LS.js:185
+X @ index-Dl5ZH6LS.js:45
+gv @ index-Dl5ZH6LS.js:185
+(anonymous) @ index-Dl5ZH6LS.js:185
+Ip @ index-Dl5ZH6LS.js:83
+Pd @ index-Dl5ZH6LS.js:185
+Jd @ index-Dl5ZH6LS.js:194
+mx @ index-Dl5ZH6LS.js:194
+<form>
+Mw.Nu.jsxDEV @ index-Dl5ZH6LS.js:15
+kr @ user-management-FOF-tfBg.js:1
+react_stack_bottom_frame @ index-Dl5ZH6LS.js:229
+jc @ index-Dl5ZH6LS.js:120
+ud @ index-Dl5ZH6LS.js:141
+vd @ index-Dl5ZH6LS.js:150
+X @ index-Dl5ZH6LS.js:45
+Jg @ index-Dl5ZH6LS.js:163
+Zg @ index-Dl5ZH6LS.js:163
+Rd @ index-Dl5ZH6LS.js:163
+Gg @ index-Dl5ZH6LS.js:163
+mv @ index-Dl5ZH6LS.js:185
+Rs @ index-Dl5ZH6LS.js:185
+Od @ index-Dl5ZH6LS.js:185
+(anonymous) @ index-Dl5ZH6LS.js:185
+index-Dl5ZH6LS.js:240 Uncaught (in promise) Error: 500: {"error":"Internal server error","message":"Failed to delete user account","details":"Failed query: delete from \"users\" where \"users\".\"id\" = $1\nparams: 1c56be20-c607-4068-b1b5-f74e74c59bee"}
+    at qS (index-Dl5ZH6LS.js:240:6784)
+    at async TR (index-Dl5ZH6LS.js:240:7046)
+    at async Object.mutationFn (user-management-FOF-tfBg.js:1:85208)
+qS @ index-Dl5ZH6LS.js:240
+await in qS
+TR @ index-Dl5ZH6LS.js:240
+await in TR
+mutationFn @ user-management-FOF-tfBg.js:1
+fn @ vendor-query-DvoEABeW.js:1
+m @ vendor-query-DvoEABeW.js:1
+start @ vendor-query-DvoEABeW.js:1
+execute @ vendor-query-DvoEABeW.js:1
+await in execute
+mutate @ vendor-query-DvoEABeW.js:1
+ts @ user-management-FOF-tfBg.js:1
+(anonymous) @ vendor-forms-D0xB6YWv.js:1
+await in (anonymous)
+Tl @ index-Dl5ZH6LS.js:185
+X @ index-Dl5ZH6LS.js:45
+gv @ index-Dl5ZH6LS.js:185
+(anonymous) @ index-Dl5ZH6LS.js:185
+Ip @ index-Dl5ZH6LS.js:83
+Pd @ index-Dl5ZH6LS.js:185
+Jd @ index-Dl5ZH6LS.js:194
+mx @ index-Dl5ZH6LS.js:194
+<form>
+Mw.Nu.jsxDEV @ index-Dl5ZH6LS.js:15
+kr @ user-management-FOF-tfBg.js:1
+react_stack_bottom_frame @ index-Dl5ZH6LS.js:229
+jc @ index-Dl5ZH6LS.js:120
+ud @ index-Dl5ZH6LS.js:141
+vd @ index-Dl5ZH6LS.js:150
+X @ index-Dl5ZH6LS.js:45
+Jg @ index-Dl5ZH6LS.js:163
+Zg @ index-Dl5ZH6LS.js:163
+Rd @ index-Dl5ZH6LS.js:163
+Gg @ index-Dl5ZH6LS.js:163
+mv @ index-Dl5ZH6LS.js:185
+Rs @ index-Dl5ZH6LS.js:185
+Od @ index-Dl5ZH6LS.js:185
+(anonymous) @ index-Dl5ZH6LS.js:185

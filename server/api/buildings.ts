@@ -9,138 +9,28 @@ import {
   userBuildings,
   users,
   documents,
+  commonSpaces,
 } from '@shared/schema';
 import { eq, and, or, inArray, sql, isNull, count } from 'drizzle-orm';
 import { requireAuth } from '../auth';
-import crypto from 'crypto';
+import {
+  getAllBuildings,
+  getBuildingsByOrganizationIds,
+  getBuildingsByIds,
+  getBuildingIdsForResident,
+} from '../db/queries/buildings-queries';
+import { asyncHandler } from '../utils/async-handler';
 
-/**
- * Handles creating or deleting residences when building totalUnits changes
- */
-async function handleResidenceChanges(
-  buildingId: string,
-  organizationId: string,
-  newTotalUnits: number,
-  currentResidenceCount: number,
-  totalFloors?: number
-): Promise<void> {
-  try {
-    // Object storage hierarchy will be created automatically when documents are uploaded
-
-    if (newTotalUnits > currentResidenceCount) {
-      // Need to create more residences
-      const residencesToCreate = newTotalUnits - currentResidenceCount;
-
-      // Get existing residence numbers to avoid conflicts
-      const existingResidences = await db
-        .select({ unitNumber: residences.unitNumber })
-        .from(residences)
-        .where(eq(residences.buildingId, buildingId));
-
-      const existingUnitNumbers = new Set(existingResidences.map((r) => r.unitNumber));
-
-      const floors = totalFloors || 1;
-      const unitsPerFloor = Math.ceil(newTotalUnits / floors);
-
-      const newResidences = [];
-      let unitCounter = 1;
-
-      for (let residenceIndex = 0; residenceIndex < residencesToCreate; residenceIndex++) {
-        // Find next available unit number
-        while (existingUnitNumbers.has(unitCounter.toString())) {
-          unitCounter++;
-        }
-
-        const floor = Math.ceil(unitCounter / unitsPerFloor);
-        const unitNumber = unitCounter.toString();
-
-        newResidences.push({
-          buildingId,
-          unitNumber,
-          floor: floor,
-          isActive: true,
-        });
-
-        existingUnitNumbers.add(unitNumber);
-        unitCounter++;
-      }
-
-      // Create residences in batch
-      if (newResidences.length > 0) {
-        const createdResidences = await db.insert(residences).values(newResidences).returning();
-
-        // Create object storage hierarchy for each new residence
-        // NOTE: Object storage service integration is planned but not yet implemented.
-        // Storage hierarchy will be created automatically when documents are uploaded.
-        for (const residence of createdResidences) {
-          try {
-            // Future: Object storage service integration
-            // await objectStorageService.createResidenceHierarchy(
-            //   organizationId,
-            //   buildingId,
-            //   residence.id
-            // );
-          } catch (storageError) {
-            // console.error(`⚠️ Error creating storage hierarchy for residence ${residence.id}:`, storageError);
-            // Don't fail the whole operation for storage errors
-          }
-        }
-
-        // console.log(`✅ Created ${createdResidences.length} new residences for building ${buildingId}`);
-      }
-    } else if (newTotalUnits < currentResidenceCount) {
-      // Need to delete some residences
-      const residencesToDelete = currentResidenceCount - newTotalUnits;
-      // console.log(`📉 Marking ${residencesToDelete} residences as inactive for building ${buildingId}`);
-
-      // Get residences that can be safely deleted (no active user relationships)
-      const deletableResidences = await db
-        .select({ id: residences.id, unitNumber: residences.unitNumber })
-        .from(residences)
-        .leftJoin(
-          userResidences,
-          and(eq(userResidences.residenceId, residences.id), eq(userResidences.isActive, true))
-        )
-        .where(
-          and(
-            eq(residences.buildingId, buildingId),
-            eq(residences.isActive, true),
-            isNull(userResidences.id) // No active user relationships
-          )
-        )
-        .orderBy(sql`${residences.unitNumber}::integer DESC`) // Delete highest unit numbers first
-        .limit(residencesToDelete);
-
-      if (deletableResidences.length > 0) {
-        const residenceIdsToDelete = deletableResidences.map((r) => r.id);
-
-        // Soft delete residences (mark as inactive)
-        await db
-          .update(residences)
-          .set({
-            isActive: false,
-            updatedAt: new Date(),
-          })
-          .where(inArray(residences.id, residenceIdsToDelete));
-
-        // console.log(`✅ Marked ${deletableResidences.length} residences as inactive for building ${buildingId}`);
-
-        // Log which residences couldn't be deleted due to user relationships
-        const protectedCount = residencesToDelete - deletableResidences.length;
-        if (protectedCount > 0) {
-          // console.log(`⚠️ Could not delete ${protectedCount} residences - they have active user relationships`);
-        }
-      } else {
-      }
-    } else {
-      // console.log(`✓ No residence changes needed - building ${buildingId} already has ${currentResidenceCount} residences`);
-    }
-    // Don't throw the error to avoid breaking the building update
-  } catch (error: any) {
-    // console.error('❌ Error updating residence count:', error);
-    // Don't throw the error to avoid breaking the building update
-  }
-}
+// Note: an earlier `handleResidenceChanges` helper used to live here
+// and silently swallowed any failure it hit while writing residence
+// rows. That meant the parent building row could be saved with a new
+// `totalUnits` value while the residence rows were left untouched, and
+// admins never saw the underlying error. The active code path now
+// goes through `adjustResidenceCount` (in `./buildings/operations`),
+// which runs inside a `db.transaction` driven by the PUT handler so a
+// mid-flight failure rolls the whole edit back. The old helper was
+// removed when Task #172 made the residence-count adjustment
+// all-or-nothing.
 
 /**
  *
@@ -191,123 +81,23 @@ export function registerBuildingRoutes(app: Express): void {
       }
 
 
-      let buildingsQuery;
+      let result;
 
-      // Admin users should always have access to all buildings, regardless of organization assignments
       if (user.role === 'admin') {
-        buildingsQuery = db
-          .select({
-            id: buildings.id,
-            name: buildings.name,
-            address: buildings.address,
-            city: buildings.city,
-            province: buildings.province,
-            postalCode: buildings.postalCode,
-            buildingType: buildings.buildingType,
-            constructionDate: buildings.constructionDate,
-            totalUnits: buildings.totalUnits,
-            totalFloors: buildings.totalFloors,
-            parkingSpaces: buildings.parkingSpaces,
-            storageSpaces: buildings.storageSpaces,
-            organizationId: buildings.organizationId,
-            organizationName: organizations.name,
-            isActive: buildings.isActive,
-            createdAt: buildings.createdAt,
-          })
-          .from(buildings)
-          .innerJoin(organizations, eq(buildings.organizationId, organizations.id))
-          .where(eq(buildings.isActive, true))
-          .orderBy(organizations.name, buildings.name);
-      } else {
-        // Managers and other roles: only buildings from their organizations
-        // console.log(`🔍 [BUILDINGS DEBUG] Non-admin user (${user.role}) - checking organization access. User ${user.id} organizations:`, user.organizations);
-        if (!user.organizations || user.organizations.length === 0) {
-          // console.log(`🔍 [BUILDINGS DEBUG] User ${user.id} has no organizations, checking residence access...`);
-
-          // For tenant/resident roles: Get buildings through their residences
-          if (['tenant', 'resident', 'demo_tenant', 'demo_resident'].includes(user.role)) {
-            const userResidencesList = await db
-              .select({
-                buildingId: residences.buildingId,
-              })
-              .from(userResidences)
-              .innerJoin(residences, eq(userResidences.residenceId, residences.id))
-              .where(and(eq(userResidences.userId, user.id), eq(userResidences.isActive, true)));
-
-            // console.log(`🔍 [BUILDINGS DEBUG] Found ${userResidencesList.length} residences for user ${user.id}`);
-
-            if (userResidencesList.length === 0) {
-              return res.json([]); // No residences = no buildings
-            }
-
-            const accessibleBuildingIds = [
-              ...new Set(userResidencesList.map((ur) => ur.buildingId)),
-            ];
-            // console.log(`🔍 [BUILDINGS DEBUG] Accessible building IDs:`, accessibleBuildingIds);
-
-            buildingsQuery = db
-              .select({
-                id: buildings.id,
-                name: buildings.name,
-                address: buildings.address,
-                city: buildings.city,
-                province: buildings.province,
-                postalCode: buildings.postalCode,
-                buildingType: buildings.buildingType,
-                constructionDate: buildings.constructionDate,
-                totalUnits: buildings.totalUnits,
-                totalFloors: buildings.totalFloors,
-                parkingSpaces: buildings.parkingSpaces,
-                storageSpaces: buildings.storageSpaces,
-                organizationId: buildings.organizationId,
-                isActive: buildings.isActive,
-                createdAt: buildings.createdAt,
-                organizationName: organizations.name,
-              })
-              .from(buildings)
-              .innerJoin(organizations, eq(buildings.organizationId, organizations.id))
-              .where(
-                and(eq(buildings.isActive, true), inArray(buildings.id, accessibleBuildingIds))
-              )
-              .orderBy(organizations.name, buildings.name);
-          } else {
-            // console.log(`🔍 [BUILDINGS DEBUG] Manager/other role user ${user.id} has no organizations - returning empty result`);
-            return res.json([]); // No organizations = no buildings for managers/others
+        result = await getAllBuildings();
+      } else if (!user.organizations || user.organizations.length === 0) {
+        if (['tenant', 'resident', 'demo_tenant', 'demo_resident'].includes(user.role)) {
+          const accessibleBuildingIds = await getBuildingIdsForResident(user.id);
+          if (accessibleBuildingIds.length === 0) {
+            return res.json([]);
           }
+          result = await getBuildingsByIds(accessibleBuildingIds);
         } else {
-          // User has organizations - use organization-based access
-          buildingsQuery = db
-            .select({
-              id: buildings.id,
-              name: buildings.name,
-              address: buildings.address,
-              city: buildings.city,
-              province: buildings.province,
-              postalCode: buildings.postalCode,
-              buildingType: buildings.buildingType,
-              constructionDate: buildings.constructionDate,
-              totalUnits: buildings.totalUnits,
-              totalFloors: buildings.totalFloors,
-              parkingSpaces: buildings.parkingSpaces,
-              storageSpaces: buildings.storageSpaces,
-              organizationId: buildings.organizationId,
-              isActive: buildings.isActive,
-              createdAt: buildings.createdAt,
-              organizationName: organizations.name,
-            })
-            .from(buildings)
-            .innerJoin(organizations, eq(buildings.organizationId, organizations.id))
-            .where(
-              and(
-                eq(buildings.isActive, true),
-                inArray(buildings.organizationId, user.organizations)
-              )
-            )
-            .orderBy(organizations.name, buildings.name);
+          return res.json([]);
         }
+      } else {
+        result = await getBuildingsByOrganizationIds(user.organizations);
       }
-
-      const result = await buildingsQuery;
 
       res.json(result);
     } catch (error: any) {
@@ -327,15 +117,7 @@ export function registerBuildingRoutes(app: Express): void {
    * - Manager: Can see all buildings in their organization + buildings where they have residences
    * - Resident/Tenant: Can see only buildings where they have residences (role is not used, only residence links).
    */
-  app.get('/api/manager/buildings', async (req: any, res) => {
-    // Authentication check
-    if (!req.session?.userId && !req.session?.user) {
-      return res.status(401).json({
-        message: 'Authentication required',
-        code: 'AUTH_REQUIRED',
-      });
-    }
-
+  app.get('/api/manager/buildings', requireAuth, async (req: any, res) => {
     try {
       // Check for organizationId filter parameter
       const organizationIdFilter = req.query.organizationId as string;
@@ -641,8 +423,26 @@ export function registerBuildingRoutes(app: Express): void {
       // CRITICAL FIX: Skip statistics processing to avoid async errors
       // Just return buildings directly without complex statistics calculation
       
+      // Get common spaces count for all accessible buildings
+      const accessibleBuildingIds = accessibleBuildings.map(b => b.id);
+      const commonSpacesCounts = accessibleBuildingIds.length > 0 ? await db
+        .select({
+          buildingId: commonSpaces.buildingId,
+          count: count(commonSpaces.id),
+        })
+        .from(commonSpaces)
+        .where(inArray(commonSpaces.buildingId, accessibleBuildingIds))
+        .groupBy(commonSpaces.buildingId) : [];
+      
+      // Create a map for quick lookup
+      const commonSpacesCountMap = new Map<string, number>();
+      commonSpacesCounts.forEach(item => {
+        commonSpacesCountMap.set(item.buildingId, Number(item.count));
+      });
+      
       const buildingsWithStats = accessibleBuildings.map(building => ({
         ...building,
+        commonSpacesCount: commonSpacesCountMap.get(building.id) || 0,
         statistics: {
           totalUnits: building.totalUnits || 0,
           occupiedUnits: 0,
@@ -784,6 +584,7 @@ export function registerBuildingRoutes(app: Express): void {
           storageSpaces: buildings.storageSpaces,
           amenities: buildings.amenities,
           managementCompany: buildings.managementCompany,
+          financialYearStart: buildings.financialYearStart,
           organizationId: buildings.organizationId,
           isActive: buildings.isActive,
           createdAt: buildings.createdAt,
@@ -919,89 +720,35 @@ export function registerBuildingRoutes(app: Express): void {
         });
       }
 
-      // Create building with ID
-      const buildingId = crypto.randomUUID();
-
-      const newBuilding = await db
-        .insert(buildings)
-        .values({
-          id: buildingId,
-          name: buildingData.name,
-          address: buildingData.address || '',
-          city: buildingData.city || '',
-          province: buildingData.province || 'QC',
-          postalCode: buildingData.postalCode || '',
-          buildingType: buildingData.buildingType || 'condo',
-          constructionDate: buildingData.constructionDate,
-          totalUnits: buildingData.totalUnits || 0,
-          totalFloors: buildingData.totalFloors,
-          parkingSpaces: buildingData.parkingSpaces,
-          storageSpaces: buildingData.storageSpaces,
-          amenities: buildingData.amenities ? JSON.stringify(buildingData.amenities) : null,
-          managementCompany: buildingData.managementCompany,
-          organizationId: buildingData.organizationId,
-          isActive: true,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        })
-        .returning();
-
-
-      // Building storage hierarchy will be created automatically when documents are uploaded
-      // console.log('Building created - storage hierarchy will be created on first document upload');
-
-      // Auto-generate residences if totalUnits is specified and <= 300
-      if (
-        buildingData.totalUnits &&
-        buildingData.totalUnits > 0 &&
-        buildingData.totalUnits <= 300
-      ) {
-        try {
-          const totalUnits = buildingData.totalUnits;
-          const totalFloors = buildingData.totalFloors || 1;
-          const unitsPerFloor = Math.ceil(totalUnits / totalFloors);
-
-          const residencesToCreate = [];
-          for (let unit = 1; unit <= totalUnits; unit++) {
-            const floor = Math.ceil(unit / unitsPerFloor);
-            const unitOnFloor = ((unit - 1) % unitsPerFloor) + 1;
-            const unitNumber = `${floor}${unitOnFloor.toString().padStart(2, '0')}`;
-
-            residencesToCreate.push({
-              buildingId: buildingId,
-              unitNumber,
-              floor,
-              isActive: true,
-            });
-          }
-
-          // Insert all residences at once
-          const createdResidences = await db
-            .insert(residences)
-            .values(residencesToCreate)
-            .returning();
-
-          // console.log(`✅ Auto-generated ${createdResidences.length} residences for building ${buildingId}`);
-
-          // NOTE: Object storage service integration is planned but not yet implemented.
-          // Storage hierarchy will be created automatically when documents are uploaded.
-          // Future: Object storage service integration
-          // for (const residence of createdResidences) {
-          //   await objectStorageService.createResidenceHierarchy(
-          //     buildingData.organizationId,
-          //     buildingId,
-          //     residence.id
-          //   );
-          // }
-        } catch (___residenceError) {
-          // console.error('⚠️ Error auto-generating residences:', ___residenceError);
-          // Don't fail the building creation if residence generation fails
-        }
-      }
+      // Delegate to the transaction-aware `createBuilding` helper so the
+      // building row insert and the auto-generated residence rows commit
+      // (or roll back) together. Previously the residence generation
+      // ran in a separate statement wrapped in its own try/catch that
+      // silently swallowed failures, which could leave a brand-new
+      // building with `totalUnits: N` but zero residence rows. Task #182
+      // brings the create path in line with the all-or-nothing guarantee
+      // that Task #172 added to the edit path.
+      const { createBuilding } = await import('./buildings/operations');
+      const newBuilding = await createBuilding({
+        name: buildingData.name,
+        address: buildingData.address,
+        city: buildingData.city,
+        province: buildingData.province,
+        postalCode: buildingData.postalCode,
+        buildingType: buildingData.buildingType,
+        constructionDate: buildingData.constructionDate,
+        totalUnits: buildingData.totalUnits,
+        totalFloors: buildingData.totalFloors,
+        parkingSpaces: buildingData.parkingSpaces,
+        storageSpaces: buildingData.storageSpaces,
+        amenities: buildingData.amenities,
+        managementCompany: buildingData.managementCompany,
+        organizationId: buildingData.organizationId,
+      });
 
       res.status(201).json({
         message: 'Building created successfully',
-        building: newBuilding[0],
+        building: newBuilding,
       });
     } catch (error: any) {
       // console.error('❌ Error creating building:', error);
@@ -1016,8 +763,7 @@ export function registerBuildingRoutes(app: Express): void {
    * GET /api/buildings/:id/residences-for-deletion - Get list of residences that can be selected for deletion
    * Only admins can access this endpoint
    */
-  app.get('/api/buildings/:id/residences-for-deletion', requireAuth, async (req: any, res) => {
-    try {
+  app.get('/api/buildings/:id/residences-for-deletion', requireAuth, asyncHandler(async (req: any, res) => {
       const user = req.user;
       const buildingId = req.params.id;
       const maxToSelect = parseInt(req.query.maxToSelect as string) || 10;
@@ -1038,11 +784,7 @@ export function registerBuildingRoutes(app: Express): void {
         residences: residencesToSelect,
         message: `Found ${residencesToSelect.length} residences available for deletion`
       });
-    } catch (error: any) {
-      // console.error('❌ Error fetching residences for deletion:', error);
-      res.status(500).json({ message: 'Failed to fetch residences for deletion' });
-    }
-  });
+    }, { errorMessage: 'Failed to fetch residences for deletion' }));
 
   /**
    * DELETE /api/buildings/:id/residences - Delete selected residences
@@ -1077,8 +819,11 @@ export function registerBuildingRoutes(app: Express): void {
         message: `Successfully deleted ${result.deletedCount} residences and ${result.documentsDeleted} associated documents`
       });
     } catch (error: any) {
-      // console.error('❌ Error deleting residences:', error);
-      res.status(500).json({ message: error.message || 'Failed to delete residences' });
+      console.error('❌ Error deleting residences:', error);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to delete residences',
+      });
     }
   });
 
@@ -1140,71 +885,94 @@ export function registerBuildingRoutes(app: Express): void {
 
       // console.log(`🔄 Building ${buildingId}: ${previousTotalUnits} → ${newTotalUnits} units (currently has ${currentResidenceCount} active residences)`);
 
-      // Update building
-      const updatedBuilding = await db
-        .update(buildings)
-        .set({
-          name: buildingData.name,
-          address: buildingData.address || '',
-          city: buildingData.city || '',
-          province: buildingData.province || 'QC',
-          postalCode: buildingData.postalCode || '',
-          buildingType: buildingData.buildingType || 'condo',
-          constructionDate: buildingData.constructionDate,
-          totalUnits: newTotalUnits,
-          totalFloors: buildingData.totalFloors,
-          parkingSpaces: buildingData.parkingSpaces,
-          storageSpaces: buildingData.storageSpaces,
-          amenities: buildingData.amenities ? JSON.stringify(buildingData.amenities) : null,
-          managementCompany: buildingData.managementCompany,
-          organizationId: buildingData.organizationId,
-          updatedAt: new Date(),
-        })
-        .where(eq(buildings.id, buildingId))
-        .returning();
-
-      // Handle residence count changes with new admin-only functionality
-      if (newTotalUnits !== previousTotalUnits) {
-        // console.log(`🏠 Building units changed from ${previousTotalUnits} to ${newTotalUnits}, adjusting residences...`);
-        
-        // Only admins can adjust residence counts
-        if (currentUser.role !== 'admin') {
-          return res.status(403).json({
-            message: 'Only admins can increase or decrease building residence counts',
-            code: 'ADMIN_REQUIRED_FOR_RESIDENCE_CHANGES',
-          });
-        }
-
-        const { adjustResidenceCount } = await import('./buildings/operations');
-        const adjustmentResult = await adjustResidenceCount(
-          buildingId,
-          existingBuilding[0].organizationId,
-          newTotalUnits,
-          previousTotalUnits,
-          buildingData.totalFloors || existingBuilding[0].totalFloors || 1
-        );
-
-        // If residences need to be decreased, return the selection list to user
-        if (adjustmentResult.action === 'decreased' && adjustmentResult.residencesToSelect) {
-          return res.json({
-            message: 'Building updated, but residence count needs to be reduced',
-            buildingUpdated: true,
-            needsResidenceSelection: true,
-            residencesToSelect: adjustmentResult.residencesToSelect,
-            instruction: `Please select ${previousTotalUnits - newTotalUnits} residences to delete from the list provided. Use DELETE /api/buildings/${buildingId}/residences with the selected residence IDs.`
-          });
-        }
+      // Enforce the admin-only restriction *before* opening a
+      // transaction so we don't have to roll one back just to honour
+      // an authorization rule.
+      if (newTotalUnits !== previousTotalUnits && currentUser.role !== 'admin') {
+        return res.status(403).json({
+          message: 'Only admins can increase or decrease building residence counts',
+          code: 'ADMIN_REQUIRED_FOR_RESIDENCE_CHANGES',
+        });
       }
 
+      const { adjustResidenceCount } = await import('./buildings/operations');
+
+      // Run the building row update *and* the residence-count
+      // adjustment inside a single transaction. Previously the two
+      // were issued back-to-back against the top-level `db`, so a
+      // failure inside `adjustResidenceCount` (e.g. a constraint
+      // violation while inserting new residence rows) would leave
+      // `buildings.totalUnits` already updated but the residence
+      // rows missing — exactly the drift Task #172 is closing.
+      const { updatedBuilding, adjustmentResult } = await db.transaction(async (tx) => {
+        const updated = await tx
+          .update(buildings)
+          .set({
+            name: buildingData.name,
+            address: buildingData.address || '',
+            city: buildingData.city || '',
+            province: buildingData.province || 'QC',
+            postalCode: buildingData.postalCode || '',
+            buildingType: buildingData.buildingType || 'condo',
+            constructionDate: buildingData.constructionDate,
+            totalUnits: newTotalUnits,
+            totalFloors: buildingData.totalFloors,
+            parkingSpaces: buildingData.parkingSpaces,
+            storageSpaces: buildingData.storageSpaces,
+            amenities: buildingData.amenities ? JSON.stringify(buildingData.amenities) : null,
+            managementCompany: buildingData.managementCompany,
+            organizationId: buildingData.organizationId,
+            updatedAt: new Date(),
+          })
+          .where(eq(buildings.id, buildingId))
+          .returning();
+
+        let adjustment: Awaited<ReturnType<typeof adjustResidenceCount>> | null = null;
+        if (newTotalUnits !== previousTotalUnits) {
+          adjustment = await adjustResidenceCount(
+            buildingId,
+            existingBuilding[0].organizationId,
+            newTotalUnits,
+            previousTotalUnits,
+            buildingData.totalFloors || existingBuilding[0].totalFloors || 1,
+            tx
+          );
+        }
+
+        return { updatedBuilding: updated, adjustmentResult: adjustment };
+      });
+
+      // If residences need to be decreased, return the selection list to user
+      if (
+        adjustmentResult &&
+        adjustmentResult.action === 'decreased' &&
+        adjustmentResult.residencesToSelect
+      ) {
+        return res.json({
+          message: 'Building updated, but residence count needs to be reduced',
+          buildingUpdated: true,
+          needsResidenceSelection: true,
+          residencesToSelect: adjustmentResult.residencesToSelect,
+          instruction: `Please select ${previousTotalUnits - newTotalUnits} residences to delete from the list provided. Use DELETE /api/buildings/${buildingId}/residences with the selected residence IDs.`,
+        });
+      }
 
       res.json({
         message: 'Building updated successfully',
         building: updatedBuilding[0],
       });
     } catch (error: any) {
-      // console.error('❌ Error updating building:', error);
+      // The transaction has already rolled back at this point, so the
+      // building row + residence rows are guaranteed to be back to
+      // their pre-edit state. Surface a real (non-success) status so
+      // admins actually notice the failure instead of getting a
+      // misleading "success" with stale unit counts. The underlying
+      // error.message is intentionally NOT echoed back over the wire
+      // — we log it server-side for diagnostics and return a
+      // sanitized message to the client.
+      console.error('❌ Error updating building:', error);
       res.status(500).json({
-        _error: 'Internal server error',
+        error: 'Internal server error',
         message: 'Failed to update building',
       });
     }
@@ -1413,11 +1181,24 @@ export function registerBuildingRoutes(app: Express): void {
               or(eq(documents.buildingId, buildingId), inArray(documents.residenceId, residenceIds))
             );
 
-          // 3. Soft delete user-residence relationships
+          // 3. Soft delete user-residence relationships.
+          // Per Task #144 contract on `userResidences`: when ending a
+          // residency, set both `isActive: false` and `endDate: today`
+          // so the informational `endDate` stays aligned with the
+          // canonical `isActive` flag (reads only consult `isActive`).
           await tx
             .update(userResidences)
-            .set({ isActive: false, updatedAt: new Date() })
-            .where(inArray(userResidences.residenceId, residenceIds));
+            .set({
+              isActive: false,
+              endDate: new Date().toISOString().split('T')[0],
+              updatedAt: new Date(),
+            })
+            .where(
+              and(
+                inArray(userResidences.residenceId, residenceIds),
+                eq(userResidences.isActive, true)
+              )
+            );
 
           // 4. DISABLED: User deletion prohibited for data safety
           const orphanedUsers = await tx
@@ -1575,7 +1356,10 @@ export function registerBuildingRoutes(app: Express): void {
               eq(residences.isActive, true)
             )
           )
-          .orderBy(residences.unitNumber);
+          .orderBy(
+            sql`CASE WHEN ${residences.unitNumber} ~ '^[0-9]+$' THEN ${residences.unitNumber}::integer ELSE NULL END NULLS LAST`,
+            sql`${residences.unitNumber}`
+          );
       } else {
         // Non-admin users can only see residences they have access to
         residencesQuery = db
@@ -1615,7 +1399,10 @@ export function registerBuildingRoutes(app: Express): void {
               )
             )
           )
-          .orderBy(residences.unitNumber);
+          .orderBy(
+            sql`CASE WHEN ${residences.unitNumber} ~ '^[0-9]+$' THEN ${residences.unitNumber}::integer ELSE NULL END NULLS LAST`,
+            sql`${residences.unitNumber}`
+          );
       }
 
       const residencesList = await residencesQuery;
@@ -1636,7 +1423,11 @@ export function registerBuildingRoutes(app: Express): void {
 
       res.json(residencesWithBuildingName);
     } catch (error: any) {
-      // console.error('❌ Error fetching building residences:', error);
+      // Always log so production failures are visible in deployment logs.
+      console.error('❌ Error fetching building residences:', error?.message || error);
+      if (process.env.NODE_ENV === 'development' && error?.stack) {
+        console.error(error.stack);
+      }
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to fetch residences for building',

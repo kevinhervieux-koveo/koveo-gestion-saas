@@ -130,25 +130,12 @@ export function UserResidencesTab({
       return []; // No buildings selected, no residences to show
     }
 
-    // Filter residences based on selected buildings and user access
-    const availableResidences = residences.filter(residence => {
-      // Must be in a selected building (strict cascading filter)
-      if (!selectedBuildingIds.includes(residence.buildingId)) {
-        return false;
-      }
-      
-      // Admin can access all residences
-      if (currentUser?.role === 'admin') return true;
-      
-      // Managers can assign any residence from their organization(s)
-      if (currentUser?.role === 'manager' || currentUser?.role === 'demo_manager') {
-        const building = buildingLookup.get(residence.buildingId);
-        return building && currentUserOrganizationIds.includes(building.organizationId);
-      }
-      
-      // Other users can only assign residences they have access to
-      return currentUserResidenceIds.includes(residence.id);
-    });
+    // The backend /api/residences endpoint already enforces RBAC and only
+    // returns residences the current user is permitted to see. Here we
+    // only apply the cascading filter against the user's selected buildings.
+    const availableResidences = residences.filter(residence =>
+      selectedBuildingIds.includes(residence.buildingId)
+    );
 
     // Group by organization and building
     const grouped = availableResidences.reduce((acc, residence) => {

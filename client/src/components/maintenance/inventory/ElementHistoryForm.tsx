@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo, ReactNode } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
+import { useCreateUpdateMutation } from '@/lib/common-hooks';
 import { format, addYears, parseISO } from 'date-fns';
 import { z } from 'zod';
 import {
@@ -32,8 +33,7 @@ import { Separator } from '@/components/ui/separator';
 import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useBuildingContext } from '@/hooks/use-building-context';
-import { useToast } from '@/hooks/use-toast';
-import { apiRequest, queryClient } from '@/lib/queryClient';
+import { apiRequest } from '@/lib/queryClient';
 import { BuildingElement } from '@shared/schemas/maintenance';
 import { cn } from '@/lib/utils';
 import {
@@ -109,7 +109,6 @@ export function ElementHistoryForm({
   mode = historyEntry ? 'edit' : 'create',
 }: ElementHistoryFormProps) {
   const { buildingId } = useBuildingContext();
-  const { toast } = useToast();
   const [eventDate, setEventDate] = useState<Date | undefined>();
   const [autoCalculateLifespan, setAutoCalculateLifespan] = useState(true);
 
@@ -263,8 +262,8 @@ export function ElementHistoryForm({
   }, [selectedEventType, autoCalculateLifespan, eventTypeConfig, form]);
 
   // Create/update mutation
-  const mutation = useMutation({
-    mutationFn: async (data: ElementHistoryFormData) => {
+  const mutation = useCreateUpdateMutation<any, ElementHistoryFormData>({
+    mutationFn: async (data) => {
       const payload = {
         ...data,
         eventDate: eventDate ? format(eventDate, 'yyyy-MM-dd') : data.eventDate,
@@ -283,23 +282,17 @@ export function ElementHistoryForm({
         return await response.json();
       }
     },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/maintenance/elements', element.id, 'history'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/maintenance/buildings', buildingId, 'elements'] });
+    queryKeysToInvalidate: [
+      ['/api/maintenance/elements', element.id, 'history'],
+      ['/api/maintenance/buildings', buildingId, 'elements'],
+    ],
+    successTitle: mode === 'create' ? 'History entry created' : 'History entry updated',
+    successMessage: `The maintenance history has been ${mode === 'create' ? 'recorded' : 'updated'} successfully`,
+    errorTitle: mode === 'create' ? 'Creation failed' : 'Update failed',
+    errorMessage: (error: any) => error?.message || `Failed to ${mode} history entry`,
+    onSuccessCallback: (data) => {
       onSuccess?.(data.historyEntry);
       onOpenChange(false);
-      
-      toast({
-        title: mode === 'create' ? 'History entry created' : 'History entry updated',
-        description: `The maintenance history has been ${mode === 'create' ? 'recorded' : 'updated'} successfully`,
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: mode === 'create' ? 'Creation failed' : 'Update failed',
-        description: error.message || `Failed to ${mode} history entry`,
-        variant: 'destructive',
-      });
     },
   });
 

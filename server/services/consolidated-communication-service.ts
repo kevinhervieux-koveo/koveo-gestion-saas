@@ -20,6 +20,7 @@ import { db } from '../db';
 import { BaseService } from './_base/base-service';
 import { notifications, users, invitations, invitationAuditLog, type InsertNotification } from '@shared/schema';
 import * as schema from '@shared/schema';
+import { maskEmail } from '../utils/logger';
 
 // Interfaces for communication operations
 interface MeetingData {
@@ -28,6 +29,8 @@ interface MeetingData {
   location: string;
   scheduledDate: Date;
   duration: number; // in minutes
+  organizerName: string;
+  organizerEmail: string;
   organizationName?: string;
   attendeeEmails?: string[];
 }
@@ -47,7 +50,8 @@ interface EmailTemplate {
 }
 
 export class ConsolidatedCommunicationService extends BaseService {
-  private _mailService: MailService | null = null;
+  private mailService: MailService | null = null;
+  private emailEnabled: boolean = false;
   private fromEmail: string = 'info@koveo-gestion.com';
   private fromName: string = 'Koveo Gestion';
 
@@ -56,21 +60,25 @@ export class ConsolidatedCommunicationService extends BaseService {
 
     if (!process.env.SENDGRID_API_KEY) {
       console.warn(
-        '[ConsolidatedCommunicationService] SENDGRID_API_KEY is not set — email sending is disabled. ' +
-          'Set the SENDGRID_API_KEY secret to enable transactional emails.',
+        '⚠️ Email service disabled: SENDGRID_API_KEY environment variable is not set. Email-sending operations will be skipped.'
       );
       return;
     }
 
-    this._mailService = new MailService();
-    this._mailService.setApiKey(process.env.SENDGRID_API_KEY);
+    this.mailService = new MailService();
+    this.mailService.setApiKey(process.env.SENDGRID_API_KEY);
+    this.emailEnabled = true;
   }
 
-  private get mailService(): MailService {
-    if (!this._mailService) {
-      throw new Error('SENDGRID_API_KEY environment variable must be set');
+  private async sendMail(payload: Parameters<MailService['send']>[0]): Promise<boolean> {
+    if (!this.emailEnabled || !this.mailService) {
+      console.warn(
+        '⚠️ Email service disabled: skipping email send (SENDGRID_API_KEY is not configured).'
+      );
+      return false;
     }
-    return this._mailService;
+    await this.mailService.send(payload);
+    return true;
   }
 
   // ====================
@@ -223,7 +231,7 @@ export class ConsolidatedCommunicationService extends BaseService {
         .replace(/\{resetUrl\}/g, resetUrl);
 
       try {
-        await this.mailService.send({
+        await this.sendMail({
           to,
           from: {
             email: this.fromEmail,
@@ -293,7 +301,7 @@ export class ConsolidatedCommunicationService extends BaseService {
         .replace(/\{unsubscribeUrl\}/g, unsubscribeUrl);
 
       try {
-        await this.mailService.send({
+        await this.sendMail({
           to,
           from: {
             email: this.fromEmail,
@@ -355,7 +363,7 @@ export class ConsolidatedCommunicationService extends BaseService {
         .replace(/\{unsubscribeUrl\}/g, unsubscribeUrl);
 
       try {
-        await this.mailService.send({
+        await this.sendMail({
           to,
           from: {
             email: this.fromEmail,
@@ -419,7 +427,7 @@ export class ConsolidatedCommunicationService extends BaseService {
           .replace(/\{calendarInstructions\}/g, calendarInstructionsText);
 
         try {
-          await this.mailService.send({
+          await this.sendMail({
             to: email,
             from: {
               email: this.fromEmail,
@@ -453,6 +461,82 @@ export class ConsolidatedCommunicationService extends BaseService {
       }
 
       return true;
+    });
+  }
+
+  /**
+   * Send combined test email with multiple notification examples
+   */
+  async sendCombinedTestEmail(
+    notificationsData: Array<{ type: string; title: string; message: string }>,
+    organizationName: string,
+    recipients: Array<{ email: string; name: string; language: 'fr' | 'en' }>
+  ): Promise<boolean> {
+    return this.executeWithErrorHandling('sendCombinedTestEmail', async () => {
+      let allSuccess = true;
+
+      for (const recipient of recipients) {
+        const templates = this.getCombinedTestEmailTemplates();
+        const template = templates[recipient.language];
+
+        const notificationsHTML = notificationsData
+          .map((notification) => {
+            return `
+              <div style="background: white; padding: 20px; border-radius: 6px; margin-bottom: 15px; border-left: 4px solid #2563eb;">
+                <h3 style="color: #374151; margin: 0 0 10px 0; font-size: 16px;">${notification.title}</h3>
+                <p style="color: #6b7280; margin: 0; font-size: 14px;">${notification.message}</p>
+              </div>
+            `;
+          })
+          .join('');
+
+        const notificationsText = notificationsData
+          .map((notification) => {
+            return `${notification.title}\n${notification.message}\n`;
+          })
+          .join('\n---\n\n');
+
+        const htmlContent = template.html
+          .replace(/\{recipientName\}/g, recipient.name)
+          .replace(/\{organizationName\}/g, organizationName)
+          .replace(/\{notifications\}/g, notificationsHTML)
+          .replace(/\{notificationCount\}/g, notificationsData.length.toString());
+
+        const textContent = template.text
+          .replace(/\{recipientName\}/g, recipient.name)
+          .replace(/\{organizationName\}/g, organizationName)
+          .replace(/\{notifications\}/g, notificationsText)
+          .replace(/\{notificationCount\}/g, notificationsData.length.toString());
+
+        try {
+          await this.sendMail({
+            to: recipient.email,
+            from: {
+              email: this.fromEmail,
+              name: this.fromName,
+            },
+            subject: template.subject.replace(/\{organizationName\}/g, organizationName),
+            html: htmlContent,
+            text: textContent,
+            trackingSettings: {
+              clickTracking: {
+                enable: false,
+              },
+              openTracking: {
+                enable: false,
+              },
+            },
+          });
+
+          console.log(`✅ Combined test email sent successfully to ${maskEmail(recipient.email)}`);
+        } catch (error: any) {
+          console.error(`❌ Failed to send combined test email to ${maskEmail(recipient.email)}:`, error);
+          console.error(`❌ Error details:`, error.response?.body || error.message);
+          allSuccess = false;
+        }
+      }
+
+      return allSuccess;
     });
   }
 
@@ -701,7 +785,10 @@ ${isFrench
    */
   generateUnsubscribeToken(email: string): string {
     const crypto = require('crypto');
-    const secret = process.env.UNSUBSCRIBE_SECRET || 'default-secret';
+    const secret = process.env.UNSUBSCRIBE_SECRET;
+    if (!secret) {
+      throw new Error('UNSUBSCRIBE_SECRET environment variable is required for secure token generation');
+    }
     return crypto.createHmac('sha256', secret).update(email).digest('hex');
   }
 
@@ -1171,6 +1258,111 @@ ${isFrench
           {calendarInstructions}
           
           {organizationName} via Koveo Gestion
+        `
+      }
+    };
+  }
+
+  private getCombinedTestEmailTemplates() {
+    return {
+      fr: {
+        subject: 'Aperçu des notifications - {organizationName}',
+        html: `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="UTF-8">
+            <title>Aperçu des notifications</title>
+          </head>
+          <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="background: #f8f9fa; padding: 30px; border-radius: 8px;">
+              <h1 style="color: #2563eb; margin-bottom: 20px;">Koveo Gestion</h1>
+              
+              <h2 style="color: #374151;">Aperçu des notifications</h2>
+              
+              <p>Bonjour {recipientName},</p>
+              
+              <p>Voici un aperçu de vos {notificationCount} types de notifications activés pour {organizationName}:</p>
+              
+              {notifications}
+              
+              <div style="background: #eff6ff; padding: 15px; border-radius: 6px; margin-top: 20px;">
+                <p style="color: #1e40af; margin: 0; font-size: 14px;">
+                  <strong>Note:</strong> Ceci est un email de test. Les notifications réelles contiendront des informations spécifiques à votre organisation.
+                </p>
+              </div>
+              
+              <div style="border-top: 1px solid #e5e7eb; margin-top: 30px; padding-top: 20px; color: #6b7280; font-size: 12px;">
+                <p><strong>{organizationName}</strong> via Koveo Gestion</p>
+                <p>Conforme à la Loi 25 du Québec - Cet email ne fait pas l'objet de suivi pour protéger votre vie privée.</p>
+              </div>
+            </div>
+          </body>
+          </html>
+        `,
+        text: `
+          Aperçu des notifications - {organizationName}
+          
+          Bonjour {recipientName},
+          
+          Voici un aperçu de vos {notificationCount} types de notifications activés pour {organizationName}:
+          
+          {notifications}
+          
+          Note: Ceci est un email de test. Les notifications réelles contiendront des informations spécifiques à votre organisation.
+          
+          {organizationName} via Koveo Gestion
+          Conforme à la Loi 25 du Québec - Cet email ne fait pas l'objet de suivi pour protéger votre vie privée.
+        `
+      },
+      en: {
+        subject: 'Notification Preview - {organizationName}',
+        html: `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="UTF-8">
+            <title>Notification Preview</title>
+          </head>
+          <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="background: #f8f9fa; padding: 30px; border-radius: 8px;">
+              <h1 style="color: #2563eb; margin-bottom: 20px;">Koveo Gestion</h1>
+              
+              <h2 style="color: #374151;">Notification Preview</h2>
+              
+              <p>Hello {recipientName},</p>
+              
+              <p>Here's a preview of your {notificationCount} enabled notification types for {organizationName}:</p>
+              
+              {notifications}
+              
+              <div style="background: #eff6ff; padding: 15px; border-radius: 6px; margin-top: 20px;">
+                <p style="color: #1e40af; margin: 0; font-size: 14px;">
+                  <strong>Note:</strong> This is a test email. Real notifications will contain information specific to your organization.
+                </p>
+              </div>
+              
+              <div style="border-top: 1px solid #e5e7eb; margin-top: 30px; padding-top: 20px; color: #6b7280; font-size: 12px;">
+                <p><strong>{organizationName}</strong> via Koveo Gestion</p>
+                <p>Quebec Law 25 Compliant - This email is not tracked to protect your privacy.</p>
+              </div>
+            </div>
+          </body>
+          </html>
+        `,
+        text: `
+          Notification Preview - {organizationName}
+          
+          Hello {recipientName},
+          
+          Here's a preview of your {notificationCount} enabled notification types for {organizationName}:
+          
+          {notifications}
+          
+          Note: This is a test email. Real notifications will contain information specific to your organization.
+          
+          {organizationName} via Koveo Gestion
+          Quebec Law 25 Compliant - This email is not tracked to protect your privacy.
         `
       }
     };

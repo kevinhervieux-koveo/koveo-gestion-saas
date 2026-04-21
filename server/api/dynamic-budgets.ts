@@ -45,9 +45,6 @@ router.get('/:buildingId', requireAuth, async (req, res) => {
     const endDate = `${endYearNum}-12-31`;
     const shouldForceRefresh = forceRefresh === 'true';
 
-      `📊 Financial data request for building ${buildingId}, ${startDate} to ${endDate}`
-    );
-
     // Get financial data using dynamic calculator
     const financialData = await dynamicFinancialCalculator.getFinancialData(
       buildingId,
@@ -78,6 +75,7 @@ router.get('/:buildingId', requireAuth, async (req, res) => {
         cached: !shouldForceRefresh,
       },
     });
+  } catch (error) {
     res.status(500).json({
       _error: 'Failed to get financial data',
       message: error instanceof Error ? error.message : 'Unknown error',
@@ -127,6 +125,7 @@ router.get('/summary', requireAuth, async (req, res) => {
           success: true,
           ...data.summary,
         };
+      } catch (error) {
         return {
           buildingId: buildingId.trim(),
           success: false,
@@ -170,6 +169,7 @@ router.get('/summary', requireAuth, async (req, res) => {
         generatedAt: new Date().toISOString(),
       },
     });
+  } catch (error) {
     res.status(500).json({
       _error: 'Failed to get financial summary',
       message: error instanceof Error ? error.message : 'Unknown error',
@@ -195,6 +195,7 @@ router.delete(
         success: true,
         message: `Cache invalidated for building ${buildingId}`,
       });
+    } catch (error) {
       res.status(500).json({
         _error: 'Failed to invalidate cache',
         message: error instanceof Error ? error.message : 'Unknown error',
@@ -216,6 +217,7 @@ router.get('/cache/stats', requireAuth, requireRole(['admin']), async (req, res)
       _data: stats,
       generatedAt: new Date().toISOString(),
     });
+  } catch (error) {
     res.status(500).json({
       _error: 'Failed to get cache statistics',
       message: error instanceof Error ? error.message : 'Unknown error',
@@ -241,6 +243,7 @@ router.post(
         success: true,
         message: `Cache refreshed for building ${buildingId}`,
       });
+    } catch (error) {
       res.status(500).json({
         _error: 'Failed to refresh cache',
         message: error instanceof Error ? error.message : 'Unknown error',
@@ -285,12 +288,12 @@ function transformToYearlyData(financialData: unknown) {
     yearData.monthCount += 1;
 
     // Aggregate categories
-    for (const [_category, amount] of Object.entries(monthData.incomeByCategory || {})) {
+    for (const [category, amount] of Object.entries(monthData.incomeByCategory || {})) {
       yearData.incomeByCategory[category] =
         (yearData.incomeByCategory[category] || 0) + (amount as number);
     }
 
-    for (const [_category, amount] of Object.entries(monthData.expensesByCategory || {})) {
+    for (const [category, amount] of Object.entries(monthData.expensesByCategory || {})) {
       yearData.expensesByCategory[category] =
         (yearData.expensesByCategory[category] || 0) + (amount as number);
     }

@@ -10,6 +10,7 @@ import {
 import { eq, and } from 'drizzle-orm';
 import { requireAuth } from '../auth/index';
 
+import { asyncHandler } from '../utils/async-handler';
 /**
  * Register contact routes for managing entity contacts.
  *
@@ -22,8 +23,7 @@ import { requireAuth } from '../auth/index';
  */
 export function registerContactRoutes(app: Express) {
   // Get contacts for a specific entity
-  app.get('/api/contacts/:entity/:entityId', requireAuth, async (req: any, res: any) => {
-    try {
+  app.get('/api/contacts/:entity/:entityId', requireAuth, asyncHandler(async (req: any, res: any) => {
       const { entity, entityId } = req.params;
       const user = req.user;
 
@@ -45,15 +45,10 @@ export function registerContactRoutes(app: Express) {
         );
 
       res.json(entityContacts);
-    } catch (error: any) {
-      console.error('❌ Error fetching entity contacts:', error);
-      res.status(500).json({ message: 'Failed to fetch contacts' });
-    }
-  });
+    }, { errorMessage: 'Failed to fetch contacts', errorLogPrefix: '❌ Error fetching entity contacts' }));
 
   // Get contacts for a residence with access control
-  app.get('/api/residences/:residenceId/contacts', requireAuth, async (req: any, res: any) => {
-    try {
+  app.get('/api/residences/:residenceId/contacts', requireAuth, asyncHandler(async (req: any, res: any) => {
       const { residenceId } = req.params;
       const user = req.user;
 
@@ -84,15 +79,10 @@ export function registerContactRoutes(app: Express) {
         );
 
       res.json(residenceContacts);
-    } catch (error: any) {
-      console.error('❌ Error fetching residence contacts:', error);
-      res.status(500).json({ message: 'Failed to fetch residence contacts' });
-    }
-  });
+    }, { errorMessage: 'Failed to fetch residence contacts', errorLogPrefix: '❌ Error fetching residence contacts' }));
 
   // Get contacts with filtering by entity and entityId
-  app.get('/api/contacts', requireAuth, async (req: any, res: any) => {
-    try {
+  app.get('/api/contacts', requireAuth, asyncHandler(async (req: any, res: any) => {
       const { entity, entityId } = req.query;
       const user = req.user;
 
@@ -128,15 +118,10 @@ export function registerContactRoutes(app: Express) {
         );
 
       res.json(entityContacts);
-    } catch (error: any) {
-      console.error('❌ Error fetching contacts:', error);
-      res.status(500).json({ message: 'Failed to fetch contacts' });
-    }
-  });
+    }, { errorMessage: 'Failed to fetch contacts', errorLogPrefix: '❌ Error fetching contacts' }));
 
   // Create a new contact
-  app.post('/api/contacts', requireAuth, async (req: any, res: any) => {
-    try {
+  app.post('/api/contacts', requireAuth, asyncHandler(async (req: any, res: any) => {
       const user = req.user;
       const validatedData = insertContactSchema.parse(req.body);
 
@@ -191,15 +176,10 @@ export function registerContactRoutes(app: Express) {
         .returning();
 
       res.status(201).json(newContact);
-    } catch (error: any) {
-      console.error('❌ Error creating contact:', error);
-      res.status(500).json({ message: 'Failed to create contact' });
-    }
-  });
+    }, { errorMessage: 'Failed to create contact', errorLogPrefix: '❌ Error creating contact' }));
 
   // Update a contact
-  app.patch('/api/contacts/:id', requireAuth, async (req: any, res: any) => {
-    try {
+  app.patch('/api/contacts/:id', requireAuth, asyncHandler(async (req: any, res: any) => {
       const { id } = req.params;
       const user = req.user;
       const updates = req.body;
@@ -229,15 +209,10 @@ export function registerContactRoutes(app: Express) {
         .returning();
 
       res.json(updatedContact);
-    } catch (error: any) {
-      console.error('❌ Error updating contact:', error);
-      res.status(500).json({ message: 'Failed to update contact' });
-    }
-  });
+    }, { errorMessage: 'Failed to update contact', errorLogPrefix: '❌ Error updating contact' }));
 
   // Delete a contact
-  app.delete('/api/contacts/:id', requireAuth, async (req: any, res: any) => {
-    try {
+  app.delete('/api/contacts/:id', requireAuth, asyncHandler(async (req: any, res: any) => {
       const { id } = req.params;
       const user = req.user;
 
@@ -265,9 +240,5 @@ export function registerContactRoutes(app: Express) {
         .where(eq(contacts.id, id));
 
       res.json({ message: 'Contact deleted successfully' });
-    } catch (error: any) {
-      console.error('❌ Error deleting contact:', error);
-      res.status(500).json({ message: 'Failed to delete contact' });
-    }
-  });
+    }, { errorMessage: 'Failed to delete contact', errorLogPrefix: '❌ Error deleting contact' }));
 }

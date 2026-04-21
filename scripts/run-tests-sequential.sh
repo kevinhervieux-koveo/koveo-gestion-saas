@@ -90,7 +90,6 @@ echo ""
 # Phase 1: Unit Tests - Core Schema and Validation
 echo "Phase 1: Unit Tests - Schema and Validation"
 echo "==========================================="
-run_test_directory "Unit-Auth" "tests/unit/auth/" "Authentication and authorization unit tests"
 run_test_directory "Unit-Bills" "tests/unit/bills*" "Bills and payment validation tests"
 run_test_directory "Unit-Budget" "tests/unit/budget/" "Budget calculation and logic tests"
 run_test_directory "Unit-Calendar" "tests/unit/calendar/" "Calendar functionality tests"

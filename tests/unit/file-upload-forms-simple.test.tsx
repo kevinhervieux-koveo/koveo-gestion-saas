@@ -15,6 +15,11 @@ import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
 import React, { useState } from 'react';
 
+if (typeof URL.createObjectURL === 'undefined') {
+  (URL as any).createObjectURL = jest.fn(() => 'blob:mock-url');
+  (URL as any).revokeObjectURL = jest.fn();
+}
+
 // Import components for testing
 import { SharedUploader } from '../../client/src/components/document-management/SharedUploader';
 

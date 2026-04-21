@@ -1,10 +1,11 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, ArrowLeft, ArrowRight } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
+import { useStepper } from '@/lib/common-hooks';
 
 /**
  * Represents a single step in the registration wizard process.
@@ -31,6 +32,13 @@ export interface WizardStepProps {
   onNext: () => void;
   onPrevious: () => void;
   isActive: boolean;
+  /**
+   * Task #166: inline, field-level submission error forwarded from
+   * the wizard's parent (typically a `DANGEROUS_INPUT` 400 from the
+   * sanitization middleware). Steps that own the named field should
+   * render `message` under the matching input.
+   */
+  submissionError?: { fieldPath: string; message: string } | null;
 }
 
 /**
@@ -44,6 +52,17 @@ interface RegistrationWizardProps {
   onCancel: () => void;
   title?: string;
   className?: string;
+  /**
+   * Task #166: when onComplete fails with a DANGEROUS_INPUT
+   * response, the parent sets this so the wizard can jump to the
+   * step that owns the offending field and forward the
+   * field/message pair into that step.
+   */
+  submissionError?: {
+    stepId?: string;
+    fieldPath: string;
+    message: string;
+  } | null;
 }
 
 /**
@@ -67,18 +86,26 @@ export function RegistrationWizard({
   onCancel,
   title = 'Inscription',
   className = '',
+  submissionError = null,
 }: RegistrationWizardProps) {
   const { t: _t } = useLanguage();
-  const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [steps, setSteps] = useState<WizardStep[]>(initialSteps);
   const [wizardData, setWizardData] = useState(initialData);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Shared stepper hook tracks the active step, next/back navigation,
+  // and progress so registration and other wizards stay consistent.
+  const stepper = useStepper(steps.length);
+  const {
+    currentStep: currentStepIndex,
+    next: stepperNext,
+    previous: stepperPrevious,
+    isFirstStep,
+    isLastStep,
+    progress,
+  } = stepper;
+
   const currentStep = steps[currentStepIndex];
-  const isFirstStep = currentStepIndex === 0;
-  const isLastStep = currentStepIndex === steps.length - 1;
-  const completedSteps = steps.filter((step) => step.isComplete).length;
-  const progress = (completedSteps / steps.length) * 100;
 
   // Update step validation status
   const updateStepValidation = (stepId: string, isValid: boolean) => {
@@ -119,7 +146,7 @@ export function RegistrationWizard({
   const handleNext = () => {
     if (currentStep.isValid && !isLastStep) {
       updateStepCompletion(currentStep.id, true);
-      setCurrentStepIndex((prev) => prev + 1);
+      stepperNext();
     } else if (isLastStep && currentStep.isValid) {
       handleComplete();
     }
@@ -128,7 +155,7 @@ export function RegistrationWizard({
   // Navigate to previous step
   const handlePrevious = () => {
     if (!isFirstStep) {
-      setCurrentStepIndex((prev) => prev - 1);
+      stepperPrevious();
     }
   };
 
@@ -155,6 +182,17 @@ export function RegistrationWizard({
     }
   };
 
+  // Task #166: when the parent surfaces a submission error tagged with
+  // a stepId, jump there so the user lands on the screen that owns
+  // the offending field.
+  useEffect(() => {
+    if (!submissionError?.stepId) return;
+    const targetIndex = steps.findIndex((s) => s.id === submissionError.stepId);
+    if (targetIndex !== -1 && targetIndex !== currentStepIndex) {
+      stepper.goTo(targetIndex);
+    }
+  }, [submissionError?.stepId, submissionError?.fieldPath, submissionError?.message]);
+
   // Jump to specific step (only if previous steps are complete)
   const jumpToStep = (stepIndex: number) => {
     // Can only go to completed steps or the next uncompleted step
@@ -162,7 +200,7 @@ export function RegistrationWizard({
       stepIndex <= currentStepIndex || steps.slice(0, stepIndex).every((step) => step.isComplete);
 
     if (canJump) {
-      setCurrentStepIndex(stepIndex);
+      stepper.goTo(stepIndex);
     }
   };
 
@@ -246,6 +284,11 @@ export function RegistrationWizard({
               onNext={handleNext}
               onPrevious={handlePrevious}
               isActive={true}
+              submissionError={
+                submissionError && submissionError.stepId === currentStep.id
+                  ? { fieldPath: submissionError.fieldPath, message: submissionError.message }
+                  : null
+              }
             />
           </div>
 

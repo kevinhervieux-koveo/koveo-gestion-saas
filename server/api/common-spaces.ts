@@ -308,8 +308,16 @@ async function isUserBlocked(userId: string, commonSpaceId: string): Promise<boo
  * @param endTime
  * @param openingHours
  */
-function isWithinOpeningHours(startTime: Date, endTime: Date, openingHours: any[]): boolean {
-  if (!openingHours || openingHours.length === 0) {
+function isWithinOpeningHours(startTime: Date, endTime: Date, openingHours: any): boolean {
+  let hours: any = openingHours;
+  if (typeof hours === 'string') {
+    try {
+      hours = JSON.parse(hours);
+    } catch {
+      return true;
+    }
+  }
+  if (!Array.isArray(hours) || hours.length === 0) {
     return true; // No restrictions if no opening hours defined
   }
 
@@ -624,10 +632,21 @@ export function registerCommonSpacesRoutes(app: Express): void {
         });
       }
 
-      // Check opening hours
+      // Check opening hours (normalize JSONB which may arrive as string or non-array)
+      let normalizedOpeningHours: any = commonSpace.openingHours;
+      if (typeof normalizedOpeningHours === 'string') {
+        try {
+          normalizedOpeningHours = JSON.parse(normalizedOpeningHours);
+        } catch {
+          normalizedOpeningHours = [];
+        }
+      }
+      if (!Array.isArray(normalizedOpeningHours)) {
+        normalizedOpeningHours = [];
+      }
       if (
-        commonSpace.openingHours &&
-        !isWithinOpeningHours(startTime, endTime, commonSpace.openingHours as any[])
+        normalizedOpeningHours.length > 0 &&
+        !isWithinOpeningHours(startTime, endTime, normalizedOpeningHours)
       ) {
         return res.status(400).json({
           message: 'Booking time is outside opening hours',
@@ -1454,6 +1473,106 @@ export function registerCommonSpacesRoutes(app: Express): void {
         console.error('❌ Error updating common space:', error);
         res.status(500).json({
           message: 'Failed to update common space',
+          error: error instanceof Error ? error.message : 'Unknown error',
+        });
+      }
+    }
+  );
+
+  /**
+   * DELETE /api/common-spaces/:spaceId - Delete a common space (Manager/Admin only).
+   */
+  app.delete(
+    '/api/common-spaces/:spaceId',
+    requireAuth,
+    requireRole(['admin', 'manager']),
+    async (req: Request, res: Response) => {
+      try {
+        const user = req.user;
+        if (!user) {
+          return res.status(401).json({
+            message: 'Authentication required',
+            code: 'AUTH_REQUIRED',
+          });
+        }
+
+        // Validate space ID
+        const paramValidation = spaceIdSchema.safeParse(req.params);
+        if (!paramValidation.success) {
+          return res.status(400).json({
+            message: 'Invalid space ID',
+            errors: paramValidation.error.issues.map((issue) => ({
+              field: issue.path.join('.'),
+              message: issue.message,
+            })),
+          });
+        }
+
+        const { spaceId } = paramValidation.data;
+
+        // Check if space exists and get building ID
+        const space = await db
+          .select({
+            id: commonSpaces.id,
+            name: commonSpaces.name,
+            buildingId: commonSpaces.buildingId,
+          })
+          .from(commonSpaces)
+          .where(eq(commonSpaces.id, spaceId))
+          .limit(1);
+
+        if (space.length === 0) {
+          return res.status(404).json({
+            message: 'Common space not found',
+            code: 'NOT_FOUND',
+          });
+        }
+
+        // Check if user has access to this building
+        const accessibleBuildingIds = await getAccessibleBuildingIds(user);
+        if (!accessibleBuildingIds.includes(space[0].buildingId)) {
+          return res.status(403).json({
+            message: 'Access denied. You can only delete spaces in buildings you manage.',
+            code: 'INSUFFICIENT_PERMISSIONS',
+          });
+        }
+
+        // Check if there are any confirmed future bookings
+        const futureBookings = await db
+          .select({ id: bookings.id })
+          .from(bookings)
+          .where(
+            and(
+              eq(bookings.commonSpaceId, spaceId),
+              eq(bookings.status, 'confirmed'),
+              gte(bookings.startTime, new Date())
+            )
+          )
+          .limit(1);
+
+        if (futureBookings.length > 0) {
+          return res.status(409).json({
+            message: 'Cannot delete space with confirmed future bookings',
+            code: 'HAS_FUTURE_BOOKINGS',
+          });
+        }
+
+        // Delete the common space
+        await db.delete(commonSpaces).where(eq(commonSpaces.id, spaceId));
+
+        console.log(`✅ Deleted common space: ${space[0].name}`);
+
+        res.json({
+          message: 'Common space deleted successfully',
+          space: {
+            id: space[0].id,
+            name: space[0].name,
+          },
+        });
+      } catch (error: any) {
+        console.error('❌ Error deleting common space:', error);
+        res.status(500).json({
+          message: 'Failed to delete common space',
           error: error instanceof Error ? error.message : 'Unknown error',
         });
       }

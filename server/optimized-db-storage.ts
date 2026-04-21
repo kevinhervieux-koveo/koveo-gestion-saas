@@ -8,6 +8,7 @@ import { eq, desc, and, or, gte, lte, count, like, inArray, isNull, sql, notInAr
 import { db } from './db';
 import crypto from 'crypto';
 import * as schema from '@shared/schema';
+import { logDebug, logInfo, logWarn, logError } from './utils/logger';
 import type {
   User,
   InsertUser,
@@ -59,6 +60,8 @@ import { QueryOptimizer, PaginationHelper, type PaginationOptions } from './data
 import { queryCache, CacheInvalidator, withCache } from './query-cache';
 import { dbPerformanceMonitor } from './performance-monitoring';
 import { exists, sql as sqlOp } from 'drizzle-orm';
+import { ObjectStorageService } from './objectStorage';
+import { OptimizedFileStorageService } from './services/optimized-file-storage';
 
 // Database connection imported from shared db.ts
 
@@ -99,7 +102,7 @@ export class OptimizedDatabaseStorage implements IStorage {
       await QueryOptimizer.applyCoreOptimizations();
       // Database optimizations applied
     } catch (error: any) {
-      console.error('❌ Error initializing database optimizations:', error);
+      logError('Error initializing database optimizations', error);
     }
   }
 
@@ -147,7 +150,7 @@ export class OptimizedDatabaseStorage implements IStorage {
       WARN: '⚠️'
     }[level];
     
-    console.log(`[${timestamp}] ${emoji} [STORAGE ${operation.toUpperCase()}] ${level}:`, data);
+    logDebug(`[STORAGE ${operation.toUpperCase()}] ${level}`, { metadata: data });
   }
 
   /**
@@ -298,7 +301,7 @@ export class OptimizedDatabaseStorage implements IStorage {
       if (allowedRoles.includes(filters.role)) {
         sanitized.role = filters.role;
       } else {
-        console.log(`🚫 [SECURITY] Invalid role filter rejected: ${filters.role}`);
+        logWarn('[SECURITY] Invalid role filter rejected', { metadata: { role: filters.role } });
       }
     }
 
@@ -308,7 +311,7 @@ export class OptimizedDatabaseStorage implements IStorage {
       if (allowedStatuses.includes(filters.status)) {
         sanitized.status = filters.status;
       } else {
-        console.log(`🚫 [SECURITY] Invalid status filter rejected: ${filters.status}`);
+        logWarn('[SECURITY] Invalid status filter rejected', { metadata: { status: filters.status } });
       }
     }
 
@@ -318,7 +321,7 @@ export class OptimizedDatabaseStorage implements IStorage {
       if (uuidRegex.test(filters.organization.trim())) {
         sanitized.organization = filters.organization.trim();
       } else {
-        console.log(`🚫 [SECURITY] Invalid organization UUID rejected: ${filters.organization}`);
+        logWarn('[SECURITY] Invalid organization UUID rejected');
       }
     }
 
@@ -328,7 +331,7 @@ export class OptimizedDatabaseStorage implements IStorage {
       if (allowedOrphan.includes(filters.orphan)) {
         sanitized.orphan = filters.orphan;
       } else {
-        console.log(`🚫 [SECURITY] Invalid orphan filter rejected: ${filters.orphan}`);
+        logWarn('[SECURITY] Invalid orphan filter rejected', { metadata: { orphan: filters.orphan } });
       }
     }
 
@@ -338,7 +341,7 @@ export class OptimizedDatabaseStorage implements IStorage {
       if (allowedDemoOnly.includes(filters.demoOnly)) {
         sanitized.demoOnly = filters.demoOnly;
       } else {
-        console.log(`🚫 [SECURITY] Invalid demoOnly filter rejected: ${filters.demoOnly}`);
+        logWarn('[SECURITY] Invalid demoOnly filter rejected', { metadata: { demoOnly: filters.demoOnly } });
       }
     }
 
@@ -349,7 +352,7 @@ export class OptimizedDatabaseStorage implements IStorage {
       if (orgIds.length > 0) {
         sanitized.managerOrganizations = orgIds;
       } else {
-        console.log(`🚫 [SECURITY] Invalid manager organization UUIDs rejected: ${filters.managerOrganizations}`);
+        logWarn('[SECURITY] Invalid manager organization UUIDs rejected');
       }
     }
 
@@ -364,7 +367,7 @@ export class OptimizedDatabaseStorage implements IStorage {
       if (sanitizedSearch.length > 0) {
         sanitized.search = sanitizedSearch.toLowerCase();
       } else {
-        console.log(`🚫 [SECURITY] Invalid or dangerous search term rejected: ${filters.search}`);
+        logWarn('[SECURITY] Invalid or dangerous search term rejected');
       }
     }
 
@@ -610,10 +613,10 @@ export class OptimizedDatabaseStorage implements IStorage {
               : row.residences || []
           }));
         } catch (error: any) {
-          console.error('❌ Error in optimized getUsersWithAssignments:', error);
+          logError('Error in optimized getUsersWithAssignments', error);
           
           // Fallback to the original implementation if optimized query fails
-          console.log('🔄 Falling back to original implementation...');
+          logDebug('Falling back to original implementation...');
           return this.getUsersWithAssignmentsFallback();
         }
       }
@@ -638,11 +641,11 @@ export class OptimizedDatabaseStorage implements IStorage {
       'users',
       async () => {
         try {
-          console.log('🔍 [DB FILTER] Input filters:', JSON.stringify(filters, null, 2));
+          logDebug('[DB FILTER] Input filters', { metadata: filters });
           
           // SECURITY: Input validation and sanitization
           const sanitizedFilters = this.sanitizeFilters(filters);
-          console.log('🛡️ [SECURITY] Sanitized filters:', JSON.stringify(sanitizedFilters, null, 2));
+          logDebug('[SECURITY] Sanitized filters', { metadata: sanitizedFilters });
           
           // Build base conditions using Drizzle query builders (secure)
           const baseConditions = [];
@@ -757,7 +760,7 @@ export class OptimizedDatabaseStorage implements IStorage {
 
           const countResult = await countQuery;
           const total = countResult[0]?.count || 0;
-          console.log('📊 [COUNT RESULT]:', total);
+          logDebug('[COUNT RESULT]', { metadata: { total } });
 
           // Main query using secure parameterized CTE approach
           const mainQuery = sql`
@@ -843,9 +846,9 @@ export class OptimizedDatabaseStorage implements IStorage {
             LIMIT ${sql.raw(limit.toString())} OFFSET ${sql.raw(offset.toString())}
           `;
           
-          console.log('📊 [SECURE MAIN QUERY] Built with parameterized conditions');
+          logDebug('[SECURE MAIN QUERY] Built with parameterized conditions');
           const result = await db.execute(mainQuery);
-          console.log('📊 [MAIN RESULT]:', result.rows.length, 'users found');
+          logDebug('[MAIN RESULT] Users found', { metadata: { count: result.rows.length } });
 
           // Transform the raw SQL result to match the expected TypeScript types
           const users = result.rows.map((row: any) => ({
@@ -860,6 +863,7 @@ export class OptimizedDatabaseStorage implements IStorage {
             language: row.language,
             role: row.role,
             isActive: row.is_active,
+            notificationsStartingDate: row.notifications_starting_date,
             lastLoginAt: row.last_login_at,
             createdAt: row.created_at,
             updatedAt: row.updated_at,
@@ -876,10 +880,10 @@ export class OptimizedDatabaseStorage implements IStorage {
 
           return { users, total };
         } catch (error: any) {
-          console.error('❌ Error in optimized getUsersWithAssignmentsPaginated:', error);
+          logError('Error in optimized getUsersWithAssignmentsPaginated', error);
           
           // Fallback to paginated version of the original implementation if optimized query fails
-          console.log('🔄 Falling back to paginated original implementation...');
+          logDebug('Falling back to paginated original implementation...');
           return this.getUsersWithAssignmentsPaginatedFallback(offset, limit, filters);
         }
       }
@@ -940,7 +944,7 @@ export class OptimizedDatabaseStorage implements IStorage {
 
       return usersWithAssignments;
     } catch (error: any) {
-      console.error('❌ Critical error getting users with assignments:', error);
+      logError('Critical error getting users with assignments', error);
       // Return empty array on critical error
       return [];
     }
@@ -1003,7 +1007,7 @@ export class OptimizedDatabaseStorage implements IStorage {
             sql`LOWER(${schema.users.username}) LIKE ${searchTerm}`
           )
         );
-        console.log('🔍 [SEARCH FILTER FALLBACK] Applied search for:', filters.search.trim());
+        logDebug('[SEARCH FILTER FALLBACK] Applied search', { metadata: { search: filters.search.trim() } });
       }
 
       // Manager organizations filter
@@ -1028,7 +1032,7 @@ export class OptimizedDatabaseStorage implements IStorage {
       // Orphan filter implementation for fallback
       if (filters.orphan === 'true') {
         // Users with no organization AND no residence assignments
-        console.log('👻 [FALLBACK] Applying orphan filter: true (users with no assignments)');
+        logDebug('[FALLBACK] Applying orphan filter: true (users with no assignments)');
         
         // Users who are NOT in either organizations or residences
         whereConditions.push(
@@ -1045,7 +1049,7 @@ export class OptimizedDatabaseStorage implements IStorage {
         );
       } else if (filters.orphan === 'false') {
         // Users with at least one organization OR residence assignment
-        console.log('👻 [FALLBACK] Applying orphan filter: false (users with assignments)');
+        logDebug('[FALLBACK] Applying orphan filter: false (users with assignments)');
         
         // Users who are in at least one of these
         whereConditions.push(
@@ -1163,7 +1167,7 @@ export class OptimizedDatabaseStorage implements IStorage {
               residences: userResidences || [],
             };
           } catch (error: any) {
-            console.error('❌ Error getting user assignments:', error);
+            logError('Error getting user assignments', error);
             // Return user with empty assignments if there's an error
             return {
               ...user,
@@ -1180,7 +1184,7 @@ export class OptimizedDatabaseStorage implements IStorage {
 
       return { users: usersWithAssignments, total };
     } catch (error: any) {
-      console.error('❌ Critical error getting paginated users with assignments:', error);
+      logError('Critical error getting paginated users with assignments', error);
       // Return empty result on critical error
       return { users: [], total: 0 };
     }
@@ -1419,7 +1423,7 @@ export class OptimizedDatabaseStorage implements IStorage {
       if (isDemoRole) {
         // Use environment variable for demo password hash, with secure fallback
         password = process.env.DEMO_PASSWORD_HASH || insertUser.password;
-        console.log('🎭 Setting demo password for user with role:', insertUser.role);
+        logInfo('Setting demo password for user with role', { metadata: { role: insertUser.role } });
       }
 
       // Ensure username uniqueness with random numbers if collision occurs
@@ -1471,7 +1475,7 @@ export class OptimizedDatabaseStorage implements IStorage {
         
         return inserted;
       } catch (error: any) {
-        console.error('❌ Error creating user:', error);
+        logError('Error creating user', error);
         throw error;
       }
     });
@@ -1511,8 +1515,7 @@ export class OptimizedDatabaseStorage implements IStorage {
       // - lastLoginAt should only be updated through auth flow
       // - password should only be updated through dedicated hashing endpoint
       
-      console.log('🔧 [updateUser] Updating user', id, 'with fields:', Object.keys(updateFields));
-      console.log('🔧 [updateUser] Update values:', updateFields);
+      logDebug('[updateUser] Updating user', { userId: id, metadata: { fields: Object.keys(updateFields) } });
       
       return db
         .update(schema.users)
@@ -1757,6 +1760,7 @@ export class OptimizedDatabaseStorage implements IStorage {
           .where(
             and(eq(schema.userResidences.userId, userId), eq(schema.userResidences.isActive, true))
           )
+          .orderBy(schema.buildings.name, sql`CAST(${schema.residences.unitNumber} AS INTEGER)`)
     );
   }
 
@@ -2562,7 +2566,7 @@ export class OptimizedDatabaseStorage implements IStorage {
    * @param status
    */
   async getInvitationsByStatus(
-    status: 'pending' | 'accepted' | 'expired' | 'cancelled'
+    status: 'pending' | 'accepted' | 'expired' | 'cancelled' | 'replaced'
   ): Promise<Invitation[]> {
     return this.withOptimizations(
       'getInvitationsByStatus',
@@ -2865,7 +2869,7 @@ export class OptimizedDatabaseStorage implements IStorage {
         granted: row.granted
       })) || [];
     } catch (error: any) {
-      console.error('❌ Error getting user permissions:', error);
+      logError('Error getting user permissions', error);
       return [];
     }
   }
@@ -2984,6 +2988,407 @@ export class OptimizedDatabaseStorage implements IStorage {
     });
   }
 
+  async getDocumentWithScope(
+    documentId: string,
+    userId: string,
+    userRole: string,
+    organizationIds?: string[]
+  ): Promise<Document | null> {
+    const operationId = crypto.randomUUID();
+    
+    this.logStorageOperation('getDocumentWithScope_START', {
+      operationId,
+      documentId,
+      userId,
+      userRole,
+      organizationIds
+    }, 'DEBUG');
+
+    return dbPerformanceMonitor.trackQuery('getDocumentWithScope', async () => {
+      try {
+        // Get the document first
+        const document = await db
+          .select()
+          .from(schema.documents)
+          .where(eq(schema.documents.id, documentId))
+          .limit(1)
+          .then(result => result[0]);
+
+        if (!document) {
+          this.logStorageOperation('getDocumentWithScope_NOT_FOUND', {
+            operationId,
+            documentId
+          }, 'DEBUG');
+          return null;
+        }
+
+        // Admins can access everything
+        if (userRole === 'admin') {
+          this.logStorageOperation('getDocumentWithScope_ADMIN_ACCESS', {
+            operationId,
+            documentId
+          }, 'DEBUG');
+          return document;
+        }
+
+        // Managers can access any document in their organizations (check ALL organizations, not just the first).
+        // demo_manager is treated equivalently to manager throughout the rest of the codebase
+        // (see rbac.ts), so we honor the same scope here.
+        if ((userRole === 'manager' || userRole === 'demo_manager') && organizationIds && organizationIds.length > 0) {
+          // Check if document belongs to a building/residence in any of the manager's organizations
+          if (document.buildingId) {
+            const building = await db
+              .select()
+              .from(schema.buildings)
+              .where(eq(schema.buildings.id, document.buildingId))
+              .limit(1)
+              .then(result => result[0]);
+
+            if (building && organizationIds.includes(building.organizationId)) {
+              this.logStorageOperation('getDocumentWithScope_MANAGER_ORG_ACCESS', {
+                operationId,
+                documentId,
+                buildingId: document.buildingId,
+                organizationId: building.organizationId
+              }, 'DEBUG');
+              return document;
+            }
+          }
+
+          if (document.residenceId) {
+            const residence = await db
+              .select({ 
+                residenceId: schema.residences.id, 
+                buildingId: schema.residences.buildingId,
+                organizationId: schema.buildings.organizationId
+              })
+              .from(schema.residences)
+              .innerJoin(schema.buildings, eq(schema.residences.buildingId, schema.buildings.id))
+              .where(eq(schema.residences.id, document.residenceId))
+              .limit(1)
+              .then(result => result[0]);
+
+            if (residence && organizationIds.includes(residence.organizationId)) {
+              this.logStorageOperation('getDocumentWithScope_MANAGER_ORG_ACCESS', {
+                operationId,
+                documentId,
+                residenceId: document.residenceId,
+                organizationId: residence.organizationId
+              }, 'DEBUG');
+              return document;
+            }
+          }
+        }
+
+        // Residents can only access documents from their own residences
+        if (userRole === 'resident') {
+          const userResidences = await db
+            .select({ residenceId: schema.userResidences.residenceId })
+            .from(schema.userResidences)
+            .where(
+              and(
+                eq(schema.userResidences.userId, userId),
+                eq(schema.userResidences.isActive, true)
+              )
+            );
+
+          const residenceIds = userResidences.map(ur => ur.residenceId);
+
+          if (document.residenceId && residenceIds.includes(document.residenceId)) {
+            this.logStorageOperation('getDocumentWithScope_RESIDENT_ACCESS', {
+              operationId,
+              documentId,
+              residenceId: document.residenceId
+            }, 'DEBUG');
+            return document;
+          }
+        }
+
+        // Tenants can view documents marked as visible to tenants
+        if (userRole === 'tenant') {
+          if (document.isVisibleToTenants) {
+            this.logStorageOperation('getDocumentWithScope_TENANT_VIEW_ACCESS', {
+              operationId,
+              documentId,
+              isVisibleToTenants: true
+            }, 'DEBUG');
+            return document;
+          }
+
+          // Tenants can also create/access documents in their own residence
+          const userResidences = await db
+            .select({ residenceId: schema.userResidences.residenceId })
+            .from(schema.userResidences)
+            .where(
+              and(
+                eq(schema.userResidences.userId, userId),
+                eq(schema.userResidences.isActive, true)
+              )
+            );
+
+          const residenceIds = userResidences.map(ur => ur.residenceId);
+
+          if (document.residenceId && residenceIds.includes(document.residenceId)) {
+            this.logStorageOperation('getDocumentWithScope_TENANT_OWN_RESIDENCE_ACCESS', {
+              operationId,
+              documentId,
+              residenceId: document.residenceId
+            }, 'DEBUG');
+            return document;
+          }
+        }
+
+        this.logStorageOperation('getDocumentWithScope_ACCESS_DENIED', {
+          operationId,
+          documentId,
+          userId,
+          userRole,
+          reason: 'No permission to access this document'
+        }, 'DEBUG');
+
+        return null;
+      } catch (error: any) {
+        this.logStorageOperation('getDocumentWithScope_ERROR', {
+          operationId,
+          documentId,
+          error: error.message
+        }, 'ERROR');
+        throw error;
+      }
+    });
+  }
+
+  async listDocumentsByScope(
+    filters: {
+      buildingId?: string;
+      residenceId?: string;
+      documentType?: string;
+    },
+    userId: string,
+    userRole: string,
+    organizationIds?: string[]
+  ): Promise<Document[]> {
+    const operationId = crypto.randomUUID();
+    
+    this.logStorageOperation('listDocumentsByScope_START', {
+      operationId,
+      filters,
+      userId,
+      userRole,
+      organizationIds
+    }, 'DEBUG');
+
+    return dbPerformanceMonitor.trackQuery('listDocumentsByScope', async () => {
+      try {
+        const conditions: any[] = [];
+
+        // Apply basic filters
+        if (filters.documentType) {
+          conditions.push(eq(schema.documents.documentType, filters.documentType));
+        }
+
+        // Admins can see everything
+        if (userRole === 'admin') {
+          if (filters.buildingId) {
+            conditions.push(eq(schema.documents.buildingId, filters.buildingId));
+          }
+          if (filters.residenceId) {
+            conditions.push(eq(schema.documents.residenceId, filters.residenceId));
+          }
+
+          const query = conditions.length > 0
+            ? db.select().from(schema.documents).where(and(...conditions))
+            : db.select().from(schema.documents);
+
+          const result = await query.orderBy(desc(schema.documents.createdAt));
+          
+          this.logStorageOperation('listDocumentsByScope_ADMIN_ACCESS', {
+            operationId,
+            resultCount: result.length
+          }, 'DEBUG');
+
+          return result;
+        }
+
+        // Managers can see documents from any building/residence in their organizations (check ALL organizations)
+        if (userRole === 'manager' && organizationIds && organizationIds.length > 0) {
+          // Get all buildings in the user's organizations
+          const orgBuildings = await db
+            .select({ id: schema.buildings.id })
+            .from(schema.buildings)
+            .where(inArray(schema.buildings.organizationId, organizationIds));
+
+          const buildingIds = orgBuildings.map(b => b.id);
+
+          // Get all residences in those buildings
+          const orgResidences = buildingIds.length > 0 
+            ? await db
+                .select({ id: schema.residences.id })
+                .from(schema.residences)
+                .where(inArray(schema.residences.buildingId, buildingIds))
+            : [];
+
+          const residenceIds = orgResidences.map(r => r.id);
+
+          // Filter by organization's buildings and residences
+          if (filters.buildingId && buildingIds.includes(filters.buildingId)) {
+            conditions.push(eq(schema.documents.buildingId, filters.buildingId));
+          } else if (filters.residenceId && residenceIds.includes(filters.residenceId)) {
+            conditions.push(eq(schema.documents.residenceId, filters.residenceId));
+          } else if (!filters.buildingId && !filters.residenceId) {
+            // Show all documents from the user's organizations
+            // Build OR predicates safely - avoid passing undefined to or()
+            const orPredicates = [];
+            if (buildingIds.length > 0) {
+              orPredicates.push(inArray(schema.documents.buildingId, buildingIds));
+            }
+            if (residenceIds.length > 0) {
+              orPredicates.push(inArray(schema.documents.residenceId, residenceIds));
+            }
+            
+            if (orPredicates.length > 1) {
+              conditions.push(or(...orPredicates));
+            } else if (orPredicates.length === 1) {
+              conditions.push(orPredicates[0]);
+            }
+            // If no buildings or residences in org, query will return empty (no condition added)
+          }
+
+          const query = conditions.length > 0
+            ? db.select().from(schema.documents).where(and(...conditions))
+            : db.select().from(schema.documents);
+
+          const result = await query.orderBy(desc(schema.documents.createdAt));
+          
+          this.logStorageOperation('listDocumentsByScope_MANAGER_ACCESS', {
+            operationId,
+            organizationIds,
+            resultCount: result.length
+          }, 'DEBUG');
+
+          return result;
+        }
+
+        // Residents can only see documents from their own residences
+        if (userRole === 'resident') {
+          const userResidences = await db
+            .select({ residenceId: schema.userResidences.residenceId })
+            .from(schema.userResidences)
+            .where(
+              and(
+                eq(schema.userResidences.userId, userId),
+                eq(schema.userResidences.isActive, true)
+              )
+            );
+
+          const residenceIds = userResidences.map(ur => ur.residenceId);
+
+          if (residenceIds.length === 0) {
+            this.logStorageOperation('listDocumentsByScope_RESIDENT_NO_RESIDENCES', {
+              operationId,
+              userId
+            }, 'DEBUG');
+            return [];
+          }
+
+          if (filters.residenceId) {
+            if (residenceIds.includes(filters.residenceId)) {
+              conditions.push(eq(schema.documents.residenceId, filters.residenceId));
+            } else {
+              // Requested residence doesn't belong to user
+              return [];
+            }
+          } else {
+            conditions.push(inArray(schema.documents.residenceId, residenceIds));
+          }
+
+          const query = conditions.length > 0
+            ? db.select().from(schema.documents).where(and(...conditions))
+            : db.select().from(schema.documents);
+
+          const result = await query.orderBy(desc(schema.documents.createdAt));
+          
+          this.logStorageOperation('listDocumentsByScope_RESIDENT_ACCESS', {
+            operationId,
+            userId,
+            resultCount: result.length
+          }, 'DEBUG');
+
+          return result;
+        }
+
+        // Tenants can view documents marked as visible to tenants
+        if (userRole === 'tenant') {
+          const userResidences = await db
+            .select({ residenceId: schema.userResidences.residenceId })
+            .from(schema.userResidences)
+            .where(
+              and(
+                eq(schema.userResidences.userId, userId),
+                eq(schema.userResidences.isActive, true)
+              )
+            );
+
+          const residenceIds = userResidences.map(ur => ur.residenceId);
+
+          // Tenants can see:
+          // 1. Documents marked as visible to tenants
+          // 2. Documents they created in their own residence
+          const tenantConditions = [
+            eq(schema.documents.isVisibleToTenants, true)
+          ];
+
+          if (residenceIds.length > 0) {
+            tenantConditions.push(
+              and(
+                inArray(schema.documents.residenceId, residenceIds),
+                eq(schema.documents.uploadedById, userId)
+              )
+            );
+          }
+
+          conditions.push(or(...tenantConditions));
+
+          if (filters.residenceId) {
+            conditions.push(eq(schema.documents.residenceId, filters.residenceId));
+          }
+          if (filters.buildingId) {
+            conditions.push(eq(schema.documents.buildingId, filters.buildingId));
+          }
+
+          const query = conditions.length > 0
+            ? db.select().from(schema.documents).where(and(...conditions))
+            : db.select().from(schema.documents);
+
+          const result = await query.orderBy(desc(schema.documents.createdAt));
+          
+          this.logStorageOperation('listDocumentsByScope_TENANT_ACCESS', {
+            operationId,
+            userId,
+            resultCount: result.length
+          }, 'DEBUG');
+
+          return result;
+        }
+
+        // Default: no access
+        this.logStorageOperation('listDocumentsByScope_NO_ACCESS', {
+          operationId,
+          userId,
+          userRole
+        }, 'DEBUG');
+
+        return [];
+      } catch (error: any) {
+        this.logStorageOperation('listDocumentsByScope_ERROR', {
+          operationId,
+          error: error.message
+        }, 'ERROR');
+        throw error;
+      }
+    });
+  }
+
   async createDocument(document: InsertDocument): Promise<Document> {
     const operationId = crypto.randomUUID();
     
@@ -3030,6 +3435,13 @@ export class OptimizedDatabaseStorage implements IStorage {
           this.logStorageOperation('createDocument_CACHE_INVALIDATED', {
             operationId,
             cachePattern: `*residenceId*${document.residenceId}*`
+          }, 'DEBUG');
+        }
+        if (document.attachedToType && document.attachedToId) {
+          queryCache.invalidate('documents', `*attachedToType*${document.attachedToType}*attachedToId*${document.attachedToId}*`);
+          this.logStorageOperation('createDocument_CACHE_INVALIDATED', {
+            operationId,
+            cachePattern: `*attachedToType*${document.attachedToType}*attachedToId*${document.attachedToId}*`
           }, 'DEBUG');
         }
 
@@ -3120,6 +3532,21 @@ export class OptimizedDatabaseStorage implements IStorage {
     });
   }
 
+  /**
+   * Normalize file path by removing leading slashes and 'uploads/' prefix if present
+   */
+  private normalizeFilePath(filePath: string): string {
+    // Remove leading slashes
+    let normalized = filePath.replace(/^\/+/, '');
+    
+    // Remove 'uploads/' prefix if present to avoid duplication
+    if (normalized.startsWith('uploads/')) {
+      normalized = normalized.substring('uploads/'.length);
+    }
+    
+    return normalized;
+  }
+
   async deleteDocument(id: string): Promise<boolean> {
     const operationId = crypto.randomUUID();
     
@@ -3130,7 +3557,7 @@ export class OptimizedDatabaseStorage implements IStorage {
 
     return dbPerformanceMonitor.trackQuery('deleteDocument', async () => {
       try {
-        // First get document info for logging
+        // First get document info for logging and file deletion
         const documentInfo = await db
           .select({
             id: schema.documents.id,
@@ -3152,6 +3579,85 @@ export class OptimizedDatabaseStorage implements IStorage {
           return false;
         }
 
+        const filePath = documentInfo[0].filePath;
+
+        // Delete physical file before deleting database record
+        if (filePath) {
+          try {
+            if (filePath.startsWith('/objects/')) {
+              // File is in object storage
+              this.logStorageOperation('deleteDocument_FILE_DELETION_START', {
+                operationId,
+                documentId: id,
+                filePath,
+                storageType: 'object_storage'
+              }, 'INFO');
+
+              const objectStorageService = new ObjectStorageService();
+              const fileDeleted = await objectStorageService.deleteObject(filePath);
+              
+              if (fileDeleted) {
+                this.logStorageOperation('deleteDocument_FILE_DELETED', {
+                  operationId,
+                  documentId: id,
+                  filePath,
+                  storageType: 'object_storage'
+                }, 'INFO');
+              } else {
+                this.logStorageOperation('deleteDocument_FILE_DELETION_FAILED', {
+                  operationId,
+                  documentId: id,
+                  filePath,
+                  storageType: 'object_storage'
+                }, 'WARN');
+              }
+            } else {
+              // File is in local filesystem
+              this.logStorageOperation('deleteDocument_FILE_DELETION_START', {
+                operationId,
+                documentId: id,
+                filePath,
+                storageType: 'local_filesystem'
+              }, 'INFO');
+
+              const fs = await import('fs/promises');
+              const path = await import('path');
+              const normalizedPath = this.normalizeFilePath(filePath);
+              const fullPath = path.join(process.cwd(), 'uploads', normalizedPath);
+              
+              try {
+                await fs.unlink(fullPath);
+                this.logStorageOperation('deleteDocument_FILE_DELETED', {
+                  operationId,
+                  documentId: id,
+                  filePath,
+                  storageType: 'local_filesystem'
+                }, 'INFO');
+              } catch (unlinkError: any) {
+                if (unlinkError.code === 'ENOENT') {
+                  this.logStorageOperation('deleteDocument_FILE_NOT_FOUND', {
+                    operationId,
+                    documentId: id,
+                    filePath,
+                    storageType: 'local_filesystem'
+                  }, 'WARN');
+                } else {
+                  throw unlinkError;
+                }
+              }
+            }
+          } catch (fileError: any) {
+            // Log file deletion error but continue with database deletion
+            this.logStorageOperation('deleteDocument_FILE_DELETION_ERROR', {
+              operationId,
+              documentId: id,
+              filePath,
+              error: fileError.message
+            }, 'WARN');
+          }
+        }
+
+        // Delete database record
         const dbStart = performance.now();
         const result = await db
           .delete(schema.documents)
@@ -3573,14 +4079,14 @@ export class OptimizedDatabaseStorage implements IStorage {
   ): Promise<Bug | undefined> {
     const key = `bug:${id}:user:${userId}:${userRole}`;
 
-    console.log(`🔍 getBug called with key: ${key}`);
+    logDebug('getBug called', { metadata: { key } });
 
     return withCache('bug', key, async () => {
-      console.log(`📊 Cache miss for ${key}, querying database...`);
+      logDebug('Cache miss, querying database...', { metadata: { key } });
       const result = await db.select().from(schema.bugs).where(eq(schema.bugs.id, id));
 
       const bug = result[0];
-      console.log(`📋 Database query result:`, bug ? { id: bug.id, title: bug.title, filePath: bug.filePath, file_path: (bug as any).file_path } : 'undefined');
+      logDebug('Database query result', { metadata: { found: !!bug, bugId: bug?.id } });
 
       if (!bug) {
         return undefined;
@@ -4001,7 +4507,7 @@ export class OptimizedDatabaseStorage implements IStorage {
         },
       };
     } catch (error: any) {
-      console.error('❌ Error upvoting feature request:', error);
+      logError('Error upvoting feature request', error);
       return {
         success: false,
         message: 'Failed to upvote feature request',
@@ -4072,7 +4578,7 @@ export class OptimizedDatabaseStorage implements IStorage {
         },
       };
     } catch (error: any) {
-      console.error('❌ Error removing feature request upvote:', error);
+      logError('Error removing feature request upvote', error);
       return {
         success: false,
         message: 'Failed to remove upvote',
@@ -4114,7 +4620,7 @@ export class OptimizedDatabaseStorage implements IStorage {
       const invoices = await query.orderBy(desc(schema.invoices.createdAt));
       return invoices;
     } catch (error: any) {
-      console.error('❌ Error fetching invoices:', error);
+      logError('Error fetching invoices', error);
       return [];
     }
   }
@@ -4129,7 +4635,7 @@ export class OptimizedDatabaseStorage implements IStorage {
       
       return result[0];
     } catch (error: any) {
-      console.error('❌ Error fetching invoice:', error);
+      logError('Error fetching invoice', error);
       return undefined;
     }
   }
@@ -4150,7 +4656,7 @@ export class OptimizedDatabaseStorage implements IStorage {
       
       return result[0];
     } catch (error: any) {
-      console.error('❌ Error creating invoice:', error);
+      logError('Error creating invoice', error);
       throw error;
     }
   }
@@ -4165,7 +4671,7 @@ export class OptimizedDatabaseStorage implements IStorage {
       
       return result[0];
     } catch (error: any) {
-      console.error('❌ Error updating invoice:', error);
+      logError('Error updating invoice', error);
       return undefined;
     }
   }
@@ -4179,15 +4685,14 @@ export class OptimizedDatabaseStorage implements IStorage {
       
       return result.length > 0;
     } catch (error: any) {
-      console.error('❌ Error deleting invoice:', error);
+      logError('Error deleting invoice', error);
       return false;
     }
   }
 
   // Admin-only method to count orphan users
   async countOrphanUsers(): Promise<number> {
-    console.log('📊 [STORAGE - COUNT] ===== COUNT ORPHAN USERS STARTED =====');
-    console.log('⏰ [STORAGE - COUNT] Timestamp:', new Date().toISOString());
+    logDebug('[STORAGE - COUNT] Count orphan users started');
     
     try {
       const countQuery = `
@@ -4205,40 +4710,25 @@ export class OptimizedDatabaseStorage implements IStorage {
           )
       `;
       
-      console.log('🔍 [STORAGE - COUNT] Executing SQL query:', countQuery.trim());
-      console.log('⏱️ [STORAGE - COUNT] Starting database execution...');
+      logDebug('[STORAGE - COUNT] Executing orphan users query');
       
       const startTime = Date.now();
       const result = await db.execute(sql.raw(countQuery));
       const endTime = Date.now();
       
-      console.log('⏱️ [STORAGE - COUNT] Database query completed in:', (endTime - startTime), 'ms');
-      console.log('📈 [STORAGE - COUNT] Raw database result:', result.rows);
-      
       const count = parseInt(String(result.rows[0]?.total || '0'));
-      console.log('🔢 [STORAGE - COUNT] Parsed orphan count:', count);
-      console.log('📊 [STORAGE - COUNT] ===== COUNT ORPHAN USERS COMPLETED =====');
+      logDebug('[STORAGE - COUNT] Orphan users count completed', { metadata: { count, durationMs: endTime - startTime } });
       
       return count;
     } catch (error: any) {
-      console.error('💥 [STORAGE - COUNT] ===== CRITICAL ERROR =====');
-      console.error('❌ [STORAGE - COUNT] Error details:', {
-        message: error.message,
-        stack: error.stack,
-        name: error.name,
-        code: error.code,
-        timestamp: new Date().toISOString()
-      });
-      console.error('💥 [STORAGE - COUNT] ===== END CRITICAL ERROR =====');
+      logError('[STORAGE - COUNT] Critical error counting orphan users', error);
       return 0;
     }
   }
 
   // Admin-only method to count all users except specified admin
   async countAllUsersExcept(excludeUserId: string): Promise<number> {
-    console.log('📊 [STORAGE - COUNT ALL] ===== COUNT ALL USERS EXCEPT ADMIN STARTED =====');
-    console.log('⏰ [STORAGE - COUNT ALL] Timestamp:', new Date().toISOString());
-    console.log('🔒 [STORAGE - COUNT ALL] Excluding admin user ID:', excludeUserId);
+    logDebug('[STORAGE - COUNT ALL] Count all users except admin started', { userId: excludeUserId });
     
     try {
       const countQuery = sql`
@@ -4248,40 +4738,25 @@ export class OptimizedDatabaseStorage implements IStorage {
         AND u.id != ${excludeUserId}
       `;
       
-      console.log('🔍 [STORAGE - COUNT ALL] Executing parameterized SQL query');
-      console.log('⏱️ [STORAGE - COUNT ALL] Starting database execution...');
+      logDebug('[STORAGE - COUNT ALL] Executing parameterized SQL query');
       
       const startTime = Date.now();
       const result = await db.execute(countQuery);
       const endTime = Date.now();
       
-      console.log('⏱️ [STORAGE - COUNT ALL] Database query completed in:', (endTime - startTime), 'ms');
-      console.log('📈 [STORAGE - COUNT ALL] Raw database result:', result.rows);
-      
       const count = parseInt(String(result.rows[0]?.total || '0'));
-      console.log('🔢 [STORAGE - COUNT ALL] Parsed user count:', count);
-      console.log('📊 [STORAGE - COUNT ALL] ===== COUNT ALL USERS EXCEPT ADMIN COMPLETED =====');
+      logDebug('[STORAGE - COUNT ALL] User count completed', { metadata: { count, durationMs: endTime - startTime } });
       
       return count;
     } catch (error: any) {
-      console.error('💥 [STORAGE - COUNT ALL] ===== CRITICAL ERROR =====');
-      console.error('❌ [STORAGE - COUNT ALL] Error details:', {
-        message: error.message,
-        stack: error.stack,
-        name: error.name,
-        code: error.code,
-        timestamp: new Date().toISOString()
-      });
-      console.error('💥 [STORAGE - COUNT ALL] ===== END CRITICAL ERROR =====');
+      logError('[STORAGE - COUNT ALL] Critical error counting users', error);
       return 0;
     }
   }
 
   // Admin-only method to delete all users except specified admin
   async deleteAllUsersExcept(excludeUserId: string): Promise<number> {
-    console.log('🗑️ [STORAGE - DELETE ALL] ===== DELETE ALL USERS EXCEPT ADMIN STARTED =====');
-    console.log('⏰ [STORAGE - DELETE ALL] Timestamp:', new Date().toISOString());
-    console.log('🔒 [STORAGE - DELETE ALL] Excluding admin user ID:', excludeUserId);
+    logInfo('[STORAGE - DELETE ALL] Delete all users except admin started', { userId: excludeUserId });
     
     try {
       // First, let's get the list of users that will be affected for debugging
@@ -4290,9 +4765,9 @@ export class OptimizedDatabaseStorage implements IStorage {
         WHERE u.is_active = true
           AND u.id != ${excludeUserId}`;
       
-      console.log('🔍 [STORAGE - DELETE ALL] Getting preview of users to be deleted...');
+      logDebug('[STORAGE - DELETE ALL] Getting preview of users to be deleted...');
       const previewResult = await db.execute(previewQuery);
-      console.log('👥 [STORAGE - DELETE ALL] Users to be deleted:', previewResult.rows);
+      logDebug('[STORAGE - DELETE ALL] Users to be deleted', { metadata: { count: previewResult.rows.length } });
       
       // Mark all other users as inactive
       const updateQuery = sql`UPDATE users 
@@ -4301,15 +4776,13 @@ export class OptimizedDatabaseStorage implements IStorage {
         WHERE is_active = true
           AND id != ${excludeUserId}`;
       
-      console.log('🔧 [STORAGE - DELETE ALL] Executing UPDATE query to mark users as inactive...');
-      console.log('⏱️ [STORAGE - DELETE ALL] Starting update operation...');
+      logDebug('[STORAGE - DELETE ALL] Executing UPDATE query to mark users as inactive...');
       
       const startTime = Date.now();
       const result = await db.execute(updateQuery);
       const updateTime = Date.now();
       
-      console.log('⏱️ [STORAGE - DELETE ALL] Update operation completed in:', (updateTime - startTime), 'ms');
-      console.log('📊 [STORAGE - DELETE ALL] Update result:', result);
+      logDebug('[STORAGE - DELETE ALL] Update operation completed', { metadata: { durationMs: updateTime - startTime } });
       
       // Count the affected rows
       const countQuery = sql`SELECT COUNT(*) as deleted_count
@@ -4318,40 +4791,27 @@ export class OptimizedDatabaseStorage implements IStorage {
           AND u.id != ${excludeUserId}
           AND u.updated_at >= CURRENT_TIMESTAMP - INTERVAL '1 minute'`;
       
-      console.log('🔍 [STORAGE - DELETE ALL] Executing count query to verify deletion...');
+      logDebug('[STORAGE - DELETE ALL] Executing count query to verify deletion...');
       const countStartTime = Date.now();
       const countResult = await db.execute(countQuery);
       const countEndTime = Date.now();
       
-      console.log('⏱️ [STORAGE - DELETE ALL] Count query completed in:', (countEndTime - countStartTime), 'ms');
-      console.log('📈 [STORAGE - DELETE ALL] Raw count result:', countResult.rows);
-      
       const deletedCount = parseInt(String(countResult.rows[0]?.deleted_count || '0'));
-      console.log('🔢 [STORAGE - DELETE ALL] Final deleted count:', deletedCount);
-      console.log('⏱️ [STORAGE - DELETE ALL] Total operation time:', (countEndTime - startTime), 'ms');
-      console.log('🗑️ [STORAGE - DELETE ALL] ===== DELETE ALL USERS EXCEPT ADMIN COMPLETED =====');
+      logInfo('[STORAGE - DELETE ALL] Delete all users except admin completed', { 
+        userId: excludeUserId, 
+        metadata: { deletedCount, totalDurationMs: countEndTime - startTime } 
+      });
       
       return deletedCount;
     } catch (error: any) {
-      console.error('💥 [STORAGE - DELETE ALL] ===== CRITICAL ERROR =====');
-      console.error('❌ [STORAGE - DELETE ALL] Error details:', {
-        message: error.message,
-        stack: error.stack,
-        name: error.name,
-        code: error.code,
-        excludeUserId: excludeUserId,
-        timestamp: new Date().toISOString()
-      });
-      console.error('💥 [STORAGE - DELETE ALL] ===== END CRITICAL ERROR =====');
+      logError('[STORAGE - DELETE ALL] Critical error deleting users', error);
       throw error;
     }
   }
 
   // Admin-only method to delete orphan users (excluding specified admin user)
   async deleteOrphanUsers(excludeUserId: string): Promise<number> {
-    console.log('🗑️ [STORAGE - DELETE] ===== DELETE ORPHAN USERS STARTED =====');
-    console.log('⏰ [STORAGE - DELETE] Timestamp:', new Date().toISOString());
-    console.log('🔒 [STORAGE - DELETE] Excluding admin user ID:', excludeUserId);
+    logInfo('[STORAGE - DELETE] Delete orphan users started', { userId: excludeUserId });
     
     try {
       // First, let's get the list of users that will be affected for debugging
@@ -4369,9 +4829,9 @@ export class OptimizedDatabaseStorage implements IStorage {
             WHERE ur.user_id = u.id AND ur.is_active = true
           )`;
       
-      console.log('🔍 [STORAGE - DELETE] Getting preview of users to be deleted...');
+      logDebug('[STORAGE - DELETE] Getting preview of users to be deleted...');
       const previewResult = await db.execute(previewQuery);
-      console.log('👥 [STORAGE - DELETE] Users to be deleted:', previewResult.rows);
+      logDebug('[STORAGE - DELETE] Users to be deleted', { metadata: { count: previewResult.rows.length } });
       
       // Mark orphan users as inactive to avoid foreign key issues
       const updateQuery = sql`UPDATE users 
@@ -4389,15 +4849,13 @@ export class OptimizedDatabaseStorage implements IStorage {
             WHERE ur.user_id = id AND ur.is_active = true
           )`;
       
-      console.log('🔧 [STORAGE - DELETE] Executing UPDATE query to mark users as inactive...');
-      console.log('⏱️ [STORAGE - DELETE] Starting update operation...');
+      logDebug('[STORAGE - DELETE] Executing UPDATE query to mark users as inactive...');
       
       const startTime = Date.now();
       const result = await db.execute(updateQuery);
       const updateTime = Date.now();
       
-      console.log('⏱️ [STORAGE - DELETE] Update operation completed in:', (updateTime - startTime), 'ms');
-      console.log('📊 [STORAGE - DELETE] Update result:', result);
+      logDebug('[STORAGE - DELETE] Update operation completed', { metadata: { durationMs: updateTime - startTime } });
       
       // Count the affected rows
       const countQuery = sql`SELECT COUNT(*) as deleted_count
@@ -4415,31 +4873,20 @@ export class OptimizedDatabaseStorage implements IStorage {
             WHERE ur.user_id = u.id AND ur.is_active = true
           )`;
       
-      console.log('🔍 [STORAGE - DELETE] Executing count query to verify deletion...');
+      logDebug('[STORAGE - DELETE] Executing count query to verify deletion...');
       const countStartTime = Date.now();
       const countResult = await db.execute(countQuery);
       const countEndTime = Date.now();
       
-      console.log('⏱️ [STORAGE - DELETE] Count query completed in:', (countEndTime - countStartTime), 'ms');
-      console.log('📈 [STORAGE - DELETE] Raw count result:', countResult.rows);
-      
       const deletedCount = parseInt(String(countResult.rows[0]?.deleted_count || '0'));
-      console.log('🔢 [STORAGE - DELETE] Final deleted count:', deletedCount);
-      console.log('⏱️ [STORAGE - DELETE] Total operation time:', (countEndTime - startTime), 'ms');
-      console.log('🗑️ [STORAGE - DELETE] ===== DELETE ORPHAN USERS COMPLETED =====');
+      logInfo('[STORAGE - DELETE] Delete orphan users completed', { 
+        userId: excludeUserId, 
+        metadata: { deletedCount, totalDurationMs: countEndTime - startTime } 
+      });
       
       return deletedCount;
     } catch (error: any) {
-      console.error('💥 [STORAGE - DELETE] ===== CRITICAL ERROR =====');
-      console.error('❌ [STORAGE - DELETE] Error details:', {
-        message: error.message,
-        stack: error.stack,
-        name: error.name,
-        code: error.code,
-        excludeUserId: excludeUserId,
-        timestamp: new Date().toISOString()
-      });
-      console.error('💥 [STORAGE - DELETE] ===== END CRITICAL ERROR =====');
+      logError('[STORAGE - DELETE] Critical error deleting orphan users', error);
       throw error;
     }
   }

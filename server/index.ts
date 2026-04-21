@@ -4,13 +4,13 @@
  */
 import express from 'express';
 import path from 'path';
-import helmet from 'helmet';
-import { createFastHealthCheck, createStatusCheck, createRootHandler } from './health-check';
+import { createFastHealthCheck, createStatusCheck, createRootHandler, setFrontendReady, createStartupMiddleware } from './health-check';
 import { log } from './vite';
 import { registerRoutes } from './routes';
-import { sanitizeInputMiddleware } from './middleware/input-sanitization';
+import { sanitizeInputMiddleware, buildLegacyBypassFromApp } from './middleware/input-sanitization';
 import { ssrfProtectionMiddleware } from './middleware/ssrf-protection';
 import { secureErrorHandler, notFoundHandler } from './middleware/error-security';
+import { configureSecurityMiddleware } from './middleware/security-middleware';
 // Import debug logger temporarily disabled due to module resolution
 // import { debugLogger, logInfo, logDebug } from './utils/debug-logger.js';
 
@@ -70,42 +70,9 @@ if (isNaN(port) || port < 1 || port > 65535) {
 // Trust proxy for deployment
 app.set('trust proxy', ['loopback', 'linklocal', 'uniquelocal']);
 
-// Security headers middleware using Helmet with enhanced configuration
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: [
-        "'self'",
-        // Only allow unsafe-inline in development for HMR
-        ...(process.env.NODE_ENV === 'development' ? ["'unsafe-inline'"] : []),
-        "https://replit.com"
-      ],
-      styleSrc: [
-        "'self'",
-        "'unsafe-inline'", // Required for CSS-in-JS frameworks like styled-components
-        "https://fonts.googleapis.com"
-      ],
-      imgSrc: ["'self'", "data:", "blob:", "https:"],
-      connectSrc: ["'self'", "wss:", "ws:"],
-      fontSrc: ["'self'", "https://fonts.gstatic.com", "data:"],
-      objectSrc: ["'none'"],
-      mediaSrc: ["'self'"],
-      frameSrc: ["'none'"],
-      baseUri: ["'self'"],
-      formAction: ["'self'"],
-      ...(process.env.NODE_ENV === 'production' && {
-        upgradeInsecureRequests: [],
-      })
-    },
-  },
-  hsts: {
-    maxAge: 31536000, // 1 year
-    includeSubDomains: true,
-    preload: true,
-  },
-  crossOriginEmbedderPolicy: false, // Allow for development
-}));
+// Security headers middleware (Helmet/CSP/HSTS) — single source of truth in
+// server/middleware/security-middleware.ts.
+configureSecurityMiddleware(app);
 
 // Production cache busting middleware
 if (process.env.NODE_ENV === 'production') {
@@ -163,6 +130,10 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // Security middleware for input sanitization and SSRF protection
 app.use(sanitizeInputMiddleware);
 app.use(ssrfProtectionMiddleware);
+
+// Startup middleware - handles all requests gracefully during initialization
+// This prevents "internal error" on first load while server is warming up
+app.use(createStartupMiddleware());
 
 // Request timeout middleware with better error handling
 app.use((req, res, next) => {
@@ -290,6 +261,32 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
         `🏗️  Build mode: ${process.env.NODE_ENV === 'production' ? 'Production' : 'Development'}`
       );
 
+      // In non-production environments, probe a small sample of seeded
+      // demo document file paths and warn if the underlying object-storage
+      // bytes are missing. This catches the common drift where a demo env
+      // was cloned without re-running the seed script and documents would
+      // otherwise silently render as "File not found".
+      if (process.env.NODE_ENV !== 'production') {
+        setTimeout(async () => {
+          try {
+            const { DemoManagementService } = await import(
+              './services/demo-management-service'
+            );
+            const report =
+              await DemoManagementService.checkSeededDocumentIntegrity(3);
+            if (!report.healthy) {
+              log(
+                `⚠️ Demo document integrity: ${report.totalMissing}/${report.totalSampled} sampled attachments are missing their files in object storage.`,
+                'warn',
+              );
+              log(`   Remediation: ${report.remediation}`, 'warn');
+            }
+          } catch {
+            // Non-critical: never block startup on the probe.
+          }
+        }, 5000);
+      }
+
       // Different startup for development vs production
       if (process.env.NODE_ENV === 'development') {
         log('🔄 Development mode: Setting up frontend immediately...');
@@ -305,10 +302,11 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
           }
         }, 100); // Very quick delay to allow server to start first
       } else {
-        // Production: Load application immediately with better error handling
-        log('🔄 Production mode: Loading application features...');
+        // Production: Delay application loading to ensure port opens first
+        log('🔄 Production mode: Port opened, scheduling feature loading...');
         setTimeout(async () => {
           try {
+            log('🔄 Starting application feature loading...');
             await loadFullApplication();
             log('✅ Production setup complete');
             
@@ -326,7 +324,7 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
             log(`❌ Stack trace: ${error.stack}`, 'error');
             // In production, we want to know about failures but keep health checks working
           }
-        }, 10); // Minimal delay for production
+        }, 2000); // Delay 2 seconds to ensure port is fully open and responsive
       }
     });
 
@@ -383,8 +381,9 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
 // Note: Global error handlers are already defined at the top of the file
 // to prevent conflicts and maintain consistent health-first behavior
 
-// Add process monitoring
-if (process.env.NODE_ENV === 'production') {
+// Add process monitoring (disabled for Autoscale which doesn't support long-running intervals)
+const isAutoscaleMode = process.env.AUTOSCALE === 'true' || process.env.DEPLOYMENT_TYPE === 'autoscale';
+if (process.env.NODE_ENV === 'production' && !isAutoscaleMode) {
   setInterval(() => {
     const memUsage = process.memoryUsage();
     const memMB = Math.round(memUsage.rss / 1024 / 1024);
@@ -423,16 +422,15 @@ async function loadFullApplication(): Promise<void> {
     // Load full routes including authentication routes
     try {
       await registerRoutes(app);
+      // Build the legacy sanitization bypass map from the now-registered
+      // route table. See server/middleware/input-sanitization.ts.
+      buildLegacyBypassFromApp(app);
       log('✅ Full application routes loaded including authentication');
     } catch (routesError: any) {
       log(`❌ Failed to load full routes: ${routesError.message}`, 'error');
       // Fallback to minimal API routes
       app.get('/api/health', (req, res) => {
         res.json({ status: 'ok', timestamp: new Date().toISOString() });
-      });
-      
-      app.post('/api/test', (req, res) => {
-        res.json({ message: 'API working', body: req.body });
       });
       
       log('✅ Essential API routes loaded (minimal setup)');
@@ -460,6 +458,8 @@ async function loadFullApplication(): Promise<void> {
         const { setupVite } = await import('./vite.ts');
         await setupVite(app, server);
         log('✅ Vite development server configured');
+        setFrontendReady(true);
+        log('✅ Frontend marked as ready');
       } catch (frontendError: any) {
         log(`❌ Vite setup failed: ${frontendError.message}`, 'error');
         throw frontendError;
@@ -481,31 +481,54 @@ async function loadFullApplication(): Promise<void> {
       // Remove duplicate handlers to avoid conflicts
 
       log('✅ Production static file serving configured with API route protection');
+      setFrontendReady(true);
+      log('✅ Frontend marked as ready');
     }
 
     // Initialize all background jobs (including bill auto-generation and notification automation)
-    try {
-      const { startJobs } = await import('./jobs/index');
-      await startJobs();
-      log('✅ All background jobs initialized');
-    } catch (jobError: any) {
-      log(`⚠️ Failed to initialize background jobs: ${jobError.message}`, 'error');
+    // AUTOSCALE COMPATIBILITY: Skip background jobs in Autoscale deployment
+    // Background jobs require persistent processes which Autoscale doesn't support
+    const isAutoscale = process.env.AUTOSCALE === 'true' || process.env.DEPLOYMENT_TYPE === 'autoscale';
+    
+    if (isAutoscale) {
+      log('⚡ Autoscale mode detected - skipping background jobs (not compatible with stateless deployment)');
+    } else {
+      // In production, delay job initialization to avoid blocking port opening
+      const jobDelay = process.env.NODE_ENV === 'production' ? 3000 : 0;
+      setTimeout(async () => {
+        try {
+          log('🔄 Initializing background jobs...');
+          const { startJobs } = await import('./jobs/index');
+          await startJobs();
+          log('✅ All background jobs initialized');
+        } catch (jobError: any) {
+          log(`⚠️ Failed to initialize background jobs: ${jobError.message}`, 'error');
+        }
+      }, jobDelay);
     }
 
     // Start heavy database work in background AFTER routes are ready
-    const dbDelay = process.env.NODE_ENV === 'production' ? 500 : 1000;
-    setTimeout(async () => {
-      try {
-        await initializeDatabaseInBackground();
-        log('✅ Background database initialization completed');
-      } catch (error: any) {
-        log(`⚠️ Background database initialization failed: ${error.message}`, 'error');
-        // Don't crash in production for database optimization failures
-        if (process.env.NODE_ENV === 'production') {
-          log('⚠️ Continuing in production mode despite database optimization failure');
+    // AUTOSCALE COMPATIBILITY: Skip database optimization in Autoscale deployment
+    // These operations use intervals and caching that aren't suitable for stateless instances
+    if (isAutoscale) {
+      log('⚡ Autoscale mode detected - skipping database optimization (using stateless configuration)');
+    } else {
+      // In production, delay significantly to ensure port is fully responsive first
+      const dbDelay = process.env.NODE_ENV === 'production' ? 5000 : 1000;
+      setTimeout(async () => {
+        try {
+          log('🔄 Starting background database optimization (delayed for port stability)...');
+          await initializeDatabaseInBackground();
+          log('✅ Background database initialization completed');
+        } catch (error: any) {
+          log(`⚠️ Background database initialization failed: ${error.message}`, 'error');
+          // Don't crash in production for database optimization failures
+          if (process.env.NODE_ENV === 'production') {
+            log('⚠️ Continuing in production mode despite database optimization failure');
+          }
         }
-      }
-    }, dbDelay);
+      }, dbDelay);
+    }
   } catch (error: any) {
     log(`❌ Failed to load full application: ${error.message}`, 'error');
     log(`❌ Stack trace: ${error.stack}`, 'error');
@@ -572,34 +595,40 @@ async function initializeDatabaseInBackground(): Promise<void> {
       }
 
       // Initialize advanced query optimization system
-      try {
-        log('🚀 Initializing advanced query optimization system...');
-        const { initializeQueryOptimizations, scheduleOptimizationMaintenance } = await import('./init-query-optimizations');
-        
-        const optimizationStatus = await initializeQueryOptimizations();
-        
-        if (optimizationStatus.optimizationServicesReady) {
-          log('✅ Advanced query optimization system initialized successfully');
-          log(`⚡ Optimization features active: caching, batch operations, performance monitoring`);
+      // Skip in production if SKIP_QUERY_OPTIMIZATION is set (for faster deployment)
+      if (process.env.SKIP_QUERY_OPTIMIZATION === 'true' && process.env.NODE_ENV === 'production') {
+        log('⚠️ Skipping query optimization system (SKIP_QUERY_OPTIMIZATION=true)');
+        log('💡 Set SKIP_QUERY_OPTIMIZATION=false to enable full optimization features');
+      } else {
+        try {
+          log('🚀 Initializing advanced query optimization system...');
+          const { initializeQueryOptimizations, scheduleOptimizationMaintenance } = await import('./init-query-optimizations');
           
-          // Schedule maintenance for continuous optimization
-          scheduleOptimizationMaintenance();
-          log('⏰ Optimization maintenance scheduled');
+          const optimizationStatus = await initializeQueryOptimizations();
           
-          // Log performance baseline
-          if (optimizationStatus.initializationTime) {
-            log(`📊 Optimization system initialized in ${optimizationStatus.initializationTime}ms`);
+          if (optimizationStatus.optimizationServicesReady) {
+            log('✅ Advanced query optimization system initialized successfully');
+            log(`⚡ Optimization features active: caching, batch operations, performance monitoring`);
+            
+            // Schedule maintenance for continuous optimization
+            scheduleOptimizationMaintenance();
+            log('⏰ Optimization maintenance scheduled');
+            
+            // Log performance baseline
+            if (optimizationStatus.initializationTime) {
+              log(`📊 Optimization system initialized in ${optimizationStatus.initializationTime}ms`);
+            }
+          } else {
+            log('⚠️ Query optimization system partially initialized - some features may be limited');
           }
-        } else {
-          log('⚠️ Query optimization system partially initialized - some features may be limited');
+          
+          if (optimizationStatus.errors.length > 0) {
+            log(`⚠️ Optimization warnings: ${optimizationStatus.errors.join(', ')}`);
+          }
+        } catch (optimizationError: any) {
+          log(`⚠️ Advanced optimization system failed: ${optimizationError.message}`, 'error');
+          // Don't fail startup for optimization issues
         }
-        
-        if (optimizationStatus.errors.length > 0) {
-          log(`⚠️ Optimization warnings: ${optimizationStatus.errors.join(', ')}`);
-        }
-      } catch (optimizationError: any) {
-        log(`⚠️ Advanced optimization system failed: ${optimizationError.message}`, 'error');
-        // Don't fail startup for optimization issues
       }
     }
 

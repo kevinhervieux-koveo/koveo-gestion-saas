@@ -143,6 +143,8 @@ export function registerCompanyHistoryRoutes(app: Express): void {
           values: ['Innovation', 'Conformité québécoise', 'Service client exceptionnel'],
         },
       });
+    } catch (error) {
+      return res.status(500).json({ _error: 'Failed to fetch company history' });
     }
   });
 
@@ -157,6 +159,7 @@ export function registerCompanyHistoryRoutes(app: Express): void {
         total: documents.length,
         message: 'Document storage has been disabled',
       });
+    } catch (_error) {
       res.status(500).json({
         message: "Erreur lors de la recherche des documents d'entreprise",
         _error: _error instanceof Error ? _error.message : 'Unknown error',

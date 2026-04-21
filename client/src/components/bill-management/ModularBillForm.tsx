@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
-import { z } from 'zod';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -19,7 +19,6 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-  FormDescription,
 } from '@/components/ui/form';
 import {
   Select,
@@ -28,253 +27,44 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { FileText, Sparkles, Plus, X, Calendar, Copy } from 'lucide-react';
+import { FileText, Sparkles, Plus, X, Calendar, Trash2 } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { useCreateUpdateMutation } from '@/lib/common-hooks';
 import { cn } from '@/lib/utils';
 import { SharedUploader } from '@/components/document-management';
 import { GeminiBillExtractor } from './GeminiBillExtractor';
 import { AttachedFileSection } from '@/components/common/AttachedFileSection';
+import { StandardFormGrid } from '@/components/common/StandardFormGrid';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import type { AttachedFile } from '@/components/common/StandardDocumentAttachments';
 import type { Bill, Document } from '@shared/schema';
 import type { UploadContext } from '@shared/config/upload-config';
 import { BILL_CATEGORIES } from '@shared/schemas/financial';
-
-// Unified form schema with smart payment logic
-const billFormSchema = z.object({
-  title: z.string().min(1, 'Bill title is required').max(200, 'Title must be less than 200 characters'),
-  description: z.string().max(1000, 'Description must be less than 1000 characters').optional(),
-  category: z.enum(BILL_CATEGORIES),
-  vendor: z.string().max(150, 'Vendor name must be less than 150 characters').optional(),
-  paymentCount: z.enum(['1', 'multiple']),
-  recurrence: z.boolean().default(false),
-  paymentType: z.enum(['unique', 'recurrent']).optional(),
-  schedulePayment: z.enum(['weekly', 'monthly', 'quarterly', 'yearly', 'custom']).optional(),
-  hasInitialPayment: z.boolean().optional(),
-  recurringPaymentsEqual: z.boolean().optional(),
-  singlePaymentAmount: z.string().optional().refine((val) => {
-    if (!val) return true;
-    const num = parseFloat(val);
-    return !isNaN(num) && num > 0 && num <= 999999.99;
-  }, 'Payment amount must be between $0.01 and $999,999.99'),
-  initialPaymentAmount: z.string().optional().refine((val) => {
-    if (!val) return true;
-    const num = parseFloat(val);
-    return !isNaN(num) && num > 0 && num <= 999999.99;
-  }, 'Initial payment amount must be between $0.01 and $999,999.99'),
-  recurringPaymentAmount: z.string().optional().refine((val) => {
-    if (!val) return true;
-    const num = parseFloat(val);
-    return !isNaN(num) && num > 0 && num <= 999999.99;
-  }, 'Recurring payment amount must be between $0.01 and $999,999.99'),
-  customPayments: z.array(z.object({
-    amount: z.string().min(1, 'Amount is required').refine((val) => {
-      const num = parseFloat(val);
-      return !isNaN(num) && num > 0 && num <= 999999.99;
-    }, 'Amount must be between $0.01 and $999,999.99'),
-    date: z.string().min(1, 'Date is required').refine((val) => {
-      return !isNaN(Date.parse(val));
-    }, 'Date must be a valid date'),
-    description: z.string().optional()
-  })).optional(),
-  totalAmount: z.string().optional().refine((val) => {
-    if (!val) return true;
-    const num = parseFloat(val);
-    return !isNaN(num) && num > 0 && num <= 999999.99;
-  }, 'Total amount must be between $0.01 and $999,999.99'),
-  startDate: z.string().min(1, 'Start date is required').refine((val) => {
-    return !isNaN(Date.parse(val));
-  }, 'Start date must be a valid date'),
-  endDate: z.string().optional().refine((val) => {
-    if (!val) return true;
-    return !isNaN(Date.parse(val));
-  }, 'End date must be a valid date'),
-  status: z.enum(['draft', 'sent', 'overdue', 'paid', 'cancelled']),
-}).superRefine((data, ctx) => {
-  // Custom validation logic for payment structure with specific field error targeting
-  if (data.paymentCount === '1') {
-    // For single payment, singlePaymentAmount is required
-    if (!data.singlePaymentAmount || data.singlePaymentAmount.trim() === '') {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Payment amount is required for single payment bills',
-        path: ['singlePaymentAmount']
-      });
-    }
-  } else if (data.paymentCount === 'multiple') {
-    // For multiple payments, validate based on recurrence and configuration
-    if (!data.recurrence) {
-      // Multiple payments without recurrence - validate payment structure
-      if (data.hasInitialPayment && (!data.initialPaymentAmount || data.initialPaymentAmount.trim() === '')) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Initial payment amount is required when initial payment is enabled',
-          path: ['initialPaymentAmount']
-        });
-      }
-      if (data.recurringPaymentsEqual && (!data.recurringPaymentAmount || data.recurringPaymentAmount.trim() === '')) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Payment amount is required for equal payments',
-          path: ['recurringPaymentAmount']
-        });
-      }
-      if (!data.recurringPaymentsEqual && (!data.customPayments || data.customPayments.length === 0)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'At least one payment is required for unequal payments',
-          path: ['customPayments']
-        });
-      }
-    } else {
-      // Multiple payments with recurrence - validate recurring payment structure
-      if (data.hasInitialPayment && (!data.initialPaymentAmount || data.initialPaymentAmount.trim() === '')) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Initial payment amount is required when initial payment is enabled',
-          path: ['initialPaymentAmount']
-        });
-      }
-      if (data.recurringPaymentsEqual && (!data.recurringPaymentAmount || data.recurringPaymentAmount.trim() === '')) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Recurring payment amount is required for equal recurring payments',
-          path: ['recurringPaymentAmount']
-        });
-      }
-      if (!data.recurringPaymentsEqual && (!data.customPayments || data.customPayments.length === 0)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'At least one custom payment is required for unequal recurring payments',
-          path: ['customPayments']
-        });
-      }
-    }
-  }
-});
-
-type BillFormData = z.infer<typeof billFormSchema>;
-
-type CustomPayment = {
-  amount: string;
-  date: string;
-  description?: string;
-};
-
-interface ModularBillFormProps {
-  bill?: Bill | null;
-  isTemplate?: boolean; // If true, use bill data as template for new bill (don't update)
-  onSuccess?: (billId: string, action: 'created' | 'updated') => void;
-  onCancel?: () => void;
-  buildingId?: string;
-}
-
-// Create dropdown options from shared categories
-const CATEGORY_OPTIONS = BILL_CATEGORIES.map(category => ({
-  value: category,
-  label: category.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
-}));
-
-// Helper function to parse existing bill payment data for form initialization
-function parseBillPaymentData(bill: Bill | null | undefined) {
-  if (!bill) {
-    return {
-      paymentCount: '1' as const,
-      recurrence: false,
-      schedulePayment: undefined,
-      hasInitialPayment: false,
-      recurringPaymentsEqual: true,
-      singlePaymentAmount: '',
-      initialPaymentAmount: '',
-      recurringPaymentAmount: '',
-      customPayments: [] as CustomPayment[],
-    };
-  }
-
-  const costs = bill.costs || [];
-  const scheduleCustom = bill.scheduleCustom || [];
-  const paymentType = bill.paymentType;
-
-  // Determine paymentCount and recurrence based on paymentType and costs
-  let paymentCount: '1' | 'multiple' = '1';
-  let recurrence = false;
-  
-  if (paymentType === 'recurrent') {
-    recurrence = true;
-    // Check costs length to determine if it's single or multiple payment
-    if (costs.length === 1) {
-      paymentCount = '1';
-    } else {
-      paymentCount = 'multiple';
-    }
-  } else if (paymentType === 'unique' && costs.length > 1) {
-    paymentCount = 'multiple';
-    recurrence = false;
-  }
-
-  // Default values for payment structure
-  let singlePaymentAmount = '';
-  let hasInitialPayment = false;
-  let recurringPaymentsEqual = true;
-  let initialPaymentAmount = '';
-  let recurringPaymentAmount = '';
-  let customPayments: CustomPayment[] = [];
-
-  // Handle single payment case (both unique and recurrent)
-  if (costs.length === 1) {
-    singlePaymentAmount = costs[0].toString();
-  } else if (paymentType === 'recurrent' && costs.length > 0) {
-    // Determine payment structure based on costs array
-    if (costs.length === 1) {
-      // Single recurring payment
-      recurringPaymentAmount = costs[0].toString();
-    } else if (costs.length > 1) {
-      // Multiple payments - check if first is different (initial payment)
-      const firstCost = parseFloat(costs[0].toString());
-      const otherCosts = costs.slice(1).map(c => parseFloat(c.toString()));
-      
-      // Check if first payment is different from others (likely initial payment)
-      const allOthersEqual = otherCosts.every(cost => cost === otherCosts[0]);
-      const firstDifferent = firstCost !== otherCosts[0];
-      
-      if (firstDifferent && allOthersEqual && otherCosts.length > 0) {
-        // First payment is different - treat as initial payment
-        hasInitialPayment = true;
-        initialPaymentAmount = firstCost.toString();
-        recurringPaymentAmount = otherCosts[0].toString();
-      } else if (allOthersEqual && costs.every(c => parseFloat(c.toString()) === firstCost)) {
-        // All payments are equal
-        recurringPaymentAmount = firstCost.toString();
-      } else {
-        // Unequal payments - use custom structure
-        recurringPaymentsEqual = false;
-        
-        // Convert costs and scheduleCustom to customPayments format
-        customPayments = costs.map((cost, index) => ({
-          amount: cost.toString(),
-          date: scheduleCustom[index] || '', // Use corresponding date if available
-          description: `Payment ${index + 1}`,
-        }));
-      }
-    }
-  }
-
-  return {
-    paymentCount,
-    recurrence,
-    schedulePayment: bill.schedulePayment as 'weekly' | 'monthly' | 'quarterly' | 'yearly' | 'custom' | undefined,
-    hasInitialPayment,
-    recurringPaymentsEqual,
-    singlePaymentAmount,
-    initialPaymentAmount,
-    recurringPaymentAmount,
-    customPayments,
-  };
-}
+import { AlertCircle } from 'lucide-react';
+import {
+  billFormSchema,
+  parseBillPaymentData,
+  getCategoryLabel,
+  type FieldConfidenceData,
+  type CustomPayment,
+  type ModularBillFormProps,
+  type BillFormData,
+} from './bill-form-schema';
+import { ConfidenceIndicator } from './ConfidenceIndicator';
 
 export default function ModularBillForm({ bill, isTemplate = false, onSuccess, onCancel, buildingId }: ModularBillFormProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
@@ -293,16 +83,16 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
   const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({});
   const [customPayments, setCustomPayments] = useState<CustomPayment[]>(parsedPaymentData.customPayments);
   
+  // State for document dialogs
+  const [showDeleteDocDialog, setShowDeleteDocDialog] = useState(false);
+  const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
+  
   // Auto-save functionality
   const [isAutoSaving, setIsAutoSaving] = useState(false);
   const [autoSaveStatus, setAutoSaveStatus] = useState<string | null>(null);
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
   const lastSavedDataRef = useRef<string>('');
   
-  
-  // State for template mode
-  const [selectedTemplate, setSelectedTemplate] = useState<Bill | null>(null);
-  const [availableTemplates, setAvailableTemplates] = useState<Bill[]>([]);
   
   // Upload context for secure storage
   const uploadContext: UploadContext = {
@@ -321,24 +111,28 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
       description: bill?.description || '',
       category: bill?.category || 'other',
       vendor: bill?.vendor || '',
+      billType: (isTemplate && bill?.isAutoGenerated) ? 'recurrent' : parsedPaymentData.billType,
+      paymentStructure: parsedPaymentData.paymentStructure,
       paymentCount: parsedPaymentData.paymentCount,
-      // When creating from auto-generated bill template, default recurrence to true
       recurrence: (isTemplate && bill?.isAutoGenerated) ? true : parsedPaymentData.recurrence,
       paymentType: bill?.paymentType || 'unique',
       schedulePayment: parsedPaymentData.schedulePayment,
+      yearInterval: parsedPaymentData.yearInterval,
       customPayments: parsedPaymentData.customPayments,
       hasInitialPayment: parsedPaymentData.hasInitialPayment,
       recurringPaymentsEqual: parsedPaymentData.recurringPaymentsEqual,
       singlePaymentAmount: parsedPaymentData.singlePaymentAmount,
       initialPaymentAmount: parsedPaymentData.initialPaymentAmount,
       recurringPaymentAmount: parsedPaymentData.recurringPaymentAmount,
-      totalAmount: bill?.totalAmount?.toString() || '',
+      totalAmount: parsedPaymentData.calculatedTotalFromCustomPayments || bill?.totalAmount?.toString() || '',
       startDate: bill?.startDate || '',
       endDate: bill?.endDate || '',
       status: bill?.status || 'draft',
     }
   });
 
+  const billType = form.watch('billType');
+  const paymentStructure = form.watch('paymentStructure');
   const paymentCount = form.watch('paymentCount');
   const recurrence = form.watch('recurrence');
   const paymentType = form.watch('paymentType');
@@ -352,14 +146,19 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
 
   // Calculate total amount based on payment structure
   const calculatedTotal = React.useMemo(() => {
-    if (paymentCount === '1') {
+    if (paymentStructure === 'single') {
       // For single payment, total equals the singlePaymentAmount
       return parseFloat(singlePaymentAmount || '0');
-    } else if (paymentCount === 'multiple') {
+    } else if (paymentStructure === 'installment') {
       let total = 0;
       
-      if (recurringPaymentsEqual) {
-        // For equal recurring payments
+      // For custom schedule, always sum custom payments regardless of recurringPaymentsEqual
+      if (schedulePayment === 'custom' && watchedCustomPayments && watchedCustomPayments.length > 0) {
+        total = watchedCustomPayments.reduce((sum, payment) => {
+          return sum + parseFloat(payment.amount || '0');
+        }, 0);
+      } else if (recurringPaymentsEqual) {
+        // For equal installment payments
         const maxPayments = 12; // Default to 12 monthly payments
         
         if (hasInitialPayment && initialPaymentAmount) {
@@ -385,7 +184,8 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
     
     return 0;
   }, [
-    paymentCount,
+    paymentStructure,
+    schedulePayment,
     singlePaymentAmount,
     hasInitialPayment,
     initialPaymentAmount,
@@ -403,6 +203,19 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
       form.setValue('totalAmount', totalStr, { shouldValidate: false });
     }
   }, [calculatedTotal, form]);
+
+  // CRITICAL: Sync component customPayments state to form state
+  // This ensures form validation sees the same data as what's displayed in the UI
+  useEffect(() => {
+    const currentFormPayments = form.getValues('customPayments');
+    const currentFormPaymentsJson = JSON.stringify(currentFormPayments || []);
+    const customPaymentsJson = JSON.stringify(customPayments);
+    
+    // Only update if different to avoid infinite loops
+    if (currentFormPaymentsJson !== customPaymentsJson) {
+      form.setValue('customPayments', customPayments, { shouldValidate: false, shouldDirty: true });
+    }
+  }, [customPayments, form]);
 
   // Auto-save function with 1.5 second delay
   const performAutoSave = useCallback(async (formData: BillFormData) => {
@@ -422,21 +235,19 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
 
       // Only auto-save if we're editing an existing bill (not creating from template)
       if (bill?.id && !isTemplate) {
-        // Map paymentCount + recurrence to paymentType for database
-        let paymentType: 'unique' | 'recurrent';
-        if (formData.recurrence) {
-          paymentType = 'recurrent';  // Auto-generation enabled for single or multiple payments
-        } else {
-          paymentType = 'unique';  // No auto-generation
-        }
+        // CRITICAL: Derive legacy fields from new fields for backward compatibility
+        // These fields MUST be included in every API request to prevent DB constraint violations
+        const paymentType: 'unique' | 'recurrent' = formData.billType || 'unique';
+        const paymentCount: '1' | 'multiple' = formData.paymentStructure === 'single' ? '1' : 'multiple';
+        const recurrence: boolean = formData.billType === 'recurrent';
         
         // Calculate costs array based on payment structure (same logic as main submit)
         let costs: string[] = [];
         let calculatedTotalAmount = formData.totalAmount;
         
-        if (formData.paymentCount === '1') {
+        if (formData.paymentStructure === 'single') {
           costs = [formData.singlePaymentAmount || '0'];
-        } else if (formData.paymentCount === 'multiple') {
+        } else if (formData.paymentStructure === 'installment') {
           if (formData.recurringPaymentsEqual) {
             const maxPayments = 12;
             
@@ -452,43 +263,61 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
                 costs.push(formData.recurringPaymentAmount);
               }
             }
-          } else if (formData.customPayments && formData.customPayments.length > 0) {
-            costs = formData.customPayments.map(p => p.amount).filter(a => a && a.trim() !== '');
+          } else if (customPayments && customPayments.length > 0) {
+            // Use component state customPayments for most up-to-date values
+            costs = customPayments.map(p => p.amount).filter(a => a && a.trim() !== '');
+            // ISSUE 2 FIX: Recompute totalAmount from custom payments during auto-save
+            const computedTotal = customPayments.reduce((sum, p) => sum + parseFloat(p.amount || '0'), 0);
+            calculatedTotalAmount = computedTotal.toFixed(2);
           }
           
-          if (!calculatedTotalAmount || calculatedTotalAmount.trim() === '') {
+          // Calculate total if not provided (for equal installments only)
+          if (formData.recurringPaymentsEqual && (!calculatedTotalAmount || calculatedTotalAmount.trim() === '')) {
             const total = costs.reduce((sum, cost) => sum + parseFloat(cost || '0'), 0);
             calculatedTotalAmount = total.toString();
           }
         }
         
+        // Use component state customPayments for schedule dates
+        // IMPORTANT: Do NOT filter out empty dates - we need to preserve array indices
+        // to match costs[i] with scheduleCustom[i] for budget calculations
         let scheduleCustom: string[] = [];
-        if (formData.paymentCount === 'multiple' && !formData.recurringPaymentsEqual && formData.customPayments) {
-          scheduleCustom = formData.customPayments
-            .map(p => p.date)
-            .filter(d => d && d.trim() !== '');
+        if (formData.paymentStructure === 'installment' && !formData.recurringPaymentsEqual && customPayments && customPayments.length > 0) {
+          scheduleCustom = customPayments.map(p => p.date || '');
         }
         
+        // CRITICAL: Construct bill data with BOTH new fields (billType, paymentStructure) 
+        // AND legacy fields (paymentType, paymentCount, recurrence) for backward compatibility
         const billData: any = {
           ...formData,
+          billType: formData.billType,
+          paymentStructure: formData.paymentStructure,
           paymentType,
+          paymentCount,
+          recurrence,
           buildingId: buildingId || bill.buildingId,
           totalAmount: calculatedTotalAmount,
           costs,
           scheduleCustom,
-          paymentStructure: {
-            hasInitialPayment: formData.hasInitialPayment,
-            recurringPaymentsEqual: formData.recurringPaymentsEqual,
-            initialPaymentAmount: formData.initialPaymentAmount,
-            recurringPaymentAmount: formData.recurringPaymentAmount,
-            customPayments: formData.customPayments,
-          },
         };
         
-        if (formData.paymentCount === 'multiple') {
+        if (formData.paymentStructure === 'installment' && !formData.recurringPaymentsEqual) {
+          // Custom payment schedule - explicitly set schedulePayment to 'custom'
+          billData.schedulePayment = 'custom';
+          billData.recurringPaymentsEqual = false;
+        } else if (formData.paymentStructure === 'installment') {
           billData.schedulePayment = formData.schedulePayment;
+          // Include yearInterval only for yearly schedules
+          if (formData.schedulePayment === 'yearly') {
+            billData.yearInterval = formData.yearInterval || 1;
+          }
+        } else if (formData.billType === 'recurrent') {
+          // For single payment recurrent bills, default to yearly schedule
+          billData.schedulePayment = 'yearly';
+          billData.yearInterval = formData.yearInterval || 1;
         } else {
           delete billData.schedulePayment;
+          delete billData.yearInterval;
         }
 
         const response = await apiRequest('PUT', `/api/bills/${bill.id}`, billData);
@@ -518,7 +347,7 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
       setAutoSaveStatus('Save failed');
       setTimeout(() => setAutoSaveStatus(null), 3000);
     }
-  }, [bill?.id, isTemplate, buildingId, queryClient]);
+  }, [bill?.id, isTemplate, buildingId, queryClient, customPayments]);
 
   // Debounced auto-save function with 1.5 second delay
   const debouncedAutoSave = useCallback((formData: BillFormData) => {
@@ -564,10 +393,12 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
     
     // Update form values if bill has changed
     if (bill) {
+      form.setValue('billType', (isTemplate && bill?.isAutoGenerated) ? 'recurrent' : newParsedData.billType);
+      form.setValue('paymentStructure', newParsedData.paymentStructure);
       form.setValue('paymentCount', newParsedData.paymentCount);
-      // When creating from auto-generated bill template, default recurrence to true
       form.setValue('recurrence', (isTemplate && bill?.isAutoGenerated) ? true : newParsedData.recurrence);
       form.setValue('schedulePayment', newParsedData.schedulePayment);
+      form.setValue('yearInterval', newParsedData.yearInterval);
       form.setValue('hasInitialPayment', newParsedData.hasInitialPayment);
       form.setValue('recurringPaymentsEqual', newParsedData.recurringPaymentsEqual);
       form.setValue('singlePaymentAmount', newParsedData.singlePaymentAmount);
@@ -577,64 +408,36 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
     }
   }, [bill?.id, form, isTemplate]);
 
-  // Watch for form changes and trigger auto-save
+  // Auto-set schedulePayment to 'yearly' for recurring bills with single payment
+  // This ensures validation passes since schedulePayment is required but not visible in UI for this combination
   useEffect(() => {
-    const subscription = form.watch((data) => {
-      // Trigger auto-save on any form change (with 1.5 second debounce)
-      if (data && Object.keys(data).length > 0) {
-        debouncedAutoSave(data as BillFormData);
+    if (billType === 'recurrent' && paymentStructure === 'single') {
+      // Only set if not already set to avoid unnecessary updates
+      if (!schedulePayment) {
+        form.setValue('schedulePayment', 'yearly', { shouldDirty: true, shouldValidate: false });
       }
-    });
-    
-    return () => subscription.unsubscribe();
-  }, [form, debouncedAutoSave]);
-
-
-  // Fetch available templates (recurrent bills) for this building
-  const { data: templates = [] } = useQuery({
-    queryKey: ['/api/bills/templates', buildingId],
-    queryFn: async () => {
-      if (!buildingId) return [];
-      const response = await fetch(`/api/bills?buildingId=${buildingId}&paymentType=recurrent&isAutoGenerated=false`, {
-        credentials: 'include',
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch templates');
+    } else if (paymentStructure === 'single') {
+      // Clear schedulePayment when switching to unique bill with single payment
+      if (schedulePayment) {
+        form.setValue('schedulePayment', null, { shouldDirty: true, shouldValidate: false });
       }
-      const data = await response.json();
-      return data.bills || [];
-    },
-    enabled: !!buildingId && !bill, // Only fetch when creating new bills
-  });
+    }
+  }, [billType, paymentStructure, schedulePayment, form]);
 
-  // Handle template selection
-  const handleTemplateSelect = (template: Bill) => {
-    setSelectedTemplate(template);
-    
-    // Pre-populate form with template data
-    const today = new Date().toISOString().split('T')[0];
-    form.reset({
-      title: template.title,
-      description: template.description || '',
-      category: template.category,
-      vendor: template.vendor || '',
-      paymentType: 'unique', // Generated bills are unique
-      schedulePayment: undefined,
-      customPayments: [],
-      totalAmount: template.totalAmount,
-      startDate: today, // Use today's date
-      endDate: '',
-      status: 'draft',
-      notes: `Created from template: ${template.title}`,
-    });
-    
-    toast({
-      title: 'Template Applied',
-      description: `Form populated with data from "${template.title}"`,
-    });
-  };
+  // Auto-save disabled - bills now only save when Update Bill button is clicked
+  // useEffect(() => {
+  //   const subscription = form.watch((data) => {
+  //     // Trigger auto-save on any form change (with 1.5 second debounce)
+  //     if (data && Object.keys(data).length > 0) {
+  //       debouncedAutoSave(data as BillFormData);
+  //     }
+  //   });
+  //   
+  //   return () => subscription.unsubscribe();
+  // }, [form, debouncedAutoSave]);
 
-  // Handle AI extraction results
+
+  // Handle AI extraction results with field-level confidence support
   const handleAiExtractionComplete = (data: any) => {
     // Handle loading state
     if (data.isLoading) {
@@ -650,21 +453,100 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
     setIsExtracting(false);
     
     if (data.success && data.formData) {
-      setAiExtractionData(data.formData);
+      // Store extraction data including field confidence
+      const extractionDataWithConfidence = {
+        ...data.formData,
+        fieldConfidence: data.fieldConfidence,
+        extractionNotes: data.extractionNotes || [],
+        overallConfidence: data.confidence
+      };
+      setAiExtractionData(extractionDataWithConfidence);
       
-      // Auto-fill form with AI data
-      Object.entries(data.formData).forEach(([key, value]) => {
-        if (key === 'customPayments' && Array.isArray(value)) {
-          setCustomPayments(value);
-          form.setValue('customPayments', value);
-        } else if (value && typeof value === 'string') {
+      const formData = data.formData;
+      const hasCustomPayments = Array.isArray(formData.customPayments) && formData.customPayments.length > 0;
+      
+      // STEP 1: Set payment structure fields FIRST (in correct order)
+      // This ensures UI sections are visible before we populate them
+      
+      // 1a. Set billType first (unique vs recurrent)
+      if (formData.billType) {
+        form.setValue('billType', formData.billType as 'unique' | 'recurrent');
+      } else {
+        const inferredBillType = formData.recurrence ? 'recurrent' : 
+                                 (hasCustomPayments ? 'recurrent' : (formData.paymentType || 'unique'));
+        form.setValue('billType', inferredBillType);
+      }
+      
+      // 1b. Set paymentStructure (single vs installment)
+      if (formData.paymentStructure) {
+        form.setValue('paymentStructure', formData.paymentStructure as 'single' | 'installment');
+      } else {
+        const hasMultiplePayments = hasCustomPayments || formData.paymentCount === 'multiple';
+        form.setValue('paymentStructure', hasMultiplePayments ? 'installment' : 'single');
+      }
+      
+      // 1c. If custom payments detected, set schedule to custom and recurringPaymentsEqual to false
+      if (hasCustomPayments) {
+        form.setValue('schedulePayment', 'custom');
+        form.setValue('recurringPaymentsEqual', false);
+      }
+      
+      // STEP 2: Set basic form fields (vendor, title, dates, etc.)
+      // Don't set endDate for recurrent bills - they should auto-generate for next year
+      const isRecurrentBill = formData.billType === 'recurrent' || formData.recurrence || hasCustomPayments;
+      const basicFields = ['title', 'vendor', 'description', 'startDate', 'dueDate', 'billNumber'];
+      basicFields.forEach(key => {
+        const value = formData[key];
+        if (value && typeof value === 'string') {
           form.setValue(key as keyof BillFormData, value);
         }
       });
+      
+      // Only set endDate for non-recurrent bills (unique/one-time bills)
+      if (formData.endDate && !isRecurrentBill) {
+        form.setValue('endDate', formData.endDate);
+      }
+      
+      // Set category
+      if (formData.category) {
+        form.setValue('category', formData.category as any);
+      }
+      
+      // STEP 3: Set payment amount fields based on payment structure
+      if (formData.singlePaymentAmount && form.getValues('paymentStructure') === 'single') {
+        form.setValue('singlePaymentAmount', formData.singlePaymentAmount);
+      }
+      if (formData.totalAmount) {
+        form.setValue('totalAmount', formData.totalAmount);
+      }
+      
+      // STEP 4: Set custom payments LAST (after payment structure is configured)
+      if (hasCustomPayments) {
+        setCustomPayments(formData.customPayments);
+        form.setValue('customPayments', formData.customPayments);
+      }
+
+      // Build toast description with confidence and notes
+      const confidencePercent = Math.round((data.confidence || 0.9) * 100);
+      let toastDescription = `Successfully extracted bill data with ${confidencePercent}% confidence`;
+      
+      // Add notes about fields needing review if confidence is low
+      if (data.extractionNotes && data.extractionNotes.length > 0) {
+        toastDescription += `. Note: ${data.extractionNotes[0]}`;
+      } else if (data.fieldConfidence) {
+        const lowConfidenceFields = [];
+        if (data.fieldConfidence.vendorName < 0.7) lowConfidenceFields.push('vendor');
+        if (data.fieldConfidence.totalAmount < 0.7) lowConfidenceFields.push('amount');
+        if (data.fieldConfidence.dueDate < 0.7) lowConfidenceFields.push('date');
+        
+        if (lowConfidenceFields.length > 0) {
+          toastDescription += `. Please verify: ${lowConfidenceFields.join(', ')}`;
+        }
+      }
 
       toast({
         title: 'AI Extraction Complete',
-        description: `Successfully extracted bill data with ${Math.round((data.confidence || 0.9) * 100)}% confidence`,
+        description: toastDescription,
       });
     } else {
       toast({
@@ -693,12 +575,77 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
       // Auto-populate form with extracted data
       if (analysisData.extractedData) {
         const data = analysisData.extractedData;
+        
+        // Detect custom payment dates (indicates installment plan)
+        const hasCustomPaymentDates = Array.isArray(data.customPaymentDates) && data.customPaymentDates.length > 0;
+        const hasCustomPayments = Array.isArray(data.customPayments) && data.customPayments.length > 0;
+        const isCustomFrequency = data.frequency === 'custom';
+        const isInstallmentPlan = hasCustomPaymentDates || hasCustomPayments || isCustomFrequency;
+        
+        // STEP 1: Set payment structure fields FIRST (same logic as handleAiExtractionComplete)
+        // This ensures UI sections are visible before we populate them
+        
+        // 1a. Set billType (unique vs recurrent)
+        if (isInstallmentPlan) {
+          form.setValue('billType', 'recurrent');
+        } else if (data.billType) {
+          form.setValue('billType', data.billType);
+        } else {
+          form.setValue('billType', 'unique');
+        }
+        
+        // 1b. Set paymentStructure (single vs installment)
+        if (isInstallmentPlan) {
+          form.setValue('paymentStructure', 'installment');
+        } else if (data.paymentStructure) {
+          form.setValue('paymentStructure', data.paymentStructure);
+        } else {
+          form.setValue('paymentStructure', 'single');
+        }
+        
+        // 1c. If custom payments detected, set schedule to custom and recurringPaymentsEqual to false
+        if (isInstallmentPlan) {
+          form.setValue('schedulePayment', 'custom');
+          form.setValue('recurringPaymentsEqual', false);
+        }
+        
+        // STEP 2: Set basic form fields
         if (data.title) form.setValue('title', data.title);
         if (data.vendor) form.setValue('vendor', data.vendor);
-        if (data.amount) form.setValue('totalAmount', data.amount.toString());
+        
+        // Handle amount - check both 'amount' and 'totalAmount' field names
+        const extractedAmount = data.amount || data.totalAmount;
+        if (extractedAmount) {
+          form.setValue('totalAmount', extractedAmount.toString());
+          if (!isInstallmentPlan) {
+            form.setValue('singlePaymentAmount', extractedAmount.toString());
+          }
+        }
+        
         if (data.category) form.setValue('category', data.category);
         if (data.date) form.setValue('startDate', data.date);
         if (data.description) form.setValue('description', data.description);
+        
+        // STEP 3: Set custom payments if detected
+        if (hasCustomPaymentDates) {
+          // Convert customPaymentDates to customPayments format - check both field names
+          const amountValue = data.amount || data.totalAmount;
+          const totalAmount = parseFloat(amountValue?.toString() || '0');
+          const numPayments = data.customPaymentDates.length;
+          const individualAmount = numPayments > 0 ? (totalAmount / numPayments).toFixed(2) : '0.00';
+          
+          const customPaymentsData = data.customPaymentDates.map((date: string, index: number) => ({
+            amount: individualAmount,
+            date: date,
+            description: `Payment ${index + 1}`
+          }));
+          
+          setCustomPayments(customPaymentsData);
+          form.setValue('customPayments', customPaymentsData);
+        } else if (hasCustomPayments) {
+          setCustomPayments(data.customPayments);
+          form.setValue('customPayments', data.customPayments);
+        }
       }
       
       toast({
@@ -813,6 +760,68 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
     return 'document';
   };
 
+  // Handle document attachment to existing bill using SharedUploader
+  const handleBillDocumentAttachment = async (file: File | null, text: string | null) => {
+    if (!file || !bill?.id || !bill?.buildingId) {
+      if (!file) {
+        toast({
+          title: 'No file selected',
+          description: 'Please select a file to attach to this bill.',
+          variant: 'destructive',
+        });
+      }
+      return;
+    }
+
+    // For auto-generated bills with AI enabled, set aiFile to trigger extraction
+    if (bill?.isAutoGenerated && !isTemplate && aiEnabled) {
+      setAiFile(file);
+      setIsExtracting(true);
+    }
+
+    try {
+      // Upload document through documents API and link to bill
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('name', file.name);
+      formData.append('description', `Document attached to bill: ${bill.title}`);
+      formData.append('documentType', 'financial');
+      formData.append('buildingId', bill.buildingId);
+      formData.append('attachedToType', 'bill');
+      formData.append('attachedToId', bill.id);
+
+      const response = await fetch('/api/documents/upload', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Upload failed: ${response.status} ${errorText}`);
+      }
+
+      const result = await response.json();
+
+      // Refresh the attached documents list
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/documents', { attachedToType: 'bill', attachedToId: bill.id }] 
+      });
+
+      toast({
+        title: 'Document Attached',
+        description: `${file.name} has been successfully attached to this bill.`,
+      });
+    } catch (error) {
+      console.error('Failed to attach document:', error);
+      toast({
+        title: 'Upload Failed',
+        description: error instanceof Error ? error.message : 'Failed to attach document to bill.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   // Cleanup timer on unmount
   useEffect(() => {
     return () => {
@@ -823,29 +832,30 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
   }, []);
 
   // Create/Update bill mutation
+  // Exception (task #229): emits a per-document upload toast inside `mutationFn`
+  // (data-dependent), so the success/error toast pair from `useCreateUpdateMutation`
+  // would conflict — kept as raw `useMutation`.
   const billMutation = useMutation({
     mutationFn: async (data: BillFormData) => {
       // If isTemplate, always create new bill (POST), even if bill data is provided
       const endpoint = (bill && !isTemplate) ? `/api/bills/${bill.id}` : '/api/bills';
       const method = (bill && !isTemplate) ? 'PUT' : 'POST';
       
-      // Map paymentCount + recurrence to paymentType for database
-      let paymentType: 'unique' | 'recurrent';
-      if (data.recurrence) {
-        paymentType = 'recurrent';  // Auto-generation enabled for single or multiple payments
-      } else {
-        paymentType = 'unique';  // No auto-generation
-      }
+      // CRITICAL: Derive legacy fields from new fields for backward compatibility
+      // These fields MUST be included in every API request to prevent DB constraint violations
+      const paymentType: 'unique' | 'recurrent' = data.billType || 'unique';
+      const paymentCount: '1' | 'multiple' = data.paymentStructure === 'single' ? '1' : 'multiple';
+      const recurrence: boolean = data.billType === 'recurrent';
       
       // Calculate costs array based on payment structure
       let costs: string[] = [];
       let calculatedTotalAmount = data.totalAmount;
       
-      if (data.paymentCount === '1') {
+      if (data.paymentStructure === 'single') {
         costs = [data.singlePaymentAmount || '0'];
-      } else if (data.paymentCount === 'multiple') {
+      } else if (data.paymentStructure === 'installment') {
         if (data.recurringPaymentsEqual) {
-          // For equal recurring payments - generate all 12 payment amounts
+          // For equal installment payments - generate all 12 payment amounts
           const maxPayments = 12; // Default to 12 monthly payments
           
           if (data.hasInitialPayment && data.initialPaymentAmount) {
@@ -864,46 +874,67 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
               costs.push(data.recurringPaymentAmount);
             }
           }
-        } else if (data.customPayments && data.customPayments.length > 0) {
-          // For custom amounts
-          costs = data.customPayments.map(p => p.amount).filter(a => a && a.trim() !== '');
+        } else if (customPayments && customPayments.length > 0) {
+          // For custom amounts - use component state customPayments for most up-to-date values
+          costs = customPayments.map(p => p.amount).filter(a => a && a.trim() !== '');
+          // ISSUE 2 FIX: Recompute totalAmount from custom payments during submission
+          const computedTotal = customPayments.reduce((sum, p) => sum + parseFloat(p.amount || '0'), 0);
+          calculatedTotalAmount = computedTotal.toFixed(2);
         }
         
-        // Calculate total if not provided
-        if (!calculatedTotalAmount || calculatedTotalAmount.trim() === '') {
+        // Calculate total if not provided (for equal installments only)
+        if (data.recurringPaymentsEqual && (!calculatedTotalAmount || calculatedTotalAmount.trim() === '')) {
           const total = costs.reduce((sum, cost) => sum + parseFloat(cost || '0'), 0);
           calculatedTotalAmount = total.toString();
         }
       }
       
-      // Extract custom schedule dates for backend persistence
+      // Extract custom schedule dates for backend persistence - use component state customPayments
+      // IMPORTANT: Do NOT filter out empty dates - we need to preserve array indices
+      // to match costs[i] with scheduleCustom[i] for budget calculations
       let scheduleCustom: string[] = [];
-      if (data.paymentCount === 'multiple' && !data.recurringPaymentsEqual && data.customPayments) {
-        scheduleCustom = data.customPayments
-          .map(p => p.date)
-          .filter(d => d && d.trim() !== '');
+      if (data.paymentStructure === 'installment' && !data.recurringPaymentsEqual && customPayments && customPayments.length > 0) {
+        scheduleCustom = customPayments.map(p => p.date || '');
       }
       
+      // CRITICAL: Construct bill data with BOTH new fields (billType, paymentStructure) 
+      // AND legacy fields (paymentType, paymentCount, recurrence) for backward compatibility
       const billData: any = {
         ...data,
+        billType: data.billType,
+        paymentStructure: data.paymentStructure,
         paymentType,
+        paymentCount,
+        recurrence,
         buildingId: buildingId || bill?.buildingId,
         totalAmount: calculatedTotalAmount,
         costs,
         scheduleCustom,
-        paymentStructure: {
-          hasInitialPayment: data.hasInitialPayment,
-          recurringPaymentsEqual: data.recurringPaymentsEqual,
-          initialPaymentAmount: data.initialPaymentAmount,
-          recurringPaymentAmount: data.recurringPaymentAmount,
-          customPayments: data.customPayments,
-        },
+        autoGenerateNextYear: data.billType === 'recurrent' && !data.endDate,
       };
       
-      if (data.paymentCount === 'multiple') {
+      // Note: When updating an auto-generated bill, the backend will automatically
+      // update the source template and sync changes. The auto-generated relationship
+      // is preserved by design to keep bills in sync with their templates.
+      
+      if (data.paymentStructure === 'installment' && !data.recurringPaymentsEqual) {
+        // Custom payment schedule - explicitly set schedulePayment to 'custom'
+        billData.schedulePayment = 'custom';
+        billData.recurringPaymentsEqual = false;
+      } else if (data.paymentStructure === 'installment' && data.billType === 'recurrent') {
+        // Installment payments with recurrent bills need schedule
         billData.schedulePayment = data.schedulePayment;
+        // Include yearInterval only for yearly schedules
+        if (data.schedulePayment === 'yearly') {
+          billData.yearInterval = data.yearInterval || 1;
+        }
+      } else if (data.billType === 'recurrent' && data.paymentStructure === 'single') {
+        // Single payment recurrent bills: default to yearly schedule
+        billData.schedulePayment = 'yearly';
+        billData.yearInterval = data.yearInterval || 1;
       } else {
         delete billData.schedulePayment;
+        delete billData.yearInterval;
       }
 
       const response = await apiRequest(method, endpoint, billData);
@@ -1020,31 +1051,25 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
   });
 
   // Delete bill mutation
-  const deleteBillMutation = useMutation({
+  const deleteBillMutation = useCreateUpdateMutation<unknown, void>({
     mutationFn: async () => {
       if (!bill?.id) throw new Error('No bill ID provided for deletion');
       return apiRequest('DELETE', `/api/bills/${bill.id}`, null);
     },
-    onSuccess: () => {
+    successTitle: 'Success',
+    successMessage: 'Bill deleted successfully',
+    errorMessage: (error) => error?.message || 'Failed to delete bill',
+    invalidateQueries: (_data, qc) => {
       // Invalidate all bill-related queries to ensure proper refresh
-      queryClient.invalidateQueries({ queryKey: ['/api/bills'] });
+      qc.invalidateQueries({ queryKey: ['/api/bills'] });
       if (buildingId) {
-        queryClient.invalidateQueries({ queryKey: ['/api/bills', buildingId] });
-        queryClient.invalidateQueries({ queryKey: ['/api/bills/year-range', buildingId] });
+        qc.invalidateQueries({ queryKey: ['/api/bills', buildingId] });
+        qc.invalidateQueries({ queryKey: ['/api/bills/year-range', buildingId] });
       }
-      toast({
-        title: 'Success',
-        description: 'Bill deleted successfully',
-      });
+    },
+    onSuccessCallback: () => {
       onSuccess?.(bill!.id, 'updated'); // Trigger parent refresh
     },
-    onError: (error: any) => {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to delete bill',
-        variant: 'destructive',
-      });
-    }
   });
 
   const onSubmit = (data: BillFormData) => {
@@ -1052,10 +1077,40 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
   };
 
   const handleDelete = () => {
-    if (!bill || isTemplate) return; // Prevent deletion when creating from template
+    if (!bill) return;
     
     if (confirm(`Are you sure you want to delete bill "${bill.title}"? This action cannot be undone.`)) {
       deleteBillMutation.mutate();
+    }
+  };
+
+  // Document management handlers
+  const handleDeleteDocumentClick = (document: Document) => {
+    setSelectedDocument(document);
+    setShowDeleteDocDialog(true);
+  };
+
+  const deleteDocumentMutation = useCreateUpdateMutation<unknown, string>({
+    mutationFn: async (documentId: string) => {
+      return apiRequest('DELETE', `/api/documents/${documentId}`);
+    },
+    successTitle: t('success'),
+    successMessage: t('documentDeletedSuccessfully'),
+    errorTitle: t('error'),
+    errorMessage: (error) => error?.message || t('documentDeleteFailed'),
+    queryKeysToInvalidate: [
+      ['/api/documents'],
+      ['/api/bills', bill?.id, 'documents'],
+    ],
+    onSuccessCallback: () => {
+      setShowDeleteDocDialog(false);
+      setSelectedDocument(null);
+    },
+  });
+
+  const handleConfirmDeleteDocument = () => {
+    if (selectedDocument) {
+      deleteDocumentMutation.mutate(selectedDocument.id);
     }
   };
 
@@ -1142,13 +1197,15 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
       return;
     }
     
-    setCustomPayments([...customPayments, newPayment]);
+    const newPayments = [...customPayments, newPayment];
+    setCustomPayments(newPayments);
+    form.setValue('customPayments', newPayments, { shouldDirty: true, shouldTouch: true });
   };
 
   const removeCustomPayment = (index: number) => {
     const updated = customPayments.filter((_, i) => i !== index);
     setCustomPayments(updated);
-    form.setValue('customPayments', updated);
+    form.setValue('customPayments', updated, { shouldDirty: true, shouldTouch: true });
   };
 
   const updateCustomPayment = (index: number, field: keyof CustomPayment, value: string) => {
@@ -1156,23 +1213,38 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
       i === index ? { ...payment, [field]: value } : payment
     );
     setCustomPayments(updated);
-    form.setValue('customPayments', updated);
+    form.setValue('customPayments', updated, { shouldDirty: true, shouldTouch: true });
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-semibold">
-          {isTemplate ? t('bills.createFromTemplate') : (bill ? t('bills.editBill') : t('bills.createNewBill'))}
-        </h2>
-        {aiExtractionData && (
+      {/* Notice for auto-generated bills - inform user that edits update the source template */}
+      {bill?.isAutoGenerated && bill?.sourceTemplateId && (
+        <div className="p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+            <span className="text-blue-700 dark:text-blue-300 font-medium">
+              {language === 'fr' 
+                ? 'Modification du modèle source' 
+                : 'Editing source template'}
+            </span>
+          </div>
+          <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
+            {language === 'fr'
+              ? 'Les modifications apportées à cette facture auto-générée seront appliquées au modèle source. Les futures factures générées automatiquement refléteront ces changements.'
+              : 'Changes made to this auto-generated bill will be applied to the source template. Future auto-generated bills will reflect these changes.'}
+          </p>
+        </div>
+      )}
+
+      {aiExtractionData && (
+        <div className="flex justify-end">
           <Badge variant="secondary" className="flex items-center gap-1">
             <Sparkles className="w-3 h-3" />
             {t('bills.aiExtracted')}
           </Badge>
-        )}
-      </div>
-
+        </div>
+      )}
 
       {!bill && (
         <Tabs defaultValue="manual" className="space-y-4">
@@ -1180,10 +1252,6 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
             <TabsTrigger value="manual" data-testid="tab-manual">
               <FileText className="w-4 h-4 mr-2" />
               {t('bills.manualEntry')}
-            </TabsTrigger>
-            <TabsTrigger value="template" data-testid="tab-template">
-              <Copy className="w-4 h-4 mr-2" />
-              From Template
             </TabsTrigger>
             {aiEnabled && (
               <TabsTrigger value="ai" data-testid="tab-ai">
@@ -1232,6 +1300,7 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
                   {aiFile && (
                     <GeminiBillExtractor
                       file={aiFile}
+                      language={language}
                       onExtractionComplete={handleAiExtractionComplete}
                     />
                   )}
@@ -1267,33 +1336,29 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
 
       {/* Bill Form */}
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          {/* Auto-save status indicator */}
-          {(isAutoSaving || (autoSaveStatus && autoSaveStatus !== 'Draft')) && (
-            <div className="flex items-center justify-center gap-2 p-2 text-sm bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
-              {isAutoSaving && (
-                <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-              )}
-              <span className={cn(
-                "font-medium",
-                autoSaveStatus === 'Saved' && "text-green-600 dark:text-green-400",
-                autoSaveStatus === 'Save failed' && "text-red-600 dark:text-red-400",
-                (isAutoSaving || autoSaveStatus === 'Saving...') && "text-blue-600 dark:text-blue-400",
-                autoSaveStatus === 'Draft' && "text-gray-600 dark:text-gray-400"
-              )}>
-                {isAutoSaving ? t('bills.autoSaving') : autoSaveStatus}
-              </span>
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <form onSubmit={form.handleSubmit(onSubmit, (errors) => {
+          console.error('❌ [BILL FORM] Form validation failed:', errors);
+          
+          // Check for specific custom payments date error
+          let errorDescription = t('validationFailed') || 'Please check the form for errors and try again.';
+          if (errors.customPayments?.message) {
+            errorDescription = errors.customPayments.message;
+          }
+          
+          toast({
+            title: t('validationFailed') || 'Form Validation Error',
+            description: errorDescription,
+            variant: 'destructive',
+          });
+        })} className="space-y-6">
+          <StandardFormGrid>
             {/* Title */}
             <FormField
               control={form.control}
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('bills.title')}</FormLabel>
+                  <FormLabel>{t('bills.title')} <span className="text-red-500">*</span></FormLabel>
                   <FormControl>
                     <Input placeholder="e.g., Monthly Electricity Bill" {...field} />
                   </FormControl>
@@ -1308,7 +1373,16 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
               name="vendor"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('bills.vendor')}</FormLabel>
+                  <FormLabel className="flex items-center">
+                    {t('bills.vendor')}
+                    {aiExtractionData?.fieldConfidence && (
+                      <ConfidenceIndicator 
+                        confidence={aiExtractionData.fieldConfidence.vendorName} 
+                        fieldName="vendor"
+                        t={t}
+                      />
+                    )}
+                  </FormLabel>
                   <FormControl>
                     <Input placeholder="e.g., Hydro Quebec" {...field} />
                   </FormControl>
@@ -1323,7 +1397,16 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
               name="category"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('bills.category')}</FormLabel>
+                  <FormLabel className="flex items-center">
+                    {t('bills.category')} <span className="text-red-500">*</span>
+                    {aiExtractionData?.fieldConfidence && (
+                      <ConfidenceIndicator 
+                        confidence={aiExtractionData.fieldConfidence.category} 
+                        fieldName="category"
+                        t={t}
+                      />
+                    )}
+                  </FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
@@ -1331,11 +1414,13 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {CATEGORY_OPTIONS.map((category) => (
-                        <SelectItem key={category.value} value={category.value}>
-                          {category.label}
-                        </SelectItem>
-                      ))}
+                      {[...BILL_CATEGORIES]
+                        .sort((a, b) => getCategoryLabel(a, t).localeCompare(getCategoryLabel(b, t)))
+                        .map((category) => (
+                          <SelectItem key={category} value={category}>
+                            {getCategoryLabel(category, t)}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -1349,7 +1434,7 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
               name="status"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('bills.status')}</FormLabel>
+                  <FormLabel>{t('bills.status')} <span className="text-red-500">*</span></FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
@@ -1364,91 +1449,106 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
                       <SelectItem value="cancelled">{t('bills.statusCancelled')}</SelectItem>
                     </SelectContent>
                   </Select>
-                  {field.value === 'draft' && (
-                    <FormDescription className="text-amber-600 dark:text-amber-400">
-                      {t('bills.statusDraftNote')}
-                    </FormDescription>
-                  )}
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            {/* Payment Count */}
+            {/* Bill Type */}
             <FormField
               control={form.control}
-              name="paymentCount"
+              name="billType"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('bills.paymentCount')}</FormLabel>
+                  <FormLabel className="flex items-center">
+                    {t('bills.billType')} <span className="text-red-500">*</span>
+                    {aiExtractionData?.fieldConfidence && (
+                      <ConfidenceIndicator 
+                        confidence={aiExtractionData.fieldConfidence.paymentType} 
+                        fieldName="billType"
+                        t={t}
+                      />
+                    )}
+                  </FormLabel>
                   <FormControl>
                     <RadioGroup
                       onValueChange={field.onChange}
                       value={field.value}
                       className="flex gap-4"
-                      data-testid="radio-payment-count"
+                      data-testid="radio-bill-type"
                     >
                       <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="1" id="payment-count-1" data-testid="radio-payment-count-1" />
-                        <Label htmlFor="payment-count-1" className="font-normal cursor-pointer">
-                          {t('bills.paymentCountSingle')}
+                        <RadioGroupItem value="unique" id="bill-type-unique" data-testid="radio-bill-type-unique" />
+                        <Label htmlFor="bill-type-unique" className="font-normal cursor-pointer">
+                          {t('bills.billTypeUnique')}
                         </Label>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="multiple" id="payment-count-multiple" data-testid="radio-payment-count-multiple" />
-                        <Label htmlFor="payment-count-multiple" className="font-normal cursor-pointer">
-                          {t('bills.paymentCountMultiple')}
+                        <RadioGroupItem value="recurrent" id="bill-type-recurrent" data-testid="radio-bill-type-recurrent" />
+                        <Label htmlFor="bill-type-recurrent" className="font-normal cursor-pointer">
+                          {t('bills.billTypeRecurrent')}
                         </Label>
                       </div>
                     </RadioGroup>
                   </FormControl>
-                  <FormDescription>
-                    {t('bills.paymentCountDescription')}
-                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            {/* Recurrence Checkbox - Visible for both single and multiple payments */}
+            {/* Payment Structure */}
             <FormField
               control={form.control}
-              name="recurrence"
+              name="paymentStructure"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                <FormItem>
+                  <FormLabel>{t('bills.paymentStructure')} <span className="text-red-500">*</span></FormLabel>
                   <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      data-testid="checkbox-recurrence"
-                    />
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      className="flex gap-4"
+                      data-testid="radio-payment-structure"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="single" id="payment-structure-single" data-testid="radio-payment-structure-single" />
+                        <Label htmlFor="payment-structure-single" className="font-normal cursor-pointer">
+                          {t('bills.paymentStructureSingle')}
+                        </Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="installment" id="payment-structure-installment" data-testid="radio-payment-structure-installment" />
+                        <Label htmlFor="payment-structure-installment" className="font-normal cursor-pointer">
+                          {t('bills.paymentStructureInstallment')}
+                        </Label>
+                      </div>
+                    </RadioGroup>
                   </FormControl>
-                  <div className="space-y-1 leading-none">
-                    <FormLabel className="font-normal cursor-pointer">
-                      {t('bills.recurrence')}
-                    </FormLabel>
-                    <FormDescription>
-                      {t('bills.recurrenceDescription')}
-                    </FormDescription>
-                  </div>
+                  <FormMessage />
                 </FormItem>
               )}
             />
 
             {/* Payment Amount - Only for single payment */}
-            {paymentCount === '1' && (
+            {paymentStructure === 'single' && (
               <FormField
                 control={form.control}
                 name="singlePaymentAmount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('bills.singlePaymentAmount')}</FormLabel>
+                    <FormLabel className="flex items-center">
+                      {t('bills.singlePaymentAmount')} <span className="text-red-500">*</span>
+                      {aiExtractionData?.fieldConfidence && (
+                        <ConfidenceIndicator 
+                          confidence={aiExtractionData.fieldConfidence.totalAmount} 
+                          fieldName="amount"
+                          t={t}
+                        />
+                      )}
+                    </FormLabel>
                     <FormControl>
                       <Input placeholder="0.00" type="number" step="0.01" {...field} data-testid="input-payment-amount" />
                     </FormControl>
-                    <FormDescription>
-                      {t('bills.singlePaymentAmountDescription')}
-                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -1461,7 +1561,16 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
               name="startDate"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('bills.startDate')}</FormLabel>
+                  <FormLabel className="flex items-center">
+                    {t('bills.startDate')} <span className="text-red-500">*</span>
+                    {aiExtractionData?.fieldConfidence && (
+                      <ConfidenceIndicator 
+                        confidence={aiExtractionData.fieldConfidence.dueDate} 
+                        fieldName="date"
+                        t={t}
+                      />
+                    )}
+                  </FormLabel>
                   <FormControl>
                     <Input type="date" {...field} />
                   </FormControl>
@@ -1469,18 +1578,72 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
                 </FormItem>
               )}
             />
-          </div>
+          </StandardFormGrid>
 
-          {/* Payment Configuration - Only shown for multiple payments */}
-          {paymentCount === 'multiple' && (
+          {/* Recurrent Bill Configuration - Only shown for recurrent bills with single payment */}
+          {billType === 'recurrent' && paymentStructure === 'single' && (
+            <div className="space-y-4">
+              {/* Year Interval for Recurrent Single Payment */}
+              <FormField
+                control={form.control}
+                name="yearInterval"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('bills.yearInterval')}</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number" 
+                        min="1" 
+                        max="99" 
+                        placeholder="1" 
+                        {...field}
+                        onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : 1)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* End Date for Recurrent Bills */}
+              <FormField
+                control={form.control}
+                name="endDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('bills.recurrenceEndDate')}</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="date" 
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          )}
+
+          {/* Payment Configuration - Only shown for installment payments */}
+          {paymentStructure === 'installment' && (
             <div className="space-y-4">
               <FormField
                 control={form.control}
                 name="schedulePayment"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('bills.paymentSchedule')}</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <FormLabel className="flex items-center">
+                      {t('bills.paymentSchedule')}
+                      {aiExtractionData?.fieldConfidence && (
+                        <ConfidenceIndicator 
+                          confidence={aiExtractionData.fieldConfidence.frequency} 
+                          fieldName="schedule"
+                          t={t}
+                        />
+                      )}
+                    </FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value || ''}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select schedule" />
@@ -1499,6 +1662,30 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
                 )}
               />
 
+              {/* Year Interval - Only shown for yearly schedules */}
+              {schedulePayment === 'yearly' && (
+                <FormField
+                  control={form.control}
+                  name="yearInterval"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('bills.yearInterval')}</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          min="1" 
+                          max="99" 
+                          placeholder="1" 
+                          {...field}
+                          onChange={(e) => field.onChange(e.target.value ? parseInt(e.target.value) : 1)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
               {/* Smart Payment Configuration */}
               <div className="space-y-4 p-4 border rounded-lg bg-gray-50 dark:bg-gray-900">
                 <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300">{t('bills.paymentConfiguration')}</h4>
@@ -1511,9 +1698,6 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
                       <div className="space-y-0.5">
                         <FormLabel className="text-base">{t('bills.initialPayment')}</FormLabel>
-                        <FormDescription>
-                          {t('bills.initialPaymentDescription')}
-                        </FormDescription>
                       </div>
                       <FormControl>
                         <input
@@ -1535,9 +1719,6 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
                     <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
                       <div className="space-y-0.5">
                         <FormLabel className="text-base">{t('bills.equalRecurringPayments')}</FormLabel>
-                        <FormDescription>
-                          {t('bills.equalRecurringPaymentsDescription')}
-                        </FormDescription>
                       </div>
                       <FormControl>
                         <input
@@ -1553,7 +1734,7 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
               </div>
 
               {/* Conditional Payment Amount Fields */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <StandardFormGrid>
                 {/* Initial Payment Amount */}
                 {hasInitialPayment && (
                   <FormField
@@ -1565,17 +1746,14 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
                         <FormControl>
                           <Input placeholder="0.00" type="number" step="0.01" {...field} />
                         </FormControl>
-                        <FormDescription>
-                          {t('bills.initialPaymentAmountDescription')}
-                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
                 )}
 
-                {/* Recurring Payment Amount */}
-                {recurringPaymentsEqual && (
+                {/* Recurring Payment Amount - hide for custom schedule since amounts are defined per payment */}
+                {recurringPaymentsEqual && schedulePayment !== 'custom' && (
                   <FormField
                     control={form.control}
                     name="recurringPaymentAmount"
@@ -1585,37 +1763,32 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
                         <FormControl>
                           <Input placeholder="0.00" type="number" step="0.01" {...field} />
                         </FormControl>
-                        <FormDescription>
-                          {t('bills.recurringPaymentAmountDescription')}
-                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
                 )}
-              </div>
+              </StandardFormGrid>
 
-              {/* End Date for Recurrent Bills */}
-              <FormField
-                control={form.control}
-                name="endDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('bills.recurrenceEndDate')}</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="date" 
-                        {...field}
-                        max={new Date(new Date().getFullYear() + 1, 11, 31).toISOString().split('T')[0]}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      {t('bills.recurrenceEndDateDescription')}
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {/* End Date for Recurrent Bills with Installments */}
+              {billType === 'recurrent' && (
+                <FormField
+                  control={form.control}
+                  name="endDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('bills.recurrenceEndDate')}</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="date" 
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
 
               {(schedulePayment === 'custom' || !recurringPaymentsEqual) && (
                 <Card>
@@ -1641,7 +1814,7 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
                     </div>
                     <div className="max-h-60 overflow-y-auto space-y-3">
                       {customPayments.map((payment, index) => (
-                        <div key={index} className="flex gap-2 items-end p-3 border rounded bg-white dark:bg-gray-800">
+                        <div key={`payment-${index}-${payment.amount}`} className="flex gap-2 items-end p-3 border rounded bg-white dark:bg-gray-800">
                           <div className="flex-1">
                             <label className="text-xs text-gray-500 dark:text-gray-400">{t('bills.amount')}</label>
                             <Input
@@ -1719,29 +1892,93 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
           />
 
           {/* Display attached documents if editing existing bill */}
-          {bill?.id && attachedDocuments.length > 0 && (
+          {bill?.id && (
             <div className="space-y-4">
               <div className="border-t pt-6">
-                <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-                  Attached Documents ({attachedDocuments.length})
-                </h4>
-                <div className="grid gap-3">
-                  {attachedDocuments.map((document) => (
-                    <AttachedFileSection
-                      key={document.id}
-                      entityType="document"
-                      entityId={document.id}
-                      filePath={document.filePath}
-                      fileName={document.fileName || document.name}
-                      fileSize={document.fileSize}
-                      canView={true}
-                      canDownload={true}
-                      className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                      fallbackName={document.name || 'Bill Attachment'}
-                      data-testid={`attachment-${document.id}`}
-                    />
-                  ))}
+                <div className="space-y-4 mb-4">
+                  <h4 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    {t('attachedDocuments')} ({attachedDocuments.length})
+                  </h4>
+                  
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">{t('addDocument')}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <SharedUploader
+                        onDocumentChange={handleBillDocumentAttachment}
+                        formType="bills"
+                        uploadContext={uploadContext}
+                        aiAnalysisEnabled={bill?.isAutoGenerated && !isTemplate}
+                        showAiToggle={bill?.isAutoGenerated && !isTemplate}
+                        onAiToggle={handleAiToggle}
+                        onAiAnalysisComplete={handleAiAnalysisComplete}
+                        allowedFileTypes={['image/*', 'application/pdf']}
+                        maxFileSize={25}
+                      />
+                      
+                      {bill?.isAutoGenerated && !isTemplate && isExtracting && (
+                        <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
+                          <div className="flex items-center gap-2">
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                            <span className="text-blue-700 dark:text-blue-300 font-medium">
+                              {t('bills.extractingData') || 'Extracting data from your document...'}
+                            </span>
+                          </div>
+                          <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
+                            {t('bills.extractingDataNote') || 'This may take a few seconds depending on document complexity.'}
+                          </p>
+                        </div>
+                      )}
+                      
+                      {bill?.isAutoGenerated && !isTemplate && aiFile && (
+                        <GeminiBillExtractor
+                          file={aiFile}
+                          language={language}
+                          onExtractionComplete={handleAiExtractionComplete}
+                        />
+                      )}
+                    </CardContent>
+                  </Card>
                 </div>
+                {attachedDocuments.length > 0 ? (
+                  <div className="grid gap-3">
+                    {attachedDocuments.map((document) => (
+                      <div key={document.id} className="flex items-center gap-2 border rounded-lg p-4 bg-gray-50 dark:bg-gray-800">
+                        <div className="flex-1">
+                          <AttachedFileSection
+                            entityType="document"
+                            entityId={document.id}
+                            filePath={document.filePath}
+                            fileName={document.fileName || document.name}
+                            fileSize={document.fileSize}
+                            canView={true}
+                            canDownload={true}
+                            className="bg-transparent hover:bg-transparent p-0"
+                            fallbackName={document.name || 'Bill Attachment'}
+                            data-testid={`attachment-${document.id}`}
+                          />
+                        </div>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteDocumentClick(document)}
+                          className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
+                          data-testid={`button-delete-doc-${document.id}`}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500 dark:text-gray-400 border-2 border-dashed rounded-lg">
+                    <FileText className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">{t('noDocumentsAttached')}</p>
+                    <p className="text-xs">{t('clickAddDocumentToStart')}</p>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -1755,21 +1992,21 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
                     {t('bills.calculatedTotalAmount')}
                   </h4>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
-                    {paymentCount === '1' 
+                    {paymentStructure === 'single' 
                       ? t('bills.totalAmountSingleDescription')
-                      : paymentCount === 'multiple' && recurringPaymentsEqual 
+                      : paymentStructure === 'installment' && recurringPaymentsEqual 
                         ? t('bills.totalAmountMultipleEqualDescription')
                         : t('bills.totalAmountMultipleCustomDescription')}
                   </p>
                 </div>
                 <div className="text-right">
                   <div className="text-3xl font-bold text-blue-600 dark:text-blue-400" data-testid="text-calculated-total">
-                    ${paymentCount === '1' 
+                    ${paymentStructure === 'single' 
                       ? parseFloat(form.watch('totalAmount') || '0').toFixed(2)
                       : calculatedTotal.toFixed(2)}
                   </div>
                   <Badge variant="secondary" className="mt-2">
-                    {paymentCount === 'multiple' ? t('bills.autoCalculatedBadge') : t('bills.fromPaymentAmountBadge')}
+                    {paymentStructure === 'installment' ? t('bills.autoCalculatedBadge') : t('bills.fromPaymentAmountBadge')}
                   </Badge>
                 </div>
               </div>
@@ -1778,14 +2015,15 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
 
           {/* Form Actions */}
           <div className="flex justify-between items-center">
-            {/* Delete button on the left (only for existing bills, not templates) */}
+            {/* Delete button on the left (only for existing bills, not when using as template) */}
             <div>
-              {bill && !isTemplate && (
+              {bill?.id && !isTemplate && (
                 <Button 
                   type="button" 
                   variant="destructive" 
                   onClick={handleDelete} 
                   disabled={deleteBillMutation.isPending}
+                  data-testid="button-delete-bill"
                 >
                   {deleteBillMutation.isPending ? t('bills.deleting') : t('bills.deleteBill')}
                 </Button>
@@ -1799,13 +2037,44 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
                   {t('bills.cancel')}
                 </Button>
               )}
-              <Button type="submit" disabled={billMutation.isPending}>
-                {billMutation.isPending ? t('bills.processing') : (bill ? t('bills.updateBill') : t('bills.createBill'))}
+              <Button 
+                type="submit" 
+                disabled={billMutation.isPending}
+                data-testid={(bill && !isTemplate) ? "button-update-bill" : "button-create-bill"}
+              >
+                {billMutation.isPending ? t('bills.processing') : ((bill && !isTemplate) ? t('bills.updateBill') : t('bills.createBill'))}
               </Button>
             </div>
           </div>
         </form>
       </Form>
+
+      {/* Document Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDocDialog} onOpenChange={setShowDeleteDocDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('confirmDeleteDocument')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('confirmDeleteDocumentMessage')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => {
+              setShowDeleteDocDialog(false);
+              setSelectedDocument(null);
+            }}>
+              {t('cancel')}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDeleteDocument}
+              disabled={deleteDocumentMutation.isPending}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {deleteDocumentMutation.isPending ? t('deleting') : t('delete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

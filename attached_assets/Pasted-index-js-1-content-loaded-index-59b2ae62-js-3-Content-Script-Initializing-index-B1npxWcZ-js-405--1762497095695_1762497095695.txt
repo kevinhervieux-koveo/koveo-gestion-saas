@@ -1,0 +1,86 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+index-B1npxWcZ.js:405  GET https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/auth/user 401 (Unauthorized)
+queryFn @ index-B1npxWcZ.js:405
+r @ vendor-query-DvoEABeW.js:1
+m @ vendor-query-DvoEABeW.js:1
+start @ vendor-query-DvoEABeW.js:1
+fetch @ vendor-query-DvoEABeW.js:1
+#p @ vendor-query-DvoEABeW.js:1
+onSubscribe @ vendor-query-DvoEABeW.js:1
+subscribe @ vendor-query-DvoEABeW.js:1
+(anonymous) @ vendor-query-DvoEABeW.js:1
+Rh @ index-B1npxWcZ.js:120
+react_stack_bottom_frame @ index-B1npxWcZ.js:229
+X @ index-B1npxWcZ.js:45
+As @ index-B1npxWcZ.js:150
+Dg @ index-B1npxWcZ.js:163
+Pg @ index-B1npxWcZ.js:163
+Mn @ index-B1npxWcZ.js:163
+Pg @ index-B1npxWcZ.js:163
+Mn @ index-B1npxWcZ.js:163
+Pg @ index-B1npxWcZ.js:163
+Mn @ index-B1npxWcZ.js:163
+Pg @ index-B1npxWcZ.js:163
+Mn @ index-B1npxWcZ.js:163
+Pg @ index-B1npxWcZ.js:163
+Mn @ index-B1npxWcZ.js:163
+Pg @ index-B1npxWcZ.js:163
+Mn @ index-B1npxWcZ.js:163
+Pg @ index-B1npxWcZ.js:163
+Mn @ index-B1npxWcZ.js:163
+Pg @ index-B1npxWcZ.js:163
+iv @ index-B1npxWcZ.js:163
+Cs @ index-B1npxWcZ.js:163
+mv @ index-B1npxWcZ.js:185
+Rs @ index-B1npxWcZ.js:185
+nv @ index-B1npxWcZ.js:163
+Nd @ index-B1npxWcZ.js:163
+Yg @ index-B1npxWcZ.js:163
+Gg @ index-B1npxWcZ.js:163
+dv @ index-B1npxWcZ.js:185
+l @ index-B1npxWcZ.js:23
+<VC>
+Mw.Nu.jsxDEV @ index-B1npxWcZ.js:15
+bR @ index-B1npxWcZ.js:456
+react_stack_bottom_frame @ index-B1npxWcZ.js:229
+jc @ index-B1npxWcZ.js:120
+ud @ index-B1npxWcZ.js:141
+vd @ index-B1npxWcZ.js:150
+X @ index-B1npxWcZ.js:45
+Jg @ index-B1npxWcZ.js:163
+Zg @ index-B1npxWcZ.js:163
+Rd @ index-B1npxWcZ.js:163
+Gg @ index-B1npxWcZ.js:163
+dv @ index-B1npxWcZ.js:185
+l @ index-B1npxWcZ.js:23
+<bR>
+Mw.Nu.jsxDEV @ index-B1npxWcZ.js:15
+(anonymous) @ index-B1npxWcZ.js:456
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+index-B1npxWcZ.js:240  POST https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/trial-requests 400 (Bad Request)
+TR @ index-B1npxWcZ.js:240
+j @ trial-request-form-DdtkDq9F.js:1
+Tl @ index-B1npxWcZ.js:185
+X @ index-B1npxWcZ.js:45
+gv @ index-B1npxWcZ.js:185
+(anonymous) @ index-B1npxWcZ.js:185
+Ip @ index-B1npxWcZ.js:83
+Ld @ index-B1npxWcZ.js:185
+Jd @ index-B1npxWcZ.js:194
+mx @ index-B1npxWcZ.js:194
+index-B1npxWcZ.js:240  POST https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/trial-requests 400 (Bad Request)
+TR @ index-B1npxWcZ.js:240
+j @ trial-request-form-DdtkDq9F.js:1
+Tl @ index-B1npxWcZ.js:185
+X @ index-B1npxWcZ.js:45
+gv @ index-B1npxWcZ.js:185
+(anonymous) @ index-B1npxWcZ.js:185
+Ip @ index-B1npxWcZ.js:83
+Ld @ index-B1npxWcZ.js:185
+Jd @ index-B1npxWcZ.js:194
+mx @ index-B1npxWcZ.js:194

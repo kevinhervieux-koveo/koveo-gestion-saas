@@ -37,6 +37,45 @@ export function registerDemoManagementRoutes(app: Express): void {
   });
 
   /**
+   * GET /api/demo/document-integrity
+   *
+   * Samples seeded /objects/... file paths across documents, bills, bugs and
+   * feature requests and reports how many of them are missing their backing
+   * bytes in object storage. When this comes back unhealthy the demo
+   * environment was likely cloned without re-running the seed script, and the
+   * `remediation` field tells the admin how to fix it.
+   */
+  app.get(
+    '/api/demo/document-integrity',
+    requireAuth,
+    requireRole(['admin']),
+    async (req: Request, res: Response) => {
+      try {
+        const sampleParam = Number.parseInt(
+          typeof req.query.sampleSize === 'string' ? req.query.sampleSize : '',
+          10,
+        );
+        const sampleSize =
+          Number.isFinite(sampleParam) && sampleParam > 0 && sampleParam <= 50
+            ? sampleParam
+            : 5;
+        const report =
+          await DemoManagementService.checkSeededDocumentIntegrity(sampleSize);
+        res.status(report.healthy ? 200 : 503).json({
+          success: true,
+          data: report,
+        });
+      } catch (error) {
+        res.status(500).json({
+          success: false,
+          message: 'Document integrity check failed',
+          error: error instanceof Error ? error.message : 'Unknown error',
+        });
+      }
+    },
+  );
+
+  /**
    * GET /api/demo/users
    * Get demo users for login page.
    * Public endpoint for demo mode.

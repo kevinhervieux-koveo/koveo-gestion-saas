@@ -51,8 +51,6 @@ export function devSecurityMiddleware(req: Request, res: Response, next: NextFun
     const isSuspicious = suspiciousPatterns.some((pattern) => pattern.test(path));
 
     if (isSuspicious) {
-        `🚫 Blocked suspicious external request to dev server: ${path} from ${origin || 'unknown'}`
-      );
       return res.status(403).json({
         error: 'Access denied',
         message: 'External access to development resources is not permitted',
@@ -64,7 +62,7 @@ export function devSecurityMiddleware(req: Request, res: Response, next: NextFun
   // Rate limit development endpoints more strictly
   if (req.path.startsWith('/@vite') || req.path.startsWith('/__vite__')) {
     const clientIp = req.ip || req.socket.remoteAddress;
-    console.log(`🔍 Dev resource access: ${req.path} from ${clientIp}`);
+    if (process.env.NODE_ENV !== 'production') console.log(`🔍 Dev resource access: ${req.path} from ${clientIp}`);
   }
 
   next();

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
+import { useCreateUpdateMutation } from '@/lib/common-hooks';
 import { format } from 'date-fns';
 import { z } from 'zod';
 import { FormModal } from '@/components/maintenance/FormModal';
@@ -27,15 +28,10 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useBuildingContext } from '@/hooks/use-building-context';
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest, queryClient } from '@/lib/queryClient';
-import { insertMaintenanceProjectSchema, MaintenanceProject, EvaluationSuggestion, Vendor } from '@shared/schemas/maintenance';
-import { VendorForm } from '@/components/maintenance/vendors';
+import { apiRequest } from '@/lib/queryClient';
+import { insertMaintenanceProjectSchema, MaintenanceProject, EvaluationSuggestion } from '@shared/schemas/maintenance';
 import { cn } from '@/lib/utils';
 import {
-  Building2,
-  Target,
-  Wrench,
-  CheckCircle2,
   AlertTriangle,
   Info,
   DollarSign,
@@ -59,8 +55,9 @@ const projectFormSchema = insertMaintenanceProjectSchema
   .omit({ createdBy: true })
   .extend({
     description: z.string().optional(),
-    vendorId: z.string().uuid().optional(),
     buildingId: z.string().uuid('Building ID is required'),
+    type: z.enum(['repair', 'minor_rehab', 'major_rehab', 'replacement', 'not_sure']).optional(),
+    priority: z.enum(['low', 'medium', 'high', 'critical']).optional(),
     // Ensure financialYear is included in schema validation
     financialYear: z.number().int().min(2000).max(2100).optional(),
     // Quick Project fields
@@ -88,14 +85,6 @@ const projectFormSchema = insertMaintenanceProjectSchema
 
 type ProjectFormData = z.infer<typeof projectFormSchema>;
 
-const projectTypes = [
-  { value: 'repair', label: 'Repair', icon: Wrench, description: 'Fix existing components' },
-  { value: 'minor_rehab', label: 'Minor Rehabilitation', icon: Building2, description: 'Minor improvements' },
-  { value: 'major_rehab', label: 'Major Rehabilitation', icon: Building2, description: 'Significant renovations' },
-  { value: 'replacement', label: 'Replacement', icon: CheckCircle2, description: 'Full component replacement' },
-  { value: 'not_sure', label: 'Not Sure', icon: Target, description: 'Need assessment to determine type' },
-];
-
 const projectStatuses = [
   { value: 'planned', label: 'Planned', description: 'Project is in planning phase' },
   { value: 'evaluation', label: 'Evaluation', description: 'Under evaluation' },
@@ -104,13 +93,6 @@ const projectStatuses = [
   { value: 'work', label: 'In Progress', description: 'Work is ongoing' },
   { value: 'post_work', label: 'Post-Work', description: 'Work completed, cleanup phase' },
   { value: 'completed', label: 'Completed', description: 'Project finished' },
-];
-
-const priorities = [
-  { value: 'low', label: 'Low', color: 'text-gray-600' },
-  { value: 'medium', label: 'Medium', color: 'text-blue-600' },
-  { value: 'high', label: 'High', color: 'text-orange-600' },
-  { value: 'critical', label: 'Critical', color: 'text-red-600' },
 ];
 
 /**
@@ -128,11 +110,7 @@ export function ProjectForm({
   // Get building context for real buildingId and permissions
   const { buildingId, organizationId: contextOrganizationId, hasPermission } = useBuildingContext();
   const { toast } = useToast();
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isVendorFormOpen, setIsVendorFormOpen] = useState(false);
-  const [organizationId, setOrganizationId] = useState<string | null>(null);
-  const [initialVendorId, setInitialVendorId] = useState<string | undefined>(undefined);
   
   // Fetch building's financial year for Quick Project default date
   const {
@@ -147,36 +125,6 @@ export function ProjectForm({
     enabled: !!buildingId && mode === 'create',
   });
 
-  // Fetch vendors for selection (only needed for edit mode)
-  const {
-    data: vendorsResponse,
-    isLoading: isLoadingVendors,
-  } = useQuery({
-    queryKey: ['/api/maintenance/vendors', buildingId],
-    queryFn: async () => {
-      if (!buildingId) throw new Error('Building ID is required');
-      const response = await apiRequest('GET', `/api/maintenance/vendors?buildingId=${buildingId}`);
-      return await response.json();
-    },
-    enabled: !!buildingId && mode === 'edit',
-  });
-
-  // Fetch currently selected vendor for editing projects
-  const {
-    data: selectedVendorResponse,
-    isLoading: isLoadingSelectedVendor,
-  } = useQuery({
-    queryKey: ['/api/maintenance/projects', project?.id, 'vendors'],
-    queryFn: async () => {
-      if (!project?.id) throw new Error('Project ID is required');
-      const response = await apiRequest('GET', `/api/maintenance/projects/${project.id}/vendors`);
-      return await response.json();
-    },
-    enabled: !!project?.id && mode === 'edit',
-  });
-
-  const vendors = vendorsResponse?.vendors || [];
-  const vendorsData = vendorsResponse?.data || vendors; // Handle different response structures
 
   // Generate default project number for new projects
   const generateProjectNumber = () => {
@@ -201,6 +149,15 @@ export function ProjectForm({
     return new Date(financialYear, 0, 1); // January 1st of the financial year
   };
 
+  // Map evaluation suggestion type to project type
+  // Evaluation suggestions can have 'inspection' type, which is not valid for projects
+  const mapSuggestedTypeToProjectType = (suggestedType: string | undefined): 'repair' | 'minor_rehab' | 'major_rehab' | 'replacement' | 'not_sure' => {
+    if (!suggestedType || suggestedType === 'inspection') {
+      return 'not_sure';
+    }
+    return suggestedType as 'repair' | 'minor_rehab' | 'major_rehab' | 'replacement' | 'not_sure';
+  };
+
   // Initialize form with default values
   const form = useForm<ProjectFormData>({
     resolver: zodResolver(projectFormSchema),
@@ -208,14 +165,13 @@ export function ProjectForm({
       buildingId: buildingId || undefined, // Will be validated to ensure it's available
       projectNumber: project?.projectNumber || generateProjectNumber(),
       title: project?.title || evaluationSuggestion?.reason || '',
-      type: project?.type || evaluationSuggestion?.suggestedType || 'not_sure',
+      type: project?.type || mapSuggestedTypeToProjectType(evaluationSuggestion?.suggestedType),
       priority: project?.priority || evaluationSuggestion?.priority || 'medium',
       totalBudget: project?.totalBudget ? parseFloat(project.totalBudget) : undefined,
       actualCost: project?.actualCost ? parseFloat(project.actualCost) : 0,
       plannedStartDate: project?.plannedStartDate ? new Date(project.plannedStartDate) : undefined,
       suggestionId: project?.suggestionId || evaluationSuggestion?.id,
       description: project?.planningDescription || '',
-      vendorId: mode === 'create' ? undefined : undefined, // Automatically 'to be determined' for new projects, populated for editing
       // Quick Project defaults
       isQuickProject: false,
       quickProjectBudget: undefined,
@@ -243,46 +199,12 @@ export function ProjectForm({
     }
   }, [budgetResponse, mode, project, form]);
 
-  // Get organization ID from context first, then vendors response as fallback
-  useEffect(() => {
-    if (contextOrganizationId) {
-      // Primary source: organizationId from building context
-      setOrganizationId(contextOrganizationId);
-    } else {
-      // Fallback sources: API response or first vendor
-      const apiOrganizationId = vendorsResponse?.organizationId;
-      
-      if (apiOrganizationId) {
-        setOrganizationId(apiOrganizationId);
-      } else if (vendorsData.length > 0) {
-        setOrganizationId(vendorsData[0].organizationId);
-      } else {
-        setOrganizationId(null);
-      }
-    }
-  }, [contextOrganizationId, vendorsData, vendorsResponse]);
-
-  // Update form with selected vendor when editing
-  useEffect(() => {
-    if (selectedVendorResponse && mode === 'edit') {
-      const vendors = selectedVendorResponse.vendors || selectedVendorResponse.data || [];
-      const selectedVendor = vendors.find((vendor: any) => vendor.isSelected);
-      
-      if (selectedVendor) {
-        const vendorId = selectedVendor.vendorId || selectedVendor.vendor?.id;
-        form.setValue('vendorId', vendorId);
-        setInitialVendorId(vendorId); // Track initial vendor selection
-      } else {
-        setInitialVendorId(undefined);
-      }
-    }
-  }, [selectedVendorResponse, mode, form]);
 
   // Update form when evaluation suggestion changes
   useEffect(() => {
     if (evaluationSuggestion && !project) {
       form.setValue('title', evaluationSuggestion.reason);
-      form.setValue('type', evaluationSuggestion.suggestedType as any);
+      form.setValue('type', mapSuggestedTypeToProjectType(evaluationSuggestion.suggestedType));
       form.setValue('priority', evaluationSuggestion.priority);
       form.setValue('suggestionId', evaluationSuggestion.id);
       
@@ -294,8 +216,8 @@ export function ProjectForm({
   }, [evaluationSuggestion, project, form]);
 
   // Create/Update mutation
-  const saveMutation = useMutation({
-    mutationFn: async (data: ProjectFormData) => {
+  const saveMutation = useCreateUpdateMutation<any, ProjectFormData>({
+    mutationFn: async (data) => {
       const endpoint = project 
         ? `/api/maintenance/projects/${project.id}`
         : '/api/maintenance/projects';
@@ -315,138 +237,94 @@ export function ProjectForm({
           // Set default values for Quick Projects
           type: 'not_sure',
           priority: 'medium',
-          status: 'completed', // Quick Projects go directly to completed status
-          // Remove Quick Project specific fields before sending to API
-          quickProjectBudget: undefined,
-          quickProjectDate: undefined,
         };
       }
       
-      // Remove vendorId from payload since it's not stored on the project
-      const { vendorId, ...projectData } = processedData;
+      const projectData = processedData;
       
       // Ensure required fields are properly set
       if (!projectData.buildingId) {
         throw new Error('Building ID is required');
       }
       
-      const payload = {
-        ...projectData,
+      // Build payload with proper field mapping and filtering
+      const payload: any = {
+        buildingId: projectData.buildingId,
+        projectNumber: projectData.projectNumber,
+        title: projectData.title,
+        type: projectData.type,
+        priority: projectData.priority,
         totalBudget: projectData.totalBudget?.toString(),
         actualCost: projectData.actualCost?.toString(),
         plannedStartDate: projectData.plannedStartDate?.toISOString().split('T')[0],
+        plannedEndDate: projectData.plannedEndDate?.toISOString().split('T')[0],
+        // Map 'description' to 'planningDescription' per backend schema
+        planningDescription: projectData.description,
+        estimatedCost: projectData.estimatedCost?.toString(),
+        suggestionId: projectData.suggestionId,
+        autoGeneratedId: projectData.autoGeneratedId,
+        skipSubmission: projectData.skipSubmission,
+        skipPreWork: projectData.skipPreWork,
+        skipInProgress: projectData.skipInProgress,
+        skipPostWork: projectData.skipPostWork,
       };
       
-      // Only set status to 'planned' for new projects, preserve existing status for edits
-      // Exception: Quick Projects go directly to completed status
-      if (!project) {
-        payload.status = data.isQuickProject ? 'completed' : 'planned';
-      }
+      // Remove undefined/null values to keep payload clean
+      Object.keys(payload).forEach(key => {
+        if (payload[key] === undefined || payload[key] === null || payload[key] === '') {
+          delete payload[key];
+        }
+      });
       
       
       const response = await apiRequest(method, endpoint, payload);
       const result = await response.json();
       
-      return { ...result, vendorId: processedData.vendorId };
+      return result;
     },
-    onSuccess: async (response) => {
-      const projectId = response.project?.id || response.data?.id;
-      
-      // Handle vendor changes (assignment or deselection)
-      const wasVendorCleared = mode === 'edit' && initialVendorId && !response.vendorId;
-      
-      if (wasVendorCleared && projectId) {
-        try {
-          // Deselect all vendors for this project
-          await apiRequest('POST', `/api/maintenance/projects/${projectId}/vendors/deselect`);
-        } catch (vendorError) {
-          // Don't fail the whole operation if vendor deselection fails
-        }
-      } else if (response.vendorId && projectId) {
-        try {
-          // Check if vendor is already in submission vendors
-          const existingVendorsResponse = await apiRequest('GET', `/api/maintenance/projects/${projectId}/vendors`);
-          const existingVendors = await existingVendorsResponse.json();
-          const vendors = existingVendors.vendors || existingVendors.data || [];
-          
-          const existingVendor = vendors.find((v: any) => v.vendorId === response.vendorId || v.vendor?.id === response.vendorId);
-          
-          if (existingVendor) {
-            // If vendor exists in submissions, select it
-            await apiRequest('POST', `/api/maintenance/vendors/${existingVendor.id}/select`);
-          } else {
-            // If vendor doesn't exist in submissions, add it and select it
-            const newSubmission = await apiRequest('POST', `/api/maintenance/projects/${projectId}/vendors`, {
-              vendorId: response.vendorId,
-              contactInfo: '',
-              notes: 'Auto-assigned vendor',
-              projectType: response.project?.type || 'repair',
-            });
-            
-            const submissionResult = await newSubmission.json();
-            if (submissionResult.vendor?.id) {
-              await apiRequest('POST', `/api/maintenance/vendors/${submissionResult.vendor.id}/select`);
-            }
-          }
-        } catch (vendorError) {
-          // Don't fail the whole operation if vendor assignment fails
-        }
-      }
-      
+    successTitle: mode === 'create' ? 'Project Created' : 'Project Updated',
+    successMessage: (response) =>
+      `Project "${response.project?.title || response.data?.title}" has been ${mode === 'create' ? 'created' : 'updated'} successfully.`,
+    errorTitle: mode === 'create' ? 'Creation Failed' : 'Update Failed',
+    errorMessage: (error: any) =>
+      error?.response?.data?.message || error?.message || 'An error occurred',
+    invalidateQueries: (response, queryClient) => {
       // Use the buildingId from the actual form data that was used to create the project
       // This ensures we invalidate the correct cache even if the context buildingId differs
-      const actualBuildingId = response.project?.buildingId || response.data?.buildingId || buildingId;
-      
+      const actualBuildingId =
+        response.project?.buildingId || response.data?.buildingId || buildingId;
+
       if (actualBuildingId) {
-        queryClient.invalidateQueries({ 
-          queryKey: ['/api/maintenance/buildings', actualBuildingId, 'projects'] 
+        queryClient.invalidateQueries({
+          queryKey: ['/api/maintenance/buildings', actualBuildingId, 'projects'],
         });
       } else {
         // Invalidate all project queries as fallback
-        queryClient.invalidateQueries({ 
+        queryClient.invalidateQueries({
           predicate: (query) => {
-            return query.queryKey.includes('/api/maintenance/buildings') && 
-                   query.queryKey.includes('projects');
-          }
+            return (
+              query.queryKey.includes('/api/maintenance/buildings') &&
+              query.queryKey.includes('projects')
+            );
+          },
         });
       }
-      
-      // Invalidate vendor queries to refresh selection
-      queryClient.invalidateQueries({
-        queryKey: ['/api/maintenance/projects', projectId, 'vendors']
-      });
-      
+
       // Also invalidate evaluation suggestions if this was created from one
       if (evaluationSuggestion) {
-        queryClient.invalidateQueries({ 
-          queryKey: ['/api/maintenance/evaluation-suggestions'] 
+        queryClient.invalidateQueries({
+          queryKey: ['/api/maintenance/evaluation-suggestions'],
         });
       }
-      
-      toast({
-        title: mode === 'create' ? "Project Created" : "Project Updated",
-        description: `Project "${response.project?.title || response.data?.title}" has been ${mode === 'create' ? 'created' : 'updated'} successfully.`,
-      });
-      
+    },
+    onSuccessCallback: (response) => {
       onSuccess?.(response.project || response.data);
       onOpenChange(false);
       form.reset();
     },
-    onError: (error: any) => {
-      
-      const message = error.response?.data?.message || error.message || 'An error occurred';
-      const validationDetails = error.response?.data?.details;
-      
-      
+    onErrorCallback: (error: any) => {
+      const message = error?.response?.data?.message || error?.message || 'An error occurred';
       setError(message);
-      toast({
-        title: mode === 'create' ? "Creation Failed" : "Update Failed",
-        description: message,
-        variant: "destructive",
-      });
-    },
-    onSettled: () => {
-      setIsSubmitting(false);
     },
   });
 
@@ -480,37 +358,10 @@ export function ProjectForm({
       return;
     }
 
-    setIsSubmitting(true);
     setError(null);
     saveMutation.mutate(data);
   };
 
-  // Handle vendor creation success
-  const handleVendorCreated = (vendor: Vendor) => {
-    // Invalidate vendor queries to refresh the list
-    queryClient.invalidateQueries({
-      queryKey: ['/api/maintenance/vendors', buildingId]
-    });
-    
-    // Auto-select the newly created vendor
-    form.setValue('vendorId', vendor.id);
-    
-    toast({
-      title: "Vendor Created",
-      description: `Vendor "${vendor.name}" has been created and selected for this project.`,
-    });
-  };
-
-  // Handle vendor dropdown selection
-  const handleVendorSelect = (value: string) => {
-    if (value === 'create_new') {
-      setIsVendorFormOpen(true);
-    } else if (value === 'to_be_determined') {
-      form.setValue('vendorId', undefined);
-    } else {
-      form.setValue('vendorId', value === 'none' ? undefined : value);
-    }
-  };
 
   const title = mode === 'create' 
     ? (evaluationSuggestion ? 'Create Project from Suggestion' : 'Create New Project')
@@ -521,7 +372,6 @@ export function ProjectForm({
     : 'Update project details and configuration.';
 
   return (
-    <>
     <FormModal
       isOpen={isOpen}
       onOpenChange={onOpenChange}
@@ -529,7 +379,7 @@ export function ProjectForm({
       description={description}
       form={form}
       onSubmit={handleSubmit}
-      isSubmitting={isSubmitting}
+      isSubmitting={saveMutation.isPending}
       submitLabel={mode === 'create' ? 'Create Project' : 'Update Project'}
       size="lg"
       error={error}
@@ -722,56 +572,26 @@ export function ProjectForm({
         {(!form.watch('isQuickProject') || mode === 'edit') && (
           <>
         {/* Basic Information */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="projectNumber"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Project Number</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="e.g., 2024-001"
-                    {...field}
-                    data-testid="input-project-number"
-                  />
-                </FormControl>
-                <FormDescription>
-                  Unique identifier for this project
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="priority"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Priority</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={String(field.value)}>
-                  <FormControl>
-                    <SelectTrigger data-testid="select-priority">
-                      <SelectValue placeholder="Select priority" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {priorities.map((priority) => (
-                      <SelectItem key={priority.value} value={priority.value}>
-                        <div className="flex items-center gap-2">
-                          <span className={priority.color}>●</span>
-                          {priority.label}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+        <FormField
+          control={form.control}
+          name="projectNumber"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Project Number</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="e.g., 2024-001"
+                  {...field}
+                  data-testid="input-project-number"
+                />
+              </FormControl>
+              <FormDescription>
+                Unique identifier for this project
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <FormField
           control={form.control}
@@ -815,46 +635,6 @@ export function ProjectForm({
             </FormItem>
           )}
         />
-
-        {/* Project Type and Status */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="type"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Project Type</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={String(field.value)}>
-                  <FormControl>
-                    <SelectTrigger data-testid="select-project-type">
-                      <SelectValue placeholder="Select project type" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {projectTypes.map((type) => {
-                      const IconComponent = type.icon;
-                      return (
-                        <SelectItem key={type.value} value={type.value}>
-                          <div className="flex items-center gap-2">
-                            <IconComponent className="h-4 w-4" />
-                            <div className="flex flex-col">
-                              <span>{type.label}</span>
-                              <span className="text-xs text-muted-foreground">
-                                {type.description}
-                              </span>
-                            </div>
-                          </div>
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-        </div>
 
         {/* Timeline */}
         <FormField
@@ -941,72 +721,6 @@ export function ProjectForm({
               </FormItem>
             )}
           />
-
-          {/* Show vendor selection only in edit mode */}
-          {mode === 'edit' && (
-            <FormField
-              control={form.control}
-              name="vendorId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Assigned Vendor</FormLabel>
-                  <Select onValueChange={handleVendorSelect} value={String(field.value || '')}>
-                    <FormControl>
-                      <SelectTrigger data-testid="select-vendor">
-                        <SelectValue placeholder="Select vendor (optional)" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="create_new" className="text-blue-600 font-medium">
-                        <div className="flex items-center gap-2">
-                          <User className="h-4 w-4" />
-                          <span>Create New Vendor</span>
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="to_be_determined">To be Determined</SelectItem>
-                      <SelectItem value="none">No vendor assigned</SelectItem>
-                      {isLoadingVendors ? (
-                        <div className="p-2">
-                          <Skeleton className="h-4 w-full" />
-                        </div>
-                      ) : (
-                        vendorsData.map((vendor: any) => (
-                          <SelectItem key={vendor.id} value={vendor.id}>
-                            <div className="flex items-center gap-2">
-                              <User className="h-4 w-4" />
-                              <div className="flex flex-col">
-                                <span>{vendor.name}</span>
-                                <span className="text-xs text-muted-foreground">
-                                  {vendor.category}
-                                </span>
-                              </div>
-                            </div>
-                          </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
-                  <FormDescription>
-                    Contractor or vendor assigned to this project
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          )}
-
-          {/* Show vendor info for create mode */}
-          {mode === 'create' && (
-            <div className="flex items-center justify-center p-4 bg-muted/50 rounded-lg border-2 border-dashed border-muted-foreground/25">
-              <div className="text-center space-y-2">
-                <User className="h-8 w-8 mx-auto text-muted-foreground" />
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-muted-foreground">Vendor Assignment</p>
-                  <p className="text-xs text-muted-foreground">Vendor selection will be available during the submission phase</p>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* Current Cost (for edit mode) */}
@@ -1044,18 +758,6 @@ export function ProjectForm({
         )}
       </div>
     </FormModal>
-    
-    {/* Vendor Creation Dialog - only for edit mode */}
-    {mode === 'edit' && (
-      <VendorForm
-        isOpen={isVendorFormOpen}
-        onOpenChange={setIsVendorFormOpen}
-        onSuccess={handleVendorCreated}
-        organizationId={organizationId || undefined}
-        buildingId={buildingId}
-      />
-    )}
-    </>
   );
 }
 

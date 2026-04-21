@@ -92,19 +92,24 @@ export function SelectionGrid({
     return (
       <div className="flex flex-col h-full">
         {onBack && (
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-900" data-testid="selection-title">
-              {title}
-            </h2>
-            <Button
-              variant="outline"
-              onClick={onBack}
-              className="flex items-center gap-2"
-              data-testid="button-back"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              {backButtonText}
-            </Button>
+          <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 mb-6 -mx-6 -mt-6">
+            <div className="flex items-center justify-between px-6 py-4">
+              {title && title.trim() !== '' && (
+                <h2 className="text-2xl font-bold text-gray-900" data-testid="selection-title">
+                  {title}
+                </h2>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onBack}
+                className="flex items-center gap-2"
+                data-testid="button-back"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                {backButtonText}
+              </Button>
+            </div>
           </div>
         )}
         
@@ -123,25 +128,33 @@ export function SelectionGrid({
     <div className="flex flex-col h-full">
       {/* Header with title and optional back button - only show if title exists or back button is needed */}
       {(title && title.trim() !== '') || onBack ? (
-        <div className="flex justify-between items-center mb-6">
-          {title && title.trim() !== '' && (
+        onBack ? (
+          <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 mb-6 -mx-6 -mt-6">
+            <div className="flex items-center justify-between px-6 py-4">
+              {title && title.trim() !== '' && (
+                <h2 className="text-2xl font-bold text-gray-900" data-testid="selection-title">
+                  {title}
+                </h2>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onBack}
+                className="flex items-center gap-2"
+                data-testid="button-back"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                {backButtonText}
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-bold text-gray-900" data-testid="selection-title">
               {title}
             </h2>
-          )}
-          
-          {onBack && (
-            <Button
-              variant="outline"
-              onClick={onBack}
-              className="flex items-center gap-2"
-              data-testid="button-back"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              {backButtonText}
-            </Button>
-          )}
-        </div>
+          </div>
+        )
       ) : null}
 
       {/* Grid of selection cards */}

@@ -10,7 +10,9 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/hooks/use-language';
 import { apiRequest, queryClient } from '@/lib/queryClient';
+import { handleApiError } from '@/lib/demo-error-handler';
 import { BuildingElement } from '@shared/schemas/maintenance';
 import { differenceInDays, parseISO, isAfter, format } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -69,8 +71,10 @@ export function InventoryOverview({ className, buildingId, organizationId, build
   }, [building?.constructionDate, isEditingDate]);
   
   const { toast } = useToast();
+  const { language } = useLanguage();
   
   // Mutation to update building construction date
+  // Exception (task #229): error handled via `handleApiError` for demo-mode/locale-aware messaging.
   const updateBuildingMutation = useMutation({
     mutationFn: async (constructionDate: Date) => {
       if (!buildingId) throw new Error('Building ID is required');
@@ -112,11 +116,13 @@ export function InventoryOverview({ className, buildingId, organizationId, build
       setIsEditingDate(false);
     },
     onError: (error: any) => {
-      toast({
-        title: 'Update failed',
-        description: error.message || 'Failed to update building construction date',
-        variant: 'destructive',
-      });
+      handleApiError(
+        error,
+        language,
+        language === 'fr'
+          ? 'Échec de la mise à jour de la date de construction. Veuillez réessayer.'
+          : 'Failed to update construction date. Please try again.'
+      );
     },
   });
   

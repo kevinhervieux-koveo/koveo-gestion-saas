@@ -1,0 +1,33 @@
+FACTURE / INVOICE
+===================
+
+Numéro de facture / Invoice Number: 1936-2023-02-MAINTENANCE-2
+Date: 2023-02-28
+
+FACTURER À / BILL TO:
+1936 Nitzsche Track Building 5
+2536 montée Sainte-Catherine
+Québec, Canada
+
+FOURNISSEUR / VENDOR:
+ServiceMaster
+
+DESCRIPTION / DESCRIPTION:
+Maintenance - ServiceMaster
+
+CATÉGORIE / CATEGORY: Maintenance
+
+MONTANT / AMOUNT:
+Sous-total / Subtotal: $1655.00 CAD
+TPS (5%) / GST: $82.75 CAD
+TVQ (9.975%) / QST: $165.09 CAD
+TOTAL: $1902.84 CAD
+
+CONDITIONS DE PAIEMENT / PAYMENT TERMS:
+Net 30 jours / Net 30 days
+
+Merci de votre confiance / Thank you for your business
+===============================================
+
+Ce document est généré automatiquement pour les besoins de test du système Koveo Gestion.
+This document is automatically generated for Koveo Gestion system testing purposes.

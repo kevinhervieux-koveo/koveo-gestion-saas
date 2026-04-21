@@ -15,8 +15,11 @@ import {
 } from '@/components/ui/form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/hooks/use-language';
 import { apiRequest } from '@/lib/queryClient';
+import { applyDangerousInputFieldError } from '@/lib/form-errors';
 import { Eye, EyeOff, CheckCircle, ArrowLeft } from 'lucide-react';
+import { SiLinkedin } from 'react-icons/si';
 
 const resetPasswordSchema = z
   .object({
@@ -58,6 +61,7 @@ ResetPasswordPage() {
   const [token, setToken] = useState<string | null>(null);
   const [, navigate] = useLocation();
   const { toast } = useToast();
+  const { language } = useLanguage();
 
   const form = useForm<ResetPasswordForm>({
     resolver: zodResolver(resetPasswordSchema),
@@ -122,13 +126,11 @@ ResetPasswordPage() {
         description: 'Votre mot de passe a été mis à jour avec succès.',
       });
     } catch (_error: unknown) {
-      /**
-       * Catch function.
-       * @param error - Error object.
-       */ /**
-       * Catch function.
-       * @param error - Error object.
-       */
+      // Task #166: pin DANGEROUS_INPUT rejections to the offending
+      // field inline and skip the generic toast below.
+      if (applyDangerousInputFieldError(_error, form)) {
+        return;
+      }
 
       let errorMessage = 'Une erreur est survenue lors de la réinitialisation du mot de passe.'; /**
        * If function.
@@ -210,6 +212,20 @@ ResetPasswordPage() {
             </Button>
           </CardContent>
         </Card>
+
+        {/* Follow Us */}
+        <div className='text-center mt-6'>
+          <p className='text-sm text-gray-500 dark:text-gray-400 mb-2'>{language === 'fr' ? 'Suivez-nous' : 'Follow Us'}</p>
+          <a
+            href='https://www.linkedin.com/company/koveo-gestion-inc/'
+            target='_blank'
+            rel='noopener noreferrer'
+            className='inline-flex items-center justify-center gap-2 bg-[#0A66C2] hover:bg-[#004182] text-white px-4 py-2 rounded-lg transition-colors text-sm'
+          >
+            <SiLinkedin className='h-4 w-4' />
+            <span>LinkedIn</span>
+          </a>
+        </div>
       </div>
     );
   } /**
@@ -242,6 +258,20 @@ ResetPasswordPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Follow Us */}
+        <div className='text-center mt-6'>
+          <p className='text-sm text-gray-500 dark:text-gray-400 mb-2'>{language === 'fr' ? 'Suivez-nous' : 'Follow Us'}</p>
+          <a
+            href='https://www.linkedin.com/company/koveo-gestion-inc/'
+            target='_blank'
+            rel='noopener noreferrer'
+            className='inline-flex items-center justify-center gap-2 bg-[#0A66C2] hover:bg-[#004182] text-white px-4 py-2 rounded-lg transition-colors text-sm'
+          >
+            <SiLinkedin className='h-4 w-4' />
+            <span>LinkedIn</span>
+          </a>
+        </div>
       </div>
     );
   }
@@ -352,6 +382,20 @@ ResetPasswordPage() {
           </Form>
         </CardContent>
       </Card>
+
+      {/* Follow Us */}
+      <div className='text-center mt-6'>
+        <p className='text-sm text-gray-500 dark:text-gray-400 mb-2'>{language === 'fr' ? 'Suivez-nous' : 'Follow Us'}</p>
+        <a
+          href='https://www.linkedin.com/company/koveo-gestion-inc/'
+          target='_blank'
+          rel='noopener noreferrer'
+          className='inline-flex items-center justify-center gap-2 bg-[#0A66C2] hover:bg-[#004182] text-white px-4 py-2 rounded-lg transition-colors text-sm'
+        >
+          <SiLinkedin className='h-4 w-4' />
+          <span>LinkedIn</span>
+        </a>
+      </div>
     </div>
   );
 }

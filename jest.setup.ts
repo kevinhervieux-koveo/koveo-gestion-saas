@@ -715,82 +715,13 @@ jest.mock('glob', () => ({
 // DATABASE AND ORM MOCKS
 // =============================================================================
 
-// Mock pg-core functions BEFORE drizzle-orm to prevent schema import issues
-jest.mock('drizzle-orm/pg-core', () => {
-  // Create chainable mock column object
-  const createMockColumn = (type: string, options?: any) => ({
-    type,
-    ...options,
-    primaryKey: jest.fn().mockReturnThis(),
-    default: jest.fn().mockReturnThis(),
-    defaultNow: jest.fn().mockReturnThis(),  // For timestamp columns
-    notNull: jest.fn().mockReturnThis(),
-    unique: jest.fn().mockReturnThis(),
-    references: jest.fn().mockReturnThis(),
-    array: jest.fn().mockReturnThis(),
-    onDelete: jest.fn().mockReturnThis(),   // For foreign key references
-    onUpdate: jest.fn().mockReturnThis(),   // For foreign key references
-  });
-
-  return {
-    pgEnum: jest.fn().mockImplementation((name, values) => {
-      // Return a function that can be called like userRoleEnum('role')
-      const enumFn = jest.fn().mockImplementation(() => createMockColumn('enum', { name, values })) as any;
-      enumFn.enumName = name;
-      enumFn.enumValues = values;
-      return enumFn;
-    }),
-    pgTable: jest.fn().mockImplementation((name, schema, config) => ({
-      name,
-      ...schema,
-      _: { name, columns: schema }
-    })),
-    primaryKey: jest.fn().mockImplementation((options) => ({ type: 'primaryKey', ...options })),
-    text: jest.fn().mockImplementation(() => createMockColumn('text')),
-    varchar: jest.fn().mockImplementation((options) => createMockColumn('varchar', options)),
-    boolean: jest.fn().mockImplementation(() => createMockColumn('boolean')),
-    timestamp: jest.fn().mockImplementation(() => createMockColumn('timestamp')),
-    integer: jest.fn().mockImplementation(() => createMockColumn('integer')),
-    uuid: jest.fn().mockImplementation(() => createMockColumn('uuid')),
-    serial: jest.fn().mockImplementation(() => createMockColumn('serial')),
-    decimal: jest.fn().mockImplementation((options) => createMockColumn('decimal', options)),
-    numeric: jest.fn().mockImplementation((options) => createMockColumn('numeric', options)),
-    jsonb: jest.fn().mockImplementation(() => createMockColumn('jsonb')),
-    json: jest.fn().mockImplementation(() => createMockColumn('json')),
-    date: jest.fn().mockImplementation(() => createMockColumn('date')),
-    uniqueIndex: jest.fn().mockImplementation(() => ({ type: 'uniqueIndex' })),
-    index: jest.fn().mockImplementation(() => ({ type: 'index' })),
-  };
-});
-
-// Mock Drizzle ORM functions first to prevent import issues
-jest.mock('drizzle-orm', () => ({
-  eq: jest.fn(() => 'mock-eq-condition'),
-  and: jest.fn(() => 'mock-and-condition'),
-  or: jest.fn(() => 'mock-or-condition'),
-  sql: jest.fn(() => 'mock-sql'),
-  desc: jest.fn(() => 'mock-desc'),
-  asc: jest.fn(() => 'mock-asc'),
-  like: jest.fn(() => 'mock-like'),
-  ilike: jest.fn(() => 'mock-ilike'),
-  inArray: jest.fn(() => 'mock-in-array'),
-  notInArray: jest.fn(() => 'mock-not-in-array'),
-  isNull: jest.fn(() => 'mock-is-null'),
-  isNotNull: jest.fn(() => 'mock-is-not-null'),
-  exists: jest.fn(() => 'mock-exists'),
-  notExists: jest.fn(() => 'mock-not-exists'),
-  count: jest.fn(() => 'mock-count'),
-  sum: jest.fn(() => 'mock-sum'),
-  avg: jest.fn(() => 'mock-avg'),
-  min: jest.fn(() => 'mock-min'),
-  max: jest.fn(() => 'mock-max'),
-  relations: jest.fn(() => ({})),
-  gt: jest.fn(() => 'mock-gt'),
-  lt: jest.fn(() => 'mock-lt'),
-  gte: jest.fn(() => 'mock-gte'),
-  lte: jest.fn(() => 'mock-lte'),
-  ne: jest.fn(() => 'mock-ne'),
-}));
+// Task #163: The previous global jest.mock() calls for `drizzle-orm` and
+// `drizzle-orm/pg-core` have been removed. Per Task #153 policy, drizzle-orm
+// stubs live opt-in at `tests/manual-mocks/drizzle-orm.ts` and
+// `tests/manual-mocks/drizzle-orm/pg-core.js`. Suites that need them must
+// declare them inline, e.g.:
+//   jest.mock('drizzle-orm', () => require('../manual-mocks/drizzle-orm'));
+//   jest.mock('drizzle-orm/pg-core', () => require('../manual-mocks/drizzle-orm/pg-core'));
 
 // Mock Neon database serverless
 jest.mock('@neondatabase/serverless', () => {
@@ -824,80 +755,12 @@ jest.mock('@neondatabase/serverless', () => {
   };
 });
 
-// Mock Drizzle database connections with simple inline stubs
-jest.mock('drizzle-orm/neon-serverless', () => {
-  const createMockDb = () => ({
-    insert: jest.fn().mockReturnValue({
-      values: jest.fn().mockReturnValue({
-        returning: jest.fn().mockResolvedValue([{ id: 'mock-id' }]),
-        then: jest.fn().mockResolvedValue([{ id: 'mock-id' }])
-      }),
-      then: jest.fn().mockResolvedValue([{ id: 'mock-id' }])
-    }),
-    select: jest.fn().mockReturnValue({
-      from: jest.fn().mockReturnValue({
-        where: jest.fn().mockResolvedValue([]),
-        then: jest.fn().mockResolvedValue([])
-      }),
-      then: jest.fn().mockResolvedValue([])
-    }),
-    update: jest.fn().mockReturnValue({
-      set: jest.fn().mockReturnValue({
-        where: jest.fn().mockResolvedValue({ affectedRows: 1 }),
-        then: jest.fn().mockResolvedValue({ affectedRows: 1 })
-      }),
-      then: jest.fn().mockResolvedValue({ affectedRows: 1 })
-    }),
-    delete: jest.fn().mockReturnValue({
-      where: jest.fn().mockResolvedValue({ affectedRows: 1 }),
-      then: jest.fn().mockResolvedValue({ affectedRows: 1 })
-    }),
-    transaction: jest.fn().mockImplementation((callback) => callback(createMockDb())),
-    query: jest.fn().mockResolvedValue([])
-  });
-  
-  return {
-    __esModule: true,
-    drizzle: jest.fn().mockImplementation(() => createMockDb()),
-  };
-});
-
-jest.mock('drizzle-orm/neon-http', () => {
-  const createMockDb = () => ({
-    insert: jest.fn().mockReturnValue({
-      values: jest.fn().mockReturnValue({
-        returning: jest.fn().mockResolvedValue([{ id: 'mock-id' }]),
-        then: jest.fn().mockResolvedValue([{ id: 'mock-id' }])
-      }),
-      then: jest.fn().mockResolvedValue([{ id: 'mock-id' }])
-    }),
-    select: jest.fn().mockReturnValue({
-      from: jest.fn().mockReturnValue({
-        where: jest.fn().mockResolvedValue([]),
-        then: jest.fn().mockResolvedValue([])
-      }),
-      then: jest.fn().mockResolvedValue([])
-    }),
-    update: jest.fn().mockReturnValue({
-      set: jest.fn().mockReturnValue({
-        where: jest.fn().mockResolvedValue({ affectedRows: 1 }),
-        then: jest.fn().mockResolvedValue({ affectedRows: 1 })
-      }),
-      then: jest.fn().mockResolvedValue({ affectedRows: 1 })
-    }),
-    delete: jest.fn().mockReturnValue({
-      where: jest.fn().mockResolvedValue({ affectedRows: 1 }),
-      then: jest.fn().mockResolvedValue({ affectedRows: 1 })
-    }),
-    transaction: jest.fn().mockImplementation((callback) => callback(createMockDb())),
-    query: jest.fn().mockResolvedValue([])
-  });
-  
-  return {
-    __esModule: true,
-    drizzle: jest.fn().mockImplementation(() => createMockDb()),
-  };
-});
+// Task #163: The previous global jest.mock() calls for
+// `drizzle-orm/neon-serverless` and `drizzle-orm/neon-http` have been removed.
+// Tests rely on the `./server/db` mock below for the `db` instance, and the
+// `@neondatabase/serverless` mock above for the underlying Neon driver, so the
+// drizzle adapter modules do not need to be globally stubbed. Suites that want
+// to mock the adapters must do so inline.
 
 // Mock database modules with simple inline stubs
 jest.mock('./server/db', () => {

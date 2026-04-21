@@ -54,7 +54,6 @@ export function CurrencyInputField<T extends FieldValues>({
         <FormItem className={cn('space-y-2', className)}>
           <FormLabel className={cn(
             'text-sm font-medium leading-none',
-            required && 'after:content-["*"] after:ml-0.5 after:text-red-500',
             fieldState.error && 'text-red-600 dark:text-red-400'
           )}>
             {displayLabel}

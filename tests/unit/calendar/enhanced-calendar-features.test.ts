@@ -461,25 +461,27 @@ describe('Enhanced Calendar Features', () => {
         const isCurrentDay = date.toDateString() === today.toDateString();
         const isAvailable = isDayAvailable(date);
         
-        if (!isAvailable) {
+        if (isCurrentDay) {
+          return isAvailable
+            ? 'bg-blue-100 text-blue-900 hover:bg-blue-200'
+            : 'bg-blue-100 text-blue-900 cursor-not-allowed border border-blue-200';
+        } else if (!isAvailable) {
           return 'bg-red-100 text-red-600 cursor-not-allowed border border-red-200';
-        } else if (isCurrentDay) {
-          return 'bg-blue-100 text-blue-900 hover:bg-blue-200';
         } else {
           return 'hover:bg-gray-100';
         }
       };
 
       const today = new Date();
-      const futureWednesday = new Date('2025-06-04'); // Closed day
-      const futureMonday = addDays(new Date(), 21); // Use a date in the future
-      while (futureMonday.getDay() !== 1) { // 1 = Monday
+      const futureWednesday = new Date('2025-06-04');
+      const futureMonday = addDays(new Date(), 21);
+      while (futureMonday.getDay() !== 1) {
         futureMonday.setDate(futureMonday.getDate() + 1);
       }
       
-      expect(getDateClass(today)).toContain('bg-blue-100'); // Today
-      expect(getDateClass(futureWednesday)).toContain('bg-red-100'); // Unavailable
-      expect(getDateClass(futureMonday)).toBe('hover:bg-gray-100'); // Available
+      expect(getDateClass(today)).toContain('bg-blue-100');
+      expect(getDateClass(futureWednesday)).toContain('bg-red-100');
+      expect(getDateClass(futureMonday)).toBe('hover:bg-gray-100');
     });
 
     const isDayAvailable = (checkDate: Date): boolean => {

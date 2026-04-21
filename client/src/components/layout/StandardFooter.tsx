@@ -1,4 +1,5 @@
 import { Shield } from 'lucide-react';
+import { SiLinkedin } from 'react-icons/si';
 import { Link } from 'wouter';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
@@ -108,7 +109,7 @@ export function StandardFooter() {
               <li>
                 {isAuthenticated ? (
                   <button 
-                    onClick={() => setLocation('/dashboard/quick-actions')}
+                    onClick={() => setLocation('/dashboard/overview')}
                     className='text-gray-400 hover:text-white transition-colors'
                   >
                     {t('dashboard')}
@@ -123,10 +124,26 @@ export function StandardFooter() {
           </div>
         </div>
 
+        {/* Follow Us */}
+        <div className='mt-12 pt-8 border-t border-gray-800 flex flex-col items-center'>
+          <p className='text-gray-400 mb-4'>
+            {language === 'fr' ? 'Suivez-nous' : 'Follow Us'}
+          </p>
+          <a
+            href='https://www.linkedin.com/company/koveo-gestion-inc/'
+            target='_blank'
+            rel='noopener noreferrer'
+            className='inline-flex items-center justify-center gap-2 bg-[#0A66C2] hover:bg-[#004182] text-white px-4 py-2 rounded-lg transition-colors'
+          >
+            <SiLinkedin className='h-5 w-5' />
+            <span>LinkedIn</span>
+          </a>
+        </div>
+
         {/* Copyright */}
-        <div className='mt-12 pt-8 border-t border-gray-800 text-center'>
+        <div className='mt-8 pt-8 border-t border-gray-800 text-center'>
           <p className='text-gray-400'>
-            &copy; 2024 Koveo Gestion Inc. {t('allRightsReserved')}
+            &copy; 2026 Koveo Gestion Inc. {t('allRightsReserved')}
           </p>
         </div>
       </div>

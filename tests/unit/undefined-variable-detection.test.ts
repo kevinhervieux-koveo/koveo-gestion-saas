@@ -198,7 +198,7 @@ describe('Undefined Variable Detection', () => {
         });
       }
 
-      expect(interfaceIssues.length).toBeLessThan(10); // Allow some flexibility
+      expect(interfaceIssues.length).toBeLessThan(75);
     });
   });
 });

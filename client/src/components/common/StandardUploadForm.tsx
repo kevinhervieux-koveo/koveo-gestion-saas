@@ -7,10 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 import {
   Form,
   FormControl,
@@ -217,8 +219,16 @@ export function StandardUploadForm({
             {icon || <FileText className="w-5 h-5" />}
             {title}
           </DialogTitle>
-          {description && (
-            <p className="text-sm text-gray-600 dark:text-gray-400">{description}</p>
+          {description ? (
+            <DialogDescription>{description}</DialogDescription>
+          ) : (
+            // Task #174: Radix logs an a11y warning if DialogContent has
+            // no description. Callers that don't pass one still get a
+            // visually-hidden, screen-reader-only fallback so the
+            // contract is satisfied without changing the visual layout.
+            <VisuallyHidden asChild>
+              <DialogDescription>{title}</DialogDescription>
+            </VisuallyHidden>
           )}
         </DialogHeader>
 

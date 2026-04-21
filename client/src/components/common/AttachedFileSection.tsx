@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { FileText, Download } from 'lucide-react';
+import { DocumentInlineViewer } from '@/components/common/DocumentInlineViewer';
 
 interface AttachedFileSectionProps {
   // Entity information
@@ -34,6 +36,8 @@ export function AttachedFileSection({
   className = '',
   fallbackName = 'Attachment'
 }: AttachedFileSectionProps) {
+  const [viewerOpen, setViewerOpen] = useState(false);
+
   // Don't render if no file is attached
   if (!filePath) {
     return null;
@@ -58,8 +62,7 @@ export function AttachedFileSection({
 
   const handleViewFile = () => {
     if (!canView || !filePath) return;
-    const fileUrl = getApiEndpoint(false);
-    window.open(fileUrl, '_blank');
+    setViewerOpen(true);
   };
 
   const handleDownloadFile = async () => {
@@ -174,6 +177,13 @@ export function AttachedFileSection({
           )}
         </div>
       </div>
+      <DocumentInlineViewer
+        isOpen={viewerOpen}
+        onClose={() => setViewerOpen(false)}
+        fileUrl={getApiEndpoint(false)}
+        downloadUrl={getApiEndpoint(true)}
+        fileName={displayName}
+      />
     </div>
   );
 }

@@ -10,7 +10,9 @@ import { requireAuth, requireRole } from '../auth';
 import { fileMigrationService } from '../services/file-migration-service';
 
 export function registerMigrationRoutes(app: Express): void {
-  console.log(`[${new Date().toISOString()}] 🔄 Registering migration routes...`);
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`[${new Date().toISOString()}] 🔄 Registering migration routes...`);
+  }
 
   /**
    * Start file migration (dry run by default)
@@ -19,7 +21,7 @@ export function registerMigrationRoutes(app: Express): void {
     try {
       const { dryRun = true } = req.body;
       
-      console.log(`🔄 Starting migration${dryRun ? ' (DRY RUN)' : ''}...`);
+      if (process.env.NODE_ENV === 'development') console.log(`🔄 Starting migration${dryRun ? ' (DRY RUN)' : ''}...`);
       
       const result = await fileMigrationService.migrateAllFiles(dryRun);
       
@@ -32,7 +34,7 @@ export function registerMigrationRoutes(app: Express): void {
       });
 
     } catch (error) {
-      console.error('Migration error:', error);
+      if (process.env.NODE_ENV === 'development') console.error('Migration error:', error);
       res.status(500).json({
         message: 'Migration failed',
         error: error instanceof Error ? error.message : 'Unknown error'
@@ -54,7 +56,7 @@ export function registerMigrationRoutes(app: Express): void {
       });
 
     } catch (error) {
-      console.error('Error getting migration progress:', error);
+      if (process.env.NODE_ENV === 'development') console.error('Error getting migration progress:', error);
       res.status(500).json({
         message: 'Failed to get migration progress',
         error: error instanceof Error ? error.message : 'Unknown error'
@@ -67,7 +69,7 @@ export function registerMigrationRoutes(app: Express): void {
    */
   app.post('/api/migration/rollback', requireAuth, requireRole(['admin']), async (req: any, res) => {
     try {
-      console.log('🔄 Starting migration rollback...');
+      if (process.env.NODE_ENV === 'development') console.log('🔄 Starting migration rollback...');
       
       const result = await fileMigrationService.rollbackMigration();
       
@@ -80,7 +82,7 @@ export function registerMigrationRoutes(app: Express): void {
       });
 
     } catch (error) {
-      console.error('Rollback error:', error);
+      if (process.env.NODE_ENV === 'development') console.error('Rollback error:', error);
       res.status(500).json({
         message: 'Rollback failed',
         error: error instanceof Error ? error.message : 'Unknown error'
@@ -93,7 +95,7 @@ export function registerMigrationRoutes(app: Express): void {
    */
   app.get('/api/migration/verify', requireAuth, requireRole(['admin']), async (req: any, res) => {
     try {
-      console.log('🔍 Verifying migration integrity...');
+      if (process.env.NODE_ENV === 'development') console.log('🔍 Verifying migration integrity...');
       
       const verification = await fileMigrationService.verifyMigration();
       
@@ -106,7 +108,7 @@ export function registerMigrationRoutes(app: Express): void {
       });
 
     } catch (error) {
-      console.error('Verification error:', error);
+      if (process.env.NODE_ENV === 'development') console.error('Verification error:', error);
       res.status(500).json({
         message: 'Verification failed',
         error: error instanceof Error ? error.message : 'Unknown error'
@@ -114,5 +116,5 @@ export function registerMigrationRoutes(app: Express): void {
     }
   });
 
-  console.log('✅ Migration routes registered successfully');
+  if (process.env.NODE_ENV === 'development') console.log('✅ Migration routes registered successfully');
 }

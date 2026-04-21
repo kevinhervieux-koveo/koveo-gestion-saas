@@ -1,0 +1,13 @@
+user-management-CpugRBiu.js:1 🔍 [USER_MANAGEMENT] Computing currentUserAccess memo: {currentUser: 'kevin.hervieux@koveo-gestion.com', currentUserOrganizationsType: 'undefined', currentUserOrganizationsIsArray: false, currentUserOrganizationsLength: 'N/A', currentUserBuildingsType: 'undefined', …}
+user-management-CpugRBiu.js:1 ✅ [USER_MANAGEMENT] Extracted access IDs: {organizationIds: Array(0), buildingIds: Array(0), residenceIds: Array(0), organizationIdsCount: 0, buildingIdsCount: 0, …}
+user-management-CpugRBiu.js:1 🔍 [USER_MANAGEMENT] Component mounted
+user-management-CpugRBiu.js:1 🔍 [USER_MANAGEMENT] Current user query status: {currentUser: {…}, isLoading: false, error: null}
+user-management-CpugRBiu.js:1 🔍 [USER_MANAGEMENT] Assignment queries data received: {organizations: 'null', buildings: 'null', residences: 'null', orgsLoading: true, buildingsLoading: true, …}
+user-management-CpugRBiu.js:1 🔍 [USER_MANAGEMENT] Current user assignment queries status: {currentUser: 'kevin.hervieux@koveo-gestion.com', orgsLoading: true, buildingsLoading: true, residencesLoading: true, orgsError: undefined, …}
+user-management-CpugRBiu.js:1 🔍 [QUERY] /api/users/me/residences returned: []
+user-management-CpugRBiu.js:1 🔍 [QUERY] /api/users/me/organizations returned: (3) [{…}, {…}, {…}]
+user-management-CpugRBiu.js:1 🔍 [QUERY] /api/users/me/buildings returned: (8) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+user-management-CpugRBiu.js:1 🔍 [USER_MANAGEMENT] Computing currentUserAccess memo: {currentUser: 'kevin.hervieux@koveo-gestion.com', currentUserOrganizationsType: 'object', currentUserOrganizationsIsArray: true, currentUserOrganizationsLength: 3, currentUserBuildingsType: 'object', …}
+user-management-CpugRBiu.js:1 ✅ [USER_MANAGEMENT] Extracted access IDs: {organizationIds: Array(3), buildingIds: Array(8), residenceIds: Array(0), organizationIdsCount: 3, buildingIdsCount: 8, …}
+user-management-CpugRBiu.js:1 🔍 [USER_MANAGEMENT] Assignment queries data received: {organizations: '3 orgs', buildings: '8 buildings', residences: '0 residences', orgsLoading: false, buildingsLoading: false, …}
+user-management-CpugRBiu.js:1 🔍 [USER_MANAGEMENT] Current user assignment queries status: {currentUser: 'kevin.hervieux@koveo-gestion.com', orgsLoading: false, buildingsLoading: false, residencesLoading: false, orgsError: undefined, …}

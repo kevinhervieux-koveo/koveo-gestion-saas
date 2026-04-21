@@ -17,11 +17,8 @@ import {
   BarChart3,
   Shield,
   ArrowRight,
-  Maximize2,
-  Minimize2,
 } from 'lucide-react';
 import { Link } from 'wouter';
-import { useFullscreen } from '@/hooks/use-fullscreen';
 
 /**
  * Main Dashboard - Central hub for all user roles
@@ -30,7 +27,6 @@ import { useFullscreen } from '@/hooks/use-fullscreen';
 export default function Dashboard() {
   const { user } = useAuth();
   const { t } = useLanguage();
-  const { isFullscreen, toggleFullscreen } = useFullscreen();
 
   // Determine role-based navigation items
   const getRoleBasedActions = () => {
@@ -61,9 +57,9 @@ export default function Dashboard() {
         },
         {
           title: t('userManagement'),
-          description: 'Manage users across all organizations',
+          description: 'Manage users and permissions',
           icon: Users,
-          path: '/admin/organizations',
+          path: '/admin/permissions',
           color: 'bg-green-500',
           testId: 'card-users',
         }
@@ -115,15 +111,15 @@ export default function Dashboard() {
           title: t('demands'),
           description: 'Submit and track maintenance requests',
           icon: Settings,
-          path: '/residents/maintenance',
+          path: '/residents/demands',
           color: 'bg-orange-500',
           testId: 'card-tenant-maintenance',
         },
         {
           title: t('documents'),
-          description: 'View important documents and notices',
+          description: 'View building information and documents',
           icon: FileText,
-          path: '/residents/documents',
+          path: '/residents/building',
           color: 'bg-blue-500',
           testId: 'card-tenant-documents',
         }
@@ -135,9 +131,9 @@ export default function Dashboard() {
       actions.push(
         {
           title: t('myResidence'),
-          description: 'Access your residence dashboard',
+          description: 'Access your residence information',
           icon: Home,
-          path: '/residents/dashboard',
+          path: '/residents/residence',
           color: 'bg-green-600',
           testId: 'card-resident-home',
         },
@@ -145,15 +141,15 @@ export default function Dashboard() {
           title: t('demands'),
           description: 'Submit and track maintenance requests',
           icon: Settings,
-          path: '/residents/maintenance',
+          path: '/residents/demands',
           color: 'bg-orange-500',
           testId: 'card-resident-maintenance',
         },
         {
           title: t('documents'),
-          description: 'View important documents and notices',
+          description: 'View building information and documents',
           icon: FileText,
-          path: '/residents/documents',
+          path: '/residents/building',
           color: 'bg-blue-500',
           testId: 'card-resident-documents',
         }
@@ -174,30 +170,6 @@ export default function Dashboard() {
 
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-7xl mx-auto'>
-          {/* Fullscreen Controls */}
-          <div className='flex justify-end mb-6'>
-            <Button
-              variant='outline'
-              size='sm'
-              onClick={toggleFullscreen}
-              className='flex items-center gap-2'
-              data-testid='button-fullscreen-toggle'
-            >
-              {isFullscreen ? (
-                <>
-                  <Minimize2 className='w-4 h-4' />
-                  <span className='hidden sm:inline'>{t('exitFullscreen')}</span>
-                </>
-              ) : (
-                <>
-                  <Maximize2 className='w-4 h-4' />
-                  <span className='hidden sm:inline'>{t('fullscreen')}</span>
-                </>
-              )}
-            </Button>
-          </div>
-
-
           {/* Quick Actions Grid */}
           {roleActions.length > 0 ? (
             <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8'>

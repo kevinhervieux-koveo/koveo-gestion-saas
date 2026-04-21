@@ -2,14 +2,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Header } from '@/components/layout/header';
 import { useLanguage } from '@/hooks/use-language';
-import { useFullscreen } from '@/hooks/use-fullscreen';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { DocumentCard } from '@/components/document-management';
 import { useState } from 'react';
 import {
-  Maximize2,
-  Minimize2,
   Home,
   FileText,
   Wrench,
@@ -22,7 +19,6 @@ import {
  * Residents Dashboard - Main dashboard for residents.
  */
 export default function ResidentsDashboard() {
-  const { isFullscreen, toggleFullscreen } = useFullscreen();
   const { language } = useLanguage();
   // Modal state removed - using simple document opening instead
 
@@ -71,29 +67,6 @@ export default function ResidentsDashboard() {
 
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-7xl mx-auto space-y-6'>
-          {/* Fullscreen Controls */}
-          <div className='flex justify-end mb-4'>
-            <Button
-              variant='outline'
-              size='sm'
-              onClick={toggleFullscreen}
-              className='flex items-center gap-2'
-              data-testid='button-fullscreen-toggle'
-            >
-              {isFullscreen ? (
-                <>
-                  <Minimize2 className='w-4 h-4' />
-                  <span className='hidden sm:inline'>Exit Fullscreen</span>
-                </>
-              ) : (
-                <>
-                  <Maximize2 className='w-4 h-4' />
-                  <span className='hidden sm:inline'>Fullscreen</span>
-                </>
-              )}
-            </Button>
-          </div>
-
           {/* Quick Actions Grid */}
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4'>
             <Card className='cursor-pointer hover:shadow-md transition-shadow'>

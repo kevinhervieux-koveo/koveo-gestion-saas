@@ -6,8 +6,11 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/hooks/use-language';
 import { apiRequest } from '@/lib/queryClient';
+import { applyDangerousInputFieldError } from '@/lib/form-errors';
 import { ArrowLeft, Mail } from 'lucide-react';
+import { SiLinkedin } from 'react-icons/si';
 import { StandardForm, useStandardForm } from '@/components/forms/StandardForm';
 import { StandardFormField } from '@/components/forms/StandardFormField';
 import { ValidationTemplates } from '@/utils/form-validation-helpers';
@@ -28,6 +31,7 @@ type ForgotPasswordForm = z.infer<typeof forgotPasswordSchema>;
 export default function ForgotPasswordPage() {
   const [emailSent, setEmailSent] = useState(false);
   const { toast } = useToast();
+  const { language } = useLanguage();
   const { isLoading, errorMessage, handleSubmit } = useStandardForm({
     showSuccessMessage: false
   });
@@ -40,16 +44,32 @@ export default function ForgotPasswordPage() {
   });
 
   const onSubmit = async (data: ForgotPasswordForm) => {
-    const submitFn = async (formData: ForgotPasswordForm) => {
-      await apiRequest('POST', '/api/auth/forgot-password', formData);
+    // Task #166: if the server flags a specific field as containing
+    // disallowed characters, show the red underline + server-supplied
+    // French message inline on the email input and stop here. We
+    // deliberately bypass useStandardForm's generic error banner for
+    // this case so users don't see a duplicate, generic error above
+    // the already-highlighted input.
+    try {
+      await apiRequest('POST', '/api/auth/forgot-password', data);
       setEmailSent(true);
       toast({
         title: 'E-mail envoyé',
         description: 'Si cette adresse e-mail existe, un lien de réinitialisation a été envoyé.',
       });
-    };
-    
-    await handleSubmit(submitFn, form, 'E-mail de réinitialisation envoyé avec succès')(data);
+    } catch (err) {
+      if (applyDangerousInputFieldError(err, form)) {
+        return;
+      }
+      // Any other error — fall back to the shared error-banner path.
+      await handleSubmit(
+        async () => {
+          throw err;
+        },
+        form,
+        'E-mail de réinitialisation envoyé avec succès',
+      )(data);
+    }
   };
 
   if (emailSent) {
@@ -80,6 +100,20 @@ export default function ForgotPasswordPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Follow Us */}
+        <div className='text-center mt-6'>
+          <p className='text-sm text-gray-500 dark:text-gray-400 mb-2'>{language === 'fr' ? 'Suivez-nous' : 'Follow Us'}</p>
+          <a
+            href='https://www.linkedin.com/company/koveo-gestion-inc/'
+            target='_blank'
+            rel='noopener noreferrer'
+            className='inline-flex items-center justify-center gap-2 bg-[#0A66C2] hover:bg-[#004182] text-white px-4 py-2 rounded-lg transition-colors text-sm'
+          >
+            <SiLinkedin className='h-4 w-4' />
+            <span>LinkedIn</span>
+          </a>
+        </div>
       </div>
     );
   }
@@ -126,6 +160,20 @@ export default function ForgotPasswordPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Follow Us */}
+      <div className='text-center mt-6'>
+        <p className='text-sm text-gray-500 dark:text-gray-400 mb-2'>{language === 'fr' ? 'Suivez-nous' : 'Follow Us'}</p>
+        <a
+          href='https://www.linkedin.com/company/koveo-gestion-inc/'
+          target='_blank'
+          rel='noopener noreferrer'
+          className='inline-flex items-center justify-center gap-2 bg-[#0A66C2] hover:bg-[#004182] text-white px-4 py-2 rounded-lg transition-colors text-sm'
+        >
+          <SiLinkedin className='h-4 w-4' />
+          <span>LinkedIn</span>
+        </a>
+      </div>
     </div>
   );
 }

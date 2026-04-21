@@ -5,6 +5,28 @@ import {
   generateCalendarInstructionsText,
   generateEnhancedICS
 } from './outlook-integration';
+import { maskEmail } from '../utils/logger';
+
+/**
+ * Helper function to get the correct base URL from REPLIT_DOMAINS.
+ * REPLIT_DOMAINS can contain multiple domains separated by commas.
+ * We prefer custom domains (non-replit.app) over replit.app domains.
+ */
+function getBaseUrlFromReplitDomains(): string | null {
+  const replitDomains = process.env.REPLIT_DOMAINS;
+  if (!replitDomains) return null;
+
+  // Split by comma and trim whitespace
+  const domains = replitDomains.split(',').map(d => d.trim()).filter(d => d);
+  
+  if (domains.length === 0) return null;
+  
+  // Prefer custom domains (non-replit.app) over replit.app domains
+  const customDomain = domains.find(d => !d.includes('.replit.app'));
+  const selectedDomain = customDomain || domains[0];
+  
+  return `https://${selectedDomain}`;
+}
 
 /**
  * Email service for Quebec-compliant transactional emails using SendGrid.
@@ -14,25 +36,28 @@ class EmailService {
   private mailService: MailService | null = null;
   private fromEmail: string = 'info@koveo-gestion.com';
   private fromName: string = 'Koveo Gestion';
+  private isConfigured: boolean = false;
 
+  /**
+   * Initializes the EmailService with SendGrid configuration.
+   * If SENDGRID_API_KEY is not set, the service will be disabled and all email sends will fail gracefully.
+   *
+   * @example
+   * ```typescript
+   * const emailService = new EmailService();
+   * await emailService.sendPasswordResetEmail('user@example.com', 'John', 'https://reset-url');
+   * ```
+   */
   constructor() {
     if (!process.env.SENDGRID_API_KEY) {
-      console.warn(
-        '[EmailService] SENDGRID_API_KEY is not set — email sending is disabled. ' +
-          'Set the SENDGRID_API_KEY secret to enable transactional emails.',
-      );
+      console.warn('⚠️ SENDGRID_API_KEY not configured - Email service disabled. Invitations will be created but emails will not be sent.');
+      this.isConfigured = false;
       return;
     }
 
     this.mailService = new MailService();
     this.mailService.setApiKey(process.env.SENDGRID_API_KEY);
-  }
-
-  private requireMailService(): MailService {
-    if (!this.mailService) {
-      throw new Error('SENDGRID_API_KEY environment variable must be set');
-    }
-    return this.mailService;
+    this.isConfigured = true;
   }
 
   /**
@@ -64,6 +89,12 @@ class EmailService {
     resetUrl: string,
     language: 'fr' | 'en' = 'fr'
   ): Promise<boolean> {
+    // If email service is not configured, fail gracefully
+    if (!this.isConfigured || !this.mailService) {
+      console.warn(`⚠️ Email service not configured - Cannot send password reset email to ${maskEmail(to)}`);
+      return false;
+    }
+
     try {
       const templates = {
         fr: {
@@ -202,7 +233,7 @@ Quebec Law 25 compliant.
 
       const template = templates[language];
 
-      await this.requireMailService().send({
+      await this.mailService.send({
         to,
         from: {
           email: this.fromEmail,
@@ -304,6 +335,12 @@ Quebec Law 25 compliant.
     notificationType: string,
     language: 'fr' | 'en' = 'fr'
   ): Promise<boolean> {
+    // If email service is not configured, fail gracefully
+    if (!this.isConfigured || !this.mailService) {
+      console.warn(`⚠️ Email service not configured - Cannot send notification email to ${maskEmail(to)}`);
+      return false;
+    }
+
     try {
       // Sanitize message content to prevent XSS
       const sanitizedMessage = this.sanitizeHtmlContent(message);
@@ -445,7 +482,7 @@ Quebec Law 25 compliant.
 
       const template = templates[language];
 
-      await this.requireMailService().send({
+      await this.mailService.send({
         to,
         from: {
           email: this.fromEmail,
@@ -522,6 +559,12 @@ Quebec Law 25 compliant.
     organizationName: string,
     language: 'fr' | 'en' = 'fr'
   ): Promise<boolean> {
+    // If email service is not configured, fail gracefully
+    if (!this.isConfigured || !this.mailService) {
+      console.warn(`⚠️ Email service not configured - Cannot send invitation email to ${maskEmail(to)}. The invitation was created successfully and can be accessed via the invitation link.`);
+      return false;
+    }
+
     try {
       const templates = {
         fr: {
@@ -688,7 +731,7 @@ Quebec Law 25 compliant.
 
       const template = templates[language];
 
-      await this.requireMailService().send({
+      await this.mailService.send({
         to,
         from: {
           email: this.fromEmail,
@@ -881,7 +924,7 @@ ${isFrench ? 'Conforme à la Loi 25 du Québec.' : 'Quebec Law 25 compliant.'}
 © 2025 Koveo Gestion
       `;
 
-      await this.requireMailService().send({
+      await this.mailService.send({
         to: recipients,
         from: {
           email: this.fromEmail,
@@ -967,6 +1010,12 @@ ${isFrench ? 'Conforme à la Loi 25 du Québec.' : 'Quebec Law 25 compliant.'}
     }>,
     isTestEmail: boolean = false
   ): Promise<boolean> {
+    // If email service is not configured, fail gracefully
+    if (!this.isConfigured || !this.mailService) {
+      console.warn(`⚠️ Email service not configured - Cannot send combined notifications`);
+      return false;
+    }
+
     try {
       // Filter out empty notifications (except for test emails)
       const validNotifications = isTestEmail 
@@ -1000,10 +1049,7 @@ ${isFrench ? 'Conforme à la Loi 25 du Québec.' : 'Quebec Law 25 compliant.'}
       let baseUrl;
 
       if (isDevelopment) {
-        const replitUrl = process.env.REPLIT_DOMAINS
-          ? `https://${process.env.REPLIT_DOMAINS}`
-          : null;
-        baseUrl = replitUrl || 'http://localhost:5000';
+        baseUrl = getBaseUrlFromReplitDomains() || 'http://localhost:5000';
       } else {
         baseUrl = process.env.FRONTEND_URL || 'http://localhost:5000';
       }
@@ -1155,7 +1201,7 @@ ${isFrench
               },
             };
 
-            return this.requireMailService().send(msg);
+            return this.mailService.send(msg);
           });
 
           // Wait for all emails in this group to be sent
@@ -1210,6 +1256,12 @@ ${isFrench
     }>,
     isTestEmail: boolean = false
   ): Promise<boolean> {
+    // If email service is not configured, fail gracefully
+    if (!this.isConfigured || !this.mailService) {
+      console.warn(`⚠️ Email service not configured - Cannot send scheduled notifications`);
+      return false;
+    }
+
     try {
       // Check if notification is empty and skip sending (except for test emails)
       if (!isTestEmail && (!notificationData.message || notificationData.message.trim() === '')) {
@@ -1240,10 +1292,7 @@ ${isFrench
       let baseUrl;
 
       if (isDevelopment) {
-        const replitUrl = process.env.REPLIT_DOMAINS
-          ? `https://${process.env.REPLIT_DOMAINS}`
-          : null;
-        baseUrl = replitUrl || 'http://localhost:5000';
+        baseUrl = getBaseUrlFromReplitDomains() || 'http://localhost:5000';
       } else {
         baseUrl = process.env.FRONTEND_URL || 'http://localhost:5000';
       }
@@ -1350,7 +1399,7 @@ ${isFrench ? 'Conforme à la Loi 25 du Québec.' : 'Quebec Law 25 compliant.'}
 
           const emailAddresses = langRecipients.map(recipient => recipient.email);
 
-          await this.requireMailService().send({
+          await this.mailService.send({
             to: emailAddresses,
             from: {
               email: this.fromEmail,
@@ -1418,6 +1467,12 @@ ${isFrench ? 'Conforme à la Loi 25 du Québec.' : 'Quebec Law 25 compliant.'}
     notificationType: string,
     language: 'fr' | 'en' = 'fr'
   ): Promise<boolean> {
+    // If email service is not configured, fail gracefully
+    if (!this.isConfigured || !this.mailService) {
+      console.warn(`⚠️ Email service not configured - Cannot send test notification email to ${maskEmail(to)}`);
+      return false;
+    }
+
     try {
       // Sanitize message content to prevent XSS
       const sanitizedMessage = this.sanitizeHtmlContent(message);
@@ -1478,7 +1533,7 @@ ${language === 'fr' ? 'Conforme à la Loi 25 du Québec.' : 'Quebec Law 25 compl
 © 2025 Koveo Gestion
       `;
 
-      await this.requireMailService().send({
+      await this.mailService.send({
         to,
         from: {
           email: this.fromEmail,
@@ -1519,6 +1574,529 @@ ${language === 'fr' ? 'Conforme à la Loi 25 du Québec.' : 'Quebec Law 25 compl
       return true;
     } catch (error: any) {
       // console.error('❌ Error sending test notification email:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Sends admin notification email for trial request with all details.
+   * Always sent in French to info@koveo-gestion.com.
+   *
+   * @param {Object} data - Trial request data.
+   * @param {string} data.firstName - Requester's first name.
+   * @param {string} data.lastName - Requester's last name.
+   * @param {string} data.email - Requester's email.
+   * @param {string} data.phone - Requester's phone number.
+   * @param {string} data.company - Company name.
+   * @param {string} [data.address] - Company address.
+   * @param {string} [data.city] - City.
+   * @param {string} [data.province] - Province.
+   * @param {string} [data.postalCode] - Postal code.
+   * @param {string} data.numberOfBuildings - Number of buildings.
+   * @param {string} data.numberOfResidences - Number of residences.
+   * @param {string} [data.message] - Additional message from requester.
+   * @returns {Promise<boolean>} Promise resolving to true if email sent successfully.
+   */
+  async sendTrialRequestAdminNotification(data: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    company: string;
+    address?: string;
+    city?: string;
+    province?: string;
+    postalCode?: string;
+    numberOfBuildings: string;
+    numberOfResidences: string;
+    message?: string;
+  }): Promise<boolean> {
+    if (!this.isConfigured || !this.mailService) {
+      console.warn(`⚠️ Email service not configured - Cannot send trial request admin notification`);
+      return false;
+    }
+
+    try {
+      const timestamp = new Date().toLocaleDateString('fr-CA', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'America/Toronto',
+      });
+
+      const subject = `Nouvelle demande d'essai gratuit - ${data.company}`;
+
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="UTF-8">
+          <title>Nouvelle demande d'essai gratuit</title>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background-color: #2563eb; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
+            .content { padding: 20px; background-color: #f9fafb; border-radius: 0 0 8px 8px; }
+            .section { margin-bottom: 20px; background: white; padding: 15px; border-radius: 6px; }
+            .section h3 { color: #2563eb; margin: 0 0 15px 0; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; }
+            .info-grid { display: grid; grid-template-columns: 150px 1fr; gap: 10px; margin-bottom: 10px; }
+            .label { font-weight: bold; color: #6b7280; }
+            .value { color: #374151; }
+            .highlight { background-color: #dbeafe; padding: 15px; border-radius: 5px; border-left: 4px solid #2563eb; }
+            .footer { text-align: center; color: #666; font-size: 12px; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; }
+            .action-link { color: #2563eb; text-decoration: none; font-weight: bold; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1 style="margin: 0;">Nouvelle demande d'essai gratuit</h1>
+              <p style="margin: 10px 0 0 0; font-size: 14px;">Koveo Gestion</p>
+            </div>
+            
+            <div class="content">
+              <div class="section">
+                <h3>📋 Informations du contact</h3>
+                <div class="info-grid">
+                  <span class="label">Nom complet:</span>
+                  <span class="value"><strong>${data.firstName} ${data.lastName}</strong></span>
+                  
+                  <span class="label">Entreprise:</span>
+                  <span class="value"><strong>${data.company}</strong></span>
+                  
+                  <span class="label">Courriel:</span>
+                  <span class="value"><a href="mailto:${data.email}" class="action-link">${data.email}</a></span>
+                  
+                  <span class="label">Téléphone:</span>
+                  <span class="value"><a href="tel:${data.phone}" class="action-link">${data.phone}</a></span>
+                </div>
+              </div>
+
+              ${data.address || data.city || data.province || data.postalCode ? `
+              <div class="section">
+                <h3>📍 Adresse</h3>
+                <div class="info-grid">
+                  ${data.address ? `<span class="label">Adresse:</span><span class="value">${data.address}</span>` : ''}
+                  ${data.city ? `<span class="label">Ville:</span><span class="value">${data.city}</span>` : ''}
+                  ${data.province ? `<span class="label">Province:</span><span class="value">${data.province}</span>` : ''}
+                  ${data.postalCode ? `<span class="label">Code postal:</span><span class="value">${data.postalCode}</span>` : ''}
+                </div>
+              </div>
+              ` : ''}
+
+              <div class="section highlight">
+                <h3>🏢 Informations sur les propriétés</h3>
+                <div class="info-grid">
+                  <span class="label">Nombre de bâtiments:</span>
+                  <span class="value"><strong style="font-size: 18px; color: #2563eb;">${data.numberOfBuildings}</strong></span>
+                  
+                  <span class="label">Nombre de résidences:</span>
+                  <span class="value"><strong style="font-size: 18px; color: #2563eb;">${data.numberOfResidences}</strong></span>
+                </div>
+              </div>
+
+              ${data.message ? `
+              <div class="section">
+                <h3>💬 Message additionnel</h3>
+                <p style="margin: 0; padding: 15px; background: #f3f4f6; border-radius: 4px; line-height: 1.6;">${data.message.replace(/\n/g, '<br>')}</p>
+              </div>
+              ` : ''}
+              
+              <div class="footer">
+                <p><strong>Date de soumission:</strong> ${timestamp}</p>
+                <p style="margin-top: 15px;">Cette demande a été soumise via le site web Koveo Gestion</p>
+                <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;">
+                <p style="font-size: 11px; color: #9ca3af;">
+                  <strong>Conforme à la Loi 25 du Québec</strong><br>
+                  © 2025 Koveo Gestion. Tous droits réservés.
+                </p>
+              </div>
+            </div>
+          </div>
+        </body>
+        </html>
+      `;
+
+      const textContent = `
+NOUVELLE DEMANDE D'ESSAI GRATUIT - Koveo Gestion
+
+INFORMATIONS DU CONTACT:
+- Nom: ${data.firstName} ${data.lastName}
+- Entreprise: ${data.company}
+- Courriel: ${data.email}
+- Téléphone: ${data.phone}
+
+${data.address || data.city || data.province || data.postalCode ? `
+ADRESSE:
+${data.address ? `- Adresse: ${data.address}` : ''}
+${data.city ? `- Ville: ${data.city}` : ''}
+${data.province ? `- Province: ${data.province}` : ''}
+${data.postalCode ? `- Code postal: ${data.postalCode}` : ''}
+` : ''}
+
+INFORMATIONS SUR LES PROPRIÉTÉS:
+- Nombre de bâtiments: ${data.numberOfBuildings}
+- Nombre de résidences: ${data.numberOfResidences}
+
+${data.message ? `MESSAGE ADDITIONNEL:\n${data.message}\n` : ''}
+---
+Date de soumission: ${timestamp}
+Cette demande a été soumise via le site web Koveo Gestion.
+
+Conforme à la Loi 25 du Québec.
+© 2025 Koveo Gestion
+      `;
+
+      await this.mailService.send({
+        to: 'info@koveo-gestion.com',
+        from: {
+          email: 'noreply@koveo-gestion.com',
+          name: "Koveo Gestion - Demandes d'essai",
+        },
+        replyTo: {
+          email: data.email,
+          name: `${data.firstName} ${data.lastName}`,
+        },
+        subject,
+        text: textContent.trim(),
+        html: htmlContent,
+        mailSettings: {
+          bypassListManagement: {
+            enable: false,
+          },
+          footer: {
+            enable: false,
+          },
+          sandboxMode: {
+            enable: false,
+          },
+        },
+        trackingSettings: {
+          clickTracking: {
+            enable: false,
+            enableText: false,
+          },
+          openTracking: {
+            enable: false,
+          },
+          subscriptionTracking: {
+            enable: false,
+          },
+          ganalytics: {
+            enable: false,
+          },
+        },
+      });
+
+      console.log(`✅ Trial request admin notification sent for ${data.company} (${maskEmail(data.email)})`);
+      return true;
+    } catch (error: any) {
+      console.error('❌ Error sending trial request admin notification:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Sends confirmation email to trial requester in their preferred language.
+   * Confirms receipt and explains next steps.
+   *
+   * @param {Object} data - Trial request data.
+   * @param {string} data.firstName - Requester's first name.
+   * @param {string} data.lastName - Requester's last name.
+   * @param {string} data.email - Requester's email.
+   * @param {string} data.company - Company name.
+   * @param {string} data.numberOfBuildings - Number of buildings.
+   * @param {string} data.numberOfResidences - Number of residences.
+   * @param {'fr' | 'en'} [language='fr'] - Email language (defaults to French for Quebec).
+   * @returns {Promise<boolean>} Promise resolving to true if email sent successfully.
+   */
+  async sendTrialRequestConfirmation(
+    data: {
+      firstName: string;
+      lastName: string;
+      email: string;
+      company: string;
+      numberOfBuildings: string;
+      numberOfResidences: string;
+    },
+    language: 'fr' | 'en' = 'fr'
+  ): Promise<boolean> {
+    if (!this.isConfigured || !this.mailService) {
+      console.warn(`⚠️ Email service not configured - Cannot send trial request confirmation to ${maskEmail(data.email)}`);
+      return false;
+    }
+
+    try {
+      const templates = {
+        fr: {
+          subject: 'Confirmation de votre demande d\'essai gratuit - Koveo Gestion',
+          html: `
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <meta charset="UTF-8">
+              <title>Confirmation de votre demande d'essai gratuit</title>
+            </head>
+            <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+              <div style="background: #f8f9fa; padding: 30px; border-radius: 8px;">
+                <h1 style="color: #2563eb; margin-bottom: 20px;">Koveo Gestion</h1>
+                
+                <div style="background: #d1fae5; border-left: 4px solid #10b981; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
+                  <strong style="color: #065f46;">✓ Demande reçue avec succès</strong>
+                </div>
+                
+                <h2 style="color: #374151;">Merci pour votre intérêt!</h2>
+                
+                <p>Bonjour ${data.firstName},</p>
+                
+                <p>Nous avons bien reçu votre demande d'essai gratuit pour <strong>${data.company}</strong>.</p>
+                
+                <div style="background: white; padding: 20px; border-radius: 6px; margin: 20px 0; border: 1px solid #e5e7eb;">
+                  <h3 style="margin-top: 0; color: #374151; font-size: 16px;">📋 Récapitulatif de votre demande</h3>
+                  <p style="margin: 5px 0;"><strong>Entreprise:</strong> ${data.company}</p>
+                  <p style="margin: 5px 0;"><strong>Nombre de bâtiments:</strong> ${data.numberOfBuildings}</p>
+                  <p style="margin: 5px 0;"><strong>Nombre de résidences:</strong> ${data.numberOfResidences}</p>
+                </div>
+                
+                <h3 style="color: #374151;">Prochaines étapes</h3>
+                <ol style="line-height: 1.8; color: #374151;">
+                  <li>Notre équipe examinera votre demande dans les <strong>24 à 48 heures</strong></li>
+                  <li>Nous vous contacterons par courriel ou téléphone pour discuter de vos besoins spécifiques</li>
+                  <li>Nous configurerons votre compte d'essai personnalisé</li>
+                  <li>Vous recevrez vos informations de connexion et une démonstration guidée</li>
+                </ol>
+                
+                <div style="background: #f3f4f6; padding: 20px; border-radius: 6px; margin: 20px 0;">
+                  <h3 style="margin-top: 0; color: #374151; font-size: 16px;">Pourquoi choisir Koveo Gestion?</h3>
+                  <ul style="line-height: 1.8; color: #374151; margin: 10px 0;">
+                    <li>Plateforme conçue spécifiquement pour les copropriétés québécoises</li>
+                    <li>Gestion complète des documents, communications et finances</li>
+                    <li>Conformité totale à la Loi 25 du Québec</li>
+                    <li>Support en français et formation personnalisée</li>
+                    <li>Aucun engagement à long terme</li>
+                  </ul>
+                </div>
+                
+                <p style="margin-top: 25px;">
+                  <strong>Des questions?</strong> N'hésitez pas à nous contacter à 
+                  <a href="mailto:info@koveo-gestion.com" style="color: #2563eb; text-decoration: none;">info@koveo-gestion.com</a>
+                </p>
+                
+                <p>Nous sommes impatients de vous accompagner dans la gestion de vos propriétés!</p>
+                
+                <p style="margin-top: 25px;">
+                  Cordialement,<br>
+                  <strong>L'équipe Koveo Gestion</strong>
+                </p>
+                
+                <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
+                
+                <div style="font-size: 12px; color: #6b7280;">
+                  <p><strong>Confidentialité & Sécurité - Loi 25 du Québec</strong></p>
+                  <p>Vos informations personnelles sont traitées de manière confidentielle et sécurisée conformément à la Loi 25 du Québec sur la protection des renseignements personnels. Nous ne partageons jamais vos données avec des tiers sans votre consentement explicite.</p>
+                  <p>© 2025 Koveo Gestion. Tous droits réservés.</p>
+                </div>
+              </div>
+            </body>
+            </html>
+          `,
+          text: `
+Confirmation de votre demande d'essai gratuit - Koveo Gestion
+
+✓ DEMANDE REÇUE AVEC SUCCÈS
+
+Bonjour ${data.firstName},
+
+Nous avons bien reçu votre demande d'essai gratuit pour ${data.company}.
+
+RÉCAPITULATIF DE VOTRE DEMANDE:
+- Entreprise: ${data.company}
+- Nombre de bâtiments: ${data.numberOfBuildings}
+- Nombre de résidences: ${data.numberOfResidences}
+
+PROCHAINES ÉTAPES:
+1. Notre équipe examinera votre demande dans les 24 à 48 heures
+2. Nous vous contacterons par courriel ou téléphone pour discuter de vos besoins spécifiques
+3. Nous configurerons votre compte d'essai personnalisé
+4. Vous recevrez vos informations de connexion et une démonstration guidée
+
+POURQUOI CHOISIR KOVEO GESTION?
+- Plateforme conçue spécifiquement pour les copropriétés québécoises
+- Gestion complète des documents, communications et finances
+- Conformité totale à la Loi 25 du Québec
+- Support en français et formation personnalisée
+- Aucun engagement à long terme
+
+Des questions? Contactez-nous à info@koveo-gestion.com
+
+Nous sommes impatients de vous accompagner dans la gestion de vos propriétés!
+
+Cordialement,
+L'équipe Koveo Gestion
+
+---
+Conforme à la Loi 25 du Québec.
+© 2025 Koveo Gestion
+          `,
+        },
+        en: {
+          subject: 'Confirmation of Your Free Trial Request - Koveo Gestion',
+          html: `
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <meta charset="UTF-8">
+              <title>Confirmation of Your Free Trial Request</title>
+            </head>
+            <body style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+              <div style="background: #f8f9fa; padding: 30px; border-radius: 8px;">
+                <h1 style="color: #2563eb; margin-bottom: 20px;">Koveo Gestion</h1>
+                
+                <div style="background: #d1fae5; border-left: 4px solid #10b981; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
+                  <strong style="color: #065f46;">✓ Request Successfully Received</strong>
+                </div>
+                
+                <h2 style="color: #374151;">Thank you for your interest!</h2>
+                
+                <p>Hello ${data.firstName},</p>
+                
+                <p>We have successfully received your free trial request for <strong>${data.company}</strong>.</p>
+                
+                <div style="background: white; padding: 20px; border-radius: 6px; margin: 20px 0; border: 1px solid #e5e7eb;">
+                  <h3 style="margin-top: 0; color: #374151; font-size: 16px;">📋 Request Summary</h3>
+                  <p style="margin: 5px 0;"><strong>Company:</strong> ${data.company}</p>
+                  <p style="margin: 5px 0;"><strong>Number of buildings:</strong> ${data.numberOfBuildings}</p>
+                  <p style="margin: 5px 0;"><strong>Number of residences:</strong> ${data.numberOfResidences}</p>
+                </div>
+                
+                <h3 style="color: #374151;">Next Steps</h3>
+                <ol style="line-height: 1.8; color: #374151;">
+                  <li>Our team will review your request within <strong>24 to 48 hours</strong></li>
+                  <li>We will contact you by email or phone to discuss your specific needs</li>
+                  <li>We will set up your personalized trial account</li>
+                  <li>You will receive your login credentials and a guided demonstration</li>
+                </ol>
+                
+                <div style="background: #f3f4f6; padding: 20px; border-radius: 6px; margin: 20px 0;">
+                  <h3 style="margin-top: 0; color: #374151; font-size: 16px;">Why Choose Koveo Gestion?</h3>
+                  <ul style="line-height: 1.8; color: #374151; margin: 10px 0;">
+                    <li>Platform designed specifically for Quebec condominiums</li>
+                    <li>Complete management of documents, communications and finances</li>
+                    <li>Full compliance with Quebec Law 25</li>
+                    <li>French support and personalized training</li>
+                    <li>No long-term commitment</li>
+                  </ul>
+                </div>
+                
+                <p style="margin-top: 25px;">
+                  <strong>Questions?</strong> Feel free to contact us at 
+                  <a href="mailto:info@koveo-gestion.com" style="color: #2563eb; text-decoration: none;">info@koveo-gestion.com</a>
+                </p>
+                
+                <p>We look forward to helping you manage your properties!</p>
+                
+                <p style="margin-top: 25px;">
+                  Best regards,<br>
+                  <strong>The Koveo Gestion Team</strong>
+                </p>
+                
+                <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
+                
+                <div style="font-size: 12px; color: #6b7280;">
+                  <p><strong>Privacy & Security - Quebec Law 25</strong></p>
+                  <p>Your personal information is handled confidentially and securely in compliance with Quebec Law 25 on the protection of personal information. We never share your data with third parties without your explicit consent.</p>
+                  <p>© 2025 Koveo Gestion. All rights reserved.</p>
+                </div>
+              </div>
+            </body>
+            </html>
+          `,
+          text: `
+Confirmation of Your Free Trial Request - Koveo Gestion
+
+✓ REQUEST SUCCESSFULLY RECEIVED
+
+Hello ${data.firstName},
+
+We have successfully received your free trial request for ${data.company}.
+
+REQUEST SUMMARY:
+- Company: ${data.company}
+- Number of buildings: ${data.numberOfBuildings}
+- Number of residences: ${data.numberOfResidences}
+
+NEXT STEPS:
+1. Our team will review your request within 24 to 48 hours
+2. We will contact you by email or phone to discuss your specific needs
+3. We will set up your personalized trial account
+4. You will receive your login credentials and a guided demonstration
+
+WHY CHOOSE KOVEO GESTION?
+- Platform designed specifically for Quebec condominiums
+- Complete management of documents, communications and finances
+- Full compliance with Quebec Law 25
+- French support and personalized training
+- No long-term commitment
+
+Questions? Contact us at info@koveo-gestion.com
+
+We look forward to helping you manage your properties!
+
+Best regards,
+The Koveo Gestion Team
+
+---
+Quebec Law 25 compliant.
+© 2025 Koveo Gestion
+          `,
+        },
+      };
+
+      const template = templates[language];
+
+      await this.mailService.send({
+        to: data.email,
+        from: {
+          email: this.fromEmail,
+          name: this.fromName,
+        },
+        subject: template.subject,
+        text: template.text.trim(),
+        html: template.html,
+        mailSettings: {
+          bypassListManagement: {
+            enable: false,
+          },
+          footer: {
+            enable: false,
+          },
+          sandboxMode: {
+            enable: false,
+          },
+        },
+        trackingSettings: {
+          clickTracking: {
+            enable: false,
+            enableText: false,
+          },
+          openTracking: {
+            enable: false,
+          },
+          subscriptionTracking: {
+            enable: false,
+          },
+          ganalytics: {
+            enable: false,
+          },
+        },
+      });
+
+      console.log(`✅ Trial request confirmation sent to ${maskEmail(data.email)} in ${language}`);
+      return true;
+    } catch (error: any) {
+      console.error('❌ Error sending trial request confirmation:', error);
       return false;
     }
   }

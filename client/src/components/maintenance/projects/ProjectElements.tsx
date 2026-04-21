@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
+import { useCreateUpdateMutation } from '@/lib/common-hooks';
 import { ColumnDef, Row } from '@tanstack/react-table';
 import { DataTable } from '@/components/ui/data-table';
 import { Button } from '@/components/ui/button';
@@ -141,42 +142,36 @@ export function ProjectElements({
     element => !projectElements.some(pe => pe.elementId === element.id)
   );
 
+  const elementsQueryKey: readonly unknown[] = ['/api/maintenance/projects', project.id, 'elements'];
+  const projectQueryKey: readonly unknown[] = ['/api/maintenance/projects', project.id];
+
   // Add element mutation
-  const addElementMutation = useMutation({
-    mutationFn: async (elementData: {
-      elementId: string;
-      workDescription?: string;
-      costAllocation?: number;
-      lifespanImpact?: number;
-    }) => {
+  const addElementMutation = useCreateUpdateMutation<unknown, {
+    elementId: string;
+    workDescription?: string;
+    costAllocation?: number;
+    lifespanImpact?: number;
+  }>({
+    mutationFn: async (elementData) => {
       const response = await apiRequest('POST', `/api/maintenance/projects/${project.id}/elements`, {
         ...elementData,
         projectId: project.id,
       });
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ 
-        queryKey: ['/api/maintenance/projects', project.id, 'elements'] 
-      });
-      toast({
-        title: "Element Added",
-        description: "Building element has been added to the project successfully.",
-      });
+    successTitle: 'Element Added',
+    successMessage: 'Building element has been added to the project successfully.',
+    errorTitle: 'Failed to Add Element',
+    errorMessage: (error: any) => error?.response?.data?.message || 'Please try again.',
+    queryKeysToInvalidate: [elementsQueryKey],
+    onSuccessCallback: () => {
       setIsAddElementOpen(false);
       resetForm();
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Failed to Add Element",
-        description: error.response?.data?.message || "Please try again.",
-        variant: "destructive",
-      });
     },
   });
 
   // Quick Project mutation
-  const quickProjectMutation = useMutation({
+  const quickProjectMutation = useCreateUpdateMutation({
     mutationFn: async () => {
       const response = await apiRequest('PATCH', `/api/maintenance/projects/${project.id}`, {
         isQuickProject: true,
@@ -185,111 +180,76 @@ export function ProjectElements({
       });
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ 
-        queryKey: ['/api/maintenance/projects', project.id] 
-      });
-      toast({
-        title: "Quick Project Created",
-        description: "This project has been set as a Quick Project for planning purposes only.",
-      });
+    successTitle: 'Quick Project Created',
+    successMessage: 'This project has been set as a Quick Project for planning purposes only.',
+    errorTitle: 'Failed to Create Quick Project',
+    errorMessage: (error: any) => error?.response?.data?.message || 'Please try again.',
+    queryKeysToInvalidate: [projectQueryKey],
+    onSuccessCallback: () => {
       setIsAddElementOpen(false);
       resetForm();
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Failed to Create Quick Project",
-        description: error.response?.data?.message || "Please try again.",
-        variant: "destructive",
-      });
     },
   });
 
   // Update element mutation
-  const updateElementMutation = useMutation({
-    mutationFn: async (elementData: {
-      id: string;
-      workDescription?: string;
-      costAllocation?: number;
-      lifespanImpact?: number;
-    }) => {
+  const updateElementMutation = useCreateUpdateMutation<unknown, {
+    id: string;
+    workDescription?: string;
+    costAllocation?: number;
+    lifespanImpact?: number;
+  }>({
+    mutationFn: async (elementData) => {
       const response = await apiRequest('PATCH', `/api/maintenance/project-elements/${elementData.id}`, elementData);
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ 
-        queryKey: ['/api/maintenance/projects', project.id, 'elements'] 
-      });
-      toast({
-        title: "Element Updated",
-        description: "Element details have been updated successfully.",
-      });
+    successTitle: 'Element Updated',
+    successMessage: 'Element details have been updated successfully.',
+    errorTitle: 'Update Failed',
+    errorMessage: (error: any) => error?.response?.data?.message || 'Please try again.',
+    queryKeysToInvalidate: [elementsQueryKey],
+    onSuccessCallback: () => {
       setIsEditCostOpen(false);
       setSelectedElement(null);
       resetForm();
     },
-    onError: (error: any) => {
-      toast({
-        title: "Update Failed",
-        description: error.response?.data?.message || "Please try again.",
-        variant: "destructive",
-      });
-    },
   });
 
   // Remove element mutation
-  const removeElementMutation = useMutation({
+  const removeElementMutation = useCreateUpdateMutation<unknown, string>({
     mutationFn: async (elementId: string) => {
       const response = await apiRequest('DELETE', `/api/maintenance/project-elements/${elementId}`);
       return response.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ 
-        queryKey: ['/api/maintenance/projects', project.id, 'elements'] 
-      });
-      toast({
-        title: "Element Removed",
-        description: "Element has been removed from the project.",
-      });
+    successTitle: 'Element Removed',
+    successMessage: 'Element has been removed from the project.',
+    errorTitle: 'Removal Failed',
+    errorMessage: (error: any) => error?.response?.data?.message || 'Please try again.',
+    queryKeysToInvalidate: [elementsQueryKey],
+    onSuccessCallback: () => {
       setElementToRemove(null);
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Removal Failed",
-        description: error.response?.data?.message || "Please try again.",
-        variant: "destructive",
-      });
     },
   });
 
   // Bulk operations mutation
-  const bulkUpdateMutation = useMutation({
-    mutationFn: async (operation: {
-      type: 'remove' | 'update_cost';
-      elementIds: string[];
-      data?: any;
-    }) => {
+  const bulkUpdateMutation = useCreateUpdateMutation<unknown, {
+    type: 'remove' | 'update_cost';
+    elementIds: string[];
+    data?: any;
+  }>({
+    mutationFn: async (operation) => {
       const response = await apiRequest('POST', `/api/maintenance/projects/${project.id}/elements/bulk`, operation);
       return response.json();
     },
-    onSuccess: (_, operation) => {
-      queryClient.invalidateQueries({ 
-        queryKey: ['/api/maintenance/projects', project.id, 'elements'] 
-      });
-      
+    successTitle: 'Bulk Operation Complete',
+    successMessage: (_data, operation) => {
       const actionLabel = operation.type === 'remove' ? 'removed' : 'updated';
-      toast({
-        title: "Bulk Operation Complete",
-        description: `Selected elements have been ${actionLabel} successfully.`,
-      });
-      setSelectedElements([]);
+      return `Selected elements have been ${actionLabel} successfully.`;
     },
-    onError: (error: any) => {
-      toast({
-        title: "Bulk Operation Failed",
-        description: error.response?.data?.message || "Please try again.",
-        variant: "destructive",
-      });
+    errorTitle: 'Bulk Operation Failed',
+    errorMessage: (error: any) => error?.response?.data?.message || 'Please try again.',
+    queryKeysToInvalidate: [elementsQueryKey],
+    onSuccessCallback: () => {
+      setSelectedElements([]);
     },
   });
 

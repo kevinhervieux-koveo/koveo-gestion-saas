@@ -5,8 +5,7 @@ export default function BuildingDocuments() {
     <ModularDocumentPageWrapper
       type="building"
       userRole="resident"
-      backPath="/residents/buildings"
-      backLabel="Back to Buildings"
+      backPath="/residents/residence"
       entityIdParam="buildingId"
     />
   );

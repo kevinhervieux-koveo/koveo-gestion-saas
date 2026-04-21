@@ -3,10 +3,17 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useCreateUpdateMutation } from '@/lib/common-hooks';
 import { apiRequest } from '@/lib/queryClient';
 import { useLanguage } from '@/hooks/use-language';
 import { useToast } from '@/hooks/use-toast';
 import type { Bill } from '@shared/schema';
+import type { UploadContext } from '@shared/config/upload-config';
+import { BILL_CATEGORIES } from '@shared/schemas/financial';
+import { CategorySelectField } from '@/components/common/CategorySelectField';
+import { CurrencyInputField } from '@/components/common/CurrencyInputField';
+import { StandardFormGrid } from '@/components/common/StandardFormGrid';
+import { DocumentAttachmentSection, type PendingFile } from '@/components/common/DocumentAttachmentSection';
 
 import {
   Dialog,
@@ -25,13 +32,6 @@ import {
 import { Input } from './input';
 import { Textarea } from './textarea';
 import { Button } from './button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from './select';
 import { Card, CardContent, CardHeader, CardTitle } from './card';
 import { Badge } from './badge';
 import { Bot } from 'lucide-react';
@@ -46,23 +46,7 @@ interface PrePopulatedBillFormProps {
 const billFormSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   description: z.string().optional(),
-  category: z.enum([
-    'insurance',
-    'maintenance',
-    'salary',
-    'utilities',
-    'cleaning',
-    'security',
-    'landscaping',
-    'professional_services',
-    'administration',
-    'repairs',
-    'supplies',
-    'taxes',
-    'technology',
-    'reserves',
-    'other',
-  ]),
+  category: z.enum(BILL_CATEGORIES as unknown as [string, ...string[]]),
   vendor: z.string().optional(),
   paymentType: z.enum(['unique', 'recurrent', 'auto-generated']),
   schedulePayment: z.enum(['weekly', 'monthly', 'quarterly', 'yearly', 'custom']).optional(),
@@ -78,12 +62,20 @@ const billFormSchema = z.object({
 type BillFormData = z.infer<typeof billFormSchema>;
 
 export function PrePopulatedBillForm({ bill, isOpen, onClose, buildingId }: PrePopulatedBillFormProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [pendingFiles, setPendingFiles] = useState<PendingFile[]>([]);
 
-  // Use templateData if available, otherwise fall back to original bill data
+  const uploadContext: UploadContext = {
+    type: 'bills',
+    organizationId: 'default',
+    buildingId,
+    userRole: 'admin',
+    userId: 'current-user'
+  };
+
   const templateData = (bill as any)?.templateData;
   const sourceInfo = (bill as any)?.sourceInfo;
 
@@ -108,7 +100,7 @@ export function PrePopulatedBillForm({ bill, isOpen, onClose, buildingId }: PreP
       description: bill.description || '',
       category: bill.category,
       vendor: bill.vendor || '',
-      paymentType: 'unique', // Auto-generated bills become unique
+      paymentType: 'unique',
       schedulePayment: undefined,
       scheduleCustom: undefined,
       costs: bill.costs || [],
@@ -132,7 +124,43 @@ export function PrePopulatedBillForm({ bill, isOpen, onClose, buildingId }: PreP
     },
   });
 
-  const createBillMutation = useMutation({
+  const handleFileAdd = (file: File) => {
+    const fileId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    setPendingFiles(prev => [...prev, { id: fileId, file, name: file.name }]);
+  };
+
+  const handleFileRemove = (fileId: string) => {
+    setPendingFiles(prev => prev.filter(f => f.id !== fileId));
+  };
+
+  const uploadDocumentsToBill = async (billId: string, billTitle: string) => {
+    for (const pendingFile of pendingFiles) {
+      try {
+        const formData = new FormData();
+        formData.append('file', pendingFile.file);
+        formData.append('name', pendingFile.name);
+        formData.append('description', `Document attached to bill: ${billTitle}`);
+        formData.append('documentType', 'financial');
+        formData.append('buildingId', buildingId);
+        formData.append('attachedToType', 'bill');
+        formData.append('attachedToId', billId);
+
+        const response = await fetch('/api/documents/upload', {
+          method: 'POST',
+          credentials: 'include',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          console.error('Failed to upload document:', pendingFile.name);
+        }
+      } catch (error) {
+        console.error('Error uploading document:', pendingFile.name, error);
+      }
+    }
+  };
+
+  const createBillMutation = useCreateUpdateMutation<any, BillFormData>({
     mutationFn: async (data: BillFormData) => {
       const response = await fetch('/api/bills/from-template', {
         method: 'POST',
@@ -148,21 +176,19 @@ export function PrePopulatedBillForm({ bill, isOpen, onClose, buildingId }: PreP
       
       return response.json();
     },
-    onSuccess: () => {
-      toast({
-        title: t('success'),
-        description: 'Bill created successfully from template',
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/bills'] });
+    successTitle: t('success'),
+    successMessage: language === 'fr' ? 'Facture créée avec succès à partir du modèle' : 'Bill created successfully from template',
+    errorTitle: t('error'),
+    errorMessage: (error: any) => error?.message || 'Failed to create bill from template',
+    queryKeysToInvalidate: [['/api/bills']],
+    onSuccessCallback: async (result) => {
+      if (pendingFiles.length > 0 && result?.id) {
+        await uploadDocumentsToBill(result.id, form.getValues('title'));
+      }
+      queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
+      setPendingFiles([]);
       onClose();
       form.reset();
-    },
-    onError: (error: any) => {
-      toast({
-        title: t('error'),
-        description: error.message || 'Failed to create bill from template',
-        variant: 'destructive',
-      });
     },
   });
 
@@ -230,7 +256,7 @@ export function PrePopulatedBillForm({ bill, isOpen, onClose, buildingId }: PreP
             )}
             <div className="mt-3 p-2 bg-blue-100/50 dark:bg-blue-900/20 rounded-md">
               <p className="text-xs text-blue-700 dark:text-blue-300">
-                💡 Form has been pre-populated with template data. You can edit all fields below. The bill will be created as a new one-time bill.
+                Form has been pre-populated with template data. You can edit all fields below. The bill will be created as a new one-time bill.
               </p>
             </div>
           </CardContent>
@@ -238,7 +264,7 @@ export function PrePopulatedBillForm({ bill, isOpen, onClose, buildingId }: PreP
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <StandardFormGrid>
               <FormField
                 control={form.control}
                 name="title"
@@ -253,41 +279,11 @@ export function PrePopulatedBillForm({ bill, isOpen, onClose, buildingId }: PreP
                 )}
               />
 
-              <FormField
+              <CategorySelectField
                 control={form.control}
                 name="category"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('category')}</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger data-testid="select-bill-category">
-                          <SelectValue placeholder={t('selectCategory')} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="insurance">{t('insurance')}</SelectItem>
-                        <SelectItem value="maintenance">{t('maintenance')}</SelectItem>
-                        <SelectItem value="salary">{t('salary')}</SelectItem>
-                        <SelectItem value="utilities">{t('utilities')}</SelectItem>
-                        <SelectItem value="cleaning">{t('cleaning')}</SelectItem>
-                        <SelectItem value="security">{t('security')}</SelectItem>
-                        <SelectItem value="landscaping">{t('landscaping')}</SelectItem>
-                        <SelectItem value="professional_services">{t('professionalServices')}</SelectItem>
-                        <SelectItem value="administration">{t('administration')}</SelectItem>
-                        <SelectItem value="repairs">{t('repairs')}</SelectItem>
-                        <SelectItem value="supplies">{t('supplies')}</SelectItem>
-                        <SelectItem value="taxes">{t('taxes')}</SelectItem>
-                        <SelectItem value="technology">Technology</SelectItem>
-                        <SelectItem value="reserves">Reserves</SelectItem>
-                        <SelectItem value="other">{t('other')}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
               />
-            </div>
+            </StandardFormGrid>
 
             <FormField
               control={form.control}
@@ -303,7 +299,7 @@ export function PrePopulatedBillForm({ bill, isOpen, onClose, buildingId }: PreP
               )}
             />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <StandardFormGrid>
               <FormField
                 control={form.control}
                 name="vendor"
@@ -318,27 +314,15 @@ export function PrePopulatedBillForm({ bill, isOpen, onClose, buildingId }: PreP
                 )}
               />
 
-              <FormField
+              <CurrencyInputField
                 control={form.control}
                 name="totalAmount"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Total Amount</FormLabel>
-                    <FormControl>
-                      <Input 
-                        {...field} 
-                        type="number" 
-                        step="0.01" 
-                        data-testid="input-bill-amount" 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                label="Total Amount"
+                data-testid="input-bill-amount"
               />
-            </div>
+            </StandardFormGrid>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <StandardFormGrid>
               <FormField
                 control={form.control}
                 name="startDate"
@@ -374,7 +358,7 @@ export function PrePopulatedBillForm({ bill, isOpen, onClose, buildingId }: PreP
                   </FormItem>
                 )}
               />
-            </div>
+            </StandardFormGrid>
 
             <FormField
               control={form.control}
@@ -388,6 +372,14 @@ export function PrePopulatedBillForm({ bill, isOpen, onClose, buildingId }: PreP
                   <FormMessage />
                 </FormItem>
               )}
+            />
+
+            <DocumentAttachmentSection
+              pendingFiles={pendingFiles}
+              onFileAdd={handleFileAdd}
+              onFileRemove={handleFileRemove}
+              uploadContext={uploadContext}
+              formType="bills"
             />
 
             <div className="flex justify-end gap-2 pt-4">

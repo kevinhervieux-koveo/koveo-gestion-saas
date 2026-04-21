@@ -32,7 +32,7 @@ export interface Demand {
     firstName: string;
     lastName: string;
     email: string;
-  };
+  } | null;
   residence?: {
     id: string;
     unitNumber: string;
@@ -235,9 +235,11 @@ export function DemandCard({
       value: new Date(demand.createdAt).toLocaleDateString()
     }
   ] : [
-    userRole === 'manager' && demand.submitter && {
+    userRole === 'manager' && {
       icon: <User className="w-3 h-3" />,
-      value: `${demand.submitter.firstName} ${demand.submitter.lastName}`
+      value: demand.submitter 
+        ? `${demand.submitter.firstName} ${demand.submitter.lastName}`
+        : 'Utilisateur supprimé'
     },
     {
       icon: <Building2 className="w-3 h-3" />,

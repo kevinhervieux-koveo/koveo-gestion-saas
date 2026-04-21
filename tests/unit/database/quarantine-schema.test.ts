@@ -50,8 +50,7 @@ const mockQueryBuilder = {
   offset: jest.fn().mockReturnThis()
 };
 
-// Test data
-const testDocuments = [
+const getInitialTestDocuments = () => [
   {
     id: 'doc-normal-1',
     name: 'normal-document.pdf',
@@ -82,7 +81,7 @@ const testDocuments = [
     id: 'doc-path-quarantine',
     name: 'path-quarantined.pdf',
     filePath: 'uploads/_quarantine_2025-09-16T13-03-05-559Z/directories/buildings/path-quarantined.pdf',
-    isQuarantined: false, // Flag not set, but path indicates quarantine
+    isQuarantined: false,
     uploadedById: 'resident-456',
     organizationId: 'test-org',
     buildingId: 'test-building',
@@ -106,6 +105,8 @@ const testDocuments = [
     updatedAt: new Date('2025-09-10')
   }
 ];
+
+let testDocuments = getInitialTestDocuments();
 
 // Mock schema validation functions
 const validateDocumentSchema = (document: any) => {
@@ -190,8 +191,8 @@ const simulateCreateDocument = async (documentData: any) => {
 describe('Quarantine Database Schema Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    testDocuments = getInitialTestDocuments();
     
-    // Setup mock implementations
     mockDb.execute.mockImplementation(async (query) => {
       return { rows: [] };
     });

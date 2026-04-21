@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { canUserPerformWriteOperation, isOpenDemoUser } from '../rbac';
+import { maskEmail } from '../utils/logger';
 
 /**
  * Demo Security Middleware
@@ -254,6 +255,15 @@ function isWriteOperation(method: string, path: string, queryString?: string, is
   
   // Explicitly allow specific whitelisted non-API paths (exact matches only)
   const explicitlyAllowedPaths = [
+    // Auth endpoints - demo users must be able to login, logout, and reset passwords
+    '/api/auth/login',
+    '/api/auth/logout',
+    '/api/auth/register',
+    '/api/auth/me',
+    '/api/auth/forgot-password',
+    '/api/auth/reset-password',
+    '/api/auth/verify-reset-token',
+    // Demo and debug endpoints
     '/api/demo/health',
     '/api/demo/users', 
     '/api/demo/status',
@@ -327,15 +337,38 @@ export function enforceDemoSecurity() {
         return next();
       }
 
+      const fullPath = (req.originalUrl || req.url || req.path).split('?')[0];
+
+      // CRITICAL: Check explicitly allowed paths FIRST before any other logic
+      // This ensures critical auth endpoints (login, logout, etc.) are never blocked
+      const explicitlyAllowedPaths = [
+        '/api/auth/login',
+        '/api/auth/logout',
+        '/api/auth/register',
+        '/api/auth/me',
+        '/api/auth/forgot-password',
+        '/api/auth/reset-password',
+        '/api/auth/verify-reset-token',
+        '/api/demo/health',
+        '/api/demo/users', 
+        '/api/demo/status',
+        '/api/debug/simple',
+        '/api/debug/user-info'
+      ];
+      
+      if (explicitlyAllowedPaths.includes(fullPath)) {
+        return next();
+      }
+
       const userId = req.user.id;
       const queryString = req.url ? req.url.split('?')[1] : '';
-      const action = mapRequestToAction(req.method, req.path);
+      const action = mapRequestToAction(req.method, fullPath);
       
       // Check if user is an Open Demo user first
       const isOpenDemo = await isOpenDemoUser(userId);
       
       // CRITICAL: Pass Demo user status for enhanced query validation
-      const isWriteOp = isWriteOperation(req.method, req.path, queryString, isOpenDemo);
+      const isWriteOp = isWriteOperation(req.method, fullPath, queryString, isOpenDemo);
 
       // Skip if this is a confirmed read-only operation
       if (!isWriteOp && action === 'read') {
@@ -347,7 +380,7 @@ export function enforceDemoSecurity() {
       if (isOpenDemo) {
         // Log the attempted violation for security monitoring
         console.warn(
-          `🚫 Open Demo user ${userId} (${req.user.email}) attempted restricted ${action} action: ${req.method} ${req.path}`
+          `🚫 Open Demo user ${userId} (${maskEmail(req.user.email)}) attempted restricted ${action} action: ${req.method} ${fullPath}`
         );
 
         // Return elegant restriction message with action context
@@ -362,7 +395,7 @@ export function enforceDemoSecurity() {
 
       if (!canPerform) {
         console.warn(
-          `🚫 User ${userId} (${req.user.email}) denied ${action} operation: ${req.method} ${req.path}`
+          `🚫 User ${userId} (${maskEmail(req.user.email)}) denied ${action} operation: ${req.method} ${fullPath}`
         );
 
         const restrictionResponse = createDemoRestrictionResponse(req);

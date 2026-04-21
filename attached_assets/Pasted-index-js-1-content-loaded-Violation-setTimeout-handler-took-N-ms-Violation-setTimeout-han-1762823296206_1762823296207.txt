@@ -1,0 +1,678 @@
+index.js:1 content loaded
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+budget-UTnoogw0.js:16 🔍 [BUDGET] Component mounted {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984'}
+budget-UTnoogw0.js:16 🔍 [BUDGET] Context changed: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984'}
+budget-UTnoogw0.js:16 🔍 [BUDGET] Filters updated: {viewType: 'month', periodLength: 12, startMonth: 11, startYear: 2025, dataVisibility: {…}}
+budget-UTnoogw0.js:16 🔍 [BUDGET] Filters updated: {viewType: 'month', periodLength: 12, startMonth: 1, startYear: 2025, dataVisibility: {…}}
+[Violation] 'message' handler took <N>ms
+[Violation] 'message' handler took <N>ms
+[Violation] 'message' handler took <N>ms
+[Violation] 'message' handler took <N>ms
+[Violation] 'message' handler took <N>ms
+budget-UTnoogw0.js:16 🔍 [BUDGET] Filters updated: {viewType: 'month', periodLength: 12, startMonth: 2, startYear: 2025, dataVisibility: {…}}
+index-DmwrpZdr.js:233 Each child in a list should have a unique "key" prop.
+
+Check the render method of `ForwardRef`. It was passed a child from $k. See https://react.dev/link/warning-keys for more information.
+overrideMethod @ hook.js:608
+(anonymous) @ index-DmwrpZdr.js:233
+X @ index-DmwrpZdr.js:45
+A @ index-DmwrpZdr.js:233
+I @ index-DmwrpZdr.js:127
+ee @ index-DmwrpZdr.js:127
+ye @ index-DmwrpZdr.js:127
+(anonymous) @ index-DmwrpZdr.js:127
+dt @ index-DmwrpZdr.js:141
+vd @ index-DmwrpZdr.js:150
+X @ index-DmwrpZdr.js:45
+Jg @ index-DmwrpZdr.js:163
+Zg @ index-DmwrpZdr.js:163
+Rd @ index-DmwrpZdr.js:163
+Gg @ index-DmwrpZdr.js:163
+mv @ index-DmwrpZdr.js:185
+Rs @ index-DmwrpZdr.js:185
+Od @ index-DmwrpZdr.js:185
+(anonymous) @ index-DmwrpZdr.js:185
+<circle>
+Mw.Nu.jsxDEV @ index-DmwrpZdr.js:15
+dot @ budget-UTnoogw0.js:16
+Dk @ vendor-charts-DbITUqjm.js:75
+(anonymous) @ vendor-charts-DbITUqjm.js:75
+$k @ vendor-charts-DbITUqjm.js:75
+react_stack_bottom_frame @ index-DmwrpZdr.js:229
+jc @ index-DmwrpZdr.js:120
+ud @ index-DmwrpZdr.js:141
+vd @ index-DmwrpZdr.js:150
+X @ index-DmwrpZdr.js:45
+Jg @ index-DmwrpZdr.js:163
+Zg @ index-DmwrpZdr.js:163
+Rd @ index-DmwrpZdr.js:163
+Gg @ index-DmwrpZdr.js:163
+mv @ index-DmwrpZdr.js:185
+Rs @ index-DmwrpZdr.js:185
+Od @ index-DmwrpZdr.js:185
+(anonymous) @ index-DmwrpZdr.js:185
+<$k>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Mu @ vendor-charts-DbITUqjm.js:75
+react_stack_bottom_frame @ index-DmwrpZdr.js:229
+jc @ index-DmwrpZdr.js:120
+ud @ index-DmwrpZdr.js:141
+vd @ index-DmwrpZdr.js:150
+X @ index-DmwrpZdr.js:45
+Jg @ index-DmwrpZdr.js:163
+Zg @ index-DmwrpZdr.js:163
+Rd @ index-DmwrpZdr.js:163
+Gg @ index-DmwrpZdr.js:163
+mv @ index-DmwrpZdr.js:185
+Rs @ index-DmwrpZdr.js:185
+Od @ index-DmwrpZdr.js:185
+(anonymous) @ index-DmwrpZdr.js:185
+<Mu>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+(anonymous) @ vendor-charts-DbITUqjm.js:75
+Nm @ vendor-charts-DbITUqjm.js:75
+react_stack_bottom_frame @ index-DmwrpZdr.js:229
+jc @ index-DmwrpZdr.js:120
+ud @ index-DmwrpZdr.js:141
+vd @ index-DmwrpZdr.js:150
+X @ index-DmwrpZdr.js:45
+Jg @ index-DmwrpZdr.js:163
+Zg @ index-DmwrpZdr.js:163
+Rd @ index-DmwrpZdr.js:163
+Gg @ index-DmwrpZdr.js:163
+mv @ index-DmwrpZdr.js:185
+Rs @ index-DmwrpZdr.js:185
+Od @ index-DmwrpZdr.js:185
+(anonymous) @ index-DmwrpZdr.js:185
+<Nm>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Lk @ vendor-charts-DbITUqjm.js:75
+react_stack_bottom_frame @ index-DmwrpZdr.js:229
+jc @ index-DmwrpZdr.js:120
+ud @ index-DmwrpZdr.js:141
+vd @ index-DmwrpZdr.js:150
+X @ index-DmwrpZdr.js:45
+Jg @ index-DmwrpZdr.js:163
+Zg @ index-DmwrpZdr.js:163
+Rd @ index-DmwrpZdr.js:163
+Gg @ index-DmwrpZdr.js:163
+mv @ index-DmwrpZdr.js:185
+Rs @ index-DmwrpZdr.js:185
+Od @ index-DmwrpZdr.js:185
+(anonymous) @ index-DmwrpZdr.js:185
+<Lk>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Bk @ vendor-charts-DbITUqjm.js:75
+react_stack_bottom_frame @ index-DmwrpZdr.js:229
+jc @ index-DmwrpZdr.js:120
+ud @ index-DmwrpZdr.js:141
+vd @ index-DmwrpZdr.js:150
+X @ index-DmwrpZdr.js:45
+Jg @ index-DmwrpZdr.js:163
+Zg @ index-DmwrpZdr.js:163
+Rd @ index-DmwrpZdr.js:163
+Gg @ index-DmwrpZdr.js:163
+mv @ index-DmwrpZdr.js:185
+Rs @ index-DmwrpZdr.js:185
+Od @ index-DmwrpZdr.js:185
+(anonymous) @ index-DmwrpZdr.js:185
+<Bk>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+render @ vendor-charts-DbITUqjm.js:75
+react_stack_bottom_frame @ index-DmwrpZdr.js:229
+mg @ index-DmwrpZdr.js:149
+vd @ index-DmwrpZdr.js:150
+X @ index-DmwrpZdr.js:45
+Jg @ index-DmwrpZdr.js:163
+Zg @ index-DmwrpZdr.js:163
+Rd @ index-DmwrpZdr.js:163
+Gg @ index-DmwrpZdr.js:163
+mv @ index-DmwrpZdr.js:185
+Rs @ index-DmwrpZdr.js:185
+Od @ index-DmwrpZdr.js:185
+(anonymous) @ index-DmwrpZdr.js:185
+<zk>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Kk @ vendor-charts-DbITUqjm.js:75
+react_stack_bottom_frame @ index-DmwrpZdr.js:229
+jc @ index-DmwrpZdr.js:120
+ud @ index-DmwrpZdr.js:141
+vd @ index-DmwrpZdr.js:150
+X @ index-DmwrpZdr.js:45
+Jg @ index-DmwrpZdr.js:163
+Zg @ index-DmwrpZdr.js:163
+Rd @ index-DmwrpZdr.js:163
+Gg @ index-DmwrpZdr.js:163
+mv @ index-DmwrpZdr.js:185
+Rs @ index-DmwrpZdr.js:185
+Od @ index-DmwrpZdr.js:185
+(anonymous) @ index-DmwrpZdr.js:185
+<Kk>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+(anonymous) @ vendor-charts-DbITUqjm.js:75
+Mm @ vendor-charts-DbITUqjm.js:75
+react_stack_bottom_frame @ index-DmwrpZdr.js:229
+jc @ index-DmwrpZdr.js:120
+ud @ index-DmwrpZdr.js:141
+vd @ index-DmwrpZdr.js:150
+X @ index-DmwrpZdr.js:45
+Jg @ index-DmwrpZdr.js:163
+Zg @ index-DmwrpZdr.js:163
+Rd @ index-DmwrpZdr.js:163
+Gg @ index-DmwrpZdr.js:163
+mv @ index-DmwrpZdr.js:185
+Rs @ index-DmwrpZdr.js:185
+Od @ index-DmwrpZdr.js:185
+(anonymous) @ index-DmwrpZdr.js:185
+<Mm>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Wk @ vendor-charts-DbITUqjm.js:75
+react_stack_bottom_frame @ index-DmwrpZdr.js:229
+jc @ index-DmwrpZdr.js:120
+ud @ index-DmwrpZdr.js:141
+vd @ index-DmwrpZdr.js:150
+X @ index-DmwrpZdr.js:45
+Jg @ index-DmwrpZdr.js:163
+Zg @ index-DmwrpZdr.js:163
+Rd @ index-DmwrpZdr.js:163
+Gg @ index-DmwrpZdr.js:163
+mv @ index-DmwrpZdr.js:185
+Rs @ index-DmwrpZdr.js:185
+Od @ index-DmwrpZdr.js:185
+(anonymous) @ index-DmwrpZdr.js:185
+<Line>
+Mw.Nu.jsxDEV @ index-DmwrpZdr.js:15
+qn @ budget-UTnoogw0.js:16
+react_stack_bottom_frame @ index-DmwrpZdr.js:229
+jc @ index-DmwrpZdr.js:120
+ud @ index-DmwrpZdr.js:141
+vd @ index-DmwrpZdr.js:150
+X @ index-DmwrpZdr.js:45
+Jg @ index-DmwrpZdr.js:163
+Zg @ index-DmwrpZdr.js:163
+Rd @ index-DmwrpZdr.js:163
+Gg @ index-DmwrpZdr.js:163
+mv @ index-DmwrpZdr.js:185
+Rs @ index-DmwrpZdr.js:185
+Od @ index-DmwrpZdr.js:185
+(anonymous) @ index-DmwrpZdr.js:185
+[Violation] Forced reflow while executing JavaScript took 40ms
+index-DmwrpZdr.js:185 [Violation] 'click' handler took 263ms
+[Violation] 'input' handler took 299ms
+[Violation] 'input' handler took 306ms
+[Violation] 'input' handler took 267ms
+[Violation] Forced reflow while executing JavaScript took 32ms
+budget-UTnoogw0.js:16 🔍 [BUDGET] Filters updated: {viewType: 'month', periodLength: 24, startMonth: 2, startYear: 2025, dataVisibility: {…}}
+index-DmwrpZdr.js:185 [Violation] 'pointerup' handler took 550ms
+index-DmwrpZdr.js:185 [Violation] 'click' handler took 382ms
+index-DmwrpZdr.js:185 [Violation] 'click' handler took 533ms
+bills-CRWWRQAE.js:6 🔍 [BILLS] Component mounted {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+bills-CRWWRQAE.js:6 🔍 [BILLS] Context changed: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+bills-CRWWRQAE.js:6 🔍 [BILLS] Filters updated: {category: '', year: '2025', months: Array(0), billType: '', paymentStructure: '', …}
+bills-CRWWRQAE.js:6 🔍 [BILLS] Fetching bills with params: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', filters: {…}}
+bills-CRWWRQAE.js:6 🔍 [BILLS] Filters updated: {category: '', year: '2025-2026', months: Array(0), billType: '', paymentStructure: '', …}
+bills-CRWWRQAE.js:6 🔍 [BILLS] Fetching bills with params: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', filters: {…}}
+vendor-ui-FpgPax8G.js:58 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+overrideMethod @ hook.js:608
+(anonymous) @ vendor-ui-FpgPax8G.js:58
+react_stack_bottom_frame @ index-DmwrpZdr.js:229
+X @ index-DmwrpZdr.js:45
+As @ index-DmwrpZdr.js:150
+Dg @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+iv @ index-DmwrpZdr.js:163
+Cs @ index-DmwrpZdr.js:163
+nv @ index-DmwrpZdr.js:163
+Nd @ index-DmwrpZdr.js:163
+Yg @ index-DmwrpZdr.js:163
+Gg @ index-DmwrpZdr.js:163
+mv @ index-DmwrpZdr.js:185
+Rs @ index-DmwrpZdr.js:185
+Od @ index-DmwrpZdr.js:185
+(anonymous) @ index-DmwrpZdr.js:185
+<jd>
+Je.jsx @ vendor-ui-FpgPax8G.js:14
+(anonymous) @ vendor-ui-FpgPax8G.js:54
+react_stack_bottom_frame @ index-DmwrpZdr.js:229
+jc @ index-DmwrpZdr.js:120
+sg @ index-DmwrpZdr.js:141
+vd @ index-DmwrpZdr.js:150
+X @ index-DmwrpZdr.js:45
+Jg @ index-DmwrpZdr.js:163
+Zg @ index-DmwrpZdr.js:163
+Rd @ index-DmwrpZdr.js:163
+Gg @ index-DmwrpZdr.js:163
+mv @ index-DmwrpZdr.js:185
+Rs @ index-DmwrpZdr.js:185
+Od @ index-DmwrpZdr.js:185
+(anonymous) @ index-DmwrpZdr.js:185
+<ForwardRef>
+Je.jsx @ vendor-ui-FpgPax8G.js:14
+(anonymous) @ vendor-ui-FpgPax8G.js:54
+react_stack_bottom_frame @ index-DmwrpZdr.js:229
+jc @ index-DmwrpZdr.js:120
+sg @ index-DmwrpZdr.js:141
+vd @ index-DmwrpZdr.js:150
+X @ index-DmwrpZdr.js:45
+Jg @ index-DmwrpZdr.js:163
+Zg @ index-DmwrpZdr.js:163
+Rd @ index-DmwrpZdr.js:163
+Gg @ index-DmwrpZdr.js:163
+mv @ index-DmwrpZdr.js:185
+Rs @ index-DmwrpZdr.js:185
+Od @ index-DmwrpZdr.js:185
+(anonymous) @ index-DmwrpZdr.js:185
+<ForwardRef>
+Je.jsx @ vendor-ui-FpgPax8G.js:14
+DialogContent @ vendor-ui-FpgPax8G.js:54
+react_stack_bottom_frame @ index-DmwrpZdr.js:229
+jc @ index-DmwrpZdr.js:120
+sg @ index-DmwrpZdr.js:141
+vd @ index-DmwrpZdr.js:150
+X @ index-DmwrpZdr.js:45
+Jg @ index-DmwrpZdr.js:163
+Zg @ index-DmwrpZdr.js:163
+Rd @ index-DmwrpZdr.js:163
+Gg @ index-DmwrpZdr.js:163
+mv @ index-DmwrpZdr.js:185
+Rs @ index-DmwrpZdr.js:185
+Od @ index-DmwrpZdr.js:185
+(anonymous) @ index-DmwrpZdr.js:185
+<DialogContent>
+Mw.Nu.jsxDEV @ index-DmwrpZdr.js:15
+DialogContent @ dialog-CNlwfq3g.js:1
+react_stack_bottom_frame @ index-DmwrpZdr.js:229
+jc @ index-DmwrpZdr.js:120
+sg @ index-DmwrpZdr.js:141
+vd @ index-DmwrpZdr.js:150
+X @ index-DmwrpZdr.js:45
+Jg @ index-DmwrpZdr.js:163
+Zg @ index-DmwrpZdr.js:163
+Rd @ index-DmwrpZdr.js:163
+Gg @ index-DmwrpZdr.js:163
+mv @ index-DmwrpZdr.js:185
+Rs @ index-DmwrpZdr.js:185
+Od @ index-DmwrpZdr.js:185
+(anonymous) @ index-DmwrpZdr.js:185
+<DialogContent>
+Mw.Nu.jsxDEV @ index-DmwrpZdr.js:15
+Ie @ bills-CRWWRQAE.js:6
+react_stack_bottom_frame @ index-DmwrpZdr.js:229
+jc @ index-DmwrpZdr.js:120
+ud @ index-DmwrpZdr.js:141
+vd @ index-DmwrpZdr.js:150
+X @ index-DmwrpZdr.js:45
+Jg @ index-DmwrpZdr.js:163
+EA @ index-DmwrpZdr.js:163
+CA @ index-DmwrpZdr.js:163
+Gg @ index-DmwrpZdr.js:163
+dv @ index-DmwrpZdr.js:185
+l @ index-DmwrpZdr.js:23
+<Ie>
+Mw.Nu.jsxDEV @ index-DmwrpZdr.js:15
+(anonymous) @ withHierarchicalSelection-_uLlq8LH.js:1
+react_stack_bottom_frame @ index-DmwrpZdr.js:229
+jc @ index-DmwrpZdr.js:120
+ud @ index-DmwrpZdr.js:141
+vd @ index-DmwrpZdr.js:150
+X @ index-DmwrpZdr.js:45
+Jg @ index-DmwrpZdr.js:163
+EA @ index-DmwrpZdr.js:163
+CA @ index-DmwrpZdr.js:163
+Gg @ index-DmwrpZdr.js:163
+dv @ index-DmwrpZdr.js:185
+l @ index-DmwrpZdr.js:23
+<...>
+Mw.Nu.jsxDEV @ index-DmwrpZdr.js:15
+children @ index-DmwrpZdr.js:456
+H0 @ index-DmwrpZdr.js:240
+$ @ index-DmwrpZdr.js:240
+react_stack_bottom_frame @ index-DmwrpZdr.js:229
+jc @ index-DmwrpZdr.js:120
+ud @ index-DmwrpZdr.js:141
+vd @ index-DmwrpZdr.js:150
+X @ index-DmwrpZdr.js:45
+Jg @ index-DmwrpZdr.js:163
+EA @ index-DmwrpZdr.js:163
+CA @ index-DmwrpZdr.js:163
+Gg @ index-DmwrpZdr.js:163
+dv @ index-DmwrpZdr.js:185
+l @ index-DmwrpZdr.js:23
+vendor-ui-FpgPax8G.js:58 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+overrideMethod @ hook.js:608
+(anonymous) @ vendor-ui-FpgPax8G.js:58
+react_stack_bottom_frame @ index-DmwrpZdr.js:229
+X @ index-DmwrpZdr.js:45
+As @ index-DmwrpZdr.js:150
+Dg @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+Mn @ index-DmwrpZdr.js:163
+Pg @ index-DmwrpZdr.js:163
+iv @ index-DmwrpZdr.js:163
+Cs @ index-DmwrpZdr.js:163
+nv @ index-DmwrpZdr.js:163
+Nd @ index-DmwrpZdr.js:163
+Yg @ index-DmwrpZdr.js:163
+Gg @ index-DmwrpZdr.js:163
+mv @ index-DmwrpZdr.js:185
+Rs @ index-DmwrpZdr.js:185
+Od @ index-DmwrpZdr.js:185
+(anonymous) @ index-DmwrpZdr.js:185
+<jd>
+Je.jsx @ vendor-ui-FpgPax8G.js:14
+(anonymous) @ vendor-ui-FpgPax8G.js:54
+react_stack_bottom_frame @ index-DmwrpZdr.js:229
+jc @ index-DmwrpZdr.js:120
+sg @ index-DmwrpZdr.js:141
+vd @ index-DmwrpZdr.js:150
+X @ index-DmwrpZdr.js:45
+Jg @ index-DmwrpZdr.js:163
+Zg @ index-DmwrpZdr.js:163
+Rd @ index-DmwrpZdr.js:163
+Gg @ index-DmwrpZdr.js:163
+mv @ index-DmwrpZdr.js:185
+Rs @ index-DmwrpZdr.js:185
+Od @ index-DmwrpZdr.js:185
+(anonymous) @ index-DmwrpZdr.js:185
+<ForwardRef>
+Je.jsx @ vendor-ui-FpgPax8G.js:14
+(anonymous) @ vendor-ui-FpgPax8G.js:54
+react_stack_bottom_frame @ index-DmwrpZdr.js:229
+jc @ index-DmwrpZdr.js:120
+sg @ index-DmwrpZdr.js:141
+vd @ index-DmwrpZdr.js:150
+X @ index-DmwrpZdr.js:45
+Jg @ index-DmwrpZdr.js:163
+Zg @ index-DmwrpZdr.js:163
+Rd @ index-DmwrpZdr.js:163
+Gg @ index-DmwrpZdr.js:163
+mv @ index-DmwrpZdr.js:185
+Rs @ index-DmwrpZdr.js:185
+Od @ index-DmwrpZdr.js:185
+(anonymous) @ index-DmwrpZdr.js:185
+<ForwardRef>
+Je.jsx @ vendor-ui-FpgPax8G.js:14
+DialogContent @ vendor-ui-FpgPax8G.js:54
+react_stack_bottom_frame @ index-DmwrpZdr.js:229
+jc @ index-DmwrpZdr.js:120
+sg @ index-DmwrpZdr.js:141
+vd @ index-DmwrpZdr.js:150
+X @ index-DmwrpZdr.js:45
+Jg @ index-DmwrpZdr.js:163
+Zg @ index-DmwrpZdr.js:163
+Rd @ index-DmwrpZdr.js:163
+Gg @ index-DmwrpZdr.js:163
+mv @ index-DmwrpZdr.js:185
+Rs @ index-DmwrpZdr.js:185
+Od @ index-DmwrpZdr.js:185
+(anonymous) @ index-DmwrpZdr.js:185
+<DialogContent>
+Mw.Nu.jsxDEV @ index-DmwrpZdr.js:15
+DialogContent @ dialog-CNlwfq3g.js:1
+react_stack_bottom_frame @ index-DmwrpZdr.js:229
+jc @ index-DmwrpZdr.js:120
+sg @ index-DmwrpZdr.js:141
+vd @ index-DmwrpZdr.js:150
+X @ index-DmwrpZdr.js:45
+Jg @ index-DmwrpZdr.js:163
+Zg @ index-DmwrpZdr.js:163
+Rd @ index-DmwrpZdr.js:163
+Gg @ index-DmwrpZdr.js:163
+mv @ index-DmwrpZdr.js:185
+Rs @ index-DmwrpZdr.js:185
+Od @ index-DmwrpZdr.js:185
+(anonymous) @ index-DmwrpZdr.js:185
+<DialogContent>
+Mw.Nu.jsxDEV @ index-DmwrpZdr.js:15
+Ie @ bills-CRWWRQAE.js:6
+react_stack_bottom_frame @ index-DmwrpZdr.js:229
+jc @ index-DmwrpZdr.js:120
+ud @ index-DmwrpZdr.js:141
+vd @ index-DmwrpZdr.js:150
+X @ index-DmwrpZdr.js:45
+Jg @ index-DmwrpZdr.js:163
+EA @ index-DmwrpZdr.js:163
+CA @ index-DmwrpZdr.js:163
+Gg @ index-DmwrpZdr.js:163
+dv @ index-DmwrpZdr.js:185
+l @ index-DmwrpZdr.js:23
+<Ie>
+Mw.Nu.jsxDEV @ index-DmwrpZdr.js:15
+(anonymous) @ withHierarchicalSelection-_uLlq8LH.js:1
+react_stack_bottom_frame @ index-DmwrpZdr.js:229
+jc @ index-DmwrpZdr.js:120
+ud @ index-DmwrpZdr.js:141
+vd @ index-DmwrpZdr.js:150
+X @ index-DmwrpZdr.js:45
+Jg @ index-DmwrpZdr.js:163
+EA @ index-DmwrpZdr.js:163
+CA @ index-DmwrpZdr.js:163
+Gg @ index-DmwrpZdr.js:163
+dv @ index-DmwrpZdr.js:185
+l @ index-DmwrpZdr.js:23
+<...>
+Mw.Nu.jsxDEV @ index-DmwrpZdr.js:15
+children @ index-DmwrpZdr.js:456
+H0 @ index-DmwrpZdr.js:240
+$ @ index-DmwrpZdr.js:240
+react_stack_bottom_frame @ index-DmwrpZdr.js:229
+jc @ index-DmwrpZdr.js:120
+ud @ index-DmwrpZdr.js:141
+vd @ index-DmwrpZdr.js:150
+X @ index-DmwrpZdr.js:45
+Jg @ index-DmwrpZdr.js:163
+EA @ index-DmwrpZdr.js:163
+CA @ index-DmwrpZdr.js:163
+Gg @ index-DmwrpZdr.js:163
+dv @ index-DmwrpZdr.js:185
+l @ index-DmwrpZdr.js:23
+index-DmwrpZdr.js:185 [Violation] 'click' handler took 554ms
+[Violation] Forced reflow while executing JavaScript took 46ms
+/manager/bills?organization=e9bb7862-4ba5-4822-848f-f3692e826e73&building=c3052c3c-b694-41a6-bd65-3bc3ae9a5984:1 Blocked aria-hidden on an element because its descendant retained focus. The focus must not be hidden from assistive technology users. Avoid using aria-hidden on a focused element or its ancestor. Consider using the inert attribute instead, which will also prevent focus. For more details, see the aria-hidden section of the WAI-ARIA specification at https://w3c.github.io/aria/#aria-hidden.
+Element with focus: <button.inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm#radix-?r3n?-trigger-manual>
+Ancestor with aria-hidden: <div.fixed left-[50%] top-[50%] z-50 grid w-full translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg max-w-4xl max-h-[95vh] overflow-y-auto#radix-?r2d?> <div role=​"dialog" id=​"radix-«r2d»" aria-describedby=​"create-bill-description" aria-labelledby=​"radix-«r2e»" data-state=​"open" class=​"fixed left-[50%]​ top-[50%]​ z-50 grid w-full translate-x-[-50%]​ translate-y-[-50%]​ gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]​:​animate-in data-[state=closed]​:​animate-out data-[state=closed]​:​fade-out-0 data-[state=open]​:​fade-in-0 data-[state=closed]​:​zoom-out-95 data-[state=open]​:​zoom-in-95 data-[state=closed]​:​slide-out-to-left-1/​2 data-[state=closed]​:​slide-out-to-top-[48%]​ data-[state=open]​:​slide-in-from-left-1/​2 data-[state=open]​:​slide-in-from-top-[48%]​ sm:​rounded-lg max-w-4xl max-h-[95vh]​ overflow-y-auto" tabindex=​"-1" data-aria-hidden=​"true" aria-hidden=​"true" style=​"pointer-events:​ auto;​">​…​</div>​gridscroll<div class=​"flex flex-col space-y-1.5 text-center sm:​text-left">​…​</div>​flex<div class=​"space-y-6">​…​</div>​<div dir=​"ltr" data-orientation=​"horizontal" class=​"space-y-4">​…​</div>​<form class=​"space-y-6">​…​</form>​<div class=​"grid grid-cols-1 md:​grid-cols-2 gap-4">​…​</div>​grid<div class=​"space-y-4">​…​</div>​<div class=​"space-y-2">​…​</div>​<label class=​"text-sm font-medium leading-none peer-disabled:​cursor-not-allowed peer-disabled:​opacity-70" for=​"«r83»-form-item">​Payment Schedule​</label>​<button type=​"button" role=​"combobox" aria-controls=​"radix-«r84»" aria-expanded=​"false" aria-autocomplete=​"none" dir=​"ltr" data-state=​"closed" data-placeholder class=​"flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background data-[placeholder]​:​text-muted-foreground focus:​outline-none focus:​ring-2 focus:​ring-ring focus:​ring-offset-2 disabled:​cursor-not-allowed disabled:​opacity-50 [&>span]​:​line-clamp-1" id=​"«r83»-form-item" aria-describedby=​"«r83»-form-item-description" aria-invalid=​"false">​…​</button>​flex<select aria-hidden=​"true" tabindex=​"-1" style=​"position:​ absolute;​ border:​ 0px;​ width:​ 1px;​ height:​ 1px;​ padding:​ 0px;​ margin:​ -1px;​ overflow:​ hidden;​ clip:​ rect(0px, 0px, 0px, 0px)​;​ white-space:​ nowrap;​ overflow-wrap:​ normal;​">​…​</select>​</div>​<div class=​"space-y-4 p-4 border rounded-lg bg-gray-50 dark:​bg-gray-900">​…​</div>​<div class=​"grid grid-cols-1 md:​grid-cols-2 gap-4">​…​</div>​grid</div>​<div class=​"space-y-2">​…​</div>​<div class=​"rounded-lg border text-card-foreground shadow-sm bg-blue-50 dark:​bg-blue-950 border-blue-200 dark:​border-blue-800">​…​</div>​<div class=​"flex justify-between items-center">​…​</div>​flex</form>​</div>​<button type=​"button" class=​"absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:​opacity-100 focus:​outline-none focus:​ring-2 focus:​ring-ring focus:​ring-offset-2 disabled:​pointer-events-none data-[state=open]​:​bg-accent data-[state=open]​:​text-muted-foreground">​…​</button>​</div>​
