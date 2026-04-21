@@ -3,7 +3,7 @@
  * Production build optimization script
  * Reduces bundle sizes and improves static file serving
  */
-import { execSync } from 'child_process';
+import { execFileSync, spawnSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 
@@ -12,7 +12,7 @@ console.log('🚀 Starting production build optimization...');
 // Clean previous builds
 console.log('🧹 Cleaning previous builds...');
 try {
-  execSync('rm -rf dist/', { stdio: 'inherit' });
+  fs.rmSync('dist', { recursive: true, force: true });
 } catch (error) {
   console.log('No previous build to clean');
 }
@@ -20,7 +20,7 @@ try {
 // Build with optimizations
 console.log('🔨 Building optimized client...');
 try {
-  execSync('vite build --mode production', { stdio: 'inherit' });
+  execFileSync('vite', ['build', '--mode', 'production'], { stdio: 'inherit' });
 } catch (error) {
   console.error('Client build failed:', error);
   process.exit(1);
@@ -29,10 +29,15 @@ try {
 // Build server
 console.log('🔨 Building optimized server...');
 try {
-  execSync(
-    'esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist --minify',
-    { stdio: 'inherit' }
-  );
+  execFileSync('esbuild', [
+    'server/index.ts',
+    '--platform=node',
+    '--packages=external',
+    '--bundle',
+    '--format=esm',
+    '--outdir=dist',
+    '--minify'
+  ], { stdio: 'inherit' });
 } catch (error) {
   console.error('Server build failed:', error);
   process.exit(1);
@@ -79,7 +84,11 @@ try {
     files.forEach((file) => {
       if (file.endsWith('.js') || file.endsWith('.css')) {
         const filePath = path.resolve(assetsDir, file);
-        execSync(`gzip -k -f "${filePath}"`, { stdio: 'inherit' });
+        // Sanitize file path to prevent command injection by using spawnSync with array arguments
+        const result = spawnSync('gzip', ['-k', '-f', filePath], { stdio: 'inherit' });
+        if (result.error) {
+          throw result.error;
+        }
       }
     });
     console.log('✅ Compressed versions created');

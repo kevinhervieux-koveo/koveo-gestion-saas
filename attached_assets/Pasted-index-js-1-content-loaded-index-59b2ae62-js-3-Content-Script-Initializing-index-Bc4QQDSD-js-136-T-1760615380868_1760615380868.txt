@@ -1,0 +1,81 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+index-Bc4QQDSD.js:136 TypeError: x.label.toLowerCase is not a function
+    at index-Bc4QQDSD.js:409:74923
+    at Array.find (<anonymous>)
+    at mC (index-Bc4QQDSD.js:409:74896)
+    at index-Bc4QQDSD.js:409:107725
+    at NodeList.forEach (<anonymous>)
+    at index-Bc4QQDSD.js:409:107666
+    at index-Bc4QQDSD.js:409:108077
+    at Object.react_stack_bottom_frame (index-Bc4QQDSD.js:229:13438)
+    at G (index-Bc4QQDSD.js:45:108)
+    at ws (index-Bc4QQDSD.js:150:24692)
+
+The above error occurred in one of your React components.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, cC.
+
+overrideMethod @ hook.js:608
+ng @ index-Bc4QQDSD.js:136
+ig @ index-Bc4QQDSD.js:141
+G @ index-Bc4QQDSD.js:45
+s.componentDidCatch.e.callback @ index-Bc4QQDSD.js:141
+xh @ index-Bc4QQDSD.js:107
+wh @ index-Bc4QQDSD.js:107
+G @ index-Bc4QQDSD.js:45
+xg @ index-Bc4QQDSD.js:163
+Cg @ index-Bc4QQDSD.js:163
+ea @ index-Bc4QQDSD.js:163
+Cg @ index-Bc4QQDSD.js:163
+ea @ index-Bc4QQDSD.js:163
+Cg @ index-Bc4QQDSD.js:163
+ea @ index-Bc4QQDSD.js:163
+Cg @ index-Bc4QQDSD.js:163
+ea @ index-Bc4QQDSD.js:163
+Cg @ index-Bc4QQDSD.js:163
+ea @ index-Bc4QQDSD.js:163
+Cg @ index-Bc4QQDSD.js:163
+ea @ index-Bc4QQDSD.js:163
+Cg @ index-Bc4QQDSD.js:163
+ev @ index-Bc4QQDSD.js:163
+Rd @ index-Bc4QQDSD.js:163
+Gg @ index-Bc4QQDSD.js:163
+Yg @ index-Bc4QQDSD.js:163
+dv @ index-Bc4QQDSD.js:185
+Rs @ index-Bc4QQDSD.js:185
+zd @ index-Bc4QQDSD.js:185
+(anonymous) @ index-Bc4QQDSD.js:185
+<Memo>
+Nu.jsxDEV @ index-Bc4QQDSD.js:15
+yR @ index-Bc4QQDSD.js:456
+react_stack_bottom_frame @ index-Bc4QQDSD.js:229
+Oc @ index-Bc4QQDSD.js:120
+ld @ index-Bc4QQDSD.js:141
+gd @ index-Bc4QQDSD.js:150
+G @ index-Bc4QQDSD.js:45
+Zg @ index-Bc4QQDSD.js:163
+$g @ index-Bc4QQDSD.js:163
+Cd @ index-Bc4QQDSD.js:163
+Yg @ index-Bc4QQDSD.js:163
+dv @ index-Bc4QQDSD.js:185
+Rs @ index-Bc4QQDSD.js:185
+zd @ index-Bc4QQDSD.js:185
+(anonymous) @ index-Bc4QQDSD.js:185
+<yR>
+Nu.jsxDEV @ index-Bc4QQDSD.js:15
+bR @ index-Bc4QQDSD.js:456
+react_stack_bottom_frame @ index-Bc4QQDSD.js:229
+Oc @ index-Bc4QQDSD.js:120
+ld @ index-Bc4QQDSD.js:141
+gd @ index-Bc4QQDSD.js:150
+G @ index-Bc4QQDSD.js:45
+Zg @ index-Bc4QQDSD.js:163
+$g @ index-Bc4QQDSD.js:163
+Cd @ index-Bc4QQDSD.js:163
+Yg @ index-Bc4QQDSD.js:163
+cv @ index-Bc4QQDSD.js:185
+l @ index-Bc4QQDSD.js:23
+<bR>
+Nu.jsxDEV @ index-Bc4QQDSD.js:15
+(anonymous) @ index-Bc4QQDSD.js:456

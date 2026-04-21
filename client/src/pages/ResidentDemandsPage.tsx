@@ -31,6 +31,7 @@ import {
 import { queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { toastUtils } from '@/lib/toastUtils';
+import { sanitizeDescription } from '@/utils/sanitize';
 import { Header } from '@/components/layout/header';
 import DemandDetailsPopup from '@/components/demands/demand-details-popup';
 import { SearchInput } from '@/components/common/SearchInput';
@@ -51,6 +52,9 @@ interface Demand {
   id: string;
   type: 'maintenance' | 'complaint' | 'information' | 'other';
   description: string;
+  filePath?: string;
+  fileName?: string;
+  fileSize?: number;
   status:
     | 'submitted'
     | 'under_review'
@@ -121,13 +125,6 @@ const statusColors = {
   cancelled: 'bg-gray-100 text-gray-800',
 };
 
-const typeLabels = {
-  maintenance: 'Maintenance',
-  complaint: 'Complaint',
-  information: 'Information',
-  other: 'Other',
-};
-
 /**
  *
  */
@@ -138,7 +135,14 @@ export default function /**
  */
 
 ResidentDemandsPage() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+
+  const typeLabels = {
+    maintenance: t('maintenanceType'),
+    complaint: t('complaintType'),
+    information: t('informationType'),
+    other: t('otherType'),
+  };
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -155,12 +159,6 @@ ResidentDemandsPage() {
   const { data: demands = [], isLoading } = useQuery({
     queryKey: ['/api/demands'],
     refetchInterval: 30000, // Refresh every 30 seconds
-  });
-
-  // Fetch buildings
-  const { data: buildings = [] } = useQuery<Building[]>({
-    queryKey: ['/api/manager/buildings'],
-    select: (data: any) => data?.buildings || [],
   });
 
   // Fetch current user
@@ -190,6 +188,22 @@ ResidentDemandsPage() {
         })
       : { id: '', role: 'tenant', email: '' };
 
+  // Fetch buildings based on user role
+  const { data: buildings = [] } = useQuery<Building[]>({
+    queryKey: defaultUser?.role === 'admin' 
+      ? ['/api/buildings'] 
+      : defaultUser?.role === 'manager' 
+        ? ['/api/manager/buildings']
+        : ['/api/users/me/buildings'],
+    enabled: !!defaultUser?.role,
+    select: (data: any) => {
+      if (!data) return [];
+      // Handle different response formats from different endpoints
+      if (Array.isArray(data)) return data;
+      return data?.buildings || [];
+    },
+  });
+
   // Upload context for secure storage (using useMemo to ensure it updates with defaultUser)
   const uploadContext: UploadContext = useMemo(() => ({
     type: 'maintenance',
@@ -199,7 +213,7 @@ ResidentDemandsPage() {
   }), [defaultUser?.role, defaultUser?.id]);
 
   // File upload helper function
-  const uploadFiles = async (files: File[]): Promise<string[]> => {
+  const uploadFiles = async (files: File[]): Promise<Array<{ url: string; originalName: string; size: number } | string>> => {
     if (files.length === 0) return [];
     
     const formData = new FormData();
@@ -217,7 +231,8 @@ ResidentDemandsPage() {
     }
     
     const result = await response.json();
-    return result.fileUrls || [];
+    // Return file objects with original names if available, otherwise fall back to URLs
+    return result.files || result.fileUrls?.map((url: string) => url) || [];
   };
 
   // Create demand mutation
@@ -237,9 +252,9 @@ ResidentDemandsPage() {
           status: 'submitted',
           // Convert empty strings to undefined for optional UUID fields
           buildingId: data.buildingId || undefined,
-          residenceId: data.residenceId || undefined,
           assignationBuildingId: data.assignationBuildingId || undefined,
           assignationResidenceId: data.assignationResidenceId || undefined,
+          // residenceId will be auto-populated by backend from user's data
         }),
       });
 
@@ -257,7 +272,7 @@ ResidentDemandsPage() {
       toastUtils.createSuccess('Demand');
     },
     onError: (error: any) => {
-      handleApiError(error, t.language, t('failedToCreateDemand'));
+      handleApiError(error, language, t('failedToCreateDemand'));
     },
   });
 
@@ -268,7 +283,6 @@ ResidentDemandsPage() {
       type: 'maintenance',
       description: '',
       buildingId: undefined,
-      residenceId: undefined,
       assignationBuildingId: undefined,
       assignationResidenceId: undefined,
     },
@@ -277,25 +291,25 @@ ResidentDemandsPage() {
   // Fetch residences - filter based on selected building and user role
   const selectedBuildingId = newDemandForm.watch('buildingId');
   const { data: residences = [] } = useQuery<Residence[]>({
-    queryKey: ['/api/residences', selectedBuildingId, defaultUser?.role],
-    enabled: !!selectedBuildingId,
+    queryKey: ['/api/residences', selectedBuildingId],
+    enabled: !!selectedBuildingId && !!defaultUser?.role,
+    queryFn: async () => {
+      // All users (including residents) can see all residences in their buildings
+      // This allows residents to file complaints about other residents
+      const response = await fetch(`/api/residences?buildingId=${selectedBuildingId}`, {
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to fetch residences');
+      }
+      return response.json();
+    },
     select: (data: any) => {
       if (!data) return [];
       const allResidences = Array.isArray(data) ? data : data.residences || [];
       
-      // Filter by selected building
-      const buildingResidences = allResidences.filter((r: any) => r.buildingId === selectedBuildingId);
-      
-      // Apply role-based filtering
-      if (defaultUser?.role === 'admin') {
-        return buildingResidences; // Admin can assign to any residence
-      } else if (defaultUser?.role === 'manager') {
-        return buildingResidences; // Manager can assign to all residences in their buildings
-      } else {
-        // Resident/tenant can only assign to their own residences
-        // This will be further filtered by backend based on user assignments
-        return buildingResidences;
-      }
+      // Filter by selected building if needed (API should already handle this)
+      return allResidences.filter((r: any) => r.buildingId === selectedBuildingId);
     },
   });
 
@@ -369,22 +383,22 @@ ResidentDemandsPage() {
             </div>
           </div>
           <CardTitle className='text-base line-clamp-2'>
-            {demand.description.substring(0, 100)}
+            {sanitizeDescription(demand.description.substring(0, 100))}
             {demand.description.length > 100 && '...'}
           </CardTitle>
         </CardHeader>
         <CardContent className='pt-0'>
           <div className='text-sm text-muted-foreground space-y-1'>
             <p>
-              <strong>Building:</strong> {building?.name || 'Unknown'}
+              <strong>{t('buildingField')}</strong> {building?.name || t('unknownBuilding')}
             </p>
             {residence && (
               <p>
-                <strong>Residence:</strong> {residence.name}
+                <strong>{t('residenceField')}</strong> {residence.name}
               </p>
             )}
             <p>
-              <strong>Created:</strong> {new Date(demand.createdAt).toLocaleDateString()}
+              <strong>{t('createdField')}</strong> {new Date(demand.createdAt).toLocaleDateString()}
             </p>
           </div>
         </CardContent>
@@ -404,7 +418,7 @@ ResidentDemandsPage() {
         <Header title={t('myDemands')} subtitle={t('submitAndTrackRequests')} />
         <div className='flex-1 overflow-auto p-6'>
           <div className='flex items-center justify-center h-64'>
-            <div className='text-center'>Loading demands...</div>
+            <div className='text-center'>{t('loadingDemandsMessage')}</div>
           </div>
         </div>
       </div>
@@ -430,49 +444,49 @@ ResidentDemandsPage() {
               <DialogContent className='max-w-lg max-h-[90vh] overflow-y-auto'>
                 <DialogHeader>
                   <DialogTitle>{t('createNewDemand')}</DialogTitle>
-                  <DialogDescription>Submit a new request or complaint</DialogDescription>
+                  <DialogDescription>{t('submitRequestComplaint')}</DialogDescription>
                 </DialogHeader>
                 <Form {...newDemandForm}>
                   <form onSubmit={newDemandForm.handleSubmit(handleCreateDemand)} className='space-y-4'>
                     <SearchableFormSelect
                       control={newDemandForm.control}
                       name='type'
-                      label='Type'
+                      label={t('typeLabel')}
                       options={[
-                        { value: 'maintenance', label: 'Maintenance' },
-                        { value: 'complaint', label: 'Complaint' },
-                        { value: 'information', label: 'Information' },
-                        { value: 'other', label: 'Other' }
+                        { value: 'maintenance', label: t('maintenanceType') },
+                        { value: 'complaint', label: t('complaintType') },
+                        { value: 'information', label: t('informationType') },
+                        { value: 'other', label: t('otherType') }
                       ]}
                       placeholder={t('selectType')}
-                      searchPlaceholder="Search type..."
+                      searchPlaceholder={t('searchTypePlaceholder')}
                       required={true}
                     />
                     <SearchableFormSelect
                       control={newDemandForm.control}
                       name='buildingId'
-                      label='Building'
+                      label={t('buildingLabel')}
                       options={buildings.map((building) => ({
                         value: building.id,
                         label: building.name,
                       }))}
                       placeholder={t('selectBuilding')}
-                      searchPlaceholder="Search buildings..."
+                      searchPlaceholder={t('searchBuildingsPlaceholder')}
                       required={true}
                     />
                     <SearchableFormSelect
                       control={newDemandForm.control}
-                      name='residenceId'
-                      label='Residence (Optional)'
+                      name='assignationResidenceId'
+                      label={t('residenceOptional')}
                       options={[
-                        { value: '', label: 'No specific residence' },
+                        { value: '', label: t('noSpecificResidence') },
                         ...residences.map((residence) => ({
                           value: residence.id,
                           label: `${residence.unitNumber} - ${residence.name || `Unit ${residence.unitNumber}`}`,
                         }))
                       ]}
                       placeholder={t('selectResidence')}
-                      searchPlaceholder="Search residences..."
+                      searchPlaceholder={t('searchResidencesPlaceholder')}
                       required={false}
                     />
                     <FormField
@@ -480,7 +494,7 @@ ResidentDemandsPage() {
                       name='description'
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Description</FormLabel>
+                          <FormLabel>{t('descriptionLabel')}</FormLabel>
                           <FormControl>
                             <Textarea
                               placeholder={t('describeRequestDetail')}
@@ -494,7 +508,7 @@ ResidentDemandsPage() {
                       )}
                     />
                     <div className='space-y-2'>
-                      <label className='text-sm font-medium'>Attachments (Optional)</label>
+                      <label className='text-sm font-medium'>{t('attachmentsOptional')}</label>
                       <SharedUploader
                         onDocumentChange={(file, extractedText) => {
                           if (file) {
@@ -503,12 +517,12 @@ ResidentDemandsPage() {
                         }}
                         formType="maintenance"
                         uploadContext={uploadContext}
-                        showAiToggle={false} // No toggle, use config-based AI enablement
+                        showAiToggle={false}
                         allowedFileTypes={['image/*', 'application/pdf', '.doc', '.docx', '.txt']}
                         maxFileSize={10}
                       />
                       <p className='text-xs text-muted-foreground'>
-                        Upload photos, documents, or screenshots. Camera supported for mobile. Max 10MB per file.
+                        {t('attachmentUploadInstructions')}
                       </p>
                     </div>
                     <DialogFooter>
@@ -517,7 +531,7 @@ ResidentDemandsPage() {
                         disabled={createDemandMutation.isPending}
                         data-testid="button-create-demand"
                       >
-                        {createDemandMutation.isPending ? 'Creating...' : 'Create Demand'}
+                        {createDemandMutation.isPending ? t('creating') : t('createDemand')}
                       </Button>
                     </DialogFooter>
                   </form>
@@ -546,7 +560,10 @@ ResidentDemandsPage() {
             {/* Page info */}
             {filteredDemands.length > 0 && (
               <div className='text-center text-sm text-muted-foreground'>
-                Showing {startIndex + 1} to {Math.min(endIndex, filteredDemands.length)} of {filteredDemands.length} demands
+                {t('showingDemandsRange')
+                  .replace('{start}', String(startIndex + 1))
+                  .replace('{end}', String(Math.min(endIndex, filteredDemands.length)))
+                  .replace('{total}', String(filteredDemands.length))}
               </div>
             )}
 

@@ -1,0 +1,182 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+common-spaces-stats-B36X5Zlt.js:11 🔍 [COMMON_SPACES_STATS] Component mounted {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f'}
+common-spaces-stats-B36X5Zlt.js:11 🔍 [COMMON_SPACES_STATS] Context changed: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f'}
+common-spaces-stats-B36X5Zlt.js:11 🔍 [COMMON_SPACES_STATS] Selected space changed: {selectedSpaceId: ''}
+common-spaces-stats-B36X5Zlt.js:11 🔍 [COMMON_SPACES_STATS] Fetching buildings with params: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+common-spaces-stats-B36X5Zlt.js:11 🔍 [COMMON_SPACES_STATS] Fetching common spaces for building: {buildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f'}
+common-spaces-stats-B36X5Zlt.js:11 🔍 [COMMON_SPACES_STATS] Received buildings: {count: 2}
+common-spaces-stats-B36X5Zlt.js:11 🔍 [COMMON_SPACES_STATS] Received common spaces: {count: 8}
+index-CbE4ctXV.js:79 In HTML, <div> cannot be a descendant of <p>.
+This will cause a hydration error.
+
+  ...
+    <PA>
+      <lC>
+        <TooltipProvider>
+          <TooltipProviderProvider scope={undefined} isOpenDelayedRef={{current:true}} delayDuration={700} ...>
+            <cA>
+            <mR>
+              <div className="h-full fle...">
+                <div>
+                <div>
+                <div>
+                <sC>
+                <CC>
+                  <div ref={{current:null}} className="fixed inse..." role="dialog" aria-modal="true" ...>
+                    <Card className="w-full max...">
+                      <div ref={null} className="rounded-lg...">
+                        <CardHeader>
+                        <ScrollArea>
+                        <div className="px-6 py-4 ...">
+>                         <p className="text-xs text-muted-foreground text-center">
+                            <Ho variant="outline" className="mx-1">
+>                             <div
+>                               className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-sem..."
+>                             >
+                            ...
+
+overrideMethod @ hook.js:608
+lc @ index-CbE4ctXV.js:79
+mT @ index-CbE4ctXV.js:150
+G @ index-CbE4ctXV.js:45
+xr @ index-CbE4ctXV.js:163
+Qg @ index-CbE4ctXV.js:163
+Gg @ index-CbE4ctXV.js:163
+Ad @ index-CbE4ctXV.js:163
+Hg @ index-CbE4ctXV.js:163
+sy @ index-CbE4ctXV.js:185
+Al @ index-CbE4ctXV.js:185
+Md @ index-CbE4ctXV.js:185
+(anonymous) @ index-CbE4ctXV.js:185
+<div>
+CD.Ru.jsxDEV @ index-CbE4ctXV.js:15
+Ho @ index-CbE4ctXV.js:404
+react_stack_bottom_frame @ index-CbE4ctXV.js:229
+Oc @ index-CbE4ctXV.js:120
+sd @ index-CbE4ctXV.js:141
+hd @ index-CbE4ctXV.js:150
+G @ index-CbE4ctXV.js:45
+Qg @ index-CbE4ctXV.js:163
+Gg @ index-CbE4ctXV.js:163
+Ad @ index-CbE4ctXV.js:163
+Hg @ index-CbE4ctXV.js:163
+sy @ index-CbE4ctXV.js:185
+Al @ index-CbE4ctXV.js:185
+Md @ index-CbE4ctXV.js:185
+(anonymous) @ index-CbE4ctXV.js:185
+<Ho>
+CD.Ru.jsxDEV @ index-CbE4ctXV.js:15
+CC @ index-CbE4ctXV.js:404
+react_stack_bottom_frame @ index-CbE4ctXV.js:229
+Oc @ index-CbE4ctXV.js:120
+sd @ index-CbE4ctXV.js:141
+hd @ index-CbE4ctXV.js:150
+G @ index-CbE4ctXV.js:45
+Qg @ index-CbE4ctXV.js:163
+Gg @ index-CbE4ctXV.js:163
+Ad @ index-CbE4ctXV.js:163
+Hg @ index-CbE4ctXV.js:163
+sy @ index-CbE4ctXV.js:185
+Al @ index-CbE4ctXV.js:185
+Md @ index-CbE4ctXV.js:185
+(anonymous) @ index-CbE4ctXV.js:185
+<CC>
+CD.Ru.jsxDEV @ index-CbE4ctXV.js:15
+mR @ index-CbE4ctXV.js:404
+react_stack_bottom_frame @ index-CbE4ctXV.js:229
+Oc @ index-CbE4ctXV.js:120
+sd @ index-CbE4ctXV.js:141
+hd @ index-CbE4ctXV.js:150
+G @ index-CbE4ctXV.js:45
+Qg @ index-CbE4ctXV.js:163
+Gg @ index-CbE4ctXV.js:163
+Ad @ index-CbE4ctXV.js:163
+Hg @ index-CbE4ctXV.js:163
+sy @ index-CbE4ctXV.js:185
+Al @ index-CbE4ctXV.js:185
+Md @ index-CbE4ctXV.js:185
+(anonymous) @ index-CbE4ctXV.js:185
+<mR>
+CD.Ru.jsxDEV @ index-CbE4ctXV.js:15
+fR @ index-CbE4ctXV.js:404
+react_stack_bottom_frame @ index-CbE4ctXV.js:229
+Oc @ index-CbE4ctXV.js:120
+sd @ index-CbE4ctXV.js:141
+hd @ index-CbE4ctXV.js:150
+G @ index-CbE4ctXV.js:45
+Qg @ index-CbE4ctXV.js:163
+Gg @ index-CbE4ctXV.js:163
+Ad @ index-CbE4ctXV.js:163
+Hg @ index-CbE4ctXV.js:163
+ly @ index-CbE4ctXV.js:185
+r @ index-CbE4ctXV.js:23
+<fR>
+CD.Ru.jsxDEV @ index-CbE4ctXV.js:15
+(anonymous) @ index-CbE4ctXV.js:404
+index-CbE4ctXV.js:80 <p> cannot contain a nested <div>.
+See this log for the ancestor stack trace.
+overrideMethod @ hook.js:608
+(anonymous) @ index-CbE4ctXV.js:80
+G @ index-CbE4ctXV.js:45
+lc @ index-CbE4ctXV.js:80
+mT @ index-CbE4ctXV.js:150
+G @ index-CbE4ctXV.js:45
+xr @ index-CbE4ctXV.js:163
+Qg @ index-CbE4ctXV.js:163
+Gg @ index-CbE4ctXV.js:163
+Ad @ index-CbE4ctXV.js:163
+Hg @ index-CbE4ctXV.js:163
+sy @ index-CbE4ctXV.js:185
+Al @ index-CbE4ctXV.js:185
+Md @ index-CbE4ctXV.js:185
+(anonymous) @ index-CbE4ctXV.js:185
+<p>
+CD.Ru.jsxDEV @ index-CbE4ctXV.js:15
+CC @ index-CbE4ctXV.js:404
+react_stack_bottom_frame @ index-CbE4ctXV.js:229
+Oc @ index-CbE4ctXV.js:120
+sd @ index-CbE4ctXV.js:141
+hd @ index-CbE4ctXV.js:150
+G @ index-CbE4ctXV.js:45
+Qg @ index-CbE4ctXV.js:163
+Gg @ index-CbE4ctXV.js:163
+Ad @ index-CbE4ctXV.js:163
+Hg @ index-CbE4ctXV.js:163
+sy @ index-CbE4ctXV.js:185
+Al @ index-CbE4ctXV.js:185
+Md @ index-CbE4ctXV.js:185
+(anonymous) @ index-CbE4ctXV.js:185
+<CC>
+CD.Ru.jsxDEV @ index-CbE4ctXV.js:15
+mR @ index-CbE4ctXV.js:404
+react_stack_bottom_frame @ index-CbE4ctXV.js:229
+Oc @ index-CbE4ctXV.js:120
+sd @ index-CbE4ctXV.js:141
+hd @ index-CbE4ctXV.js:150
+G @ index-CbE4ctXV.js:45
+Qg @ index-CbE4ctXV.js:163
+Gg @ index-CbE4ctXV.js:163
+Ad @ index-CbE4ctXV.js:163
+Hg @ index-CbE4ctXV.js:163
+sy @ index-CbE4ctXV.js:185
+Al @ index-CbE4ctXV.js:185
+Md @ index-CbE4ctXV.js:185
+(anonymous) @ index-CbE4ctXV.js:185
+<mR>
+CD.Ru.jsxDEV @ index-CbE4ctXV.js:15
+fR @ index-CbE4ctXV.js:404
+react_stack_bottom_frame @ index-CbE4ctXV.js:229
+Oc @ index-CbE4ctXV.js:120
+sd @ index-CbE4ctXV.js:141
+hd @ index-CbE4ctXV.js:150
+G @ index-CbE4ctXV.js:45
+Qg @ index-CbE4ctXV.js:163
+Gg @ index-CbE4ctXV.js:163
+Ad @ index-CbE4ctXV.js:163
+Hg @ index-CbE4ctXV.js:163
+ly @ index-CbE4ctXV.js:185
+r @ index-CbE4ctXV.js:23
+<fR>
+CD.Ru.jsxDEV @ index-CbE4ctXV.js:15
+(anonymous) @ index-CbE4ctXV.js:404

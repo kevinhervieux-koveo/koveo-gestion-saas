@@ -1,0 +1,31 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+user-management-CfBhrig8.js:1 🖱️ [CRITICAL DEBUG] Save Changes button CLICKED!
+user-management-CfBhrig8.js:1 🚀 [FUNCTION CHECK] handleUnifiedSave is a function, calling it...
+user-management-CfBhrig8.js:1 🔍 [UNIFIED SAVE DEBUG] Before cascade filtering:
+user-management-CfBhrig8.js:1 selectedOrganizationIds: (2) ['5228cb04-1fc9-4291-b76a-ccd89a40324d', 'e9bb7862-4ba5-4822-848f-f3692e826e73']
+user-management-CfBhrig8.js:1 selectedBuildingIds: (2) ['c3052c3c-b694-41a6-bd65-3bc3ae9a5984', '66653f30-2d10-4907-bebc-9e3757d2ef0e']
+user-management-CfBhrig8.js:1 selectedResidenceAssignments: (2) [{…}, {…}]
+user-management-CfBhrig8.js:1 Building c3052c3c-b694-41a6-bd65-3bc3ae9a5984 (1936 Nitzsche Track Building 5): org=e9bb7862-4ba5-4822-848f-f3692e826e73, include=true
+user-management-CfBhrig8.js:1 Building 66653f30-2d10-4907-bebc-9e3757d2ef0e (70342 Dare Cliffs Building 3): org=e9bb7862-4ba5-4822-848f-f3692e826e73, include=true
+user-management-CfBhrig8.js:1 Residence 99b35d10-6014-437a-9a54-31c6a5ee4fd3 (161): buildingId=c3052c3c-b694-41a6-bd65-3bc3ae9a5984, include=true
+user-management-CfBhrig8.js:1 Residence a7c03bdb-5cc0-4e77-83fb-12141c7294c8 (473): buildingId=66653f30-2d10-4907-bebc-9e3757d2ef0e, include=true
+user-management-CfBhrig8.js:1 🔍 [UNIFIED SAVE DEBUG] After cascade filtering:
+user-management-CfBhrig8.js:1 filteredBuildingIds: (2) ['c3052c3c-b694-41a6-bd65-3bc3ae9a5984', '66653f30-2d10-4907-bebc-9e3757d2ef0e']
+user-management-CfBhrig8.js:1 filteredResidenceAssignments: (2) [{…}, {…}]
+user-management-CfBhrig8.js:1 🖱️ [CRITICAL DEBUG] Save Changes button CLICKED!
+user-management-CfBhrig8.js:1 🚀 [FUNCTION CHECK] handleUnifiedSave is a function, calling it...
+user-management-CfBhrig8.js:1 🔍 [UNIFIED SAVE DEBUG] Before cascade filtering:
+user-management-CfBhrig8.js:1 selectedOrganizationIds: (2) ['5228cb04-1fc9-4291-b76a-ccd89a40324d', 'e9bb7862-4ba5-4822-848f-f3692e826e73']
+user-management-CfBhrig8.js:1 selectedBuildingIds: ['66653f30-2d10-4907-bebc-9e3757d2ef0e']
+user-management-CfBhrig8.js:1 selectedResidenceAssignments: []
+user-management-CfBhrig8.js:1 Building 66653f30-2d10-4907-bebc-9e3757d2ef0e (70342 Dare Cliffs Building 3): org=e9bb7862-4ba5-4822-848f-f3692e826e73, include=true
+user-management-CfBhrig8.js:1 🔍 [UNIFIED SAVE DEBUG] After cascade filtering:
+user-management-CfBhrig8.js:1 filteredBuildingIds: ['66653f30-2d10-4907-bebc-9e3757d2ef0e']
+user-management-CfBhrig8.js:1 filteredResidenceAssignments: []
+index-BUTDRIcs.js:185 [Violation] 'setTimeout' handler took 64ms

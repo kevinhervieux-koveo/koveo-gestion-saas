@@ -12,6 +12,11 @@ import { faker } from '@faker-js/faker';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as schema from '../shared/schema';
+import { 
+  generateStorageDirectory, 
+  mapLegacyDocumentType, 
+  type UploadContext 
+} from '../shared/config/upload-config';
 
 /**
  * Quebec-specific data generators (from demo script)
@@ -51,14 +56,30 @@ function ensureDirectoryExists(dirPath: string): void {
 }
 
 /**
- * Write file to disk and return file info
+ * Write file to disk using hierarchical storage structure
  */
-function writeDocumentFile(filePath: string, content: string): { fileSize: number } {
-  const fullPath = path.resolve(filePath);
+function writeDocumentFile(
+  context: UploadContext,
+  fileName: string, 
+  content: string
+): { filePath: string; fileSize: number } {
+  // Generate hierarchical storage path
+  const storageDir = generateStorageDirectory(context);
+  const relativePath = `${storageDir}/${fileName}`;
+  
+  // Full path from uploads directory
+  const uploadsBaseDir = path.join(process.cwd(), 'uploads');
+  const fullPath = path.join(uploadsBaseDir, relativePath);
   const dir = path.dirname(fullPath);
+  
+  // Ensure directory exists and write file
   ensureDirectoryExists(dir);
   fs.writeFileSync(fullPath, content, 'utf8');
-  return { fileSize: content.length };
+  
+  return { 
+    filePath: relativePath, // Return relative path for database storage
+    fileSize: content.length 
+  };
 }
 
 /**
@@ -366,8 +387,53 @@ async function generateDocumentFiles() {
         }
         
         if (content) {
-          const filePath = `uploads/${doc.filePath}`;
-          writeDocumentFile(filePath, content);
+          // Create upload context for hierarchical storage
+          // Get organization ID from the document's building/residence association
+          let organizationId: string | undefined;
+          let userRole = 'manager'; // Default role for document generation
+          let userId = 'demo-admin'; // Default user for legacy document generation
+          
+          // Try to get organization from building
+          if (doc.buildingId) {
+            const [building] = await db
+              .select({ organizationId: schema.buildings.organizationId })
+              .from(schema.buildings)
+              .where(eq(schema.buildings.id, doc.buildingId))
+              .limit(1);
+            if (building) {
+              organizationId = building.organizationId;
+            }
+          }
+          
+          // Fallback to Demo organization if no organization found
+          if (!organizationId) {
+            organizationId = 'da67894c-fbbe-4f0f-b686-ee1d1cb13891'; // Demo organization
+          }
+          
+          // Create upload context for hierarchical storage
+          const uploadContext: UploadContext = {
+            type: mapLegacyDocumentType(doc.documentType),
+            organizationId,
+            buildingId: doc.buildingId || undefined,
+            residenceId: doc.residenceId || undefined,
+            userRole,
+            userId
+          };
+          
+          // Use original filename if available, otherwise generate one
+          const fileName = doc.fileName || `generated-${doc.id}.txt`;
+          
+          const { filePath } = writeDocumentFile(uploadContext, fileName, content);
+          
+          // Update the document record with the new hierarchical path
+          await db
+            .update(schema.documents)
+            .set({ 
+              filePath: filePath,
+              updatedAt: new Date()
+            })
+            .where(eq(schema.documents.id, doc.id));
+          
           filesCreated++;
           
           if (filesCreated % 100 === 0) {

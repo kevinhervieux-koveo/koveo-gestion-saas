@@ -11,6 +11,7 @@ import {
 import { eq, and, or, ilike, inArray, sql } from 'drizzle-orm';
 import { requireAuth } from '../auth/index';
 import { delayedUpdateService } from '../services/delayed-update-service';
+import { cacheInvalidationService, createInvalidationMiddleware } from '../services/cache-invalidation-service';
 
 /**
  *
@@ -80,6 +81,11 @@ export function registerResidenceRoutes(app: Express) {
   app.put(
     '/api/residences/:residenceId/assigned-users/:userId',
     requireAuth,
+    createInvalidationMiddleware('userResidence', {
+      extractEntityId: (req) => `${req.params.residenceId}-${req.params.userId}`,
+      extractAffectedUsers: async (req) => [req.params.userId],
+      operation: 'update'
+    }),
     async (req: any, res: any) => {
       try {
         const { userId } = req.params;

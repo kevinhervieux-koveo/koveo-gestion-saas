@@ -36,7 +36,7 @@ const runRedundancyTests = (): Promise<TestResult> => {
       ],
       {
         stdio: 'pipe',
-        shell: true,
+        shell: false,
       }
     );
 
@@ -44,7 +44,7 @@ const runRedundancyTests = (): Promise<TestResult> => {
     let errorOutput = '';
 
     jest.stdout?.on('data', (_data) => {
-      const text = data.toString();
+      const text = _data.toString();
       output += text;
 
       // Show relevant progress in real-time
@@ -54,7 +54,7 @@ const runRedundancyTests = (): Promise<TestResult> => {
     });
 
     jest.stderr?.on('data', (_data) => {
-      errorOutput += data.toString();
+      errorOutput += _data.toString();
     });
 
     jest.on('close', (code) => {
@@ -71,16 +71,16 @@ const runRedundancyTests = (): Promise<TestResult> => {
       resolve({
         passed,
         output,
-        _error: errorOutput,
+        error: errorOutput,
       });
     });
 
     jest.on('error', (_error) => {
-      console.warn(chalk.red(`❌ Error running redundancy tests: ${error.message}`));
+      console.warn(chalk.red(`❌ Error running redundancy tests: ${_error.message}`));
       resolve({
         passed: false,
         output,
-        _error: error.message,
+        error: _error.message,
       });
     });
   });
@@ -98,7 +98,7 @@ const runStyleAnalysis = (): Promise<TestResult> => {
       ['jest', 'tests/code-analysis/style-consolidation.test.ts', '--verbose', '--silent'],
       {
         stdio: 'pipe',
-        shell: true,
+        shell: false,
       }
     );
 
@@ -106,11 +106,11 @@ const runStyleAnalysis = (): Promise<TestResult> => {
     let errorOutput = '';
 
     jest.stdout?.on('data', (_data) => {
-      output += data.toString();
+      output += _data.toString();
     });
 
     jest.stderr?.on('data', (_data) => {
-      errorOutput += data.toString();
+      errorOutput += _data.toString();
     });
 
     jest.on('close', (code) => {
@@ -126,7 +126,7 @@ const runStyleAnalysis = (): Promise<TestResult> => {
       resolve({
         passed,
         output,
-        _error: errorOutput,
+        error: errorOutput,
       });
     });
 
@@ -134,7 +134,7 @@ const runStyleAnalysis = (): Promise<TestResult> => {
       resolve({
         passed: false,
         output,
-        _error: error.message,
+        error: _error.message,
       });
     });
   });
@@ -253,15 +253,15 @@ async function main() {
       }
     }
   } catch (_error) {
-    console.error(chalk.red(`\n❌ Failed to run redundancy analysis: ${error}`));
+    console.error(chalk.red(`\n❌ Failed to run redundancy analysis: ${_error}`));
     process.exit(1);
   }
 }
 
 // Run if called directly
 if (require.main === module) {
-  main().catch((error) => {
-    console.error(chalk.red(`Fatal _error: ${error}`));
+  main().catch((_error) => {
+    console.error(chalk.red(`Fatal error: ${_error}`));
     process.exit(1);
   });
 }

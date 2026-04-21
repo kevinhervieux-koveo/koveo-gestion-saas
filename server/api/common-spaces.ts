@@ -69,6 +69,8 @@ const createCommonSpaceSchema = z.object({
       z.enum(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'])
     )
     .optional(),
+  default_time_limit_type: z.enum(['monthly', 'yearly']).optional(),
+  default_time_limit_hours: z.number().int().positive().optional(),
 });
 
 const setTimeLimitSchema = z.object({
@@ -311,21 +313,29 @@ function isWithinOpeningHours(startTime: Date, endTime: Date, openingHours: any[
     return true; // No restrictions if no opening hours defined
   }
 
-  const startDay = startTime.toLocaleDateString('en-US', { weekday: 'long' });
-  const endDay = endTime.toLocaleDateString('en-US', { weekday: 'long' });
+  // Convert to Quebec local timezone (America/Montreal)
+  const timezone = 'America/Montreal';
+  const startDay = startTime.toLocaleDateString('en-US', { weekday: 'long', timeZone: timezone }).toLowerCase();
+  const endDay = endTime.toLocaleDateString('en-US', { weekday: 'long', timeZone: timezone }).toLowerCase();
 
   // For simplicity, require booking to be within same day
   if (startDay !== endDay) {
     return false;
   }
 
-  const dayHours = openingHours.find((oh) => oh.day === startDay);
+  const dayHours = openingHours.find((oh) => oh.day.toLowerCase() === startDay);
   if (!dayHours) {
     return false; // No hours defined for this day
   }
 
-  const startTimeStr = startTime.toTimeString().slice(0, 5); // HH:MM format
-  const endTimeStr = endTime.toTimeString().slice(0, 5);
+  // Extract hours and minutes in local timezone
+  const startHour = parseInt(startTime.toLocaleString('en-US', { hour: '2-digit', hour12: false, timeZone: timezone }));
+  const startMinute = parseInt(startTime.toLocaleString('en-US', { minute: '2-digit', timeZone: timezone }));
+  const endHour = parseInt(endTime.toLocaleString('en-US', { hour: '2-digit', hour12: false, timeZone: timezone }));
+  const endMinute = parseInt(endTime.toLocaleString('en-US', { minute: '2-digit', timeZone: timezone }));
+
+  const startTimeStr = `${startHour.toString().padStart(2, '0')}:${startMinute.toString().padStart(2, '0')}`;
+  const endTimeStr = `${endHour.toString().padStart(2, '0')}:${endMinute.toString().padStart(2, '0')}`;
 
   return startTimeStr >= dayHours.open && endTimeStr <= dayHours.close;
 }
@@ -531,10 +541,10 @@ export function registerCommonSpacesRoutes(app: Express): void {
         });
       }
 
-      console.log('🔍 Booking request body:', req.body);
+      // console.log('🔍 Booking request body:', req.body);
       const bodyValidation = createBookingSchema.safeParse(req.body);
       if (!bodyValidation.success) {
-        console.log('❌ Validation failed:', bodyValidation.error.issues);
+        // console.log('❌ Validation failed:', bodyValidation.error.issues);
         return res.status(400).json({
           message: 'Invalid booking data',
           errors: bodyValidation.error.issues,
@@ -1031,6 +1041,34 @@ export function registerCommonSpacesRoutes(app: Express): void {
             )
           );
 
+        // Get user restrictions for this space
+        const restrictions = await db
+          .select({
+            userId: userBookingRestrictions.userId,
+            isBlocked: userBookingRestrictions.isBlocked,
+          })
+          .from(userBookingRestrictions)
+          .where(eq(userBookingRestrictions.commonSpaceId, spaceId));
+
+        // Get user time limits for this space
+        const timeLimits = await db
+          .select({
+            userId: userTimeLimits.userId,
+          })
+          .from(userTimeLimits)
+          .where(eq(userTimeLimits.commonSpaceId, spaceId));
+
+        // Create maps for quick lookup
+        const restrictionMap = new Map(restrictions.map(r => [r.userId, r.isBlocked]));
+        const timeLimitMap = new Map(timeLimits.map(t => [t.userId, true]));
+
+        // Merge data
+        const enrichedStats = stats.map(stat => ({
+          ...stat,
+          isBlocked: restrictionMap.get(stat.userId) || false,
+          hasCustomLimit: timeLimitMap.has(stat.userId),
+        }));
+
         const totalStats = await db
           .select({
             totalBookings: sql<number>`COUNT(${bookings.id})`,
@@ -1050,7 +1088,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
           spaceName: space[0].name,
           period: 'Last 12 months',
           summary: totalStats[0],
-          userStats: stats,
+          userStats: enrichedStats,
         });
       } catch (error: any) {
         console.error('❌ Error fetching space statistics:', error);
@@ -1218,7 +1256,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
           });
         }
 
-        const { name, description, building_id, is_reservable, capacity, opening_hours, weekly_hours, available_days } =
+        const { name, description, building_id, is_reservable, capacity, opening_hours, weekly_hours, available_days, default_time_limit_type, default_time_limit_hours } =
           validationResult.data;
 
         // Check if user has access to this building
@@ -1274,10 +1312,12 @@ export function registerCommonSpacesRoutes(app: Express): void {
                            close: hours.end 
                          })) : null,
             availableDays: available_days || null,
+            defaultTimeLimitType: default_time_limit_type || null,
+            defaultTimeLimitHours: default_time_limit_hours || null,
           })
           .returning();
 
-        console.log(`✅ Created new common space: ${name} in building ${building[0].name}`);
+        // console.log(`✅ Created new common space: ${name} in building ${building[0].name}`);
 
         res.status(201).json({
           message: 'Common space created successfully',
@@ -1342,7 +1382,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
         }
 
         const { spaceId } = paramValidation.data;
-        const { name, description, building_id, is_reservable, capacity, opening_hours, weekly_hours, available_days } =
+        const { name, description, building_id, is_reservable, capacity, opening_hours, weekly_hours, available_days, default_time_limit_type, default_time_limit_hours } =
           validationResult.data;
 
         // Check if space exists and user has access
@@ -1387,12 +1427,14 @@ export function registerCommonSpacesRoutes(app: Express): void {
                            close: hours.end 
                          })) : null,
             availableDays: available_days || null,
+            defaultTimeLimitType: default_time_limit_type || null,
+            defaultTimeLimitHours: default_time_limit_hours || null,
             updatedAt: new Date(),
           })
           .where(eq(commonSpaces.id, spaceId))
           .returning();
 
-        console.log(`✅ Updated common space: ${name}`);
+        // console.log(`✅ Updated common space: ${name}`);
 
         res.json({
           message: 'Common space updated successfully',
@@ -1538,9 +1580,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
           });
         }
 
-        console.log(
-          `✅ Set time limit for user ${targetUser[0].firstName} ${targetUser[0].lastName}: ${limit_hours}h per ${limit_type}`
-        );
+        // console.log(`✅ Set time limit for user ${targetUser[0].firstName} ${targetUser[0].lastName}: ${limit_hours}h per ${limit_type}`);
 
         res.json({
           message: 'Time limit set successfully',

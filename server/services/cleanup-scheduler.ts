@@ -49,7 +49,7 @@ export class CleanupScheduler {
             if (result.details?.deletedOrphaned > 0) {
             }
           } else {
-            console.error('❌ Automatic cleanup failed:', response.statusText);
+            // console.error('❌ Automatic cleanup failed:', response.statusText);
           }
         }
       },

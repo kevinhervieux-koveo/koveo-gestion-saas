@@ -11,8 +11,9 @@ import {
   date,
   jsonb,
   varchar,
+  uniqueIndex,
+  index,
 } from 'drizzle-orm/pg-core';
-import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
 import { relations } from 'drizzle-orm';
 import { users } from './core';
@@ -27,33 +28,53 @@ export const billStatusEnum = pgEnum('bill_status', [
   'cancelled',
 ]);
 
-export const oldBillTypeEnum = pgEnum('old_bill_type', [
-  'condo_fees',
-  'special_assessment',
-  'utility',
-  'maintenance',
-  'other',
-]);
 
 export const billCategoryEnum = pgEnum('bill_category', [
-  'insurance',
-  'maintenance',
-  'salary',
-  'utilities',
-  'cleaning',
-  'security',
-  'landscaping',
-  'professional_services',
   'administration',
+  'cleaning',
+  'construction',
+  'consulting',
+  'equipment_rental',
+  'insurance',
+  'landscaping',
+  'legal_services',
+  'maintenance',
+  'professional_services',
   'repairs',
+  'reserves',
+  'salary',
+  'security',
   'supplies',
   'taxes',
   'technology',
-  'reserves',
+  'utilities',
   'other',
 ]);
 
-export const paymentTypeEnum = pgEnum('payment_type', ['unique', 'recurrent', 'auto-generated']);
+// Shared constant array for use in frontend components - SINGLE SOURCE OF TRUTH
+export const BILL_CATEGORIES = [
+  'administration',
+  'cleaning',
+  'construction',
+  'consulting',
+  'equipment_rental',
+  'insurance',
+  'landscaping',
+  'legal_services',
+  'maintenance',
+  'professional_services',
+  'repairs',
+  'reserves',
+  'salary',
+  'security',
+  'supplies',
+  'taxes',
+  'technology',
+  'utilities',
+  'other',
+] as const;
+
+export const paymentTypeEnum = pgEnum('payment_type', ['unique', 'recurrent']);
 
 export const schedulePaymentEnum = pgEnum('schedule_payment', [
   'weekly',
@@ -70,28 +91,44 @@ export const paymentStatusEnum = pgEnum('payment_status', [
   'cancelled',
 ]);
 
+export const investmentUrgencyEnum = pgEnum('investment_urgency', [
+  'not_urgent',
+  'urgent', 
+  'suggested',
+]);
+
+export const investmentTypeEnum = pgEnum('investment_type', [
+  'auto_generated',
+  'custom',
+]);
+
+export const investmentOwnershipEnum = pgEnum('investment_ownership', [
+  'residences',
+  'owner',
+]);
+
 // Financial tables
 /**
  * Enhanced bills table for tracking financial obligations with advanced scheduling.
  * Supports unique and recurrent payments with custom scheduling options.
  */
 export const bills = pgTable('bills', {
-  id: varchar('id')
+  id: text('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
   buildingId: varchar('building_id')
     .notNull()
     .references(() => buildings.id),
-  billNumber: text('bill_number').notNull().unique(),
-  title: text('title').notNull(),
+  billNumber: varchar('bill_number', { length: 50 }).notNull().unique(),
+  title: varchar('title', { length: 200 }).notNull(),
   description: text('description'),
   category: billCategoryEnum('category').notNull(),
-  vendor: text('vendor'), // Company or service provider
+  vendor: varchar('vendor', { length: 200 }), // Company or service provider
   paymentType: paymentTypeEnum('payment_type').notNull(), // unique or recurrent
   schedulePayment: schedulePaymentEnum('schedule_payment'), // Only for recurrent payments
   scheduleCustom: date('schedule_custom').array(), // Custom dates for custom schedules
-  costs: decimal('costs', { precision: 12, scale: 2 }).array().notNull(), // Array of costs for payment plan
-  totalAmount: decimal('total_amount', { precision: 12, scale: 2 }).notNull(),
+  costs: decimal('costs', { precision: 10, scale: 2 }).array().notNull(), // Array of costs for payment plan
+  totalAmount: decimal('total_amount', { precision: 10, scale: 2 }).notNull(),
   startDate: date('start_date').notNull(), // When the bill series starts
   endDate: date('end_date'), // For recurrent bills, when they end (optional for ongoing)
   status: billStatusEnum('status').notNull().default('draft'),
@@ -109,14 +146,25 @@ export const bills = pgTable('bills', {
     .references(() => users.id),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  buildingIdIdx: index('bills_building_id_idx').on(table.buildingId),
+  createdByIdx: index('bills_created_by_idx').on(table.createdBy),
+  sourceTemplateIdIdx: index('bills_source_template_id_idx').on(table.sourceTemplateId),
+  statusIdx: index('bills_status_idx').on(table.status),
+  categoryIdx: index('bills_category_idx').on(table.category),
+  // Date indexes for range queries
+  startDateIdx: index('bills_start_date_idx').on(table.startDate),
+  endDateIdx: index('bills_end_date_idx').on(table.endDate),
+  createdAtIdx: index('bills_created_at_idx').on(table.createdAt),
+  updatedAtIdx: index('bills_updated_at_idx').on(table.updatedAt),
+}));
 
 /**
  * Payments table for tracking individual payment instances for each bill.
  * Supports both unique and recurring payment schedules with automatic generation.
  */
 export const payments = pgTable('payments', {
-  id: varchar('id')
+  id: text('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
   billId: varchar('bill_id')
@@ -125,49 +173,28 @@ export const payments = pgTable('payments', {
   paymentNumber: integer('payment_number').notNull(), // 1, 2, 3... for recurring bills
   scheduledDate: date('scheduled_date').notNull(),
   paidDate: date('paid_date'), // nullable - set when payment is confirmed
-  amount: decimal('amount', { precision: 12, scale: 2 }).notNull(),
+  amount: decimal('amount', { precision: 10, scale: 2 }).notNull(),
   status: paymentStatusEnum('status').notNull().default('pending'),
   notes: text('notes'), // Optional notes for this specific payment
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  billIdIdx: index('payments_bill_id_idx').on(table.billId),
+  statusIdx: index('payments_status_idx').on(table.status),
+  // Date indexes for range queries
+  scheduledDateIdx: index('payments_scheduled_date_idx').on(table.scheduledDate),
+  paidDateIdx: index('payments_paid_date_idx').on(table.paidDate),
+  createdAtIdx: index('payments_created_at_idx').on(table.createdAt),
+  updatedAtIdx: index('payments_updated_at_idx').on(table.updatedAt),
+}));
 
-/**
- * Legacy bills table - keeping for backward compatibility.
- * Will be migrated to new bills table structure.
- */
-export const oldBills = pgTable('old_bills', {
-  id: uuid('id')
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
-  residenceId: varchar('residence_id')
-    .notNull()
-    .references(() => residences.id),
-  billNumber: text('bill_number').notNull().unique(),
-  type: oldBillTypeEnum('type').notNull(),
-  description: text('description').notNull(),
-  amount: decimal('amount', { precision: 12, scale: 2 }).notNull(),
-  dueDate: date('due_date').notNull(),
-  issueDate: date('issue_date').notNull(),
-  status: billStatusEnum('status').notNull().default('draft'),
-  notes: text('notes'),
-  lateFeeAmount: decimal('late_fee_amount', { precision: 10, scale: 2 }),
-  discountAmount: decimal('discount_amount', { precision: 10, scale: 2 }),
-  finalAmount: decimal('final_amount', { precision: 12, scale: 2 }).notNull(),
-  paymentReceivedDate: date('payment_received_date'),
-  createdBy: varchar('created_by')
-    .notNull()
-    .references(() => users.id),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
-});
 
 /**
  * Budgets table for tracking financial planning by building and category.
  * Supports operational, reserve, and special project budgets.
  */
 export const budgets = pgTable('budgets', {
-  id: varchar('id')
+  id: text('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
   buildingId: varchar('building_id')
@@ -188,7 +215,15 @@ export const budgets = pgTable('budgets', {
     .references(() => users.id),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  buildingIdIdx: index('budgets_building_id_idx').on(table.buildingId),
+  approvedByIdx: index('budgets_approved_by_idx').on(table.approvedBy),
+  createdByIdx: index('budgets_created_by_idx').on(table.createdBy),
+  // Date indexes for range queries
+  approvedDateIdx: index('budgets_approved_date_idx').on(table.approvedDate),
+  createdAtIdx: index('budgets_created_at_idx').on(table.createdAt),
+  updatedAtIdx: index('budgets_updated_at_idx').on(table.updatedAt),
+}));
 
 /**
  * Monthly budgets table for detailed monthly tracking of income and spending by building.
@@ -196,7 +231,7 @@ export const budgets = pgTable('budgets', {
  * Updated monthly on the 1st and supports approval workflow.
  */
 export const monthlyBudgets = pgTable('monthly_budgets', {
-  id: varchar('id')
+  id: text('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
   buildingId: varchar('building_id')
@@ -214,17 +249,191 @@ export const monthlyBudgets = pgTable('monthly_budgets', {
   originalBudgetId: varchar('original_budget_id').references(() => monthlyBudgets.id), // References the original budget if this is an approved copy
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => ({
+  buildingIdIdx: index('monthly_budgets_building_id_idx').on(table.buildingId),
+  approvedByIdx: index('monthly_budgets_approved_by_idx').on(table.approvedBy),
+  originalBudgetIdIdx: index('monthly_budgets_original_budget_id_idx').on(table.originalBudgetId),
+  // Date indexes for range queries
+  approvedDateIdx: index('monthly_budgets_approved_date_idx').on(table.approvedDate),
+  createdAtIdx: index('monthly_budgets_created_at_idx').on(table.createdAt),
+  updatedAtIdx: index('monthly_budgets_updated_at_idx').on(table.updatedAt),
+}));
+
+/**
+ * Capital investments table for tracking building infrastructure investments and improvements.
+ * Supports both auto-generated suggestions and custom user-defined investments.
+ */
+export const capitalInvestments = pgTable('capital_investments', {
+  id: text('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  buildingId: varchar('building_id')
+    .notNull()
+    .references(() => buildings.id),
+  title: text('title').notNull(),
+  description: text('description'),
+  amount: decimal('amount', { precision: 12, scale: 2 }).notNull(),
+  targetDate: date('target_date').notNull(),
+  urgency: investmentUrgencyEnum('urgency').notNull(),
+  type: investmentTypeEnum('type').notNull(),
+  ownershipType: investmentOwnershipEnum('ownership_type').notNull(),
+  category: text('category'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => ({
+  buildingIdIdx: index('capital_investments_building_id_idx').on(table.buildingId),
+  urgencyIdx: index('capital_investments_urgency_idx').on(table.urgency),
+  typeIdx: index('capital_investments_type_idx').on(table.type),
+  ownershipTypeIdx: index('capital_investments_ownership_type_idx').on(table.ownershipType),
+  // Date indexes for range queries
+  targetDateIdx: index('capital_investments_target_date_idx').on(table.targetDate),
+  createdAtIdx: index('capital_investments_created_at_idx').on(table.createdAt),
+  updatedAtIdx: index('capital_investments_updated_at_idx').on(table.updatedAt),
+}));
+
+/**
+ * Real-time financial calculator that replaces the money_flow table
+ * with dynamic calculations and smart caching.
+ */
+
+// Materialized view for active financial sources (bills + residences)
+// Temporarily disabled for drizzle-kit compatibility - will create manually
+/*
+export const activeFinancialSources = pgMaterializedView('active_financial_sources').as((qb) => {
+  return qb
+    .select({
+      id: bills.id,
+      buildingId: bills.buildingId,
+      sourceType: sql<string>`'bill'`.as('source_type'),
+      category: bills.category,
+      title: bills.title,
+      amount: bills.totalAmount,
+      costs: bills.costs,
+      schedulePayment: bills.schedulePayment,
+      scheduleCustom: bills.scheduleCustom,
+      startDate: bills.startDate,
+      endDate: bills.endDate,
+      paymentType: bills.paymentType,
+      flowType: sql<string>`'expense'`.as('flow_type'),
+      isActive: sql<boolean>`${bills.status} IN ('sent', 'draft')`.as('is_active'),
+      referenceId: bills.id,
+      unitNumber: sql<string>`NULL`.as('unit_number'),
+      createdAt: bills.createdAt,
+      updatedAt: bills.updatedAt,
+    })
+    .from(bills)
+    .where(sql`${bills.paymentType} = 'recurrent'`)
+
+    .unionAll(
+      qb
+        .select({
+          id: residences.id,
+          buildingId: residences.buildingId,
+          sourceType: sql<string>`'residence'`.as('source_type'),
+          category: sql<'maintenance'>`'maintenance'`.as('category'),
+          title: sql<string>`CONCAT('Monthly fees - Unit ', ${residences.unitNumber})`.as('title'),
+          amount: residences.monthlyFees,
+          costs: sql<string[]>`ARRAY[${residences.monthlyFees}]`.as('costs'),
+          schedulePayment: sql<'monthly'>`'monthly'`.as('schedule_payment'),
+          scheduleCustom: sql<string[]>`NULL`.as('schedule_custom'),
+          startDate: sql<string>`CURRENT_DATE`.as('start_date'),
+          endDate: sql<string>`NULL`.as('end_date'),
+          paymentType: sql<'recurrent'>`'recurrent'`.as('payment_type'),
+          flowType: sql<string>`'income'`.as('flow_type'),
+          isActive: sql<boolean>`${residences.isActive} AND ${residences.monthlyFees} > 0`.as(
+            'is_active'
+          ),
+          referenceId: residences.id,
+          unitNumber: residences.unitNumber,
+          createdAt: residences.createdAt,
+          updatedAt: residences.updatedAt,
+        })
+        .from(residences)
+        .innerJoin(buildings, sql`${residences.buildingId} = ${buildings.id}`)
+        .where(sql`${residences.isActive} = true AND ${buildings.isActive} = true`)
+    );
 });
+*/
+
+// View for current month financial summary (fast lookup)
+// Temporarily disabled for drizzle-kit compatibility - will create manually
+/*
+export const currentMonthFinancials = pgView('current_month_financials').as((qb) => {
+  return qb
+    .select({
+      buildingId: activeFinancialSources.buildingId,
+      month: sql<number>`EXTRACT(MONTH FROM CURRENT_DATE)::int`.as('month'),
+      year: sql<number>`EXTRACT(YEAR FROM CURRENT_DATE)::int`.as('year'),
+      totalIncome: sql<string>`
+          COALESCE(
+            SUM(CASE WHEN ${activeFinancialSources.flowType} = 'income' 
+                     THEN ${activeFinancialSources.amount} ELSE 0 END), 0
+          )
+        `.as('total_income'),
+      totalExpenses: sql<string>`
+          COALESCE(
+            SUM(CASE WHEN ${activeFinancialSources.flowType} = 'expense' 
+                     THEN ${activeFinancialSources.amount} ELSE 0 END), 0
+          )
+        `.as('total_expenses'),
+      activeIncomeStreams: sql<number>`
+          COUNT(CASE WHEN ${activeFinancialSources.flowType} = 'income' THEN 1 END)::int
+        `.as('active_income_streams'),
+      activeExpenseStreams: sql<number>`
+          COUNT(CASE WHEN ${activeFinancialSources.flowType} = 'expense' THEN 1 END)::int
+        `.as('active_expense_streams'),
+      lastUpdated: sql<string>`MAX(${activeFinancialSources.updatedAt})`.as('last_updated'),
+    })
+    .from(activeFinancialSources)
+    .where(sql`${activeFinancialSources.isActive} = true`)
+    .groupBy(activeFinancialSources.buildingId);
+});
+*/
+
+// Cache table for frequently accessed financial calculations
+export const financialCache = pgTable('financial_cache', {
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  buildingId: varchar('building_id')
+    .notNull()
+    .references(() => buildings.id),
+  cacheKey: text('cache_key').notNull(),
+  cacheData: jsonb('cache_data').notNull(),
+  startDate: date('start_date').notNull(),
+  endDate: date('end_date').notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  expiresAt: timestamp('expires_at').notNull(),
+}, (table) => ({
+  unqFinancialCache: uniqueIndex('unq_financial_cache').on(
+    table.buildingId,
+    table.cacheKey,
+    table.startDate,
+    table.endDate
+  ),
+  idxFinancialCacheLookup: index('idx_financial_cache_lookup').on(
+    table.buildingId,
+    table.cacheKey,
+    table.expiresAt
+  ),
+  // Date indexes for range queries
+  startDateIdx: index('financial_cache_start_date_idx').on(table.startDate),
+  endDateIdx: index('financial_cache_end_date_idx').on(table.endDate),
+  createdAtIdx: index('financial_cache_created_at_idx').on(table.createdAt),
+  expiresAtIdx: index('financial_cache_expires_at_idx').on(table.expiresAt),
+}));
 
 // Insert schemas
 // Removed insertMoneyFlowSchema - money flow table deleted
 
-export const insertBillSchema = createInsertSchema(bills, {
-  // Custom validations for strict schema compliance
+// Temporary fix: Manual schema definition to avoid createInsertSchema issue
+export const insertBillSchema = z.object({
+  buildingId: z.string().uuid(),
   billNumber: z.string().min(1, "Bill number is required"),
   title: z.string().min(1, "Title is required"),
-  category: z.enum(['insurance', 'maintenance', 'salary', 'utilities', 'cleaning', 'security', 'landscaping', 'professional_services', 'administration', 'repairs', 'supplies', 'taxes', 'technology', 'reserves', 'other']),
-  paymentType: z.enum(['unique', 'recurrent', 'auto-generated']),
+  description: z.string().optional(),
+  category: z.enum(['administration', 'construction', 'consulting', 'equipment_rental', 'insurance', 'legal_services', 'maintenance', 'professional_services', 'repairs', 'supplies', 'taxes', 'utilities', 'other']),
+  paymentType: z.enum(['unique', 'recurrent']),
   schedulePayment: z.enum(['weekly', 'monthly', 'quarterly', 'yearly', 'custom']).optional(),
   scheduleCustom: z.array(z.coerce.date()).optional().refine(
     (dates) => !dates || dates.length === 0 || dates.every(date => date instanceof Date && !isNaN(date.getTime())),
@@ -238,28 +447,10 @@ export const insertBillSchema = createInsertSchema(bills, {
   isAutoGenerated: z.boolean().default(false),
   sourceTemplateId: z.string().optional(),
   autoGeneratedLabel: z.string().optional(),
-}).omit({ 
-  id: true, 
-  createdAt: true, 
-  updatedAt: true 
-});
-
-export const insertOldBillSchema = z.object({
-  residenceId: z.string().uuid(),
-  billNumber: z.string(),
-  type: z.string(),
-  description: z.string().optional(),
-  amount: z.number(),
-  dueDate: z.date(),
-  issueDate: z.date().optional(),
-  status: z.string().default('unpaid'),
-  notes: z.string().optional(),
-  lateFeeAmount: z.number().optional(),
-  discountAmount: z.number().optional(),
-  finalAmount: z.number().optional(),
-  paymentReceivedDate: z.date().optional(),
+  reference: z.string().optional(),
   createdBy: z.string().uuid(),
 });
+
 
 export const insertBudgetSchema = z.object({
   buildingId: z.string().uuid(),
@@ -272,10 +463,52 @@ export const insertBudgetSchema = z.object({
   createdBy: z.string().uuid(),
 });
 
-export const insertMonthlyBudgetSchema = createInsertSchema(monthlyBudgets).omit({ 
-  id: true, 
-  createdAt: true, 
-  updatedAt: true 
+// Temporary fix: Manual schema definition to avoid createInsertSchema issue
+export const insertMonthlyBudgetSchema = z.object({
+  buildingId: z.string().uuid(),
+  year: z.number().int(),
+  month: z.number().int().min(1).max(12),
+  incomeTypes: z.array(z.string()),
+  incomes: z.array(z.string()), // Decimal strings
+  spendingTypes: z.array(z.string()),
+  spendings: z.array(z.string()), // Decimal strings
+  approved: z.boolean().default(false),
+  approvedBy: z.string().uuid().optional(),
+  approvedDate: z.date().optional(),
+});
+
+// Temporary fix: Manual schema definition to avoid createInsertSchema issue
+export const insertPaymentSchema = z.object({
+  billId: z.string().uuid(),
+  paymentNumber: z.number().int().positive("Payment number must be positive"),
+  scheduledDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in YYYY-MM-DD format"),
+  paidDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in YYYY-MM-DD format").optional(),
+  amount: z.string().regex(/^\d+(\.\d{1,2})?$/, "Amount must be a valid decimal with up to 2 decimal places"),
+  status: z.enum(['pending', 'overdue', 'paid', 'cancelled']).default('pending'),
+  notes: z.string().optional(),
+});
+
+// Temporary fix: Manual schema definition to avoid createInsertSchema issue
+export const insertCapitalInvestmentSchema = z.object({
+  buildingId: z.string().uuid(),
+  title: z.string().min(1, "Title is required"),
+  description: z.string().optional(),
+  amount: z.coerce.number().positive("Amount must be positive"),
+  targetDate: z.coerce.date(),
+  urgency: z.enum(['not_urgent', 'urgent', 'suggested']),
+  type: z.enum(['auto_generated', 'custom']),
+  ownershipType: z.enum(['residences', 'owner']),
+  category: z.string().optional(),
+});
+
+// Temporary fix: Manual schema definition to avoid createInsertSchema issue
+export const insertFinancialCacheSchema = z.object({
+  buildingId: z.string().uuid('Building ID must be a valid UUID'),
+  cacheKey: z.string().min(1, 'Cache key is required'),
+  cacheData: z.any(), // JSONB data
+  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Start date must be in YYYY-MM-DD format'),
+  endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'End date must be in YYYY-MM-DD format'),
+  expiresAt: z.date(),
 });
 
 export const insertPaymentSchema = createInsertSchema(payments, {
@@ -296,20 +529,12 @@ export const insertPaymentSchema = createInsertSchema(payments, {
 /**
  * Bills insert and select types.
  */
-export type InsertBill = z.infer<typeof insertBillSchema>;
+export type InsertBill = typeof bills.$inferInsert;
 /**
  *
  */
 export type Bill = typeof bills.$inferSelect;
 
-/**
- * Legacy bills types for backward compatibility.
- */
-export type InsertOldBill = z.infer<typeof insertOldBillSchema>;
-/**
- *
- */
-export type OldBill = typeof oldBills.$inferSelect;
 
 /**
  * Budget insert and select types.
@@ -337,6 +562,61 @@ export type InsertPayment = z.infer<typeof insertPaymentSchema>;
  *
  */
 export type Payment = typeof payments.$inferSelect;
+
+/**
+ * Capital investment insert and select types.
+ */
+export type InsertCapitalInvestment = z.infer<typeof insertCapitalInvestmentSchema>;
+/**
+ *
+ */
+export type CapitalInvestment = typeof capitalInvestments.$inferSelect;
+
+// Types for the financial views system
+/**
+ * Financial period data interface for cash flow calculations.
+ */
+export interface FinancialPeriodData {
+  buildingId: string;
+  startDate: string;
+  endDate: string;
+  monthlyData: Array<{
+    year: number;
+    month: number;
+    totalIncome: number;
+    totalExpenses: number;
+    netCashFlow: number;
+    incomeByCategory: Record<string, number>;
+    expensesByCategory: Record<string, number>;
+  }>;
+  summary: {
+    totalIncome: number;
+    totalExpenses: number;
+    netCashFlow: number;
+    averageMonthlyIncome: number;
+    averageMonthlyExpenses: number;
+  };
+}
+
+/**
+ * Financial cache entry interface.
+ */
+export interface FinancialCacheEntry {
+  id: string;
+  buildingId: string;
+  cacheKey: string;
+  cacheData: FinancialPeriodData;
+  startDate: string;
+  endDate: string;
+  createdAt: Date;
+  expiresAt: Date;
+}
+
+/**
+ * Financial cache insert and select types.
+ */
+export type InsertFinancialCache = z.infer<typeof insertFinancialCacheSchema>;
+export type FinancialCache = typeof financialCache.$inferSelect;
 
 // Relations - temporarily commented out due to drizzle-orm version compatibility
 // Removed moneyFlow relations
@@ -366,16 +646,6 @@ export type Payment = typeof payments.$inferSelect;
 //   (removed money flow relations),
 // }));
 
-// export const oldBillsRelations = relations(oldBills, ({ one }) => ({
-//   residence: one(residences, {
-//     fields: [oldBills.residenceId],
-//     references: [residences.id],
-//   }),
-//   createdBy: one(users, {
-//     fields: [oldBills.createdBy],
-//     references: [users.id],
-//   }),
-// }));
 
 // export const budgetsRelations = relations(budgets, ({ one }) => ({
 //   building: one(buildings, {

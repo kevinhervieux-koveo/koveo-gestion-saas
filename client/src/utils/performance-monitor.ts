@@ -167,12 +167,11 @@ class PerformanceMonitor {
       // Observe long tasks
       const longTaskObserver = new PerformanceObserver((list) => {
         for (const entry of list.getEntries()) {
-          console.log('Long task detected:', entry.duration);
         }
       });
       longTaskObserver.observe({ entryTypes: ['longtask'] });
     } catch (error) {
-      console.warn('Performance observer setup failed:', error);
+      // Performance observer setup failed - silent fail
     }
   }
 }
@@ -211,14 +210,6 @@ export function usePerformanceTracking(componentName: string): void {
 export function analyzePerformance(): void {
   const metrics = performanceMonitor.getMetrics();
 
-  console.log(
-    'DOM Content Loaded:',
-    metrics.domContentLoaded ? `${metrics.domContentLoaded}ms` : 'N/A'
-  );
-  console.log(
-    'First Contentful Paint:',
-    metrics.firstContentfulPaint ? `${metrics.firstContentfulPaint}ms` : 'N/A'
-  );
 
   if (metrics.componentLoadTimes) {
     Object.entries(metrics.componentLoadTimes).forEach(([name, time]) => {

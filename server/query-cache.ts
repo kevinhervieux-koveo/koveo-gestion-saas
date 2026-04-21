@@ -287,6 +287,9 @@ export class CacheInvalidator {
     // Invalidate aggregated user queries that include this user
     queryCache.invalidate('users', 'all_users');
     queryCache.invalidate('users', 'all_users_assignments*');
+    
+    // CRITICAL FIX: Invalidate paginated user queries
+    queryCache.invalidate('users', 'paginated_users_*');
   }
 
   /**

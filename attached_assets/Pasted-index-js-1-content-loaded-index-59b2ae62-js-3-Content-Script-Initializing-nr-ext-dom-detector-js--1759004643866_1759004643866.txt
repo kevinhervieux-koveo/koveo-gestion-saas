@@ -1,0 +1,99 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+index-CzNs62YG.js:48 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-CzNs62YG.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-CzNs62YG.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+withHierarchicalSelection-Dm5Co6vk.js:1 🏢 [withHierarchicalSelection] Fetching buildings...
+withHierarchicalSelection-Dm5Co6vk.js:1 🌐 [withHierarchicalSelection] Requesting buildings: /api/organizations/e9bb7862-4ba5-4822-848f-f3692e826e73/buildings
+index-CzNs62YG.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-CzNs62YG.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+withHierarchicalSelection-Dm5Co6vk.js:1 📊 [withHierarchicalSelection] Received 5 buildings from API
+withHierarchicalSelection-Dm5Co6vk.js:1 ✅ [withHierarchicalSelection] Returning all 5 buildings (non-residence page)
+index-CzNs62YG.js:48 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-CzNs62YG.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CzNs62YG.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CzNs62YG.js:48 📁 [PROJECTS UI] Projects table collapsible toggled: true
+index-CzNs62YG.js:48 📁 [PROJECTS STATE] Projects table section toggled {expanded: true}
+index-CzNs62YG.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CzNs62YG.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CzNs62YG.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: []
+index-CzNs62YG.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 0
+index-CzNs62YG.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Raw response from backend: {success: true, data: Array(4)}
+index-CzNs62YG.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Response structure: (2) ['success', 'data']
+index-CzNs62YG.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects found in data property: 4
+index-CzNs62YG.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-CzNs62YG.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 4
+index-CzNs62YG.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-CzNs62YG.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+index-CzNs62YG.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (4) [{…}, {…}, {…}, {…}]
+index-CzNs62YG.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+index-C7yi-xDp.js:185 [Violation] 'setTimeout' handler took 165ms
+index-CzNs62YG.js:48 📁 [PROJECTS ACTION] handleViewProject called: {projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470', projectTitle: 'window changes'}
+index-CzNs62YG.js:48 📁 [PROJECTS STATE] Project workflow modal opened
+index-CzNs62YG.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CzNs62YG.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+useProjectWorkflow-DuESTm4O.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-DuESTm4O.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-DuESTm4O.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DuESTm4O.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DuESTm4O.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'post_work', nextStatus: 'completed', canAdvance: true, skipFlags: {…}, …}
+ProjectWorkflowModal-BEzTGO9O.js:1 🔍 [MODAL] renderTabContent: {activeTab: '', hasWorkflowState: true, workflowData: {…}}
+ProjectWorkflowModal-BEzTGO9O.js:1 🔍 [MODAL] No content because: {hasWorkflowState: true, activeTab: ''}
+ProjectWorkflowModal-BEzTGO9O.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'post_work', hasWorkflowState: true, workflowData: {…}}
+ProjectWorkflowModal-BEzTGO9O.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+ProjectWorkflowModal-BEzTGO9O.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'pre_work', hasWorkflowState: true, workflowData: {…}}
+index-C7yi-xDp.js:136 Error: Maximum update depth exceeded. This can happen when a component repeatedly calls setState inside componentWillUpdate or componentDidUpdate. React limits the number of nested updates to prevent infinite loops.
+    at Cs (index-C7yi-xDp.js:83:16795)
+    at Bu (index-C7yi-xDp.js:83:16313)
+    at ol (index-C7yi-xDp.js:120:18325)
+    at $p (index-C7yi-xDp.js:120:17921)
+    at xo (vendor-ui-B9Lwe8V-.js:14:1708)
+    at vendor-ui-B9Lwe8V-.js:14:1800
+    at Array.map (<anonymous>)
+    at vendor-ui-B9Lwe8V-.js:14:1784
+    at xo (vendor-ui-B9Lwe8V-.js:14:1708)
+    at vendor-ui-B9Lwe8V-.js:14:1800
+
+The above error occurred in the <button> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, gx.
+
+overrideMethod @ hook.js:608
+oh @ index-C7yi-xDp.js:136
+lh @ index-C7yi-xDp.js:141
+q @ index-C7yi-xDp.js:45
+l.componentDidCatch.e.callback @ index-C7yi-xDp.js:141
+Dp @ index-C7yi-xDp.js:107
+Ep @ index-C7yi-xDp.js:107
+q @ index-C7yi-xDp.js:45
+Dh @ index-C7yi-xDp.js:163
+Nh @ index-C7yi-xDp.js:163
+Qn @ index-C7yi-xDp.js:163
+Nh @ index-C7yi-xDp.js:163
+Qn @ index-C7yi-xDp.js:163
+Nh @ index-C7yi-xDp.js:163
+Qn @ index-C7yi-xDp.js:163
+Nh @ index-C7yi-xDp.js:163
+Qn @ index-C7yi-xDp.js:163
+Nh @ index-C7yi-xDp.js:163
+Qn @ index-C7yi-xDp.js:163
+Nh @ index-C7yi-xDp.js:163
+Qn @ index-C7yi-xDp.js:163
+Nh @ index-C7yi-xDp.js:163
+ng @ index-C7yi-xDp.js:163
+ed @ index-C7yi-xDp.js:163
+Xh @ index-C7yi-xDp.js:163
+Ih @ index-C7yi-xDp.js:163
+mg @ index-C7yi-xDp.js:185
+ml @ index-C7yi-xDp.js:185
+jo @ index-C7yi-xDp.js:163
+Gm @ index-C7yi-xDp.js:83
+rd @ index-C7yi-xDp.js:185
+Ad @ index-C7yi-xDp.js:194
+L1 @ index-C7yi-xDp.js:194
+[Violation] 'input' handler took 380ms

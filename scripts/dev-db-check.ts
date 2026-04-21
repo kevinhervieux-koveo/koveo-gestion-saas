@@ -4,7 +4,7 @@
  * Fast validation for development workflow
  */
 
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import chalk from 'chalk';
 
 const DEV_DB = process.env.DATABASE_URL;
@@ -29,12 +29,24 @@ class DevDatabaseChecker {
   }
 
   private execQuery(db: string, query: string): string {
+    // Validate database URL format to prevent injection
+    if (!db || typeof db !== 'string' || !db.startsWith('postgres')) {
+      throw new Error('Invalid database URL format');
+    }
+    
     try {
-      return execSync(`psql "${db}" -t -c "${query}"`, { 
+      // Use execFileSync with argument array to prevent command injection
+      // This is much safer than string concatenation
+      const result = execFileSync('psql', [
+        '--dbname', db,
+        '--tuples-only',
+        '--command', query
+      ], { 
         encoding: 'utf8',
         stdio: 'pipe'
-      }).trim();
-    } catch (error) {
+      });
+      return result.toString().trim();
+    } catch (error: any) {
       throw new Error(`Query failed: ${error.message}`);
     }
   }

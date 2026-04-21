@@ -1,0 +1,39 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+common-spaces-stats-D-cZHnEJ.js:11 🔍 [COMMON_SPACES_STATS] Component mounted {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f'}
+common-spaces-stats-D-cZHnEJ.js:11 🔍 [COMMON_SPACES_STATS] Context changed: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f'}
+common-spaces-stats-D-cZHnEJ.js:11 🔍 [COMMON_SPACES_STATS] Selected space changed: {selectedSpaceId: ''}
+common-spaces-stats-D-cZHnEJ.js:11 🔍 [COMMON_SPACES_STATS] Fetching buildings with params: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+common-spaces-stats-D-cZHnEJ.js:11 🔍 [COMMON_SPACES_STATS] Fetching common spaces for building: {buildingId: '18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f'}
+common-spaces-stats-D-cZHnEJ.js:11 🔍 [COMMON_SPACES_STATS] Received common spaces: {count: 8}
+common-spaces-stats-D-cZHnEJ.js:11 🔍 [COMMON_SPACES_STATS] Received buildings: {count: 2}
+common-spaces-stats-D-cZHnEJ.js:11 🔍 [COMMON_SPACES_STATS] Selected space changed: {selectedSpaceId: '639d3c7b-aa50-4322-ad7f-0fb23b502ae2'}
+index-BOPvM2GV.js:185 [Violation] 'setTimeout' handler took 88ms
+nr-ext-text-processor.js:1 Uncaught TypeError: Cannot read properties of null (reading 'nodeName')
+    at nr-ext-text-processor.js:1:9844
+    at Array.filter (<anonymous>)
+    at getSelectedNodes (nr-ext-text-processor.js:1:9825)
+    at nr-ext-dom-detector.js:1:4341
+    at r (nr-ext-dom-detector.js:1:4612)
+    at nr-ext-dom-detector.js:1:2055
+(anonymous) @ nr-ext-text-processor.js:1
+getSelectedNodes @ nr-ext-text-processor.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+r @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+setTimeout
+(anonymous) @ nr-ext-dom-detector.js:1
+nr-ext-text-processor.js:1 Uncaught TypeError: Cannot read properties of null (reading 'nodeName')
+    at nr-ext-text-processor.js:1:9844
+    at Array.filter (<anonymous>)
+    at getSelectedNodes (nr-ext-text-processor.js:1:9825)
+    at nr-ext-dom-detector.js:1:4341
+    at r (nr-ext-dom-detector.js:1:4612)
+    at nr-ext-dom-detector.js:1:2055
+(anonymous) @ nr-ext-text-processor.js:1
+getSelectedNodes @ nr-ext-text-processor.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+r @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+setTimeout
+(anonymous) @ nr-ext-dom-detector.js:1

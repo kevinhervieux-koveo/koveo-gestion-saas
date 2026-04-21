@@ -1,0 +1,638 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+index-D5pVsllp.js:48 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-D5pVsllp.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-D5pVsllp.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+withHierarchicalSelection-mkUc_yBD.js:1 🏢 [withHierarchicalSelection] Fetching buildings...
+withHierarchicalSelection-mkUc_yBD.js:1 🌐 [withHierarchicalSelection] Requesting buildings: /api/organizations/e9bb7862-4ba5-4822-848f-f3692e826e73/buildings
+index-D5pVsllp.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-D5pVsllp.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+withHierarchicalSelection-mkUc_yBD.js:1 📊 [withHierarchicalSelection] Received 5 buildings from API
+withHierarchicalSelection-mkUc_yBD.js:1 ✅ [withHierarchicalSelection] Returning all 5 buildings (non-residence page)
+index-D5pVsllp.js:48 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-D5pVsllp.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-D5pVsllp.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-D5pVsllp.js:48 📁 [PROJECTS UI] Projects table collapsible toggled: true
+index-D5pVsllp.js:48 📁 [PROJECTS STATE] Projects table section toggled {expanded: true}
+index-D5pVsllp.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-D5pVsllp.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-D5pVsllp.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: []
+index-D5pVsllp.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 0
+index-D5pVsllp.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Raw response from backend: {success: true, data: Array(3)}
+index-D5pVsllp.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Response structure: (2) ['success', 'data']
+index-D5pVsllp.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects found in data property: 3
+index-D5pVsllp.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-D5pVsllp.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 3
+index-D5pVsllp.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-D5pVsllp.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+index-D5pVsllp.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-D5pVsllp.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+index-7_ISn7dX.js:185 [Violation] 'setTimeout' handler took 89ms
+index-D5pVsllp.js:48 📁 [PROJECTS ACTION] handleViewProject called: {projectId: '400e859d-1d21-49c3-a6c9-34d7175739b0', projectTitle: 'Porte extérieurs'}
+index-D5pVsllp.js:48 📁 [PROJECTS STATE] Project workflow modal opened
+index-D5pVsllp.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-D5pVsllp.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+useProjectWorkflow-DAUoPv16.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: 400e859d-1d21-49c3-a6c9-34d7175739b0
+useProjectWorkflow-DAUoPv16.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/400e859d-1d21-49c3-a6c9-34d7175739b0/workflow
+useProjectWorkflow-DAUoPv16.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-DAUoPv16.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-DAUoPv16.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'submission', nextStatus: 'pre_work', canAdvance: true, skipFlags: {…}, …}
+ProjectWorkflowModal-Cm7Yxeux.js:1 🔍 [MODAL] renderTabContent: {activeTab: '', hasWorkflowState: true, workflowData: {…}}
+ProjectWorkflowModal-Cm7Yxeux.js:1 🔍 [MODAL] No content because: {hasWorkflowState: true, activeTab: ''}
+ProjectWorkflowModal-Cm7Yxeux.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'submission', hasWorkflowState: true, workflowData: {…}}
+vendor-ui-B9Lwe8V-.js:58 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+overrideMethod @ hook.js:608
+(anonymous) @ vendor-ui-B9Lwe8V-.js:58
+react_stack_bottom_frame @ index-7_ISn7dX.js:229
+q @ index-7_ISn7dX.js:45
+sl @ index-7_ISn7dX.js:150
+Ah @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+En @ index-7_ISn7dX.js:163
+Bh @ index-7_ISn7dX.js:163
+ig @ index-7_ISn7dX.js:163
+dl @ index-7_ISn7dX.js:163
+ag @ index-7_ISn7dX.js:163
+ed @ index-7_ISn7dX.js:163
+Xh @ index-7_ISn7dX.js:163
+<jd>
+Je.jsx @ vendor-ui-B9Lwe8V-.js:14
+(anonymous) @ vendor-ui-B9Lwe8V-.js:54
+react_stack_bottom_frame @ index-7_ISn7dX.js:229
+oc @ index-7_ISn7dX.js:120
+sh @ index-7_ISn7dX.js:141
+Pc @ index-7_ISn7dX.js:150
+q @ index-7_ISn7dX.js:45
+Kh @ index-7_ISn7dX.js:163
+Jh @ index-7_ISn7dX.js:163
+Wc @ index-7_ISn7dX.js:163
+Ih @ index-7_ISn7dX.js:163
+mg @ index-7_ISn7dX.js:185
+ml @ index-7_ISn7dX.js:185
+ad @ index-7_ISn7dX.js:185
+(anonymous) @ index-7_ISn7dX.js:185
+<ForwardRef>
+Je.jsx @ vendor-ui-B9Lwe8V-.js:14
+(anonymous) @ vendor-ui-B9Lwe8V-.js:54
+react_stack_bottom_frame @ index-7_ISn7dX.js:229
+oc @ index-7_ISn7dX.js:120
+sh @ index-7_ISn7dX.js:141
+Pc @ index-7_ISn7dX.js:150
+q @ index-7_ISn7dX.js:45
+Kh @ index-7_ISn7dX.js:163
+Jh @ index-7_ISn7dX.js:163
+Wc @ index-7_ISn7dX.js:163
+Ih @ index-7_ISn7dX.js:163
+mg @ index-7_ISn7dX.js:185
+ml @ index-7_ISn7dX.js:185
+ad @ index-7_ISn7dX.js:185
+(anonymous) @ index-7_ISn7dX.js:185
+<ForwardRef>
+Je.jsx @ vendor-ui-B9Lwe8V-.js:14
+DialogContent @ vendor-ui-B9Lwe8V-.js:54
+react_stack_bottom_frame @ index-7_ISn7dX.js:229
+oc @ index-7_ISn7dX.js:120
+sh @ index-7_ISn7dX.js:141
+Pc @ index-7_ISn7dX.js:150
+q @ index-7_ISn7dX.js:45
+Kh @ index-7_ISn7dX.js:163
+Jh @ index-7_ISn7dX.js:163
+Wc @ index-7_ISn7dX.js:163
+Ih @ index-7_ISn7dX.js:163
+mg @ index-7_ISn7dX.js:185
+ml @ index-7_ISn7dX.js:185
+ad @ index-7_ISn7dX.js:185
+(anonymous) @ index-7_ISn7dX.js:185
+<DialogContent>
+du.jsxDEV @ index-7_ISn7dX.js:15
+DialogContent @ dialog-B6q5CywD.js:1
+react_stack_bottom_frame @ index-7_ISn7dX.js:229
+oc @ index-7_ISn7dX.js:120
+sh @ index-7_ISn7dX.js:141
+Pc @ index-7_ISn7dX.js:150
+q @ index-7_ISn7dX.js:45
+Kh @ index-7_ISn7dX.js:163
+Jh @ index-7_ISn7dX.js:163
+Wc @ index-7_ISn7dX.js:163
+Ih @ index-7_ISn7dX.js:163
+mg @ index-7_ISn7dX.js:185
+ml @ index-7_ISn7dX.js:185
+ad @ index-7_ISn7dX.js:185
+(anonymous) @ index-7_ISn7dX.js:185
+<DialogContent>
+du.jsxDEV @ index-7_ISn7dX.js:15
+Qo @ SubmissionTab-DDCEShO7.js:6
+react_stack_bottom_frame @ index-7_ISn7dX.js:229
+oc @ index-7_ISn7dX.js:120
+kc @ index-7_ISn7dX.js:141
+Pc @ index-7_ISn7dX.js:150
+q @ index-7_ISn7dX.js:45
+Kh @ index-7_ISn7dX.js:163
+WS @ index-7_ISn7dX.js:163
+KS @ index-7_ISn7dX.js:163
+Ih @ index-7_ISn7dX.js:163
+fg @ index-7_ISn7dX.js:185
+d @ index-7_ISn7dX.js:23
+<...>
+du.jsxDEV @ index-7_ISn7dX.js:15
+Um @ index-D5pVsllp.js:48
+react_stack_bottom_frame @ index-7_ISn7dX.js:229
+oc @ index-7_ISn7dX.js:120
+kc @ index-7_ISn7dX.js:141
+Pc @ index-7_ISn7dX.js:150
+q @ index-7_ISn7dX.js:45
+Kh @ index-7_ISn7dX.js:163
+Jh @ index-7_ISn7dX.js:163
+Wc @ index-7_ISn7dX.js:163
+Ih @ index-7_ISn7dX.js:163
+mg @ index-7_ISn7dX.js:185
+ml @ index-7_ISn7dX.js:185
+ad @ index-7_ISn7dX.js:185
+(anonymous) @ index-7_ISn7dX.js:185
+<Um>
+du.jsxDEV @ index-7_ISn7dX.js:15
+d @ ProjectWorkflowModal-Cm7Yxeux.js:1
+yo @ ProjectWorkflowModal-Cm7Yxeux.js:1
+react_stack_bottom_frame @ index-7_ISn7dX.js:229
+oc @ index-7_ISn7dX.js:120
+kc @ index-7_ISn7dX.js:141
+Pc @ index-7_ISn7dX.js:150
+q @ index-7_ISn7dX.js:45
+Kh @ index-7_ISn7dX.js:163
+Jh @ index-7_ISn7dX.js:163
+Wc @ index-7_ISn7dX.js:163
+Ih @ index-7_ISn7dX.js:163
+mg @ index-7_ISn7dX.js:185
+ml @ index-7_ISn7dX.js:185
+ad @ index-7_ISn7dX.js:185
+(anonymous) @ index-7_ISn7dX.js:185
+<...>
+du.jsxDEV @ index-7_ISn7dX.js:15
+El @ index-D5pVsllp.js:48
+react_stack_bottom_frame @ index-7_ISn7dX.js:229
+oc @ index-7_ISn7dX.js:120
+kc @ index-7_ISn7dX.js:141
+Pc @ index-7_ISn7dX.js:150
+q @ index-7_ISn7dX.js:45
+Kh @ index-7_ISn7dX.js:163
+Jh @ index-7_ISn7dX.js:163
+Wc @ index-7_ISn7dX.js:163
+Ih @ index-7_ISn7dX.js:163
+mg @ index-7_ISn7dX.js:185
+ml @ index-7_ISn7dX.js:185
+ad @ index-7_ISn7dX.js:185
+(anonymous) @ index-7_ISn7dX.js:185
+<El>
+du.jsxDEV @ index-7_ISn7dX.js:15
+Pl @ index-D5pVsllp.js:48
+react_stack_bottom_frame @ index-7_ISn7dX.js:229
+oc @ index-7_ISn7dX.js:120
+kc @ index-7_ISn7dX.js:141
+Pc @ index-7_ISn7dX.js:150
+q @ index-7_ISn7dX.js:45
+Kh @ index-7_ISn7dX.js:163
+Jh @ index-7_ISn7dX.js:163
+Wc @ index-7_ISn7dX.js:163
+Ih @ index-7_ISn7dX.js:163
+mg @ index-7_ISn7dX.js:185
+ml @ index-7_ISn7dX.js:185
+ad @ index-7_ISn7dX.js:185
+(anonymous) @ index-7_ISn7dX.js:185
+SubmissionTab-DDCEShO7.js:6  DELETE https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/maintenance/documents/4762e69b-0324-4a3c-8ef9-1d0577b5dd90 404 (Not Found)
+En @ SubmissionTab-DDCEShO7.js:6
+onClick @ StandardDocumentAttachments-Ch9FZ_YT.js:1
+lr @ index-7_ISn7dX.js:185
+q @ index-7_ISn7dX.js:45
+yg @ index-7_ISn7dX.js:185
+(anonymous) @ index-7_ISn7dX.js:185
+Gm @ index-7_ISn7dX.js:83
+rd @ index-7_ISn7dX.js:185
+Ad @ index-7_ISn7dX.js:194
+L1 @ index-7_ISn7dX.js:194
+<button>
+du.jsxDEV @ index-7_ISn7dX.js:15
+Button @ index-7_ISn7dX.js:380
+react_stack_bottom_frame @ index-7_ISn7dX.js:229
+oc @ index-7_ISn7dX.js:120
+sh @ index-7_ISn7dX.js:141
+Pc @ index-7_ISn7dX.js:150
+q @ index-7_ISn7dX.js:45
+Kh @ index-7_ISn7dX.js:163
+Jh @ index-7_ISn7dX.js:163
+Wc @ index-7_ISn7dX.js:163
+Ih @ index-7_ISn7dX.js:163
+mg @ index-7_ISn7dX.js:185
+ml @ index-7_ISn7dX.js:185
+ad @ index-7_ISn7dX.js:185
+(anonymous) @ index-7_ISn7dX.js:185
+<Button>
+du.jsxDEV @ index-7_ISn7dX.js:15
+(anonymous) @ StandardDocumentAttachments-Ch9FZ_YT.js:1
+Ne @ StandardDocumentAttachments-Ch9FZ_YT.js:1
+react_stack_bottom_frame @ index-7_ISn7dX.js:229
+oc @ index-7_ISn7dX.js:120
+kc @ index-7_ISn7dX.js:141
+Pc @ index-7_ISn7dX.js:150
+q @ index-7_ISn7dX.js:45
+Kh @ index-7_ISn7dX.js:163
+Jh @ index-7_ISn7dX.js:163
+Wc @ index-7_ISn7dX.js:163
+Ih @ index-7_ISn7dX.js:163
+mg @ index-7_ISn7dX.js:185
+ml @ index-7_ISn7dX.js:185
+ad @ index-7_ISn7dX.js:185
+(anonymous) @ index-7_ISn7dX.js:185
+<Ne>
+du.jsxDEV @ index-7_ISn7dX.js:15
+Qo @ SubmissionTab-DDCEShO7.js:6
+react_stack_bottom_frame @ index-7_ISn7dX.js:229
+oc @ index-7_ISn7dX.js:120
+kc @ index-7_ISn7dX.js:141
+Pc @ index-7_ISn7dX.js:150
+q @ index-7_ISn7dX.js:45
+Kh @ index-7_ISn7dX.js:163
+Jh @ index-7_ISn7dX.js:163
+Wc @ index-7_ISn7dX.js:163
+Ih @ index-7_ISn7dX.js:163
+mg @ index-7_ISn7dX.js:185
+ml @ index-7_ISn7dX.js:185
+ad @ index-7_ISn7dX.js:185
+(anonymous) @ index-7_ISn7dX.js:185
+<...>
+du.jsxDEV @ index-7_ISn7dX.js:15
+Um @ index-D5pVsllp.js:48
+react_stack_bottom_frame @ index-7_ISn7dX.js:229
+oc @ index-7_ISn7dX.js:120
+kc @ index-7_ISn7dX.js:141
+Pc @ index-7_ISn7dX.js:150
+q @ index-7_ISn7dX.js:45
+Kh @ index-7_ISn7dX.js:163
+Jh @ index-7_ISn7dX.js:163
+Wc @ index-7_ISn7dX.js:163
+Ih @ index-7_ISn7dX.js:163
+mg @ index-7_ISn7dX.js:185
+ml @ index-7_ISn7dX.js:185
+ad @ index-7_ISn7dX.js:185
+(anonymous) @ index-7_ISn7dX.js:185
+<Um>
+du.jsxDEV @ index-7_ISn7dX.js:15
+d @ ProjectWorkflowModal-Cm7Yxeux.js:1
+yo @ ProjectWorkflowModal-Cm7Yxeux.js:1
+react_stack_bottom_frame @ index-7_ISn7dX.js:229
+oc @ index-7_ISn7dX.js:120
+kc @ index-7_ISn7dX.js:141
+Pc @ index-7_ISn7dX.js:150
+q @ index-7_ISn7dX.js:45
+Kh @ index-7_ISn7dX.js:163
+Jh @ index-7_ISn7dX.js:163
+Wc @ index-7_ISn7dX.js:163
+Ih @ index-7_ISn7dX.js:163
+mg @ index-7_ISn7dX.js:185
+ml @ index-7_ISn7dX.js:185
+ad @ index-7_ISn7dX.js:185
+(anonymous) @ index-7_ISn7dX.js:185
+<...>
+du.jsxDEV @ index-7_ISn7dX.js:15
+El @ index-D5pVsllp.js:48
+react_stack_bottom_frame @ index-7_ISn7dX.js:229
+oc @ index-7_ISn7dX.js:120
+kc @ index-7_ISn7dX.js:141
+Pc @ index-7_ISn7dX.js:150
+q @ index-7_ISn7dX.js:45
+Kh @ index-7_ISn7dX.js:163
+Jh @ index-7_ISn7dX.js:163
+Wc @ index-7_ISn7dX.js:163
+Ih @ index-7_ISn7dX.js:163
+mg @ index-7_ISn7dX.js:185
+ml @ index-7_ISn7dX.js:185
+ad @ index-7_ISn7dX.js:185
+(anonymous) @ index-7_ISn7dX.js:185
+<El>
+du.jsxDEV @ index-7_ISn7dX.js:15
+Pl @ index-D5pVsllp.js:48
+react_stack_bottom_frame @ index-7_ISn7dX.js:229
+oc @ index-7_ISn7dX.js:120
+kc @ index-7_ISn7dX.js:141
+Pc @ index-7_ISn7dX.js:150
+q @ index-7_ISn7dX.js:45
+Kh @ index-7_ISn7dX.js:163
+Jh @ index-7_ISn7dX.js:163
+Wc @ index-7_ISn7dX.js:163
+Ih @ index-7_ISn7dX.js:163
+mg @ index-7_ISn7dX.js:185
+ml @ index-7_ISn7dX.js:185
+ad @ index-7_ISn7dX.js:185
+(anonymous) @ index-7_ISn7dX.js:185
+SubmissionTab-DDCEShO7.js:6 Failed to delete document from server
+overrideMethod @ hook.js:608
+En @ SubmissionTab-DDCEShO7.js:6
+await in En
+onClick @ StandardDocumentAttachments-Ch9FZ_YT.js:1
+lr @ index-7_ISn7dX.js:185
+q @ index-7_ISn7dX.js:45
+yg @ index-7_ISn7dX.js:185
+(anonymous) @ index-7_ISn7dX.js:185
+Gm @ index-7_ISn7dX.js:83
+rd @ index-7_ISn7dX.js:185
+Ad @ index-7_ISn7dX.js:194
+L1 @ index-7_ISn7dX.js:194
+<button>
+du.jsxDEV @ index-7_ISn7dX.js:15
+Button @ index-7_ISn7dX.js:380
+react_stack_bottom_frame @ index-7_ISn7dX.js:229
+oc @ index-7_ISn7dX.js:120
+sh @ index-7_ISn7dX.js:141
+Pc @ index-7_ISn7dX.js:150
+q @ index-7_ISn7dX.js:45
+Kh @ index-7_ISn7dX.js:163
+Jh @ index-7_ISn7dX.js:163
+Wc @ index-7_ISn7dX.js:163
+Ih @ index-7_ISn7dX.js:163
+mg @ index-7_ISn7dX.js:185
+ml @ index-7_ISn7dX.js:185
+ad @ index-7_ISn7dX.js:185
+(anonymous) @ index-7_ISn7dX.js:185
+<Button>
+du.jsxDEV @ index-7_ISn7dX.js:15
+(anonymous) @ StandardDocumentAttachments-Ch9FZ_YT.js:1
+Ne @ StandardDocumentAttachments-Ch9FZ_YT.js:1
+react_stack_bottom_frame @ index-7_ISn7dX.js:229
+oc @ index-7_ISn7dX.js:120
+kc @ index-7_ISn7dX.js:141
+Pc @ index-7_ISn7dX.js:150
+q @ index-7_ISn7dX.js:45
+Kh @ index-7_ISn7dX.js:163
+Jh @ index-7_ISn7dX.js:163
+Wc @ index-7_ISn7dX.js:163
+Ih @ index-7_ISn7dX.js:163
+mg @ index-7_ISn7dX.js:185
+ml @ index-7_ISn7dX.js:185
+ad @ index-7_ISn7dX.js:185
+(anonymous) @ index-7_ISn7dX.js:185
+<Ne>
+du.jsxDEV @ index-7_ISn7dX.js:15
+Qo @ SubmissionTab-DDCEShO7.js:6
+react_stack_bottom_frame @ index-7_ISn7dX.js:229
+oc @ index-7_ISn7dX.js:120
+kc @ index-7_ISn7dX.js:141
+Pc @ index-7_ISn7dX.js:150
+q @ index-7_ISn7dX.js:45
+Kh @ index-7_ISn7dX.js:163
+Jh @ index-7_ISn7dX.js:163
+Wc @ index-7_ISn7dX.js:163
+Ih @ index-7_ISn7dX.js:163
+mg @ index-7_ISn7dX.js:185
+ml @ index-7_ISn7dX.js:185
+ad @ index-7_ISn7dX.js:185
+(anonymous) @ index-7_ISn7dX.js:185
+<...>
+du.jsxDEV @ index-7_ISn7dX.js:15
+Um @ index-D5pVsllp.js:48
+react_stack_bottom_frame @ index-7_ISn7dX.js:229
+oc @ index-7_ISn7dX.js:120
+kc @ index-7_ISn7dX.js:141
+Pc @ index-7_ISn7dX.js:150
+q @ index-7_ISn7dX.js:45
+Kh @ index-7_ISn7dX.js:163
+Jh @ index-7_ISn7dX.js:163
+Wc @ index-7_ISn7dX.js:163
+Ih @ index-7_ISn7dX.js:163
+mg @ index-7_ISn7dX.js:185
+ml @ index-7_ISn7dX.js:185
+ad @ index-7_ISn7dX.js:185
+(anonymous) @ index-7_ISn7dX.js:185
+<Um>
+du.jsxDEV @ index-7_ISn7dX.js:15
+d @ ProjectWorkflowModal-Cm7Yxeux.js:1
+yo @ ProjectWorkflowModal-Cm7Yxeux.js:1
+react_stack_bottom_frame @ index-7_ISn7dX.js:229
+oc @ index-7_ISn7dX.js:120
+kc @ index-7_ISn7dX.js:141
+Pc @ index-7_ISn7dX.js:150
+q @ index-7_ISn7dX.js:45
+Kh @ index-7_ISn7dX.js:163
+Jh @ index-7_ISn7dX.js:163
+Wc @ index-7_ISn7dX.js:163
+Ih @ index-7_ISn7dX.js:163
+mg @ index-7_ISn7dX.js:185
+ml @ index-7_ISn7dX.js:185
+ad @ index-7_ISn7dX.js:185
+(anonymous) @ index-7_ISn7dX.js:185
+<...>
+du.jsxDEV @ index-7_ISn7dX.js:15
+El @ index-D5pVsllp.js:48
+react_stack_bottom_frame @ index-7_ISn7dX.js:229
+oc @ index-7_ISn7dX.js:120
+kc @ index-7_ISn7dX.js:141
+Pc @ index-7_ISn7dX.js:150
+q @ index-7_ISn7dX.js:45
+Kh @ index-7_ISn7dX.js:163
+Jh @ index-7_ISn7dX.js:163
+Wc @ index-7_ISn7dX.js:163
+Ih @ index-7_ISn7dX.js:163
+mg @ index-7_ISn7dX.js:185
+ml @ index-7_ISn7dX.js:185
+ad @ index-7_ISn7dX.js:185
+(anonymous) @ index-7_ISn7dX.js:185
+<El>
+du.jsxDEV @ index-7_ISn7dX.js:15
+Pl @ index-D5pVsllp.js:48
+react_stack_bottom_frame @ index-7_ISn7dX.js:229
+oc @ index-7_ISn7dX.js:120
+kc @ index-7_ISn7dX.js:141
+Pc @ index-7_ISn7dX.js:150
+q @ index-7_ISn7dX.js:45
+Kh @ index-7_ISn7dX.js:163
+Jh @ index-7_ISn7dX.js:163
+Wc @ index-7_ISn7dX.js:163
+Ih @ index-7_ISn7dX.js:163
+mg @ index-7_ISn7dX.js:185
+ml @ index-7_ISn7dX.js:185
+ad @ index-7_ISn7dX.js:185
+(anonymous) @ index-7_ISn7dX.js:185

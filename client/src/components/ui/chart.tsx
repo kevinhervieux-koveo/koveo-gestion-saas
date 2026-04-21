@@ -53,7 +53,7 @@ useChart() {
    * @param !context - !context parameter.
    */
 
-  if (!_context) {
+  if (!context) {
     throw new Error('useChart must be used within a <ChartContainer />');
   }
 
@@ -89,39 +89,56 @@ const ChartContainer = React.forwardRef<
 });
 ChartContainer.displayName = 'Chart';
 
+/**
+ * Sanitizes CSS color values to prevent injection attacks
+ * Only allows valid CSS color formats: hex, rgb, rgba, hsl, hsla, and named colors
+ */
+const sanitizeCssColor = (color: string): string | null => {
+  if (!color || typeof color !== 'string') return null;
+  
+  // Remove any potential dangerous characters
+  const cleaned = color.trim().replace(/[<>;"'\\]/g, '');
+  
+  // Validate color format (hex, rgb, rgba, hsl, hsla, or named color)
+  const validColorRegex = /^(#[0-9a-fA-F]{3,8}|rgb\([0-9\s,]+\)|rgba\([0-9\s,.]+\)|hsl\([0-9\s,%]+\)|hsla\([0-9\s,%.]+\)|[a-zA-Z]+)$/;
+  
+  if (validColorRegex.test(cleaned)) {
+    return cleaned;
+  }
+  
+  return null;
+};
+
 const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
   const colorConfig = Object.entries(config).filter(
     ([, config]) => config.theme || config.color
-  ); /**
-   * If function.
-   * @param !colorConfig.length - !colorConfig.length parameter.
-   */ /**
-   * If function.
-   * @param !colorConfig.length - !colorConfig.length parameter.
-   */
+  );
 
   if (!colorConfig.length) {
     return null;
   }
 
+  // Generate CSS custom properties safely using React.CSSProperties
+  const cssCustomProperties: React.CSSProperties = {};
+  
+  colorConfig.forEach(([key, itemConfig]) => {
+    // Process colors for each theme
+    Object.entries(THEMES).forEach(([theme]) => {
+      const color = itemConfig.theme?.[theme as keyof typeof itemConfig.theme] || itemConfig.color;
+      if (color) {
+        const sanitizedColor = sanitizeCssColor(color);
+        if (sanitizedColor) {
+          cssCustomProperties[`--color-${key}` as any] = sanitizedColor;
+        }
+      }
+    });
+  });
+
   return (
-    <style
-      dangerouslySetInnerHTML={{
-        __html: Object.entries(THEMES)
-          .map(
-            ([theme, prefix]) => `
-${prefix} [data-chart=${id}] {
-${colorConfig
-  .map(([key, itemConfig]) => {
-    const color = itemConfig.theme?.[theme as keyof typeof itemConfig.theme] || itemConfig.color;
-    return color ? `  --color-${key}: ${color};` : null;
-  })
-  .join('\n')}
-}
-`
-          )
-          .join('\n'),
-      }}
+    <div 
+      data-chart={id} 
+      style={cssCustomProperties}
+      className="chart-styles"
     />
   );
 };
@@ -130,14 +147,20 @@ const ChartTooltip = RechartsPrimitive.Tooltip;
 
 const ChartTooltipContent = React.forwardRef<
   HTMLDivElement,
-  React.ComponentProps<typeof RechartsPrimitive.Tooltip> &
-    React.ComponentProps<'div'> & {
-      hideLabel?: boolean;
-      hideIndicator?: boolean;
-      indicator?: 'line' | 'dot' | 'dashed';
-      nameKey?: string;
-      labelKey?: string;
-    }
+  React.ComponentProps<'div'> & {
+    active?: boolean;
+    payload?: any[];
+    label?: any;
+    hideLabel?: boolean;
+    hideIndicator?: boolean;
+    indicator?: 'line' | 'dot' | 'dashed';
+    nameKey?: string;
+    labelKey?: string;
+    labelFormatter?: (value: any, payload: any[]) => React.ReactNode;
+    formatter?: (value: any, name: any, props: any, index: number, payload: any) => React.ReactNode;
+    color?: string;
+    labelClassName?: string;
+  }
 >(
   (
     {
@@ -174,7 +197,7 @@ const ChartTooltipContent = React.forwardRef<
 
       const [item] = payload;
       const key = `${labelKey || item?.dataKey || item?.name || 'value'}`;
-      const itemConfig = getPayloadConfigFromPayload(config, item, _key);
+      const itemConfig = getPayloadConfigFromPayload(config, item, key);
       const value =
         !labelKey && typeof label === 'string'
           ? config[label as keyof typeof config]?.label || label
@@ -198,7 +221,7 @@ const ChartTooltipContent = React.forwardRef<
        * @param !value - !value parameter.
        */
 
-      if (!_value) {
+      if (!value) {
         return null;
       }
 
@@ -229,7 +252,7 @@ const ChartTooltipContent = React.forwardRef<
         <div className='grid gap-1.5'>
           {payload.map((item, _index) => {
             const key = `${nameKey || item.name || item.dataKey || 'value'}`;
-            const itemConfig = getPayloadConfigFromPayload(config, item, _key);
+            const itemConfig = getPayloadConfigFromPayload(config, item, key);
             const indicatorColor = color || item.payload.fill || item.color;
 
             return (
@@ -241,7 +264,7 @@ const ChartTooltipContent = React.forwardRef<
                 )}
               >
                 {formatter && item?.value !== undefined && item.name ? (
-                  formatter(item.value, item.name, item, index, item.payload)
+                  formatter(item.value, item.name, item, _index, item.payload)
                 ) : (
                   <>
                     {itemConfig?.icon ? (
@@ -302,11 +325,12 @@ const ChartLegend = RechartsPrimitive.Legend;
 
 const ChartLegendContent = React.forwardRef<
   HTMLDivElement,
-  React.ComponentProps<'div'> &
-    Pick<RechartsPrimitive.LegendProps, 'payload' | 'verticalAlign'> & {
-      hideIcon?: boolean;
-      nameKey?: string;
-    }
+  React.ComponentProps<'div'> & {
+    payload?: any[];
+    verticalAlign?: 'top' | 'bottom';
+    hideIcon?: boolean;
+    nameKey?: string;
+  }
 >(({ className, hideIcon = false, payload, verticalAlign = 'bottom', nameKey }, ref) => {
   const { config } = useChart(); /**
    * If function.
@@ -331,7 +355,7 @@ const ChartLegendContent = React.forwardRef<
     >
       {payload.map((item) => {
         const key = `${nameKey || item.dataKey || 'value'}`;
-        const itemConfig = getPayloadConfigFromPayload(config, item, _key);
+        const itemConfig = getPayloadConfigFromPayload(config, item, key);
 
         return (
           <div
@@ -394,7 +418,7 @@ getPayloadConfigFromPayload(config: ChartConfig, payload: unknown, _key: string)
       ? payload.payload
       : undefined;
 
-  let configLabelKey: string = key; /**
+  let configLabelKey: string = _key; /**
    * If function.
    * @param key in payload && typeof payload[key as keyof typeof payload] === 'string' - key in payload && typeof payload[key as keyof typeof payload] === 'string' parameter.
    */ /**
@@ -402,12 +426,12 @@ getPayloadConfigFromPayload(config: ChartConfig, payload: unknown, _key: string)
    * @param key in payload && typeof payload[key as keyof typeof payload] === 'string' - key in payload && typeof payload[key as keyof typeof payload] === 'string' parameter.
    */
 
-  if (key in payload && typeof payload[key as keyof typeof payload] === 'string') {
-    configLabelKey = payload[key as keyof typeof payload] as string;
+  if (_key in payload && typeof payload[_key as keyof typeof payload] === 'string') {
+    configLabelKey = payload[_key as keyof typeof payload] as string;
   } else if (
     payloadPayload &&
-    key in payloadPayload &&
-    typeof payloadPayload[key as keyof typeof payloadPayload] === 'string'
+    _key in payloadPayload &&
+    typeof payloadPayload[_key as keyof typeof payloadPayload] === 'string'
   ) {
     /**
    * If function.
@@ -425,10 +449,10 @@ getPayloadConfigFromPayload(config: ChartConfig, payload: unknown, _key: string)
     typeof payloadPayload[key as keyof typeof payloadPayload] === 'string' parameter.
    */
 
-    configLabelKey = payloadPayload[key as keyof typeof payloadPayload] as string;
+    configLabelKey = payloadPayload[_key as keyof typeof payloadPayload] as string;
   }
 
-  return configLabelKey in config ? config[configLabelKey] : config[key as keyof typeof config];
+  return configLabelKey in config ? config[configLabelKey] : config[_key as keyof typeof config];
 }
 
 export {

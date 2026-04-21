@@ -250,16 +250,16 @@ export const createMockResidentUser = (overrides: Partial<User> = {}): User =>
 export const __mockAuthUtils = {
   setAuthenticatedUser: (user: User | Partial<User> = {}) => {
     // Mock implementation - actual mocking happens in Jest mocks
-    console.log('Setting authenticated user:', user);
+    // Auth state setting handled by Jest mocks
   },
   setUnauthenticated: () => {
-    console.log('Setting unauthenticated state');
+    // Auth state setting handled by Jest mocks
   },
   setLoading: (isLoading = true) => {
-    console.log('Setting loading state:', isLoading);
+    // Loading state setting handled by Jest mocks
   },
   reset: () => {
-    console.log('Resetting auth mock state');
+    // Auth mock state reset handled by Jest mocks
   },
   createMockUser,
   createMockAdminUser,

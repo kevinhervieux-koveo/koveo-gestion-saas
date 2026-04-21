@@ -12,14 +12,14 @@ import {
   numeric,
   date,
   varchar,
+  index,
 } from 'drizzle-orm/pg-core';
-import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
 import { relations } from 'drizzle-orm';
 import { users, organizations } from './core';
 
 // Property enums
-export const buildingTypeEnum = pgEnum('building_type', ['condo', 'appartement']);
+export const buildingTypeEnum = pgEnum('building_type', ['apartment', 'appartement', 'condo', 'rental']);
 
 export const contactEntityEnum = pgEnum('contact_entity', [
   'organization',
@@ -28,11 +28,11 @@ export const contactEntityEnum = pgEnum('contact_entity', [
 ]);
 
 export const contactCategoryEnum = pgEnum('contact_category', [
-  'resident',
-  'manager',
-  'tenant',
-  'maintenance',
   'emergency',
+  'maintenance',
+  'manager',
+  'resident',
+  'tenant',
   'other',
 ]);
 
@@ -44,19 +44,17 @@ export const bookingStatusEnum = pgEnum('booking_status', ['confirmed', 'cancell
  * Each building represents a distinct property managed by an organization.
  */
 export const buildings = pgTable('buildings', {
-  id: varchar('id')
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
+  id: text('id').primaryKey().default(sql`gen_random_uuid()`),
   organizationId: varchar('organization_id')
     .notNull()
     .references(() => organizations.id, { onDelete: 'cascade' }),
-  name: text('name').notNull(),
+  name: varchar('name', { length: 200 }).notNull(),
   address: text('address').notNull(),
-  city: text('city').notNull(),
-  province: text('province').notNull().default('QC'),
-  postalCode: text('postal_code').notNull(),
+  city: varchar('city', { length: 100 }).notNull(),
+  province: varchar('province', { length: 3 }).notNull().default('QC'),
+  postalCode: varchar('postal_code', { length: 10 }).notNull(),
   buildingType: buildingTypeEnum('building_type').notNull(),
-  yearBuilt: integer('year_built'),
+  constructionDate: date('construction_date'),
   totalUnits: integer('total_units').notNull(),
   totalFloors: integer('total_floors'),
   parkingSpaces: integer('parking_spaces'),
@@ -69,24 +67,38 @@ export const buildings = pgTable('buildings', {
   bankAccountStartDate: timestamp('bank_account_start_date'), // Date when account started tracking
   bankAccountStartAmount: numeric('bank_account_start_amount', { precision: 10, scale: 2 }), // Starting balance
   bankAccountMinimums: text('bank_account_minimums'), // JSON string of minimum balance settings
+  unplannedBillsAmount: decimal('unplanned_bills_amount', { precision: 10, scale: 2 }).default('0'), // Monthly unplanned bills budget
+  unplannedBillsStartDate: date('unplanned_bills_start_date'), // Date when unplanned bills budgeting should start
   inflationSettings: text('inflation_settings'), // JSON string of inflation configuration by category
+  financialYearStart: date('financial_year_start'), // Financial year start date (when inflation is applied)
+  generalInflationRate: decimal('general_inflation_rate', { precision: 5, scale: 2 }).notNull().default('2.0'),
+  revenueInflationRate: decimal('revenue_inflation_rate', { precision: 5, scale: 2 }).notNull().default('2.0'),
   isActive: boolean('is_active').notNull().default(true),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  organizationIdIdx: index('buildings_organization_id_idx').on(table.organizationId),
+  buildingTypeIdx: index('buildings_building_type_idx').on(table.buildingType),
+  // Date indexes for range queries
+  constructionDateIdx: index('buildings_construction_date_idx').on(table.constructionDate),
+  bankAccountUpdatedAtIdx: index('buildings_bank_account_updated_at_idx').on(table.bankAccountUpdatedAt),
+  bankAccountStartDateIdx: index('buildings_bank_account_start_date_idx').on(table.bankAccountStartDate),
+  unplannedBillsStartDateIdx: index('buildings_unplanned_bills_start_date_idx').on(table.unplannedBillsStartDate),
+  financialYearStartIdx: index('buildings_financial_year_start_idx').on(table.financialYearStart),
+  createdAtIdx: index('buildings_created_at_idx').on(table.createdAt),
+  updatedAtIdx: index('buildings_updated_at_idx').on(table.updatedAt),
+}));
 
 /**
  * Residences table storing individual housing units within buildings.
  * Represents apartments, condos, or units that can be occupied by tenants.
  */
 export const residences = pgTable('residences', {
-  id: varchar('id')
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
+  id: text('id').primaryKey().default(sql`gen_random_uuid()`),
   buildingId: varchar('building_id')
     .notNull()
     .references(() => buildings.id, { onDelete: 'cascade' }),
-  unitNumber: text('unit_number').notNull(),
+  unitNumber: varchar('unit_number', { length: 20 }).notNull(),
   floor: integer('floor'),
   squareFootage: decimal('square_footage', { precision: 8, scale: 2 }),
   bedrooms: integer('bedrooms'),
@@ -99,7 +111,14 @@ export const residences = pgTable('residences', {
   isActive: boolean('is_active').notNull().default(true),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  buildingIdIdx: index('residences_building_id_idx').on(table.buildingId),
+  // Composite index for optimized join conditions
+  buildingIdActiveIdx: index('residences_building_id_active_idx').on(table.buildingId, table.isActive),
+  // Date indexes for range queries
+  createdAtIdx: index('residences_created_at_idx').on(table.createdAt),
+  updatedAtIdx: index('residences_updated_at_idx').on(table.updatedAt),
+}));
 
 /**
  * User-Residence relationship table to track user assignments to residences.
@@ -121,7 +140,46 @@ export const userResidences = pgTable('user_residences', {
   isActive: boolean('is_active').notNull().default(true),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  userIdIdx: index('user_residences_user_id_idx').on(table.userId),
+  residenceIdIdx: index('user_residences_residence_id_idx').on(table.residenceId),
+  // Composite indexes for optimized join conditions
+  userIdActiveIdx: index('user_residences_user_id_active_idx').on(table.userId, table.isActive),
+  residenceIdActiveIdx: index('user_residences_residence_id_active_idx').on(table.residenceId, table.isActive),
+  // Date indexes for range queries
+  startDateIdx: index('user_residences_start_date_idx').on(table.startDate),
+  endDateIdx: index('user_residences_end_date_idx').on(table.endDate),
+  createdAtIdx: index('user_residences_created_at_idx').on(table.createdAt),
+  updatedAtIdx: index('user_residences_updated_at_idx').on(table.updatedAt),
+}));
+
+/**
+ * User-Building relationship table to track direct user assignments to buildings.
+ * Stores building-level assignments separately from residence-level assignments.
+ * This prevents building assignments from being deleted when residences are assigned.
+ */
+export const userBuildings = pgTable('user_buildings', {
+  id: varchar('id')
+    .primaryKey()
+    .default(sql`gen_random_uuid()`),
+  userId: varchar('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  buildingId: varchar('building_id')
+    .notNull()
+    .references(() => buildings.id, { onDelete: 'cascade' }),
+  relationshipType: text('relationship_type').notNull(),
+  isActive: boolean('is_active').notNull().default(true),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => ({
+  userIdIdx: index('user_buildings_user_id_idx').on(table.userId),
+  buildingIdIdx: index('user_buildings_building_id_idx').on(table.buildingId),
+  userIdActiveIdx: index('user_buildings_user_id_active_idx').on(table.userId, table.isActive),
+  buildingIdActiveIdx: index('user_buildings_building_id_active_idx').on(table.buildingId, table.isActive),
+  createdAtIdx: index('user_buildings_created_at_idx').on(table.createdAt),
+  updatedAtIdx: index('user_buildings_updated_at_idx').on(table.updatedAt),
+}));
 
 /**
  * Contacts table storing contact information for organizations, buildings, and residences.
@@ -140,7 +198,14 @@ export const contacts = pgTable('contacts', {
   isActive: boolean('is_active').notNull().default(true),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  entityIdIdx: index('contacts_entity_id_idx').on(table.entityId),
+  entityIdx: index('contacts_entity_idx').on(table.entity),
+  contactCategoryIdx: index('contacts_contact_category_idx').on(table.contactCategory),
+  // Date indexes for range queries
+  createdAtIdx: index('contacts_created_at_idx').on(table.createdAt),
+  updatedAtIdx: index('contacts_updated_at_idx').on(table.updatedAt),
+}));
 
 /**
  * Common spaces table storing shared facilities within buildings.
@@ -162,9 +227,17 @@ export const commonSpaces = pgTable('common_spaces', {
   availableDays: jsonb('available_days'), // Array of available days: ['monday', 'tuesday', etc.]
   unavailablePeriods: jsonb('unavailable_periods'), // Specific periods when space is unavailable
   bookingRules: text('booking_rules'),
+  defaultTimeLimitType: varchar('default_time_limit_type', { length: 20 }), // 'monthly' or 'yearly' - default limit for all users
+  defaultTimeLimitHours: integer('default_time_limit_hours'), // Default hours allowed per period
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  buildingIdIdx: index('common_spaces_building_id_idx').on(table.buildingId),
+  contactPersonIdIdx: index('common_spaces_contact_person_id_idx').on(table.contactPersonId),
+  // Date indexes for range queries
+  createdAtIdx: index('common_spaces_created_at_idx').on(table.createdAt),
+  updatedAtIdx: index('common_spaces_updated_at_idx').on(table.updatedAt),
+}));
 
 /**
  * Bookings table for common space reservations.
@@ -185,7 +258,16 @@ export const bookings = pgTable('bookings', {
   status: bookingStatusEnum('status').notNull().default('confirmed'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  commonSpaceIdIdx: index('bookings_common_space_id_idx').on(table.commonSpaceId),
+  userIdIdx: index('bookings_user_id_idx').on(table.userId),
+  statusIdx: index('bookings_status_idx').on(table.status),
+  // Date indexes for range queries
+  startTimeIdx: index('bookings_start_time_idx').on(table.startTime),
+  endTimeIdx: index('bookings_end_time_idx').on(table.endTime),
+  createdAtIdx: index('bookings_created_at_idx').on(table.createdAt),
+  updatedAtIdx: index('bookings_updated_at_idx').on(table.updatedAt),
+}));
 
 /**
  * User booking restrictions table to manage blocked users.
@@ -205,7 +287,13 @@ export const userBookingRestrictions = pgTable('user_booking_restrictions', {
   reason: text('reason'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  userIdIdx: index('user_booking_restrictions_user_id_idx').on(table.userId),
+  commonSpaceIdIdx: index('user_booking_restrictions_common_space_id_idx').on(table.commonSpaceId),
+  // Date indexes for range queries
+  createdAtIdx: index('user_booking_restrictions_created_at_idx').on(table.createdAt),
+  updatedAtIdx: index('user_booking_restrictions_updated_at_idx').on(table.updatedAt),
+}));
 
 /**
  * User time limits table to manage booking time quotas.
@@ -223,7 +311,13 @@ export const userTimeLimits = pgTable('user_time_limits', {
   limitHours: integer('limit_hours').notNull(), // Maximum hours allowed
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  userIdIdx: index('user_time_limits_user_id_idx').on(table.userId),
+  commonSpaceIdIdx: index('user_time_limits_common_space_id_idx').on(table.commonSpaceId),
+  // Date indexes for range queries
+  createdAtIdx: index('user_time_limits_created_at_idx').on(table.createdAt),
+  updatedAtIdx: index('user_time_limits_updated_at_idx').on(table.updatedAt),
+}));
 
 // Insert schemas
 export const insertBuildingSchema = z.object({
@@ -246,6 +340,7 @@ export const insertBuildingSchema = z.object({
   bankAccountStartDate: z.date().optional(),
   bankAccountStartAmount: z.number().optional(),
   bankAccountMinimums: z.record(z.string(), z.number()).optional(),
+  unplannedBillsAmount: z.number().optional(),
 });
 
 export const insertResidenceSchema = z.object({
@@ -268,6 +363,12 @@ export const insertUserResidenceSchema = z.object({
   relationshipType: z.string(),
   startDate: z.date(),
   endDate: z.date().optional(),
+});
+
+export const insertUserBuildingSchema = z.object({
+  userId: z.string().uuid(),
+  buildingId: z.string().uuid(),
+  relationshipType: z.string(),
 });
 
 export const insertContactSchema = z.object({
@@ -317,6 +418,8 @@ export const insertCommonSpaceSchema = z.object({
     })
   ).optional(), // Specific periods when space is unavailable
   bookingRules: z.string().optional(),
+  defaultTimeLimitType: z.enum(['monthly', 'yearly']).optional(),
+  defaultTimeLimitHours: z.number().int().positive().optional(),
 });
 
 export const insertBookingSchema = z.object({
@@ -361,6 +464,15 @@ export type InsertUserResidence = z.infer<typeof insertUserResidenceSchema>;
  *
  */
 export type UserResidence = typeof userResidences.$inferSelect;
+
+/**
+ *
+ */
+export type InsertUserBuilding = z.infer<typeof insertUserBuildingSchema>;
+/**
+ *
+ */
+export type UserBuilding = typeof userBuildings.$inferSelect;
 
 /**
  *

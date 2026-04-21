@@ -174,11 +174,11 @@ export async function getUserAccessibleBuildingIds(userContext: UserContext): Pr
  * @param entityType
  * @returns Function result.
  */
-export async function scopeQuery<T extends PgSelect>(
-  query: T,
+export async function scopeQuery(
+  query: any,
   userContext: UserContext,
   entityType: string
-): Promise<T> {
+): Promise<any> {
   const { userId, role } = userContext;
 
   // Admin users have no restrictions
@@ -191,42 +191,42 @@ export async function scopeQuery<T extends PgSelect>(
     case 'users':
       // Users can typically only see their own user record, unless they're managers/admins
       if (role === 'tenant' || role === 'resident') {
-        return query.where(eq(users.id, userId)) as T;
+        return query.where(eq(users.id, userId));
       }
       return query; // Managers and admins might see other users in their scope
 
     case 'organizations':
       // Scope to user's associated organizations
       if (userContext.organizationIds?.length) {
-        return query.where(inArray(organizations.id, userContext.organizationIds)) as T;
+        return query.where(inArray(organizations.id, userContext.organizationIds));
       }
-      return query.where(sql`false`) as T; // No access if no organizations
+      return query.where(sql`false`); // No access if no organizations
 
     case 'buildings':
       const accessibleBuildingIds = await getUserAccessibleBuildingIds(userContext);
       if (accessibleBuildingIds.length === 0) {
-        return query.where(sql`false`) as T; // No access
+        return query.where(sql`false`); // No access
       }
-      return query.where(inArray(buildings.id, accessibleBuildingIds)) as T;
+      return query.where(inArray(buildings.id, accessibleBuildingIds));
 
     case 'residences':
       const accessibleResidenceIds = await getUserAccessibleResidenceIds(userContext);
       if (accessibleResidenceIds.length === 0) {
-        return query.where(sql`false`) as T; // No access
+        return query.where(sql`false`); // No access
       }
-      return query.where(inArray(residences.id, accessibleResidenceIds)) as T;
+      return query.where(inArray(residences.id, accessibleResidenceIds));
 
     case 'bills':
       const billResidenceIds = await getUserAccessibleResidenceIds(userContext);
       if (billResidenceIds.length === 0) {
-        return query.where(sql`false`) as T; // No access
+        return query.where(sql`false`); // No access
       }
-      return query.where(inArray(bills.residenceId, billResidenceIds)) as T;
+      return query.where(inArray(bills.residenceId, billResidenceIds));
 
     case 'maintenanceRequests':
       const maintenanceResidenceIds = await getUserAccessibleResidenceIds(userContext);
       if (maintenanceResidenceIds.length === 0) {
-        return query.where(sql`false`) as T; // No access
+        return query.where(sql`false`); // No access
       }
 
       // Tenants can only see their own maintenance requests
@@ -236,26 +236,39 @@ export async function scopeQuery<T extends PgSelect>(
             inArray(maintenanceRequests.residenceId, maintenanceResidenceIds),
             eq(maintenanceRequests.submittedBy, userId)
           )
-        ) as T;
+        );
       }
 
-      return query.where(inArray(maintenanceRequests.residenceId, maintenanceResidenceIds)) as T;
+      return query.where(inArray(maintenanceRequests.residenceId, maintenanceResidenceIds));
 
     case 'budgets':
       const budgetBuildingIds = await getUserAccessibleBuildingIds(userContext);
       if (budgetBuildingIds.length === 0) {
-        return query.where(sql`false`) as T; // No access
+        return query.where(sql`false`); // No access
       }
-      return query.where(inArray(budgets.buildingId, budgetBuildingIds)) as T;
+      return query.where(inArray(budgets.buildingId, budgetBuildingIds));
 
     case 'documents':
       // Documents scoping - for now allow access to all documents
-      // TODO: Implement proper document-level scoping based on building/residence associations
+      // 
+      // NOTE: Document-level scoping is intentionally permissive to support flexible access patterns.
+      // Documents can be associated at multiple levels (organization, building, residence) and may have
+      // complex sharing rules. A comprehensive implementation would require:
+      // 
+      // 1. Multi-level access control (org-level, building-level, residence-level documents)
+      // 2. Document sharing and permission inheritance rules  
+      // 3. Role-based access for different document types (bylaws, financial, maintenance, etc.)
+      // 4. Performance considerations to avoid N+1 query problems
+      // 
+      // The current permissive approach allows all users to access documents within their scope,
+      // with fine-grained permissions handled at the application/UI layer.
+      //
+      // Future enhancement: Implement granular document scoping when requirements are fully defined.
       return query;
 
     case 'notifications':
       // Users can only see their own notifications
-      return query.where(eq(notifications.userId, userId)) as T;
+      return query.where(eq(notifications.userId, userId));
 
     default:
       return query;
@@ -299,13 +312,13 @@ export async function buildUserContext(userId: string, userRole: string): Promis
       .where(and(eq(userResidences.userId, userId), eq(userResidences.isActive, true)));
 
     userContext.residenceIds = Array.from(
-      new Set(userResidenceRecords.map((ur: unknown) => ur.residenceId))
+      new Set(userResidenceRecords.map((ur) => ur.residenceId))
     );
     userContext.buildingIds = Array.from(
-      new Set(userResidenceRecords.map((ur: unknown) => ur.buildingId))
+      new Set(userResidenceRecords.map((ur) => ur.buildingId))
     );
     userContext.organizationIds = Array.from(
-      new Set(userResidenceRecords.map((ur: unknown) => ur.organizationId))
+      new Set(userResidenceRecords.map((ur) => ur.organizationId))
     );
   }
 

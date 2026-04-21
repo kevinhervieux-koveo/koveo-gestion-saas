@@ -14,8 +14,11 @@ interface UserResidencesTabProps {
   organizations: Organization[];
   currentUser: User | null;
   currentUserResidenceIds: string[];
+  currentUserOrganizationIds: string[];
   selectedBuildingIds: string[];
+  selectedResidenceAssignments: any[]; // Pass selected assignments directly from parent
   onSave: (residenceAssignments: any[]) => void;
+  onSelectionChange?: (residenceAssignments: any[]) => void;
   isLoading?: boolean;
 }
 
@@ -26,62 +29,98 @@ export function UserResidencesTab({
   organizations,
   currentUser,
   currentUserResidenceIds,
+  currentUserOrganizationIds,
   selectedBuildingIds,
+  selectedResidenceAssignments, // Accept selected assignments from parent
   onSave, 
+  onSelectionChange,
   isLoading = false 
 }: UserResidencesTabProps) {
-  const [selectedResidences, setSelectedResidences] = useState<{ 
-    residenceId: string; 
-    relationshipType: string; 
-  }[]>([]);
-  const initializedRef = useRef<string | null>(null);
+  // Remove internal state - component is now fully controlled by parent
+  // const [selectedResidences, setSelectedResidences] = useState<{ 
+  //   residenceId: string; 
+  //   relationshipType: string; 
+  // }[]>([]);
+  // const initializedRef = useRef<string | null>(null);
 
-  useEffect(() => {
-    if (user) {
-      // Only initialize if we haven't initialized for this user yet
-      if (initializedRef.current !== user.id) {
-        const residenceAssignments = user.residences?.map((residence: any) => ({
-          residenceId: residence.id,
-          relationshipType: residence.relationshipType || 'tenant'
-        })) || [];
-        setSelectedResidences(residenceAssignments);
-        initializedRef.current = user.id;
-      }
-    } else {
-      // Reset when dialog is closed (no user)
-      setSelectedResidences([]);
-      initializedRef.current = null;
-    }
-  }, [user]);
+  // Helper to extract simple residence assignments from parent's formatted assignments
+  const selectedResidences = useMemo(() => {
+    return selectedResidenceAssignments.map(assignment => ({
+      residenceId: assignment.residenceId,
+      relationshipType: assignment.relationshipType || 'tenant'
+    }));
+  }, [selectedResidenceAssignments]);
+
+  // Create lookup maps for performance (O(1) lookups)
+  const residenceLookup = useMemo(() => {
+    if (!residences) return new Map();
+    return new Map(residences.map(residence => [residence.id, residence]));
+  }, [residences]);
+
+  const buildingLookup = useMemo(() => {
+    if (!buildings) return new Map();
+    return new Map(buildings.map(building => [building.id, building]));
+  }, [buildings]);
+
+  const organizationLookup = useMemo(() => {
+    if (!organizations) return new Map();
+    return new Map(organizations.map(org => [org.id, org]));
+  }, [organizations]);
+
+  // REMOVED: No initialization in child components - parent is sole source of truth
+  // Child components are now purely controlled - they only read from props and emit user interactions
+
+  // REMOVED: Cascade filtering is now handled by parent component
+  // Child component is fully controlled - no internal cascade logic
 
   const handleResidenceToggle = (residenceId: string) => {
-    setSelectedResidences(prev => {
-      const exists = prev.find(r => r.residenceId === residenceId);
-      if (exists) {
-        return prev.filter(r => r.residenceId !== residenceId);
-      } else {
-        return [...prev, { residenceId, relationshipType: 'tenant' }];
-      }
-    });
+    // Gate interactions until data is loaded
+    if (!residences || !buildings || !organizations || isLoading) return;
+    
+    // Fully controlled - work with parent's selection state
+    const exists = selectedResidences.find(r => r.residenceId === residenceId);
+    let newSelection;
+    if (exists) {
+      newSelection = selectedResidences.filter(r => r.residenceId !== residenceId);
+    } else {
+      newSelection = [...selectedResidences, { residenceId, relationshipType: 'tenant' }];
+    }
+    
+    // Notify parent component of the selection change
+    if (onSelectionChange) {
+      onSelectionChange(newSelection.map(assignment => ({
+        ...assignment,
+        startDate: new Date().toISOString().split('T')[0],
+        endDate: null,
+        isActive: true
+      })));
+    }
   };
 
   const handleRelationshipTypeChange = (residenceId: string, relationshipType: string) => {
-    setSelectedResidences(prev =>
-      prev.map(r => 
-        r.residenceId === residenceId 
-          ? { ...r, relationshipType }
-          : r
-      )
+    // Gate interactions until data is loaded
+    if (!residences || !buildings || !organizations || isLoading) return;
+    
+    // Fully controlled - work with parent's selection state
+    const newSelection = selectedResidences.map(r => 
+      r.residenceId === residenceId 
+        ? { ...r, relationshipType }
+        : r
     );
+    
+    // Notify parent component of the selection change
+    if (onSelectionChange) {
+      onSelectionChange(newSelection.map(assignment => ({
+        ...assignment,
+        startDate: new Date().toISOString().split('T')[0],
+        endDate: null,
+        isActive: true
+      })));
+    }
   };
 
   const handleSave = () => {
-    const assignments = selectedResidences.map(assignment => ({
-      ...assignment,
-      startDate: new Date().toISOString().split('T')[0],
-      isActive: true
-    }));
-    onSave(assignments);
+    onSave(selectedResidenceAssignments);
   };
 
   // Group residences by building and organization with filters
@@ -101,6 +140,12 @@ export function UserResidencesTab({
       // Admin can access all residences
       if (currentUser?.role === 'admin') return true;
       
+      // Managers can assign any residence from their organization(s)
+      if (currentUser?.role === 'manager' || currentUser?.role === 'demo_manager') {
+        const building = buildingLookup.get(residence.buildingId);
+        return building && currentUserOrganizationIds.includes(building.organizationId);
+      }
+      
       // Other users can only assign residences they have access to
       return currentUserResidenceIds.includes(residence.id);
     });
@@ -114,9 +159,10 @@ export function UserResidencesTab({
       const buildingId = building.id;
       
       if (!acc[orgId]) {
-        const org = organizations.find(o => o.id === orgId);
+        // Use organizationName from building object (included in API response)
         acc[orgId] = {
-          organization: org,
+          organizationId: orgId,
+          organizationName: (building as any).organizationName || 'Unknown Organization',
           buildings: {}
         };
       }
@@ -131,13 +177,14 @@ export function UserResidencesTab({
       acc[orgId].buildings[buildingId].residences.push(residence);
       return acc;
     }, {} as Record<string, { 
-      organization?: Organization; 
+      organizationId: string;
+      organizationName: string;
       buildings: Record<string, { building: Building; residences: Residence[] }> 
     }>);
 
     // Sort organizations, buildings, and residences alphabetically
     return Object.values(grouped)
-      .sort((a, b) => (a.organization?.name || '').localeCompare(b.organization?.name || ''))
+      .sort((a, b) => a.organizationName.localeCompare(b.organizationName))
       .map(orgGroup => ({
         ...orgGroup,
         buildings: Object.values(orgGroup.buildings)
@@ -149,9 +196,22 @@ export function UserResidencesTab({
             )
           }))
       }));
-  }, [residences, buildings, organizations, selectedBuildingIds, currentUser, currentUserResidenceIds]);
+  }, [residences, buildings, organizations, selectedBuildingIds, currentUser, currentUserResidenceIds, buildingLookup, organizationLookup]);
 
+  // Gate rendering until data is loaded to prevent undefined errors
   if (!user) return null;
+  if (!residences || !buildings || !organizations) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Residence Assignments</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">Loading residences...</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const isResidenceSelected = (residenceId: string) => 
     selectedResidences.some(r => r.residenceId === residenceId);
@@ -178,16 +238,16 @@ export function UserResidencesTab({
             <p className="text-sm text-muted-foreground">No residences available for the selected buildings.</p>
           ) : (
             residencesByBuildingAndOrg.map((orgGroup, orgIndex) => (
-              <Collapsible key={orgGroup.organization?.id || orgIndex} defaultOpen>
+              <Collapsible key={orgGroup.organizationId || orgIndex} defaultOpen>
                 <CollapsibleTrigger className="flex items-center justify-between w-full p-2 text-left hover:bg-muted rounded">
                   <h3 className="text-sm font-semibold">
-                    {orgGroup.organization?.name || 'Unknown Organization'}
+                    {orgGroup.organizationName}
                   </h3>
                   <ChevronDown className="h-4 w-4 transition-transform data-[state=closed]:rotate-[-90deg]" />
                 </CollapsibleTrigger>
                 <CollapsibleContent className="space-y-4 ml-2 mt-2">
                   {orgGroup.buildings.map((buildingGroup, buildingIndex) => (
-                    <Collapsible key={buildingGroup.building.id || buildingIndex} defaultOpen>
+                    <Collapsible key={`residences-tab-${buildingGroup.building.id || buildingIndex}`} defaultOpen>
                       <CollapsibleTrigger className="flex items-center justify-between w-full p-2 text-left hover:bg-muted rounded">
                         <h4 className="text-sm font-medium">
                           {buildingGroup.building.name}
@@ -201,6 +261,7 @@ export function UserResidencesTab({
                               id={`residence-${residence.id}`}
                               checked={isResidenceSelected(residence.id)}
                               onCheckedChange={() => handleResidenceToggle(residence.id)}
+                              disabled={isLoading || !residences || !buildings || !organizations}
                               data-testid={`checkbox-residence-${residence.id}`}
                             />
                             <div className="flex-1">
@@ -242,11 +303,6 @@ export function UserResidencesTab({
           )}
         </div>
         
-        <div className="flex justify-end pt-4">
-          <Button onClick={handleSave} disabled={isLoading} data-testid="save-residences">
-            {isLoading ? 'Saving...' : 'Save Residence Assignments'}
-          </Button>
-        </div>
       </CardContent>
     </Card>
   );

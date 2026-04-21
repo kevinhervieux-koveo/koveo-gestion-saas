@@ -1,0 +1,24 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+user-management-DS-8ybM8.js:1 🔍 [USER_MANAGEMENT] Computing currentUserAccess memo: {currentUser: 'kevhervieux@gmail.com', currentUserOrganizationsType: 'undefined', currentUserOrganizationsIsArray: false, currentUserOrganizationsLength: 'N/A', currentUserBuildingsType: 'undefined', …}
+user-management-DS-8ybM8.js:1 ✅ [USER_MANAGEMENT] Extracted access IDs: {organizationIds: Array(0), buildingIds: Array(0), residenceIds: Array(0), organizationIdsCount: 0, buildingIdsCount: 0, …}
+user-management-DS-8ybM8.js:1 🔍 [USER_MANAGEMENT] Component mounted
+user-management-DS-8ybM8.js:1 🔍 [USER_MANAGEMENT] Current user query status: {currentUser: {…}, isLoading: false, error: null}
+user-management-DS-8ybM8.js:1 🔍 [USER_MANAGEMENT] Assignment queries data received: {organizations: 'null', buildings: 'null', residences: 'null', orgsLoading: true, buildingsLoading: true, …}
+user-management-DS-8ybM8.js:1 🔍 [USER_MANAGEMENT] Current user assignment queries status: {currentUser: 'kevhervieux@gmail.com', orgsLoading: true, buildingsLoading: true, residencesLoading: true, orgsError: undefined, …}
+user-management-DS-8ybM8.js:1 🔍 [QUERY] /api/users/me/organizations returned: [{…}]
+user-management-DS-8ybM8.js:1 🔍 [USER_MANAGEMENT] Computing currentUserAccess memo: {currentUser: 'kevhervieux@gmail.com', currentUserOrganizationsType: 'object', currentUserOrganizationsIsArray: true, currentUserOrganizationsLength: 1, currentUserBuildingsType: 'undefined', …}
+user-management-DS-8ybM8.js:1 ✅ [USER_MANAGEMENT] Extracted access IDs: {organizationIds: Array(1), buildingIds: Array(0), residenceIds: Array(0), organizationIdsCount: 1, buildingIdsCount: 0, …}
+user-management-DS-8ybM8.js:1 🔍 [USER_MANAGEMENT] Assignment queries data received: {organizations: '1 orgs', buildings: 'null', residences: 'null', orgsLoading: false, buildingsLoading: true, …}
+user-management-DS-8ybM8.js:1 🔍 [USER_MANAGEMENT] Current user assignment queries status: {currentUser: 'kevhervieux@gmail.com', orgsLoading: false, buildingsLoading: true, residencesLoading: true, orgsError: undefined, …}
+user-management-DS-8ybM8.js:1 🔍 [USER_MANAGEMENT] Pre-filtering manager to their organization: e9bb7862-4ba5-4822-848f-f3692e826e73
+user-management-DS-8ybM8.js:1 🔍 [QUERY] /api/users/me/buildings returned: (2) [{…}, {…}]
+user-management-DS-8ybM8.js:1 🔍 [USER_MANAGEMENT] Computing currentUserAccess memo: {currentUser: 'kevhervieux@gmail.com', currentUserOrganizationsType: 'object', currentUserOrganizationsIsArray: true, currentUserOrganizationsLength: 1, currentUserBuildingsType: 'object', …}
+user-management-DS-8ybM8.js:1 ✅ [USER_MANAGEMENT] Extracted access IDs: {organizationIds: Array(1), buildingIds: Array(2), residenceIds: Array(0), organizationIdsCount: 1, buildingIdsCount: 2, …}
+user-management-DS-8ybM8.js:1 🔍 [USER_MANAGEMENT] Assignment queries data received: {organizations: '1 orgs', buildings: '2 buildings', residences: 'null', orgsLoading: false, buildingsLoading: false, …}
+user-management-DS-8ybM8.js:1 🔍 [USER_MANAGEMENT] Current user assignment queries status: {currentUser: 'kevhervieux@gmail.com', orgsLoading: false, buildingsLoading: false, residencesLoading: true, orgsError: undefined, …}
+user-management-DS-8ybM8.js:1 🔍 [QUERY] /api/users/me/residences returned: []
+user-management-DS-8ybM8.js:1 🔍 [USER_MANAGEMENT] Computing currentUserAccess memo: {currentUser: 'kevhervieux@gmail.com', currentUserOrganizationsType: 'object', currentUserOrganizationsIsArray: true, currentUserOrganizationsLength: 1, currentUserBuildingsType: 'object', …}
+user-management-DS-8ybM8.js:1 ✅ [USER_MANAGEMENT] Extracted access IDs: {organizationIds: Array(1), buildingIds: Array(2), residenceIds: Array(0), organizationIdsCount: 1, buildingIdsCount: 2, …}
+user-management-DS-8ybM8.js:1 🔍 [USER_MANAGEMENT] Assignment queries data received: {organizations: '1 orgs', buildings: '2 buildings', residences: '0 residences', orgsLoading: false, buildingsLoading: false, …}
+user-management-DS-8ybM8.js:1 🔍 [USER_MANAGEMENT] Current user assignment queries status: {currentUser: 'kevhervieux@gmail.com', orgsLoading: false, buildingsLoading: false, residencesLoading: false, orgsError: undefined, …}

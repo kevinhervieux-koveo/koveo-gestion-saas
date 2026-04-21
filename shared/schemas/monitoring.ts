@@ -11,8 +11,8 @@ import {
   integer,
   decimal,
   date,
+  index,
 } from 'drizzle-orm/pg-core';
-import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
 import { relations } from 'drizzle-orm';
 import { users } from './core';
@@ -74,7 +74,13 @@ export const metricEffectivenessTracking = pgTable('metric_effectiveness_trackin
   propertyManagementContext: text('property_management_context'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  metricTypeIdx: index('metric_effectiveness_tracking_metric_type_idx').on(table.metricType),
+  // Date indexes for range queries
+  validationDateIdx: index('metric_effectiveness_tracking_validation_date_idx').on(table.validationDate),
+  createdAtIdx: index('metric_effectiveness_tracking_created_at_idx').on(table.createdAt),
+  updatedAtIdx: index('metric_effectiveness_tracking_updated_at_idx').on(table.updatedAt),
+}));
 
 /**
  * Stores predictions made by quality metrics before validation.
@@ -96,7 +102,12 @@ export const metricPredictions = pgTable('metric_predictions', {
   filePath: text('file_path'),
   lineNumber: integer('line_number'),
   createdAt: timestamp('created_at').defaultNow(),
-});
+}, (table) => ({
+  metricTypeIdx: index('metric_predictions_metric_type_idx').on(table.metricType),
+  expectedSeverityIdx: index('metric_predictions_expected_severity_idx').on(table.expectedSeverity),
+  // Date indexes for range queries
+  createdAtIdx: index('metric_predictions_created_at_idx').on(table.createdAt),
+}));
 
 /**
  * Validates metric predictions against real outcomes.
@@ -120,7 +131,15 @@ export const predictionValidations = pgTable('prediction_validations', {
   costImpact: decimal('cost_impact', { precision: 10, scale: 2 }),
   validatedAt: timestamp('validated_at').notNull(),
   createdAt: timestamp('created_at').defaultNow(),
-});
+}, (table) => ({
+  predictionIdIdx: index('prediction_validations_prediction_id_idx').on(table.predictionId),
+  validatorIdIdx: index('prediction_validations_validator_id_idx').on(table.validatorId),
+  validationStatusIdx: index('prediction_validations_validation_status_idx').on(table.validationStatus),
+  impactLevelIdx: index('prediction_validations_impact_level_idx').on(table.impactLevel),
+  // Date indexes for range queries
+  validatedAtIdx: index('prediction_validations_validated_at_idx').on(table.validatedAt),
+  createdAtIdx: index('prediction_validations_created_at_idx').on(table.createdAt),
+}));
 
 /**
  * Stores calibration data for improving metric accuracy.
@@ -147,7 +166,13 @@ export const metricCalibrationData = pgTable('metric_calibration_data', {
   performanceMetrics: jsonb('performance_metrics'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  metricTypeIdx: index('metric_calibration_data_metric_type_idx').on(table.metricType),
+  // Date indexes for range queries
+  lastTrainingDateIdx: index('metric_calibration_data_last_training_date_idx').on(table.lastTrainingDate),
+  createdAtIdx: index('metric_calibration_data_created_at_idx').on(table.createdAt),
+  updatedAtIdx: index('metric_calibration_data_updated_at_idx').on(table.updatedAt),
+}));
 
 /**
  * Tracks quality issues found in the codebase and their resolution.
@@ -179,7 +204,19 @@ export const qualityIssues = pgTable('quality_issues', {
   resolvedAt: timestamp('resolved_at'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  detectedByIdx: index('quality_issues_detected_by_idx').on(table.detectedBy),
+  predictionIdIdx: index('quality_issues_prediction_id_idx').on(table.predictionId),
+  categoryIdx: index('quality_issues_category_idx').on(table.category),
+  severityIdx: index('quality_issues_severity_idx').on(table.severity),
+  relatedMetricTypeIdx: index('quality_issues_related_metric_type_idx').on(table.relatedMetricType),
+  resolutionStatusIdx: index('quality_issues_resolution_status_idx').on(table.resolutionStatus),
+  // Date indexes for range queries
+  discoveredAtIdx: index('quality_issues_discovered_at_idx').on(table.discoveredAt),
+  resolvedAtIdx: index('quality_issues_resolved_at_idx').on(table.resolvedAt),
+  createdAtIdx: index('quality_issues_created_at_idx').on(table.createdAt),
+  updatedAtIdx: index('quality_issues_updated_at_idx').on(table.updatedAt),
+}));
 
 // Insert schemas
 export const insertMetricEffectivenessTrackingSchema = z.object({

@@ -1,12 +1,19 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { z } from 'zod';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
-import { DocumentFormBase } from '@/components/forms/DocumentFormBase';
+import { Button } from '@/components/ui/button';
+import { Form } from '@/components/ui/form';
+import { StandardCard } from '@/components/ui/standard-card';
+import { useStandardForm } from '@/hooks/use-standard-form';
 import { StandardFormField } from '@/components/forms/StandardFormField';
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
+import { Trash2, Save, X } from 'lucide-react';
 import type { Document } from '@shared/schema';
 
 // Document categories
@@ -29,22 +36,22 @@ const documentEditSchema = z.object({
   description: z.string().max(1000).optional(),
   category: z.enum(['bylaw', 'financial', 'maintenance', 'legal', 'meeting_minutes', 'insurance', 'contracts', 'permits', 'inspection', 'other']),
   isVisible: z.boolean().default(true),
-  tags: z.string().optional(),
+  // Removed tags field as it's not supported by backend
 });
 
 type DocumentEditFormData = z.infer<typeof documentEditSchema>;
 
 interface DocumentEditFormProps {
   document: Document;
-  onSuccess?: (documentId: string, action: 'updated') => void;
+  onSuccess?: (documentId: string, action: 'updated' | 'deleted') => void;
   onCancel?: () => void;
   buildingId?: string;
   residenceId?: string;
 }
 
 /**
- * Document Edit Form using the new consolidated DocumentFormBase pattern.
- * Demonstrates Phase 3 migration to standardized components.
+ * Document Edit Form with delete functionality.
+ * Uses custom form structure to support delete operations.
  */
 export function DocumentEditForm({ 
   document, 
@@ -53,141 +60,216 @@ export function DocumentEditForm({
   buildingId,
   residenceId
 }: DocumentEditFormProps) {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [isDeleting, setIsDeleting] = useState(false);
   
   const defaultValues: Partial<DocumentEditFormData> = {
     name: document.name || '',
     description: document.description || '',
     category: (document.documentType as any) || 'other',
     isVisible: document.isVisibleToTenants ?? true,
-    tags: '', // documents don't have tags in current schema
+    // Removed tags field as it's not supported by backend
   };
 
-  const handleSuccess = () => {
-    if (onSuccess) {
-      onSuccess(document.id, 'updated');
+  // Standard form controls for update functionality
+  const formControls = useStandardForm({
+    schema: documentEditSchema,
+    defaultValues,
+    apiEndpoint: `/api/documents`,
+    queryKey: ['documents'],
+    mode: 'edit',
+    itemId: document.id,
+    onSuccess: () => {
+      if (onSuccess) {
+        onSuccess(document.id, 'updated');
+      }
+    },
+    successMessages: {
+      update: 'Document updated successfully',
+    },
+  });
+
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('DELETE', `/api/documents/${document.id}`);
+      return response;
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Success',
+        description: 'Document deleted successfully',
+      });
+      // Comprehensive cache invalidation for all document-related queries
+      queryClient.invalidateQueries({
+        predicate: (query) => {
+          const queryKey = query.queryKey;
+          return (
+            queryKey.includes('documents') ||
+            queryKey.includes('/api/documents') ||
+            (Array.isArray(queryKey) && queryKey[0] === '/api/documents')
+          );
+        }
+      });
+      if (onSuccess) {
+        onSuccess(document.id, 'deleted');
+      }
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to delete document',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  const handleDelete = async () => {
+    if (window.confirm('Are you sure you want to delete this document? This action cannot be undone.')) {
+      setIsDeleting(true);
+      try {
+        await deleteMutation.mutateAsync();
+      } finally {
+        setIsDeleting(false);
+      }
     }
   };
 
+  const onSubmit = (data: DocumentEditFormData) => {
+    // Map form fields to server contract
+    const formData = {
+      name: data.name,
+      description: data.description,
+      documentType: data.category, // Map category -> documentType
+      isVisibleToTenants: data.isVisible, // Map isVisible -> isVisibleToTenants
+      buildingId,
+      residenceId,
+      // Removed tags field as it's not supported by backend
+    };
+    formControls.submitMutation.mutate(formData);
+  };
+
   return (
-    <DocumentFormBase
+    <StandardCard
       title="Edit Document"
-      schema={documentEditSchema}
-      defaultValues={defaultValues}
-      apiEndpoint={`/api/documents/${document.id}`}
-      queryKey={['documents']}
-      mode="edit"
-      itemId={document.id}
-      buildingId={buildingId}
-      residenceId={residenceId}
-      onSuccess={handleSuccess}
-      onCancel={onCancel}
-      successMessages={{
-        update: 'Document updated successfully',
-      }}
-      uploadContext={{
-        type: 'documents',
-        buildingId,
-        residenceId,
-      }}
-      showTabs={false}
+      className="max-w-4xl mx-auto"
       data-testid="document-edit-form"
     >
-      {(formControls) => (
-        <>
-          <StandardFormField
-            control={formControls.form.control}
-            name="name"
-            label="Document Name"
-            placeholder="Enter document name"
-            data-testid="input-name"
-          />
+      <div className="space-y-6">
+        <Form {...formControls.form}>
+          <form onSubmit={formControls.handleSubmit(onSubmit)} className="space-y-6">
+            <StandardFormField
+              control={formControls.form.control}
+              name="name"
+              label="Document Name"
+              placeholder="Enter document name"
+              data-testid="input-name"
+            />
 
-          <FormField
-            control={formControls.form.control}
-            name="category"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Category</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+            <FormField
+              control={formControls.form.control}
+              name="category"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Category</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger data-testid="select-category">
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {DOCUMENT_CATEGORIES.map((category) => (
+                        <SelectItem key={category.value} value={category.value}>
+                          {category.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={formControls.form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <SelectTrigger data-testid="select-category">
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
+                    <Textarea 
+                      placeholder="Enter document description (optional)"
+                      data-testid="textarea-description"
+                      {...field} 
+                    />
                   </FormControl>
-                  <SelectContent>
-                    {DOCUMENT_CATEGORIES.map((category) => (
-                      <SelectItem key={category.value} value={category.value}>
-                        {category.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={formControls.form.control}
-            name="description"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Description</FormLabel>
-                <FormControl>
-                  <Textarea 
-                    placeholder="Enter document description (optional)"
-                    data-testid="textarea-description"
-                    {...field} 
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            {/* Removed tags field as it's not supported by backend */}
 
-          <FormField
-            control={formControls.form.control}
-            name="tags"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Tags</FormLabel>
-                <FormControl>
-                  <Input 
-                    placeholder="Enter tags separated by commas"
-                    data-testid="input-tags"
-                    {...field} 
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={formControls.form.control}
-            name="isVisible"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                <div className="space-y-0.5">
-                  <FormLabel className="text-base">
-                    Document Visibility
-                  </FormLabel>
-                  <p className="text-sm text-muted-foreground">
-                    Make this document visible to relevant users
-                  </p>
-                </div>
-                <FormControl>
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                    data-testid="switch-visibility"
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-        </>
-      )}
-    </DocumentFormBase>
+            <FormField
+              control={formControls.form.control}
+              name="isVisible"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-base">
+                      Document Visibility
+                    </FormLabel>
+                    <p className="text-sm text-muted-foreground">
+                      Make this document visible to relevant users
+                    </p>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      data-testid="switch-visibility"
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            
+            <div className="flex justify-end space-x-3 pt-6 border-t">
+              {onCancel && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={onCancel}
+                  data-testid="button-cancel"
+                >
+                  <X className="w-4 h-4 mr-2" />
+                  Cancel
+                </Button>
+              )}
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={handleDelete}
+                disabled={isDeleting || deleteMutation.isPending}
+                data-testid="button-delete"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                {isDeleting || deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+              </Button>
+              <Button
+                type="submit"
+                disabled={formControls.isSubmitting}
+                data-testid="button-submit"
+              >
+                <Save className="w-4 h-4 mr-2" />
+                {formControls.isSubmitting ? 'Updating...' : 'Update'}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </div>
+    </StandardCard>
   );
 }

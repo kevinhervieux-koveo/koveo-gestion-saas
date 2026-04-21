@@ -9,7 +9,7 @@
  * Usage: tsx scripts/deployment-hooks.ts.
  */
 
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 
 /**
  * Executes a shell command and logs the output.
@@ -22,10 +22,11 @@ import { execSync } from 'child_process';
  * @param description
  * @returns Function result.
  */
-function runCommand(command: string, description: string): void {
+function runCommand(commandArray: string[], description: string): void {
   console.warn(`🔄 ${description}...`);
   try {
-    const output = execSync(command, { encoding: 'utf8', stdio: 'pipe' });
+    // Use execFileSync with argument array to prevent command injection
+    const output = execFileSync(commandArray[0], commandArray.slice(1), { encoding: 'utf8', stdio: 'pipe' });
     if (output.trim()) {
       console.warn(output);
     }
@@ -54,7 +55,7 @@ async function runDeploymentHooks(): Promise<void> {
 
   try {
     // 1. Run database migrations
-    runCommand('npm run db:push', 'Running database migrations');
+    runCommand(['npm', 'run', 'db:push'], 'Running database migrations');
 
     // 2. Warm up the application
     if (process.env.WARMUP_ON_DEPLOY === 'true') {
@@ -63,10 +64,22 @@ async function runDeploymentHooks(): Promise<void> {
         console.warn('⚠️  Invalid PORT value, using default 5000');
         port = 5000;
       }
-      runCommand(
-        `curl -f http://localhost:${port}/health || echo "Warmup skipped - server not ready"`,
-        'Warming up application'
-      );
+      // Use Node.js HTTP request instead of curl
+      try {
+        console.warn('🔄 Warming up application...');
+        const response = await fetch(`http://localhost:${port}/health`, {
+          method: 'GET',
+          signal: AbortSignal.timeout(10000), // 10 second timeout
+        });
+        
+        if (response.ok) {
+          console.warn('✅ Warming up application completed');
+        } else {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+      } catch (error) {
+        console.warn('Warmup skipped - server not ready:', (error as Error).message);
+      }
     }
 
     console.warn('\n✅ All deployment hooks completed successfully!');

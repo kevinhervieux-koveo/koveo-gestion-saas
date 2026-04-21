@@ -1,0 +1,224 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+index-Dk6m1Llm.js:12 🏠 [INVENTORY PAGE INNER] Rendering with props: {organizationId: 'f0e34e59-0d81-4c1a-b95f-e23dd1667a19', buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', residenceId: undefined}
+index-Dk6m1Llm.js:12 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'f0e34e59-0d81-4c1a-b95f-e23dd1667a19', buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-Dk6m1Llm.js:12 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: ae3a1c02-67bb-49eb-9fa6-c63627274d4f
+withHierarchicalSelection-DnC3ZXoO.js:1 🏢 [withHierarchicalSelection] Fetching buildings...
+withHierarchicalSelection-DnC3ZXoO.js:1 🌐 [withHierarchicalSelection] Requesting buildings: /api/organizations/f0e34e59-0d81-4c1a-b95f-e23dd1667a19/buildings
+index-Dk6m1Llm.js:12 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'f0e34e59-0d81-4c1a-b95f-e23dd1667a19', buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-Dk6m1Llm.js:12 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: ae3a1c02-67bb-49eb-9fa6-c63627274d4f
+withHierarchicalSelection-DnC3ZXoO.js:1 📊 [withHierarchicalSelection] Received 5 buildings from API
+withHierarchicalSelection-DnC3ZXoO.js:1 ✅ [withHierarchicalSelection] Returning all 5 buildings (non-residence page)
+index-Dk6m1Llm.js:12 🏠 [INVENTORY PAGE INNER] Rendering with props: {organizationId: 'f0e34e59-0d81-4c1a-b95f-e23dd1667a19', buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', residenceId: undefined}
+index-Dk6m1Llm.js:12 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'f0e34e59-0d81-4c1a-b95f-e23dd1667a19', buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', residenceId: undefined, showBackButton: true, backButtonLabel: '32360 Jude Fields Building 2'}
+index-Dk6m1Llm.js:12 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: ae3a1c02-67bb-49eb-9fa6-c63627274d4f
+index-xXpaGPbj.js:185 [Violation] 'setTimeout' handler took 54ms
+index-xXpaGPbj.js:186 A component is changing an uncontrolled input to be controlled. This is likely caused by the value changing from undefined to a defined value, which should not happen. Decide between using a controlled or uncontrolled input element for the lifetime of the component. More info: https://react.dev/link/controlled-components
+overrideMethod @ hook.js:608
+c1 @ index-xXpaGPbj.js:186
+h1 @ index-xXpaGPbj.js:186
+q @ index-xXpaGPbj.js:45
+Qc @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+Vt @ index-xXpaGPbj.js:163
+zh @ index-xXpaGPbj.js:163
+tg @ index-xXpaGPbj.js:163
+ed @ index-xXpaGPbj.js:163
+Xh @ index-xXpaGPbj.js:163
+Ih @ index-xXpaGPbj.js:163
+mg @ index-xXpaGPbj.js:185
+ml @ index-xXpaGPbj.js:185
+jo @ index-xXpaGPbj.js:163
+Gm @ index-xXpaGPbj.js:83
+rd @ index-xXpaGPbj.js:185
+Ad @ index-xXpaGPbj.js:194
+L1 @ index-xXpaGPbj.js:194
+onBodyClick @ unknown
+index-Dk6m1Llm.js:12 Document uploaded: {file: File, text: null}
+index-xXpaGPbj.js:240  POST https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/maintenance/elements 404 (Not Found)
+sx @ index-xXpaGPbj.js:240
+mutationFn @ index-Dk6m1Llm.js:12
+fn @ vendor-query-7MgX5BiQ.js:1
+y @ vendor-query-7MgX5BiQ.js:1
+start @ vendor-query-7MgX5BiQ.js:1
+execute @ vendor-query-7MgX5BiQ.js:1
+await in execute
+mutate @ vendor-query-7MgX5BiQ.js:1
+m @ index-Dk6m1Llm.js:12
+J @ index-D7xRzY05.js:41
+(anonymous) @ vendor-forms-gPm21tRI.js:1
+await in (anonymous)
+lr @ index-xXpaGPbj.js:185
+q @ index-xXpaGPbj.js:45
+yg @ index-xXpaGPbj.js:185
+(anonymous) @ index-xXpaGPbj.js:185
+Gm @ index-xXpaGPbj.js:83
+rd @ index-xXpaGPbj.js:185
+Ad @ index-xXpaGPbj.js:194
+L1 @ index-xXpaGPbj.js:194
+index-D7xRzY05.js:41 Form submission error: Error: 404: {"error":"Not Found","message":"The requested resource could not be found","code":"ROUTE_NOT_FOUND","timestamp":"2025-09-23T00:33:45.893Z"}
+    at k0 (index-xXpaGPbj.js:240:6803)
+    at async sx (index-xXpaGPbj.js:240:7065)
+    at async Object.mutationFn (index-Dk6m1Llm.js:12:23276)
+overrideMethod @ hook.js:608
+J @ index-D7xRzY05.js:41
+await in J
+(anonymous) @ vendor-forms-gPm21tRI.js:1
+await in (anonymous)
+lr @ index-xXpaGPbj.js:185
+q @ index-xXpaGPbj.js:45
+yg @ index-xXpaGPbj.js:185
+(anonymous) @ index-xXpaGPbj.js:185
+Gm @ index-xXpaGPbj.js:83
+rd @ index-xXpaGPbj.js:185
+Ad @ index-xXpaGPbj.js:194
+L1 @ index-xXpaGPbj.js:194
+index-Dk6m1Llm.js:12 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'f0e34e59-0d81-4c1a-b95f-e23dd1667a19', buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', residenceId: undefined, showBackButton: true, backButtonLabel: '32360 Jude Fields Building 2'}
+index-Dk6m1Llm.js:12 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: ae3a1c02-67bb-49eb-9fa6-c63627274d4f

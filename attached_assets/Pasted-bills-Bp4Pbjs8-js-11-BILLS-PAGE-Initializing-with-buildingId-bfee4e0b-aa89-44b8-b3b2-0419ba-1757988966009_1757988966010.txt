@@ -1,0 +1,820 @@
+bills-Bp4Pbjs8.js:11 🏠 [BILLS PAGE] Initializing with: {buildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', organizationId: '8c6de72f-057c-4ac5-9372-dd7bc74e32f4'}
+bills-Bp4Pbjs8.js:11 📊 [BILLS PAGE] Fetching bills with URL: /api/bills?buildingId=bfee4e0b-aa89-44b8-b3b2-0419bab47897&year=2025
+bills-Bp4Pbjs8.js:11 📊 [BILLS PAGE] Applied filters: {category: '', year: '2025', months: Array(0), paymentType: '', status: '', …}
+bills-Bp4Pbjs8.js:11 🔄 [BILLS PAGE] Filters changed: {category: '', year: '2025', months: Array(0), paymentType: '', status: '', …}
+bills-Bp4Pbjs8.js:11 🏗️ [BILLS PAGE] Building ID changed: bfee4e0b-aa89-44b8-b3b2-0419bab47897
+bills-Bp4Pbjs8.js:11 📋 [BILLS PAGE] Bills data updated: {count: 0, billTypes: Array(0)}
+bills-Bp4Pbjs8.js:11 ⏳ [BILLS PAGE] Loading bills...
+bills-Bp4Pbjs8.js:11 🏠 [BILLS PAGE] Initializing with: {buildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', organizationId: '8c6de72f-057c-4ac5-9372-dd7bc74e32f4'}
+bills-Bp4Pbjs8.js:11 📋 [BILLS PAGE] Bills data updated: {count: 0, billTypes: Array(0)}
+bills-Bp4Pbjs8.js:11 🔄 [BILLS PAGE] Auto-adjusting year from 2025 to 2024 (current year has no bills)
+bills-Bp4Pbjs8.js:11 🏠 [BILLS PAGE] Initializing with: {buildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', organizationId: '8c6de72f-057c-4ac5-9372-dd7bc74e32f4'}
+bills-Bp4Pbjs8.js:11 📊 [BILLS PAGE] Fetching bills with URL: /api/bills?buildingId=bfee4e0b-aa89-44b8-b3b2-0419bab47897&year=2024
+bills-Bp4Pbjs8.js:11 📊 [BILLS PAGE] Applied filters: {category: '', year: '2024', months: Array(0), paymentType: '', status: '', …}
+bills-Bp4Pbjs8.js:11 🔄 [BILLS PAGE] Filters changed: {category: '', year: '2024', months: Array(0), paymentType: '', status: '', …}
+bills-Bp4Pbjs8.js:11 📋 [BILLS PAGE] Bills data updated: {count: 0, billTypes: Array(0)}
+bills-Bp4Pbjs8.js:11 📊 [BILLS PAGE] Bills API response status: 200
+bills-Bp4Pbjs8.js:11 ✅ [BILLS PAGE] Bills data received: []
+bills-Bp4Pbjs8.js:11 🏠 [BILLS PAGE] Initializing with: {buildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', organizationId: '8c6de72f-057c-4ac5-9372-dd7bc74e32f4'}
+bills-Bp4Pbjs8.js:11 📋 [BILLS PAGE] Bills data updated: {count: 0, billTypes: Array(0)}
+bills-Bp4Pbjs8.js:11 📊 [BILLS PAGE] Bills API response status: 200
+bills-Bp4Pbjs8.js:11 ✅ [BILLS PAGE] Bills data received: (216) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, …]
+ 🏠 [BILLS PAGE] Initializing with: {buildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', organizationId: '8c6de72f-057c-4ac5-9372-dd7bc74e32f4'}
+ 🃏 [BILL CARD] Rendering bill: {id: 'd2eb71b3-a27a-4b69-8ba2-ada5077200b1', title: 'Insurance - Liberty Mutual', status: 'paid', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '8f7b4677-54e9-4352-a8ed-38ab736d9921', title: 'Insurance (2) - Liberty Mutual', status: 'sent', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: 'b89ecd35-645f-4c68-8fd6-4d15a9684e30', title: 'Insurance (2) - Liberty Mutual', status: 'overdue', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: 'b988329f-1b1c-4817-8a27-a533b90407c6', title: 'Insurance - Allstate Insurance', status: 'overdue', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: 'c22a11a5-0dc5-4042-9129-097df7c8d92a', title: 'Insurance (2) - Allstate Insurance', status: 'sent', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: 'da06047a-aca2-43c3-ab5b-1f287b93a3ee', title: 'Insurance - State Farm', status: 'overdue', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: 'f5f4dd69-7f3a-44af-a0b1-0ebf36ce0aae', title: 'Insurance (2) - Liberty Mutual', status: 'sent', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '5a3172b2-e841-48ee-82db-6c89b8935d45', title: 'Insurance - Allstate Insurance', status: 'overdue', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '5bb8db44-5516-4f29-b104-bc201a936975', title: 'Insurance - Liberty Mutual', status: 'overdue', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: 'a2477127-ceea-4551-b99c-3f95325f5e7b', title: 'Insurance (2) - Liberty Mutual', status: 'paid', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '334ee05c-4a67-4407-8bb9-432123dbec49', title: 'Insurance (2) - State Farm', status: 'paid', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: 'bb2b3552-5387-408b-86af-b8c92e84f951', title: 'Insurance - State Farm', status: 'overdue', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '8f4bbf11-6191-47f6-be63-1c4db79db71b', title: 'Insurance - Liberty Mutual', status: 'overdue', paymentType: 'recurrent', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '97a9ee30-ce6c-42af-ad26-80940b6c5fcd', title: 'Insurance (2) - Travelers Insurance', status: 'sent', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '8b4b53b5-f614-453f-b47a-9f5fc2594b1b', title: 'Insurance - Liberty Mutual', status: 'overdue', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '64b74e50-dc7d-4589-a9dc-a1c95608d117', title: 'Insurance (2) - Liberty Mutual', status: 'paid', paymentType: 'recurrent', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: 'cc3af5a8-5322-4c51-ab5c-992e6dcc4437', title: 'Insurance - Travelers Insurance', status: 'paid', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '5bedef7d-df2d-4b60-9dbd-40c001d90426', title: 'Insurance (2) - Liberty Mutual', status: 'paid', paymentType: 'recurrent', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '3b0a7098-23ae-43a2-be6d-59652451a7da', title: 'Insurance - State Farm', status: 'paid', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '8981e778-9241-4b75-8adb-0655089c4dd8', title: 'Insurance (2) - Travelers Insurance', status: 'paid', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '971fb2b0-b93a-4a74-8637-8e6456186936', title: 'Insurance - State Farm', status: 'sent', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: 'e21d2402-3be8-4e66-871b-00313ad67f2f', title: 'Insurance (2) - Allstate Insurance', status: 'overdue', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: 'f2bdc05b-83b3-4e9e-bf89-457483bccd52', title: 'Insurance - Travelers Insurance', status: 'sent', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '185cdbe7-d396-49e2-ab0e-89f955bd7458', title: 'Insurance (2) - State Farm', status: 'sent', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '0bcb299e-c567-4e8e-9cb4-cf382c514ed4', title: 'Maintenance - Premier Maintenance', status: 'paid', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '1820e108-0f1d-4ac4-9969-9f301dafd163', title: 'Maintenance (2) - TotalCare Corp', status: 'paid', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '1962b64d-d44e-4492-ab62-7cd4dd4cab42', title: 'Maintenance - BuildCare Solutions', status: 'paid', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '0f6d1f19-e81a-479b-9b21-06d7815c46c3', title: 'Maintenance (2) - ProMaint Services', status: 'paid', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '599d2cec-8a38-40fe-927f-80693407f15f', title: 'Maintenance - BuildCare Solutions', status: 'overdue', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '386ea580-ba6a-48b9-8257-c6916510d740', title: 'Maintenance (2) - BuildCare Solutions', status: 'sent', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: 'f0c18212-f6fe-483f-966d-642edc5d7a53', title: 'Maintenance - TotalCare Corp', status: 'overdue', paymentType: 'recurrent', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '6bbabc8b-c3ea-45ec-a836-fa4eb13a8dc9', title: 'Maintenance (2) - BuildCare Solutions', status: 'sent', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '8e3d3541-eea6-4f29-9465-627b4ea69462', title: 'Maintenance (2) - TotalCare Corp', status: 'sent', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '94da827d-f4cb-4299-a76e-a4eca17af232', title: 'Maintenance - ProMaint Services', status: 'sent', paymentType: 'recurrent', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: 'e9ce919b-ee6c-4ae4-b902-7d888b36c4fa', title: 'Maintenance - TotalCare Corp', status: 'overdue', paymentType: 'recurrent', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: 'f444351d-a78b-42e5-b93b-657fc0d9adf3', title: 'Maintenance (2) - TotalCare Corp', status: 'paid', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '26259109-b868-4689-b465-1b12eb3ba84d', title: 'Maintenance - TotalCare Corp', status: 'overdue', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '59e19eac-d2a8-4072-8f40-26ac89c9ddc8', title: 'Maintenance (2) - TotalCare Corp', status: 'overdue', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: 'ba9f66fe-316a-4cd6-8aab-21a3dfa928e3', title: 'Maintenance (2) - BuildCare Solutions', status: 'paid', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '1905ce00-33c9-49e1-bec2-44ba4665e6ef', title: 'Maintenance - TotalCare Corp', status: 'overdue', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '2ebd5cf6-1698-4045-9c09-16c1c569f711', title: 'Maintenance - Premier Maintenance', status: 'paid', paymentType: 'recurrent', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '8b73daea-32e5-480b-87dc-7eb89511e2bf', title: 'Maintenance (2) - ProMaint Services', status: 'overdue', paymentType: 'recurrent', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '12fe31ca-1895-4ccf-9572-b56296ad1064', title: 'Maintenance - ProMaint Services', status: 'sent', paymentType: 'recurrent', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: 'efdd4124-1e59-4f98-adee-4e7a1abbf8df', title: 'Maintenance (2) - Premier Maintenance', status: 'sent', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '2590285a-b0ee-44a8-8e11-9c941de923c8', title: 'Maintenance (2) - ProMaint Services', status: 'overdue', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '065b8c52-f8cb-4bee-abad-f723084e58fb', title: 'Maintenance - Premier Maintenance', status: 'paid', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: 'b589694a-86ef-4c51-9c16-fe218155d6cb', title: 'Maintenance - Premier Maintenance', status: 'overdue', paymentType: 'recurrent', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '6de4e5fa-0a01-4ac4-90d3-14ed22d0db2c', title: 'Maintenance (2) - ProMaint Services', status: 'overdue', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '455d9095-d58e-411f-83c5-1b22b4eec1ca', title: 'Utilities - Hydro-Quebec', status: 'paid', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '5a6444d0-96c5-4120-a30a-f28cb51fb006', title: 'Utilities (2) - Hydro-Quebec', status: 'sent', paymentType: 'recurrent', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: 'f3da303d-b0df-49da-8aa2-ff07393ba920', title: 'Utilities (2) - Quebec Power Co', status: 'sent', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '309414a5-e393-4c03-9fe4-a08ae29601de', title: 'Utilities - Hydro-Quebec', status: 'sent', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '497557df-dd23-4391-808f-55d78a05bcdd', title: 'Utilities - Metro Utilities', status: 'sent', paymentType: 'recurrent', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: 'd3124a1a-5fc5-4da4-9b48-f382afebba4f', title: 'Utilities (2) - Metro Utilities', status: 'paid', paymentType: 'recurrent', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '6efd3fc5-0452-4af5-9f37-765c3fc35752', title: 'Utilities - Metro Utilities', status: 'paid', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: 'f8ef1106-4416-4f9a-8114-5c28be5e0677', title: 'Utilities (2) - Montreal Energy', status: 'sent', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '0280c4b6-02c7-45b4-9207-b3554b6c1a65', title: 'Utilities - Montreal Energy', status: 'paid', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: 'f009e66a-3d76-4f8d-ab01-14c6b9f3b384', title: 'Utilities (2) - Quebec Power Co', status: 'overdue', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '5b76d84f-364b-45ab-8c44-976b50117f71', title: 'Utilities (2) - Metro Utilities', status: 'overdue', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: 'ac46edfa-898a-473c-a68c-2c1c48f3bbfe', title: 'Utilities - Metro Utilities', status: 'overdue', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '02384984-1216-444b-aa74-06babbd2df36', title: 'Utilities (2) - Quebec Power Co', status: 'sent', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '699778d4-2bb1-4202-afff-ed828f885c6b', title: 'Utilities - Quebec Power Co', status: 'overdue', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: 'ee44712b-7ce9-4a6e-9e44-51a290842408', title: 'Utilities - Quebec Power Co', status: 'sent', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '631274ec-eb08-4f67-9e03-60b093c3ec0d', title: 'Utilities (2) - Montreal Energy', status: 'paid', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '5e347d73-80da-4d4b-bdac-0f1587286a17', title: 'Utilities (2) - Quebec Power Co', status: 'overdue', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: 'aaef7e77-e76a-496b-b8e4-dec21877dcf9', title: 'Utilities - Quebec Power Co', status: 'sent', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: 'f0a2fb06-d619-4d62-801e-48438adaff81', title: 'Utilities (2) - Montreal Energy', status: 'paid', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: 'afd44bc5-6869-412b-8c4e-dd7e701a558e', title: 'Utilities - Montreal Energy', status: 'paid', paymentType: 'recurrent', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: 'fac23afe-6888-4478-a73a-137c03a19bb6', title: 'Utilities - Quebec Power Co', status: 'sent', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '933f0014-2c4c-462a-b002-7c5a0781f148', title: 'Utilities (2) - Montreal Energy', status: 'paid', paymentType: 'recurrent', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '7fd55d88-73fe-46df-8bc4-8f3923635a20', title: 'Utilities - Metro Utilities', status: 'paid', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '497d8077-ee10-4753-82e9-a65ceddf19f5', title: 'Utilities (2) - Hydro-Quebec', status: 'sent', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: 'b34b8b7f-fd8e-4457-9ea3-84f51afbd6de', title: 'Cleaning (2) - Fresh Start Cleaners', status: 'overdue', paymentType: 'recurrent', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '9057850d-898d-4165-b2a0-35368ce3278d', title: 'Cleaning - CleanPro Montreal', status: 'overdue', paymentType: 'recurrent', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: 'ea89fbb7-2147-429a-bb1e-59695c51f6ed', title: 'Cleaning (2) - Fresh Start Cleaners', status: 'sent', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '7cc26bdc-138c-4b8e-8a14-86e899e5a6d9', title: 'Cleaning - CleanPro Montreal', status: 'paid', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '1124d3e9-3180-4a81-b3a2-34140de0a473', title: 'Cleaning - CleanPro Montreal', status: 'overdue', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: 'eee4bf4d-426a-445d-b72c-71513daff38f', title: 'Cleaning (2) - Elite Cleaning Co', status: 'sent', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '8a13aeed-02d5-4717-8542-207af40ec626', title: 'Cleaning (2) - Sparkle Services', status: 'overdue', paymentType: 'recurrent', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '22444808-d83c-486a-ae62-08c089e303cc', title: 'Cleaning - Elite Cleaning Co', status: 'paid', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: 'c68c55e0-c85c-49f0-a62e-141601a1d288', title: 'Cleaning (2) - CleanPro Montreal', status: 'overdue', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '11e1998c-c67f-40c8-9065-abc0c3bd2f9e', title: 'Cleaning - Fresh Start Cleaners', status: 'paid', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '62bc47eb-15eb-430d-8d13-477ae652a383', title: 'Cleaning - CleanPro Montreal', status: 'sent', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '25b47b7e-9113-42af-b359-6a5c77d4c704', title: 'Cleaning (2) - CleanPro Montreal', status: 'sent', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '8be85c10-68c5-4d9f-b2ec-f8210f94543a', title: 'Cleaning - CleanPro Montreal', status: 'paid', paymentType: 'unique', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: '2494d0a9-8816-4129-af20-c72d49a04668', title: 'Cleaning (2) - CleanPro Montreal', status: 'sent', paymentType: 'recurrent', isExpanded: false}
+ 🃏 [BILL CARD] Rendering bill: {id: 'cf3d797f-b806-4abe-80a9-ff51e036c875', title: 'Cleaning (2) - Sparkle Services', status: 'sent', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'bc71c7f3-3722-45d7-9ac5-efe750e90dd1', title: 'Cleaning - Sparkle Services', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '8e08877a-51e9-4100-b912-c15a01a03363', title: 'Cleaning (2) - Elite Cleaning Co', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'b3bffb8b-ccb3-4f64-a525-16ab3ee05abe', title: 'Cleaning - Sparkle Services', status: 'overdue', paymentType: 'recurrent', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '2b8df335-a623-486f-8a3d-b7e86e08ce96', title: 'Cleaning - Sparkle Services', status: 'paid', paymentType: 'recurrent', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '3ee042fc-0527-4a99-a486-fa5c4b5c987e', title: 'Cleaning (2) - CleanPro Montreal', status: 'sent', paymentType: 'recurrent', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'b6ff7b10-0db6-47e0-99f0-e34804bbcc8d', title: 'Cleaning - Elite Cleaning Co', status: 'sent', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'b084b798-ab4d-4595-b0fa-6b37910bba14', title: 'Cleaning (2) - Fresh Start Cleaners', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '963e529d-772f-4dcc-a07a-9750221f2565', title: 'Cleaning (2) - Fresh Start Cleaners', status: 'paid', paymentType: 'recurrent', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '63734087-b968-427f-8185-838387ca9901', title: 'Cleaning - Fresh Start Cleaners', status: 'paid', paymentType: 'recurrent', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'eb3078a2-153a-45fb-a26f-77d677a1fde3', title: 'Security (2) - SafeWatch Corp', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'dae2c4fb-25d5-4638-87d4-197d98e3facb', title: 'Security - Montreal Security', status: 'sent', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '3bc91e2e-0098-4a0f-96e1-65ed8958deb8', title: 'Security - SecureGuard Services', status: 'sent', paymentType: 'recurrent', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '8ffa6c0f-9aa6-4054-ac5b-b3ecd44b0d76', title: 'Security (2) - SecureGuard Services', status: 'overdue', paymentType: 'recurrent', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '4262f2bb-4856-4342-855e-44a5617b08eb', title: 'Security - SafeWatch Corp', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '09c2bfdc-f655-4504-b154-6b67642d104b', title: 'Security (2) - Montreal Security', status: 'paid', paymentType: 'recurrent', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '6853ae27-3c4d-40a3-9ef8-f95e7f90651b', title: 'Security (2) - SecureGuard Services', status: 'sent', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'd6df8f7d-88de-4ea2-9b25-7db6e125834a', title: 'Security - Guardian Protection', status: 'overdue', paymentType: 'recurrent', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'b092a6e9-c586-4176-a2f6-172362464434', title: 'Security - SecureGuard Services', status: 'overdue', paymentType: 'recurrent', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '0a51d150-ae8e-4823-a4fc-6028cd0c10b5', title: 'Security (2) - Guardian Protection', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '979b83bc-89cc-4250-ba5b-e63ef1edd09b', title: 'Security - SafeWatch Corp', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'c38db524-a137-4c5e-a98e-434ea63e27c7', title: 'Security (2) - Guardian Protection', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'd4aa13b5-02fa-4421-881c-3582073c4e4e', title: 'Security (2) - Montreal Security', status: 'paid', paymentType: 'recurrent', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '306a8a8c-51ef-46f4-8b5d-5332f88554f4', title: 'Security - SafeWatch Corp', status: 'sent', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'f7bbf2ae-63ae-4625-ba0e-dc8eb2b349ec', title: 'Security (2) - Guardian Protection', status: 'overdue', paymentType: 'recurrent', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '65459857-7f49-403d-a014-a67f0caa06e1', title: 'Security - SafeWatch Corp', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '23181af8-0abe-4fb3-b9d9-15e74cb82a2f', title: 'Security (2) - SecureGuard Services', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'd590761f-dcac-419f-86e6-fc09126ddd8e', title: 'Security - SafeWatch Corp', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'cd35b38b-432b-474d-a573-df0305b7563a', title: 'Security (2) - Guardian Protection', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '1d590e06-e41a-4b52-94ca-b2254ecdd431', title: 'Security - Montreal Security', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '7f0f9d0a-bc08-4592-8655-7ef47252a000', title: 'Security (2) - Montreal Security', status: 'sent', paymentType: 'recurrent', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'c2efcd44-c2bc-4783-aa36-d692c3c1929e', title: 'Security - SafeWatch Corp', status: 'sent', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'b22a2851-b8a8-4024-ac0d-b43d1ed6ba95', title: 'Security (2) - Montreal Security', status: 'overdue', paymentType: 'recurrent', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'd4807d3e-8c42-4a49-b078-a9f926228352', title: 'Security - SecureGuard Services', status: 'sent', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '8e63e911-140a-430c-bbb4-29b270962ace', title: 'Landscaping - Green Thumb Landscaping', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '9f162629-29ca-483b-950d-2e2aa22c054d', title: 'Landscaping (2) - Green Thumb Landscaping', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'c3a0f1df-c00a-44a1-ad5b-12863e432cdb', title: 'Landscaping (2) - Green Thumb Landscaping', status: 'paid', paymentType: 'recurrent', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '58e70956-871b-4060-872a-7a496715a48d', title: 'Landscaping - Nature Plus Services', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '693f7d7e-3340-4df0-9af7-c1d18cf27294', title: 'Landscaping - Montreal Gardens', status: 'sent', paymentType: 'recurrent', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'adb24047-6dbc-42d5-a435-980bb65dc627', title: 'Landscaping (2) - Green Thumb Landscaping', status: 'sent', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '73b0865e-2e3f-432a-86d3-8e487d75b7e5', title: 'Landscaping (2) - EcoScape Solutions', status: 'sent', paymentType: 'recurrent', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '4206ed98-fd0e-4996-b2c0-7dcd1c52872d', title: 'Landscaping - Montreal Gardens', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '5f071aa7-c649-4e21-924f-1cd46f26728d', title: 'Landscaping - Montreal Gardens', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '9d082a9b-b3db-494f-b4d3-ffa75c0c6fc9', title: 'Landscaping (2) - Montreal Gardens', status: 'sent', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '7a1682b6-fd6f-48b1-9f6f-3542c23363a0', title: 'Landscaping - Green Thumb Landscaping', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '331869fe-b1dd-4f14-bf2e-4411c71335c7', title: 'Landscaping (2) - Montreal Gardens', status: 'paid', paymentType: 'recurrent', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '0e221ee8-1822-4617-8c19-d7966ea461ff', title: 'Landscaping (2) - EcoScape Solutions', status: 'sent', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'ae76036a-b85b-45e7-bf5f-563f0b442aac', title: 'Landscaping - Montreal Gardens', status: 'overdue', paymentType: 'recurrent', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'bca755a8-7e57-4aa3-86b2-6eec0458a98c', title: 'Landscaping - Nature Plus Services', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'ef67d2bb-625c-4713-8a90-761afd06c974', title: 'Landscaping (2) - Montreal Gardens', status: 'sent', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'bcb7a71c-aeaf-4c90-8056-bb01a33b7366', title: 'Landscaping (2) - EcoScape Solutions', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '1d5f02db-1479-4e6b-ae85-471901eb58da', title: 'Landscaping - Green Thumb Landscaping', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'eb7c607b-9fd9-47d5-9988-03d3030ddb3c', title: 'Landscaping - Nature Plus Services', status: 'paid', paymentType: 'recurrent', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '40d3d594-9850-40c4-91b0-3340e05dc504', title: 'Landscaping (2) - EcoScape Solutions', status: 'sent', paymentType: 'recurrent', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '1ade70e6-28d8-4d42-8479-61f1e5a96594', title: 'Landscaping - Green Thumb Landscaping', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'e8ef8b47-2a1e-494f-804d-8799ed1b5b15', title: 'Landscaping (2) - Green Thumb Landscaping', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '51a22483-705e-47b8-89ff-8c6f8734ed37', title: 'Landscaping - EcoScape Solutions', status: 'sent', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '166cd40a-079a-451b-882d-772e7b07e257', title: 'Landscaping (2) - Green Thumb Landscaping', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'cb7ad8ce-2b2b-43b2-84e5-a34004b15fdf', title: 'Professional_Services - Expert Advisory Group', status: 'sent', paymentType: 'recurrent', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '0b2db909-d740-4adb-a40c-ad53058fcd47', title: 'Professional_Services (2) - Quebec Legal Services', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '281a71ab-8c60-4efd-a6af-04d4be10aaec', title: 'Professional_Services - Professional Solutions Inc', status: 'paid', paymentType: 'recurrent', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '0ae44fda-3c75-4e4d-b529-dbfb459a4295', title: 'Professional_Services (2) - Quebec Legal Services', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '8407cfae-ea2e-43a5-9972-a362ef2b5938', title: 'Professional_Services - Quebec Legal Services', status: 'sent', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'ad6348ab-ec36-4a5b-9419-f7ce89fe6410', title: 'Professional_Services (2) - Expert Advisory Group', status: 'sent', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'aa244cba-7abe-4d17-a34f-2a09b46991ad', title: 'Professional_Services (2) - Expert Advisory Group', status: 'sent', paymentType: 'recurrent', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '2140b742-7e96-4399-bf82-472af0eaebe8', title: 'Professional_Services - Quebec Legal Services', status: 'overdue', paymentType: 'recurrent', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '43a23410-38c5-47d0-a6ef-e1b9558ba679', title: 'Professional_Services - Quebec Legal Services', status: 'sent', paymentType: 'recurrent', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'c2db00cb-4e23-4dc3-a59f-254954995945', title: 'Professional_Services (2) - Montreal Consulting', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '6c72e7f2-3f83-4da7-87b2-0b8daca0f8cf', title: 'Professional_Services (2) - Professional Solutions Inc', status: 'overdue', paymentType: 'recurrent', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'cd60d6ff-14b2-4667-b7e1-1a57336d6d4c', title: 'Professional_Services - Montreal Consulting', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '6178d17f-ac4f-41a1-9d6f-791f4f3fd0bc', title: 'Professional_Services - Quebec Legal Services', status: 'paid', paymentType: 'recurrent', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '41300f56-22ea-42d3-8f32-8a56861f7678', title: 'Professional_Services (2) - Montreal Consulting', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '2f55a8da-8bdf-4d87-b173-4840711eaa9b', title: 'Professional_Services - Expert Advisory Group', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '9c464163-8575-4486-a769-65f2985a76e2', title: 'Professional_Services (2) - Professional Solutions Inc', status: 'sent', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '0a906b2a-60eb-4c37-86c9-d4060dfcab45', title: 'Professional_Services (2) - Professional Solutions Inc', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '1aa4295f-2721-483d-a726-36a27efbcc0f', title: 'Professional_Services - Expert Advisory Group', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '64fe62f9-3fe8-4f47-ace8-82573f9a1e4a', title: 'Professional_Services - Quebec Legal Services', status: 'sent', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '32f0e6d9-c806-4800-90c7-fab008c03b3c', title: 'Professional_Services (2) - Montreal Consulting', status: 'sent', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '7844e14e-6841-4f46-99a6-94ad71c1255a', title: 'Professional_Services - Professional Solutions Inc', status: 'sent', paymentType: 'recurrent', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'fedbc106-dcbd-416f-aafb-1ba9e23b7125', title: 'Professional_Services (2) - Professional Solutions Inc', status: 'paid', paymentType: 'recurrent', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '5a8f0189-ae50-47be-a579-beb52634cb5e', title: 'Professional_Services - Montreal Consulting', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'a9ee92b6-acde-4c3f-969e-6aee1f34039c', title: 'Professional_Services (2) - Quebec Legal Services', status: 'sent', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '41f0f5d5-0a9e-4418-b7fe-00bccb202d35', title: 'Administration - Executive Solutions', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '8c5bdc56-f7fc-4a01-b28c-fdab73694d4a', title: 'Administration (2) - Office Support Plus', status: 'sent', paymentType: 'recurrent', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'd6359bbb-3bd8-4d30-940f-657139c40714', title: 'Administration (2) - Montreal Management', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'c8340ca6-79fc-4e74-89ce-e4fc74bc63bb', title: 'Administration - Executive Solutions', status: 'sent', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '43905fc4-74b7-4573-a028-9c1cc0f83c8c', title: 'Administration - Montreal Management', status: 'sent', paymentType: 'recurrent', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '93cc0d9f-fd2a-46d8-a6d2-03a23fb411ee', title: 'Administration (2) - Montreal Management', status: 'sent', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'fe6bf00e-e698-429d-8ca5-452adbd26860', title: 'Administration - Executive Solutions', status: 'paid', paymentType: 'recurrent', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '92b43426-5880-4b3a-aa58-b0a8d5f65a6f', title: 'Administration (2) - Executive Solutions', status: 'sent', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '2cafe8a9-9fac-421a-a371-2017193952c6', title: 'Administration (2) - Executive Solutions', status: 'overdue', paymentType: 'recurrent', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'bdb27125-e37e-4170-9e95-bc09b59781ec', title: 'Administration - Office Support Plus', status: 'sent', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '422373b8-2f8c-4e7a-ade9-ddbaa2877a25', title: 'Administration (2) - Office Support Plus', status: 'overdue', paymentType: 'recurrent', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '131100da-c9c8-4603-a78d-de199040d792', title: 'Administration - Office Support Plus', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'd754fc62-bf01-4330-a47b-730e3b79740d', title: 'Administration (2) - AdminPro Services', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '55ede513-dd8f-4972-9c54-067ca2538757', title: 'Administration - AdminPro Services', status: 'sent', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '3daf1920-759e-4e16-be43-4e19bc4dda31', title: 'Administration (2) - Executive Solutions', status: 'sent', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '5d29529a-a0bd-435c-8e81-e0ce09279f1f', title: 'Administration - AdminPro Services', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'f9bf0578-5c8f-432a-abf2-2f21e6e19c85', title: 'Administration - AdminPro Services', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'a929eb35-1534-46ee-bd11-154670dbfb19', title: 'Administration (2) - Executive Solutions', status: 'sent', paymentType: 'recurrent', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '62581a5b-1d27-486a-a4a5-5d04b1be7602', title: 'Administration - Executive Solutions', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '4e64b012-d8cc-4371-b50b-e7c979e4a44e', title: 'Administration (2) - AdminPro Services', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '811fafb2-ce7b-4baf-ab02-3de17e147b11', title: 'Administration (2) - AdminPro Services', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '67362be9-5cf3-4f55-8858-b169fb47cffa', title: 'Administration - Executive Solutions', status: 'paid', paymentType: 'recurrent', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'ea663a36-57c8-4411-affb-0cb4d8ad0290', title: 'Administration - AdminPro Services', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '6d507239-a44f-4ab2-9589-7aaca85e89ca', title: 'Administration (2) - Executive Solutions', status: 'overdue', paymentType: 'recurrent', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '57be0bad-7236-4aa9-a228-ee597cb8efc1', title: 'Supplies (2) - Supply Chain Solutions', status: 'overdue', paymentType: 'recurrent', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '94818275-897a-48e4-a417-4fd14496c3d6', title: 'Supplies - Montreal Office Depot', status: 'paid', paymentType: 'recurrent', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '83c7148a-e151-41d7-80c0-79a85d527882', title: 'Supplies - Quebec Supplies Co', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '021a49f0-166e-4bf8-ac32-641089825a76', title: 'Supplies (2) - Montreal Office Depot', status: 'overdue', paymentType: 'recurrent', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'd426a5b1-9886-4b4d-9cbc-878263796a2b', title: 'Supplies (2) - Supply Chain Solutions', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '584e3199-52ca-46cd-b3a8-0c5e013523f6', title: 'Supplies - Building Materials Plus', status: 'sent', paymentType: 'recurrent', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '1e4a8132-080f-43e4-9d18-87a2a5b8417a', title: 'Supplies (2) - Montreal Office Depot', status: 'sent', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'd95e070f-6412-4a35-919c-f4e562196cc2', title: 'Supplies - Supply Chain Solutions', status: 'paid', paymentType: 'recurrent', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'be788f7f-9e59-46e5-800b-8c32665c8b28', title: 'Supplies (2) - Supply Chain Solutions', status: 'sent', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '7e08d1de-9658-4233-b67a-99b4cb464e78', title: 'Supplies - Building Materials Plus', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'bf0bb9fa-a0f0-4954-84bd-2a1dae8d8eee', title: 'Supplies - Quebec Supplies Co', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'd754b929-3e71-4598-88c3-2dea196a4d5b', title: 'Supplies (2) - Supply Chain Solutions', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '432db1e1-a4ae-46ed-b93b-358bed29f5f0', title: 'Supplies (2) - Montreal Office Depot', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '44f3d9cd-5c60-424c-830f-7032e4d7701d', title: 'Supplies - Supply Chain Solutions', status: 'overdue', paymentType: 'recurrent', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'f3f3e8c2-202d-4c52-90cc-b015d035cb6e', title: 'Supplies - Building Materials Plus', status: 'overdue', paymentType: 'recurrent', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '629a6371-7332-4e54-a732-c6546b982bcc', title: 'Supplies (2) - Montreal Office Depot', status: 'paid', paymentType: 'recurrent', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'a545ec9f-9e04-4a43-9730-cc053b2af87b', title: 'Supplies - Montreal Office Depot', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '9027225d-ff24-4e32-972d-d0a36346545c', title: 'Supplies (2) - Quebec Supplies Co', status: 'sent', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'e5f9c0fe-073a-47a9-a042-fe330f6c4665', title: 'Supplies (2) - Building Materials Plus', status: 'sent', paymentType: 'recurrent', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'f1e20984-fa21-43a7-b45f-ad2a1a20a473', title: 'Supplies - Quebec Supplies Co', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '3af5e2e7-4ceb-4afd-b60b-ee4a929d0e00', title: 'Supplies (2) - Quebec Supplies Co', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '1dbd03ed-05a2-439e-a0c3-4aa9aad1fad4', title: 'Supplies - Building Materials Plus', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'ea60137d-67ee-4409-8202-d8ff8f12c8d3', title: 'Supplies (2) - Montreal Office Depot', status: 'sent', paymentType: 'unique', isExpanded: false}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: '52bc5a84-c658-4a3f-8ebb-536e636d5abe', title: 'Supplies - Supply Chain Solutions', status: 'paid', paymentType: 'recurrent', isExpanded: false}
+bills-Bp4Pbjs8.js:11 📋 [BILLS PAGE] Bills data updated: {count: 216, billTypes: Array(216)}
+index-ZqluWW5z.js:25 [Violation] 'setTimeout' handler took 92ms
+bills-Bp4Pbjs8.js:11 🔄 [BILL CARD] Card clicked: {billId: 'd2eb71b3-a27a-4b69-8ba2-ada5077200b1', isAutoGenerated: false, currentExpanded: false}
+bills-Bp4Pbjs8.js:11 📂 [BILL CARD] Toggling expansion: {from: false, to: true}
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'd2eb71b3-a27a-4b69-8ba2-ada5077200b1', title: 'Insurance - Liberty Mutual', status: 'paid', paymentType: 'unique', isExpanded: true}
+bills-Bp4Pbjs8.js:11 💰 [BILL CARD] Fetching payments for bill: d2eb71b3-a27a-4b69-8ba2-ada5077200b1
+bills-Bp4Pbjs8.js:11  GET https://koveo-gestion-kevhervieux.replit.app/api/bills/d2eb71b3-a27a-4b69-8ba2-ada5077200b1/payments 500 (Internal Server Error)
+queryFn @ bills-Bp4Pbjs8.js:11
+r @ vendor-query-B_IrNKFW.js:1
+y @ vendor-query-B_IrNKFW.js:1
+start @ vendor-query-B_IrNKFW.js:1
+fetch @ vendor-query-B_IrNKFW.js:1
+#l @ vendor-query-B_IrNKFW.js:1
+setOptions @ vendor-query-B_IrNKFW.js:1
+(anonymous) @ vendor-query-B_IrNKFW.js:1
+ii @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+jd @ index-ZqluWW5z.js:25
+xl @ index-ZqluWW5z.js:25
+Bd @ index-ZqluWW5z.js:25
+Ud @ index-ZqluWW5z.js:25
+Ed @ index-ZqluWW5z.js:25
+Md @ index-ZqluWW5z.js:25
+Yd @ index-ZqluWW5z.js:25
+di @ index-ZqluWW5z.js:25
+Vd @ index-ZqluWW5z.js:25
+(anonymous) @ index-ZqluWW5z.js:25
+bills-Bp4Pbjs8.js:11 💰 [BILL CARD] Payments API response status: 500
+bills-Bp4Pbjs8.js:11 ❌ [BILL CARD] Failed to fetch payments: 500
+overrideMethod @ hook.js:608
+queryFn @ bills-Bp4Pbjs8.js:11
+await in queryFn
+r @ vendor-query-B_IrNKFW.js:1
+y @ vendor-query-B_IrNKFW.js:1
+start @ vendor-query-B_IrNKFW.js:1
+fetch @ vendor-query-B_IrNKFW.js:1
+#l @ vendor-query-B_IrNKFW.js:1
+setOptions @ vendor-query-B_IrNKFW.js:1
+(anonymous) @ vendor-query-B_IrNKFW.js:1
+ii @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+jd @ index-ZqluWW5z.js:25
+xl @ index-ZqluWW5z.js:25
+Bd @ index-ZqluWW5z.js:25
+Ud @ index-ZqluWW5z.js:25
+Ed @ index-ZqluWW5z.js:25
+Md @ index-ZqluWW5z.js:25
+Yd @ index-ZqluWW5z.js:25
+di @ index-ZqluWW5z.js:25
+Vd @ index-ZqluWW5z.js:25
+(anonymous) @ index-ZqluWW5z.js:25
+bills-Bp4Pbjs8.js:11 💰 [BILL CARD] Fetching payments for bill: d2eb71b3-a27a-4b69-8ba2-ada5077200b1
+bills-Bp4Pbjs8.js:11  GET https://koveo-gestion-kevhervieux.replit.app/api/bills/d2eb71b3-a27a-4b69-8ba2-ada5077200b1/payments 500 (Internal Server Error)
+queryFn @ bills-Bp4Pbjs8.js:11
+r @ vendor-query-B_IrNKFW.js:1
+y @ vendor-query-B_IrNKFW.js:1
+(anonymous) @ vendor-query-B_IrNKFW.js:1
+Promise.then
+(anonymous) @ vendor-query-B_IrNKFW.js:1
+Promise.catch
+y @ vendor-query-B_IrNKFW.js:1
+start @ vendor-query-B_IrNKFW.js:1
+fetch @ vendor-query-B_IrNKFW.js:1
+#l @ vendor-query-B_IrNKFW.js:1
+setOptions @ vendor-query-B_IrNKFW.js:1
+(anonymous) @ vendor-query-B_IrNKFW.js:1
+ii @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+jd @ index-ZqluWW5z.js:25
+xl @ index-ZqluWW5z.js:25
+Bd @ index-ZqluWW5z.js:25
+Ud @ index-ZqluWW5z.js:25
+Ed @ index-ZqluWW5z.js:25
+Md @ index-ZqluWW5z.js:25
+Yd @ index-ZqluWW5z.js:25
+di @ index-ZqluWW5z.js:25
+Vd @ index-ZqluWW5z.js:25
+(anonymous) @ index-ZqluWW5z.js:25
+bills-Bp4Pbjs8.js:11 💰 [BILL CARD] Payments API response status: 500
+bills-Bp4Pbjs8.js:11 ❌ [BILL CARD] Failed to fetch payments: 500
+overrideMethod @ hook.js:608
+queryFn @ bills-Bp4Pbjs8.js:11
+await in queryFn
+r @ vendor-query-B_IrNKFW.js:1
+y @ vendor-query-B_IrNKFW.js:1
+(anonymous) @ vendor-query-B_IrNKFW.js:1
+Promise.then
+(anonymous) @ vendor-query-B_IrNKFW.js:1
+Promise.catch
+y @ vendor-query-B_IrNKFW.js:1
+start @ vendor-query-B_IrNKFW.js:1
+fetch @ vendor-query-B_IrNKFW.js:1
+#l @ vendor-query-B_IrNKFW.js:1
+setOptions @ vendor-query-B_IrNKFW.js:1
+(anonymous) @ vendor-query-B_IrNKFW.js:1
+ii @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+jd @ index-ZqluWW5z.js:25
+xl @ index-ZqluWW5z.js:25
+Bd @ index-ZqluWW5z.js:25
+Ud @ index-ZqluWW5z.js:25
+Ed @ index-ZqluWW5z.js:25
+Md @ index-ZqluWW5z.js:25
+Yd @ index-ZqluWW5z.js:25
+di @ index-ZqluWW5z.js:25
+Vd @ index-ZqluWW5z.js:25
+(anonymous) @ index-ZqluWW5z.js:25
+bills-Bp4Pbjs8.js:11 💰 [BILL CARD] Fetching payments for bill: d2eb71b3-a27a-4b69-8ba2-ada5077200b1
+bills-Bp4Pbjs8.js:11  GET https://koveo-gestion-kevhervieux.replit.app/api/bills/d2eb71b3-a27a-4b69-8ba2-ada5077200b1/payments 500 (Internal Server Error)
+queryFn @ bills-Bp4Pbjs8.js:11
+r @ vendor-query-B_IrNKFW.js:1
+y @ vendor-query-B_IrNKFW.js:1
+(anonymous) @ vendor-query-B_IrNKFW.js:1
+Promise.then
+(anonymous) @ vendor-query-B_IrNKFW.js:1
+Promise.catch
+y @ vendor-query-B_IrNKFW.js:1
+(anonymous) @ vendor-query-B_IrNKFW.js:1
+Promise.then
+(anonymous) @ vendor-query-B_IrNKFW.js:1
+Promise.catch
+y @ vendor-query-B_IrNKFW.js:1
+start @ vendor-query-B_IrNKFW.js:1
+fetch @ vendor-query-B_IrNKFW.js:1
+#l @ vendor-query-B_IrNKFW.js:1
+setOptions @ vendor-query-B_IrNKFW.js:1
+(anonymous) @ vendor-query-B_IrNKFW.js:1
+ii @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+jd @ index-ZqluWW5z.js:25
+xl @ index-ZqluWW5z.js:25
+Bd @ index-ZqluWW5z.js:25
+Ud @ index-ZqluWW5z.js:25
+Ed @ index-ZqluWW5z.js:25
+Md @ index-ZqluWW5z.js:25
+Yd @ index-ZqluWW5z.js:25
+di @ index-ZqluWW5z.js:25
+Vd @ index-ZqluWW5z.js:25
+(anonymous) @ index-ZqluWW5z.js:25
+bills-Bp4Pbjs8.js:11 💰 [BILL CARD] Payments API response status: 500
+bills-Bp4Pbjs8.js:11 ❌ [BILL CARD] Failed to fetch payments: 500
+overrideMethod @ hook.js:608
+queryFn @ bills-Bp4Pbjs8.js:11
+await in queryFn
+r @ vendor-query-B_IrNKFW.js:1
+y @ vendor-query-B_IrNKFW.js:1
+(anonymous) @ vendor-query-B_IrNKFW.js:1
+Promise.then
+(anonymous) @ vendor-query-B_IrNKFW.js:1
+Promise.catch
+y @ vendor-query-B_IrNKFW.js:1
+(anonymous) @ vendor-query-B_IrNKFW.js:1
+Promise.then
+(anonymous) @ vendor-query-B_IrNKFW.js:1
+Promise.catch
+y @ vendor-query-B_IrNKFW.js:1
+start @ vendor-query-B_IrNKFW.js:1
+fetch @ vendor-query-B_IrNKFW.js:1
+#l @ vendor-query-B_IrNKFW.js:1
+setOptions @ vendor-query-B_IrNKFW.js:1
+(anonymous) @ vendor-query-B_IrNKFW.js:1
+ii @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+At @ index-ZqluWW5z.js:25
+hd @ index-ZqluWW5z.js:25
+jd @ index-ZqluWW5z.js:25
+xl @ index-ZqluWW5z.js:25
+Bd @ index-ZqluWW5z.js:25
+Ud @ index-ZqluWW5z.js:25
+Ed @ index-ZqluWW5z.js:25
+Md @ index-ZqluWW5z.js:25
+Yd @ index-ZqluWW5z.js:25
+di @ index-ZqluWW5z.js:25
+Vd @ index-ZqluWW5z.js:25
+(anonymous) @ index-ZqluWW5z.js:25
+bills-Bp4Pbjs8.js:11 🃏 [BILL CARD] Rendering bill: {id: 'd2eb71b3-a27a-4b69-8ba2-ada5077200b1', title: 'Insurance - Liberty Mutual', status: 'paid', paymentType: 'unique', isExpanded: true}

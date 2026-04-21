@@ -69,24 +69,20 @@ export function createRootHandler() {
     const userAgent = req.get('User-Agent') || '';
     const isHealthCheck =
       userAgent.includes('GoogleHC') ||
-      userAgent.includes('uptime') ||
-      userAgent.includes('health') ||
+      userAgent.includes('Cloud-Run-Health-Check') ||
       userAgent.includes('kube-probe') ||
-      userAgent.includes('ELB') ||
-      userAgent.includes('AWS') ||
+      userAgent.includes('ELB-HealthChecker') ||
+      userAgent.includes('AWS-HealthChecker') ||
       userAgent.includes('Pingdom') ||
       userAgent.includes('StatusCake') ||
-      userAgent.includes('replit') ||
-      userAgent.includes('curl') ||
-      userAgent.includes('deployment') ||
-      userAgent.includes('probe') ||
+      userAgent.includes('deployment-health') ||
       req.headers['x-health-check'] === 'true' ||
       req.query.health === 'true' ||
       req.headers['x-deployment-check'] === 'true' ||
-      !userAgent;
+      (userAgent.startsWith('curl') && req.headers['accept'] === '*/*');
 
-    // For deployment platforms, ALWAYS respond immediately with OK
-    if (isHealthCheck || process.env.NODE_ENV === 'production') {
+    // For deployment platforms and health checks, respond immediately with OK
+    if (isHealthCheck) {
       // Ultra-fast health check response - minimal headers
       res.set({
         Connection: 'close',

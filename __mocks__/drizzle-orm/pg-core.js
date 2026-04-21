@@ -1,9 +1,23 @@
 // Direct mock for drizzle-orm/pg-core to fix schema import issues
-const pgEnum = jest.fn().mockImplementation((name, values) => ({
-  name,
-  enumValues: values,
-  enumName: name
-}));
+const pgEnum = jest.fn().mockImplementation((name, values) => {
+  // Create a callable function that returns chainable column objects like other drizzle columns
+  const enumFunc = jest.fn().mockImplementation((value) => {
+    // Return a chainable column object using the same createChainableColumn function
+    return createChainableColumn('enum', name, { 
+      enumValue: value, 
+      enumName: name, 
+      enumValues: values 
+    });
+  });
+  
+  // Attach enum properties to the function for static access
+  enumFunc.name = name;
+  enumFunc.values = values;
+  enumFunc.enumValues = values;
+  enumFunc.enumName = name;
+  
+  return enumFunc;
+});
 
 const pgTable = jest.fn().mockImplementation((name, schema) => ({
   name,
@@ -11,44 +25,123 @@ const pgTable = jest.fn().mockImplementation((name, schema) => ({
   _: { name, columns: schema }
 }));
 
-// Simple chainable column mock - recursive self-reference approach
+// Enhanced chainable column mock with proper method chaining support
 const createChainableColumn = (type, name, options = {}) => {
   const column = {
     type,
     name,
-    ...options
+    ...options,
+    // Add common column properties
+    isColumn: true,
+    columnType: type,
+    sqlName: name
   };
   
-  // Add all chainable methods that return the same object
-  const chainableMethods = ['primaryKey', 'notNull', 'unique', 'default', 'references', 'onDelete', 'onUpdate', 'array'];
+  // Create chainable methods as direct functions (not jest.fn())
+  column.primaryKey = function(...args) {
+    const newOptions = { ...options, primaryKey: true, primaryKeyArgs: args };
+    return createChainableColumn(type, name, newOptions);
+  };
   
-  chainableMethods.forEach(method => {
-    column[method] = jest.fn(() => {
-      // Return a new object that also has all the chainable methods
-      const newColumn = createChainableColumn(type, name, { ...options, [method]: true });
-      return newColumn;
-    });
-  });
+  column.notNull = function(...args) {
+    const newOptions = { ...options, notNull: true, notNullArgs: args };
+    return createChainableColumn(type, name, newOptions);
+  };
+  
+  column.unique = function(...args) {
+    const newOptions = { ...options, unique: true, uniqueArgs: args };
+    return createChainableColumn(type, name, newOptions);
+  };
+  
+  column.default = function(...args) {
+    const newOptions = { ...options, default: true, defaultArgs: args };
+    return createChainableColumn(type, name, newOptions);
+  };
+  
+  column.defaultNow = function(...args) {
+    const newOptions = { ...options, defaultNow: true, defaultNowArgs: args };
+    return createChainableColumn(type, name, newOptions);
+  };
+  
+  column.references = function(...args) {
+    const newOptions = { ...options, references: true, referencesArgs: args };
+    return createChainableColumn(type, name, newOptions);
+  };
+  
+  column.onDelete = function(...args) {
+    const newOptions = { ...options, onDelete: true, onDeleteArgs: args };
+    return createChainableColumn(type, name, newOptions);
+  };
+  
+  column.onUpdate = function(...args) {
+    const newOptions = { ...options, onUpdate: true, onUpdateArgs: args };
+    return createChainableColumn(type, name, newOptions);
+  };
+  
+  column.array = function(...args) {
+    const newOptions = { ...options, array: true, arrayArgs: args };
+    return createChainableColumn(type, name, newOptions);
+  };
+  
+  // Add special methods that may have different behavior
+  column.$inferSelect = () => ({});
+  column.$inferInsert = () => ({});
+  column.$default = function(...args) {
+    const newOptions = { ...options, $default: true, $defaultArgs: args };
+    return createChainableColumn(type, name, newOptions);
+  };
+  column.$type = function(...args) {
+    const newOptions = { ...options, $type: true, $typeArgs: args };
+    return createChainableColumn(type, name, newOptions);
+  };
   
   return column;
 };
 
-const text = jest.fn().mockImplementation((name) => createChainableColumn('text', name));
-const varchar = jest.fn().mockImplementation((name, options) => createChainableColumn('varchar', name, options));
-const boolean = jest.fn().mockImplementation((name) => createChainableColumn('boolean', name));
-const timestamp = jest.fn().mockImplementation((name) => createChainableColumn('timestamp', name));
-const integer = jest.fn().mockImplementation((name) => createChainableColumn('integer', name));
-const uuid = jest.fn().mockImplementation((name) => createChainableColumn('uuid', name));
-const serial = jest.fn().mockImplementation((name) => createChainableColumn('serial', name));
-const date = jest.fn().mockImplementation((name) => createChainableColumn('date', name));
-const json = jest.fn().mockImplementation((name) => createChainableColumn('json', name));
-const primaryKey = jest.fn().mockImplementation(() => createChainableColumn('primaryKey'));
-const unique = jest.fn().mockImplementation(() => createChainableColumn('unique'));
-const index = jest.fn().mockImplementation(() => createChainableColumn('index'));
+// Column type constructors with enhanced option handling
+const text = jest.fn().mockImplementation((name, options = {}) => createChainableColumn('text', name, options));
+const varchar = jest.fn().mockImplementation((name, options = {}) => createChainableColumn('varchar', name, options));
+const boolean = jest.fn().mockImplementation((name, options = {}) => createChainableColumn('boolean', name, options));
+const timestamp = jest.fn().mockImplementation((name, options = {}) => createChainableColumn('timestamp', name, options));
+const integer = jest.fn().mockImplementation((name, options = {}) => createChainableColumn('integer', name, options));
+const uuid = jest.fn().mockImplementation((name, options = {}) => createChainableColumn('uuid', name, options));
+const serial = jest.fn().mockImplementation((name, options = {}) => createChainableColumn('serial', name, options));
+const date = jest.fn().mockImplementation((name, options = {}) => createChainableColumn('date', name, options));
+const json = jest.fn().mockImplementation((name, options = {}) => createChainableColumn('json', name, options));
+const jsonb = jest.fn().mockImplementation((name, options = {}) => createChainableColumn('jsonb', name, options));
+
+// Special constraint constructors
+const primaryKey = jest.fn().mockImplementation((name, options = {}) => createChainableColumn('primaryKey', name, options));
+const unique = jest.fn().mockImplementation((name, options = {}) => createChainableColumn('unique', name, options));
+const index = jest.fn().mockImplementation((name, options = {}) => createChainableColumn('index', name, options));
+
+// Additional column types that might be used
+const decimal = jest.fn().mockImplementation((name, options = {}) => createChainableColumn('decimal', name, options));
+const numeric = jest.fn().mockImplementation((name, options = {}) => createChainableColumn('numeric', name, options));
+const real = jest.fn().mockImplementation((name, options = {}) => createChainableColumn('real', name, options));
+const doublePrecision = jest.fn().mockImplementation((name, options = {}) => createChainableColumn('doublePrecision', name, options));
+const bigint = jest.fn().mockImplementation((name, options = {}) => createChainableColumn('bigint', name, options));
+const bigserial = jest.fn().mockImplementation((name, options = {}) => createChainableColumn('bigserial', name, options));
+const smallint = jest.fn().mockImplementation((name, options = {}) => createChainableColumn('smallint', name, options));
+const smallserial = jest.fn().mockImplementation((name, options = {}) => createChainableColumn('smallserial', name, options));
+
+// Special SQL function mocks
+const sql = jest.fn().mockImplementation((strings, ...values) => ({
+  sql: Array.isArray(strings) ? strings.join('?') : strings,
+  params: values
+}));
+
+const relations = jest.fn().mockImplementation((table, relationCallback) => ({
+  table,
+  relations: relationCallback || {}
+}));
 
 module.exports = {
+  // Core table and enum constructors
   pgEnum,
   pgTable,
+  
+  // Column types
   text,
   varchar,
   boolean,
@@ -58,7 +151,22 @@ module.exports = {
   serial,
   date,
   json,
+  jsonb,
+  decimal,
+  numeric,
+  real,
+  doublePrecision,
+  bigint,
+  bigserial,
+  smallint,
+  smallserial,
+  
+  // Constraints
   primaryKey,
   unique,
-  index
+  index,
+  
+  // Special functions
+  sql,
+  relations
 };

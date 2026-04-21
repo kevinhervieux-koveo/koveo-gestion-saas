@@ -1,0 +1,231 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+index-CrqP_Rde.js:48 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-CrqP_Rde.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-CrqP_Rde.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+withHierarchicalSelection-B9b4Uh1l.js:1 🏢 [withHierarchicalSelection] Fetching buildings...
+withHierarchicalSelection-B9b4Uh1l.js:1 🌐 [withHierarchicalSelection] Requesting buildings: /api/organizations/e9bb7862-4ba5-4822-848f-f3692e826e73/buildings
+index-CrqP_Rde.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-CrqP_Rde.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+withHierarchicalSelection-B9b4Uh1l.js:1 📊 [withHierarchicalSelection] Received 5 buildings from API
+withHierarchicalSelection-B9b4Uh1l.js:1 ✅ [withHierarchicalSelection] Returning all 5 buildings (non-residence page)
+index-CrqP_Rde.js:48 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-CrqP_Rde.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CrqP_Rde.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CrqP_Rde.js:48 📁 [PROJECTS UI] Projects table collapsible toggled: true
+index-CrqP_Rde.js:48 📁 [PROJECTS STATE] Projects table section toggled {expanded: true}
+index-CrqP_Rde.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CrqP_Rde.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CrqP_Rde.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: []
+index-CrqP_Rde.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 0
+index-CrqP_Rde.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Raw response from backend: {success: true, data: Array(3)}
+index-CrqP_Rde.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Response structure: (2) ['success', 'data']
+index-CrqP_Rde.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects found in data property: 3
+index-CrqP_Rde.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-CrqP_Rde.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 3
+index-CrqP_Rde.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-CrqP_Rde.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+index-CrqP_Rde.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-CrqP_Rde.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+index-A3OBJrKS.js:185 [Violation] 'setTimeout' handler took 121ms
+index-CrqP_Rde.js:48 📁 [PROJECTS ACTION] handleViewProject called: {projectId: '400e859d-1d21-49c3-a6c9-34d7175739b0', projectTitle: 'Porte extérieurs'}
+index-CrqP_Rde.js:48 📁 [PROJECTS STATE] Project workflow modal opened
+index-CrqP_Rde.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CrqP_Rde.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+useProjectWorkflow-oiIxwK_8.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: 400e859d-1d21-49c3-a6c9-34d7175739b0
+useProjectWorkflow-oiIxwK_8.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/400e859d-1d21-49c3-a6c9-34d7175739b0/workflow
+useProjectWorkflow-oiIxwK_8.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-oiIxwK_8.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-oiIxwK_8.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'in_progress', nextStatus: 'post_work', canAdvance: true, skipFlags: {…}, …}
+ProjectWorkflowModal-XOCC9FKp.js:1 🔍 [MODAL] renderTabContent: {activeTab: '', hasWorkflowState: true, workflowData: {…}}
+ProjectWorkflowModal-XOCC9FKp.js:1 🔍 [MODAL] No content because: {hasWorkflowState: true, activeTab: ''}
+ProjectWorkflowModal-XOCC9FKp.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+index-A3OBJrKS.js:240  POST https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/maintenance/projects/400e859d-1d21-49c3-a6c9-34d7175739b0/tasks 400 (Bad Request)
+sR @ index-A3OBJrKS.js:240
+mutationFn @ useProjectWorkflow-oiIxwK_8.js:1
+fn @ vendor-query-D7rmUEQz.js:1
+y @ vendor-query-D7rmUEQz.js:1
+start @ vendor-query-D7rmUEQz.js:1
+execute @ vendor-query-D7rmUEQz.js:1
+await in execute
+mutate @ vendor-query-D7rmUEQz.js:1
+(anonymous) @ vendor-query-D7rmUEQz.js:1
+L @ InProgressTab-D8zPxa00.js:1
+lr @ index-A3OBJrKS.js:185
+q @ index-A3OBJrKS.js:45
+yg @ index-A3OBJrKS.js:185
+(anonymous) @ index-A3OBJrKS.js:185
+Gm @ index-A3OBJrKS.js:83
+rd @ index-A3OBJrKS.js:185
+Ad @ index-A3OBJrKS.js:194
+L1 @ index-A3OBJrKS.js:194
+<button>
+du.jsxDEV @ index-A3OBJrKS.js:15
+Button @ index-A3OBJrKS.js:380
+react_stack_bottom_frame @ index-A3OBJrKS.js:229
+oc @ index-A3OBJrKS.js:120
+sh @ index-A3OBJrKS.js:141
+Pc @ index-A3OBJrKS.js:150
+q @ index-A3OBJrKS.js:45
+Kh @ index-A3OBJrKS.js:163
+WS @ index-A3OBJrKS.js:163
+KS @ index-A3OBJrKS.js:163
+Ih @ index-A3OBJrKS.js:163
+fg @ index-A3OBJrKS.js:185
+d @ index-A3OBJrKS.js:23
+<Button>
+du.jsxDEV @ index-A3OBJrKS.js:15
+Te @ InProgressTab-D8zPxa00.js:1
+react_stack_bottom_frame @ index-A3OBJrKS.js:229
+oc @ index-A3OBJrKS.js:120
+kc @ index-A3OBJrKS.js:141
+Pc @ index-A3OBJrKS.js:150
+q @ index-A3OBJrKS.js:45
+Kh @ index-A3OBJrKS.js:163
+WS @ index-A3OBJrKS.js:163
+KS @ index-A3OBJrKS.js:163
+Ih @ index-A3OBJrKS.js:163
+fg @ index-A3OBJrKS.js:185
+d @ index-A3OBJrKS.js:23
+<...>
+du.jsxDEV @ index-A3OBJrKS.js:15
+Hm @ index-CrqP_Rde.js:48
+react_stack_bottom_frame @ index-A3OBJrKS.js:229
+oc @ index-A3OBJrKS.js:120
+kc @ index-A3OBJrKS.js:141
+Pc @ index-A3OBJrKS.js:150
+q @ index-A3OBJrKS.js:45
+Kh @ index-A3OBJrKS.js:163
+Jh @ index-A3OBJrKS.js:163
+Wc @ index-A3OBJrKS.js:163
+Ih @ index-A3OBJrKS.js:163
+mg @ index-A3OBJrKS.js:185
+ml @ index-A3OBJrKS.js:185
+ad @ index-A3OBJrKS.js:185
+(anonymous) @ index-A3OBJrKS.js:185
+<Hm>
+du.jsxDEV @ index-A3OBJrKS.js:15
+k @ ProjectWorkflowModal-XOCC9FKp.js:1
+yo @ ProjectWorkflowModal-XOCC9FKp.js:1
+react_stack_bottom_frame @ index-A3OBJrKS.js:229
+oc @ index-A3OBJrKS.js:120
+kc @ index-A3OBJrKS.js:141
+Pc @ index-A3OBJrKS.js:150
+q @ index-A3OBJrKS.js:45
+Kh @ index-A3OBJrKS.js:163
+Jh @ index-A3OBJrKS.js:163
+Wc @ index-A3OBJrKS.js:163
+Ih @ index-A3OBJrKS.js:163
+mg @ index-A3OBJrKS.js:185
+ml @ index-A3OBJrKS.js:185
+ad @ index-A3OBJrKS.js:185
+(anonymous) @ index-A3OBJrKS.js:185
+<...>
+du.jsxDEV @ index-A3OBJrKS.js:15
+El @ index-CrqP_Rde.js:48
+react_stack_bottom_frame @ index-A3OBJrKS.js:229
+oc @ index-A3OBJrKS.js:120
+kc @ index-A3OBJrKS.js:141
+Pc @ index-A3OBJrKS.js:150
+q @ index-A3OBJrKS.js:45
+Kh @ index-A3OBJrKS.js:163
+Jh @ index-A3OBJrKS.js:163
+Wc @ index-A3OBJrKS.js:163
+Ih @ index-A3OBJrKS.js:163
+mg @ index-A3OBJrKS.js:185
+ml @ index-A3OBJrKS.js:185
+ad @ index-A3OBJrKS.js:185
+(anonymous) @ index-A3OBJrKS.js:185
+<El>
+du.jsxDEV @ index-A3OBJrKS.js:15
+Pl @ index-CrqP_Rde.js:48
+react_stack_bottom_frame @ index-A3OBJrKS.js:229
+oc @ index-A3OBJrKS.js:120
+kc @ index-A3OBJrKS.js:141
+Pc @ index-A3OBJrKS.js:150
+q @ index-A3OBJrKS.js:45
+Kh @ index-A3OBJrKS.js:163
+Jh @ index-A3OBJrKS.js:163
+Wc @ index-A3OBJrKS.js:163
+Ih @ index-A3OBJrKS.js:163
+mg @ index-A3OBJrKS.js:185
+ml @ index-A3OBJrKS.js:185
+ad @ index-A3OBJrKS.js:185
+(anonymous) @ index-A3OBJrKS.js:185
+<Pl>
+du.jsxDEV @ index-A3OBJrKS.js:15
+Vl @ index-CrqP_Rde.js:48
+react_stack_bottom_frame @ index-A3OBJrKS.js:229
+oc @ index-A3OBJrKS.js:120
+kc @ index-A3OBJrKS.js:141
+Pc @ index-A3OBJrKS.js:150
+q @ index-A3OBJrKS.js:45
+Kh @ index-A3OBJrKS.js:163
+WS @ index-A3OBJrKS.js:163
+KS @ index-A3OBJrKS.js:163
+Ih @ index-A3OBJrKS.js:163
+fg @ index-A3OBJrKS.js:185
+d @ index-A3OBJrKS.js:23
+<Vl>
+du.jsxDEV @ index-A3OBJrKS.js:15
+(anonymous) @ withHierarchicalSelection-B9b4Uh1l.js:1
+react_stack_bottom_frame @ index-A3OBJrKS.js:229
+oc @ index-A3OBJrKS.js:120
+kc @ index-A3OBJrKS.js:141
+Pc @ index-A3OBJrKS.js:150
+q @ index-A3OBJrKS.js:45
+Kh @ index-A3OBJrKS.js:163
+WS @ index-A3OBJrKS.js:163
+KS @ index-A3OBJrKS.js:163
+Ih @ index-A3OBJrKS.js:163
+fg @ index-A3OBJrKS.js:185
+d @ index-A3OBJrKS.js:23
+<...>
+du.jsxDEV @ index-A3OBJrKS.js:15
+children @ index-A3OBJrKS.js:384
+Pb @ index-A3OBJrKS.js:240
+P @ index-A3OBJrKS.js:240
+react_stack_bottom_frame @ index-A3OBJrKS.js:229
+oc @ index-A3OBJrKS.js:120
+kc @ index-A3OBJrKS.js:141
+Pc @ index-A3OBJrKS.js:150
+q @ index-A3OBJrKS.js:45
+Kh @ index-A3OBJrKS.js:163
+WS @ index-A3OBJrKS.js:163
+KS @ index-A3OBJrKS.js:163
+Ih @ index-A3OBJrKS.js:163
+fg @ index-A3OBJrKS.js:185
+d @ index-A3OBJrKS.js:23
+<P>
+du.jsxDEV @ index-A3OBJrKS.js:15
+eR @ index-A3OBJrKS.js:384
+react_stack_bottom_frame @ index-A3OBJrKS.js:229
+oc @ index-A3OBJrKS.js:120
+kc @ index-A3OBJrKS.js:141
+Pc @ index-A3OBJrKS.js:150
+q @ index-A3OBJrKS.js:45
+Kh @ index-A3OBJrKS.js:163
+Jh @ index-A3OBJrKS.js:163
+Wc @ index-A3OBJrKS.js:163
+Ih @ index-A3OBJrKS.js:163
+mg @ index-A3OBJrKS.js:185
+ml @ index-A3OBJrKS.js:185
+ad @ index-A3OBJrKS.js:185
+(anonymous) @ index-A3OBJrKS.js:185
+<eR>
+du.jsxDEV @ index-A3OBJrKS.js:15
+tR @ index-A3OBJrKS.js:384
+react_stack_bottom_frame @ index-A3OBJrKS.js:229
+oc @ index-A3OBJrKS.js:120
+kc @ index-A3OBJrKS.js:141
+Pc @ index-A3OBJrKS.js:150
+q @ index-A3OBJrKS.js:45
+Kh @ index-A3OBJrKS.js:163
+Jh @ index-A3OBJrKS.js:163
+Wc @ index-A3OBJrKS.js:163
+Ih @ index-A3OBJrKS.js:163
+fg @ index-A3OBJrKS.js:185
+d @ index-A3OBJrKS.js:23
+<tR>
+du.jsxDEV @ index-A3OBJrKS.js:15
+(anonymous) @ index-A3OBJrKS.js:384

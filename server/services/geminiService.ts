@@ -87,7 +87,6 @@ Example for a custom frequency: {"vendorName":"Hydro Quebec","invoiceNumber":"HQ
       const responseText = result.candidates?.[0]?.content?.parts?.[0]?.text || '';
       
       // Log raw response for debugging
-      console.log('[GEMINI] Raw response:', responseText);
       
       // Clean the response - remove any markdown formatting or extra text
       let cleanedResponse = responseText.trim();
@@ -110,8 +109,6 @@ Example for a custom frequency: {"vendorName":"Hydro Quebec","invoiceNumber":"HQ
       try {
         extractedData = JSON.parse(cleanedResponse);
       } catch (parseError) {
-        console.error('[GEMINI] JSON parse error:', parseError);
-        console.error('[GEMINI] Cleaned response:', cleanedResponse);
         throw new Error(`Failed to parse AI response as JSON: ${parseError}`);
       }
       
@@ -130,11 +127,9 @@ Example for a custom frequency: {"vendorName":"Hydro Quebec","invoiceNumber":"HQ
           ? extractedData.customPaymentDates : null,
       };
       
-      console.log('[GEMINI] Validated extraction:', validatedData);
       return validatedData;
       
     } catch (error) {
-      console.error('[GEMINI] Invoice extraction error:', error);
       
       // Return null response in case of extraction failure
       return {

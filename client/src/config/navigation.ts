@@ -14,6 +14,10 @@ import {
   Shield,
   LayoutDashboard,
   AreaChart,
+  MessageSquare,
+  Wrench,
+  Package,
+  Folder,
 } from 'lucide-react';
 
 // Import translation keys for navigation
@@ -21,6 +25,7 @@ export const NAVIGATION_KEYS = {
   dashboard: 'dashboard',
   quickActions: 'quickActions',
   calendar: 'calendar',
+  communication: 'communication',
   residents: 'residents',
   myResidence: 'myResidence',
   myBuilding: 'myBuilding',
@@ -43,6 +48,9 @@ export const NAVIGATION_KEYS = {
   law25Compliance: 'law25Compliance',
   suggestions: 'suggestions',
   rbacPermissions: 'rbacPermissions',
+  maintenanceJournal: 'maintenanceJournal',
+  inventory: 'inventory',
+  projects: 'projects',
   settings: 'settings',
   bugReports: 'bugReports',
   ideaBox: 'ideaBox',
@@ -53,9 +61,11 @@ export const NAVIGATION_KEYS = {
  */
 export interface NavigationItem {
   nameKey: string; // Translation key instead of hardcoded name
-  href: string;
+  href?: string; // Optional for items that have sub-items
   icon: React.ComponentType<any>;
   requiredRole?: string;
+  _key?: string; // Optional key for collapsible items
+  items?: NavigationItem[]; // Optional sub-items for collapsible navigation
 }
 
 /**
@@ -84,6 +94,7 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
     items: [
       { nameKey: 'quickActions', href: '/dashboard/quick-actions', icon: LayoutDashboard },
       { nameKey: 'calendar', href: '/dashboard/calendar', icon: AreaChart },
+      { nameKey: 'communication', href: '/dashboard/communication', icon: MessageSquare },
     ],
   },
   {
@@ -116,6 +127,15 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
       { nameKey: 'demands', href: '/manager/demands', icon: AlertCircle },
       { nameKey: 'navUserManagement', href: '/manager/user-management', icon: Users },
       { nameKey: 'manageCommonSpaces', href: '/manager/common-spaces-stats', icon: AreaChart },
+      {
+        nameKey: 'maintenanceJournal',
+        _key: 'maintenanceJournal',
+        icon: Wrench,
+        items: [
+          { nameKey: 'inventory', href: '/manager/maintenance/inventory', icon: Package },
+          { nameKey: 'projects', href: '/manager/maintenance/projects', icon: Folder },
+        ],
+      },
     ],
   },
 

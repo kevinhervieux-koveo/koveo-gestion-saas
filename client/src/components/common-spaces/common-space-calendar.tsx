@@ -67,7 +67,7 @@ export function CommonSpaceCalendar({
                 {language === 'fr' ? 'Lier calendrier' : 'Link calendar'}
               </Button>
             </DialogTrigger>
-            <DialogContent className='sm:max-w-[425px]'>
+            <DialogContent className='sm:max-w-[425px] max-h-[90vh] overflow-y-auto'>
               <DialogHeader>
                 <DialogTitle>
                   {!showProviderStep

@@ -5,6 +5,12 @@
 
 set +e  # Don't exit on first failure, continue running all tests
 
+# Check if we're in the correct working directory
+if [ ! -f "package.json" ] || [ ! -d "tests" ]; then
+    echo "❌ Error: Must be run from the project root directory (where package.json and tests/ exist)"
+    exit 1
+fi
+
 echo "🧪 Koveo Gestion - Complete Sequential Test Suite"
 echo "================================================="
 echo ""
@@ -88,6 +94,7 @@ run_test_directory "Unit-Auth" "tests/unit/auth/" "Authentication and authorizat
 run_test_directory "Unit-Bills" "tests/unit/bills*" "Bills and payment validation tests"
 run_test_directory "Unit-Budget" "tests/unit/budget/" "Budget calculation and logic tests"
 run_test_directory "Unit-Calendar" "tests/unit/calendar/" "Calendar functionality tests"
+run_test_directory "Unit-Communication" "tests/unit/communication/" "Communication functionality unit tests"
 run_test_directory "Unit-Components" "tests/unit/components/" "UI component unit tests"
 run_test_directory "Unit-Demands" "tests/unit/demands/" "Demands schema and workflow tests"
 run_test_directory "Unit-Documents" "tests/unit/documents/" "Document management tests"
@@ -105,6 +112,11 @@ run_test_file "Unit-Storage" "tests/unit/storage.test.ts" "Storage interface tes
 run_test_file "Unit-Hooks" "tests/unit/hooks.test.tsx" "React hooks testing"
 run_test_file "Unit-SSL" "tests/unit/ssl-service.test.ts" "SSL certificate management"
 run_test_file "Unit-User-API" "tests/unit/user-api.test.ts" "User API endpoint tests"
+# Additional budget unit tests
+run_test_file "Unit-Budget-Page-Fixed" "tests/unit/budget-page-comprehensive-fixed.test.tsx" "Budget page comprehensive unit tests (fixed)"
+run_test_file "Unit-Budget-API-Focused" "tests/unit/api/budgets-focused.test.ts" "Budget API focused unit tests"
+run_test_file "Unit-Budget-API" "tests/unit/api/budgets.test.ts" "Budget API unit tests"
+run_test_file "Unit-Budget-Calculations" "tests/unit/utils/budgetCalculations.test.ts" "Budget calculation utility tests"
 
 # Phase 3: Integration Tests
 echo "Phase 3: Integration Tests"
@@ -124,47 +136,62 @@ echo "============================================="
 run_test_file "Integration-Database-Sync" "tests/integration/database-sync.test.ts" "Database synchronization tests"
 run_test_file "Integration-Session" "tests/integration/session-persistence.test.ts" "Session persistence tests"
 run_test_file "Integration-User-Invitation" "tests/integration/user-invitation.test.ts" "User invitation flow tests"
+# Communication integration tests
+run_test_file "Integration-Communication-API" "tests/integration/communication-api.test.ts" "Communication API integration tests"
+# Budget integration tests
+run_test_file "Integration-Budget-Form-Validation" "tests/integration/budget-form-validation.test.tsx" "Budget form validation integration tests"
+run_test_file "Integration-Budget-React-Query" "tests/integration/budget-react-query.test.tsx" "Budget React Query integration tests"
+run_test_file "Integration-Budget-Page-Comprehensive" "tests/integration/budget-page-comprehensive.test.tsx" "Budget page comprehensive integration tests"
+run_test_file "Integration-Budget-Endpoints" "tests/integration/budget-endpoints-comprehensive.test.ts" "Budget endpoints comprehensive tests"
+run_test_file "Integration-Budget-Forecast-Inflation" "tests/integration/budgets.forecast.inflation.test.ts" "Budget forecast inflation tests"
+run_test_file "Integration-Budget-Forecast" "tests/integration/budgets.forecast.test.ts" "Budget forecast tests"
 
-# Phase 5: i18n and Quebec Compliance Tests
-echo "Phase 5: i18n and Quebec Compliance Tests"
+# Phase 5: Page Integration Tests
+echo "Phase 5: Page Integration Tests"
+echo "==============================="
+run_test_directory "Page-Tests" "tests/pages/" "Page functionality tests"
+# Note: Communication page test already covered in Unit-Communication directory
+
+# Phase 6: i18n and Quebec Compliance Tests
+echo "Phase 6: i18n and Quebec Compliance Tests"
 echo "=========================================="
 run_test_directory "i18n-Website" "tests/i18n/website/" "Website internationalization tests"
 run_test_directory "i18n-Integration" "tests/i18n/" "i18n integration tests"
 run_test_file "Translation-Detector" "tests/translation-detector.test.ts" "Translation detection and validation"
 
-# Phase 6: Security Tests
-echo "Phase 6: Security Tests"
+# Phase 7: Security Tests
+echo "Phase 7: Security Tests"
 echo "======================"
 run_test_directory "Security-Tests" "tests/security/" "Security validation and permissions tests"
 
-# Phase 7: API Tests
-echo "Phase 7: API Tests"
+# Phase 8: API Tests
+echo "Phase 8: API Tests"
 echo "=================="
 run_test_directory "API-Tests" "tests/api/" "API endpoint and translation tests"
 
-# Phase 8: Deployment Tests
-echo "Phase 8: Deployment Tests"
+# Phase 9: Deployment Tests
+echo "Phase 9: Deployment Tests"
 echo "========================="
 run_test_directory "Deployment-Tests" "tests/deployment/" "Deployment validation and health checks"
 
-# Phase 9: Website and UI Tests
-echo "Phase 9: Website and UI Tests"
+# Phase 10: Website and UI Tests
+echo "Phase 10: Website and UI Tests"
 echo "============================="
 run_test_directory "Website-Tests" "tests/website/" "Website functionality and UI consistency tests"
 
-# Phase 10: Component Tests
-echo "Phase 10: Component Tests"
+# Phase 11: Component Tests
+echo "Phase 11: Component Tests"
 echo "========================="
 run_test_directory "Component-Tests" "tests/components/" "UI component integration tests"
 
-# Phase 11: Utility and Performance Tests
-echo "Phase 11: Utility and Performance Tests"
+# Phase 12: Utility and Performance Tests
+echo "Phase 12: Utility and Performance Tests"
 echo "======================================="
 run_test_directory "Utils-Tests" "tests/utils/" "Utility function tests"
 run_test_directory "Performance-Tests" "tests/performance/" "Performance and load tests"
 
-# Phase 12: Root Level Test Files
-echo "Phase 12: Root Level Test Files"
+# Phase 13: Root Level Test Files
+echo "Phase 13: Root Level Test Files"
 echo "==============================="
 run_test_file "Demo-Organizations" "tests/demo-organizations.test.ts" "Demo organization functionality"
 

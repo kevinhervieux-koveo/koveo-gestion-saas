@@ -16,6 +16,7 @@ export interface LogContext {
   metadata?: Record<string, any>;
   requestId?: string;
   ip?: string;
+  errorId?: string;
 }
 
 // Sensitive fields that should never be logged
@@ -164,6 +165,10 @@ export function logSecurity(event: string, context: LogContext): void {
   // In production, you might want to send this to a separate security log
   if (process.env.NODE_ENV === 'production') {
     // TODO: Implement security event logging to external system
+    // Security events should be sent to a SIEM (Security Information and Event Management) system
+    // for real-time threat detection and compliance monitoring. Consider integrating with:
+    // - Splunk, DataDog, or CloudWatch for centralized security logging
+    // - Automated alerting for critical security events (failed logins, unauthorized access)
   }
 }
 
@@ -202,5 +207,10 @@ export function logAudit(action: string, context: LogContext): void {
   // In production, this should go to a tamper-proof audit log
   if (process.env.NODE_ENV === 'production') {
     // TODO: Implement audit logging to external compliant system
+    // This requires integration with an external audit logging service (e.g., Splunk, DataDog, CloudWatch)
+    // to meet Quebec Law 25 compliance requirements. The external service should provide:
+    // - Tamper-proof storage
+    // - Long-term retention (7+ years)
+    // - Audit trail integrity verification
   }
 }

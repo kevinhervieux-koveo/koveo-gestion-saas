@@ -1,0 +1,45 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+index-DmqguNPR.js:48 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-DmqguNPR.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-DmqguNPR.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+withHierarchicalSelection-D-3_sg-d.js:1 🏢 [withHierarchicalSelection] Fetching buildings...
+withHierarchicalSelection-D-3_sg-d.js:1 🌐 [withHierarchicalSelection] Requesting buildings: /api/organizations/e9bb7862-4ba5-4822-848f-f3692e826e73/buildings
+withHierarchicalSelection-D-3_sg-d.js:1 📊 [withHierarchicalSelection] Received 5 buildings from API
+withHierarchicalSelection-D-3_sg-d.js:1 ✅ [withHierarchicalSelection] Returning all 5 buildings (non-residence page)
+index-DmqguNPR.js:48 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-DmqguNPR.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DmqguNPR.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-DmqguNPR.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DmqguNPR.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-DmqguNPR.js:48 📁 [PROJECTS UI] Projects table collapsible toggled: true
+index-DmqguNPR.js:48 📁 [PROJECTS STATE] Projects table section toggled {expanded: true}
+index-DmqguNPR.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DmqguNPR.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-DmqguNPR.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: []
+index-DmqguNPR.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 0
+index-DmqguNPR.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Raw response from backend: {success: true, data: Array(2)}
+index-DmqguNPR.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Response structure: (2) ['success', 'data']
+index-DmqguNPR.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects found in data property: 2
+index-DmqguNPR.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: (2) [{…}, {…}]
+index-DmqguNPR.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 2
+index-DmqguNPR.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (2) [{…}, {…}]
+index-DmqguNPR.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 2
+index-DmqguNPR.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (2) [{…}, {…}]
+index-DmqguNPR.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 2
+index-BS0Qb18u.js:185 [Violation] 'setTimeout' handler took 87ms
+index-DmqguNPR.js:48 📁 [PROJECTS ACTION] handleViewProject called: {projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470', projectTitle: 'window changes'}
+index-DmqguNPR.js:48 📁 [PROJECTS STATE] Project workflow modal opened
+index-DmqguNPR.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DmqguNPR.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+ProjectWorkflowModal-BBGGNWYp.js:1 🔍 [MODAL] useEffect for setting activeTab: {hasWorkflowState: false, activeTab: '', initialTab: undefined, accessibleTabs: undefined, firstIncompleteTab: undefined, …}
+ProjectWorkflowModal-BBGGNWYp.js:1 🔍 [MODAL] renderTabContent called: {activeTab: '', hasWorkflowState: true, currentStatus: undefined}
+ProjectWorkflowModal-BBGGNWYp.js:1 🔍 [MODAL] Early return - no workflowState or activeTab
+ProjectWorkflowModal-BBGGNWYp.js:1 🔍 [MODAL] useEffect for setting activeTab: {hasWorkflowState: true, activeTab: '', initialTab: undefined, accessibleTabs: undefined, firstIncompleteTab: undefined, …}
+ProjectWorkflowModal-BBGGNWYp.js:1 🔍 [MODAL] Setting activeTab to: undefined
+ProjectWorkflowModal-BBGGNWYp.js:1 🔍 [MODAL] renderTabContent called: {activeTab: undefined, hasWorkflowState: true, currentStatus: undefined}
+ProjectWorkflowModal-BBGGNWYp.js:1 🔍 [MODAL] Early return - no workflowState or activeTab
+ProjectWorkflowModal-BBGGNWYp.js:1 🔍 [MODAL] useEffect for setting activeTab: {hasWorkflowState: true, activeTab: undefined, initialTab: undefined, accessibleTabs: undefined, firstIncompleteTab: undefined, …}
+ProjectWorkflowModal-BBGGNWYp.js:1 🔍 [MODAL] Setting activeTab to: undefined
+ProjectWorkflowModal-BBGGNWYp.js:1 🔍 [MODAL] renderTabContent called: {activeTab: undefined, hasWorkflowState: true, currentStatus: undefined}
+ProjectWorkflowModal-BBGGNWYp.js:1 🔍 [MODAL] Early return - no workflowState or activeTab

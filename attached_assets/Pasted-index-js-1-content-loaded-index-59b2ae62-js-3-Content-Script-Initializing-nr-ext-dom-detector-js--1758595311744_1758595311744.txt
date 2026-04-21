@@ -1,0 +1,237 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+index-ba2D3Nhd.js:6 🏠 [INVENTORY PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-ba2D3Nhd.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-ba2D3Nhd.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+withHierarchicalSelection-ztA7M7Ev.js:1 🏢 [withHierarchicalSelection] Fetching buildings...
+withHierarchicalSelection-ztA7M7Ev.js:1 🌐 [withHierarchicalSelection] Requesting buildings: /api/organizations/e9bb7862-4ba5-4822-848f-f3692e826e73/buildings
+index-ba2D3Nhd.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-ba2D3Nhd.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+withHierarchicalSelection-ztA7M7Ev.js:1 📊 [withHierarchicalSelection] Received 5 buildings from API
+withHierarchicalSelection-ztA7M7Ev.js:1 ✅ [withHierarchicalSelection] Returning all 5 buildings (non-residence page)
+index-ba2D3Nhd.js:6 🏠 [INVENTORY PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-ba2D3Nhd.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-ba2D3Nhd.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-BIMnrP7U.js:185 [Violation] 'setTimeout' handler took 64ms
+index-BIMnrP7U.js:186 A component is changing an uncontrolled input to be controlled. This is likely caused by the value changing from undefined to a defined value, which should not happen. Decide between using a controlled or uncontrolled input element for the lifetime of the component. More info: https://react.dev/link/controlled-components
+overrideMethod @ hook.js:608
+c1 @ index-BIMnrP7U.js:186
+h1 @ index-BIMnrP7U.js:186
+q @ index-BIMnrP7U.js:45
+Qc @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+Vt @ index-BIMnrP7U.js:163
+zh @ index-BIMnrP7U.js:163
+tg @ index-BIMnrP7U.js:163
+ed @ index-BIMnrP7U.js:163
+Xh @ index-BIMnrP7U.js:163
+Ih @ index-BIMnrP7U.js:163
+mg @ index-BIMnrP7U.js:185
+ml @ index-BIMnrP7U.js:185
+jo @ index-BIMnrP7U.js:163
+Gm @ index-BIMnrP7U.js:83
+rd @ index-BIMnrP7U.js:185
+Ad @ index-BIMnrP7U.js:194
+L1 @ index-BIMnrP7U.js:194
+nr-ext-text-processor.js:1 Uncaught TypeError: Cannot read properties of null (reading 'nodeName')
+    at nr-ext-text-processor.js:1:9844
+    at Array.filter (<anonymous>)
+    at getSelectedNodes (nr-ext-text-processor.js:1:9825)
+    at nr-ext-dom-detector.js:1:4341
+    at r (nr-ext-dom-detector.js:1:4612)
+    at nr-ext-dom-detector.js:1:2055
+(anonymous) @ nr-ext-text-processor.js:1
+getSelectedNodes @ nr-ext-text-processor.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+r @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+setTimeout
+(anonymous) @ nr-ext-dom-detector.js:1
+index-ba2D3Nhd.js:6 Document uploaded: {file: File, text: null}
+index-BIMnrP7U.js:240  POST https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/maintenance/buildings/15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24/elements 500 (Internal Server Error)
+sx @ index-BIMnrP7U.js:240
+mutationFn @ index-ba2D3Nhd.js:6
+fn @ vendor-query-7MgX5BiQ.js:1
+y @ vendor-query-7MgX5BiQ.js:1
+start @ vendor-query-7MgX5BiQ.js:1
+execute @ vendor-query-7MgX5BiQ.js:1
+await in execute
+mutate @ vendor-query-7MgX5BiQ.js:1
+g @ index-ba2D3Nhd.js:6
+y @ FormModal-BXGjDUnH.js:62
+(anonymous) @ vendor-forms-gPm21tRI.js:1
+await in (anonymous)
+lr @ index-BIMnrP7U.js:185
+q @ index-BIMnrP7U.js:45
+yg @ index-BIMnrP7U.js:185
+(anonymous) @ index-BIMnrP7U.js:185
+Gm @ index-BIMnrP7U.js:83
+rd @ index-BIMnrP7U.js:185
+Ad @ index-BIMnrP7U.js:194
+L1 @ index-BIMnrP7U.js:194
+FormModal-BXGjDUnH.js:62 Form submission error: Error: 500: {"error":"Failed to create building element","details":"Failed query: insert into \"building_elements\" (\"id\", \"building_id\", \"residence_id\", \"uniformat_code\", \"name\", \"description\", \"original_construction_date\", \"original_lifespan\", \"current_lifespan\", \"current_condition\", \"last_inspection_date\", \"next_evaluation_date\", \"unit\", \"unit_value\", \"notes\", \"reconstruction_cost\", \"cost_estimation_date\", \"access\", \"charge\", \"is_active\", \"created_at\", \"updated_at\") values (default, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, default, default, default) returning \"id\", \"building_id\", \"residence_id\", \"uniformat_code\", \"name\", \"description\", \"original_construction_date\", \"original_lifespan\", \"current_lifespan\", \"current_condition\", \"last_inspection_date\", \"next_evaluation_date\", \"unit\", \"unit_value\", \"notes\", \"reconstruction_cost\", \"cost_estimation_date\", \"access\", \"charge\", \"is_active\", \"created_at\", \"updated_at\"\nparams: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24,,A1010,Standard Foundations,,Sun May 09 2004 00:00:00 GMT+0000 (Coordinated Universal Time),10,5,good,,Tue Sep 22 2026 00:00:00 GMT+0000 (Coordinated Universal Time),unit,10000,,1300,Mon Sep 22 2025 00:00:00 GMT+0000 (Coordinated Universal Time),not_restrained,common"}
+    at k0 (index-BIMnrP7U.js:240:6803)
+    at async sx (index-BIMnrP7U.js:240:7065)
+    at async Object.mutationFn (index-ba2D3Nhd.js:6:142096)
+overrideMethod @ hook.js:608
+y @ FormModal-BXGjDUnH.js:62
+await in y
+(anonymous) @ vendor-forms-gPm21tRI.js:1
+await in (anonymous)
+lr @ index-BIMnrP7U.js:185
+q @ index-BIMnrP7U.js:45
+yg @ index-BIMnrP7U.js:185
+(anonymous) @ index-BIMnrP7U.js:185
+Gm @ index-BIMnrP7U.js:83
+rd @ index-BIMnrP7U.js:185
+Ad @ index-BIMnrP7U.js:194
+L1 @ index-BIMnrP7U.js:194
+index-ba2D3Nhd.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-ba2D3Nhd.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24

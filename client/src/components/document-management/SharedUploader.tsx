@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { Upload, X, File, Image, FileText, Camera, Sparkles, Folder } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -8,6 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { getUploadConfig, isAiAnalysisEnabled, type UploadContext } from '@shared/config/upload-config';
+import { sanitizeFileName } from '@/utils/sanitize';
 
 interface SharedUploaderProps {
   onDocumentChange: (file: File | null, text: string | null) => void;
@@ -24,6 +25,10 @@ interface SharedUploaderProps {
   onAiAnalysisComplete?: (data: any) => void;
   showAiToggle?: boolean;
   contextFields?: Record<string, any>;
+  
+  // Auto-save Props
+  enableAutoSave?: boolean;
+  onAutoSave?: (content: string) => Promise<boolean>;
 }
 
 interface FilePreview {
@@ -61,7 +66,10 @@ export function SharedUploader({
   onAiToggle,
   onAiAnalysisComplete,
   showAiToggle = true,
-  contextFields
+  contextFields,
+  // Auto-save Props
+  enableAutoSave = false,
+  onAutoSave
 }: SharedUploaderProps) {
   // Get configuration from upload config
   const config = getUploadConfig(formType);
@@ -78,6 +86,12 @@ export function SharedUploader({
   const [aiEnabled, setAiEnabled] = useState(finalAiEnabled);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  
+  // Auto-save state
+  const [isAutoSaving, setIsAutoSaving] = useState(false);
+  const [autoSaveStatus, setAutoSaveStatus] = useState<string | null>(null);
+  const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const lastSavedContentRef = useRef<string>('');
 
   // Refs
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -92,6 +106,59 @@ export function SharedUploader({
     setAiEnabled(enabled);
     onAiToggle?.(enabled);
   }, [onAiToggle]);
+
+  // Auto-save function for document content
+  const performAutoSave = useCallback(async (content: string) => {
+    if (!enableAutoSave || !onAutoSave) return;
+    
+    try {
+      setIsAutoSaving(true);
+      setAutoSaveStatus('Saving...');
+      
+      // Skip save if content hasn't changed
+      if (content === lastSavedContentRef.current) {
+        setIsAutoSaving(false);
+        setAutoSaveStatus('No changes');
+        setTimeout(() => setAutoSaveStatus(null), 2000);
+        return;
+      }
+
+      const success = await onAutoSave(content);
+      
+      if (success) {
+        lastSavedContentRef.current = content;
+        setAutoSaveStatus('All changes saved');
+      } else {
+        throw new Error('Auto-save failed');
+      }
+      
+      setIsAutoSaving(false);
+      
+      // Clear status after 3 seconds
+      setTimeout(() => setAutoSaveStatus(null), 3000);
+      
+    } catch (error) {
+      console.error('Auto-save failed:', error);
+      setIsAutoSaving(false);
+      setAutoSaveStatus('Save failed');
+      setTimeout(() => setAutoSaveStatus(null), 3000);
+    }
+  }, [enableAutoSave, onAutoSave]);
+
+  // Debounced auto-save function with 1.5 second delay
+  const debouncedAutoSave = useCallback((content: string) => {
+    if (!enableAutoSave) return;
+    
+    // Clear existing timer
+    if (autoSaveTimerRef.current) {
+      clearTimeout(autoSaveTimerRef.current);
+    }
+    
+    // Set new timer for 1.5 seconds (1500ms)
+    autoSaveTimerRef.current = setTimeout(() => {
+      performAutoSave(content);
+    }, 1500);
+  }, [enableAutoSave, performAutoSave]);
 
   // File validation function
   const validateFile = useCallback((file: File): string | null => {
@@ -258,7 +325,12 @@ export function SharedUploader({
     const text = e.target.value;
     setTextContent(text);
     onDocumentChange(null, text || null);
-  }, [onDocumentChange]);
+    
+    // Trigger auto-save for text content
+    if (enableAutoSave && text.trim()) {
+      debouncedAutoSave(text);
+    }
+  }, [onDocumentChange, enableAutoSave, debouncedAutoSave]);
 
   // Remove selected file
   const handleRemoveFile = useCallback(() => {
@@ -330,11 +402,14 @@ export function SharedUploader({
     }
   }, [selectedFile, textContent, handleRemoveFile, onDocumentChange]);
 
-  // Clean up preview URLs on unmount
+  // Clean up preview URLs and auto-save timer on unmount
   useEffect(() => {
     return () => {
       if (selectedFile?.preview) {
         URL.revokeObjectURL(selectedFile.preview);
+      }
+      if (autoSaveTimerRef.current) {
+        clearTimeout(autoSaveTimerRef.current);
       }
     };
   }, [selectedFile]);
@@ -427,7 +502,7 @@ export function SharedUploader({
                   
                   <div className="flex-1 min-w-0 text-left">
                     <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                      {selectedFile.file.name}
+                      {sanitizeFileName(selectedFile.file.name)}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
                       {formatFileSize(selectedFile.file.size)}
@@ -551,6 +626,24 @@ export function SharedUploader({
 
         {/* Text Document Tab */}
         <TabsContent value="text" className="space-y-4">
+          {/* Auto-save status indicator for text content */}
+          {enableAutoSave && (isAutoSaving || autoSaveStatus) && activeTab === 'text' && (
+            <div className="flex items-center justify-center gap-2 p-2 text-sm bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg">
+              {isAutoSaving && (
+                <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+              )}
+              <span className={cn(
+                "font-medium",
+                autoSaveStatus === 'All changes saved' && "text-green-600 dark:text-green-400",
+                autoSaveStatus === 'Save failed' && "text-red-600 dark:text-red-400",
+                (isAutoSaving || autoSaveStatus === 'Saving...') && "text-blue-600 dark:text-blue-400",
+                autoSaveStatus === 'No changes' && "text-gray-600 dark:text-gray-400"
+              )}>
+                {isAutoSaving ? 'Saving...' : autoSaveStatus}
+              </span>
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label htmlFor="text-content" className="text-sm font-medium">
               Document Content
@@ -567,6 +660,11 @@ export function SharedUploader({
             />
             <p className="text-xs text-gray-500 dark:text-gray-400">
               Create a text-only document entry. You can add formatting and additional details later.
+              {enableAutoSave && (
+                <span className="block mt-1 text-blue-600 dark:text-blue-400">
+                  ✨ Changes are automatically saved after you stop typing
+                </span>
+              )}
             </p>
           </div>
         </TabsContent>

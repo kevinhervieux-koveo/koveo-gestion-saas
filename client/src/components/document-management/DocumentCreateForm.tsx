@@ -66,6 +66,7 @@ const documentCreateSchema = z.object({
     'inspection',
     'other'
   ]),
+  effectiveDate: z.string().optional(),
 });
 
 type DocumentCreateData = z.infer<typeof documentCreateSchema>;
@@ -110,6 +111,7 @@ export function DocumentCreateForm({
       name: '',
       description: '',
       category: 'other',
+      effectiveDate: '',
     }
   });
 
@@ -123,6 +125,9 @@ export function DocumentCreateForm({
       formData.append('documentType', data.category);
       if (data.description) {
         formData.append('description', data.description);
+      }
+      if (data.effectiveDate && data.effectiveDate.trim() !== '') {
+        formData.append('effectiveDate', data.effectiveDate);
       }
       
       // Add entity association
@@ -148,7 +153,7 @@ export function DocumentCreateForm({
 
       if (!response.ok) {
         const errorText = await response.text();
-        let errorData = {};
+        let errorData: { error?: string; message?: string } = {};
         try {
           errorData = JSON.parse(errorText);
         } catch (e) {
@@ -283,6 +288,29 @@ export function DocumentCreateForm({
                   )}
                 />
               </div>
+
+              {/* Effective Date */}
+              <FormField
+                control={form.control}
+                name="effectiveDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Effective Date (Optional)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="date"
+                        placeholder="Select effective date"
+                        value={field.value || ''}
+                        onChange={(e) => {
+                          field.onChange(e.target.value);
+                        }}
+                        data-testid="input-document-effective-date"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               {/* Description */}
               <FormField

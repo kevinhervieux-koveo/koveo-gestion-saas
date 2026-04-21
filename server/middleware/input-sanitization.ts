@@ -13,8 +13,8 @@ const DANGEROUS_PATTERNS = {
   // Script injection patterns
   SCRIPT_TAGS: /<script[\s\S]*?<\/script>/gi,
   
-  // SQL injection patterns
-  SQL_INJECTION: /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|EXECUTE|UNION|OR|AND|XOR|NOT|NULL|TRUE|FALSE|LIKE|BETWEEN|IN|EXISTS|HAVING|GROUP|ORDER|LIMIT|OFFSET|DISTINCT|COUNT|SUM|AVG|MAX|MIN|ROUND|FLOOR|CEIL|ABS|SQRT|POWER|LOG|EXP|PI|RAND|NOW|CURDATE|CURTIME|CURRENT_TIMESTAMP|CURRENT_DATE|CURRENT_TIME|CURRENT_USER|DATABASE|VERSION|USER|SYSTEM_USER|SESSION_USER|CONNECTION_ID|LAST_INSERT_ID|ROW_COUNT|FOUND_ROWS|GET_LOCK|RELEASE_LOCK|IS_FREE_LOCK|IS_USED_LOCK|MASTER_POS_WAIT|NAME_CONST|SLEEP|BENCHMARK|LOAD_FILE|INTO|OUTFILE|DUMPFILE|FIELDS|LINES|STARTING|TERMINATED|ENCLOSED|ESCAPED|OPTIONALLY|IGNORE|REPLACE|LOW_PRIORITY|HIGH_PRIORITY|DELAYED|QUICK|EXTENDED|FULL|PARTIAL|REPAIR|OPTIMIZE|CHECK|ANALYZE|TABLE|INDEX|KEY|CONSTRAINT|FOREIGN|REFERENCES|CASCADE|RESTRICT|SET|NULL|DEFAULT|AUTO_INCREMENT|UNSIGNED|ZEROFILL|BINARY|ASCII|UNICODE|COLLATE|CHARACTER|CHARSET|ENGINE|TYPE|COMMENT|TEMPORARY|IF|NOT|EXISTS|SHOW|DESCRIBE|EXPLAIN|HELP)\b)/gi,
+  // SQL injection patterns - more context-aware to avoid false positives
+  SQL_INJECTION: /((?:SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER)\s+(?:.*\s+)?(?:FROM|INTO|TABLE|DATABASE|SCHEMA)|(?:UNION|JOIN)\s+(?:ALL\s+)?(?:SELECT|FROM)|(?:;\s*(?:SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER))|(?:\'\s*(?:OR|AND)\s*\')|(?:--\s*)|(?:\/\*.*\*\/)|(?:EXEC\s*\()|(?:LOAD_FILE\s*\()|(?:INTO\s+OUTFILE)|(?:INFORMATION_SCHEMA)|(?:mysql\.user)|(?:pg_|information_schema\.))/gi,
   
   // XSS patterns
   XSS_BASIC: /<[^>]*?(\bon\w+|javascript:)/gi,
@@ -95,8 +95,8 @@ function containsDangerousPatterns(input: string): boolean {
  */
 export function sanitizeInputMiddleware(req: Request, res: Response, next: NextFunction): void {
   try {
-    // Skip sanitization for certain routes that need raw data
-    const skipRoutes = ['/api/upload', '/api/documents/upload'];
+    // Skip sanitization for certain routes that need raw data or have their own validation
+    const skipRoutes = ['/api/upload', '/api/documents/upload', '/api/bills', '/api/invoices', '/api/budgets', '/api/maintenance', '/api/performance/web-vitals', '/api/demands'];
     if (skipRoutes.some(route => req.path.includes(route))) {
       return next();
     }
@@ -122,11 +122,12 @@ export function sanitizeInputMiddleware(req: Request, res: Response, next: NextF
           }
         });
         
-        return res.status(400).json({
+        res.status(400).json({
           error: 'Invalid input detected',
           message: 'The request contains potentially harmful content',
           code: 'DANGEROUS_INPUT'
         });
+        return;
       }
       
       req.body = sanitizeInput(req.body);
@@ -148,11 +149,12 @@ export function sanitizeInputMiddleware(req: Request, res: Response, next: NextF
       }
     });
     
-    return res.status(500).json({
+    res.status(500).json({
       error: 'Input processing error',
       message: 'Unable to process request safely',
       code: 'SANITIZATION_ERROR'
     });
+    return;
   }
 }
 

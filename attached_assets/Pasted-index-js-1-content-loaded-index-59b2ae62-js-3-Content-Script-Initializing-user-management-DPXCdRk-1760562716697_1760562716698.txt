@@ -1,0 +1,76 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+user-management-DPXCdRkm.js:1 🔍 [USER_MANAGEMENT] Computing currentUserAccess memo: {currentUser: 'kevhervieux@gmail.com', currentUserOrganizationsType: 'undefined', currentUserOrganizationsIsArray: false, currentUserOrganizationsLength: 'N/A', currentUserBuildingsType: 'undefined', …}
+user-management-DPXCdRkm.js:1 ✅ [USER_MANAGEMENT] Extracted access IDs: {organizationIds: Array(0), buildingIds: Array(0), residenceIds: Array(0), organizationIdsCount: 0, buildingIdsCount: 0, …}
+user-management-DPXCdRkm.js:1 🔍 [USER_MANAGEMENT] Component mounted
+user-management-DPXCdRkm.js:1 🔍 [USER_MANAGEMENT] Current user query status: {currentUser: {…}, isLoading: false, error: null}
+user-management-DPXCdRkm.js:1 🔍 [USER_MANAGEMENT] Assignment queries data received: {organizations: 'null', buildings: 'null', residences: 'null', orgsLoading: true, buildingsLoading: true, …}
+user-management-DPXCdRkm.js:1 🔍 [USER_MANAGEMENT] Current user assignment queries status: {currentUser: 'kevhervieux@gmail.com', orgsLoading: true, buildingsLoading: true, residencesLoading: true, orgsError: undefined, …}
+user-management-DPXCdRkm.js:1 🔧 [USER_MANAGEMENT] Closing edit dialog, resetting states
+user-management-DPXCdRkm.js:1 🔍 [QUERY] /api/users/me/organizations returned: [{…}]
+user-management-DPXCdRkm.js:1 🔍 [USER_MANAGEMENT] Computing currentUserAccess memo: {currentUser: 'kevhervieux@gmail.com', currentUserOrganizationsType: 'object', currentUserOrganizationsIsArray: true, currentUserOrganizationsLength: 1, currentUserBuildingsType: 'undefined', …}
+user-management-DPXCdRkm.js:1 ✅ [USER_MANAGEMENT] Extracted access IDs: {organizationIds: Array(1), buildingIds: Array(0), residenceIds: Array(0), organizationIdsCount: 1, buildingIdsCount: 0, …}
+user-management-DPXCdRkm.js:1 🔍 [USER_MANAGEMENT] Assignment queries data received: {organizations: '1 orgs', buildings: 'null', residences: 'null', orgsLoading: false, buildingsLoading: true, …}
+user-management-DPXCdRkm.js:1 🔍 [USER_MANAGEMENT] Current user assignment queries status: {currentUser: 'kevhervieux@gmail.com', orgsLoading: false, buildingsLoading: true, residencesLoading: true, orgsError: undefined, …}
+user-management-DPXCdRkm.js:1 🔧 [USER_MANAGEMENT] Closing edit dialog, resetting states
+user-management-DPXCdRkm.js:1 🔍 [USER_MANAGEMENT] Pre-filtering manager to their organization: e9bb7862-4ba5-4822-848f-f3692e826e73
+user-management-DPXCdRkm.js:1 🔍 [QUERY] /api/users/me/residences returned: []
+user-management-DPXCdRkm.js:1 🔍 [USER_MANAGEMENT] Computing currentUserAccess memo: {currentUser: 'kevhervieux@gmail.com', currentUserOrganizationsType: 'object', currentUserOrganizationsIsArray: true, currentUserOrganizationsLength: 1, currentUserBuildingsType: 'undefined', …}
+user-management-DPXCdRkm.js:1 ✅ [USER_MANAGEMENT] Extracted access IDs: {organizationIds: Array(1), buildingIds: Array(0), residenceIds: Array(0), organizationIdsCount: 1, buildingIdsCount: 0, …}
+user-management-DPXCdRkm.js:1 🔍 [USER_MANAGEMENT] Assignment queries data received: {organizations: '1 orgs', buildings: 'null', residences: '0 residences', orgsLoading: false, buildingsLoading: true, …}
+user-management-DPXCdRkm.js:1 🔍 [USER_MANAGEMENT] Current user assignment queries status: {currentUser: 'kevhervieux@gmail.com', orgsLoading: false, buildingsLoading: true, residencesLoading: false, orgsError: undefined, …}
+user-management-DPXCdRkm.js:1 🔧 [USER_MANAGEMENT] Closing edit dialog, resetting states
+user-management-DPXCdRkm.js:1 🔍 [QUERY] /api/users/me/buildings returned: (2) [{…}, {…}]
+user-management-DPXCdRkm.js:1 🔍 [USER_MANAGEMENT] Computing currentUserAccess memo: {currentUser: 'kevhervieux@gmail.com', currentUserOrganizationsType: 'object', currentUserOrganizationsIsArray: true, currentUserOrganizationsLength: 1, currentUserBuildingsType: 'object', …}
+user-management-DPXCdRkm.js:1 ✅ [USER_MANAGEMENT] Extracted access IDs: {organizationIds: Array(1), buildingIds: Array(2), residenceIds: Array(0), organizationIdsCount: 1, buildingIdsCount: 2, …}
+user-management-DPXCdRkm.js:1 🔍 [USER_MANAGEMENT] Assignment queries data received: {organizations: '1 orgs', buildings: '2 buildings', residences: '0 residences', orgsLoading: false, buildingsLoading: false, …}
+user-management-DPXCdRkm.js:1 🔍 [USER_MANAGEMENT] Current user assignment queries status: {currentUser: 'kevhervieux@gmail.com', orgsLoading: false, buildingsLoading: false, residencesLoading: false, orgsError: undefined, …}
+user-management-DPXCdRkm.js:1 🔧 [USER_MANAGEMENT] Closing edit dialog, resetting states
+user-management-DPXCdRkm.js:1 🔧 [USER_MANAGEMENT] Initializing edit dialog for user: 160e4473-b4f0-44a0-a79a-f2965c39dd49
+user-management-DPXCdRkm.js:1 🔧 [USER_MANAGEMENT] User data: {id: '160e4473-b4f0-44a0-a79a-f2965c39dd49', email: 'dan_flatley@yahoo.com', organizations: Array(2), buildings: Array(1), residences: Array(1)}
+user-management-DPXCdRkm.js:1 🔧 [USER_MANAGEMENT] User organization IDs: (2) ['f0e34e59-0d81-4c1a-b95f-e23dd1667a19', 'e9bb7862-4ba5-4822-848f-f3692e826e73']
+user-management-DPXCdRkm.js:1 🔧 [USER_MANAGEMENT] Current user role: manager
+user-management-DPXCdRkm.js:1 🔧 [USER_MANAGEMENT] Manager organization IDs: ['e9bb7862-4ba5-4822-848f-f3692e826e73']
+user-management-DPXCdRkm.js:1 🔧 [USER_MANAGEMENT] Final organization IDs to select: (2) ['f0e34e59-0d81-4c1a-b95f-e23dd1667a19', 'e9bb7862-4ba5-4822-848f-f3692e826e73']
+user-management-DPXCdRkm.js:1 🔧 [USER_MANAGEMENT] Setting selected organization IDs: (2) ['f0e34e59-0d81-4c1a-b95f-e23dd1667a19', 'e9bb7862-4ba5-4822-848f-f3692e826e73']
+user-management-DPXCdRkm.js:1 🏢 [UserBuildingsTab] Filtering buildings: {selectedOrganizationIds: Array(2), totalBuildings: 0, currentUserRole: 'manager', currentUserOrganizationIds: Array(1), currentUserBuildingIds: Array(2)}
+user-management-DPXCdRkm.js:1 ✅ [UserBuildingsTab] Available buildings after filter: 0
+user-management-DPXCdRkm.js:1 🏢 [UserBuildingsTab] Filtering buildings: {selectedOrganizationIds: Array(2), totalBuildings: 0, currentUserRole: 'manager', currentUserOrganizationIds: Array(1), currentUserBuildingIds: Array(2)}
+user-management-DPXCdRkm.js:1 ✅ [UserBuildingsTab] Available buildings after filter: 0
+user-management-DPXCdRkm.js:1 🔧 [USER_MANAGEMENT] Closing edit dialog, resetting states
+user-management-DPXCdRkm.js:1 🏢 [UserBuildingsTab] Filtering buildings: {selectedOrganizationIds: Array(0), totalBuildings: 0, currentUserRole: 'manager', currentUserOrganizationIds: Array(1), currentUserBuildingIds: Array(2)}
+user-management-DPXCdRkm.js:1 ⚠️ [UserBuildingsTab] No organizations selected
+user-management-DPXCdRkm.js:1 🏢 [UserBuildingsTab] Filtering buildings: {selectedOrganizationIds: Array(0), totalBuildings: 0, currentUserRole: 'manager', currentUserOrganizationIds: Array(1), currentUserBuildingIds: Array(2)}
+user-management-DPXCdRkm.js:1 ⚠️ [UserBuildingsTab] No organizations selected
+user-management-DPXCdRkm.js:1 🔧 [USER_MANAGEMENT] Initializing edit dialog for user: b09f7eec-222b-4540-aa69-bf6e4d06e2c3
+user-management-DPXCdRkm.js:1 🔧 [USER_MANAGEMENT] User data: {id: 'b09f7eec-222b-4540-aa69-bf6e4d06e2c3', email: 'vicenta_bernhard1@yahoo.com', organizations: Array(1), buildings: Array(1), residences: Array(2)}
+user-management-DPXCdRkm.js:1 🔧 [USER_MANAGEMENT] User organization IDs: ['e9bb7862-4ba5-4822-848f-f3692e826e73']
+user-management-DPXCdRkm.js:1 🔧 [USER_MANAGEMENT] Current user role: manager
+user-management-DPXCdRkm.js:1 🔧 [USER_MANAGEMENT] Manager organization IDs: ['e9bb7862-4ba5-4822-848f-f3692e826e73']
+user-management-DPXCdRkm.js:1 🔧 [USER_MANAGEMENT] Final organization IDs to select: ['e9bb7862-4ba5-4822-848f-f3692e826e73']
+user-management-DPXCdRkm.js:1 🔧 [USER_MANAGEMENT] Setting selected organization IDs: ['e9bb7862-4ba5-4822-848f-f3692e826e73']
+user-management-DPXCdRkm.js:1 🏢 [UserBuildingsTab] Filtering buildings: {selectedOrganizationIds: Array(1), totalBuildings: 0, currentUserRole: 'manager', currentUserOrganizationIds: Array(1), currentUserBuildingIds: Array(2)}
+user-management-DPXCdRkm.js:1 ✅ [UserBuildingsTab] Available buildings after filter: 0
+user-management-DPXCdRkm.js:1 🏢 [UserBuildingsTab] Filtering buildings: {selectedOrganizationIds: Array(1), totalBuildings: 0, currentUserRole: 'manager', currentUserOrganizationIds: Array(1), currentUserBuildingIds: Array(2)}
+user-management-DPXCdRkm.js:1 ✅ [UserBuildingsTab] Available buildings after filter: 0
+user-management-DPXCdRkm.js:1 🔧 [USER_MANAGEMENT] Closing edit dialog, resetting states
+user-management-DPXCdRkm.js:1 🏢 [UserBuildingsTab] Filtering buildings: {selectedOrganizationIds: Array(0), totalBuildings: 0, currentUserRole: 'manager', currentUserOrganizationIds: Array(1), currentUserBuildingIds: Array(2)}
+user-management-DPXCdRkm.js:1 ⚠️ [UserBuildingsTab] No organizations selected
+user-management-DPXCdRkm.js:1 🏢 [UserBuildingsTab] Filtering buildings: {selectedOrganizationIds: Array(0), totalBuildings: 0, currentUserRole: 'manager', currentUserOrganizationIds: Array(1), currentUserBuildingIds: Array(2)}
+user-management-DPXCdRkm.js:1 ⚠️ [UserBuildingsTab] No organizations selected
+user-management-DPXCdRkm.js:1 🔧 [USER_MANAGEMENT] Initializing edit dialog for user: 1c56be20-c607-4068-b1b5-f74e74c59bee
+user-management-DPXCdRkm.js:1 🔧 [USER_MANAGEMENT] User data: {id: '1c56be20-c607-4068-b1b5-f74e74c59bee', email: 'kevhervieux@gmail.com', organizations: Array(1), buildings: Array(2), residences: Array(2)}
+user-management-DPXCdRkm.js:1 🔧 [USER_MANAGEMENT] User organization IDs: ['e9bb7862-4ba5-4822-848f-f3692e826e73']
+user-management-DPXCdRkm.js:1 🔧 [USER_MANAGEMENT] Current user role: manager
+user-management-DPXCdRkm.js:1 🔧 [USER_MANAGEMENT] Manager organization IDs: ['e9bb7862-4ba5-4822-848f-f3692e826e73']
+user-management-DPXCdRkm.js:1 🔧 [USER_MANAGEMENT] Final organization IDs to select: ['e9bb7862-4ba5-4822-848f-f3692e826e73']
+user-management-DPXCdRkm.js:1 🔧 [USER_MANAGEMENT] Setting selected organization IDs: ['e9bb7862-4ba5-4822-848f-f3692e826e73']
+user-management-DPXCdRkm.js:1 🏢 [UserBuildingsTab] Filtering buildings: {selectedOrganizationIds: Array(1), totalBuildings: 0, currentUserRole: 'manager', currentUserOrganizationIds: Array(1), currentUserBuildingIds: Array(2)}
+user-management-DPXCdRkm.js:1 ✅ [UserBuildingsTab] Available buildings after filter: 0
+user-management-DPXCdRkm.js:1 🏢 [UserBuildingsTab] Filtering buildings: {selectedOrganizationIds: Array(1), totalBuildings: 0, currentUserRole: 'manager', currentUserOrganizationIds: Array(1), currentUserBuildingIds: Array(2)}
+user-management-DPXCdRkm.js:1 ✅ [UserBuildingsTab] Available buildings after filter: 0
+user-management-DPXCdRkm.js:1 🔧 [USER_MANAGEMENT] Closing edit dialog, resetting states
+user-management-DPXCdRkm.js:1 🏢 [UserBuildingsTab] Filtering buildings: {selectedOrganizationIds: Array(0), totalBuildings: 0, currentUserRole: 'manager', currentUserOrganizationIds: Array(1), currentUserBuildingIds: Array(2)}
+user-management-DPXCdRkm.js:1 ⚠️ [UserBuildingsTab] No organizations selected
+user-management-DPXCdRkm.js:1 🏢 [UserBuildingsTab] Filtering buildings: {selectedOrganizationIds: Array(0), totalBuildings: 0, currentUserRole: 'manager', currentUserOrganizationIds: Array(1), currentUserBuildingIds: Array(2)}
+user-management-DPXCdRkm.js:1 ⚠️ [UserBuildingsTab] No organizations selected

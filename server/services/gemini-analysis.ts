@@ -205,9 +205,7 @@ Generate a comprehensive analysis with MULTIPLE numbered actionable items for th
         );
       }
 
-      console.log(
-        `✅ AI analysis generated ${analysis.actionableItems.length} actionable items successfully`
-      );
+      // console.log(`✅ AI analysis generated ${analysis.actionableItems.length} actionable items successfully`);
       return analysis;
     } else {
       throw new Error('Invalid response from Gemini');

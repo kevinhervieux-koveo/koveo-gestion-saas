@@ -1073,9 +1073,6 @@ ${formData.additionalNotes || 'No additional notes'}
                   }}
                   allowedFileTypes={['image/*', 'application/pdf', '.doc', '.docx', '.txt', '.fig', '.sketch']}
                   maxFileSize={25}
-                  showCamera={true}
-                  compact={true}
-                  placeholder="Upload wireframes, mockups, or requirements"
                 />
               </div>
               {attachedFiles.length > 0 && (

@@ -1,5 +1,6 @@
 import React from 'react';
 import type { UserWithAssignments } from '@shared/schema';
+import { useLanguage } from '@/hooks/use-language';
 
 interface UserAssignmentsTableProps {
   users: UserWithAssignments[];
@@ -24,11 +25,12 @@ export function UserAssignmentsTable({
   canEditResidences = false,
   canDeleteUsers = false
 }: UserAssignmentsTableProps) {
+  const { t } = useLanguage();
 
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-8" data-testid="loading-users">
-        <div className="text-gray-500">Loading users...</div>
+        <div className="text-gray-500">{t('loadingUsers')}</div>
       </div>
     );
   }
@@ -36,7 +38,7 @@ export function UserAssignmentsTable({
   if (!users || users.length === 0) {
     return (
       <div className="text-center py-8 text-gray-500" data-testid="no-users">
-        No users found
+        {t('noUsersFound')}
       </div>
     );
   }
@@ -47,28 +49,28 @@ export function UserAssignmentsTable({
         <thead>
           <tr className="bg-gray-50">
             <th className="border border-gray-300 px-4 py-2 text-left" data-testid="header-name">
-              Name
+              {t('name')}
             </th>
             <th className="border border-gray-300 px-4 py-2 text-left" data-testid="header-email">
-              Email
+              {t('email')}
             </th>
             <th className="border border-gray-300 px-4 py-2 text-left" data-testid="header-role">
-              Role
+              {t('role')}
             </th>
             <th className="border border-gray-300 px-4 py-2 text-left" data-testid="header-status">
-              Status
+              {t('status')}
             </th>
             <th className="border border-gray-300 px-4 py-2 text-left" data-testid="header-organizations">
-              Organizations
+              {t('organizations')}
             </th>
             <th className="border border-gray-300 px-4 py-2 text-left" data-testid="header-buildings">
-              Buildings
+              {t('buildings')}
             </th>
             <th className="border border-gray-300 px-4 py-2 text-left" data-testid="header-residences">
-              Residences
+              {t('residences')}
             </th>
             <th className="border border-gray-300 px-4 py-2 text-left" data-testid="header-actions">
-              Actions
+              {t('actions')}
             </th>
           </tr>
         </thead>
@@ -105,7 +107,7 @@ export function UserAssignmentsTable({
                     ? 'bg-green-100 text-green-800'
                     : 'bg-gray-100 text-gray-800'
                 }`}>
-                  {user.isActive ? 'Active' : 'Inactive'}
+                  {user.isActive ? t('statusActive') : t('statusInactive')}
                 </span>
               </td>
               
@@ -124,7 +126,7 @@ export function UserAssignmentsTable({
                     ))
                   ) : (
                     <div className="text-gray-400 text-xs" data-testid={`no-orgs-${user.id}`}>
-                      No organizations
+                      {t('noOrganizations')}
                     </div>
                   )}
                 </div>
@@ -134,23 +136,27 @@ export function UserAssignmentsTable({
               <td className="border border-gray-300 px-4 py-2" data-testid={`buildings-${user.id}`}>
                 <div className="space-y-1">
                   {Array.isArray(user.buildings) && user.buildings.length > 0 ? (
-                    user.buildings.slice(0, 3).map((building, idx) => (
-                      <div
-                        key={building.id || idx}
-                        className="text-xs bg-purple-50 px-2 py-1 rounded"
-                        data-testid={`building-${user.id}-${idx}`}
-                      >
-                        {building.name}
-                      </div>
-                    ))
+                    user.buildings.slice(0, 3).map((building, idx) => {
+                      const generatedKey = `table-${user.id}-${building.id}-${idx}`;
+                      
+                      return (
+                        <div
+                          key={generatedKey}
+                          className="text-xs bg-purple-50 px-2 py-1 rounded"
+                          data-testid={`building-${user.id}-${idx}`}
+                        >
+                          {building.name}
+                        </div>
+                      );
+                    })
                   ) : (
                     <div className="text-gray-400 text-xs" data-testid={`no-buildings-${user.id}`}>
-                      No buildings
+                      {t('noBuildings')}
                     </div>
                   )}
                   {Array.isArray(user.buildings) && user.buildings.length > 3 && (
                     <div className="text-xs text-gray-500" data-testid={`more-buildings-${user.id}`}>
-                      +{user.buildings.length - 3} more
+                      +{user.buildings.length - 3} {t('more')}
                     </div>
                   )}
                 </div>
@@ -166,17 +172,17 @@ export function UserAssignmentsTable({
                         className="text-xs bg-yellow-50 px-2 py-1 rounded"
                         data-testid={`residence-${user.id}-${idx}`}
                       >
-                        Unit {residence.unitNumber}
+                        {t('unit')} {residence.unitNumber}
                       </div>
                     ))
                   ) : (
                     <div className="text-gray-400 text-xs" data-testid={`no-residences-${user.id}`}>
-                      No residences
+                      {t('noResidences')}
                     </div>
                   )}
                   {Array.isArray(user.residences) && user.residences.length > 3 && (
                     <div className="text-xs text-gray-500" data-testid={`more-residences-${user.id}`}>
-                      +{user.residences.length - 3} more
+                      +{user.residences.length - 3} {t('more')}
                     </div>
                   )}
                 </div>
@@ -191,7 +197,7 @@ export function UserAssignmentsTable({
                       className="px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded hover:bg-blue-100"
                       data-testid={`edit-user-${user.id}`}
                     >
-                      Edit User
+                      {t('editUser')}
                     </button>
                   )}
                   
@@ -201,7 +207,7 @@ export function UserAssignmentsTable({
                       className="px-2 py-1 text-xs bg-red-50 text-red-700 rounded hover:bg-red-100"
                       data-testid={`delete-user-${user.id}`}
                     >
-                      Delete
+                      {t('delete')}
                     </button>
                   )}
                 </div>

@@ -6,6 +6,7 @@ import {
   residences,
   userResidences,
   userOrganizations,
+  userBuildings,
   users,
   documents,
 } from '@shared/schema';
@@ -69,33 +70,28 @@ async function handleResidenceChanges(
         const createdResidences = await db.insert(residences).values(newResidences).returning();
 
         // Create object storage hierarchy for each new residence
+        // NOTE: Object storage service integration is planned but not yet implemented.
+        // Storage hierarchy will be created automatically when documents are uploaded.
         for (const residence of createdResidences) {
           try {
-            // TODO: Object storage service integration
+            // Future: Object storage service integration
             // await objectStorageService.createResidenceHierarchy(
             //   organizationId,
             //   buildingId,
             //   residence.id
             // );
           } catch (storageError) {
-            console.error(
-              `⚠️ Error creating storage hierarchy for residence ${residence.id}:`,
-              storageError
-            );
+            // console.error(`⚠️ Error creating storage hierarchy for residence ${residence.id}:`, storageError);
             // Don't fail the whole operation for storage errors
           }
         }
 
-        console.log(
-          `✅ Created ${createdResidences.length} new residences for building ${buildingId}`
-        );
+        // console.log(`✅ Created ${createdResidences.length} new residences for building ${buildingId}`);
       }
     } else if (newTotalUnits < currentResidenceCount) {
       // Need to delete some residences
       const residencesToDelete = currentResidenceCount - newTotalUnits;
-      console.log(
-        `📉 Marking ${residencesToDelete} residences as inactive for building ${buildingId}`
-      );
+      // console.log(`📉 Marking ${residencesToDelete} residences as inactive for building ${buildingId}`);
 
       // Get residences that can be safely deleted (no active user relationships)
       const deletableResidences = await db
@@ -127,27 +123,21 @@ async function handleResidenceChanges(
           })
           .where(inArray(residences.id, residenceIdsToDelete));
 
-        console.log(
-          `✅ Marked ${deletableResidences.length} residences as inactive for building ${buildingId}`
-        );
+        // console.log(`✅ Marked ${deletableResidences.length} residences as inactive for building ${buildingId}`);
 
         // Log which residences couldn't be deleted due to user relationships
         const protectedCount = residencesToDelete - deletableResidences.length;
         if (protectedCount > 0) {
-          console.log(
-            `⚠️ Could not delete ${protectedCount} residences - they have active user relationships`
-          );
+          // console.log(`⚠️ Could not delete ${protectedCount} residences - they have active user relationships`);
         }
       } else {
       }
     } else {
-      console.log(
-        `✓ No residence changes needed - building ${buildingId} already has ${currentResidenceCount} residences`
-      );
+      // console.log(`✓ No residence changes needed - building ${buildingId} already has ${currentResidenceCount} residences`);
     }
     // Don't throw the error to avoid breaking the building update
   } catch (error: any) {
-    console.error('❌ Error updating residence count:', error);
+    // console.error('❌ Error updating residence count:', error);
     // Don't throw the error to avoid breaking the building update
   }
 }
@@ -214,15 +204,15 @@ export function registerBuildingRoutes(app: Express): void {
             province: buildings.province,
             postalCode: buildings.postalCode,
             buildingType: buildings.buildingType,
-            yearBuilt: buildings.yearBuilt,
+            constructionDate: buildings.constructionDate,
             totalUnits: buildings.totalUnits,
             totalFloors: buildings.totalFloors,
             parkingSpaces: buildings.parkingSpaces,
             storageSpaces: buildings.storageSpaces,
             organizationId: buildings.organizationId,
+            organizationName: organizations.name,
             isActive: buildings.isActive,
             createdAt: buildings.createdAt,
-            organizationName: organizations.name,
           })
           .from(buildings)
           .innerJoin(organizations, eq(buildings.organizationId, organizations.id))
@@ -230,14 +220,9 @@ export function registerBuildingRoutes(app: Express): void {
           .orderBy(organizations.name, buildings.name);
       } else {
         // Managers and other roles: only buildings from their organizations
-        console.log(
-          `🔍 [BUILDINGS DEBUG] Non-admin user (${user.role}) - checking organization access. User ${user.id} organizations:`,
-          user.organizations
-        );
+        // console.log(`🔍 [BUILDINGS DEBUG] Non-admin user (${user.role}) - checking organization access. User ${user.id} organizations:`, user.organizations);
         if (!user.organizations || user.organizations.length === 0) {
-          console.log(
-            `🔍 [BUILDINGS DEBUG] User ${user.id} has no organizations, checking residence access...`
-          );
+          // console.log(`🔍 [BUILDINGS DEBUG] User ${user.id} has no organizations, checking residence access...`);
 
           // For tenant/resident roles: Get buildings through their residences
           if (['tenant', 'resident', 'demo_tenant', 'demo_resident'].includes(user.role)) {
@@ -249,9 +234,7 @@ export function registerBuildingRoutes(app: Express): void {
               .innerJoin(residences, eq(userResidences.residenceId, residences.id))
               .where(and(eq(userResidences.userId, user.id), eq(userResidences.isActive, true)));
 
-            console.log(
-              `🔍 [BUILDINGS DEBUG] Found ${userResidencesList.length} residences for user ${user.id}`
-            );
+            // console.log(`🔍 [BUILDINGS DEBUG] Found ${userResidencesList.length} residences for user ${user.id}`);
 
             if (userResidencesList.length === 0) {
               return res.json([]); // No residences = no buildings
@@ -260,7 +243,7 @@ export function registerBuildingRoutes(app: Express): void {
             const accessibleBuildingIds = [
               ...new Set(userResidencesList.map((ur) => ur.buildingId)),
             ];
-            console.log(`🔍 [BUILDINGS DEBUG] Accessible building IDs:`, accessibleBuildingIds);
+            // console.log(`🔍 [BUILDINGS DEBUG] Accessible building IDs:`, accessibleBuildingIds);
 
             buildingsQuery = db
               .select({
@@ -271,7 +254,7 @@ export function registerBuildingRoutes(app: Express): void {
                 province: buildings.province,
                 postalCode: buildings.postalCode,
                 buildingType: buildings.buildingType,
-                yearBuilt: buildings.yearBuilt,
+                constructionDate: buildings.constructionDate,
                 totalUnits: buildings.totalUnits,
                 totalFloors: buildings.totalFloors,
                 parkingSpaces: buildings.parkingSpaces,
@@ -288,7 +271,7 @@ export function registerBuildingRoutes(app: Express): void {
               )
               .orderBy(organizations.name, buildings.name);
           } else {
-            console.log(`🔍 [BUILDINGS DEBUG] Manager/other role user ${user.id} has no organizations - returning empty result`);
+            // console.log(`🔍 [BUILDINGS DEBUG] Manager/other role user ${user.id} has no organizations - returning empty result`);
             return res.json([]); // No organizations = no buildings for managers/others
           }
         } else {
@@ -302,7 +285,7 @@ export function registerBuildingRoutes(app: Express): void {
               province: buildings.province,
               postalCode: buildings.postalCode,
               buildingType: buildings.buildingType,
-              yearBuilt: buildings.yearBuilt,
+              constructionDate: buildings.constructionDate,
               totalUnits: buildings.totalUnits,
               totalFloors: buildings.totalFloors,
               parkingSpaces: buildings.parkingSpaces,
@@ -328,7 +311,7 @@ export function registerBuildingRoutes(app: Express): void {
 
       res.json(result);
     } catch (error: any) {
-      console.error('❌ Error fetching buildings:', error);
+      // console.error('❌ Error fetching buildings:', error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to fetch buildings',
@@ -413,7 +396,7 @@ export function registerBuildingRoutes(app: Express): void {
             province: buildings.province,
             postalCode: buildings.postalCode,
             buildingType: buildings.buildingType,
-            yearBuilt: buildings.yearBuilt,
+            constructionDate: buildings.constructionDate,
             totalUnits: buildings.totalUnits,
             totalFloors: buildings.totalFloors,
             parkingSpaces: buildings.parkingSpaces,
@@ -443,8 +426,65 @@ export function registerBuildingRoutes(app: Express): void {
           }
         });
       } else {
-        // Regular users: For Admin and Manager roles: Get buildings from their organizations only
-        if (currentUser.role === 'admin' || currentUser.role === 'manager' || currentUser.role === 'demo_manager') {
+        // Regular users: For Manager roles: Get buildings from their userBuildings assignments only
+        if (currentUser.role === 'manager' || currentUser.role === 'demo_manager') {
+          // Managers should only see buildings they are explicitly assigned to via userBuildings table
+          const userBuildingAssignments = await db
+            .select({
+              buildingId: userBuildings.buildingId,
+            })
+            .from(userBuildings)
+            .where(and(eq(userBuildings.userId, currentUser.id), eq(userBuildings.isActive, true)));
+
+          if (userBuildingAssignments.length > 0) {
+            const assignedBuildingIds = userBuildingAssignments.map((ub) => ub.buildingId);
+
+            // Get buildings the manager is assigned to (filtered by organizationId if specified)
+            const whereConditions = [eq(buildings.isActive, true), inArray(buildings.id, assignedBuildingIds)];
+            if (organizationIdFilter) {
+              whereConditions.push(eq(buildings.organizationId, organizationIdFilter));
+            }
+            
+            const assignedBuildings = await db
+              .select({
+                id: buildings.id,
+                name: buildings.name,
+                address: buildings.address,
+                city: buildings.city,
+                province: buildings.province,
+                postalCode: buildings.postalCode,
+                buildingType: buildings.buildingType,
+                constructionDate: buildings.constructionDate,
+                totalUnits: buildings.totalUnits,
+                totalFloors: buildings.totalFloors,
+                parkingSpaces: buildings.parkingSpaces,
+                storageSpaces: buildings.storageSpaces,
+                amenities: buildings.amenities,
+                managementCompany: buildings.managementCompany,
+                organizationId: buildings.organizationId,
+                isActive: buildings.isActive,
+                createdAt: buildings.createdAt,
+                updatedAt: buildings.updatedAt,
+                organizationName: organizations.name,
+                organizationType: organizations.type,
+              })
+              .from(buildings)
+              .innerJoin(organizations, eq(buildings.organizationId, organizations.id))
+              .where(and(...whereConditions));
+
+            assignedBuildings.forEach((building) => {
+              if (!buildingIds.has(building.id)) {
+                buildingIds.add(building.id);
+                accessibleBuildings.push({
+                  ...building,
+                  accessType: 'assignment', // Track how user has access (via userBuildings)
+                });
+              }
+            });
+          }
+        }
+        // Admin users with non-global access: Get buildings from their organizations
+        else if (currentUser.role === 'admin') {
           if (userOrgs.length > 0) {
             const orgIds = userOrgs.map((uo) => uo.organizationId);
 
@@ -467,7 +507,7 @@ export function registerBuildingRoutes(app: Express): void {
                 province: buildings.province,
                 postalCode: buildings.postalCode,
                 buildingType: buildings.buildingType,
-                yearBuilt: buildings.yearBuilt,
+                constructionDate: buildings.constructionDate,
                 totalUnits: buildings.totalUnits,
                 totalFloors: buildings.totalFloors,
                 parkingSpaces: buildings.parkingSpaces,
@@ -526,7 +566,7 @@ export function registerBuildingRoutes(app: Express): void {
             province: buildings.province,
             postalCode: buildings.postalCode,
             buildingType: buildings.buildingType,
-            yearBuilt: buildings.yearBuilt,
+            constructionDate: buildings.constructionDate,
             totalUnits: buildings.totalUnits,
             totalFloors: buildings.totalFloors,
             parkingSpaces: buildings.parkingSpaces,
@@ -560,7 +600,7 @@ export function registerBuildingRoutes(app: Express): void {
               province: building.province,
               postalCode: building.postalCode,
               buildingType: building.buildingType,
-              yearBuilt: building.yearBuilt,
+              constructionDate: building.constructionDate,
               totalUnits: building.totalUnits,
               totalFloors: building.totalFloors,
               parkingSpaces: building.parkingSpaces,
@@ -625,7 +665,7 @@ export function registerBuildingRoutes(app: Express): void {
         },
       });
     } catch (error: any) {
-      console.error('❌ Error fetching manager buildings:', error);
+      // console.error('❌ Error fetching manager buildings:', error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to fetch buildings',
@@ -649,9 +689,7 @@ export function registerBuildingRoutes(app: Express): void {
         });
       }
 
-      console.log(
-        `📊 Fetching building ${buildingId} for user ${currentUser.id} with role ${currentUser.role}`
-      );
+      // console.log(`📊 Fetching building ${buildingId} for user ${currentUser.id} with role ${currentUser.role}`);
 
       let hasAccess = false;
       let accessType = '';
@@ -739,7 +777,7 @@ export function registerBuildingRoutes(app: Express): void {
           province: buildings.province,
           postalCode: buildings.postalCode,
           buildingType: buildings.buildingType,
-          yearBuilt: buildings.yearBuilt,
+          constructionDate: buildings.constructionDate,
           totalUnits: buildings.totalUnits,
           totalFloors: buildings.totalFloors,
           parkingSpaces: buildings.parkingSpaces,
@@ -842,7 +880,7 @@ export function registerBuildingRoutes(app: Express): void {
             : undefined,
       });
     } catch (error: any) {
-      console.error('❌ Error fetching building details:', error);
+      // console.error('❌ Error fetching building details:', error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to fetch building details',
@@ -894,7 +932,7 @@ export function registerBuildingRoutes(app: Express): void {
           province: buildingData.province || 'QC',
           postalCode: buildingData.postalCode || '',
           buildingType: buildingData.buildingType || 'condo',
-          yearBuilt: buildingData.yearBuilt,
+          constructionDate: buildingData.constructionDate,
           totalUnits: buildingData.totalUnits || 0,
           totalFloors: buildingData.totalFloors,
           parkingSpaces: buildingData.parkingSpaces,
@@ -910,7 +948,7 @@ export function registerBuildingRoutes(app: Express): void {
 
 
       // Building storage hierarchy will be created automatically when documents are uploaded
-      console.log('Building created - storage hierarchy will be created on first document upload');
+      // console.log('Building created - storage hierarchy will be created on first document upload');
 
       // Auto-generate residences if totalUnits is specified and <= 300
       if (
@@ -943,12 +981,11 @@ export function registerBuildingRoutes(app: Express): void {
             .values(residencesToCreate)
             .returning();
 
-          console.log(
-            `✅ Auto-generated ${createdResidences.length} residences for building ${buildingId}`
-          );
+          // console.log(`✅ Auto-generated ${createdResidences.length} residences for building ${buildingId}`);
 
-          // TODO: Object storage service integration
-          // Create object storage hierarchy for each residence
+          // NOTE: Object storage service integration is planned but not yet implemented.
+          // Storage hierarchy will be created automatically when documents are uploaded.
+          // Future: Object storage service integration
           // for (const residence of createdResidences) {
           //   await objectStorageService.createResidenceHierarchy(
           //     buildingData.organizationId,
@@ -957,7 +994,7 @@ export function registerBuildingRoutes(app: Express): void {
           //   );
           // }
         } catch (___residenceError) {
-          console.error('⚠️ Error auto-generating residences:', ___residenceError);
+          // console.error('⚠️ Error auto-generating residences:', ___residenceError);
           // Don't fail the building creation if residence generation fails
         }
       }
@@ -967,7 +1004,7 @@ export function registerBuildingRoutes(app: Express): void {
         building: newBuilding[0],
       });
     } catch (error: any) {
-      console.error('❌ Error creating building:', error);
+      // console.error('❌ Error creating building:', error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to create building',
@@ -1002,7 +1039,7 @@ export function registerBuildingRoutes(app: Express): void {
         message: `Found ${residencesToSelect.length} residences available for deletion`
       });
     } catch (error: any) {
-      console.error('❌ Error fetching residences for deletion:', error);
+      // console.error('❌ Error fetching residences for deletion:', error);
       res.status(500).json({ message: 'Failed to fetch residences for deletion' });
     }
   });
@@ -1040,7 +1077,7 @@ export function registerBuildingRoutes(app: Express): void {
         message: `Successfully deleted ${result.deletedCount} residences and ${result.documentsDeleted} associated documents`
       });
     } catch (error: any) {
-      console.error('❌ Error deleting residences:', error);
+      // console.error('❌ Error deleting residences:', error);
       res.status(500).json({ message: error.message || 'Failed to delete residences' });
     }
   });
@@ -1101,9 +1138,7 @@ export function registerBuildingRoutes(app: Express): void {
       const newTotalUnits = buildingData.totalUnits || 0;
       const previousTotalUnits = existingBuilding[0].totalUnits || 0;
 
-      console.log(
-        `🔄 Building ${buildingId}: ${previousTotalUnits} → ${newTotalUnits} units (currently has ${currentResidenceCount} active residences)`
-      );
+      // console.log(`🔄 Building ${buildingId}: ${previousTotalUnits} → ${newTotalUnits} units (currently has ${currentResidenceCount} active residences)`);
 
       // Update building
       const updatedBuilding = await db
@@ -1115,7 +1150,7 @@ export function registerBuildingRoutes(app: Express): void {
           province: buildingData.province || 'QC',
           postalCode: buildingData.postalCode || '',
           buildingType: buildingData.buildingType || 'condo',
-          yearBuilt: buildingData.yearBuilt,
+          constructionDate: buildingData.constructionDate,
           totalUnits: newTotalUnits,
           totalFloors: buildingData.totalFloors,
           parkingSpaces: buildingData.parkingSpaces,
@@ -1130,7 +1165,7 @@ export function registerBuildingRoutes(app: Express): void {
 
       // Handle residence count changes with new admin-only functionality
       if (newTotalUnits !== previousTotalUnits) {
-        console.log(`🏠 Building units changed from ${previousTotalUnits} to ${newTotalUnits}, adjusting residences...`);
+        // console.log(`🏠 Building units changed from ${previousTotalUnits} to ${newTotalUnits}, adjusting residences...`);
         
         // Only admins can adjust residence counts
         if (currentUser.role !== 'admin') {
@@ -1167,7 +1202,7 @@ export function registerBuildingRoutes(app: Express): void {
         building: updatedBuilding[0],
       });
     } catch (error: any) {
-      console.error('❌ Error updating building:', error);
+      // console.error('❌ Error updating building:', error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to update building',
@@ -1223,13 +1258,13 @@ export function registerBuildingRoutes(app: Express): void {
 
 
       // Object storage cleanup will be handled automatically
-      console.log('Building deleted - storage cleanup will be handled automatically');
+      // console.log('Building deleted - storage cleanup will be handled automatically');
 
       res.json({
         message: 'Building deleted successfully',
       });
     } catch (error: any) {
-      console.error('❌ Error deleting building:', error);
+      // console.error('❌ Error deleting building:', error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to delete building',
@@ -1315,7 +1350,7 @@ export function registerBuildingRoutes(app: Express): void {
 
       res.json(impact);
     } catch (error: any) {
-      console.error('❌ Error analyzing deletion impact:', error);
+      // console.error('❌ Error analyzing deletion impact:', error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to analyze deletion impact',
@@ -1440,7 +1475,7 @@ export function registerBuildingRoutes(app: Express): void {
 
       if (buildingOrg.length > 0) {
         // Object storage cleanup will be handled automatically
-        console.log('Building deleted - storage cleanup will be handled automatically');
+        // console.log('Building deleted - storage cleanup will be handled automatically');
       }
 
       res.json({
@@ -1448,7 +1483,7 @@ export function registerBuildingRoutes(app: Express): void {
         deletedBuilding: building[0].name,
       });
     } catch (error: any) {
-      console.error('❌ Error during cascade delete:', error);
+      // console.error('❌ Error during cascade delete:', error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to delete building and related entities',
@@ -1472,9 +1507,7 @@ export function registerBuildingRoutes(app: Express): void {
 
       const { buildingId } = req.params;
 
-      console.log(
-        `📊 Fetching residences for building ${buildingId} by user ${currentUser.id} with role ${currentUser.role}`
-      );
+      // console.log(`📊 Fetching residences for building ${buildingId} by user ${currentUser.id} with role ${currentUser.role}`);
 
       // First, verify the user has access to this building
       const userBuildingAccess = await db
@@ -1531,6 +1564,8 @@ export function registerBuildingRoutes(app: Express): void {
             unitNumber: residences.unitNumber,
             floor: residences.floor,
             buildingId: residences.buildingId,
+            monthlyFees: residences.monthlyFees,
+            isActive: residences.isActive,
           })
           .from(residences)
           .innerJoin(buildings, eq(buildings.id, residences.buildingId))
@@ -1549,6 +1584,8 @@ export function registerBuildingRoutes(app: Express): void {
             unitNumber: residences.unitNumber,
             floor: residences.floor,
             buildingId: residences.buildingId,
+            monthlyFees: residences.monthlyFees,
+            isActive: residences.isActive,
           })
           .from(residences)
           .innerJoin(buildings, eq(buildings.id, residences.buildingId))
@@ -1595,11 +1632,11 @@ export function registerBuildingRoutes(app: Express): void {
         buildingName: buildingInfo[0]?.name || 'Unknown Building'
       }));
 
-      console.log(`✅ Found ${residencesList.length} residences for user ${currentUser.id} in building ${buildingId}`);
+      // console.log(`✅ Found ${residencesList.length} residences for user ${currentUser.id} in building ${buildingId}`);
 
       res.json(residencesWithBuildingName);
     } catch (error: any) {
-      console.error('❌ Error fetching building residences:', error);
+      // console.error('❌ Error fetching building residences:', error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to fetch residences for building',

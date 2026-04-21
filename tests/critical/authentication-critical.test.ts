@@ -91,7 +91,7 @@ Required Action: Fix database schema immediately
     it('CRITICAL: login endpoint should be accessible and functional', async () => {
       // Test that the login endpoint exists and responds
       let response;
-      let error = null;
+      let error: unknown = null;
 
       try {
         response = await fetch('http://localhost:5000/api/auth/login', {
@@ -125,7 +125,7 @@ Required Action: Fix server startup or routing immediately
 
     it('CRITICAL: user endpoint should be accessible', async () => {
       let response;
-      let error = null;
+      let error: unknown = null;
 
       try {
         response = await fetch('http://localhost:5000/api/auth/user');

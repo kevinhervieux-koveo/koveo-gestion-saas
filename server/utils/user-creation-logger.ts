@@ -33,9 +33,7 @@ export function logUserCreation(event: UserCreationEvent): void {
   };
 
   if (event.success) {
-    console.log('✅ User creation successful:', JSON.stringify(logData));
   } else {
-    console.error('❌ User creation failed:', JSON.stringify(logData));
   }
 
   // In production, this could also send to monitoring services

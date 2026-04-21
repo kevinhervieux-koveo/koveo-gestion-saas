@@ -12,10 +12,11 @@ import {
   users,
   userOrganizations,
   userResidences,
+  userBuildings,
   invitations,
   commonSpaces,
 } from '@shared/schema';
-import { and, eq, count, sql, or, inArray, isNull, ne } from 'drizzle-orm';
+import { and, eq, count, sql, or, inArray, isNull, ne, exists } from 'drizzle-orm';
 import { requireAuth } from '../auth';
 
 /**
@@ -42,9 +43,7 @@ export function registerOrganizationRoutes(app: Express): void {
         });
       }
 
-      console.log(
-        `📊 Fetching organizations for user ${currentUser.id} with role ${currentUser.role}`
-      );
+      // console.log(`📊 Fetching organizations for user ${currentUser.id} with role ${currentUser.role}`);
 
       // Get organizations based on user role
       let organizationsQuery;
@@ -101,17 +100,151 @@ export function registerOrganizationRoutes(app: Express): void {
       }
 
       const accessibleOrganizations = await organizationsQuery;
-      console.log(
-        `✅ Found ${accessibleOrganizations.length} organizations for user ${currentUser.id}`
-      );
+      // console.log(`✅ Found ${accessibleOrganizations.length} organizations for user ${currentUser.id}`);
 
       // Return array directly (not wrapped in object)
       res.json(accessibleOrganizations);
     } catch (error: any) {
-      console.error('❌ Error fetching organizations:', error);
+      // console.error('❌ Error fetching organizations:', error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to fetch organizations',
+      });
+    }
+  });
+
+  /**
+   * GET /api/organizations/accessible-building-counts - Get accessible building counts per organization for current user
+   * Used for bottom-up filtering in hierarchical selection components
+   */
+  app.get('/api/organizations/accessible-building-counts', requireAuth, async (req: any, res) => {
+    try {
+      const currentUser = req.user || req.session?.user;
+      if (!currentUser) {
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED',
+        });
+      }
+
+      const { checkResidenceAccess } = req.query;
+      // console.log(`🏗️ Fetching accessible building counts for user ${currentUser.id}, checkResidenceAccess: ${checkResidenceAccess}`);
+
+      // Get user's accessible organizations first
+      let accessibleOrgs;
+      if (currentUser.role === 'admin') {
+        accessibleOrgs = await db
+          .select({ id: organizations.id })
+          .from(organizations)
+          .where(eq(organizations.isActive, true));
+      } else {
+        accessibleOrgs = await db
+          .select({ id: organizations.id })
+          .from(organizations)
+          .innerJoin(userOrganizations, eq(organizations.id, userOrganizations.organizationId))
+          .where(
+            and(
+              eq(organizations.isActive, true),
+              eq(userOrganizations.userId, currentUser.id),
+              eq(userOrganizations.isActive, true)
+            )
+          );
+      }
+
+      const counts: Record<string, number> = {};
+
+      // For each organization, count accessible buildings
+      for (const org of accessibleOrgs) {
+        try {
+          let accessibleBuildingCount = 0;
+
+          if (['resident', 'tenant', 'demo_resident', 'demo_tenant'].includes(currentUser.role)) {
+            // For residents/tenants, count buildings they have residences in
+            const userBuildingsInOrg = await db
+              .selectDistinct({ buildingId: residences.buildingId })
+              .from(userResidences)
+              .innerJoin(residences, eq(userResidences.residenceId, residences.id))
+              .innerJoin(buildings, eq(residences.buildingId, buildings.id))
+              .where(
+                and(
+                  eq(userResidences.userId, currentUser.id),
+                  eq(userResidences.isActive, true),
+                  eq(residences.isActive, true),
+                  eq(buildings.isActive, true),
+                  eq(buildings.organizationId, org.id)
+                )
+              );
+
+            // If we need to check residence access (for residence pages), filter further
+            if (checkResidenceAccess === 'true') {
+              // Only count buildings where user has accessible residences
+              for (const buildingRef of userBuildingsInOrg) {
+                const residenceCount = await db
+                  .select({ count: count(residences.id) })
+                  .from(userResidences)
+                  .innerJoin(residences, eq(userResidences.residenceId, residences.id))
+                  .where(
+                    and(
+                      eq(userResidences.userId, currentUser.id),
+                      eq(userResidences.isActive, true),
+                      eq(residences.isActive, true),
+                      eq(residences.buildingId, buildingRef.buildingId)
+                    )
+                  );
+
+                if (residenceCount[0]?.count > 0) {
+                  accessibleBuildingCount++;
+                }
+              }
+            } else {
+              accessibleBuildingCount = userBuildingsInOrg.length;
+            }
+          } else {
+            // For managers/admins, count all buildings in their organizations
+            const buildingsInOrg = await db
+              .select({ count: count(buildings.id) })
+              .from(buildings)
+              .where(
+                and(
+                  eq(buildings.organizationId, org.id),
+                  eq(buildings.isActive, true)
+                )
+              );
+
+            // If we need to check residence access, filter buildings with residences
+            if (checkResidenceAccess === 'true') {
+              const buildingsWithResidences = await db
+                .selectDistinct({ buildingId: buildings.id })
+                .from(buildings)
+                .innerJoin(residences, eq(buildings.id, residences.buildingId))
+                .where(
+                  and(
+                    eq(buildings.organizationId, org.id),
+                    eq(buildings.isActive, true),
+                    eq(residences.isActive, true)
+                  )
+                );
+              accessibleBuildingCount = buildingsWithResidences.length;
+            } else {
+              accessibleBuildingCount = buildingsInOrg[0]?.count || 0;
+            }
+          }
+
+          counts[org.id] = accessibleBuildingCount;
+          // console.log(`   → Org ${org.id}: ${accessibleBuildingCount} accessible buildings`);
+        } catch (error) {
+          // console.error(`❌ Error counting buildings for org ${org.id}:`, error);
+          counts[org.id] = 0;
+        }
+      }
+
+      // console.log(`✅ Building counts calculated:`, counts);
+      res.json(counts);
+    } catch (error: any) {
+      // console.error('❌ Error fetching accessible building counts:', error);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to fetch accessible building counts',
       });
     }
   });
@@ -165,7 +298,7 @@ export function registerOrganizationRoutes(app: Express): void {
         organizations: allOrganizations,
       });
     } catch (error: any) {
-      console.error('❌ Error fetching organizations:', error);
+      // console.error('❌ Error fetching organizations:', error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to fetch organizations',
@@ -230,13 +363,11 @@ export function registerOrganizationRoutes(app: Express): void {
 
 
       // Organization storage hierarchy will be created automatically when documents are uploaded
-      console.log(
-        'Organization created - storage hierarchy will be created on first document upload'
-      );
+      // console.log('Organization created - storage hierarchy will be created on first document upload');
 
       res.status(201).json(newOrganization);
     } catch (error: any) {
-      console.error('❌ Error creating organization:', error);
+      // console.error('❌ Error creating organization:', error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to create organization',
@@ -274,7 +405,7 @@ export function registerOrganizationRoutes(app: Express): void {
 
       res.json(organization);
     } catch (error: any) {
-      console.error('❌ Error fetching organization:', error);
+      // console.error('❌ Error fetching organization:', error);
       res.status(500).json({
         message: 'Failed to fetch organization',
         code: 'SERVER_ERROR',
@@ -358,7 +489,7 @@ export function registerOrganizationRoutes(app: Express): void {
 
       res.json(updatedOrganization);
     } catch (error: any) {
-      console.error('❌ Error updating organization:', error);
+      // console.error('❌ Error updating organization:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to update organization',
@@ -458,7 +589,7 @@ export function registerOrganizationRoutes(app: Express): void {
 
       res.json(impact);
     } catch (error: any) {
-      console.error('❌ Error analyzing deletion impact:', error);
+      // console.error('❌ Error analyzing deletion impact:', error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to analyze deletion impact',
@@ -503,7 +634,7 @@ export function registerOrganizationRoutes(app: Express): void {
         });
       }
 
-      console.log(`🗑️ Deleting organization ${organizationId} with cascade delete...`);
+      // console.log(`🗑️ Deleting organization ${organizationId} with cascade delete...`);
 
       // Since Neon HTTP driver doesn't support transactions, we'll do cascading delete manually
       // in the correct order to maintain referential integrity
@@ -524,9 +655,7 @@ export function registerOrganizationRoutes(app: Express): void {
           .where(inArray(residences.buildingId, orgBuildingIds))
           .returning({ id: residences.id, unitNumber: residences.unitNumber });
 
-        console.log(
-          `🗑️ Soft deleted ${affectedResidences.length} residences in buildings: ${orgBuildingIds.join(', ')}`
-        );
+        // console.log(`🗑️ Soft deleted ${affectedResidences.length} residences in buildings: ${orgBuildingIds.join(', ')}`);
 
         // 3. Soft delete buildings
         const affectedBuildings = await db
@@ -535,9 +664,7 @@ export function registerOrganizationRoutes(app: Express): void {
           .where(inArray(buildings.id, orgBuildingIds))
           .returning({ id: buildings.id, name: buildings.name });
 
-        console.log(
-          `🗑️ Soft deleted ${affectedBuildings.length} buildings: ${affectedBuildings.map((b) => b.name).join(', ')}`
-        );
+        // console.log(`🗑️ Soft deleted ${affectedBuildings.length} buildings: ${affectedBuildings.map((b) => b.name).join(', ')}`);
       }
 
       // 4. Delete user-organization relationships
@@ -548,7 +675,7 @@ export function registerOrganizationRoutes(app: Express): void {
       // 5. DISABLED: User deletion is now prohibited for data safety
       // Users are never deleted during cascade operations to prevent permanent data loss
       // This protects against accidental deletion of user accounts and their historical data
-      console.log('⚠️  User deletion disabled for data safety - users will be preserved');
+      // console.log('⚠️  User deletion disabled for data safety - users will be preserved');
       
       // Optional: Log users who would have been affected for admin review
       const affectedUsers = await db
@@ -566,8 +693,7 @@ export function registerOrganizationRoutes(app: Express): void {
         .where(and(eq(users.isActive, true), isNull(userOrganizations.userId)));
       
       if (affectedUsers.length > 0) {
-        console.log(`⚠️  ${affectedUsers.length} users are now without organization assignments but have been preserved:`, 
-          affectedUsers.map(u => u.email));
+        // console.log(`⚠️  ${affectedUsers.length} users are now without organization assignments but have been preserved:`, affectedUsers.map(u => u.email));
 
         // DISABLED: Users are no longer deleted - they are preserved for data safety
       }
@@ -581,12 +707,9 @@ export function registerOrganizationRoutes(app: Express): void {
 
       // Object storage cleanup will be handled automatically
       try {
-        console.log('Organization deleted - storage cleanup will be handled automatically');
+        // console.log('Organization deleted - storage cleanup will be handled automatically');
       } catch (storageError) {
-        console.error(
-          '⚠️ Object storage cleanup failed, but organization deletion succeeded:',
-          storageError
-        );
+        // console.error('⚠️ Object storage cleanup failed, but organization deletion succeeded:', storageError);
       }
 
       res.json({
@@ -594,7 +717,7 @@ export function registerOrganizationRoutes(app: Express): void {
         deletedOrganization: organization[0].name,
       });
     } catch (error: any) {
-      console.error('❌ Error deleting organization:', error);
+      // console.error('❌ Error deleting organization:', error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to delete organization and related entities',
@@ -619,9 +742,7 @@ export function registerOrganizationRoutes(app: Express): void {
       const { organizationId } = req.params;
       const { has_common_spaces } = req.query;
 
-      console.log(
-        `📊 Fetching buildings for organization ${organizationId} by user ${currentUser.id} with role ${currentUser.role}${has_common_spaces === 'true' ? ' (with common spaces filter)' : ''}`
-      );
+      // console.log(`📊 Fetching buildings for organization ${organizationId} by user ${currentUser.id} with role ${currentUser.role}${has_common_spaces === 'true' ? ' (with common spaces filter)' : ''}`);
 
       // First, verify the user has access to this organization
       const userOrgAccess = await db
@@ -700,7 +821,11 @@ export function registerOrganizationRoutes(app: Express): void {
             .orderBy(buildings.name);
         }
       } else {
-        // Non-admin users can only see buildings they have access to through their residences or direct organization access
+        // Non-admin users: Access control depends on user role
+        // Residents/tenants can only see buildings where they have residences
+        // Managers can see all buildings in organizations they're linked to
+        const isResidentOrTenant = ['resident', 'tenant', 'demo_resident', 'demo_tenant'].includes(currentUser.role);
+        
         if (has_common_spaces === 'true') {
           // Only buildings with common spaces
           buildingsQuery = db
@@ -735,10 +860,21 @@ export function registerOrganizationRoutes(app: Express): void {
               and(
                 eq(buildings.organizationId, organizationId),
                 eq(buildings.isActive, true),
-                or(
-                  eq(userResidences.userId, currentUser.id), // User has a residence in the building
-                  eq(userOrganizations.userId, currentUser.id) // User is linked to the organization
-                )
+                // Role-based access control
+                isResidentOrTenant 
+                  ? eq(userResidences.userId, currentUser.id) // Residents: only buildings with residences
+                  : or(
+                      eq(userResidences.userId, currentUser.id), // User has a residence in the building
+                      exists(
+                        db.select({ buildingId: userBuildings.buildingId })
+                          .from(userBuildings)
+                          .where(and(
+                            eq(userBuildings.buildingId, buildings.id),
+                            eq(userBuildings.userId, currentUser.id),
+                            eq(userBuildings.isActive, true)
+                          ))
+                      )
+                    )
               )
             )
             .orderBy(buildings.name);
@@ -775,10 +911,21 @@ export function registerOrganizationRoutes(app: Express): void {
               and(
                 eq(buildings.organizationId, organizationId),
                 eq(buildings.isActive, true),
-                or(
-                  eq(userResidences.userId, currentUser.id), // User has a residence in the building
-                  eq(userOrganizations.userId, currentUser.id) // User is linked to the organization
-                )
+                // Role-based access control
+                isResidentOrTenant 
+                  ? eq(userResidences.userId, currentUser.id) // Residents: only buildings with residences
+                  : or(
+                      eq(userResidences.userId, currentUser.id), // User has a residence in the building
+                      exists(
+                        db.select({ buildingId: userBuildings.buildingId })
+                          .from(userBuildings)
+                          .where(and(
+                            eq(userBuildings.buildingId, buildings.id),
+                            eq(userBuildings.userId, currentUser.id),
+                            eq(userBuildings.isActive, true)
+                          ))
+                      )
+                    )
               )
             )
             .orderBy(buildings.name);
@@ -787,11 +934,11 @@ export function registerOrganizationRoutes(app: Express): void {
 
       const buildingsList = await buildingsQuery;
 
-      console.log(`✅ Found ${buildingsList.length} buildings for user ${currentUser.id} in organization ${organizationId}`);
+      // console.log(`✅ Found ${buildingsList.length} buildings for user ${currentUser.id} in organization ${organizationId}`);
 
       res.json(buildingsList);
     } catch (error: any) {
-      console.error('❌ Error fetching organization buildings:', error);
+      // console.error('❌ Error fetching organization buildings:', error);
       res.status(500).json({
         _error: 'Internal server error',
         message: 'Failed to fetch buildings for organization',

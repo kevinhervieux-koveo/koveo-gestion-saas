@@ -1,4 +1,18 @@
-import React, { useState } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import {
+  useReactTable,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  flexRender,
+  type ColumnDef,
+  type SortingState,
+  type ColumnFiltersState,
+  type VisibilityState,
+  type RowSelectionState,
+  type Row,
+} from '@tanstack/react-table';
 import {
   Table,
   TableBody,
@@ -8,328 +22,501 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   DropdownMenu,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuTrigger,
-  DropdownMenuSeparator,
-  DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { MoreHorizontal } from 'lucide-react';
-import { useLanguage } from '@/hooks/use-language';
+import { Badge } from '@/components/ui/badge';
+import { 
+  ChevronDown, 
+  Search, 
+  Settings2, 
+  ChevronLeft, 
+  ChevronRight, 
+  ChevronsLeft, 
+  ChevronsRight,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  Filter,
+  X
+} from 'lucide-react';
 
-/*
- * Column configuration for the _data table
-
-/*
- * ColumnConfig type definition.
-
-/*
- * ColumnConfig type definition.
-
-export interface ColumnConfig<T> extends TableColumn<T> {}
-
-/*
- * TableColumn type definition.
-
-/*
- * TableColumn type definition.
-
-export interface TableColumn<T> {
-  _key: string;
-  label: string;
-  accessor: keyof T | ((item: T) => React.ReactNode);
-  sortable?: boolean;
-  width?: string;
-  className?: string;
-  render?: (_value: unknown, _item: T) => React.ReactNode;
-  hideOnMobile?: boolean;
-}
-
-/*
- * Action configuration for table rows
-
-/*
- * TableAction type definition.
-
-/*
- * TableAction type definition.
-
-export interface TableAction<T> {
+interface BulkAction<TData> {
   label: string;
   icon?: React.ComponentType<{ className?: string }>;
-  onClick: (_item: T) => void;
-  disabled?: (_item: T) => boolean;
+  onClick: (selectedRows: Row<TData>[]) => void;
   variant?: 'default' | 'destructive';
-  separator?: boolean;
+  disabled?: (selectedRows: Row<TData>[]) => boolean;
 }
 
-/*
- * Bulk action configuration
-
-/*
- * BulkAction type definition.
-
-/*
- * BulkAction type definition.
-
-export interface BulkAction<T> {
-  label: string;
-  icon?: React.ComponentType<{ className?: string }>;
-  onClick: (_items: T[]) => void;
-  variant?: 'default' | 'destructive';
-}
-
-/*
- * Props for the DataTable component
-
-interface DataTableProps<T> {
-  _data: T[];
-  columns: TableColumn<T>[];
-  actions?: TableAction<T>[];
-  bulkActions?: BulkAction<T>[];
-  keyAccessor: keyof T;
+interface DataTableProps<TData, TValue> {
+  columns: ColumnDef<TData, TValue>[];
+  data: TData[];
   title?: string;
-  selectable?: boolean;
+  description?: string;
   isLoading?: boolean;
-  emptyMessage?: string;
+  searchPlaceholder?: string;
+  searchableColumn?: string;
+  enableFiltering?: boolean;
+  enableSorting?: boolean;
+  enableColumnVisibility?: boolean;
+  enablePagination?: boolean;
+  enableRowSelection?: boolean;
+  pageSize?: number;
+  emptyState?: {
+    title: string;
+    description: string;
+    icon?: React.ComponentType<{ className?: string }>;
+  };
   className?: string;
-  onSelectionChange?: (_selection: Set<string>) => void;
-  selectedItems?: Set<string>;
+  renderRowActions?: (row: Row<TData>) => React.ReactNode;
+  onRowClick?: (row: Row<TData>) => void;
+  bulkActions?: BulkAction<TData>[];
+  onSelectionChange?: (selectedRows: Row<TData>[]) => void;
+  getRowId?: (row: TData, index: number) => string;
 }
 
-/*
- * Reusable Data Table Component
- * 
- * Provides standardized table functionality with selection, actions,
- * responsive design, and bulk operations to reduce table code duplication.
- * 
- * @param props - Table configuration and _data
- * @returns Standardized _data table component
+/**
+ * Generic DataTable component with TanStack Table integration
+ * Provides sorting, filtering, pagination, row selection, and responsive design
+ * with proper loading states and accessibility
  */
-// Re-export types for easier importing
-export type { ColumnConfig, TableColumn, TableAction, BulkAction };
-
-export function DataTable<T extends Record<string, unknown>>({
-  _data: __data,
+export function DataTable<TData, TValue>({
   columns,
-  actions = [],
-  bulkActions = [],
-  keyAccessor,
+  data,
   title,
-  selectable = false,
+  description,
   isLoading = false,
-  emptyMessage,
-  className = '',
+  searchPlaceholder = "Search...",
+  searchableColumn,
+  enableFiltering = true,
+  enableSorting = true,
+  enableColumnVisibility = true,
+  enablePagination = true,
+  enableRowSelection = false,
+  pageSize = 10,
+  emptyState,
+  className,
+  renderRowActions,
+  onRowClick,
+  bulkActions = [],
   onSelectionChange,
-  selectedItems = new Set(),
-}: DataTableProps<T>) {
-  const { t } = useLanguage();
-  const [internalSelection, setInternalSelection] = useState<Set<string>>(new Set());
+  getRowId,
+}: DataTableProps<TData, TValue>) {
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const [globalFilter, setGlobalFilter] = useState("");
 
-  const selection = selectedItems.size > 0 ? selectedItems : internalSelection;
-  const setSelection = onSelectionChange || setInternalSelection;
+  const table = useReactTable({
+    data,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: enableFiltering ? getFilteredRowModel() : undefined,
+    getPaginationRowModel: enablePagination ? getPaginationRowModel() : undefined,
+    getSortedRowModel: enableSorting ? getSortedRowModel() : undefined,
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    onColumnVisibilityChange: setColumnVisibility,
+    onRowSelectionChange: setRowSelection,
+    onGlobalFilterChange: setGlobalFilter,
+    globalFilterFn: 'includesString',
+    enableRowSelection,
+    getRowId,
+    state: {
+      sorting,
+      columnFilters,
+      columnVisibility,
+      rowSelection,
+      globalFilter,
+    },
+    initialState: {
+      pagination: {
+        pageSize,
+      },
+    },
+  });
 
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      const newSelection = new Set(__data.map((item) => String(item[keyAccessor])));
-      setSelection(newSelection);
+  const handleSearchChange = useCallback((value: string) => {
+    if (searchableColumn) {
+      table.getColumn(searchableColumn)?.setFilterValue(value);
     } else {
-      setSelection(new Set());
+      setGlobalFilter(value);
     }
+  }, [table, searchableColumn]);
+
+  const clearFilters = useCallback(() => {
+    setGlobalFilter("");
+    setColumnFilters([]);
+  }, []);
+
+  // Handle selection change callback
+  const selectedRows = table.getFilteredSelectedRowModel().rows;
+  
+  // Call selection change callback when selection changes
+  useEffect(() => {
+    if (onSelectionChange) {
+      onSelectionChange(selectedRows);
+    }
+  }, [selectedRows, onSelectionChange]);
+
+  const getSortIcon = (isSorted: false | "asc" | "desc") => {
+    if (isSorted === "asc") return <ArrowUp className="h-4 w-4" />;
+    if (isSorted === "desc") return <ArrowDown className="h-4 w-4" />;
+    return <ArrowUpDown className="h-4 w-4" />;
   };
 
-  const handleItemSelection = (itemKey: string, checked: boolean) => {
-    const newSelection = new Set(selection);
-    if (checked) {
-      newSelection.add(itemKey);
-    } else {
-      newSelection.delete(itemKey);
-    }
-    setSelection(newSelection);
+  const LoadingSkeleton = () => (
+    <TableBody>
+      {Array.from({ length: pageSize }).map((_, index) => (
+        <TableRow key={index} data-testid={`skeleton-row-${index}`}>
+          {enableRowSelection && (
+            <TableCell>
+              <Skeleton className="h-4 w-4" />
+            </TableCell>
+          )}
+          {columns.map((_, colIndex) => (
+            <TableCell key={colIndex}>
+              <Skeleton className="h-6 w-full" />
+            </TableCell>
+          ))}
+          {renderRowActions && (
+            <TableCell>
+              <Skeleton className="h-8 w-8 rounded" />
+            </TableCell>
+          )}
+        </TableRow>
+      ))}
+    </TableBody>
+  );
+
+  const EmptyState = () => {
+    const IconComponent = emptyState?.icon;
+    
+    return (
+      <TableBody>
+        <TableRow>
+          <TableCell 
+            colSpan={columns.length + (renderRowActions ? 1 : 0) + (enableRowSelection ? 1 : 0)} 
+            className="h-64 text-center"
+          >
+            <div className="flex flex-col items-center justify-center py-8" data-testid="empty-state">
+              {IconComponent && (
+                <IconComponent className="h-12 w-12 text-muted-foreground mb-4" />
+              )}
+              <h3 className="text-lg font-semibold text-muted-foreground mb-2">
+                {emptyState?.title || "No data available"}
+              </h3>
+              <p className="text-sm text-muted-foreground max-w-sm">
+                {emptyState?.description || "There are no items to display."}
+              </p>
+            </div>
+          </TableCell>
+        </TableRow>
+      </TableBody>
+    );
   };
 
-  const renderCellContent = (column: TableColumn<T>, item: T) => {
-    if (column.render) {
-      const value =
-        typeof column.accessor === 'function' ? column.accessor(item) : item[column.accessor];
-      return column.render(value, item);
-    }
-
-    if (typeof column.accessor === 'function') {
-      return column.accessor(item);
-    }
-
-    const value = item[column.accessor];
-
-    // Handle common _data types
-
-    if (typeof value === 'boolean') {
-      return (
-        <Badge variant={value ? 'default' : 'secondary'}>{value ? 'Active' : 'Inactive'}</Badge>
-      );
-    }
-
-    if (value && typeof value === 'object' && 'toLocaleDateString' in value) {
-      return (value as Date).toLocaleDateString();
-    }
-
-    if (typeof value === 'string' && value.includes('@')) {
-      return <span className='text-sm text-muted-foreground'>{value}</span>;
-    }
-
-    return String(value || '');
-  };
-
-  const selectedItemsData = _data.filter((item) => selection.has(String(item[keyAccessor])));
+  const hasActiveFilters = globalFilter !== "" || columnFilters.length > 0;
+  const hasSelectedRows = selectedRows.length > 0;
 
   return (
-    <Card className={className}>
-      <CardHeader className='pb-4'>
-        <div className='flex items-center justify-between'>
-          <CardTitle className='text-lg font-semibold'>{title || 'Data Table'}</CardTitle>
-          <div className='flex items-center gap-4'>
-            {selection.size > 0 && (
-              <span className='text-sm text-muted-foreground'>{selection.size} selected</span>
-            )}
-            {bulkActions.length > 0 && selection.size > 0 && (
-              <div className='flex gap-2'>
-                {bulkActions.map((action, _index) => (
-                  <Button
-                    key={index}
-                    size='sm'
-                    variant={action.variant === 'destructive' ? 'destructive' : 'outline'}
-                    onClick={() => action.onClick(selectedItemsData)}
-                  >
-                    {action.icon && <action.icon className='h-4 w-4 mr-2' />}
-                    {action.label}
-                  </Button>
-                ))}
-              </div>
-            )}
+    <div className={className} data-testid="data-table">
+      {(title || description) && (
+        <div className="space-y-1.5 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              {title && <h3 className="text-2xl font-semibold leading-none tracking-tight" data-testid="table-title">{title}</h3>}
+              {description && (
+                <p className="text-sm text-muted-foreground mt-1" data-testid="table-description">
+                  {description}
+                </p>
+              )}
+            </div>
           </div>
         </div>
-      </CardHeader>
+      )}
+      
+      <div className="space-y-4">
+        {/* Search, Filter, and Bulk Actions Controls */}
+        {(enableFiltering || (enableRowSelection && bulkActions.length > 0)) && (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            {enableFiltering && (
+              <div className="flex items-center space-x-2 w-full sm:w-auto">
+                <div className="relative flex-1 sm:w-80">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                  <Input
+                    placeholder={searchPlaceholder}
+                    value={searchableColumn 
+                      ? (table.getColumn(searchableColumn)?.getFilterValue() as string) ?? ""
+                      : globalFilter
+                    }
+                    onChange={(event) => handleSearchChange(event.target.value)}
+                    className="pl-10"
+                    data-testid="search-input"
+                  />
+                </div>
+                
+                {hasActiveFilters && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearFilters}
+                    className="px-2"
+                    data-testid="clear-filters-button"
+                  >
+                    <X className="h-4 w-4" />
+                    Clear
+                  </Button>
+                )}
+              </div>
+            )}
 
-      <CardContent className='p-0'>
-        <div className='overflow-x-auto'>
+            <div className="flex items-center space-x-2">
+              {/* Selection Info and Bulk Actions */}
+              {enableRowSelection && hasSelectedRows && (
+                <div className="flex items-center space-x-2">
+                  <Badge variant="secondary" data-testid="selection-count-badge">
+                    {selectedRows.length} selected
+                  </Badge>
+                  
+                  {bulkActions.map((action, index) => (
+                    <Button
+                      key={index}
+                      variant={action.variant === 'destructive' ? 'destructive' : 'outline'}
+                      size="sm"
+                      onClick={() => action.onClick(selectedRows)}
+                      disabled={action.disabled ? action.disabled(selectedRows) : false}
+                      data-testid={`bulk-action-${index}`}
+                    >
+                      {action.icon && <action.icon className="h-4 w-4 mr-2" />}
+                      {action.label}
+                    </Button>
+                  ))}
+                </div>
+              )}
+
+              {hasActiveFilters && (
+                <Badge variant="secondary" data-testid="active-filters-badge">
+                  <Filter className="h-3 w-3 mr-1" />
+                  {columnFilters.length + (globalFilter ? 1 : 0)} filter(s)
+                </Badge>
+              )}
+              
+              {enableColumnVisibility && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="ml-auto"
+                      data-testid="column-visibility-button"
+                    >
+                      <Settings2 className="h-4 w-4 mr-2" />
+                      Columns
+                      <ChevronDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" data-testid="column-visibility-menu">
+                    {table
+                      .getAllColumns()
+                      .filter((column) => column.getCanHide())
+                      .map((column) => {
+                        return (
+                          <DropdownMenuCheckboxItem
+                            key={column.id}
+                            className="capitalize"
+                            checked={column.getIsVisible()}
+                            onCheckedChange={(value) =>
+                              column.toggleVisibility(!!value)
+                            }
+                            data-testid={`column-toggle-${column.id}`}
+                          >
+                            {column.id}
+                          </DropdownMenuCheckboxItem>
+                        );
+                      })}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Table */}
+        <div className="rounded-md border">
           <Table>
             <TableHeader>
-              <TableRow>
-                {selectable && (
-                  <TableHead className='w-12'>
-                    <Checkbox
-                      checked={_data.length > 0 && selection.size === _data.length}
-                      onCheckedChange={handleSelectAll}
-                      aria-label='Select all items'
-                    />
-                  </TableHead>
-                )}
-                {columns.map((column) => (
-                  <TableHead
-                    key={column.key}
-                    className={`${column.width ? `w-${column.width}` : ''} ${
-                      column.hideOnMobile ? 'hidden sm:table-cell' : ''
-                    } ${column.className || ''}`}
-                  >
-                    {column.label}
-                  </TableHead>
-                ))}
-                {actions.length > 0 && <TableHead className='w-12'></TableHead>}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {isLoading ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={columns.length + (selectable ? 1 : 0) + (actions.length > 0 ? 1 : 0)}
-                    className='text-center py-8'
-                  >
-                    <div className='flex items-center justify-center'>
-                      <div className='animate-spin rounded-full h-6 w-6 border-b-2 border-primary mr-2' />
-                      Loading...
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ) : _data.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={columns.length + (selectable ? 1 : 0) + (actions.length > 0 ? 1 : 0)}
-                    className='text-center py-8'
-                  >
-                    <div className='text-muted-foreground'>
-                      {emptyMessage || 'No _data available'}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                _data.map((item) => {
-                  const itemKey = String(item[keyAccessor]);
-                  return (
-                    <TableRow key={itemKey} className='group'>
-                      {selectable && (
-                        <TableCell>
-                          <Checkbox
-                            checked={selection.has(itemKey)}
-                            onCheckedChange={(checked) =>
-                              handleItemSelection(itemKey, checked as boolean)
-                            }
-                            aria-label='Select item'
-                          />
-                        </TableCell>
-                      )}
-                      {columns.map((column) => (
-                        <TableCell
-                          key={column.key}
-                          className={`${column.hideOnMobile ? 'hidden sm:table-cell' : ''} ${column.className || ''}`}
-                        >
-                          {renderCellContent(column, item)}
-                        </TableCell>
-                      ))}
-                      {actions.length > 0 && (
-                        <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant='ghost' size='sm' className='h-8 w-8 p-0'>
-                                <MoreHorizontal className='h-4 w-4' />
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {enableRowSelection && (
+                    <TableHead className="w-12">
+                      <Checkbox
+                        checked={table.getIsAllPageRowsSelected()}
+                        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+                        aria-label="Select all"
+                        data-testid="select-all-checkbox"
+                      />
+                    </TableHead>
+                  )}
+                  {headerGroup.headers.map((header) => {
+                    const canSort = header.column.getCanSort();
+                    const isSorted = header.column.getIsSorted();
+                    
+                    return (
+                      <TableHead 
+                        key={header.id}
+                        className="font-medium"
+                        data-testid={`column-header-${header.id}`}
+                      >
+                        {header.isPlaceholder ? null : (
+                          <div className={canSort ? "flex items-center space-x-2" : ""}>
+                            {canSort ? (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="-ml-3 h-8 data-[state=open]:bg-accent"
+                                onClick={() => header.column.toggleSorting()}
+                                data-testid={`sort-button-${header.id}`}
+                              >
+                                <span>
+                                  {flexRender(
+                                    header.column.columnDef.header,
+                                    header.getContext()
+                                  )}
+                                </span>
+                                {getSortIcon(isSorted)}
                               </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align='end'>
-                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <DropdownMenuSeparator />
-                              {actions.map((action, _index) => (
-                                <React.Fragment key={_index}>
-                                  {action.separator && <DropdownMenuSeparator />}
-                                  <DropdownMenuItem
-                                    onClick={() => action.onClick(item)}
-                                    disabled={action.disabled ? action.disabled(item) : false}
-                                    className={
-                                      action.variant === 'destructive'
-                                        ? 'text-destructive focus:text-destructive'
-                                        : ''
-                                    }
-                                  >
-                                    {action.icon && <action.icon className='h-4 w-4 mr-2' />}
-                                    {action.label}
-                                  </DropdownMenuItem>
-                                </React.Fragment>
-                              ))}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      )}
-                    </TableRow>
-                  );
-                })
-              )}
-            </TableBody>
+                            ) : (
+                              flexRender(
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )
+                            )}
+                          </div>
+                        )}
+                      </TableHead>
+                    );
+                  })}
+                  {renderRowActions && (
+                    <TableHead className="text-right w-20">Actions</TableHead>
+                  )}
+                </TableRow>
+              ))}
+            </TableHeader>
+
+            {isLoading ? (
+              <LoadingSkeleton />
+            ) : table.getRowModel().rows?.length ? (
+              <TableBody>
+                {table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                    className={onRowClick ? "cursor-pointer hover:bg-muted/50" : ""}
+                    onClick={onRowClick ? () => onRowClick(row) : undefined}
+                    data-testid={`table-row-${row.id}`}
+                  >
+                    {enableRowSelection && (
+                      <TableCell>
+                        <Checkbox
+                          checked={row.getIsSelected()}
+                          onCheckedChange={(value) => row.toggleSelected(!!value)}
+                          aria-label="Select row"
+                          data-testid={`select-row-${row.id}`}
+                        />
+                      </TableCell>
+                    )}
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell 
+                        key={cell.id}
+                        data-testid={`table-cell-${cell.column.id}-${row.id}`}
+                      >
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    ))}
+                    {renderRowActions && (
+                      <TableCell className="text-right">
+                        {renderRowActions(row)}
+                      </TableCell>
+                    )}
+                  </TableRow>
+                ))}
+              </TableBody>
+            ) : (
+              <EmptyState />
+            )}
           </Table>
         </div>
-      </CardContent>
-    </Card>
+
+        {/* Pagination */}
+        {enablePagination && !isLoading && table.getRowModel().rows?.length > 0 && (
+          <div className="flex items-center justify-between space-x-2 py-4">
+            <div className="flex-1 text-sm text-muted-foreground" data-testid="pagination-info">
+              {enableRowSelection && hasSelectedRows && (
+                <span className="mr-4">
+                  {selectedRows.length} of {table.getFilteredRowModel().rows.length} row(s) selected
+                </span>
+              )}
+              Showing {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1} to{" "}
+              {Math.min(
+                (table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
+                table.getFilteredRowModel().rows.length
+              )}{" "}
+              of {table.getFilteredRowModel().rows.length} result(s)
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => table.setPageIndex(0)}
+                disabled={!table.getCanPreviousPage()}
+                data-testid="first-page-button"
+              >
+                <ChevronsLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+                data-testid="previous-page-button"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+                data-testid="next-page-button"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+                disabled={!table.getCanNextPage()}
+                data-testid="last-page-button"
+              >
+                <ChevronsRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
+
+export type { DataTableProps, BulkAction };

@@ -10,8 +10,40 @@ export interface UploadContext {
   organizationId?: string;
   buildingId?: string;
   residenceId?: string;
+  projectId?: string; // For project-specific organization
   userRole?: string;
   userId?: string;
+}
+
+/**
+ * Map legacy document types to allowed upload types
+ */
+export function mapLegacyDocumentType(documentType: string): 'bills' | 'buildings' | 'residences' | 'bugs' | 'features' | 'documents' | 'maintenance' {
+  // Map legacy types to allowed types
+  const typeMapping: Record<string, string> = {
+    'contracts': 'documents',
+    'financial': 'documents', 
+    'insurance': 'documents',
+    'legal': 'documents',
+    'meeting_minutes': 'documents',
+    'permits': 'documents',
+    'inspection': 'documents',
+    'lease': 'documents',
+    'correspondence': 'documents',
+    'utilities': 'documents',
+    'bylaw': 'documents',
+    'other': 'documents',
+    // Keep existing allowed types as-is
+    'bills': 'bills',
+    'buildings': 'buildings', 
+    'residences': 'residences',
+    'bugs': 'bugs',
+    'features': 'features',
+    'documents': 'documents',
+    'maintenance': 'maintenance'
+  };
+  
+  return (typeMapping[documentType] || 'documents') as any;
 }
 
 export interface UploadFormConfig {
@@ -110,13 +142,60 @@ export const UPLOAD_FORM_CONFIGS: Record<string, UploadFormConfig> = {
 };
 
 /**
+ * Normalize user role to handle demo roles and role prefixes
+ */
+export function normalizeUserRole(role: string): string {
+  if (!role) return 'user';
+  
+  // Handle demo_ prefixed roles
+  if (role.startsWith('demo_')) {
+    return role.substring(5); // Remove 'demo_' prefix
+  }
+  
+  // Handle other role normalization if needed
+  return role;
+}
+
+/**
  * Generate secure storage directory path based on context and user role
  */
 export function generateStorageDirectory(context: UploadContext): string {
-  const { type, organizationId, buildingId, residenceId, userRole, userId } = context;
+  const { type, organizationId, buildingId, residenceId, projectId, userRole: rawUserRole, userId } = context;
   
-  // Base directory structure: uploads/{type}/{org_or_default}/{building?}/{residence?}/{user_role}
-  const baseParts = ['uploads', type];
+  // Normalize the user role to handle demo roles and prefixes
+  const userRole = normalizeUserRole(rawUserRole || 'user');
+  
+  // For maintenance projects, organize files under documents with project structure
+  if (type === 'maintenance' && projectId) {
+    const baseParts: string[] = ['documents']; // Store maintenance project files under documents
+    
+    // Organization level
+    const orgId = organizationId || 'default';
+    baseParts.push(`org_${orgId}`);
+    
+    // Building level (if applicable)
+    if (buildingId) {
+      baseParts.push(`building_${buildingId}`);
+    }
+    
+    // Project-specific folder
+    baseParts.push(`project_${projectId}`);
+    
+    // Role-based access control
+    if (userRole) {
+      baseParts.push(`role_${userRole}`);
+    }
+    
+    // User-specific directory for private uploads (if needed)
+    if (userRole === 'tenant' || userRole === 'resident') {
+      baseParts.push(`user_${userId}`);
+    }
+    
+    return baseParts.join('/').replace(/\\/g, '/');
+  }
+  
+  // Base directory structure: {type}/{org_or_default}/{building?}/{residence?}/{user_role}
+  const baseParts: string[] = [type];
   
   // Organization level
   const orgId = organizationId || 'default';
@@ -142,7 +221,8 @@ export function generateStorageDirectory(context: UploadContext): string {
     baseParts.push(`user_${userId}`);
   }
   
-  return baseParts.join('/');
+  // Ensure POSIX-style path separators
+  return baseParts.join('/').replace(/\\/g, '/');
 }
 
 /**
@@ -163,7 +243,10 @@ export function isAiAnalysisEnabled(formType: string): boolean {
 /**
  * Validate upload context and ensure proper access control
  */
-export function validateUploadContext(context: UploadContext, userRole: string): boolean {
+export function validateUploadContext(context: UploadContext, rawUserRole: string): boolean {
+  // Normalize the role to handle demo roles
+  const userRole = normalizeUserRole(rawUserRole);
+  
   // Admin can upload to any context
   if (userRole === 'admin') {
     return true;

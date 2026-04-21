@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -51,6 +51,7 @@ import {
   Users,
   ArrowLeft,
 } from 'lucide-react';
+import { BuildingCard, BuildingData as SharedBuildingData } from '@/components/buildings/BuildingCard';
 import { Header } from '@/components/layout/header';
 import { withHierarchicalSelection } from '@/components/hoc/withHierarchicalSelection';
 import { Link, useLocation } from 'wouter';
@@ -70,106 +71,10 @@ type BuildingFormData = {
   organizationId: string;
 };
 
-/**
- *
- */
-interface BuildingData {
-  id: string;
-  name: string;
-  address: string;
-  city: string;
-  province: string;
-  postalCode: string;
-  buildingType: string;
-  totalUnits: number;
-  organizationId: string;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
+// Use the shared BuildingData type
+type BuildingData = SharedBuildingData;
 
-/**
- *
- */
-interface BuildingCardProps {
-  building: BuildingData;
-  userRole?: string;
-  onEdit: (building: BuildingData) => void;
-  onDelete: (building: BuildingData) => void;
-  t: (key: string) => string;
-}
-
-/**
- *
- * @param root0
- * @param root0.building
- * @param root0.userRole
- * @param root0.onEdit
- * @param root0.onDelete
- */
-function BuildingCard({ building, userRole, onEdit, onDelete, t }: BuildingCardProps) {
-  const isAdmin = userRole === 'admin';
-  const canEdit = ['admin', 'manager'].includes(userRole || '');
-
-  return (
-    <Card className='h-full'>
-      <CardHeader>
-        <div className='flex items-start justify-between'>
-          <div className='flex items-center space-x-2'>
-            <Building className='h-5 w-5 text-blue-600' />
-            <CardTitle className='text-lg line-clamp-2 break-words'>{building.name}</CardTitle>
-          </div>
-          {canEdit && (
-            <div className='flex gap-1'>
-              <Button size='sm' variant='ghost' onClick={() => onEdit(building)}>
-                <Edit className='h-3 w-3' />
-              </Button>
-              {isAdmin && (
-                <Button
-                  size='sm'
-                  variant='ghost'
-                  onClick={() => onDelete(building)}
-                  className='text-red-600 hover:text-red-700'
-                >
-                  <Trash2 className='h-3 w-3' />
-                </Button>
-              )}
-            </div>
-          )}
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className='space-y-2'>
-          <div className='flex items-center text-sm text-gray-600'>
-            <MapPin className='h-4 w-4 mr-2' />
-            <span className='line-clamp-2 break-words flex-1'>{building.address}</span>
-          </div>
-          <div className='flex items-center text-sm text-gray-600'>
-            <span>
-              {building.city}, {building.province} {building.postalCode}
-            </span>
-          </div>
-          <div className='flex items-center justify-between pt-2'>
-            <Badge variant='outline'>{building.totalUnits} {t('unitsCount')}</Badge>
-            <Badge variant='secondary'>{building.buildingType}</Badge>
-          </div>
-          <div className='pt-2 flex gap-2'>
-            <Link href={`/manager/buildings/${building.id}/documents`}>
-              <Button size='sm' variant='outline' className='flex-1'>
-                Documents
-              </Button>
-            </Link>
-            <Link href={`/manager/residences?buildingId=${building.id}`}>
-              <Button size='sm' variant='outline' className='flex-1'>
-                Residences
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
+// BuildingCard component is now imported from shared component
 
 /**
  *
@@ -211,7 +116,7 @@ function BuildingForm({
 }: BuildingFormProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className='max-w-2xl'>
+      <DialogContent className='max-w-2xl max-h-[90vh] overflow-y-auto'>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>
@@ -402,8 +307,18 @@ function BuildingsInner({ organizationId }: { organizationId?: string }) {
   const { t } = useLanguage();
   const [, navigate] = useLocation();
 
+  // Component initialization logging
+  useEffect(() => {
+    console.log('🔍 [BUILDINGS] Component mounted', { organizationId });
+  }, []);
+
+  // Log organization ID changes
+  useEffect(() => {
+    console.log('🔍 [BUILDINGS] Organization context changed:', { organizationId });
+  }, [organizationId]);
+
   const handleBackToOrganization = () => {
-    // Navigate back to organization selection
+    console.log('🔍 [BUILDINGS] Navigating back to organization selection');
     navigate('/manager/buildings');
   };
 
@@ -430,19 +345,27 @@ function BuildingsInner({ organizationId }: { organizationId?: string }) {
   const [editingBuilding, setEditingBuilding] = useState<BuildingData | null>(null);
   const [deletingBuilding, setDeletingBuilding] = useState<BuildingData | null>(null);
 
+  // Log search term changes
+  useEffect(() => {
+    console.log('🔍 [BUILDINGS] Search term updated:', searchTerm);
+  }, [searchTerm]);
+
   // Get current user
   const { data: user } = useQuery({
     queryKey: ['/api/auth/user'],
     queryFn: () => apiRequest('GET', '/api/auth/user') as Promise<any>,
   });
 
-  // Fetch organizations for form
+  // Fetch user's organizations to check count
+  const { data: userOrganizations = [] } = useQuery({
+    queryKey: ['/api/users/me/organizations'],
+    queryFn: () => apiRequest('GET', '/api/users/me/organizations') as Promise<any[]>,
+  });
+
+  // Fetch all organizations for form (admin only)
   const { data: organizations = [] } = useQuery({
     queryKey: ['/api/organizations'],
-    queryFn: async () => {
-      const response = await apiRequest('GET', '/api/organizations');
-      return await response.json();
-    },
+    queryFn: () => apiRequest('GET', '/api/organizations') as Promise<any[]>,
   });
 
   // Fetch buildings for the selected organization
@@ -453,9 +376,11 @@ function BuildingsInner({ organizationId }: { organizationId?: string }) {
   } = useQuery({
     queryKey: ['/api/manager/buildings', organizationId],
     queryFn: async () => {
+      console.log('🔍 [BUILDINGS] Fetching buildings with params:', { organizationId });
       const url = organizationId ? `/api/manager/buildings?organizationId=${organizationId}` : '/api/manager/buildings';
       const response = await apiRequest('GET', url);
       const data = await response.json();
+      console.log('🔍 [BUILDINGS] Received buildings data:', { count: data?.buildings?.length, organizationId });
       return data;
     },
   });
@@ -561,10 +486,12 @@ function BuildingsInner({ organizationId }: { organizationId?: string }) {
 
   // Event handlers
   const handleCreateBuilding = async (data: BuildingFormData) => {
+    console.log('🔍 [BUILDINGS] User action: Creating building', { buildingName: data.name, organizationId: data.organizationId });
     createBuildingMutation.mutate(data);
   };
 
   const handleEditBuilding = (building: BuildingData) => {
+    console.log('🔍 [BUILDINGS] User action: Editing building', { buildingId: building.id, buildingName: building.name });
     setEditingBuilding(building);
     editForm.reset({
       name: building.name,
@@ -581,16 +508,19 @@ function BuildingsInner({ organizationId }: { organizationId?: string }) {
 
   const handleUpdateBuilding = async (data: BuildingFormData) => {
     if (editingBuilding) {
+      console.log('🔍 [BUILDINGS] User action: Updating building', { buildingId: editingBuilding.id, buildingName: data.name });
       updateBuildingMutation.mutate({ id: editingBuilding.id, data });
     }
   };
 
   const handleDeleteBuilding = (building: BuildingData) => {
+    console.log('🔍 [BUILDINGS] User action: Initiating building deletion', { buildingId: building.id, buildingName: building.name });
     setDeletingBuilding(building);
   };
 
   const confirmDeleteBuilding = () => {
     if (deletingBuilding) {
+      console.log('🔍 [BUILDINGS] User action: Confirming building deletion', { buildingId: deletingBuilding.id });
       deleteBuildingMutation.mutate(deletingBuilding.id);
     }
   };
@@ -631,10 +561,10 @@ function BuildingsInner({ organizationId }: { organizationId?: string }) {
 
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
-      <Header title={t('buildingsManagement')} subtitle={t('manageBuildings')} />
+      <Header title={t('buildingsManagement')} subtitle={t('buildingsManagementSubtitle')} />
       
-      {/* Back to Organization Navigation */}
-      {organizationId && (
+      {/* Back to Organization Navigation - only show if user has multiple organizations */}
+      {organizationId && userOrganizations.length > 1 && (
         <div className="p-4 border-b border-gray-200">
           <Button
             variant="outline"
@@ -675,12 +605,14 @@ function BuildingsInner({ organizationId }: { organizationId?: string }) {
             <div className='grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6'>
               {filteredBuildings.map((building) => (
                 <BuildingCard
-                  key={building.id}
+                  key={`buildings-page-${building.id}`}
                   building={building}
                   userRole={user?.role}
                   onEdit={handleEditBuilding}
                   onDelete={handleDeleteBuilding}
                   t={t}
+                  showEditButtons={true}
+                  showResidencesButton={true}
                 />
               ))}
             </div>
@@ -752,7 +684,8 @@ function BuildingsInner({ organizationId }: { organizationId?: string }) {
 
 // Wrap with hierarchical selection HOC using 2-level hierarchy (organization → building)
 const Buildings = withHierarchicalSelection(BuildingsInner, {
-  hierarchy: ['organization']
+  hierarchy: ['organization'],
+  title: 'Buildings Management'
 });
 
 export default Buildings;

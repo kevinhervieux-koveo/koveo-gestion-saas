@@ -38,6 +38,9 @@ import {
 import { useLanguage } from '@/hooks/use-language';
 import { ResidenceEditForm } from '@/components/forms/residence-edit-form';
 import { withHierarchicalSelection } from '@/components/hoc/withHierarchicalSelection';
+import { PaginationControls } from '@/components/common/PaginationControls';
+import { SearchInput } from '@/components/common/SearchInput';
+import { ResidenceCard } from '@/components/residences/ResidenceCard';
 
 /**
  *
@@ -77,6 +80,7 @@ interface Residence {
 interface ManagerResidencesProps {
   organizationId?: string;
   buildingId?: string;
+  buildingName?: string;
   showBackButton?: boolean;
   backButtonLabel?: string;
   onBack?: () => void;
@@ -87,9 +91,23 @@ function ManagerResidences({ organizationId, buildingId, showBackButton, backBut
   const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFloor, setSelectedFloor] = useState<string>('all');
-  const [editingResidence, setEditingResidence] = useState<Residence | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+  // Component initialization logging
+  useEffect(() => {
+    console.log('🔍 [RESIDENCES] Component mounted', { organizationId, buildingId });
+  }, []);
+
+  // Log context changes
+  useEffect(() => {
+    console.log('🔍 [RESIDENCES] Context changed:', { organizationId, buildingId });
+  }, [organizationId, buildingId]);
+
+  // Log filter changes
+  useEffect(() => {
+    console.log('🔍 [RESIDENCES] Filters updated:', { searchTerm, selectedFloor, currentPage });
+  }, [searchTerm, selectedFloor, currentPage]);
 
 
   // Fetch residences with search and filters
@@ -100,6 +118,7 @@ function ManagerResidences({ organizationId, buildingId, showBackButton, backBut
   } = useQuery({
     queryKey: ['/api/residences', searchTerm, selectedFloor, buildingId],
     queryFn: async () => {
+      console.log('🔍 [RESIDENCES] Fetching residences with params:', { searchTerm, selectedFloor, buildingId });
       const params = new URLSearchParams(); /**
        * If function.
        * @param searchTerm - SearchTerm parameter.
@@ -149,7 +168,9 @@ function ManagerResidences({ organizationId, buildingId, showBackButton, backBut
       if (!response.ok) {
         throw new Error('Failed to fetch residences');
       }
-      return response.json() as Promise<Residence[]>;
+      const data = await response.json() as Residence[];
+      console.log('🔍 [RESIDENCES] Received residences data:', { count: data?.length });
+      return data;
     },
   });
 
@@ -176,11 +197,13 @@ function ManagerResidences({ organizationId, buildingId, showBackButton, backBut
   // Reset page when filters change
 
   const handleFloorChange = (value: string) => {
+    console.log('🔍 [RESIDENCES] User action: Floor filter changed', { floor: value });
     setSelectedFloor(value);
     setCurrentPage(1);
   };
 
   const handleSearchChange = (value: string) => {
+    console.log('🔍 [RESIDENCES] User action: Search term changed', { searchTerm: value });
     setSearchTerm(value);
     setCurrentPage(1);
   };
@@ -194,7 +217,7 @@ function ManagerResidences({ organizationId, buildingId, showBackButton, backBut
 
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
-      <Header title={t('residencesManagement')} subtitle={t('manageResidences')} />
+      <Header title={t('residencesManagement')} subtitle={t('residencesManagementSubtitle')} />
       
       {showBackButton && onBack && (
         <div className='border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
@@ -227,11 +250,12 @@ function ManagerResidences({ organizationId, buildingId, showBackButton, backBut
               <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                 <div className='space-y-2'>
                   <label className='text-sm font-medium'>{t('searchResidences')}</label>
-                  <Input
-                    placeholder={t('searchUnitTenant')}
+                  <SearchInput
                     value={searchTerm}
-                    onChange={(e) => handleSearchChange(e.target.value)}
+                    onChange={handleSearchChange}
+                    placeholder={t('searchUnitTenant')}
                     className='w-full'
+                    data-testid='search-residences'
                   />
                 </div>
 
@@ -282,190 +306,30 @@ function ManagerResidences({ organizationId, buildingId, showBackButton, backBut
               </Card>
             ) : (
               currentResidences.map((residence) => (
-                <Card key={residence.id} className='hover:shadow-lg transition-shadow'>
-                  <CardContent className='p-6'>
-                    <div className='flex justify-between items-start mb-4'>
-                      <div>
-                        <h3 className='font-semibold text-lg flex items-center gap-2'>
-                          <Home className='w-4 h-4' />
-                          {t('unitNumber')} {residence.unitNumber}
-                        </h3>
-                        <p className='text-sm text-gray-600 flex items-center gap-1'>
-                          <Building className='w-3 h-3' />
-                          {residence.building.name}
-                        </p>
-                        <p className='text-xs text-gray-500 flex items-center gap-1'>
-                          <MapPin className='w-3 h-3' />
-                          {t('floor')} {residence.floor || 'N/A'}
-                        </p>
-                      </div>
-                      <Badge variant={residence.isActive ? 'default' : 'secondary'}>
-                        {residence.isActive ? t('active') : t('inactive')}
-                      </Badge>
-                    </div>
-
-                    {/* Unit Details */}
-                    <div className='space-y-2 mb-4'>
-                      <div className='flex items-center gap-4 text-sm'>
-                        <span className='flex items-center gap-1'>
-                          <Bed className='w-3 h-3' />
-                          {residence.bedrooms || 0} {t('bed')}
-                        </span>
-                        <span className='flex items-center gap-1'>
-                          <Bath className='w-3 h-3' />
-                          {residence.bathrooms || 0} {t('bath')}
-                        </span>
-                      </div>
-
-                      {residence.squareFootage && (
-                        <p className='text-sm text-gray-600'>{residence.squareFootage} {t('sqFt')}</p>
-                      )}
-
-                      {residence.parkingSpaceNumbers?.length > 0 && (
-                        <p className='text-sm text-gray-600 flex items-center gap-1'>
-                          <Car className='w-3 h-3' />
-                          {t('parking')}: {residence.parkingSpaceNumbers.join(', ')}
-                        </p>
-                      )}
-
-                      {residence.storageSpaceNumbers?.length > 0 && (
-                        <p className='text-sm text-gray-600 flex items-center gap-1'>
-                          <Package className='w-3 h-3' />
-                          {t('storage')}: {residence.storageSpaceNumbers.join(', ')}
-                        </p>
-                      )}
-
-                      {residence.monthlyFees && (
-                        <p className='text-sm font-medium text-green-600'>
-                          ${residence.monthlyFees}/{t('monthShort')}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Tenants */}
-                    <div className='mb-4'>
-                      <h4 className='text-sm font-medium mb-2 flex items-center gap-1'>
-                        <Users className='w-3 h-3' />
-                        {t('residents')} ({residence.tenants.length})
-                      </h4>
-                      {residence.tenants.length === 0 ? (
-                        <p className='text-xs text-gray-500'>{t('noResidentsAssigned')}</p>
-                      ) : (
-                        <div className='space-y-1'>
-                          {residence.tenants.slice(0, 2).map((tenant) => (
-                            <p key={tenant.id} className='text-xs text-gray-600'>
-                              {tenant.firstName} {tenant.lastName}
-                            </p>
-                          ))}
-                          {residence.tenants.length > 2 && (
-                            <p className='text-xs text-gray-500'>
-                              +{residence.tenants.length - 2} {t('moreResidents')}
-                            </p>
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className='flex gap-2'>
-                      <Button
-                        variant='outline'
-                        size='sm'
-                        className='flex-1'
-                        onClick={() =>
-                          navigate(`/manager/residences/documents?residenceId=${residence.id}`)
-                        }
-                        title={t('manageResidenceDocuments')}
-                      >
-                        <FileText className='w-3 h-3 mr-1' />
-                        {t('residenceDocumentsButton')}
-                      </Button>
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button
-                            variant='outline'
-                            size='sm'
-                            className='flex-1'
-                            onClick={() => setEditingResidence(residence)}
-                          >
-                            <Edit className='w-3 h-3 mr-1' />
-                            Edit
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className='max-w-2xl max-h-[90vh] overflow-y-auto'>
-                          <DialogHeader>
-                            <DialogTitle>Edit Unit {residence.unitNumber}</DialogTitle>
-                          </DialogHeader>
-                          {editingResidence && (
-                            <ResidenceEditForm
-                              residence={editingResidence}
-                              onSuccess={() => {
-                                refetch();
-                                setEditingResidence(null);
-                              }}
-                            />
-                          )}
-                        </DialogContent>
-                      </Dialog>
-                    </div>
-                  </CardContent>
-                </Card>
+                <ResidenceCard
+                  key={residence.id}
+                  residence={residence}
+                  onRefresh={refetch}
+                  onDocumentsClick={(residenceId) =>
+                    navigate(`/manager/residences/documents?residenceId=${residenceId}`)
+                  }
+                  showEditDialog={true}
+                  data-testid={`residence-card-${residence.id}`}
+                />
               ))
             )}
           </div>
 
           {/* Pagination Controls */}
-          {totalPages > 1 && (
-            <div className='flex justify-center items-center gap-4 mt-6'>
-              <Button
-                variant='outline'
-                size='sm'
-                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-              >
-                Previous
-              </Button>
-
-              <div className='flex items-center gap-2'>
-                <span className='text-sm text-gray-600'>Page</span>
-                <Input
-                  type='number'
-                  min='1'
-                  max={totalPages}
-                  value={currentPage}
-                  onChange={(e) => {
-                    const page = parseInt(e.target.value);
-                    if (page >= 1 && page <= totalPages) {
-                      setCurrentPage(page);
-                    }
-                  }}
-                  onBlur={(e) => {
-                    const page = parseInt(e.target.value);
-                    if (isNaN(page) || page < 1) {
-                      setCurrentPage(1);
-                    } else if (page > totalPages) {
-                      setCurrentPage(totalPages);
-                    }
-                  }}
-                  className='w-16 text-center'
-                />
-                <span className='text-sm text-gray-600'>of {totalPages}</span>
-              </div>
-
-              <Button
-                variant='outline'
-                size='sm'
-                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                disabled={currentPage === totalPages}
-              >
-                Next
-              </Button>
-
-              <div className='text-sm text-gray-600'>
-                Showing {startIndex + 1}-{Math.min(endIndex, totalItems)} of {totalItems} residences
-              </div>
-            </div>
-          )}
+          <PaginationControls
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalItems}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+            className="mt-6"
+            showInfo={true}
+          />
         </div>
       </div>
     </div>
@@ -474,5 +338,6 @@ function ManagerResidences({ organizationId, buildingId, showBackButton, backBut
 
 // Export with hierarchical selection HOC - Manager residences page uses organization → building hierarchy
 export default withHierarchicalSelection(ManagerResidences, {
-  hierarchy: ['organization', 'building']
+  hierarchy: ['organization', 'building'],
+  checkResidenceAccess: true
 });

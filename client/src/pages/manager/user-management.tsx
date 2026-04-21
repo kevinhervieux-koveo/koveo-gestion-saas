@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Header } from '@/components/layout/header';
 import { FilterSort } from '@/components/filter-sort/FilterSort';
@@ -8,6 +8,7 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { SearchableSelect } from '@/components/ui/searchable-select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Dialog,
@@ -41,7 +42,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { Users, UserPlus, Shield, Mail, Edit, Home, Trash2 } from 'lucide-react';
+import { Users, UserPlus, Mail, Edit, Home, Trash2, Search } from 'lucide-react';
 import { SendInvitationDialog } from '@/components/admin/send-invitation-dialog';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -56,6 +57,16 @@ import { InvitationManagement } from '@/components/InvitationManagement';
 
 // Form validation schema for editing users - dynamic based on available roles
 const createEditUserSchema = (availableRoles: { value: string; label: string }[]) => {
+  if (!availableRoles || !Array.isArray(availableRoles) || availableRoles.length === 0) {
+    return z.object({
+      firstName: z.string().min(1, 'First name is required (example: Jean)').max(50, 'First name must be less than 50 characters').regex(/^[a-zA-ZÀ-ÿ\s'-]+$/, 'First name can only contain letters, spaces, apostrophes and hyphens'),
+      lastName: z.string().min(1, 'Last name is required (example: Dupont)').max(50, 'Last name must be less than 50 characters').regex(/^[a-zA-ZÀ-ÿ\s'-]+$/, 'Last name can only contain letters, spaces, apostrophes and hyphens'),
+      email: z.string().min(1, 'Email address is required').email('Please enter a valid email address (example: jean.dupont@email.com)'),
+      role: z.string().min(1, 'Please select a user role'),
+      isActive: z.boolean(),
+    });
+  }
+  
   const roleValues = availableRoles.map(role => role.value) as [string, ...string[]];
   
   return z.object({
@@ -89,9 +100,80 @@ export default function UserManagement() {
   const [editingUserResidences, setEditingUserResidences] = useState<UserWithAssignments | null>(null);
   const [showDeleteOrphansDialog, setShowDeleteOrphansDialog] = useState(false);
 
+  // Component initialization logging
+  useEffect(() => {
+    console.log('🔍 [USER_MANAGEMENT] Component mounted');
+  }, []);
+
   // Cascading filter states for user edit tabs
   const [selectedOrganizationIds, setSelectedOrganizationIds] = useState<string[]>([]);
   const [selectedBuildingIds, setSelectedBuildingIds] = useState<string[]>([]);
+  const [selectedResidenceAssignments, setSelectedResidenceAssignments] = useState<any[]>([]);
+  
+  // Track initialization to prevent re-initialization on unrelated renders
+  const lastInitializedUserIdRef = useRef<string | null>(null);
+
+  // Cascading unselection handlers - centralized with memoized lookups and functional setState
+  const handleOrganizationSelectionChange = (newOrganizationIds: string[]) => {
+    // Use functional setState to ensure consistent diff calculations
+    setSelectedOrganizationIds(prevOrganizationIds => {
+      // Find organizations that were unselected using the current state
+      const unselectedOrganizationIds = prevOrganizationIds.filter(
+        orgId => !newOrganizationIds.includes(orgId)
+      );
+      
+      if (unselectedOrganizationIds.length > 0) {
+        // Remove buildings that belong to unselected organizations using O(1) lookups
+        const unselectedOrgSet = new Set(unselectedOrganizationIds);
+        setSelectedBuildingIds(prevBuildingIds => 
+          prevBuildingIds.filter(buildingId => {
+            const building = buildingLookup.get(buildingId);
+            // Keep unknowns to handle race conditions - only remove if building exists and is unselected
+            return !building || !unselectedOrgSet.has(building.organizationId);
+          })
+        );
+        
+        // Remove residences that belong to buildings in unselected organizations using O(1) lookups
+        setSelectedResidenceAssignments(prevResidences => 
+          prevResidences.filter(assignment => {
+            const residence = residenceLookup.get(assignment.residenceId);
+            // Keep unknowns to handle race conditions - only remove if residence exists
+            if (!residence) return true;
+            
+            const building = buildingLookup.get(residence.buildingId);
+            // Keep unknowns to handle race conditions - only remove if building exists and is unselected
+            return !building || !unselectedOrgSet.has(building.organizationId);
+          })
+        );
+      }
+      
+      return newOrganizationIds;
+    });
+  };
+  
+  const handleBuildingSelectionChange = (newBuildingIds: string[]) => {
+    // Use functional setState to ensure consistent diff calculations
+    setSelectedBuildingIds(prevBuildingIds => {
+      // Find buildings that were unselected using the current state
+      const unselectedBuildingIds = prevBuildingIds.filter(
+        buildingId => !newBuildingIds.includes(buildingId)
+      );
+      
+      if (unselectedBuildingIds.length > 0) {
+        // Remove residences that belong to unselected buildings using O(1) lookups
+        const unselectedBuildingSet = new Set(unselectedBuildingIds);
+        setSelectedResidenceAssignments(prevResidences => 
+          prevResidences.filter(assignment => {
+            const residence = residenceLookup.get(assignment.residenceId);
+            // Keep unknowns to handle race conditions - only remove if residence exists and building is unselected
+            return !residence || !unselectedBuildingSet.has(residence.buildingId);
+          })
+        );
+      }
+      
+      return newBuildingIds;
+    });
+  };
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -105,11 +187,11 @@ export default function UserManagement() {
   const [organizationFilter, setOrganizationFilter] = useState('');
   const [orphanFilter, setOrphanFilter] = useState('');
 
-  // Debounce search input - wait 3 seconds after user stops typing
+  // Debounce search input - wait 1.5 seconds after user stops typing
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       setSearch(searchInput);
-    }, 3000);
+    }, 1500);
 
     return () => clearTimeout(timeoutId);
   }, [searchInput]);
@@ -161,51 +243,200 @@ export default function UserManagement() {
   });
 
   // Extract users and pagination info from response
-  const users = usersResponse?.users || [];
+  // Ensure users is always an array, even if API returns unexpected data
+  const users = Array.isArray(usersResponse?.users) ? usersResponse.users : [];
   const paginationInfo = usersResponse?.pagination;
 
   // Fetch dynamic filter options
   const { data: filterOptions } = useQuery<{
-    roles: Array<{ value: string; label: string }>;
-    statuses: Array<{ value: string; label: string }>;
-    organizations: Array<{ value: string; label: string }>;
-    orphanOptions: Array<{ value: string; label: string }>;
+    roles: Array<{ value: string; label: string; translationKey?: boolean }>;
+    statuses: Array<{ value: string; label: string; translationKey?: boolean }>;
+    organizations: Array<{ value: string; label: string; translationKey?: boolean }>;
+    orphanOptions: Array<{ value: string; label: string; translationKey?: boolean }>;
   }>({
     queryKey: ['/api/users/filter-options'],
   });
 
-  // Fetch organizations
-  const { data: organizations = [] } = useQuery<Organization[]>({
+  // Fetch organizations - ensure always an array
+  const { data: organizationsData } = useQuery<Organization[]>({
     queryKey: ['/api/organizations'],
+    queryFn: () => apiRequest('GET', '/api/organizations') as unknown as Promise<Organization[]>,
     enabled: true,
   });
+  const organizations = Array.isArray(organizationsData) ? organizationsData : [];
 
-  // Fetch buildings
-  const { data: buildings = [] } = useQuery<Building[]>({
+  // Fetch buildings - ensure always an array
+  const { data: buildingsData } = useQuery<Building[]>({
     queryKey: ['/api/buildings'],
+    queryFn: async () => {
+      const response = await fetch('/api/buildings', {
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to fetch buildings: ${response.statusText}`);
+      }
+      const data = await response.json();
+      return Array.isArray(data) ? data : [];
+    },
     enabled: true,
   });
+  const buildings = Array.isArray(buildingsData) ? buildingsData : [];
 
-  // Fetch residences
-  const { data: residences = [] } = useQuery<Residence[]>({
+  // Fetch residences - ensure always an array
+  const { data: residencesData } = useQuery<Residence[]>({
     queryKey: ['/api/residences'],
+    queryFn: async () => {
+      const response = await fetch('/api/residences', {
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to fetch residences: ${response.statusText}`);
+      }
+      const data = await response.json();
+      return Array.isArray(data) ? data : [];
+    },
     enabled: true,
   });
+  const residences = Array.isArray(residencesData) ? residencesData : [];
 
   // Get current user to check permissions
-  const { data: currentUser } = useQuery<User>({
+  const { data: currentUser, isLoading: currentUserLoading, error: currentUserError } = useQuery<User>({
     queryKey: ['/api/auth/user'],
   });
 
+  // Debug logging for currentUser query
+  useEffect(() => {
+    console.log('🔍 [USER_MANAGEMENT] Current user query status:', {
+      currentUser: currentUser ? { id: currentUser.id, email: currentUser.email, role: currentUser.role } : null,
+      isLoading: currentUserLoading,
+      error: currentUserError,
+    });
+  }, [currentUser, currentUserLoading, currentUserError]);
+
+  // Fetch current user's organizations independently
+  const { data: currentUserOrganizations, isLoading: orgsLoading, error: orgsError } = useQuery<Organization[]>({
+    queryKey: ['/api/users/me/organizations'],
+    queryFn: async () => {
+      const response = await fetch('/api/users/me/organizations', {
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to fetch organizations: ${response.statusText}`);
+      }
+      const data = await response.json();
+      console.log('🔍 [QUERY] /api/users/me/organizations returned:', data);
+      return Array.isArray(data) ? data : [];
+    },
+    enabled: !!currentUser,
+    staleTime: 0, // Force fresh data
+  });
+
+  // Fetch current user's buildings independently
+  const { data: currentUserBuildings, isLoading: buildingsLoading, error: buildingsError } = useQuery<Building[]>({
+    queryKey: ['/api/users/me/buildings'],
+    queryFn: async () => {
+      const response = await fetch('/api/users/me/buildings', {
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to fetch buildings: ${response.statusText}`);
+      }
+      const data = await response.json();
+      console.log('🔍 [QUERY] /api/users/me/buildings returned:', data);
+      return Array.isArray(data) ? data : [];
+    },
+    enabled: !!currentUser,
+    staleTime: 0, // Force fresh data
+  });
+
+  // Fetch current user's residences independently
+  const { data: currentUserResidences, isLoading: residencesLoading, error: residencesError } = useQuery<Residence[]>({
+    queryKey: ['/api/users/me/residences'],
+    queryFn: async () => {
+      const response = await fetch('/api/users/me/residences', {
+        credentials: 'include',
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to fetch residences: ${response.statusText}`);
+      }
+      const data = await response.json();
+      console.log('🔍 [QUERY] /api/users/me/residences returned:', data);
+      return Array.isArray(data) ? data : [];
+    },
+    enabled: !!currentUser,
+    staleTime: 0, // Force fresh data
+  });
+
+  // Debug logging for all assignment queries
+  useEffect(() => {
+    console.log('🔍 [USER_MANAGEMENT] Assignment queries data received:', {
+      organizations: currentUserOrganizations ? `${currentUserOrganizations.length} orgs` : 'null',
+      buildings: currentUserBuildings ? `${currentUserBuildings.length} buildings` : 'null',
+      residences: currentUserResidences ? `${currentUserResidences.length} residences` : 'null',
+      orgsLoading,
+      buildingsLoading,
+      residencesLoading,
+      orgsError: orgsError?.message,
+      buildingsError: buildingsError?.message,
+      residencesError: residencesError?.message,
+    });
+  }, [currentUserOrganizations, currentUserBuildings, currentUserResidences, orgsLoading, buildingsLoading, residencesLoading, orgsError, buildingsError, residencesError]);
+
+  // Debug logging for current user assignment queries
+  useEffect(() => {
+    console.log('🔍 [USER_MANAGEMENT] Current user assignment queries status:', {
+      currentUser: currentUser?.email,
+      orgsLoading,
+      buildingsLoading,
+      residencesLoading,
+      orgsError: orgsError?.message,
+      buildingsError: buildingsError?.message,
+      residencesError: residencesError?.message,
+      currentUserOrganizations: currentUserOrganizations?.length,
+      currentUserBuildings: currentUserBuildings?.length,
+      currentUserResidences: currentUserResidences?.length
+    });
+  }, [currentUser, orgsLoading, buildingsLoading, residencesLoading, orgsError, buildingsError, residencesError, currentUserOrganizations, currentUserBuildings, currentUserResidences]);
+
+  // Memoized lookup maps for O(1) performance
+  const buildingLookup = useMemo(() => {
+    if (!buildings || !Array.isArray(buildings)) return new Map();
+    return new Map(buildings.map(building => [building.id, building]));
+  }, [buildings]);
+
+  const residenceLookup = useMemo(() => {
+    if (!residences || !Array.isArray(residences)) return new Map();
+    return new Map(residences.map(residence => [residence.id, residence]));
+  }, [residences]);
+
+  const organizationLookup = useMemo(() => {
+    if (!organizations || !Array.isArray(organizations)) return new Map();
+    return new Map(organizations.map(org => [org.id, org]));
+  }, [organizations]);
+
   // Organization context detection for role filtering
   const userOrganizationContext = useMemo(() => {
-    if (!currentUser || !organizations || !users) return null;
+    if (!currentUser || !organizations || !Array.isArray(organizations) || !users || !Array.isArray(users)) return null;
 
-    // Get current user's organization assignments
+    // Get current user's organization assignments - if not in current page, we'll skip for admin
     const currentUserWithAssignments = users.find(u => u.id === currentUser.id);
-    if (!currentUserWithAssignments?.organizations) return null;
+    if (!currentUserWithAssignments?.organizations) {
+      // For admin users, we don't need organization context to assign roles
+      if (currentUser.role === 'admin') {
+        return {
+          isDemoUser: false,
+          hasDemoOrganizations: false,
+          hasRegularOrganizations: true,
+          userOrganizations: [],
+          organizationTypes: []
+        };
+      }
+      return null;
+    }
 
     const userOrganizations = currentUserWithAssignments.organizations;
+    if (!Array.isArray(userOrganizations)) return null;
+    
     const isDemoUser = ['demo_manager', 'demo_tenant', 'demo_resident'].includes(currentUser.role);
     const hasDemoOrganizations = userOrganizations.some(org => 
       organizations.find(o => o.id === org.id)?.type === 'demo'
@@ -227,12 +458,13 @@ export default function UserManagement() {
 
   // Role filtering function
   const getAvailableRoles = useMemo(() => {
-    if (!currentUser || !userOrganizationContext) return [];
+    if (!currentUser) {
+      return [];
+    }
 
     const { role } = currentUser;
-    const { isDemoUser, hasDemoOrganizations, hasRegularOrganizations } = userOrganizationContext;
 
-    // Admin can assign any role
+    // Admin can assign any role regardless of organization context
     if (role === 'admin') {
       return [
         { value: 'admin', label: 'Admin' },
@@ -244,6 +476,13 @@ export default function UserManagement() {
         { value: 'demo_resident', label: 'Demo Resident' },
       ];
     }
+
+    // For non-admin users, we need organization context
+    if (!userOrganizationContext) {
+      return [];
+    }
+
+    const { isDemoUser, hasDemoOrganizations, hasRegularOrganizations } = userOrganizationContext;
 
     // Manager role assignment restrictions
     if (role === 'manager') {
@@ -268,7 +507,11 @@ export default function UserManagement() {
   }, [currentUser, userOrganizationContext]);
 
   // Dynamic edit user schema based on available roles
-  const editUserSchema = useMemo(() => createEditUserSchema(getAvailableRoles), [getAvailableRoles]);
+  const editUserSchema = useMemo(() => {
+    // Ensure we always pass an array to createEditUserSchema
+    const rolesArray = Array.isArray(getAvailableRoles) ? getAvailableRoles : [];
+    return createEditUserSchema(rolesArray);
+  }, [getAvailableRoles]);
 
   // Bulk action handler
   const bulkActionMutation = useMutation({
@@ -294,7 +537,7 @@ export default function UserManagement() {
     onError: (_error: Error) => {
       toast({
         title: t('error'),
-        description: _error.message,
+        description: getErrorMessage(_error, 'bulk user actions'),
         variant: 'destructive',
       });
     },
@@ -304,26 +547,38 @@ export default function UserManagement() {
     await bulkActionMutation.mutateAsync({ action, data });
   };
 
+  // Flag to track if we're in unified save mode to prevent race conditions
+  const [isUnifiedSaving, setIsUnifiedSaving] = useState(false);
+
   // Edit user mutation
   const editUserMutation = useMutation({
     mutationFn: async (userData: z.infer<typeof editUserSchema> & { id: string }) => {
       const response = await apiRequest('PUT', `/api/users/${userData.id}`, userData);
       return response.json();
     },
-    onSuccess: () => {
-      toast({
-        title: t('success'),
-        description: t('userUpdatedSuccess'),
-      });
-      setEditingUser(null);
-      // Invalidate all user queries regardless of filters
-      queryClient.invalidateQueries({ queryKey: ['/api/users'], exact: false });
-      queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], exact: false });
+    onSuccess: async () => {
+      
+      // Only invalidate cache if NOT part of unified save to prevent race conditions
+      if (!isUnifiedSaving) {
+        await queryClient.removeQueries({ queryKey: ['/api/users'], exact: false });
+        await queryClient.invalidateQueries({ queryKey: ['/api/users'], exact: false });
+        await queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], exact: false });
+        
+        toast({
+          title: t('success'),
+          description: t('userUpdatedSuccess'),
+        });
+        
+        // Close dialog after successful update
+        setEditingUser(null);
+      } else {
+      }
     },
     onError: (error: Error) => {
+      console.error('❌ [editUserMutation] User update failed:', error);
       toast({
         title: t('error'),
-        description: error.message,
+        description: getErrorMessage(error, 'user profile updates'),
         variant: 'destructive',
       });
     },
@@ -350,48 +605,84 @@ export default function UserManagement() {
     },
   });
 
+  // Helper function to decode HTML entities
+  const decodeHtmlEntities = (str: string): string => {
+    if (!str) return str;
+    
+    // Named entities map
+    const namedEntities: Record<string, string> = {
+      '&amp;': '&',
+      '&lt;': '<',
+      '&gt;': '>',
+      '&quot;': '"',
+      '&apos;': "'"
+    };
+    
+    return str
+      // First decode named entities
+      .replace(/&(?:amp|lt|gt|quot|apos);/g, (match) => namedEntities[match] || match)
+      // Then decode decimal numeric entities (&#39;)
+      .replace(/&#(\d+);/g, (match, num) => {
+        const code = parseInt(num, 10);
+        return code > 0 && code < 1114112 ? String.fromCharCode(code) : match;
+      })
+      // Finally decode hexadecimal numeric entities (&#x27;)
+      .replace(/&#x([0-9a-fA-F]+);/g, (match, hex) => {
+        const code = parseInt(hex, 16);
+        return code > 0 && code < 1114112 ? String.fromCharCode(code) : match;
+      });
+  };
+
   // Reset form when editing user changes
-  React.useEffect(() => {
+  useEffect(() => {
     if (editingUser) {
       editForm.reset({
-        firstName: editingUser.firstName || '',
-        lastName: editingUser.lastName || '',
+        firstName: decodeHtmlEntities(editingUser.firstName || ''),
+        lastName: decodeHtmlEntities(editingUser.lastName || ''),
         email: editingUser.email,
         role: editingUser.role,
         isActive: editingUser.isActive,
       });
     }
-  }, [editingUser, editForm]);
+  }, [editingUser]);
 
   // Reset delete form when deleting user changes
-  React.useEffect(() => {
+  useEffect(() => {
     if (deletingUser) {
       deleteForm.reset({
         confirmEmail: '',
         reason: '',
       });
     }
-  }, [deletingUser, deleteForm]);
+  }, [deletingUser]);
 
   // Reset to page 1 when filters change (excluding search since it's disabled)
-  React.useEffect(() => {
+  useEffect(() => {
     if (currentPage !== 1) {
       setCurrentPage(1);
     }
   }, [roleFilter, statusFilter, organizationFilter, orphanFilter]);
 
-  // Reset cascading filter states only when dialog closes
-  React.useEffect(() => {
-    if (!editingUser) {
-      // Reset states when dialog closes
-      setSelectedOrganizationIds([]);
-      setSelectedBuildingIds([]);
-    }
-  }, [editingUser]);
-
   // Get current user's access information for role-based filtering
   const currentUserAccess = useMemo(() => {
-    if (!currentUser || !organizations || !buildings || !residences) {
+    console.log('🔍 [USER_MANAGEMENT] Computing currentUserAccess memo:', {
+      currentUser: currentUser?.email,
+      currentUserOrganizationsType: typeof currentUserOrganizations,
+      currentUserOrganizationsIsArray: Array.isArray(currentUserOrganizations),
+      currentUserOrganizationsLength: Array.isArray(currentUserOrganizations) ? currentUserOrganizations.length : 'N/A',
+      currentUserBuildingsType: typeof currentUserBuildings,
+      currentUserBuildingsIsArray: Array.isArray(currentUserBuildings),
+      currentUserBuildingsLength: Array.isArray(currentUserBuildings) ? currentUserBuildings.length : 'N/A',
+      currentUserResidencesType: typeof currentUserResidences,
+      currentUserResidencesIsArray: Array.isArray(currentUserResidences),
+      currentUserResidencesLength: Array.isArray(currentUserResidences) ? currentUserResidences.length : 'N/A',
+      orgsLoading,
+      buildingsLoading,
+      residencesLoading
+    });
+
+    if (!currentUser) {
+      console.log('❌ [USER_MANAGEMENT] No current user, returning empty access');
       return {
         organizationIds: [],
         buildingIds: [],
@@ -399,33 +690,239 @@ export default function UserManagement() {
       };
     }
 
-    // Find current user in users list to get their assignments
-    const currentUserWithAssignments = users.find(u => u.id === currentUser.id);
-    
-    if (!currentUserWithAssignments) {
-      return {
-        organizationIds: [],
-        buildingIds: [],
-        residenceIds: []
-      };
-    }
+    // Extract organization IDs from current user's organizations
+    // Ensure we have an array and it has data
+    const organizationIds = Array.isArray(currentUserOrganizations) && currentUserOrganizations.length > 0
+      ? currentUserOrganizations.map((org: any) => org.id).filter((id): id is string => !!id)
+      : [];
 
-    const organizationIds = currentUserWithAssignments.organizations?.map((org: any) => org.id) || [];
-    const buildingIds = currentUserWithAssignments.buildings?.map((building: any) => building.id) || [];
-    const residenceIds = currentUserWithAssignments.residences?.map((residence: any) => residence.id) || [];
+    // Extract building IDs from current user's buildings
+    const buildingIds = Array.isArray(currentUserBuildings) && currentUserBuildings.length > 0
+      ? currentUserBuildings.map((building: any) => building.id).filter((id): id is string => !!id)
+      : [];
+
+    // Extract residence IDs from current user's residences
+    const residenceIds = Array.isArray(currentUserResidences) && currentUserResidences.length > 0
+      ? currentUserResidences.map((residence: any) => residence.id).filter((id): id is string => !!id)
+      : [];
+
+    console.log('✅ [USER_MANAGEMENT] Extracted access IDs:', {
+      organizationIds,
+      buildingIds,
+      residenceIds,
+      organizationIdsCount: organizationIds.length,
+      buildingIdsCount: buildingIds.length,
+      residenceIdsCount: residenceIds.length
+    });
 
     return {
       organizationIds,
       buildingIds,
       residenceIds
     };
-  }, [currentUser, users, organizations, buildings, residences]);
+  }, [currentUser, currentUserOrganizations, currentUserBuildings, currentUserResidences, orgsLoading, buildingsLoading, residencesLoading]);
+
+  // Initialize states ONCE per user when dialog opens - guard against re-initialization
+  useEffect(() => {
+    if (editingUser && editingUser.id !== lastInitializedUserIdRef.current) {
+      // Only initialize once per user - prevent re-initialization on unrelated renders
+      const userWithAssignments = findUserWithAssignments(editingUser.id);
+      
+      if (userWithAssignments) {
+        let currentOrgIds = Array.isArray(userWithAssignments.organizations) 
+          ? userWithAssignments.organizations.map((org: any) => org.id) 
+          : [];
+        
+        // For managers: if user has no organizations assigned yet, pre-select the manager's organizations
+        // This allows managers to assign buildings and residences within their scope
+        const isManager = currentUser?.role === 'manager' || currentUser?.role === 'demo_manager';
+        if (isManager && currentOrgIds.length === 0 && currentUserAccess.organizationIds.length > 0) {
+          currentOrgIds = currentUserAccess.organizationIds;
+        }
+        
+        const currentBuildingIds = Array.isArray(userWithAssignments.buildings) 
+          ? userWithAssignments.buildings.map((building: any) => building.id) 
+          : [];
+        const currentResidenceAssignments = Array.isArray(userWithAssignments.residences) 
+          ? userWithAssignments.residences.map((residence: any) => ({
+            residenceId: residence.id,
+            relationshipType: residence.relationshipType || 'tenant',
+            startDate: new Date().toISOString().split('T')[0],
+            endDate: null,
+            isActive: true
+          }))
+          : [];
+        
+        setSelectedOrganizationIds(currentOrgIds);
+        setSelectedBuildingIds(currentBuildingIds);
+        setSelectedResidenceAssignments(currentResidenceAssignments);
+        lastInitializedUserIdRef.current = editingUser.id;
+      }
+    } else if (!editingUser) {
+      // Reset states when dialog closes
+      setSelectedOrganizationIds([]);
+      setSelectedBuildingIds([]);
+      setSelectedResidenceAssignments([]);
+      lastInitializedUserIdRef.current = null;
+    }
+  }, [editingUser?.id, currentUser, currentUserAccess.organizationIds]);
+
+  // Helper function to provide user-friendly error messages
+  const getErrorMessage = (error: Error, context: string = '') => {
+    const message = error.message.toLowerCase();
+    
+    // Demo user specific restrictions
+    if (message.includes('demo') && message.includes('restrict')) {
+      return `Demo users have limited permissions. ${context ? `For ${context}, ` : ''}please contact an administrator for full access.`;
+    }
+    
+    if (message.includes('permission') || message.includes('unauthorized')) {
+      return `You don't have permission to perform this action. ${context ? `For ${context}, ` : ''}please contact your manager or administrator.`;
+    }
+    
+    if (message.includes('not found')) {
+      return `The requested ${context || 'resource'} could not be found. It may have been deleted or you may not have access to it.`;
+    }
+    
+    if (message.includes('already exists') || message.includes('duplicate')) {
+      return `This ${context || 'item'} already exists. Please check your selection and try again.`;
+    }
+    
+    // For validation errors, make them more user-friendly
+    if (message.includes('validation') || message.includes('invalid')) {
+      return `Please check your input and make sure all required fields are filled correctly.`;
+    }
+    
+    // Default to original message if no specific patterns match
+    return error.message;
+  };
 
   const handleEditUser = async (values: z.infer<typeof editUserSchema>) => {
     if (!editingUser) {
       return;
     }
-    await editUserMutation.mutateAsync({ ...values, id: editingUser.id });
+    
+    try {
+      await editUserMutation.mutateAsync({ ...values, id: editingUser.id });
+      
+      
+      // CRITICAL: Same cache invalidation as unified save
+      await queryClient.removeQueries({ queryKey: ['/api/users'] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+      await queryClient.refetchQueries({ queryKey: ['/api/users'] });
+      
+      
+      toast({
+        title: "Success",
+        description: "User information updated successfully"
+      });
+    } catch (error) {
+      console.error('❌ [handleEditUser] Error saving user:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update user information",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Unified save function that saves all user data at once
+  const handleUnifiedSave = async () => {
+    if (!editingUser) {
+      return;
+    }
+
+
+    // Apply cascade filtering before saving
+    // Filter buildings: only include buildings that belong to selected organizations
+    const filteredBuildingIds = selectedBuildingIds.filter(buildingId => {
+      const building = buildingLookup.get(buildingId);
+      return building && selectedOrganizationIds.includes(building.organizationId);
+    });
+
+    // Filter residences: only include residences that belong to filtered buildings
+    const filteredResidenceAssignments = selectedResidenceAssignments.filter(assignment => {
+      const residence = residenceLookup.get(assignment.residenceId);
+      return residence && filteredBuildingIds.includes(residence.buildingId);
+    });
+
+
+    try {
+      // Set unified saving flag to prevent individual cache invalidations
+      setIsUnifiedSaving(true);
+      
+      // Get form values for basic info
+      const formValues = editForm.getValues();
+      
+      // Save all data sequentially to ensure consistency
+      await editUserMutation.mutateAsync({ ...formValues, id: editingUser.id });
+      
+      // Always save organization assignments (even if empty to clear them)
+      if (canEditOrganizations) {
+        await editOrganizationsMutation.mutateAsync({
+          userId: editingUser.id,
+          organizationIds: selectedOrganizationIds
+        });
+      }
+      
+      // Always save building assignments (even if empty to clear them)
+      // Use filtered building IDs to respect cascade logic
+      await editBuildingsMutation.mutateAsync({
+        userId: editingUser.id,
+        buildingIds: filteredBuildingIds
+      });
+      
+      // Always save residence assignments (even if empty to clear them)
+      // Use filtered residence assignments to respect cascade logic
+      if (canEditResidences) {
+        await editResidencesMutation.mutateAsync({
+          userId: editingUser.id,
+          residenceAssignments: filteredResidenceAssignments
+        });
+      }
+
+
+      // Show success message
+      toast({
+        title: t('success'),
+        description: 'All user information and assignments saved successfully',
+      });
+
+      // Allow database to achieve consistency after multiple mutations
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      
+      // Comprehensive cache invalidation to ensure UI updates
+      // Remove all cached queries first for immediate effect
+      queryClient.removeQueries({ queryKey: ['/api/users'], exact: false });
+      queryClient.removeQueries({ queryKey: ['/api/users/filter-options'], exact: false });
+      queryClient.removeQueries({ queryKey: ['/api/organizations'], exact: false });
+      queryClient.removeQueries({ queryKey: ['/api/buildings'], exact: false });
+      queryClient.removeQueries({ queryKey: ['/api/residences'], exact: false });
+      queryClient.removeQueries({ queryKey: ['/api/admin/all-user-organizations'], exact: false });
+      queryClient.removeQueries({ queryKey: ['/api/admin/all-user-residences'], exact: false });
+      
+      
+      // Force immediate refetch to update the table
+      await queryClient.invalidateQueries({ queryKey: ['/api/users'], exact: false });
+      await queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], exact: false });
+      
+      
+      // Close dialog after successful save and cache invalidation
+      setEditingUser(null);
+      
+      
+    } catch (error) {
+      console.error('❌ [Unified Save] Unified save failed:', error);
+      toast({
+        title: t('error'), 
+        description: 'Failed to save all changes. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      // Always reset the unified saving flag
+      setIsUnifiedSaving(false);
+    }
   };
 
   const openEditDialog = (user: User) => {
@@ -462,21 +959,29 @@ export default function UserManagement() {
       });
       return response.json();
     },
-    onSuccess: () => {
-      toast({
-        title: t('success'),
-        description: t('organizationAssignmentsUpdated'),
-      });
-      setEditingUserOrganizations(null);
-      // Invalidate all user queries regardless of filters
-      queryClient.invalidateQueries({ queryKey: ['/api/users'], exact: false });
-      queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], exact: false });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/all-user-organizations'] });
+    onSuccess: async () => {
+      
+      // Only invalidate cache if NOT part of unified save to prevent race conditions
+      if (!isUnifiedSaving) {
+        await queryClient.removeQueries({ queryKey: ['/api/users'] });
+        await queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+        await queryClient.refetchQueries({ queryKey: ['/api/users'] });
+        
+        toast({
+          title: t('success'),
+          description: t('organizationAssignmentsUpdated'),
+        });
+        
+        if (editingUserOrganizations) {
+          setEditingUserOrganizations(null);
+        }
+      } else {
+      }
     },
     onError: (error: Error) => {
       toast({
         title: t('error'),
-        description: error.message,
+        description: getErrorMessage(error, 'organization assignments'),
         variant: 'destructive',
       });
     },
@@ -496,19 +1001,25 @@ export default function UserManagement() {
       });
       return response.json();
     },
-    onSuccess: () => {
-      toast({
-        title: t('success'),
-        description: t('buildingAssignmentsUpdated'),
-      });
-      // Invalidate all user queries regardless of filters
-      queryClient.invalidateQueries({ queryKey: ['/api/users'], exact: false });
-      queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], exact: false });
+    onSuccess: async () => {
+      
+      // Only invalidate cache if NOT part of unified save to prevent race conditions
+      if (!isUnifiedSaving) {
+        await queryClient.removeQueries({ queryKey: ['/api/users'] });
+        await queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+        await queryClient.refetchQueries({ queryKey: ['/api/users'] });
+        
+        toast({
+          title: t('success'),
+          description: t('buildingAssignmentsUpdated'),
+        });
+      } else {
+      }
     },
     onError: (error: Error) => {
       toast({
         title: t('error'),
-        description: error.message,
+        description: getErrorMessage(error, 'building assignments'),
         variant: 'destructive',
       });
     },
@@ -528,21 +1039,29 @@ export default function UserManagement() {
       });
       return response.json();
     },
-    onSuccess: () => {
-      toast({
-        title: t('success'),
-        description: t('residenceAssignmentsUpdated'),
-      });
-      setEditingUserResidences(null);
-      // Invalidate all user queries regardless of filters
-      queryClient.invalidateQueries({ queryKey: ['/api/users'], exact: false });
-      queryClient.invalidateQueries({ queryKey: ['/api/users/filter-options'], exact: false });
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/all-user-residences'] });
+    onSuccess: async () => {
+      
+      // Only invalidate cache if NOT part of unified save to prevent race conditions
+      if (!isUnifiedSaving) {
+        await queryClient.removeQueries({ queryKey: ['/api/users'] });
+        await queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+        await queryClient.refetchQueries({ queryKey: ['/api/users'] });
+        
+        toast({
+          title: t('success'),
+          description: t('residenceAssignmentsUpdated'),
+        });
+        
+        if (editingUserResidences) {
+          setEditingUserResidences(null);
+        }
+      } else {
+      }
     },
     onError: (error: Error) => {
       toast({
         title: t('error'),
-        description: error.message,
+        description: getErrorMessage(error, 'residence assignments'),
         variant: 'destructive',
       });
     },
@@ -627,15 +1146,24 @@ export default function UserManagement() {
       
       toast({
         title: t('deletionFailed'),
-        description: error.message || t('deletionFailedDescription'),
+        description: getErrorMessage(error, 'user deletion'),
         variant: 'destructive',
       });
     },
   });
 
   // Permission checks
-  const canEditOrganizations = currentUser?.role === 'admin';
-  const canEditResidences = currentUser?.role === 'admin' || currentUser?.role === 'manager';
+  const canEditOrganizations = useMemo(() => {
+    if (!currentUser) return false;
+    // Only show organizations tab if user has access to multiple organizations
+    if (currentUser.role === 'admin') return true;
+    // For managers and demo_managers, only show if they have access to multiple organizations
+    return currentUserAccess.organizationIds.length > 1;
+  }, [currentUser, currentUserAccess.organizationIds]);
+  
+  const canEditResidences = currentUser?.role === 'admin' || 
+                           currentUser?.role === 'manager' || 
+                           currentUser?.role === 'demo_manager';
   const canDeleteUsers = currentUser?.role === 'admin' || currentUser?.role === 'manager';
 
   // Filter configuration - temporarily simplified
@@ -690,8 +1218,7 @@ export default function UserManagement() {
 
 
   // Use server-side paginated results directly
-  // Client-side filtering removed to avoid conflicts with server-side pagination
-  // TODO: Move all filtering to server-side for proper search across all users
+  // Server-side filtering is fully implemented (role, status, organization, orphan, search)
   const filteredUsers = users;
 
   // Filter handlers - temporarily disabled
@@ -712,8 +1239,12 @@ export default function UserManagement() {
     setSearch('');
     setRoleFilter('');
     setStatusFilter('');
-    // Don't clear organization filter for demo_manager since they can't change it
-    if (currentUser?.role !== 'demo_manager') {
+    // Don't clear organization filter for managers with only 1 organization or demo_manager
+    const shouldKeepOrgFilter = 
+      currentUser?.role === 'demo_manager' || 
+      ((currentUser?.role === 'manager') && currentUserOrganizations && currentUserOrganizations.length === 1);
+    
+    if (!shouldKeepOrgFilter) {
       setOrganizationFilter('');
     }
     setOrphanFilter('');
@@ -726,17 +1257,36 @@ export default function UserManagement() {
     }
   }, [organizationFilter]);
 
+  // Pre-filter for managers: automatically set organization filter based on their organizations
+  useEffect(() => {
+    if (!currentUser || !currentUserOrganizations || currentUserOrganizations.length === 0) {
+      return;
+    }
+
+    // Only apply pre-filtering for manager and demo_manager roles
+    const isManagerRole = currentUser.role === 'manager' || currentUser.role === 'demo_manager';
+    if (!isManagerRole) {
+      return;
+    }
+
+    // If manager has exactly 1 organization, pre-filter to that organization
+    if (currentUserOrganizations.length === 1) {
+      const orgId = currentUserOrganizations[0].id;
+      if (organizationFilter !== orgId) {
+        console.log(`🔍 [USER_MANAGEMENT] Pre-filtering manager to their organization: ${orgId}`);
+        setOrganizationFilter(orgId);
+      }
+    }
+  }, [currentUser, currentUserOrganizations]);
+
   // Delete orphan users mutation (admin only)
   const deleteOrphanUsersMutation = useMutation({
     mutationFn: async () => {
-      console.log('🗑️ [FRONTEND] Delete orphans mutation started');
-      console.log('🔍 [FRONTEND] Current user:', currentUser?.email, 'role:', currentUser?.role);
       
       const response = await fetch('/api/users/orphans', {
         method: 'DELETE',
       });
       
-      console.log('📡 [FRONTEND] API response status:', response.status, response.statusText);
       
       if (!response.ok) {
         const error = await response.json();
@@ -745,17 +1295,14 @@ export default function UserManagement() {
       }
       
       const result = await response.json();
-      console.log('✅ [FRONTEND] API Success response:', result);
       return result;
     },
     onSuccess: (data) => {
-      console.log('🎉 [FRONTEND] Delete orphans mutation succeeded:', data);
       toast({
         title: 'Success',
         description: data.message || `Deleted ${data.deletedCount} orphan users`,
       });
       
-      console.log('🔄 [FRONTEND] Refreshing users list...');
       // Refresh the users list
       queryClient.invalidateQueries({ queryKey: ['/api/users'] });
       setShowDeleteOrphansDialog(false);
@@ -764,7 +1311,7 @@ export default function UserManagement() {
       console.error('💥 [FRONTEND] Delete orphans mutation failed:', error);
       toast({
         title: 'Error',
-        description: error instanceof Error ? error.message : 'Failed to delete orphan users',
+        description: getErrorMessage(error instanceof Error ? error : new Error('Failed to delete orphan users'), 'orphan user deletion'),
         variant: 'destructive',
       });
     },
@@ -772,8 +1319,7 @@ export default function UserManagement() {
 
   // Handle delete orphan users
   const handleDeleteOrphanUsers = () => {
-    console.log('🖱️ [FRONTEND] Delete orphans button clicked');
-    console.log('👤 [FRONTEND] Triggering delete for user:', currentUser?.email);
+    // Delete orphans button clicked - triggering delete for user
     deleteOrphanUsersMutation.mutate();
   };
 
@@ -797,10 +1343,6 @@ export default function UserManagement() {
     ? users?.filter((user: User) => user.isActive).length || 0
     : totalUsers > 0 ? Math.floor(totalUsers * 0.85) : 0; // Estimate 85% active when no filters
     
-  const displayedAdminUsers = hasActiveFilters
-    ? users?.filter((user: User) => user.role === 'admin').length || 0  
-    : totalUsers > 0 ? Math.floor(totalUsers * 0.02) : 0; // Estimate 2% admin when no filters
-    
   const displayedTotalUsers = hasActiveFilters ? `~${users.length}` : totalUsers;
 
   // Use server-side pagination calculations
@@ -814,7 +1356,7 @@ export default function UserManagement() {
   if (usersError) {
     return (
       <div className='flex-1 flex flex-col overflow-hidden'>
-        <Header title={t('userManagement')} subtitle={t('manageAllUsers')} />
+        <Header title={t('userManagement')} subtitle={t('userManagementSubtitle')} />
         <div className='flex-1 overflow-auto p-6'>
           <Card>
             <CardContent className='p-6'>
@@ -828,12 +1370,12 @@ export default function UserManagement() {
 
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
-      <Header title={t('userManagement')} subtitle={t('manageAllUsers')} />
+      <Header title={t('userManagement')} subtitle={t('userManagementSubtitle')} />
 
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-7xl mx-auto space-y-6'>
         {/* Quick Stats Cards */}
-        <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
+        <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
           <Card>
             <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
               <CardTitle className='text-sm font-medium text-gray-600'>{t('totalUsers')}</CardTitle>
@@ -853,17 +1395,6 @@ export default function UserManagement() {
             <CardContent>
               <div className='text-2xl font-bold'>{displayedActiveUsers}</div>
               <p className='text-xs text-muted-foreground'>{hasActiveFilters ? t('onThisPage') || 'On this page' : t('active')}</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-              <CardTitle className='text-sm font-medium text-gray-600'>{t('admin')}</CardTitle>
-              <Shield className='h-4 w-4 text-muted-foreground' />
-            </CardHeader>
-            <CardContent>
-              <div className='text-2xl font-bold'>{displayedAdminUsers}</div>
-              <p className='text-xs text-muted-foreground'>{hasActiveFilters ? t('onThisPage') || 'On this page' : t('role')}</p>
             </CardContent>
           </Card>
         </div>
@@ -897,7 +1428,7 @@ export default function UserManagement() {
                   </TooltipTrigger>
                   {currentUser?.role === 'demo_manager' && (
                     <TooltipContent>
-                      <p>User invitations are not available in demo mode</p>
+                      <p>{t('userInvitationsNotAvailableDemo')}</p>
                     </TooltipContent>
                   )}
                 </Tooltip>
@@ -911,7 +1442,7 @@ export default function UserManagement() {
                   data-testid="button-delete-orphans"
                 >
                   <Trash2 className='h-4 w-4 mr-2' />
-                  Delete Orphan Users
+                  {t('deleteOrphanUsers')}
                 </Button>
               )}
             </div>
@@ -925,82 +1456,107 @@ export default function UserManagement() {
                 ) : (
                   <div className='space-y-4'>
                     {/* Simple Search and Filters */}
-                    <div className='flex flex-col sm:flex-row gap-4 mb-4 p-4 bg-gray-50 rounded-lg'>
-                      {/* Search */}
-                      <div className='flex-1'>
+                    <div className='flex items-center gap-4 flex-wrap mb-4'>
+                      {/* Search Input */}
+                      <div className='relative flex-1 max-w-sm'>
+                        <Search className='absolute left-3 top-3 h-4 w-4 text-muted-foreground' />
                         <Input
                           placeholder={t('searchUsers')}
                           value={searchInput}
                           onChange={(e) => setSearchInput(e.target.value)}
-                          className='w-full'
+                          className='pl-10'
+                          data-testid='search-users'
                         />
                       </div>
 
                       {/* Role Filter */}
-                      <select
+                      <SearchableSelect
                         value={roleFilter}
-                        onChange={(e) => setRoleFilter(e.target.value)}
-                        className='px-3 py-2 border border-gray-300 rounded-md'
-                      >
-                        {filterOptions?.roles?.map((role) => (
-                          <option key={role.value} value={role.value}>
-                            {role.label}
-                          </option>
-                        )) || []}
-                      </select>
+                        onValueChange={setRoleFilter}
+                        options={filterOptions?.roles?.map((role) => ({
+                          value: role.value,
+                          label: role.translationKey ? t(role.label as keyof typeof t) : role.label,
+                        })) || []}
+                        placeholder={t('filterByRole')}
+                        searchPlaceholder="Search roles..."
+                        width="w-40"
+                        data-testid="filter-role"
+                      />
 
                       {/* Status Filter */}
-                      <select
+                      <SearchableSelect
                         value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
-                        className='px-3 py-2 border border-gray-300 rounded-md'
-                      >
-                        {filterOptions?.statuses?.map((status) => (
-                          <option key={status.value} value={status.value}>
-                            {status.label}
-                          </option>
-                        )) || []}
-                      </select>
+                        onValueChange={setStatusFilter}
+                        options={filterOptions?.statuses?.map((status) => ({
+                          value: status.value,
+                          label: status.translationKey ? t(status.label as keyof typeof t) : status.label,
+                        })) || []}
+                        placeholder={t('filterByStatus')}
+                        searchPlaceholder="Search status..."
+                        width="w-40"
+                        data-testid="filter-status"
+                      />
 
-                      {/* Organization Filter - Hidden for demo_manager since they can only see their own organization */}
-                      {filterOptions?.organizations && filterOptions.organizations.length > 0 && currentUser?.role !== 'demo_manager' && (
-                        <select
+                      {/* Organization Filter - Hidden for demo_manager and managers with only 1 organization */}
+                      {filterOptions?.organizations && 
+                       Array.isArray(filterOptions.organizations) && 
+                       filterOptions.organizations.length > 0 && 
+                       !(currentUser?.role === 'demo_manager') &&
+                       !(currentUser?.role === 'manager' && currentUserOrganizations && currentUserOrganizations.length === 1) &&
+                       (currentUserOrganizations && currentUserOrganizations.length > 1) && (
+                        <SearchableSelect
                           value={organizationFilter}
-                          onChange={(e) => setOrganizationFilter(e.target.value)}
-                          className='px-3 py-2 border border-gray-300 rounded-md'
-                        >
-                          {filterOptions.organizations.map((org) => (
-                            <option key={org.value} value={org.value}>
-                              {org.label}
-                            </option>
-                          ))}
-                        </select>
+                          onValueChange={setOrganizationFilter}
+                          options={filterOptions.organizations.map((org) => ({
+                            value: org.value,
+                            label: org.translationKey ? t(org.label as keyof typeof t) : org.label,
+                          }))}
+                          placeholder={t('filterByOrganization')}
+                          searchPlaceholder="Search organizations..."
+                          width="w-40"
+                          data-testid="filter-organization"
+                        />
                       )}
 
                       {/* Orphan User Filter - Admin Only, Hidden when organization is selected or for demo users */}
-                      {filterOptions?.orphanOptions && filterOptions.orphanOptions.length > 0 && !organizationFilter && currentUser?.role !== 'demo_manager' && (
-                        <select
+                      {filterOptions?.orphanOptions && 
+                       Array.isArray(filterOptions.orphanOptions) && 
+                       filterOptions.orphanOptions.length > 0 && 
+                       !organizationFilter && 
+                       currentUser?.role !== 'demo_manager' && (
+                        <SearchableSelect
                           value={orphanFilter}
-                          onChange={(e) => setOrphanFilter(e.target.value)}
-                          className='px-3 py-2 border border-gray-300 rounded-md'
-                        >
-                          {filterOptions.orphanOptions.map((option) => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ))}
-                        </select>
+                          onValueChange={setOrphanFilter}
+                          options={filterOptions.orphanOptions.map((option) => ({
+                            value: option.value,
+                            label: option.translationKey ? t(option.label as keyof typeof t) : option.label,
+                          }))}
+                          placeholder={t('filterByStatus')}
+                          searchPlaceholder="Search options..."
+                          width="w-40"
+                          data-testid="filter-orphan"
+                        />
                       )}
                       
                       {/* Show explanation when orphan filter is disabled - not for demo users */}
-                      {organizationFilter && filterOptions?.orphanOptions && filterOptions.orphanOptions.length > 0 && currentUser?.role !== 'demo_manager' && (
+                      {organizationFilter && 
+                       filterOptions?.orphanOptions && 
+                       Array.isArray(filterOptions.orphanOptions) && 
+                       filterOptions.orphanOptions.length > 0 && 
+                       currentUser?.role !== 'demo_manager' && (
                         <div className="text-sm text-gray-500 italic px-3 py-2 border border-gray-200 rounded-md bg-gray-100">
-                          Orphan filter unavailable (organization selected)
+                          {t('orphanFilterUnavailable')}
                         </div>
                       )}
 
-                      {/* Clear Filters - adjust visibility for demo_manager */}
-                      {(searchInput || roleFilter || statusFilter || (currentUser?.role !== 'demo_manager' && organizationFilter) || orphanFilter) && (
+                      {/* Clear Filters - adjust visibility for demo_manager and managers with only 1 organization */}
+                      {(() => {
+                        const canClearOrgFilter = !(
+                          currentUser?.role === 'demo_manager' || 
+                          (currentUser?.role === 'manager' && currentUserOrganizations && currentUserOrganizations.length === 1)
+                        );
+                        return (searchInput || roleFilter || statusFilter || (canClearOrgFilter && organizationFilter) || orphanFilter);
+                      })() && (
                         <Button variant='outline' onClick={handleClearFilters}>
                           {t('clearFilters')}
                         </Button>
@@ -1011,7 +1567,7 @@ export default function UserManagement() {
                       {t('users')} ({filteredTotal} of {totalUsers} {t('users').toLowerCase()})
                     </h3>
 
-                    {/* User Table - Completely Rebuilt */}
+                    {/* User Table */}
                     <UserAssignmentsTable 
                       users={currentUsers} 
                       isLoading={usersLoading}
@@ -1082,55 +1638,19 @@ export default function UserManagement() {
               <DialogDescription>{t('editUserDescription')}</DialogDescription>
             </DialogHeader>
 
-            <Tabs defaultValue='basic' className='w-full'>
-              <TabsList className={`grid w-full ${canEditOrganizations && canEditResidences ? 'grid-cols-4' : canEditOrganizations || canEditResidences ? 'grid-cols-3' : 'grid-cols-2'}`}>
-                <TabsTrigger value='basic'>{t('basicInfo') || 'Basic Info'}</TabsTrigger>
-                {canEditOrganizations && <TabsTrigger value='organizations'>{t('organizations')}</TabsTrigger>}
-                <TabsTrigger value='buildings'>{t('buildings') || 'Buildings'}</TabsTrigger>
-                {canEditResidences && <TabsTrigger value='residences'>{t('residences') || 'Residences'}</TabsTrigger>}
-              </TabsList>
-
-              <TabsContent value='basic' className='space-y-4'>
-                <Form {...editForm}>
-                  <form onSubmit={editForm.handleSubmit(handleEditUser)} className='space-y-4'>
-                    <div className='grid grid-cols-2 gap-4'>
-                      <FormField
-                        control={editForm.control}
-                        name='firstName'
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>{t('firstName')}</FormLabel>
-                            <FormControl>
-                              <Input {...field} data-testid='input-edit-firstName' />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={editForm.control}
-                        name='lastName'
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>{t('lastName')}</FormLabel>
-                            <FormControl>
-                              <Input {...field} data-testid='input-edit-lastName' />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
+            <div className='space-y-6'>
+              {/* Basic Information Section */}
+              <Form {...editForm}>
+                <form onSubmit={editForm.handleSubmit(handleEditUser)} className='space-y-4'>
+                  <div className='grid grid-cols-2 gap-4'>
                     <FormField
                       control={editForm.control}
-                      name='email'
+                      name='firstName'
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('email')}</FormLabel>
+                          <FormLabel>{t('firstName')}</FormLabel>
                           <FormControl>
-                            <Input {...field} type='email' data-testid='input-edit-email' />
+                            <Input {...field} data-testid='input-edit-firstName' />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -1139,163 +1659,178 @@ export default function UserManagement() {
 
                     <FormField
                       control={editForm.control}
-                      name='role'
+                      name='lastName'
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('role')}</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger data-testid='select-edit-role'>
-                                <SelectValue placeholder={t('selectRole')} />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {getAvailableRoles?.map((role) => (
-                                <SelectItem key={role.value} value={role.value}>
-                                  {role.label}
-                                </SelectItem>
-                              )) || []}
-                            </SelectContent>
-                          </Select>
+                          <FormLabel>{t('lastName')}</FormLabel>
+                          <FormControl>
+                            <Input {...field} data-testid='input-edit-lastName' />
+                          </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
+                  </div>
 
-                    <FormField
-                      control={editForm.control}
-                      name='isActive'
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{t('accountStatus')}</FormLabel>
-                          <Select
-                            onValueChange={(value) => field.onChange(value === 'true')}
-                            defaultValue={field.value.toString()}
-                          >
-                            <FormControl>
-                              <SelectTrigger data-testid='select-edit-status'>
-                                <SelectValue placeholder={t('selectStatus') || 'Select status'} />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value='true'>{t('statusActive')}</SelectItem>
-                              <SelectItem value='false'>{t('statusInactive')}</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <DialogFooter>
-                      <Button
-                        type='button'
-                        variant='outline'
-                        onClick={() => setEditingUser(null)}
-                        data-testid='button-cancel-edit'
-                      >
-                        {t('cancel')}
-                      </Button>
-                      <Button
-                        type='submit'
-                        disabled={editUserMutation.isPending}
-                        data-testid='button-save-edit'
-                      >
-                        {editUserMutation.isPending ? (t('saving') || 'Saving...') : t('saveChanges')}
-                      </Button>
-                    </DialogFooter>
-                  </form>
-                </Form>
-              </TabsContent>
-
-              {canEditOrganizations && (
-                <TabsContent value='organizations' className='space-y-4'>
-                  <UserOrganizationsTab 
-                    user={editingUser ? findUserWithAssignments(editingUser.id) : null}
-                    organizations={organizations}
-                    currentUser={currentUser}
-                    currentUserOrganizations={currentUserAccess.organizationIds}
-                    onSave={(organizationIds) => {
-                      if (editingUser) {
-                        editOrganizationsMutation.mutate({
-                          userId: editingUser.id,
-                          organizationIds
-                        });
-                      }
-                    }}
-                    onSelectionChange={setSelectedOrganizationIds}
-                    isLoading={editOrganizationsMutation.isPending}
+                  <FormField
+                    control={editForm.control}
+                    name='email'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('email')}</FormLabel>
+                        <FormControl>
+                          <Input {...field} type='email' data-testid='input-edit-email' />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </TabsContent>
+
+                  <FormField
+                    control={editForm.control}
+                    name='role'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('role')}</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger data-testid='select-edit-role'>
+                              <SelectValue placeholder={t('selectRole')} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {Array.isArray(getAvailableRoles) && getAvailableRoles.map((role) => (
+                              <SelectItem key={role.value} value={role.value}>
+                                {role.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={editForm.control}
+                    name='isActive'
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('accountStatus')}</FormLabel>
+                        <Select
+                          onValueChange={(value) => field.onChange(value === 'true')}
+                          defaultValue={field.value.toString()}
+                        >
+                          <FormControl>
+                            <SelectTrigger data-testid='select-edit-status'>
+                              <SelectValue placeholder={t('selectStatus') || 'Select status'} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value='true'>{t('statusActive')}</SelectItem>
+                            <SelectItem value='false'>{t('statusInactive')}</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                </form>
+              </Form>
+
+              {/* Organization Assignments Section */}
+              {canEditOrganizations && (
+                <UserOrganizationsTab 
+                  user={editingUser ? findUserWithAssignments(editingUser.id) : null}
+                  organizations={organizations}
+                  currentUser={currentUser}
+                  currentUserOrganizations={currentUserAccess.organizationIds}
+                  onSave={() => {}} // No individual save - only unified save button
+                  onSelectionChange={handleOrganizationSelectionChange}
+                  isLoading={editOrganizationsMutation.isPending}
+                />
               )}
 
-              <TabsContent value='buildings' className='space-y-4'>
-                <UserBuildingsTab 
+              {/* Building Assignments Section */}
+              <UserBuildingsTab 
+                user={editingUser ? findUserWithAssignments(editingUser.id) : null}
+                buildings={buildings}
+                organizations={organizations}
+                currentUser={currentUser}
+                currentUserBuildingIds={currentUserAccess.buildingIds}
+                currentUserOrganizationIds={currentUserAccess.organizationIds}
+                selectedOrganizationIds={selectedOrganizationIds}
+                selectedBuildingIds={selectedBuildingIds}
+                onSave={() => {}} // No individual save - only unified save button
+                onSelectionChange={handleBuildingSelectionChange}
+                isLoading={editBuildingsMutation.isPending}
+              />
+
+              {/* Residence Assignments Section */}
+              {canEditResidences && (
+                <UserResidencesTab 
                   user={editingUser ? findUserWithAssignments(editingUser.id) : null}
+                  residences={residences}
                   buildings={buildings}
                   organizations={organizations}
                   currentUser={currentUser}
-                  currentUserBuildingIds={currentUserAccess.buildingIds}
-                  selectedOrganizationIds={selectedOrganizationIds}
-                  onSave={(buildingIds) => {
-                    if (editingUser) {
-                      editBuildingsMutation.mutate({
-                        userId: editingUser.id,
-                        buildingIds
-                      });
-                    }
-                  }}
-                  onSelectionChange={setSelectedBuildingIds}
-                  isLoading={editBuildingsMutation.isPending}
+                  currentUserResidenceIds={currentUserAccess.residenceIds}
+                  currentUserOrganizationIds={currentUserAccess.organizationIds}
+                  selectedBuildingIds={selectedBuildingIds}
+                  selectedResidenceAssignments={selectedResidenceAssignments}
+                  onSave={() => {}} // No individual save - only unified save button
+                  onSelectionChange={setSelectedResidenceAssignments}
+                  isLoading={editResidencesMutation.isPending}
                 />
-              </TabsContent>
-
-              {canEditResidences && (
-                <TabsContent value='residences' className='space-y-4'>
-                  <UserResidencesTab 
-                    user={editingUser ? findUserWithAssignments(editingUser.id) : null}
-                    residences={residences}
-                    buildings={buildings}
-                    organizations={organizations}
-                    currentUser={currentUser}
-                    currentUserResidenceIds={currentUserAccess.residenceIds}
-                    selectedBuildingIds={selectedBuildingIds}
-                    onSave={(residenceAssignments) => {
-                      if (editingUser) {
-                        editResidencesMutation.mutate({
-                          userId: editingUser.id,
-                          residenceAssignments
-                        });
-                      }
-                    }}
-                    isLoading={editResidencesMutation.isPending}
-                  />
-                </TabsContent>
               )}
-            </Tabs>
+            </div>
+
+            {/* Unified Save Footer */}
+            <DialogFooter className="mt-6">
+              <Button
+                type='button'
+                variant='outline'
+                onClick={() => setEditingUser(null)}
+                data-testid='button-cancel-edit'
+              >
+                {t('cancel')}
+              </Button>
+              <Button
+                type="button"
+                onClick={handleUnifiedSave}
+                disabled={editUserMutation.isPending || editOrganizationsMutation.isPending || editBuildingsMutation.isPending || editResidencesMutation.isPending}
+                data-testid='button-save-all'
+              >
+                {(editUserMutation.isPending || editOrganizationsMutation.isPending || editBuildingsMutation.isPending || editResidencesMutation.isPending) 
+                  ? (t('saving') || 'Saving...') 
+                  : (t('saveChanges') || 'Save Changes')
+                }
+              </Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
 
 
         {/* Delete Orphan Users Confirmation Dialog */}
         <AlertDialog open={showDeleteOrphansDialog} onOpenChange={setShowDeleteOrphansDialog}>
-          <AlertDialogContent className='sm:max-w-[500px]'>
+          <AlertDialogContent className='sm:max-w-[500px] max-h-[90vh] overflow-y-auto'>
             <AlertDialogHeader>
-              <AlertDialogTitle className='text-red-600'>Delete All Orphan Users</AlertDialogTitle>
+              <AlertDialogTitle className='text-red-600'>{t('deleteOrphanUsersConfirmTitle')}</AlertDialogTitle>
               <AlertDialogDescription>
-                This will permanently mark all orphan users (users with no organization or residence assignments) as inactive.
+                {t('deleteOrphanUsersConfirmDescription')}
               </AlertDialogDescription>
             </AlertDialogHeader>
 
             <div className='bg-red-50 dark:bg-red-950 p-4 rounded-lg border border-red-200 dark:border-red-800 mb-4'>
               <p className='text-red-700 dark:text-red-300 text-sm'>
-                <strong>Warning:</strong> This action will:
+                <strong>{t('deleteOrphanUsersWarning')}</strong>
               </p>
               <ul className='text-red-700 dark:text-red-300 text-sm mt-2 list-disc list-inside'>
-                <li>Mark all orphan users as inactive (they will be hidden from the interface)</li>
-                <li>Preserve their data for audit purposes but remove access</li>
-                <li>Only affect users with no organization or residence assignments</li>
-                <li>Cannot be undone through the interface</li>
+                <li>{t('deleteOrphanUsersWarningList1')}</li>
+                <li>{t('deleteOrphanUsersWarningList2')}</li>
+                <li>{t('deleteOrphanUsersWarningList3')}</li>
+                <li>{t('deleteOrphanUsersWarningList4')}</li>
               </ul>
             </div>
 
@@ -1305,7 +1840,7 @@ export default function UserManagement() {
                 onClick={() => setShowDeleteOrphansDialog(false)}
                 disabled={deleteOrphanUsersMutation.isPending}
               >
-                Cancel
+                {t('cancel')}
               </Button>
               <Button
                 variant='destructive'
@@ -1313,7 +1848,7 @@ export default function UserManagement() {
                 disabled={deleteOrphanUsersMutation.isPending}
                 data-testid="button-confirm-delete-orphans"
               >
-                {deleteOrphanUsersMutation.isPending ? 'Deleting...' : 'Delete Orphan Users'}
+                {deleteOrphanUsersMutation.isPending ? 'Deleting...' : t('deleteOrphanUsers')}
               </Button>
             </AlertDialogFooter>
           </AlertDialogContent>
@@ -1321,7 +1856,7 @@ export default function UserManagement() {
 
         {/* Delete User Confirmation Dialog */}
         <AlertDialog open={!!deletingUser} onOpenChange={(open) => !open && setDeletingUser(null)}>
-          <AlertDialogContent className='sm:max-w-[500px]'>
+          <AlertDialogContent className='sm:max-w-[500px] max-h-[90vh] overflow-y-auto'>
             <AlertDialogHeader>
               <AlertDialogTitle className='text-red-600'>{t('deleteUserTitle')}</AlertDialogTitle>
               <AlertDialogDescription>
@@ -1349,7 +1884,7 @@ export default function UserManagement() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        {t('confirmEmailLabel')}:{' '}
+                        {t('confirmEmail') || 'Confirm Email'}:{' '}
                         <span className='font-mono text-sm'>{deletingUser?.email}</span>
                       </FormLabel>
                       <FormControl>

@@ -10,7 +10,7 @@ import {
   userOrganizations,
   organizations,
 } from '../../shared/schema';
-import { eq, and, or, inArray, desc, asc } from 'drizzle-orm';
+import { eq, and, or, inArray, desc, asc, sql } from 'drizzle-orm';
 import { requireAuth } from '../auth/index';
 import { insertDemandSchema, insertDemandCommentSchema } from '../../shared/schemas/operations';
 import { z } from 'zod';
@@ -32,7 +32,7 @@ export function registerDemandRoutes(app: Express) {
       const user = req.user;
       const { buildingId, residenceId, type, status, search } = req.query;
 
-      // Base query with joins
+      // Base query with joins - use left joins to handle optional residence relationships
       let query = db
         .select({
           id: demands.id,
@@ -71,7 +71,7 @@ export function registerDemandRoutes(app: Express) {
         })
         .from(demands)
         .innerJoin(users, eq(demands.submitterId, users.id))
-        .innerJoin(residences, eq(demands.residenceId, residences.id))
+        .leftJoin(residences, eq(demands.residenceId, residences.id))
         .innerJoin(buildings, eq(demands.buildingId, buildings.id));
 
       // Apply role-based access control
@@ -107,7 +107,7 @@ export function registerDemandRoutes(app: Express) {
           conditions.push(eq(demands.id, 'never-match'));
         }
       } else {
-        // Residents and tenants can only see demands they created
+        // Residents and tenants can only see demands they personally created
         conditions.push(eq(demands.submitterId, user.id));
       }
 
@@ -116,7 +116,13 @@ export function registerDemandRoutes(app: Express) {
         conditions.push(eq(demands.buildingId, buildingId));
       }
       if (residenceId) {
-        conditions.push(eq(demands.residenceId, residenceId));
+        // Filter by both residenceId and assignationResidenceId
+        conditions.push(
+          or(
+            eq(demands.residenceId, residenceId),
+            eq(demands.assignationResidenceId, residenceId)
+          )
+        );
       }
       if (type) {
         conditions.push(eq(demands.type, type));
@@ -135,6 +141,38 @@ export function registerDemandRoutes(app: Express) {
 
       const results = await finalQuery.orderBy(desc(demands.createdAt));
 
+      // Post-process to fetch residence data for demands with assignationResidenceId but null residence
+      const demandsNeedingResidenceData = results.filter(
+        demand => !demand.residence.id && demand.assignationResidenceId
+      );
+      
+      if (demandsNeedingResidenceData.length > 0) {
+        const assignationResidenceIds = demandsNeedingResidenceData.map(d => d.assignationResidenceId);
+        
+        // Fetch assignation residence data in a single query
+        const assignationResidencesData = await db
+          .select({
+            id: residences.id,
+            unitNumber: residences.unitNumber,
+            buildingId: residences.buildingId,
+          })
+          .from(residences)
+          .where(inArray(residences.id, assignationResidenceIds));
+        
+        // Create a map for quick lookup
+        const residenceMap = new Map(
+          assignationResidencesData.map(r => [r.id, r])
+        );
+        
+        // Update residence data for demands that need it
+        demandsNeedingResidenceData.forEach(demand => {
+          const residenceData = residenceMap.get(demand.assignationResidenceId);
+          if (residenceData) {
+            demand.residence = residenceData;
+          }
+        });
+      }
+
       // Filter by search term if provided
       let filteredResults = results;
       if (search) {
@@ -144,7 +182,7 @@ export function registerDemandRoutes(app: Express) {
             demand.description.toLowerCase().includes(searchTerm) ||
             demand.submitter.firstName?.toLowerCase().includes(searchTerm) ||
             demand.submitter.lastName?.toLowerCase().includes(searchTerm) ||
-            demand.residence.unitNumber.toLowerCase().includes(searchTerm) ||
+            demand.residence.unitNumber?.toLowerCase().includes(searchTerm) ||
             demand.building.name.toLowerCase().includes(searchTerm)
         );
       }
@@ -199,7 +237,7 @@ export function registerDemandRoutes(app: Express) {
         })
         .from(demands)
         .innerJoin(users, eq(demands.submitterId, users.id))
-        .innerJoin(residences, eq(demands.residenceId, residences.id))
+        .leftJoin(residences, eq(demands.residenceId, residences.id))
         .innerJoin(buildings, eq(demands.buildingId, buildings.id))
         .where(eq(demands.id, id))
         .limit(1);
@@ -238,12 +276,29 @@ export function registerDemandRoutes(app: Express) {
           }
         }
       } else {
-        // Residents and tenants can only view their own demands
+        // Residents and tenants can only view demands they personally created
         hasAccess = demandData.submitterId === user.id;
       }
       
       if (!hasAccess) {
         return res.status(403).json({ message: 'Access denied' });
+      }
+
+      // Post-process to fetch residence data if needed
+      if (!demandData.residence.id && demandData.assignationResidenceId) {
+        const assignationResidenceData = await db
+          .select({
+            id: residences.id,
+            unitNumber: residences.unitNumber,
+            buildingId: residences.buildingId,
+          })
+          .from(residences)
+          .where(eq(residences.id, demandData.assignationResidenceId))
+          .limit(1);
+        
+        if (assignationResidenceData.length > 0) {
+          demandData.residence = assignationResidenceData[0];
+        }
       }
 
       res.json(demandData);
@@ -265,7 +320,7 @@ export function registerDemandRoutes(app: Express) {
       // Validate input
       const validatedData = demandInputSchema.parse(demandData);
       
-      console.log('✅ Demand validation passed:', validatedData);
+      // console.log('✅ Demand validation passed:', validatedData);
 
       // Implement role-based residence assignment validation
       if (user.role === 'admin') {
@@ -354,19 +409,65 @@ export function registerDemandRoutes(app: Express) {
         }
       }
       
-      console.log('✅ Final demand data before insertion:', {
-        buildingId: validatedData.buildingId,
-        residenceId: validatedData.residenceId,
-        type: validatedData.type,
-        description: validatedData.description
-      });
+      // console.log('✅ Final demand data before insertion:', {
+      //   buildingId: validatedData.buildingId,
+      //   residenceId: validatedData.residenceId,
+      //   type: validatedData.type,
+      //   description: validatedData.description
+      // });
+
+      // Handle file attachments if provided
+      let fileInfo: { filePath?: string; fileName?: string; fileSize?: number } = {};
+      
+      if (demandData.attachments && Array.isArray(demandData.attachments) && demandData.attachments.length > 0) {
+        const firstAttachment = demandData.attachments[0];
+        
+        // Check if attachment is an object with url and originalName (new format)
+        // or just a string URL (old format for backward compatibility)
+        if (typeof firstAttachment === 'object' && firstAttachment.url) {
+          fileInfo = {
+            filePath: firstAttachment.url,
+            fileName: firstAttachment.originalName || firstAttachment.url.split('/').pop() || '',
+            fileSize: firstAttachment.size || 0,
+          };
+        } else if (typeof firstAttachment === 'string') {
+          // Old format: just a URL string
+          const fileName = firstAttachment.split('/').pop() || '';
+          
+          // Get file size from filesystem if file exists
+          let fileSize = 0;
+          try {
+            const fs = await import('fs');
+            const path = await import('path');
+            const fullPath = path.join(process.cwd(), firstAttachment.replace(/^\//, ''));
+            if (fs.existsSync(fullPath)) {
+              const stats = fs.statSync(fullPath);
+              fileSize = stats.size;
+            }
+          } catch (error) {
+            // If we can't get file size, just set it to 0
+          }
+          
+          fileInfo = {
+            filePath: firstAttachment,
+            fileName: fileName,
+            fileSize: fileSize,
+          };
+        }
+      }
 
       const demandInsertData = {
-        ...validatedData,
+        type: validatedData.type,
+        description: validatedData.description,
         buildingId: validatedData.buildingId,
         residenceId: validatedData.residenceId,
+        assignationBuildingId: validatedData.assignationBuildingId,
+        assignationResidenceId: validatedData.assignationResidenceId,
         submitterId: user.id,
         status: (validatedData.status as 'submitted' | 'under_review' | 'approved' | 'rejected' | 'in_progress' | 'completed' | 'cancelled') || 'submitted',
+        filePath: fileInfo.filePath,
+        fileName: fileInfo.fileName,
+        fileSize: fileInfo.fileSize,
       };
 
       const newDemand = await db.insert(demands).values([demandInsertData]).returning();

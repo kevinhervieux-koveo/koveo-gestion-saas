@@ -151,8 +151,9 @@ export function registerPermissionsRoutes(app: Express) {
           });
         }
 
-        // TODO: Implement user permission override in database
-        // For now, return success but note that this would need database schema changes
+        // User permission overrides require a new database table: user_permission_overrides
+        // Schema needed: { id, userId, permissionId, granted (boolean), reason, grantedBy, grantedAt }
+        // This allows granting individual users permissions beyond their role's defaults
         res.status(501).json({
           message: 'User permission overrides not yet implemented',
           note: 'This feature requires additional database schema for user_permission_overrides table',
@@ -173,7 +174,8 @@ export function registerPermissionsRoutes(app: Express) {
       try {
         const { userId, permissionId } = req.params;
 
-        // TODO: Implement user permission revocation in database
+        // User permission revocation would delete from user_permission_overrides table
+        // This removes individual permission grants and reverts user to role-based permissions
         res.status(501).json({
           message: 'User permission overrides not yet implemented',
           note: 'This feature requires additional database schema for user_permission_overrides table',
@@ -203,8 +205,9 @@ export function registerPermissionsRoutes(app: Express) {
           return res.status(400).json({ message: 'Permissions must be an array' });
         }
 
-        // TODO: Implement role permission updates
-        // This would require updating the permissions.json file or moving to database
+        // Role permission updates would modify the role_permissions table in the database
+        // This allows admins to customize which permissions each role has at runtime
+        // Implementation: Delete existing role permissions and insert new ones transactionally
         res.status(501).json({
           message: 'Role permission updates not yet implemented',
           note: 'This feature requires implementing a mechanism to update permissions.json or move permissions to database',

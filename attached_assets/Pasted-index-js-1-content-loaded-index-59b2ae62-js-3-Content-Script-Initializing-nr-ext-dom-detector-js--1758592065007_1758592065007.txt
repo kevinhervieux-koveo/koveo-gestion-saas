@@ -1,0 +1,99 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+index-DtLgeMKf.js:136 Error: Expected enabled to be a boolean or a callback that returns a boolean
+    at At.setOptions (vendor-query-7MgX5BiQ.js:1:24856)
+    at new At (vendor-query-7MgX5BiQ.js:1:24011)
+    at vendor-query-7MgX5BiQ.js:1:34084
+    at mc (index-DtLgeMKf.js:120:8540)
+    at pc (index-DtLgeMKf.js:120:8724)
+    at Object.useState (index-DtLgeMKf.js:229:2785)
+    at He.s.useState (vendor-react-BZXSkU7I.js:21:11673)
+    at $t (vendor-query-7MgX5BiQ.js:1:34071)
+    at Xt (vendor-query-7MgX5BiQ.js:1:34805)
+    at withHierarchicalSelection-BkbRA1Y2.js:1:7086
+
+The above error occurred in one of your React components.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, gR.
+
+overrideMethod @ hook.js:608
+oh @ index-DtLgeMKf.js:136
+lh @ index-DtLgeMKf.js:141
+q @ index-DtLgeMKf.js:45
+l.componentDidCatch.e.callback @ index-DtLgeMKf.js:141
+Dp @ index-DtLgeMKf.js:107
+Ep @ index-DtLgeMKf.js:107
+q @ index-DtLgeMKf.js:45
+Dh @ index-DtLgeMKf.js:163
+Nh @ index-DtLgeMKf.js:163
+Qn @ index-DtLgeMKf.js:163
+Nh @ index-DtLgeMKf.js:163
+Qn @ index-DtLgeMKf.js:163
+Nh @ index-DtLgeMKf.js:163
+Qn @ index-DtLgeMKf.js:163
+Nh @ index-DtLgeMKf.js:163
+Qn @ index-DtLgeMKf.js:163
+Nh @ index-DtLgeMKf.js:163
+Qn @ index-DtLgeMKf.js:163
+Nh @ index-DtLgeMKf.js:163
+Qn @ index-DtLgeMKf.js:163
+Nh @ index-DtLgeMKf.js:163
+ng @ index-DtLgeMKf.js:163
+ed @ index-DtLgeMKf.js:163
+Xh @ index-DtLgeMKf.js:163
+Ih @ index-DtLgeMKf.js:163
+fg @ index-DtLgeMKf.js:185
+d @ index-DtLgeMKf.js:23
+<...>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Pb @ index-DtLgeMKf.js:240
+P @ index-DtLgeMKf.js:240
+react_stack_bottom_frame @ index-DtLgeMKf.js:229
+oc @ index-DtLgeMKf.js:120
+kc @ index-DtLgeMKf.js:141
+Pc @ index-DtLgeMKf.js:150
+q @ index-DtLgeMKf.js:45
+Kh @ index-DtLgeMKf.js:163
+Jh @ index-DtLgeMKf.js:163
+Wc @ index-DtLgeMKf.js:163
+Ih @ index-DtLgeMKf.js:163
+fg @ index-DtLgeMKf.js:185
+d @ index-DtLgeMKf.js:23
+<P>
+du.jsxDEV @ index-DtLgeMKf.js:15
+ex @ index-DtLgeMKf.js:384
+react_stack_bottom_frame @ index-DtLgeMKf.js:229
+oc @ index-DtLgeMKf.js:120
+kc @ index-DtLgeMKf.js:141
+Pc @ index-DtLgeMKf.js:150
+q @ index-DtLgeMKf.js:45
+Kh @ index-DtLgeMKf.js:163
+Jh @ index-DtLgeMKf.js:163
+Wc @ index-DtLgeMKf.js:163
+Ih @ index-DtLgeMKf.js:163
+mg @ index-DtLgeMKf.js:185
+ml @ index-DtLgeMKf.js:185
+ad @ index-DtLgeMKf.js:185
+(anonymous) @ index-DtLgeMKf.js:185
+<ex>
+du.jsxDEV @ index-DtLgeMKf.js:15
+tx @ index-DtLgeMKf.js:384
+react_stack_bottom_frame @ index-DtLgeMKf.js:229
+oc @ index-DtLgeMKf.js:120
+kc @ index-DtLgeMKf.js:141
+Pc @ index-DtLgeMKf.js:150
+q @ index-DtLgeMKf.js:45
+Kh @ index-DtLgeMKf.js:163
+Jh @ index-DtLgeMKf.js:163
+Wc @ index-DtLgeMKf.js:163
+Ih @ index-DtLgeMKf.js:163
+fg @ index-DtLgeMKf.js:185
+d @ index-DtLgeMKf.js:23
+<tx>
+du.jsxDEV @ index-DtLgeMKf.js:15
+(anonymous) @ index-DtLgeMKf.js:384

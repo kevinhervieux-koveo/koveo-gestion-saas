@@ -1,0 +1,165 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+index-CO9rLDfj.js:6 🏠 [INVENTORY PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-CO9rLDfj.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-CO9rLDfj.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CO9rLDfj.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'create', elementId: undefined, isValid: false, isDirty: false, errorCount: 0, …}
+index-CO9rLDfj.js:6 ❌ [VALIDATION STATE] Form is invalid: {isValid: false, errorCount: 0, errorDetails: Array(0), allFormValues: {…}, nextEvaluationDate: {…}, …}
+index-CO9rLDfj.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+index-CO9rLDfj.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+index-CO9rLDfj.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+withHierarchicalSelection-BtQD5-r3.js:1 🏢 [withHierarchicalSelection] Fetching buildings...
+withHierarchicalSelection-BtQD5-r3.js:1 🌐 [withHierarchicalSelection] Requesting buildings: /api/organizations/e9bb7862-4ba5-4822-848f-f3692e826e73/buildings
+index-CO9rLDfj.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'create', elementId: undefined, isValid: false, isDirty: false, errorCount: 0, …}
+index-CO9rLDfj.js:6 ❌ [VALIDATION STATE] Form is invalid: {isValid: false, errorCount: 0, errorDetails: Array(0), allFormValues: {…}, nextEvaluationDate: {…}, …}
+index-CO9rLDfj.js:6 🏠 [INVENTORY UI] Building elements collapsible toggled: true
+index-CO9rLDfj.js:6 🏠 [INVENTORY STATE] Building elements section toggled {expanded: true}
+index-CO9rLDfj.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-CO9rLDfj.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CO9rLDfj.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-CO9rLDfj.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-vFfzc8pl.js:136 ReferenceError: Cannot access 'x' before initialization
+    at Wr (index-CO9rLDfj.js:6:78588)
+    at Object.react_stack_bottom_frame (index-vFfzc8pl.js:229:12448)
+    at oc (index-vFfzc8pl.js:120:804)
+    at kc (index-vFfzc8pl.js:141:5839)
+    at Pc (index-vFfzc8pl.js:150:10147)
+    at q (index-vFfzc8pl.js:45:108)
+    at Kh (index-vFfzc8pl.js:163:29810)
+    at Jh (index-vFfzc8pl.js:163:28479)
+    at Wc (index-vFfzc8pl.js:163:28312)
+    at Ih (index-vFfzc8pl.js:163:24807)
+
+The above error occurred in the <Wr> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, gR.
+
+overrideMethod @ hook.js:608
+oh @ index-vFfzc8pl.js:136
+lh @ index-vFfzc8pl.js:141
+q @ index-vFfzc8pl.js:45
+l.componentDidCatch.e.callback @ index-vFfzc8pl.js:141
+Dp @ index-vFfzc8pl.js:107
+Ep @ index-vFfzc8pl.js:107
+q @ index-vFfzc8pl.js:45
+Dh @ index-vFfzc8pl.js:163
+Nh @ index-vFfzc8pl.js:163
+Qn @ index-vFfzc8pl.js:163
+Nh @ index-vFfzc8pl.js:163
+Qn @ index-vFfzc8pl.js:163
+Nh @ index-vFfzc8pl.js:163
+Qn @ index-vFfzc8pl.js:163
+Nh @ index-vFfzc8pl.js:163
+Qn @ index-vFfzc8pl.js:163
+Nh @ index-vFfzc8pl.js:163
+Qn @ index-vFfzc8pl.js:163
+Nh @ index-vFfzc8pl.js:163
+Qn @ index-vFfzc8pl.js:163
+Nh @ index-vFfzc8pl.js:163
+ng @ index-vFfzc8pl.js:163
+ed @ index-vFfzc8pl.js:163
+Xh @ index-vFfzc8pl.js:163
+Ih @ index-vFfzc8pl.js:163
+mg @ index-vFfzc8pl.js:185
+ml @ index-vFfzc8pl.js:185
+ad @ index-vFfzc8pl.js:185
+(anonymous) @ index-vFfzc8pl.js:185
+<Wr>
+du.jsxDEV @ index-vFfzc8pl.js:15
+pa @ index-CO9rLDfj.js:6
+react_stack_bottom_frame @ index-vFfzc8pl.js:229
+oc @ index-vFfzc8pl.js:120
+kc @ index-vFfzc8pl.js:141
+Pc @ index-vFfzc8pl.js:150
+q @ index-vFfzc8pl.js:45
+Kh @ index-vFfzc8pl.js:163
+Jh @ index-vFfzc8pl.js:163
+Wc @ index-vFfzc8pl.js:163
+Ih @ index-vFfzc8pl.js:163
+mg @ index-vFfzc8pl.js:185
+ml @ index-vFfzc8pl.js:185
+ad @ index-vFfzc8pl.js:185
+(anonymous) @ index-vFfzc8pl.js:185
+<pa>
+du.jsxDEV @ index-vFfzc8pl.js:15
+va @ index-CO9rLDfj.js:6
+react_stack_bottom_frame @ index-vFfzc8pl.js:229
+oc @ index-vFfzc8pl.js:120
+kc @ index-vFfzc8pl.js:141
+Pc @ index-vFfzc8pl.js:150
+q @ index-vFfzc8pl.js:45
+Kh @ index-vFfzc8pl.js:163
+WS @ index-vFfzc8pl.js:163
+KS @ index-vFfzc8pl.js:163
+Ih @ index-vFfzc8pl.js:163
+fg @ index-vFfzc8pl.js:185
+d @ index-vFfzc8pl.js:23
+<va>
+du.jsxDEV @ index-vFfzc8pl.js:15
+(anonymous) @ withHierarchicalSelection-BtQD5-r3.js:1
+react_stack_bottom_frame @ index-vFfzc8pl.js:229
+oc @ index-vFfzc8pl.js:120
+kc @ index-vFfzc8pl.js:141
+Pc @ index-vFfzc8pl.js:150
+q @ index-vFfzc8pl.js:45
+Kh @ index-vFfzc8pl.js:163
+WS @ index-vFfzc8pl.js:163
+KS @ index-vFfzc8pl.js:163
+Ih @ index-vFfzc8pl.js:163
+fg @ index-vFfzc8pl.js:185
+d @ index-vFfzc8pl.js:23
+<...>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Pb @ index-vFfzc8pl.js:240
+P @ index-vFfzc8pl.js:240
+react_stack_bottom_frame @ index-vFfzc8pl.js:229
+oc @ index-vFfzc8pl.js:120
+kc @ index-vFfzc8pl.js:141
+Pc @ index-vFfzc8pl.js:150
+q @ index-vFfzc8pl.js:45
+Kh @ index-vFfzc8pl.js:163
+WS @ index-vFfzc8pl.js:163
+KS @ index-vFfzc8pl.js:163
+Ih @ index-vFfzc8pl.js:163
+fg @ index-vFfzc8pl.js:185
+d @ index-vFfzc8pl.js:23
+<P>
+du.jsxDEV @ index-vFfzc8pl.js:15
+ex @ index-vFfzc8pl.js:384
+react_stack_bottom_frame @ index-vFfzc8pl.js:229
+oc @ index-vFfzc8pl.js:120
+kc @ index-vFfzc8pl.js:141
+Pc @ index-vFfzc8pl.js:150
+q @ index-vFfzc8pl.js:45
+Kh @ index-vFfzc8pl.js:163
+Jh @ index-vFfzc8pl.js:163
+Wc @ index-vFfzc8pl.js:163
+Ih @ index-vFfzc8pl.js:163
+mg @ index-vFfzc8pl.js:185
+ml @ index-vFfzc8pl.js:185
+ad @ index-vFfzc8pl.js:185
+(anonymous) @ index-vFfzc8pl.js:185
+<ex>
+du.jsxDEV @ index-vFfzc8pl.js:15
+tx @ index-vFfzc8pl.js:384
+react_stack_bottom_frame @ index-vFfzc8pl.js:229
+oc @ index-vFfzc8pl.js:120
+kc @ index-vFfzc8pl.js:141
+Pc @ index-vFfzc8pl.js:150
+q @ index-vFfzc8pl.js:45
+Kh @ index-vFfzc8pl.js:163
+Jh @ index-vFfzc8pl.js:163
+Wc @ index-vFfzc8pl.js:163
+Ih @ index-vFfzc8pl.js:163
+fg @ index-vFfzc8pl.js:185
+d @ index-vFfzc8pl.js:23
+<tx>
+du.jsxDEV @ index-vFfzc8pl.js:15
+(anonymous) @ index-vFfzc8pl.js:384
+withHierarchicalSelection-BtQD5-r3.js:1 📊 [withHierarchicalSelection] Received 5 buildings from API
+withHierarchicalSelection-BtQD5-r3.js:1 ✅ [withHierarchicalSelection] Returning all 5 buildings (non-residence page)

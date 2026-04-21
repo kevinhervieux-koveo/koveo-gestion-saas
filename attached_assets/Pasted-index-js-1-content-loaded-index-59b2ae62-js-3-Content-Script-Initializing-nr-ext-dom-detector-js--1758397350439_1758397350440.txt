@@ -1,0 +1,36 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+budget-S0bhrkv5.js:31 🔍 [FORECAST DEBUG] Processing forecast data for auto-generation: {forecastLength: 12, mode: 'suggested', allMonthsWithAutoInvestment: Array(11)}
+budget-S0bhrkv5.js:31 🔍 [INVESTMENT DEBUG] Raw suggestions before deduplication: {mode: 'suggested', count: 0, investments: Array(0)}
+budget-S0bhrkv5.js:31 🔍 [DEDUP DEBUG] Starting deduplication: {inputCount: 0, inputItems: Array(0)}
+budget-S0bhrkv5.js:31 🔍 [DEDUP DEBUG] After sorting: {sortedItems: Array(0)}
+budget-S0bhrkv5.js:31 🔍 [DEDUP DEBUG] Final result: {originalCount: 0, deduplicatedCount: 0, finalItems: Array(0)}
+budget-S0bhrkv5.js:31 🔍 [INVESTMENT DEBUG] After deduplication: {mode: 'suggested', originalCount: 0, deduplicatedCount: 0, deduplicatedInvestments: Array(0)}
+index-CqdszGbr.js:185 [Violation] 'setTimeout' handler took 58ms
+budget-S0bhrkv5.js:31 🔍 [FORECAST DEBUG] Processing forecast data for auto-generation: {forecastLength: 12, mode: 'suggested', allMonthsWithAutoInvestment: Array(11)}
+budget-S0bhrkv5.js:31 🔍 [INVESTMENT DEBUG] Raw suggestions before deduplication: {mode: 'suggested', count: 0, investments: Array(0)}
+budget-S0bhrkv5.js:31 🔍 [DEDUP DEBUG] Starting deduplication: {inputCount: 0, inputItems: Array(0)}
+budget-S0bhrkv5.js:31 🔍 [DEDUP DEBUG] After sorting: {sortedItems: Array(0)}
+budget-S0bhrkv5.js:31 🔍 [DEDUP DEBUG] Final result: {originalCount: 0, deduplicatedCount: 0, finalItems: Array(0)}
+budget-S0bhrkv5.js:31 🔍 [INVESTMENT DEBUG] After deduplication: {mode: 'suggested', originalCount: 0, deduplicatedCount: 0, deduplicatedInvestments: Array(0)}
+budget-S0bhrkv5.js:31 🔍 [FORECAST DEBUG] Processing forecast data for auto-generation: {forecastLength: 12, mode: 'suggested', allMonthsWithAutoInvestment: Array(11)}
+budget-S0bhrkv5.js:31 🔍 [INVESTMENT DEBUG] Raw suggestions before deduplication: {mode: 'suggested', count: 0, investments: Array(0)}
+budget-S0bhrkv5.js:31 🔍 [DEDUP DEBUG] Starting deduplication: {inputCount: 0, inputItems: Array(0)}
+budget-S0bhrkv5.js:31 🔍 [DEDUP DEBUG] After sorting: {sortedItems: Array(0)}
+budget-S0bhrkv5.js:31 🔍 [DEDUP DEBUG] Final result: {originalCount: 0, deduplicatedCount: 0, finalItems: Array(0)}
+budget-S0bhrkv5.js:31 🔍 [INVESTMENT DEBUG] After deduplication: {mode: 'suggested', originalCount: 0, deduplicatedCount: 0, deduplicatedInvestments: Array(0)}
+index-CqdszGbr.js:185 [Violation] 'setTimeout' handler took 314ms
+budget-S0bhrkv5.js:31 🔍 [FORECAST DEBUG] Processing forecast data for auto-generation: {forecastLength: 12, mode: 'suggested', allMonthsWithAutoInvestment: Array(6)}
+budget-S0bhrkv5.js:31 🔍 [INVESTMENT DEBUG] Raw suggestions before deduplication: {mode: 'suggested', count: 1, investments: Array(1)}
+budget-S0bhrkv5.js:31 🔍 [DEDUP DEBUG] Starting deduplication: {inputCount: 1, inputItems: Array(1)}
+budget-S0bhrkv5.js:31 🔍 [DEDUP DEBUG] After sorting: {sortedItems: Array(1)}
+budget-S0bhrkv5.js:31 🔍 [DEDUP DEBUG] Processing item: {title: 'Suggested Capital Injection - August 2025', key: 'emergency_fund-owner-2025-08-01', alreadySeen: false, seenKeys: Array(0)}
+budget-S0bhrkv5.js:31 🔍 [DEDUP DEBUG] ✅ Added item: Suggested Capital Injection - August 2025
+budget-S0bhrkv5.js:31 🔍 [DEDUP DEBUG] Final result: {originalCount: 1, deduplicatedCount: 1, finalItems: Array(1)}
+budget-S0bhrkv5.js:31 🔍 [INVESTMENT DEBUG] After deduplication: {mode: 'suggested', originalCount: 1, deduplicatedCount: 1, deduplicatedInvestments: Array(1)}
+index-CqdszGbr.js:185 [Violation] 'setTimeout' handler took 185ms

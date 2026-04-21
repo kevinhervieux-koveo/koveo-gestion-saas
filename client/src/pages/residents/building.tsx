@@ -2,96 +2,90 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { Header } from '@/components/layout/header';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Label } from '@/components/ui/label';
-import {
-  Building as BuildingIcon,
-  MapPin,
-  Calendar,
-  FileText,
-  Home,
-  Car,
-  Package,
-  ArrowLeft,
-} from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Building as BuildingIcon, Search } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 import { withHierarchicalSelection } from '@/components/hoc/withHierarchicalSelection';
-
-interface BuildingData {
-  id: string;
-  name: string;
-  address: string;
-  city: string;
-  state?: string;
-  postal_code: string;
-  organization_id: string;
-  province?: string;
-  postalCode?: string;
-  buildingType?: string;
-  yearBuilt?: number;
-  managementCompany?: string;
-  totalFloors?: number;
-  parkingSpaces?: number;
-  storageSpaces?: number;
-  amenities?: string | string[];
-}
+import { BuildingCard, BuildingData } from '@/components/buildings/BuildingCard';
+import { useState, useMemo } from 'react';
 
 interface MyBuildingProps {
   buildingId?: string;
+  organizationId?: string;
   showBackButton?: boolean;
   backButtonLabel?: string;
   onBack?: () => void;
 }
 
-function MyBuilding({ buildingId, showBackButton, backButtonLabel, onBack }: MyBuildingProps) {
+function MyBuilding({ buildingId, organizationId, showBackButton, backButtonLabel, onBack }: MyBuildingProps) {
   const [, navigate] = useLocation();
   const { t } = useLanguage();
+  const [searchTerm, setSearchTerm] = useState('');
 
-  // Fetch user's accessible buildings and find the specific one
+  // Fetch user's accessible buildings
   const {
-    data: userBuildings,
-    isLoading: isLoadingBuilding,
+    data: userBuildings = [],
+    isLoading: isLoadingBuildings,
+    error
   } = useQuery({
-    queryKey: ['/api/users/me/buildings'],
+    queryKey: ['/api/users/me/buildings', { organizationId }],
     queryFn: async () => {
-      const response = await fetch('/api/users/me/buildings');
+      const params = new URLSearchParams();
+      if (organizationId) {
+        params.append('organization_id', organizationId);
+      }
+      
+      const url = `/api/users/me/buildings${params.toString() ? `?${params.toString()}` : ''}`;
+      const response = await fetch(url);
       if (!response.ok) {
         throw new Error('Failed to fetch buildings');
       }
       return response.json();
     },
-    enabled: !!buildingId,
   });
 
-  // Find the specific building from user's accessible buildings
-  const buildingData: BuildingData | null = React.useMemo(() => {
-    if (!userBuildings || !buildingId) return null;
-    const building = userBuildings.find((building: any) => building.id === buildingId);
-    if (!building) return null;
+  // Transform building data to match BuildingCard interface
+  const buildings: BuildingData[] = useMemo(() => {
+    if (!Array.isArray(userBuildings)) return [];
     
-    // Map API response to our interface
-    return {
-      ...building,
-      province: building.state || building.province,
-      postalCode: building.postal_code || building.postalCode,
-    };
-  }, [userBuildings, buildingId]);
+    return userBuildings.map((building: any) => ({
+      id: building.id,
+      name: building.name || '',
+      address: building.address || '',
+      city: building.city || '',
+      province: building.province || building.state || '',
+      postalCode: building.postalCode || building.postal_code || '',
+      buildingType: building.buildingType || building.building_type || '',
+      totalUnits: building.totalUnits || building.total_units || 0,
+      organizationId: building.organizationId || building.organization_id || '',
+      isActive: building.isActive ?? true,
+      createdAt: building.createdAt ? new Date(building.createdAt) : new Date(),
+      updatedAt: building.updatedAt ? new Date(building.updatedAt) : new Date(),
+    }));
+  }, [userBuildings]);
 
-  const handleViewDocuments = (targetBuildingId: string) => {
-    navigate(`/residents/building/documents?buildingId=${targetBuildingId}`);
-  };
+  // Filter buildings based on search
+  const filteredBuildings = useMemo(() => {
+    if (!searchTerm.trim()) return buildings;
+    
+    return buildings.filter(
+      (building) =>
+        building.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        building.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        `${building.city}, ${building.province}`.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [buildings, searchTerm]);
 
-  if (isLoadingBuilding) {
+  if (isLoadingBuildings) {
     return (
       <div className='flex-1 flex flex-col overflow-hidden'>
-        <Header title='My Building' subtitle='View building information and documents' />
+        <Header title='My Buildings' subtitle='View accessible buildings and documents' />
         <div className='flex-1 overflow-auto p-6'>
-          <div className='max-w-4xl mx-auto'>
+          <div className='max-w-6xl mx-auto'>
             <div className='text-center py-8'>
               <div className='animate-spin w-6 h-6 border-2 border-primary border-t-transparent rounded-full mx-auto'></div>
-              <p className='text-muted-foreground mt-2'>Loading building information...</p>
+              <p className='text-muted-foreground mt-2'>Loading buildings...</p>
             </div>
           </div>
         </div>
@@ -99,19 +93,21 @@ function MyBuilding({ buildingId, showBackButton, backButtonLabel, onBack }: MyB
     );
   }
 
-  if (!buildingData) {
+  if (error) {
     return (
       <div className='flex-1 flex flex-col overflow-hidden'>
-        <Header title='My Building' subtitle='View building information and documents' />
+        <Header title='My Buildings' subtitle='View accessible buildings and documents' />
         <div className='flex-1 overflow-auto p-6'>
-          <div className='max-w-4xl mx-auto'>
+          <div className='max-w-6xl mx-auto'>
             <Card>
               <CardContent className='p-8 text-center'>
-                <BuildingIcon className='w-16 h-16 mx-auto text-gray-400 mb-4' />
-                <h3 className='text-lg font-semibold text-gray-600 mb-2'>
-                  Building Not Found
+                <BuildingIcon className='w-16 h-16 mx-auto text-red-400 mb-4' />
+                <h3 className='text-lg font-semibold text-red-600 mb-2'>
+                  Error Loading Buildings
                 </h3>
-                <p className='text-gray-500'>Unable to load building information.</p>
+                <p className='text-red-500'>
+                  Failed to load building information. Please try again later.
+                </p>
               </CardContent>
             </Card>
           </div>
@@ -122,173 +118,64 @@ function MyBuilding({ buildingId, showBackButton, backButtonLabel, onBack }: MyB
 
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
-      <Header title='My Building' subtitle='View building information and documents' />
-
-      {showBackButton && onBack && (
-        <div className='border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
-          <div className='flex items-center px-6 py-4'>
-            <Button
-              variant='outline'
-              size='sm'
-              onClick={onBack}
-              className='flex items-center gap-2'
-              data-testid='button-back-to-building'
-            >
-              <ArrowLeft className='w-4 h-4' />
-              {backButtonLabel}
-            </Button>
-          </div>
-        </div>
-      )}
+      <Header title='My Buildings' subtitle='View accessible buildings and documents' />
 
       <div className='flex-1 overflow-auto p-6'>
-        <div className='max-w-4xl mx-auto space-y-6'>
-          {/* Building Details Card */}
-          <Card className='hover:shadow-lg transition-shadow'>
-            <CardHeader>
-              <CardTitle className='flex items-center gap-2'>
-                <BuildingIcon className='w-5 h-5' />
-                {buildingData.name}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className='space-y-6'>
-              {/* Address Section */}
-              <div className='space-y-3'>
-                <div>
-                  <Label className='text-xs font-medium text-gray-500'>{t('address')}</Label>
-                  <div className='flex items-start gap-2 mt-1'>
-                    <MapPin className='w-4 h-4 mt-0.5 text-muted-foreground' />
-                    <div>
-                      <p className='text-sm text-gray-700'>{buildingData.address}</p>
-                      <p className='text-sm text-gray-700'>
-                        {buildingData.city}, {buildingData.province || buildingData.state} {buildingData.postalCode || buildingData.postal_code}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
+        <div className='max-w-6xl mx-auto space-y-6'>
+          {/* Search Control */}
+          <div className='flex flex-col sm:flex-row gap-4 items-center justify-between'>
+            <div className='relative w-full sm:w-96'>
+              <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4' />
+              <Input
+                placeholder='Search buildings by name or address...'
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className='pl-10'
+                data-testid='input-search-buildings'
+              />
+            </div>
+          </div>
 
-              {/* Building Details Grid */}
-              <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-                <div className='space-y-3'>
-                  {buildingData.buildingType && (
-                    <div>
-                      <Label className='text-xs font-medium text-gray-500'>
-                        {t('buildingType')}
-                      </Label>
-                      <p className='text-sm text-gray-700 capitalize'>{buildingData.buildingType}</p>
-                    </div>
-                  )}
-                  
-                  {buildingData.yearBuilt && (
-                    <div>
-                      <Label className='text-xs font-medium text-gray-500'>
-                        {t('yearBuilt')}
-                      </Label>
-                      <div className='flex items-center gap-2 mt-1'>
-                        <Calendar className='w-4 h-4 text-muted-foreground' />
-                        <span className='text-sm text-gray-700'>{buildingData.yearBuilt}</span>
-                      </div>
-                    </div>
-                  )}
-
-                  {buildingData.managementCompany && (
-                    <div>
-                      <Label className='text-xs font-medium text-gray-500'>
-                        {t('managementCompany')}
-                      </Label>
-                      <p className='text-sm text-gray-700'>{buildingData.managementCompany}</p>
-                    </div>
-                  )}
-                </div>
-
-                <div className='space-y-3'>
-                  {buildingData.totalFloors && (
-                    <div>
-                      <Label className='text-xs font-medium text-gray-500'>
-                        {t('totalFloors')}
-                      </Label>
-                      <div className='flex items-center gap-2 mt-1'>
-                        <BuildingIcon className='w-4 h-4 text-muted-foreground' />
-                        <span className='text-sm text-gray-700'>{buildingData.totalFloors}</span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Parking and Storage */}
-                  {(buildingData.parkingSpaces || buildingData.storageSpaces) && (
-                    <div className='space-y-2'>
-                      {buildingData.parkingSpaces && (
-                        <div>
-                          <Label className='text-xs font-medium text-gray-500'>{t('parking')}</Label>
-                          <div className='flex items-center gap-2 mt-1'>
-                            <Car className='w-4 h-4 text-muted-foreground' />
-                            <span className='text-sm text-gray-700'>
-                              {buildingData.parkingSpaces} {t('spaces')}
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                      {buildingData.storageSpaces && (
-                        <div>
-                          <Label className='text-xs font-medium text-gray-500'>{t('storage')}</Label>
-                          <div className='flex items-center gap-2 mt-1'>
-                            <Package className='w-4 h-4 text-muted-foreground' />
-                            <span className='text-sm text-gray-700'>
-                              {buildingData.storageSpaces} {t('units')}
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-
-              {/* Amenities */}
-              {buildingData.amenities && (
-                <div>
-                  <Label className='text-xs font-medium text-gray-500'>{t('amenities')}</Label>
-                  <div className='flex flex-wrap gap-2 mt-1'>
-                    {(() => {
-                      try {
-                        const amenities =
-                          typeof buildingData.amenities === 'string'
-                            ? JSON.parse(buildingData.amenities)
-                            : buildingData.amenities;
-                        return Array.isArray(amenities)
-                          ? amenities.map((amenity: string, index: number) => (
-                              <Badge key={index} variant='outline' className='text-xs'>
-                                {amenity}
-                              </Badge>
-                            ))
-                          : null;
-                      } catch (_e) {
-                        return (
-                          <span className='text-xs text-muted-foreground'>
-                            {t('unableToDisplayAmenities')}
-                          </span>
-                        );
-                      }
-                    })()}
-                  </div>
-                </div>
-              )}
-
-              {/* Actions */}
-              <div className='pt-4 border-t'>
-                <Button
-                  onClick={() => handleViewDocuments(buildingData.id)}
-                  className='w-full justify-start'
-                  data-testid='button-view-documents'
-                >
-                  <FileText className='w-4 h-4 mr-2' />
-                  {t('viewDocumentsButton')}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Buildings Grid */}
+          {filteredBuildings.length > 0 ? (
+            <div className='grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6'>
+              {filteredBuildings.map((building) => (
+                <BuildingCard
+                  key={`residents-buildings-${building.id}`}
+                  building={building}
+                  userRole="resident"
+                  t={t}
+                  showEditButtons={false}
+                  showResidencesButton={false}
+                  documentsPath={`/residents/building/documents?buildingId=${building.id}`}
+                />
+              ))}
+            </div>
+          ) : buildings.length === 0 ? (
+            <Card>
+              <CardContent className='p-8 text-center'>
+                <BuildingIcon className='w-16 h-16 mx-auto text-gray-400 mb-4' />
+                <h3 className='text-lg font-semibold text-gray-600 mb-2'>
+                  No Buildings Found
+                </h3>
+                <p className='text-gray-500'>
+                  You don't have access to any buildings yet. Contact your administrator for access.
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardContent className='p-8 text-center'>
+                <BuildingIcon className='w-16 h-16 mx-auto text-gray-400 mb-4' />
+                <h3 className='text-lg font-semibold text-gray-600 mb-2'>
+                  No Matching Buildings
+                </h3>
+                <p className='text-gray-500'>
+                  No buildings match your search criteria. Try adjusting your search terms.
+                </p>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>
@@ -297,5 +184,5 @@ function MyBuilding({ buildingId, showBackButton, backButtonLabel, onBack }: MyB
 
 // Export the component wrapped with hierarchical selection
 export default withHierarchicalSelection(MyBuilding, {
-  hierarchy: ['organization', 'building'],
+  hierarchy: ['organization'],
 });

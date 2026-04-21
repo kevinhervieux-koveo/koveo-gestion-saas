@@ -1,0 +1,124 @@
+2025-09-29 16:38:13.79
+dd04ff05
+User
+"cause": {
+2025-09-29 16:38:13.79
+dd04ff05
+User
+"stack": "NeonDbError: column auto_generated_projects.element_id does not exist\n at dr.execute (file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1298:10)\n at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n at async file:///home/runner/workspace/node_modules/drizzle-orm/neon-http/session.js:46:14\n at async NeonHttpPreparedQuery.queryWithCache (file:///home/runner/workspace/node_modules/drizzle-orm/pg-core/session.js:39:16)\n at async NeonHttpPreparedQuery.execute (file:///home/runner/workspace/node_modules/drizzle-orm/neon-http/session.js:45:20)\n at async file:///home/runner/workspace/dist/index.js:40518:24",
+2025-09-29 16:38:13.79
+dd04ff05
+User
+"message": "column auto_generated_projects.element_id does not exist"
+2025-09-29 16:38:13.79
+dd04ff05
+User
+}
+2025-09-29 16:38:13.79
+dd04ff05
+User
+}
+2025-09-29 16:38:15.73
+dd04ff05
+User
+Failed to record Web Vital: ZodError: [
+2025-09-29 16:38:15.73
+dd04ff05
+User
+{
+2025-09-29 16:38:15.73
+dd04ff05
+User
+"code": "invalid_value",
+2025-09-29 16:38:15.73
+dd04ff05
+User
+"values": [
+2025-09-29 16:38:15.73
+dd04ff05
+User
+"CLS",
+2025-09-29 16:38:15.73
+dd04ff05
+User
+"FID",
+2025-09-29 16:38:15.73
+dd04ff05
+User
+"LCP",
+2025-09-29 16:38:15.73
+dd04ff05
+User
+"FCP",
+2025-09-29 16:38:15.73
+dd04ff05
+User
+"TTFB"
+2025-09-29 16:38:15.73
+dd04ff05
+User
+],
+2025-09-29 16:38:15.73
+dd04ff05
+User
+"path": [
+2025-09-29 16:38:15.73
+dd04ff05
+User
+"name"
+2025-09-29 16:38:15.73
+dd04ff05
+User
+],
+2025-09-29 16:38:15.73
+dd04ff05
+User
+"message": "Invalid option: expected one of \"CLS\"|\"FID\"|\"LCP\"|\"FCP\"|\"TTFB\""
+2025-09-29 16:38:15.73
+dd04ff05
+User
+}
+2025-09-29 16:38:15.73
+dd04ff05
+User
+]
+2025-09-29 16:38:15.73
+dd04ff05
+User
+at file:///home/runner/workspace/dist/index.js:42690:35
+2025-09-29 16:38:15.73
+dd04ff05
+User
+at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+2025-09-29 16:38:15.73
+dd04ff05
+User
+at next (/home/runner/workspace/node_modules/express/lib/router/route.js:149:13)
+2025-09-29 16:38:15.73
+dd04ff05
+User
+at Route.dispatch (/home/runner/workspace/node_modules/express/lib/router/route.js:119:3)
+2025-09-29 16:38:15.73
+dd04ff05
+User
+at Layer.handle [as handle_request] (/home/runner/workspace/node_modules/express/lib/router/layer.js:95:5)
+2025-09-29 16:38:15.73
+dd04ff05
+User
+at /home/runner/workspace/node_modules/express/lib/router/index.js:284:15
+2025-09-29 16:38:15.73
+dd04ff05
+User
+at Function.process_params (/home/runner/workspace/node_modules/express/lib/router/index.js:346:12)
+2025-09-29 16:38:15.73
+dd04ff05
+User
+at next (/home/runner/workspace/node_modules/express/lib/router/index.js:280:10)
+2025-09-29 16:38:15.73
+dd04ff05
+User
+at Function.handle (/home/runner/workspace/node_modules/express/lib/router/index.js:175:3)
+2025-09-29 16:38:15.73
+dd04ff05
+User
+at router (/home/runner/workspace/node_modules/express/lib/router/index.js:47:12)

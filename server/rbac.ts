@@ -224,6 +224,7 @@ export async function canUserPerformWriteOperation(
   userId: string,
   action:
     | 'create'
+    | 'read'
     | 'update'
     | 'delete'
     | 'manage'
@@ -237,10 +238,34 @@ export async function canUserPerformWriteOperation(
   // Check if user is from Open Demo organization (view-only)
   const isOpenDemo = await isOpenDemoUser(userId);
   if (isOpenDemo) {
-    return false; // Open Demo users cannot perform any write operations
+    // Open Demo users can only perform read operations
+    return action === 'read';
   }
 
-  return true; // Regular users can perform write operations based on their permissions
+  // For non-demo users, check if they have the required permissions
+  // This is where additional permission checks could be added in the future
+  // For now, regular users can perform all operations except those restricted by role
+  
+  try {
+    const user = await db.query.users.findFirst({
+      where: eq(schema.users.id, userId),
+    });
+
+    if (!user || !user.isActive) {
+      return false;
+    }
+
+    // Role-based restrictions could be added here
+    // For example, residents might be restricted from certain management operations
+    if (action === 'manage' && ['resident', 'demo_resident'].includes(user.role)) {
+      return false;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error checking user permissions:', error);
+    return false; // Fail secure
+  }
 }
 
 /**

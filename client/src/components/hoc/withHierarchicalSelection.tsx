@@ -6,12 +6,16 @@ import { Header } from '@/components/layout/header';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
+import { useAuth } from '@/hooks/use-auth';
 
 /**
  * Configuration for the hierarchical selection flow
  */
 interface HierarchyConfig {
   hierarchy: ('organization' | 'building' | 'residence')[];
+  checkResidenceAccess?: boolean;
+  title?: string; // Custom title for the page
+  subtitle?: string; // Custom subtitle for the page
 }
 
 /**
@@ -21,6 +25,7 @@ interface HierarchyProps {
   organizationId?: string;
   buildingId?: string;
   residenceId?: string;
+  buildingName?: string; // Add building name
   // Back navigation props
   showBackButton?: boolean;
   backButtonLabel?: string;
@@ -60,6 +65,7 @@ export function withHierarchicalSelection<T extends object>(
     const [location, setLocation] = useLocation();
     const search = useSearch();
     const { t } = useLanguage();
+    const { user } = useAuth();
     
     // Force re-render when location changes
     React.useEffect(() => {
@@ -74,8 +80,6 @@ export function withHierarchicalSelection<T extends object>(
 
     // Determine current selection level
     const currentLevel = getCurrentLevel(config.hierarchy, { organizationId, buildingId, residenceId });
-    
-    
     
     // Navigate to update URL parameters
     const navigate = (updates: Record<string, string | null>) => {
@@ -104,143 +108,163 @@ export function withHierarchicalSelection<T extends object>(
       isLoading: isLoadingOrganizations
     } = useQuery<Organization[]>({
       queryKey: ['/api/users/me/organizations'],
-      enabled: currentLevel === 'organization'
+      enabled: Boolean(currentLevel === 'organization'),
+      staleTime: 5 * 60 * 1000, // 5 minutes cache
+      gcTime: 10 * 60 * 1000, // 10 minutes garbage collection
+      retry: 2,
+      retryDelay: 1000
     });
 
     // Fetch accessible building counts for each organization (bottom up logic)
     const {
       data: buildingCounts = {},
-      isLoading: isLoadingBuildingCounts
+      isLoading: isLoadingBuildingCounts,
+      error: buildingCountsError
     } = useQuery<Record<string, number>>({
-      queryKey: ['/api/organizations/accessible-building-counts'],
-      enabled: currentLevel === 'organization' && organizations.length > 0,
+      queryKey: ['/api/organizations/accessible-building-counts', user?.role, config.checkResidenceAccess || false],
+      enabled: Boolean(currentLevel === 'organization' && organizations.length > 0),
+      staleTime: 2 * 60 * 1000, // 2 minutes cache (shorter for better consistency)
+      gcTime: 5 * 60 * 1000, // 5 minutes garbage collection
+      retry: 2,
+      retryDelay: 1000,
       queryFn: async () => {
-        const counts: Record<string, number> = {};
+        // Use explicit config flag instead of pathname detection
+        const params = new URLSearchParams();
         
-        // For residence-related pages, check if buildings have accessible residences
-        const isResidencePage = window.location.pathname.includes('residence');
-        
-        // Fetch accessible building count for each organization
-        for (const org of organizations) {
-          try {
-            const response = await fetch(`/api/organizations/${org.id}/buildings`);
-            if (response.ok) {
-              const buildings = await response.json();
-              
-              if (isResidencePage) {
-                // For residence pages, only count buildings that have accessible residences
-                let accessibleBuildingCount = 0;
-                for (const building of buildings) {
-                  try {
-                    const residenceResponse = await fetch(`/api/buildings/${building.id}/residences`);
-                    if (residenceResponse.ok) {
-                      const residences = await residenceResponse.json();
-                      if (residences.length > 0) {
-                        accessibleBuildingCount++;
-                      }
-                    }
-                  } catch (error) {
-                    console.error(`Failed to fetch residences for building ${building.id}:`, error);
-                  }
-                }
-                counts[org.id] = accessibleBuildingCount;
-              } else {
-                // For non-residence pages, count all buildings
-                counts[org.id] = buildings.length;
-              }
-            } else {
-              counts[org.id] = 0;
-            }
-          } catch (error) {
-            console.error(`Failed to fetch building count for org ${org.id}:`, error);
-            counts[org.id] = 0;
-          }
+        if (config.checkResidenceAccess) {
+          params.append('checkResidenceAccess', 'true');
         }
         
+        const url = `/api/organizations/accessible-building-counts${params.toString() ? `?${params.toString()}` : ''}`;
+        
+        const response = await fetch(url, {
+          credentials: 'include'
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Failed to fetch building counts: ${response.status}`);
+        }
+        
+        const counts = await response.json();
         return counts;
       }
     });
 
-    // Fetch buildings with residences filter (bottom up logic)
+
+    // Fetch buildings with proper filtering (bottom up logic)
     const {
       data: buildings = [],
-      isLoading: isLoadingBuildings
+      isLoading: isLoadingBuildings,
+      error: buildingsError
     } = useQuery<Building[]>({
-      queryKey: organizationId ? ['/api/organizations', organizationId, 'buildings', 'with-residences'] : ['/api/users/me/buildings', 'with-residences'],
+      queryKey: organizationId ? ['/api/users/me/buildings', organizationId, config.checkResidenceAccess || false] : ['/api/users/me/buildings', config.checkResidenceAccess || false],
       queryFn: async () => {
-        const url = organizationId 
+        // Always use the user-specific endpoint for residents/tenants to ensure proper access control
+        const isResidentOrTenant = ['resident', 'tenant', 'demo_resident', 'demo_tenant'].includes(user?.role || '');
+        
+        // When checkResidenceAccess is true, use user-specific endpoint for managers too
+        // This ensures managers only see buildings they have access to manage
+        const url = (organizationId && !isResidentOrTenant && !config.checkResidenceAccess)
           ? `/api/organizations/${organizationId}/buildings`
           : '/api/users/me/buildings';
         
-        // Add common spaces filter for common-spaces page
+        // Add filters based on explicit config flags
         const isCommonSpacesPage = window.location.pathname.includes('common-spaces');
-        const isResidencePage = window.location.pathname.includes('residence');
         
-        let fullUrl = url;
+        const params = new URLSearchParams();
+        
         if (isCommonSpacesPage) {
-          fullUrl = `${url}?has_common_spaces=true`;
+          params.append('has_common_spaces', 'true');
         }
         
-        const response = await fetch(fullUrl);
-        if (!response.ok) {
-          throw new Error('Failed to fetch buildings');
+        // For user endpoint, add organization filter if needed
+        if (organizationId && url.includes('/api/users/me/buildings')) {
+          params.append('organization_id', organizationId);
         }
+        
+        const fullUrl = `${url}${params.toString() ? `?${params.toString()}` : ''}`;
+        
+        const response = await fetch(fullUrl, {
+          credentials: 'include'
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Failed to fetch buildings: ${response.status}`);
+        }
+        
         let allBuildings = await response.json();
         
-        // For residence pages, filter buildings that have accessible residences
-        if (isResidencePage) {
-          const buildingsWithResidences = [];
-          for (const building of allBuildings) {
-            try {
-              const residenceResponse = await fetch(`/api/buildings/${building.id}/residences`);
-              if (residenceResponse.ok) {
-                const residences = await residenceResponse.json();
-                if (residences.length > 0) {
-                  buildingsWithResidences.push(building);
-                }
-              }
-            } catch (error) {
-              console.error(`Failed to fetch residences for building ${building.id}:`, error);
-            }
-          }
-          return buildingsWithResidences;
-        }
-        
+        // When using /api/users/me/buildings endpoint (residents, tenants, or managers with checkResidenceAccess),
+        // the endpoint already returns only buildings the user has access to, so no additional filtering needed
         return allBuildings;
       },
-      enabled: (currentLevel === 'building' || currentLevel === 'complete') && (!!organizationId || config.hierarchy.length === 1),
-      staleTime: 0
+      enabled: Boolean(
+        (currentLevel === 'building' || currentLevel === 'complete' || (buildingId && config.hierarchy.includes('building'))) && 
+        (!!organizationId || config.hierarchy.length === 1)
+      ),
+      staleTime: 2 * 60 * 1000, // 2 minutes cache (shorter for better consistency)
+      gcTime: 5 * 60 * 1000, // 5 minutes garbage collection
+      retry: 2,
+      retryDelay: 1000
     });
 
-    // Fetch residences
+
+    // Fetch residences using secure user-specific endpoint for residents
     const {
       data: residences = [],
-      isLoading: isLoadingResidences
+      isLoading: isLoadingResidences,
+      error: residencesError
     } = useQuery<Residence[]>({
-      queryKey: ['/api/buildings', buildingId, 'residences'],
-      enabled: currentLevel === 'residence' && !!buildingId
+      queryKey: ['residences', buildingId, user?.role],
+      queryFn: async () => {
+        const isResidentOrTenant = ['resident', 'tenant', 'demo_resident', 'demo_tenant'].includes(user?.role || '');
+        
+        const url = isResidentOrTenant 
+          ? `/api/users/me/residences?building_id=${buildingId}`
+          : `/api/buildings/${buildingId}/residences`;
+          
+        const response = await fetch(url, {
+          credentials: 'include'
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Failed to fetch residences: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        return data;
+      },
+      enabled: Boolean(currentLevel === 'residence' && !!buildingId),
+      staleTime: 2 * 60 * 1000, // 2 minutes cache (shorter for better consistency)
+      gcTime: 5 * 60 * 1000, // 5 minutes garbage collection
+      retry: 2,
+      retryDelay: 1000
     });
+
 
     // Auto-forwarding logic
     React.useEffect(() => {
-      if (currentLevel === 'organization' && organizations.length === 1 && !organizationId) {
+      if (currentLevel === 'organization' && organizations.length === 1 && !organizationId && !isLoadingOrganizations) {
         // Auto-forward if only one organization
         navigate({ organization: organizations[0].id });
         return;
       }
       
-      if (currentLevel === 'building' && buildings.length === 1 && !buildingId) {
+      if (currentLevel === 'building' && buildings.length === 1 && !buildingId && !isLoadingBuildings) {
         // Auto-forward if only one building (preserve organization)  
         navigate({ organization: organizationId, building: buildings[0].id });
         return;
       }
       
-      if (currentLevel === 'residence' && residences.length === 1 && !residenceId) {
+      if (currentLevel === 'residence' && residences.length === 1 && !residenceId && !isLoadingResidences) {
         // Auto-forward if only one residence (preserve organization and building)
         navigate({ organization: organizationId, building: buildingId, residence: residences[0].id });
         return;
       }
-    }, [organizations.length, buildings.length, residences.length, currentLevel, organizationId, buildingId, residenceId]);
+    }, [organizations.length, buildings.length, residences.length, currentLevel, organizationId, buildingId, residenceId, isLoadingOrganizations, isLoadingBuildings, isLoadingResidences]);
 
     // Handle selection
     const handleSelection = (id: string) => {      
@@ -269,13 +293,13 @@ export function withHierarchicalSelection<T extends object>(
       // Filter out organizations with no accessible buildings (bottom up logic)
       const accessibleOrganizations = organizations.filter(org => {
         const buildingCount = buildingCounts[org.id] ?? 0;
-        return buildingCount > 0;
+        const hasAccess = buildingCount > 0;
+        return hasAccess;
       });
 
       const items: SelectionGridItem[] = accessibleOrganizations.map(org => {
         const buildingCount = buildingCounts[org.id] ?? 0;
-        const isResidencePage = window.location.pathname.includes('residence');
-        const buildingLabel = isResidencePage 
+        const buildingLabel = config.checkResidenceAccess 
           ? (buildingCount === 1 ? 'building with residences' : 'buildings with residences')
           : (buildingCount === 1 ? 'building' : 'buildings');
         
@@ -291,7 +315,7 @@ export function withHierarchicalSelection<T extends object>(
 
       return (
         <div className='flex-1 flex flex-col overflow-hidden'>
-          <Header title={t('billsManagement' as any)} subtitle={t('selectOrganization' as any)} />
+          <Header title={config.title || t('buildingManagement' as any)} subtitle={t('selectOrganization' as any)} />
           <div className='flex-1 overflow-auto p-6'>
             <SelectionGrid
               title=""
@@ -306,16 +330,18 @@ export function withHierarchicalSelection<T extends object>(
     }
 
     if (currentLevel === 'building') {
-      const items: SelectionGridItem[] = buildings.map(building => ({
-        id: building.id,
-        name: building.name,
-        details: building.address,
-        type: 'building'
-      }));
+      const items: SelectionGridItem[] = buildings.map(building => {
+        return {
+          id: building.id,
+          name: building.name,
+          details: building.address,
+          type: 'building'
+        };
+      });
 
       return (
         <div className='flex-1 flex flex-col overflow-hidden'>
-          <Header title={t('billsManagement' as any)} subtitle={t('selectBuilding' as any)} />
+          <Header title={config.title || t('buildingManagement' as any)} subtitle={t('selectBuilding' as any)} />
           
           {/* Back to Organization Navigation - only show if user has multiple organizations */}
           {config.hierarchy.includes('organization') && organizations.length > 1 && (
@@ -346,19 +372,21 @@ export function withHierarchicalSelection<T extends object>(
     }
 
     if (currentLevel === 'residence') {
-      const items: SelectionGridItem[] = residences.map(residence => ({
-        id: residence.id,
-        name: `${t('unit' as any)} ${residence.unitNumber}`,
-        details: residence.buildingName,
-        type: 'residence'
-      }));
+      const items: SelectionGridItem[] = residences.map(residence => {
+        return {
+          id: residence.id,
+          name: `${t('unit' as any)} ${residence.unitNumber}`,
+          details: residence.buildingName,
+          type: 'residence'
+        };
+      });
 
       // Determine if we should show back button to building level
       const showBackToBuilding = config.hierarchy.includes('building') && buildings.length > 1;
 
       return (
         <div className='flex-1 flex flex-col overflow-hidden'>
-          <Header title={t('billsManagement' as any)} subtitle={t('selectResidence' as any)} />
+          <Header title={config.title || t('buildingManagement' as any)} subtitle={t('selectResidence' as any)} />
           
           {/* Back to Building Navigation - only show if user has multiple buildings */}
           {showBackToBuilding && (
@@ -370,7 +398,7 @@ export function withHierarchicalSelection<T extends object>(
                 data-testid="button-back-to-building"
               >
                 <ArrowLeft className="w-4 h-4" />
-                Building
+                {buildings.find(b => b.id === buildingId)?.name || 'Building'}
               </Button>
             </div>
           )}
@@ -389,6 +417,10 @@ export function withHierarchicalSelection<T extends object>(
     }
 
     // All required selections are complete - render the wrapped component
+    // Find building name from buildings data
+    const currentBuilding = buildings.find(b => b.id === buildingId);
+    const buildingName = currentBuilding?.name;
+
     // Determine back navigation props
     const getBackNavigationProps = () => {
       // For residents with building hierarchy, always show back button if they have a buildingId
@@ -396,7 +428,7 @@ export function withHierarchicalSelection<T extends object>(
       if (config.hierarchy.includes('building') && config.hierarchy.length === 1 && buildingId && buildings.length > 1) {
         return {
           showBackButton: true,
-          backButtonLabel: 'Building',
+          backButtonLabel: buildingName || 'Building',
           onBack: () => {
             const basePath = location.split('?')[0];
             window.history.pushState(null, '', basePath);
@@ -409,7 +441,7 @@ export function withHierarchicalSelection<T extends object>(
       if (config.hierarchy.includes('building') && buildings.length > 1 && buildingId) {
         return {
           showBackButton: true,
-          backButtonLabel: 'Building',
+          backButtonLabel: buildingName || 'Building',
           onBack: () => {
             navigate({ building: null, residence: null });
           }
@@ -440,6 +472,7 @@ export function withHierarchicalSelection<T extends object>(
         organizationId={organizationId || undefined}
         buildingId={buildingId || undefined}
         residenceId={residenceId || undefined}
+        buildingName={buildingName || undefined}
         {...backNavProps}
       />
     );

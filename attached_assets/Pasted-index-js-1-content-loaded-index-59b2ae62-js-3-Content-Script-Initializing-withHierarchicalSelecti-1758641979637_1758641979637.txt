@@ -1,0 +1,68 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+withHierarchicalSelection-BHZFVX4Q.js:1 🏢 [withHierarchicalSelection] Rendering organization selection...
+withHierarchicalSelection-BHZFVX4Q.js:1    → Organizations from API: 0
+withHierarchicalSelection-BHZFVX4Q.js:1    → Building counts: Object
+withHierarchicalSelection-BHZFVX4Q.js:1 🎯 [withHierarchicalSelection] Filtered to 0 accessible organizations
+withHierarchicalSelection-BHZFVX4Q.js:1 🏢 [withHierarchicalSelection] Rendering organization selection...
+withHierarchicalSelection-BHZFVX4Q.js:1    → Organizations from API: 3
+withHierarchicalSelection-BHZFVX4Q.js:1    → Building counts: Object
+withHierarchicalSelection-BHZFVX4Q.js:1    → Org "Demo 123" (e9bb7862-4ba5-4822-848f-f3692e826e73): 0 buildings, access: false
+withHierarchicalSelection-BHZFVX4Q.js:1    → Org "Koveo" (5228cb04-1fc9-4291-b76a-ccd89a40324d): 0 buildings, access: false
+withHierarchicalSelection-BHZFVX4Q.js:1    → Org "Test Demo Organization" (f0e34e59-0d81-4c1a-b95f-e23dd1667a19): 0 buildings, access: false
+withHierarchicalSelection-BHZFVX4Q.js:1 🎯 [withHierarchicalSelection] Filtered to 0 accessible organizations
+withHierarchicalSelection-BHZFVX4Q.js:1 🔍 [withHierarchicalSelection] Fetching building counts for organizations...
+withHierarchicalSelection-BHZFVX4Q.js:1 🌐 [withHierarchicalSelection] Requesting: /api/organizations/accessible-building-counts
+withHierarchicalSelection-BHZFVX4Q.js:1 ✅ [withHierarchicalSelection] Building counts received: Object
+withHierarchicalSelection-BHZFVX4Q.js:1 🏢 [withHierarchicalSelection] Rendering organization selection...
+withHierarchicalSelection-BHZFVX4Q.js:1    → Organizations from API: 3
+withHierarchicalSelection-BHZFVX4Q.js:1    → Building counts: Object
+withHierarchicalSelection-BHZFVX4Q.js:1    → Org "Demo 123" (e9bb7862-4ba5-4822-848f-f3692e826e73): 5 buildings, access: true
+withHierarchicalSelection-BHZFVX4Q.js:1    → Org "Koveo" (5228cb04-1fc9-4291-b76a-ccd89a40324d): 0 buildings, access: false
+withHierarchicalSelection-BHZFVX4Q.js:1    → Org "Test Demo Organization" (f0e34e59-0d81-4c1a-b95f-e23dd1667a19): 5 buildings, access: true
+withHierarchicalSelection-BHZFVX4Q.js:1 🎯 [withHierarchicalSelection] Filtered to 2 accessible organizations
+withHierarchicalSelection-BHZFVX4Q.js:1 🎯 [SELECTION GRID DEBUG] Button clicked: Object
+withHierarchicalSelection-BHZFVX4Q.js:1 🏗️ [withHierarchicalSelection] Rendering building selection...
+withHierarchicalSelection-BHZFVX4Q.js:1    → Buildings from filtering: 0
+withHierarchicalSelection-BHZFVX4Q.js:1 🏢 [withHierarchicalSelection] Fetching buildings...
+withHierarchicalSelection-BHZFVX4Q.js:1 🌐 [withHierarchicalSelection] Requesting buildings: /api/organizations/e9bb7862-4ba5-4822-848f-f3692e826e73/buildings
+withHierarchicalSelection-BHZFVX4Q.js:1 📊 [withHierarchicalSelection] Received 5 buildings from API
+withHierarchicalSelection-BHZFVX4Q.js:1 ✅ [withHierarchicalSelection] Returning all 5 buildings (non-residence page)
+withHierarchicalSelection-BHZFVX4Q.js:1 🏗️ [withHierarchicalSelection] Rendering building selection...
+withHierarchicalSelection-BHZFVX4Q.js:1    → Buildings from filtering: 5
+withHierarchicalSelection-BHZFVX4Q.js:1    → Building "1936 Nitzsche Track Building 5" (c3052c3c-b694-41a6-bd65-3bc3ae9a5984): 2536 montée Sainte-Catherine
+withHierarchicalSelection-BHZFVX4Q.js:1    → Building "392 Georgette Trail Building 2" (ece64c30-7c2f-4b28-88d7-2c9f0a8b22ea): 477 avenue de Maisonneuve
+withHierarchicalSelection-BHZFVX4Q.js:1    → Building "4958 E Oak Street Building 4" (18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f): 6174 chemin Sherbrooke
+withHierarchicalSelection-BHZFVX4Q.js:1    → Building "54716 N Cedar Street Building 1" (15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24): 8596 boulevard des Pins
+withHierarchicalSelection-BHZFVX4Q.js:1    → Building "70342 Dare Cliffs Building 3" (66653f30-2d10-4907-bebc-9e3757d2ef0e): 4258 boulevard Notre-Dame
+withHierarchicalSelection-BHZFVX4Q.js:1 🎯 [SELECTION GRID DEBUG] Button clicked: Object
+index-oUjqUghM.js:6 🏠 [INVENTORY PAGE INNER] Rendering with props: Object
+index-oUjqUghM.js:6 🏠 [INVENTORY PAGE] Initializing with: Object
+index-oUjqUghM.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-oUjqUghM.js:6 🔍 [ELEMENT FORM DEBUG] Form state: Object
+index-oUjqUghM.js:6 ❌ [VALIDATION STATE] Form is invalid: Object
+index-oUjqUghM.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: Object
+index-oUjqUghM.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: Object
+index-oUjqUghM.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: Object
+index-oUjqUghM.js:6 🔍 [ELEMENT FORM DEBUG] Form state: Object
+index-oUjqUghM.js:6 ❌ [VALIDATION STATE] Form is invalid: Object
+index-oUjqUghM.js:6 🏠 [INVENTORY UI] Building elements collapsible toggled: true
+index-oUjqUghM.js:6 🏠 [INVENTORY STATE] Building elements section toggled Object
+index-oUjqUghM.js:6 🏠 [INVENTORY PAGE] Initializing with: Object
+index-oUjqUghM.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-oUjqUghM.js:6 🏠 [INVENTORY ACTION] handleEditElement called: Object
+index-oUjqUghM.js:6 🏠 [INVENTORY STATE] Element form opened in edit mode
+index-oUjqUghM.js:6 🏠 [INVENTORY PAGE] Initializing with: Object
+index-oUjqUghM.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-oUjqUghM.js:6 🔍 [ELEMENT FORM DEBUG] Form state: Object
+index-oUjqUghM.js:6 ❌ [VALIDATION STATE] Form is invalid: Object
+index-oUjqUghM.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: Object
+index-oUjqUghM.js:6 🔍 [ELEMENT FORM DEBUG] Form state: Object
+index-oUjqUghM.js:6 ❌ [VALIDATION STATE] Form is invalid: Object
+hook.js:608 Cannot update a component (`Vr`) while rendering a different component (`fc`). To locate the bad setState() call inside `fc`, follow the stack trace as described in https://react.dev/link/setstate-in-render
+overrideMethod @ hook.js:608
+index-oUjqUghM.js:6 🔍 [ELEMENT FORM DEBUG] Form state: Object
+index-oUjqUghM.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-oUjqUghM.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-oUjqUghM.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-oUjqUghM.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24

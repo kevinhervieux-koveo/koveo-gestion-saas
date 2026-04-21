@@ -176,7 +176,7 @@ export function SelectionGrid({
                 <Button
                   onClick={() => {
                     if (!isDisabled) {
-                      console.log('🎯 [SELECTION GRID DEBUG] Button clicked:', { itemId: item.id, itemName: item.name });
+                      // Button clicked - selection processed
                       onSelectItem(item.id);
                     }
                   }}

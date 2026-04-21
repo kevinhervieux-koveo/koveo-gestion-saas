@@ -1,0 +1,253 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+The specified value "2025-01-01T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-01-01T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-01-01T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-01-01T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-01-01T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-01-01T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-01-01T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-01-01T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-01-01T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-01-01T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-01-01T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-01-01T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-01-01T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-01-01T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-01-01T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+The specified value "2025-01-01T00:00:00.000Z" does not conform to the required format, "yyyy-MM-dd".
+[Violation] Forced reflow while executing JavaScript took 32ms
+[Violation] 'click' handler took <N>ms
+[Violation] 'click' handler took <N>ms
+[Violation] 'click' handler took <N>ms
+[Violation] 'click' handler took <N>ms
+[Violation] 'click' handler took <N>ms
+index-Bfk7uyN2.js:240  POST https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/budgets/2e06bb1b-5d1e-4046-95a9-6575b20766bc/forecast 400 (Bad Request)
+$R @ index-Bfk7uyN2.js:240
+queryFn @ budget-Cw_yO1ZC.js:31
+r @ vendor-query-CuSZDQ0U.js:1
+y @ vendor-query-CuSZDQ0U.js:1
+start @ vendor-query-CuSZDQ0U.js:1
+fetch @ vendor-query-CuSZDQ0U.js:1
+#l @ vendor-query-CuSZDQ0U.js:1
+setOptions @ vendor-query-CuSZDQ0U.js:1
+(anonymous) @ vendor-query-CuSZDQ0U.js:1
+react_stack_bottom_frame @ index-Bfk7uyN2.js:229
+q @ index-Bfk7uyN2.js:45
+sl @ index-Bfk7uyN2.js:150
+Ah @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+ig @ index-Bfk7uyN2.js:163
+dl @ index-Bfk7uyN2.js:163
+ag @ index-Bfk7uyN2.js:163
+ed @ index-Bfk7uyN2.js:163
+Xh @ index-Bfk7uyN2.js:163
+Ih @ index-Bfk7uyN2.js:163
+mg @ index-Bfk7uyN2.js:185
+ml @ index-Bfk7uyN2.js:185
+Ho @ index-Bfk7uyN2.js:163
+Gm @ index-Bfk7uyN2.js:83
+rd @ index-Bfk7uyN2.js:185
+Ad @ index-Bfk7uyN2.js:194
+B1 @ index-Bfk7uyN2.js:194
+index-Bfk7uyN2.js:240  POST https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/budgets/2e06bb1b-5d1e-4046-95a9-6575b20766bc/forecast 400 (Bad Request)
+$R @ index-Bfk7uyN2.js:240
+queryFn @ budget-Cw_yO1ZC.js:31
+r @ vendor-query-CuSZDQ0U.js:1
+y @ vendor-query-CuSZDQ0U.js:1
+start @ vendor-query-CuSZDQ0U.js:1
+fetch @ vendor-query-CuSZDQ0U.js:1
+#l @ vendor-query-CuSZDQ0U.js:1
+setOptions @ vendor-query-CuSZDQ0U.js:1
+(anonymous) @ vendor-query-CuSZDQ0U.js:1
+react_stack_bottom_frame @ index-Bfk7uyN2.js:229
+q @ index-Bfk7uyN2.js:45
+sl @ index-Bfk7uyN2.js:150
+Ah @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+ig @ index-Bfk7uyN2.js:163
+dl @ index-Bfk7uyN2.js:163
+ag @ index-Bfk7uyN2.js:163
+ed @ index-Bfk7uyN2.js:163
+Xh @ index-Bfk7uyN2.js:163
+Ih @ index-Bfk7uyN2.js:163
+mg @ index-Bfk7uyN2.js:185
+ml @ index-Bfk7uyN2.js:185
+Ho @ index-Bfk7uyN2.js:163
+Gm @ index-Bfk7uyN2.js:83
+rd @ index-Bfk7uyN2.js:185
+Ad @ index-Bfk7uyN2.js:194
+B1 @ index-Bfk7uyN2.js:194
+index-Bfk7uyN2.js:240  POST https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/budgets/2e06bb1b-5d1e-4046-95a9-6575b20766bc/forecast 400 (Bad Request)
+$R @ index-Bfk7uyN2.js:240
+queryFn @ budget-Cw_yO1ZC.js:31
+r @ vendor-query-CuSZDQ0U.js:1
+y @ vendor-query-CuSZDQ0U.js:1
+start @ vendor-query-CuSZDQ0U.js:1
+fetch @ vendor-query-CuSZDQ0U.js:1
+#l @ vendor-query-CuSZDQ0U.js:1
+setOptions @ vendor-query-CuSZDQ0U.js:1
+(anonymous) @ vendor-query-CuSZDQ0U.js:1
+react_stack_bottom_frame @ index-Bfk7uyN2.js:229
+q @ index-Bfk7uyN2.js:45
+sl @ index-Bfk7uyN2.js:150
+Ah @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+En @ index-Bfk7uyN2.js:163
+Lh @ index-Bfk7uyN2.js:163
+ig @ index-Bfk7uyN2.js:163
+dl @ index-Bfk7uyN2.js:163
+ag @ index-Bfk7uyN2.js:163
+ed @ index-Bfk7uyN2.js:163
+Xh @ index-Bfk7uyN2.js:163
+Ih @ index-Bfk7uyN2.js:163
+mg @ index-Bfk7uyN2.js:185
+ml @ index-Bfk7uyN2.js:185
+Ho @ index-Bfk7uyN2.js:163
+Gm @ index-Bfk7uyN2.js:83
+rd @ index-Bfk7uyN2.js:185
+Ad @ index-Bfk7uyN2.js:194
+B1 @ index-Bfk7uyN2.js:194

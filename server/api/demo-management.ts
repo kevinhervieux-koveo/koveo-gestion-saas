@@ -17,9 +17,9 @@ export function registerDemoManagementRoutes(app: Express): void {
   /**
    * GET /api/demo/health
    * Check the health status of demo organizations.
-   * Public endpoint for monitoring.
+   * Admin-only endpoint for monitoring.
    */
-  app.get('/api/demo/health', async (req: Request, res: Response) => {
+  app.get('/api/demo/health', requireAuth, requireRole(['admin']), async (req: Request, res: Response) => {
     try {
       const health = await DemoManagementService.checkDemoHealth();
 
@@ -210,5 +210,4 @@ export function registerDemoManagementRoutes(app: Express): void {
     }
   );
 
-  console.log('✅ Demo management API routes registered');
 }

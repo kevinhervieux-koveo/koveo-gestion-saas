@@ -5,7 +5,7 @@
  * This script builds the server using esbuild and copies the necessary config files.
  */
 
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import { mkdirSync, copyFileSync, existsSync } from 'fs';
 import { join } from 'path';
 
@@ -22,12 +22,16 @@ function buildServer() {
   try {
     // Run esbuild
     console.warn('Running esbuild...');
-    execSync(
-      'esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist',
-      {
-        stdio: 'inherit',
-      }
-    );
+    execFileSync('esbuild', [
+      'server/index.ts',
+      '--platform=node',
+      '--packages=external', 
+      '--bundle',
+      '--format=esm',
+      '--outdir=dist'
+    ], {
+      stdio: 'inherit',
+    });
 
     // Create config directory in dist
     const distConfigDir = join('dist', 'config');

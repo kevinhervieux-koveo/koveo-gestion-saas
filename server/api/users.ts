@@ -17,8 +17,9 @@ import {
   generateUsernameFromEmail,
 } from '../utils/input-sanitization';
 import { logUserCreation } from '../utils/user-creation-logger';
-import { queryCache } from '../query-cache';
+import { queryCache, CacheInvalidator } from '../query-cache';
 import { emailService } from '../services/email-service';
+import { cacheInvalidationService, createInvalidationMiddleware } from '../services/cache-invalidation-service';
 
 /**
  * Registers all user-related API endpoints.
@@ -50,7 +51,15 @@ export function registerUserRoutes(app: Express): void {
       const offset = (page - 1) * limit;
 
       // Parse filter parameters
-      const filters = {
+      const filters: {
+        role?: string;
+        status?: string;
+        organization?: string;
+        orphan?: string;
+        search?: string;
+        demoOnly?: string;
+        managerOrganizations?: string;
+      } = {
         role: req.query.role as string,
         status: req.query.status as string,
         organization: req.query.organization as string,
@@ -66,27 +75,38 @@ export function registerUserRoutes(app: Express): void {
         search: req.query.search
       });
       
-      // Special debug for orphan filter
-      if (req.query.orphan) {
-        console.log('👻 [API DEBUG] Orphan filter detected:', req.query.orphan, typeof req.query.orphan);
-      }
 
       // Apply role-based prefiltering at database level
       let roleBasedFilters = { ...filters };
       
       console.log(`🔐 [USER FILTER] Current user role: ${currentUser.role}, applying role-based filters...`);
       
-      if (currentUser.role === 'admin' || currentUser.role === 'demo_manager') {
-        // Admin and demo_manager can see all users - no additional filtering
-        console.log('🔓 [ADMIN] No role-based filtering applied - admin/demo_manager can see all users');
-      } else if (['demo_tenant', 'demo_resident'].includes(currentUser.role)) {
-        // Demo users can only see other demo users in their organizations
-        if (!roleBasedFilters.role) {
+      if (currentUser.role === 'admin') {
+        // Only admin can see all users - no additional filtering
+        console.log('🔓 [ADMIN] No role-based filtering applied - admin can see all users');
+      } else if (['demo_manager', 'demo_tenant', 'demo_resident'].includes(currentUser.role)) {
+        // All demo users (including demo_manager) can only see other demo users in their organizations
+        // SECURITY: Validate role parameter against whitelist for demo users
+        const allowedDemoRoles = ['demo_manager', 'demo_tenant', 'demo_resident'];
+        
+        if (roleBasedFilters.role) {
+          // If demo user provided a role filter, validate it against whitelist
+          if (!allowedDemoRoles.includes(roleBasedFilters.role)) {
+            // SECURITY: Demo user trying to access non-demo role - block and force demo-only
+            console.log(`🚫 [SECURITY] Demo user ${currentUser.role} attempted to access role "${roleBasedFilters.role}" - blocking and forcing demo-only`);
+            roleBasedFilters.role = undefined; // Remove invalid role filter
+            roleBasedFilters.demoOnly = 'true'; // Force demo-only restriction
+          } else {
+            // Valid demo role requested, but still restrict to demo users only
+            console.log(`✅ [SECURITY] Demo user ${currentUser.role} requesting valid demo role "${roleBasedFilters.role}"`);
+            roleBasedFilters.demoOnly = 'true'; // Ensure demo-only restriction is always applied
+          }
+        } else {
           // If no role filter is applied, restrict to demo roles only
           roleBasedFilters.demoOnly = 'true';
         }
         
-        // Also restrict to users from their organizations (like regular managers)
+        // Also restrict to users from their organizations
         console.log('🎭 [DEMO] Restricting to users from demo user\'s organizations');
         const userOrgIds = (await storage.getUserOrganizations(currentUser.id)).map(org => org.organizationId);
         console.log(`   → Demo user organizations: [${userOrgIds.join(', ')}]`);
@@ -186,8 +206,8 @@ export function registerUserRoutes(app: Express): void {
       let organizations = [];
       let allowedRoles = [];
       
-      if (currentUser.role === 'admin' || currentUser.role === 'demo_manager') {
-        // Admin and demo_manager can see all organizations and all roles
+      if (currentUser.role === 'admin') {
+        // Only admin can see all organizations and all roles
         const orgsResult = await db
           .select({ id: schema.organizations.id, name: schema.organizations.name })
           .from(schema.organizations)
@@ -195,15 +215,15 @@ export function registerUserRoutes(app: Express): void {
           .orderBy(schema.organizations.name);
         organizations = orgsResult;
         
-        // Admin and demo_manager see all roles
+        // Admin sees all roles
         const rolesResult = await db
           .selectDistinct({ role: schema.users.role })
           .from(schema.users)
           .orderBy(schema.users.role);
         allowedRoles = rolesResult.map(r => r.role).filter(Boolean);
         
-      } else if (['demo_tenant', 'demo_resident'].includes(currentUser.role)) {
-        // Demo users can only see demo organizations and demo roles
+      } else if (['demo_manager', 'demo_tenant', 'demo_resident'].includes(currentUser.role)) {
+        // All demo users (including demo_manager) can only see demo organizations and demo roles
         const orgsResult = await db
           .select({ id: schema.organizations.id, name: schema.organizations.name })
           .from(schema.organizations)
@@ -216,7 +236,7 @@ export function registerUserRoutes(app: Express): void {
           .orderBy(schema.organizations.name);
         organizations = orgsResult;
         
-        // Demo users only see demo roles
+        // All demo users only see demo roles
         allowedRoles = ['demo_manager', 'demo_tenant', 'demo_resident'];
         
       } else {
@@ -241,34 +261,38 @@ export function registerUserRoutes(app: Express): void {
       }
 
       // Prepare filter options with role-based filtering
+      // Return translation keys for client-side i18n
       const roleOptions = [
-        { value: '', label: 'All Roles' },
+        { value: '', label: 'allRoles', translationKey: true },
         ...allowedRoles.map(role => ({
           value: role,
-          label: role.charAt(0).toUpperCase() + role.slice(1).replace('_', ' ')
+          label: role.charAt(0).toUpperCase() + role.slice(1).replace('_', ' '),
+          translationKey: false
         }))
       ];
 
       const statusOptions = [
-        { value: '', label: 'All Statuses' },
+        { value: '', label: 'allStatuses', translationKey: true },
         ...statusResult.map(s => ({
           value: s.isActive === null ? 'null' : s.isActive.toString(),
-          label: s.isActive === null ? 'No Status' : (s.isActive ? 'Active' : 'Inactive')
+          label: s.isActive === null ? 'noStatus' : (s.isActive ? 'statusActive' : 'statusInactive'),
+          translationKey: true
         }))
       ];
 
       const organizationOptions = [
-        { value: '', label: 'All Organizations' },
+        { value: '', label: 'allOrganizations', translationKey: true },
         ...organizations.map(org => ({
           value: org.id,
-          label: org.name
+          label: org.name,
+          translationKey: false
         }))
       ];
 
-      const orphanOptions = (currentUser.role === 'admin' || currentUser.role === 'demo_manager') ? [
-        { value: '', label: 'All Users' },
-        { value: 'true', label: 'Orphan Users' },
-        { value: 'false', label: 'Assigned Users' }
+      const orphanOptions = (currentUser.role === 'admin') ? [
+        { value: '', label: 'allUsers', translationKey: true },
+        { value: 'true', label: 'orphanUsers', translationKey: true },
+        { value: 'false', label: 'assignedUsers', translationKey: true }
       ] : [];
 
       res.json({
@@ -467,7 +491,13 @@ export function registerUserRoutes(app: Express): void {
   /**
    * PUT /api/users/:id - Updates an existing user.
    */
-  app.put('/api/users/:id', requireAuth, async (req: any, res) => {
+  app.put('/api/users/:id', requireAuth,
+    createInvalidationMiddleware('user', {
+      extractEntityId: (req) => req.params.id,
+      extractAffectedUsers: async (req) => [req.params.id],
+      operation: 'update'
+    }),
+    async (req: any, res) => {
     try {
       const { id } = req.params;
       const currentUser = req.user || req.session?.user;
@@ -628,37 +658,19 @@ export function registerUserRoutes(app: Express): void {
 
   // Admin-only endpoint to delete orphan users
   app.delete('/api/users/orphans', requireAuth, async (req: any, res) => {
-    console.log('🔥 [DELETE ORPHANS API] ===== DELETE ORPHAN USERS REQUEST STARTED =====');
-    console.log('⏰ [DELETE ORPHANS API] Request timestamp:', new Date().toISOString());
-    console.log('🛡️ [DELETE ORPHANS API] Request authentication info:', {
-      userId: req.user?.id,
-      userEmail: req.user?.email,
-      userRole: req.user?.role,
-      sessionExists: !!req.session,
-      sessionId: req.session?.id
-    });
-
     try {
-      console.log('🗑️ [DELETE ORPHANS API] Processing request from user:', req.user?.id, 'role:', req.user?.role);
-      
       // Check if user is admin
       if (req.user?.role !== 'admin') {
-        console.log('❌ [DELETE ORPHANS API] Access denied - user role is:', req.user?.role, '(expected: admin)');
         return res.status(403).json({ 
           error: 'Access denied. Admin role required.',
           userRole: req.user?.role 
         });
       }
 
-      console.log('✅ [DELETE ORPHANS API] Admin authorization confirmed');
-      console.log('🔍 [DELETE ORPHANS API] Calling storage.countOrphanUsers()...');
-
       // Get count of orphan users before deletion
       const orphanCount = await storage.countOrphanUsers();
-      console.log('📊 [DELETE ORPHANS API] Storage returned orphan count:', orphanCount);
 
       if (orphanCount === 0) {
-        console.log('ℹ️ [DELETE ORPHANS API] No orphan users found, returning success with 0 count');
         return res.json({ 
           success: true, 
           message: 'No orphan users found to delete',
@@ -666,25 +678,8 @@ export function registerUserRoutes(app: Express): void {
         });
       }
 
-      console.log('🚀 [DELETE ORPHANS API] Proceeding with deletion of', orphanCount, 'orphan users');
-      console.log('🔒 [DELETE ORPHANS API] Excluding current admin user:', req.user.id);
-      console.log('🔍 [DELETE ORPHANS API] Calling storage.deleteOrphanUsers()...');
-
       // Delete orphan users (excluding current admin)
-      const startTime = Date.now();
       const deletedCount = await storage.deleteOrphanUsers(req.user.id);
-      const endTime = Date.now();
-      
-      console.log('⏱️ [DELETE ORPHANS API] Storage operation completed in:', (endTime - startTime), 'ms');
-      console.log('📈 [DELETE ORPHANS API] Storage returned deleted count:', deletedCount);
-
-      if (deletedCount !== orphanCount) {
-        console.log('⚠️ [DELETE ORPHANS API] Warning: Deleted count differs from initial count:', {
-          initialCount: orphanCount,
-          deletedCount: deletedCount,
-          difference: orphanCount - deletedCount
-        });
-      }
 
       const responseData = { 
         success: true, 
@@ -692,9 +687,6 @@ export function registerUserRoutes(app: Express): void {
         deletedCount,
         initialCount: orphanCount
       };
-
-      console.log('✅ [DELETE ORPHANS API] Operation completed successfully:', responseData);
-      console.log('🔥 [DELETE ORPHANS API] ===== DELETE ORPHAN USERS REQUEST COMPLETED =====');
       
       res.json(responseData);
 
@@ -717,44 +709,307 @@ export function registerUserRoutes(app: Express): void {
   });
 
   /**
-   * DELETE /api/users/:id - Deactivates a user (soft delete).
+   * DELETE /api/users/:id - Deletes a user account with proper authorization and data cleanup.
+   * - Admin: Can delete any user (hard delete)
+   * - Manager: Can only delete users within their organizations (hard delete)
+   * - Other roles: Cannot delete users
    */
-  app.delete('/api/users/:id', async (req, res) => {
+  app.delete('/api/users/:id', requireAuth, async (req: any, res) => {
+    const startTime = Date.now();
+    const deleteId = `DELETE_${Date.now()}_${Math.random().toString(36).substring(7)}`;
+    
+    console.log(`🔥 [DELETE USER API] ===== DELETE USER REQUEST STARTED (${deleteId}) =====`);
+    console.log(`⏰ [DELETE USER API] Request timestamp: ${new Date().toISOString()}`);
+    
     try {
       const { id } = req.params;
+      const currentUser = req.user || req.session?.user;
+
+      if (!currentUser) {
+        console.log(`❌ [DELETE USER API] ${deleteId}: No authenticated user found`);
+        return res.status(401).json({
+          message: 'Authentication required',
+          code: 'AUTH_REQUIRED',
+        });
+      }
+
+      console.log(`🛡️ [DELETE USER API] ${deleteId}: Request authentication info:`, {
+        requesterId: currentUser.id,
+        requesterEmail: currentUser.email,
+        requesterRole: currentUser.role,
+        targetUserId: id,
+        sessionExists: !!req.session,
+      });
 
       if (!id) {
+        console.log(`❌ [DELETE USER API] ${deleteId}: Missing user ID parameter`);
         return res.status(400).json({
-          _error: 'Bad request',
+          error: 'Bad request',
           message: 'User ID is required',
         });
       }
 
-      // Soft delete by setting isActive to false
-      const user = await storage.updateUser(id, {
-        isActive: false,
-        updatedAt: new Date(),
-      });
+      // Validate user ID format
+      if (typeof id !== 'string' || id.trim().length === 0) {
+        console.log(`❌ [DELETE USER API] ${deleteId}: Invalid user ID format:`, id);
+        return res.status(400).json({
+          error: 'Bad request',
+          message: 'Invalid user ID format',
+        });
+      }
 
-      if (!user) {
+      // Get the target user to delete
+      const targetUser = await storage.getUser(id);
+      if (!targetUser) {
+        console.log(`❌ [DELETE USER API] ${deleteId}: Target user not found:`, id);
         return res.status(404).json({
-          _error: 'Not found',
+          error: 'Not found',
           message: 'User not found',
         });
       }
 
-      res.json({
-        message: 'User deactivated successfully',
-        id: user.id,
+      console.log(`👤 [DELETE USER API] ${deleteId}: Target user found:`, {
+        targetId: targetUser.id,
+        targetEmail: targetUser.email,
+        targetRole: targetUser.role,
+        targetIsActive: targetUser.isActive,
       });
+
+      // Prevent self-deletion
+      if (targetUser.id === currentUser.id) {
+        console.log(`🚫 [DELETE USER API] ${deleteId}: Self-deletion attempt blocked`);
+        return res.status(403).json({
+          error: 'Forbidden',
+          message: 'You cannot delete your own account',
+        });
+      }
+
+      // Role-based authorization
+      const hasDeletePermission = await checkDeletePermission(currentUser, targetUser, deleteId);
+      if (!hasDeletePermission.allowed) {
+        console.log(`🚫 [DELETE USER API] ${deleteId}: Authorization failed:`, hasDeletePermission.reason);
+        return res.status(403).json({
+          error: 'Forbidden',
+          message: hasDeletePermission.reason,
+        });
+      }
+
+      console.log(`✅ [DELETE USER API] ${deleteId}: Authorization passed - ${hasDeletePermission.reason}`);
+
+      // Perform hard delete with comprehensive cleanup
+      console.log(`🗑️ [DELETE USER API] ${deleteId}: Starting hard delete process...`);
+      const deletionResult = await performHardDelete(targetUser.id, currentUser.id, deleteId);
+
+      const endTime = Date.now();
+      const duration = endTime - startTime;
+
+      console.log(`✅ [DELETE USER API] ${deleteId}: Deletion completed successfully:`, {
+        ...deletionResult,
+        duration: `${duration}ms`,
+      });
+
+      // Security audit log
+      console.log(`🔐 [SECURITY AUDIT] User deletion completed:`, {
+        operationId: deleteId,
+        deletedUserId: targetUser.id,
+        deletedUserEmail: targetUser.email,
+        deletedUserRole: targetUser.role,
+        deletedByUserId: currentUser.id,
+        deletedByUserEmail: currentUser.email,
+        deletedByUserRole: currentUser.role,
+        timestamp: new Date().toISOString(),
+        duration: `${duration}ms`,
+      });
+
+      console.log(`🔥 [DELETE USER API] ===== DELETE USER REQUEST COMPLETED (${deleteId}) =====`);
+
+      res.json({
+        success: true,
+        message: 'User deleted successfully',
+        deletedUserId: targetUser.id,
+        deletedUserEmail: targetUser.email,
+        operationId: deleteId,
+        timestamp: new Date().toISOString(),
+        ...deletionResult,
+      });
+      
     } catch (error: any) {
-      console.error('❌ Error deactivating user:', error);
+      const endTime = Date.now();
+      const duration = endTime - startTime;
+
+      console.error(`💥 [DELETE USER API] ${deleteId}: ===== CRITICAL ERROR =====`);
+      console.error(`❌ [DELETE USER API] ${deleteId}: Error details:`, {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        name: error instanceof Error ? error.name : undefined,
+        duration: `${duration}ms`,
+        timestamp: new Date().toISOString(),
+      });
+      console.error(`💥 [DELETE USER API] ${deleteId}: ===== END CRITICAL ERROR =====`);
+      
       res.status(500).json({
         error: 'Internal server error',
-        message: 'Failed to deactivate user',
+        message: 'Failed to delete user',
+        operationId: deleteId,
+        timestamp: new Date().toISOString(),
       });
     }
   });
+
+  /**
+   * Check if the current user has permission to delete the target user.
+   */
+  async function checkDeletePermission(currentUser: User, targetUser: User, operationId: string): Promise<{allowed: boolean, reason: string}> {
+    console.log(`🔍 [PERMISSION CHECK] ${operationId}: Checking delete permissions...`);
+    
+    // Admin can delete any user
+    if (currentUser.role === 'admin') {
+      console.log(`👑 [PERMISSION CHECK] ${operationId}: Admin access granted`);
+      return { allowed: true, reason: 'Admin has full delete access' };
+    }
+
+    // Only admin, manager, and demo_manager can delete users
+    if (!['manager', 'demo_manager'].includes(currentUser.role)) {
+      console.log(`🚫 [PERMISSION CHECK] ${operationId}: Role ${currentUser.role} has no delete permissions`);
+      return { allowed: false, reason: 'Your role does not have permission to delete users' };
+    }
+
+    // Managers can only delete users within their organizations
+    if (currentUser.role === 'manager' || currentUser.role === 'demo_manager') {
+      console.log(`👔 [PERMISSION CHECK] ${operationId}: Checking manager permissions...`);
+      
+      // Get manager's organizations
+      const managerOrgs = await storage.getUserOrganizations(currentUser.id);
+      const managerOrgIds = managerOrgs.map(org => org.organizationId);
+      
+      console.log(`📊 [PERMISSION CHECK] ${operationId}: Manager organizations:`, managerOrgIds);
+      
+      if (managerOrgIds.length === 0) {
+        console.log(`🚫 [PERMISSION CHECK] ${operationId}: Manager has no organizations`);
+        return { allowed: false, reason: 'Manager has no assigned organizations' };
+      }
+
+      // Get target user's organizations
+      const targetOrgs = await storage.getUserOrganizations(targetUser.id);
+      const targetOrgIds = targetOrgs.map(org => org.organizationId);
+      
+      console.log(`📊 [PERMISSION CHECK] ${operationId}: Target user organizations:`, targetOrgIds);
+
+      // Check if any of the target user's organizations match the manager's organizations
+      const hasCommonOrg = targetOrgIds.some(orgId => managerOrgIds.includes(orgId));
+      
+      if (!hasCommonOrg) {
+        console.log(`🚫 [PERMISSION CHECK] ${operationId}: No common organizations between manager and target user`);
+        return { allowed: false, reason: 'You can only delete users within your assigned organizations' };
+      }
+
+      // Demo managers can only delete demo users
+      if (currentUser.role === 'demo_manager') {
+        const demoRoles = ['demo_manager', 'demo_tenant', 'demo_resident'];
+        if (!demoRoles.includes(targetUser.role)) {
+          console.log(`🚫 [PERMISSION CHECK] ${operationId}: Demo manager trying to delete non-demo user`);
+          return { allowed: false, reason: 'Demo managers can only delete demo users' };
+        }
+      }
+      
+      // Regular managers cannot delete admin users
+      if (currentUser.role === 'manager' && targetUser.role === 'admin') {
+        console.log(`🚫 [PERMISSION CHECK] ${operationId}: Manager trying to delete admin user`);
+        return { allowed: false, reason: 'Managers cannot delete admin users' };
+      }
+
+      console.log(`✅ [PERMISSION CHECK] ${operationId}: Manager permission granted for common organization`);
+      return { allowed: true, reason: 'Manager has access to user within shared organization' };
+    }
+
+    return { allowed: false, reason: 'Permission denied' };
+  }
+
+  /**
+   * Perform hard delete of user and all associated data.
+   * The database handles most cascading deletes automatically via foreign key constraints.
+   */
+  async function performHardDelete(userId: string, deletedByUserId: string, operationId: string): Promise<any> {
+    console.log(`🗑️ [HARD DELETE] ${operationId}: Starting hard delete for user:`, userId);
+
+    const deletionSummary = {
+      userDeleted: false,
+      cascadeTablesAffected: [],
+      manualCleanupPerformed: [],
+      errors: [] as string[],
+    };
+
+    try {
+      // Get user data before deletion for logging
+      const userData = await storage.getUser(userId);
+      if (!userData) {
+        throw new Error('User not found at deletion time');
+      }
+
+      console.log(`📋 [HARD DELETE] ${operationId}: User data before deletion:`, {
+        id: userData.id,
+        email: userData.email,
+        role: userData.role,
+        isActive: userData.isActive,
+      });
+
+      // The database will automatically handle cascade deletes for:
+      // - userOrganizations (onDelete: 'cascade')
+      // - passwordResetTokens (onDelete: 'cascade') 
+      // - userResidences (onDelete: 'cascade')
+      // - bookings (onDelete: 'cascade')
+      // - userBookingRestrictions (onDelete: 'cascade')
+      // - userTimeLimits (onDelete: 'cascade')
+      // - userPermissions (references users.id)
+      // - commonSpaces.contactPersonId (onDelete: 'set null')
+
+      deletionSummary.cascadeTablesAffected = [
+        'userOrganizations',
+        'passwordResetTokens',
+        'userResidences', 
+        'bookings',
+        'userBookingRestrictions',
+        'userTimeLimits',
+        'userPermissions',
+        'invitations (invitedByUserId, acceptedBy)',
+        'invitationAuditLog (performedBy)',
+        'commonSpaces (contactPersonId set to null)',
+      ];
+
+      // Perform the hard delete using raw database query to ensure complete removal
+      console.log(`💥 [HARD DELETE] ${operationId}: Executing hard delete from database...`);
+      
+      const deleteResult = await db
+        .delete(schema.users)
+        .where(eq(schema.users.id, userId))
+        .returning({ id: schema.users.id, email: schema.users.email });
+
+      if (deleteResult.length === 0) {
+        throw new Error('Failed to delete user from database');
+      }
+
+      deletionSummary.userDeleted = true;
+      console.log(`✅ [HARD DELETE] ${operationId}: User successfully deleted from database:`, deleteResult[0]);
+
+      // Clear any cached data related to this user
+      try {
+        CacheInvalidator.invalidateUserCaches(userId);
+        deletionSummary.manualCleanupPerformed.push('Query cache cleared');
+        console.log(`🧹 [HARD DELETE] ${operationId}: User cache invalidated`);
+      } catch (cacheError) {
+        console.error(`⚠️ [HARD DELETE] ${operationId}: Cache invalidation failed:`, cacheError);
+        deletionSummary.errors.push('Cache invalidation failed');
+      }
+
+      console.log(`✅ [HARD DELETE] ${operationId}: Hard delete completed successfully`);
+      return deletionSummary;
+
+    } catch (error: any) {
+      console.error(`❌ [HARD DELETE] ${operationId}: Hard delete failed:`, error);
+      deletionSummary.errors.push(error.message || 'Unknown error during deletion');
+      throw new Error(`Hard delete failed: ${error.message}`);
+    }
+  }
 
   /**
    * GET /api/user-organizations - Get current user's organizations.
@@ -1043,10 +1298,17 @@ export function registerUserRoutes(app: Express): void {
 
   /**
    * PUT /api/users/:id/organizations - Updates user's organization assignments.
+   * SECURITY FIX: Implements proper scope validation for managers
    * Admin: can assign/remove any organization
-   * Manager: cannot modify organization assignments.
+   * Manager: can only assign/remove organizations within their scope, preserves out-of-scope assignments
    */
-  app.put('/api/users/:id/organizations', requireAuth, async (req: any, res) => {
+  app.put('/api/users/:id/organizations', requireAuth, 
+    createInvalidationMiddleware('userOrganization', {
+      extractEntityId: (req) => req.params.id,
+      extractAffectedUsers: async (req) => [req.params.id],
+      operation: 'update'
+    }),
+    async (req: any, res) => {
     try {
       const currentUser = req.user || req.session?.user;
       const { id: userId } = req.params;
@@ -1059,10 +1321,10 @@ export function registerUserRoutes(app: Express): void {
         });
       }
 
-      // Only admins can modify organization assignments
-      if (currentUser.role !== 'admin') {
+      // Only admins and managers can modify organization assignments
+      if (!['admin', 'manager', 'demo_manager'].includes(currentUser.role)) {
         return res.status(403).json({
-          message: 'Only administrators can modify organization assignments',
+          message: 'Only administrators and managers can modify organization assignments',
           code: 'INSUFFICIENT_PERMISSIONS',
         });
       }
@@ -1083,19 +1345,114 @@ export function registerUserRoutes(app: Express): void {
         });
       }
 
-      // Remove existing organization assignments
-      await db.delete(schema.userOrganizations).where(eq(schema.userOrganizations.userId, userId));
+      // SECURITY FIX: For managers, validate they can modify this user and validate scope
+      if (['manager', 'demo_manager'].includes(currentUser.role)) {
+        // Get current user's accessible organizations
+        const currentUserOrgs = await storage.getUserOrganizations(currentUser.id);
+        const currentUserOrgIds = currentUserOrgs.map(org => org.organizationId);
+        
+        if (currentUserOrgIds.length === 0) {
+          return res.status(403).json({
+            message: 'Manager has no organization access',
+            code: 'NO_ORGANIZATION_ACCESS',
+          });
+        }
 
-      // Add new organization assignments
-      if (organizationIds.length > 0) {
-        const newAssignments = organizationIds.map((orgId: string) => ({
-          userId,
-          organizationId: orgId,
-          organizationRole: user.role,
-          isActive: true,
-        }));
+        // SECURITY FIX: Validate manager can modify this user - target user must have overlap with manager's organizations
+        const targetUserOrgs = await storage.getUserOrganizations(userId);
+        const targetUserOrgIds = targetUserOrgs.map(org => org.organizationId);
+        
+        const hasOverlap = targetUserOrgIds.some(orgId => currentUserOrgIds.includes(orgId));
+        
+        if (!hasOverlap && targetUserOrgIds.length > 0) {
+          console.warn(`🚨 [SECURITY] Manager ${currentUser.id} attempted to modify user ${userId} with no organizational overlap`);
+          return res.status(403).json({
+            message: 'Cannot modify users outside your organization scope',
+            code: 'USER_SCOPE_VIOLATION',
+          });
+        }
 
-        await db.insert(schema.userOrganizations).values(newAssignments);
+        // SECURITY FIX: Validate new assignments are within manager's scope
+        if (organizationIds.length > 0) {
+          const invalidOrgIds = organizationIds.filter((orgId: string) => 
+            !currentUserOrgIds.includes(orgId)
+          );
+          
+          if (invalidOrgIds.length > 0) {
+            console.warn(`🚨 [SECURITY] Manager ${currentUser.id} attempted to assign out-of-scope organizations:`, invalidOrgIds);
+            return res.status(403).json({
+              message: 'Cannot assign organizations outside your scope',
+              code: 'ORGANIZATION_SCOPE_VIOLATION',
+              invalidOrganizations: invalidOrgIds,
+            });
+          }
+        }
+
+        // SECURITY FIX: Scoped deletion - only delete assignments within manager's scope, preserve out-of-scope assignments
+        console.log(`🔐 [SECURITY] Manager ${currentUser.id} updating user ${userId} organizations - using scoped deletion`);
+        
+        // Get current user's organization assignments to understand what can be modified
+        const currentAssignments = await db
+          .select()
+          .from(schema.userOrganizations)
+          .where(eq(schema.userOrganizations.userId, userId));
+
+        // Separate assignments into in-scope and out-of-scope
+        const inScopeAssignments = currentAssignments.filter(assignment => 
+          currentUserOrgIds.includes(assignment.organizationId)
+        );
+        const outOfScopeAssignments = currentAssignments.filter(assignment => 
+          !currentUserOrgIds.includes(assignment.organizationId)
+        );
+
+        console.log(`🔍 [SECURITY] User ${userId} has ${inScopeAssignments.length} in-scope and ${outOfScopeAssignments.length} out-of-scope assignments`);
+
+        // Delete only in-scope assignments - preserve out-of-scope assignments
+        if (inScopeAssignments.length > 0) {
+          const inScopeOrgIds = inScopeAssignments.map(assignment => assignment.organizationId);
+          await db
+            .delete(schema.userOrganizations)
+            .where(
+              and(
+                eq(schema.userOrganizations.userId, userId),
+                inArray(schema.userOrganizations.organizationId, inScopeOrgIds)
+              )
+            );
+          console.log(`🗑️ [SECURITY] Deleted ${inScopeAssignments.length} in-scope assignments, preserved ${outOfScopeAssignments.length} out-of-scope assignments`);
+        }
+
+        // Add new organization assignments (only in-scope ones - already validated above)
+        if (organizationIds.length > 0) {
+          const newAssignments = organizationIds.map((orgId: string) => ({
+            userId,
+            organizationId: orgId,
+            organizationRole: user.role,
+            isActive: true,
+          }));
+
+          await db.insert(schema.userOrganizations).values(newAssignments);
+          console.log(`➕ [SECURITY] Added ${newAssignments.length} new in-scope assignments for user ${userId}`);
+        }
+
+        console.log(`✅ [SECURITY] Manager ${currentUser.id} successfully updated user ${userId} organizations within scope`);
+      } else {
+        // Admin can modify any assignments - original behavior preserved
+        console.log(`🔓 [ADMIN] Admin ${currentUser.id} updating user ${userId} organizations - full access`);
+        
+        // Remove all existing organization assignments (admin has full access)
+        await db.delete(schema.userOrganizations).where(eq(schema.userOrganizations.userId, userId));
+
+        // Add new organization assignments
+        if (organizationIds.length > 0) {
+          const newAssignments = organizationIds.map((orgId: string) => ({
+            userId,
+            organizationId: orgId,
+            organizationRole: user.role,
+            isActive: true,
+          }));
+
+          await db.insert(schema.userOrganizations).values(newAssignments);
+        }
       }
 
       res.json({
@@ -1153,36 +1510,19 @@ export function registerUserRoutes(app: Express): void {
         });
       }
 
-      // For now, we'll create user-residence relationships for each building
-      // This is a simplified approach - in a real system you'd have user-building relationships
-      
-      // Get residences for the selected buildings
-      const residences = await db
-        .select()
-        .from(schema.residences)
-        .where(inArray(schema.residences.buildingId, buildingIds));
+      // Remove existing building assignments for this user
+      await db.delete(schema.userBuildings).where(eq(schema.userBuildings.userId, userId));
 
-      // Remove existing residence assignments for this user
-      await db.delete(schema.userResidences).where(eq(schema.userResidences.userId, userId));
-
-      // Add new residence assignments (one per building - taking the first residence)
-      if (residences.length > 0) {
-        const buildingToResidence = new Map();
-        residences.forEach(residence => {
-          if (!buildingToResidence.has(residence.buildingId)) {
-            buildingToResidence.set(residence.buildingId, residence);
-          }
-        });
-
-        const newAssignments = Array.from(buildingToResidence.values()).map((residence: any) => ({
+      // Add new building assignments
+      if (buildingIds.length > 0) {
+        const newAssignments = buildingIds.map((buildingId: string) => ({
           userId,
-          residenceId: residence.id,
+          buildingId,
           relationshipType: user.role === 'manager' ? 'manager' : 'tenant',
-          startDate: new Date().toISOString().split('T')[0],
           isActive: true,
         }));
 
-        await db.insert(schema.userResidences).values(newAssignments);
+        await db.insert(schema.userBuildings).values(newAssignments);
       }
 
       res.json({
@@ -1264,11 +1604,11 @@ export function registerUserRoutes(app: Express): void {
   app.get('/api/users/me/buildings', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.id;
-      const { has_common_spaces } = req.query;
+      const { has_common_spaces, organization_id } = req.query;
+      console.log(`📊 [USER_MANAGEMENT] Fetching buildings for user ${userId} (${req.user.role})`, { has_common_spaces, organization_id });
 
-      // For residents and tenants, get buildings through their residences  
-      if (req.user.role === 'resident' || req.user.role === 'tenant' || 
-          req.user.role === 'demo_resident' || req.user.role === 'demo_tenant') {
+      // For residents and tenants (including demo roles), get buildings through their residences  
+      if (['resident', 'tenant', 'demo_resident', 'demo_tenant'].includes(req.user.role)) {
         
         // Get user's residences with building information using Drizzle
         const userResidences = await db
@@ -1295,8 +1635,20 @@ export function registerUserRoutes(app: Express): void {
           return res.json([]);
         }
 
-        // Fetch building details with optional common spaces filtering
+        // Fetch building details with optional common spaces and organization filtering
         let buildingQuery;
+        
+        // Build the base where conditions
+        const whereConditions = [
+          inArray(schema.buildings.id, buildingIds),
+          eq(schema.buildings.isActive, true)
+        ];
+        
+        // Add organization filter if specified
+        if (organization_id) {
+          whereConditions.push(eq(schema.buildings.organizationId, organization_id));
+        }
+        
         if (has_common_spaces === 'true') {
           // Only buildings with common spaces
           buildingQuery = db
@@ -1305,16 +1657,14 @@ export function registerUserRoutes(app: Express): void {
               name: schema.buildings.name,
               address: schema.buildings.address,
               city: schema.buildings.city,
-              state: schema.buildings.province,
-              postal_code: schema.buildings.postalCode,
-              organization_id: schema.buildings.organizationId,
+              province: schema.buildings.province,
+              postalCode: schema.buildings.postalCode,
+              organizationId: schema.buildings.organizationId,
+              isActive: schema.buildings.isActive,
             })
             .from(schema.buildings)
             .innerJoin(schema.commonSpaces, eq(schema.commonSpaces.buildingId, schema.buildings.id))
-            .where(and(
-              inArray(schema.buildings.id, buildingIds),
-              eq(schema.buildings.isActive, true)
-            ))
+            .where(and(...whereConditions))
             .orderBy(schema.buildings.name);
         } else {
           // All buildings
@@ -1324,23 +1674,169 @@ export function registerUserRoutes(app: Express): void {
               name: schema.buildings.name,
               address: schema.buildings.address,
               city: schema.buildings.city,
-              state: schema.buildings.province,
-              postal_code: schema.buildings.postalCode,
-              organization_id: schema.buildings.organizationId,
+              province: schema.buildings.province,
+              postalCode: schema.buildings.postalCode,
+              organizationId: schema.buildings.organizationId,
+              isActive: schema.buildings.isActive,
             })
             .from(schema.buildings)
-            .where(and(
-              inArray(schema.buildings.id, buildingIds),
-              eq(schema.buildings.isActive, true)
-            ))
+            .where(and(...whereConditions))
             .orderBy(schema.buildings.name);
         }
 
         const buildingDetails = await buildingQuery;
+        console.log(`✅ [USER_MANAGEMENT] Returning ${buildingDetails.length} buildings for resident/tenant ${userId}`);
         return res.json(buildingDetails);
       }
 
-      // For managers and admins, get all buildings they manage/admin
+      // For admins, get ALL buildings
+      if (req.user.role === 'admin') {
+        const buildingDetails = await db
+          .select({
+            id: schema.buildings.id,
+            name: schema.buildings.name,
+            address: schema.buildings.address,
+            city: schema.buildings.city,
+            province: schema.buildings.province,
+            postalCode: schema.buildings.postalCode,
+            organizationId: schema.buildings.organizationId,
+            isActive: schema.buildings.isActive,
+          })
+          .from(schema.buildings)
+          .where(eq(schema.buildings.isActive, true))
+          .orderBy(schema.buildings.name);
+
+        console.log(`✅ [USER_MANAGEMENT] Returning ${buildingDetails.length} buildings for admin ${userId}`);
+        return res.json(buildingDetails);
+      }
+
+      // For managers, get buildings from userBuildings table
+      const userBuildingsData = await db
+        .select({
+          buildingId: schema.userBuildings.buildingId,
+        })
+        .from(schema.userBuildings)
+        .where(and(
+          eq(schema.userBuildings.userId, userId),
+          eq(schema.userBuildings.isActive, true)
+        ));
+
+      if (userBuildingsData.length === 0) {
+        return res.json([]);
+      }
+
+      // Get unique building IDs
+      const buildingIds = [...new Set(userBuildingsData.map(ub => ub.buildingId).filter(Boolean))];
+
+      if (buildingIds.length === 0) {
+        return res.json([]);
+      }
+
+      // Build the where conditions
+      const whereConditions = [
+        inArray(schema.buildings.id, buildingIds),
+        eq(schema.buildings.isActive, true)
+      ];
+
+      // Add organization filter if specified
+      if (organization_id) {
+        whereConditions.push(eq(schema.buildings.organizationId, organization_id));
+      }
+
+      // Build the query with optional common spaces filtering
+      let buildingQuery;
+      
+      if (has_common_spaces === 'true') {
+        // Only buildings with common spaces
+        buildingQuery = db
+          .selectDistinct({
+            id: schema.buildings.id,
+            name: schema.buildings.name,
+            address: schema.buildings.address,
+            city: schema.buildings.city,
+            province: schema.buildings.province,
+            postalCode: schema.buildings.postalCode,
+            organizationId: schema.buildings.organizationId,
+            isActive: schema.buildings.isActive,
+          })
+          .from(schema.buildings)
+          .innerJoin(schema.commonSpaces, eq(schema.commonSpaces.buildingId, schema.buildings.id))
+          .where(and(...whereConditions))
+          .orderBy(schema.buildings.name);
+      } else {
+        // All buildings
+        buildingQuery = db
+          .select({
+            id: schema.buildings.id,
+            name: schema.buildings.name,
+            address: schema.buildings.address,
+            city: schema.buildings.city,
+            province: schema.buildings.province,
+            postalCode: schema.buildings.postalCode,
+            organizationId: schema.buildings.organizationId,
+            isActive: schema.buildings.isActive,
+          })
+          .from(schema.buildings)
+          .where(and(...whereConditions))
+          .orderBy(schema.buildings.name);
+      }
+
+      const buildingDetails = await buildingQuery;
+
+      console.log(`✅ [USER_MANAGEMENT] Returning ${buildingDetails.length} buildings for manager ${userId} (from userBuildings table)`);
+      res.json(buildingDetails);
+
+    } catch (error) {
+      console.error('Error fetching user buildings:', error);
+      res.status(500).json({ 
+        error: 'Failed to fetch user buildings',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
+  });
+
+  /**
+   * GET /api/users/me/residences - Get current user's accessible residences, optionally filtered by building
+   */
+  app.get('/api/users/me/residences', requireAuth, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const { building_id } = req.query;
+      console.log(`📊 [USER_MANAGEMENT] Fetching residences for user ${userId} (${req.user.role})`, { building_id });
+
+      // For residents and tenants, get only their assigned residences
+      if (['resident', 'tenant', 'demo_resident', 'demo_tenant'].includes(req.user.role)) {
+        
+        let whereConditions = [
+          eq(schema.userResidences.userId, userId),
+          eq(schema.userResidences.isActive, true),
+          eq(schema.residences.isActive, true)
+        ];
+
+        // Add building filter if specified
+        if (building_id) {
+          whereConditions.push(eq(schema.residences.buildingId, building_id));
+        }
+
+        const userResidences = await db
+          .select({
+            id: schema.residences.id,
+            unitNumber: schema.residences.unitNumber,
+            floor: schema.residences.floor,
+            buildingId: schema.residences.buildingId,
+            buildingName: schema.buildings.name,
+          })
+          .from(schema.userResidences)
+          .innerJoin(schema.residences, eq(schema.userResidences.residenceId, schema.residences.id))
+          .innerJoin(schema.buildings, eq(schema.residences.buildingId, schema.buildings.id))
+          .where(and(...whereConditions))
+          .orderBy(schema.buildings.name, schema.residences.unitNumber);
+
+        console.log(`✅ [USER_MANAGEMENT] Returning ${userResidences.length} residences for resident/tenant ${userId}`);
+        return res.json(userResidences);
+      }
+
+      // For managers and admins, get residences in their accessible buildings
       const userOrgs = await db
         .select({ organizationId: schema.userOrganizations.organizationId })
         .from(schema.userOrganizations)
@@ -1349,44 +1845,41 @@ export function registerUserRoutes(app: Express): void {
       const orgIds = userOrgs.map(org => org.organizationId);
 
       if (orgIds.length === 0) {
+        console.log(`⚠️ [USER_MANAGEMENT] No organizations found for manager/admin ${userId}`);
         return res.json([]);
       }
 
-      const buildingDetails = await db
+      let whereConditions = [
+        inArray(schema.buildings.organizationId, orgIds),
+        eq(schema.buildings.isActive, true),
+        eq(schema.residences.isActive, true)
+      ];
+
+      // Add building filter if specified
+      if (building_id) {
+        whereConditions.push(eq(schema.residences.buildingId, building_id));
+      }
+
+      const residences = await db
         .select({
-          id: schema.buildings.id,
-          name: schema.buildings.name,
-          address: schema.buildings.address,
-          city: schema.buildings.city,
-          state: schema.buildings.province,
-          postal_code: schema.buildings.postalCode,
-          organization_id: schema.buildings.organizationId,
-          residence_count: count(schema.residences.id),
+          id: schema.residences.id,
+          unitNumber: schema.residences.unitNumber,
+          floor: schema.residences.floor,
+          buildingId: schema.residences.buildingId,
+          buildingName: schema.buildings.name,
         })
-        .from(schema.buildings)
-        .leftJoin(schema.residences, eq(schema.buildings.id, schema.residences.buildingId))
-        .where(and(
-          inArray(schema.buildings.organizationId, orgIds),
-          eq(schema.buildings.isActive, true)
-        ))
-        .groupBy(
-          schema.buildings.id,
-          schema.buildings.name,
-          schema.buildings.address,
-          schema.buildings.city,
-          schema.buildings.province,
-          schema.buildings.postalCode,
-          schema.buildings.organizationId
-        )
-        .orderBy(schema.buildings.name);
+        .from(schema.residences)
+        .innerJoin(schema.buildings, eq(schema.residences.buildingId, schema.buildings.id))
+        .where(and(...whereConditions))
+        .orderBy(schema.buildings.name, schema.residences.unitNumber);
 
-      res.json(buildingDetails);
-
-    } catch (error) {
-      console.error('Error fetching user buildings:', error);
-      res.status(500).json({ 
-        error: 'Failed to fetch user buildings',
-        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      console.log(`✅ [USER_MANAGEMENT] Returning ${residences.length} residences for manager/admin ${userId}`);
+      return res.json(residences);
+    } catch (error: any) {
+      console.error('❌ Error getting user residences:', error);
+      res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to get user residences',
       });
     }
   });
@@ -1449,7 +1942,7 @@ export function registerUserRoutes(app: Express): void {
           province: schema.buildings.province,
           postalCode: schema.buildings.postalCode,
           buildingType: schema.buildings.buildingType,
-          yearBuilt: schema.buildings.yearBuilt,
+          constructionDate: schema.buildings.constructionDate,
           totalFloors: schema.buildings.totalFloors,
           parkingSpaces: schema.buildings.parkingSpaces,
           storageSpaces: schema.buildings.storageSpaces,
@@ -1516,7 +2009,13 @@ export function registerUserRoutes(app: Express): void {
    * Admin: can assign/remove any residence
    * Manager: can assign/remove residences within their organizations only.
    */
-  app.put('/api/users/:id/residences', requireAuth, async (req: any, res) => {
+  app.put('/api/users/:id/residences', requireAuth,
+    createInvalidationMiddleware('userResidence', {
+      extractEntityId: (req) => req.params.id,
+      extractAffectedUsers: async (req) => [req.params.id],
+      operation: 'update'
+    }),
+    async (req: any, res) => {
     try {
       const currentUser = req.user || req.session?.user;
       const { id: userId } = req.params;
@@ -2368,19 +2867,16 @@ export function registerUserRoutes(app: Express): void {
         .limit(1);
 
       // Send invitation email
-      const recipientName = email.split('@')[0]; // Use email prefix as name
       const organizationName = organization?.name || 'Koveo Gestion';
       const inviterName = `${currentUser.firstName || currentUser.email} ${currentUser.lastName || ''}`.trim();
+      const invitationUrl = `${process.env.APP_URL || 'http://localhost:5000'}/accept-invitation?token=${token}`;
       
       const emailSent = await emailService.sendInvitationEmail(
         email,
-        recipientName,
-        token, // Use the unhashed token for the email URL
-        organizationName,
         inviterName,
-        new Date(expiresAt),
-        'fr', // Default to French for Quebec
-        personalMessage
+        invitationUrl,
+        organizationName,
+        'fr'
       );
 
       // Log invitation creation
@@ -2673,7 +3169,7 @@ export function registerUserRoutes(app: Express): void {
           userId: newUser.id,
           residenceId: invitation.residenceId,
           relationshipType: invitation.role === 'tenant' ? 'tenant' : 'occupant',
-          startDate: new Date(),
+          startDate: new Date().toISOString().split('T')[0], // Convert Date to YYYY-MM-DD string format
           isActive: true,
         });
         console.log('✅ User assigned to residence:', {
@@ -2796,19 +3292,16 @@ export function registerUserRoutes(app: Express): void {
         .limit(1);
 
       // Send invitation email again
-      const recipientName = invitation.email.split('@')[0]; // Use email prefix as name
       const organizationName = organization?.name || 'Koveo Gestion';
       const inviterName = `${currentUser.firstName || currentUser.email} ${currentUser.lastName || ''}`.trim();
+      const invitationUrl = `${process.env.APP_URL || 'http://localhost:5000'}/accept-invitation?token=${invitation.token}`;
       
       const emailSent = await emailService.sendInvitationEmail(
         invitation.email,
-        recipientName,
-        invitation.token, // Use the existing token
-        organizationName,
         inviterName,
-        newExpiresAt,
-        'fr', // Default to French for Quebec
-        invitation.personalMessage
+        invitationUrl,
+        organizationName,
+        'fr'
       );
 
       console.log('✅ Invitation resent:', {

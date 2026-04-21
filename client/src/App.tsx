@@ -12,17 +12,29 @@ import { memoryOptimizer } from '@/utils/memory-monitor';
 import { optimizedPageLoaders, createOptimizedLoader } from '@/utils/component-loader';
 import { LoadingSpinner } from './components/ui/loading-spinner';
 import { useSmoothNavigation } from '@/hooks/use-smooth-navigation';
+import { webVitalsMonitor } from '@/utils/web-vitals-monitor';
+import { performanceMonitor } from '@/utils/performance-monitor';
 
 // Start memory monitoring for better performance
 memoryOptimizer.start();
 
-// Make queryClient available globally for memory cleanup
+// Initialize performance monitoring
 if (typeof window !== 'undefined') {
+  // Make queryClient available globally for memory cleanup
   (window as unknown as Record<string, unknown>).queryClient = queryClient;
+  
+  // Initialize Web Vitals and performance monitoring
+  webVitalsMonitor.initialize();
+  performanceMonitor.start();
+  
 }
 
 import { MobileMenuProvider } from '@/hooks/use-mobile-menu';
 import { AuthErrorBoundary } from '@/components/common/AuthErrorBoundary';
+import { HelpProvider } from '@/contexts/HelpContext';
+import { HelpButton } from '@/components/help/HelpButton';
+import { HelpOverlay } from '@/components/help/HelpOverlay';
+import { HelpHighlighter } from '@/components/help/HelpHighlighter';
 
 // Optimized lazy-loaded Admin pages
 const AdminOrganizations = optimizedPageLoaders.AdminOrganizations;
@@ -102,6 +114,18 @@ const ManagerDemands = createOptimizedLoader(
 const ManagerCommonSpacesStats = createOptimizedLoader(
   () => import('@/pages/manager/common-spaces-stats'),
   'manager-common-spaces-stats',
+  { enableMemoryCleanup: true }
+);
+
+const ManagerMaintenanceInventory = createOptimizedLoader(
+  () => import('@/pages/manager/maintenance/inventory'),
+  'manager-maintenance-inventory',
+  { enableMemoryCleanup: true }
+);
+
+const ManagerMaintenanceProjects = createOptimizedLoader(
+  () => import('@/pages/manager/maintenance/projects'),
+  'manager-maintenance-projects',
   { enableMemoryCleanup: true }
 );
 
@@ -216,11 +240,25 @@ const DashboardCalendarPage = createOptimizedLoader(
   { preloadDelay: 200, enableMemoryCleanup: true }
 );
 
+// Dashboard Communication page
+const DashboardCommunicationPage = createOptimizedLoader(
+  () => import('@/pages/dashboard/communication'),
+  'dashboard-communication-page',
+  { preloadDelay: 200, enableMemoryCleanup: true }
+);
+
 // Invitation acceptance page (public route)
 const InvitationAcceptancePage = createOptimizedLoader(
   () => import('@/pages/auth/invitation-acceptance'),
   'invitation-acceptance-page',
   { preloadDelay: 500, enableMemoryCleanup: true }
+);
+
+// Performance Dashboard page (admin route)
+const PerformanceDashboardPage = createOptimizedLoader(
+  () => import('@/components/dashboard/PerformanceDashboard'),
+  'performance-dashboard-page',
+  { preloadDelay: 200, enableMemoryCleanup: true }
 );
 
 /**
@@ -320,6 +358,7 @@ function Router() {
             {/* Main Dashboard */}
             <Route path='/dashboard/quick-actions' component={DashboardPage} />
             <Route path='/dashboard/calendar' component={DashboardCalendarPage} />
+            <Route path='/dashboard/communication' component={DashboardCommunicationPage} />
 
             {/* Admin routes */}
             <Route path='/admin/organizations' component={AdminOrganizations} />
@@ -330,6 +369,7 @@ function Router() {
             <Route path='/admin/compliance' component={AdminCompliance} />
             <Route path='/admin/suggestions' component={AdminSuggestions} />
             <Route path='/admin/permissions' component={AdminPermissions} />
+            <Route path='/admin/performance' component={PerformanceDashboardPage} />
 
             {/* Owner routes removed - documentation consolidated under admin section */}
 
@@ -354,6 +394,8 @@ function Router() {
             <Route path='/manager/demands' component={ManagerDemands} />
             <Route path='/manager/user-management' component={ManagerUserManagement} />
             <Route path='/manager/common-spaces-stats'>{() => <ManagerCommonSpacesStats />}</Route>
+            <Route path='/manager/maintenance/inventory'>{() => <ManagerMaintenanceInventory />}</Route>
+            <Route path='/manager/maintenance/projects'>{() => <ManagerMaintenanceProjects />}</Route>
 
 
             {/* Residents routes */}
@@ -394,6 +436,11 @@ function Router() {
           </Switch>
         </Suspense>
       </div>
+
+      {/* Help system - floating button and overlay */}
+      <HelpButton />
+      <HelpOverlay />
+      <HelpHighlighter />
     </div>
   );
 }
@@ -445,10 +492,12 @@ function App() {
         <AuthErrorBoundary>
           <AuthProvider>
           <MobileMenuProvider>
-            <TooltipProvider>
-              <Toaster />
-              <Router />
-            </TooltipProvider>
+            <HelpProvider>
+              <TooltipProvider>
+                <Toaster />
+                <Router />
+              </TooltipProvider>
+            </HelpProvider>
           </MobileMenuProvider>
           </AuthProvider>
         </AuthErrorBoundary>

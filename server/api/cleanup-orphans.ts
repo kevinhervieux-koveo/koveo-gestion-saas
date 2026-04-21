@@ -31,7 +31,7 @@ export function registerCleanupOrphansRoutes(app: Express) {
       const { cleanupOrphans } = await import('../utils/cleanup-orphans');
       const report = await cleanupOrphans();
 
-      console.log(`✅ Orphan cleanup completed:`, report);
+      // console.log(`✅ Orphan cleanup completed:`, report);
 
       res.json({
         message: 'Orphan cleanup completed',

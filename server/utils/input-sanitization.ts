@@ -37,7 +37,7 @@ export function sanitizeString(input: string, maxLength = 500): string {
   // Detect potential attacks
   for (const pattern of ATTACK_PATTERNS) {
     if (pattern.test(input)) {
-      console.warn(`🚨 Security: Potential attack pattern detected in input: ${pattern}`);
+      // console.warn(`🚨 Security: Potential attack pattern detected in input: ${pattern}`);
       return ''; // Return empty string for suspicious input
     }
   }
@@ -173,7 +173,7 @@ export function validateFileUpload(filename: string, fileSize: number, mimeType:
   // Check file extension
   const ext = filename.toLowerCase().substring(filename.lastIndexOf('.'));
   if (DANGEROUS_EXTENSIONS.includes(ext)) {
-    console.warn(`🚨 Security: Dangerous file extension blocked: ${ext}`);
+    // console.warn(`🚨 Security: Dangerous file extension blocked: ${ext}`);
     return { isValid: false, message: 'File type not allowed for security reasons' };
   }
 

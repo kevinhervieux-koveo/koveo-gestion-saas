@@ -1,7 +1,6 @@
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Eye, Edit2, CheckCircle, XCircle, Building2, Home, User, Clock } from 'lucide-react';
+import { StandardCard } from '@/components/common/StandardCard';
+import { Eye, Edit2, CheckCircle, XCircle, Building2, Home, User, Clock, FileText } from 'lucide-react';
+import { sanitizeDescription } from '@/utils/sanitize';
 
 // Common demand interface
 /**
@@ -125,12 +124,14 @@ interface DemandCardProps {
 /**
  * Unified DemandCard component for displaying demand information
  * Supports different user roles and customizable actions.
+ * Now uses StandardCard as its base for consistency across the application
  * @param root0
  * @param root0.demand
  * @param root0.buildings
  * @param root0.residences
  * @param root0.actions
  * @param root0.userRole
+ * @param root0.compact
  */
 export function DemandCard({
   demand,
@@ -138,141 +139,140 @@ export function DemandCard({
   residences = [],
   actions = {},
   userRole = 'resident',
-}: DemandCardProps) {
+  compact = false,
+}: DemandCardProps & { compact?: boolean }) {
   const building = buildings.find((b) => b.id === demand.buildingId);
   const residence = residences.find((r) => r.id === demand.residenceId);
 
-  const handleCardClick = () => {
-    if (actions.onClick) {
-      actions.onClick(demand);
+  // Get demand type icon
+  const getDemandIcon = () => {
+    switch (demand.type) {
+      case 'maintenance':
+        return <FileText className="w-5 h-5 text-orange-500" />;
+      case 'complaint':
+        return <XCircle className="w-5 h-5 text-red-500" />;
+      case 'information':
+        return <FileText className="w-5 h-5 text-blue-500" />;
+      default:
+        return <FileText className="w-5 h-5 text-gray-500" />;
     }
   };
 
-  const handleButtonClick = (e: React.MouseEvent, action: () => void) => {
-    e.stopPropagation();
-    action();
+  // Get status badge variant
+  const getStatusVariant = (status: typeof demand.status) => {
+    switch (status) {
+      case 'approved':
+      case 'completed':
+        return 'default' as const;
+      case 'rejected':
+      case 'cancelled':
+        return 'destructive' as const;
+      case 'under_review':
+      case 'in_progress':
+        return 'outline' as const;
+      default:
+        return 'secondary' as const;
+    }
+  };
+
+  // Build badges array for StandardCard - hide in compact mode
+  const badges = !compact ? [
+    {
+      text: TYPE_LABELS[demand.type],
+      variant: 'outline' as const
+    },
+    {
+      text: STATUS_LABELS[demand.status],
+      variant: getStatusVariant(demand.status),
+      className: STATUS_COLORS[demand.status]
+    }
+  ] : [];
+
+  // Build actions array for StandardCard
+  const actionButtons = (userRole === 'manager' || actions.onView || actions.onEdit) ? [
+    actions.onView && {
+      icon: <Eye className="w-4 h-4" />,
+      label: 'View demand',
+      onClick: () => actions.onView!(demand),
+      variant: 'ghost' as const,
+      testId: `button-view-${demand.id}`
+    },
+    actions.showQuickActions && demand.status === 'submitted' && actions.onApprove && {
+      icon: <CheckCircle className="w-4 h-4" />,
+      label: 'Approve demand',
+      onClick: () => actions.onApprove!(demand),
+      variant: 'ghost' as const,
+      className: 'text-green-600 hover:text-green-700',
+      testId: `button-approve-${demand.id}`
+    },
+    actions.showQuickActions && demand.status === 'submitted' && actions.onReject && {
+      icon: <XCircle className="w-4 h-4" />,
+      label: 'Reject demand',
+      onClick: () => actions.onReject!(demand),
+      variant: 'ghost' as const,
+      className: 'text-red-600 hover:text-red-700',
+      testId: `button-reject-${demand.id}`
+    },
+    actions.onEdit && {
+      icon: <Edit2 className="w-4 h-4" />,
+      label: 'Edit demand',
+      onClick: () => actions.onEdit!(demand),
+      variant: 'ghost' as const,
+      testId: `button-edit-${demand.id}`
+    }
+  ].filter(Boolean) : [];
+
+  // Build metadata array for StandardCard
+  // In compact mode: only show building and date
+  // In normal mode: show submitter (if manager), building, residence, date
+  const metadata = compact ? [
+    {
+      icon: <Building2 className="w-3 h-3" />,
+      value: building?.name || 'Unknown Building'
+    },
+    {
+      icon: <Clock className="w-3 h-3" />,
+      value: new Date(demand.createdAt).toLocaleDateString()
+    }
+  ] : [
+    userRole === 'manager' && demand.submitter && {
+      icon: <User className="w-3 h-3" />,
+      value: `${demand.submitter.firstName} ${demand.submitter.lastName}`
+    },
+    {
+      icon: <Building2 className="w-3 h-3" />,
+      value: building?.name || 'Unknown Building'
+    },
+    residence && {
+      icon: <Home className="w-3 h-3" />,
+      value: residence.name
+    },
+    {
+      icon: <Clock className="w-3 h-3" />,
+      value: new Date(demand.createdAt).toLocaleDateString()
+    }
+  ].filter(Boolean);
+
+  // Format description (truncate for title)
+  const formatTitle = () => {
+    const sanitized = sanitizeDescription(demand.description);
+    if (sanitized.length > 100) {
+      return sanitized.substring(0, 100) + '...';
+    }
+    return sanitized;
   };
 
   return (
-    <Card
-      className={`transition-shadow ${actions.onClick ? 'cursor-pointer hover:shadow-md' : ''}`}
-      onClick={actions.onClick ? handleCardClick : undefined}
-      data-testid={`demand-card-${demand.id}`}
-    >
-      <CardHeader className='pb-3'>
-        <div className='flex items-center justify-between'>
-          <div className='flex items-center gap-2'>
-            <Badge variant='outline' data-testid={`demand-type-${demand.id}`}>
-              {TYPE_LABELS[demand.type]}
-            </Badge>
-            <Badge
-              className={STATUS_COLORS[demand.status]}
-              data-testid={`demand-status-${demand.id}`}
-            >
-              {STATUS_LABELS[demand.status]}
-            </Badge>
-          </div>
-
-          {/* Action buttons - only show for manager role or when explicitly provided */}
-          {(userRole === 'manager' || actions.onView || actions.onEdit) && (
-            <div className='flex items-center gap-1'>
-              {actions.onView && (
-                <Button
-                  variant='ghost'
-                  size='sm'
-                  onClick={(e) => handleButtonClick(e, () => actions.onView!(demand))}
-                  data-testid={`button-view-${demand.id}`}
-                >
-                  <Eye className='h-4 w-4' />
-                </Button>
-              )}
-
-              {/* Quick actions for submitted demands */}
-              {actions.showQuickActions && demand.status === 'submitted' && (
-                <>
-                  {actions.onApprove && (
-                    <Button
-                      variant='ghost'
-                      size='sm'
-                      onClick={(e) => handleButtonClick(e, () => actions.onApprove!(demand))}
-                      className='text-green-600 hover:text-green-700'
-                      data-testid={`button-approve-${demand.id}`}
-                    >
-                      <CheckCircle className='h-4 w-4' />
-                    </Button>
-                  )}
-                  {actions.onReject && (
-                    <Button
-                      variant='ghost'
-                      size='sm'
-                      onClick={(e) => handleButtonClick(e, () => actions.onReject!(demand))}
-                      className='text-red-600 hover:text-red-700'
-                      data-testid={`button-reject-${demand.id}`}
-                    >
-                      <XCircle className='h-4 w-4' />
-                    </Button>
-                  )}
-                </>
-              )}
-
-              {actions.onEdit && (
-                <Button
-                  variant='ghost'
-                  size='sm'
-                  onClick={(e) => handleButtonClick(e, () => actions.onEdit!(demand))}
-                  data-testid={`button-edit-${demand.id}`}
-                >
-                  <Edit2 className='h-4 w-4' />
-                </Button>
-              )}
-            </div>
-          )}
-        </div>
-
-        <CardTitle
-          className='text-base line-clamp-2'
-          data-testid={`demand-description-${demand.id}`}
-        >
-          {demand.description.substring(0, 100)}
-          {demand.description.length > 100 && '...'}
-        </CardTitle>
-      </CardHeader>
-
-      <CardContent className='pt-0'>
-        <div className='text-sm text-muted-foreground space-y-1'>
-          {/* Show submitter info for managers */}
-          {userRole === 'manager' && demand.submitter && (
-            <div className='flex items-center gap-1'>
-              <User className='h-3 w-3' />
-              <span data-testid={`demand-submitter-${demand.id}`}>
-                {`${demand.submitter.firstName} ${demand.submitter.lastName}`}
-              </span>
-            </div>
-          )}
-
-          <div className='flex items-center gap-1'>
-            <Building2 className='h-3 w-3' />
-            <span data-testid={`demand-building-${demand.id}`}>
-              {building?.name || 'Unknown Building'}
-            </span>
-          </div>
-
-          {residence && (
-            <div className='flex items-center gap-1'>
-              <Home className='h-3 w-3' />
-              <span data-testid={`demand-residence-${demand.id}`}>{residence.name}</span>
-            </div>
-          )}
-
-          <div className='flex items-center gap-1'>
-            <Clock className='h-3 w-3' />
-            <span data-testid={`demand-date-${demand.id}`}>
-              {new Date(demand.createdAt).toLocaleDateString()}
-            </span>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+    <StandardCard
+      title={formatTitle()}
+      icon={getDemandIcon()}
+      badges={badges}
+      actions={actionButtons}
+      metadata={metadata}
+      onClick={actions.onClick ? () => actions.onClick!(demand) : undefined}
+      spacing={compact ? 'compact' : 'normal'}
+      testId={`demand-card-${demand.id}`}
+    />
   );
 }
 

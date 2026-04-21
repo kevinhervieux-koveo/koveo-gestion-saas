@@ -1,0 +1,118 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+user-management-7ssySoOt.js:1 🔍 [USER_MANAGEMENT] Component mounted
+index-3y7Z8R2o.js:136 TypeError: t.map is not a function
+    at user-management-7ssySoOt.js:1:38676
+    at Uc (index-3y7Z8R2o.js:120:14136)
+    at Object.useMemo (index-3y7Z8R2o.js:229:2544)
+    at He.s.useMemo (vendor-react-BZXSkU7I.js:21:11462)
+    at Ds (user-management-7ssySoOt.js:1:38652)
+    at Object.react_stack_bottom_frame (index-3y7Z8R2o.js:229:12448)
+    at hc (index-3y7Z8R2o.js:120:804)
+    at Gc (index-3y7Z8R2o.js:141:5839)
+    at Wc (index-3y7Z8R2o.js:150:10147)
+    at q (index-3y7Z8R2o.js:45:108)
+
+The above error occurred in the <Ds> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, sx.
+
+overrideMethod @ hook.js:608
+Ch @ index-3y7Z8R2o.js:136
+Rh @ index-3y7Z8R2o.js:141
+q @ index-3y7Z8R2o.js:45
+Yc.l.componentDidCatch.e.callback @ index-3y7Z8R2o.js:141
+Yp @ index-3y7Z8R2o.js:107
+Gp @ index-3y7Z8R2o.js:107
+q @ index-3y7Z8R2o.js:45
+Yh @ index-3y7Z8R2o.js:163
+Zh @ index-3y7Z8R2o.js:163
+Xn @ index-3y7Z8R2o.js:163
+Zh @ index-3y7Z8R2o.js:163
+Xn @ index-3y7Z8R2o.js:163
+Zh @ index-3y7Z8R2o.js:163
+Xn @ index-3y7Z8R2o.js:163
+Zh @ index-3y7Z8R2o.js:163
+Xn @ index-3y7Z8R2o.js:163
+Zh @ index-3y7Z8R2o.js:163
+Xn @ index-3y7Z8R2o.js:163
+Zh @ index-3y7Z8R2o.js:163
+Xn @ index-3y7Z8R2o.js:163
+Zh @ index-3y7Z8R2o.js:163
+Ag @ index-3y7Z8R2o.js:163
+dd @ index-3y7Z8R2o.js:163
+pg @ index-3y7Z8R2o.js:163
+mg @ index-3y7Z8R2o.js:163
+kg @ index-3y7Z8R2o.js:185
+vl @ index-3y7Z8R2o.js:185
+pd @ index-3y7Z8R2o.js:185
+(anonymous) @ index-3y7Z8R2o.js:185
+<Ds>
+vu.jsxDEV @ index-3y7Z8R2o.js:15
+rr @ user-management-7ssySoOt.js:1
+react_stack_bottom_frame @ index-3y7Z8R2o.js:229
+hc @ index-3y7Z8R2o.js:120
+Gc @ index-3y7Z8R2o.js:141
+Wc @ index-3y7Z8R2o.js:150
+q @ index-3y7Z8R2o.js:45
+bg @ index-3y7Z8R2o.js:163
+vg @ index-3y7Z8R2o.js:163
+cd @ index-3y7Z8R2o.js:163
+mg @ index-3y7Z8R2o.js:163
+kg @ index-3y7Z8R2o.js:185
+vl @ index-3y7Z8R2o.js:185
+pd @ index-3y7Z8R2o.js:185
+(anonymous) @ index-3y7Z8R2o.js:185
+<...>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+u0 @ index-3y7Z8R2o.js:240
+P @ index-3y7Z8R2o.js:240
+react_stack_bottom_frame @ index-3y7Z8R2o.js:229
+hc @ index-3y7Z8R2o.js:120
+Gc @ index-3y7Z8R2o.js:141
+Wc @ index-3y7Z8R2o.js:150
+q @ index-3y7Z8R2o.js:45
+bg @ index-3y7Z8R2o.js:163
+z1 @ index-3y7Z8R2o.js:163
+U1 @ index-3y7Z8R2o.js:163
+mg @ index-3y7Z8R2o.js:163
+zg @ index-3y7Z8R2o.js:185
+u @ index-3y7Z8R2o.js:23
+<P>
+vu.jsxDEV @ index-3y7Z8R2o.js:15
+Qx @ index-3y7Z8R2o.js:384
+react_stack_bottom_frame @ index-3y7Z8R2o.js:229
+hc @ index-3y7Z8R2o.js:120
+Gc @ index-3y7Z8R2o.js:141
+Wc @ index-3y7Z8R2o.js:150
+q @ index-3y7Z8R2o.js:45
+bg @ index-3y7Z8R2o.js:163
+vg @ index-3y7Z8R2o.js:163
+cd @ index-3y7Z8R2o.js:163
+mg @ index-3y7Z8R2o.js:163
+kg @ index-3y7Z8R2o.js:185
+vl @ index-3y7Z8R2o.js:185
+pd @ index-3y7Z8R2o.js:185
+(anonymous) @ index-3y7Z8R2o.js:185
+<Qx>
+vu.jsxDEV @ index-3y7Z8R2o.js:15
+Fx @ index-3y7Z8R2o.js:384
+react_stack_bottom_frame @ index-3y7Z8R2o.js:229
+hc @ index-3y7Z8R2o.js:120
+Gc @ index-3y7Z8R2o.js:141
+Wc @ index-3y7Z8R2o.js:150
+q @ index-3y7Z8R2o.js:45
+bg @ index-3y7Z8R2o.js:163
+vg @ index-3y7Z8R2o.js:163
+cd @ index-3y7Z8R2o.js:163
+mg @ index-3y7Z8R2o.js:163
+zg @ index-3y7Z8R2o.js:185
+u @ index-3y7Z8R2o.js:23
+<Fx>
+vu.jsxDEV @ index-3y7Z8R2o.js:15
+(anonymous) @ index-3y7Z8R2o.js:384

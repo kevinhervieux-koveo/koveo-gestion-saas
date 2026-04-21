@@ -4,7 +4,7 @@ hidden = [".config", ".git", "generated-icon.png", "node_modules", "dist"]
 
 [nix]
 channel = "stable-24_05"
-packages = ["google-cloud-sdk", "yakut", "jq"]
+packages = ["google-cloud-sdk", "yakut", "jq", "dig"]
 
 [deployment]
 deploymentTarget = "autoscale"
@@ -32,16 +32,20 @@ localPort = 8080
 externalPort = 8008
 
 [[ports]]
+localPort = 33071
+externalPort = 8000
+
+[[ports]]
 localPort = 33455
 externalPort = 6000
 
 [[ports]]
-localPort = 37135
-externalPort = 4200
+localPort = 33881
+externalPort = 8099
 
 [[ports]]
-localPort = 37779
-externalPort = 8099
+localPort = 37135
+externalPort = 4200
 
 [[ports]]
 localPort = 39481
@@ -54,10 +58,6 @@ externalPort = 3003
 [[ports]]
 localPort = 42317
 externalPort = 8080
-
-[[ports]]
-localPort = 42347
-externalPort = 8000
 
 [[ports]]
 localPort = 43255
@@ -78,6 +78,10 @@ externalPort = 9000
 [[ports]]
 localPort = 46461
 externalPort = 3001
+
+[[ports]]
+localPort = 46547
+externalPort = 5173
 
 [env]
 PORT = "5000"

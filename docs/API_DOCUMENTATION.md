@@ -799,14 +799,14 @@ export function InvitationForm() {
 
 ### POST /api/documents
 
-**Purpose**: Upload new document
+**Purpose**: Upload new document with modern hierarchical storage
 
 **Request Body** (multipart/form-data):
 
 ```typescript
 {
   file: File;
-  category: string;
+  category: string; // Maps to document type (contracts → documents, etc.)
   organizationId?: string;
   buildingId?: string;
   residenceId?: string;
@@ -815,9 +815,128 @@ export function InvitationForm() {
 }
 ```
 
+**Storage Path Generation**: Documents are automatically stored using the canonical path structure:
+`{type}/org_{organizationId}/building_{buildingId}/residence_{residenceId}/role_{normalizedRole}/user_{userId}`
+
+**Type Mapping**: Legacy categories are mapped to modern types:
+- `contracts`, `financial`, `legal`, etc. → `documents`
+- `bills` → `bills`
+- `maintenance` → `maintenance`
+
+**Role Normalization**: Demo roles are normalized:
+- `demo_manager` → `manager`
+- `demo_admin` → `admin`
+
+**Example Upload with Storage Info**:
+
+```typescript
+const uploadDocument = useMutation({
+  mutationFn: async (uploadData: FormData) => {
+    const response = await fetch('/api/documents', {
+      method: 'POST',
+      body: uploadData,
+      credentials: 'include',
+    });
+    return response.json();
+  },
+  onSuccess: (data) => {
+    // data.storage_info contains path details
+    console.log('Document stored at:', data.storage_info.canonical_path);
+  },
+});
+```
+
+### GET /api/documents/:id/file
+
+**Purpose**: Secure file access through resolver endpoint with permission validation and quarantine handling
+
+**Response Types**:
+
+- **200 OK**: File found and accessible, returns file stream with appropriate Content-Type
+- **404 Not Found**: Document not found in database
+- **403 Forbidden**: User lacks permission to access document
+- **410 Gone**: Document is quarantined with recovery information
+- **500 Internal Server Error**: File system error or corruption
+
+**Example Implementation**:
+
+```typescript
+// Frontend: Secure document access
+export function useDocumentFile(documentId: string) {
+  return useQuery({
+    queryKey: ['document-file', documentId],
+    queryFn: async () => {
+      const response = await fetch(`/api/documents/${documentId}/file`, {
+        credentials: 'include',
+      });
+      
+      if (response.status === 410) {
+        // Handle quarantined document
+        const quarantineInfo = await response.json();
+        throw new QuarantineError('Document quarantined', quarantineInfo);
+      }
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch document: ${response.status}`);
+      }
+      
+      return response.blob();
+    },
+    enabled: !!documentId,
+  });
+}
+
+// Document viewer component
+export function DocumentViewer({ documentId }: { documentId: string }) {
+  const { data: fileBlob, error, isLoading } = useDocumentFile(documentId);
+  
+  if (isLoading) return <Skeleton className="h-96 w-full" />;
+  
+  if (error instanceof QuarantineError) {
+    return (
+      <Alert variant="destructive">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle>Document Quarantined</AlertTitle>
+        <AlertDescription>
+          This document is currently quarantined. 
+          {error.recoveryInfo && (
+            <span>Recovery possible until: {error.recoveryInfo.expiresAt}</span>
+          )}
+        </AlertDescription>
+      </Alert>
+    );
+  }
+  
+  if (error) {
+    return <div className="text-red-500">Failed to load document</div>;
+  }
+  
+  // Render document based on type
+  const objectUrl = URL.createObjectURL(fileBlob!);
+  return <embed src={objectUrl} className="w-full h-96" />;
+}
+```
+
+**Quarantine Response** (410 Gone):
+
+```typescript
+{
+  success: false;
+  message: 'Document is quarantined';
+  quarantine_info: {
+    quarantined_at: string;
+    expires_at: string; // 30 days from quarantine
+    recovery_possible: boolean;
+    quarantine_reason: 'storage_reorganization' | 'security_scan' | 'manual';
+  }
+}
+```
+
 ### DELETE /api/documents/:id
 
 **Purpose**: Delete document (with permission checks)
+
+**Note**: Documents in the modern storage system use hierarchical paths: `{type}/org_{organizationId}/building_{buildingId}/residence_{residenceId}/role_{userRole}/user_{userId}`
 
 ## Notification System
 

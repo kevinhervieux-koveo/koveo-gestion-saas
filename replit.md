@@ -1,104 +1,90 @@
 # Koveo Gestion Development Framework
 
 ## Overview
-
-Koveo Gestion is an AI-powered SaaS platform for property management in Quebec's residential communities. It provides comprehensive tools for documentation, maintenance, financial planning, and complaint management, ensuring compliance with Law 25 and supporting both French and English. The project successfully delivers an enterprise-grade application with 90%+ test coverage, targeting Quebec's co-ownership properties market with proven production reliability.
+Koveo Gestion is an AI-powered SaaS platform for property management in Quebec's residential communities. It offers tools for documentation, maintenance, financial planning, and complaint resolution, ensuring compliance with Quebec's Law 25. The platform supports both French and English, targets co-ownership properties, and aims to deliver an enterprise-grade application with high test coverage and production reliability.
 
 ## User Preferences
-
 Preferred communication style: Simple, everyday language.
+Working Methodology: **CRITICAL** - Always restart the "Start application" workflow after making code changes and before each checkpoint or testing phase. This ensures the hot reload system properly rebuilds and loads all changes, preventing issues with stale code or missing updates.
 
 ## System Architecture
 
-### Frontend
+### UI/UX Decisions
+The UI is built with Shadcn/ui (Radix UI) and Tailwind CSS, emphasizing responsive design. Forms feature single scroll behavior. Lucide React components are used for icons. A Hierarchical Navigation HOC (`withHierarchicalSelection`) provides intelligent auto-forwarding based on user access and implements role-based filtering for residents/tenants (server-side) and managers/admins (client-side).
 
-- **Framework**: React 18 with TypeScript and Vite.
-- **UI**: Shadcn/ui (built on Radix UI) and Tailwind CSS.
-- **Routing**: Wouter.
-- **State Management**: TanStack Query.
-- **Form Handling**: React Hook Form with Zod validation.
+**Contextual Help System**: A comprehensive help system provides on-demand guidance throughout the application:
+- **Floating Help Button**: A "?" icon button positioned at the bottom right of all authenticated pages
+- **Contextual Overlays**: Clicking the help button displays page-specific guidance including page goals, usage instructions, button/action explanations, form field descriptions, and relationships to other pages
+- **Accessibility Features**: Full keyboard navigation support with focus trapping, Escape key to close, auto-focus on open, and ARIA attributes for screen readers
+- **Comprehensive Coverage**: Help content covers all major routes including admin, manager, and resident pages with explanations of bills/budget relationships, recurring vs. unique bills, and inter-page workflows
+
+**Cascading Filters (Application-Wide Rule)**: All filter dropdowns display only values that exist in the currently filtered dataset. This creates an intelligent filtering experience where each filter shows only options that would return results based on other active filters. Implementation details:
+- Each filter dropdown is populated from the currently filtered data, not the complete dataset
+- Dependent filters automatically reset to 'all' when their selected value is no longer available after parent filter changes
+- Example: In demands management, the Residence filter only shows residences with demands matching the current Status, Type, and Building filters
+- This pattern is implemented using cascading useMemo hooks with proper dependency tracking
+
+### Technical Implementations
+- **Frontend**: React 18, TypeScript, Vite, Wouter for routing, TanStack Query for state management, and React Hook Form with Zod for validation.
+- **Backend**: Node.js, Express.js, TypeScript (ES modules) providing a RESTful API.
+- **Database**: PostgreSQL with Drizzle ORM and Drizzle Kit for migrations, hosted on Neon (serverless).
+- **Authentication**: Express sessions with PostgreSQL store, custom username/password, token-based password reset, and multi-step registration with Law 25 consent.
+- **Authorization**: Four-tier Role-Based Access Control (RBAC: Admin, Manager, Tenant, Resident) with granular permissions. Maintenance features (inventory and projects) enforce building-level access: Admin users access all buildings, while Manager users only access buildings linked via the `userBuildings` table.
+- **File Storage**: Hierarchical structure (`{type}/org_{organizationId}/building_{buildingId}/residence_{residenceId}/role_{userRole}/user_{userId}`) with a secure resolver endpoint and a quarantine system for legacy files.
 - **Internationalization**: Custom language provider for English and French.
-- **UI/UX Decisions**: All forms are responsive with single scroll bar behavior, using `max-h-[90vh]` and `overflow-y-auto` on dialog containers.
+- **Testing**: Comprehensive Vitest suite for unit, integration, and API routes, focusing on Law 25 compliance. Includes custom test authentication and manual Zod schemas for validation.
 
-### Backend
-
-- **Runtime**: Node.js with Express.js.
-- **Language**: TypeScript with ES modules.
-- **API**: RESTful API with typed request/response handling.
-- **ORM**: Drizzle ORM for PostgreSQL.
-- **Validation**: Zod schemas.
-
-### Data Storage
-
-- **Database**: PostgreSQL via Drizzle ORM and Neon serverless database.
-- **Dual Database Environment**: Development (DATABASE_URL) and Production (DATABASE_URL_KOVEO) databases are maintained in sync, requiring all schema changes to be applied to both.
-- **Schema Management**: Drizzle Kit for migrations and TypeScript integration.
-
-### Authentication and Authorization
-
-- **Session Management**: Express sessions with PostgreSQL store.
-- **User Management**: Custom username/password system, token-based password reset, multi-step registration with privacy consent (Law 25).
-- **RBAC**: Four-tier role hierarchy (Admin, Manager, Tenant, Resident) with granular permissions and organization-based access.
-- **Security**: Law 25 compliance framework.
-
-### Features
-
-- **Document Management**: Full system with role-based access control (Admin: full, Manager: organization-wide, Resident: residence/building, Tenant: view-only). Supports upload/download, categorization, and assignment.
+### Feature Specifications
+- **Document Management**: Role-based access, hierarchical storage, secure file access, 30-day quarantine for legacy files, and categorized upload/download.
 - **Property Management**:
-  - **Buildings**: Comprehensive management for Admin/Manager roles (view, create, edit, delete).
-  - **Residences**: Auto-generated (max 300 units/building) with advanced search, filtering, pagination, and multi-parking/storage support.
+    - **Buildings**: Management for Admin/Manager roles.
+    - **Residences**: Auto-generated units with advanced search, filtering, and multi-parking/storage.
+    - **Inventory Management**: Building element inventory with UNIFORMAT code support, condition tracking, and lifecycle management. Features enhanced view mode and seamless editing.
+- **Financial Management**:
+    - **Bill Management**: Enhanced payment structure with clear single/multiple payment options and auto-generation controls. Features calculated read-only total amounts, separated single payment amounts, and intelligent payment structure preservation. Both single and multiple payment bills support auto-generation for next year.
+      - **Auto-Generation**: Bills with auto-generation enabled (recurrence=true in form, paymentType='recurrent' in database) automatically generate future instances for the next year. The system properly maps form recurrence to backend paymentType='recurrent' for processing. Generated bills are properly configured with:
+        - `isAutoGenerated: true` flag for identification
+        - `sourceTemplateId` pointing to the original bill
+        - `autoGeneratedLabel` with year indicator (e.g., "Auto 2026")
+        - `paymentType: 'unique'` (converted from recurrent template)
+        - Start date calculated as `sourceStartDate + 1 year`
+        - Visual indicator (AutoGeneratedBadge) in the UI
+        - **Single Payment Recurrent Bills**: Bills with paymentType='recurrent', no schedulePayment, and costs.length=1 are supported. These bills default to yearly generation and automatically create next year's instance with the same amount.
+        - **Auto-Generated Bill Sync**: When source bills are edited, the system automatically creates, updates, or deletes companion auto-generated bills to maintain synchronization. This ensures generated bills always reflect the latest source bill configuration.
+      - **Template Creation Workflow**: ModularBillForm provides unified bill creation from templates using the `isTemplate` prop. When `isTemplate=true`, the form operates in read-only template mode with multiple safeguards:
+        - Auto-save is disabled (`if (bill?.id && !isTemplate)`) to prevent mutations to the source bill
+        - Delete button is hidden and delete handler has early return guard
+        - Form always uses POST endpoint to create new bills (never PUT)
+        - Form header displays "Create from Template" for clarity
+        - Pre-populates form with template bill values for user modification
+        - Dialog includes 100ms setTimeout delay for proper state cleanup after save
+- **Bilingual Support**: Full bilingual translation for Inventory, Projects, and Bills management pages, compliant with Quebec Law 25. All form fields, labels, and descriptions are available in both English and French with grammatically correct translations.
 
-### Development Framework (Pillar Methodology)
-
-- **Core Principles**: Modular components for quality assurance, testing, and security with proven A+ quality grade.
-- **Hot Reload System**: Automated development server with file watching and rapid rebuild capabilities (1-3 second rebuilds). Supports selective restarts for frontend, backend, or full stack with stable execution foundation.
-- **Working Methodology**: **CRITICAL** - Always restart the "Start application" workflow after making code changes and before each checkpoint or testing phase. This ensures the hot reload system properly rebuilds and loads all changes, preventing issues with stale code or missing updates.
-- **Security Enhancement (September 2025)**: Comprehensive security improvements to eliminate antivirus false positives while maintaining Law 25 compliance. Replaced shell command execution with secure database connections, enhanced file upload security with malware detection, implemented input sanitization and SSRF protection middleware, and added secure error handling.
-- **Code Consolidation**: Phase 2 consolidation completed (September 2025) achieving 40-50% code reduction through standardized form patterns, unified card components (StandardCard), and consolidated form hooks (useStandardForm). Created DocumentFormBase for shared document form structure, maintaining 100% functionality while improving developer experience.
-- **Quality Monitoring**: Real-time workspace status, automated quality metrics with 90%+ test coverage tracking.
-- **Configuration**: Dynamic framework configuration with comprehensive documentation.
-- **Progress Tracking**: Automated validation with detailed success metrics per component category.
-
-### Project Structure
-
-- **Monorepo**: Single workspace for client, server, and shared code.
-- **TypeScript**: Unified type checking.
-- **Build System**: Separate builds for client (Vite) and server (ESBuild).
-
-### Testing & Validation
-
-- **Comprehensive Test Suite**: Robust testing infrastructure with stable Jest configuration (September 2025) covering unit tests, integration tests, and Quebec Law 25 compliance validation. Core test categories include Dashboard Components (15/15 passing), Form Validation (12/12 passing), API Routes Validation (15/15 passing), and Quebec compliance patterns.
-- **Test Infrastructure**: Advanced Jest configuration with ES module support, comprehensive server mocking system, and unified database mocking for reliable test execution. Includes strategic import mocking with resolved module compatibility issues for stable execution foundation. Significantly improved type safety with systematic database mock implementations.
-- **Quality Gates**: Automated checks achieving A+ code quality grade including static analysis (ESLint, TypeScript), testing (unit, integration, E2E with 90%+ coverage), security (NPM audit), Quebec compliance (bilingual, Law 25), build validation, and code complexity monitoring.
-- **Testing Framework**: Modular mock system architecture with `serverApiMock.js`, `schemaMock.js`, `serverDbMock.js`, and `unified-database-mock.ts` for consistent test environment isolation and reliable execution. Enhanced with proper type assertions and mock schema separation for database operations vs query operations.
-- **Type Safety Progress**: Systematically reduced LSP diagnostics from 44+ to 23 remaining errors (September 2025), with comprehensive fixes for translation system (0 errors), database mock implementations, and invitation test infrastructure.
-- **Developer Workflow**: Husky pre-commit hooks, lint-staged, Commitlint with stable test execution foundation and comprehensive quality validation.
-
-### AI Agent Enhancement Toolkit
-
-- **Project Health Analysis**: 6-dimension scoring.
-- **Smart Context Management**: Intelligent file relationship analysis.
-- **Workflow Automation**: Pattern detection, automated task execution, security auditing.
-- **Real-time Monitoring**: Interactive dashboard.
-- **CLI Operations**: For health checks, context management, workflow execution.
+### System Design Choices
+- **Monorepo Structure**: Single workspace for client, server, and shared code with unified TypeScript.
+- **Development Framework (Pillar Methodology)**: Emphasizes modular components, quality assurance, testing, and security, with a hot reload system.
+- **Security**: Law 25 compliant enhancements including secure database connections, malware detection for uploads, input sanitization, SSRF protection, and secure error handling. All SQL queries use parameterized statements to prevent SQL injection. Credentials and secrets are managed via environment variables (DEMO_PASSWORD_HASH, ADMIN_PASSWORD_HASH) with no hardcoded values in the codebase. SSL certificates and private keys are externalized and excluded from version control.
+- **Code Consolidation**: Achieved through standardized form patterns, unified card components (`StandardCard`), and consolidated form hooks (`useStandardForm`).
+- **Query Optimization**: Eliminated N+1 patterns and improved data lookup speeds for user and document operations.
+- **Filter Organization**: All filter dropdown options are alphabetically sorted (based on English) for improved user experience across the entire application. This applies to all filters including status, type, category, building, residence, creator, and any other filter options. The 'other' option, when present, is kept at the end after all alphabetically sorted options.
+- **Testing Infrastructure**: Comprehensive Jest-based testing suite with 37+ unit tests for bills management, covering template workflow, auto-generation features, payment type mapping, and data validation. Test files located in `tests/unit/` and `tests/integration/` directories.
 
 ## External Dependencies
-
-- **@neondatabase/serverless**: PostgreSQL serverless database connection.
-- **drizzle-orm**: Type-safe database ORM.
-- **drizzle-kit**: Database schema migration tools.
+- **@neondatabase/serverless**: Serverless PostgreSQL connector.
+- **drizzle-orm**: Type-safe ORM.
+- **drizzle-kit**: Schema migration tools.
 - **zod**: Runtime type validation.
-- **@tanstack/react-query**: Server state management (frontend).
-- **@radix-ui/**: Accessible UI primitives (frontend).
-- **@hookform/resolvers**: Form validation integration (frontend).
-- **tailwindcss**: CSS framework (frontend).
-- **wouter**: React router (frontend).
-- **lucide-react**: Icon library (frontend).
+- **@tanstack/react-query**: Frontend server state management.
+- **@radix-ui/**: Accessible UI primitives.
+- **@hookform/resolvers**: Form validation integration.
+- **tailwindcss**: Utility-first CSS framework.
+- **wouter**: Small React routing library.
+- **lucide-react**: Icon library.
 - **vite**: Frontend build tool.
-- **esbuild**: JavaScript bundler for server.
+- **esbuild**: Fast JavaScript bundler.
 - **tsx**: TypeScript execution for Node.js.
-- **@replit/vite-plugin-***: Replit-specific plugins.
+- **@replit/vite-plugin-***: Replit-specific Vite plugins.
 - **Neon Database**: Serverless PostgreSQL hosting.
 - **Replit**: Development and hosting platform.
-- **Express.js**: Web application framework.
-- **SendGrid**: Email service integration (for password reset and invitations).
+- **Express.js**: Backend web framework.
+- **SendGrid**: Email service.

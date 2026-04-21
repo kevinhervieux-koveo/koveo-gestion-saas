@@ -1,6 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { pgTable, text, timestamp, boolean, varchar, uuid, integer } from 'drizzle-orm/pg-core';
-import { createInsertSchema } from 'drizzle-zod';
+import { pgTable, text, timestamp, boolean, varchar, uuid, integer, index } from 'drizzle-orm/pg-core';
 import { z } from 'zod';
 import { buildings, residences } from './property';
 
@@ -12,7 +11,7 @@ import { buildings, residences } from './property';
  * Enhanced with file metadata, content type, and attachment relationships.
  */
 export const documents = pgTable('documents', {
-  id: varchar('id')
+  id: text('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
   name: text('name').notNull(),
@@ -23,15 +22,34 @@ export const documents = pgTable('documents', {
   fileSize: integer('file_size'), // File size in bytes
   mimeType: text('mime_type'), // MIME type for proper handling
   isVisibleToTenants: boolean('is_visible_to_tenants').default(false).notNull(),
+  isQuarantined: boolean('is_quarantined').default(false).notNull(),
   residenceId: varchar('residence_id').references(() => residences.id),
   buildingId: varchar('building_id').references(() => buildings.id),
   uploadedById: varchar('uploaded_by_id').notNull(),
   // Support for document attachments to forms
   attachedToType: text('attached_to_type'), // 'bill', 'feature_request', 'bug_report', etc.
   attachedToId: varchar('attached_to_id'), // ID of the entity this document is attached to
+  effectiveDate: timestamp('effective_date'), // Date the document becomes effective
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+}, (table) => ({
+  residenceIdIdx: index('documents_residence_id_idx').on(table.residenceId),
+  buildingIdIdx: index('documents_building_id_idx').on(table.buildingId),
+  uploadedByIdIdx: index('documents_uploaded_by_id_idx').on(table.uploadedById),
+  attachedToIdIdx: index('documents_attached_to_id_idx').on(table.attachedToId),
+  documentTypeIdx: index('documents_document_type_idx').on(table.documentType),
+  // Date indexes for range queries
+  effectiveDateIdx: index('documents_effective_date_idx').on(table.effectiveDate),
+  createdAtIdx: index('documents_created_at_idx').on(table.createdAt),
+  updatedAtIdx: index('documents_updated_at_idx').on(table.updatedAt),
+  // Composite indexes for common query patterns
+  buildingDocTypeIdx: index('documents_building_doctype_idx').on(table.buildingId, table.documentType),
+  residenceDocTypeIdx: index('documents_residence_doctype_idx').on(table.residenceId, table.documentType),
+  uploaderCreatedIdx: index('documents_uploader_created_idx').on(table.uploadedById, table.createdAt),
+  buildingCreatedIdx: index('documents_building_created_idx').on(table.buildingId, table.createdAt),
+  residenceCreatedIdx: index('documents_residence_created_idx').on(table.residenceId, table.createdAt),
+  attachedEntityIdx: index('documents_attached_entity_idx').on(table.attachedToType, table.attachedToId),
+}));
 
 // Enhanced document schema with file metadata
 export const insertDocumentSchema = z.object({
@@ -43,11 +61,13 @@ export const insertDocumentSchema = z.object({
   fileSize: z.number().int().optional(),
   mimeType: z.string().optional(),
   isVisibleToTenants: z.boolean().default(false),
-  residenceId: z.string().uuid().optional(),
-  buildingId: z.string().uuid().optional(),
-  uploadedById: z.string().uuid().min(1, 'Uploaded by user ID is required'),
+  isQuarantined: z.boolean().default(false),
+  residenceId: z.string().optional(),
+  buildingId: z.string().optional(),
+  uploadedById: z.string().min(1, 'Uploaded by user ID is required'),
   attachedToType: z.string().optional(),
-  attachedToId: z.string().uuid().optional(),
+  attachedToId: z.string().optional(),
+  effectiveDate: z.string().optional(),
 });
 
 // Schema for form-attached documents
@@ -59,8 +79,9 @@ export const attachDocumentSchema = z.object({
   fileSize: z.number().int().optional(),
   mimeType: z.string().optional(),
   attachedToType: z.enum(['bill', 'feature_request', 'bug_report', 'maintenance_request']),
-  attachedToId: z.string().uuid().min(1, 'Attached entity ID is required'),
-  uploadedById: z.string().uuid().min(1, 'Uploaded by user ID is required'),
+  attachedToId: z.string().min(1, 'Attached entity ID is required'),
+  uploadedById: z.string().min(1, 'Uploaded by user ID is required'),
+  effectiveDate: z.string().optional(),
 });
 
 /**

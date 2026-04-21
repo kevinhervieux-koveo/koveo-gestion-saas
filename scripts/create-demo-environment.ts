@@ -27,6 +27,11 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as schema from '../shared/schema';
 import { PaymentGenerationService } from '../server/services/payment-generation-service';
+import { 
+  generateStorageDirectory, 
+  mapLegacyDocumentType, 
+  type UploadContext 
+} from '../shared/config/upload-config';
 
 // Database connection variables
 let db: any;
@@ -1060,14 +1065,30 @@ function ensureDirectoryExists(dirPath: string): void {
 }
 
 /**
- * Write file to disk and return file info
+ * Write file to disk using hierarchical storage structure
  */
-function writeDocumentFile(filePath: string, content: string): { fileSize: number } {
-  const fullPath = path.resolve(filePath);
+function writeDocumentFile(
+  context: UploadContext,
+  fileName: string,
+  content: string
+): { filePath: string; fileSize: number } {
+  // Generate hierarchical storage path
+  const storageDir = generateStorageDirectory(context);
+  const relativePath = `${storageDir}/${fileName}`;
+  
+  // Full path from uploads directory
+  const uploadsBaseDir = path.join(process.cwd(), 'uploads');
+  const fullPath = path.join(uploadsBaseDir, relativePath);
   const dir = path.dirname(fullPath);
+  
+  // Ensure directory exists and write file
   ensureDirectoryExists(dir);
   fs.writeFileSync(fullPath, content, 'utf8');
-  return { fileSize: content.length };
+  
+  return { 
+    filePath: relativePath, // Return relative path for database storage
+    fileSize: content.length 
+  };
 }
 
 /**
@@ -1183,10 +1204,19 @@ This payment has been processed successfully.
 Building Management Office`;
       }
 
-      const filePath = `bills/${docType}-${bill.billNumber.toLowerCase()}-${bill.id.slice(0, 8)}.txt`;
-      const { fileSize } = writeDocumentFile(filePath, documentContent);
+      // Create upload context for hierarchical storage
+      const uploadContext: UploadContext = {
+        type: 'bills',
+        organizationId: buildings.find(b => b.id === bill.buildingId)?.organizationId,
+        buildingId: bill.buildingId,
+        userRole: billCreator.role,
+        userId: billCreator.id
+      };
       
-      // Map bill category to appropriate document type
+      const fileName = `${docType}-${bill.billNumber.toLowerCase()}-${bill.id.slice(0, 8)}.txt`;
+      const { filePath, fileSize } = writeDocumentFile(uploadContext, fileName, documentContent);
+      
+      // Map bill category to appropriate document type using the new mapping system
       const documentTypeMapping: { [key: string]: string } = {
         'utilities': 'utilities',
         'maintenance': 'maintenance', 
@@ -1198,6 +1228,7 @@ Building Management Office`;
         'administration': 'other',
         'supplies': 'other'
       };
+      // Keep semantic document type for proper categorization
       const billDocumentType = documentTypeMapping[bill.category] || 'other';
 
       await db
@@ -1369,8 +1400,18 @@ Next Scheduled Maintenance: ${faker.date.future().toLocaleDateString()}`;
           }
           
           const fileName = `${docType.type}-${residence.unitNumber.toLowerCase()}${docSuffix}.txt`;
-          const filePath = `residences/${residence.id}/${fileName}`;
-          const { fileSize } = writeDocumentFile(filePath, documentContent);
+          
+          // Create upload context for hierarchical storage
+          const uploadContext: UploadContext = {
+            type: 'residences',
+            organizationId: building.organizationId,
+            buildingId: residence.buildingId,
+            residenceId: residence.id,
+            userRole: manager.role,
+            userId: manager.id
+          };
+          
+          const { filePath, fileSize } = writeDocumentFile(uploadContext, fileName, documentContent);
           
           const [createdResidenceDoc] = await db
             .insert(schema.documents)
@@ -1582,8 +1623,17 @@ Terms and Conditions:
           }
           
           const fileName = `${docType.type}-${building.name.replace(/\s+/g, '-').toLowerCase()}${docSuffix}.txt`;
-          const filePath = `buildings/${building.id}/${fileName}`;
-          const { fileSize } = writeDocumentFile(filePath, documentContent);
+          
+          // Create upload context for hierarchical storage
+          const uploadContext: UploadContext = {
+            type: 'buildings',
+            organizationId: building.organizationId,
+            buildingId: building.id,
+            userRole: manager.role,
+            userId: manager.id
+          };
+          
+          const { filePath, fileSize } = writeDocumentFile(uploadContext, fileName, documentContent);
           
           const [createdBuildingDoc] = await db
             .insert(schema.documents)

@@ -1,0 +1,367 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+index-DZXFPYdV.js:6 🏠 [INVENTORY PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-DZXFPYdV.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-DZXFPYdV.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+FormModal-DyzApYBj.js:62 🔍 [FORM MODAL DEBUG] Enhanced validation state: {mode: 'create', isValid: false, isDirty: false, totalErrors: 0, criticalErrors: 0, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'create', elementId: undefined, isValid: false, isDirty: false, errors: {…}, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+withHierarchicalSelection-CUBBd-Uo.js:1 🏢 [withHierarchicalSelection] Fetching buildings...
+withHierarchicalSelection-CUBBd-Uo.js:1 🌐 [withHierarchicalSelection] Requesting buildings: /api/organizations/e9bb7862-4ba5-4822-848f-f3692e826e73/buildings
+FormModal-DyzApYBj.js:62 🔍 [FORM MODAL DEBUG] Enhanced validation state: {mode: 'create', isValid: false, isDirty: false, totalErrors: 0, criticalErrors: 0, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'create', elementId: undefined, isValid: false, isDirty: false, errors: {…}, …}
+withHierarchicalSelection-CUBBd-Uo.js:1 📊 [withHierarchicalSelection] Received 5 buildings from API
+withHierarchicalSelection-CUBBd-Uo.js:1 ✅ [withHierarchicalSelection] Returning all 5 buildings (non-residence page)
+index-DZXFPYdV.js:6 🏠 [INVENTORY PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-DZXFPYdV.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DZXFPYdV.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+FormModal-DyzApYBj.js:62 🔍 [FORM MODAL DEBUG] Enhanced validation state: {mode: 'create', isValid: false, isDirty: false, totalErrors: 0, criticalErrors: 0, …}
+FormModal-DyzApYBj.js:62 🔍 [FORM MODAL DEBUG] Enhanced validation state: {mode: 'create', isValid: false, isDirty: false, totalErrors: 0, criticalErrors: 0, …}
+index-DZXFPYdV.js:6 🏠 [INVENTORY UI] Building elements collapsible toggled: true
+index-DZXFPYdV.js:6 🏠 [INVENTORY STATE] Building elements section toggled {expanded: true}
+index-DZXFPYdV.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DZXFPYdV.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+FormModal-DyzApYBj.js:62 🔍 [FORM MODAL DEBUG] Enhanced validation state: {mode: 'create', isValid: false, isDirty: false, totalErrors: 0, criticalErrors: 0, …}
+index-DZXFPYdV.js:6 🏠 [INVENTORY ACTION] handleViewElement called: {elementId: '2e0c9816-fa5e-4fb6-baf7-a7319ecabb0b', elementName: ' Roof Coverings'}
+index-DZXFPYdV.js:6 🏠 [INVENTORY STATE] Element form opened in view mode
+index-DZXFPYdV.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DZXFPYdV.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+FormModal-DyzApYBj.js:62 🔍 [FORM MODAL DEBUG] Enhanced validation state: {mode: 'create', isValid: false, isDirty: false, totalErrors: 0, criticalErrors: 0, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'create', elementId: '2e0c9816-fa5e-4fb6-baf7-a7319ecabb0b', isValid: false, isDirty: false, errors: {…}, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+FormModal-DyzApYBj.js:62 🔍 [FORM MODAL DEBUG] Enhanced validation state: {mode: 'edit', isValid: false, isDirty: false, totalErrors: 0, criticalErrors: 0, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'edit', elementId: '2e0c9816-fa5e-4fb6-baf7-a7319ecabb0b', isValid: false, isDirty: false, errors: {…}, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'nextEvaluationDate', type: undefined, value: Mon Sep 23 2030 08:44:03 GMT-0400 (Eastern Daylight Time), isValid: false, errors: {…}, …}
+index-1dzeN6X6.js:185 [Violation] 'click' handler took 179ms
+[Violation] Forced reflow while executing JavaScript took 31ms
+index-DZXFPYdV.js:6 🏠 [INVENTORY MODAL] Element form visibility changed: {open: false, hasElement: true}
+index-DZXFPYdV.js:6 🏠 [INVENTORY STATE] Clearing selected element
+index-DZXFPYdV.js:6 🏠 [INVENTORY STATE] Element form visibility changed {open: false}
+index-DZXFPYdV.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DZXFPYdV.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+FormModal-DyzApYBj.js:62 🔍 [FORM MODAL DEBUG] Enhanced validation state: {mode: 'edit', isValid: false, isDirty: false, totalErrors: 0, criticalErrors: 0, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'edit', elementId: undefined, isValid: false, isDirty: false, errors: {…}, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+index-1dzeN6X6.js:186 A component is changing an uncontrolled input to be controlled. This is likely caused by the value changing from undefined to a defined value, which should not happen. Decide between using a controlled or uncontrolled input element for the lifetime of the component. More info: https://react.dev/link/controlled-components
+overrideMethod @ hook.js:608
+c1 @ index-1dzeN6X6.js:186
+h1 @ index-1dzeN6X6.js:186
+q @ index-1dzeN6X6.js:45
+Qc @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+Vt @ index-1dzeN6X6.js:163
+zh @ index-1dzeN6X6.js:163
+tg @ index-1dzeN6X6.js:163
+ed @ index-1dzeN6X6.js:163
+Xh @ index-1dzeN6X6.js:163
+Ih @ index-1dzeN6X6.js:163
+mg @ index-1dzeN6X6.js:185
+ml @ index-1dzeN6X6.js:185
+jo @ index-1dzeN6X6.js:163
+f @ index-1dzeN6X6.js:233
+We._.flushSync @ vendor-react-BZXSkU7I.js:33
+jn @ vendor-ui-DOhogLgl.js:14
+Zo @ vendor-ui-DOhogLgl.js:14
+u @ vendor-ui-DOhogLgl.js:14
+s @ vendor-ui-DOhogLgl.js:14
+<input>
+du.jsxDEV @ index-1dzeN6X6.js:15
+Input @ input-B4UeOc9n.js:1
+react_stack_bottom_frame @ index-1dzeN6X6.js:229
+oc @ index-1dzeN6X6.js:120
+sh @ index-1dzeN6X6.js:141
+Pc @ index-1dzeN6X6.js:150
+q @ index-1dzeN6X6.js:45
+Kh @ index-1dzeN6X6.js:163
+Jh @ index-1dzeN6X6.js:163
+Wc @ index-1dzeN6X6.js:163
+Ih @ index-1dzeN6X6.js:163
+mg @ index-1dzeN6X6.js:185
+ml @ index-1dzeN6X6.js:185
+ad @ index-1dzeN6X6.js:185
+(anonymous) @ index-1dzeN6X6.js:185
+<Input>
+du.jsxDEV @ index-1dzeN6X6.js:15
+children @ index-DZXFPYdV.js:6
+render @ FormModal-DyzApYBj.js:62
+fc @ vendor-forms-DXLf4S2w.js:1
+react_stack_bottom_frame @ index-1dzeN6X6.js:229
+oc @ index-1dzeN6X6.js:120
+kc @ index-1dzeN6X6.js:141
+Pc @ index-1dzeN6X6.js:150
+q @ index-1dzeN6X6.js:45
+Kh @ index-1dzeN6X6.js:163
+Jh @ index-1dzeN6X6.js:163
+Wc @ index-1dzeN6X6.js:163
+Ih @ index-1dzeN6X6.js:163
+mg @ index-1dzeN6X6.js:185
+ml @ index-1dzeN6X6.js:185
+ad @ index-1dzeN6X6.js:185
+(anonymous) @ index-1dzeN6X6.js:185
+<fc>
+du.jsxDEV @ index-1dzeN6X6.js:15
+k @ form-BtA0nBsP.js:1
+react_stack_bottom_frame @ index-1dzeN6X6.js:229
+oc @ index-1dzeN6X6.js:120
+kc @ index-1dzeN6X6.js:141
+Pc @ index-1dzeN6X6.js:150
+q @ index-1dzeN6X6.js:45
+Kh @ index-1dzeN6X6.js:163
+Jh @ index-1dzeN6X6.js:163
+Wc @ index-1dzeN6X6.js:163
+Ih @ index-1dzeN6X6.js:163
+mg @ index-1dzeN6X6.js:185
+ml @ index-1dzeN6X6.js:185
+ad @ index-1dzeN6X6.js:185
+(anonymous) @ index-1dzeN6X6.js:185
+<k>
+du.jsxDEV @ index-1dzeN6X6.js:15
+jn @ FormModal-DyzApYBj.js:62
+react_stack_bottom_frame @ index-1dzeN6X6.js:229
+oc @ index-1dzeN6X6.js:120
+kc @ index-1dzeN6X6.js:141
+Pc @ index-1dzeN6X6.js:150
+q @ index-1dzeN6X6.js:45
+Kh @ index-1dzeN6X6.js:163
+Jh @ index-1dzeN6X6.js:163
+Wc @ index-1dzeN6X6.js:163
+Ih @ index-1dzeN6X6.js:163
+mg @ index-1dzeN6X6.js:185
+ml @ index-1dzeN6X6.js:185
+ad @ index-1dzeN6X6.js:185
+(anonymous) @ index-1dzeN6X6.js:185
+<jn>
+du.jsxDEV @ index-1dzeN6X6.js:15
+gr @ index-DZXFPYdV.js:6
+react_stack_bottom_frame @ index-1dzeN6X6.js:229
+oc @ index-1dzeN6X6.js:120
+kc @ index-1dzeN6X6.js:141
+Pc @ index-1dzeN6X6.js:150
+q @ index-1dzeN6X6.js:45
+Kh @ index-1dzeN6X6.js:163
+Jh @ index-1dzeN6X6.js:163
+Wc @ index-1dzeN6X6.js:163
+Ih @ index-1dzeN6X6.js:163
+mg @ index-1dzeN6X6.js:185
+ml @ index-1dzeN6X6.js:185
+ad @ index-1dzeN6X6.js:185
+(anonymous) @ index-1dzeN6X6.js:185
+FormModal-DyzApYBj.js:62 🔍 [FORM MODAL DEBUG] Enhanced validation state: {mode: 'create', isValid: false, isDirty: false, totalErrors: 0, criticalErrors: 0, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'create', elementId: undefined, isValid: false, isDirty: false, errors: {…}, …}
+index-DZXFPYdV.js:6 🏠 [INVENTORY ACTION] handleEditElement called: {elementId: '2e0c9816-fa5e-4fb6-baf7-a7319ecabb0b', elementName: ' Roof Coverings'}
+index-DZXFPYdV.js:6 🏠 [INVENTORY STATE] Element form opened in edit mode
+index-DZXFPYdV.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DZXFPYdV.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+FormModal-DyzApYBj.js:62 🔍 [FORM MODAL DEBUG] Enhanced validation state: {mode: 'create', isValid: false, isDirty: false, totalErrors: 0, criticalErrors: 0, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'create', elementId: '2e0c9816-fa5e-4fb6-baf7-a7319ecabb0b', isValid: false, isDirty: false, errors: {…}, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+FormModal-DyzApYBj.js:62 🔍 [FORM MODAL DEBUG] Enhanced validation state: {mode: 'edit', isValid: false, isDirty: false, totalErrors: 0, criticalErrors: 0, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'edit', elementId: '2e0c9816-fa5e-4fb6-baf7-a7319ecabb0b', isValid: false, isDirty: false, errors: {…}, …}
+index-DZXFPYdV.js:6 Document uploaded: {file: File, text: null}
+FormModal-DyzApYBj.js:62 🔍 [FORM MODAL DEBUG] Enhanced validation state: {mode: 'edit', isValid: false, isDirty: false, totalErrors: 1, criticalErrors: 0, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'edit', elementId: '2e0c9816-fa5e-4fb6-baf7-a7319ecabb0b', isValid: false, isDirty: false, errors: {…}, …}
+FormModal-DyzApYBj.js:62 🔍 [FORM MODAL DEBUG] Enhanced validation state: {mode: 'edit', isValid: false, isDirty: false, totalErrors: 1, criticalErrors: 0, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'edit', elementId: '2e0c9816-fa5e-4fb6-baf7-a7319ecabb0b', isValid: false, isDirty: false, errors: {…}, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'unit', type: 'change', value: 'm', isValid: false, errors: {…}, …}
+FormModal-DyzApYBj.js:62 🔍 [FORM MODAL DEBUG] Enhanced validation state: {mode: 'edit', isValid: false, isDirty: true, totalErrors: 1, criticalErrors: 0, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'edit', elementId: '2e0c9816-fa5e-4fb6-baf7-a7319ecabb0b', isValid: false, isDirty: true, errors: {…}, …}
+FormModal-DyzApYBj.js:62 🔍 [FORM MODAL DEBUG] Enhanced validation state: {mode: 'edit', isValid: false, isDirty: true, totalErrors: 1, criticalErrors: 0, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'edit', elementId: '2e0c9816-fa5e-4fb6-baf7-a7319ecabb0b', isValid: false, isDirty: true, errors: {…}, …}
+FormModal-DyzApYBj.js:62 🔍 [FORM MODAL DEBUG] Enhanced validation state: {mode: 'edit', isValid: false, isDirty: true, totalErrors: 1, criticalErrors: 0, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'edit', elementId: '2e0c9816-fa5e-4fb6-baf7-a7319ecabb0b', isValid: false, isDirty: true, errors: {…}, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'notes', type: 'change', value: 'f', isValid: false, errors: {…}, …}
+FormModal-DyzApYBj.js:62 🔍 [FORM MODAL DEBUG] Enhanced validation state: {mode: 'edit', isValid: false, isDirty: true, totalErrors: 1, criticalErrors: 0, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'notes', type: 'change', value: 'fd', isValid: false, errors: {…}, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'notes', type: 'change', value: 'fds', isValid: false, errors: {…}, …}
+FormModal-DyzApYBj.js:62 🔍 [FORM MODAL DEBUG] Enhanced validation state: {mode: 'edit', isValid: false, isDirty: true, totalErrors: 1, criticalErrors: 0, …}
+FormModal-DyzApYBj.js:62 🔍 [FORM MODAL DEBUG] Enhanced validation state: {mode: 'edit', isValid: false, isDirty: true, totalErrors: 1, criticalErrors: 0, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'edit', elementId: '2e0c9816-fa5e-4fb6-baf7-a7319ecabb0b', isValid: false, isDirty: true, errors: {…}, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'unitValue', type: 'change', value: '2', isValid: false, errors: {…}, …}
+FormModal-DyzApYBj.js:62 🔍 [FORM MODAL DEBUG] Enhanced validation state: {mode: 'edit', isValid: false, isDirty: true, totalErrors: 1, criticalErrors: 0, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'unitValue', type: 'change', value: '23', isValid: false, errors: {…}, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'unitValue', type: 'change', value: '234', isValid: false, errors: {…}, …}
+FormModal-DyzApYBj.js:62 🔍 [FORM MODAL DEBUG] Enhanced validation state: {mode: 'edit', isValid: false, isDirty: true, totalErrors: 1, criticalErrors: 0, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'reconstructionCost', type: 'change', value: '1', isValid: false, errors: {…}, …}
+FormModal-DyzApYBj.js:62 🔍 [FORM MODAL DEBUG] Enhanced validation state: {mode: 'edit', isValid: false, isDirty: true, totalErrors: 1, criticalErrors: 0, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'reconstructionCost', type: 'change', value: '12', isValid: false, errors: {…}, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'reconstructionCost', type: 'change', value: '123', isValid: false, errors: {…}, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'reconstructionCost', type: 'change', value: '1234', isValid: false, errors: {…}, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'reconstructionCost', type: 'change', value: '1234.01', isValid: false, errors: {…}, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'reconstructionCost', type: 'change', value: '1234.02', isValid: false, errors: {…}, …}
+FormModal-DyzApYBj.js:62 🔍 [FORM MODAL DEBUG] Enhanced validation state: {mode: 'edit', isValid: false, isDirty: true, totalErrors: 1, criticalErrors: 0, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'currentLifespan', type: 'change', value: '5', isValid: false, errors: {…}, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'currentLifespan', type: 'change', value: '5', isValid: false, errors: {…}, …}
+FormModal-DyzApYBj.js:62 🔍 [FORM MODAL DEBUG] Enhanced validation state: {mode: 'edit', isValid: false, isDirty: true, totalErrors: 1, criticalErrors: 0, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'nextEvaluationDate', type: undefined, value: Wed Sep 23 2026 08:45:15 GMT-0400 (Eastern Daylight Time), isValid: false, errors: {…}, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'nextEvaluationDate', type: undefined, value: Wed Sep 23 2026 08:45:15 GMT-0400 (Eastern Daylight Time), isValid: false, errors: {…}, …}
+FormModal-DyzApYBj.js:62 🔍 [FORM MODAL DEBUG] Enhanced validation state: {mode: 'edit', isValid: false, isDirty: true, totalErrors: 1, criticalErrors: 0, …}
+FormModal-DyzApYBj.js:62 🔍 [FORM MODAL DEBUG] Enhanced validation state: {mode: 'edit', isValid: false, isDirty: true, totalErrors: 1, criticalErrors: 0, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'originalLifespan', type: 'change', value: '53', isValid: false, errors: {…}, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'originalLifespan', type: 'change', value: '53', isValid: false, errors: {…}, …}
+FormModal-DyzApYBj.js:62 🔍 [FORM MODAL DEBUG] Enhanced validation state: {mode: 'edit', isValid: false, isDirty: true, totalErrors: 1, criticalErrors: 0, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'nextEvaluationDate', type: undefined, value: Wed Sep 23 2026 08:45:17 GMT-0400 (Eastern Daylight Time), isValid: false, errors: {…}, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'nextEvaluationDate', type: undefined, value: Wed Sep 23 2026 08:45:17 GMT-0400 (Eastern Daylight Time), isValid: false, errors: {…}, …}
+FormModal-DyzApYBj.js:62 🔍 [FORM MODAL DEBUG] Enhanced validation state: {mode: 'edit', isValid: false, isDirty: true, totalErrors: 1, criticalErrors: 0, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'originalLifespan', type: 'change', value: '54', isValid: false, errors: {…}, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'originalLifespan', type: 'change', value: '54', isValid: false, errors: {…}, …}
+FormModal-DyzApYBj.js:62 🔍 [FORM MODAL DEBUG] Enhanced validation state: {mode: 'edit', isValid: false, isDirty: true, totalErrors: 1, criticalErrors: 0, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'nextEvaluationDate', type: undefined, value: Wed Sep 23 2026 08:45:17 GMT-0400 (Eastern Daylight Time), isValid: false, errors: {…}, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'nextEvaluationDate', type: undefined, value: Wed Sep 23 2026 08:45:17 GMT-0400 (Eastern Daylight Time), isValid: false, errors: {…}, …}
+FormModal-DyzApYBj.js:62 🔍 [FORM MODAL DEBUG] Enhanced validation state: {mode: 'edit', isValid: false, isDirty: true, totalErrors: 1, criticalErrors: 0, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'description', type: 'change', value: 'd', isValid: false, errors: {…}, …}
+FormModal-DyzApYBj.js:62 🔍 [FORM MODAL DEBUG] Enhanced validation state: {mode: 'edit', isValid: false, isDirty: true, totalErrors: 1, criticalErrors: 0, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'description', type: 'change', value: 'df', isValid: false, errors: {…}, …}
+index-DZXFPYdV.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'description', type: 'change', value: 'dfg', isValid: false, errors: {…}, …}
+FormModal-DyzApYBj.js:62 🔍 [FORM MODAL DEBUG] Enhanced validation state: {mode: 'edit', isValid: false, isDirty: true, totalErrors: 1, criticalErrors: 0, …}

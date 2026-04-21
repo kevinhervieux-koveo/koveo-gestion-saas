@@ -20,7 +20,7 @@ export interface BuildingWithOrg {
   province: string;
   postalCode: string;
   buildingType: string;
-  yearBuilt?: number;
+  constructionDate?: string;
   totalUnits: number;
   totalFloors?: number;
   parkingSpaces?: number;
@@ -63,7 +63,7 @@ export async function getAllBuildingsWithOrg(): Promise<BuildingWithOrg[]> {
       province: buildings.province,
       postalCode: buildings.postalCode,
       buildingType: buildings.buildingType,
-      yearBuilt: buildings.yearBuilt,
+      constructionDate: buildings.constructionDate,
       totalUnits: buildings.totalUnits,
       totalFloors: buildings.totalFloors,
       parkingSpaces: buildings.parkingSpaces,
@@ -104,7 +104,7 @@ export async function getBuildingsByOrganizations(
       province: buildings.province,
       postalCode: buildings.postalCode,
       buildingType: buildings.buildingType,
-      yearBuilt: buildings.yearBuilt,
+      constructionDate: buildings.constructionDate,
       totalUnits: buildings.totalUnits,
       totalFloors: buildings.totalFloors,
       parkingSpaces: buildings.parkingSpaces,
@@ -143,7 +143,7 @@ export async function getBuildingsByUserResidences(userId: string): Promise<Buil
       province: buildings.province,
       postalCode: buildings.postalCode,
       buildingType: buildings.buildingType,
-      yearBuilt: buildings.yearBuilt,
+      constructionDate: buildings.constructionDate,
       totalUnits: buildings.totalUnits,
       totalFloors: buildings.totalFloors,
       parkingSpaces: buildings.parkingSpaces,
@@ -190,7 +190,7 @@ export async function getBuildingById(buildingId: string): Promise<BuildingWithO
       province: buildings.province,
       postalCode: buildings.postalCode,
       buildingType: buildings.buildingType,
-      yearBuilt: buildings.yearBuilt,
+      constructionDate: buildings.constructionDate,
       totalUnits: buildings.totalUnits,
       totalFloors: buildings.totalFloors,
       parkingSpaces: buildings.parkingSpaces,

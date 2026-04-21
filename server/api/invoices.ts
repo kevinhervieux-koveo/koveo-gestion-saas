@@ -1,7 +1,7 @@
 import { Express, Request, Response } from 'express';
 import { requireAuth } from '../auth/index';
 import { uploadInvoiceFile, handleUploadError } from '../middleware/fileUpload';
-import { geminiService } from '../services/geminiService';
+import { aiService } from '../services/consolidated-ai-service';
 import { aiExtractionResponseSchema, insertInvoiceSchema } from '@shared/schema';
 import { storage } from '../storage';
 import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
@@ -33,7 +33,6 @@ const extractionRateLimit = rateLimit({
 });
 
 export function registerInvoiceRoutes(app: Express) {
-  console.log('🔄 Loading invoice routes...');
 
   /**
    * POST /api/invoices/extract-data
@@ -53,12 +52,9 @@ export function registerInvoiceRoutes(app: Express) {
       const userId = req.user.id;
       const userRole = req.user.role;
 
-      console.log(`[INVOICE EXTRACTION] Starting extraction for user ${userId} (${userRole})`);
-
       try {
         // Validate file upload
         if (!req.file) {
-          console.log(`[INVOICE EXTRACTION] No file uploaded by user ${userId}`);
           return res.status(400).json({
             error: 'No file uploaded',
             message: 'Please upload an invoice file',
@@ -68,16 +64,9 @@ export function registerInvoiceRoutes(app: Express) {
 
         const { buffer, mimetype, originalname, size } = req.file;
         
-        console.log(`[INVOICE EXTRACTION] Processing file for user ${userId}:`, {
-          filename: originalname,
-          mimetype,
-          size: `${Math.round(size / 1024)}KB`
-        });
-
         // Validate GEMINI_API_KEY is configured
         const apiKey = process.env.GEMINI_API_KEY;
         if (!apiKey) {
-          console.error('[INVOICE EXTRACTION] GEMINI_API_KEY not configured');
           return res.status(500).json({
             error: 'AI service not configured',
             message: 'Invoice extraction service is not available',
@@ -85,36 +74,17 @@ export function registerInvoiceRoutes(app: Express) {
           });
         }
 
-        // Extract invoice data using Gemini AI
-        const extractionData = await geminiService.extractInvoiceData(buffer, mimetype);
+        // Extract invoice data using AI service
+        const extractionData = await aiService.extractInvoiceData(buffer, mimetype);
         
         // Calculate confidence score
-        const confidenceScore = geminiService.calculateConfidenceScore(extractionData);
+        const confidenceScore = aiService.calculateConfidenceScore(extractionData);
         
         // Validate extracted data structure
         const validatedData = aiExtractionResponseSchema.parse(extractionData);
         
         const processingTime = Date.now() - startTime;
         
-        console.log(`[INVOICE EXTRACTION] Extraction completed for user ${userId}:`, {
-          processingTime: `${processingTime}ms`,
-          confidence: confidenceScore,
-          extractedFields: Object.keys(validatedData).filter(key => validatedData[key as keyof typeof validatedData] !== null)
-        });
-
-        // Security audit log
-        console.log(`[SECURITY AUDIT] INVOICE_EXTRACTION_SUCCESS:`, {
-          timestamp: new Date().toISOString(),
-          action: 'INVOICE_EXTRACTION_SUCCESS',
-          userId,
-          userRole,
-          filename: originalname,
-          fileSize: size,
-          confidence: confidenceScore,
-          processingTime,
-          extractedFieldCount: Object.keys(validatedData).filter(key => validatedData[key as keyof typeof validatedData] !== null).length
-        });
-
         // Return structured response
         res.json({
           success: true,
@@ -129,25 +99,6 @@ export function registerInvoiceRoutes(app: Express) {
         });
 
       } catch (error: any) {
-        const processingTime = Date.now() - startTime;
-        
-        console.error(`[INVOICE EXTRACTION] Error for user ${userId}:`, {
-          error: error.message,
-          processingTime,
-          filename: req.file?.originalname || 'unknown'
-        });
-
-        // Security audit log for errors
-        console.log(`[SECURITY AUDIT] INVOICE_EXTRACTION_ERROR:`, {
-          timestamp: new Date().toISOString(),
-          action: 'INVOICE_EXTRACTION_ERROR',
-          userId,
-          userRole,
-          error: error.message,
-          filename: req.file?.originalname || 'unknown',
-          processingTime
-        });
-
         // Handle specific error types
         if (error.message.includes('GEMINI_API_KEY')) {
           return res.status(500).json({
@@ -189,16 +140,16 @@ export function registerInvoiceRoutes(app: Express) {
    */
   app.get('/api/invoices/health', requireAuth, async (req: any, res: Response) => {
     try {
-      const checks = {
+      const checks: any = {
         apiKeyConfigured: !!process.env.GEMINI_API_KEY,
-        serviceInitialized: !!geminiService,
+        serviceInitialized: !!aiService,
         timestamp: new Date().toISOString()
       };
 
       // If API key is configured, test the connection
       if (checks.apiKeyConfigured && checks.serviceInitialized) {
         try {
-          checks.apiConnected = await geminiService.validateApiKey();
+          checks.apiConnected = await aiService.validateApiKey();
         } catch (error) {
           checks.apiConnected = false;
           checks.apiError = 'Connection test failed';
@@ -214,8 +165,6 @@ export function registerInvoiceRoutes(app: Express) {
       });
 
     } catch (error: any) {
-      console.error('[INVOICE HEALTH] Health check error:', error);
-      
       res.status(503).json({
         status: 'unhealthy',
         service: 'invoice-extraction',
@@ -251,7 +200,6 @@ export function registerInvoiceRoutes(app: Express) {
       });
 
     } catch (error: any) {
-      console.error('[INVOICES API] Error fetching invoices:', error);
       res.status(500).json({
         error: 'Failed to fetch invoices',
         message: error.message
@@ -281,7 +229,6 @@ export function registerInvoiceRoutes(app: Express) {
       });
 
     } catch (error: any) {
-      console.error('[INVOICES API] Error fetching invoice:', error);
       res.status(500).json({
         error: 'Failed to fetch invoice',
         message: error.message
@@ -320,8 +267,6 @@ export function registerInvoiceRoutes(app: Express) {
 
       const invoice = await storage.createInvoice(validatedData);
 
-      console.log(`[INVOICES API] Invoice created by user ${userId}:`, invoice.id);
-
       res.status(201).json({
         success: true,
         data: invoice,
@@ -329,8 +274,6 @@ export function registerInvoiceRoutes(app: Express) {
       });
 
     } catch (error: any) {
-      console.error('[INVOICES API] Error creating invoice:', error);
-      
       if (error.name === 'ZodError') {
         return res.status(400).json({
           error: 'Validation error',
@@ -385,8 +328,6 @@ export function registerInvoiceRoutes(app: Express) {
         });
       }
 
-      console.log(`[INVOICES API] Invoice updated by user ${userId}:`, id);
-
       res.json({
         success: true,
         data: updatedInvoice,
@@ -394,8 +335,6 @@ export function registerInvoiceRoutes(app: Express) {
       });
 
     } catch (error: any) {
-      console.error('[INVOICES API] Error updating invoice:', error);
-      
       if (error.name === 'ZodError') {
         return res.status(400).json({
           error: 'Validation error',
@@ -447,21 +386,16 @@ export function registerInvoiceRoutes(app: Express) {
         });
       }
 
-      console.log(`[INVOICES API] Invoice deleted by user ${userId}:`, id);
-
       res.json({
         success: true,
         message: 'Invoice deleted successfully'
       });
 
     } catch (error: any) {
-      console.error('[INVOICES API] Error deleting invoice:', error);
       res.status(500).json({
         error: 'Failed to delete invoice',
         message: error.message
       });
     }
   });
-
-  console.log('✅ Invoice routes registered on /api/invoices/');
 }

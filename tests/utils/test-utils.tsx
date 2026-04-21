@@ -2,6 +2,7 @@ import React from 'react';
 import { render, RenderOptions } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Router } from 'wouter';
+import '@testing-library/jest-dom';
 
 // Use a simple mock LanguageProvider for tests to avoid complex i18n dependencies
 const TestLanguageProvider = ({ children }: { children: React.ReactNode }) => {

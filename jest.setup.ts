@@ -3,25 +3,21 @@
  * Comprehensive test setup with MSW, polyfills, and optimized mocking
  */
 
-// Mocks now handled via custom resolver - hard verification for fast failure
-try {
-  const pgCorePath = require.resolve('drizzle-orm/pg-core');
-  console.log('pg-core resolves to:', pgCorePath);
-  
-  const enhancedMock = require(require('path').join(process.cwd(), '__mocks__/enhanced-database-mock.js'));
-  console.log('Enhanced mock mockDb available:', !!enhancedMock.mockDb);
-  
-  if (!enhancedMock.mockDb) {
-    throw new Error('CRITICAL: Enhanced database mock not properly exported - mockDb is undefined');
-  }
-} catch (error) {
-  console.error('Mock verification failed:', error.message);
-}
+// Database mocks are now handled entirely through Jest's moduleNameMapper
+// No direct require needed - Jest will handle module resolution automatically
 
 import '@testing-library/jest-dom';
 import { afterEach, beforeAll, afterAll } from '@jest/globals';
-
 import { cleanup } from '@testing-library/react';
+
+// Ensure jest-dom matchers are properly typed
+declare global {
+  namespace jest {
+    interface Matchers<R> {
+      toBeInTheDocument(): R;
+    }
+  }
+}
 
 // =============================================================================
 // MSW SERVER SETUP - DISABLED DUE TO V2 COMPATIBILITY ISSUES
@@ -91,8 +87,8 @@ Object.entries(testEnvDefaults).forEach(([key, value]) => {
 // PERFORMANCE AND TIMEOUT CONFIGURATION
 // =============================================================================
 
-// Performance optimizations - increased timeout for async setup
-jest.setTimeout(20000); // 20 second timeout per test for current async needs
+// Note: Jest timeout is configured in jest.config.cjs (15000ms)
+// Keeping setup focused on environment configuration
 
 // Configure React Query to suppress console errors during tests
 // Note: React Query v5 uses a different approach for logger configuration
@@ -116,6 +112,10 @@ if (typeof TextEncoder === 'undefined') {
   (global as any).TextEncoder = TextEncoder;
   (global as any).TextDecoder = TextDecoder;
 }
+
+// Note: import.meta.env issues are now handled via Jest moduleNameMapper mocking
+// Components that use import.meta.env are mocked in __mocks__ directory
+// This approach avoids syntax errors in CommonJS Jest environment
 
 // Web Streams API polyfills - Enhanced for environment compatibility
 try {
@@ -234,7 +234,7 @@ const createMockHistory = () => ({
 });
 
 // Only define history if it's not already properly mocked
-if (!window.history || !window.history.pushState || typeof window.history.pushState !== 'function') {
+if (typeof window !== 'undefined' && (!window.history || !window.history.pushState || typeof window.history.pushState !== 'function')) {
   Object.defineProperty(window, 'history', {
     value: createMockHistory(),
     writable: true,
@@ -243,19 +243,21 @@ if (!window.history || !window.history.pushState || typeof window.history.pushSt
 }
 
 // Mock navigation API to prevent "Not implemented" errors
-Object.defineProperty(window, 'navigation', {
-  value: {
-    navigate: jest.fn().mockResolvedValue(undefined),
-    reload: jest.fn().mockResolvedValue(undefined),
-    canGoBack: false,
-    canGoForward: false,
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn(),
-    dispatchEvent: jest.fn()
-  },
-  writable: true,
-  configurable: true
-});
+if (typeof window !== 'undefined') {
+  Object.defineProperty(window, 'navigation', {
+    value: {
+      navigate: jest.fn().mockResolvedValue(undefined),
+      reload: jest.fn().mockResolvedValue(undefined),
+      canGoBack: false,
+      canGoForward: false,
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+      dispatchEvent: jest.fn()
+    },
+    writable: true,
+    configurable: true
+  });
+}
 
 // Mock PopStateEvent for navigation events
 (global as any).PopStateEvent = class MockPopStateEvent extends Event {
@@ -267,28 +269,34 @@ Object.defineProperty(window, 'navigation', {
 };
 
 // Mock matchMedia for responsive design tests
-Object.defineProperty(window, 'matchMedia', {
-  writable: true,
-  value: jest.fn().mockImplementation((query: string) => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: jest.fn(), // deprecated
-    removeListener: jest.fn(), // deprecated
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn(),
-    dispatchEvent: jest.fn(),
-  })),
-});
+if (typeof window !== 'undefined') {
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: jest.fn().mockImplementation((query: string) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: jest.fn(), // deprecated
+      removeListener: jest.fn(), // deprecated
+      addEventListener: jest.fn(),
+      removeEventListener: jest.fn(),
+      dispatchEvent: jest.fn(),
+    })),
+  });
+}
 
 // Mock scrollTo for navigation tests
-Object.defineProperty(window, 'scrollTo', {
-  writable: true,
-  value: jest.fn(),
-});
+if (typeof window !== 'undefined') {
+  Object.defineProperty(window, 'scrollTo', {
+    writable: true,
+    value: jest.fn(),
+  });
+}
 
 // Mock scrollIntoView for element navigation tests
-Element.prototype.scrollIntoView = jest.fn();
+if (typeof Element !== 'undefined') {
+  Element.prototype.scrollIntoView = jest.fn();
+}
 
 // Mock storage APIs
 const createMockStorage = () => {
@@ -311,13 +319,15 @@ const createMockStorage = () => {
   };
 };
 
-Object.defineProperty(window, 'sessionStorage', {
-  value: createMockStorage(),
-});
+if (typeof window !== 'undefined') {
+  Object.defineProperty(window, 'sessionStorage', {
+    value: createMockStorage(),
+  });
 
-Object.defineProperty(window, 'localStorage', {
-  value: createMockStorage(),
-});
+  Object.defineProperty(window, 'localStorage', {
+    value: createMockStorage(),
+  });
+}
 
 // Mock URL.createObjectURL and revokeObjectURL for file handling tests
 global.URL.createObjectURL = jest.fn(() => 'mock-object-url');
@@ -691,33 +701,67 @@ jest.mock('bcryptjs', () => ({
   genSalt: jest.fn().mockResolvedValue('mock-salt'),
 }));
 
+// Mock problematic Node.js modules that cause test issues
+jest.mock('glob', () => ({
+  glob: jest.fn().mockResolvedValue([]),
+  globSync: jest.fn().mockReturnValue([]),
+  Glob: jest.fn().mockImplementation(() => ({
+    found: [],
+    walk: jest.fn(),
+  })),
+}));
+
 // =============================================================================
 // DATABASE AND ORM MOCKS
 // =============================================================================
 
 // Mock pg-core functions BEFORE drizzle-orm to prevent schema import issues
-jest.mock('drizzle-orm/pg-core', () => ({
-  pgEnum: jest.fn().mockImplementation((name, values) => ({
-    name,
-    enumValues: values,
-    enumName: name
-  })),
-  pgTable: jest.fn().mockImplementation((name, schema) => ({
-    name,
-    ...schema,
-    _: { name, columns: schema }
-  })),
-  text: jest.fn().mockImplementation(() => ({ type: 'text' })),
-  varchar: jest.fn().mockImplementation((length) => ({ type: 'varchar', length })),
-  boolean: jest.fn().mockImplementation(() => ({ type: 'boolean' })),
-  timestamp: jest.fn().mockImplementation(() => ({ type: 'timestamp' })),
-  integer: jest.fn().mockImplementation(() => ({ type: 'integer' })),
-  uuid: jest.fn().mockImplementation(() => ({ type: 'uuid' })),
-  serial: jest.fn().mockImplementation(() => ({ type: 'serial' })),
-  primaryKey: jest.fn().mockImplementation(() => ({ type: 'primaryKey' })),
-  unique: jest.fn().mockImplementation(() => ({ type: 'unique' })),
-  index: jest.fn().mockImplementation(() => ({ type: 'index' })),
-}));
+jest.mock('drizzle-orm/pg-core', () => {
+  // Create chainable mock column object
+  const createMockColumn = (type: string, options?: any) => ({
+    type,
+    ...options,
+    primaryKey: jest.fn().mockReturnThis(),
+    default: jest.fn().mockReturnThis(),
+    defaultNow: jest.fn().mockReturnThis(),  // For timestamp columns
+    notNull: jest.fn().mockReturnThis(),
+    unique: jest.fn().mockReturnThis(),
+    references: jest.fn().mockReturnThis(),
+    array: jest.fn().mockReturnThis(),
+    onDelete: jest.fn().mockReturnThis(),   // For foreign key references
+    onUpdate: jest.fn().mockReturnThis(),   // For foreign key references
+  });
+
+  return {
+    pgEnum: jest.fn().mockImplementation((name, values) => {
+      // Return a function that can be called like userRoleEnum('role')
+      const enumFn = jest.fn().mockImplementation(() => createMockColumn('enum', { name, values })) as any;
+      enumFn.enumName = name;
+      enumFn.enumValues = values;
+      return enumFn;
+    }),
+    pgTable: jest.fn().mockImplementation((name, schema, config) => ({
+      name,
+      ...schema,
+      _: { name, columns: schema }
+    })),
+    primaryKey: jest.fn().mockImplementation((options) => ({ type: 'primaryKey', ...options })),
+    text: jest.fn().mockImplementation(() => createMockColumn('text')),
+    varchar: jest.fn().mockImplementation((options) => createMockColumn('varchar', options)),
+    boolean: jest.fn().mockImplementation(() => createMockColumn('boolean')),
+    timestamp: jest.fn().mockImplementation(() => createMockColumn('timestamp')),
+    integer: jest.fn().mockImplementation(() => createMockColumn('integer')),
+    uuid: jest.fn().mockImplementation(() => createMockColumn('uuid')),
+    serial: jest.fn().mockImplementation(() => createMockColumn('serial')),
+    decimal: jest.fn().mockImplementation((options) => createMockColumn('decimal', options)),
+    numeric: jest.fn().mockImplementation((options) => createMockColumn('numeric', options)),
+    jsonb: jest.fn().mockImplementation(() => createMockColumn('jsonb')),
+    json: jest.fn().mockImplementation(() => createMockColumn('json')),
+    date: jest.fn().mockImplementation(() => createMockColumn('date')),
+    uniqueIndex: jest.fn().mockImplementation(() => ({ type: 'uniqueIndex' })),
+    index: jest.fn().mockImplementation(() => ({ type: 'index' })),
+  };
+});
 
 // Mock Drizzle ORM functions first to prevent import issues
 jest.mock('drizzle-orm', () => ({

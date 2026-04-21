@@ -103,6 +103,8 @@ interface UserStats {
   userEmail: string;
   totalHours: number;
   totalBookings: number;
+  isBlocked: boolean;
+  hasCustomLimit: boolean;
 }
 
 /**
@@ -176,6 +178,7 @@ function withManagerAccess<P extends object>(Component: React.ComponentType<P>) 
 interface CommonSpacesStatsProps {
   organizationId?: string;
   buildingId?: string;
+  buildingName?: string;
 }
 
 /**
@@ -188,9 +191,24 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
 
+  // Component initialization logging
+  useEffect(() => {
+    console.log('🔍 [COMMON_SPACES_STATS] Component mounted', { organizationId, buildingId });
+  }, []);
+
+  // Log context changes
+  useEffect(() => {
+    console.log('🔍 [COMMON_SPACES_STATS] Context changed:', { organizationId, buildingId });
+  }, [organizationId, buildingId]);
+
   // Always use buildingId from hierarchy
   const selectedBuildingId = buildingId || '';
   const [selectedSpaceId, setSelectedSpaceId] = useState<string>('');
+  
+  // Log space selection changes
+  useEffect(() => {
+    console.log('🔍 [COMMON_SPACES_STATS] Selected space changed:', { selectedSpaceId });
+  }, [selectedSpaceId]);
   const [restrictionDialogOpen, setRestrictionDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserStats | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -224,19 +242,23 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
       saturday: true,
       sunday: true,
     },
+    default_time_limit_type: '' as '' | 'monthly' | 'yearly',
+    default_time_limit_hours: '',
   });
   const [timeLimitDialogOpen, setTimeLimitDialogOpen] = useState(false);
   const [timeLimitFormData, setTimeLimitFormData] = useState({
     limit_type: 'monthly' as 'monthly' | 'yearly',
     limit_hours: '10',
-    common_space_id: '',
+    common_space_id: 'all',
   });
 
   const handleBackToOrganization = () => {
+    console.log('🔍 [COMMON_SPACES_STATS] Navigating back to organization selection');
     navigate('/manager/common-spaces-stats');
   };
 
   const handleBackToBuilding = () => {
+    console.log('🔍 [COMMON_SPACES_STATS] Navigating back to building selection');
     navigate(`/manager/common-spaces-stats?organization=${organizationId}`);
   };
 
@@ -248,9 +270,12 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
   }>({
     queryKey: ['/api/manager/buildings', organizationId],
     queryFn: async () => {
+      console.log('🔍 [COMMON_SPACES_STATS] Fetching buildings with params:', { organizationId });
       const url = organizationId ? `/api/manager/buildings?organizationId=${organizationId}` : '/api/manager/buildings';
       const response = await fetch(url);
-      return response.json();
+      const data = await response.json();
+      console.log('🔍 [COMMON_SPACES_STATS] Received buildings:', { count: data?.buildings?.length });
+      return data;
     },
     enabled: !!user,
   });
@@ -260,8 +285,13 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
   // Fetch common spaces for selected building
   const { data: commonSpaces = [], isLoading: spacesLoading } = useQuery<CommonSpace[]>({
     queryKey: ['/api/common-spaces', selectedBuildingId],
-    queryFn: () =>
-      fetch(`/api/common-spaces?building_id=${selectedBuildingId}`).then((res) => res.json()),
+    queryFn: async () => {
+      console.log('🔍 [COMMON_SPACES_STATS] Fetching common spaces for building:', { buildingId: selectedBuildingId });
+      const response = await fetch(`/api/common-spaces?building_id=${selectedBuildingId}`);
+      const data = await response.json();
+      console.log('🔍 [COMMON_SPACES_STATS] Received common spaces:', { count: data?.length });
+      return data;
+    },
     enabled: !!selectedBuildingId,
   });
 
@@ -374,6 +404,8 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
           saturday: true,
           sunday: true,
         },
+        default_time_limit_type: '',
+        default_time_limit_hours: '',
       });
     } catch (error) {
       // Error creating/updating space
@@ -429,6 +461,8 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
       available_days: Object.entries(createFormData.available_days)
         .filter(([_, isAvailable]) => isAvailable)
         .map(([day, _]) => day),
+      default_time_limit_type: createFormData.default_time_limit_type || undefined,
+      default_time_limit_hours: createFormData.default_time_limit_hours ? parseInt(createFormData.default_time_limit_hours) : undefined,
     };
 
     createSpaceMutation.mutate(spaceData);
@@ -482,7 +516,7 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
       user_id: selectedUser.userId,
       limit_type: timeLimitFormData.limit_type,
       limit_hours: parseInt(timeLimitFormData.limit_hours),
-      common_space_id: timeLimitFormData.common_space_id || undefined,
+      common_space_id: timeLimitFormData.common_space_id === 'all' ? undefined : timeLimitFormData.common_space_id,
     };
 
     setTimeLimitMutation.mutate(limitData);
@@ -854,6 +888,68 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
                           )}
                         </div>
                       </div>
+
+                      <div className='space-y-4 border-t pt-4'>
+                        <Label>{language === 'fr' ? 'Limite de temps par défaut' : 'Default Time Limit'}</Label>
+                        <p className='text-sm text-muted-foreground'>
+                          {language === 'fr' 
+                            ? 'Définissez une limite de temps que tous les utilisateurs doivent respecter (sauf si une limite personnalisée est définie)'
+                            : 'Set a time limit that all users should respect (unless a custom limit is set)'}
+                        </p>
+                        
+                        <div className='grid grid-cols-2 gap-4'>
+                          <div className='space-y-2'>
+                            <Label htmlFor='default-time-limit-type'>
+                              {language === 'fr' ? 'Type de limite' : 'Limit Type'}
+                            </Label>
+                            <Select
+                              value={createFormData.default_time_limit_type}
+                              onValueChange={(value) =>
+                                setCreateFormData({ 
+                                  ...createFormData, 
+                                  default_time_limit_type: value as '' | 'monthly' | 'yearly'
+                                })
+                              }
+                            >
+                              <SelectTrigger data-testid='select-default-time-limit-type'>
+                                <SelectValue placeholder={language === 'fr' ? 'Aucune limite' : 'No limit'} />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value=''>
+                                  {language === 'fr' ? 'Aucune limite' : 'No limit'}
+                                </SelectItem>
+                                <SelectItem value='monthly'>
+                                  {language === 'fr' ? 'Mensuelle' : 'Monthly'}
+                                </SelectItem>
+                                <SelectItem value='yearly'>
+                                  {language === 'fr' ? 'Annuelle' : 'Yearly'}
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          <div className='space-y-2'>
+                            <Label htmlFor='default-time-limit-hours'>
+                              {language === 'fr' ? 'Heures maximum' : 'Maximum Hours'}
+                            </Label>
+                            <Input
+                              id='default-time-limit-hours'
+                              type='number'
+                              min='1'
+                              placeholder='10'
+                              value={createFormData.default_time_limit_hours}
+                              onChange={(e) =>
+                                setCreateFormData({ 
+                                  ...createFormData, 
+                                  default_time_limit_hours: e.target.value 
+                                })
+                              }
+                              disabled={!createFormData.default_time_limit_type}
+                              data-testid='input-default-time-limit-hours'
+                            />
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
@@ -946,6 +1042,77 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
           </CardContent>
         </Card>
 
+        {/* Summary Statistics - Moved outside tabs to display at top */}
+        {spaceStats && (
+          <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
+            <Card>
+              <CardContent className='pt-6'>
+                <div className='flex items-center'>
+                  <Calendar className='h-4 w-4 text-blue-600' />
+                  <div className='ml-4'>
+                    <p
+                      className='text-sm font-medium text-gray-600'
+                      data-testid='total-bookings-label'
+                    >
+                      {language === 'fr' ? 'Réservations totales' : 'Total Bookings'}
+                    </p>
+                    <p
+                      className='text-2xl font-bold text-gray-900'
+                      data-testid='total-bookings-value'
+                    >
+                      {spaceStats.summary.totalBookings}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className='pt-6'>
+                <div className='flex items-center'>
+                  <Clock className='h-4 w-4 text-green-600' />
+                  <div className='ml-4'>
+                    <p
+                      className='text-sm font-medium text-gray-600'
+                      data-testid='total-hours-label'
+                    >
+                      {language === 'fr' ? 'Heures totales' : 'Total Hours'}
+                    </p>
+                    <p
+                      className='text-2xl font-bold text-gray-900'
+                      data-testid='total-hours-value'
+                    >
+                      {Math.round(spaceStats.summary.totalHours * 10) / 10}h
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className='pt-6'>
+                <div className='flex items-center'>
+                  <Users className='h-4 w-4 text-purple-600' />
+                  <div className='ml-4'>
+                    <p
+                      className='text-sm font-medium text-gray-600'
+                      data-testid='unique-users-label'
+                    >
+                      {language === 'fr' ? 'Utilisateurs uniques' : 'Unique Users'}
+                    </p>
+                    <p
+                      className='text-2xl font-bold text-gray-900'
+                      data-testid='unique-users-value'
+                    >
+                      {spaceStats.summary.uniqueUsers}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
         <Tabs defaultValue='stats' className='space-y-6'>
           <div className='flex items-center justify-between'>
             <TabsList className='grid grid-cols-2 max-w-md'>
@@ -1006,6 +1173,8 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
                         saturday: true,
                         sunday: true,
                       },
+                      default_time_limit_type: (selectedSpace as any).defaultTimeLimitType || '',
+                      default_time_limit_hours: (selectedSpace as any).defaultTimeLimitHours?.toString() || '',
                     });
                     setIsEditMode(true);
                     setCreateDialogOpen(true);
@@ -1022,75 +1191,6 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
           <TabsContent value='stats' className='space-y-6'>
             {spaceStats && (
               <>
-                {/* Summary Statistics */}
-                <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
-                  <Card>
-                    <CardContent className='pt-6'>
-                      <div className='flex items-center'>
-                        <Calendar className='h-4 w-4 text-blue-600' />
-                        <div className='ml-4'>
-                          <p
-                            className='text-sm font-medium text-gray-600'
-                            data-testid='total-bookings-label'
-                          >
-                            {language === 'fr' ? 'Réservations totales' : 'Total Bookings'}
-                          </p>
-                          <p
-                            className='text-2xl font-bold text-gray-900'
-                            data-testid='total-bookings-value'
-                          >
-                            {spaceStats.summary.totalBookings}
-                          </p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardContent className='pt-6'>
-                      <div className='flex items-center'>
-                        <Clock className='h-4 w-4 text-green-600' />
-                        <div className='ml-4'>
-                          <p
-                            className='text-sm font-medium text-gray-600'
-                            data-testid='total-hours-label'
-                          >
-                            {language === 'fr' ? 'Heures totales' : 'Total Hours'}
-                          </p>
-                          <p
-                            className='text-2xl font-bold text-gray-900'
-                            data-testid='total-hours-value'
-                          >
-                            {Math.round(spaceStats.summary.totalHours * 10) / 10}h
-                          </p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardContent className='pt-6'>
-                      <div className='flex items-center'>
-                        <Users className='h-4 w-4 text-purple-600' />
-                        <div className='ml-4'>
-                          <p
-                            className='text-sm font-medium text-gray-600'
-                            data-testid='unique-users-label'
-                          >
-                            {language === 'fr' ? 'Utilisateurs uniques' : 'Unique Users'}
-                          </p>
-                          <p
-                            className='text-2xl font-bold text-gray-900'
-                            data-testid='unique-users-value'
-                          >
-                            {spaceStats.summary.uniqueUsers}
-                          </p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-
                 {/* Usage Chart */}
                 {chartData.length > 0 && (
                   <Card className='mb-8'>
@@ -1103,9 +1203,9 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className='h-80' data-testid='usage-chart'>
+                      <div className='h-96' data-testid='usage-chart'>
                         <ResponsiveContainer width='100%' height='100%'>
-                          <BarChart data={chartData}>
+                          <BarChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                             <CartesianGrid strokeDasharray='3 3' />
                             <XAxis dataKey='name' angle={-45} textAnchor='end' height={100} />
                             <YAxis />
@@ -1120,8 +1220,12 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
                                     ? 'Réservations'
                                     : 'Bookings',
                               ]}
+                              contentStyle={{ zIndex: 1000 }}
+                              wrapperStyle={{ zIndex: 1000 }}
                             />
                             <Legend
+                              verticalAlign='top'
+                              height={36}
                               formatter={(value) =>
                                 value === 'hours'
                                   ? language === 'fr'
@@ -1166,6 +1270,12 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
                               {language === 'fr' ? 'Réservations' : 'Bookings'}
                             </TableHead>
                             <TableHead className='text-center'>
+                              {language === 'fr' ? 'Bloqué' : 'Is Blocked'}
+                            </TableHead>
+                            <TableHead className='text-center'>
+                              {language === 'fr' ? 'Limite personnalisée' : 'Has Custom Limit'}
+                            </TableHead>
+                            <TableHead className='text-center'>
                               {language === 'fr' ? 'Actions' : 'Actions'}
                             </TableHead>
                           </TableRow>
@@ -1186,6 +1296,28 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
                               </TableCell>
                               <TableCell className='text-right font-mono'>
                                 {userStat.totalBookings}
+                              </TableCell>
+                              <TableCell className='text-center'>
+                                {userStat.isBlocked ? (
+                                  <Badge variant='destructive' data-testid={`badge-blocked-${userStat.userId}`}>
+                                    {language === 'fr' ? 'Oui' : 'Yes'}
+                                  </Badge>
+                                ) : (
+                                  <Badge variant='secondary' data-testid={`badge-not-blocked-${userStat.userId}`}>
+                                    {language === 'fr' ? 'Non' : 'No'}
+                                  </Badge>
+                                )}
+                              </TableCell>
+                              <TableCell className='text-center'>
+                                {userStat.hasCustomLimit ? (
+                                  <Badge variant='default' data-testid={`badge-has-limit-${userStat.userId}`}>
+                                    {language === 'fr' ? 'Oui' : 'Yes'}
+                                  </Badge>
+                                ) : (
+                                  <Badge variant='outline' data-testid={`badge-no-limit-${userStat.userId}`}>
+                                    {language === 'fr' ? 'Non' : 'No'}
+                                  </Badge>
+                                )}
                               </TableCell>
                               <TableCell className='text-center'>
                                 <div className='flex gap-2 justify-center'>
@@ -1260,7 +1392,7 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
 
             {/* Time Limit Dialog */}
             <Dialog open={timeLimitDialogOpen} onOpenChange={setTimeLimitDialogOpen}>
-              <DialogContent className='max-w-md'>
+              <DialogContent className='max-w-md max-h-[90vh] overflow-y-auto'>
                 <DialogHeader>
                   <DialogTitle>
                     {language === 'fr' ? 'Définir la limite de temps' : 'Set Time Limit'}
@@ -1339,7 +1471,7 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId }: CommonSpaces
                         />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value=''>
+                        <SelectItem value='all'>
                           {language === 'fr' ? 'Tous les espaces' : 'All spaces'}
                         </SelectItem>
                         <SelectItem value={selectedSpaceId}>

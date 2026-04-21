@@ -1,0 +1,318 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+index-COlPoesg.js:48 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+withHierarchicalSelection-8_hLrAWt.js:1 🏢 [withHierarchicalSelection] Fetching buildings...
+withHierarchicalSelection-8_hLrAWt.js:1 🌐 [withHierarchicalSelection] Requesting buildings: /api/organizations/e9bb7862-4ba5-4822-848f-f3692e826e73/buildings
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+withHierarchicalSelection-8_hLrAWt.js:1 📊 [withHierarchicalSelection] Received 5 buildings from API
+withHierarchicalSelection-8_hLrAWt.js:1 ✅ [withHierarchicalSelection] Returning all 5 buildings (non-residence page)
+index-COlPoesg.js:48 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-COlPoesg.js:48 📁 [PROJECTS UI] Projects table collapsible toggled: true
+index-COlPoesg.js:48 📁 [PROJECTS STATE] Projects table section toggled {expanded: true}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-COlPoesg.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: []
+index-COlPoesg.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 0
+index-COlPoesg.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Raw response from backend: {success: true, data: Array(3)}
+index-COlPoesg.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Response structure: (2) ['success', 'data']
+index-COlPoesg.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects found in data property: 3
+index-COlPoesg.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-COlPoesg.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 3
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+index-B1jy2NZE.js:185 [Violation] 'setTimeout' handler took 101ms
+index-COlPoesg.js:48 📁 [PROJECTS ACTION] handleViewProject called: {projectId: '400e859d-1d21-49c3-a6c9-34d7175739b0', projectTitle: 'Porte extérieurs'}
+index-COlPoesg.js:48 📁 [PROJECTS STATE] Project workflow modal opened
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+useProjectWorkflow-ByhQD-rR.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: 400e859d-1d21-49c3-a6c9-34d7175739b0
+useProjectWorkflow-ByhQD-rR.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/400e859d-1d21-49c3-a6c9-34d7175739b0/workflow
+useProjectWorkflow-ByhQD-rR.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-ByhQD-rR.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-ByhQD-rR.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'in_progress', nextStatus: 'post_work', canAdvance: true, skipFlags: {…}, …}
+ProjectWorkflowModal-C5sA_zEA.js:1 🔍 [MODAL] renderTabContent: {activeTab: '', hasWorkflowState: true, workflowData: {…}}
+ProjectWorkflowModal-C5sA_zEA.js:1 🔍 [MODAL] No content because: {hasWorkflowState: true, activeTab: ''}
+ProjectWorkflowModal-C5sA_zEA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+ProjectWorkflowModal-C5sA_zEA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+ProjectWorkflowModal-C5sA_zEA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+ProjectWorkflowModal-C5sA_zEA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+ProjectWorkflowModal-C5sA_zEA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+ProjectWorkflowModal-C5sA_zEA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+ProjectWorkflowModal-C5sA_zEA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+ProjectWorkflowModal-C5sA_zEA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+ProjectWorkflowModal-C5sA_zEA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+ProjectWorkflowModal-C5sA_zEA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+ProjectWorkflowModal-C5sA_zEA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+ProjectWorkflowModal-C5sA_zEA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+ProjectWorkflowModal-C5sA_zEA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+ProjectWorkflowModal-C5sA_zEA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+ProjectWorkflowModal-C5sA_zEA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+ProjectWorkflowModal-C5sA_zEA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+ProjectWorkflowModal-C5sA_zEA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+ProjectWorkflowModal-C5sA_zEA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+ProjectWorkflowModal-C5sA_zEA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+ProjectWorkflowModal-C5sA_zEA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+ProjectWorkflowModal-C5sA_zEA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+ProjectWorkflowModal-C5sA_zEA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+ProjectWorkflowModal-C5sA_zEA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+ProjectWorkflowModal-C5sA_zEA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+ProjectWorkflowModal-C5sA_zEA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+ProjectWorkflowModal-C5sA_zEA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+ProjectWorkflowModal-C5sA_zEA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+ProjectWorkflowModal-C5sA_zEA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+ProjectWorkflowModal-C5sA_zEA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-ByhQD-rR.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: 400e859d-1d21-49c3-a6c9-34d7175739b0
+useProjectWorkflow-ByhQD-rR.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/400e859d-1d21-49c3-a6c9-34d7175739b0/workflow
+useProjectWorkflow-ByhQD-rR.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: 400e859d-1d21-49c3-a6c9-34d7175739b0
+useProjectWorkflow-ByhQD-rR.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/400e859d-1d21-49c3-a6c9-34d7175739b0/workflow
+useProjectWorkflow-ByhQD-rR.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: 400e859d-1d21-49c3-a6c9-34d7175739b0
+useProjectWorkflow-ByhQD-rR.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/400e859d-1d21-49c3-a6c9-34d7175739b0/workflow
+index-COlPoesg.js:48 📁 [PROJECTS SUCCESS] Project workflow updated: {projectId: '400e859d-1d21-49c3-a6c9-34d7175739b0', projectTitle: 'Porte extérieurs'}
+index-COlPoesg.js:48 📁 [PROJECTS STATE] Project workflow modal updated with latest project data
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+ProjectWorkflowModal-C5sA_zEA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-ByhQD-rR.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-ByhQD-rR.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-ByhQD-rR.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'post_work', nextStatus: 'completed', canAdvance: true, skipFlags: {…}, …}
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Raw response from backend: {success: true, data: Array(3)}
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Response structure: (2) ['success', 'data']
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Projects found in data property: 3
+index-COlPoesg.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-COlPoesg.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 3
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+index-B1jy2NZE.js:185 [Violation] 'setTimeout' handler took 60ms
+useProjectWorkflow-ByhQD-rR.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-ByhQD-rR.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-ByhQD-rR.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'post_work', nextStatus: 'completed', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-ByhQD-rR.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-ByhQD-rR.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-ByhQD-rR.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'post_work', nextStatus: 'completed', canAdvance: true, skipFlags: {…}, …}
+ProjectWorkflowModal-C5sA_zEA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+ProjectWorkflowModal-C5sA_zEA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+ProjectWorkflowModal-C5sA_zEA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+ProjectWorkflowModal-C5sA_zEA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+ProjectWorkflowModal-C5sA_zEA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+ProjectWorkflowModal-C5sA_zEA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'post_work', hasWorkflowState: true, workflowData: {…}}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-COlPoesg.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-COlPoesg.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+ProjectWorkflowModal-C5sA_zEA.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'post_work', hasWorkflowState: true, workflowData: {…}}
+index-B1jy2NZE.js:136 TypeError: Cannot read properties of undefined (reading 'name')
+    at PostWorkTab-BBGMRq9p.js:6:8611
+    at Array.map (<anonymous>)
+    at no (PostWorkTab-BBGMRq9p.js:6:8221)
+    at Object.react_stack_bottom_frame (index-B1jy2NZE.js:229:12448)
+    at oc (index-B1jy2NZE.js:120:804)
+    at kc (index-B1jy2NZE.js:141:5839)
+    at Pc (index-B1jy2NZE.js:150:10147)
+    at q (index-B1jy2NZE.js:45:108)
+    at Kh (index-B1jy2NZE.js:163:29810)
+    at Jh (index-B1jy2NZE.js:163:28479)
+
+The above error occurred in the <no> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, gx.
+
+overrideMethod @ hook.js:608
+oh @ index-B1jy2NZE.js:136
+lh @ index-B1jy2NZE.js:141
+q @ index-B1jy2NZE.js:45
+l.componentDidCatch.e.callback @ index-B1jy2NZE.js:141
+Dp @ index-B1jy2NZE.js:107
+Ep @ index-B1jy2NZE.js:107
+q @ index-B1jy2NZE.js:45
+Dh @ index-B1jy2NZE.js:163
+Nh @ index-B1jy2NZE.js:163
+Qn @ index-B1jy2NZE.js:163
+Nh @ index-B1jy2NZE.js:163
+Qn @ index-B1jy2NZE.js:163
+Nh @ index-B1jy2NZE.js:163
+Qn @ index-B1jy2NZE.js:163
+Nh @ index-B1jy2NZE.js:163
+Qn @ index-B1jy2NZE.js:163
+Nh @ index-B1jy2NZE.js:163
+Qn @ index-B1jy2NZE.js:163
+Nh @ index-B1jy2NZE.js:163
+Qn @ index-B1jy2NZE.js:163
+Nh @ index-B1jy2NZE.js:163
+ng @ index-B1jy2NZE.js:163
+ed @ index-B1jy2NZE.js:163
+Xh @ index-B1jy2NZE.js:163
+Ih @ index-B1jy2NZE.js:163
+mg @ index-B1jy2NZE.js:185
+ml @ index-B1jy2NZE.js:185
+ad @ index-B1jy2NZE.js:185
+(anonymous) @ index-B1jy2NZE.js:185
+<...>
+du.jsxDEV @ index-B1jy2NZE.js:15
+Wm @ index-COlPoesg.js:48
+react_stack_bottom_frame @ index-B1jy2NZE.js:229
+oc @ index-B1jy2NZE.js:120
+kc @ index-B1jy2NZE.js:141
+Pc @ index-B1jy2NZE.js:150
+q @ index-B1jy2NZE.js:45
+Kh @ index-B1jy2NZE.js:163
+Jh @ index-B1jy2NZE.js:163
+Wc @ index-B1jy2NZE.js:163
+Ih @ index-B1jy2NZE.js:163
+fg @ index-B1jy2NZE.js:185
+d @ index-B1jy2NZE.js:23
+<Wm>
+du.jsxDEV @ index-B1jy2NZE.js:15
+k @ ProjectWorkflowModal-C5sA_zEA.js:1
+yo @ ProjectWorkflowModal-C5sA_zEA.js:1
+react_stack_bottom_frame @ index-B1jy2NZE.js:229
+oc @ index-B1jy2NZE.js:120
+kc @ index-B1jy2NZE.js:141
+Pc @ index-B1jy2NZE.js:150
+q @ index-B1jy2NZE.js:45
+Kh @ index-B1jy2NZE.js:163
+Jh @ index-B1jy2NZE.js:163
+Wc @ index-B1jy2NZE.js:163
+Ih @ index-B1jy2NZE.js:163
+mg @ index-B1jy2NZE.js:185
+ml @ index-B1jy2NZE.js:185
+ad @ index-B1jy2NZE.js:185
+(anonymous) @ index-B1jy2NZE.js:185

@@ -1,0 +1,47 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+index-CmvGmM6E.js:48 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-CmvGmM6E.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-CmvGmM6E.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+withHierarchicalSelection-L1XsWlnZ.js:1 🏢 [withHierarchicalSelection] Fetching buildings...
+withHierarchicalSelection-L1XsWlnZ.js:1 🌐 [withHierarchicalSelection] Requesting buildings: /api/organizations/e9bb7862-4ba5-4822-848f-f3692e826e73/buildings
+withHierarchicalSelection-L1XsWlnZ.js:1 📊 [withHierarchicalSelection] Received 5 buildings from API
+withHierarchicalSelection-L1XsWlnZ.js:1 ✅ [withHierarchicalSelection] Returning all 5 buildings (non-residence page)
+index-CmvGmM6E.js:48 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-CmvGmM6E.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CmvGmM6E.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CmvGmM6E.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CmvGmM6E.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CmvGmM6E.js:48 📁 [PROJECTS UI] Projects table collapsible toggled: true
+index-CmvGmM6E.js:48 📁 [PROJECTS STATE] Projects table section toggled {expanded: true}
+index-CmvGmM6E.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CmvGmM6E.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CmvGmM6E.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: []
+index-CmvGmM6E.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 0
+index-CmvGmM6E.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Raw response from backend: {success: true, data: Array(3)}
+index-CmvGmM6E.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Response structure: (2) ['success', 'data']
+index-CmvGmM6E.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects found in data property: 3
+index-CmvGmM6E.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-CmvGmM6E.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 3
+index-CmvGmM6E.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-CmvGmM6E.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+index-CmvGmM6E.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-CmvGmM6E.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+index-o9wizHyO.js:185 [Violation] 'setTimeout' handler took 66ms
+index-CmvGmM6E.js:48 📁 [PROJECTS ACTION] handleViewProject called: {projectId: '934dc3d0-6887-4a73-b377-89ebc9cdec04', projectTitle: 'window changes'}
+index-CmvGmM6E.js:48 📁 [PROJECTS STATE] Project workflow modal opened
+index-CmvGmM6E.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CmvGmM6E.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+useProjectWorkflow-CA0CfDQN.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: 934dc3d0-6887-4a73-b377-89ebc9cdec04
+useProjectWorkflow-CA0CfDQN.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/934dc3d0-6887-4a73-b377-89ebc9cdec04/workflow
+useProjectWorkflow-CA0CfDQN.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-CA0CfDQN.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-CA0CfDQN.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'post_work', nextStatus: 'completed', canAdvance: true, skipFlags: {…}, …}
+ProjectWorkflowModal-hFhPU_-o.js:1 🔍 [MODAL] renderTabContent: {activeTab: '', hasWorkflowState: true, workflowData: {…}}
+ProjectWorkflowModal-hFhPU_-o.js:1 🔍 [MODAL] No content because: {hasWorkflowState: true, activeTab: ''}
+ProjectWorkflowModal-hFhPU_-o.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'post_work', hasWorkflowState: true, workflowData: {…}}
+index-CmvGmM6E.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CmvGmM6E.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CmvGmM6E.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-CmvGmM6E.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+ProjectWorkflowModal-hFhPU_-o.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'post_work', hasWorkflowState: true, workflowData: {…}}

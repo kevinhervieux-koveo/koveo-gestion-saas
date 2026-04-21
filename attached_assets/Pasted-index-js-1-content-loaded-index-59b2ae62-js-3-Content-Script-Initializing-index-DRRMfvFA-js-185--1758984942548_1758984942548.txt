@@ -1,0 +1,87 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+index-DRRMfvFA.js:185 [Violation] 'setTimeout' handler took 50ms
+withHierarchicalSelection-BwA5oMZL.js:1 🏢 [withHierarchicalSelection] Rendering organization selection...
+withHierarchicalSelection-BwA5oMZL.js:1    → Organizations from API: 0
+withHierarchicalSelection-BwA5oMZL.js:1    → Building counts: {}
+withHierarchicalSelection-BwA5oMZL.js:1 🎯 [withHierarchicalSelection] Filtered to 0 accessible organizations
+withHierarchicalSelection-BwA5oMZL.js:1 🏢 [withHierarchicalSelection] Rendering organization selection...
+withHierarchicalSelection-BwA5oMZL.js:1    → Organizations from API: 3
+withHierarchicalSelection-BwA5oMZL.js:1    → Building counts: {}
+withHierarchicalSelection-BwA5oMZL.js:1    → Org "Demo 123" (e9bb7862-4ba5-4822-848f-f3692e826e73): 0 buildings, access: false
+withHierarchicalSelection-BwA5oMZL.js:1    → Org "Koveo" (5228cb04-1fc9-4291-b76a-ccd89a40324d): 0 buildings, access: false
+withHierarchicalSelection-BwA5oMZL.js:1    → Org "Test Demo Organization" (f0e34e59-0d81-4c1a-b95f-e23dd1667a19): 0 buildings, access: false
+withHierarchicalSelection-BwA5oMZL.js:1 🎯 [withHierarchicalSelection] Filtered to 0 accessible organizations
+withHierarchicalSelection-BwA5oMZL.js:1 🔍 [withHierarchicalSelection] Fetching building counts for organizations...
+withHierarchicalSelection-BwA5oMZL.js:1 🌐 [withHierarchicalSelection] Requesting: /api/organizations/accessible-building-counts
+withHierarchicalSelection-BwA5oMZL.js:1 ✅ [withHierarchicalSelection] Building counts received: {5228cb04-1fc9-4291-b76a-ccd89a40324d: 0, e9bb7862-4ba5-4822-848f-f3692e826e73: 5, f0e34e59-0d81-4c1a-b95f-e23dd1667a19: 5}
+withHierarchicalSelection-BwA5oMZL.js:1 🏢 [withHierarchicalSelection] Rendering organization selection...
+withHierarchicalSelection-BwA5oMZL.js:1    → Organizations from API: 3
+withHierarchicalSelection-BwA5oMZL.js:1    → Building counts: {5228cb04-1fc9-4291-b76a-ccd89a40324d: 0, e9bb7862-4ba5-4822-848f-f3692e826e73: 5, f0e34e59-0d81-4c1a-b95f-e23dd1667a19: 5}
+withHierarchicalSelection-BwA5oMZL.js:1    → Org "Demo 123" (e9bb7862-4ba5-4822-848f-f3692e826e73): 5 buildings, access: true
+withHierarchicalSelection-BwA5oMZL.js:1    → Org "Koveo" (5228cb04-1fc9-4291-b76a-ccd89a40324d): 0 buildings, access: false
+withHierarchicalSelection-BwA5oMZL.js:1    → Org "Test Demo Organization" (f0e34e59-0d81-4c1a-b95f-e23dd1667a19): 5 buildings, access: true
+withHierarchicalSelection-BwA5oMZL.js:1 🎯 [withHierarchicalSelection] Filtered to 2 accessible organizations
+withHierarchicalSelection-BwA5oMZL.js:1 🎯 [SELECTION GRID DEBUG] Button clicked: {itemId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', itemName: 'Demo 123'}
+withHierarchicalSelection-BwA5oMZL.js:1 🏗️ [withHierarchicalSelection] Rendering building selection...
+withHierarchicalSelection-BwA5oMZL.js:1    → Buildings from filtering: 0
+withHierarchicalSelection-BwA5oMZL.js:1 🏢 [withHierarchicalSelection] Fetching buildings...
+withHierarchicalSelection-BwA5oMZL.js:1 🌐 [withHierarchicalSelection] Requesting buildings: /api/organizations/e9bb7862-4ba5-4822-848f-f3692e826e73/buildings
+withHierarchicalSelection-BwA5oMZL.js:1 📊 [withHierarchicalSelection] Received 5 buildings from API
+withHierarchicalSelection-BwA5oMZL.js:1 ✅ [withHierarchicalSelection] Returning all 5 buildings (non-residence page)
+withHierarchicalSelection-BwA5oMZL.js:1 🏗️ [withHierarchicalSelection] Rendering building selection...
+withHierarchicalSelection-BwA5oMZL.js:1    → Buildings from filtering: 5
+withHierarchicalSelection-BwA5oMZL.js:1    → Building "1936 Nitzsche Track Building 5" (c3052c3c-b694-41a6-bd65-3bc3ae9a5984): 2536 montée Sainte-Catherine
+withHierarchicalSelection-BwA5oMZL.js:1    → Building "392 Georgette Trail Building 2" (ece64c30-7c2f-4b28-88d7-2c9f0a8b22ea): 477 avenue de Maisonneuve
+withHierarchicalSelection-BwA5oMZL.js:1    → Building "4958 E Oak Street Building 4" (18bc7633-ff5f-4b60-8d21-5a8a0ee28f0f): 6174 chemin Sherbrooke
+withHierarchicalSelection-BwA5oMZL.js:1    → Building "54716 N Cedar Street Building 1" (15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24): 
+withHierarchicalSelection-BwA5oMZL.js:1    → Building "70342 Dare Cliffs Building 3" (66653f30-2d10-4907-bebc-9e3757d2ef0e): 4258 boulevard Notre-Dame
+withHierarchicalSelection-BwA5oMZL.js:1 🎯 [SELECTION GRID DEBUG] Button clicked: {itemId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', itemName: '54716 N Cedar Street Building 1'}
+index-CTna8Klc.js:48 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-CTna8Klc.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CTna8Klc.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CTna8Klc.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CTna8Klc.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CTna8Klc.js:48 📁 [PROJECTS UI] Projects table collapsible toggled: true
+index-CTna8Klc.js:48 📁 [PROJECTS STATE] Projects table section toggled {expanded: true}
+index-CTna8Klc.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CTna8Klc.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CTna8Klc.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: []
+index-CTna8Klc.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 0
+index-CTna8Klc.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Raw response from backend: {success: true, data: Array(3)}
+index-CTna8Klc.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Response structure: (2) ['success', 'data']
+index-CTna8Klc.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects found in data property: 3
+index-CTna8Klc.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-CTna8Klc.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 3
+index-CTna8Klc.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-CTna8Klc.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+index-CTna8Klc.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-CTna8Klc.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+index-DRRMfvFA.js:185 [Violation] 'setTimeout' handler took 103ms
+index-CTna8Klc.js:48 📁 [PROJECTS ACTION] handleViewProject called: {projectId: '400e859d-1d21-49c3-a6c9-34d7175739b0', projectTitle: 'Porte extérieurs'}
+index-CTna8Klc.js:48 📁 [PROJECTS STATE] Project workflow modal opened
+index-CTna8Klc.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CTna8Klc.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+useProjectWorkflow-B9XlqkYx.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: 400e859d-1d21-49c3-a6c9-34d7175739b0
+useProjectWorkflow-B9XlqkYx.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/400e859d-1d21-49c3-a6c9-34d7175739b0/workflow
+useProjectWorkflow-B9XlqkYx.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-B9XlqkYx.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-B9XlqkYx.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'in_progress', nextStatus: 'post_work', canAdvance: true, skipFlags: {…}, …}
+ProjectWorkflowModal-BZqihcw9.js:1 🔍 [MODAL] renderTabContent: {activeTab: '', hasWorkflowState: true, workflowData: {…}}
+ProjectWorkflowModal-BZqihcw9.js:1 🔍 [MODAL] No content because: {hasWorkflowState: true, activeTab: ''}
+ProjectWorkflowModal-BZqihcw9.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+index-CTna8Klc.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CTna8Klc.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CTna8Klc.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-CTna8Klc.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+ProjectWorkflowModal-BZqihcw9.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+index-CTna8Klc.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CTna8Klc.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CTna8Klc.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-CTna8Klc.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+ProjectWorkflowModal-BZqihcw9.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}
+index-CTna8Klc.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CTna8Klc.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CTna8Klc.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-CTna8Klc.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+ProjectWorkflowModal-BZqihcw9.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'in_progress', hasWorkflowState: true, workflowData: {…}}

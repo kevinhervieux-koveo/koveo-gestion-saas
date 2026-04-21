@@ -10,6 +10,8 @@ import {
   date,
   integer,
   json,
+  primaryKey,
+  index,
 } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
@@ -48,40 +50,39 @@ export const invitationStatusEnum = pgEnum('invitation_status', [
  * Supports Quebec-specific language preferences and role-based access.
  */
 export const users = pgTable('users', {
-  id: varchar('id')
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
+  id: text('id').primaryKey().default(sql`gen_random_uuid()`),
   username: text('username').notNull().unique(), // Username field required by database
-  email: text('email').notNull().unique(),
+  email: varchar('email', { length: 255 }).notNull().unique(),
   password: text('password').notNull(),
-  firstName: text('first_name').notNull(),
-  lastName: text('last_name').notNull(),
-  phone: text('phone'),
+  firstName: varchar('first_name', { length: 100 }).notNull(),
+  lastName: varchar('last_name', { length: 100 }).notNull(),
+  phone: varchar('phone', { length: 20 }),
   profileImage: text('profile_image'),
-  language: text('language').notNull().default('fr'), // Default to French for Quebec
+  language: varchar('language', { length: 10 }).notNull().default('fr'), // Default to French for Quebec
   role: userRoleEnum('role').notNull().default('tenant'),
   isActive: boolean('is_active').notNull().default(true),
+  notificationsStartingDate: date('notifications_starting_date'), // Global starting date for all notifications
   lastLoginAt: timestamp('last_login_at'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  roleIdx: index('users_role_idx').on(table.role),
+}));
 
 /**
  * Organizations table storing management companies, syndicates, and co-ownership entities.
  * Represents the legal entities responsible for property management in Quebec.
  */
 export const organizations = pgTable('organizations', {
-  id: varchar('id')
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
-  name: text('name').notNull(),
+  id: text('id').primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar('name', { length: 200 }).notNull(),
   type: text('type').notNull(), // 'management_company', 'syndicate', 'cooperative', 'condo_association', 'demo'
   address: text('address').notNull(),
-  city: text('city').notNull(),
-  province: text('province').notNull().default('QC'),
-  postalCode: text('postal_code').notNull(),
+  city: varchar('city', { length: 100 }).notNull(),
+  province: varchar('province', { length: 3 }).notNull().default('QC'),
+  postalCode: varchar('postal_code', { length: 10 }).notNull(),
   phone: text('phone'),
-  email: text('email'),
+  email: varchar('email', { length: 255 }),
   website: text('website'),
   registrationNumber: text('registration_number'), // Quebec business registration
   isActive: boolean('is_active').notNull().default(true),
@@ -108,7 +109,10 @@ export const userOrganizations = pgTable('user_organizations', {
   canAccessAllOrganizations: boolean('can_access_all_organizations').notNull().default(false),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  userIdIdx: index('user_organizations_user_id_idx').on(table.userId),
+  organizationIdIdx: index('user_organizations_organization_id_idx').on(table.organizationId),
+}));
 
 /**
  * Invitations table for managing user invitations to organizations.
@@ -141,7 +145,15 @@ export const invitations = pgTable('invitations', {
   lastAccessedAt: timestamp('last_accessed_at'),
   ipAddress: text('ip_address'),
   userAgent: text('user_agent'),
-});
+}, (table) => ({
+  organizationIdIdx: index('invitations_organization_id_idx').on(table.organizationId),
+  buildingIdIdx: index('invitations_building_id_idx').on(table.buildingId),
+  residenceIdIdx: index('invitations_residence_id_idx').on(table.residenceId),
+  invitedByUserIdIdx: index('invitations_invited_by_user_id_idx').on(table.invitedByUserId),
+  acceptedByIdx: index('invitations_accepted_by_idx').on(table.acceptedBy),
+  roleIdx: index('invitations_role_idx').on(table.role),
+  statusIdx: index('invitations_status_idx').on(table.status),
+}));
 
 /**
  * Password reset tokens table for secure password reset functionality.
@@ -162,7 +174,9 @@ export const passwordResetTokens = pgTable('password_reset_tokens', {
   ipAddress: text('ip_address'),
   userAgent: text('user_agent'),
   createdAt: timestamp('created_at').defaultNow(),
-});
+}, (table) => ({
+  userIdIdx: index('password_reset_tokens_user_id_idx').on(table.userId),
+}));
 
 /**
  * Invitation audit log table for tracking invitation operations and security events.
@@ -181,7 +195,10 @@ export const invitationAuditLog = pgTable('invitation_audit_log', {
   previousStatus: invitationStatusEnum('previous_status'),
   newStatus: invitationStatusEnum('new_status'),
   createdAt: timestamp('created_at').defaultNow(),
-});
+}, (table) => ({
+  invitationIdIdx: index('invitation_audit_log_invitation_id_idx').on(table.invitationId),
+  performedByIdx: index('invitation_audit_log_performed_by_idx').on(table.performedBy),
+}));
 
 // Permissions enums
 export const resourceTypeEnum = pgEnum('resource_type', [
@@ -244,7 +261,10 @@ export const rolePermissions = pgTable('role_permissions', {
   grantedBy: varchar('granted_by').references(() => users.id),
   grantedAt: timestamp('granted_at').defaultNow(),
   createdAt: timestamp('created_at').defaultNow(),
-});
+}, (table) => ({
+  permissionIdIdx: index('role_permissions_permission_id_idx').on(table.permissionId),
+  grantedByIdx: index('role_permissions_granted_by_idx').on(table.grantedBy),
+}));
 
 export const userPermissions = pgTable('user_permissions', {
   id: uuid('id')
@@ -259,7 +279,10 @@ export const userPermissions = pgTable('user_permissions', {
   granted: boolean('granted').notNull().default(true),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
-});
+}, (table) => ({
+  userIdIdx: index('user_permissions_user_id_idx').on(table.userId),
+  permissionIdIdx: index('user_permissions_permission_id_idx').on(table.permissionId),
+}));
 
 // Insert schemas - manual Zod schemas to avoid drizzle-zod compatibility issues
 export const insertUserSchema = z.object({

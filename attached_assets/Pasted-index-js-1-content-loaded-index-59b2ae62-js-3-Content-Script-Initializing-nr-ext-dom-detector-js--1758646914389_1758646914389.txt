@@ -1,0 +1,232 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+index-Bsj8ZDX_.js:6 🏠 [INVENTORY PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-Bsj8ZDX_.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-Bsj8ZDX_.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-Bsj8ZDX_.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'create', elementId: undefined, isValid: false, isDirty: false, errorCount: 0, …}
+index-Bsj8ZDX_.js:6 ❌ [VALIDATION STATE] Form is invalid: {isValid: false, errorCount: 0, errorDetails: Array(0), allFormValues: {…}, nextEvaluationDate: {…}, …}
+index-Bsj8ZDX_.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+index-Bsj8ZDX_.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+index-Bsj8ZDX_.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+withHierarchicalSelection-Bvc8m8Al.js:1 🏢 [withHierarchicalSelection] Fetching buildings...
+withHierarchicalSelection-Bvc8m8Al.js:1 🌐 [withHierarchicalSelection] Requesting buildings: /api/organizations/e9bb7862-4ba5-4822-848f-f3692e826e73/buildings
+index-Bsj8ZDX_.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'create', elementId: undefined, isValid: false, isDirty: false, errorCount: 0, …}
+index-Bsj8ZDX_.js:6 ❌ [VALIDATION STATE] Form is invalid: {isValid: false, errorCount: 0, errorDetails: Array(0), allFormValues: {…}, nextEvaluationDate: {…}, …}
+withHierarchicalSelection-Bvc8m8Al.js:1 📊 [withHierarchicalSelection] Received 5 buildings from API
+withHierarchicalSelection-Bvc8m8Al.js:1 ✅ [withHierarchicalSelection] Returning all 5 buildings (non-residence page)
+index-Bsj8ZDX_.js:6 🏠 [INVENTORY PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-Bsj8ZDX_.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-Bsj8ZDX_.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-Bsj8ZDX_.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-Bsj8ZDX_.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-Bsj8ZDX_.js:6 🏠 [INVENTORY UI] Building elements collapsible toggled: true
+index-Bsj8ZDX_.js:6 🏠 [INVENTORY STATE] Building elements section toggled {expanded: true}
+index-Bsj8ZDX_.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-Bsj8ZDX_.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-Bsj8ZDX_.js:6 🏠 [INVENTORY ACTION] handleEditElement called: {elementId: '0f3cfaea-d774-4754-b8b3-3e50b5a39f81', elementName: 'test'}
+index-Bsj8ZDX_.js:6 🏠 [INVENTORY STATE] Element form opened in edit mode
+index-Bsj8ZDX_.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-Bsj8ZDX_.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-Bsj8ZDX_.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'create', elementId: '0f3cfaea-d774-4754-b8b3-3e50b5a39f81', isValid: false, isDirty: false, errorCount: 0, …}
+index-Bsj8ZDX_.js:6 ❌ [VALIDATION STATE] Form is invalid: {isValid: false, errorCount: 0, errorDetails: Array(0), allFormValues: {…}, nextEvaluationDate: {…}, …}
+index-Bsj8ZDX_.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+index-Bsj8ZDX_.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'edit', elementId: '0f3cfaea-d774-4754-b8b3-3e50b5a39f81', isValid: false, isDirty: false, errorCount: 0, …}
+index-Bsj8ZDX_.js:6 ❌ [VALIDATION STATE] Form is invalid: {isValid: false, errorCount: 0, errorDetails: Array(0), allFormValues: {…}, nextEvaluationDate: {…}, …}
+index-GkeTqO5z.js:163 Cannot update a component (`va`) while rendering a different component (`fc`). To locate the bad setState() call inside `fc`, follow the stack trace as described in https://react.dev/link/setstate-in-render
+overrideMethod @ hook.js:608
+Ye @ index-GkeTqO5z.js:163
+ol @ index-GkeTqO5z.js:120
+$p @ index-GkeTqO5z.js:120
+callback @ vendor-forms-BWbZXMD1.js:1
+next @ vendor-forms-BWbZXMD1.js:1
+next @ vendor-forms-BWbZXMD1.js:1
+q @ vendor-forms-BWbZXMD1.js:1
+fe @ vendor-forms-BWbZXMD1.js:1
+S @ vendor-forms-BWbZXMD1.js:1
+F @ vendor-forms-BWbZXMD1.js:1
+ct @ vendor-forms-BWbZXMD1.js:1
+hn @ vendor-forms-BWbZXMD1.js:1
+fc @ vendor-forms-BWbZXMD1.js:1
+react_stack_bottom_frame @ index-GkeTqO5z.js:229
+oc @ index-GkeTqO5z.js:120
+kc @ index-GkeTqO5z.js:141
+Pc @ index-GkeTqO5z.js:150
+q @ index-GkeTqO5z.js:45
+Kh @ index-GkeTqO5z.js:163
+Jh @ index-GkeTqO5z.js:163
+Wc @ index-GkeTqO5z.js:163
+Ih @ index-GkeTqO5z.js:163
+mg @ index-GkeTqO5z.js:185
+ml @ index-GkeTqO5z.js:185
+ad @ index-GkeTqO5z.js:185
+(anonymous) @ index-GkeTqO5z.js:185
+<fc>
+du.jsxDEV @ index-GkeTqO5z.js:15
+k @ form-lHfQge4t.js:1
+react_stack_bottom_frame @ index-GkeTqO5z.js:229
+oc @ index-GkeTqO5z.js:120
+kc @ index-GkeTqO5z.js:141
+Pc @ index-GkeTqO5z.js:150
+q @ index-GkeTqO5z.js:45
+Kh @ index-GkeTqO5z.js:163
+Jh @ index-GkeTqO5z.js:163
+Wc @ index-GkeTqO5z.js:163
+Ih @ index-GkeTqO5z.js:163
+mg @ index-GkeTqO5z.js:185
+ml @ index-GkeTqO5z.js:185
+ad @ index-GkeTqO5z.js:185
+(anonymous) @ index-GkeTqO5z.js:185
+<k>
+du.jsxDEV @ index-GkeTqO5z.js:15
+An @ FormModal-CUWK0f4v.js:62
+react_stack_bottom_frame @ index-GkeTqO5z.js:229
+oc @ index-GkeTqO5z.js:120
+kc @ index-GkeTqO5z.js:141
+Pc @ index-GkeTqO5z.js:150
+q @ index-GkeTqO5z.js:45
+Kh @ index-GkeTqO5z.js:163
+Jh @ index-GkeTqO5z.js:163
+Wc @ index-GkeTqO5z.js:163
+Ih @ index-GkeTqO5z.js:163
+mg @ index-GkeTqO5z.js:185
+ml @ index-GkeTqO5z.js:185
+ad @ index-GkeTqO5z.js:185
+(anonymous) @ index-GkeTqO5z.js:185
+<An>
+du.jsxDEV @ index-GkeTqO5z.js:15
+va @ index-Bsj8ZDX_.js:6
+react_stack_bottom_frame @ index-GkeTqO5z.js:229
+oc @ index-GkeTqO5z.js:120
+kc @ index-GkeTqO5z.js:141
+Pc @ index-GkeTqO5z.js:150
+q @ index-GkeTqO5z.js:45
+Kh @ index-GkeTqO5z.js:163
+Jh @ index-GkeTqO5z.js:163
+Wc @ index-GkeTqO5z.js:163
+Ih @ index-GkeTqO5z.js:163
+mg @ index-GkeTqO5z.js:185
+ml @ index-GkeTqO5z.js:185
+ad @ index-GkeTqO5z.js:185
+(anonymous) @ index-GkeTqO5z.js:185
+<va>
+du.jsxDEV @ index-GkeTqO5z.js:15
+fa @ index-Bsj8ZDX_.js:6
+react_stack_bottom_frame @ index-GkeTqO5z.js:229
+oc @ index-GkeTqO5z.js:120
+kc @ index-GkeTqO5z.js:141
+Pc @ index-GkeTqO5z.js:150
+q @ index-GkeTqO5z.js:45
+Kh @ index-GkeTqO5z.js:163
+WS @ index-GkeTqO5z.js:163
+KS @ index-GkeTqO5z.js:163
+Ih @ index-GkeTqO5z.js:163
+fg @ index-GkeTqO5z.js:185
+d @ index-GkeTqO5z.js:23
+<fa>
+du.jsxDEV @ index-GkeTqO5z.js:15
+ba @ index-Bsj8ZDX_.js:6
+react_stack_bottom_frame @ index-GkeTqO5z.js:229
+oc @ index-GkeTqO5z.js:120
+kc @ index-GkeTqO5z.js:141
+Pc @ index-GkeTqO5z.js:150
+q @ index-GkeTqO5z.js:45
+Kh @ index-GkeTqO5z.js:163
+WS @ index-GkeTqO5z.js:163
+KS @ index-GkeTqO5z.js:163
+Ih @ index-GkeTqO5z.js:163
+fg @ index-GkeTqO5z.js:185
+d @ index-GkeTqO5z.js:23
+<ba>
+du.jsxDEV @ index-GkeTqO5z.js:15
+(anonymous) @ withHierarchicalSelection-Bvc8m8Al.js:1
+react_stack_bottom_frame @ index-GkeTqO5z.js:229
+oc @ index-GkeTqO5z.js:120
+kc @ index-GkeTqO5z.js:141
+Pc @ index-GkeTqO5z.js:150
+q @ index-GkeTqO5z.js:45
+Kh @ index-GkeTqO5z.js:163
+WS @ index-GkeTqO5z.js:163
+KS @ index-GkeTqO5z.js:163
+Ih @ index-GkeTqO5z.js:163
+fg @ index-GkeTqO5z.js:185
+d @ index-GkeTqO5z.js:23
+<...>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Pb @ index-GkeTqO5z.js:240
+P @ index-GkeTqO5z.js:240
+react_stack_bottom_frame @ index-GkeTqO5z.js:229
+oc @ index-GkeTqO5z.js:120
+kc @ index-GkeTqO5z.js:141
+Pc @ index-GkeTqO5z.js:150
+q @ index-GkeTqO5z.js:45
+Kh @ index-GkeTqO5z.js:163
+WS @ index-GkeTqO5z.js:163
+KS @ index-GkeTqO5z.js:163
+Ih @ index-GkeTqO5z.js:163
+fg @ index-GkeTqO5z.js:185
+d @ index-GkeTqO5z.js:23
+<P>
+du.jsxDEV @ index-GkeTqO5z.js:15
+ex @ index-GkeTqO5z.js:384
+react_stack_bottom_frame @ index-GkeTqO5z.js:229
+oc @ index-GkeTqO5z.js:120
+kc @ index-GkeTqO5z.js:141
+Pc @ index-GkeTqO5z.js:150
+q @ index-GkeTqO5z.js:45
+Kh @ index-GkeTqO5z.js:163
+Jh @ index-GkeTqO5z.js:163
+Wc @ index-GkeTqO5z.js:163
+Ih @ index-GkeTqO5z.js:163
+mg @ index-GkeTqO5z.js:185
+ml @ index-GkeTqO5z.js:185
+ad @ index-GkeTqO5z.js:185
+(anonymous) @ index-GkeTqO5z.js:185
+<ex>
+du.jsxDEV @ index-GkeTqO5z.js:15
+tx @ index-GkeTqO5z.js:384
+react_stack_bottom_frame @ index-GkeTqO5z.js:229
+oc @ index-GkeTqO5z.js:120
+kc @ index-GkeTqO5z.js:141
+Pc @ index-GkeTqO5z.js:150
+q @ index-GkeTqO5z.js:45
+Kh @ index-GkeTqO5z.js:163
+Jh @ index-GkeTqO5z.js:163
+Wc @ index-GkeTqO5z.js:163
+Ih @ index-GkeTqO5z.js:163
+fg @ index-GkeTqO5z.js:185
+d @ index-GkeTqO5z.js:23
+<tx>
+du.jsxDEV @ index-GkeTqO5z.js:15
+(anonymous) @ index-GkeTqO5z.js:384
+index-GkeTqO5z.js:185 [Violation] 'click' handler took 175ms
+index-Bsj8ZDX_.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'edit', elementId: '0f3cfaea-d774-4754-b8b3-3e50b5a39f81', isValid: true, isDirty: false, errorCount: 0, …}
+[Violation] 'click' handler took 877ms
+index-GkeTqO5z.js:240  DELETE https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/maintenance/buildings/15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24/elements/0f3cfaea-d774-4754-b8b3-3e50b5a39f81 404 (Not Found)
+sx @ index-GkeTqO5z.js:240
+mutationFn @ index-Bsj8ZDX_.js:6
+fn @ vendor-query-DvoMLT1F.js:1
+y @ vendor-query-DvoMLT1F.js:1
+start @ vendor-query-DvoMLT1F.js:1
+execute @ vendor-query-DvoMLT1F.js:1
+await in execute
+mutate @ vendor-query-DvoMLT1F.js:1
+(anonymous) @ vendor-query-DvoMLT1F.js:1
+H @ index-Bsj8ZDX_.js:6
+lr @ index-GkeTqO5z.js:185
+q @ index-GkeTqO5z.js:45
+yg @ index-GkeTqO5z.js:185
+(anonymous) @ index-GkeTqO5z.js:185
+Gm @ index-GkeTqO5z.js:83
+rd @ index-GkeTqO5z.js:185
+Ad @ index-GkeTqO5z.js:194
+L1 @ index-GkeTqO5z.js:194
+index-Bsj8ZDX_.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-Bsj8ZDX_.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-Bsj8ZDX_.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-Bsj8ZDX_.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-GkeTqO5z.js:23 [Violation] 'message' handler took 233ms

@@ -53,9 +53,7 @@ export function registerFeatureRequestRoutes(app: Express): void {
         });
       }
 
-      console.log(
-        `📋 Fetching feature requests for user ${currentUser.id} with role ${currentUser.role}`
-      );
+      // console.log(`📋 Fetching feature requests for user ${currentUser.id} with role ${currentUser.role}`);
 
       const featureRequests = await storage.getFeatureRequestsForUser(
         currentUser.id,
@@ -63,10 +61,10 @@ export function registerFeatureRequestRoutes(app: Express): void {
         currentUser.organizationId
       );
 
-      console.log(`✅ Found ${featureRequests.length} feature requests for user ${currentUser.id}`);
+      // console.log(`✅ Found ${featureRequests.length} feature requests for user ${currentUser.id}`);
       res.json(featureRequests);
     } catch (error: any) {
-      console.error('❌ Error fetching feature requests:', error);
+      // console.error('❌ Error fetching feature requests:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to fetch feature requests',
@@ -112,7 +110,7 @@ export function registerFeatureRequestRoutes(app: Express): void {
 
       res.json(featureRequest);
     } catch (error: any) {
-      console.error('❌ Error fetching feature request:', error);
+      // console.error('❌ Error fetching feature request:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to fetch feature request',
@@ -151,8 +149,13 @@ export function registerFeatureRequestRoutes(app: Express): void {
       
       // Handle file upload if present
       if (req.file) {
+        // Import sanitizeFilePath at top of file if not already imported
+        const sanitizeFilePath = (filePath: string): string => {
+          return filePath.replace(/[^a-zA-Z0-9._\/-]/g, '_');
+        };
+        
         featureRequestData.filePath = req.file.path;
-        featureRequestData.fileName = req.file.originalname;
+        featureRequestData.fileName = sanitizeFilePath(req.file.originalname);
         featureRequestData.fileSize = req.file.size;
       }
       
@@ -173,7 +176,7 @@ export function registerFeatureRequestRoutes(app: Express): void {
           featureRequestData.fileName = fileName;
           featureRequestData.fileSize = Buffer.byteLength(req.body.file_content, 'utf8');
         } catch (fsError) {
-          console.error('Error saving feature request text content:', fsError);
+          // console.error('Error saving feature request text content:', fsError);
           return res.status(500).json({ 
             error: 'Internal server error',
             message: 'Failed to save text content as file' 
@@ -183,10 +186,10 @@ export function registerFeatureRequestRoutes(app: Express): void {
       
       const featureRequest = await storage.createFeatureRequest(featureRequestData);
 
-      console.log(`💡 Created new feature request ${featureRequest.id} by user ${currentUser.id}`);
+      // console.log(`💡 Created new feature request ${featureRequest.id} by user ${currentUser.id}`);
       res.status(201).json(featureRequest);
     } catch (error: any) {
-      console.error('❌ Error creating feature request:', error);
+      // console.error('❌ Error creating feature request:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to create feature request',
@@ -300,8 +303,13 @@ export function registerFeatureRequestRoutes(app: Express): void {
       
       // Handle file upload if present
       if (req.file) {
+        // Import sanitizeFilePath at top of file if not already imported
+        const sanitizeFilePath = (filePath: string): string => {
+          return filePath.replace(/[^a-zA-Z0-9._\/-]/g, '_');
+        };
+        
         updates.filePath = req.file.path;
-        updates.fileName = req.file.originalname;
+        updates.fileName = sanitizeFilePath(req.file.originalname);
         updates.fileSize = req.file.size;
       }
       
@@ -319,10 +327,10 @@ export function registerFeatureRequestRoutes(app: Express): void {
         });
       }
 
-      console.log(`📝 Updated feature request ${id} by user ${currentUser.id}`);
+      // console.log(`📝 Updated feature request ${id} by user ${currentUser.id}`);
       res.json(featureRequest);
     } catch (error: any) {
-      console.error('❌ Error updating feature request:', error);
+      // console.error('❌ Error updating feature request:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to update feature request',
@@ -370,10 +378,10 @@ export function registerFeatureRequestRoutes(app: Express): void {
         });
       }
 
-      console.log(`🗑️ Deleted feature request ${id} by user ${currentUser.id}`);
+      // console.log(`🗑️ Deleted feature request ${id} by user ${currentUser.id}`);
       res.status(204).send();
     } catch (error: any) {
-      console.error('❌ Error deleting feature request:', error);
+      // console.error('❌ Error deleting feature request:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to delete feature request',
@@ -437,14 +445,14 @@ export function registerFeatureRequestRoutes(app: Express): void {
 
       // Check if file exists on disk
       if (!fs.existsSync(fullFilePath)) {
-        console.error(`❌ File not found on disk: ${fullFilePath}`);
+        // console.error(`❌ File not found on disk: ${fullFilePath}`);
         return res.status(404).json({
           error: 'File not found',
           message: 'The file attachment could not be found',
         });
       }
 
-      console.log(`📎 Serving file for feature request ${id}: ${fileName}`);
+      // console.log(`📎 Serving file for feature request ${id}: ${fileName}`);
 
       // Detect MIME type based on file extension
       const getContentType = (filename: string) => {
@@ -479,13 +487,13 @@ export function registerFeatureRequestRoutes(app: Express): void {
       fileStream.pipe(res);
 
       fileStream.on('error', (error) => {
-        console.error(`❌ Error streaming file for feature request ${id}:`, error);
+        // console.error(`❌ Error streaming file for feature request ${id}:`, error);
         if (!res.headersSent) {
           res.status(500).json({ error: 'Failed to stream file' });
         }
       });
     } catch (error: any) {
-      console.error('❌ Error serving feature request file:', error);
+      // console.error('❌ Error serving feature request file:', error);
       if (!res.headersSent) {
         res.status(500).json({
           error: 'Internal server error',
@@ -542,10 +550,10 @@ export function registerFeatureRequestRoutes(app: Express): void {
         });
       }
 
-      console.log(`👍 User ${currentUser.id} upvoted feature request ${id}`);
+      // console.log(`👍 User ${currentUser.id} upvoted feature request ${id}`);
       res.json(result.data);
     } catch (error: any) {
-      console.error('❌ Error upvoting feature request:', error);
+      // console.error('❌ Error upvoting feature request:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to upvote feature request',
@@ -585,10 +593,10 @@ export function registerFeatureRequestRoutes(app: Express): void {
         });
       }
 
-      console.log(`👎 User ${currentUser.id} removed upvote from feature request ${id}`);
+      // console.log(`👎 User ${currentUser.id} removed upvote from feature request ${id}`);
       res.json(result.data);
     } catch (error: any) {
-      console.error('❌ Error removing upvote from feature request:', error);
+      // console.error('❌ Error removing upvote from feature request:', error);
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to remove upvote from feature request',

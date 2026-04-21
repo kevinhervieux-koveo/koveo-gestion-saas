@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 import chalk from 'chalk';
 
 /**
@@ -37,7 +37,7 @@ async function runQuickQualityCheck(): Promise<QualityMetrics> {
   // 1. TypeScript check
   console.log(chalk.yellow('\n📝 Checking TypeScript...'));
   try {
-    execSync('npx tsc --noEmit --skipLibCheck', { stdio: 'pipe', timeout: 30000, env: safeEnv });
+    execFileSync('npx', ['tsc', '--noEmit', '--skipLibCheck'], { stdio: 'pipe', timeout: 30000, env: safeEnv });
     console.log(chalk.green('✅ TypeScript check passed'));
     metrics.typecheck = true;
   } catch (error) {
@@ -48,7 +48,7 @@ async function runQuickQualityCheck(): Promise<QualityMetrics> {
   // 2. Lint check (non-blocking)
   console.log(chalk.yellow('\n🧹 Checking code style...'));
   try {
-    execSync('npm run lint:check', { stdio: 'pipe', timeout: 30000, env: safeEnv });
+    execFileSync('npm', ['run', 'lint:check'], { stdio: 'pipe', timeout: 30000, env: safeEnv });
     console.log(chalk.green('✅ Lint check passed'));
     metrics.lint = true;
   } catch (error) {
@@ -64,7 +64,7 @@ async function runQuickQualityCheck(): Promise<QualityMetrics> {
   // 4. Build test (frontend only)
   console.log(chalk.yellow('\n🔨 Testing frontend build process...'));
   try {
-    execSync('timeout 60s npm run build:client', { stdio: 'pipe', timeout: 65000, env: safeEnv });
+    execFileSync('npm', ['run', 'build:client'], { stdio: 'pipe', timeout: 60000, env: safeEnv });
     console.log(chalk.green('✅ Frontend build test passed'));
     metrics.buildTest = true;
   } catch (error) {

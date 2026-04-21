@@ -9,7 +9,7 @@ import type { Express } from 'express';
 import { requireAuth } from '../auth';
 import multer from 'multer';
 import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
-import { geminiService } from '../services/geminiService';
+import { aiService } from '../services/consolidated-ai-service';
 import { secureFileStorage } from '../services/secure-file-storage';
 import { getUploadConfig, type UploadContext } from '@shared/config/upload-config';
 import { z } from 'zod';
@@ -185,15 +185,14 @@ export function registerAiAnalysisRoutes(app: Express) {
         let analysisResult;
         try {
           if (req.file.mimetype.startsWith('image/')) {
-            // Analyze image document
-            analysisResult = await geminiService.analyzeImage(req.file.buffer, analysisPrompt);
+            // Analyze image document using AI service
+            analysisResult = await aiService.extractBillData(req.file.buffer, req.file.mimetype);
           } else if (req.file.mimetype === 'application/pdf') {
-            // For PDF, we need to convert to image or extract text first
-            // For now, treat as image analysis with the buffer
-            analysisResult = await geminiService.analyzeDocument(req.file.buffer, analysisPrompt, req.file.mimetype);
+            // For PDF, analyze with AI service
+            analysisResult = await aiService.extractBillData(req.file.buffer, req.file.mimetype);
           } else {
-            // For other document types, extract text and analyze
-            analysisResult = await geminiService.analyzeDocument(req.file.buffer, analysisPrompt, req.file.mimetype);
+            // For other document types, use AI service
+            analysisResult = await aiService.extractBillData(req.file.buffer, req.file.mimetype);
           }
         } catch (aiError) {
           console.error('[AI ANALYSIS] Analysis failed:', aiError);

@@ -1,0 +1,273 @@
+index-Fi3BghTj.js:170 🔍 Web Vitals monitoring initialized
+index-Fi3BghTj.js:170 🚀 Performance monitoring systems initialized
+index-Fi3BghTj.js:170 🟢 FCP: 488ms (Good)
+index-Fi3BghTj.js:170 🟢 TTFB: 97ms (Good)
+index-4rVpahTC.js:1 🏠 [INVENTORY PAGE INNER] Rendering with props: {organizationId: '22134aad-736b-4481-a8bf-bea77b7a17d1', buildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', residenceId: undefined}
+index-4rVpahTC.js:1 🏠 [INVENTORY PAGE] Initializing with: {organizationId: '22134aad-736b-4481-a8bf-bea77b7a17d1', buildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-4rVpahTC.js:1 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 409986ca-8e25-4547-b00d-6dae6e4ac26b
+index-4rVpahTC.js:1 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'create', elementId: undefined, isValid: false, isDirty: false, errorCount: 0, …}
+index-4rVpahTC.js:1 ❌ [VALIDATION STATE] Form is invalid: {isValid: false, errorCount: 0, errorDetails: Array(0), allFormValues: {…}, nextEvaluationDate: {…}, …}
+index-4rVpahTC.js:1 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+index-4rVpahTC.js:1 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+index-4rVpahTC.js:1 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+withHierarchicalSelection-DTY6UBX7.js:1 🏢 [withHierarchicalSelection] Fetching buildings...
+withHierarchicalSelection-DTY6UBX7.js:1 🌐 [withHierarchicalSelection] Requesting buildings: /api/organizations/22134aad-736b-4481-a8bf-bea77b7a17d1/buildings
+index-4rVpahTC.js:1 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'create', elementId: undefined, isValid: false, isDirty: false, errorCount: 0, …}
+index-4rVpahTC.js:1 ❌ [VALIDATION STATE] Form is invalid: {isValid: false, errorCount: 0, errorDetails: Array(0), allFormValues: {…}, nextEvaluationDate: {…}, …}
+withHierarchicalSelection-DTY6UBX7.js:1 📊 [withHierarchicalSelection] Received 1 buildings from API
+withHierarchicalSelection-DTY6UBX7.js:1 ✅ [withHierarchicalSelection] Returning all 1 buildings (non-residence page)
+index-4rVpahTC.js:1 🏠 [INVENTORY PAGE INNER] Rendering with props: {organizationId: '22134aad-736b-4481-a8bf-bea77b7a17d1', buildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', residenceId: undefined}
+index-4rVpahTC.js:1 🏠 [INVENTORY PAGE] Initializing with: {organizationId: '22134aad-736b-4481-a8bf-bea77b7a17d1', buildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-4rVpahTC.js:1 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 409986ca-8e25-4547-b00d-6dae6e4ac26b
+index-4rVpahTC.js:1 🏠 [INVENTORY PAGE] Initializing with: {organizationId: '22134aad-736b-4481-a8bf-bea77b7a17d1', buildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-4rVpahTC.js:1 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 409986ca-8e25-4547-b00d-6dae6e4ac26b
+index-4rVpahTC.js:1 🏠 [INVENTORY UI] Building elements collapsible toggled: true
+index-4rVpahTC.js:1 🏠 [INVENTORY STATE] Building elements section toggled {expanded: true}
+index-4rVpahTC.js:1 🏠 [INVENTORY PAGE] Initializing with: {organizationId: '22134aad-736b-4481-a8bf-bea77b7a17d1', buildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-4rVpahTC.js:1 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 409986ca-8e25-4547-b00d-6dae6e4ac26b
+index-Fi3BghTj.js:170 🟢 LCP: 1168ms (Good)
+index-4rVpahTC.js:1 🏠 [INVENTORY ACTION] handleAddElement called
+index-4rVpahTC.js:1 🏠 [INVENTORY STATE] Element form opened in create mode
+index-4rVpahTC.js:1 🏠 [INVENTORY PAGE] Initializing with: {organizationId: '22134aad-736b-4481-a8bf-bea77b7a17d1', buildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-4rVpahTC.js:1 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 409986ca-8e25-4547-b00d-6dae6e4ac26b
+index-Fi3BghTj.js:170 Long task detected: 60
+index-4rVpahTC.js:1 🏠 [INVENTORY MODAL] Element form visibility changed: {open: false, hasElement: false}
+index-4rVpahTC.js:1 🏠 [INVENTORY STATE] Clearing selected element
+index-4rVpahTC.js:1 🏠 [INVENTORY STATE] Element form visibility changed {open: false}
+index-4rVpahTC.js:1 🏠 [INVENTORY PAGE] Initializing with: {organizationId: '22134aad-736b-4481-a8bf-bea77b7a17d1', buildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-4rVpahTC.js:1 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 409986ca-8e25-4547-b00d-6dae6e4ac26b
+index-4rVpahTC.js:1 🏠 [INVENTORY PAGE INNER] Rendering with props: {organizationId: '22134aad-736b-4481-a8bf-bea77b7a17d1', buildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', residenceId: undefined}
+index-4rVpahTC.js:1 🏠 [INVENTORY PAGE] Initializing with: {organizationId: '22134aad-736b-4481-a8bf-bea77b7a17d1', buildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-4rVpahTC.js:1 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 409986ca-8e25-4547-b00d-6dae6e4ac26b
+index-4rVpahTC.js:1 🏠 [INVENTORY PAGE INNER] Rendering with props: {organizationId: '22134aad-736b-4481-a8bf-bea77b7a17d1', buildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', residenceId: undefined}
+index-4rVpahTC.js:1 🏠 [INVENTORY PAGE] Initializing with: {organizationId: '22134aad-736b-4481-a8bf-bea77b7a17d1', buildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-4rVpahTC.js:1 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 409986ca-8e25-4547-b00d-6dae6e4ac26b
+index-4rVpahTC.js:1 🏠 [INVENTORY ACTION] handleAddElement called
+index-4rVpahTC.js:1 🏠 [INVENTORY STATE] Element form opened in create mode
+index-4rVpahTC.js:1 🏠 [INVENTORY PAGE] Initializing with: {organizationId: '22134aad-736b-4481-a8bf-bea77b7a17d1', buildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-4rVpahTC.js:1 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 409986ca-8e25-4547-b00d-6dae6e4ac26b
+index-4rVpahTC.js:1 🏠 [INVENTORY MODAL] Element form visibility changed: {open: false, hasElement: false}
+index-4rVpahTC.js:1 🏠 [INVENTORY STATE] Clearing selected element
+index-4rVpahTC.js:1 🏠 [INVENTORY STATE] Element form visibility changed {open: false}
+index-4rVpahTC.js:1 🏠 [INVENTORY PAGE] Initializing with: {organizationId: '22134aad-736b-4481-a8bf-bea77b7a17d1', buildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-4rVpahTC.js:1 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 409986ca-8e25-4547-b00d-6dae6e4ac26b
+index-Fi3BghTj.js:170 🟢 INP: 88ms (Good)
+index-Fi3BghTj.js:170 🟢 CLS: 0.000007880058001567846ms (Good)
+index-Fi3BghTj.js:170  POST https://koveo-gestion.com/api/performance/web-vitals 400 (Bad Request)
+sendToAnalytics @ index-Fi3BghTj.js:170
+onMetric @ index-Fi3BghTj.js:170
+(anonymous) @ index-Fi3BghTj.js:170
+(anonymous) @ index-Fi3BghTj.js:170
+Qu @ index-Fi3BghTj.js:170
+index-DnwrlQqm.js:36 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: '22134aad-736b-4481-a8bf-bea77b7a17d1', buildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', residenceId: undefined}
+index-DnwrlQqm.js:36 📁 [PROJECTS PAGE] Initializing with: {organizationId: '22134aad-736b-4481-a8bf-bea77b7a17d1', buildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-DnwrlQqm.js:36 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 409986ca-8e25-4547-b00d-6dae6e4ac26b
+index-Fi3BghTj.js:26  GET https://koveo-gestion.com/api/maintenance/buildings/409986ca-8e25-4547-b00d-6dae6e4ac26b/auto-projects 500 (Internal Server Error)
+Nb @ index-Fi3BghTj.js:26
+queryFn @ index-DnwrlQqm.js:36
+r @ vendor-query-ESGkSWig.js:1
+y @ vendor-query-ESGkSWig.js:1
+start @ vendor-query-ESGkSWig.js:1
+fetch @ vendor-query-ESGkSWig.js:1
+#l @ vendor-query-ESGkSWig.js:1
+onSubscribe @ vendor-query-ESGkSWig.js:1
+subscribe @ vendor-query-ESGkSWig.js:1
+(anonymous) @ vendor-query-ESGkSWig.js:1
+Sc @ index-Fi3BghTj.js:25
+ri @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+lf @ index-Fi3BghTj.js:25
+Bl @ index-Fi3BghTj.js:25
+df @ index-Fi3BghTj.js:25
+hi @ index-Fi3BghTj.js:25
+af @ index-Fi3BghTj.js:25
+$d @ index-Fi3BghTj.js:25
+Xd @ index-Fi3BghTj.js:25
+setTimeout
+kd @ index-Fi3BghTj.js:25
+cf @ index-Fi3BghTj.js:25
+Na @ index-Fi3BghTj.js:10
+index-DnwrlQqm.js:36 📁 [PROJECTS PAGE] Initializing with: {organizationId: '22134aad-736b-4481-a8bf-bea77b7a17d1', buildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-DnwrlQqm.js:36 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 409986ca-8e25-4547-b00d-6dae6e4ac26b
+index-DnwrlQqm.js:36 📁 [PROJECTS UI] Projects table collapsible toggled: true
+index-DnwrlQqm.js:36 📁 [PROJECTS STATE] Projects table section toggled {expanded: true}
+index-DnwrlQqm.js:36 📁 [PROJECTS PAGE] Initializing with: {organizationId: '22134aad-736b-4481-a8bf-bea77b7a17d1', buildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-DnwrlQqm.js:36 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 409986ca-8e25-4547-b00d-6dae6e4ac26b
+index-DnwrlQqm.js:36 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: []
+index-DnwrlQqm.js:36 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 0
+index-Fi3BghTj.js:26  GET https://koveo-gestion.com/api/maintenance/buildings/409986ca-8e25-4547-b00d-6dae6e4ac26b/projects 500 (Internal Server Error)
+Nb @ index-Fi3BghTj.js:26
+queryFn @ index-DnwrlQqm.js:36
+r @ vendor-query-ESGkSWig.js:1
+y @ vendor-query-ESGkSWig.js:1
+start @ vendor-query-ESGkSWig.js:1
+fetch @ vendor-query-ESGkSWig.js:1
+#l @ vendor-query-ESGkSWig.js:1
+onSubscribe @ vendor-query-ESGkSWig.js:1
+subscribe @ vendor-query-ESGkSWig.js:1
+(anonymous) @ vendor-query-ESGkSWig.js:1
+Sc @ index-Fi3BghTj.js:25
+ri @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+Dt @ index-Fi3BghTj.js:25
+jd @ index-Fi3BghTj.js:25
+lf @ index-Fi3BghTj.js:25
+Bl @ index-Fi3BghTj.js:25
+af @ index-Fi3BghTj.js:25
+$d @ index-Fi3BghTj.js:25
+Xd @ index-Fi3BghTj.js:25
+kd @ index-Fi3BghTj.js:25
+df @ index-Fi3BghTj.js:25
+hi @ index-Fi3BghTj.js:25
+uf @ index-Fi3BghTj.js:25
+(anonymous) @ index-Fi3BghTj.js:25
+index-DnwrlQqm.js:36 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: []
+index-DnwrlQqm.js:36 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 0

@@ -14,6 +14,7 @@ import { registerBuildingRoutes } from './api/buildings';
 import { registerDocumentRoutes } from './api/documents';
 import { registerBugRoutes } from './api/bugs';
 import { registerBillRoutes } from './api/bills';
+import budgetRouter from './api/budgets';
 import { registerResidenceRoutes } from './api/residences';
 import { registerDemandRoutes } from './api/demands';
 import { registerFeatureRequestRoutes } from './api/feature-requests';
@@ -21,6 +22,7 @@ import { registerContactRoutes } from './api/contacts';
 import { registerCommonSpacesRoutes } from './api/common-spaces';
 import { registerPermissionsRoutes } from './api/permissions';
 import { registerDemoManagementRoutes } from './api/demo-management';
+import { registerCommunicationRoutes } from './api/communication';
 import { registerTrialRequestRoutes } from './api/trial-request';
 import { registerInvoiceRoutes } from './api/invoices';
 import { registerAiAnalysisRoutes } from './api/ai-document-analysis';
@@ -28,9 +30,14 @@ import { registerDocumentationRoutes } from './api/documentation';
 import { registerPillarsSuggestionsRoutes } from './api/pillars-suggestions';
 import { registerQualityMetricsRoutes } from './api/quality-metrics';
 import { registerFeatureManagementRoutes } from './api/feature-management';
+import { registerMaintenanceRoutes } from './api/maintenance';
 import law25ComplianceRouter from './routes/law25-compliance';
+import { performanceRouter } from './performance-api';
+import { webVitalsRouter } from './web-vitals-api';
 import { db } from './db';
 import * as schema from '@shared/schema';
+import { demands } from '../shared/schemas/operations';
+import { eq } from 'drizzle-orm';
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -72,20 +79,15 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express) {
-  console.log('🔄 Setting up session middleware...');
   
   // CRITICAL: Apply session middleware BEFORE authentication routes
   app.use(sessionConfig);
-  console.log('✅ Session middleware configured');
   
-  console.log('🔄 Loading authentication routes...');
   
   // Setup authentication routes - session middleware must be applied first
   setupAuthRoutes(app);
-  console.log('✅ Authentication routes loaded on /api/auth/');
   
   // Register all API routes
-  console.log('🔄 Loading API routes...');
   registerOrganizationRoutes(app);
   registerUserRoutes(app);
   registerBuildingRoutes(app);
@@ -93,6 +95,10 @@ export async function registerRoutes(app: Express) {
   registerBugRoutes(app);
 
   registerBillRoutes(app);
+  
+  // Budget routes
+  app.use('/api/budgets', requireAuth, budgetRouter);
+  
   registerResidenceRoutes(app);
   registerDemandRoutes(app);
   registerFeatureRequestRoutes(app);
@@ -100,6 +106,7 @@ export async function registerRoutes(app: Express) {
   registerCommonSpacesRoutes(app);
   registerPermissionsRoutes(app);
   registerDemoManagementRoutes(app);
+  registerCommunicationRoutes(app);
   registerTrialRequestRoutes(app);
   registerInvoiceRoutes(app);
   registerAiAnalysisRoutes(app);
@@ -107,11 +114,15 @@ export async function registerRoutes(app: Express) {
   registerPillarsSuggestionsRoutes(app);
   registerQualityMetricsRoutes(app);
   registerFeatureManagementRoutes(app);
+  registerMaintenanceRoutes(app);
+  
+  // Performance monitoring routes
+  app.use(performanceRouter);
+  app.use(webVitalsRouter);
   
   // Law 25 compliance routes
   app.use('/api/law25-compliance', requireAuth, law25ComplianceRouter);
   
-  console.log('✅ All API routes registered');
   
   // Features API for roadmap
   app.get('/api/features', requireAuth, async (req: any, res) => {
@@ -149,12 +160,11 @@ export async function registerRoutes(app: Express) {
       // If roadmap=true, filter to only roadmap-visible features
       if (roadmap === 'true') {
         const roadmapFeatures = transformedFeatures.filter((f: any) => f.isPublicRoadmap !== false);
-        res.json(roadmapFeatures);
+        return res.json(roadmapFeatures);
       } else {
-        res.json(transformedFeatures);
+        return res.json(transformedFeatures);
       }
     } catch (error) {
-      console.error('Error fetching features:', error);
       res.status(500).json({ 
         message: 'Failed to fetch features',
         error: process.env.NODE_ENV === 'development' ? error.message : undefined
@@ -174,7 +184,7 @@ export async function registerRoutes(app: Express) {
       }
       
       // Mock response for now - this would normally sync to production database
-      res.json({
+      return res.json({
         success: true,
         message: process.env.NODE_ENV === 'development' 
           ? 'Development environment: Sync simulation completed'
@@ -183,7 +193,6 @@ export async function registerRoutes(app: Express) {
         syncedCount: 0 // Would be actual count in real implementation
       });
     } catch (error) {
-      console.error('Error during sync:', error);
       res.status(500).json({
         message: 'Failed to sync to production',
         error: process.env.NODE_ENV === 'development' ? error.message : undefined
@@ -192,12 +201,10 @@ export async function registerRoutes(app: Express) {
   });
   
   // Basic API routes
-  app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
-  });
+  // Note: /api/health endpoint is defined in index.ts with deployment-specific error handling
   
   app.post('/api/test', (req, res) => {
-    res.json({ message: 'API working', body: req.body });
+    return res.json({ message: 'API working', body: req.body });
   });
 
   // File upload endpoint for demands and other general uploads
@@ -213,20 +220,20 @@ export async function registerRoutes(app: Express) {
         });
       }
 
-      // Generate file URLs/paths for the uploaded files
-      const fileUrls = files.map(file => {
-        return `/uploads/demands/${file.filename}`;
-      });
+      // Generate file info including original names
+      const uploadedFiles = files.map(file => ({
+        url: `/uploads/demands/${file.filename}`,
+        originalName: file.originalname,
+        size: file.size
+      }));
 
-      console.log(`✅ Successfully uploaded ${files.length} files for user ${req.user.id}`);
-
-      res.json({ 
+      return res.json({ 
         message: 'Files uploaded successfully',
-        fileUrls: fileUrls,
+        files: uploadedFiles,
+        fileUrls: uploadedFiles.map(f => f.url), // Keep for backward compatibility
         fileCount: files.length
       });
     } catch (error: any) {
-      console.error('❌ File upload error:', error.message);
       res.status(500).json({ 
         error: 'File upload failed',
         message: 'Unable to process the uploaded files',
@@ -235,10 +242,194 @@ export async function registerRoutes(app: Express) {
     }
   });
   
-  // Move error handlers to after static file serving
-
-  // Serve uploaded files
-  app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+  // SECURITY FIX: Removed direct static file serving - replaced with authenticated endpoints below
+  // Old vulnerable code: app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+  
+  // Demand file access endpoint - handles /uploads/demands/* URLs
+  app.get('/uploads/demands/*', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      const fileName = req.params[0]; // Everything after /uploads/demands/
+      
+      console.log(`[DEMAND FILE] User ${user.id} (${user.role}) requesting: ${fileName}`);
+      
+      // Find the demand with this file by matching against filePath (which contains the server-generated filename)
+      // Note: fileName column now stores the original user filename for display
+      const requestedPath = `/uploads/demands/${fileName}`;
+      const [demand] = await db.select().from(demands).where(eq(demands.filePath, requestedPath)).limit(1);
+      
+      if (!demand) {
+        console.log(`[DEMAND FILE] No demand found for: ${fileName}`);
+        return res.status(404).json({ error: 'File not found' });
+      }
+      
+      console.log(`[DEMAND FILE] Demand ${demand.id} by ${demand.submitterId}, checking access for ${user.id}`);
+      
+      // Access check: user created demand OR is admin/manager
+      const hasAccess = 
+        demand.submitterId === user.id || 
+        user.role === 'admin' || 
+        user.role === 'manager' ||
+        user.role === 'demo_manager';
+      
+      if (!hasAccess) {
+        console.log(`[DEMAND FILE] Access DENIED for ${user.id}`);
+        return res.status(403).json({ error: 'Access denied' });
+      }
+      
+      console.log(`[DEMAND FILE] Access GRANTED for ${user.id}`);
+      
+      // Build and verify file path
+      const sanitizedFileName = fileName.replace(/\.\./g, '').replace(/^\/+/, '');
+      const safeFilePath = path.join(process.cwd(), 'uploads', 'demands', sanitizedFileName);
+      const uploadsDir = path.resolve(process.cwd(), 'uploads');
+      const resolvedPath = path.resolve(safeFilePath);
+      
+      if (!resolvedPath.startsWith(uploadsDir)) {
+        console.log(`[DEMAND FILE] Path traversal attempt: ${resolvedPath}`);
+        return res.status(403).json({ error: 'Invalid file path' });
+      }
+      
+      if (!fs.existsSync(resolvedPath)) {
+        console.log(`[DEMAND FILE] File not found on disk: ${resolvedPath}`);
+        return res.status(404).json({ error: 'File not found on disk' });
+      }
+      
+      console.log(`[DEMAND FILE] Serving file: ${resolvedPath}`);
+      res.sendFile(resolvedPath);
+      
+    } catch (error: any) {
+      console.error(`[DEMAND FILE] Error:`, error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+  
+  // Secure authenticated file serving endpoint
+  app.get('/uploads/:orgId/:category/:fileId', requireAuth, async (req: any, res) => {
+    try {
+      const { orgId, category, fileId } = req.params;
+      const user = req.user;
+      
+      // Validate parameters to prevent path traversal
+      if (!orgId.match(/^[a-zA-Z0-9_-]+$/) || !category.match(/^[a-zA-Z0-9_-]+$/) || !fileId.match(/^[a-zA-Z0-9._-]+$/)) {
+        return res.status(400).json({ error: 'Invalid file path parameters' });
+      }
+      
+      // Check if user has access to this organization's files
+      // This would need to be implemented based on your organization access logic
+      const userOrgs = await import('./storage').then(({ storage }) => storage.getUserOrganizations(user.id));
+      const hasOrgAccess = userOrgs.some(org => org.organizationId === orgId);
+      
+      if (!hasOrgAccess && user.role !== 'admin') {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+      
+      // Construct safe file path within uploads directory only
+      const safeFilePath = path.join(process.cwd(), 'uploads', orgId, category, fileId);
+      const uploadsDir = path.resolve(process.cwd(), 'uploads');
+      const requestedPath = path.resolve(safeFilePath);
+      
+      // Ensure the resolved path is within uploads directory (prevent directory traversal)
+      if (!requestedPath.startsWith(uploadsDir)) {
+        return res.status(403).json({ error: 'Access denied - invalid file path' });
+      }
+      
+      // Check if file exists
+      if (!fs.existsSync(requestedPath)) {
+        return res.status(404).json({ error: 'File not found' });
+      }
+      
+      // Serve the file
+      return res.sendFile(requestedPath);
+      
+    } catch (error: any) {
+      console.error('Secure file serving error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+  
+  // Legacy support for simple file access (still authenticated)
+  app.get('/uploads/*', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      const requestedPath = req.params[0]; // Everything after /uploads/
+      
+      console.log(`[FILE ACCESS] User ${user.id} (${user.role}) requesting: ${requestedPath}`);
+      
+      // Check if this is a demand file
+      const isDemandFile = requestedPath.startsWith('demands/');
+      
+      // For demand files, verify user has access to the demand
+      if (isDemandFile) {
+        const fileName = path.basename(requestedPath);
+        console.log(`[FILE ACCESS] Demand file detected: ${fileName}`);
+        
+        // Query the database to find the demand with this file
+        const { db } = await import('./db');
+        const { demands } = await import('../shared/schemas/operations');
+        const { eq } = await import('drizzle-orm');
+        
+        const [demand] = await db.select().from(demands).where(eq(demands.fileName, fileName)).limit(1);
+        
+        if (!demand) {
+          console.log(`[FILE ACCESS] No demand found with fileName: ${fileName}`);
+          return res.status(404).json({ error: 'File not found' });
+        }
+        
+        console.log(`[FILE ACCESS] Found demand ${demand.id}, submitter: ${demand.submitterId}, user: ${user.id}, role: ${user.role}`);
+        
+        // Check if user has access to this demand
+        // Users can access demands they submitted or if they're admin/manager for the building
+        const hasAccess = 
+          demand.submitterId === user.id || // User created the demand
+          user.role === 'admin' || // Admin has access to all
+          user.role === 'manager'; // Manager has access to all (could be refined by building)
+        
+        console.log(`[FILE ACCESS] Access check result: ${hasAccess}`);
+        
+        if (!hasAccess) {
+          console.log(`[FILE ACCESS] Access denied for user ${user.id}`);
+          return res.status(403).json({ 
+            error: 'Access denied',
+            message: 'You do not have permission to access this file'
+          });
+        }
+        
+        console.log(`[FILE ACCESS] Access granted for user ${user.id}`);
+      } else {
+        // For non-demand files, only allow admin access
+        if (user.role !== 'admin') {
+          return res.status(403).json({ 
+            error: 'Direct file access requires admin privileges',
+            message: 'Please use the appropriate API endpoints for file access'
+          });
+        }
+      }
+      
+      // Sanitize the path
+      const sanitizedPath = requestedPath.replace(/\.\.[\\\/]/g, '').replace(/^[\\\/]+/, '');
+      const safeFilePath = path.join(process.cwd(), 'uploads', sanitizedPath);
+      const uploadsDir = path.resolve(process.cwd(), 'uploads');
+      const resolvedPath = path.resolve(safeFilePath);
+      
+      // Ensure the resolved path is within uploads directory
+      if (!resolvedPath.startsWith(uploadsDir)) {
+        return res.status(403).json({ error: 'Access denied - invalid file path' });
+      }
+      
+      // Check if file exists
+      if (!fs.existsSync(resolvedPath)) {
+        return res.status(404).json({ error: 'File not found' });
+      }
+      
+      // Serve the file
+      res.sendFile(resolvedPath);
+      
+    } catch (error: any) {
+      console.error('Legacy file serving error:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
 
   // Simple production diagnostic endpoint
   app.get('/api/debug/simple', (req, res) => {

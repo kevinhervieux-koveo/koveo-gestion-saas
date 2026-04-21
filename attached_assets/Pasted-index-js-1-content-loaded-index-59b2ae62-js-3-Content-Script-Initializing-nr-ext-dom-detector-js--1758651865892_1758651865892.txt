@@ -1,0 +1,49 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+index-BTJ3kMTY.js:6 🏠 [INVENTORY PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-BTJ3kMTY.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-BTJ3kMTY.js:6 🏠 [INVENTORY PAGE] Building data: undefined
+index-BTJ3kMTY.js:6 🏠 [INVENTORY PAGE] Building loading: true
+index-BTJ3kMTY.js:6 🏠 [INVENTORY PAGE] Building error: null
+index-BTJ3kMTY.js:6 🏠 [INVENTORY PAGE] Building data.data: undefined
+index-BTJ3kMTY.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-BTJ3kMTY.js:6 🏗️ [INVENTORY OVERVIEW] Building prop: undefined
+index-BTJ3kMTY.js:6 🏗️ [INVENTORY OVERVIEW] Construction date: undefined
+index-BTJ3kMTY.js:6 🏗️ [INVENTORY OVERVIEW] useEffect triggered, building?.constructionDate: undefined isEditingDate: false
+index-BTJ3kMTY.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'create', elementId: undefined, isValid: false, isDirty: false, errorCount: 0, …}
+index-BTJ3kMTY.js:6 ❌ [VALIDATION STATE] Form is invalid: {isValid: false, errorCount: 0, errorDetails: Array(0), allFormValues: {…}, nextEvaluationDate: {…}, …}
+index-BTJ3kMTY.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+index-BTJ3kMTY.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+index-BTJ3kMTY.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+withHierarchicalSelection-CoA8Qxox.js:1 🏢 [withHierarchicalSelection] Fetching buildings...
+withHierarchicalSelection-CoA8Qxox.js:1 🌐 [withHierarchicalSelection] Requesting buildings: /api/organizations/e9bb7862-4ba5-4822-848f-f3692e826e73/buildings
+index-BTJ3kMTY.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'create', elementId: undefined, isValid: false, isDirty: false, errorCount: 0, …}
+index-BTJ3kMTY.js:6 ❌ [VALIDATION STATE] Form is invalid: {isValid: false, errorCount: 0, errorDetails: Array(0), allFormValues: {…}, nextEvaluationDate: {…}, …}
+withHierarchicalSelection-CoA8Qxox.js:1 📊 [withHierarchicalSelection] Received 5 buildings from API
+withHierarchicalSelection-CoA8Qxox.js:1 ✅ [withHierarchicalSelection] Returning all 5 buildings (non-residence page)
+index-BTJ3kMTY.js:6 🏗️ [INVENTORY OVERVIEW] Building prop: undefined
+index-BTJ3kMTY.js:6 🏗️ [INVENTORY OVERVIEW] Construction date: undefined
+index-BTJ3kMTY.js:6 🏠 [INVENTORY PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-BTJ3kMTY.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-BTJ3kMTY.js:6 🏠 [INVENTORY PAGE] Building data: undefined
+index-BTJ3kMTY.js:6 🏠 [INVENTORY PAGE] Building loading: true
+index-BTJ3kMTY.js:6 🏠 [INVENTORY PAGE] Building error: null
+index-BTJ3kMTY.js:6 🏠 [INVENTORY PAGE] Building data.data: undefined
+index-BTJ3kMTY.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-BTJ3kMTY.js:6 🏗️ [INVENTORY OVERVIEW] Building prop: undefined
+index-BTJ3kMTY.js:6 🏗️ [INVENTORY OVERVIEW] Construction date: undefined
+index-BTJ3kMTY.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-BTJ3kMTY.js:6 🏠 [INVENTORY PAGE] Building data: {id: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', name: '54716 N Cedar Street Building 1', address: '', city: '', province: 'QC', …}
+index-BTJ3kMTY.js:6 🏠 [INVENTORY PAGE] Building loading: false
+index-BTJ3kMTY.js:6 🏠 [INVENTORY PAGE] Building error: null
+index-BTJ3kMTY.js:6 🏠 [INVENTORY PAGE] Building data.data: undefined
+index-BTJ3kMTY.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-BTJ3kMTY.js:6 🏗️ [INVENTORY OVERVIEW] Building prop: undefined
+index-BTJ3kMTY.js:6 🏗️ [INVENTORY OVERVIEW] Construction date: undefined
+index-BTJ3kMTY.js:6 🏗️ [INVENTORY OVERVIEW] Building prop: undefined
+index-BTJ3kMTY.js:6 🏗️ [INVENTORY OVERVIEW] Construction date: undefined

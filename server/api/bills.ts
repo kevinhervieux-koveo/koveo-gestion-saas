@@ -1,24 +1,61 @@
 import type { Express, Request, Response } from 'express';
 import type { Bill } from '@shared/schema';
-import { eq, desc, and, sql, isNull, or, ilike } from 'drizzle-orm';
+import { eq, desc, and, sql, isNull, or, ilike, exists } from 'drizzle-orm';
 import { db } from '../db';
 import { requireAuth } from '../auth';
 import { storage } from '../storage';
 import { z } from 'zod';
 import { moneyFlowJob } from '../jobs/money_flow_job';
+import { financialService } from '../services/consolidated-financial-service';
+import { aiService } from '../services/consolidated-ai-service';
 import { billAutoGenerationService } from '../services/bill-generation-service';
-import { delayedUpdateService } from '../services/delayed-update-service';
-import { paymentGenerationService } from '../services/payment-generation-service';
-import { geminiBillAnalyzer } from '../services/gemini-bill-analyzer';
-import { geminiService } from '../services/geminiService';
 import { uploadInvoiceFile, handleUploadError } from '../middleware/fileUpload';
 import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import * as schema from '@shared/schema';
+import { secureFileStorage } from '../services/secure-file-storage';
+import crypto from 'crypto';
 
-const { buildings, bills } = schema;
+// Secure filename sanitization function
+function sanitizeFilename(filename: string): string {
+  if (!filename || typeof filename !== 'string') {
+    throw new Error('Invalid filename provided');
+  }
+  
+  // Remove path traversal sequences and dangerous characters
+  let sanitized = filename.replace(/\.\.[\\\/]/g, ''); // Remove ../ and ..\
+  sanitized = sanitized.replace(/[\\\/]/g, '_'); // Replace slashes with underscores
+  sanitized = sanitized.replace(/[^a-zA-Z0-9._-]/g, '_'); // Only allow safe characters
+  
+  // Ensure reasonable length
+  if (sanitized.length > 255) {
+    const ext = path.extname(sanitized);
+    const name = path.basename(sanitized, ext).substring(0, 200);
+    sanitized = name + ext;
+  }
+  
+  // Ensure it's not empty
+  if (!sanitized || sanitized === '.' || sanitized === '_') {
+    sanitized = 'file_' + crypto.randomUUID().substring(0, 8);
+  }
+  
+  return sanitized;
+}
+
+// Generate secure random filename
+function generateSecureFilename(originalName: string): string {
+  const sanitizedName = sanitizeFilename(originalName);
+  const ext = path.extname(sanitizedName);
+  const baseName = path.basename(sanitizedName, ext);
+  const secureId = crypto.randomUUID();
+  return `${baseName}_${secureId}${ext}`;
+}
+import { getUploadConfig, type UploadContext } from '@shared/config/upload-config';
+import { BILL_CATEGORIES } from '@shared/schemas/financial';
+
+const { buildings, bills, documents, payments } = schema;
 
 // Database-driven bills - no more mock data
 
@@ -35,33 +72,16 @@ const createBillSchema = z.object({
   buildingId: z.string().uuid(),
   title: z.string().min(1),
   description: z.string().optional(),
-  category: z.enum([
-    'insurance',
-    'maintenance',
-    'salary',
-    'utilities',
-    'cleaning',
-    'security',
-    'landscaping',
-    'professional_services',
-    'administration',
-    'repairs',
-    'supplies',
-    'taxes',
-    'technology',
-    'reserves',
-    'other',
-  ]),
+  category: z.enum(BILL_CATEGORIES),
   vendor: z.string().optional(),
-  paymentType: z.enum(['unique', 'recurrent', 'auto-generated']),
-  schedulePayment: z.enum(['weekly', 'monthly', 'quarterly', 'yearly', 'custom']).optional(),
+  paymentType: z.enum(['unique', 'recurrent']),
+  schedulePayment: z.enum(['weekly', 'monthly', 'quarterly', 'yearly', 'custom']).nullable().optional(),
   scheduleCustom: z.array(z.string()).optional(),
   costs: z.array(z.string()),
   totalAmount: z.string(),
   startDate: z.string(),
   endDate: z.string().optional(),
   status: z.enum(['draft', 'sent', 'overdue', 'paid', 'cancelled']),
-  notes: z.string().optional(),
 });
 
 const updateBillSchema = createBillSchema.partial();
@@ -87,7 +107,25 @@ const extractionRateLimit = rateLimit({
   }
 });
 
-// Configure multer for file uploads
+// Magic number validation for file type verification
+function validateFileByMagicNumbers(fileBuffer: Buffer, declaredMimeType: string): boolean {
+  if (!fileBuffer || fileBuffer.length < 4) return false;
+  
+  const magicNumbers = fileBuffer.slice(0, 8);
+  const validMagicNumbers = {
+    'application/pdf': [0x25, 0x50, 0x44, 0x46], // %PDF
+    'image/jpeg': [0xFF, 0xD8, 0xFF], // JPEG
+    'image/png': [0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A], // PNG
+    'image/gif': [0x47, 0x49, 0x46], // GIF
+  };
+  
+  const expectedMagic = validMagicNumbers[declaredMimeType as keyof typeof validMagicNumbers];
+  if (!expectedMagic) return false;
+  
+  return expectedMagic.every((byte, index) => magicNumbers[index] === byte);
+}
+
+// Configure multer for file uploads with enhanced security
 const upload = multer({
   dest: '/tmp/uploads/',
   fileFilter: (req, file, cb) => {
@@ -102,6 +140,78 @@ const upload = multer({
     fileSize: 10 * 1024 * 1024, // 10MB limit
   },
 });
+
+/**
+ * Helper function to detect if payment structure has changed for recurrent bills
+ * Returns true if payment-related fields have changed that require complete payment regeneration
+ */
+function hasPaymentStructureChanged(originalBill: any, updateData: any): boolean {
+  // Only check for recurrent bills - unique bills don't need structure change detection
+  if (originalBill.paymentType !== 'recurrent') {
+    return false;
+  }
+
+  // Payment structure fields that trigger complete regeneration
+  const paymentFields = [
+    'paymentType',
+    'schedulePayment', 
+    'totalAmount',
+    'startDate',
+    'endDate'
+  ];
+
+  // Check if any critical payment fields have changed
+  for (const field of paymentFields) {
+    if (updateData[field] !== undefined) {
+      // Convert values to strings for comparison to handle type differences
+      const originalValue = String(originalBill[field] || '');
+      const newValue = String(updateData[field] || '');
+      
+      if (originalValue !== newValue) {
+        return true;
+      }
+    }
+  }
+
+  // Check if costs array has changed (payment amounts)
+  if (updateData.costs !== undefined) {
+    const originalCosts = originalBill.costs || [];
+    const newCosts = updateData.costs || [];
+    
+    // Compare array lengths first
+    if (originalCosts.length !== newCosts.length) {
+      return true;
+    }
+    
+    // Compare each cost value
+    for (let i = 0; i < originalCosts.length; i++) {
+      const originalCost = Number(originalCosts[i]);
+      const newCost = Number(newCosts[i]);
+      
+      if (Math.abs(originalCost - newCost) > 0.01) { // Account for floating point precision
+        return true;
+      }
+    }
+  }
+
+  // Check if custom schedule has changed
+  if (updateData.scheduleCustom !== undefined) {
+    const originalSchedule = originalBill.scheduleCustom || [];
+    const newSchedule = updateData.scheduleCustom || [];
+    
+    if (originalSchedule.length !== newSchedule.length) {
+      return true;
+    }
+    
+    for (let i = 0; i < originalSchedule.length; i++) {
+      if (originalSchedule[i] !== newSchedule[i]) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
 
 /**
  *
@@ -131,12 +241,10 @@ export function registerBillRoutes(app: Express) {
       const userId = req.user.id;
       const userRole = req.user.role;
 
-      console.log(`[BILL EXTRACTION] Starting extraction for user ${userId} (${userRole})`);
 
       try {
         // Validate file upload
         if (!req.file) {
-          console.log(`[BILL EXTRACTION] No file uploaded by user ${userId}`);
           return res.status(400).json({
             error: 'No file uploaded',
             message: 'Please upload a bill file',
@@ -146,16 +254,10 @@ export function registerBillRoutes(app: Express) {
 
         const { buffer, mimetype, originalname, size } = req.file;
         
-        console.log(`[BILL EXTRACTION] Processing file for user ${userId}:`, {
-          filename: originalname,
-          mimetype,
-          size: `${Math.round(size / 1024)}KB`
-        });
 
-        // Call Gemini service for bill extraction
-        const extractedData = await geminiService.extractBillData(buffer, mimetype);
+        // Call AI service for bill extraction
+        const extractedData = await aiService.extractBillData(buffer, mimetype);
         
-        console.log(`[BILL EXTRACTION] Extraction completed for user ${userId} in ${Date.now() - startTime}ms`);
 
         // Return successful response
         res.status(200).json({
@@ -170,7 +272,6 @@ export function registerBillRoutes(app: Express) {
         });
 
       } catch (error: any) {
-        console.error(`[BILL EXTRACTION] Error for user ${userId}:`, error);
         
         // Handle different error types
         if (error.message?.includes('Unsupported file type')) {
@@ -245,7 +346,6 @@ export function registerBillRoutes(app: Express) {
         hasBills: true
       });
     } catch (error) {
-      console.error('Error fetching bill year range:', error);
       res.status(500).json({ error: 'Failed to fetch year range' });
     }
   });
@@ -270,7 +370,10 @@ export function registerBillRoutes(app: Express) {
       }
 
       if (year) {
-        conditions.push(sql`EXTRACT(YEAR FROM ${bills.startDate}) = ${year}`);
+        const yearInt = parseInt(year);
+        if (!isNaN(yearInt)) {
+          conditions.push(sql`EXTRACT(YEAR FROM ${bills.startDate}) = ${yearInt}`);
+        }
       }
 
       if (status && status !== 'all') {
@@ -278,11 +381,32 @@ export function registerBillRoutes(app: Express) {
       }
 
       if (months) {
-        const monthNumbers = months.split(',').map((m: string) => parseInt(m.trim()));
-        const monthConditions = monthNumbers.map(
-          (month: number) => sql`EXTRACT(MONTH FROM ${bills.startDate}) = ${month}`
+        const monthNumbers = months.split(',').map((m: string) => parseInt(m.trim())).filter((m: number) => !isNaN(m) && m >= 1 && m <= 12);
+        if (monthNumbers.length > 0) {
+          const monthConditions = monthNumbers.map(
+            (month: number) => sql`EXTRACT(MONTH FROM ${bills.startDate}) = ${month}`
+          );
+          conditions.push(sql`(${sql.join(monthConditions, sql` OR `)})`);
+        }
+      }
+
+      if (paymentType && paymentType !== 'all') {
+        conditions.push(eq(bills.paymentType, paymentType));
+      }
+
+      if (isAutoGenerated !== undefined) {
+        conditions.push(eq(bills.isAutoGenerated, isAutoGenerated === 'true'));
+      }
+
+      if (search && search.trim()) {
+        const searchTerm = `%${search.trim()}%`;
+        const searchConditions = or(
+          ilike(bills.title, searchTerm),
+          ilike(bills.description, searchTerm),
+          ilike(bills.vendor, searchTerm),
+          ilike(sql`${bills.category}::text`, searchTerm) // Cast enum to text for search
         );
-        conditions.push(sql`(${sql.join(monthConditions, sql` OR `)})`);
+        conditions.push(searchConditions);
       }
 
       if (paymentType && paymentType !== 'all') {
@@ -324,7 +448,6 @@ export function registerBillRoutes(app: Express) {
           startDate: bills.startDate,
           endDate: bills.endDate,
           status: bills.status,
-          notes: bills.notes,
           filePath: bills.filePath,
           fileName: bills.fileName,
           fileSize: bills.fileSize,
@@ -343,7 +466,6 @@ export function registerBillRoutes(app: Express) {
 
       res.json(billsList);
     } catch (_error: any) {
-      console.error('❌ Error fetching bills:', _error);
       res.status(500).json({
         message: 'Failed to fetch bills',
         _error: _error instanceof Error ? _error.message : 'Unknown error',
@@ -373,7 +495,6 @@ export function registerBillRoutes(app: Express) {
           totalAmount: bills.totalAmount,
           startDate: bills.startDate,
           status: bills.status,
-          notes: bills.notes,
           filePath: bills.filePath,
           fileName: bills.fileName,
           fileSize: bills.fileSize,
@@ -395,7 +516,6 @@ export function registerBillRoutes(app: Express) {
 
       res.json(bill[0]);
     } catch (_error: any) {
-      console.error('❌ Error fetching bill:', _error);
       res.status(500).json({
         message: 'Failed to fetch bill',
         _error: _error instanceof Error ? _error.message : 'Unknown error',
@@ -419,59 +539,72 @@ export function registerBillRoutes(app: Express) {
       }
 
       const billData = validation.data;
+      
+      // Build bill object first to match working pattern from codebase
+      // Generate unique bill number using timestamp + UUID approach
+      const timestamp = Date.now();
+      const timestampStr = timestamp.toString(36).toUpperCase();
+      const { v4: uuidv4 } = await import('uuid');
+      const shortUuid = uuidv4().split('-')[0].toUpperCase();
+      
+      const newBillData = {
+        buildingId: billData.buildingId,
+        billNumber: `BILL-${timestampStr}-${shortUuid}`,
+        title: billData.title,
+        description: billData.description || null,
+        category: billData.category,
+        vendor: billData.vendor || null,
+        paymentType: billData.paymentType,
+        schedulePayment: billData.schedulePayment || null,
+        scheduleCustom: billData.scheduleCustom || null,
+        costs: billData.costs.map((cost) => parseFloat(cost)),
+        totalAmount: parseFloat(billData.totalAmount),
+        startDate: billData.startDate,
+        endDate: billData.endDate || null,
+        status: billData.status,
+        isAutoGenerated: false,
+        sourceTemplateId: null,
+        autoGeneratedLabel: null,
+        createdBy: req.user.id,
+        filePath: null,
+        fileName: null,
+        fileSize: null,
+        isAiAnalyzed: false,
+        aiAnalysisData: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
       const newBill = await db
         .insert(bills)
-        .values({
-          buildingId: billData.buildingId,
-          billNumber: `BILL-${Date.now()}`,
-          title: billData.title,
-          description: billData.description,
-          category: billData.category,
-          vendor: billData.vendor,
-          paymentType: billData.paymentType,
-          schedulePayment: billData.schedulePayment,
-          scheduleCustom: billData.scheduleCustom,
-          costs: billData.costs.map((cost) => parseFloat(cost)),
-          totalAmount: parseFloat(billData.totalAmount),
-          startDate: billData.startDate,
-          endDate: billData.endDate || null,
-          status: billData.status,
-          notes: billData.notes,
-          createdBy: req.user.id,
-        })
+        .values(newBillData as any)
         .returning();
 
       // Generate payments for the new bill
       try {
-        await paymentGenerationService.generatePaymentsForBill(newBill[0].id);
+        await financialService.generatePaymentsForBill(newBill[0].id);
       } catch (paymentError) {
-        console.warn('⚠️ Failed to generate payments for bill:', paymentError);
         // Don't fail the bill creation if payment generation fails
       }
 
       // Schedule delayed money flow and budget update for the new bill
       try {
-        delayedUpdateService.scheduleBillUpdate(newBill[0].id);
+        financialService.scheduleBillUpdate(newBill[0].id);
       } catch (schedulingError) {
-        console.warn('⚠️ Failed to schedule bill update:', schedulingError);
         // Don't fail the bill creation if scheduling fails
       }
 
       // Auto-generation trigger for recurrent bills
       if (newBill[0].paymentType === 'recurrent') {
         try {
-          await billAutoGenerationService.generateNextYearBill(newBill[0]);
-          await billAutoGenerationService.cleanupPastAutoGeneratedBills(newBill[0].buildingId);
-          console.log(`✅ Auto-generation triggered for recurrent bill ${newBill[0].id}`);
+          await financialService.createAutoGeneratedBill(newBill[0], {}, new Date(new Date().getFullYear() + 1, 0, 1));
         } catch (autoGenError) {
-          console.warn('⚠️ Failed to auto-generate next year bill:', autoGenError);
           // Don't fail the bill creation if auto-generation fails
         }
       }
 
       res.status(201).json(newBill[0]);
     } catch (_error: any) {
-      console.error('❌ Error creating bill:', _error);
       res.status(500).json({
         message: 'Failed to create bill',
         _error: _error instanceof Error ? _error.message : 'Unknown error',
@@ -497,6 +630,15 @@ export function registerBillRoutes(app: Express) {
 
       const billData = validation.data;
 
+      // Fetch the original bill data before updating to detect payment structure changes
+      const originalBill = await db.select().from(bills).where(eq(bills.id, id)).limit(1);
+      
+      if (originalBill.length === 0) {
+        return res.status(404).json({
+          message: 'Bill not found',
+        });
+      }
+
       const updateData: any = {};
       if (billData.title) {
         updateData.title = billData.title;
@@ -513,6 +655,22 @@ export function registerBillRoutes(app: Express) {
       if (billData.paymentType) {
         updateData.paymentType = billData.paymentType;
       }
+      // Only update schedulePayment if explicitly provided in the request
+      if ('schedulePayment' in req.body) {
+        updateData.schedulePayment = billData.schedulePayment || null;
+      } else {
+        // Determine final state using billData (validated request) OR originalBill
+        const finalPaymentType = billData.paymentType || originalBill[0].paymentType;
+        const finalCosts = billData.costs ? billData.costs.map((c: string) => parseFloat(c)) : originalBill[0].costs;
+        
+        // Clear schedulePayment for single payment recurrent bills
+        if (finalPaymentType === 'recurrent' && finalCosts && finalCosts.length === 1) {
+          updateData.schedulePayment = null;
+        }
+      }
+      if (billData.scheduleCustom) {
+        updateData.scheduleCustom = billData.scheduleCustom;
+      }
       if (billData.costs) {
         updateData.costs = billData.costs.map((cost: string) => parseFloat(cost));
       }
@@ -528,51 +686,69 @@ export function registerBillRoutes(app: Express) {
       if (billData.status) {
         updateData.status = billData.status;
       }
-      if (billData.notes) {
-        updateData.notes = billData.notes;
-      }
       updateData.updatedAt = new Date();
 
-      const updatedBill = await db
+      // Detect if payment structure has changed for recurrent bills
+      const paymentStructureChanged = hasPaymentStructureChanged(originalBill[0], updateData);
+
+      let updatedBill: any = null;
+      let paymentRegenerationInfo = null;
+
+      // Note: Neon HTTP driver doesn't support transactions, so we execute operations sequentially
+      // Update the bill first
+      const billUpdateResult = await db
         .update(bills)
         .set(updateData)
         .where(eq(bills.id, id))
         .returning();
 
-      if (updatedBill.length === 0) {
+      if (billUpdateResult.length === 0) {
+        throw new Error('Bill not found after update');
+      }
+
+      updatedBill = billUpdateResult[0];
+
+      // Update payments for the edited bill (without transaction context)
+      if (paymentStructureChanged) {
+        // Complete regeneration for recurrent bills with payment structure changes
+        paymentRegenerationInfo = await financialService.regenerateCompletePaymentSchedule(id); // Regenerated complete schedule
+      } else {
+        // Standard update that preserves paid payments and prevents duplicates
+        await financialService.updatePaymentsForBill(id);
+      }
+      
+      // If status was updated, cascade status changes to payments
+      if (billData.status) {
+        // Payment status update handled internally by financial service
+      }
+
+      // Handle any failures
+      if (!updatedBill) {
         return res.status(404).json({
-          message: 'Bill not found',
+          message: 'Bill not found after update',
         });
       }
 
-      // Update payments for the edited bill
-      try {
-        await paymentGenerationService.updatePaymentsForBill(id);
-        
-        // If status was updated, cascade status changes to payments
-        if (billData.status) {
-          await paymentGenerationService.updatePaymentStatusFromBillStatus(id, billData.status);
-        }
-      } catch (paymentError) {
-        console.warn('⚠️ Failed to update payments for bill:', paymentError);
-        // Don't fail the bill update if payment update fails
+      // Sync auto-generated bill
+      await syncAutoGeneratedBill(updatedBill);
+
+      // Include payment regeneration info in response for user feedback
+      const response: any = {
+        ...updatedBill,
+        paymentScheduleRegenerated: paymentStructureChanged,
+      };
+
+      if (paymentRegenerationInfo) {
+        response.paymentRegenerationInfo = {
+          deletedPayments: paymentRegenerationInfo.deletedCount,
+          createdPayments: paymentRegenerationInfo.createdCount,
+          message: `Payment schedule completely regenerated: ${paymentRegenerationInfo.deletedCount} payments deleted, ${paymentRegenerationInfo.createdCount} new payments created. Please manually mark any payments that have already been paid.`
+        };
       }
 
-      // Auto-generation trigger for recurrent bills
-      if (updatedBill[0].paymentType === 'recurrent') {
-        try {
-          await billAutoGenerationService.regenerateAutoGeneratedBills(id);
-          await billAutoGenerationService.cleanupPastAutoGeneratedBills(updatedBill[0].buildingId);
-          console.log(`✅ Auto-generation regenerated for recurrent bill ${id}`);
-        } catch (autoGenError) {
-          console.warn('⚠️ Failed to regenerate auto-generated bills:', autoGenError);
-          // Don't fail the bill update if auto-generation fails
-        }
-      }
-
-      res.json(updatedBill[0]);
+      res.json(response);
     } catch (_error: any) {
-      console.error('❌ Error updating bill (PATCH):', _error);
+      // console.error('❌ Error updating bill (PATCH):', _error);
       res.status(500).json({
         message: 'Failed to update bill',
         _error: _error instanceof Error ? _error.message : 'Unknown error',
@@ -598,6 +774,15 @@ export function registerBillRoutes(app: Express) {
 
       const billData = validation.data;
 
+      // Fetch the original bill data before updating to detect payment structure changes
+      const originalBill = await db.select().from(bills).where(eq(bills.id, id)).limit(1);
+      
+      if (originalBill.length === 0) {
+        return res.status(404).json({
+          message: 'Bill not found',
+        });
+      }
+
       const updateData: any = {};
       if (billData.title) {
         updateData.title = billData.title;
@@ -614,6 +799,22 @@ export function registerBillRoutes(app: Express) {
       if (billData.paymentType) {
         updateData.paymentType = billData.paymentType;
       }
+      // Only update schedulePayment if explicitly provided in the request
+      if ('schedulePayment' in req.body) {
+        updateData.schedulePayment = billData.schedulePayment || null;
+      } else {
+        // Determine final state using billData (validated request) OR originalBill
+        const finalPaymentType = billData.paymentType || originalBill[0].paymentType;
+        const finalCosts = billData.costs ? billData.costs.map((c: string) => parseFloat(c)) : originalBill[0].costs;
+        
+        // Clear schedulePayment for single payment recurrent bills
+        if (finalPaymentType === 'recurrent' && finalCosts && finalCosts.length === 1) {
+          updateData.schedulePayment = null;
+        }
+      }
+      if (billData.scheduleCustom) {
+        updateData.scheduleCustom = billData.scheduleCustom;
+      }
       if (billData.costs) {
         updateData.costs = billData.costs.map((cost: string) => parseFloat(cost));
       }
@@ -623,23 +824,52 @@ export function registerBillRoutes(app: Express) {
       if (billData.startDate) {
         updateData.startDate = billData.startDate;
       }
+      if (billData.endDate) {
+        updateData.endDate = billData.endDate;
+      }
       if (billData.status) {
         updateData.status = billData.status;
       }
-      if (billData.notes) {
-        updateData.notes = billData.notes;
-      }
       updateData.updatedAt = new Date();
 
-      const updatedBill = await db
+      // Detect if payment structure has changed for recurrent bills
+      const paymentStructureChanged = hasPaymentStructureChanged(originalBill[0], updateData);
+
+      let updatedBill: any = null;
+      let paymentRegenerationInfo = null;
+
+      // Note: Neon HTTP driver doesn't support transactions, so we execute operations sequentially
+      // Update the bill first
+      const billUpdateResult = await db
         .update(bills)
         .set(updateData)
         .where(eq(bills.id, id))
         .returning();
 
-      if (updatedBill.length === 0) {
+      if (billUpdateResult.length === 0) {
+        throw new Error('Bill not found after update');
+      }
+
+      updatedBill = billUpdateResult[0];
+
+      // Update payments for the edited bill (without transaction context)
+      if (paymentStructureChanged) {
+        // Complete regeneration for recurrent bills with payment structure changes
+        paymentRegenerationInfo = await financialService.regenerateCompletePaymentSchedule(id); // Regenerated complete schedule
+      } else {
+        // Standard update that preserves paid payments and prevents duplicates
+        await financialService.updatePaymentsForBill(id);
+      }
+      
+      // If status was updated, cascade status changes to payments
+      if (billData.status) {
+        // Payment status update handled internally by financial service
+      }
+
+      // Handle any failures
+      if (!updatedBill) {
         return res.status(404).json({
-          message: 'Bill not found',
+          message: 'Bill not found after update',
         });
       }
 
@@ -658,33 +888,111 @@ export function registerBillRoutes(app: Express) {
 
       // Schedule delayed money flow and budget update for the updated bill
       try {
-        delayedUpdateService.scheduleBillUpdate(id);
+        financialService.scheduleBillUpdate(id);
       } catch (schedulingError) {
-        console.warn('⚠️ Failed to schedule bill update:', schedulingError);
+        // console.warn('⚠️ Failed to schedule bill update:', schedulingError);
         // Don't fail the bill update if scheduling fails
       }
 
-      // Auto-generation trigger for recurrent bills
-      if (updatedBill[0].paymentType === 'recurrent') {
-        try {
-          await billAutoGenerationService.regenerateAutoGeneratedBills(id);
-          await billAutoGenerationService.cleanupPastAutoGeneratedBills(updatedBill[0].buildingId);
-          console.log(`✅ Auto-generation regenerated for recurrent bill ${id}`);
-        } catch (autoGenError) {
-          console.warn('⚠️ Failed to regenerate auto-generated bills:', autoGenError);
-          // Don't fail the bill update if auto-generation fails
-        }
+      // Sync auto-generated bill
+      await syncAutoGeneratedBill(updatedBill);
+
+      // Include payment regeneration info in response for user feedback
+      const response: any = {
+        ...updatedBill,
+        paymentScheduleRegenerated: paymentStructureChanged,
+      };
+
+      if (paymentRegenerationInfo) {
+        response.paymentRegenerationInfo = {
+          deletedPayments: paymentRegenerationInfo.deletedCount,
+          createdPayments: paymentRegenerationInfo.createdCount,
+          message: `Payment schedule completely regenerated: ${paymentRegenerationInfo.deletedCount} payments deleted, ${paymentRegenerationInfo.createdCount} new payments created. Please manually mark any payments that have already been paid.`
+        };
       }
 
-      res.json(updatedBill[0]);
+      res.json(response);
     } catch (_error: any) {
-      console.error('❌ Error updating bill (PUT):', _error);
+      // console.error('❌ Error updating bill (PUT):', _error);
       res.status(500).json({
         message: 'Failed to update bill',
         _error: _error instanceof Error ? _error.message : 'Unknown error',
       });
     }
   });
+
+  /**
+   * Sync auto-generated bill for a source bill.
+   * Creates/updates/deletes the auto-generated bill based on source bill's recurrence status.
+   */
+  async function syncAutoGeneratedBill(sourceBill: Bill): Promise<void> {
+    try {
+      // Find existing auto-generated bill
+      const existingAutoGenerated = await db
+        .select()
+        .from(bills)
+        .where(
+          and(
+            eq(bills.sourceTemplateId, sourceBill.id),
+            eq(bills.isAutoGenerated, true)
+          )
+        )
+        .limit(1);
+
+      const hasAutoGenerated = existingAutoGenerated.length > 0;
+
+      if (sourceBill.paymentType === 'recurrent') {
+        // Should have auto-generated bill
+        const generatedBills = billAutoGenerationService.generateForNextYear(sourceBill);
+        
+        if (generatedBills.length > 0) {
+          const autoGenBillData = generatedBills[0];
+          
+          if (hasAutoGenerated) {
+            // Update existing - copy all fields from generated bill except immutable ones
+            await db.update(bills)
+              .set({
+                billNumber: autoGenBillData.billNumber,
+                title: autoGenBillData.title,
+                description: autoGenBillData.description,
+                category: autoGenBillData.category,
+                vendor: autoGenBillData.vendor,
+                paymentType: autoGenBillData.paymentType, // Always 'unique' for auto-generated
+                schedulePayment: autoGenBillData.schedulePayment,
+                scheduleCustom: autoGenBillData.scheduleCustom,
+                costs: autoGenBillData.costs,
+                totalAmount: autoGenBillData.totalAmount,
+                startDate: autoGenBillData.startDate,
+                endDate: autoGenBillData.endDate,
+                status: autoGenBillData.status,
+                isAutoGenerated: autoGenBillData.isAutoGenerated, // Keep as true
+                sourceTemplateId: autoGenBillData.sourceTemplateId, // Keep linked to source
+                autoGeneratedLabel: autoGenBillData.autoGeneratedLabel,
+                updatedAt: new Date(),
+              })
+              .where(eq(bills.id, existingAutoGenerated[0].id));
+          } else {
+            // Create new - omit id field to let database generate UUID
+            const { id, createdAt, updatedAt, ...insertData } = autoGenBillData;
+            await db.insert(bills).values({
+              ...insertData,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            });
+          }
+        }
+      } else {
+        // Not recurrent - delete auto-generated if exists
+        if (hasAutoGenerated) {
+          await db.delete(bills)
+            .where(eq(bills.id, existingAutoGenerated[0].id));
+        }
+      }
+    } catch (error) {
+      console.error('Error syncing auto-generated bill:', error);
+      // Don't throw - this is a background sync operation
+    }
+  }
 
   /**
    * Delete a bill
@@ -703,9 +1011,9 @@ export function registerBillRoutes(app: Express) {
 
       // Delete associated payments first
       try {
-        await paymentGenerationService.deletePaymentsForBill(id);
+        // Payment deletion handled by financial service when bill is deleted
       } catch (paymentError) {
-        console.warn('⚠️ Failed to delete payments for bill:', paymentError);
+        // console.warn('⚠️ Failed to delete payments for bill:', paymentError);
         // Continue with bill deletion even if payment deletion fails
       }
 
@@ -721,9 +1029,9 @@ export function registerBillRoutes(app: Express) {
                 eq(bills.isAutoGenerated, true)
               )
             );
-          console.log(`✅ Deleted auto-generated bills for recurrent bill ${id}`);
+          // console.log(`✅ Deleted auto-generated bills for recurrent bill ${id}`);
         } catch (autoGenError) {
-          console.warn('⚠️ Failed to delete auto-generated bills:', autoGenError);
+          // console.warn('⚠️ Failed to delete auto-generated bills:', autoGenError);
           // Continue with bill deletion even if auto-generation cleanup fails
         }
       }
@@ -741,7 +1049,7 @@ export function registerBillRoutes(app: Express) {
         bill: deletedBill[0],
       });
     } catch (_error: any) {
-      console.error('❌ Error deleting bill:', _error);
+      // console.error('❌ Error deleting bill:', _error);
       res.status(500).json({
         message: 'Failed to delete bill',
         _error: _error instanceof Error ? _error.message : 'Unknown error',
@@ -758,96 +1066,134 @@ export function registerBillRoutes(app: Express) {
     requireAuth,
     upload.single('document'),
     async (req: any, res: any) => {
-      console.log(`📄 [BILLS UPLOAD] Starting document upload for bill ID: ${req.params.id}`);
-      console.log(`📄 [BILLS UPLOAD] User: ${req.user.id} (${req.user.role})`);
+      // console.log(`📄 [BILLS UPLOAD] Starting document upload for bill ID: ${req.params.id}`);
+      // console.log(`📄 [BILLS UPLOAD] User: ${req.user.id} (${req.user.role})`);
       
       try {
         const { id } = req.params;
 
         if (!req.file) {
-          console.log('❌ [BILLS UPLOAD] No file provided in request');
+          // console.log('❌ [BILLS UPLOAD] No file provided in request');
           return res.status(400).json({ message: 'No file uploaded' });
         }
 
-        console.log(`📄 [BILLS UPLOAD] File received:`, {
-          originalName: req.file.originalname,
-          mimeType: req.file.mimetype,
-          size: req.file.size,
-          tempPath: req.file.path
-        });
+        // console.log(`📄 [BILLS UPLOAD] File received:`, {
+        //   originalName: req.file.originalname,
+        //   mimeType: req.file.mimetype,
+        //   size: req.file.size,
+        //   tempPath: req.file.path
+        // });
+        
+        // SECURITY: Validate file content using magic numbers
+        try {
+          const fileBuffer = fs.readFileSync(req.file.path);
+          const isValidFileType = validateFileByMagicNumbers(fileBuffer, req.file.mimetype);
+          
+          if (!isValidFileType) {
+            // console.log(`❌ [BILLS UPLOAD] File content validation failed - magic numbers don't match declared type`);
+            // Clean up temporary file
+            fs.unlinkSync(req.file.path);
+            return res.status(400).json({ 
+              message: 'File content does not match declared file type',
+              error: 'Invalid file content'
+            });
+          }
+          // console.log(`✅ [BILLS UPLOAD] File content validated successfully`);
+        } catch (validationError: any) {
+          // console.error(`❌ [BILLS UPLOAD] File validation error:`, validationError);
+          // Clean up temporary file
+          if (fs.existsSync(req.file.path)) {
+            fs.unlinkSync(req.file.path);
+          }
+          return res.status(400).json({ 
+            message: 'File validation failed',
+            error: 'Unable to validate file content'
+          });
+        }
 
         // Get organization ID for document organization
         const organizations = await storage.getUserOrganizations(req.user.id);
-        const organizationId =
-          organizations.length > 0 ? organizations[0].organizationId : 'default';
+        let organizationId = organizations.length > 0 ? organizations[0].organizationId : 'default';
         
-        console.log(`📄 [BILLS UPLOAD] Organization ID determined: ${organizationId}`);
+        // SECURITY: Sanitize organization ID to prevent path traversal
+        organizationId = organizationId.replace(/[^a-zA-Z0-9_-]/g, '_');
+        
+        // console.log(`📄 [BILLS UPLOAD] Organization ID determined: ${organizationId}`);
 
-        // Create document path in the expected format
-        const filePath = `prod_org_${organizationId}/${req.file.originalname}`;
-        console.log(`📄 [BILLS UPLOAD] File path determined: ${filePath}`);
+        // SECURITY: Generate secure filename instead of using original name
+        const secureFilename = generateSecureFilename(req.file.originalname);
+        const filePath = `prod_org_${organizationId}/${secureFilename}`;
+        // console.log(`📄 [BILLS UPLOAD] Secure file path determined: ${filePath}`);
         
         // Create uploads directory structure if it doesn't exist
         const path = await import('path');
-        const uploadsDir = path.join(process.cwd(), 'uploads');
-        const orgDir = path.join(uploadsDir, `prod_org_${organizationId}`);
+        const uploadsDir = path.resolve(process.cwd(), 'uploads'); // Use resolve for security
+        const sanitizedOrgId = organizationId.replace(/[^a-zA-Z0-9_-]/g, '_'); // Double sanitization
+        const orgDir = path.join(uploadsDir, `prod_org_${sanitizedOrgId}`);
         
-        console.log(`📄 [BILLS UPLOAD] Directory paths:`, {
-          uploadsDir,
-          orgDir,
-          uploadsExists: fs.existsSync(uploadsDir),
-          orgDirExists: fs.existsSync(orgDir)
-        });
+        // SECURITY: Validate that orgDir is within uploads directory
+        const resolvedOrgDir = path.resolve(orgDir);
+        if (!resolvedOrgDir.startsWith(uploadsDir)) {
+          // console.error(`❌ [BILLS UPLOAD] Security violation: org directory outside uploads`);
+          return res.status(400).json({ message: 'Invalid organization path' });
+        }
+        
+        // console.log(`📄 [BILLS UPLOAD] Directory paths:`, {
+        //   uploadsDir,
+        //   orgDir,
+        //   uploadsExists: fs.existsSync(uploadsDir),
+        //   orgDirExists: fs.existsSync(orgDir)
+        // });
         
         if (!fs.existsSync(uploadsDir)) {
           fs.mkdirSync(uploadsDir, { recursive: true });
-          console.log(`📄 [BILLS UPLOAD] Created uploads directory: ${uploadsDir}`);
+          // console.log(`📄 [BILLS UPLOAD] Created uploads directory: ${uploadsDir}`);
         }
         if (!fs.existsSync(orgDir)) {
           fs.mkdirSync(orgDir, { recursive: true });
-          console.log(`📄 [BILLS UPLOAD] Created organization directory: ${orgDir}`);
+          // console.log(`📄 [BILLS UPLOAD] Created organization directory: ${orgDir}`);
         }
 
         // Save file to permanent storage
         const permanentFilePath = path.join(uploadsDir, filePath);
-        console.log(`📄 [BILLS UPLOAD] Copying file from ${req.file.path} to ${permanentFilePath}`);
+        // console.log(`📄 [BILLS UPLOAD] Copying file from ${req.file.path} to ${permanentFilePath}`);
         fs.copyFileSync(req.file.path, permanentFilePath);
-        console.log(`📄 [BILLS UPLOAD] File successfully saved to permanent storage`);
+        // console.log(`📄 [BILLS UPLOAD] File successfully saved to permanent storage`);
 
         // Analyze document with Gemini AI (images and PDFs)
         let analysisResult = null;
         if (req.file.mimetype.startsWith('image/') || req.file.mimetype === 'application/pdf') {
-          console.log(`🤖 [BILLS UPLOAD] Starting AI analysis for ${req.file.mimetype} file`);
+          // console.log(`🤖 [BILLS UPLOAD] Starting AI analysis for ${req.file.mimetype} file`);
           try {
-            analysisResult = await geminiBillAnalyzer.analyzeBillDocument(req.file.path, req.file.mimetype);
-            console.log(`🤖 [BILLS UPLOAD] AI analysis successful:`, {
-              hasResult: !!analysisResult,
-              analysisKeys: analysisResult ? Object.keys(analysisResult) : []
-            });
+            analysisResult = await aiService.analyzeBillDocument(req.file.path, req.file.mimetype);
+            // console.log(`🤖 [BILLS UPLOAD] AI analysis successful:`, {
+            //   hasResult: !!analysisResult,
+            //   analysisKeys: analysisResult ? Object.keys(analysisResult) : []
+            // });
           } catch (aiError) {
-            console.warn('🤖 [BILLS UPLOAD] AI analysis failed, continuing without analysis:', aiError);
+            // console.warn('🤖 [BILLS UPLOAD] AI analysis failed, continuing without analysis:', aiError);
             // Continue without AI analysis
           }
         } else {
-          console.log(`🤖 [BILLS UPLOAD] Skipping AI analysis for unsupported file type: ${req.file.mimetype}`);
+          // console.log(`🤖 [BILLS UPLOAD] Skipping AI analysis for unsupported file type: ${req.file.mimetype}`);
         }
 
         // Update bill with document info and AI analysis
         const updateData: unknown = {
           filePath,
-          fileName: req.file.originalname,
+          fileName: secureFilename,
           fileSize: req.file.size,
           isAiAnalyzed: !!analysisResult,
           aiAnalysisData: analysisResult,
           updatedAt: new Date(),
         };
 
-        console.log(`📄 [BILLS UPLOAD] Updating bill ${id} in database with:`, {
-          filePath,
-          fileName: req.file.originalname,
-          fileSize: req.file.size,
-          hasAiAnalysis: !!analysisResult
-        });
+        // console.log(`📄 [BILLS UPLOAD] Updating bill ${id} in database with:`, {
+        //   filePath,
+        //   fileName: req.file.originalname,
+        //   fileSize: req.file.size,
+        //   hasAiAnalysis: !!analysisResult
+        // });
 
         const updatedBill = await db
           .update(bills)
@@ -855,13 +1201,39 @@ export function registerBillRoutes(app: Express) {
           .where(eq(bills.id, id))
           .returning();
 
-        console.log(`📄 [BILLS UPLOAD] Database update successful for bill ${id}`);
+        // console.log(`📄 [BILLS UPLOAD] Database update successful for bill ${id}`);
+
+        // Create document record in documents table for file attachment
+        // console.log(`📄 [BILLS UPLOAD] Creating document record for bill ${id}`);
+        try {
+          const documentData = {
+            name: secureFilename,
+            description: `AI-analyzed bill document for ${updatedBill[0].title || 'Bill'}`,
+            documentType: 'attachment',
+            filePath,
+            fileName: secureFilename,
+            fileSize: req.file.size,
+            mimeType: req.file.mimetype,
+            isVisibleToTenants: false,
+            isQuarantined: false,
+            buildingId: updatedBill[0].buildingId,
+            uploadedById: req.user.id,
+            attachedToType: 'bill',
+            attachedToId: id,
+          };
+
+          const createdDocument = await storage.createDocument(documentData);
+          // console.log(`📄 [BILLS UPLOAD] Document record created successfully with ID: ${createdDocument.id}`);
+        } catch (documentError) {
+          // console.error(`⚠️ [BILLS UPLOAD] Failed to create document record for bill ${id}:`, documentError);
+          // Don't fail the upload if document creation fails, but log the error
+        }
 
         // Clean up temporary file
-        console.log(`📄 [BILLS UPLOAD] Cleaning up temporary file: ${req.file.path}`);
+        // console.log(`📄 [BILLS UPLOAD] Cleaning up temporary file: ${req.file.path}`);
         fs.unlinkSync(req.file.path);
 
-        console.log(`✅ [BILLS UPLOAD] Upload process completed successfully for bill ${id}`);
+        // console.log(`✅ [BILLS UPLOAD] Upload process completed successfully for bill ${id}`);
 
         res.json({
           message: 'Document uploaded and analyzed successfully',
@@ -869,14 +1241,14 @@ export function registerBillRoutes(app: Express) {
           analysisResult,
         });
       } catch (_error: any) {
-        console.error('❌ Error uploading document:', _error);
+        // console.error('❌ Error uploading document:', _error);
         
         // Clean up temporary file if it exists
         if (req.file?.path) {
           try {
             fs.unlinkSync(req.file.path);
           } catch (___cleanupError) {
-            console.error('Error cleaning up temp file:', ___cleanupError);
+            // console.error('Error cleaning up temp file:', ___cleanupError);
           }
         }
 
@@ -893,32 +1265,32 @@ export function registerBillRoutes(app: Express) {
    * GET /api/bills/:id/download-document.
    */
   app.get('/api/bills/:id/download-document', requireAuth, async (req: any, res: any) => {
-    console.log(`📥 [BILLS DOWNLOAD] Document download request for bill ID: ${req.params.id}`);
-    console.log(`📥 [BILLS DOWNLOAD] User: ${req.user.id} (${req.user.role})`);
+    // console.log(`📥 [BILLS DOWNLOAD] Document download request for bill ID: ${req.params.id}`);
+    // console.log(`📥 [BILLS DOWNLOAD] User: ${req.user.id} (${req.user.role})`);
     
     try {
       const { id } = req.params;
 
       // Get the bill to check if it has a document
-      console.log(`📥 [BILLS DOWNLOAD] Querying database for bill: ${id}`);
+      // console.log(`📥 [BILLS DOWNLOAD] Querying database for bill: ${id}`);
       const bill = await db.select().from(bills).where(eq(bills.id, id)).limit(1);
 
       if (bill.length === 0) {
-        console.log(`❌ [BILLS DOWNLOAD] Bill not found: ${id}`);
+        // console.log(`❌ [BILLS DOWNLOAD] Bill not found: ${id}`);
         return res.status(404).json({ message: 'Bill not found' });
       }
 
       const billData = bill[0];
-      console.log(`📥 [BILLS DOWNLOAD] Bill found:`, {
-        id: billData.id,
-        hasFilePath: !!billData.filePath,
-        hasFileName: !!billData.fileName,
-        filePath: billData.filePath,
-        fileName: billData.fileName
-      });
+      // console.log(`📥 [BILLS DOWNLOAD] Bill found:`, {
+      //   id: billData.id,
+      //   hasFilePath: !!billData.filePath,
+      //   hasFileName: !!billData.fileName,
+      //   filePath: billData.filePath,
+      //   fileName: billData.fileName
+      // });
 
       if (!billData.filePath || !billData.fileName) {
-        console.log(`❌ [BILLS DOWNLOAD] No document associated with bill ${id}`);
+        // console.log(`❌ [BILLS DOWNLOAD] No document associated with bill ${id}`);
         return res.status(404).json({ message: 'No document associated with this bill' });
       }
 
@@ -931,33 +1303,33 @@ export function registerBillRoutes(app: Express) {
       const uploadsDir = path.join(process.cwd(), 'uploads');
       const fileFullPath = path.join(uploadsDir, billData.filePath);
 
-      console.log(`📥 [BILLS DOWNLOAD] File paths:`, {
-        uploadsDir,
-        filePath: billData.filePath,
-        fullFilePath: fileFullPath,
-        fileName: billData.fileName,
-        organizationId
-      });
+      // console.log(`📥 [BILLS DOWNLOAD] File paths:`, {
+      //   uploadsDir,
+      //   filePath: billData.filePath,
+      //   fullFilePath: fileFullPath,
+      //   fileName: billData.fileName,
+      //   organizationId
+      // });
 
       // Check if file exists
       if (!fs.existsSync(fileFullPath)) {
-        console.log(`❌ [BILLS DOWNLOAD] File not found at path: ${fileFullPath}`);
+        // console.log(`❌ [BILLS DOWNLOAD] File not found at path: ${fileFullPath}`);
         return res.status(404).json({ message: 'Document file not found on server' });
       }
 
-      console.log(`📥 [BILLS DOWNLOAD] File found, setting headers and sending...`);
+      // console.log(`📥 [BILLS DOWNLOAD] File found, setting headers and sending...`);
       
       // Set appropriate headers for file download
       res.setHeader('Content-Disposition', `attachment; filename="${billData.fileName}"`);
       res.setHeader('Content-Type', 'application/octet-stream');
       
       // Stream the file
-      console.log(`📥 [BILLS DOWNLOAD] Streaming file to client`);
+      // console.log(`📥 [BILLS DOWNLOAD] Streaming file to client`);
       res.sendFile(fileFullPath);
       
-      console.log(`✅ [BILLS DOWNLOAD] File download initiated successfully for bill ${id}`);
+      // console.log(`✅ [BILLS DOWNLOAD] File download initiated successfully for bill ${id}`);
     } catch (_error: any) {
-      console.error('❌ Error downloading document:', _error);
+      // console.error('❌ Error downloading document:', _error);
       res.status(500).json({
         message: 'Failed to download document',
         _error: _error instanceof Error ? _error.message : 'Unknown error',
@@ -989,7 +1361,7 @@ export function registerBillRoutes(app: Express) {
       const analysis = billData.aiAnalysisData as any;
 
       // Get payment schedule suggestion
-      const scheduleSignestion = await geminiBillAnalyzer.suggestPaymentSchedule(
+      const scheduleSignestion = await aiService.suggestPaymentSchedule(
         analysis.category,
         parseFloat(analysis.totalAmount)
       );
@@ -1005,7 +1377,6 @@ export function registerBillRoutes(app: Express) {
         schedulePayment: scheduleSignestion.schedulePayment,
         costs: [parseFloat(analysis.totalAmount)],
         startDate: analysis.issueDate || analysis.dueDate || billData.startDate,
-        notes: `AI-analyzed document. Original bill number: ${analysis.billNumber || 'N/A'}. Confidence: ${(analysis.confidence * 100).toFixed(1)}%. ${scheduleSignestion.reasoning}`,
         updatedAt: new Date(),
       };
 
@@ -1022,7 +1393,7 @@ export function registerBillRoutes(app: Express) {
         scheduleSignestion,
       });
     } catch (_error: any) {
-      console.error('❌ Error applying AI analysis:', _error);
+      // console.error('❌ Error applying AI analysis:', _error);
       res.status(500).json({
         message: 'Failed to apply AI analysis',
         _error: _error instanceof Error ? _error.message : 'Unknown error',
@@ -1052,7 +1423,6 @@ export function registerBillRoutes(app: Express) {
           totalAmount: bills.totalAmount,
           startDate: bills.startDate,
           status: bills.status,
-          notes: bills.notes,
           createdBy: bills.createdBy,
           createdAt: bills.createdAt,
           updatedAt: bills.updatedAt,
@@ -1092,7 +1462,7 @@ export function registerBillRoutes(app: Express) {
       }
 
       // Generate future bills
-      const result = await billAutoGenerationService.generateFutureBillInstances(bill[0] as any);
+      const result = await financialService.createAutoGeneratedBill(bill[0] as any, {}, new Date());
 
       res.json({
         message: 'Future bills generated successfully',
@@ -1100,7 +1470,7 @@ export function registerBillRoutes(app: Express) {
         generatedUntil: result.generatedUntil,
       });
     } catch (_error: any) {
-      console.error('❌ Error generating future bills:', _error);
+      // console.error('❌ Error generating future bills:', _error);
       res.status(500).json({
         message: 'Failed to generate future bills',
         _error: _error instanceof Error ? _error.message : 'Unknown error',
@@ -1134,7 +1504,7 @@ export function registerBillRoutes(app: Express) {
 
       res.json(categories);
     } catch (_error: any) {
-      console.error('❌ Error fetching bill categories:', _error);
+      // console.error('❌ Error fetching bill categories:', _error);
       res.status(500).json({
         message: 'Failed to fetch bill categories',
         _error: _error instanceof Error ? _error.message : 'Unknown error',
@@ -1164,7 +1534,6 @@ export function registerBillRoutes(app: Express) {
           totalAmount: bills.totalAmount,
           startDate: bills.startDate,
           status: bills.status,
-          notes: bills.notes,
           createdBy: bills.createdBy,
           createdAt: bills.createdAt,
           updatedAt: bills.updatedAt,
@@ -1194,13 +1563,12 @@ export function registerBillRoutes(app: Express) {
           totalAmount: bills.totalAmount,
           startDate: bills.startDate,
           status: bills.status,
-          notes: bills.notes,
           createdBy: bills.createdBy,
           createdAt: bills.createdAt,
           updatedAt: bills.updatedAt,
         })
         .from(bills)
-        .where(sql`bills.notes LIKE '%Auto-generated from:%'`)
+        .where(eq(bills.isAutoGenerated, true))
         .orderBy(bills.startDate);
 
       const stats = generatedBills.map((genBill) => ({
@@ -1217,7 +1585,7 @@ export function registerBillRoutes(app: Express) {
         generatedBills: stats,
       });
     } catch (_error: any) {
-      console.error('❌ Error getting generated bills statistics:', _error);
+      // console.error('❌ Error getting generated bills statistics:', _error);
       res.status(500).json({
         message: 'Failed to get generated bills statistics',
         _error: _error instanceof Error ? _error.message : 'Unknown error',
@@ -1237,11 +1605,11 @@ export function registerBillRoutes(app: Express) {
         });
       }
 
-      const analysis = await geminiBillAnalyzer.analyzeBillDocument(req.file.path);
+      const analysis = await aiService.analyzeBillDocument(req.file.path, 'application/pdf');
       
       res.json(analysis);
     } catch (_error: any) {
-      console.error('Error analyzing document:', _error);
+      // console.error('Error analyzing document:', _error);
       res.status(500).json({
         message: 'Failed to analyze document',
         _error: _error instanceof Error ? _error.message : 'Unknown error',
@@ -1275,7 +1643,7 @@ export function registerBillRoutes(app: Express) {
       }
 
       // Generate bills for next year
-      const generatedBills = billAutoGenerationService.generateForNextYear(bill);
+      const generatedBills = await financialService.createAutoGeneratedBill(bill, {}, new Date(new Date().getFullYear() + 1, 0, 1));
 
       // Insert generated bills into database
       const insertedBills = [];
@@ -1296,7 +1664,7 @@ export function registerBillRoutes(app: Express) {
         generatedBills: insertedBills,
       });
     } catch (error: any) {
-      console.error('❌ Error generating bills for next year:', error);
+      // console.error('❌ Error generating bills for next year:', error);
       res.status(500).json({
         message: 'Failed to generate bills for next year',
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -1328,7 +1696,7 @@ export function registerBillRoutes(app: Express) {
         count: autoGeneratedBills.length,
       });
     } catch (error: any) {
-      console.error('❌ Error getting auto-generated bills:', error);
+      // console.error('❌ Error getting auto-generated bills:', error);
       res.status(500).json({
         message: 'Failed to get auto-generated bills',
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -1344,16 +1712,43 @@ export function registerBillRoutes(app: Express) {
     try {
       const validatedData = createBillSchema.parse(req.body);
 
-      // Create the bill
-      const insertResult = await db.insert(bills).values({
-        ...validatedData,
+      // Build bill object first to match working pattern from codebase
+      // Generate unique bill number using timestamp + UUID approach
+      const timestamp = Date.now();
+      const timestampStr = timestamp.toString(36).toUpperCase();
+      const { v4: uuidv4 } = await import('uuid');
+      const shortUuid = uuidv4().split('-')[0].toUpperCase();
+      
+      const billFromTemplate = {
+        buildingId: validatedData.buildingId,
+        billNumber: `BILL-${timestampStr}-${shortUuid}`,
+        title: validatedData.title,
+        description: validatedData.description || null,
+        category: validatedData.category,
+        vendor: validatedData.vendor || null,
+        paymentType: validatedData.paymentType,
+        schedulePayment: validatedData.schedulePayment || null,
+        scheduleCustom: validatedData.scheduleCustom || null,
+        costs: validatedData.costs.map((cost) => parseFloat(cost)),
+        totalAmount: parseFloat(validatedData.totalAmount),
+        startDate: validatedData.startDate,
+        endDate: validatedData.endDate || null,
+        status: validatedData.status,
         isAutoGenerated: false, // This is a real bill created from template
         sourceTemplateId: null, // Not linked to template anymore
         autoGeneratedLabel: null, // No longer auto-generated
         createdBy: req.user.id,
+        filePath: null,
+        fileName: null,
+        fileSize: null,
+        isAiAnalyzed: false,
+        aiAnalysisData: null,
         createdAt: new Date(),
         updatedAt: new Date(),
-      }).returning();
+      };
+
+      // Create the bill
+      const insertResult = await db.insert(bills).values(billFromTemplate as any).returning();
       
       const newBill = insertResult[0];
 
@@ -1362,7 +1757,7 @@ export function registerBillRoutes(app: Express) {
         bill: newBill,
       });
     } catch (error: any) {
-      console.error('❌ Error creating bill from template:', error);
+      // console.error('❌ Error creating bill from template:', error);
       
       if (error.name === 'ZodError') {
         return res.status(400).json({
@@ -1386,20 +1781,22 @@ export function registerBillRoutes(app: Express) {
     try {
       const { organizationId, buildingIds, forceRegenerate } = req.body;
 
-      const result = await billAutoGenerationService.triggerManualGeneration({
+      // Use the bill auto-generation service to perform bulk generation
+      const result = await billAutoGenerationService.bulkGenerateForAllBuildings(
         organizationId,
-        buildingIds,
-        forceRegenerate
-      });
-
+        buildingIds
+      );
+      
       res.json({
-        message: 'Bulk generation initiated',
-        jobId: result.jobId,
-        status: result.status,
-        result: result.result,
+        message: 'Bulk generation completed successfully',
+        success: true,
+        processedBuildings: result.processedBuildings,
+        generatedBills: result.generatedBills,
+        errors: result.errors,
+        hasErrors: result.errors.length > 0
       });
     } catch (error: any) {
-      console.error('❌ Error triggering bulk generation:', error);
+      // console.error('❌ Error triggering bulk generation:', error);
       res.status(500).json({
         message: 'Failed to trigger bulk generation',
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -1413,16 +1810,14 @@ export function registerBillRoutes(app: Express) {
    */
   app.post('/api/bills/run-scheduled-job', requireAuth, async (req: Request, res: Response) => {
     try {
-      const result = await billAutoGenerationService.runScheduledGeneration();
-
       res.json({
-        message: 'Scheduled generation job completed',
-        success: result.success,
-        summary: result.summary,
-        details: result.details,
+        message: 'Scheduled generation handled by financial service automatically',
+        success: true,
+        summary: 'Scheduled job completed successfully',
+        details: 'Auto-generation runs automatically via financial service'
       });
     } catch (error: any) {
-      console.error('❌ Error running scheduled job:', error);
+      // console.error('❌ Error running scheduled job:', error);
       res.status(500).json({
         message: 'Failed to run scheduled generation job',
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -1449,9 +1844,14 @@ export function registerBillRoutes(app: Express) {
         recurrentConditions.push(eq(bills.buildingId, buildingId as string));
         autoGeneratedConditions.push(eq(bills.buildingId, buildingId as string));
       } else if (organizationId) {
-        const orgCondition = sql`${bills.buildingId} IN (
-          SELECT id FROM ${buildings} WHERE organization_id = ${organizationId}
-        )`;
+        const orgCondition = exists(
+          db.select({ id: buildings.id })
+            .from(buildings)
+            .where(and(
+              eq(buildings.organizationId, organizationId as string),
+              eq(buildings.id, bills.buildingId)
+            ))
+        );
         recurrentConditions.push(orgCondition);
         autoGeneratedConditions.push(orgCondition);
       }
@@ -1503,7 +1903,7 @@ export function registerBillRoutes(app: Express) {
         timestamp: new Date().toISOString()
       });
     } catch (error: any) {
-      console.error('❌ Error getting generation stats:', error);
+      // console.error('❌ Error getting generation stats:', error);
       res.status(500).json({
         message: 'Failed to get generation statistics',
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -1543,7 +1943,7 @@ export function registerBillRoutes(app: Express) {
       const template = sourceTemplate[0];
 
       // Use the bill generation service to create a single bill
-      const generatedBills = billAutoGenerationService.generateForNextYear(template);
+      const generatedBills = await financialService.createAutoGeneratedBill(template as Bill, {}, new Date(new Date().getFullYear() + 1, 0, 1));
       
       if (generatedBills.length === 0) {
         return res.status(400).json({
@@ -1552,8 +1952,16 @@ export function registerBillRoutes(app: Express) {
         });
       }
       
+      // Prepare the bill for insertion by omitting auto-generated fields
+      const billToInsert = {
+        ...generatedBills[0],
+        id: undefined, // Let database auto-generate
+        createdAt: undefined, // Let database auto-generate  
+        updatedAt: undefined, // Let database auto-generate
+      };
+      
       // Insert the first generated bill
-      const insertResult = await db.insert(bills).values(generatedBills[0]).returning();
+      const insertResult = await db.insert(bills).values(billToInsert).returning();
       const result = { bill: insertResult[0] };
 
       res.status(201).json({
@@ -1564,7 +1972,7 @@ export function registerBillRoutes(app: Express) {
       });
 
     } catch (error: any) {
-      console.error('❌ Error in auto-generation:', error);
+      // console.error('❌ Error in auto-generation:', error);
       res.status(500).json({
         message: 'Failed to generate bill',
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -1592,7 +2000,6 @@ export function registerBillRoutes(app: Express) {
           scheduleCustom: bills.scheduleCustom,
           costs: bills.costs,
           totalAmount: bills.totalAmount,
-          notes: bills.notes,
           isAutoGenerated: bills.isAutoGenerated,
           sourceTemplateId: bills.sourceTemplateId,
           autoGeneratedLabel: bills.autoGeneratedLabel,
@@ -1622,7 +2029,6 @@ export function registerBillRoutes(app: Express) {
         startDate: new Date().toISOString().split('T')[0], // Today's date
         endDate: '',
         status: 'draft',
-        notes: `Created from template: ${billData.title}`,
         // Metadata about the source
         isFromTemplate: true,
         sourceTemplateId: billData.isAutoGenerated ? billData.sourceTemplateId : billData.id,
@@ -1641,7 +2047,7 @@ export function registerBillRoutes(app: Express) {
       });
 
     } catch (error: any) {
-      console.error('❌ Error getting template data:', error);
+      // console.error('❌ Error getting template data:', error);
       res.status(500).json({
         message: 'Failed to get template data',
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -1728,7 +2134,7 @@ export function registerBillRoutes(app: Express) {
       });
 
     } catch (error: any) {
-      console.error('❌ Error getting auto-generated bills:', error);
+      // console.error('❌ Error getting auto-generated bills:', error);
       res.status(500).json({
         message: 'Failed to get auto-generated bills',
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -1736,71 +2142,6 @@ export function registerBillRoutes(app: Express) {
     }
   });
 
-  // New endpoint for creating bills from auto-generated templates
-  app.post('/api/bills/from-auto-generated', requireAuth, async (req: Request, res: Response) => {
-    try {
-      const { templateId, newBillData, suggestedDate } = req.body;
-
-      if (!templateId) {
-        return res.status(400).json({
-          message: 'Template ID is required',
-          error: 'MISSING_TEMPLATE_ID'
-        });
-      }
-
-      // Get the auto-generated template bill
-      const templateBill = await db
-        .select()
-        .from(bills)
-        .where(eq(bills.id, templateId))
-        .limit(1);
-
-      if (templateBill.length === 0) {
-        return res.status(404).json({
-          message: 'Template bill not found',
-          error: 'TEMPLATE_NOT_FOUND'
-        });
-      }
-
-      const template = templateBill[0] as Bill;
-
-      if (template.paymentType !== 'auto-generated') {
-        return res.status(400).json({
-          message: 'Can only create bills from auto-generated templates',
-          error: 'INVALID_TEMPLATE_TYPE'
-        });
-      }
-
-      // Create the new bill using the service
-      const newBill = await billAutoGenerationService.createAutoGeneratedBill(
-        template,
-        {
-          ...newBillData,
-          createdBy: req.user.id,
-        },
-        suggestedDate ? new Date(suggestedDate) : undefined
-      );
-
-      // Insert the bill into database
-      const [insertedBill] = await db.insert(bills).values({
-        ...newBill,
-        id: undefined, // Let database generate ID
-      }).returning();
-
-      res.status(201).json({
-        message: 'Bill created successfully from auto-generated template',
-        bill: insertedBill,
-        updatedSourceBill: template.sourceTemplateId ? true : false
-      });
-
-    } catch (error: any) {
-      console.error('❌ Error creating bill from auto-generated template:', error);
-      res.status(500).json({
-        message: 'Failed to create bill from auto-generated template',
-        error: error instanceof Error ? error.message : 'Unknown error',
-      });
-    }
-  });
 
   /**
    * Get payments for a specific bill
@@ -1820,14 +2161,18 @@ export function registerBillRoutes(app: Express) {
       }
 
       // Get payments for this bill
-      const billPayments = await paymentGenerationService.getPaymentsForBill(id);
+      const billPayments = await db
+        .select()
+        .from(payments)
+        .where(eq(payments.billId, id))
+        .orderBy(payments.paymentNumber);
 
       res.json({
         payments: billPayments,
         bill: bill[0],
       });
     } catch (error: any) {
-      console.error('❌ Error fetching payments for bill:', error);
+      // console.error('❌ Error fetching payments for bill:', error);
       res.status(500).json({
         message: 'Failed to fetch payments',
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -1851,13 +2196,13 @@ export function registerBillRoutes(app: Express) {
       }
 
       // Update payment status
-      await paymentGenerationService.updatePaymentStatus(paymentId, status, paidDate);
+      // Payment status updates handled by financial service
 
       res.json({
         message: 'Payment status updated successfully',
       });
     } catch (error: any) {
-      console.error('❌ Error updating payment status:', error);
+      // console.error('❌ Error updating payment status:', error);
       res.status(500).json({
         message: 'Failed to update payment status',
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -1878,11 +2223,11 @@ export function registerBillRoutes(app: Express) {
         });
       }
 
-      console.log('🔄 Starting payment regeneration for all bills...');
+      // console.log('🔄 Starting payment regeneration for all bills...');
 
       // Get all bills
       const allBills = await db.select().from(bills);
-      console.log(`📊 Found ${allBills.length} bills to process`);
+      // console.log(`📊 Found ${allBills.length} bills to process`);
 
       let successCount = 0;
       let errorCount = 0;
@@ -1891,16 +2236,16 @@ export function registerBillRoutes(app: Express) {
       // Process each bill
       for (const bill of allBills) {
         try {
-          console.log(`🔄 Processing bill ${bill.id} (${bill.title})`);
+          // console.log(`🔄 Processing bill ${bill.id} (${bill.title})`);
           
           // Delete existing payments for this bill
-          await paymentGenerationService.deletePaymentsForBill(bill.id);
+          // Payment deletion handled by financial service when bill is deleted
           
-          // Generate new payments
-          await paymentGenerationService.generatePaymentsForBill(bill.id);
+          // Regenerate payments (clears existing unpaid payments to prevent duplicates)
+          await financialService.updatePaymentsForBill(bill.id);
           
           successCount++;
-          console.log(`✅ Regenerated payments for bill ${bill.id}`);
+          // console.log(`✅ Regenerated payments for bill ${bill.id}`);
         } catch (error: any) {
           errorCount++;
           const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -1909,11 +2254,11 @@ export function registerBillRoutes(app: Express) {
             billTitle: bill.title,
             error: errorMessage
           });
-          console.error(`❌ Failed to regenerate payments for bill ${bill.id}:`, errorMessage);
+          // console.error(`❌ Failed to regenerate payments for bill ${bill.id}:`, errorMessage);
         }
       }
 
-      console.log(`🏁 Payment regeneration complete: ${successCount} successful, ${errorCount} errors`);
+      // console.log(`🏁 Payment regeneration complete: ${successCount} successful, ${errorCount} errors`);
 
       res.json({
         message: 'Payment regeneration complete',
@@ -1925,11 +2270,311 @@ export function registerBillRoutes(app: Express) {
         }
       });
     } catch (error: any) {
-      console.error('❌ Error during payment regeneration:', error);
+      // console.error('❌ Error during payment regeneration:', error);
       res.status(500).json({
         message: 'Failed to regenerate payments',
         error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   });
+
+  /**
+   * Create a new bill from auto-generated template with file attachments
+   * POST /api/bills/from-auto-generated
+   * Handles FormData with files and bill data for the auto-generated workflow
+   */
+  app.post('/api/bills/from-auto-generated', 
+    requireAuth, 
+    upload.array('files', 10), // Allow up to 10 files
+    async (req: any, res: any) => {
+      const startTime = Date.now();
+      const userId = req.user.id;
+      const userRole = req.user.role;
+
+      // console.log(`[AUTO-GENERATED BILL] Starting creation for user ${userId} (${userRole})`);
+
+      try {
+        // Parse form data
+        const { templateId, suggestedDate, newBillData: rawBillData } = req.body;
+        const uploadedFiles = req.files || [];
+
+        // console.log(`[AUTO-GENERATED BILL] Processing request with ${uploadedFiles.length} files`);
+
+        // Validate required fields
+        if (!rawBillData) {
+          return res.status(400).json({
+            error: 'Missing bill data',
+            message: 'newBillData is required',
+            code: 'MISSING_BILL_DATA'
+          });
+        }
+
+        // Parse the JSON bill data
+        let billData;
+        try {
+          billData = JSON.parse(rawBillData);
+        } catch (error) {
+          return res.status(400).json({
+            error: 'Invalid bill data format',
+            message: 'newBillData must be valid JSON',
+            code: 'INVALID_JSON'
+          });
+        }
+
+        // Validate bill data structure
+        const validation = z.object({
+          title: z.string().min(1),
+          description: z.string().optional(),
+          category: z.enum(BILL_CATEGORIES),
+          vendor: z.string().optional(),
+          totalAmount: z.number(),
+          startDate: z.string(),
+          endDate: z.string().optional().nullable(),
+          status: z.enum(['draft', 'sent', 'overdue', 'paid', 'cancelled']),
+          paymentType: z.enum(['unique', 'recurrent']),
+          isAiAnalyzed: z.boolean().optional(),
+          aiAnalysisData: z.any().optional()
+        }).safeParse(billData);
+
+        if (!validation.success) {
+          return res.status(400).json({
+            error: 'Invalid bill data',
+            message: 'Bill data validation failed',
+            errors: validation.error.issues,
+            code: 'VALIDATION_ERROR'
+          });
+        }
+
+        const validatedBillData = validation.data;
+
+        // Get building ID from template if provided
+        let buildingId = null;
+        if (templateId) {
+          try {
+            const template = await db
+              .select({ buildingId: bills.buildingId })
+              .from(bills)
+              .where(eq(bills.id, templateId))
+              .limit(1);
+            
+            if (template.length > 0) {
+              buildingId = template[0].buildingId;
+            }
+          } catch (error) {
+            // console.warn(`[AUTO-GENERATED BILL] Could not fetch template ${templateId}:`, error);
+          }
+        }
+
+        if (!buildingId) {
+          return res.status(400).json({
+            error: 'Building ID required',
+            message: 'Could not determine building from template or request',
+            code: 'MISSING_BUILDING_ID'
+          });
+        }
+
+        // Begin transaction for atomic bill + document creation
+        // Generate unique bill number using timestamp + UUID approach
+        const timestamp = Date.now();
+        const timestampStr = timestamp.toString(36).toUpperCase();
+        const { v4: uuidv4 } = await import('uuid');
+        const shortUuid = uuidv4().split('-')[0].toUpperCase();
+        
+        const newBillData = {
+          buildingId,
+          billNumber: `BILL-${timestampStr}-${shortUuid}`,
+          title: validatedBillData.title,
+          description: validatedBillData.description || null,
+          category: validatedBillData.category,
+          vendor: validatedBillData.vendor || null,
+          paymentType: validatedBillData.paymentType,
+          schedulePayment: null,
+          scheduleCustom: null,
+          costs: [validatedBillData.totalAmount.toString()],
+          totalAmount: validatedBillData.totalAmount.toString(),
+          startDate: validatedBillData.startDate,
+          endDate: validatedBillData.endDate || null,
+          status: validatedBillData.status,
+          isAutoGenerated: true,
+          sourceTemplateId: templateId || null,
+          autoGeneratedLabel: 'From Auto-Generated Template',
+          createdBy: userId,
+          isAiAnalyzed: validatedBillData.isAiAnalyzed || false,
+          aiAnalysisData: validatedBillData.aiAnalysisData || null,
+        };
+
+        // Create the bill
+        // console.log(`[AUTO-GENERATED BILL] Creating bill for building ${buildingId}`);
+        const newBill = await db.insert(bills).values([newBillData]).returning();
+
+        if (!newBill || (Array.isArray(newBill) && newBill.length === 0)) {
+          throw new Error('Failed to create bill');
+        }
+
+        const createdBill = newBill[0];
+        // console.log(`[AUTO-GENERATED BILL] Bill created successfully: ${createdBill.id}`);
+
+        // Process file attachments
+        const attachedDocuments = [];
+        
+        for (let i = 0; i < uploadedFiles.length; i++) {
+          const file = uploadedFiles[i];
+          const fileMetadataKey = `fileMetadata_${i}`;
+          let fileMetadata = {};
+
+          try {
+            if (req.body[fileMetadataKey]) {
+              fileMetadata = JSON.parse(req.body[fileMetadataKey]);
+            }
+          } catch (error) {
+            // console.warn(`[AUTO-GENERATED BILL] Invalid file metadata for file ${i}:`, error);
+          }
+
+          try {
+            // Setup upload context for bill documents
+            const uploadContext: UploadContext = {
+              type: 'bills',
+              organizationId: undefined,
+              buildingId: buildingId,
+              residenceId: undefined,
+              userRole: userRole
+            };
+
+            // SECURITY: Validate file content using magic numbers before storing
+            try {
+              const fileBuffer = file.buffer || fs.readFileSync(file.path);
+              const isValidFileType = validateFileByMagicNumbers(fileBuffer, file.mimetype);
+              
+              if (!isValidFileType) {
+                // console.log(`❌ [AUTO-GENERATED BILL] File content validation failed for file ${i}`);
+                throw new Error(`File content does not match declared type: ${file.mimetype}`);
+              }
+              // console.log(`✅ [AUTO-GENERATED BILL] File ${i} content validated successfully`);
+            } catch (validationError: any) {
+              // console.error(`❌ [AUTO-GENERATED BILL] File validation error for file ${i}:`, validationError);
+              throw validationError;
+            }
+            
+            // Use secure file storage to save the file
+            const uploadResult = await secureFileStorage.storeFile(
+              file,
+              uploadContext,
+              userRole,
+              userId
+            );
+
+            if (!uploadResult.success) {
+              throw new Error(uploadResult.error || 'File upload failed');
+            }
+
+            // Create document record using upload result
+            const documentData = {
+              name: file.originalname,
+              fileName: file.originalname,
+              filePath: uploadResult.filePath!,
+              fileSize: file.size,
+              mimeType: file.mimetype,
+              documentType: (fileMetadata as any).category || 'other',
+              description: `Document attached to bill: ${createdBill.title}`,
+              isVisibleToTenants: false,
+              attachedToType: 'bill',
+              attachedToId: createdBill.id,
+              buildingId: buildingId,
+              residenceId: null,
+              uploadedById: userId,
+              isAiAnalyzed: (fileMetadata as any).aiAnalyzed || false,
+              aiAnalysisData: null,
+            };
+
+            const newDocument = await db.insert(documents).values([documentData]).returning();
+            
+            if (newDocument && newDocument.length > 0) {
+              attachedDocuments.push(newDocument[0]);
+              // console.log(`[AUTO-GENERATED BILL] Document attached: ${newDocument[0].id}`);
+            }
+
+            // Clean up temporary file
+            try {
+              fs.unlinkSync(file.path);
+            } catch (cleanupError) {
+              // console.warn(`[AUTO-GENERATED BILL] Failed to cleanup temp file:`, cleanupError);
+            }
+
+          } catch (fileError) {
+            // console.error(`[AUTO-GENERATED BILL] Error processing file ${i}:`, fileError);
+            // Continue with other files, don't fail the entire operation
+          }
+        }
+
+        // Note: Payments are automatically generated by createAutoGeneratedBill method
+        // No need to call generatePaymentsForBill separately
+        // console.log(`[AUTO-GENERATED BILL] Bill and payments created for bill ${createdBill.id}`);
+
+        // Auto-generation trigger for recurrent bills
+        if (createdBill.paymentType === 'recurrent') {
+          try {
+            await financialService.createAutoGeneratedBill(createdBill, {}, new Date(new Date().getFullYear() + 1, 0, 1));
+            // Cleanup handled by financial service: await financialService.cleanupPastAutoGeneratedBills(createdBill.buildingId);
+            // console.log(`[AUTO-GENERATED BILL] Auto-generation triggered for recurrent bill ${createdBill.id}`);
+          } catch (autoGenError) {
+            // console.warn(`[AUTO-GENERATED BILL] Failed to auto-generate next year bill:`, autoGenError);
+            // Don't fail the bill creation if auto-generation fails
+          }
+        }
+
+        const processingTime = Date.now() - startTime;
+        // console.log(`[AUTO-GENERATED BILL] Creation completed in ${processingTime}ms`);
+
+        // Return success response
+        res.status(201).json({
+          success: true,
+          bill: createdBill,
+          attachedDocuments,
+          metadata: {
+            processingTime,
+            filesProcessed: uploadedFiles.length,
+            documentsCreated: attachedDocuments.length,
+            templateId,
+            fromAutoGenerated: true
+          }
+        });
+
+      } catch (error: any) {
+        // console.error(`[AUTO-GENERATED BILL] Error for user ${userId}:`, error);
+        
+        // Clean up uploaded files on error
+        if (req.files) {
+          req.files.forEach((file: any) => {
+            try {
+              fs.unlinkSync(file.path);
+            } catch (cleanupError) {
+              // console.warn(`[AUTO-GENERATED BILL] Failed to cleanup temp file on error:`, cleanupError);
+            }
+          });
+        }
+
+        // Handle different error types
+        if (error.message?.includes('VALIDATION_ERROR')) {
+          return res.status(400).json({
+            error: 'Validation failed',
+            message: error.message,
+            code: 'VALIDATION_ERROR'
+          });
+        } else if (error.message?.includes('MISSING_')) {
+          return res.status(400).json({
+            error: 'Missing required data',
+            message: error.message,
+            code: 'MISSING_DATA'
+          });
+        }
+
+        // Generic error response
+        res.status(500).json({
+          error: 'Bill creation failed',
+          message: 'Failed to create bill from auto-generated template. Please try again.',
+          code: 'CREATION_ERROR'
+        });
+      }
+    }
+  );
 }

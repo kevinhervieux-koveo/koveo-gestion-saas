@@ -1,0 +1,235 @@
+index.js:1 content loaded
+index-BRZN_XFm.js:185 [Violation] 'setTimeout' handler took 82ms
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+index-Dr8Ab-Aa.js:6 🏠 [INVENTORY PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-Dr8Ab-Aa.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-Dr8Ab-Aa.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-Dr8Ab-Aa.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'create', elementId: undefined, isValid: false, isDirty: false, errorCount: 0, …}
+index-Dr8Ab-Aa.js:6 ❌ [VALIDATION STATE] Form is invalid: {isValid: false, errorCount: 0, errorDetails: Array(0), allFormValues: {…}, nextEvaluationDate: {…}, …}
+index-Dr8Ab-Aa.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+index-Dr8Ab-Aa.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+index-Dr8Ab-Aa.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+withHierarchicalSelection-Dm-BkvAS.js:1 🏢 [withHierarchicalSelection] Fetching buildings...
+withHierarchicalSelection-Dm-BkvAS.js:1 🌐 [withHierarchicalSelection] Requesting buildings: /api/organizations/e9bb7862-4ba5-4822-848f-f3692e826e73/buildings
+index-Dr8Ab-Aa.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'create', elementId: undefined, isValid: false, isDirty: false, errorCount: 0, …}
+index-Dr8Ab-Aa.js:6 ❌ [VALIDATION STATE] Form is invalid: {isValid: false, errorCount: 0, errorDetails: Array(0), allFormValues: {…}, nextEvaluationDate: {…}, …}
+withHierarchicalSelection-Dm-BkvAS.js:1 📊 [withHierarchicalSelection] Received 5 buildings from API
+withHierarchicalSelection-Dm-BkvAS.js:1 ✅ [withHierarchicalSelection] Returning all 5 buildings (non-residence page)
+index-Dr8Ab-Aa.js:6 🏠 [INVENTORY PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-Dr8Ab-Aa.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-Dr8Ab-Aa.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-Dr8Ab-Aa.js:6 🏠 [INVENTORY UI] Building elements collapsible toggled: true
+index-Dr8Ab-Aa.js:6 🏠 [INVENTORY STATE] Building elements section toggled {expanded: true}
+index-Dr8Ab-Aa.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-Dr8Ab-Aa.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-BRZN_XFm.js:185 [Violation] 'setTimeout' handler took 109ms
+index-Dr8Ab-Aa.js:6 🏠 [INVENTORY ACTION] handleEditElement called: {elementId: '0f3cfaea-d774-4754-b8b3-3e50b5a39f81', elementName: 'test'}
+index-Dr8Ab-Aa.js:6 🏠 [INVENTORY STATE] Element form opened in edit mode
+index-Dr8Ab-Aa.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-Dr8Ab-Aa.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-Dr8Ab-Aa.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'create', elementId: '0f3cfaea-d774-4754-b8b3-3e50b5a39f81', isValid: false, isDirty: false, errorCount: 0, …}
+index-Dr8Ab-Aa.js:6 ❌ [VALIDATION STATE] Form is invalid: {isValid: false, errorCount: 0, errorDetails: Array(0), allFormValues: {…}, nextEvaluationDate: {…}, …}
+index-Dr8Ab-Aa.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+index-Dr8Ab-Aa.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'edit', elementId: '0f3cfaea-d774-4754-b8b3-3e50b5a39f81', isValid: false, isDirty: false, errorCount: 0, …}
+index-Dr8Ab-Aa.js:6 ❌ [VALIDATION STATE] Form is invalid: {isValid: false, errorCount: 0, errorDetails: Array(0), allFormValues: {…}, nextEvaluationDate: {…}, …}
+index-BRZN_XFm.js:163 Cannot update a component (`Vr`) while rendering a different component (`fc`). To locate the bad setState() call inside `fc`, follow the stack trace as described in https://react.dev/link/setstate-in-render
+overrideMethod @ hook.js:608
+Ye @ index-BRZN_XFm.js:163
+ol @ index-BRZN_XFm.js:120
+$p @ index-BRZN_XFm.js:120
+callback @ vendor-forms-DXLf4S2w.js:1
+next @ vendor-forms-DXLf4S2w.js:1
+next @ vendor-forms-DXLf4S2w.js:1
+q @ vendor-forms-DXLf4S2w.js:1
+fe @ vendor-forms-DXLf4S2w.js:1
+S @ vendor-forms-DXLf4S2w.js:1
+F @ vendor-forms-DXLf4S2w.js:1
+ct @ vendor-forms-DXLf4S2w.js:1
+hn @ vendor-forms-DXLf4S2w.js:1
+fc @ vendor-forms-DXLf4S2w.js:1
+react_stack_bottom_frame @ index-BRZN_XFm.js:229
+oc @ index-BRZN_XFm.js:120
+kc @ index-BRZN_XFm.js:141
+Pc @ index-BRZN_XFm.js:150
+q @ index-BRZN_XFm.js:45
+Kh @ index-BRZN_XFm.js:163
+Jh @ index-BRZN_XFm.js:163
+Wc @ index-BRZN_XFm.js:163
+Ih @ index-BRZN_XFm.js:163
+mg @ index-BRZN_XFm.js:185
+ml @ index-BRZN_XFm.js:185
+ad @ index-BRZN_XFm.js:185
+(anonymous) @ index-BRZN_XFm.js:185
+<fc>
+du.jsxDEV @ index-BRZN_XFm.js:15
+k @ form-C4FdtwyA.js:1
+react_stack_bottom_frame @ index-BRZN_XFm.js:229
+oc @ index-BRZN_XFm.js:120
+kc @ index-BRZN_XFm.js:141
+Pc @ index-BRZN_XFm.js:150
+q @ index-BRZN_XFm.js:45
+Kh @ index-BRZN_XFm.js:163
+Jh @ index-BRZN_XFm.js:163
+Wc @ index-BRZN_XFm.js:163
+Ih @ index-BRZN_XFm.js:163
+mg @ index-BRZN_XFm.js:185
+ml @ index-BRZN_XFm.js:185
+ad @ index-BRZN_XFm.js:185
+(anonymous) @ index-BRZN_XFm.js:185
+<k>
+du.jsxDEV @ index-BRZN_XFm.js:15
+An @ FormModal-BYW4ormK.js:62
+react_stack_bottom_frame @ index-BRZN_XFm.js:229
+oc @ index-BRZN_XFm.js:120
+kc @ index-BRZN_XFm.js:141
+Pc @ index-BRZN_XFm.js:150
+q @ index-BRZN_XFm.js:45
+Kh @ index-BRZN_XFm.js:163
+Jh @ index-BRZN_XFm.js:163
+Wc @ index-BRZN_XFm.js:163
+Ih @ index-BRZN_XFm.js:163
+mg @ index-BRZN_XFm.js:185
+ml @ index-BRZN_XFm.js:185
+ad @ index-BRZN_XFm.js:185
+(anonymous) @ index-BRZN_XFm.js:185
+<An>
+du.jsxDEV @ index-BRZN_XFm.js:15
+Vr @ index-Dr8Ab-Aa.js:6
+react_stack_bottom_frame @ index-BRZN_XFm.js:229
+oc @ index-BRZN_XFm.js:120
+kc @ index-BRZN_XFm.js:141
+Pc @ index-BRZN_XFm.js:150
+q @ index-BRZN_XFm.js:45
+Kh @ index-BRZN_XFm.js:163
+Jh @ index-BRZN_XFm.js:163
+Wc @ index-BRZN_XFm.js:163
+Ih @ index-BRZN_XFm.js:163
+mg @ index-BRZN_XFm.js:185
+ml @ index-BRZN_XFm.js:185
+ad @ index-BRZN_XFm.js:185
+(anonymous) @ index-BRZN_XFm.js:185
+<Vr>
+du.jsxDEV @ index-BRZN_XFm.js:15
+jr @ index-Dr8Ab-Aa.js:6
+react_stack_bottom_frame @ index-BRZN_XFm.js:229
+oc @ index-BRZN_XFm.js:120
+kc @ index-BRZN_XFm.js:141
+Pc @ index-BRZN_XFm.js:150
+q @ index-BRZN_XFm.js:45
+Kh @ index-BRZN_XFm.js:163
+WS @ index-BRZN_XFm.js:163
+KS @ index-BRZN_XFm.js:163
+Ih @ index-BRZN_XFm.js:163
+fg @ index-BRZN_XFm.js:185
+d @ index-BRZN_XFm.js:23
+<jr>
+du.jsxDEV @ index-BRZN_XFm.js:15
+Cr @ index-Dr8Ab-Aa.js:6
+react_stack_bottom_frame @ index-BRZN_XFm.js:229
+oc @ index-BRZN_XFm.js:120
+kc @ index-BRZN_XFm.js:141
+Pc @ index-BRZN_XFm.js:150
+q @ index-BRZN_XFm.js:45
+Kh @ index-BRZN_XFm.js:163
+WS @ index-BRZN_XFm.js:163
+KS @ index-BRZN_XFm.js:163
+Ih @ index-BRZN_XFm.js:163
+fg @ index-BRZN_XFm.js:185
+d @ index-BRZN_XFm.js:23
+<Cr>
+du.jsxDEV @ index-BRZN_XFm.js:15
+(anonymous) @ withHierarchicalSelection-Dm-BkvAS.js:1
+react_stack_bottom_frame @ index-BRZN_XFm.js:229
+oc @ index-BRZN_XFm.js:120
+kc @ index-BRZN_XFm.js:141
+Pc @ index-BRZN_XFm.js:150
+q @ index-BRZN_XFm.js:45
+Kh @ index-BRZN_XFm.js:163
+WS @ index-BRZN_XFm.js:163
+KS @ index-BRZN_XFm.js:163
+Ih @ index-BRZN_XFm.js:163
+fg @ index-BRZN_XFm.js:185
+d @ index-BRZN_XFm.js:23
+<...>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Pb @ index-BRZN_XFm.js:240
+P @ index-BRZN_XFm.js:240
+react_stack_bottom_frame @ index-BRZN_XFm.js:229
+oc @ index-BRZN_XFm.js:120
+kc @ index-BRZN_XFm.js:141
+Pc @ index-BRZN_XFm.js:150
+q @ index-BRZN_XFm.js:45
+Kh @ index-BRZN_XFm.js:163
+WS @ index-BRZN_XFm.js:163
+KS @ index-BRZN_XFm.js:163
+Ih @ index-BRZN_XFm.js:163
+fg @ index-BRZN_XFm.js:185
+d @ index-BRZN_XFm.js:23
+<P>
+du.jsxDEV @ index-BRZN_XFm.js:15
+ex @ index-BRZN_XFm.js:384
+react_stack_bottom_frame @ index-BRZN_XFm.js:229
+oc @ index-BRZN_XFm.js:120
+kc @ index-BRZN_XFm.js:141
+Pc @ index-BRZN_XFm.js:150
+q @ index-BRZN_XFm.js:45
+Kh @ index-BRZN_XFm.js:163
+Jh @ index-BRZN_XFm.js:163
+Wc @ index-BRZN_XFm.js:163
+Ih @ index-BRZN_XFm.js:163
+mg @ index-BRZN_XFm.js:185
+ml @ index-BRZN_XFm.js:185
+ad @ index-BRZN_XFm.js:185
+(anonymous) @ index-BRZN_XFm.js:185
+<ex>
+du.jsxDEV @ index-BRZN_XFm.js:15
+tx @ index-BRZN_XFm.js:384
+react_stack_bottom_frame @ index-BRZN_XFm.js:229
+oc @ index-BRZN_XFm.js:120
+kc @ index-BRZN_XFm.js:141
+Pc @ index-BRZN_XFm.js:150
+q @ index-BRZN_XFm.js:45
+Kh @ index-BRZN_XFm.js:163
+Jh @ index-BRZN_XFm.js:163
+Wc @ index-BRZN_XFm.js:163
+Ih @ index-BRZN_XFm.js:163
+fg @ index-BRZN_XFm.js:185
+d @ index-BRZN_XFm.js:23
+<tx>
+du.jsxDEV @ index-BRZN_XFm.js:15
+(anonymous) @ index-BRZN_XFm.js:384
+index-BRZN_XFm.js:185 [Violation] 'click' handler took 273ms
+index-Dr8Ab-Aa.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'edit', elementId: '0f3cfaea-d774-4754-b8b3-3e50b5a39f81', isValid: true, isDirty: false, errorCount: 0, …}
+index-Dr8Ab-Aa.js:6 🏠 [INVENTORY MODAL] Element form visibility changed: {open: false, hasElement: true}
+index-Dr8Ab-Aa.js:6 🏠 [INVENTORY STATE] Clearing selected element
+index-Dr8Ab-Aa.js:6 🏠 [INVENTORY STATE] Element form visibility changed {open: false}
+index-Dr8Ab-Aa.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-Dr8Ab-Aa.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-Dr8Ab-Aa.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'edit', elementId: undefined, isValid: true, isDirty: false, errorCount: 0, …}
+vendor-ui-DOhogLgl.js:14 [Violation] 'pointerdown' handler took 243ms
+index-Dr8Ab-Aa.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-Dr8Ab-Aa.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-Dr8Ab-Aa.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-Dr8Ab-Aa.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-Dr8Ab-Aa.js:6 🏠 [INVENTORY ACTION] handleEditElement called: {elementId: '0f3cfaea-d774-4754-b8b3-3e50b5a39f81', elementName: 'test'}
+index-Dr8Ab-Aa.js:6 🏠 [INVENTORY STATE] Element form opened in edit mode
+index-Dr8Ab-Aa.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-Dr8Ab-Aa.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-Dr8Ab-Aa.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'edit', elementId: '0f3cfaea-d774-4754-b8b3-3e50b5a39f81', isValid: true, isDirty: false, errorCount: 0, …}
+index-Dr8Ab-Aa.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: true, errors: {…}, …}
+index-Dr8Ab-Aa.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'edit', elementId: '0f3cfaea-d774-4754-b8b3-3e50b5a39f81', isValid: true, isDirty: false, errorCount: 0, …}
+index-BRZN_XFm.js:185 [Violation] 'click' handler took 802ms
+[Violation] Forced reflow while executing JavaScript took 45ms
+index-Dr8Ab-Aa.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-Dr8Ab-Aa.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-BRZN_XFm.js:23 [Violation] 'message' handler took 295ms
+vendor-query-7MgX5BiQ.js:1 [Violation] 'setTimeout' handler took 72ms
+index-Dr8Ab-Aa.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-Dr8Ab-Aa.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-BRZN_XFm.js:23 [Violation] 'message' handler took 2385ms
+[Violation] Forced reflow while executing JavaScript took 46ms

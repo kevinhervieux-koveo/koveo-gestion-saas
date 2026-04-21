@@ -1,0 +1,218 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+index-7gSKNydv.js:53 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-7gSKNydv.js:53 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-7gSKNydv.js:53 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+withHierarchicalSelection-CpoHrv7H.js:1 🏢 [withHierarchicalSelection] Fetching buildings...
+withHierarchicalSelection-CpoHrv7H.js:1 🌐 [withHierarchicalSelection] Requesting buildings: /api/organizations/e9bb7862-4ba5-4822-848f-f3692e826e73/buildings
+index-7gSKNydv.js:53 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-7gSKNydv.js:53 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+withHierarchicalSelection-CpoHrv7H.js:1 📊 [withHierarchicalSelection] Received 5 buildings from API
+withHierarchicalSelection-CpoHrv7H.js:1 ✅ [withHierarchicalSelection] Returning all 5 buildings (non-residence page)
+index-7gSKNydv.js:53 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-7gSKNydv.js:53 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-7gSKNydv.js:53 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-7gSKNydv.js:53 📁 [PROJECTS UI] Project overview collapsible toggled: true
+index-7gSKNydv.js:53 📁 [PROJECTS STATE] Project overview section toggled {expanded: true}
+index-7gSKNydv.js:53 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-7gSKNydv.js:53 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-7gSKNydv.js:53 📁 [PROJECTS UI] Projects table collapsible toggled: true
+index-7gSKNydv.js:53 📁 [PROJECTS STATE] Projects table section toggled {expanded: true}
+index-7gSKNydv.js:53 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-7gSKNydv.js:53 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-7gSKNydv.js:53 📁 [PROJECTS UI] Project overview collapsible toggled: false
+index-7gSKNydv.js:53 📁 [PROJECTS STATE] Project overview section toggled {expanded: false}
+index-7gSKNydv.js:53 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-7gSKNydv.js:53 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-7gSKNydv.js:53 📁 [PROJECTS ACTION] handleAddProject called
+index-7gSKNydv.js:53 📁 [PROJECTS STATE] Project form opened for new project creation
+index-7gSKNydv.js:53 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-7gSKNydv.js:53 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-BYE2Z0wb.js:186 A component is changing an uncontrolled input to be controlled. This is likely caused by the value changing from undefined to a defined value, which should not happen. Decide between using a controlled or uncontrolled input element for the lifetime of the component. More info: https://react.dev/link/controlled-components
+overrideMethod @ hook.js:608
+c1 @ index-BYE2Z0wb.js:186
+h1 @ index-BYE2Z0wb.js:186
+q @ index-BYE2Z0wb.js:45
+Qc @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+Vt @ index-BYE2Z0wb.js:163
+zh @ index-BYE2Z0wb.js:163
+tg @ index-BYE2Z0wb.js:163
+ed @ index-BYE2Z0wb.js:163
+Xh @ index-BYE2Z0wb.js:163
+Ih @ index-BYE2Z0wb.js:163
+mg @ index-BYE2Z0wb.js:185
+ml @ index-BYE2Z0wb.js:185
+jo @ index-BYE2Z0wb.js:163
+Gm @ index-BYE2Z0wb.js:83
+rd @ index-BYE2Z0wb.js:185
+Ad @ index-BYE2Z0wb.js:194
+L1 @ index-BYE2Z0wb.js:194
+index-BYE2Z0wb.js:240  POST https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/maintenance/projects 400 (Bad Request)
+sR @ index-BYE2Z0wb.js:240
+mutationFn @ index-7gSKNydv.js:37
+fn @ vendor-query-Ciq08bnh.js:1
+y @ vendor-query-Ciq08bnh.js:1
+start @ vendor-query-Ciq08bnh.js:1
+execute @ vendor-query-Ciq08bnh.js:1
+await in execute
+mutate @ vendor-query-Ciq08bnh.js:1
+(anonymous) @ vendor-query-Ciq08bnh.js:1
+F @ index-7gSKNydv.js:37
+y @ FormModal-B_31Wibx.js:62
+(anonymous) @ vendor-forms-ihkSd2aT.js:1
+await in (anonymous)
+lr @ index-BYE2Z0wb.js:185
+q @ index-BYE2Z0wb.js:45
+yg @ index-BYE2Z0wb.js:185
+(anonymous) @ index-BYE2Z0wb.js:185
+Gm @ index-BYE2Z0wb.js:83
+rd @ index-BYE2Z0wb.js:185
+Ad @ index-BYE2Z0wb.js:194
+L1 @ index-BYE2Z0wb.js:194
+index-7gSKNydv.js:53 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-7gSKNydv.js:53 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24

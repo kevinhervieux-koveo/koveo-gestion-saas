@@ -1,0 +1,2131 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+bills-BK6IJdg9.js:11 🏠 [BILLS PAGE] Initializing with: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+bills-BK6IJdg9.js:11 📊 [BILLS PAGE] Fetching bills with URL: /api/bills?buildingId=c3052c3c-b694-41a6-bd65-3bc3ae9a5984&year=2025
+bills-BK6IJdg9.js:11 📊 [BILLS PAGE] Applied filters: {category: '', year: '2025', months: Array(0), paymentType: '', status: '', …}
+bills-BK6IJdg9.js:11 🔄 [BILLS PAGE] Filters changed: {category: '', year: '2025', months: Array(0), paymentType: '', status: '', …}
+bills-BK6IJdg9.js:11 🏗️ [BILLS PAGE] Building ID changed: c3052c3c-b694-41a6-bd65-3bc3ae9a5984
+bills-BK6IJdg9.js:11 📋 [BILLS PAGE] Bills data updated: {count: 0, billTypes: Array(0)}
+bills-BK6IJdg9.js:11 ⏳ [BILLS PAGE] Loading bills...
+bills-BK6IJdg9.js:11 📊 [BILLS PAGE] Bills API response status: 200
+bills-BK6IJdg9.js:11 🏠 [BILLS PAGE] Initializing with: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+bills-BK6IJdg9.js:11 📋 [BILLS PAGE] Bills data updated: {count: 0, billTypes: Array(0)}
+bills-BK6IJdg9.js:11 ✅ [BILLS PAGE] Bills data received: (25) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+bills-BK6IJdg9.js:11 🏠 [BILLS PAGE] Initializing with: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '6a557259-f129-4c3c-a9e5-be2feb337611', title: 'Insurance - Aviva Canada', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '724ce997-e717-4600-97f2-ac8a118cc503', title: 'Insurance - Desjardins Assurances', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'c34e1fc8-8c83-4757-b310-fce443f9d498', title: 'Insurance - Quebec Insurance Co.', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '3f642c68-6c6c-46c6-972b-9b6546a1f22e', title: 'Maintenance - Total Maintenance Solutions', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'f16ff08b-1351-4d86-97e7-425f9e4b921a', title: 'Maintenance - Reliable Building Care', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '4837583d-bb35-4b7f-8fed-24ed5543327d', title: 'Maintenance - Reliable Building Care', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '2e3b4057-e126-4524-8aca-1bfdf49b8e55', title: 'Utilities - Videotron', status: 'draft', paymentType: 'recurrent', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'e1786f7f-e557-4a46-bc3a-12cb288d830a', title: 'Cleaning - CleanMaster Services', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'f7c3ab86-5211-4ffb-9a42-b00a1684bd05', title: 'Cleaning - Nettoyage Excellence', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'd4648ed2-595d-4066-9de4-5ce11bda1220', title: 'Cleaning - Nettoyage Excellence', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '5fc14764-935c-46ba-87e0-78b8b2dc9ece', title: 'Security - Paladin Security', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '827a8c80-bd40-4f77-9331-35a983ce1dd4', title: 'Security - GardaWorld', status: 'sent', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '96e96304-505b-4977-b824-7ccbeb50fdfa', title: 'Landscaping - Jardins Excellence', status: 'sent', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '1962b611-42a8-4488-895e-9a9f945e2e31', title: 'Landscaping - Entretien Paysager Plus', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '34ed793e-9187-4023-8ad6-4319d9c88fd2', title: 'Professional services - Gestion Immobilière Québec', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '68997115-4180-4b37-aef5-c43bdb9355a7', title: 'Professional services - Gestion Immobilière Québec', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '3aa40a7c-0117-4b46-b6d9-ae20ccbc8609', title: 'Administration - Administration Excellence', status: 'sent', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '906f5fbd-0a03-4453-acb7-2eeb10a4b86e', title: 'Concrete slab lifting', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'b938e8bc-9b08-4c80-9d2c-529a7c02b6d1', title: 'Concrete slab lifting', status: 'draft', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'a6035b2e-a29d-4700-917b-05eaf6c1c303', title: 'Repairs - Service de Réparation Plus', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '01b9c40a-1208-4780-906f-cdc96af06829', title: 'Supplies - Équipements & Fournitures', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '2e5f822b-3732-4980-90f6-be5439be0ba1', title: 'Supplies - Fournitures Industrielles', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '444c3d5c-c56d-4b40-a275-4fa7d0737a17', title: 'Supplies - Équipements & Fournitures', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '56dbc01d-895a-4885-80ef-ea50b35d7886', title: 'Supplies - Équipements & Fournitures', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '70ac5961-bd70-40b6-9878-cf6541bc3e07', title: 'Supplies - Matériaux Plus', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 📋 [BILLS PAGE] Bills data updated: {count: 25, billTypes: Array(25)}
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+bills-BK6IJdg9.js:11 🏠 [BILLS PAGE] Initializing with: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '6a557259-f129-4c3c-a9e5-be2feb337611', title: 'Insurance - Aviva Canada', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '724ce997-e717-4600-97f2-ac8a118cc503', title: 'Insurance - Desjardins Assurances', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'c34e1fc8-8c83-4757-b310-fce443f9d498', title: 'Insurance - Quebec Insurance Co.', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '3f642c68-6c6c-46c6-972b-9b6546a1f22e', title: 'Maintenance - Total Maintenance Solutions', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'f16ff08b-1351-4d86-97e7-425f9e4b921a', title: 'Maintenance - Reliable Building Care', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '4837583d-bb35-4b7f-8fed-24ed5543327d', title: 'Maintenance - Reliable Building Care', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '2e3b4057-e126-4524-8aca-1bfdf49b8e55', title: 'Utilities - Videotron', status: 'draft', paymentType: 'recurrent', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'e1786f7f-e557-4a46-bc3a-12cb288d830a', title: 'Cleaning - CleanMaster Services', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'f7c3ab86-5211-4ffb-9a42-b00a1684bd05', title: 'Cleaning - Nettoyage Excellence', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'd4648ed2-595d-4066-9de4-5ce11bda1220', title: 'Cleaning - Nettoyage Excellence', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '5fc14764-935c-46ba-87e0-78b8b2dc9ece', title: 'Security - Paladin Security', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '827a8c80-bd40-4f77-9331-35a983ce1dd4', title: 'Security - GardaWorld', status: 'sent', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '96e96304-505b-4977-b824-7ccbeb50fdfa', title: 'Landscaping - Jardins Excellence', status: 'sent', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '1962b611-42a8-4488-895e-9a9f945e2e31', title: 'Landscaping - Entretien Paysager Plus', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '34ed793e-9187-4023-8ad6-4319d9c88fd2', title: 'Professional services - Gestion Immobilière Québec', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '68997115-4180-4b37-aef5-c43bdb9355a7', title: 'Professional services - Gestion Immobilière Québec', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '3aa40a7c-0117-4b46-b6d9-ae20ccbc8609', title: 'Administration - Administration Excellence', status: 'sent', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '906f5fbd-0a03-4453-acb7-2eeb10a4b86e', title: 'Concrete slab lifting', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'b938e8bc-9b08-4c80-9d2c-529a7c02b6d1', title: 'Concrete slab lifting', status: 'draft', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'a6035b2e-a29d-4700-917b-05eaf6c1c303', title: 'Repairs - Service de Réparation Plus', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '01b9c40a-1208-4780-906f-cdc96af06829', title: 'Supplies - Équipements & Fournitures', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '2e5f822b-3732-4980-90f6-be5439be0ba1', title: 'Supplies - Fournitures Industrielles', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '444c3d5c-c56d-4b40-a275-4fa7d0737a17', title: 'Supplies - Équipements & Fournitures', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '56dbc01d-895a-4885-80ef-ea50b35d7886', title: 'Supplies - Équipements & Fournitures', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '70ac5961-bd70-40b6-9878-cf6541bc3e07', title: 'Supplies - Matériaux Plus', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🏠 [BILLS PAGE] Initializing with: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+bills-BK6IJdg9.js:11 📊 [BILLS PAGE] Fetching bills with URL: /api/bills?buildingId=c3052c3c-b694-41a6-bd65-3bc3ae9a5984&year=2026
+bills-BK6IJdg9.js:11 📊 [BILLS PAGE] Applied filters: {category: '', year: '2026', months: Array(0), paymentType: '', status: '', …}
+bills-BK6IJdg9.js:11 🔄 [BILLS PAGE] Filters changed: {category: '', year: '2026', months: Array(0), paymentType: '', status: '', …}
+bills-BK6IJdg9.js:11 📋 [BILLS PAGE] Bills data updated: {count: 0, billTypes: Array(0)}
+bills-BK6IJdg9.js:11 ⏳ [BILLS PAGE] Loading bills...
+bills-BK6IJdg9.js:11 📊 [BILLS PAGE] Bills API response status: 200
+bills-BK6IJdg9.js:11 ✅ [BILLS PAGE] Bills data received: (51) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+bills-BK6IJdg9.js:11 🏠 [BILLS PAGE] Initializing with: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '9a384fc6-73e4-4075-bd8b-56b6a0dca313', title: 'Insurance (2) - Beer, Kemmer and Barton (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'a0e4f584-1327-4a68-ab4e-7f514dbee09f', title: 'Insurance (1) - Ullrich, Prohaska and Bogan (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '2c416c9d-c719-4ad3-b1b9-c4712134ebd3', title: 'Insurance  - Stracke Inc (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '02fa290d-bd8c-43ec-9251-da8ff179e238', title: 'Insurance  - Marvin and Sons (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'a3bd5fb0-ad62-4198-af35-cb18551aa279', title: 'Insurance (2) - Halvorson Group (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'bb584149-13c1-4564-a725-caf4ba97aedd', title: 'Maintenance  - Collins - McDermott (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '7802eb87-d8d1-457a-ad0a-1de5efe6fcde', title: 'Maintenance  - Kub LLC (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'db8d0729-c030-4678-830f-43523f8e92a3', title: 'Utilities - Videotron (Auto-Generated)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '25a4e53c-eb37-412d-8008-095015864720', title: 'Utilities (1) - Moore - Glover (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '2743efac-980e-4e1f-b1cb-c6128a1f74fb', title: 'Utilities (2) - Crona, Lockman and Monahan (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '434961e4-e061-485a-be80-c0093c25c5fd', title: 'Utilities  - Hackett - Farrell (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '104273dc-36f6-4d0d-b4f3-fe43a00d5f65', title: 'Cleaning  - Yost, McCullough and Hessel (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '2264711e-4323-49e7-bfaf-ab399cc08abb', title: 'Cleaning (1) - McClure - Smith (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'e0c1183a-e298-4099-8cf6-a838ef32016b', title: 'Cleaning (1) - Lakin - Skiles (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '09378a7f-2ce6-4e50-ae0f-c00a2b9e0bfb', title: 'Cleaning (1) - Carroll Inc (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '3a85b746-334c-422a-889c-622ee7c13eed', title: 'Cleaning (2) - Conn and Sons (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '7444f8b1-115c-4b4a-b636-50eff5318b5e', title: 'Cleaning  - Schuppe LLC (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '4a2a63b3-f686-4e73-ad52-2d9afd3ecb7f', title: 'Cleaning  - Beahan - Rau (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'a7829e11-1076-4da6-bcb2-bd44d931ec1e', title: 'Security  - Prohaska LLC (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'b44b9c85-650a-499d-b653-59f3a7fe8d10', title: 'Security (2) - Collier Group (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '84be2dd1-3d14-4c66-8b0c-95c1da8151b9', title: 'Security  - Spinka LLC (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'f85df610-751a-41b1-bae6-5b8c7485eee1', title: 'Security (2) - Medhurst, Bode and Kulas (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'f1c69fa2-6d56-4c49-9f00-9b769cbc5da2', title: 'Security (2) - Wyman LLC (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'aed3156f-3d3f-45fe-9962-912dab68cfe2', title: "Landscaping  - Harris, O'Hara and Oberbrunner (Auto-Generated 2026)", status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '1646226b-67cd-4dce-84d8-6982d830df0c', title: 'Landscaping (1) - Hand LLC (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'b86b5efb-d8df-4e61-865c-fa34c185147c', title: 'Landscaping (1) - Bauch - Swaniawski (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '34db74fa-b816-4adf-85a9-3d28ffad1a30', title: 'Landscaping (1) - Rempel - Thiel (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'a40dd640-fcc6-4491-b5a5-e80b82a86f0b', title: 'Landscaping  - Goodwin Group (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'e2b97049-d8a9-4ebc-ae8e-b7564bb7bc4c', title: 'Landscaping (2) - Romaguera and Sons (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '09a74ec5-0b7c-47a6-9e79-d30804bbd707', title: "Landscaping  - O'Kon LLC (Auto-Generated 2026)", status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '34385151-831e-4419-b77f-49367c7c17bd', title: 'Professional_services  - Kuhlman, Wuckert and Klein (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'b8580e7d-a171-4f15-b157-5b6a062db6ee', title: 'Professional_services  - Witting Group (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '10923e07-ab0d-4b65-9fca-15b717e21897', title: 'Professional_services  - Yost, Hintz and Rohan (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'fbafaf89-4fee-4d96-8c80-490d6dbe69fa', title: 'Professional_services  - Ondricka, Price and Okuneva (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'e6068eb0-b7e9-42b2-bea8-dfcc95e4b96b', title: 'Professional_services (1) - Koelpin and Sons (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '578c0d01-79a6-4226-87ff-a2c9a2ff1b3c', title: "Professional_services  - Muller, Mann and D'Amore (Auto-Generated 2026)", status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '5690b816-4e30-4e28-8d1d-a2592bc64575', title: 'Professional_services (2) - Hodkiewicz - Pouros (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '73b0bb9c-6ba2-4579-8292-9abc52764821', title: 'Administration (2) - Reynolds Inc (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '9c63386c-484a-4a9a-b3dd-ba4868b68f44', title: 'Administration  - Durgan - Brown (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '6d8e8786-2a9c-4330-91c0-a6cd7c22fe58', title: 'Administration (1) - Bergnaum and Sons (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '54104a50-b37d-4ffe-a027-e39671d7f211', title: 'Administration (1) - Williamson Group (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'a9e6de33-1768-4241-8d20-404bc0dd6fc8', title: 'Administration (2) - Hackett Inc (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '4d5c31b6-19c7-44bf-b80e-f1cb3ef59756', title: 'Administration (2) - Rodriguez - Maggio (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '1f929a1a-bc2e-48a7-9c92-eb1515709112', title: 'Supplies (2) - Johns, Quigley and Welch (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'a4ddd3c6-599b-4c50-8743-388cb8c3527f', title: 'Supplies (1) - Ullrich - Robel (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'e50e4436-a2fa-4623-9458-d416559356b2', title: 'Supplies (1) - Hamill and Sons (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'a3656b82-9ab1-46e3-8105-9c6d041b0a3b', title: 'Supplies (1) - Emmerich - Yundt (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '932a8fa2-c4ed-4316-a188-fee358acab64', title: 'Supplies  - Mohr and Sons (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '6bde9563-b451-4196-bfcd-fd4add23daed', title: 'Supplies  - Fisher - Conn (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'ca126769-6486-4a2c-ae4b-ef95007d986b', title: 'Supplies (2) - Zulauf, Beahan and Kutch (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '87c02cd8-7398-4ba7-990f-bd118e3877c0', title: 'Supplies (2) - Schumm, Nicolas and Stokes (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 📋 [BILLS PAGE] Bills data updated: {count: 51, billTypes: Array(51)}
+bills-BK6IJdg9.js:11 🔄 [BILL CARD] Card clicked: {billId: '9a384fc6-73e4-4075-bd8b-56b6a0dca313', isAutoGenerated: true, currentExpanded: false}
+bills-BK6IJdg9.js:11 🤖 [BILL CARD] Auto-generated bill clicked
+bills-BK6IJdg9.js:11 🏠 [BILLS PAGE] Initializing with: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '9a384fc6-73e4-4075-bd8b-56b6a0dca313', title: 'Insurance (2) - Beer, Kemmer and Barton (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'a0e4f584-1327-4a68-ab4e-7f514dbee09f', title: 'Insurance (1) - Ullrich, Prohaska and Bogan (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '2c416c9d-c719-4ad3-b1b9-c4712134ebd3', title: 'Insurance  - Stracke Inc (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '02fa290d-bd8c-43ec-9251-da8ff179e238', title: 'Insurance  - Marvin and Sons (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'a3bd5fb0-ad62-4198-af35-cb18551aa279', title: 'Insurance (2) - Halvorson Group (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'bb584149-13c1-4564-a725-caf4ba97aedd', title: 'Maintenance  - Collins - McDermott (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '7802eb87-d8d1-457a-ad0a-1de5efe6fcde', title: 'Maintenance  - Kub LLC (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'db8d0729-c030-4678-830f-43523f8e92a3', title: 'Utilities - Videotron (Auto-Generated)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '25a4e53c-eb37-412d-8008-095015864720', title: 'Utilities (1) - Moore - Glover (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '2743efac-980e-4e1f-b1cb-c6128a1f74fb', title: 'Utilities (2) - Crona, Lockman and Monahan (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '434961e4-e061-485a-be80-c0093c25c5fd', title: 'Utilities  - Hackett - Farrell (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '104273dc-36f6-4d0d-b4f3-fe43a00d5f65', title: 'Cleaning  - Yost, McCullough and Hessel (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '2264711e-4323-49e7-bfaf-ab399cc08abb', title: 'Cleaning (1) - McClure - Smith (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'e0c1183a-e298-4099-8cf6-a838ef32016b', title: 'Cleaning (1) - Lakin - Skiles (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '09378a7f-2ce6-4e50-ae0f-c00a2b9e0bfb', title: 'Cleaning (1) - Carroll Inc (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '3a85b746-334c-422a-889c-622ee7c13eed', title: 'Cleaning (2) - Conn and Sons (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '7444f8b1-115c-4b4a-b636-50eff5318b5e', title: 'Cleaning  - Schuppe LLC (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '4a2a63b3-f686-4e73-ad52-2d9afd3ecb7f', title: 'Cleaning  - Beahan - Rau (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'a7829e11-1076-4da6-bcb2-bd44d931ec1e', title: 'Security  - Prohaska LLC (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'b44b9c85-650a-499d-b653-59f3a7fe8d10', title: 'Security (2) - Collier Group (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '84be2dd1-3d14-4c66-8b0c-95c1da8151b9', title: 'Security  - Spinka LLC (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'f85df610-751a-41b1-bae6-5b8c7485eee1', title: 'Security (2) - Medhurst, Bode and Kulas (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'f1c69fa2-6d56-4c49-9f00-9b769cbc5da2', title: 'Security (2) - Wyman LLC (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'aed3156f-3d3f-45fe-9962-912dab68cfe2', title: "Landscaping  - Harris, O'Hara and Oberbrunner (Auto-Generated 2026)", status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '1646226b-67cd-4dce-84d8-6982d830df0c', title: 'Landscaping (1) - Hand LLC (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'b86b5efb-d8df-4e61-865c-fa34c185147c', title: 'Landscaping (1) - Bauch - Swaniawski (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '34db74fa-b816-4adf-85a9-3d28ffad1a30', title: 'Landscaping (1) - Rempel - Thiel (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'a40dd640-fcc6-4491-b5a5-e80b82a86f0b', title: 'Landscaping  - Goodwin Group (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'e2b97049-d8a9-4ebc-ae8e-b7564bb7bc4c', title: 'Landscaping (2) - Romaguera and Sons (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '09a74ec5-0b7c-47a6-9e79-d30804bbd707', title: "Landscaping  - O'Kon LLC (Auto-Generated 2026)", status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '34385151-831e-4419-b77f-49367c7c17bd', title: 'Professional_services  - Kuhlman, Wuckert and Klein (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'b8580e7d-a171-4f15-b157-5b6a062db6ee', title: 'Professional_services  - Witting Group (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '10923e07-ab0d-4b65-9fca-15b717e21897', title: 'Professional_services  - Yost, Hintz and Rohan (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'fbafaf89-4fee-4d96-8c80-490d6dbe69fa', title: 'Professional_services  - Ondricka, Price and Okuneva (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'e6068eb0-b7e9-42b2-bea8-dfcc95e4b96b', title: 'Professional_services (1) - Koelpin and Sons (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '578c0d01-79a6-4226-87ff-a2c9a2ff1b3c', title: "Professional_services  - Muller, Mann and D'Amore (Auto-Generated 2026)", status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '5690b816-4e30-4e28-8d1d-a2592bc64575', title: 'Professional_services (2) - Hodkiewicz - Pouros (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '73b0bb9c-6ba2-4579-8292-9abc52764821', title: 'Administration (2) - Reynolds Inc (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '9c63386c-484a-4a9a-b3dd-ba4868b68f44', title: 'Administration  - Durgan - Brown (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '6d8e8786-2a9c-4330-91c0-a6cd7c22fe58', title: 'Administration (1) - Bergnaum and Sons (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '54104a50-b37d-4ffe-a027-e39671d7f211', title: 'Administration (1) - Williamson Group (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'a9e6de33-1768-4241-8d20-404bc0dd6fc8', title: 'Administration (2) - Hackett Inc (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '4d5c31b6-19c7-44bf-b80e-f1cb3ef59756', title: 'Administration (2) - Rodriguez - Maggio (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '1f929a1a-bc2e-48a7-9c92-eb1515709112', title: 'Supplies (2) - Johns, Quigley and Welch (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'a4ddd3c6-599b-4c50-8743-388cb8c3527f', title: 'Supplies (1) - Ullrich - Robel (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'e50e4436-a2fa-4623-9458-d416559356b2', title: 'Supplies (1) - Hamill and Sons (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'a3656b82-9ab1-46e3-8105-9c6d041b0a3b', title: 'Supplies (1) - Emmerich - Yundt (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '932a8fa2-c4ed-4316-a188-fee358acab64', title: 'Supplies  - Mohr and Sons (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '6bde9563-b451-4196-bfcd-fd4add23daed', title: 'Supplies  - Fisher - Conn (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'ca126769-6486-4a2c-ae4b-ef95007d986b', title: 'Supplies (2) - Zulauf, Beahan and Kutch (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '87c02cd8-7398-4ba7-990f-bd118e3877c0', title: 'Supplies (2) - Schumm, Nicolas and Stokes (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+vendor-ui-Cf-P0Vop.js:58 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+overrideMethod @ hook.js:608
+(anonymous) @ vendor-ui-Cf-P0Vop.js:58
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+q @ index-BLJJlL54.js:45
+sl @ index-BLJJlL54.js:150
+Ah @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+ig @ index-BLJJlL54.js:163
+dl @ index-BLJJlL54.js:163
+ag @ index-BLJJlL54.js:163
+ed @ index-BLJJlL54.js:163
+Xh @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+mg @ index-BLJJlL54.js:185
+ml @ index-BLJJlL54.js:185
+ad @ index-BLJJlL54.js:185
+(anonymous) @ index-BLJJlL54.js:185
+<jd>
+Je.jsx @ vendor-ui-Cf-P0Vop.js:14
+(anonymous) @ vendor-ui-Cf-P0Vop.js:54
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+oc @ index-BLJJlL54.js:120
+sh @ index-BLJJlL54.js:141
+Pc @ index-BLJJlL54.js:150
+q @ index-BLJJlL54.js:45
+Kh @ index-BLJJlL54.js:163
+Jh @ index-BLJJlL54.js:163
+Wc @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+mg @ index-BLJJlL54.js:185
+ml @ index-BLJJlL54.js:185
+ad @ index-BLJJlL54.js:185
+(anonymous) @ index-BLJJlL54.js:185
+<ForwardRef>
+Je.jsx @ vendor-ui-Cf-P0Vop.js:14
+(anonymous) @ vendor-ui-Cf-P0Vop.js:54
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+oc @ index-BLJJlL54.js:120
+sh @ index-BLJJlL54.js:141
+Pc @ index-BLJJlL54.js:150
+q @ index-BLJJlL54.js:45
+Kh @ index-BLJJlL54.js:163
+Jh @ index-BLJJlL54.js:163
+Wc @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+mg @ index-BLJJlL54.js:185
+ml @ index-BLJJlL54.js:185
+ad @ index-BLJJlL54.js:185
+(anonymous) @ index-BLJJlL54.js:185
+<ForwardRef>
+Je.jsx @ vendor-ui-Cf-P0Vop.js:14
+DialogContent @ vendor-ui-Cf-P0Vop.js:54
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+oc @ index-BLJJlL54.js:120
+sh @ index-BLJJlL54.js:141
+Pc @ index-BLJJlL54.js:150
+q @ index-BLJJlL54.js:45
+Kh @ index-BLJJlL54.js:163
+Jh @ index-BLJJlL54.js:163
+Wc @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+mg @ index-BLJJlL54.js:185
+ml @ index-BLJJlL54.js:185
+ad @ index-BLJJlL54.js:185
+(anonymous) @ index-BLJJlL54.js:185
+<DialogContent>
+du.jsxDEV @ index-BLJJlL54.js:15
+DialogContent @ dialog-1ita4bFp.js:1
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+oc @ index-BLJJlL54.js:120
+sh @ index-BLJJlL54.js:141
+Pc @ index-BLJJlL54.js:150
+q @ index-BLJJlL54.js:45
+Kh @ index-BLJJlL54.js:163
+Jh @ index-BLJJlL54.js:163
+Wc @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+mg @ index-BLJJlL54.js:185
+ml @ index-BLJJlL54.js:185
+ad @ index-BLJJlL54.js:185
+(anonymous) @ index-BLJJlL54.js:185
+<DialogContent>
+du.jsxDEV @ index-BLJJlL54.js:15
+wr @ bills-BK6IJdg9.js:11
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+oc @ index-BLJJlL54.js:120
+kc @ index-BLJJlL54.js:141
+Pc @ index-BLJJlL54.js:150
+q @ index-BLJJlL54.js:45
+Kh @ index-BLJJlL54.js:163
+Jh @ index-BLJJlL54.js:163
+Wc @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+mg @ index-BLJJlL54.js:185
+ml @ index-BLJJlL54.js:185
+ad @ index-BLJJlL54.js:185
+(anonymous) @ index-BLJJlL54.js:185
+index-BLJJlL54.js:185 [Violation] 'click' handler took 235ms
+index-BLJJlL54.js:360  GET https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/auth/user 502 (Bad Gateway)
+queryFn @ index-BLJJlL54.js:360
+r @ vendor-query-CuSZDQ0U.js:1
+y @ vendor-query-CuSZDQ0U.js:1
+start @ vendor-query-CuSZDQ0U.js:1
+fetch @ vendor-query-CuSZDQ0U.js:1
+#l @ vendor-query-CuSZDQ0U.js:1
+fetch @ vendor-query-CuSZDQ0U.js:1
+refetch @ vendor-query-CuSZDQ0U.js:1
+onFocus @ vendor-query-CuSZDQ0U.js:1
+(anonymous) @ vendor-query-CuSZDQ0U.js:1
+(anonymous) @ vendor-query-CuSZDQ0U.js:1
+batch @ vendor-query-CuSZDQ0U.js:1
+onFocus @ vendor-query-CuSZDQ0U.js:1
+(anonymous) @ vendor-query-CuSZDQ0U.js:1
+await in (anonymous)
+(anonymous) @ vendor-query-CuSZDQ0U.js:1
+onFocus @ vendor-query-CuSZDQ0U.js:1
+(anonymous) @ vendor-query-CuSZDQ0U.js:1
+e @ vendor-query-CuSZDQ0U.js:1
+bills-BK6IJdg9.js:11 🏠 [BILLS PAGE] Initializing with: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+bills-BK6IJdg9.js:11 📊 [BILLS PAGE] Fetching bills with URL: /api/bills?buildingId=c3052c3c-b694-41a6-bd65-3bc3ae9a5984&year=2025
+bills-BK6IJdg9.js:11 📊 [BILLS PAGE] Applied filters: {category: '', year: '2025', months: Array(0), paymentType: '', status: '', …}
+bills-BK6IJdg9.js:11 🔄 [BILLS PAGE] Filters changed: {category: '', year: '2025', months: Array(0), paymentType: '', status: '', …}
+bills-BK6IJdg9.js:11 🏗️ [BILLS PAGE] Building ID changed: c3052c3c-b694-41a6-bd65-3bc3ae9a5984
+bills-BK6IJdg9.js:11 📋 [BILLS PAGE] Bills data updated: {count: 0, billTypes: Array(0)}
+bills-BK6IJdg9.js:11 ⏳ [BILLS PAGE] Loading bills...
+index-BLJJlL54.js:186  GET https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/assets/koveo-logo-FasO0tcB.jpg 502 (Bad Gateway)
+Ee @ index-BLJJlL54.js:186
+st @ index-BLJJlL54.js:186
+HS @ index-BLJJlL54.js:150
+q @ index-BLJJlL54.js:45
+ir @ index-BLJJlL54.js:163
+Kh @ index-BLJJlL54.js:163
+Jh @ index-BLJJlL54.js:163
+Wc @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+fg @ index-BLJJlL54.js:185
+d @ index-BLJJlL54.js:23
+<img>
+du.jsxDEV @ index-BLJJlL54.js:15
+a0 @ index-BLJJlL54.js:364
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+oc @ index-BLJJlL54.js:120
+kc @ index-BLJJlL54.js:141
+Pc @ index-BLJJlL54.js:150
+q @ index-BLJJlL54.js:45
+Kh @ index-BLJJlL54.js:163
+Jh @ index-BLJJlL54.js:163
+Wc @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+fg @ index-BLJJlL54.js:185
+d @ index-BLJJlL54.js:23
+<a0>
+du.jsxDEV @ index-BLJJlL54.js:15
+PR @ index-BLJJlL54.js:364
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+oc @ index-BLJJlL54.js:120
+kc @ index-BLJJlL54.js:141
+Pc @ index-BLJJlL54.js:150
+q @ index-BLJJlL54.js:45
+Kh @ index-BLJJlL54.js:163
+Jh @ index-BLJJlL54.js:163
+Wc @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+fg @ index-BLJJlL54.js:185
+d @ index-BLJJlL54.js:23
+index-BLJJlL54.js:360  GET https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/users/me/buildings?has_common_spaces=true 502 (Bad Gateway)
+queryFn @ index-BLJJlL54.js:360
+r @ vendor-query-CuSZDQ0U.js:1
+y @ vendor-query-CuSZDQ0U.js:1
+start @ vendor-query-CuSZDQ0U.js:1
+fetch @ vendor-query-CuSZDQ0U.js:1
+#l @ vendor-query-CuSZDQ0U.js:1
+onSubscribe @ vendor-query-CuSZDQ0U.js:1
+subscribe @ vendor-query-CuSZDQ0U.js:1
+(anonymous) @ vendor-query-CuSZDQ0U.js:1
+Np @ index-BLJJlL54.js:120
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+q @ index-BLJJlL54.js:45
+sl @ index-BLJJlL54.js:150
+Ah @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+ig @ index-BLJJlL54.js:163
+dl @ index-BLJJlL54.js:163
+mg @ index-BLJJlL54.js:185
+ml @ index-BLJJlL54.js:185
+ag @ index-BLJJlL54.js:163
+ed @ index-BLJJlL54.js:163
+Xh @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+fg @ index-BLJJlL54.js:185
+d @ index-BLJJlL54.js:23
+<a0>
+du.jsxDEV @ index-BLJJlL54.js:15
+PR @ index-BLJJlL54.js:364
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+oc @ index-BLJJlL54.js:120
+kc @ index-BLJJlL54.js:141
+Pc @ index-BLJJlL54.js:150
+q @ index-BLJJlL54.js:45
+Kh @ index-BLJJlL54.js:163
+Jh @ index-BLJJlL54.js:163
+Wc @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+fg @ index-BLJJlL54.js:185
+d @ index-BLJJlL54.js:23
+bills-BK6IJdg9.js:11  GET https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/bills/year-range?buildingId=c3052c3c-b694-41a6-bd65-3bc3ae9a5984 502 (Bad Gateway)
+queryFn @ bills-BK6IJdg9.js:11
+r @ vendor-query-CuSZDQ0U.js:1
+y @ vendor-query-CuSZDQ0U.js:1
+start @ vendor-query-CuSZDQ0U.js:1
+fetch @ vendor-query-CuSZDQ0U.js:1
+#l @ vendor-query-CuSZDQ0U.js:1
+onSubscribe @ vendor-query-CuSZDQ0U.js:1
+subscribe @ vendor-query-CuSZDQ0U.js:1
+(anonymous) @ vendor-query-CuSZDQ0U.js:1
+Np @ index-BLJJlL54.js:120
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+q @ index-BLJJlL54.js:45
+sl @ index-BLJJlL54.js:150
+Ah @ index-BLJJlL54.js:163
+Vh @ index-BLJJlL54.js:163
+Lo @ index-BLJJlL54.js:163
+Vh @ index-BLJJlL54.js:163
+Lo @ index-BLJJlL54.js:163
+Vh @ index-BLJJlL54.js:163
+Lo @ index-BLJJlL54.js:163
+Vh @ index-BLJJlL54.js:163
+Lo @ index-BLJJlL54.js:163
+Vh @ index-BLJJlL54.js:163
+Lo @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+ig @ index-BLJJlL54.js:163
+dl @ index-BLJJlL54.js:163
+mg @ index-BLJJlL54.js:185
+ml @ index-BLJJlL54.js:185
+ag @ index-BLJJlL54.js:163
+ed @ index-BLJJlL54.js:163
+Xh @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+fg @ index-BLJJlL54.js:185
+d @ index-BLJJlL54.js:23
+<vr>
+du.jsxDEV @ index-BLJJlL54.js:15
+(anonymous) @ withHierarchicalSelection-BTm_IklP.js:1
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+oc @ index-BLJJlL54.js:120
+kc @ index-BLJJlL54.js:141
+Pc @ index-BLJJlL54.js:150
+q @ index-BLJJlL54.js:45
+Kh @ index-BLJJlL54.js:163
+Jh @ index-BLJJlL54.js:163
+Wc @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+fg @ index-BLJJlL54.js:185
+d @ index-BLJJlL54.js:23
+<...>
+du.jsxDEV @ index-BLJJlL54.js:15
+children @ index-BLJJlL54.js:364
+Pb @ index-BLJJlL54.js:240
+P @ index-BLJJlL54.js:240
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+oc @ index-BLJJlL54.js:120
+kc @ index-BLJJlL54.js:141
+Pc @ index-BLJJlL54.js:150
+q @ index-BLJJlL54.js:45
+Kh @ index-BLJJlL54.js:163
+Jh @ index-BLJJlL54.js:163
+Wc @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+fg @ index-BLJJlL54.js:185
+d @ index-BLJJlL54.js:23
+<P>
+du.jsxDEV @ index-BLJJlL54.js:15
+PR @ index-BLJJlL54.js:364
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+oc @ index-BLJJlL54.js:120
+kc @ index-BLJJlL54.js:141
+Pc @ index-BLJJlL54.js:150
+q @ index-BLJJlL54.js:45
+Kh @ index-BLJJlL54.js:163
+Jh @ index-BLJJlL54.js:163
+Wc @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+fg @ index-BLJJlL54.js:185
+d @ index-BLJJlL54.js:23
+bills-BK6IJdg9.js:11  GET https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/bills?buildingId=c3052c3c-b694-41a6-bd65-3bc3ae9a5984&year=2025 502 (Bad Gateway)
+queryFn @ bills-BK6IJdg9.js:11
+r @ vendor-query-CuSZDQ0U.js:1
+y @ vendor-query-CuSZDQ0U.js:1
+start @ vendor-query-CuSZDQ0U.js:1
+fetch @ vendor-query-CuSZDQ0U.js:1
+#l @ vendor-query-CuSZDQ0U.js:1
+onSubscribe @ vendor-query-CuSZDQ0U.js:1
+subscribe @ vendor-query-CuSZDQ0U.js:1
+(anonymous) @ vendor-query-CuSZDQ0U.js:1
+Np @ index-BLJJlL54.js:120
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+q @ index-BLJJlL54.js:45
+sl @ index-BLJJlL54.js:150
+Ah @ index-BLJJlL54.js:163
+Vh @ index-BLJJlL54.js:163
+Lo @ index-BLJJlL54.js:163
+Vh @ index-BLJJlL54.js:163
+Lo @ index-BLJJlL54.js:163
+Vh @ index-BLJJlL54.js:163
+Lo @ index-BLJJlL54.js:163
+Vh @ index-BLJJlL54.js:163
+Lo @ index-BLJJlL54.js:163
+Vh @ index-BLJJlL54.js:163
+Lo @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+ig @ index-BLJJlL54.js:163
+dl @ index-BLJJlL54.js:163
+mg @ index-BLJJlL54.js:185
+ml @ index-BLJJlL54.js:185
+ag @ index-BLJJlL54.js:163
+ed @ index-BLJJlL54.js:163
+Xh @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+fg @ index-BLJJlL54.js:185
+d @ index-BLJJlL54.js:23
+<vr>
+du.jsxDEV @ index-BLJJlL54.js:15
+(anonymous) @ withHierarchicalSelection-BTm_IklP.js:1
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+oc @ index-BLJJlL54.js:120
+kc @ index-BLJJlL54.js:141
+Pc @ index-BLJJlL54.js:150
+q @ index-BLJJlL54.js:45
+Kh @ index-BLJJlL54.js:163
+Jh @ index-BLJJlL54.js:163
+Wc @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+fg @ index-BLJJlL54.js:185
+d @ index-BLJJlL54.js:23
+<...>
+du.jsxDEV @ index-BLJJlL54.js:15
+children @ index-BLJJlL54.js:364
+Pb @ index-BLJJlL54.js:240
+P @ index-BLJJlL54.js:240
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+oc @ index-BLJJlL54.js:120
+kc @ index-BLJJlL54.js:141
+Pc @ index-BLJJlL54.js:150
+q @ index-BLJJlL54.js:45
+Kh @ index-BLJJlL54.js:163
+Jh @ index-BLJJlL54.js:163
+Wc @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+fg @ index-BLJJlL54.js:185
+d @ index-BLJJlL54.js:23
+<P>
+du.jsxDEV @ index-BLJJlL54.js:15
+PR @ index-BLJJlL54.js:364
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+oc @ index-BLJJlL54.js:120
+kc @ index-BLJJlL54.js:141
+Pc @ index-BLJJlL54.js:150
+q @ index-BLJJlL54.js:45
+Kh @ index-BLJJlL54.js:163
+Jh @ index-BLJJlL54.js:163
+Wc @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+fg @ index-BLJJlL54.js:185
+d @ index-BLJJlL54.js:23
+bills-BK6IJdg9.js:11 📊 [BILLS PAGE] Bills API response status: 502
+bills-BK6IJdg9.js:11 ❌ [BILLS PAGE] Failed to fetch bills: 502 Bad Gateway
+overrideMethod @ hook.js:608
+queryFn @ bills-BK6IJdg9.js:11
+await in queryFn
+r @ vendor-query-CuSZDQ0U.js:1
+y @ vendor-query-CuSZDQ0U.js:1
+start @ vendor-query-CuSZDQ0U.js:1
+fetch @ vendor-query-CuSZDQ0U.js:1
+#l @ vendor-query-CuSZDQ0U.js:1
+onSubscribe @ vendor-query-CuSZDQ0U.js:1
+subscribe @ vendor-query-CuSZDQ0U.js:1
+(anonymous) @ vendor-query-CuSZDQ0U.js:1
+Np @ index-BLJJlL54.js:120
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+q @ index-BLJJlL54.js:45
+sl @ index-BLJJlL54.js:150
+Ah @ index-BLJJlL54.js:163
+Vh @ index-BLJJlL54.js:163
+Lo @ index-BLJJlL54.js:163
+Vh @ index-BLJJlL54.js:163
+Lo @ index-BLJJlL54.js:163
+Vh @ index-BLJJlL54.js:163
+Lo @ index-BLJJlL54.js:163
+Vh @ index-BLJJlL54.js:163
+Lo @ index-BLJJlL54.js:163
+Vh @ index-BLJJlL54.js:163
+Lo @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+ig @ index-BLJJlL54.js:163
+dl @ index-BLJJlL54.js:163
+mg @ index-BLJJlL54.js:185
+ml @ index-BLJJlL54.js:185
+ag @ index-BLJJlL54.js:163
+ed @ index-BLJJlL54.js:163
+Xh @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+fg @ index-BLJJlL54.js:185
+d @ index-BLJJlL54.js:23
+<vr>
+du.jsxDEV @ index-BLJJlL54.js:15
+(anonymous) @ withHierarchicalSelection-BTm_IklP.js:1
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+oc @ index-BLJJlL54.js:120
+kc @ index-BLJJlL54.js:141
+Pc @ index-BLJJlL54.js:150
+q @ index-BLJJlL54.js:45
+Kh @ index-BLJJlL54.js:163
+Jh @ index-BLJJlL54.js:163
+Wc @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+fg @ index-BLJJlL54.js:185
+d @ index-BLJJlL54.js:23
+<...>
+du.jsxDEV @ index-BLJJlL54.js:15
+children @ index-BLJJlL54.js:364
+Pb @ index-BLJJlL54.js:240
+P @ index-BLJJlL54.js:240
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+oc @ index-BLJJlL54.js:120
+kc @ index-BLJJlL54.js:141
+Pc @ index-BLJJlL54.js:150
+q @ index-BLJJlL54.js:45
+Kh @ index-BLJJlL54.js:163
+Jh @ index-BLJJlL54.js:163
+Wc @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+fg @ index-BLJJlL54.js:185
+d @ index-BLJJlL54.js:23
+<P>
+du.jsxDEV @ index-BLJJlL54.js:15
+PR @ index-BLJJlL54.js:364
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+oc @ index-BLJJlL54.js:120
+kc @ index-BLJJlL54.js:141
+Pc @ index-BLJJlL54.js:150
+q @ index-BLJJlL54.js:45
+Kh @ index-BLJJlL54.js:163
+Jh @ index-BLJJlL54.js:163
+Wc @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+fg @ index-BLJJlL54.js:185
+d @ index-BLJJlL54.js:23
+withHierarchicalSelection-BTm_IklP.js:1  GET https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/organizations/e9bb7862-4ba5-4822-848f-f3692e826e73/buildings 502 (Bad Gateway)
+queryFn @ withHierarchicalSelection-BTm_IklP.js:1
+r @ vendor-query-CuSZDQ0U.js:1
+y @ vendor-query-CuSZDQ0U.js:1
+start @ vendor-query-CuSZDQ0U.js:1
+fetch @ vendor-query-CuSZDQ0U.js:1
+#l @ vendor-query-CuSZDQ0U.js:1
+onSubscribe @ vendor-query-CuSZDQ0U.js:1
+subscribe @ vendor-query-CuSZDQ0U.js:1
+(anonymous) @ vendor-query-CuSZDQ0U.js:1
+Np @ index-BLJJlL54.js:120
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+q @ index-BLJJlL54.js:45
+sl @ index-BLJJlL54.js:150
+Ah @ index-BLJJlL54.js:163
+Vh @ index-BLJJlL54.js:163
+Lo @ index-BLJJlL54.js:163
+Vh @ index-BLJJlL54.js:163
+Lo @ index-BLJJlL54.js:163
+Vh @ index-BLJJlL54.js:163
+Lo @ index-BLJJlL54.js:163
+Vh @ index-BLJJlL54.js:163
+Lo @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+ig @ index-BLJJlL54.js:163
+dl @ index-BLJJlL54.js:163
+mg @ index-BLJJlL54.js:185
+ml @ index-BLJJlL54.js:185
+ag @ index-BLJJlL54.js:163
+ed @ index-BLJJlL54.js:163
+Xh @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+fg @ index-BLJJlL54.js:185
+d @ index-BLJJlL54.js:23
+<...>
+du.jsxDEV @ index-BLJJlL54.js:15
+children @ index-BLJJlL54.js:364
+Pb @ index-BLJJlL54.js:240
+P @ index-BLJJlL54.js:240
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+oc @ index-BLJJlL54.js:120
+kc @ index-BLJJlL54.js:141
+Pc @ index-BLJJlL54.js:150
+q @ index-BLJJlL54.js:45
+Kh @ index-BLJJlL54.js:163
+Jh @ index-BLJJlL54.js:163
+Wc @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+fg @ index-BLJJlL54.js:185
+d @ index-BLJJlL54.js:23
+<P>
+du.jsxDEV @ index-BLJJlL54.js:15
+PR @ index-BLJJlL54.js:364
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+oc @ index-BLJJlL54.js:120
+kc @ index-BLJJlL54.js:141
+Pc @ index-BLJJlL54.js:150
+q @ index-BLJJlL54.js:45
+Kh @ index-BLJJlL54.js:163
+Jh @ index-BLJJlL54.js:163
+Wc @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+fg @ index-BLJJlL54.js:185
+d @ index-BLJJlL54.js:23
+index-BLJJlL54.js:360 🔄 Redirecting to login due to authentication failure
+favicon.ico:1  GET https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/favicon.ico 502 (Bad Gateway)
+koveo-logo-FasO0tcB.jpg:1  GET https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/assets/koveo-logo-FasO0tcB.jpg 502 (Bad Gateway)
+Image
+Ee @ index-BLJJlL54.js:186
+st @ index-BLJJlL54.js:186
+HS @ index-BLJJlL54.js:150
+q @ index-BLJJlL54.js:45
+ir @ index-BLJJlL54.js:163
+Kh @ index-BLJJlL54.js:163
+JS @ index-BLJJlL54.js:163
+$S @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+fg @ index-BLJJlL54.js:185
+d @ index-BLJJlL54.js:23
+<img>
+du.jsxDEV @ index-BLJJlL54.js:15
+Ge @ login-DnRKNmKv.js:1
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+oc @ index-BLJJlL54.js:120
+kc @ index-BLJJlL54.js:141
+Pc @ index-BLJJlL54.js:150
+q @ index-BLJJlL54.js:45
+Kh @ index-BLJJlL54.js:163
+JS @ index-BLJJlL54.js:163
+$S @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+fg @ index-BLJJlL54.js:185
+d @ index-BLJJlL54.js:23
+<...>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Pb @ index-BLJJlL54.js:240
+P @ index-BLJJlL54.js:240
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+oc @ index-BLJJlL54.js:120
+kc @ index-BLJJlL54.js:141
+Pc @ index-BLJJlL54.js:150
+q @ index-BLJJlL54.js:45
+Kh @ index-BLJJlL54.js:163
+JS @ index-BLJJlL54.js:163
+$S @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+fg @ index-BLJJlL54.js:185
+d @ index-BLJJlL54.js:23
+<P>
+du.jsxDEV @ index-BLJJlL54.js:15
+PR @ index-BLJJlL54.js:364
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+oc @ index-BLJJlL54.js:120
+kc @ index-BLJJlL54.js:141
+Pc @ index-BLJJlL54.js:150
+q @ index-BLJJlL54.js:45
+Kh @ index-BLJJlL54.js:163
+Jh @ index-BLJJlL54.js:163
+Wc @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+mg @ index-BLJJlL54.js:185
+ml @ index-BLJJlL54.js:185
+ad @ index-BLJJlL54.js:185
+(anonymous) @ index-BLJJlL54.js:185
+koveo-logo-FasO0tcB.jpg:1  GET https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/assets/koveo-logo-FasO0tcB.jpg 502 (Bad Gateway)
+Image
+f1 @ index-BLJJlL54.js:186
+q @ index-BLJJlL54.js:45
+xh @ index-BLJJlL54.js:163
+Bh @ index-BLJJlL54.js:163
+In @ index-BLJJlL54.js:163
+Bh @ index-BLJJlL54.js:163
+In @ index-BLJJlL54.js:163
+Bh @ index-BLJJlL54.js:163
+In @ index-BLJJlL54.js:163
+Bh @ index-BLJJlL54.js:163
+In @ index-BLJJlL54.js:163
+Bh @ index-BLJJlL54.js:163
+In @ index-BLJJlL54.js:163
+Bh @ index-BLJJlL54.js:163
+In @ index-BLJJlL54.js:163
+Bh @ index-BLJJlL54.js:163
+In @ index-BLJJlL54.js:163
+Bh @ index-BLJJlL54.js:163
+In @ index-BLJJlL54.js:163
+Bh @ index-BLJJlL54.js:163
+In @ index-BLJJlL54.js:163
+Nh @ index-BLJJlL54.js:163
+Qn @ index-BLJJlL54.js:163
+Nh @ index-BLJJlL54.js:163
+Qn @ index-BLJJlL54.js:163
+Nh @ index-BLJJlL54.js:163
+Qn @ index-BLJJlL54.js:163
+Nh @ index-BLJJlL54.js:163
+Qn @ index-BLJJlL54.js:163
+Nh @ index-BLJJlL54.js:163
+Qn @ index-BLJJlL54.js:163
+Nh @ index-BLJJlL54.js:163
+Qn @ index-BLJJlL54.js:163
+Nh @ index-BLJJlL54.js:163
+Qn @ index-BLJJlL54.js:163
+Nh @ index-BLJJlL54.js:163
+Qn @ index-BLJJlL54.js:163
+Nh @ index-BLJJlL54.js:163
+Qn @ index-BLJJlL54.js:163
+Nh @ index-BLJJlL54.js:163
+Qn @ index-BLJJlL54.js:163
+Nh @ index-BLJJlL54.js:163
+Qn @ index-BLJJlL54.js:163
+Nh @ index-BLJJlL54.js:163
+Qn @ index-BLJJlL54.js:163
+Nh @ index-BLJJlL54.js:163
+Qn @ index-BLJJlL54.js:163
+Nh @ index-BLJJlL54.js:163
+Qn @ index-BLJJlL54.js:163
+Nh @ index-BLJJlL54.js:163
+Qn @ index-BLJJlL54.js:163
+Nh @ index-BLJJlL54.js:163
+Qn @ index-BLJJlL54.js:163
+Nh @ index-BLJJlL54.js:163
+ng @ index-BLJJlL54.js:163
+ed @ index-BLJJlL54.js:163
+Xh @ index-BLJJlL54.js:163
+<img>
+du.jsxDEV @ index-BLJJlL54.js:15
+Ge @ login-DnRKNmKv.js:1
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+oc @ index-BLJJlL54.js:120
+kc @ index-BLJJlL54.js:141
+Pc @ index-BLJJlL54.js:150
+q @ index-BLJJlL54.js:45
+Kh @ index-BLJJlL54.js:163
+JS @ index-BLJJlL54.js:163
+$S @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+fg @ index-BLJJlL54.js:185
+d @ index-BLJJlL54.js:23
+<...>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Pb @ index-BLJJlL54.js:240
+P @ index-BLJJlL54.js:240
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+oc @ index-BLJJlL54.js:120
+kc @ index-BLJJlL54.js:141
+Pc @ index-BLJJlL54.js:150
+q @ index-BLJJlL54.js:45
+Kh @ index-BLJJlL54.js:163
+JS @ index-BLJJlL54.js:163
+$S @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+fg @ index-BLJJlL54.js:185
+d @ index-BLJJlL54.js:23
+<P>
+du.jsxDEV @ index-BLJJlL54.js:15
+PR @ index-BLJJlL54.js:364
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+oc @ index-BLJJlL54.js:120
+kc @ index-BLJJlL54.js:141
+Pc @ index-BLJJlL54.js:150
+q @ index-BLJJlL54.js:45
+Kh @ index-BLJJlL54.js:163
+Jh @ index-BLJJlL54.js:163
+Wc @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+mg @ index-BLJJlL54.js:185
+ml @ index-BLJJlL54.js:185
+ad @ index-BLJJlL54.js:185
+(anonymous) @ index-BLJJlL54.js:185
+withHierarchicalSelection-BTm_IklP.js:1 🎯 [SELECTION GRID DEBUG] Button clicked: {itemId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', itemName: 'Demo 123'}
+withHierarchicalSelection-BTm_IklP.js:1 🎯 [SELECTION GRID DEBUG] Button clicked: {itemId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', itemName: '1936 Nitzsche Track Building 5'}
+bills-BK6IJdg9.js:11 🏠 [BILLS PAGE] Initializing with: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+bills-BK6IJdg9.js:11 📊 [BILLS PAGE] Fetching bills with URL: /api/bills?buildingId=c3052c3c-b694-41a6-bd65-3bc3ae9a5984&year=2025
+bills-BK6IJdg9.js:11 📊 [BILLS PAGE] Applied filters: {category: '', year: '2025', months: Array(0), paymentType: '', status: '', …}
+bills-BK6IJdg9.js:11 🔄 [BILLS PAGE] Filters changed: {category: '', year: '2025', months: Array(0), paymentType: '', status: '', …}
+bills-BK6IJdg9.js:11 🏗️ [BILLS PAGE] Building ID changed: c3052c3c-b694-41a6-bd65-3bc3ae9a5984
+bills-BK6IJdg9.js:11 📋 [BILLS PAGE] Bills data updated: {count: 0, billTypes: Array(0)}
+bills-BK6IJdg9.js:11 ⏳ [BILLS PAGE] Loading bills...
+bills-BK6IJdg9.js:11 📊 [BILLS PAGE] Bills API response status: 200
+bills-BK6IJdg9.js:11 ✅ [BILLS PAGE] Bills data received: (25) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+bills-BK6IJdg9.js:11 🏠 [BILLS PAGE] Initializing with: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '6a557259-f129-4c3c-a9e5-be2feb337611', title: 'Insurance - Aviva Canada', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '724ce997-e717-4600-97f2-ac8a118cc503', title: 'Insurance - Desjardins Assurances', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'c34e1fc8-8c83-4757-b310-fce443f9d498', title: 'Insurance - Quebec Insurance Co.', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '3f642c68-6c6c-46c6-972b-9b6546a1f22e', title: 'Maintenance - Total Maintenance Solutions', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'f16ff08b-1351-4d86-97e7-425f9e4b921a', title: 'Maintenance - Reliable Building Care', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '4837583d-bb35-4b7f-8fed-24ed5543327d', title: 'Maintenance - Reliable Building Care', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '2e3b4057-e126-4524-8aca-1bfdf49b8e55', title: 'Utilities - Videotron', status: 'draft', paymentType: 'recurrent', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'e1786f7f-e557-4a46-bc3a-12cb288d830a', title: 'Cleaning - CleanMaster Services', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'f7c3ab86-5211-4ffb-9a42-b00a1684bd05', title: 'Cleaning - Nettoyage Excellence', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'd4648ed2-595d-4066-9de4-5ce11bda1220', title: 'Cleaning - Nettoyage Excellence', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '5fc14764-935c-46ba-87e0-78b8b2dc9ece', title: 'Security - Paladin Security', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '827a8c80-bd40-4f77-9331-35a983ce1dd4', title: 'Security - GardaWorld', status: 'sent', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '96e96304-505b-4977-b824-7ccbeb50fdfa', title: 'Landscaping - Jardins Excellence', status: 'sent', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '1962b611-42a8-4488-895e-9a9f945e2e31', title: 'Landscaping - Entretien Paysager Plus', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '34ed793e-9187-4023-8ad6-4319d9c88fd2', title: 'Professional services - Gestion Immobilière Québec', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '68997115-4180-4b37-aef5-c43bdb9355a7', title: 'Professional services - Gestion Immobilière Québec', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '3aa40a7c-0117-4b46-b6d9-ae20ccbc8609', title: 'Administration - Administration Excellence', status: 'sent', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '906f5fbd-0a03-4453-acb7-2eeb10a4b86e', title: 'Concrete slab lifting', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'b938e8bc-9b08-4c80-9d2c-529a7c02b6d1', title: 'Concrete slab lifting', status: 'draft', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'a6035b2e-a29d-4700-917b-05eaf6c1c303', title: 'Repairs - Service de Réparation Plus', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '01b9c40a-1208-4780-906f-cdc96af06829', title: 'Supplies - Équipements & Fournitures', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '2e5f822b-3732-4980-90f6-be5439be0ba1', title: 'Supplies - Fournitures Industrielles', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '444c3d5c-c56d-4b40-a275-4fa7d0737a17', title: 'Supplies - Équipements & Fournitures', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '56dbc01d-895a-4885-80ef-ea50b35d7886', title: 'Supplies - Équipements & Fournitures', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '70ac5961-bd70-40b6-9878-cf6541bc3e07', title: 'Supplies - Matériaux Plus', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 📋 [BILLS PAGE] Bills data updated: {count: 25, billTypes: Array(25)}
+bills-BK6IJdg9.js:11 🏠 [BILLS PAGE] Initializing with: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '9a384fc6-73e4-4075-bd8b-56b6a0dca313', title: 'Insurance (2) - Beer, Kemmer and Barton (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'a0e4f584-1327-4a68-ab4e-7f514dbee09f', title: 'Insurance (1) - Ullrich, Prohaska and Bogan (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '2c416c9d-c719-4ad3-b1b9-c4712134ebd3', title: 'Insurance  - Stracke Inc (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '02fa290d-bd8c-43ec-9251-da8ff179e238', title: 'Insurance  - Marvin and Sons (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'a3bd5fb0-ad62-4198-af35-cb18551aa279', title: 'Insurance (2) - Halvorson Group (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'bb584149-13c1-4564-a725-caf4ba97aedd', title: 'Maintenance  - Collins - McDermott (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '7802eb87-d8d1-457a-ad0a-1de5efe6fcde', title: 'Maintenance  - Kub LLC (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'db8d0729-c030-4678-830f-43523f8e92a3', title: 'Utilities - Videotron (Auto-Generated)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '25a4e53c-eb37-412d-8008-095015864720', title: 'Utilities (1) - Moore - Glover (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '2743efac-980e-4e1f-b1cb-c6128a1f74fb', title: 'Utilities (2) - Crona, Lockman and Monahan (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '434961e4-e061-485a-be80-c0093c25c5fd', title: 'Utilities  - Hackett - Farrell (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '104273dc-36f6-4d0d-b4f3-fe43a00d5f65', title: 'Cleaning  - Yost, McCullough and Hessel (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '2264711e-4323-49e7-bfaf-ab399cc08abb', title: 'Cleaning (1) - McClure - Smith (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'e0c1183a-e298-4099-8cf6-a838ef32016b', title: 'Cleaning (1) - Lakin - Skiles (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '09378a7f-2ce6-4e50-ae0f-c00a2b9e0bfb', title: 'Cleaning (1) - Carroll Inc (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '3a85b746-334c-422a-889c-622ee7c13eed', title: 'Cleaning (2) - Conn and Sons (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '7444f8b1-115c-4b4a-b636-50eff5318b5e', title: 'Cleaning  - Schuppe LLC (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '4a2a63b3-f686-4e73-ad52-2d9afd3ecb7f', title: 'Cleaning  - Beahan - Rau (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'a7829e11-1076-4da6-bcb2-bd44d931ec1e', title: 'Security  - Prohaska LLC (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'b44b9c85-650a-499d-b653-59f3a7fe8d10', title: 'Security (2) - Collier Group (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '84be2dd1-3d14-4c66-8b0c-95c1da8151b9', title: 'Security  - Spinka LLC (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'f85df610-751a-41b1-bae6-5b8c7485eee1', title: 'Security (2) - Medhurst, Bode and Kulas (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'f1c69fa2-6d56-4c49-9f00-9b769cbc5da2', title: 'Security (2) - Wyman LLC (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'aed3156f-3d3f-45fe-9962-912dab68cfe2', title: "Landscaping  - Harris, O'Hara and Oberbrunner (Auto-Generated 2026)", status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '1646226b-67cd-4dce-84d8-6982d830df0c', title: 'Landscaping (1) - Hand LLC (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'b86b5efb-d8df-4e61-865c-fa34c185147c', title: 'Landscaping (1) - Bauch - Swaniawski (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '34db74fa-b816-4adf-85a9-3d28ffad1a30', title: 'Landscaping (1) - Rempel - Thiel (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'a40dd640-fcc6-4491-b5a5-e80b82a86f0b', title: 'Landscaping  - Goodwin Group (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'e2b97049-d8a9-4ebc-ae8e-b7564bb7bc4c', title: 'Landscaping (2) - Romaguera and Sons (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '09a74ec5-0b7c-47a6-9e79-d30804bbd707', title: "Landscaping  - O'Kon LLC (Auto-Generated 2026)", status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '34385151-831e-4419-b77f-49367c7c17bd', title: 'Professional_services  - Kuhlman, Wuckert and Klein (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'b8580e7d-a171-4f15-b157-5b6a062db6ee', title: 'Professional_services  - Witting Group (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '10923e07-ab0d-4b65-9fca-15b717e21897', title: 'Professional_services  - Yost, Hintz and Rohan (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'fbafaf89-4fee-4d96-8c80-490d6dbe69fa', title: 'Professional_services  - Ondricka, Price and Okuneva (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'e6068eb0-b7e9-42b2-bea8-dfcc95e4b96b', title: 'Professional_services (1) - Koelpin and Sons (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '578c0d01-79a6-4226-87ff-a2c9a2ff1b3c', title: "Professional_services  - Muller, Mann and D'Amore (Auto-Generated 2026)", status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '5690b816-4e30-4e28-8d1d-a2592bc64575', title: 'Professional_services (2) - Hodkiewicz - Pouros (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '73b0bb9c-6ba2-4579-8292-9abc52764821', title: 'Administration (2) - Reynolds Inc (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '9c63386c-484a-4a9a-b3dd-ba4868b68f44', title: 'Administration  - Durgan - Brown (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '6d8e8786-2a9c-4330-91c0-a6cd7c22fe58', title: 'Administration (1) - Bergnaum and Sons (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '54104a50-b37d-4ffe-a027-e39671d7f211', title: 'Administration (1) - Williamson Group (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'a9e6de33-1768-4241-8d20-404bc0dd6fc8', title: 'Administration (2) - Hackett Inc (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '4d5c31b6-19c7-44bf-b80e-f1cb3ef59756', title: 'Administration (2) - Rodriguez - Maggio (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '1f929a1a-bc2e-48a7-9c92-eb1515709112', title: 'Supplies (2) - Johns, Quigley and Welch (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'a4ddd3c6-599b-4c50-8743-388cb8c3527f', title: 'Supplies (1) - Ullrich - Robel (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'e50e4436-a2fa-4623-9458-d416559356b2', title: 'Supplies (1) - Hamill and Sons (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'a3656b82-9ab1-46e3-8105-9c6d041b0a3b', title: 'Supplies (1) - Emmerich - Yundt (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '932a8fa2-c4ed-4316-a188-fee358acab64', title: 'Supplies  - Mohr and Sons (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '6bde9563-b451-4196-bfcd-fd4add23daed', title: 'Supplies  - Fisher - Conn (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'ca126769-6486-4a2c-ae4b-ef95007d986b', title: 'Supplies (2) - Zulauf, Beahan and Kutch (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '87c02cd8-7398-4ba7-990f-bd118e3877c0', title: 'Supplies (2) - Schumm, Nicolas and Stokes (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 📊 [BILLS PAGE] Fetching bills with URL: /api/bills?buildingId=c3052c3c-b694-41a6-bd65-3bc3ae9a5984&year=2026
+bills-BK6IJdg9.js:11 📊 [BILLS PAGE] Applied filters: {category: '', year: '2026', months: Array(0), paymentType: '', status: '', …}
+bills-BK6IJdg9.js:11 🔄 [BILLS PAGE] Filters changed: {category: '', year: '2026', months: Array(0), paymentType: '', status: '', …}
+bills-BK6IJdg9.js:11 📋 [BILLS PAGE] Bills data updated: {count: 51, billTypes: Array(51)}
+index-BLJJlL54.js:185 [Violation] 'pointerup' handler took 203ms
+bills-BK6IJdg9.js:11 📊 [BILLS PAGE] Bills API response status: 200
+bills-BK6IJdg9.js:11 ✅ [BILLS PAGE] Bills data received: (51) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+bills-BK6IJdg9.js:11 🔄 [BILL CARD] Card clicked: {billId: '9a384fc6-73e4-4075-bd8b-56b6a0dca313', isAutoGenerated: true, currentExpanded: false}
+bills-BK6IJdg9.js:11 🤖 [BILL CARD] Auto-generated bill clicked
+bills-BK6IJdg9.js:11 🏠 [BILLS PAGE] Initializing with: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '9a384fc6-73e4-4075-bd8b-56b6a0dca313', title: 'Insurance (2) - Beer, Kemmer and Barton (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'a0e4f584-1327-4a68-ab4e-7f514dbee09f', title: 'Insurance (1) - Ullrich, Prohaska and Bogan (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '2c416c9d-c719-4ad3-b1b9-c4712134ebd3', title: 'Insurance  - Stracke Inc (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '02fa290d-bd8c-43ec-9251-da8ff179e238', title: 'Insurance  - Marvin and Sons (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'a3bd5fb0-ad62-4198-af35-cb18551aa279', title: 'Insurance (2) - Halvorson Group (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'bb584149-13c1-4564-a725-caf4ba97aedd', title: 'Maintenance  - Collins - McDermott (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '7802eb87-d8d1-457a-ad0a-1de5efe6fcde', title: 'Maintenance  - Kub LLC (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'db8d0729-c030-4678-830f-43523f8e92a3', title: 'Utilities - Videotron (Auto-Generated)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '25a4e53c-eb37-412d-8008-095015864720', title: 'Utilities (1) - Moore - Glover (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '2743efac-980e-4e1f-b1cb-c6128a1f74fb', title: 'Utilities (2) - Crona, Lockman and Monahan (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '434961e4-e061-485a-be80-c0093c25c5fd', title: 'Utilities  - Hackett - Farrell (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '104273dc-36f6-4d0d-b4f3-fe43a00d5f65', title: 'Cleaning  - Yost, McCullough and Hessel (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '2264711e-4323-49e7-bfaf-ab399cc08abb', title: 'Cleaning (1) - McClure - Smith (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'e0c1183a-e298-4099-8cf6-a838ef32016b', title: 'Cleaning (1) - Lakin - Skiles (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '09378a7f-2ce6-4e50-ae0f-c00a2b9e0bfb', title: 'Cleaning (1) - Carroll Inc (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '3a85b746-334c-422a-889c-622ee7c13eed', title: 'Cleaning (2) - Conn and Sons (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '7444f8b1-115c-4b4a-b636-50eff5318b5e', title: 'Cleaning  - Schuppe LLC (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '4a2a63b3-f686-4e73-ad52-2d9afd3ecb7f', title: 'Cleaning  - Beahan - Rau (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'a7829e11-1076-4da6-bcb2-bd44d931ec1e', title: 'Security  - Prohaska LLC (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'b44b9c85-650a-499d-b653-59f3a7fe8d10', title: 'Security (2) - Collier Group (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '84be2dd1-3d14-4c66-8b0c-95c1da8151b9', title: 'Security  - Spinka LLC (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'f85df610-751a-41b1-bae6-5b8c7485eee1', title: 'Security (2) - Medhurst, Bode and Kulas (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'f1c69fa2-6d56-4c49-9f00-9b769cbc5da2', title: 'Security (2) - Wyman LLC (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'aed3156f-3d3f-45fe-9962-912dab68cfe2', title: "Landscaping  - Harris, O'Hara and Oberbrunner (Auto-Generated 2026)", status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '1646226b-67cd-4dce-84d8-6982d830df0c', title: 'Landscaping (1) - Hand LLC (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'b86b5efb-d8df-4e61-865c-fa34c185147c', title: 'Landscaping (1) - Bauch - Swaniawski (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '34db74fa-b816-4adf-85a9-3d28ffad1a30', title: 'Landscaping (1) - Rempel - Thiel (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'a40dd640-fcc6-4491-b5a5-e80b82a86f0b', title: 'Landscaping  - Goodwin Group (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'e2b97049-d8a9-4ebc-ae8e-b7564bb7bc4c', title: 'Landscaping (2) - Romaguera and Sons (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '09a74ec5-0b7c-47a6-9e79-d30804bbd707', title: "Landscaping  - O'Kon LLC (Auto-Generated 2026)", status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '34385151-831e-4419-b77f-49367c7c17bd', title: 'Professional_services  - Kuhlman, Wuckert and Klein (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'b8580e7d-a171-4f15-b157-5b6a062db6ee', title: 'Professional_services  - Witting Group (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '10923e07-ab0d-4b65-9fca-15b717e21897', title: 'Professional_services  - Yost, Hintz and Rohan (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'fbafaf89-4fee-4d96-8c80-490d6dbe69fa', title: 'Professional_services  - Ondricka, Price and Okuneva (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'e6068eb0-b7e9-42b2-bea8-dfcc95e4b96b', title: 'Professional_services (1) - Koelpin and Sons (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '578c0d01-79a6-4226-87ff-a2c9a2ff1b3c', title: "Professional_services  - Muller, Mann and D'Amore (Auto-Generated 2026)", status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '5690b816-4e30-4e28-8d1d-a2592bc64575', title: 'Professional_services (2) - Hodkiewicz - Pouros (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '73b0bb9c-6ba2-4579-8292-9abc52764821', title: 'Administration (2) - Reynolds Inc (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '9c63386c-484a-4a9a-b3dd-ba4868b68f44', title: 'Administration  - Durgan - Brown (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '6d8e8786-2a9c-4330-91c0-a6cd7c22fe58', title: 'Administration (1) - Bergnaum and Sons (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '54104a50-b37d-4ffe-a027-e39671d7f211', title: 'Administration (1) - Williamson Group (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'a9e6de33-1768-4241-8d20-404bc0dd6fc8', title: 'Administration (2) - Hackett Inc (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '4d5c31b6-19c7-44bf-b80e-f1cb3ef59756', title: 'Administration (2) - Rodriguez - Maggio (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '1f929a1a-bc2e-48a7-9c92-eb1515709112', title: 'Supplies (2) - Johns, Quigley and Welch (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'a4ddd3c6-599b-4c50-8743-388cb8c3527f', title: 'Supplies (1) - Ullrich - Robel (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'e50e4436-a2fa-4623-9458-d416559356b2', title: 'Supplies (1) - Hamill and Sons (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'a3656b82-9ab1-46e3-8105-9c6d041b0a3b', title: 'Supplies (1) - Emmerich - Yundt (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '932a8fa2-c4ed-4316-a188-fee358acab64', title: 'Supplies  - Mohr and Sons (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '6bde9563-b451-4196-bfcd-fd4add23daed', title: 'Supplies  - Fisher - Conn (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'ca126769-6486-4a2c-ae4b-ef95007d986b', title: 'Supplies (2) - Zulauf, Beahan and Kutch (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '87c02cd8-7398-4ba7-990f-bd118e3877c0', title: 'Supplies (2) - Schumm, Nicolas and Stokes (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+vendor-ui-Cf-P0Vop.js:58 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+overrideMethod @ hook.js:608
+(anonymous) @ vendor-ui-Cf-P0Vop.js:58
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+q @ index-BLJJlL54.js:45
+sl @ index-BLJJlL54.js:150
+Ah @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+ig @ index-BLJJlL54.js:163
+dl @ index-BLJJlL54.js:163
+ag @ index-BLJJlL54.js:163
+ed @ index-BLJJlL54.js:163
+Xh @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+mg @ index-BLJJlL54.js:185
+ml @ index-BLJJlL54.js:185
+ad @ index-BLJJlL54.js:185
+(anonymous) @ index-BLJJlL54.js:185
+<jd>
+Je.jsx @ vendor-ui-Cf-P0Vop.js:14
+(anonymous) @ vendor-ui-Cf-P0Vop.js:54
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+oc @ index-BLJJlL54.js:120
+sh @ index-BLJJlL54.js:141
+Pc @ index-BLJJlL54.js:150
+q @ index-BLJJlL54.js:45
+Kh @ index-BLJJlL54.js:163
+Jh @ index-BLJJlL54.js:163
+Wc @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+mg @ index-BLJJlL54.js:185
+ml @ index-BLJJlL54.js:185
+ad @ index-BLJJlL54.js:185
+(anonymous) @ index-BLJJlL54.js:185
+<ForwardRef>
+Je.jsx @ vendor-ui-Cf-P0Vop.js:14
+(anonymous) @ vendor-ui-Cf-P0Vop.js:54
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+oc @ index-BLJJlL54.js:120
+sh @ index-BLJJlL54.js:141
+Pc @ index-BLJJlL54.js:150
+q @ index-BLJJlL54.js:45
+Kh @ index-BLJJlL54.js:163
+Jh @ index-BLJJlL54.js:163
+Wc @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+mg @ index-BLJJlL54.js:185
+ml @ index-BLJJlL54.js:185
+ad @ index-BLJJlL54.js:185
+(anonymous) @ index-BLJJlL54.js:185
+<ForwardRef>
+Je.jsx @ vendor-ui-Cf-P0Vop.js:14
+DialogContent @ vendor-ui-Cf-P0Vop.js:54
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+oc @ index-BLJJlL54.js:120
+sh @ index-BLJJlL54.js:141
+Pc @ index-BLJJlL54.js:150
+q @ index-BLJJlL54.js:45
+Kh @ index-BLJJlL54.js:163
+Jh @ index-BLJJlL54.js:163
+Wc @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+mg @ index-BLJJlL54.js:185
+ml @ index-BLJJlL54.js:185
+ad @ index-BLJJlL54.js:185
+(anonymous) @ index-BLJJlL54.js:185
+<DialogContent>
+du.jsxDEV @ index-BLJJlL54.js:15
+DialogContent @ dialog-1ita4bFp.js:1
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+oc @ index-BLJJlL54.js:120
+sh @ index-BLJJlL54.js:141
+Pc @ index-BLJJlL54.js:150
+q @ index-BLJJlL54.js:45
+Kh @ index-BLJJlL54.js:163
+Jh @ index-BLJJlL54.js:163
+Wc @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+mg @ index-BLJJlL54.js:185
+ml @ index-BLJJlL54.js:185
+ad @ index-BLJJlL54.js:185
+(anonymous) @ index-BLJJlL54.js:185
+<DialogContent>
+du.jsxDEV @ index-BLJJlL54.js:15
+wr @ bills-BK6IJdg9.js:11
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+oc @ index-BLJJlL54.js:120
+kc @ index-BLJJlL54.js:141
+Pc @ index-BLJJlL54.js:150
+q @ index-BLJJlL54.js:45
+Kh @ index-BLJJlL54.js:163
+Jh @ index-BLJJlL54.js:163
+Wc @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+mg @ index-BLJJlL54.js:185
+ml @ index-BLJJlL54.js:185
+ad @ index-BLJJlL54.js:185
+(anonymous) @ index-BLJJlL54.js:185
+index-BLJJlL54.js:185 [Violation] 'click' handler took 241ms
+[Violation] Forced reflow while executing JavaScript took 30ms
+bills-BK6IJdg9.js:11 🏠 [BILLS PAGE] Initializing with: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '9a384fc6-73e4-4075-bd8b-56b6a0dca313', title: 'Insurance (2) - Beer, Kemmer and Barton (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'a0e4f584-1327-4a68-ab4e-7f514dbee09f', title: 'Insurance (1) - Ullrich, Prohaska and Bogan (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '2c416c9d-c719-4ad3-b1b9-c4712134ebd3', title: 'Insurance  - Stracke Inc (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '02fa290d-bd8c-43ec-9251-da8ff179e238', title: 'Insurance  - Marvin and Sons (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'a3bd5fb0-ad62-4198-af35-cb18551aa279', title: 'Insurance (2) - Halvorson Group (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'bb584149-13c1-4564-a725-caf4ba97aedd', title: 'Maintenance  - Collins - McDermott (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '7802eb87-d8d1-457a-ad0a-1de5efe6fcde', title: 'Maintenance  - Kub LLC (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'db8d0729-c030-4678-830f-43523f8e92a3', title: 'Utilities - Videotron (Auto-Generated)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '25a4e53c-eb37-412d-8008-095015864720', title: 'Utilities (1) - Moore - Glover (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '2743efac-980e-4e1f-b1cb-c6128a1f74fb', title: 'Utilities (2) - Crona, Lockman and Monahan (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '434961e4-e061-485a-be80-c0093c25c5fd', title: 'Utilities  - Hackett - Farrell (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '104273dc-36f6-4d0d-b4f3-fe43a00d5f65', title: 'Cleaning  - Yost, McCullough and Hessel (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '2264711e-4323-49e7-bfaf-ab399cc08abb', title: 'Cleaning (1) - McClure - Smith (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'e0c1183a-e298-4099-8cf6-a838ef32016b', title: 'Cleaning (1) - Lakin - Skiles (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '09378a7f-2ce6-4e50-ae0f-c00a2b9e0bfb', title: 'Cleaning (1) - Carroll Inc (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '3a85b746-334c-422a-889c-622ee7c13eed', title: 'Cleaning (2) - Conn and Sons (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '7444f8b1-115c-4b4a-b636-50eff5318b5e', title: 'Cleaning  - Schuppe LLC (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '4a2a63b3-f686-4e73-ad52-2d9afd3ecb7f', title: 'Cleaning  - Beahan - Rau (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'a7829e11-1076-4da6-bcb2-bd44d931ec1e', title: 'Security  - Prohaska LLC (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'b44b9c85-650a-499d-b653-59f3a7fe8d10', title: 'Security (2) - Collier Group (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '84be2dd1-3d14-4c66-8b0c-95c1da8151b9', title: 'Security  - Spinka LLC (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'f85df610-751a-41b1-bae6-5b8c7485eee1', title: 'Security (2) - Medhurst, Bode and Kulas (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'f1c69fa2-6d56-4c49-9f00-9b769cbc5da2', title: 'Security (2) - Wyman LLC (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'aed3156f-3d3f-45fe-9962-912dab68cfe2', title: "Landscaping  - Harris, O'Hara and Oberbrunner (Auto-Generated 2026)", status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '1646226b-67cd-4dce-84d8-6982d830df0c', title: 'Landscaping (1) - Hand LLC (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'b86b5efb-d8df-4e61-865c-fa34c185147c', title: 'Landscaping (1) - Bauch - Swaniawski (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '34db74fa-b816-4adf-85a9-3d28ffad1a30', title: 'Landscaping (1) - Rempel - Thiel (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'a40dd640-fcc6-4491-b5a5-e80b82a86f0b', title: 'Landscaping  - Goodwin Group (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'e2b97049-d8a9-4ebc-ae8e-b7564bb7bc4c', title: 'Landscaping (2) - Romaguera and Sons (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '09a74ec5-0b7c-47a6-9e79-d30804bbd707', title: "Landscaping  - O'Kon LLC (Auto-Generated 2026)", status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '34385151-831e-4419-b77f-49367c7c17bd', title: 'Professional_services  - Kuhlman, Wuckert and Klein (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'b8580e7d-a171-4f15-b157-5b6a062db6ee', title: 'Professional_services  - Witting Group (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '10923e07-ab0d-4b65-9fca-15b717e21897', title: 'Professional_services  - Yost, Hintz and Rohan (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'fbafaf89-4fee-4d96-8c80-490d6dbe69fa', title: 'Professional_services  - Ondricka, Price and Okuneva (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'e6068eb0-b7e9-42b2-bea8-dfcc95e4b96b', title: 'Professional_services (1) - Koelpin and Sons (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '578c0d01-79a6-4226-87ff-a2c9a2ff1b3c', title: "Professional_services  - Muller, Mann and D'Amore (Auto-Generated 2026)", status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '5690b816-4e30-4e28-8d1d-a2592bc64575', title: 'Professional_services (2) - Hodkiewicz - Pouros (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '73b0bb9c-6ba2-4579-8292-9abc52764821', title: 'Administration (2) - Reynolds Inc (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '9c63386c-484a-4a9a-b3dd-ba4868b68f44', title: 'Administration  - Durgan - Brown (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '6d8e8786-2a9c-4330-91c0-a6cd7c22fe58', title: 'Administration (1) - Bergnaum and Sons (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '54104a50-b37d-4ffe-a027-e39671d7f211', title: 'Administration (1) - Williamson Group (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'a9e6de33-1768-4241-8d20-404bc0dd6fc8', title: 'Administration (2) - Hackett Inc (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '4d5c31b6-19c7-44bf-b80e-f1cb3ef59756', title: 'Administration (2) - Rodriguez - Maggio (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '1f929a1a-bc2e-48a7-9c92-eb1515709112', title: 'Supplies (2) - Johns, Quigley and Welch (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'a4ddd3c6-599b-4c50-8743-388cb8c3527f', title: 'Supplies (1) - Ullrich - Robel (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'e50e4436-a2fa-4623-9458-d416559356b2', title: 'Supplies (1) - Hamill and Sons (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'a3656b82-9ab1-46e3-8105-9c6d041b0a3b', title: 'Supplies (1) - Emmerich - Yundt (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '932a8fa2-c4ed-4316-a188-fee358acab64', title: 'Supplies  - Mohr and Sons (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '6bde9563-b451-4196-bfcd-fd4add23daed', title: 'Supplies  - Fisher - Conn (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'ca126769-6486-4a2c-ae4b-ef95007d986b', title: 'Supplies (2) - Zulauf, Beahan and Kutch (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '87c02cd8-7398-4ba7-990f-bd118e3877c0', title: 'Supplies (2) - Schumm, Nicolas and Stokes (Auto-Generated 2026)', status: 'draft', paymentType: 'auto-generated', isExpanded: false}
+vendor-ui-Cf-P0Vop.js:14 [Violation] 'pointerdown' handler took 210ms
+bills-BK6IJdg9.js:11 🏠 [BILLS PAGE] Initializing with: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '6a557259-f129-4c3c-a9e5-be2feb337611', title: 'Insurance - Aviva Canada', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '724ce997-e717-4600-97f2-ac8a118cc503', title: 'Insurance - Desjardins Assurances', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'c34e1fc8-8c83-4757-b310-fce443f9d498', title: 'Insurance - Quebec Insurance Co.', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '3f642c68-6c6c-46c6-972b-9b6546a1f22e', title: 'Maintenance - Total Maintenance Solutions', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'f16ff08b-1351-4d86-97e7-425f9e4b921a', title: 'Maintenance - Reliable Building Care', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '4837583d-bb35-4b7f-8fed-24ed5543327d', title: 'Maintenance - Reliable Building Care', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '2e3b4057-e126-4524-8aca-1bfdf49b8e55', title: 'Utilities - Videotron', status: 'draft', paymentType: 'recurrent', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'e1786f7f-e557-4a46-bc3a-12cb288d830a', title: 'Cleaning - CleanMaster Services', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'f7c3ab86-5211-4ffb-9a42-b00a1684bd05', title: 'Cleaning - Nettoyage Excellence', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'd4648ed2-595d-4066-9de4-5ce11bda1220', title: 'Cleaning - Nettoyage Excellence', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '5fc14764-935c-46ba-87e0-78b8b2dc9ece', title: 'Security - Paladin Security', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '827a8c80-bd40-4f77-9331-35a983ce1dd4', title: 'Security - GardaWorld', status: 'sent', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '96e96304-505b-4977-b824-7ccbeb50fdfa', title: 'Landscaping - Jardins Excellence', status: 'sent', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '1962b611-42a8-4488-895e-9a9f945e2e31', title: 'Landscaping - Entretien Paysager Plus', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '34ed793e-9187-4023-8ad6-4319d9c88fd2', title: 'Professional services - Gestion Immobilière Québec', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '68997115-4180-4b37-aef5-c43bdb9355a7', title: 'Professional services - Gestion Immobilière Québec', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '3aa40a7c-0117-4b46-b6d9-ae20ccbc8609', title: 'Administration - Administration Excellence', status: 'sent', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '906f5fbd-0a03-4453-acb7-2eeb10a4b86e', title: 'Concrete slab lifting', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'b938e8bc-9b08-4c80-9d2c-529a7c02b6d1', title: 'Concrete slab lifting', status: 'draft', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: 'a6035b2e-a29d-4700-917b-05eaf6c1c303', title: 'Repairs - Service de Réparation Plus', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '01b9c40a-1208-4780-906f-cdc96af06829', title: 'Supplies - Équipements & Fournitures', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '2e5f822b-3732-4980-90f6-be5439be0ba1', title: 'Supplies - Fournitures Industrielles', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '444c3d5c-c56d-4b40-a275-4fa7d0737a17', title: 'Supplies - Équipements & Fournitures', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '56dbc01d-895a-4885-80ef-ea50b35d7886', title: 'Supplies - Équipements & Fournitures', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '70ac5961-bd70-40b6-9878-cf6541bc3e07', title: 'Supplies - Matériaux Plus', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-BK6IJdg9.js:11 🔄 [BILLS PAGE] Filters changed: {category: '', year: '2025', months: Array(0), paymentType: '', status: '', …}
+bills-BK6IJdg9.js:11 📋 [BILLS PAGE] Bills data updated: {count: 25, billTypes: Array(25)}
+bills-BK6IJdg9.js:11 🏠 [BILLS PAGE] Initializing with: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+bills-BK6IJdg9.js:11 📊 [BILLS PAGE] Fetching bills with URL: /api/bills?buildingId=c3052c3c-b694-41a6-bd65-3bc3ae9a5984&year=2025&paymentType=recurrent
+bills-BK6IJdg9.js:11 📊 [BILLS PAGE] Applied filters: {category: '', year: '2025', months: Array(0), paymentType: 'recurrent', status: '', …}
+bills-BK6IJdg9.js:11 🔄 [BILLS PAGE] Filters changed: {category: '', year: '2025', months: Array(0), paymentType: 'recurrent', status: '', …}
+bills-BK6IJdg9.js:11 📋 [BILLS PAGE] Bills data updated: {count: 0, billTypes: Array(0)}
+bills-BK6IJdg9.js:11 ⏳ [BILLS PAGE] Loading bills...
+bills-BK6IJdg9.js:11 📊 [BILLS PAGE] Bills API response status: 200
+bills-BK6IJdg9.js:11 ✅ [BILLS PAGE] Bills data received: [{…}]
+bills-BK6IJdg9.js:11 🏠 [BILLS PAGE] Initializing with: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '2e3b4057-e126-4524-8aca-1bfdf49b8e55', title: 'Utilities - Videotron', status: 'draft', paymentType: 'recurrent', isExpanded: false}
+bills-BK6IJdg9.js:11 📋 [BILLS PAGE] Bills data updated: {count: 1, billTypes: Array(1)}
+bills-BK6IJdg9.js:11 🔄 [BILL CARD] Card clicked: {billId: '2e3b4057-e126-4524-8aca-1bfdf49b8e55', isAutoGenerated: false, currentExpanded: false}
+bills-BK6IJdg9.js:11 📂 [BILL CARD] Toggling expansion: {from: false, to: true}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '2e3b4057-e126-4524-8aca-1bfdf49b8e55', title: 'Utilities - Videotron', status: 'draft', paymentType: 'recurrent', isExpanded: true}
+bills-BK6IJdg9.js:11 💰 [BILL CARD] Fetching payments for bill: 2e3b4057-e126-4524-8aca-1bfdf49b8e55
+bills-BK6IJdg9.js:11 💰 [BILL CARD] Payments API response status: 200
+bills-BK6IJdg9.js:11 ✅ [BILL CARD] Payments data received: {payments: Array(13), bill: {…}}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '2e3b4057-e126-4524-8aca-1bfdf49b8e55', title: 'Utilities - Videotron', status: 'draft', paymentType: 'recurrent', isExpanded: true}
+bills-BK6IJdg9.js:11 💰 [PAYMENT DISPLAY] Rendering payments: {billId: '2e3b4057-e126-4524-8aca-1bfdf49b8e55', billType: 'recurrent', paymentCount: 13, payments: Array(13)}
+bills-BK6IJdg9.js:11 ✏️ [BILL CARD] Edit button clicked for bill: 2e3b4057-e126-4524-8aca-1bfdf49b8e55
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '2e3b4057-e126-4524-8aca-1bfdf49b8e55', title: 'Utilities - Videotron', status: 'draft', paymentType: 'recurrent', isExpanded: true}
+bills-BK6IJdg9.js:11 💰 [PAYMENT DISPLAY] Rendering payments: {billId: '2e3b4057-e126-4524-8aca-1bfdf49b8e55', billType: 'recurrent', paymentCount: 13, payments: Array(13)}
+ModularBillForm-CRJomEXV.js:21 [MODULAR BILL FORM] Fetching attached documents for bill: 2e3b4057-e126-4524-8aca-1bfdf49b8e55
+vendor-ui-Cf-P0Vop.js:58 `DialogContent` requires a `DialogTitle` for the component to be accessible for screen reader users.
+
+If you want to hide the `DialogTitle`, you can wrap it with our VisuallyHidden component.
+
+For more information, see https://radix-ui.com/primitives/docs/components/dialog
+overrideMethod @ hook.js:608
+(anonymous) @ vendor-ui-Cf-P0Vop.js:58
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+q @ index-BLJJlL54.js:45
+sl @ index-BLJJlL54.js:150
+Ah @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+ig @ index-BLJJlL54.js:163
+dl @ index-BLJJlL54.js:163
+ag @ index-BLJJlL54.js:163
+ed @ index-BLJJlL54.js:163
+Xh @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+mg @ index-BLJJlL54.js:185
+ml @ index-BLJJlL54.js:185
+ad @ index-BLJJlL54.js:185
+(anonymous) @ index-BLJJlL54.js:185
+<Nd>
+Je.jsx @ vendor-ui-Cf-P0Vop.js:14
+(anonymous) @ vendor-ui-Cf-P0Vop.js:54
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+oc @ index-BLJJlL54.js:120
+sh @ index-BLJJlL54.js:141
+Pc @ index-BLJJlL54.js:150
+q @ index-BLJJlL54.js:45
+Kh @ index-BLJJlL54.js:163
+Jh @ index-BLJJlL54.js:163
+Wc @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+mg @ index-BLJJlL54.js:185
+ml @ index-BLJJlL54.js:185
+ad @ index-BLJJlL54.js:185
+(anonymous) @ index-BLJJlL54.js:185
+<ForwardRef>
+Je.jsx @ vendor-ui-Cf-P0Vop.js:14
+(anonymous) @ vendor-ui-Cf-P0Vop.js:54
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+oc @ index-BLJJlL54.js:120
+sh @ index-BLJJlL54.js:141
+Pc @ index-BLJJlL54.js:150
+q @ index-BLJJlL54.js:45
+Kh @ index-BLJJlL54.js:163
+Jh @ index-BLJJlL54.js:163
+Wc @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+mg @ index-BLJJlL54.js:185
+ml @ index-BLJJlL54.js:185
+ad @ index-BLJJlL54.js:185
+(anonymous) @ index-BLJJlL54.js:185
+<ForwardRef>
+Je.jsx @ vendor-ui-Cf-P0Vop.js:14
+DialogContent @ vendor-ui-Cf-P0Vop.js:54
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+oc @ index-BLJJlL54.js:120
+sh @ index-BLJJlL54.js:141
+Pc @ index-BLJJlL54.js:150
+q @ index-BLJJlL54.js:45
+Kh @ index-BLJJlL54.js:163
+Jh @ index-BLJJlL54.js:163
+Wc @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+mg @ index-BLJJlL54.js:185
+ml @ index-BLJJlL54.js:185
+ad @ index-BLJJlL54.js:185
+(anonymous) @ index-BLJJlL54.js:185
+<DialogContent>
+du.jsxDEV @ index-BLJJlL54.js:15
+DialogContent @ dialog-1ita4bFp.js:1
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+oc @ index-BLJJlL54.js:120
+sh @ index-BLJJlL54.js:141
+Pc @ index-BLJJlL54.js:150
+q @ index-BLJJlL54.js:45
+Kh @ index-BLJJlL54.js:163
+Jh @ index-BLJJlL54.js:163
+Wc @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+mg @ index-BLJJlL54.js:185
+ml @ index-BLJJlL54.js:185
+ad @ index-BLJJlL54.js:185
+(anonymous) @ index-BLJJlL54.js:185
+<DialogContent>
+du.jsxDEV @ index-BLJJlL54.js:15
+Dr @ bills-BK6IJdg9.js:11
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+oc @ index-BLJJlL54.js:120
+kc @ index-BLJJlL54.js:141
+Pc @ index-BLJJlL54.js:150
+q @ index-BLJJlL54.js:45
+Kh @ index-BLJJlL54.js:163
+Jh @ index-BLJJlL54.js:163
+Wc @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+mg @ index-BLJJlL54.js:185
+ml @ index-BLJJlL54.js:185
+ad @ index-BLJJlL54.js:185
+(anonymous) @ index-BLJJlL54.js:185
+<Dr>
+du.jsxDEV @ index-BLJJlL54.js:15
+(anonymous) @ bills-BK6IJdg9.js:11
+kr @ bills-BK6IJdg9.js:11
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+oc @ index-BLJJlL54.js:120
+kc @ index-BLJJlL54.js:141
+Pc @ index-BLJJlL54.js:150
+q @ index-BLJJlL54.js:45
+Kh @ index-BLJJlL54.js:163
+Jh @ index-BLJJlL54.js:163
+Wc @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+mg @ index-BLJJlL54.js:185
+ml @ index-BLJJlL54.js:185
+ad @ index-BLJJlL54.js:185
+(anonymous) @ index-BLJJlL54.js:185
+<kr>
+du.jsxDEV @ index-BLJJlL54.js:15
+(anonymous) @ bills-BK6IJdg9.js:11
+vr @ bills-BK6IJdg9.js:11
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+oc @ index-BLJJlL54.js:120
+kc @ index-BLJJlL54.js:141
+Pc @ index-BLJJlL54.js:150
+q @ index-BLJJlL54.js:45
+Kh @ index-BLJJlL54.js:163
+Jh @ index-BLJJlL54.js:163
+Wc @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+mg @ index-BLJJlL54.js:185
+ml @ index-BLJJlL54.js:185
+ad @ index-BLJJlL54.js:185
+(anonymous) @ index-BLJJlL54.js:185
+vendor-ui-Cf-P0Vop.js:58 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+overrideMethod @ hook.js:608
+(anonymous) @ vendor-ui-Cf-P0Vop.js:58
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+q @ index-BLJJlL54.js:45
+sl @ index-BLJJlL54.js:150
+Ah @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+En @ index-BLJJlL54.js:163
+Lh @ index-BLJJlL54.js:163
+ig @ index-BLJJlL54.js:163
+dl @ index-BLJJlL54.js:163
+ag @ index-BLJJlL54.js:163
+ed @ index-BLJJlL54.js:163
+Xh @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+mg @ index-BLJJlL54.js:185
+ml @ index-BLJJlL54.js:185
+ad @ index-BLJJlL54.js:185
+(anonymous) @ index-BLJJlL54.js:185
+<jd>
+Je.jsx @ vendor-ui-Cf-P0Vop.js:14
+(anonymous) @ vendor-ui-Cf-P0Vop.js:54
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+oc @ index-BLJJlL54.js:120
+sh @ index-BLJJlL54.js:141
+Pc @ index-BLJJlL54.js:150
+q @ index-BLJJlL54.js:45
+Kh @ index-BLJJlL54.js:163
+Jh @ index-BLJJlL54.js:163
+Wc @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+mg @ index-BLJJlL54.js:185
+ml @ index-BLJJlL54.js:185
+ad @ index-BLJJlL54.js:185
+(anonymous) @ index-BLJJlL54.js:185
+<ForwardRef>
+Je.jsx @ vendor-ui-Cf-P0Vop.js:14
+(anonymous) @ vendor-ui-Cf-P0Vop.js:54
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+oc @ index-BLJJlL54.js:120
+sh @ index-BLJJlL54.js:141
+Pc @ index-BLJJlL54.js:150
+q @ index-BLJJlL54.js:45
+Kh @ index-BLJJlL54.js:163
+Jh @ index-BLJJlL54.js:163
+Wc @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+mg @ index-BLJJlL54.js:185
+ml @ index-BLJJlL54.js:185
+ad @ index-BLJJlL54.js:185
+(anonymous) @ index-BLJJlL54.js:185
+<ForwardRef>
+Je.jsx @ vendor-ui-Cf-P0Vop.js:14
+DialogContent @ vendor-ui-Cf-P0Vop.js:54
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+oc @ index-BLJJlL54.js:120
+sh @ index-BLJJlL54.js:141
+Pc @ index-BLJJlL54.js:150
+q @ index-BLJJlL54.js:45
+Kh @ index-BLJJlL54.js:163
+Jh @ index-BLJJlL54.js:163
+Wc @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+mg @ index-BLJJlL54.js:185
+ml @ index-BLJJlL54.js:185
+ad @ index-BLJJlL54.js:185
+(anonymous) @ index-BLJJlL54.js:185
+<DialogContent>
+du.jsxDEV @ index-BLJJlL54.js:15
+DialogContent @ dialog-1ita4bFp.js:1
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+oc @ index-BLJJlL54.js:120
+sh @ index-BLJJlL54.js:141
+Pc @ index-BLJJlL54.js:150
+q @ index-BLJJlL54.js:45
+Kh @ index-BLJJlL54.js:163
+Jh @ index-BLJJlL54.js:163
+Wc @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+mg @ index-BLJJlL54.js:185
+ml @ index-BLJJlL54.js:185
+ad @ index-BLJJlL54.js:185
+(anonymous) @ index-BLJJlL54.js:185
+<DialogContent>
+du.jsxDEV @ index-BLJJlL54.js:15
+Dr @ bills-BK6IJdg9.js:11
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+oc @ index-BLJJlL54.js:120
+kc @ index-BLJJlL54.js:141
+Pc @ index-BLJJlL54.js:150
+q @ index-BLJJlL54.js:45
+Kh @ index-BLJJlL54.js:163
+Jh @ index-BLJJlL54.js:163
+Wc @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+mg @ index-BLJJlL54.js:185
+ml @ index-BLJJlL54.js:185
+ad @ index-BLJJlL54.js:185
+(anonymous) @ index-BLJJlL54.js:185
+<Dr>
+du.jsxDEV @ index-BLJJlL54.js:15
+(anonymous) @ bills-BK6IJdg9.js:11
+kr @ bills-BK6IJdg9.js:11
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+oc @ index-BLJJlL54.js:120
+kc @ index-BLJJlL54.js:141
+Pc @ index-BLJJlL54.js:150
+q @ index-BLJJlL54.js:45
+Kh @ index-BLJJlL54.js:163
+Jh @ index-BLJJlL54.js:163
+Wc @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+mg @ index-BLJJlL54.js:185
+ml @ index-BLJJlL54.js:185
+ad @ index-BLJJlL54.js:185
+(anonymous) @ index-BLJJlL54.js:185
+<kr>
+du.jsxDEV @ index-BLJJlL54.js:15
+(anonymous) @ bills-BK6IJdg9.js:11
+vr @ bills-BK6IJdg9.js:11
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+oc @ index-BLJJlL54.js:120
+kc @ index-BLJJlL54.js:141
+Pc @ index-BLJJlL54.js:150
+q @ index-BLJJlL54.js:45
+Kh @ index-BLJJlL54.js:163
+Jh @ index-BLJJlL54.js:163
+Wc @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+mg @ index-BLJJlL54.js:185
+ml @ index-BLJJlL54.js:185
+ad @ index-BLJJlL54.js:185
+(anonymous) @ index-BLJJlL54.js:185
+ModularBillForm-CRJomEXV.js:21 [MODULAR BILL FORM] Attached documents received: {documents: Array(0), total: 0, buildingCount: 0, residentCount: 0, legacyCount: 0}
+index-BLJJlL54.js:240  PUT https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/bills/2e3b4057-e126-4524-8aca-1bfdf49b8e55 500 (Internal Server Error)
+$R @ index-BLJJlL54.js:240
+mutationFn @ ModularBillForm-CRJomEXV.js:21
+fn @ vendor-query-CuSZDQ0U.js:1
+y @ vendor-query-CuSZDQ0U.js:1
+start @ vendor-query-CuSZDQ0U.js:1
+execute @ vendor-query-CuSZDQ0U.js:1
+await in execute
+mutate @ vendor-query-CuSZDQ0U.js:1
+(anonymous) @ vendor-query-CuSZDQ0U.js:1
+fe @ ModularBillForm-CRJomEXV.js:21
+(anonymous) @ vendor-forms-B9N1iut0.js:1
+await in (anonymous)
+lr @ index-BLJJlL54.js:185
+q @ index-BLJJlL54.js:45
+yg @ index-BLJJlL54.js:185
+(anonymous) @ index-BLJJlL54.js:185
+Gm @ index-BLJJlL54.js:83
+rd @ index-BLJJlL54.js:185
+Ad @ index-BLJJlL54.js:194
+B1 @ index-BLJJlL54.js:194
+<form>
+du.jsxDEV @ index-BLJJlL54.js:15
+ut @ ModularBillForm-CRJomEXV.js:21
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+oc @ index-BLJJlL54.js:120
+kc @ index-BLJJlL54.js:141
+Pc @ index-BLJJlL54.js:150
+q @ index-BLJJlL54.js:45
+Kh @ index-BLJJlL54.js:163
+Jh @ index-BLJJlL54.js:163
+Wc @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+mg @ index-BLJJlL54.js:185
+ml @ index-BLJJlL54.js:185
+ad @ index-BLJJlL54.js:185
+(anonymous) @ index-BLJJlL54.js:185
+<ut>
+du.jsxDEV @ index-BLJJlL54.js:15
+Dr @ bills-BK6IJdg9.js:11
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+oc @ index-BLJJlL54.js:120
+kc @ index-BLJJlL54.js:141
+Pc @ index-BLJJlL54.js:150
+q @ index-BLJJlL54.js:45
+Kh @ index-BLJJlL54.js:163
+Jh @ index-BLJJlL54.js:163
+Wc @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+mg @ index-BLJJlL54.js:185
+ml @ index-BLJJlL54.js:185
+ad @ index-BLJJlL54.js:185
+(anonymous) @ index-BLJJlL54.js:185
+<Dr>
+du.jsxDEV @ index-BLJJlL54.js:15
+(anonymous) @ bills-BK6IJdg9.js:11
+kr @ bills-BK6IJdg9.js:11
+react_stack_bottom_frame @ index-BLJJlL54.js:229
+oc @ index-BLJJlL54.js:120
+kc @ index-BLJJlL54.js:141
+Pc @ index-BLJJlL54.js:150
+q @ index-BLJJlL54.js:45
+Kh @ index-BLJJlL54.js:163
+Jh @ index-BLJJlL54.js:163
+Wc @ index-BLJJlL54.js:163
+Ih @ index-BLJJlL54.js:163
+mg @ index-BLJJlL54.js:185
+ml @ index-BLJJlL54.js:185
+ad @ index-BLJJlL54.js:185
+(anonymous) @ index-BLJJlL54.js:185
+bills-BK6IJdg9.js:11 🏠 [BILLS PAGE] Initializing with: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+bills-BK6IJdg9.js:11 🃏 [BILL CARD] Rendering bill: {id: '2e3b4057-e126-4524-8aca-1bfdf49b8e55', title: 'Utilities - Videotron', status: 'draft', paymentType: 'recurrent', isExpanded: true}
+bills-BK6IJdg9.js:11 💰 [PAYMENT DISPLAY] Rendering payments: {billId: '2e3b4057-e126-4524-8aca-1bfdf49b8e55', billType: 'recurrent', paymentCount: 13, payments: Array(13)}

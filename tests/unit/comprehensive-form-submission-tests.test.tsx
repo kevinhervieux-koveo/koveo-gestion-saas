@@ -21,7 +21,6 @@
  * - Admin-only audit log access
  */
 
-/// <reference path="../types/jest-dom.d.ts" />
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
@@ -184,8 +183,9 @@ describe('Comprehensive Form Submission Tests', () => {
           e.preventDefault();
           try {
             await mockApiRequest('POST', '/api/auth/login', { email, password });
-          } catch (err: any) {
-            setError(err.message);
+          } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : String(err);
+            setError(errorMessage);
           }
         };
 
@@ -676,8 +676,9 @@ describe('Comprehensive Form Submission Tests', () => {
           e.preventDefault();
           try {
             await mockApiRequest('POST', '/api/test', { data: 'test' });
-          } catch (err: any) {
-            setError(err.message);
+          } catch (err) {
+            const errorMessage = err instanceof Error ? err.message : String(err);
+            setError(errorMessage);
           }
         };
 

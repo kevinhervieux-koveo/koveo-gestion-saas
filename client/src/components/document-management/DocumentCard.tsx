@@ -1,24 +1,27 @@
 import React from 'react';
 import { Eye, FileText, Image, File, Calendar, User } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { StandardCard } from '@/components/ui/standard-card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
+import { StandardCard } from '@/components/common/StandardCard';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface DocumentCardProps {
   title: string;
   documentId: string;
-  onViewClick: (documentId: string) => void;
+  onViewClick?: (documentId: string) => void;
   
   // Optional metadata for enhanced display
   documentType?: string;
   description?: string;
   createdAt?: string;
+  effectiveDate?: string;
   fileSize?: number;
   mimeType?: string;
   uploadedBy?: string;
   isVisibleToTenants?: boolean;
+  
+  // Selection mode
+  selectable?: boolean;
+  selected?: boolean;
+  onSelectionChange?: (documentId: string, selected: boolean) => void;
   
   // Visual customization
   className?: string;
@@ -29,6 +32,7 @@ interface DocumentCardProps {
 /**
  * DocumentCard - A standardized card component for displaying document summaries
  * Optimized for mobile interactions with large touch targets
+ * Now uses StandardCard as its base for consistency across the application
  */
 export function DocumentCard({
   title,
@@ -37,10 +41,14 @@ export function DocumentCard({
   documentType,
   description,
   createdAt,
+  effectiveDate,
   fileSize,
   mimeType,
   uploadedBy,
   isVisibleToTenants,
+  selectable = false,
+  selected = false,
+  onSelectionChange,
   className,
   compact = false,
   showMetadata = true
@@ -98,127 +106,110 @@ export function DocumentCard({
     return colors[type || ''] || 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200';
   };
 
-  // Handle card click - entire card is clickable for mobile friendliness
-  const handleCardClick = () => {
-    onViewClick(documentId);
+  // Build badges array for StandardCard - only show in non-compact mode
+  const badges = !compact && showMetadata ? [
+    documentType && {
+      text: documentType.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()),
+      variant: 'secondary' as const,
+      className: getTypeColor(documentType)
+    },
+    isVisibleToTenants && {
+      text: '👥 Visible to Tenants',
+      variant: 'outline' as const,
+      className: 'border-green-300 text-green-700 dark:border-green-600 dark:text-green-400'
+    }
+  ].filter(Boolean) : [];
+
+  // Build actions array for StandardCard
+  const actions = onViewClick ? [
+    {
+      icon: <Eye className="w-4 h-4" />,
+      label: 'View document',
+      onClick: () => onViewClick(documentId),
+      variant: 'ghost' as const,
+      className: 'hover:bg-blue-50 dark:hover:bg-blue-950',
+      testId: `view-document-${documentId}`
+    }
+  ] : [];
+
+  // Build metadata array for StandardCard
+  // In compact mode: only show minimal metadata (file size, date)
+  // In normal mode: show all metadata (date, uploaded by, file size)
+  // Prefer effectiveDate over createdAt for display
+  const displayDate = effectiveDate || createdAt;
+  
+  const metadata = showMetadata ? (
+    compact ? [
+      fileSize && {
+        value: formatFileSize(fileSize) || ''
+      },
+      displayDate && {
+        icon: <Calendar className="w-3 h-3" />,
+        value: formatDate(displayDate) || ''
+      }
+    ].filter(Boolean) : [
+      displayDate && {
+        icon: <Calendar className="w-3 h-3" />,
+        value: formatDate(displayDate) || ''
+      },
+      uploadedBy && {
+        icon: <User className="w-3 h-3" />,
+        value: uploadedBy
+      },
+      fileSize && {
+        value: formatFileSize(fileSize) || ''
+      }
+    ].filter(Boolean)
+  ) : [];
+
+  const handleCheckboxChange = (checked: boolean) => {
+    if (onSelectionChange) {
+      onSelectionChange(documentId, checked);
+    }
   };
 
-  // Handle view button click (prevent event bubbling)
-  const handleViewButtonClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    onViewClick(documentId);
-  };
+  if (selectable) {
+    return (
+      <div className="relative group">
+        <StandardCard
+          title={title}
+          description={!compact ? description : undefined}
+          icon={getDocumentIcon()}
+          badges={badges}
+          actions={actions}
+          metadata={metadata}
+          onClick={onViewClick ? () => onViewClick(documentId) : undefined}
+          spacing={compact ? 'compact' : 'normal'}
+          className={className}
+          testId={`document-card-${documentId}`}
+        />
+        <div 
+          className="absolute top-2 right-2 z-10"
+          onClick={(e) => e.stopPropagation()}
+          data-testid={`checkbox-select-${documentId}`}
+        >
+          <Checkbox
+            checked={selected}
+            onCheckedChange={handleCheckboxChange}
+            className="h-5 w-5 bg-white dark:bg-gray-800 border-2 shadow-sm"
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <Card 
-      className={cn(
-        "group cursor-pointer transition-all duration-200 hover:shadow-md hover:border-blue-200 dark:hover:border-blue-700",
-        "active:scale-[0.98] transform", // Touch feedback
-        compact ? "p-3" : "",
-        className
-      )}
-      onClick={handleCardClick}
-      data-testid={`document-card-${documentId}`}
-    >
-      <CardHeader className={cn("flex flex-row items-start justify-between space-y-0", compact ? "pb-2" : "pb-3")}>
-        <div className="flex items-start space-x-3 flex-1 min-w-0">
-          {/* Document icon */}
-          <div className="flex-shrink-0 mt-1">
-            {getDocumentIcon()}
-          </div>
-          
-          {/* Document info */}
-          <div className="flex-1 min-w-0">
-            <CardTitle className={cn(
-              "text-left leading-tight break-words",
-              compact ? "text-sm" : "text-base"
-            )}>
-              {title}
-            </CardTitle>
-            
-            {description && !compact && (
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
-                {description}
-              </p>
-            )}
-          </div>
-        </div>
-
-        {/* View button */}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleViewButtonClick}
-          className="flex-shrink-0 ml-2 min-h-[36px] min-w-[36px] hover:bg-blue-50 dark:hover:bg-blue-950"
-          data-testid={`view-document-${documentId}`}
-        >
-          <Eye className="w-4 h-4" />
-          <span className="sr-only">View document</span>
-        </Button>
-      </CardHeader>
-
-      {showMetadata && !compact && (
-        <CardContent className="pt-0">
-          <div className="space-y-2">
-            {/* Document type and visibility badges */}
-            <div className="flex flex-wrap gap-2">
-              {documentType && (
-                <Badge variant="secondary" className={cn("text-xs", getTypeColor(documentType))}>
-                  {documentType.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                </Badge>
-              )}
-              
-              {isVisibleToTenants && (
-                <Badge variant="outline" className="text-xs border-green-300 text-green-700 dark:border-green-600 dark:text-green-400">
-                  👥 Visible to Tenants
-                </Badge>
-              )}
-            </div>
-
-            {/* Metadata row */}
-            <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-              <div className="flex items-center space-x-4">
-                {createdAt && (
-                  <div className="flex items-center space-x-1">
-                    <Calendar className="w-3 h-3" />
-                    <span>{formatDate(createdAt)}</span>
-                  </div>
-                )}
-                
-                {uploadedBy && (
-                  <div className="flex items-center space-x-1">
-                    <User className="w-3 h-3" />
-                    <span className="truncate max-w-20">{uploadedBy}</span>
-                  </div>
-                )}
-              </div>
-              
-              {fileSize && (
-                <span className="text-gray-400 dark:text-gray-500">
-                  {formatFileSize(fileSize)}
-                </span>
-              )}
-            </div>
-          </div>
-        </CardContent>
-      )}
-
-      {/* Compact metadata for compact mode */}
-      {showMetadata && compact && (
-        <CardContent className="pt-0">
-          <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-            <div className="flex items-center space-x-2">
-              {documentType && (
-                <Badge variant="secondary" className="text-xs">
-                  {documentType}
-                </Badge>
-              )}
-              {createdAt && <span>{formatDate(createdAt)}</span>}
-            </div>
-            {fileSize && <span>{formatFileSize(fileSize)}</span>}
-          </div>
-        </CardContent>
-      )}
-    </Card>
+    <StandardCard
+      title={title}
+      description={!compact ? description : undefined}
+      icon={getDocumentIcon()}
+      badges={badges}
+      actions={actions}
+      metadata={metadata}
+      onClick={onViewClick ? () => onViewClick(documentId) : undefined}
+      spacing={compact ? 'compact' : 'normal'}
+      className={className}
+      testId={`document-card-${documentId}`}
+    />
   );
 }

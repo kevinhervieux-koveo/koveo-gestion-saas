@@ -1,0 +1,211 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+index-x2L8Bg17.js:6 🏠 [INVENTORY PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-x2L8Bg17.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-x2L8Bg17.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-x2L8Bg17.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'create', elementId: undefined, isValid: false, isDirty: false, errorCount: 0, …}
+index-x2L8Bg17.js:6 ❌ [VALIDATION STATE] Form is invalid: {isValid: false, errorCount: 0, errorDetails: Array(0), allFormValues: {…}, nextEvaluationDate: {…}, …}
+index-x2L8Bg17.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+index-x2L8Bg17.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+index-x2L8Bg17.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+withHierarchicalSelection-Df_Nu-pv.js:1 🏢 [withHierarchicalSelection] Fetching buildings...
+withHierarchicalSelection-Df_Nu-pv.js:1 🌐 [withHierarchicalSelection] Requesting buildings: /api/organizations/e9bb7862-4ba5-4822-848f-f3692e826e73/buildings
+index-x2L8Bg17.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'create', elementId: undefined, isValid: false, isDirty: false, errorCount: 0, …}
+index-x2L8Bg17.js:6 ❌ [VALIDATION STATE] Form is invalid: {isValid: false, errorCount: 0, errorDetails: Array(0), allFormValues: {…}, nextEvaluationDate: {…}, …}
+withHierarchicalSelection-Df_Nu-pv.js:1 📊 [withHierarchicalSelection] Received 5 buildings from API
+withHierarchicalSelection-Df_Nu-pv.js:1 ✅ [withHierarchicalSelection] Returning all 5 buildings (non-residence page)
+index-x2L8Bg17.js:6 🏠 [INVENTORY PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-x2L8Bg17.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-x2L8Bg17.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-x2L8Bg17.js:6 🏠 [INVENTORY UI] Building elements collapsible toggled: true
+index-x2L8Bg17.js:6 🏠 [INVENTORY STATE] Building elements section toggled {expanded: true}
+index-x2L8Bg17.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-x2L8Bg17.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-x2L8Bg17.js:6 🏠 [INVENTORY ACTION] handleEditElement called: {elementId: '88600286-c991-46c8-9db1-6dfce62d2701', elementName: 'Electrical System'}
+index-x2L8Bg17.js:6 🏠 [INVENTORY STATE] Element form opened in edit mode
+index-x2L8Bg17.js:6 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-x2L8Bg17.js:6 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-x2L8Bg17.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'create', elementId: '88600286-c991-46c8-9db1-6dfce62d2701', isValid: false, isDirty: false, errorCount: 0, …}
+index-x2L8Bg17.js:6 ❌ [VALIDATION STATE] Form is invalid: {isValid: false, errorCount: 0, errorDetails: Array(0), allFormValues: {…}, nextEvaluationDate: {…}, …}
+index-x2L8Bg17.js:6 🔄 [EDIT MODE DEBUG] Loading element data: {elementId: '88600286-c991-46c8-9db1-6dfce62d2701', rawElement: {…}, transformedFormData: {…}}
+index-x2L8Bg17.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: undefined, type: undefined, value: undefined, isValid: false, errors: {…}, …}
+index-x2L8Bg17.js:6 ✅ [EDIT MODE DEBUG] Form reset completed. Form state after reset: {isValid: false, errors: {…}, fieldValues: {…}}
+index-x2L8Bg17.js:6 🔍 [EDIT MODE VALIDATION] Detailed field validation: {charge: {…}, access: {…}, currentCondition: {…}, originalConstructionDate: {…}, costEstimationDate: {…}, …}
+index-x2L8Bg17.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'edit', elementId: '88600286-c991-46c8-9db1-6dfce62d2701', isValid: false, isDirty: false, errorCount: 0, …}
+index-x2L8Bg17.js:6 ❌ [VALIDATION STATE] Form is invalid: {isValid: false, errorCount: 0, errorDetails: Array(0), allFormValues: {…}, nextEvaluationDate: {…}, …}
+index-x2L8Bg17.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'nextEvaluationDate', type: undefined, value: Sat Sep 23 2028 10:03:14 GMT-0400 (Eastern Daylight Time), isValid: false, errors: {…}, …}
+index-CJrurbDn.js:163 Cannot update a component (`Er`) while rendering a different component (`fc`). To locate the bad setState() call inside `fc`, follow the stack trace as described in https://react.dev/link/setstate-in-render
+overrideMethod @ hook.js:608
+Ye @ index-CJrurbDn.js:163
+ol @ index-CJrurbDn.js:120
+$p @ index-CJrurbDn.js:120
+callback @ vendor-forms-DXLf4S2w.js:1
+next @ vendor-forms-DXLf4S2w.js:1
+next @ vendor-forms-DXLf4S2w.js:1
+q @ vendor-forms-DXLf4S2w.js:1
+fe @ vendor-forms-DXLf4S2w.js:1
+S @ vendor-forms-DXLf4S2w.js:1
+F @ vendor-forms-DXLf4S2w.js:1
+ct @ vendor-forms-DXLf4S2w.js:1
+hn @ vendor-forms-DXLf4S2w.js:1
+fc @ vendor-forms-DXLf4S2w.js:1
+react_stack_bottom_frame @ index-CJrurbDn.js:229
+oc @ index-CJrurbDn.js:120
+kc @ index-CJrurbDn.js:141
+Pc @ index-CJrurbDn.js:150
+q @ index-CJrurbDn.js:45
+Kh @ index-CJrurbDn.js:163
+Jh @ index-CJrurbDn.js:163
+Wc @ index-CJrurbDn.js:163
+Ih @ index-CJrurbDn.js:163
+mg @ index-CJrurbDn.js:185
+ml @ index-CJrurbDn.js:185
+ad @ index-CJrurbDn.js:185
+(anonymous) @ index-CJrurbDn.js:185
+<fc>
+du.jsxDEV @ index-CJrurbDn.js:15
+k @ form-1h4w3Djo.js:1
+react_stack_bottom_frame @ index-CJrurbDn.js:229
+oc @ index-CJrurbDn.js:120
+kc @ index-CJrurbDn.js:141
+Pc @ index-CJrurbDn.js:150
+q @ index-CJrurbDn.js:45
+Kh @ index-CJrurbDn.js:163
+Jh @ index-CJrurbDn.js:163
+Wc @ index-CJrurbDn.js:163
+Ih @ index-CJrurbDn.js:163
+mg @ index-CJrurbDn.js:185
+ml @ index-CJrurbDn.js:185
+ad @ index-CJrurbDn.js:185
+(anonymous) @ index-CJrurbDn.js:185
+<k>
+du.jsxDEV @ index-CJrurbDn.js:15
+An @ FormModal-xWmviSCP.js:62
+react_stack_bottom_frame @ index-CJrurbDn.js:229
+oc @ index-CJrurbDn.js:120
+kc @ index-CJrurbDn.js:141
+Pc @ index-CJrurbDn.js:150
+q @ index-CJrurbDn.js:45
+Kh @ index-CJrurbDn.js:163
+Jh @ index-CJrurbDn.js:163
+Wc @ index-CJrurbDn.js:163
+Ih @ index-CJrurbDn.js:163
+mg @ index-CJrurbDn.js:185
+ml @ index-CJrurbDn.js:185
+ad @ index-CJrurbDn.js:185
+(anonymous) @ index-CJrurbDn.js:185
+<An>
+du.jsxDEV @ index-CJrurbDn.js:15
+Er @ index-x2L8Bg17.js:6
+react_stack_bottom_frame @ index-CJrurbDn.js:229
+oc @ index-CJrurbDn.js:120
+kc @ index-CJrurbDn.js:141
+Pc @ index-CJrurbDn.js:150
+q @ index-CJrurbDn.js:45
+Kh @ index-CJrurbDn.js:163
+Jh @ index-CJrurbDn.js:163
+Wc @ index-CJrurbDn.js:163
+Ih @ index-CJrurbDn.js:163
+mg @ index-CJrurbDn.js:185
+ml @ index-CJrurbDn.js:185
+ad @ index-CJrurbDn.js:185
+(anonymous) @ index-CJrurbDn.js:185
+<Er>
+du.jsxDEV @ index-CJrurbDn.js:15
+yr @ index-x2L8Bg17.js:6
+react_stack_bottom_frame @ index-CJrurbDn.js:229
+oc @ index-CJrurbDn.js:120
+kc @ index-CJrurbDn.js:141
+Pc @ index-CJrurbDn.js:150
+q @ index-CJrurbDn.js:45
+Kh @ index-CJrurbDn.js:163
+WS @ index-CJrurbDn.js:163
+KS @ index-CJrurbDn.js:163
+Ih @ index-CJrurbDn.js:163
+fg @ index-CJrurbDn.js:185
+d @ index-CJrurbDn.js:23
+<yr>
+du.jsxDEV @ index-CJrurbDn.js:15
+Dr @ index-x2L8Bg17.js:6
+react_stack_bottom_frame @ index-CJrurbDn.js:229
+oc @ index-CJrurbDn.js:120
+kc @ index-CJrurbDn.js:141
+Pc @ index-CJrurbDn.js:150
+q @ index-CJrurbDn.js:45
+Kh @ index-CJrurbDn.js:163
+WS @ index-CJrurbDn.js:163
+KS @ index-CJrurbDn.js:163
+Ih @ index-CJrurbDn.js:163
+fg @ index-CJrurbDn.js:185
+d @ index-CJrurbDn.js:23
+<Dr>
+du.jsxDEV @ index-CJrurbDn.js:15
+(anonymous) @ withHierarchicalSelection-Df_Nu-pv.js:1
+react_stack_bottom_frame @ index-CJrurbDn.js:229
+oc @ index-CJrurbDn.js:120
+kc @ index-CJrurbDn.js:141
+Pc @ index-CJrurbDn.js:150
+q @ index-CJrurbDn.js:45
+Kh @ index-CJrurbDn.js:163
+WS @ index-CJrurbDn.js:163
+KS @ index-CJrurbDn.js:163
+Ih @ index-CJrurbDn.js:163
+fg @ index-CJrurbDn.js:185
+d @ index-CJrurbDn.js:23
+<...>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Pb @ index-CJrurbDn.js:240
+P @ index-CJrurbDn.js:240
+react_stack_bottom_frame @ index-CJrurbDn.js:229
+oc @ index-CJrurbDn.js:120
+kc @ index-CJrurbDn.js:141
+Pc @ index-CJrurbDn.js:150
+q @ index-CJrurbDn.js:45
+Kh @ index-CJrurbDn.js:163
+WS @ index-CJrurbDn.js:163
+KS @ index-CJrurbDn.js:163
+Ih @ index-CJrurbDn.js:163
+fg @ index-CJrurbDn.js:185
+d @ index-CJrurbDn.js:23
+<P>
+du.jsxDEV @ index-CJrurbDn.js:15
+ex @ index-CJrurbDn.js:384
+react_stack_bottom_frame @ index-CJrurbDn.js:229
+oc @ index-CJrurbDn.js:120
+kc @ index-CJrurbDn.js:141
+Pc @ index-CJrurbDn.js:150
+q @ index-CJrurbDn.js:45
+Kh @ index-CJrurbDn.js:163
+Jh @ index-CJrurbDn.js:163
+Wc @ index-CJrurbDn.js:163
+Ih @ index-CJrurbDn.js:163
+mg @ index-CJrurbDn.js:185
+ml @ index-CJrurbDn.js:185
+ad @ index-CJrurbDn.js:185
+(anonymous) @ index-CJrurbDn.js:185
+<ex>
+du.jsxDEV @ index-CJrurbDn.js:15
+tx @ index-CJrurbDn.js:384
+react_stack_bottom_frame @ index-CJrurbDn.js:229
+oc @ index-CJrurbDn.js:120
+kc @ index-CJrurbDn.js:141
+Pc @ index-CJrurbDn.js:150
+q @ index-CJrurbDn.js:45
+Kh @ index-CJrurbDn.js:163
+Jh @ index-CJrurbDn.js:163
+Wc @ index-CJrurbDn.js:163
+Ih @ index-CJrurbDn.js:163
+fg @ index-CJrurbDn.js:185
+d @ index-CJrurbDn.js:23
+<tx>
+du.jsxDEV @ index-CJrurbDn.js:15
+(anonymous) @ index-CJrurbDn.js:384
+index-CJrurbDn.js:185 [Violation] 'click' handler took 175ms
+index-x2L8Bg17.js:6 🔍 [ELEMENT FORM DEBUG] Form field changed: {field: 'reconstructionCost', type: 'change', value: '15', isValid: false, errors: {…}, …}
+index-x2L8Bg17.js:6 🔍 [ELEMENT FORM DEBUG] Form state: {mode: 'edit', elementId: '88600286-c991-46c8-9db1-6dfce62d2701', isValid: false, isDirty: true, errorCount: 0, …}
+index-x2L8Bg17.js:6 ❌ [VALIDATION STATE] Form is invalid: {isValid: false, errorCount: 0, errorDetails: Array(0), allFormValues: {…}, nextEvaluationDate: {…}, …}allFormValues: {buildingId: undefined, uniformatCode: 'D5010', name: 'Electrical System', description: '', residenceId: null, …}dirtyFields: {reconstructionCost: true}errorCount: 0errorDetails: []isDirty: trueisSubmitted: falseisValid: falseisValidating: truenextEvaluationDate: {value: Sat Sep 23 2028 10:03:14 GMT-0400 (Eastern Daylight Time), type: 'object', isDate: true, isNull: false, isUndefined: false}reconstructionCost: {value: '15', type: 'string', isNumber: false, isPositive: false}isNumber: falseisPositive: falsetype: "string"value: "15"[[Prototype]]: ObjecttouchedFields: {reconstructionCost: true}[[Prototype]]: Object

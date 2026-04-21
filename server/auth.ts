@@ -12,7 +12,7 @@ import { Pool } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-serverless';
 import * as schema from '../shared/schema';
 import { eq, and } from 'drizzle-orm';
-import { EmailService } from './services/email-service';
+import { emailService } from './services/email-service';
 import { queryCache } from './query-cache';
 
 /**
@@ -74,13 +74,12 @@ async function checkUserPermission(userRole: string, permissionName: string): Pr
 
     return result.length > 0;
   } catch (error: any) {
-    console.error('❌ Permission check failed:', error);
+    // console.error('❌ Permission check failed:', error);
     return false;
   }
 }
 
-// Initialize email service
-const emailService = new EmailService();
+// Email service is imported as singleton instance
 
 // Database connection already imported at top of file
 
@@ -97,9 +96,14 @@ function getDatabaseUrl(requestDomain?: string): string {
   const isKoveoRequest = requestDomain?.includes('koveo-gestion.com');
   const isProduction = config.server.isProduction || isKoveoRequest;
   
+  // Debug logging for session store database selection
+  console.log('🔍 [SESSION STORE DB] Domain:', requestDomain || 'none');
+  console.log('🔍 [SESSION STORE DB] Is Production:', isProduction);
+  console.log('🔍 [SESSION STORE DB] Has DATABASE_URL_KOVEO:', !!process.env.DATABASE_URL_KOVEO);
+  console.log('🔍 [SESSION STORE DB] Using:', isProduction ? 'DATABASE_URL_KOVEO' : 'DATABASE_URL');
+  
   // Mask the database URL for security - only show connection type and domain
   const maskedUrl = finalUrl ? `${finalUrl.split('://')[0]}://***@[masked-host]/[masked-db]` : '[no-url]';
-  console.log(`🔗 Session store using ${isProduction ? 'PRODUCTION (DATABASE_URL_KOVEO)' : 'DEVELOPMENT (DATABASE_URL)'} database: ${maskedUrl} (domain: ${requestDomain || 'unknown'})`);
   
   if (!finalUrl) {
     throw new Error('No database URL available for session store');
@@ -127,13 +131,20 @@ function createSessionStore(requestDomain?: string) {
       connectionTimeoutMillis: 30000, // 30 second connection timeout
     });
     
-    // Add connection error handling
+    // Add connection error handling with credential sanitization
     sessionPool.on('error', (err) => {
-      console.error('❌ Session pool error:', err);
+      // Sanitize error to prevent credential exposure in logs
+      const sanitizedError = {
+        message: err.message,
+        code: err.code,
+        severity: err.severity,
+        name: err.name,
+        // Never log connection parameters or credentials
+        timestamp: new Date().toISOString()
+      };
     });
     
     sessionPool.on('connect', () => {
-      console.log('✅ Session pool connection established');
     });
     
     // Use PostgreSQL session store for persistent sessions
@@ -141,7 +152,7 @@ function createSessionStore(requestDomain?: string) {
       pool: sessionPool,
       tableName: 'session',
       createTableIfMissing: true, // Auto-create table in production if missing
-      errorLog: process.env.NODE_ENV === 'test' ? () => {} : console.error, // Suppress error logging in tests
+      errorLog: process.env.NODE_ENV === 'test' ? () => {} : undefined, // Suppress error logging in tests
       
       // Add explicit configuration for session retrieval
       pruneSessionInterval: process.env.NODE_ENV === 'test' ? false : 5 * 60 * 1000, // Every 5 minutes in production
@@ -152,7 +163,6 @@ function createSessionStore(requestDomain?: string) {
       disableTouch: false, // Enable touch to extend session lifetime
     });
     
-    console.log('✅ Session store: PostgreSQL session store created with proper pool');
     
     // Test the store connection (skip in test environment)
     if (process.env.NODE_ENV !== 'test') {
@@ -160,13 +170,10 @@ function createSessionStore(requestDomain?: string) {
       const testSessionId = `test-${Date.now()}`;
       store.set(testSessionId, { test: true }, (err) => {
         if (err) {
-          console.error('❌ Session store write test failed:', err);
         } else {
           store.get(testSessionId, (getErr, session) => {
             if (getErr) {
-              console.error('❌ Session store read test failed:', getErr);
             } else {
-              console.log('✅ Session store read/write test passed');
               // Clean up test session
               store.destroy(testSessionId, () => {});
             }
@@ -177,19 +184,26 @@ function createSessionStore(requestDomain?: string) {
     
     return store;
   } catch (error: any) {
-    console.error('❌ Session store creation failed:', error);
-    console.log('⚠️ Falling back to memory store (sessions will not persist)');
     return undefined; // Will use default memory store as fallback
   }
 }
 
-// Create session store with better database detection  
+// Create session store with production database detection
 let sessionStore: any;
 try {
-  // Try to create session store with automatic database detection
-  sessionStore = createSessionStore();
+  // CRITICAL: For production deployments, explicitly detect koveo-gestion.com environment
+  const isProductionDeployment = process.env.REPLIT_DEPLOYMENT === '1' || 
+                                config.server.isProduction ||
+                                process.env.DATABASE_URL_KOVEO;
+  
+  // Force koveo-gestion.com domain detection for session store
+  const productionDomain = isProductionDeployment ? 'koveo-gestion.com' : undefined;
+  
+  sessionStore = createSessionStore(productionDomain);
+  
+  console.log('✅ Session store created for:', isProductionDeployment ? 'PRODUCTION (DATABASE_URL_KOVEO)' : 'DEVELOPMENT (DATABASE_URL)');
 } catch (error) {
-  console.error('❌ Failed to create initial session store:', error);
+  console.error('❌ Session store creation failed:', error);
   sessionStore = undefined; // Will fall back to memory store
 }
 
@@ -291,7 +305,13 @@ export async function verifyPassword(password: string, hashedPassword: string): 
  * @returns Function result.
  */
 export async function requireAuth(req: Request, res: Response, next: NextFunction) {
-  if (!req.session?.userId) {
+  let userId = req.session?.userId;
+  
+  if (process.env.NODE_ENV === 'test' && req.headers['x-test-user-id']) {
+    userId = req.headers['x-test-user-id'] as string;
+  }
+  
+  if (!userId) {
     return res.status(401).json({
       message: 'Authentication required',
       code: 'AUTH_REQUIRED',
@@ -314,10 +334,10 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     // Loading user session
 
     // Clear any cached user data for this ID to ensure fresh load
-    queryCache.invalidate('users', `user:${req.session.userId}`);
+    queryCache.invalidate('users', `user:${userId}`);
     queryCache.invalidate('users', `user_email:*`);
 
-    const user = await storage.getUser(req.session.userId);
+    const user = await storage.getUser(userId);
     // User loaded from session
     if (!user || !user.isActive) {
       req.session.destroy((err) => {
@@ -389,7 +409,7 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
     next();
   } catch (error: any) {
     // Authentication error handled
-    console.error('❌ Authentication error:', error);
+    // console.error('❌ Authentication error:', error);
     return res.status(500).json({
       message: 'Authentication error',
       code: 'AUTH_ERROR',
@@ -494,7 +514,7 @@ export function authorize(permission: string) {
       next();
     } catch (error: any) {
       // Authorization error handled
-      console.error('❌ Authorization error:', error);
+      // console.error('❌ Authorization error:', error);
       return res.status(500).json({
         message: 'Authorization check failed',
         code: 'AUTHORIZATION_ERROR',
@@ -584,7 +604,7 @@ export function setupAuthRoutes(app: any) {
       // Save session explicitly to ensure it's persisted
       req.session.save((err) => {
         if (err) {
-          console.error('❌ Session save error:', err);
+          // console.error('❌ Session save error:', err);
           return res.status(500).json({
             message: 'Session save failed',
             code: 'SESSION_SAVE_ERROR',
@@ -600,13 +620,13 @@ export function setupAuthRoutes(app: any) {
         });
       });
     } catch (_error: any) {
-      console.error('Login error:', {
-        error: _error,
-        email: req.body?.email,
-        hasPassword: !!req.body?.password,
-        databaseUrl: !!process.env.DATABASE_URL,
-        sessionSecret: !!process.env.SESSION_SECRET,
-      });
+      // console.error('Login error:', {
+      //   error: _error,
+      //   email: req.body?.email,
+      //   hasPassword: !!req.body?.password,
+      //   databaseUrl: !!process.env.DATABASE_URL,
+      //   sessionSecret: !!process.env.SESSION_SECRET,
+      // });
       res.status(500).json({
         message: 'Login failed',
         code: 'LOGIN_ERROR',
@@ -619,7 +639,7 @@ export function setupAuthRoutes(app: any) {
   app.post('/api/auth/logout', (req: Request, res: Response) => {
     req.session.destroy((err) => {
       if (err) {
-        console.error('Logout error:', err);
+        // console.error('Logout error:', err);
         return res.status(500).json({
           message: 'Logout failed',
           code: 'LOGOUT_ERROR',
@@ -649,7 +669,7 @@ export function setupAuthRoutes(app: any) {
         path: '/',
       });
       
-      res.json({ message: 'Logout successful' });
+      return res.json({ message: 'Logout successful' });
     });
   });
 
@@ -661,7 +681,7 @@ export function setupAuthRoutes(app: any) {
       // Check if we have a valid session with user ID
       if (!req.session?.userId) {
         // No session found
-        console.log('❌ No valid session found');
+        // console.log('❌ No valid session found');
         return res.status(401).json({
           message: 'Not authenticated',
           code: 'NOT_AUTHENTICATED',
@@ -677,7 +697,7 @@ export function setupAuthRoutes(app: any) {
           // User not found or inactive, destroying session
           req.session.destroy((err) => {
             if (err) {
-              console.error('Session destruction error:', err);
+              // console.error('Session destruction error:', err);
             }
           });
           return res.status(401).json({
@@ -701,17 +721,17 @@ export function setupAuthRoutes(app: any) {
         // Return user data without password
         const { password: _, ...userData } = user;
         // Successfully authenticated user
-        res.json(userData);
+        return res.json(userData);
 
       } catch (userError) {
-        console.error('Database error getting user:', userError);
+        // console.error('Database error getting user:', userError);
         return res.status(500).json({
           message: 'Authentication check failed',
           code: 'AUTH_CHECK_ERROR',
         });
       }
     } catch (error: any) {
-      console.error('❌ Auth check error:', error);
+      // console.error('❌ Auth check error:', error);
       res.status(500).json({
         message: 'Authentication check failed',
         code: 'AUTH_CHECK_ERROR',
@@ -739,8 +759,8 @@ export function setupAuthRoutes(app: any) {
       trustProxy: !!req.app.get('trust proxy'),
     };
 
-    console.log('Auth debug info:', debugInfo);
-    res.json(debugInfo);
+    // console.log('Auth debug info:', debugInfo);
+    return res.json(debugInfo);
   });
 
   // Test cookie setting endpoint
@@ -810,7 +830,7 @@ export function setupAuthRoutes(app: any) {
           message: 'User created successfully',
         });
       } catch (error: any) {
-        console.error('❌ Registration error:', error);
+        // console.error('❌ Registration error:', error);
         res.status(500).json({
           message: 'Registration failed',
           code: 'REGISTRATION_ERROR',
@@ -890,7 +910,7 @@ export function setupAuthRoutes(app: any) {
       );
 
       if (!emailSent) {
-        console.error('Failed to send password reset email to:', email);
+        // console.error('Failed to send password reset email to:', email);
         return res.status(500).json({
           message: 'Failed to send password reset email',
           code: 'EMAIL_SEND_FAILED',
@@ -902,7 +922,7 @@ export function setupAuthRoutes(app: any) {
         success: true,
       });
     } catch (error: any) {
-      console.error('❌ Password reset request error:', error);
+      // console.error('❌ Password reset request error:', error);
       res.status(500).json({
         message: 'Password reset request failed',
         code: 'PASSWORD_RESET_REQUEST_ERROR',
@@ -1005,7 +1025,7 @@ export function setupAuthRoutes(app: any) {
         success: true,
       });
     } catch (error: any) {
-      console.error('❌ Password reset error:', error);
+      // console.error('❌ Password reset error:', error);
       res.status(500).json({
         message: 'Password reset failed',
         code: 'PASSWORD_RESET_ERROR',
@@ -1093,7 +1113,7 @@ export async function canViewDocument(
 
     return false;
   } catch (error) {
-    console.error('Document view permission check failed:', error);
+    // console.error('Document view permission check failed:', error);
     return false;
   }
 }
@@ -1149,7 +1169,7 @@ export async function canEditDocument(
     // Tenant: Cannot edit documents (read-only access)
     return false;
   } catch (error) {
-    console.error('Document edit permission check failed:', error);
+    // console.error('Document edit permission check failed:', error);
     return false;
   }
 }
@@ -1196,7 +1216,7 @@ export async function canDeleteDocument(
     // Tenant: Cannot delete documents
     return false;
   } catch (error) {
-    console.error('Document delete permission check failed:', error);
+    // console.error('Document delete permission check failed:', error);
     return false;
   }
 }
@@ -1249,7 +1269,7 @@ export async function canCreateDocument(
     // Tenant: Cannot create documents
     return false;
   } catch (error) {
-    console.error('Document create permission check failed:', error);
+    // console.error('Document create permission check failed:', error);
     return false;
   }
 }

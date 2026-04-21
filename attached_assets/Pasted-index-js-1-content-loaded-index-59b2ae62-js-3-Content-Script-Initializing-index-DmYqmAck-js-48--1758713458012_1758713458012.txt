@@ -1,0 +1,189 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+index-DmYqmAck.js:48 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-DmYqmAck.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-DmYqmAck.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+withHierarchicalSelection-CEcD0IYE.js:1 🏢 [withHierarchicalSelection] Fetching buildings...
+withHierarchicalSelection-CEcD0IYE.js:1 🌐 [withHierarchicalSelection] Requesting buildings: /api/organizations/e9bb7862-4ba5-4822-848f-f3692e826e73/buildings
+withHierarchicalSelection-CEcD0IYE.js:1 📊 [withHierarchicalSelection] Received 5 buildings from API
+withHierarchicalSelection-CEcD0IYE.js:1 ✅ [withHierarchicalSelection] Returning all 5 buildings (non-residence page)
+index-DmYqmAck.js:48 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-DmYqmAck.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DmYqmAck.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-DmYqmAck.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DmYqmAck.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-DmYqmAck.js:48 📁 [PROJECTS UI] Projects table collapsible toggled: true
+index-DmYqmAck.js:48 📁 [PROJECTS STATE] Projects table section toggled {expanded: true}
+index-DmYqmAck.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DmYqmAck.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-DmYqmAck.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: []
+index-DmYqmAck.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 0
+index-DmYqmAck.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Raw response from backend: {success: true, data: Array(2)}
+index-DmYqmAck.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Response structure: (2) ['success', 'data']
+index-DmYqmAck.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects found in data property: 2
+index-DmYqmAck.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: (2) [{…}, {…}]
+index-DmYqmAck.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 2
+index-DmYqmAck.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (2) [{…}, {…}]
+index-DmYqmAck.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 2
+index-DmYqmAck.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (2) [{…}, {…}]
+index-DmYqmAck.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 2
+index-CQ98xqQZ.js:185 [Violation] 'setTimeout' handler took 84ms
+index-DmYqmAck.js:48 📁 [PROJECTS ACTION] handleViewProject called: {projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470', projectTitle: 'window changes'}
+index-DmYqmAck.js:48 📁 [PROJECTS STATE] Project workflow modal opened
+index-DmYqmAck.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-DmYqmAck.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CQ98xqQZ.js:136 TypeError: Cannot read properties of undefined (reading 'replace')
+    at po (ProjectWorkflowModal-kGrGi1vY.js:1:15807)
+    at Object.react_stack_bottom_frame (index-CQ98xqQZ.js:229:12448)
+    at oc (index-CQ98xqQZ.js:120:804)
+    at kc (index-CQ98xqQZ.js:141:5839)
+    at Pc (index-CQ98xqQZ.js:150:10147)
+    at q (index-CQ98xqQZ.js:45:108)
+    at Kh (index-CQ98xqQZ.js:163:29810)
+    at Jh (index-CQ98xqQZ.js:163:28479)
+    at Wc (index-CQ98xqQZ.js:163:28312)
+    at Ih (index-CQ98xqQZ.js:163:24807)
+
+The above error occurred in the <po> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, gx.
+
+overrideMethod @ hook.js:608
+oh @ index-CQ98xqQZ.js:136
+lh @ index-CQ98xqQZ.js:141
+q @ index-CQ98xqQZ.js:45
+l.componentDidCatch.e.callback @ index-CQ98xqQZ.js:141
+Dp @ index-CQ98xqQZ.js:107
+Ep @ index-CQ98xqQZ.js:107
+q @ index-CQ98xqQZ.js:45
+Dh @ index-CQ98xqQZ.js:163
+Nh @ index-CQ98xqQZ.js:163
+Qn @ index-CQ98xqQZ.js:163
+Nh @ index-CQ98xqQZ.js:163
+Qn @ index-CQ98xqQZ.js:163
+Nh @ index-CQ98xqQZ.js:163
+Qn @ index-CQ98xqQZ.js:163
+Nh @ index-CQ98xqQZ.js:163
+Qn @ index-CQ98xqQZ.js:163
+Nh @ index-CQ98xqQZ.js:163
+Qn @ index-CQ98xqQZ.js:163
+Nh @ index-CQ98xqQZ.js:163
+Qn @ index-CQ98xqQZ.js:163
+Nh @ index-CQ98xqQZ.js:163
+ng @ index-CQ98xqQZ.js:163
+ed @ index-CQ98xqQZ.js:163
+Xh @ index-CQ98xqQZ.js:163
+Ih @ index-CQ98xqQZ.js:163
+mg @ index-CQ98xqQZ.js:185
+ml @ index-CQ98xqQZ.js:185
+ad @ index-CQ98xqQZ.js:185
+(anonymous) @ index-CQ98xqQZ.js:185
+<...>
+du.jsxDEV @ index-CQ98xqQZ.js:15
+El @ index-DmYqmAck.js:48
+react_stack_bottom_frame @ index-CQ98xqQZ.js:229
+oc @ index-CQ98xqQZ.js:120
+kc @ index-CQ98xqQZ.js:141
+Pc @ index-CQ98xqQZ.js:150
+q @ index-CQ98xqQZ.js:45
+Kh @ index-CQ98xqQZ.js:163
+Jh @ index-CQ98xqQZ.js:163
+Wc @ index-CQ98xqQZ.js:163
+Ih @ index-CQ98xqQZ.js:163
+mg @ index-CQ98xqQZ.js:185
+ml @ index-CQ98xqQZ.js:185
+ad @ index-CQ98xqQZ.js:185
+(anonymous) @ index-CQ98xqQZ.js:185
+<El>
+du.jsxDEV @ index-CQ98xqQZ.js:15
+Pl @ index-DmYqmAck.js:48
+react_stack_bottom_frame @ index-CQ98xqQZ.js:229
+oc @ index-CQ98xqQZ.js:120
+kc @ index-CQ98xqQZ.js:141
+Pc @ index-CQ98xqQZ.js:150
+q @ index-CQ98xqQZ.js:45
+Kh @ index-CQ98xqQZ.js:163
+Jh @ index-CQ98xqQZ.js:163
+Wc @ index-CQ98xqQZ.js:163
+Ih @ index-CQ98xqQZ.js:163
+mg @ index-CQ98xqQZ.js:185
+ml @ index-CQ98xqQZ.js:185
+ad @ index-CQ98xqQZ.js:185
+(anonymous) @ index-CQ98xqQZ.js:185
+<Pl>
+du.jsxDEV @ index-CQ98xqQZ.js:15
+Vl @ index-DmYqmAck.js:48
+react_stack_bottom_frame @ index-CQ98xqQZ.js:229
+oc @ index-CQ98xqQZ.js:120
+kc @ index-CQ98xqQZ.js:141
+Pc @ index-CQ98xqQZ.js:150
+q @ index-CQ98xqQZ.js:45
+Kh @ index-CQ98xqQZ.js:163
+WS @ index-CQ98xqQZ.js:163
+KS @ index-CQ98xqQZ.js:163
+Ih @ index-CQ98xqQZ.js:163
+fg @ index-CQ98xqQZ.js:185
+d @ index-CQ98xqQZ.js:23
+<Vl>
+du.jsxDEV @ index-CQ98xqQZ.js:15
+(anonymous) @ withHierarchicalSelection-CEcD0IYE.js:1
+react_stack_bottom_frame @ index-CQ98xqQZ.js:229
+oc @ index-CQ98xqQZ.js:120
+kc @ index-CQ98xqQZ.js:141
+Pc @ index-CQ98xqQZ.js:150
+q @ index-CQ98xqQZ.js:45
+Kh @ index-CQ98xqQZ.js:163
+WS @ index-CQ98xqQZ.js:163
+KS @ index-CQ98xqQZ.js:163
+Ih @ index-CQ98xqQZ.js:163
+fg @ index-CQ98xqQZ.js:185
+d @ index-CQ98xqQZ.js:23
+<...>
+du.jsxDEV @ index-CQ98xqQZ.js:15
+children @ index-CQ98xqQZ.js:384
+Pb @ index-CQ98xqQZ.js:240
+P @ index-CQ98xqQZ.js:240
+react_stack_bottom_frame @ index-CQ98xqQZ.js:229
+oc @ index-CQ98xqQZ.js:120
+kc @ index-CQ98xqQZ.js:141
+Pc @ index-CQ98xqQZ.js:150
+q @ index-CQ98xqQZ.js:45
+Kh @ index-CQ98xqQZ.js:163
+WS @ index-CQ98xqQZ.js:163
+KS @ index-CQ98xqQZ.js:163
+Ih @ index-CQ98xqQZ.js:163
+fg @ index-CQ98xqQZ.js:185
+d @ index-CQ98xqQZ.js:23
+<P>
+du.jsxDEV @ index-CQ98xqQZ.js:15
+eR @ index-CQ98xqQZ.js:384
+react_stack_bottom_frame @ index-CQ98xqQZ.js:229
+oc @ index-CQ98xqQZ.js:120
+kc @ index-CQ98xqQZ.js:141
+Pc @ index-CQ98xqQZ.js:150
+q @ index-CQ98xqQZ.js:45
+Kh @ index-CQ98xqQZ.js:163
+Jh @ index-CQ98xqQZ.js:163
+Wc @ index-CQ98xqQZ.js:163
+Ih @ index-CQ98xqQZ.js:163
+mg @ index-CQ98xqQZ.js:185
+ml @ index-CQ98xqQZ.js:185
+ad @ index-CQ98xqQZ.js:185
+(anonymous) @ index-CQ98xqQZ.js:185
+<eR>
+du.jsxDEV @ index-CQ98xqQZ.js:15
+tR @ index-CQ98xqQZ.js:384
+react_stack_bottom_frame @ index-CQ98xqQZ.js:229
+oc @ index-CQ98xqQZ.js:120
+kc @ index-CQ98xqQZ.js:141
+Pc @ index-CQ98xqQZ.js:150
+q @ index-CQ98xqQZ.js:45
+Kh @ index-CQ98xqQZ.js:163
+Jh @ index-CQ98xqQZ.js:163
+Wc @ index-CQ98xqQZ.js:163
+Ih @ index-CQ98xqQZ.js:163
+fg @ index-CQ98xqQZ.js:185
+d @ index-CQ98xqQZ.js:23
+<tR>
+du.jsxDEV @ index-CQ98xqQZ.js:15
+(anonymous) @ index-CQ98xqQZ.js:384

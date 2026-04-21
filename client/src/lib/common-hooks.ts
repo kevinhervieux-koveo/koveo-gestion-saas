@@ -8,27 +8,22 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 
 /**
- * Common loading state hook.
- * @param initialState - Initial loading state.
- * @returns Loading state and setter.
+ * Custom hook for managing loading state with utility functions.
+ * Provides a simple interface for tracking async operations.
+ * 
+ * @param initialState - Initial loading state (default: false)
+ * @returns Object containing loading state and control functions
+ * @example
+ * ```typescript
+ * const { isLoading, setLoading, withLoading } = useLoadingState();
+ * 
+ * // Use withLoading to automatically manage loading state
+ * const result = await withLoading(async () => {
+ *   return await fetchData();
+ * });
+ * ```
  */
-/**
- * UseLoadingState custom hook.
- * @returns Hook return value.
- */
-/**
- * Use loading state function.
- * @param initialState = false - initialState = false parameter.
- */
-export function /**
- * Use loading state function.
- * @param initialState = false - initialState = false parameter.
- */ /**
- * Use loading state function.
- * @param initialState = false - initialState = false parameter.
- */
-
-useLoadingState(initialState = false) {
+export function useLoadingState(initialState = false) {
   const [isLoading, setIsLoading] = useState(initialState);
 
   const setLoading = useCallback((loading: boolean) => {
@@ -52,31 +47,26 @@ useLoadingState(initialState = false) {
 }
 
 /**
- * Common delete mutation hook.
- * @param config - Configuration for the delete mutation.
- * @param config.deleteFn
- * @param config.successMessage
- * @param config.errorMessage
- * @param config.queryKeysToInvalidate
- * @returns Delete mutation.
- */
-/**
- * UseDeleteMutation component.
- * @param props - Component props.
- * @param props.deleteFn - DeleteFn parameter.
- * @param props.successMessage = 'Item deleted successfully' - successMessage = 'Item deleted successfully' parameter.
- * @param props.errorMessage = 'Failed to delete item' - errorMessage = 'Failed to delete item' parameter.
- * @param props.queryKeysToInvalidate = [] - queryKeysToInvalidate = [] parameter.
- * @returns JSX element.
- */
-/**
- * UseDeleteMutation component.
- * @param props - Component props.
- * @param props.deleteFn - DeleteFn parameter.
- * @param props.successMessage = 'Item deleted successfully' - successMessage = 'Item deleted successfully' parameter.
- * @param props.errorMessage = 'Failed to delete item' - errorMessage = 'Failed to delete item' parameter.
- * @param props.queryKeysToInvalidate = [] - queryKeysToInvalidate = [] parameter.
- * @returns JSX element.
+ * Custom hook for standardized delete mutations with error handling and cache invalidation.
+ * Provides consistent UX patterns for delete operations across the application.
+ * 
+ * @param config - Configuration object for the delete mutation
+ * @param config.deleteFn - Async function that performs the delete operation
+ * @param config.successMessage - Success toast message (default: 'Item deleted successfully')
+ * @param config.errorMessage - Error toast message (default: 'Failed to delete item')
+ * @param config.queryKeysToInvalidate - Array of query keys to invalidate after successful deletion
+ * @returns TanStack Query mutation object with enhanced error handling
+ * @example
+ * ```typescript
+ * const deleteMutation = useDeleteMutation({
+ *   deleteFn: async () => await apiRequest('DELETE', `/api/items/${itemId}`),
+ *   successMessage: 'Item removed successfully',
+ *   queryKeysToInvalidate: ['/api/items']
+ * });
+ * 
+ * // Usage in component
+ * const handleDelete = () => deleteMutation.mutate();
+ * ```
  */
 export function useDeleteMutation({
   deleteFn,
@@ -262,5 +252,114 @@ export function useSearchFilter<T = Record<string, unknown>>(
     updateFilter,
     clearFilters,
     resetSearch,
+  };
+}
+
+/**
+ * Enhanced dialog state hook that builds on useFormState.
+ * Provides standardized dialog management patterns across the application.
+ * @param options - Configuration options for the dialog.
+ * @returns Dialog state management with enhanced functionality.
+ */
+export function useDialogState<T = unknown>(options: {
+  initialOpen?: boolean;
+  onClose?: () => void;
+  onSuccess?: (data?: T) => void;
+} = {}) {
+  const { initialOpen = false, onClose, onSuccess } = options;
+  const formState = useFormState(initialOpen);
+
+  const openDialog = useCallback((item?: T) => {
+    formState.openForm(item);
+  }, [formState]);
+
+  const closeDialog = useCallback(() => {
+    formState.closeForm();
+    onClose?.();
+  }, [formState, onClose]);
+
+  const handleSuccess = useCallback((data?: T) => {
+    onSuccess?.(data);
+    closeDialog();
+  }, [onSuccess, closeDialog]);
+
+  return {
+    isOpen: formState.isOpen,
+    selectedItem: formState.selectedItem as T | null,
+    openDialog,
+    closeDialog,
+    handleSuccess,
+    // Expose original formState methods for backward compatibility
+    ...formState,
+  };
+}
+
+/**
+ * Common table/list state hook with pagination, sorting, and filtering.
+ * Consolidates repeated patterns in data table components.
+ * @param options - Configuration options for table state.
+ * @returns Complete table state management.
+ */
+export function useTableState<T = Record<string, unknown>>(options: {
+  initialPageSize?: number;
+  initialSortField?: string;
+  initialSortDirection?: 'asc' | 'desc';
+  initialFilters?: T;
+} = {}) {
+  const {
+    initialPageSize = 10,
+    initialSortField = '',
+    initialSortDirection = 'asc',
+    initialFilters = {} as T,
+  } = options;
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(initialPageSize);
+  const [sortField, setSortField] = useState(initialSortField);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>(initialSortDirection);
+  
+  const searchFilter = useSearchFilter('', initialFilters);
+
+  const handleSort = useCallback((field: string) => {
+    if (sortField === field) {
+      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+    setCurrentPage(1); // Reset to first page when sorting
+  }, [sortField]);
+
+  const resetTable = useCallback(() => {
+    setCurrentPage(1);
+    setPageSize(initialPageSize);
+    setSortField(initialSortField);
+    setSortDirection(initialSortDirection);
+    searchFilter.clearFilters();
+  }, [initialPageSize, initialSortField, initialSortDirection, searchFilter]);
+
+  return {
+    // Pagination
+    currentPage,
+    pageSize,
+    setCurrentPage,
+    setPageSize,
+    
+    // Sorting
+    sortField,
+    sortDirection,
+    handleSort,
+    setSortField,
+    setSortDirection,
+    
+    // Search and filters
+    searchTerm: searchFilter.searchTerm,
+    filters: searchFilter.filters,
+    setSearchTerm: searchFilter.setSearchTerm,
+    updateFilter: searchFilter.updateFilter,
+    clearFilters: searchFilter.clearFilters,
+    
+    // Utilities
+    resetTable,
   };
 }

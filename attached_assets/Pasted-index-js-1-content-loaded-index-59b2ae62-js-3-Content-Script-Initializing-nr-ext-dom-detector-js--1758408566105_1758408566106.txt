@@ -1,0 +1,235 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+index-L9ZjfOag.js:185 [Violation] 'pointerup' handler took 210ms
+[Violation] 'input' handler took <N>ms
+[Violation] 'input' handler took <N>ms
+[Violation] 'input' handler took <N>ms
+[Violation] 'input' handler took <N>ms
+[Violation] 'input' handler took <N>ms
+[Violation] 'input' handler took <N>ms
+[Violation] 'input' handler took <N>ms
+[Violation] 'input' handler took <N>ms
+[Violation] 'input' handler took <N>ms
+[Violation] 'input' handler took <N>ms
+[Violation] 'message' handler took <N>ms
+[Violation] 'message' handler took <N>ms
+[Violation] 'message' handler took <N>ms
+[Violation] 'message' handler took <N>ms
+[Violation] 'message' handler took <N>ms
+[Violation] 'message' handler took <N>ms
+[Violation] 'message' handler took <N>ms
+[Violation] 'message' handler took <N>ms
+[Violation] 'message' handler took <N>ms
+[Violation] 'message' handler took <N>ms
+[Violation] 'message' handler took <N>ms
+[Violation] 'message' handler took <N>ms
+[Violation] 'message' handler took <N>ms
+[Violation] 'message' handler took <N>ms
+[Violation] 'message' handler took <N>ms
+[Violation] 'message' handler took <N>ms
+[Violation] 'message' handler took <N>ms
+[Violation] 'message' handler took <N>ms
+[Violation] 'message' handler took <N>ms
+[Violation] 'message' handler took <N>ms
+[Violation] 'message' handler took <N>ms
+[Violation] 'message' handler took <N>ms
+index-L9ZjfOag.js:185 [Violation] 'click' handler took 163ms
+[Violation] 'click' handler took 238ms
+withHierarchicalSelection-d6_O-lqp.js:1 🎯 [SELECTION GRID DEBUG] Button clicked: {itemId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', itemName: 'Demo 123'}
+withHierarchicalSelection-d6_O-lqp.js:1 🎯 [SELECTION GRID DEBUG] Button clicked: {itemId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', itemName: '1936 Nitzsche Track Building 5'}
+bills-B4B6NSWe.js:11 🏠 [BILLS PAGE] Initializing with: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+bills-B4B6NSWe.js:11 📊 [BILLS PAGE] Fetching bills with URL: /api/bills?buildingId=c3052c3c-b694-41a6-bd65-3bc3ae9a5984&year=2025
+bills-B4B6NSWe.js:11 📊 [BILLS PAGE] Applied filters: {category: '', year: '2025', months: Array(0), paymentType: '', status: '', …}
+bills-B4B6NSWe.js:11 🔄 [BILLS PAGE] Filters changed: {category: '', year: '2025', months: Array(0), paymentType: '', status: '', …}
+bills-B4B6NSWe.js:11 🏗️ [BILLS PAGE] Building ID changed: c3052c3c-b694-41a6-bd65-3bc3ae9a5984
+bills-B4B6NSWe.js:11 📋 [BILLS PAGE] Bills data updated: {count: 0, billTypes: Array(0)}
+bills-B4B6NSWe.js:11 ⏳ [BILLS PAGE] Loading bills...
+bills-B4B6NSWe.js:11 🏠 [BILLS PAGE] Initializing with: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+bills-B4B6NSWe.js:11 📋 [BILLS PAGE] Bills data updated: {count: 0, billTypes: Array(0)}
+bills-B4B6NSWe.js:11 📊 [BILLS PAGE] Bills API response status: 200
+bills-B4B6NSWe.js:11 ✅ [BILLS PAGE] Bills data received: (25) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+bills-B4B6NSWe.js:11 🏠 [BILLS PAGE] Initializing with: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '6a557259-f129-4c3c-a9e5-be2feb337611', title: 'Insurance - Aviva Canada', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '724ce997-e717-4600-97f2-ac8a118cc503', title: 'Insurance - Desjardins Assurances', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: 'c34e1fc8-8c83-4757-b310-fce443f9d498', title: 'Insurance - Quebec Insurance Co.', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '3f642c68-6c6c-46c6-972b-9b6546a1f22e', title: 'Maintenance - Total Maintenance Solutions', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: 'f16ff08b-1351-4d86-97e7-425f9e4b921a', title: 'Maintenance - Reliable Building Care', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '4837583d-bb35-4b7f-8fed-24ed5543327d', title: 'Maintenance - Reliable Building Care', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '2e3b4057-e126-4524-8aca-1bfdf49b8e55', title: 'Utilities - Videotron', status: 'draft', paymentType: 'recurrent', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: 'e1786f7f-e557-4a46-bc3a-12cb288d830a', title: 'Cleaning - CleanMaster Services', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: 'f7c3ab86-5211-4ffb-9a42-b00a1684bd05', title: 'Cleaning - Nettoyage Excellence', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: 'd4648ed2-595d-4066-9de4-5ce11bda1220', title: 'Cleaning - Nettoyage Excellence', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '5fc14764-935c-46ba-87e0-78b8b2dc9ece', title: 'Security - Paladin Security', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '827a8c80-bd40-4f77-9331-35a983ce1dd4', title: 'Security - GardaWorld', status: 'sent', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '96e96304-505b-4977-b824-7ccbeb50fdfa', title: 'Landscaping - Jardins Excellence', status: 'sent', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '1962b611-42a8-4488-895e-9a9f945e2e31', title: 'Landscaping - Entretien Paysager Plus', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '34ed793e-9187-4023-8ad6-4319d9c88fd2', title: 'Professional services - Gestion Immobilière Québec', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '68997115-4180-4b37-aef5-c43bdb9355a7', title: 'Professional services - Gestion Immobilière Québec', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '3aa40a7c-0117-4b46-b6d9-ae20ccbc8609', title: 'Administration - Administration Excellence', status: 'sent', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '906f5fbd-0a03-4453-acb7-2eeb10a4b86e', title: 'Concrete slab lifting', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: 'b938e8bc-9b08-4c80-9d2c-529a7c02b6d1', title: 'Concrete slab lifting', status: 'draft', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: 'a6035b2e-a29d-4700-917b-05eaf6c1c303', title: 'Repairs - Service de Réparation Plus', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '01b9c40a-1208-4780-906f-cdc96af06829', title: 'Supplies - Équipements & Fournitures', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '2e5f822b-3732-4980-90f6-be5439be0ba1', title: 'Supplies - Fournitures Industrielles', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '444c3d5c-c56d-4b40-a275-4fa7d0737a17', title: 'Supplies - Équipements & Fournitures', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '56dbc01d-895a-4885-80ef-ea50b35d7886', title: 'Supplies - Équipements & Fournitures', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '70ac5961-bd70-40b6-9878-cf6541bc3e07', title: 'Supplies - Matériaux Plus', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 📋 [BILLS PAGE] Bills data updated: {count: 25, billTypes: Array(25)}
+bills-B4B6NSWe.js:11 🔙 [BILLS PAGE] Navigating back to building selection
+withHierarchicalSelection-d6_O-lqp.js:1 🎯 [SELECTION GRID DEBUG] Button clicked: {itemId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', itemName: '1936 Nitzsche Track Building 5'}
+bills-B4B6NSWe.js:11 🏠 [BILLS PAGE] Initializing with: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+bills-B4B6NSWe.js:11 📊 [BILLS PAGE] Fetching bills with URL: /api/bills?buildingId=c3052c3c-b694-41a6-bd65-3bc3ae9a5984&year=2025
+bills-B4B6NSWe.js:11 📊 [BILLS PAGE] Applied filters: {category: '', year: '2025', months: Array(0), paymentType: '', status: '', …}
+bills-B4B6NSWe.js:11 🔄 [BILLS PAGE] Filters changed: {category: '', year: '2025', months: Array(0), paymentType: '', status: '', …}
+bills-B4B6NSWe.js:11 🏗️ [BILLS PAGE] Building ID changed: c3052c3c-b694-41a6-bd65-3bc3ae9a5984
+bills-B4B6NSWe.js:11 📋 [BILLS PAGE] Bills data updated: {count: 0, billTypes: Array(0)}
+bills-B4B6NSWe.js:11 ⏳ [BILLS PAGE] Loading bills...
+bills-B4B6NSWe.js:11 📊 [BILLS PAGE] Bills API response status: 200
+bills-B4B6NSWe.js:11 🏠 [BILLS PAGE] Initializing with: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+bills-B4B6NSWe.js:11 📋 [BILLS PAGE] Bills data updated: {count: 0, billTypes: Array(0)}
+bills-B4B6NSWe.js:11 ✅ [BILLS PAGE] Bills data received: (25) [{…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}, {…}]
+bills-B4B6NSWe.js:11 🏠 [BILLS PAGE] Initializing with: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '6a557259-f129-4c3c-a9e5-be2feb337611', title: 'Insurance - Aviva Canada', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '724ce997-e717-4600-97f2-ac8a118cc503', title: 'Insurance - Desjardins Assurances', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: 'c34e1fc8-8c83-4757-b310-fce443f9d498', title: 'Insurance - Quebec Insurance Co.', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '3f642c68-6c6c-46c6-972b-9b6546a1f22e', title: 'Maintenance - Total Maintenance Solutions', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: 'f16ff08b-1351-4d86-97e7-425f9e4b921a', title: 'Maintenance - Reliable Building Care', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '4837583d-bb35-4b7f-8fed-24ed5543327d', title: 'Maintenance - Reliable Building Care', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '2e3b4057-e126-4524-8aca-1bfdf49b8e55', title: 'Utilities - Videotron', status: 'draft', paymentType: 'recurrent', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: 'e1786f7f-e557-4a46-bc3a-12cb288d830a', title: 'Cleaning - CleanMaster Services', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: 'f7c3ab86-5211-4ffb-9a42-b00a1684bd05', title: 'Cleaning - Nettoyage Excellence', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: 'd4648ed2-595d-4066-9de4-5ce11bda1220', title: 'Cleaning - Nettoyage Excellence', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '5fc14764-935c-46ba-87e0-78b8b2dc9ece', title: 'Security - Paladin Security', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '827a8c80-bd40-4f77-9331-35a983ce1dd4', title: 'Security - GardaWorld', status: 'sent', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '96e96304-505b-4977-b824-7ccbeb50fdfa', title: 'Landscaping - Jardins Excellence', status: 'sent', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '1962b611-42a8-4488-895e-9a9f945e2e31', title: 'Landscaping - Entretien Paysager Plus', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '34ed793e-9187-4023-8ad6-4319d9c88fd2', title: 'Professional services - Gestion Immobilière Québec', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '68997115-4180-4b37-aef5-c43bdb9355a7', title: 'Professional services - Gestion Immobilière Québec', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '3aa40a7c-0117-4b46-b6d9-ae20ccbc8609', title: 'Administration - Administration Excellence', status: 'sent', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '906f5fbd-0a03-4453-acb7-2eeb10a4b86e', title: 'Concrete slab lifting', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: 'b938e8bc-9b08-4c80-9d2c-529a7c02b6d1', title: 'Concrete slab lifting', status: 'draft', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: 'a6035b2e-a29d-4700-917b-05eaf6c1c303', title: 'Repairs - Service de Réparation Plus', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '01b9c40a-1208-4780-906f-cdc96af06829', title: 'Supplies - Équipements & Fournitures', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '2e5f822b-3732-4980-90f6-be5439be0ba1', title: 'Supplies - Fournitures Industrielles', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '444c3d5c-c56d-4b40-a275-4fa7d0737a17', title: 'Supplies - Équipements & Fournitures', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '56dbc01d-895a-4885-80ef-ea50b35d7886', title: 'Supplies - Équipements & Fournitures', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '70ac5961-bd70-40b6-9878-cf6541bc3e07', title: 'Supplies - Matériaux Plus', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 📋 [BILLS PAGE] Bills data updated: {count: 25, billTypes: Array(25)}
+bills-B4B6NSWe.js:11 🏠 [BILLS PAGE] Initializing with: {buildingId: 'c3052c3c-b694-41a6-bd65-3bc3ae9a5984', organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73'}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '6a557259-f129-4c3c-a9e5-be2feb337611', title: 'Insurance - Aviva Canada', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '724ce997-e717-4600-97f2-ac8a118cc503', title: 'Insurance - Desjardins Assurances', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: 'c34e1fc8-8c83-4757-b310-fce443f9d498', title: 'Insurance - Quebec Insurance Co.', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '3f642c68-6c6c-46c6-972b-9b6546a1f22e', title: 'Maintenance - Total Maintenance Solutions', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: 'f16ff08b-1351-4d86-97e7-425f9e4b921a', title: 'Maintenance - Reliable Building Care', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '4837583d-bb35-4b7f-8fed-24ed5543327d', title: 'Maintenance - Reliable Building Care', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '2e3b4057-e126-4524-8aca-1bfdf49b8e55', title: 'Utilities - Videotron', status: 'draft', paymentType: 'recurrent', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: 'e1786f7f-e557-4a46-bc3a-12cb288d830a', title: 'Cleaning - CleanMaster Services', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: 'f7c3ab86-5211-4ffb-9a42-b00a1684bd05', title: 'Cleaning - Nettoyage Excellence', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: 'd4648ed2-595d-4066-9de4-5ce11bda1220', title: 'Cleaning - Nettoyage Excellence', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '5fc14764-935c-46ba-87e0-78b8b2dc9ece', title: 'Security - Paladin Security', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '827a8c80-bd40-4f77-9331-35a983ce1dd4', title: 'Security - GardaWorld', status: 'sent', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '96e96304-505b-4977-b824-7ccbeb50fdfa', title: 'Landscaping - Jardins Excellence', status: 'sent', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '1962b611-42a8-4488-895e-9a9f945e2e31', title: 'Landscaping - Entretien Paysager Plus', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '34ed793e-9187-4023-8ad6-4319d9c88fd2', title: 'Professional services - Gestion Immobilière Québec', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '68997115-4180-4b37-aef5-c43bdb9355a7', title: 'Professional services - Gestion Immobilière Québec', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '3aa40a7c-0117-4b46-b6d9-ae20ccbc8609', title: 'Administration - Administration Excellence', status: 'sent', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '906f5fbd-0a03-4453-acb7-2eeb10a4b86e', title: 'Concrete slab lifting', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: 'b938e8bc-9b08-4c80-9d2c-529a7c02b6d1', title: 'Concrete slab lifting', status: 'draft', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: 'a6035b2e-a29d-4700-917b-05eaf6c1c303', title: 'Repairs - Service de Réparation Plus', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '01b9c40a-1208-4780-906f-cdc96af06829', title: 'Supplies - Équipements & Fournitures', status: 'overdue', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '2e5f822b-3732-4980-90f6-be5439be0ba1', title: 'Supplies - Fournitures Industrielles', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '444c3d5c-c56d-4b40-a275-4fa7d0737a17', title: 'Supplies - Équipements & Fournitures', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '56dbc01d-895a-4885-80ef-ea50b35d7886', title: 'Supplies - Équipements & Fournitures', status: 'paid', paymentType: 'unique', isExpanded: false}
+bills-B4B6NSWe.js:11 🃏 [BILL CARD] Rendering bill: {id: '70ac5961-bd70-40b6-9878-cf6541bc3e07', title: 'Supplies - Matériaux Plus', status: 'overdue', paymentType: 'unique', isExpanded: false}
+index-L9ZjfOag.js:136 ReferenceError: Cannot access 'st' before initialization
+    at _s (ModularBillForm-DsmF95Lz.js:21:111421)
+    at Object.react_stack_bottom_frame (index-L9ZjfOag.js:229:12448)
+    at oc (index-L9ZjfOag.js:120:804)
+    at kc (index-L9ZjfOag.js:141:5839)
+    at Pc (index-L9ZjfOag.js:150:10147)
+    at q (index-L9ZjfOag.js:45:108)
+    at Kh (index-L9ZjfOag.js:163:29810)
+    at Jh (index-L9ZjfOag.js:163:28479)
+    at Wc (index-L9ZjfOag.js:163:28312)
+    at Ih (index-L9ZjfOag.js:163:24807)
+
+The above error occurred in the <_s> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, sR.
+
+overrideMethod @ hook.js:608
+oh @ index-L9ZjfOag.js:136
+lh @ index-L9ZjfOag.js:141
+q @ index-L9ZjfOag.js:45
+l.componentDidCatch.e.callback @ index-L9ZjfOag.js:141
+Dp @ index-L9ZjfOag.js:107
+Ep @ index-L9ZjfOag.js:107
+q @ index-L9ZjfOag.js:45
+Dh @ index-L9ZjfOag.js:163
+Nh @ index-L9ZjfOag.js:163
+Qn @ index-L9ZjfOag.js:163
+Nh @ index-L9ZjfOag.js:163
+Qn @ index-L9ZjfOag.js:163
+Nh @ index-L9ZjfOag.js:163
+Qn @ index-L9ZjfOag.js:163
+Nh @ index-L9ZjfOag.js:163
+Qn @ index-L9ZjfOag.js:163
+Nh @ index-L9ZjfOag.js:163
+Qn @ index-L9ZjfOag.js:163
+Nh @ index-L9ZjfOag.js:163
+Qn @ index-L9ZjfOag.js:163
+Nh @ index-L9ZjfOag.js:163
+ng @ index-L9ZjfOag.js:163
+ed @ index-L9ZjfOag.js:163
+Xh @ index-L9ZjfOag.js:163
+Ih @ index-L9ZjfOag.js:163
+mg @ index-L9ZjfOag.js:185
+ml @ index-L9ZjfOag.js:185
+ad @ index-L9ZjfOag.js:185
+(anonymous) @ index-L9ZjfOag.js:185
+<_s>
+du.jsxDEV @ index-L9ZjfOag.js:15
+yn @ bills-B4B6NSWe.js:11
+react_stack_bottom_frame @ index-L9ZjfOag.js:229
+oc @ index-L9ZjfOag.js:120
+kc @ index-L9ZjfOag.js:141
+Pc @ index-L9ZjfOag.js:150
+q @ index-L9ZjfOag.js:45
+Kh @ index-L9ZjfOag.js:163
+Jh @ index-L9ZjfOag.js:163
+Wc @ index-L9ZjfOag.js:163
+Ih @ index-L9ZjfOag.js:163
+mg @ index-L9ZjfOag.js:185
+ml @ index-L9ZjfOag.js:185
+ad @ index-L9ZjfOag.js:185
+(anonymous) @ index-L9ZjfOag.js:185

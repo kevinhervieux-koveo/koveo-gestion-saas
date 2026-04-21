@@ -1,0 +1,142 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+index-C_pDAbFf.js:240  GET https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/communication/organization-context 404 (Not Found)
+(anonymous) @ index-C_pDAbFf.js:240
+r @ vendor-query-CpacoHs9.js:1
+y @ vendor-query-CpacoHs9.js:1
+start @ vendor-query-CpacoHs9.js:1
+fetch @ vendor-query-CpacoHs9.js:1
+#l @ vendor-query-CpacoHs9.js:1
+onSubscribe @ vendor-query-CpacoHs9.js:1
+subscribe @ vendor-query-CpacoHs9.js:1
+(anonymous) @ vendor-query-CpacoHs9.js:1
+Np @ index-C_pDAbFf.js:120
+react_stack_bottom_frame @ index-C_pDAbFf.js:229
+q @ index-C_pDAbFf.js:45
+sl @ index-C_pDAbFf.js:150
+Ah @ index-C_pDAbFf.js:163
+Vh @ index-C_pDAbFf.js:163
+Lo @ index-C_pDAbFf.js:163
+Vh @ index-C_pDAbFf.js:163
+Lo @ index-C_pDAbFf.js:163
+Vh @ index-C_pDAbFf.js:163
+Lo @ index-C_pDAbFf.js:163
+Vh @ index-C_pDAbFf.js:163
+Lo @ index-C_pDAbFf.js:163
+Lh @ index-C_pDAbFf.js:163
+En @ index-C_pDAbFf.js:163
+Lh @ index-C_pDAbFf.js:163
+En @ index-C_pDAbFf.js:163
+Lh @ index-C_pDAbFf.js:163
+En @ index-C_pDAbFf.js:163
+Lh @ index-C_pDAbFf.js:163
+En @ index-C_pDAbFf.js:163
+Lh @ index-C_pDAbFf.js:163
+En @ index-C_pDAbFf.js:163
+Lh @ index-C_pDAbFf.js:163
+En @ index-C_pDAbFf.js:163
+Lh @ index-C_pDAbFf.js:163
+En @ index-C_pDAbFf.js:163
+Lh @ index-C_pDAbFf.js:163
+En @ index-C_pDAbFf.js:163
+Lh @ index-C_pDAbFf.js:163
+En @ index-C_pDAbFf.js:163
+Lh @ index-C_pDAbFf.js:163
+En @ index-C_pDAbFf.js:163
+Lh @ index-C_pDAbFf.js:163
+En @ index-C_pDAbFf.js:163
+Lh @ index-C_pDAbFf.js:163
+En @ index-C_pDAbFf.js:163
+Lh @ index-C_pDAbFf.js:163
+En @ index-C_pDAbFf.js:163
+Lh @ index-C_pDAbFf.js:163
+En @ index-C_pDAbFf.js:163
+Lh @ index-C_pDAbFf.js:163
+En @ index-C_pDAbFf.js:163
+Lh @ index-C_pDAbFf.js:163
+En @ index-C_pDAbFf.js:163
+Lh @ index-C_pDAbFf.js:163
+En @ index-C_pDAbFf.js:163
+Lh @ index-C_pDAbFf.js:163
+En @ index-C_pDAbFf.js:163
+Lh @ index-C_pDAbFf.js:163
+ig @ index-C_pDAbFf.js:163
+dl @ index-C_pDAbFf.js:163
+mg @ index-C_pDAbFf.js:185
+ml @ index-C_pDAbFf.js:185
+ag @ index-C_pDAbFf.js:163
+ed @ index-C_pDAbFf.js:163
+Xh @ index-C_pDAbFf.js:163
+Ih @ index-C_pDAbFf.js:163
+fg @ index-C_pDAbFf.js:185
+d @ index-C_pDAbFf.js:23
+<...>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Pb @ index-C_pDAbFf.js:240
+P @ index-C_pDAbFf.js:240
+react_stack_bottom_frame @ index-C_pDAbFf.js:229
+oc @ index-C_pDAbFf.js:120
+kc @ index-C_pDAbFf.js:141
+Pc @ index-C_pDAbFf.js:150
+q @ index-C_pDAbFf.js:45
+Kh @ index-C_pDAbFf.js:163
+JS @ index-C_pDAbFf.js:163
+$S @ index-C_pDAbFf.js:163
+Ih @ index-C_pDAbFf.js:163
+fg @ index-C_pDAbFf.js:185
+d @ index-C_pDAbFf.js:23
+<P>
+du.jsxDEV @ index-C_pDAbFf.js:15
+QR @ index-C_pDAbFf.js:369
+react_stack_bottom_frame @ index-C_pDAbFf.js:229
+oc @ index-C_pDAbFf.js:120
+kc @ index-C_pDAbFf.js:141
+Pc @ index-C_pDAbFf.js:150
+q @ index-C_pDAbFf.js:45
+Kh @ index-C_pDAbFf.js:163
+Jh @ index-C_pDAbFf.js:163
+Wc @ index-C_pDAbFf.js:163
+Ih @ index-C_pDAbFf.js:163
+mg @ index-C_pDAbFf.js:185
+ml @ index-C_pDAbFf.js:185
+ad @ index-C_pDAbFf.js:185
+(anonymous) @ index-C_pDAbFf.js:185
+<QR>
+du.jsxDEV @ index-C_pDAbFf.js:15
+IR @ index-C_pDAbFf.js:369
+react_stack_bottom_frame @ index-C_pDAbFf.js:229
+oc @ index-C_pDAbFf.js:120
+kc @ index-C_pDAbFf.js:141
+Pc @ index-C_pDAbFf.js:150
+q @ index-C_pDAbFf.js:45
+Kh @ index-C_pDAbFf.js:163
+Jh @ index-C_pDAbFf.js:163
+Wc @ index-C_pDAbFf.js:163
+Ih @ index-C_pDAbFf.js:163
+fg @ index-C_pDAbFf.js:185
+d @ index-C_pDAbFf.js:23
+<IR>
+du.jsxDEV @ index-C_pDAbFf.js:15
+(anonymous) @ index-C_pDAbFf.js:369
+index-C_pDAbFf.js:185 [Violation] 'setTimeout' handler took 661ms
+index-C_pDAbFf.js:240  GET https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/communication/organization-context 404 (Not Found)
+(anonymous) @ index-C_pDAbFf.js:240
+r @ vendor-query-CpacoHs9.js:1
+y @ vendor-query-CpacoHs9.js:1
+(anonymous) @ vendor-query-CpacoHs9.js:1
+index-C_pDAbFf.js:240  GET https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/communication/organization-context 404 (Not Found)
+(anonymous) @ index-C_pDAbFf.js:240
+r @ vendor-query-CpacoHs9.js:1
+y @ vendor-query-CpacoHs9.js:1
+(anonymous) @ vendor-query-CpacoHs9.js:1
+Promise.then
+(anonymous) @ vendor-query-CpacoHs9.js:1
+Promise.catch
+y @ vendor-query-CpacoHs9.js:1
+(anonymous) @ vendor-query-CpacoHs9.js:1
+index-C_pDAbFf.js:185 [Violation] 'setTimeout' handler took 218ms

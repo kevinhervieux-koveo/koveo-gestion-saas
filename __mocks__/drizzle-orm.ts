@@ -170,6 +170,15 @@ export const notInArray = jest.fn().mockImplementation((column: any, values: any
   toString: () => `${column?.name || 'column'} NOT IN (${values.join(', ')})`
 }));
 
+// Mock relations function for schema definitions
+export const relations = jest.fn().mockImplementation((table: any, callback: any) => {
+  const relationHelpers = {
+    one: jest.fn().mockImplementation(() => ({})),
+    many: jest.fn().mockImplementation(() => ({}))
+  };
+  return callback(relationHelpers);
+});
+
 // Export everything as default for compatibility
 export default {
   eq,
@@ -193,5 +202,6 @@ export default {
   placeholder,
   sql,
   inArray,
-  notInArray
+  notInArray,
+  relations
 };

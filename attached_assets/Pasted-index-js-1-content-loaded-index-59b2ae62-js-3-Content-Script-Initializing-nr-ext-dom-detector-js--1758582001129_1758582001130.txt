@@ -1,0 +1,237 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+index-CX8cFRb1.js:12 🏠 [INVENTORY PAGE INNER] Rendering with props: {organizationId: 'f0e34e59-0d81-4c1a-b95f-e23dd1667a19', buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', residenceId: undefined}
+index-CX8cFRb1.js:12 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'f0e34e59-0d81-4c1a-b95f-e23dd1667a19', buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-CX8cFRb1.js:12 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: ae3a1c02-67bb-49eb-9fa6-c63627274d4f
+withHierarchicalSelection-Dh-Y_2YJ.js:1 🏢 [withHierarchicalSelection] Fetching buildings...
+withHierarchicalSelection-Dh-Y_2YJ.js:1 🌐 [withHierarchicalSelection] Requesting buildings: /api/organizations/f0e34e59-0d81-4c1a-b95f-e23dd1667a19/buildings
+withHierarchicalSelection-Dh-Y_2YJ.js:1 📊 [withHierarchicalSelection] Received 5 buildings from API
+withHierarchicalSelection-Dh-Y_2YJ.js:1 ✅ [withHierarchicalSelection] Returning all 5 buildings (non-residence page)
+index-CX8cFRb1.js:12 🏠 [INVENTORY PAGE INNER] Rendering with props: {organizationId: 'f0e34e59-0d81-4c1a-b95f-e23dd1667a19', buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', residenceId: undefined}
+index-CX8cFRb1.js:12 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'f0e34e59-0d81-4c1a-b95f-e23dd1667a19', buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', residenceId: undefined, showBackButton: true, backButtonLabel: '32360 Jude Fields Building 2'}
+index-CX8cFRb1.js:12 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: ae3a1c02-67bb-49eb-9fa6-c63627274d4f
+index-CX8cFRb1.js:12 🏠 [INVENTORY PAGE] Initializing with: {organizationId: 'f0e34e59-0d81-4c1a-b95f-e23dd1667a19', buildingId: 'ae3a1c02-67bb-49eb-9fa6-c63627274d4f', residenceId: undefined, showBackButton: true, backButtonLabel: '32360 Jude Fields Building 2'}
+index-CX8cFRb1.js:12 🏠 [INVENTORY PAGE] Building selected, rendering inventory content for building: ae3a1c02-67bb-49eb-9fa6-c63627274d4f
+index-Bs60L8UO.js:136 Error: A <Select.Item /> must have a value prop that is not an empty string. This is because the Select value can be set to an empty string to clear the selection and show the placeholder.
+    at SelectItem (vendor-ui-DOhogLgl.js:58:12812)
+    at Object.react_stack_bottom_frame (index-Bs60L8UO.js:229:12448)
+    at oc (index-Bs60L8UO.js:120:804)
+    at sh (index-Bs60L8UO.js:141:3310)
+    at Pc (index-Bs60L8UO.js:150:12689)
+    at q (index-Bs60L8UO.js:45:108)
+    at Kh (index-Bs60L8UO.js:163:29810)
+    at Jh (index-Bs60L8UO.js:163:28479)
+    at Wc (index-Bs60L8UO.js:163:28312)
+    at Ih (index-Bs60L8UO.js:163:24807)
+
+The above error occurred in the <SelectItem> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, gR.
+
+overrideMethod @ hook.js:608
+oh @ index-Bs60L8UO.js:136
+lh @ index-Bs60L8UO.js:141
+q @ index-Bs60L8UO.js:45
+l.componentDidCatch.e.callback @ index-Bs60L8UO.js:141
+Dp @ index-Bs60L8UO.js:107
+Ep @ index-Bs60L8UO.js:107
+q @ index-Bs60L8UO.js:45
+Dh @ index-Bs60L8UO.js:163
+Nh @ index-Bs60L8UO.js:163
+Qn @ index-Bs60L8UO.js:163
+Nh @ index-Bs60L8UO.js:163
+Qn @ index-Bs60L8UO.js:163
+Nh @ index-Bs60L8UO.js:163
+Qn @ index-Bs60L8UO.js:163
+Nh @ index-Bs60L8UO.js:163
+Qn @ index-Bs60L8UO.js:163
+Nh @ index-Bs60L8UO.js:163
+Qn @ index-Bs60L8UO.js:163
+Nh @ index-Bs60L8UO.js:163
+Qn @ index-Bs60L8UO.js:163
+Nh @ index-Bs60L8UO.js:163
+ng @ index-Bs60L8UO.js:163
+ed @ index-Bs60L8UO.js:163
+Xh @ index-Bs60L8UO.js:163
+Ih @ index-Bs60L8UO.js:163
+mg @ index-Bs60L8UO.js:185
+ml @ index-Bs60L8UO.js:185
+ad @ index-Bs60L8UO.js:185
+(anonymous) @ index-Bs60L8UO.js:185
+<SelectItem>
+du.jsxDEV @ index-Bs60L8UO.js:15
+SelectItem @ select-akmpppQf.js:6
+react_stack_bottom_frame @ index-Bs60L8UO.js:229
+oc @ index-Bs60L8UO.js:120
+sh @ index-Bs60L8UO.js:141
+Pc @ index-Bs60L8UO.js:150
+q @ index-Bs60L8UO.js:45
+Kh @ index-Bs60L8UO.js:163
+Jh @ index-Bs60L8UO.js:163
+Wc @ index-Bs60L8UO.js:163
+Ih @ index-Bs60L8UO.js:163
+mg @ index-Bs60L8UO.js:185
+ml @ index-Bs60L8UO.js:185
+ad @ index-Bs60L8UO.js:185
+(anonymous) @ index-Bs60L8UO.js:185
+<SelectItem>
+du.jsxDEV @ index-Bs60L8UO.js:15
+children @ index-CX8cFRb1.js:12
+render @ index-Bz1OhFO4.js:41
+fc @ vendor-forms-gPm21tRI.js:1
+react_stack_bottom_frame @ index-Bs60L8UO.js:229
+oc @ index-Bs60L8UO.js:120
+kc @ index-Bs60L8UO.js:141
+Pc @ index-Bs60L8UO.js:150
+q @ index-Bs60L8UO.js:45
+Kh @ index-Bs60L8UO.js:163
+Jh @ index-Bs60L8UO.js:163
+Wc @ index-Bs60L8UO.js:163
+Ih @ index-Bs60L8UO.js:163
+mg @ index-Bs60L8UO.js:185
+ml @ index-Bs60L8UO.js:185
+ad @ index-Bs60L8UO.js:185
+(anonymous) @ index-Bs60L8UO.js:185
+<fc>
+du.jsxDEV @ index-Bs60L8UO.js:15
+k @ form-BhBbnvb-.js:1
+react_stack_bottom_frame @ index-Bs60L8UO.js:229
+oc @ index-Bs60L8UO.js:120
+kc @ index-Bs60L8UO.js:141
+Pc @ index-Bs60L8UO.js:150
+q @ index-Bs60L8UO.js:45
+Kh @ index-Bs60L8UO.js:163
+Jh @ index-Bs60L8UO.js:163
+Wc @ index-Bs60L8UO.js:163
+Ih @ index-Bs60L8UO.js:163
+mg @ index-Bs60L8UO.js:185
+ml @ index-Bs60L8UO.js:185
+ad @ index-Bs60L8UO.js:185
+(anonymous) @ index-Bs60L8UO.js:185
+<k>
+du.jsxDEV @ index-Bs60L8UO.js:15
+rl @ index-Bz1OhFO4.js:41
+react_stack_bottom_frame @ index-Bs60L8UO.js:229
+oc @ index-Bs60L8UO.js:120
+kc @ index-Bs60L8UO.js:141
+Pc @ index-Bs60L8UO.js:150
+q @ index-Bs60L8UO.js:45
+Kh @ index-Bs60L8UO.js:163
+Jh @ index-Bs60L8UO.js:163
+Wc @ index-Bs60L8UO.js:163
+Ih @ index-Bs60L8UO.js:163
+mg @ index-Bs60L8UO.js:185
+ml @ index-Bs60L8UO.js:185
+ad @ index-Bs60L8UO.js:185
+(anonymous) @ index-Bs60L8UO.js:185
+<rl>
+du.jsxDEV @ index-Bs60L8UO.js:15
+jt @ index-CX8cFRb1.js:12
+react_stack_bottom_frame @ index-Bs60L8UO.js:229
+oc @ index-Bs60L8UO.js:120
+kc @ index-Bs60L8UO.js:141
+Pc @ index-Bs60L8UO.js:150
+q @ index-Bs60L8UO.js:45
+Kh @ index-Bs60L8UO.js:163
+Jh @ index-Bs60L8UO.js:163
+Wc @ index-Bs60L8UO.js:163
+Ih @ index-Bs60L8UO.js:163
+mg @ index-Bs60L8UO.js:185
+ml @ index-Bs60L8UO.js:185
+ad @ index-Bs60L8UO.js:185
+(anonymous) @ index-Bs60L8UO.js:185
+<jt>
+du.jsxDEV @ index-Bs60L8UO.js:15
+Ft @ index-CX8cFRb1.js:12
+react_stack_bottom_frame @ index-Bs60L8UO.js:229
+oc @ index-Bs60L8UO.js:120
+kc @ index-Bs60L8UO.js:141
+Pc @ index-Bs60L8UO.js:150
+q @ index-Bs60L8UO.js:45
+Kh @ index-Bs60L8UO.js:163
+WS @ index-Bs60L8UO.js:163
+KS @ index-Bs60L8UO.js:163
+Ih @ index-Bs60L8UO.js:163
+fg @ index-Bs60L8UO.js:185
+d @ index-Bs60L8UO.js:23
+<Ft>
+du.jsxDEV @ index-Bs60L8UO.js:15
+Pt @ index-CX8cFRb1.js:12
+react_stack_bottom_frame @ index-Bs60L8UO.js:229
+oc @ index-Bs60L8UO.js:120
+kc @ index-Bs60L8UO.js:141
+Pc @ index-Bs60L8UO.js:150
+q @ index-Bs60L8UO.js:45
+Kh @ index-Bs60L8UO.js:163
+WS @ index-Bs60L8UO.js:163
+KS @ index-Bs60L8UO.js:163
+Ih @ index-Bs60L8UO.js:163
+fg @ index-Bs60L8UO.js:185
+d @ index-Bs60L8UO.js:23
+<Pt>
+du.jsxDEV @ index-Bs60L8UO.js:15
+(anonymous) @ withHierarchicalSelection-Dh-Y_2YJ.js:1
+react_stack_bottom_frame @ index-Bs60L8UO.js:229
+oc @ index-Bs60L8UO.js:120
+kc @ index-Bs60L8UO.js:141
+Pc @ index-Bs60L8UO.js:150
+q @ index-Bs60L8UO.js:45
+Kh @ index-Bs60L8UO.js:163
+WS @ index-Bs60L8UO.js:163
+KS @ index-Bs60L8UO.js:163
+Ih @ index-Bs60L8UO.js:163
+fg @ index-Bs60L8UO.js:185
+d @ index-Bs60L8UO.js:23
+<...>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Pb @ index-Bs60L8UO.js:240
+P @ index-Bs60L8UO.js:240
+react_stack_bottom_frame @ index-Bs60L8UO.js:229
+oc @ index-Bs60L8UO.js:120
+kc @ index-Bs60L8UO.js:141
+Pc @ index-Bs60L8UO.js:150
+q @ index-Bs60L8UO.js:45
+Kh @ index-Bs60L8UO.js:163
+WS @ index-Bs60L8UO.js:163
+KS @ index-Bs60L8UO.js:163
+Ih @ index-Bs60L8UO.js:163
+fg @ index-Bs60L8UO.js:185
+d @ index-Bs60L8UO.js:23
+<P>
+du.jsxDEV @ index-Bs60L8UO.js:15
+ex @ index-Bs60L8UO.js:384
+react_stack_bottom_frame @ index-Bs60L8UO.js:229
+oc @ index-Bs60L8UO.js:120
+kc @ index-Bs60L8UO.js:141
+Pc @ index-Bs60L8UO.js:150
+q @ index-Bs60L8UO.js:45
+Kh @ index-Bs60L8UO.js:163
+Jh @ index-Bs60L8UO.js:163
+Wc @ index-Bs60L8UO.js:163
+Ih @ index-Bs60L8UO.js:163
+mg @ index-Bs60L8UO.js:185
+ml @ index-Bs60L8UO.js:185
+ad @ index-Bs60L8UO.js:185
+(anonymous) @ index-Bs60L8UO.js:185
+<ex>
+du.jsxDEV @ index-Bs60L8UO.js:15
+tx @ index-Bs60L8UO.js:384
+react_stack_bottom_frame @ index-Bs60L8UO.js:229
+oc @ index-Bs60L8UO.js:120
+kc @ index-Bs60L8UO.js:141
+Pc @ index-Bs60L8UO.js:150
+q @ index-Bs60L8UO.js:45
+Kh @ index-Bs60L8UO.js:163
+Jh @ index-Bs60L8UO.js:163
+Wc @ index-Bs60L8UO.js:163
+Ih @ index-Bs60L8UO.js:163
+fg @ index-Bs60L8UO.js:185
+d @ index-Bs60L8UO.js:23
+<tx>
+du.jsxDEV @ index-Bs60L8UO.js:15
+(anonymous) @ index-Bs60L8UO.js:384

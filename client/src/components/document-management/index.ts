@@ -16,6 +16,8 @@ export { SharedUploader } from './SharedUploader';
 export { DocumentCard } from './DocumentCard';
 export { DocumentCreateForm } from './DocumentCreateForm';
 export { DocumentEditForm } from './DocumentEditForm';
+export { UnifiedDocumentViewer } from './UnifiedDocumentViewer';
+export { DocumentProvider, useDocumentContext, useDocumentPermissions } from './DocumentContext';
 // Note: DocumentViewModal and DocumentEditModal were temporarily removed but may be needed
 
 // Invoice Management Components

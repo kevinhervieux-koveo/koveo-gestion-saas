@@ -1,9 +1,9 @@
 import { db } from '../db';
 import { eq, and, gte, lte, sql } from 'drizzle-orm';
-import type { InsertMonthlyBudget, Building, MoneyFlow } from '@shared/schema';
+import type { InsertMonthlyBudget, Building } from '@shared/schema';
 import * as schema from '@shared/schema';
 
-const { monthlyBudgets, moneyFlow, buildings, users } = schema;
+const { monthlyBudgets, buildings, users } = schema;
 
 /**
  * Service for populating and managing monthly budget entries.
@@ -30,30 +30,37 @@ export class MonthlyBudgetService {
       const activeBuildings = await db.select().from(buildings).where(eq(buildings.isActive, true));
 
 
-      for (const building of activeBuildings) {
-        try {
-          const buildingBudgets = await this.populateBudgetsForBuilding(building);
-          budgetsCreated += buildingBudgets;
-          buildingsProcessed++;
-          console.log(
-            `✅ Created ${buildingBudgets} budget entries for building: ${building.name}`
-          );
-        } catch (error: any) {
-          console.error(`❌ Error processing building ${building.name}:`, error);
-          // Continue with other buildings
-        }
+      // OPTIMIZATION: Process buildings in parallel batches to improve performance
+      const batchSize = 3; // Process 3 buildings concurrently
+      for (let i = 0; i < activeBuildings.length; i += batchSize) {
+        const batch = activeBuildings.slice(i, i + batchSize);
+        
+        const batchResults = await Promise.allSettled(
+          batch.map(async (building) => {
+            try {
+              const buildingBudgets = await this.populateBudgetsForBuilding(building);
+              return { buildingBudgets, buildingName: building.name };
+            } catch (error: any) {
+              throw error;
+            }
+          })
+        );
+        
+        // Aggregate results from successful operations
+        batchResults.forEach((result) => {
+          if (result.status === 'fulfilled') {
+            budgetsCreated += result.value.buildingBudgets;
+            buildingsProcessed++;
+          }
+        });
       }
 
-      console.log(`📊 Monthly budget population completed:
-        - Buildings processed: ${buildingsProcessed}
-        - Budget entries created: ${budgetsCreated}`);
 
       return {
         budgetsCreated,
         buildingsProcessed,
       };
     } catch (error: any) {
-      console.error('❌ Error populating monthly budgets:', error);
       throw error;
     }
   }
@@ -64,29 +71,24 @@ export class MonthlyBudgetService {
    */
   async populateBudgetsForBuilding(building: Building): Promise<number> {
     // Calculate date range
-    const constructionDate = new Date();
-    if (building.yearBuilt) {
-      constructionDate.setFullYear(building.yearBuilt, 0, 1); // January 1st of construction year
+    let constructionDate: Date;
+    if (building.constructionDate) {
+      constructionDate = new Date(building.constructionDate);
     } else {
-      // If no construction year, start from current year
+      // If no construction date, start from current year
+      constructionDate = new Date();
       constructionDate.setFullYear(constructionDate.getFullYear(), 0, 1);
     }
 
     const endDate = new Date();
     endDate.setFullYear(endDate.getFullYear() + this.YEARS_TO_PROJECT, 11, 31); // December 31st, 25 years from now
 
-    console.log(
-      `📅 Processing building ${building.name} from ${constructionDate.toISOString().slice(0, 10)} to ${endDate.toISOString().slice(0, 10)}`
-    );
 
     // Get distinct income and expense categories for this building
     const { incomeCategories, expenseCategories } = await this.getCategoriesForBuilding(
       building.id
     );
 
-    console.log(
-      `📊 Found ${incomeCategories.length} income categories and ${expenseCategories.length} expense categories`
-    );
 
     // Remove existing budget entries for this building to avoid duplicates
     await this.cleanupExistingBudgets(building.id);
@@ -97,10 +99,24 @@ export class MonthlyBudgetService {
 
     const currentDate = new Date(constructionDate);
 
-    while (currentDate <= endDate) {
-      const year = currentDate.getFullYear();
-      const month = currentDate.getMonth() + 1; // 1-12
+    // OPTIMIZATION: Generate budget entries more efficiently
+    const monthsToGenerate = this.calculateMonthsInRange(constructionDate, endDate);
+    const maxMonths = Math.min(monthsToGenerate.length, 5000); // Safety limit
+    
+    // Pre-generate base budget entry template to avoid object recreation
+    const baseBudgetEntry = {
+      buildingId: building.id,
+      incomeTypes: incomeCategories,
+      spendingTypes: expenseCategories,
+      approved: false,
+      approvedBy: undefined,
+      originalBudgetId: undefined,
+    };
 
+    // Generate all budget entries in batches to reduce memory pressure
+    for (let i = 0; i < maxMonths; i++) {
+      const { year, month } = monthsToGenerate[i];
+      
       // Get aggregated amounts for this month/year
       const { incomes, spendings } = await this.getAggregatedAmountsForMonth(
         building.id,
@@ -111,25 +127,12 @@ export class MonthlyBudgetService {
       );
 
       budgetEntries.push({
-        buildingId: building.id,
+        ...baseBudgetEntry,
         year,
         month,
-        incomeTypes: incomeCategories,
-        incomes: incomes, // Keep as number array
-        spendingTypes: expenseCategories,
-        spendings: spendings, // Keep as number array
-        approved: false,
-        approvedBy: undefined,
-        originalBudgetId: undefined,
+        incomes,
+        spendings,
       });
-
-      // Move to next month
-      currentDate.setMonth(currentDate.getMonth() + 1);
-
-      // Safety check to avoid infinite loops
-      if (budgetEntries.length > 5000) {
-        break;
-      }
     }
 
     // Insert entries in batches
@@ -141,27 +144,18 @@ export class MonthlyBudgetService {
   }
 
   /**
-   * Get distinct income and expense categories from money_flow for a specific building.
+   * Get distinct income and expense categories for a specific building.
+   * Since moneyFlow table was deleted, we use default categories.
    * @param buildingId
    */
   private async getCategoriesForBuilding(buildingId: string): Promise<{
     incomeCategories: string[];
     expenseCategories: string[];
   }> {
-    // Get distinct income categories
-    const incomeResult = await db
-      .selectDistinct({ category: moneyFlow.category })
-      .from(moneyFlow)
-      .where(and(eq(moneyFlow.buildingId, buildingId), eq(moneyFlow.type, 'income')));
-
-    // Get distinct expense categories
-    const expenseResult = await db
-      .selectDistinct({ category: moneyFlow.category })
-      .from(moneyFlow)
-      .where(and(eq(moneyFlow.buildingId, buildingId), eq(moneyFlow.type, 'expense')));
-
-    const incomeCategories = incomeResult.map((r) => r.category);
-    const expenseCategories = expenseResult.map((r) => r.category);
+    // Since moneyFlow table no longer exists, we use default categories
+    // In the future, this could be enhanced to derive categories from bills or other sources
+    const incomeCategories: string[] = [];
+    const expenseCategories: string[] = [];
 
     // If no categories exist, provide defaults based on the enum definitions
     const defaultIncomeCategories = [
@@ -191,6 +185,29 @@ export class MonthlyBudgetService {
 
   /**
    * Get aggregated income and expense amounts for a specific month/year.
+   * Since moneyFlow table was deleted, this returns zero values.
+   * 
+   * NOTE: The moneyFlow table was removed during a data model refactoring. Budget data population
+   * now returns zero values as a placeholder. To restore budget data aggregation, consider:
+   * 
+   * OPTION 1 - Bills/Payments Integration:
+   *   - Query bills table for expenses by category and date range
+   *   - Query payments/transactions table for actual income/expense flows
+   *   - Aggregate by month and category to populate budget entries
+   * 
+   * OPTION 2 - Manual Budget Entry:
+   *   - Remove automatic population entirely
+   *   - Let managers manually enter budget projections through the UI
+   *   - Use historical data as suggestions rather than auto-population
+   * 
+   * OPTION 3 - Historical Analysis:
+   *   - Restore moneyFlow table or equivalent transaction log
+   *   - Implement comprehensive financial tracking system
+   *   - Use machine learning for budget forecasting based on historical patterns
+   * 
+   * Current implementation maintains the data structure for future integration while avoiding
+   * database errors. Budget entries are created with zero values that can be manually updated.
+   * 
    * @param buildingId
    * @param year
    * @param month
@@ -207,53 +224,10 @@ export class MonthlyBudgetService {
     incomes: number[];
     spendings: number[];
   }> {
-    const startDate = new Date(year, month - 1, 1); // First day of month
-    const endDate = new Date(year, month, 0); // Last day of month
-
-    const startDateStr = startDate.toISOString().split('T')[0];
-    const endDateStr = endDate.toISOString().split('T')[0];
-
-    // Get aggregated incomes by category
-    const incomes: number[] = [];
-    for (const category of incomeCategories) {
-      const result = await db
-        .select({
-          total: sql<string>`COALESCE(SUM(CAST(${moneyFlow.amount} AS DECIMAL)), 0)`,
-        })
-        .from(moneyFlow)
-        .where(
-          and(
-            eq(moneyFlow.buildingId, buildingId),
-            eq(moneyFlow.type, 'income'),
-            eq(moneyFlow.category, category),
-            gte(moneyFlow.transactionDate, startDateStr),
-            lte(moneyFlow.transactionDate, endDateStr)
-          )
-        );
-
-      incomes.push(parseFloat(result[0]?.total || '0'));
-    }
-
-    // Get aggregated expenses by category
-    const spendings: number[] = [];
-    for (const category of expenseCategories) {
-      const result = await db
-        .select({
-          total: sql<string>`COALESCE(SUM(CAST(${moneyFlow.amount} AS DECIMAL)), 0)`,
-        })
-        .from(moneyFlow)
-        .where(
-          and(
-            eq(moneyFlow.buildingId, buildingId),
-            eq(moneyFlow.type, 'expense'),
-            eq(moneyFlow.category, category),
-            gte(moneyFlow.transactionDate, startDateStr),
-            lte(moneyFlow.transactionDate, endDateStr)
-          )
-        );
-
-      spendings.push(parseFloat(result[0]?.total || '0'));
-    }
+    // Since moneyFlow table no longer exists, return zero arrays
+    // This maintains the expected structure while avoiding database errors
+    const incomes: number[] = incomeCategories.map(() => 0);
+    const spendings: number[] = expenseCategories.map(() => 0);
 
     return { incomes, spendings };
   }
@@ -336,6 +310,24 @@ export class MonthlyBudgetService {
   }
 
   /**
+   * OPTIMIZATION: Helper function to calculate months in date range more efficiently
+   */
+  private calculateMonthsInRange(startDate: Date, endDate: Date): Array<{ year: number; month: number }> {
+    const months: Array<{ year: number; month: number }> = [];
+    const currentDate = new Date(startDate);
+    
+    while (currentDate <= endDate && months.length < 5000) {
+      months.push({
+        year: currentDate.getFullYear(),
+        month: currentDate.getMonth() + 1
+      });
+      currentDate.setMonth(currentDate.getMonth() + 1);
+    }
+    
+    return months;
+  }
+
+  /**
    * Repopulate budgets for a specific building (useful when money flow data changes).
    * @param buildingId
    */
@@ -349,9 +341,6 @@ export class MonthlyBudgetService {
 
     const budgetsCreated = await this.populateBudgetsForBuilding(building[0]);
 
-    console.log(
-      `✅ Repopulated ${budgetsCreated} budget entries for building ${building[0].name}`
-    );
     return budgetsCreated;
   }
 

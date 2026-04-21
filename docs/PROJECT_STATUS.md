@@ -20,6 +20,14 @@
 
 ## Recent Major Implementations
 
+### Storage System Overhaul ✅ (September 2025)
+- Migrated from legacy flat storage to modern hierarchical structure: `{type}/org_{orgId}/building_{buildingId}/residence_{residenceId}/role_{role}/user_{userId}`
+- Successfully migrated 156 active documents to canonical paths
+- Implemented quarantine system for 3,375 legacy files with 30-day retention
+- Fixed critical document viewer with secure file resolver endpoint (`GET /api/documents/:id/file`)
+- Added role normalization (demo_manager → manager) and type mapping (contracts → documents)
+- Comprehensive reconciliation system with safety measures and rollback capabilities
+
 ### Authentication & Security ✅
 - Four-tier RBAC system (Admin, Manager, Tenant, Resident)
 - Quebec Law 25 compliance framework
@@ -32,7 +40,8 @@
 - Role-based access control for properties
 - Advanced search, filtering, and pagination
 - Multi-parking and storage unit support
-- Document management with role-based access
+- Document management with modern hierarchical storage structure and role-based access
+- Comprehensive quarantine system with 30-day retention policy
 
 ### Financial System ✅
 - Budget management and tracking
@@ -42,7 +51,8 @@
 - Financial reporting and analytics
 
 ### Core Features ✅
-- Document upload/download with categorization
+- Document upload/download with modern hierarchical storage and categorization
+- Secure file resolver endpoint with quarantine handling
 - Maintenance request tracking and scheduling
 - Notification system
 - Bilingual support (French/English)

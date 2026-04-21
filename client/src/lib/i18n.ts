@@ -151,6 +151,7 @@ export interface Translations {
   pendingInvitations: string;
   totalInvitations: string;
   userManagement: string;
+  userManagementSubtitle: string;
   manageUsersInvitationsRoles: string;
   searchUsersInvitations: string;
   filterByRole: string;
@@ -179,6 +180,7 @@ export interface Translations {
   usersList: string;
   user: string;
   selectAllUsers: string;
+  selectAll: string;
   lastLogin: string;
   joinedDate: string;
   userActions: string;
@@ -267,6 +269,9 @@ export interface Translations {
   rejected: string;
   draft: string;
   maintenance: string;
+  maintenanceJournal: string;
+  inventory: string;
+  projects: string;
   complaint: string;
   information: string;
   other: string;
@@ -320,6 +325,9 @@ export interface Translations {
   welcome: string;
   building2: string;
   residence: string;
+  allResidences: string;
+  creator: string;
+  allCreators: string;
   selectABuilding: string;
   address: string;
   floor: string;
@@ -447,6 +455,7 @@ export interface Translations {
   informationFilter: string;
   otherFilter: string;
   buildingsManagement: string;
+  buildingsManagementSubtitle: string;
   manageBuildings: string;
   addBuilding: string;
   editBuilding: string;
@@ -489,6 +498,7 @@ export interface Translations {
   mixedUseType: string;
   otherBuildingType: string;
   residencesManagement: string;
+  residencesManagementSubtitle: string;
   manageResidences: string;
   searchFilters: string;
   searchResidences: string;
@@ -511,6 +521,8 @@ export interface Translations {
   viewDocuments: string;
   budgetDashboard: string;
   budgetSubtitle: string;
+  budgetManagement: string;
+  budgetManagementSubtitle: string;
   totalBudget: string;
   usedBudget: string;
   remaining: string;
@@ -534,8 +546,14 @@ export interface Translations {
   supplies: string;
   taxes: string;
   salary: string;
+  construction: string;
+  consulting: string;
+  equipmentRental: string;
+  legalServices: string;
   billsManagement: string;
   billsSubtitle: string;
+  invoiceManagement: string;
+  invoiceManagementSubtitle: string;
   filters: string;
   year: string;
   months: string;
@@ -561,6 +579,16 @@ export interface Translations {
   description: string;
   describeDemandDetail: string;
   creating: string;
+  createDemand: string;
+  typeLabel: string;
+  buildingLabel: string;
+  descriptionLabel: string;
+  residenceOptional: string;
+  noSpecificResidence: string;
+  searchResidencesPlaceholder: string;
+  attachmentsOptional: string;
+  attachmentUploadInstructions: string;
+  submitRequestComplaint: string;
   maintenanceType: string;
   complaintType: string;
   informationType: string;
@@ -638,6 +666,9 @@ export interface Translations {
   deleting: string;
   page: string;
   of: string;
+  filtered: string;
+  onThisPage: string;
+  confirmEmail: string;
   settings: string;
   manageAccountSettings: string;
   generalSettings: string;
@@ -697,6 +728,7 @@ export interface Translations {
   exportFailed: string;
   failedExportData: string;
   bugReports: string;
+  bugReportsSubtitle: string;
   reportTrackIssues: string;
   reportBug: string;
   reportNewBug: string;
@@ -732,6 +764,7 @@ export interface Translations {
   failedUpdateBug: string;
   bugDeletedSuccess: string;
   ideaBox: string;
+  ideaBoxSubtitle: string;
   shareIdeasImprove: string;
   submitNewIdea: string;
   createIdea: string;
@@ -1037,6 +1070,13 @@ export interface Translations {
   noDocumentsUploadedYet: string;
   myDemands: string;
   showingResults: string;
+  searchTypePlaceholder: string;
+  showingDemandsRange: string;
+  buildingField: string;
+  residenceField: string;
+  createdField: string;
+  unknownBuilding: string;
+  loadingDemandsMessage: string;
   manageBuildingsOrganization: string;
   searchBuildingsAddress: string;
   fullscreen: string;
@@ -1045,6 +1085,192 @@ export interface Translations {
   close: string;
   edit: string;
   delete: string;
+  deleteOrphanUsers: string;
+  deleteOrphanUsersConfirmTitle: string;
+  deleteOrphanUsersConfirmDescription: string;
+  deleteOrphanUsersWarning: string;
+  deleteOrphanUsersWarningList1: string;
+  deleteOrphanUsersWarningList2: string;
+  deleteOrphanUsersWarningList3: string;
+  deleteOrphanUsersWarningList4: string;
+  filterByOrganization: string;
+  orphanFilterUnavailable: string;
+  userInvitationsNotAvailableDemo: string;
+  allUsers: string;
+  orphanUsers: string;
+  assignedUsers: string;
+  noStatus: string;
+  noOrganizations: string;
+  noBuildings: string;
+  noResidences: string;
+  more: string;
+  
+  selectBuildingInventoryMessage: string;
+  inventoryManagementSubtitle: string;
+  backToBuilding: string;
+  buildingElements: string;
+  toggleBuildingElementsTable: string;
+  searchElementsPlaceholder: string;
+  overdueEvaluations: string;
+  addElement: string;
+  allConditions: string;
+  excellent: string;
+  good: string;
+  fair: string;
+  poor: string;
+  uniformatCategory: string;
+  uniformatSubstructure: string;
+  uniformatShell: string;
+  uniformatInteriors: string;
+  uniformatServices: string;
+  uniformatEquipmentFurnishings: string;
+  uniformatSpecialConstruction: string;
+  uniformatBuildingSitework: string;
+  elementDocuments: string;
+  uniformatBrowser: string;
+  featureComingSoon: string;
+  evaluationSchedulingComingSoon: string;
+  elementImportComingSoon: string;
+  reportExportComingSoon: string;
+  elementDeleted: string;
+  elementDeletedSuccessfully: string;
+  
+  selectBuildingProjectsMessage: string;
+  projectsMaintenanceManagement: string;
+  projectsManagementSubtitle: string;
+  toggleProjectOverview: string;
+  projectsSelected: string;
+  newProject: string;
+  toggleProjectsTable: string;
+  projectTable: string;
+  projectStatus: string;
+  projectTimeline: string;
+  projectElements: string;
+  projectNotes: string;
+  projectBudget: string;
+  projectCreated: string;
+  projectUpdated: string;
+  projectCreatedSuccessfully: string;
+  projectUpdatedSuccessfully: string;
+  projectsCreated: string;
+  projectsCreatedFromSuggestions: string;
+  projectCreatedSuccessfully2: string;
+  autoProjectConvertedSuccess: string;
+  statusUpdated: string;
+  projectStatusUpdatedSuccessfully: string;
+  
+  // Demand details translations
+  demandDetails: string;
+  escalateToManager: string;
+  fileAttachment: string;
+  view: string;
+  download: string;
+  location: string;
+  reviewNotes: string;
+  addReviewNotes: string;
+  updated: string;
+  comments: string;
+  addAComment: string;
+  addComment: string;
+  adding: string;
+  noCommentsYet: string;
+  commentsDisabledFor: string;
+  deleteDemand: string;
+  confirmDeleteDemand: string;
+  demandUpdatedSuccessfully: string;
+  failedToUpdateDemand: string;
+  demandDeletedSuccessfully: string;
+  failedToDeleteDemand: string;
+  commentAddedSuccessfully: string;
+  failedToAddComment: string;
+  underReviewStatus: string;
+  approvedStatus: string;
+  rejectedStatus: string;
+  inProgressStatus: string;
+  completedStatus: string;
+  cancelledStatus: string;
+  submittedStatus: string;
+  viewRelatedDocuments: string;
+  descriptionMinLengthError: string;
+  descriptionMaxLengthError: string;
+  reviewNotesMaxLengthError: string;
+  commentMinLengthError: string;
+  commentMaxLengthError: string;
+  
+  // Bills translations
+  'bills.editBill': string;
+  'bills.createNewBill': string;
+  'bills.createFromTemplate': string;
+  'bills.aiExtracted': string;
+  'bills.manualEntry': string;
+  'bills.aiExtraction': string;
+  'bills.uploadBillDocument': string;
+  'bills.uploadDocumentOptional': string;
+  'bills.autoSaving': string;
+  'bills.title': string;
+  'bills.vendor': string;
+  'bills.category': string;
+  'bills.status': string;
+  'bills.paymentType': string;
+  'bills.totalAmount': string;
+  'bills.totalAmountOptional': string;
+  'bills.startDate': string;
+  'bills.paymentSchedule': string;
+  'bills.paymentConfiguration': string;
+  'bills.initialPayment': string;
+  'bills.equalRecurringPayments': string;
+  'bills.initialPaymentAmount': string;
+  'bills.recurringPaymentAmount': string;
+  'bills.recurrenceEndDate': string;
+  'bills.customPaymentSchedule': string;
+  'bills.individualPaymentAmounts': string;
+  'bills.addPayment': string;
+  'bills.amount': string;
+  'bills.date': string;
+  'bills.description': string;
+  'bills.notes': string;
+  'bills.statusDraft': string;
+  'bills.statusDraftNote': string;
+  'bills.statusSent': string;
+  'bills.statusOverdue': string;
+  'bills.statusPaid': string;
+  'bills.statusCancelled': string;
+  'bills.paymentTypeOneTime': string;
+  'bills.paymentTypeRecurring': string;
+  'bills.scheduleWeekly': string;
+  'bills.scheduleMonthly': string;
+  'bills.scheduleQuarterly': string;
+  'bills.scheduleYearly': string;
+  'bills.scheduleCustom': string;
+  'bills.totalAmountDescriptionOneTime': string;
+  'bills.totalAmountDescriptionRecurring': string;
+  'bills.initialPaymentDescription': string;
+  'bills.equalRecurringPaymentsDescription': string;
+  'bills.initialPaymentAmountDescription': string;
+  'bills.recurringPaymentAmountDescription': string;
+  'bills.recurrenceEndDateDescription': string;
+  'bills.customPaymentScheduleDescription': string;
+  'bills.individualPaymentAmountsDescription': string;
+  'bills.deleting': string;
+  'bills.deleteBill': string;
+  'bills.cancel': string;
+  'bills.processing': string;
+  'bills.updateBill': string;
+  'bills.createBill': string;
+  'bills.paymentCount': string;
+  'bills.paymentCountSingle': string;
+  'bills.paymentCountMultiple': string;
+  'bills.paymentCountDescription': string;
+  'bills.recurrence': string;
+  'bills.recurrenceDescription': string;
+  'bills.singlePaymentAmount': string;
+  'bills.singlePaymentAmountDescription': string;
+  'bills.calculatedTotalAmount': string;
+  'bills.totalAmountSingleDescription': string;
+  'bills.totalAmountMultipleEqualDescription': string;
+  'bills.totalAmountMultipleCustomDescription': string;
+  'bills.autoCalculatedBadge': string;
+  'bills.fromPaymentAmountBadge': string;
 }
 
 /**
@@ -1194,6 +1420,7 @@ export const translations: Record<Language, Translations> = {
     pendingInvitations: 'Pending Invitations',
     totalInvitations: 'Total Invitations',
     userManagement: 'User Management',
+    userManagementSubtitle: 'Manage users, roles, access permissions, and send invitations to new members.',
     manageUsersInvitationsRoles: 'Manage users, invitations, and roles',
     searchUsersInvitations: 'Search users and invitations...',
     filterByRole: 'Filter by role',
@@ -1222,6 +1449,7 @@ export const translations: Record<Language, Translations> = {
     usersList: 'Users List',
     user: 'User',
     selectAllUsers: 'Select All Users',
+    selectAll: 'Select all',
     lastLogin: 'Last Login',
     joinedDate: 'Joined Date',
     userActions: 'User Actions',
@@ -1230,6 +1458,25 @@ export const translations: Record<Language, Translations> = {
     deactivateUser: 'Deactivate User',
     activateUser: 'Activate User',
     deleteUser: 'Delete User',
+    deleteOrphanUsers: 'Delete Orphan Users',
+    deleteOrphanUsersConfirmTitle: 'Delete Orphan Users',
+    deleteOrphanUsersConfirmDescription: 'This will permanently mark all orphan users (users with no organization or residence assignments) as inactive.',
+    deleteOrphanUsersWarning: 'Warning: This action will:',
+    deleteOrphanUsersWarningList1: 'Mark all orphan users as inactive (they will be hidden from the interface)',
+    deleteOrphanUsersWarningList2: 'Preserve their data for audit purposes but remove access',
+    deleteOrphanUsersWarningList3: 'Only affect users with no organization or residence assignments',
+    deleteOrphanUsersWarningList4: 'Cannot be undone through the interface',
+    filterByOrganization: 'Filter by organization',
+    orphanFilterUnavailable: 'Orphan filter unavailable (organization selected)',
+    userInvitationsNotAvailableDemo: 'User invitations are not available in demo mode',
+    allUsers: 'All Users',
+    orphanUsers: 'Orphan Users',
+    assignedUsers: 'Assigned Users',
+    noStatus: 'No Status',
+    noOrganizations: 'No organizations',
+    noBuildings: 'No buildings',
+    noResidences: 'No residences',
+    more: 'more',
     noUsersFound: 'No users found',
     editUserDescription: 'Update user information and permissions',
     confirmDeleteUser: 'Are you sure you want to delete {name}?',
@@ -1310,6 +1557,9 @@ export const translations: Record<Language, Translations> = {
     rejected: 'Rejected',
     draft: 'Draft',
     maintenance: 'Maintenance',
+    maintenanceJournal: 'Maintenance Journal',
+    inventory: 'Inventory',
+    projects: 'Projects',
     complaint: 'Complaint',
     information: 'Information',
     other: 'Other',
@@ -1317,6 +1567,81 @@ export const translations: Record<Language, Translations> = {
     createNewBill: 'Create New Bill',
     billCreationForm: 'Bill Creation Form',
     createBill: 'Create Bill',
+    
+    // Bills form translations
+    'bills.editBill': 'Edit Bill',
+    'bills.createNewBill': 'Create New Bill',
+    'bills.createFromTemplate': 'Create Bill from Template',
+    'bills.aiExtracted': 'AI Extracted',
+    'bills.manualEntry': 'Manual Entry',
+    'bills.aiExtraction': 'AI Extraction',
+    'bills.uploadBillDocument': 'Upload Bill Document',
+    'bills.uploadDocumentOptional': 'Upload Document (Optional)',
+    'bills.autoSaving': 'Auto-saving...',
+    'bills.title': 'Title *',
+    'bills.vendor': 'Vendor',
+    'bills.category': 'Category *',
+    'bills.status': 'Status *',
+    'bills.paymentType': 'Payment Type *',
+    'bills.totalAmount': 'Total Amount *',
+    'bills.totalAmountOptional': 'Total Amount (Optional)',
+    'bills.startDate': 'Start Date *',
+    'bills.paymentSchedule': 'Payment Schedule',
+    'bills.paymentConfiguration': 'Payment Configuration',
+    'bills.initialPayment': 'Initial Payment',
+    'bills.equalRecurringPayments': 'Equal Recurring Payments',
+    'bills.initialPaymentAmount': 'Initial Payment Amount *',
+    'bills.recurringPaymentAmount': 'Recurring Payment Amount *',
+    'bills.recurrenceEndDate': 'Recurrence End Date (Optional)',
+    'bills.customPaymentSchedule': 'Custom Payment Schedule',
+    'bills.individualPaymentAmounts': 'Individual Payment Amounts',
+    'bills.addPayment': 'Add Payment',
+    'bills.amount': 'Amount *',
+    'bills.date': 'Date *',
+    'bills.description': 'Description',
+    'bills.notes': 'Notes',
+    'bills.statusDraft': 'Draft',
+    'bills.statusDraftNote': 'Draft bills are excluded from budget calculations',
+    'bills.statusSent': 'Sent',
+    'bills.statusOverdue': 'Overdue',
+    'bills.statusPaid': 'Paid',
+    'bills.statusCancelled': 'Cancelled',
+    'bills.paymentTypeOneTime': 'One-Time Bill',
+    'bills.paymentTypeRecurring': 'Recurring Payment',
+    'bills.scheduleWeekly': 'Weekly',
+    'bills.scheduleMonthly': 'Monthly',
+    'bills.scheduleQuarterly': 'Quarterly',
+    'bills.scheduleYearly': 'Yearly',
+    'bills.scheduleCustom': 'Custom Schedule',
+    'bills.totalAmountDescriptionOneTime': 'Complete amount for this one-time bill',
+    'bills.totalAmountDescriptionRecurring': 'Leave empty to calculate from individual payment amounts',
+    'bills.initialPaymentDescription': 'Is there an upfront payment different from recurring amounts?',
+    'bills.equalRecurringPaymentsDescription': 'Are all recurring payment amounts the same?',
+    'bills.initialPaymentAmountDescription': 'Amount for the upfront payment',
+    'bills.recurringPaymentAmountDescription': 'Amount for each recurring payment',
+    'bills.recurrenceEndDateDescription': 'Payment schedule will be limited to the next year. Setting an end date will stop recurring bills after this date.',
+    'bills.customPaymentScheduleDescription': 'Define your custom payment schedule with specific dates and amounts.',
+    'bills.individualPaymentAmountsDescription': 'Since recurring payments are not equal, specify individual amounts for each payment. Dates will be calculated based on your selected schedule.',
+    'bills.deleting': 'Deleting...',
+    'bills.deleteBill': 'Delete Bill',
+    'bills.cancel': 'Cancel',
+    'bills.processing': 'Processing...',
+    'bills.updateBill': 'Update Bill',
+    'bills.createBill': 'Create Bill',
+    'bills.paymentCount': 'Payment Count *',
+    'bills.paymentCountSingle': 'Single Payment',
+    'bills.paymentCountMultiple': 'Multiple Payments',
+    'bills.paymentCountDescription': 'Choose whether this is a single payment or multiple payments',
+    'bills.recurrence': 'Generate bills for next year automatically',
+    'bills.recurrenceDescription': 'When enabled, this bill will automatically recur for the next year',
+    'bills.singlePaymentAmount': 'Payment Amount *',
+    'bills.singlePaymentAmountDescription': 'Enter the amount for this single payment',
+    'bills.calculatedTotalAmount': 'Calculated Total Amount',
+    'bills.totalAmountSingleDescription': 'Amount for single payment',
+    'bills.totalAmountMultipleEqualDescription': 'Calculated from payment configuration (12 payments)',
+    'bills.totalAmountMultipleCustomDescription': 'Sum of all payment amounts',
+    'bills.autoCalculatedBadge': 'Auto-calculated',
+    'bills.fromPaymentAmountBadge': 'From payment amount',
     createNewDemand: 'Create New Demand',
     submitNewRequest: 'Submit New Request',
     submitAndTrackRequests: 'Submit and track requests',
@@ -1363,6 +1688,9 @@ export const translations: Record<Language, Translations> = {
     welcome: 'Welcome',
     building2: 'Building',
     residence: 'Residence',
+    allResidences: 'All residences',
+    creator: 'Creator',
+    allCreators: 'All creators',
     selectABuilding: 'Select a building',
     address: 'Address',
     floor: 'Floor',
@@ -1490,6 +1818,7 @@ export const translations: Record<Language, Translations> = {
     informationFilter: 'Information',
     otherFilter: 'Other',
     buildingsManagement: 'Buildings Management',
+    buildingsManagementSubtitle: 'Manage building information, property assets, and organization structures.',
     manageBuildings: 'Manage all buildings in your organization',
     addBuilding: 'Add Building',
     editBuilding: 'Edit Building',
@@ -1532,6 +1861,7 @@ export const translations: Record<Language, Translations> = {
     mixedUseType: 'Mixed Use',
     otherBuildingType: 'Other',
     residencesManagement: 'Residences Management',
+    residencesManagementSubtitle: 'Manage residence information, units, property details, and tenant assignments across your properties.',
     manageResidences: 'Manage all residences and units',
     searchFilters: 'Search & Filters',
     searchResidences: 'Search',
@@ -1554,6 +1884,8 @@ export const translations: Record<Language, Translations> = {
     viewDocuments: 'View Documents',
     budgetDashboard: 'Budget Dashboard',
     budgetSubtitle: 'Financial budget management and tracking',
+    budgetManagement: 'Budget Management',
+    budgetManagementSubtitle: 'Plan and track financial budgets for property management with comprehensive forecasting and analysis.',
     totalBudget: 'Total Budget',
     usedBudget: 'Used Budget',
     remaining: 'Remaining',
@@ -1577,8 +1909,14 @@ export const translations: Record<Language, Translations> = {
     supplies: 'Supplies',
     taxes: 'Taxes',
     salary: 'Salary',
+    construction: 'Construction',
+    consulting: 'Consulting',
+    equipmentRental: 'Equipment Rental',
+    legalServices: 'Legal Services',
     billsManagement: 'Bills Management',
-    billsSubtitle: 'Manage building expenses and revenue tracking',
+    billsSubtitle: 'Manage property bills, invoices, and financial documents with comprehensive tracking and organization.',
+    invoiceManagement: 'Invoice Management',
+    invoiceManagementSubtitle: 'Modern AI-powered invoice processing and management',
     filters: 'Filters',
     year: 'Year',
     months: 'Months',
@@ -1604,6 +1942,16 @@ export const translations: Record<Language, Translations> = {
     description: 'Description',
     describeDemandDetail: 'Describe the demand in detail...',
     creating: 'Creating...',
+    createDemand: 'Create Demand',
+    typeLabel: 'Type',
+    buildingLabel: 'Building',
+    descriptionLabel: 'Description',
+    residenceOptional: 'Residence (Optional)',
+    noSpecificResidence: 'No specific residence',
+    searchResidencesPlaceholder: 'Search residences...',
+    attachmentsOptional: 'Attachments (Optional)',
+    attachmentUploadInstructions: 'Upload photos, documents, or screenshots. Camera supported for mobile. Max 10MB per file.',
+    submitRequestComplaint: 'Submit a new request or complaint',
     maintenanceType: 'Maintenance',
     complaintType: 'Complaint',
     informationType: 'Information',
@@ -1681,6 +2029,9 @@ export const translations: Record<Language, Translations> = {
     deleting: 'Deleting...',
     page: 'Page',
     of: 'of',
+    filtered: 'Filtered',
+    onThisPage: 'On this page',
+    confirmEmail: 'Confirm Email',
     settings: 'Settings',
     manageAccountSettings: 'Manage your account and application settings',
     generalSettings: 'General Settings',
@@ -1740,6 +2091,7 @@ export const translations: Record<Language, Translations> = {
     exportFailed: 'Export failed',
     failedExportData: 'Failed to export data',
     bugReports: 'Bug Reports',
+    bugReportsSubtitle: 'Report and track application issues',
     reportTrackIssues: 'Report and track application issues',
     reportBug: 'Report Bug',
     reportNewBug: 'Report New Bug',
@@ -1775,6 +2127,7 @@ export const translations: Record<Language, Translations> = {
     failedUpdateBug: 'Failed to update bug report',
     bugDeletedSuccess: 'Bug report deleted successfully',
     ideaBox: 'Idea Box',
+    ideaBoxSubtitle: 'Share your ideas to improve our platform',
     shareIdeasImprove: 'Share your ideas to improve our platform',
     submitNewIdea: 'Submit New Idea',
     createIdea: 'Create Idea',
@@ -2080,6 +2433,13 @@ export const translations: Record<Language, Translations> = {
     noDocumentsUploadedYet: 'No documents have been uploaded yet for this residence.',
     myDemands: 'My Demands',
     showingResults: 'Showing {start} to {end} of {total} demands',
+    searchTypePlaceholder: 'Search type...',
+    showingDemandsRange: 'Showing {start} to {end} of {total} demands',
+    buildingField: 'Building:',
+    residenceField: 'Residence:',
+    createdField: 'Created:',
+    unknownBuilding: 'Unknown',
+    loadingDemandsMessage: 'Loading demands...',
     manageBuildingsOrganization: 'Manage {count} buildings in your organization',
     searchBuildingsAddress: 'Search buildings by name or address...',
     fullscreen: 'Fullscreen',
@@ -2088,6 +2448,98 @@ export const translations: Record<Language, Translations> = {
     close: 'Close',
     edit: 'Edit',
     delete: 'Delete',
+    
+    selectBuildingInventoryMessage: 'Please select an organization and building to view its maintenance inventory.',
+    inventoryManagementSubtitle: 'Manage building elements, maintenance records, and asset documentation across your property portfolio.',
+    backToBuilding: 'Back to',
+    buildingElements: 'Building Elements',
+    toggleBuildingElementsTable: 'Toggle building elements table',
+    searchElementsPlaceholder: 'Search elements by name, UNIFORMAT code, or description...',
+    overdueEvaluations: 'Overdue Evaluations',
+    addElement: 'Add Element',
+    allConditions: 'All Conditions',
+    excellent: 'Excellent',
+    good: 'Good',
+    fair: 'Fair',
+    poor: 'Poor',
+    uniformatCategory: 'UNIFORMAT Category',
+    uniformatSubstructure: 'A - Substructure',
+    uniformatShell: 'B - Shell',
+    uniformatInteriors: 'C - Interiors',
+    uniformatServices: 'D - Services',
+    uniformatEquipmentFurnishings: 'E - Equipment & Furnishings',
+    uniformatSpecialConstruction: 'F - Special Construction',
+    uniformatBuildingSitework: 'G - Building Sitework',
+    elementDocuments: 'Element Documents',
+    uniformatBrowser: 'UNIFORMAT Browser',
+    featureComingSoon: 'Feature Coming Soon',
+    evaluationSchedulingComingSoon: 'Evaluation scheduling will be available in a future update.',
+    elementImportComingSoon: 'Element import functionality will be available in a future update.',
+    reportExportComingSoon: 'Report export functionality will be available in a future update.',
+    elementDeleted: 'Element Deleted',
+    elementDeletedSuccessfully: 'has been successfully deleted from the inventory.',
+    
+    selectBuildingProjectsMessage: 'Please select an organization and building to view its maintenance projects.',
+    projectsMaintenanceManagement: 'Projects - Maintenance Management',
+    projectsManagementSubtitle: 'Manage maintenance projects, track progress, and coordinate work schedules',
+    toggleProjectOverview: 'Toggle project overview',
+    projectsSelected: 'project(s) selected',
+    newProject: 'New Project',
+    toggleProjectsTable: 'Toggle projects table',
+    projectTable: 'Project Table',
+    projectStatus: 'Project Status',
+    projectTimeline: 'Project Timeline',
+    projectElements: 'Project Elements',
+    projectNotes: 'Project Notes',
+    projectBudget: 'Project Budget',
+    projectCreated: 'Project Created',
+    projectUpdated: 'Project Updated',
+    projectCreatedSuccessfully: 'has been created successfully.',
+    projectUpdatedSuccessfully: 'has been updated successfully.',
+    projectsCreated: 'Projects Created',
+    projectsCreatedFromSuggestions: 'project(s) have been created from evaluation suggestions.',
+    projectCreatedSuccessfully2: 'Project Created Successfully',
+    autoProjectConvertedSuccess: 'has been converted to a maintenance project.',
+    statusUpdated: 'Status Updated',
+    projectStatusUpdatedSuccessfully: 'Project status has been updated successfully.',
+    
+    // Demand details translations
+    demandDetails: 'Demand Details',
+    escalateToManager: 'Escalate to Manager',
+    fileAttachment: 'File Attachment',
+    view: 'View',
+    download: 'Download',
+    location: 'Location',
+    reviewNotes: 'Review Notes',
+    addReviewNotes: 'Add review notes...',
+    updated: 'Updated:',
+    comments: 'Comments',
+    addAComment: 'Add a comment...',
+    addComment: 'Add Comment',
+    adding: 'Adding...',
+    noCommentsYet: 'No comments yet',
+    commentsDisabledFor: 'Comments are disabled for {status} demands.',
+    deleteDemand: 'Delete',
+    confirmDeleteDemand: 'Are you sure you want to delete this demand?',
+    demandUpdatedSuccessfully: 'Demand updated successfully',
+    failedToUpdateDemand: 'Failed to update demand',
+    demandDeletedSuccessfully: 'Demand deleted successfully',
+    failedToDeleteDemand: 'Failed to delete demand',
+    commentAddedSuccessfully: 'Comment added successfully',
+    failedToAddComment: 'Failed to add comment',
+    underReviewStatus: 'Under Review',
+    approvedStatus: 'Approved',
+    rejectedStatus: 'Rejected',
+    inProgressStatus: 'In Progress',
+    completedStatus: 'Completed',
+    cancelledStatus: 'Cancelled',
+    submittedStatus: 'Submitted',
+    viewRelatedDocuments: 'View Related Documents',
+    descriptionMinLengthError: 'Description must be at least 10 characters long (example: Faucet in kitchen sink is leaking and needs repair)',
+    descriptionMaxLengthError: 'Description must be less than 2000 characters',
+    reviewNotesMaxLengthError: 'Review notes must be less than 1000 characters',
+    commentMinLengthError: 'Comment text is required (minimum 1 character)',
+    commentMaxLengthError: 'Comment must be less than 1000 characters',
   },
   fr: {
 
@@ -2164,6 +2616,25 @@ export const translations: Record<Language, Translations> = {
     exportSelectedUsersData: 'Exporter les données des utilisateurs sélectionnés',
     deleteUsers: 'Supprimer les utilisateurs',
     deleteSelectedUsers: 'Supprimer les utilisateurs sélectionnés',
+    deleteOrphanUsers: 'Supprimer les utilisateurs orphelins',
+    deleteOrphanUsersConfirmTitle: 'Supprimer les utilisateurs orphelins',
+    deleteOrphanUsersConfirmDescription: 'Ceci marquera définitivement tous les utilisateurs orphelins (utilisateurs sans affectation d\'organisation ou de résidence) comme inactifs.',
+    deleteOrphanUsersWarning: 'Avertissement : Cette action va :',
+    deleteOrphanUsersWarningList1: 'Marquer tous les utilisateurs orphelins comme inactifs (ils seront cachés de l\'interface)',
+    deleteOrphanUsersWarningList2: 'Préserver leurs données à des fins d\'audit mais supprimer l\'accès',
+    deleteOrphanUsersWarningList3: 'Affecter uniquement les utilisateurs sans affectation d\'organisation ou de résidence',
+    deleteOrphanUsersWarningList4: 'Ne peut pas être annulé via l\'interface',
+    filterByOrganization: 'Filtrer par organisation',
+    orphanFilterUnavailable: 'Filtre orphelin non disponible (organisation sélectionnée)',
+    userInvitationsNotAvailableDemo: 'Les invitations d\'utilisateurs ne sont pas disponibles en mode démo',
+    allUsers: 'Tous les utilisateurs',
+    orphanUsers: 'Utilisateurs orphelins',
+    assignedUsers: 'Utilisateurs assignés',
+    noStatus: 'Aucun statut',
+    noOrganizations: 'Aucune organisation',
+    noBuildings: 'Aucun bâtiment',
+    noResidences: 'Aucune résidence',
+    more: 'de plus',
     users: 'Utilisateurs',
     usersSelected: 'utilisateurs sélectionnés',
     bulkActions: 'Actions en lot',
@@ -2216,6 +2687,7 @@ export const translations: Record<Language, Translations> = {
     pendingInvitations: 'Invitations en attente',
     totalInvitations: 'Invitations totales',
     userManagement: 'Gestion des utilisateurs',
+    userManagementSubtitle: 'Gérer les utilisateurs, les rôles, les autorisations d\'accès et envoyer des invitations aux nouveaux membres.',
     manageUsersInvitationsRoles: 'Gérer les utilisateurs, invitations et rôles',
     searchUsersInvitations: 'Rechercher des utilisateurs et invitations...',
     filterByRole: 'Filtrer par rôle',
@@ -2239,6 +2711,7 @@ export const translations: Record<Language, Translations> = {
     usersList: 'Liste des utilisateurs',
     user: 'Utilisateur',
     selectAllUsers: 'Sélectionner tous les utilisateurs',
+    selectAll: 'Tout sélectionner',
     lastLogin: 'Dernière connexion',
     userActions: 'Actions utilisateur',
     actions: 'Actions',
@@ -2312,7 +2785,10 @@ export const translations: Record<Language, Translations> = {
     completed: 'Terminé',
     rejected: 'Rejeté',
     draft: 'Brouillon',
-    maintenance: 'Maintenance',
+    maintenance: 'Entretien',
+    maintenanceJournal: 'Carnet d\'entretien',
+    inventory: 'Inventaire',
+    projects: 'Projets',
     complaint: 'Plainte',
     information: 'Information',
     other: 'Autre',
@@ -2320,6 +2796,81 @@ export const translations: Record<Language, Translations> = {
     createNewBill: 'Créer une nouvelle facture',
     billCreationForm: 'Formulaire de création de facture',
     createBill: 'Créer une facture',
+    
+    // Bills form translations
+    'bills.editBill': 'Modifier la facture',
+    'bills.createNewBill': 'Créer une nouvelle facture',
+    'bills.createFromTemplate': 'Créer une facture à partir du modèle',
+    'bills.aiExtracted': 'Extrait par IA',
+    'bills.manualEntry': 'Saisie manuelle',
+    'bills.aiExtraction': 'Extraction IA',
+    'bills.uploadBillDocument': 'Télécharger le document de facture',
+    'bills.uploadDocumentOptional': 'Télécharger un document (optionnel)',
+    'bills.autoSaving': 'Sauvegarde automatique...',
+    'bills.title': 'Titre *',
+    'bills.vendor': 'Fournisseur',
+    'bills.category': 'Catégorie *',
+    'bills.status': 'Statut *',
+    'bills.paymentType': 'Type de paiement *',
+    'bills.totalAmount': 'Montant total *',
+    'bills.totalAmountOptional': 'Montant total (optionnel)',
+    'bills.startDate': 'Date de début *',
+    'bills.paymentSchedule': 'Échéancier de paiement',
+    'bills.paymentConfiguration': 'Configuration du paiement',
+    'bills.initialPayment': 'Paiement initial',
+    'bills.equalRecurringPayments': 'Paiements récurrents égaux',
+    'bills.initialPaymentAmount': 'Montant du paiement initial *',
+    'bills.recurringPaymentAmount': 'Montant du paiement récurrent *',
+    'bills.recurrenceEndDate': 'Date de fin de récurrence (optionnel)',
+    'bills.customPaymentSchedule': 'Échéancier de paiement personnalisé',
+    'bills.individualPaymentAmounts': 'Montants de paiement individuels',
+    'bills.addPayment': 'Ajouter un paiement',
+    'bills.amount': 'Montant *',
+    'bills.date': 'Date *',
+    'bills.description': 'Description',
+    'bills.notes': 'Notes',
+    'bills.statusDraft': 'Brouillon',
+    'bills.statusDraftNote': 'Les factures en brouillon sont exclues des calculs budgétaires',
+    'bills.statusSent': 'Envoyé',
+    'bills.statusOverdue': 'En retard',
+    'bills.statusPaid': 'Payé',
+    'bills.statusCancelled': 'Annulé',
+    'bills.paymentTypeOneTime': 'Facture unique',
+    'bills.paymentTypeRecurring': 'Paiement récurrent',
+    'bills.scheduleWeekly': 'Hebdomadaire',
+    'bills.scheduleMonthly': 'Mensuel',
+    'bills.scheduleQuarterly': 'Trimestriel',
+    'bills.scheduleYearly': 'Annuel',
+    'bills.scheduleCustom': 'Échéancier personnalisé',
+    'bills.totalAmountDescriptionOneTime': 'Montant complet pour cette facture unique',
+    'bills.totalAmountDescriptionRecurring': 'Laisser vide pour calculer à partir des montants de paiement individuels',
+    'bills.initialPaymentDescription': 'Y a-t-il un paiement initial différent des montants récurrents?',
+    'bills.equalRecurringPaymentsDescription': 'Tous les montants de paiement récurrents sont-ils les mêmes?',
+    'bills.initialPaymentAmountDescription': 'Montant du paiement initial',
+    'bills.recurringPaymentAmountDescription': 'Montant de chaque paiement récurrent',
+    'bills.recurrenceEndDateDescription': 'L\'échéancier de paiement sera limité à l\'année suivante. Définir une date de fin arrêtera les factures récurrentes après cette date.',
+    'bills.customPaymentScheduleDescription': 'Définissez votre échéancier de paiement personnalisé avec des dates et des montants spécifiques.',
+    'bills.individualPaymentAmountsDescription': 'Étant donné que les paiements récurrents ne sont pas égaux, spécifiez les montants individuels pour chaque paiement. Les dates seront calculées en fonction de votre échéancier sélectionné.',
+    'bills.deleting': 'Suppression...',
+    'bills.deleteBill': 'Supprimer la facture',
+    'bills.cancel': 'Annuler',
+    'bills.processing': 'Traitement...',
+    'bills.updateBill': 'Mettre à jour la facture',
+    'bills.createBill': 'Créer la facture',
+    'bills.paymentCount': 'Nombre de paiements *',
+    'bills.paymentCountSingle': 'Paiement unique',
+    'bills.paymentCountMultiple': 'Paiements multiples',
+    'bills.paymentCountDescription': 'Choisissez s\'il s\'agit d\'un paiement unique ou de paiements multiples',
+    'bills.recurrence': 'Générer automatiquement les factures pour l\'année prochaine',
+    'bills.recurrenceDescription': 'Lorsqu\'elle est activée, cette facture se répétera automatiquement pour l\'année suivante',
+    'bills.singlePaymentAmount': 'Montant du paiement *',
+    'bills.singlePaymentAmountDescription': 'Entrez le montant pour ce paiement unique',
+    'bills.calculatedTotalAmount': 'Montant total calculé',
+    'bills.totalAmountSingleDescription': 'Montant pour le paiement unique',
+    'bills.totalAmountMultipleEqualDescription': 'Calculé à partir de la configuration de paiement (12 paiements)',
+    'bills.totalAmountMultipleCustomDescription': 'Somme de tous les montants de paiement',
+    'bills.autoCalculatedBadge': 'Auto-calculé',
+    'bills.fromPaymentAmountBadge': 'Du montant de paiement',
     createNewDemand: 'Créer une nouvelle demande',
     submitNewRequest: 'Soumettre une nouvelle demande',
     submitAndTrackRequests: 'Soumettre et suivre les demandes',
@@ -2362,6 +2913,9 @@ export const translations: Record<Language, Translations> = {
     welcome: 'Bienvenue',
     building2: 'Bâtiment',
     residence: 'Résidence',
+    allResidences: 'Toutes les résidences',
+    creator: 'Créateur',
+    allCreators: 'Tous les créateurs',
     selectABuilding: 'Sélectionner un bâtiment',
     address: 'Adresse',
     floor: 'Étage',
@@ -2420,7 +2974,7 @@ export const translations: Record<Language, Translations> = {
     enterPassword: 'Entrez le mot de passe',
     enterFirstName: 'Entrez le prénom',
     enterLastName: 'Entrez le nom de famille',
-    required: 'Ce champ est requis',
+    required: 'Requis',
     submit: 'Soumettre',
     send: 'Envoyer',
     reset: 'Réinitialiser',
@@ -2469,11 +3023,12 @@ export const translations: Record<Language, Translations> = {
     cancelledFilter: 'Annulée',
     draftFilter: 'Brouillon',
     allTypesFilter: 'Tous les types',
-    maintenanceFilter: 'Maintenance',
+    maintenanceFilter: 'Entretien',
     complaintFilter: 'Plainte',
     informationFilter: 'Information',
     otherFilter: 'Autre',
     buildingsManagement: 'Gestion des bâtiments',
+    buildingsManagementSubtitle: 'Gérer les informations sur les bâtiments, les actifs immobiliers et les structures organisationnelles.',
     manageBuildings: 'Gérer tous les bâtiments de votre organisation',
     addBuilding: 'Ajouter un bâtiment',
     editBuilding: 'Modifier le bâtiment',
@@ -2514,6 +3069,7 @@ export const translations: Record<Language, Translations> = {
     mixedUseType: 'Usage mixte',
     otherBuildingType: 'Autre',
     residencesManagement: 'Gestion des résidences',
+    residencesManagementSubtitle: 'Gérer les informations sur les résidences, les unités, les détails des propriétés et les affectations des locataires dans vos propriétés.',
     manageResidences: 'Gérer toutes les résidences et unités',
     searchFilters: 'Recherche et filtres',
     searchResidences: 'Recherche',
@@ -2533,6 +3089,8 @@ export const translations: Record<Language, Translations> = {
     viewDocuments: 'Voir les documents',
     budgetDashboard: 'Tableau de bord budgétaire',
     budgetSubtitle: 'Gestion et suivi du budget financier',
+    budgetManagement: 'Gestion du budget',
+    budgetManagementSubtitle: 'Planifier et suivre les budgets financiers pour la gestion immobilière avec des prévisions et des analyses complètes.',
     totalBudget: 'Budget total',
     usedBudget: 'Budget utilisé',
     remaining: 'Restant',
@@ -2554,8 +3112,14 @@ export const translations: Record<Language, Translations> = {
     supplies: 'Fournitures',
     taxes: 'Taxes',
     salary: 'Salaire',
+    construction: 'Construction',
+    consulting: 'Consultation',
+    equipmentRental: 'Location d\'équipement',
+    legalServices: 'Services juridiques',
     billsManagement: 'Gestion des factures',
-    billsSubtitle: 'Gérer les dépenses des bâtiments et le suivi des revenus',
+    billsSubtitle: 'Gérer les factures de propriété, les factures et les documents financiers avec un suivi et une organisation complets.',
+    invoiceManagement: 'Gestion des factures',
+    invoiceManagementSubtitle: 'Traitement et gestion modernes des factures alimentés par l\'IA',
     filters: 'Filtres',
     year: 'Année',
     months: 'Mois',
@@ -2577,7 +3141,17 @@ export const translations: Record<Language, Translations> = {
     allTypes: 'Tous les types',
     description: 'Description',
     describeDemandDetail: 'Décrivez la demande en détail...',
-    creating: 'Création en cours...',
+    creating: 'Création...',
+    createDemand: 'Créer une demande',
+    typeLabel: 'Type',
+    buildingLabel: 'Bâtiment',
+    descriptionLabel: 'Description',
+    residenceOptional: 'Résidence (optionnel)',
+    noSpecificResidence: 'Aucune résidence spécifique',
+    searchResidencesPlaceholder: 'Rechercher des résidences...',
+    attachmentsOptional: 'Pièces jointes (optionnel)',
+    attachmentUploadInstructions: 'Téléchargez des photos, documents ou captures d\'écran. Caméra supportée pour mobile. Maximum 10 Mo par fichier.',
+    submitRequestComplaint: 'Soumettre une nouvelle demande ou plainte',
     maintenanceType: 'Entretien',
     complaintType: 'Plainte',
     informationType: 'Information',
@@ -2650,6 +3224,9 @@ export const translations: Record<Language, Translations> = {
     deleting: 'Suppression...',
     page: 'Page',
     of: 'de',
+    filtered: 'Filtré',
+    onThisPage: 'Sur cette page',
+    confirmEmail: 'Confirmer le courriel',
     settings: 'Paramètres',
     generalSettings: 'Paramètres généraux',
     securitySettings: 'Paramètres de sécurité',
@@ -2705,6 +3282,7 @@ export const translations: Record<Language, Translations> = {
     dataExported: 'Données exportées',
     dataExportedDescription: 'Vos données ont été téléchargées avec succès.',
     bugReports: 'Rapports de bogues',
+    bugReportsSubtitle: 'Signaler et suivre les problèmes de l\'application',
     reportBug: 'Signaler un bogue',
     reportNewBug: 'Signaler un nouveau bogue',
     searchBugs: 'Rechercher des bogues...',
@@ -2739,6 +3317,7 @@ export const translations: Record<Language, Translations> = {
     failedUpdateBug: 'Échec de la mise à jour du rapport de bogue',
     bugDeletedSuccess: 'Rapport de bogue supprimé avec succès',
     ideaBox: 'Boîte à idées',
+    ideaBoxSubtitle: 'Partagez vos idées pour améliorer notre plateforme',
     shareIdeasImprove: 'Partagez vos idées pour améliorer notre plateforme',
     submitNewIdea: 'Soumettre une nouvelle idée',
     createIdea: 'Créer une idée',
@@ -3018,6 +3597,13 @@ export const translations: Record<Language, Translations> = {
     documentsCount: 'Documents ({count})',
     myDemands: 'Mes demandes',
     showingResults: 'Affichage de {start} à {end} sur {total} demandes',
+    searchTypePlaceholder: 'Rechercher le type...',
+    showingDemandsRange: 'Affichage de {start} à {end} sur {total} demandes',
+    buildingField: 'Bâtiment :',
+    residenceField: 'Résidence :',
+    createdField: 'Créé :',
+    unknownBuilding: 'Inconnu',
+    loadingDemandsMessage: 'Chargement des demandes...',
     manageBuildingsOrganization: 'Gérer {count} bâtiments dans votre organisation',
     searchBuildingsAddress: 'Rechercher des bâtiments par nom ou adresse...',
     fullscreen: 'Plein écran',
@@ -3026,105 +3612,197 @@ export const translations: Record<Language, Translations> = {
     close: 'Fermer',
     edit: 'Modifier',
     delete: 'Supprimer',
-    initializationProgress: 'Initialization Progress',
-    coreQualityAssurance: 'Core quality assurance framework',
-    workspaceStatus: 'Workspace Statut',
-    environmentSetup: 'Environment Setup',
-    setupValidationQualityAssurance: 'Set up validation and quality assurance framework',
-    completedToday: 'Completed Today',
-    availableAfterQACompletion: 'Available after QA pillar completion',
-    moreActions: 'More Actions',
-    enterEmailAddress: 'Enter courriel adresse',
-    selectOrganization: 'Select organisation',
-    require2FADescription: 'Require two-factor authentication for this utilisateur',
-    personalMessageDescription: 'This message will be included in the invitation courriel',
-    _error: 'An erreur occurred',
-    bulkActionSuccessDescription: 'The bulk action has been completed succèsfully',
-    selectUsersForBulkAction: 'Please select utilisateurs to perform bulk action',
-    invitationSentDescription: 'Invitation has been sent succèsfully to the utilisateur',
-    userUpdatedSuccessfully: 'Utilisateur has been mettre à jourd succèsfully',
-    editUser: 'Modifier Utilisateur',
-    updateUser: 'Mettre à jour Utilisateur',
-    userDeletedSuccessfully: 'Utilisateur has been supprimerd succèsfully',
-    joinedDate: 'Joined Date',
-    deactivateUser: 'Deactivate Utilisateur',
-    activateUser: 'Activate Utilisateur',
-    deleteUser: 'Supprimer Utilisateur',
-    editUserDescription: 'Mettre à jour utilisateur information and permissions',
-    selectUser: 'Select utilisateur {nom}',
-    invitationLinkCopied: 'Invitation link copied to clipboard',
-    invitationActions: 'Invitation Actions',
-    selectSchedule: 'Select schedule',
-    failedToReviewDemand: 'Échec to review demand',
-    addNotesReviewDecision: 'Ajouter notes about your review decision',
-    addNotesReview: 'Ajouter notes about the review',
-    organizationOverview: 'Organisation Overview',
-    viewManageResidences: 'View and manage organisation résidences',
-    notAssignedResidences: 'You are not assigned to any résidences.',
-    occupancyStats: 'Occupancy Stats',
-    unableToDisplayAmenities: 'Unable to display amenities',
-    emailRequired: 'Courriel adresse is requis',
-    unexpectedError: 'An unexpected erreur occurred - please contact support if this continues',
-    saveFailed: 'Échec to enregistrer changes - please try again',
-    deleteFailed: 'Échec to supprimer item - please try again',
-    firstNameInvalidCharacters: 'First nom can only contain letters, spaces, apostrophes and hyphens',
-    lastNameInvalidCharacters: 'Last nom can only contain letters, spaces, apostrophes and hyphens',
-    expiryDaysInvalid: 'Expiry days must be between 1 and 30 days',
-    emailOrNameRequired: 'Courriel adresse is requis for regular invitations (example: utilisateur@domain.com). For demo utilisateurs, provide first nom and last nom.',
-    aiAnalysisWarning: 'AI Analysis Warning',
-    lowConfidenceAIWarning: 'AI analysis has low confidence:',
-    enterStreetAddress: 'Enter street adresse',
-    addressRequired: 'Adresse is requis',
-    searchUnitTenant: 'Rechercher by unit number or tenant nom...',
-    unitNumber: 'Unit Number',
-    adjustSearchCriteria: 'Try adjusting your rechercher criteria',
-    fromLastYear: 'from last year',
-    budgetAnalyticsChart: 'Budget analytics chart would appear here',
-    showMoreYears: 'Show more years',
-    showFewerYears: 'Show fewer years',
-    createDemandBehalf: 'Créer a demand on behalf of a resident',
-    editUserTitle: 'Modifier Utilisateur',
-    organizationAssignmentsUpdated: 'Organisation assignments mettre à jourd succèsfully',
-    anErrorOccurred: 'An erreur occurred',
-    failedToCreateDemand: 'Échec de créer la demande',
-    firstNameInvalidChars: 'First nom can only contain letters, spaces, apostrophes and hyphens',
-    lastNameInvalidChars: 'Last nom can only contain letters, spaces, apostrophes and hyphens',
-    roleRequired: 'Please select a utilisateur role',
-    emailConfirmationRequired: 'Courriel confirmeration is requis to supprimer utilisateur',
-    orgResidenceAssignments: 'Organisation and résidence assignments',
-    notificationsActivity: 'Notifications and activity history',
-    manageAccountSettings: 'Manage your account and application paramètres',
-    username: 'Utilisateurnom',
-    exportFailed: 'Export échec',
-    failedExportData: 'Échec to export data',
-    reportTrackIssues: 'Report and track application issues',
-    today: 'Today',
-    failedSubmitIdea: 'Échec to soumettre idea',
-    ideaUpdatedDescription: 'Feature idea has been mettre à jourd succèsfully.',
-    failedUpdateIdea: 'Échec to mettre à jour idea',
-    ideaDeletedDescription: 'The feature idea has been supprimerd succèsfully.',
-    failedDeleteIdea: 'Échec to supprimer idea',
-    permissionsManagementDesc: 'Manage utilisateur roles and system permissions',
+    initializationProgress: 'Progrès d\'initialisation',
+    coreQualityAssurance: 'Cadre d\'assurance qualité de base',
+    workspaceStatus: 'Statut de l\'espace de travail',
+    environmentSetup: 'Configuration de l\'environnement',
+    setupValidationQualityAssurance: 'Configuration du cadre de validation et d\'assurance qualité',
+    completedToday: 'Complété aujourd\'hui',
+    availableAfterQACompletion: 'Disponible après l\'achèvement du pilier QA',
+    moreActions: 'Plus d\'actions',
+    enterEmailAddress: 'Entrez l\'adresse courriel',
+    selectOrganization: 'Sélectionnez l\'organisation',
+    require2FADescription: 'Exiger l\'authentification à deux facteurs pour cet utilisateur',
+    personalMessageDescription: 'Ce message sera inclus dans le courriel d\'invitation',
+    _error: 'Une erreur s\'est produite',
+    bulkActionSuccessDescription: 'L\'action groupée a été complétée avec succès',
+    selectUsersForBulkAction: 'Veuillez sélectionner des utilisateurs pour effectuer l\'action groupée',
+    invitationSentDescription: 'L\'invitation a été envoyée avec succès à l\'utilisateur',
+    userUpdatedSuccessfully: 'Utilisateur mis à jour avec succès',
+    editUser: 'Modifier l\'utilisateur',
+    updateUser: 'Mettre à jour l\'utilisateur',
+    userDeletedSuccessfully: 'Utilisateur supprimé avec succès',
+    joinedDate: 'Date d\'adhésion',
+    deactivateUser: 'Désactiver l\'utilisateur',
+    activateUser: 'Activer l\'utilisateur',
+    deleteUser: 'Supprimer l\'utilisateur',
+    editUserDescription: 'Mettre à jour les informations et permissions de l\'utilisateur',
+    selectUser: 'Sélectionner l\'utilisateur {nom}',
+    invitationLinkCopied: 'Lien d\'invitation copié dans le presse-papiers',
+    invitationActions: 'Actions d\'invitation',
+    selectSchedule: 'Sélectionner l\'horaire',
+    failedToReviewDemand: 'Échec de l\'examen de la demande',
+    addNotesReviewDecision: 'Ajouter des notes concernant votre décision d\'examen',
+    addNotesReview: 'Ajouter des notes concernant l\'examen',
+    organizationOverview: 'Aperçu de l\'organisation',
+    viewManageResidences: 'Voir et gérer les résidences de l\'organisation',
+    notAssignedResidences: 'Vous n\'êtes assigné à aucune résidence.',
+    occupancyStats: 'Statistiques d\'occupation',
+    unableToDisplayAmenities: 'Impossible d\'afficher les commodités',
+    emailRequired: 'L\'adresse courriel est requise',
+    unexpectedError: 'Une erreur inattendue s\'est produite - veuillez contacter le support si cela continue',
+    saveFailed: 'Échec de l\'enregistrement des modifications - veuillez réessayer',
+    deleteFailed: 'Échec de la suppression de l\'élément - veuillez réessayer',
+    firstNameInvalidCharacters: 'Le prénom ne peut contenir que des lettres, espaces, apostrophes et traits d\'union',
+    lastNameInvalidCharacters: 'Le nom de famille ne peut contenir que des lettres, espaces, apostrophes et traits d\'union',
+    expiryDaysInvalid: 'Les jours d\'expiration doivent être entre 1 et 30 jours',
+    emailOrNameRequired: 'L\'adresse courriel est requise pour les invitations régulières (exemple: utilisateur@domaine.com). Pour les utilisateurs de démonstration, fournissez le prénom et le nom de famille.',
+    aiAnalysisWarning: 'Avertissement d\'analyse IA',
+    lowConfidenceAIWarning: 'L\'analyse IA a une faible confiance :',
+    enterStreetAddress: 'Entrez l\'adresse de rue',
+    addressRequired: 'L\'adresse est requise',
+    searchUnitTenant: 'Rechercher par numéro d\'unité ou nom du locataire...',
+    unitNumber: 'Numéro d\'unité',
+    adjustSearchCriteria: 'Essayez d\'ajuster vos critères de recherche',
+    fromLastYear: 'de l\'année dernière',
+    budgetAnalyticsChart: 'Le graphique d\'analyse budgétaire apparaîtrait ici',
+    showMoreYears: 'Afficher plus d\'années',
+    showFewerYears: 'Afficher moins d\'années',
+    createDemandBehalf: 'Créer une demande au nom d\'un résident',
+    editUserTitle: 'Modifier l\'utilisateur',
+    organizationAssignmentsUpdated: 'Affectations d\'organisation mises à jour avec succès',
+    anErrorOccurred: 'Une erreur s\'est produite',
+    failedToCreateDemand: 'Échec de la création de la demande',
+    firstNameInvalidChars: 'Le prénom ne peut contenir que des lettres, espaces, apostrophes et traits d\'union',
+    lastNameInvalidChars: 'Le nom de famille ne peut contenir que des lettres, espaces, apostrophes et traits d\'union',
+    roleRequired: 'Veuillez sélectionner un rôle d\'utilisateur',
+    emailConfirmationRequired: 'La confirmation par courriel est requise pour supprimer l\'utilisateur',
+    orgResidenceAssignments: 'Affectations d\'organisation et de résidence',
+    notificationsActivity: 'Notifications et historique d\'activité',
+    manageAccountSettings: 'Gérer votre compte et les paramètres de l\'application',
+    username: 'Nom d\'utilisateur',
+    exportFailed: 'Échec de l\'exportation',
+    failedExportData: 'Échec de l\'exportation des données',
+    reportTrackIssues: 'Signaler et suivre les problèmes de l\'application',
+    today: 'Aujourd\'hui',
+    failedSubmitIdea: 'Échec de la soumission de l\'idée',
+    ideaUpdatedDescription: 'L\'idée de fonctionnalité a été mise à jour avec succès.',
+    failedUpdateIdea: 'Échec de la mise à jour de l\'idée',
+    ideaDeletedDescription: 'L\'idée de fonctionnalité a été supprimée avec succès.',
+    failedDeleteIdea: 'Échec de la suppression de l\'idée',
+    permissionsManagementDesc: 'Gérer les rôles d\'utilisateur et les permissions système',
     roleBasedAccessControl: 'Contrôle d\'Accès Basé sur les Rôles',
-    userRoles: 'Utilisateur Roles',
-    userFeedbackSuggestions: 'Utilisateur feedretour and suggestions',
-    auditLogs: 'Audit Logs',
-    rightToErasure: 'Right to Erasure',
-    privacyImpactAssessment: 'Privacy Impact Assessment',
-    roleAssignmentFailed: 'Role Assignment Échec',
-    operationFailed: 'Operation Échec',
-    timeoutError: 'Timeout Erreur',
-    droitALOubli: 'Right to be Forgotten',
-    evaluationImpactViePrivee: 'Privacy Impact Assessment',
-    roleBasedAccess: 'Role-based access control',
-    roleBasedAccessDesc: 'Granular authorization system ensuring each utilisateur only accesses necessary information.',
-    storyIntro: 'Discover the story behind Koveo Gestion and our mission to modernize property gestion in Quebec.',
-    foundationDesc: 'Company creation with the mission to modernize property gestion in Quebec.',
-    startManagingToday: 'Start managing today',
-    buildingManagementDesc: 'Complete bâtiment and unit gestion system',
+    userRoles: 'Rôles d\'utilisateur',
+    userFeedbackSuggestions: 'Commentaires et suggestions d\'utilisateurs',
+    auditLogs: 'Journaux d\'audit',
+    rightToErasure: 'Droit à l\'effacement',
+    privacyImpactAssessment: 'Évaluation de l\'impact sur la vie privée',
+    roleAssignmentFailed: 'Échec de l\'affectation de rôle',
+    operationFailed: 'Échec de l\'opération',
+    timeoutError: 'Erreur de délai d\'attente',
+    droitALOubli: 'Droit à l\'oubli',
+    evaluationImpactViePrivee: 'Évaluation de l\'impact sur la vie privée',
+    roleBasedAccess: 'Contrôle d\'accès basé sur les rôles',
+    roleBasedAccessDesc: 'Système d\'autorisation granulaire garantissant que chaque utilisateur n\'accède qu\'aux informations nécessaires.',
+    storyIntro: 'Découvrez l\'histoire derrière Koveo Gestion et notre mission de moderniser la gestion immobilière au Québec.',
+    foundationDesc: 'Création de l\'entreprise avec la mission de moderniser la gestion immobilière au Québec.',
+    startManagingToday: 'Commencez à gérer aujourd\'hui',
+    buildingManagementDesc: 'Système complet de gestion des bâtiments et unités',
     expertSupport: 'Support expert',
     termsOfService: 'Conditions de service',
     noSetupFees: 'Aucun frais d\'installation',
     noDocumentsUploadedYet: 'Aucun document n\'a encore été téléchargé pour cette résidence.',
+    
+    selectBuildingInventoryMessage: 'Veuillez sélectionner une organisation et un bâtiment pour voir son inventaire de maintenance.',
+    inventoryManagementSubtitle: 'Gérez les éléments du bâtiment, les dossiers d\'entretien et la documentation des actifs dans votre portefeuille immobilier.',
+    backToBuilding: 'Retour à',
+    buildingElements: 'Éléments du bâtiment',
+    toggleBuildingElementsTable: 'Basculer le tableau des éléments du bâtiment',
+    searchElementsPlaceholder: 'Rechercher des éléments par nom, code UNIFORMAT ou description...',
+    overdueEvaluations: 'Évaluations en retard',
+    addElement: 'Ajouter un élément',
+    allConditions: 'Toutes les conditions',
+    excellent: 'Excellent',
+    good: 'Bon',
+    fair: 'Acceptable',
+    poor: 'Mauvais',
+    uniformatCategory: 'Catégorie UNIFORMAT',
+    uniformatSubstructure: 'A - Infrastructure',
+    uniformatShell: 'B - Enveloppe',
+    uniformatInteriors: 'C - Aménagements intérieurs',
+    uniformatServices: 'D - Services',
+    uniformatEquipmentFurnishings: 'E - Équipements et ameublements',
+    uniformatSpecialConstruction: 'F - Construction spéciale',
+    uniformatBuildingSitework: 'G - Travaux de site du bâtiment',
+    elementDocuments: 'Documents de l\'élément',
+    uniformatBrowser: 'Navigateur UNIFORMAT',
+    featureComingSoon: 'Fonctionnalité à venir',
+    evaluationSchedulingComingSoon: 'La planification des évaluations sera disponible dans une mise à jour future.',
+    elementImportComingSoon: 'La fonctionnalité d\'importation d\'éléments sera disponible dans une mise à jour future.',
+    reportExportComingSoon: 'La fonctionnalité d\'exportation de rapports sera disponible dans une mise à jour future.',
+    elementDeleted: 'Élément supprimé',
+    elementDeletedSuccessfully: 'a été supprimé avec succès de l\'inventaire.',
+    
+    selectBuildingProjectsMessage: 'Veuillez sélectionner une organisation et un bâtiment pour voir ses projets de maintenance.',
+    projectsMaintenanceManagement: 'Projets - Gestion de la maintenance',
+    projectsManagementSubtitle: 'Gérez les projets de maintenance, suivez les progrès et coordonnez les horaires de travail',
+    toggleProjectOverview: 'Basculer l\'aperçu des projets',
+    projectsSelected: 'projet(s) sélectionné(s)',
+    newProject: 'Nouveau projet',
+    toggleProjectsTable: 'Basculer le tableau des projets',
+    projectTable: 'Tableau des projets',
+    projectStatus: 'Statut du projet',
+    projectTimeline: 'Chronologie du projet',
+    projectElements: 'Éléments du projet',
+    projectNotes: 'Notes du projet',
+    projectBudget: 'Budget du projet',
+    projectCreated: 'Projet créé',
+    projectUpdated: 'Projet mis à jour',
+    projectCreatedSuccessfully: 'a été créé avec succès.',
+    projectUpdatedSuccessfully: 'a été mis à jour avec succès.',
+    projectsCreated: 'Projets créés',
+    projectsCreatedFromSuggestions: 'projet(s) ont été créé(s) à partir des suggestions d\'évaluation.',
+    projectCreatedSuccessfully2: 'Projet créé avec succès',
+    autoProjectConvertedSuccess: 'a été converti en projet de maintenance.',
+    statusUpdated: 'Statut mis à jour',
+    projectStatusUpdatedSuccessfully: 'Le statut du projet a été mis à jour avec succès.',
+    
+    // Demand details translations
+    demandDetails: 'Détails de la demande',
+    escalateToManager: 'Escalader au gestionnaire',
+    fileAttachment: 'Pièce jointe',
+    view: 'Voir',
+    download: 'Télécharger',
+    location: 'Emplacement',
+    reviewNotes: 'Notes de révision',
+    addReviewNotes: 'Ajouter des notes de révision...',
+    updated: 'Mis à jour :',
+    comments: 'Commentaires',
+    addAComment: 'Ajouter un commentaire...',
+    addComment: 'Ajouter un commentaire',
+    adding: 'Ajout...',
+    noCommentsYet: 'Aucun commentaire pour le moment',
+    commentsDisabledFor: 'Les commentaires sont désactivés pour les demandes {status}.',
+    deleteDemand: 'Supprimer',
+    confirmDeleteDemand: 'Êtes-vous sûr de vouloir supprimer cette demande?',
+    demandUpdatedSuccessfully: 'Demande mise à jour avec succès',
+    failedToUpdateDemand: 'Échec de la mise à jour de la demande',
+    demandDeletedSuccessfully: 'Demande supprimée avec succès',
+    failedToDeleteDemand: 'Échec de la suppression de la demande',
+    commentAddedSuccessfully: 'Commentaire ajouté avec succès',
+    failedToAddComment: 'Échec de l\'ajout du commentaire',
+    underReviewStatus: 'En révision',
+    approvedStatus: 'Approuvé',
+    rejectedStatus: 'Rejeté',
+    inProgressStatus: 'En cours',
+    completedStatus: 'Terminé',
+    cancelledStatus: 'Annulé',
+    submittedStatus: 'Soumis',
+    viewRelatedDocuments: 'Voir les documents associés',
+    descriptionMinLengthError: 'La description doit contenir au moins 10 caractères (exemple : Le robinet de l\'évier de la cuisine fuit et nécessite une réparation)',
+    descriptionMaxLengthError: 'La description doit contenir moins de 2000 caractères',
+    reviewNotesMaxLengthError: 'Les notes de révision doivent contenir moins de 1000 caractères',
+    commentMinLengthError: 'Le texte du commentaire est requis (minimum 1 caractère)',
+    commentMaxLengthError: 'Le commentaire doit contenir moins de 1000 caractères',
   }
 };

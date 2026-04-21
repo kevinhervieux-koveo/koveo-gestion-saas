@@ -61,6 +61,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { Link, useLocation } from 'wouter';
 import { withHierarchicalSelection } from '@/components/hoc/withHierarchicalSelection';
 import { useAuth } from '@/hooks/use-auth';
+import { PaginationControls } from '@/components/common/PaginationControls';
 
 /**
  * Residence data structure
@@ -203,17 +204,6 @@ function ResidencePageInner({ buildingId, showBackButton, backButtonLabel, onBac
   const endIndex = startIndex + itemsPerPage;
   const currentResidences = filteredResidences.slice(startIndex, endIndex);
 
-  const handlePreviousPage = () => {
-    setCurrentPage((prev) => Math.max(1, prev - 1));
-  };
-
-  const handleNextPage = () => {
-    setCurrentPage((prev) => Math.min(totalPages, prev + 1));
-  };
-
-  const handlePageClick = (page: number) => {
-    setCurrentPage(page);
-  };
 
   // Select first residence by default
   const selectedResidence = useMemo(() => {
@@ -547,63 +537,15 @@ function ResidencePageInner({ buildingId, showBackButton, backButtonLabel, onBac
           )}
 
           {/* Pagination */}
-          {totalPages > 1 && (
-            <div className='flex justify-center items-center space-x-2'>
-              <Button
-                variant='outline'
-                size='sm'
-                onClick={handlePreviousPage}
-                disabled={currentPage === 1}
-              >
-                <ChevronLeft className='h-4 w-4' />
-                {t('previous')}
-              </Button>
-
-              <div className='flex items-center space-x-1'>
-                {Array.from({ length: Math.min(5, totalPages) }).map((_, i) => {
-                  let pageNum;
-                  if (totalPages <= 5) {
-                    pageNum = i + 1;
-                  } else if (currentPage <= 3) {
-                    pageNum = i + 1;
-                  } else if (currentPage >= totalPages - 2) {
-                    pageNum = totalPages - 4 + i;
-                  } else {
-                    pageNum = currentPage - 2 + i;
-                  }
-
-                  return (
-                    <Button
-                      key={pageNum}
-                      variant={currentPage === pageNum ? 'default' : 'outline'}
-                      size='sm'
-                      onClick={() => handlePageClick(pageNum)}
-                    >
-                      {pageNum}
-                    </Button>
-                  );
-                })}
-              </div>
-
-              <Button
-                variant='outline'
-                size='sm'
-                onClick={handleNextPage}
-                disabled={currentPage === totalPages}
-              >
-                {t('next')}
-                <ChevronRight className='h-4 w-4' />
-              </Button>
-            </div>
-          )}
-
-          {/* Page info */}
-          {filteredResidences.length > 0 && (
-            <div className='text-center text-sm text-muted-foreground mt-4'>
-              {t('showing')} {startIndex + 1} to {Math.min(endIndex, filteredResidences.length)} of{' '}
-              {filteredResidences.length} {t('residences')}
-            </div>
-          )}
+          <PaginationControls
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={filteredResidences.length}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+            className="mt-6"
+            showInfo={true}
+          />
         </div>
       </div>
     </div>
@@ -612,7 +554,8 @@ function ResidencePageInner({ buildingId, showBackButton, backButtonLabel, onBac
 
 // Wrap with hierarchical selection HOC using organization and building hierarchy (residents only see buildings they have residences in)
 const ResidencePage = withHierarchicalSelection(ResidencePageInner, {
-  hierarchy: ['organization', 'building']
+  hierarchy: ['organization', 'building'],
+  checkResidenceAccess: true
 });
 
 export default ResidencePage;

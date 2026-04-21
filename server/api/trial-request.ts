@@ -6,7 +6,7 @@ const router = express.Router();
 
 // Initialize SendGrid
 if (!process.env.SENDGRID_API_KEY) {
-  console.warn('⚠️ SENDGRID_API_KEY environment variable is not set');
+  // console.warn('⚠️ SENDGRID_API_KEY environment variable is not set');
 }
 
 const mailService = new MailService();

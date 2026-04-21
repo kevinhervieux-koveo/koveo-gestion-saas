@@ -1,0 +1,112 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+index-Rgsp3eql.js:48 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-Rgsp3eql.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-Rgsp3eql.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+withHierarchicalSelection-BAfKNkPD.js:1 🏢 [withHierarchicalSelection] Fetching buildings...
+withHierarchicalSelection-BAfKNkPD.js:1 🌐 [withHierarchicalSelection] Requesting buildings: /api/organizations/e9bb7862-4ba5-4822-848f-f3692e826e73/buildings
+index-Rgsp3eql.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-Rgsp3eql.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+withHierarchicalSelection-BAfKNkPD.js:1 📊 [withHierarchicalSelection] Received 5 buildings from API
+withHierarchicalSelection-BAfKNkPD.js:1 ✅ [withHierarchicalSelection] Returning all 5 buildings (non-residence page)
+index-Rgsp3eql.js:48 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-Rgsp3eql.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-Rgsp3eql.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-Rgsp3eql.js:48 📁 [PROJECTS UI] Projects table collapsible toggled: true
+index-Rgsp3eql.js:48 📁 [PROJECTS STATE] Projects table section toggled {expanded: true}
+index-Rgsp3eql.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-Rgsp3eql.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-Rgsp3eql.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: []
+index-Rgsp3eql.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 0
+index-Rgsp3eql.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Raw response from backend: {success: true, data: Array(2)}
+index-Rgsp3eql.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Response structure: (2) ['success', 'data']
+index-Rgsp3eql.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects found in data property: 2
+index-Rgsp3eql.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: (2) [{…}, {…}]
+index-Rgsp3eql.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 2
+index-Rgsp3eql.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (2) [{…}, {…}]
+index-Rgsp3eql.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 2
+index-Rgsp3eql.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (2) [{…}, {…}]
+index-Rgsp3eql.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 2
+index-CY7oGNzr.js:185 [Violation] 'setTimeout' handler took 89ms
+index-Rgsp3eql.js:48 📁 [PROJECTS ACTION] handleViewProject called: {projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470', projectTitle: 'window changes'}
+index-Rgsp3eql.js:48 📁 [PROJECTS STATE] Project workflow modal opened
+index-Rgsp3eql.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-Rgsp3eql.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CY7oGNzr.js:136 TypeError: Cannot read properties of undefined (reading 'title')
+    at uo (ProjectWorkflowModal-D9pb5q_m.js:1:11957)
+    at Object.react_stack_bottom_frame (index-CY7oGNzr.js:229:12448)
+    at oc (index-CY7oGNzr.js:120:804)
+    at kc (index-CY7oGNzr.js:141:5839)
+    at Pc (index-CY7oGNzr.js:150:10147)
+    at q (index-CY7oGNzr.js:45:108)
+    at Kh (index-CY7oGNzr.js:163:29810)
+    at Jh (index-CY7oGNzr.js:163:28479)
+    at Wc (index-CY7oGNzr.js:163:28312)
+    at Ih (index-CY7oGNzr.js:163:24807)
+
+The above error occurred in the <uo> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, gx.
+
+overrideMethod @ hook.js:608
+oh @ index-CY7oGNzr.js:136
+lh @ index-CY7oGNzr.js:141
+q @ index-CY7oGNzr.js:45
+l.componentDidCatch.e.callback @ index-CY7oGNzr.js:141
+Dp @ index-CY7oGNzr.js:107
+Ep @ index-CY7oGNzr.js:107
+q @ index-CY7oGNzr.js:45
+Dh @ index-CY7oGNzr.js:163
+Nh @ index-CY7oGNzr.js:163
+Qn @ index-CY7oGNzr.js:163
+Nh @ index-CY7oGNzr.js:163
+Qn @ index-CY7oGNzr.js:163
+Nh @ index-CY7oGNzr.js:163
+Qn @ index-CY7oGNzr.js:163
+Nh @ index-CY7oGNzr.js:163
+Qn @ index-CY7oGNzr.js:163
+Nh @ index-CY7oGNzr.js:163
+Qn @ index-CY7oGNzr.js:163
+Nh @ index-CY7oGNzr.js:163
+Qn @ index-CY7oGNzr.js:163
+Nh @ index-CY7oGNzr.js:163
+ng @ index-CY7oGNzr.js:163
+ed @ index-CY7oGNzr.js:163
+Xh @ index-CY7oGNzr.js:163
+Ih @ index-CY7oGNzr.js:163
+mg @ index-CY7oGNzr.js:185
+ml @ index-CY7oGNzr.js:185
+ad @ index-CY7oGNzr.js:185
+(anonymous) @ index-CY7oGNzr.js:185
+<...>
+du.jsxDEV @ index-CY7oGNzr.js:15
+Pl @ index-Rgsp3eql.js:48
+react_stack_bottom_frame @ index-CY7oGNzr.js:229
+oc @ index-CY7oGNzr.js:120
+kc @ index-CY7oGNzr.js:141
+Pc @ index-CY7oGNzr.js:150
+q @ index-CY7oGNzr.js:45
+Kh @ index-CY7oGNzr.js:163
+Jh @ index-CY7oGNzr.js:163
+Wc @ index-CY7oGNzr.js:163
+Ih @ index-CY7oGNzr.js:163
+mg @ index-CY7oGNzr.js:185
+ml @ index-CY7oGNzr.js:185
+ad @ index-CY7oGNzr.js:185
+(anonymous) @ index-CY7oGNzr.js:185
+<Pl>
+du.jsxDEV @ index-CY7oGNzr.js:15
+Vl @ index-Rgsp3eql.js:48
+react_stack_bottom_frame @ index-CY7oGNzr.js:229
+oc @ index-CY7oGNzr.js:120
+kc @ index-CY7oGNzr.js:141
+Pc @ index-CY7oGNzr.js:150
+q @ index-CY7oGNzr.js:45
+Kh @ index-CY7oGNzr.js:163
+Jh @ index-CY7oGNzr.js:163
+Wc @ index-CY7oGNzr.js:163
+Ih @ index-CY7oGNzr.js:163
+mg @ index-CY7oGNzr.js:185
+ml @ index-CY7oGNzr.js:185
+ad @ index-CY7oGNzr.js:185
+(anonymous) @ index-CY7oGNzr.js:185

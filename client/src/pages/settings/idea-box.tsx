@@ -66,6 +66,7 @@ import { z } from 'zod';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
+import { useLanguage } from '@/hooks/use-language';
 import { SharedUploader } from '@/components/document-management';
 import { AttachedFileSection } from '@/components/common/AttachedFileSection';
 import type { UploadContext } from '@shared/config/upload-config';
@@ -299,6 +300,7 @@ export default function IdeaBox() {
   const [editAttachmentText, setEditAttachmentText] = useState('');
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
   
+  const { t } = useLanguage();
   const { toast } = useToast();
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -614,7 +616,7 @@ export default function IdeaBox() {
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
-      <Header title="Idea Box" subtitle="Share your ideas to improve our platform" />
+      <Header title={t('ideaBox')} subtitle={t('ideaBoxSubtitle')} />
       
       <div className="flex-1 overflow-auto p-6">
         <div className="max-w-7xl mx-auto space-y-6">

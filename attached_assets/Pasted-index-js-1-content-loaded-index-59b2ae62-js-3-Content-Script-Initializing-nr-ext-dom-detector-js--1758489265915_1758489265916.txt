@@ -1,0 +1,54 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+index--QApsgRc.js:136 Error: Maximum update depth exceeded. This can happen when a component repeatedly calls setState inside componentWillUpdate or componentDidUpdate. React limits the number of nested updates to prevent infinite loops.
+    at Cs (index--QApsgRc.js:83:16795)
+    at Lu (index--QApsgRc.js:83:16313)
+    at ol (index--QApsgRc.js:120:18325)
+    at $p (index--QApsgRc.js:120:17921)
+    at xo (vendor-ui-HN6VFtDE.js:14:1708)
+    at vendor-ui-HN6VFtDE.js:14:1800
+    at Array.map (<anonymous>)
+    at vendor-ui-HN6VFtDE.js:14:1784
+    at xo (vendor-ui-HN6VFtDE.js:14:1708)
+    at vendor-ui-HN6VFtDE.js:14:1800
+
+The above error occurred in the <button> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, uR.
+
+overrideMethod @ hook.js:608
+oh @ index--QApsgRc.js:136
+lh @ index--QApsgRc.js:141
+q @ index--QApsgRc.js:45
+l.componentDidCatch.e.callback @ index--QApsgRc.js:141
+Dp @ index--QApsgRc.js:107
+Ep @ index--QApsgRc.js:107
+q @ index--QApsgRc.js:45
+Dh @ index--QApsgRc.js:163
+Nh @ index--QApsgRc.js:163
+Qn @ index--QApsgRc.js:163
+Nh @ index--QApsgRc.js:163
+Qn @ index--QApsgRc.js:163
+Nh @ index--QApsgRc.js:163
+Qn @ index--QApsgRc.js:163
+Nh @ index--QApsgRc.js:163
+Qn @ index--QApsgRc.js:163
+Nh @ index--QApsgRc.js:163
+Qn @ index--QApsgRc.js:163
+Nh @ index--QApsgRc.js:163
+Qn @ index--QApsgRc.js:163
+Nh @ index--QApsgRc.js:163
+ng @ index--QApsgRc.js:163
+ed @ index--QApsgRc.js:163
+Xh @ index--QApsgRc.js:163
+Ih @ index--QApsgRc.js:163
+mg @ index--QApsgRc.js:185
+ml @ index--QApsgRc.js:185
+ad @ index--QApsgRc.js:185
+(anonymous) @ index--QApsgRc.js:185
+index--QApsgRc.js:185 [Violation] 'mousedown' handler took 448ms

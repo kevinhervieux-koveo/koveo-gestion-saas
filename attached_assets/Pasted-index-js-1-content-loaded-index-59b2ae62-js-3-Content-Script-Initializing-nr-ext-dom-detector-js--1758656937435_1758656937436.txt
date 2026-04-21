@@ -1,0 +1,131 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+index-C8qNKovs.js:52 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-C8qNKovs.js:52 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-C8qNKovs.js:52 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-C8qNKovs.js:52 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-pXXOyPty.js:136 Error: useBuildingContext must be used within a BuildingContextProvider
+    at Cn (index-C8qNKovs.js:36:3625)
+    at Pl (index-C8qNKovs.js:52:142164)
+    at Object.react_stack_bottom_frame (index-pXXOyPty.js:229:12448)
+    at oc (index-pXXOyPty.js:120:804)
+    at kc (index-pXXOyPty.js:141:5839)
+    at Pc (index-pXXOyPty.js:150:10147)
+    at q (index-pXXOyPty.js:45:108)
+    at Kh (index-pXXOyPty.js:163:29810)
+    at Jh (index-pXXOyPty.js:163:28479)
+    at Wc (index-pXXOyPty.js:163:28312)
+
+The above error occurred in the <Pl> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, gR.
+
+overrideMethod @ hook.js:608
+oh @ index-pXXOyPty.js:136
+lh @ index-pXXOyPty.js:141
+q @ index-pXXOyPty.js:45
+l.componentDidCatch.e.callback @ index-pXXOyPty.js:141
+Dp @ index-pXXOyPty.js:107
+Ep @ index-pXXOyPty.js:107
+q @ index-pXXOyPty.js:45
+Dh @ index-pXXOyPty.js:163
+Nh @ index-pXXOyPty.js:163
+Qn @ index-pXXOyPty.js:163
+Nh @ index-pXXOyPty.js:163
+Qn @ index-pXXOyPty.js:163
+Nh @ index-pXXOyPty.js:163
+Qn @ index-pXXOyPty.js:163
+Nh @ index-pXXOyPty.js:163
+Qn @ index-pXXOyPty.js:163
+Nh @ index-pXXOyPty.js:163
+Qn @ index-pXXOyPty.js:163
+Nh @ index-pXXOyPty.js:163
+Qn @ index-pXXOyPty.js:163
+Nh @ index-pXXOyPty.js:163
+ng @ index-pXXOyPty.js:163
+ed @ index-pXXOyPty.js:163
+Xh @ index-pXXOyPty.js:163
+Ih @ index-pXXOyPty.js:163
+fg @ index-pXXOyPty.js:185
+d @ index-pXXOyPty.js:23
+<Pl>
+du.jsxDEV @ index-pXXOyPty.js:15
+Vl @ index-C8qNKovs.js:52
+react_stack_bottom_frame @ index-pXXOyPty.js:229
+oc @ index-pXXOyPty.js:120
+kc @ index-pXXOyPty.js:141
+Pc @ index-pXXOyPty.js:150
+q @ index-pXXOyPty.js:45
+Kh @ index-pXXOyPty.js:163
+Jh @ index-pXXOyPty.js:163
+Wc @ index-pXXOyPty.js:163
+Ih @ index-pXXOyPty.js:163
+fg @ index-pXXOyPty.js:185
+d @ index-pXXOyPty.js:23
+<Vl>
+du.jsxDEV @ index-pXXOyPty.js:15
+(anonymous) @ withHierarchicalSelection-CMBnUs0F.js:1
+react_stack_bottom_frame @ index-pXXOyPty.js:229
+oc @ index-pXXOyPty.js:120
+kc @ index-pXXOyPty.js:141
+Pc @ index-pXXOyPty.js:150
+q @ index-pXXOyPty.js:45
+Kh @ index-pXXOyPty.js:163
+Jh @ index-pXXOyPty.js:163
+Wc @ index-pXXOyPty.js:163
+Ih @ index-pXXOyPty.js:163
+fg @ index-pXXOyPty.js:185
+d @ index-pXXOyPty.js:23
+<...>
+He.s.createElement @ vendor-react-BZXSkU7I.js:21
+Pb @ index-pXXOyPty.js:240
+P @ index-pXXOyPty.js:240
+react_stack_bottom_frame @ index-pXXOyPty.js:229
+oc @ index-pXXOyPty.js:120
+kc @ index-pXXOyPty.js:141
+Pc @ index-pXXOyPty.js:150
+q @ index-pXXOyPty.js:45
+Kh @ index-pXXOyPty.js:163
+Jh @ index-pXXOyPty.js:163
+Wc @ index-pXXOyPty.js:163
+Ih @ index-pXXOyPty.js:163
+fg @ index-pXXOyPty.js:185
+d @ index-pXXOyPty.js:23
+<P>
+du.jsxDEV @ index-pXXOyPty.js:15
+ex @ index-pXXOyPty.js:384
+react_stack_bottom_frame @ index-pXXOyPty.js:229
+oc @ index-pXXOyPty.js:120
+kc @ index-pXXOyPty.js:141
+Pc @ index-pXXOyPty.js:150
+q @ index-pXXOyPty.js:45
+Kh @ index-pXXOyPty.js:163
+Jh @ index-pXXOyPty.js:163
+Wc @ index-pXXOyPty.js:163
+Ih @ index-pXXOyPty.js:163
+mg @ index-pXXOyPty.js:185
+ml @ index-pXXOyPty.js:185
+ad @ index-pXXOyPty.js:185
+(anonymous) @ index-pXXOyPty.js:185
+<ex>
+du.jsxDEV @ index-pXXOyPty.js:15
+tx @ index-pXXOyPty.js:384
+react_stack_bottom_frame @ index-pXXOyPty.js:229
+oc @ index-pXXOyPty.js:120
+kc @ index-pXXOyPty.js:141
+Pc @ index-pXXOyPty.js:150
+q @ index-pXXOyPty.js:45
+Kh @ index-pXXOyPty.js:163
+Jh @ index-pXXOyPty.js:163
+Wc @ index-pXXOyPty.js:163
+Ih @ index-pXXOyPty.js:163
+fg @ index-pXXOyPty.js:185
+d @ index-pXXOyPty.js:23
+<tx>
+du.jsxDEV @ index-pXXOyPty.js:15
+(anonymous) @ index-pXXOyPty.js:384

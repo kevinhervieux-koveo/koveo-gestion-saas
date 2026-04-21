@@ -6,7 +6,7 @@ import { z } from 'zod';
 
 // Environment schema validation
 const envSchema = z.object({
-  PORT: z.string().transform(Number).default(5000),
+  PORT: z.coerce.number().default(5000),
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
   DATABASE_URL_KOVEO: z.string().optional(), // Production database
   SESSION_SECRET: z.string().min(32, 'SESSION_SECRET must be at least 32 characters for security'),
@@ -18,26 +18,20 @@ const envSchema = z.object({
   FROM_EMAIL: z.string().email().optional(),
 
   // SSL configuration
-  SSL_ENABLED: z
-    .string()
-    .transform((v) => v === 'true')
-    .default(false),
-  SSL_STAGING: z
-    .string()
-    .transform((v) => v === 'true')
-    .default(true),
+  SSL_ENABLED: z.coerce.boolean().default(false),
+  SSL_STAGING: z.coerce.boolean().default(true),
 
   // Performance configuration
-  CACHE_TTL: z.string().transform(Number).default(300), // 5 minutes
-  MAX_CACHE_SIZE: z.string().transform(Number).default(100),
+  CACHE_TTL: z.coerce.number().default(300), // 5 minutes
+  MAX_CACHE_SIZE: z.coerce.number().default(100),
 
   // Security configuration
-  RATE_LIMIT_WINDOW: z.string().transform(Number).default(900000), // 15 minutes
-  RATE_LIMIT_MAX: z.string().transform(Number).default(100),
+  RATE_LIMIT_WINDOW: z.coerce.number().default(900000), // 15 minutes
+  RATE_LIMIT_MAX: z.coerce.number().default(100),
 
   // Database optimization
-  DB_POOL_SIZE: z.string().transform(Number).default(10),
-  QUERY_TIMEOUT: z.string().transform(Number).default(30000), // 30 seconds
+  DB_POOL_SIZE: z.coerce.number().default(10),
+  QUERY_TIMEOUT: z.coerce.number().default(30000), // 30 seconds
 });
 
 // Parse and validate environment variables with production checks
@@ -82,9 +76,12 @@ const detectEnvironment = () => {
   // Force production mode if we detect koveo-gestion.com domain
   const isKoveoProduction = domain.includes('koveo-gestion.com');
   
+  // CORRECT FIX: Use REPLIT_DEPLOYMENT to detect production deployment vs workspace
+  const isReplitDeployment = process.env.REPLIT_DEPLOYMENT === '1';
+  
   // Prioritize explicit NODE_ENV setting (deployment environment)
-  // If NODE_ENV=production is explicitly set (like in your deployment), always use production mode
-  const isProduction = isExplicitProduction || isKoveoProduction || isDomainProduction;
+  // Use production mode for: explicit production, koveo domains, or Replit deployments
+  const isProduction = isExplicitProduction || isKoveoProduction || isDomainProduction || isReplitDeployment;
   const isDevelopment = !isProduction;
 
   // Environment detected
@@ -119,8 +116,13 @@ export const config = {
     queryTimeout: env.QUERY_TIMEOUT,
     // Helper function to get database URL at runtime based on request
     getRuntimeDatabaseUrl: (requestDomain?: string) => {
-      // Use DATABASE_URL_KOVEO only in production, otherwise use DATABASE_URL for development
-      return envConfig.isProduction ? (env.DATABASE_URL_KOVEO || env.DATABASE_URL) : env.DATABASE_URL;
+      // Use REPLIT_DEPLOYMENT and domain detection for proper database selection
+      const isRuntimeDeployment = process.env.REPLIT_DEPLOYMENT === '1';
+      const isRuntimeKoveoProduction = requestDomain?.includes('koveo-gestion.com');
+      const isRuntimeProduction = isRuntimeDeployment || isRuntimeKoveoProduction || envConfig.isProduction;
+      
+      // Use DATABASE_URL_KOVEO for production/deployment, DATABASE_URL for workspace
+      return isRuntimeProduction ? (env.DATABASE_URL_KOVEO || env.DATABASE_URL) : env.DATABASE_URL;
     },
   },
 
@@ -166,10 +168,10 @@ export const config = {
     law25Compliance: true,
   },
 
-  // Debug logging configuration
+  // Debug logging configuration - TEMPORARILY ENABLED FOR DEBUGGING
   logging: {
-    enabled: envConfig.isDevelopment, // Only log in development (not DATABASE_URL_KOVEO)
-    level: envConfig.isDevelopment ? 'DEBUG' : 'ERROR',
+    enabled: true, // TEMPORARILY ENABLED to debug production 500 errors
+    level: 'DEBUG', // TEMPORARILY SET to DEBUG for error diagnosis
     categories: {
       auth: true,
       api: true,

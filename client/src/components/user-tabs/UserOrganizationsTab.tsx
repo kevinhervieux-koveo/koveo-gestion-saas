@@ -41,7 +41,7 @@ export function UserOrganizationsTab({
       onSelectionChange?.([]);
       initializedRef.current = null;
     }
-  }, [user, onSelectionChange]);
+  }, [user?.id]); // Only depend on user ID to avoid infinite loops
 
   const handleOrganizationToggle = (organizationId: string) => {
     setSelectedOrganizations(prev => {
@@ -106,11 +106,6 @@ export function UserOrganizationsTab({
           )}
         </div>
         
-        <div className="flex justify-end pt-4">
-          <Button onClick={handleSave} disabled={isLoading} data-testid="save-organizations">
-            {isLoading ? 'Saving...' : 'Save Organization Assignments'}
-          </Button>
-        </div>
       </CardContent>
     </Card>
   );

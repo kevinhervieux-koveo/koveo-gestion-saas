@@ -1,0 +1,87 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE INNER] Rendering with props: Object
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Initializing with: Object
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+withHierarchicalSelection-BaGnOVoX.js:1 🏢 [withHierarchicalSelection] Fetching buildings...
+withHierarchicalSelection-BaGnOVoX.js:1 🌐 [withHierarchicalSelection] Requesting buildings: /api/organizations/e9bb7862-4ba5-4822-848f-f3692e826e73/buildings
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Initializing with: Object
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+withHierarchicalSelection-BaGnOVoX.js:1 📊 [withHierarchicalSelection] Received 5 buildings from API
+withHierarchicalSelection-BaGnOVoX.js:1 ✅ [withHierarchicalSelection] Returning all 5 buildings (non-residence page)
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE INNER] Rendering with props: Object
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Initializing with: Object
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CduJzsAk.js:48 📁 [PROJECTS UI] Projects table collapsible toggled: true
+index-CduJzsAk.js:48 📁 [PROJECTS STATE] Projects table section toggled Object
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Initializing with: Object
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CduJzsAk.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: Array(0)
+index-CduJzsAk.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 0
+index-CduJzsAk.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Raw response from backend: Object
+index-CduJzsAk.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Response structure: Array(2)
+index-CduJzsAk.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects found in data property: 4
+index-CduJzsAk.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: Array(4)
+index-CduJzsAk.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 4
+index-CduJzsAk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: Array(4)
+index-CduJzsAk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+index-CduJzsAk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: Array(4)
+index-CduJzsAk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+index-CduJzsAk.js:48 📁 [PROJECTS ACTION] handleViewProject called: Object
+index-CduJzsAk.js:48 📁 [PROJECTS STATE] Project workflow modal opened
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Initializing with: Object
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+useProjectWorkflow-B6KZ9AN_.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: 400e859d-1d21-49c3-a6c9-34d7175739b0
+useProjectWorkflow-B6KZ9AN_.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/400e859d-1d21-49c3-a6c9-34d7175739b0/workflow
+useProjectWorkflow-B6KZ9AN_.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-B6KZ9AN_.js:1 🔍 [WORKFLOW HOOK] Success response: Object
+useProjectWorkflow-B6KZ9AN_.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: Object
+ProjectWorkflowModal-BZkaHHLe.js:1 🔍 [MODAL] renderTabContent: Object
+ProjectWorkflowModal-BZkaHHLe.js:1 🔍 [MODAL] No content because: Object
+ProjectWorkflowModal-BZkaHHLe.js:1 🔍 [MODAL] renderTabContent: Object
+index-CduJzsAk.js:48 📁 [PROJECTS MODAL] Project workflow visibility changed: Object
+index-CduJzsAk.js:48 📁 [PROJECTS STATE] Project workflow visibility changed Object
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Initializing with: Object
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CduJzsAk.js:48 📁 [PROJECTS ACTION] handleViewProject called: Object
+index-CduJzsAk.js:48 📁 [PROJECTS STATE] Project workflow modal opened
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Initializing with: Object
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+useProjectWorkflow-B6KZ9AN_.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-B6KZ9AN_.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-B6KZ9AN_.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-B6KZ9AN_.js:1 🔍 [WORKFLOW HOOK] Success response: Object
+useProjectWorkflow-B6KZ9AN_.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: Object
+ProjectWorkflowModal-BZkaHHLe.js:1 🔍 [MODAL] renderTabContent: Object
+ProjectWorkflowModal-BZkaHHLe.js:1 🔍 [MODAL] No content because: Object
+ProjectWorkflowModal-BZkaHHLe.js:1 🔍 [MODAL] renderTabContent: Object
+ProjectWorkflowModal-BZkaHHLe.js:1 🔍 [MODAL] renderTabContent: Object
+/api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/advance-status:1  Failed to load resource: the server responded with a status of 400 (Bad Request)
+hook.js:608 Failed to advance project status: Error: 400: {"error":"Validation failed"}
+    at k0 (index-CZojiahj.js:240:6803)
+    at async sR (index-CZojiahj.js:240:7065)
+    at async Object.mutationFn (useProjectWorkflow-B6KZ9AN_.js:1:1108)
+overrideMethod @ hook.js:608
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Initializing with: Object
+index-CduJzsAk.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CduJzsAk.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: Array(4)
+index-CduJzsAk.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 4
+ProjectWorkflowModal-BZkaHHLe.js:1 🔍 [MODAL] renderTabContent: Object
+ProjectWorkflowModal-BZkaHHLe.js:1 🔍 [MODAL] renderTabContent: Object
+hook.js:608 ReferenceError: useReopenWorkflowStep is not defined
+    at Xs (SubmissionTab-CGb7B2kt.js:6:69848)
+    at Object.react_stack_bottom_frame (index-CZojiahj.js:229:12448)
+    at oc (index-CZojiahj.js:120:804)
+    at kc (index-CZojiahj.js:141:5839)
+    at Pc (index-CZojiahj.js:150:9693)
+    at q (index-CZojiahj.js:45:108)
+    at Kh (index-CZojiahj.js:163:29810)
+    at Jh (index-CZojiahj.js:163:28479)
+    at Wc (index-CZojiahj.js:163:28312)
+    at Ih (index-CZojiahj.js:163:24807)
+
+The above error occurred in the <Xs> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, gx.
+
+overrideMethod @ hook.js:608

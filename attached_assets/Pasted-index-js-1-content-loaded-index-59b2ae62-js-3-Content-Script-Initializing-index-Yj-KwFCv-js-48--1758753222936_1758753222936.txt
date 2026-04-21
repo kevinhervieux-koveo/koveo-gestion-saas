@@ -1,0 +1,121 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+index-Yj-KwFCv.js:48 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-Yj-KwFCv.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-Yj-KwFCv.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+withHierarchicalSelection-BkqKryov.js:1 🏢 [withHierarchicalSelection] Fetching buildings...
+withHierarchicalSelection-BkqKryov.js:1 🌐 [withHierarchicalSelection] Requesting buildings: /api/organizations/e9bb7862-4ba5-4822-848f-f3692e826e73/buildings
+index-Yj-KwFCv.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-Yj-KwFCv.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+withHierarchicalSelection-BkqKryov.js:1 📊 [withHierarchicalSelection] Received 5 buildings from API
+withHierarchicalSelection-BkqKryov.js:1 ✅ [withHierarchicalSelection] Returning all 5 buildings (non-residence page)
+index-Yj-KwFCv.js:48 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-Yj-KwFCv.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-Yj-KwFCv.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-Yj-KwFCv.js:48 📁 [PROJECTS UI] Projects table collapsible toggled: true
+index-Yj-KwFCv.js:48 📁 [PROJECTS STATE] Projects table section toggled {expanded: true}
+index-Yj-KwFCv.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-Yj-KwFCv.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-Yj-KwFCv.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: []
+index-Yj-KwFCv.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 0
+index-Yj-KwFCv.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Raw response from backend: {success: true, data: Array(2)}
+index-Yj-KwFCv.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Response structure: (2) ['success', 'data']
+index-Yj-KwFCv.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects found in data property: 2
+index-Yj-KwFCv.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: (2) [{…}, {…}]
+index-Yj-KwFCv.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 2
+index-Yj-KwFCv.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (2) [{…}, {…}]
+index-Yj-KwFCv.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 2
+index-Yj-KwFCv.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (2) [{…}, {…}]
+index-Yj-KwFCv.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 2
+index-DbPhBUhG.js:185 [Violation] 'setTimeout' handler took 86ms
+index-Yj-KwFCv.js:48 📁 [PROJECTS ACTION] handleViewProject called: {projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470', projectTitle: 'window changes'}
+index-Yj-KwFCv.js:48 📁 [PROJECTS STATE] Project workflow modal opened
+index-Yj-KwFCv.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-Yj-KwFCv.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+useProjectWorkflow-MmKfSDA5.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-MmKfSDA5.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-MmKfSDA5.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-MmKfSDA5.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-MmKfSDA5.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+ProjectWorkflowModal-DiNTfFuB.js:1 🔍 [MODAL] renderTabContent: {activeTab: '', hasWorkflowState: true, workflowData: {…}}
+ProjectWorkflowModal-DiNTfFuB.js:1 🔍 [MODAL] No content because: {hasWorkflowState: true, activeTab: ''}
+ProjectWorkflowModal-DiNTfFuB.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-MmKfSDA5.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-MmKfSDA5.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-MmKfSDA5.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-MmKfSDA5.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-MmKfSDA5.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-MmKfSDA5.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+index-Yj-KwFCv.js:48 📁 [PROJECTS SUCCESS] Project workflow updated: {projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470', projectTitle: 'window changes'}
+index-Yj-KwFCv.js:48 📁 [PROJECTS STATE] Project workflow modal updated with latest project data
+index-Yj-KwFCv.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-Yj-KwFCv.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-Yj-KwFCv.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (2) [{…}, {…}]
+index-Yj-KwFCv.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 2
+ProjectWorkflowModal-DiNTfFuB.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-MmKfSDA5.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-MmKfSDA5.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-MmKfSDA5.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-MmKfSDA5.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-MmKfSDA5.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-MmKfSDA5.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-MmKfSDA5.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-MmKfSDA5.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-MmKfSDA5.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+ProjectWorkflowModal-DiNTfFuB.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+index-Yj-KwFCv.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-Yj-KwFCv.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-Yj-KwFCv.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (2) [{…}, {…}]
+index-Yj-KwFCv.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 2
+ProjectWorkflowModal-DiNTfFuB.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-MmKfSDA5.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-MmKfSDA5.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-MmKfSDA5.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-MmKfSDA5.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-MmKfSDA5.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-MmKfSDA5.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+index-Yj-KwFCv.js:48 📁 [PROJECTS SUCCESS] Project workflow updated: {projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470', projectTitle: 'window changes'}
+index-Yj-KwFCv.js:48 📁 [PROJECTS STATE] Project workflow modal updated with latest project data
+index-Yj-KwFCv.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-Yj-KwFCv.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-Yj-KwFCv.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (2) [{…}, {…}]
+index-Yj-KwFCv.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 2
+ProjectWorkflowModal-DiNTfFuB.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-MmKfSDA5.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-MmKfSDA5.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-MmKfSDA5.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-MmKfSDA5.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-MmKfSDA5.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-MmKfSDA5.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-MmKfSDA5.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-MmKfSDA5.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-MmKfSDA5.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+ProjectWorkflowModal-DiNTfFuB.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-MmKfSDA5.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-MmKfSDA5.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-MmKfSDA5.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-MmKfSDA5.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+useProjectWorkflow-MmKfSDA5.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: d930f90d-b649-4317-b4f6-e9cf5ea89470
+useProjectWorkflow-MmKfSDA5.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/d930f90d-b649-4317-b4f6-e9cf5ea89470/workflow
+index-Yj-KwFCv.js:48 📁 [PROJECTS SUCCESS] Project workflow updated: {projectId: 'd930f90d-b649-4317-b4f6-e9cf5ea89470', projectTitle: 'window changes'}
+index-Yj-KwFCv.js:48 📁 [PROJECTS STATE] Project workflow modal updated with latest project data
+index-Yj-KwFCv.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-Yj-KwFCv.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-Yj-KwFCv.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (2) [{…}, {…}]
+index-Yj-KwFCv.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 2
+ProjectWorkflowModal-DiNTfFuB.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+index-Yj-KwFCv.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-Yj-KwFCv.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-Yj-KwFCv.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (2) [{…}, {…}]
+index-Yj-KwFCv.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 2
+ProjectWorkflowModal-DiNTfFuB.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}
+useProjectWorkflow-MmKfSDA5.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-MmKfSDA5.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-MmKfSDA5.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-MmKfSDA5.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-MmKfSDA5.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-MmKfSDA5.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+useProjectWorkflow-MmKfSDA5.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-MmKfSDA5.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-MmKfSDA5.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'planned', nextStatus: 'submission', canAdvance: true, skipFlags: {…}, …}
+ProjectWorkflowModal-DiNTfFuB.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'planned', hasWorkflowState: true, workflowData: {…}}

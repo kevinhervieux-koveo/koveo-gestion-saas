@@ -1,0 +1,539 @@
+index.js:1 content loaded
+index.59b2ae62.js:3 Content Script: Initializing
+nr-ext-dom-detector.js:1 [Violation] Avoid using document.write(). https://developers.google.com/web/updates/2016/08/removing-document-write
+(anonymous) @ nr-ext-dom-detector.js:1
+Promise.then
+n @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+index-CNyE2Ftn.js:48 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-CNyE2Ftn.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-CNyE2Ftn.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+withHierarchicalSelection-DcRNtU98.js:1 🏢 [withHierarchicalSelection] Fetching buildings...
+withHierarchicalSelection-DcRNtU98.js:1 🌐 [withHierarchicalSelection] Requesting buildings: /api/organizations/e9bb7862-4ba5-4822-848f-f3692e826e73/buildings
+index-CNyE2Ftn.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: false, backButtonLabel: undefined}
+index-CNyE2Ftn.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+withHierarchicalSelection-DcRNtU98.js:1 📊 [withHierarchicalSelection] Received 5 buildings from API
+withHierarchicalSelection-DcRNtU98.js:1 ✅ [withHierarchicalSelection] Returning all 5 buildings (non-residence page)
+index-CNyE2Ftn.js:48 📁 [PROJECTS PAGE INNER] Rendering with props: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined}
+index-CNyE2Ftn.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CNyE2Ftn.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CNyE2Ftn.js:48 📁 [PROJECTS UI] Projects table collapsible toggled: true
+index-CNyE2Ftn.js:48 📁 [PROJECTS STATE] Projects table section toggled {expanded: true}
+index-CNyE2Ftn.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CNyE2Ftn.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CNyE2Ftn.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: []
+index-CNyE2Ftn.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 0
+index-CNyE2Ftn.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Raw response from backend: {success: true, data: Array(3)}
+index-CNyE2Ftn.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Response structure: (2) ['success', 'data']
+index-CNyE2Ftn.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects found in data property: 3
+index-CNyE2Ftn.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-CNyE2Ftn.js:48 🔍 [PROJECT TABLE VIEW DEBUG] Projects count: 3
+index-CNyE2Ftn.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-CNyE2Ftn.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+index-CNyE2Ftn.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-CNyE2Ftn.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+index-BZgNgirP.js:185 [Violation] 'setTimeout' handler took 89ms
+index-CNyE2Ftn.js:48 📁 [PROJECTS ACTION] handleViewProject called: {projectId: '400e859d-1d21-49c3-a6c9-34d7175739b0', projectTitle: 'Porte extérieurs'}
+index-CNyE2Ftn.js:48 📁 [PROJECTS STATE] Project workflow modal opened
+index-CNyE2Ftn.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CNyE2Ftn.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+useProjectWorkflow-arD73LIL.js:1 🔍 [WORKFLOW HOOK] Fetching workflow state for project: 400e859d-1d21-49c3-a6c9-34d7175739b0
+useProjectWorkflow-arD73LIL.js:1 🔍 [WORKFLOW HOOK] Making request to: /api/maintenance/projects/400e859d-1d21-49c3-a6c9-34d7175739b0/workflow
+useProjectWorkflow-arD73LIL.js:1 🔍 [WORKFLOW HOOK] Response status: 200 true
+useProjectWorkflow-arD73LIL.js:1 🔍 [WORKFLOW HOOK] Success response: {success: true, data: {…}}
+useProjectWorkflow-arD73LIL.js:1 🔍 [WORKFLOW HOOK] Extracting data from success wrapper: {project: {…}, currentStatus: 'submission', nextStatus: 'pre_work', canAdvance: true, skipFlags: {…}, …}
+ProjectWorkflowModal-DwdCILxG.js:1 🔍 [MODAL] renderTabContent: {activeTab: '', hasWorkflowState: true, workflowData: {…}}
+ProjectWorkflowModal-DwdCILxG.js:1 🔍 [MODAL] No content because: {hasWorkflowState: true, activeTab: ''}
+ProjectWorkflowModal-DwdCILxG.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'submission', hasWorkflowState: true, workflowData: {…}}
+vendor-ui-B9Lwe8V-.js:58 Warning: Missing `Description` or `aria-describedby={undefined}` for {DialogContent}.
+overrideMethod @ hook.js:608
+(anonymous) @ vendor-ui-B9Lwe8V-.js:58
+react_stack_bottom_frame @ index-BZgNgirP.js:229
+q @ index-BZgNgirP.js:45
+sl @ index-BZgNgirP.js:150
+Ah @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+En @ index-BZgNgirP.js:163
+Bh @ index-BZgNgirP.js:163
+ig @ index-BZgNgirP.js:163
+dl @ index-BZgNgirP.js:163
+ag @ index-BZgNgirP.js:163
+ed @ index-BZgNgirP.js:163
+Xh @ index-BZgNgirP.js:163
+Ih @ index-BZgNgirP.js:163
+mg @ index-BZgNgirP.js:185
+ml @ index-BZgNgirP.js:185
+ad @ index-BZgNgirP.js:185
+(anonymous) @ index-BZgNgirP.js:185
+<jd>
+Je.jsx @ vendor-ui-B9Lwe8V-.js:14
+(anonymous) @ vendor-ui-B9Lwe8V-.js:54
+react_stack_bottom_frame @ index-BZgNgirP.js:229
+oc @ index-BZgNgirP.js:120
+sh @ index-BZgNgirP.js:141
+Pc @ index-BZgNgirP.js:150
+q @ index-BZgNgirP.js:45
+Kh @ index-BZgNgirP.js:163
+Jh @ index-BZgNgirP.js:163
+Wc @ index-BZgNgirP.js:163
+Ih @ index-BZgNgirP.js:163
+mg @ index-BZgNgirP.js:185
+ml @ index-BZgNgirP.js:185
+ad @ index-BZgNgirP.js:185
+(anonymous) @ index-BZgNgirP.js:185
+<ForwardRef>
+Je.jsx @ vendor-ui-B9Lwe8V-.js:14
+(anonymous) @ vendor-ui-B9Lwe8V-.js:54
+react_stack_bottom_frame @ index-BZgNgirP.js:229
+oc @ index-BZgNgirP.js:120
+sh @ index-BZgNgirP.js:141
+Pc @ index-BZgNgirP.js:150
+q @ index-BZgNgirP.js:45
+Kh @ index-BZgNgirP.js:163
+Jh @ index-BZgNgirP.js:163
+Wc @ index-BZgNgirP.js:163
+Ih @ index-BZgNgirP.js:163
+mg @ index-BZgNgirP.js:185
+ml @ index-BZgNgirP.js:185
+ad @ index-BZgNgirP.js:185
+(anonymous) @ index-BZgNgirP.js:185
+<ForwardRef>
+Je.jsx @ vendor-ui-B9Lwe8V-.js:14
+DialogContent @ vendor-ui-B9Lwe8V-.js:54
+react_stack_bottom_frame @ index-BZgNgirP.js:229
+oc @ index-BZgNgirP.js:120
+sh @ index-BZgNgirP.js:141
+Pc @ index-BZgNgirP.js:150
+q @ index-BZgNgirP.js:45
+Kh @ index-BZgNgirP.js:163
+Jh @ index-BZgNgirP.js:163
+Wc @ index-BZgNgirP.js:163
+Ih @ index-BZgNgirP.js:163
+mg @ index-BZgNgirP.js:185
+ml @ index-BZgNgirP.js:185
+ad @ index-BZgNgirP.js:185
+(anonymous) @ index-BZgNgirP.js:185
+<DialogContent>
+du.jsxDEV @ index-BZgNgirP.js:15
+DialogContent @ dialog-B88vhILX.js:1
+react_stack_bottom_frame @ index-BZgNgirP.js:229
+oc @ index-BZgNgirP.js:120
+sh @ index-BZgNgirP.js:141
+Pc @ index-BZgNgirP.js:150
+q @ index-BZgNgirP.js:45
+Kh @ index-BZgNgirP.js:163
+Jh @ index-BZgNgirP.js:163
+Wc @ index-BZgNgirP.js:163
+Ih @ index-BZgNgirP.js:163
+mg @ index-BZgNgirP.js:185
+ml @ index-BZgNgirP.js:185
+ad @ index-BZgNgirP.js:185
+(anonymous) @ index-BZgNgirP.js:185
+<DialogContent>
+du.jsxDEV @ index-BZgNgirP.js:15
+Qn @ SubmissionTab-2VDWX8v2.js:1
+react_stack_bottom_frame @ index-BZgNgirP.js:229
+oc @ index-BZgNgirP.js:120
+kc @ index-BZgNgirP.js:141
+Pc @ index-BZgNgirP.js:150
+q @ index-BZgNgirP.js:45
+Kh @ index-BZgNgirP.js:163
+WS @ index-BZgNgirP.js:163
+KS @ index-BZgNgirP.js:163
+Ih @ index-BZgNgirP.js:163
+fg @ index-BZgNgirP.js:185
+d @ index-BZgNgirP.js:23
+<...>
+du.jsxDEV @ index-BZgNgirP.js:15
+Um @ index-CNyE2Ftn.js:48
+react_stack_bottom_frame @ index-BZgNgirP.js:229
+oc @ index-BZgNgirP.js:120
+kc @ index-BZgNgirP.js:141
+Pc @ index-BZgNgirP.js:150
+q @ index-BZgNgirP.js:45
+Kh @ index-BZgNgirP.js:163
+Jh @ index-BZgNgirP.js:163
+Wc @ index-BZgNgirP.js:163
+Ih @ index-BZgNgirP.js:163
+mg @ index-BZgNgirP.js:185
+ml @ index-BZgNgirP.js:185
+ad @ index-BZgNgirP.js:185
+(anonymous) @ index-BZgNgirP.js:185
+<Um>
+du.jsxDEV @ index-BZgNgirP.js:15
+d @ ProjectWorkflowModal-DwdCILxG.js:1
+yo @ ProjectWorkflowModal-DwdCILxG.js:1
+react_stack_bottom_frame @ index-BZgNgirP.js:229
+oc @ index-BZgNgirP.js:120
+kc @ index-BZgNgirP.js:141
+Pc @ index-BZgNgirP.js:150
+q @ index-BZgNgirP.js:45
+Kh @ index-BZgNgirP.js:163
+Jh @ index-BZgNgirP.js:163
+Wc @ index-BZgNgirP.js:163
+Ih @ index-BZgNgirP.js:163
+mg @ index-BZgNgirP.js:185
+ml @ index-BZgNgirP.js:185
+ad @ index-BZgNgirP.js:185
+(anonymous) @ index-BZgNgirP.js:185
+<...>
+du.jsxDEV @ index-BZgNgirP.js:15
+El @ index-CNyE2Ftn.js:48
+react_stack_bottom_frame @ index-BZgNgirP.js:229
+oc @ index-BZgNgirP.js:120
+kc @ index-BZgNgirP.js:141
+Pc @ index-BZgNgirP.js:150
+q @ index-BZgNgirP.js:45
+Kh @ index-BZgNgirP.js:163
+Jh @ index-BZgNgirP.js:163
+Wc @ index-BZgNgirP.js:163
+Ih @ index-BZgNgirP.js:163
+mg @ index-BZgNgirP.js:185
+ml @ index-BZgNgirP.js:185
+ad @ index-BZgNgirP.js:185
+(anonymous) @ index-BZgNgirP.js:185
+<El>
+du.jsxDEV @ index-BZgNgirP.js:15
+Pl @ index-CNyE2Ftn.js:48
+react_stack_bottom_frame @ index-BZgNgirP.js:229
+oc @ index-BZgNgirP.js:120
+kc @ index-BZgNgirP.js:141
+Pc @ index-BZgNgirP.js:150
+q @ index-BZgNgirP.js:45
+Kh @ index-BZgNgirP.js:163
+Jh @ index-BZgNgirP.js:163
+Wc @ index-BZgNgirP.js:163
+Ih @ index-BZgNgirP.js:163
+mg @ index-BZgNgirP.js:185
+ml @ index-BZgNgirP.js:185
+ad @ index-BZgNgirP.js:185
+(anonymous) @ index-BZgNgirP.js:185
+<Pl>
+du.jsxDEV @ index-BZgNgirP.js:15
+Vl @ index-CNyE2Ftn.js:48
+react_stack_bottom_frame @ index-BZgNgirP.js:229
+oc @ index-BZgNgirP.js:120
+kc @ index-BZgNgirP.js:141
+Pc @ index-BZgNgirP.js:150
+q @ index-BZgNgirP.js:45
+Kh @ index-BZgNgirP.js:163
+WS @ index-BZgNgirP.js:163
+KS @ index-BZgNgirP.js:163
+Ih @ index-BZgNgirP.js:163
+fg @ index-BZgNgirP.js:185
+d @ index-BZgNgirP.js:23
+<Vl>
+du.jsxDEV @ index-BZgNgirP.js:15
+(anonymous) @ withHierarchicalSelection-DcRNtU98.js:1
+react_stack_bottom_frame @ index-BZgNgirP.js:229
+oc @ index-BZgNgirP.js:120
+kc @ index-BZgNgirP.js:141
+Pc @ index-BZgNgirP.js:150
+q @ index-BZgNgirP.js:45
+Kh @ index-BZgNgirP.js:163
+WS @ index-BZgNgirP.js:163
+KS @ index-BZgNgirP.js:163
+Ih @ index-BZgNgirP.js:163
+fg @ index-BZgNgirP.js:185
+d @ index-BZgNgirP.js:23
+<...>
+du.jsxDEV @ index-BZgNgirP.js:15
+children @ index-BZgNgirP.js:384
+Pb @ index-BZgNgirP.js:240
+P @ index-BZgNgirP.js:240
+react_stack_bottom_frame @ index-BZgNgirP.js:229
+oc @ index-BZgNgirP.js:120
+kc @ index-BZgNgirP.js:141
+Pc @ index-BZgNgirP.js:150
+q @ index-BZgNgirP.js:45
+Kh @ index-BZgNgirP.js:163
+WS @ index-BZgNgirP.js:163
+KS @ index-BZgNgirP.js:163
+Ih @ index-BZgNgirP.js:163
+fg @ index-BZgNgirP.js:185
+d @ index-BZgNgirP.js:23
+<P>
+du.jsxDEV @ index-BZgNgirP.js:15
+eR @ index-BZgNgirP.js:384
+react_stack_bottom_frame @ index-BZgNgirP.js:229
+oc @ index-BZgNgirP.js:120
+kc @ index-BZgNgirP.js:141
+Pc @ index-BZgNgirP.js:150
+q @ index-BZgNgirP.js:45
+Kh @ index-BZgNgirP.js:163
+Jh @ index-BZgNgirP.js:163
+Wc @ index-BZgNgirP.js:163
+Ih @ index-BZgNgirP.js:163
+mg @ index-BZgNgirP.js:185
+ml @ index-BZgNgirP.js:185
+ad @ index-BZgNgirP.js:185
+(anonymous) @ index-BZgNgirP.js:185
+<eR>
+du.jsxDEV @ index-BZgNgirP.js:15
+tR @ index-BZgNgirP.js:384
+react_stack_bottom_frame @ index-BZgNgirP.js:229
+oc @ index-BZgNgirP.js:120
+kc @ index-BZgNgirP.js:141
+Pc @ index-BZgNgirP.js:150
+q @ index-BZgNgirP.js:45
+Kh @ index-BZgNgirP.js:163
+Jh @ index-BZgNgirP.js:163
+Wc @ index-BZgNgirP.js:163
+Ih @ index-BZgNgirP.js:163
+fg @ index-BZgNgirP.js:185
+d @ index-BZgNgirP.js:23
+<tR>
+du.jsxDEV @ index-BZgNgirP.js:15
+(anonymous) @ index-BZgNgirP.js:384
+SubmissionTab-2VDWX8v2.js:1 Creating new submission: {vendorName: 'vendeur 1', availableDate: '2026-01-14', price: '15500', description: 'blabla', preferred: true, …}
+index-BZgNgirP.js:240  POST https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/maintenance/projects/400e859d-1d21-49c3-a6c9-34d7175739b0/submission-vendors 500 (Internal Server Error)
+sR @ index-BZgNgirP.js:240
+mutationFn @ useProjectWorkflow-arD73LIL.js:1
+fn @ vendor-query-D7rmUEQz.js:1
+y @ vendor-query-D7rmUEQz.js:1
+start @ vendor-query-D7rmUEQz.js:1
+execute @ vendor-query-D7rmUEQz.js:1
+await in execute
+mutate @ vendor-query-D7rmUEQz.js:1
+(anonymous) @ vendor-query-D7rmUEQz.js:1
+ye @ SubmissionTab-2VDWX8v2.js:1
+(anonymous) @ vendor-forms-BEKQdqQ3.js:1
+await in (anonymous)
+lr @ index-BZgNgirP.js:185
+q @ index-BZgNgirP.js:45
+yg @ index-BZgNgirP.js:185
+(anonymous) @ index-BZgNgirP.js:185
+Gm @ index-BZgNgirP.js:83
+rd @ index-BZgNgirP.js:185
+Ad @ index-BZgNgirP.js:194
+L1 @ index-BZgNgirP.js:194
+useProjectWorkflow-arD73LIL.js:1 Failed to create submission vendor: Error: 500: {"error":"Failed to create submission vendor","details":"Cannot read properties of undefined (reading '_zod')"}
+    at k0 (index-BZgNgirP.js:240:6803)
+    at async sR (index-BZgNgirP.js:240:7065)
+    at async Object.mutationFn (useProjectWorkflow-arD73LIL.js:1:5765)
+overrideMethod @ hook.js:608
+onError @ useProjectWorkflow-arD73LIL.js:1
+execute @ vendor-query-D7rmUEQz.js:1
+await in execute
+mutate @ vendor-query-D7rmUEQz.js:1
+(anonymous) @ vendor-query-D7rmUEQz.js:1
+ye @ SubmissionTab-2VDWX8v2.js:1
+(anonymous) @ vendor-forms-BEKQdqQ3.js:1
+await in (anonymous)
+lr @ index-BZgNgirP.js:185
+q @ index-BZgNgirP.js:45
+yg @ index-BZgNgirP.js:185
+(anonymous) @ index-BZgNgirP.js:185
+Gm @ index-BZgNgirP.js:83
+rd @ index-BZgNgirP.js:185
+Ad @ index-BZgNgirP.js:194
+L1 @ index-BZgNgirP.js:194
+SubmissionTab-2VDWX8v2.js:1 Failed to create submission: Error: 500: {"error":"Failed to create submission vendor","details":"Cannot read properties of undefined (reading '_zod')"}
+    at k0 (index-BZgNgirP.js:240:6803)
+    at async sR (index-BZgNgirP.js:240:7065)
+    at async Object.mutationFn (useProjectWorkflow-arD73LIL.js:1:5765)
+overrideMethod @ hook.js:608
+onError @ SubmissionTab-2VDWX8v2.js:1
+(anonymous) @ vendor-query-D7rmUEQz.js:1
+batch @ vendor-query-D7rmUEQz.js:1
+#a @ vendor-query-D7rmUEQz.js:1
+onMutationUpdate @ vendor-query-D7rmUEQz.js:1
+(anonymous) @ vendor-query-D7rmUEQz.js:1
+(anonymous) @ vendor-query-D7rmUEQz.js:1
+batch @ vendor-query-D7rmUEQz.js:1
+#i @ vendor-query-D7rmUEQz.js:1
+execute @ vendor-query-D7rmUEQz.js:1
+await in execute
+mutate @ vendor-query-D7rmUEQz.js:1
+(anonymous) @ vendor-query-D7rmUEQz.js:1
+ye @ SubmissionTab-2VDWX8v2.js:1
+(anonymous) @ vendor-forms-BEKQdqQ3.js:1
+await in (anonymous)
+lr @ index-BZgNgirP.js:185
+q @ index-BZgNgirP.js:45
+yg @ index-BZgNgirP.js:185
+(anonymous) @ index-BZgNgirP.js:185
+Gm @ index-BZgNgirP.js:83
+rd @ index-BZgNgirP.js:185
+Ad @ index-BZgNgirP.js:194
+L1 @ index-BZgNgirP.js:194
+index-CNyE2Ftn.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CNyE2Ftn.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CNyE2Ftn.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-CNyE2Ftn.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+ProjectWorkflowModal-DwdCILxG.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'submission', hasWorkflowState: true, workflowData: {…}}
+index-CNyE2Ftn.js:48 📁 [PROJECTS PAGE] Initializing with: {organizationId: 'e9bb7862-4ba5-4822-848f-f3692e826e73', buildingId: '15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24', residenceId: undefined, showBackButton: true, backButtonLabel: '54716 N Cedar Street Building 1'}
+index-CNyE2Ftn.js:48 📁 [PROJECTS PAGE] Building selected, rendering projects content for building: 15a4d43e-e5f2-47c1-9bb0-0e0b2984fc24
+index-CNyE2Ftn.js:32 🔍 [PROJECT TABLE DEBUG] Final projects array: (3) [{…}, {…}, {…}]
+index-CNyE2Ftn.js:32 🔍 [PROJECT TABLE DEBUG] Projects count: 3
+ProjectWorkflowModal-DwdCILxG.js:1 🔍 [MODAL] renderTabContent: {activeTab: 'submission', hasWorkflowState: true, workflowData: {…}}

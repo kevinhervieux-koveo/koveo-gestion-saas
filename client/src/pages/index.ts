@@ -19,7 +19,6 @@ export { default as AdminPillarsPage } from './admin/pillars';
 export { default as AdminQualityPage } from './admin/quality';
 export { default as AdminRoadmapPage } from './admin/roadmap';
 export { default as AdminSuggestionsPage } from './admin/suggestions';
-export { default as AdminSuggestionsWithFilterPage } from './admin/suggestions-with-filter';
 
 // Manager Pages
 export { default as ManagerBillsPage } from './manager/bills';

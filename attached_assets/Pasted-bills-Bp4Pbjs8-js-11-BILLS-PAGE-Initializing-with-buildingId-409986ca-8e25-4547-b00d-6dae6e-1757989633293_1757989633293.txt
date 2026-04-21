@@ -1,0 +1,53 @@
+bills-Bp4Pbjs8.js:11 🏠 [BILLS PAGE] Initializing with: {buildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', organizationId: '22134aad-736b-4481-a8bf-bea77b7a17d1'}
+bills-Bp4Pbjs8.js:11 📊 [BILLS PAGE] Fetching bills with URL: /api/bills?buildingId=409986ca-8e25-4547-b00d-6dae6e4ac26b&year=2025
+bills-Bp4Pbjs8.js:11 📊 [BILLS PAGE] Applied filters: {category: '', year: '2025', months: Array(0), paymentType: '', status: '', …}
+bills-Bp4Pbjs8.js:11 🔄 [BILLS PAGE] Filters changed: {category: '', year: '2025', months: Array(0), paymentType: '', status: '', …}
+bills-Bp4Pbjs8.js:11 🏗️ [BILLS PAGE] Building ID changed: 409986ca-8e25-4547-b00d-6dae6e4ac26b
+bills-Bp4Pbjs8.js:11 📋 [BILLS PAGE] Bills data updated: {count: 0, billTypes: Array(0)}
+bills-Bp4Pbjs8.js:11 ⏳ [BILLS PAGE] Loading bills...
+bills-Bp4Pbjs8.js:11 🏠 [BILLS PAGE] Initializing with: {buildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', organizationId: '22134aad-736b-4481-a8bf-bea77b7a17d1'}
+bills-Bp4Pbjs8.js:11 📋 [BILLS PAGE] Bills data updated: {count: 0, billTypes: Array(0)}
+bills-Bp4Pbjs8.js:11 🏠 [BILLS PAGE] Initializing with: {buildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', organizationId: '22134aad-736b-4481-a8bf-bea77b7a17d1'}
+bills-Bp4Pbjs8.js:11 📋 [BILLS PAGE] Bills data updated: {count: 0, billTypes: Array(0)}
+bills-Bp4Pbjs8.js:11 🔄 [BILLS PAGE] Auto-adjusting year from 2025 to null (current year has no bills)
+bills-Bp4Pbjs8.js:11 🏠 [BILLS PAGE] Initializing with: {buildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', organizationId: '22134aad-736b-4481-a8bf-bea77b7a17d1'}
+bills-Bp4Pbjs8.js:11 🏠 [BILLS PAGE] Initializing with: {buildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', organizationId: '22134aad-736b-4481-a8bf-bea77b7a17d1'}
+index-ZqluWW5z.js:25 TypeError: Cannot read properties of null (reading 'toString')
+    at bills-Bp4Pbjs8.js:11:20512
+    at Ot (index-ZqluWW5z.js:25:36435)
+    at ss (index-ZqluWW5z.js:25:37289)
+    at cl (index-ZqluWW5z.js:25:36475)
+    at Object.useState (index-ZqluWW5z.js:25:47917)
+    at o.useState (vendor-react-gH-7aFTg.js:9:7370)
+    at st (bills-Bp4Pbjs8.js:11:17394)
+    at ts (index-ZqluWW5z.js:25:34130)
+    at bs (index-ZqluWW5z.js:25:62024)
+    at ad (index-ZqluWW5z.js:25:72530)
+overrideMethod @ hook.js:608
+Hr @ index-ZqluWW5z.js:25
+Qr @ index-ZqluWW5z.js:25
+Yr.u.componentDidCatch.e.callback @ index-ZqluWW5z.js:25
+kc @ index-ZqluWW5z.js:25
+Zc @ index-ZqluWW5z.js:25
+ld @ index-ZqluWW5z.js:25
+dd @ index-ZqluWW5z.js:25
+It @ index-ZqluWW5z.js:25
+dd @ index-ZqluWW5z.js:25
+It @ index-ZqluWW5z.js:25
+dd @ index-ZqluWW5z.js:25
+It @ index-ZqluWW5z.js:25
+dd @ index-ZqluWW5z.js:25
+It @ index-ZqluWW5z.js:25
+dd @ index-ZqluWW5z.js:25
+It @ index-ZqluWW5z.js:25
+dd @ index-ZqluWW5z.js:25
+It @ index-ZqluWW5z.js:25
+dd @ index-ZqluWW5z.js:25
+Nd @ index-ZqluWW5z.js:25
+Ud @ index-ZqluWW5z.js:25
+Ed @ index-ZqluWW5z.js:25
+Md @ index-ZqluWW5z.js:25
+Gd @ index-ZqluWW5z.js:25
+Oa @ index-ZqluWW5z.js:10
+bills-Bp4Pbjs8.js:11 📊 [BILLS PAGE] Bills API response status: 200
+bills-Bp4Pbjs8.js:11 ✅ [BILLS PAGE] Bills data received: []

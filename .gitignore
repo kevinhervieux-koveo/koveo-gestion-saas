@@ -3,4 +3,52 @@ dist
 .DS_Store
 server/public
 vite.config.ts.*
-*.tar.gzuploads/
+*.tar.gz
+
+# Backup files and directories - CRITICAL SECURITY
+backups/
+*backup*/
+*.sql
+*.dump
+*.bak
+*_backup_*
+uploads_backup_*
+uploads/
+
+# Additional backup and sensitive file patterns
+*.backup
+backup-*
+*-backup
+*_quarantine_*
+quarantine*/
+*.pgsql
+*.psql
+*.db_backup
+*.backup.sql
+migration-backup-*
+*.tar.gz.backup
+*.log.backup
+
+# Database and credential files
+*.env.local
+*.env.backup
+.env.*
+config/database.js
+config/credentials.json
+database.config.js
+*.key
+*.pem
+*.p12
+*.crt
+
+# Temporary and cache files that might contain sensitive data
+tmp/
+temp/
+.cache/
+*.tmp
+*.temp
+core.*
+*.pid
+*.log
+.jest-cache/
+.jest-cache/

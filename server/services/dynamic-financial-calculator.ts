@@ -1,9 +1,12 @@
 import { db } from '../db';
 import { eq, and, gte, lte, sql } from 'drizzle-orm';
-import type { FinancialPeriodData, FinancialCacheEntry } from '@shared/schemas/financial-views';
+import type { FinancialPeriodData, FinancialCacheEntry, Bill, Residence } from '@shared/schema';
 import * as schema from '@shared/schema';
 
 const { bills, residences, buildings } = schema;
+
+// Type definition for monthly data points
+type MonthlyData = FinancialPeriodData['monthlyData'][0];
 
 /**
  * Dynamic Financial Calculator - Replaces the money_flow table with real-time calculations
@@ -113,12 +116,12 @@ export class DynamicFinancialCalculator {
    * @param endDateStr
    */
   private generateMonthlyDataPoints(
-    bills: unknown[],
-    residences: unknown[],
+    bills: Bill[],
+    residences: Residence[],
     startDateStr: string,
     endDateStr: string
-  ) {
-    const monthlyData: unknown[] = [];
+  ): MonthlyData[] {
+    const monthlyData: MonthlyData[] = [];
     const startDate = new Date(startDateStr);
     const endDate = new Date(endDateStr);
 
@@ -178,7 +181,7 @@ export class DynamicFinancialCalculator {
    * @param year
    * @param month
    */
-  private calculateMonthlyBillAmount(bill: any, year: number, month: number): number {
+  private calculateMonthlyBillAmount(bill: Bill, year: number, month: number): number {
     const billStartDate = new Date(bill.startDate);
     const billEndDate = bill.endDate ? new Date(bill.endDate) : null;
     const targetDate = new Date(year, month - 1, 1);
@@ -258,7 +261,7 @@ export class DynamicFinancialCalculator {
    * Calculate summary statistics from monthly data.
    * @param monthlyData
    */
-  private calculateSummary(monthlyData: unknown[]) {
+  private calculateSummary(monthlyData: MonthlyData[]): FinancialPeriodData['summary'] {
     const totalIncome = monthlyData.reduce((sum, month) => sum + month.totalIncome, 0);
     const totalExpenses = monthlyData.reduce((sum, month) => sum + month.totalExpenses, 0);
     const monthCount = monthlyData.length || 1;
@@ -284,8 +287,8 @@ export class DynamicFinancialCalculator {
     params?: Record<string, any>
   ): string {
     const baseKey = `financial_${startDate}_${endDate}`;
-    if (params && Object.keys(_params).length > 0) {
-      const paramStr = Object.entries(_params)
+    if (params && Object.keys(params).length > 0) {
+      const paramStr = Object.entries(params)
         .sort(([a], [b]) => a.localeCompare(b))
         .map(([k, v]) => `${k}=${v}`)
         .join('&');
@@ -331,8 +334,6 @@ export class DynamicFinancialCalculator {
    * @param cacheKey
    * @param startDate
    * @param endDate
-   * @param data
-   * @param data
    * @param _data
    */
   private async cacheFinancialData(
@@ -348,10 +349,10 @@ export class DynamicFinancialCalculator {
     // Insert or update cache entry
     await db.execute(sql`
       INSERT INTO financial_cache (building_id, cache_key, cache_data, start_date, end_date, expires_at)
-      VALUES (${buildingId}, ${cacheKey}, ${JSON.stringify(data)}, ${startDate}, ${endDate}, ${expiresAt.toISOString()})
+      VALUES (${buildingId}, ${cacheKey}, ${JSON.stringify(_data)}, ${startDate}, ${endDate}, ${expiresAt.toISOString()})
       ON CONFLICT (building_id, cache_key, start_date, end_date)
       DO UPDATE SET 
-        cache_data = ${JSON.stringify(data)},
+        cache_data = ${JSON.stringify(_data)},
         expires_at = ${expiresAt.toISOString()},
         created_at = NOW()
     `);
@@ -386,8 +387,7 @@ export class DynamicFinancialCalculator {
    * @param reason
    */
   async invalidateCache(buildingId: string, reason?: string): Promise<void> {
-      `🗑️ Invalidating financial cache for building ${buildingId}${reason ? `: ${reason}` : ''}`
-    );
+    // console.log(`🗑️ Invalidating financial cache for building ${buildingId}${reason ? `: ${reason}` : ''}`);
 
     await db.execute(sql`
       DELETE FROM financial_cache WHERE building_id = ${buildingId}

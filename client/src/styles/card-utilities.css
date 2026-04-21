@@ -191,6 +191,71 @@
   }
 }
 
+/* Financial value and numeric display utilities */
+.financial-value {
+  @apply truncate font-mono tabular-nums;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.financial-value-large {
+  @apply financial-value text-2xl font-bold;
+}
+
+.financial-value-medium {
+  @apply financial-value text-lg font-semibold;
+}
+
+.financial-value-small {
+  @apply financial-value text-sm;
+}
+
+/* Card content overflow protection */
+.card-content-safe {
+  @apply min-w-0 overflow-hidden;
+}
+
+.card-content-safe > * {
+  @apply truncate;
+  max-width: 100%;
+}
+
+/* Number display with responsive sizing */
+.number-display {
+  @apply truncate font-mono tabular-nums;
+  font-size: clamp(0.875rem, 4vw, 1.5rem);
+  line-height: 1.2;
+}
+
+.number-display-large {
+  @apply truncate font-mono tabular-nums;
+  font-size: clamp(1rem, 5vw, 2rem);
+  line-height: 1.1;
+}
+
+/* Button overflow protection */
+.card-button-safe {
+  @apply truncate;
+  max-width: 100%;
+  min-width: 0;
+}
+
+/* Text content overflow protection */
+.card-text-safe {
+  @apply break-words;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
+}
+
+/* Specific utility for card titles to prevent overflow */
+.card-title-safe {
+  @apply card-text-safe line-clamp-2;
+  max-width: 100%;
+}
+
 /* Print styles */
 @media print {
   .card-container {
@@ -201,5 +266,9 @@
 
   .card-action-button {
     @apply hidden;
+  }
+
+  .financial-value, .number-display, .number-display-large {
+    font-size: 12pt !important;
   }
 }

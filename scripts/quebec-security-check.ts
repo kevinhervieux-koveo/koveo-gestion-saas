@@ -7,7 +7,6 @@
  * for the Koveo Gestion property management platform.
  */
 
-import { execSync } from 'child_process';
 import { existsSync, readFileSync, readdirSync, lstatSync } from 'fs';
 import { join } from 'path';
 

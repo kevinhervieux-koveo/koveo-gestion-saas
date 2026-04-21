@@ -12,7 +12,9 @@ interface UserBuildingsTabProps {
   organizations: Organization[];
   currentUser: User | null;
   currentUserBuildingIds: string[];
+  currentUserOrganizationIds: string[];
   selectedOrganizationIds: string[];
+  selectedBuildingIds: string[]; // Pass selected IDs directly from parent
   onSave: (buildingIds: string[]) => void;
   onSelectionChange?: (buildingIds: string[]) => void;
   isLoading?: boolean;
@@ -24,45 +26,49 @@ export function UserBuildingsTab({
   organizations,
   currentUser,
   currentUserBuildingIds,
+  currentUserOrganizationIds,
   selectedOrganizationIds,
+  selectedBuildingIds, // Accept selected IDs from parent
   onSave, 
   onSelectionChange,
   isLoading = false 
 }: UserBuildingsTabProps) {
-  const [selectedBuildings, setSelectedBuildings] = useState<string[]>([]);
-  const initializedRef = useRef<string | null>(null);
+  // Remove internal state - component is now fully controlled by parent
+  // const [selectedBuildings, setSelectedBuildings] = useState<string[]>([]);
+  // const initializedRef = useRef<string | null>(null);
 
-  useEffect(() => {
-    if (user) {
-      // Only initialize if we haven't initialized for this user yet
-      if (initializedRef.current !== user.id) {
-        const buildingIds = user.buildings?.map((building: any) => building.id) || [];
-        setSelectedBuildings(buildingIds);
-        onSelectionChange?.(buildingIds);
-        initializedRef.current = user.id;
-      }
-    } else {
-      // Reset when dialog is closed (no user)
-      setSelectedBuildings([]);
-      onSelectionChange?.([]);
-      initializedRef.current = null;
-    }
-  }, [user, onSelectionChange]);
+  // Create lookup maps for performance (O(1) lookups)
+  const buildingLookup = useMemo(() => {
+    if (!buildings) return new Map();
+    return new Map(buildings.map(building => [building.id, building]));
+  }, [buildings]);
+
+  const organizationLookup = useMemo(() => {
+    if (!organizations) return new Map();
+    return new Map(organizations.map(org => [org.id, org]));
+  }, [organizations]);
+
+  // REMOVED: No initialization in child components - parent is sole source of truth
+  // Child components are now purely controlled - they only read from props and emit user interactions
+
+  // REMOVED: Cascade filtering is now handled by parent component
+  // Child component is fully controlled - no internal cascade logic
 
   const handleBuildingToggle = (buildingId: string) => {
-    setSelectedBuildings(prev => {
-      const newSelection = prev.includes(buildingId)
-        ? prev.filter(id => id !== buildingId)
-        : [...prev, buildingId];
-      
-      // Notify parent of selection change for cascading filters
-      onSelectionChange?.(newSelection);
-      return newSelection;
-    });
+    // Gate interactions until data is loaded
+    if (!buildings || !organizations || isLoading) return;
+    
+    // Fully controlled - work with parent's selection state
+    const newSelection = selectedBuildingIds.includes(buildingId)
+      ? selectedBuildingIds.filter(id => id !== buildingId)
+      : [...selectedBuildingIds, buildingId];
+    
+    // Notify parent of selection change
+    onSelectionChange?.(newSelection);
   };
 
   const handleSave = () => {
-    onSave(selectedBuildings);
+    onSave(selectedBuildingIds);
   };
 
   // Group buildings by organization and apply filters
@@ -82,6 +88,11 @@ export function UserBuildingsTab({
       // Admin can access all buildings
       if (currentUser?.role === 'admin') return true;
       
+      // Managers can assign any building from their organization(s)
+      if (currentUser?.role === 'manager' || currentUser?.role === 'demo_manager') {
+        return currentUserOrganizationIds.includes(building.organizationId);
+      }
+      
       // Other users can only assign buildings they have access to
       return currentUserBuildingIds.includes(building.id);
     });
@@ -90,26 +101,40 @@ export function UserBuildingsTab({
     const grouped = availableBuildings.reduce((acc, building) => {
       const orgId = building.organizationId;
       if (!acc[orgId]) {
-        const org = organizations.find(o => o.id === orgId);
+        // Use organizationName from building object (included in API response)
         acc[orgId] = {
-          organization: org,
+          organizationId: orgId,
+          organizationName: (building as any).organizationName || 'Unknown Organization',
           buildings: []
         };
       }
       acc[orgId].buildings.push(building);
       return acc;
-    }, {} as Record<string, { organization?: Organization; buildings: Building[] }>);
+    }, {} as Record<string, { organizationId: string; organizationName: string; buildings: Building[] }>);
 
     // Sort organizations and buildings alphabetically
     return Object.values(grouped)
-      .sort((a, b) => (a.organization?.name || '').localeCompare(b.organization?.name || ''))
+      .sort((a, b) => a.organizationName.localeCompare(b.organizationName))
       .map(group => ({
         ...group,
         buildings: group.buildings.sort((a, b) => a.name.localeCompare(b.name))
       }));
-  }, [buildings, organizations, selectedOrganizationIds, currentUser, currentUserBuildingIds]);
+  }, [buildings, organizations, selectedOrganizationIds, currentUser, currentUserBuildingIds, organizationLookup]);
 
+  // Gate rendering until data is loaded to prevent undefined errors
   if (!user) return null;
+  if (!buildings || !organizations) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Building Access</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">Loading buildings...</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card>
@@ -130,20 +155,21 @@ export function UserBuildingsTab({
             <p className="text-sm text-muted-foreground">No buildings available for the selected organizations.</p>
           ) : (
             buildingsByOrganization.map((group, groupIndex) => (
-              <Collapsible key={group.organization?.id || groupIndex} defaultOpen>
+              <Collapsible key={group.organizationId || groupIndex} defaultOpen>
                 <CollapsibleTrigger className="flex items-center justify-between w-full p-2 text-left hover:bg-muted rounded">
                   <h4 className="text-sm font-medium">
-                    {group.organization?.name || 'Unknown Organization'}
+                    {group.organizationName}
                   </h4>
                   <ChevronDown className="h-4 w-4 transition-transform data-[state=closed]:rotate-[-90deg]" />
                 </CollapsibleTrigger>
                 <CollapsibleContent className="space-y-2 ml-4 mt-2">
                   {group.buildings.map((building) => (
-                    <div key={building.id} className="flex items-center space-x-2 p-2 border rounded">
+                    <div key={`buildings-tab-${building.id}`} className="flex items-center space-x-2 p-2 border rounded">
                       <Checkbox
                         id={`building-${building.id}`}
-                        checked={selectedBuildings.includes(building.id)}
+                        checked={selectedBuildingIds.includes(building.id)}
                         onCheckedChange={() => handleBuildingToggle(building.id)}
+                        disabled={isLoading || !buildings || !organizations}
                         data-testid={`checkbox-building-${building.id}`}
                       />
                       <div className="flex-1">
@@ -164,11 +190,6 @@ export function UserBuildingsTab({
           )}
         </div>
         
-        <div className="flex justify-end pt-4">
-          <Button onClick={handleSave} disabled={isLoading} data-testid="save-buildings">
-            {isLoading ? 'Saving...' : 'Save Building Access'}
-          </Button>
-        </div>
       </CardContent>
     </Card>
   );

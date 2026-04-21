@@ -2,105 +2,109 @@ import { Router } from 'express';
 import { documents } from '../../shared/schema';
 import { db } from '../db';
 import { isNotNull } from 'drizzle-orm';
+import { requireAuth, requireRole } from '../auth';
+import * as fs from 'fs/promises';
+import * as path from 'path';
 
 const router = Router();
 
-/**
- * Clean up orphaned files in object storage that are not referenced in the database.
- */
-router.post('/cleanup-storage', async (req, res) => {
-  try {
-    // Local storage cleanup - TODO: Implement cleanup for local file system
-    // GCS functionality has been replaced with local storage
-    res.json({ message: 'Storage cleanup temporarily disabled - now using local storage instead of GCS' });
-    return;
+const UPLOADS_DIR = path.join(process.cwd(), 'uploads');
 
-    // Get all file paths from documents table
+async function getAllFilesRecursively(dir: string, baseDir: string = dir): Promise<string[]> {
+  const files: string[] = [];
+  
+  try {
+    const entries = await fs.readdir(dir, { withFileTypes: true });
+    
+    for (const entry of entries) {
+      const fullPath = path.join(dir, entry.name);
+      
+      if (entry.isDirectory()) {
+        const subFiles = await getAllFilesRecursively(fullPath, baseDir);
+        files.push(...subFiles);
+      } else if (entry.isFile()) {
+        const relativePath = path.relative(baseDir, fullPath);
+        files.push(relativePath);
+      }
+    }
+  } catch (err) {
+    console.error(`Error reading directory ${dir}:`, err);
+  }
+  
+  return files;
+}
+
+/**
+ * Clean up orphaned files in local storage that are not referenced in the database.
+ */
+router.post('/cleanup-storage', requireAuth, requireRole(['admin']), async (req, res) => {
+  try {
+    const { dryRun = true } = req.body;
+
     const allDocs = await db
       .select({ filePath: documents.filePath })
       .from(documents)
       .where(isNotNull(documents.filePath));
 
-    // Combine all referenced file URLs and extract object paths from hierarchical structure
-    const referencedObjectPaths = new Set();
-
+    const referencedPaths = new Set<string>();
+    
     allDocs.forEach((doc) => {
       if (doc.filePath) {
         try {
-          // Convert URL to object path - handles hierarchical paths
-          // objectStorageService is not available in local storage mode
-          // const normalizedPath = objectStorageService.normalizeObjectEntityPath(doc.filePath);
-          // if (normalizedPath.startsWith('/objects/')) {
-          //   const objectPath = normalizedPath.replace('/objects/', '');
-          //   referencedObjectPaths.add(objectPath);
-          // }
+          const urlPath = new URL(doc.filePath, 'http://localhost').pathname;
+          const cleanPath = urlPath.replace(/^\/uploads\//, '').replace(/^\//, '');
+          if (cleanPath) {
+            referencedPaths.add(cleanPath);
+          }
         } catch (err) {
-          // Silently ignore errors in local storage mode
+          referencedPaths.add(doc.filePath);
         }
       }
     });
 
-
-    // Get private object directory for hierarchical structure
-    // objectStorageService and objectStorageClient are not available in local storage mode
-    // const privateDir = objectStorageService.getPrivateObjectDir();
-    // const bucketName = privateDir.split('/')[1]; // Extract bucket name from path like "/bucket-name/path"
-    // const prefixPath = privateDir.split('/').slice(2).join('/'); // Get path after bucket
-
-    // List all files recursively in the storage bucket under the private directory
-    // This will scan the entire hierarchy: organization-*/building-*/buildings_documents/* and residence-*/*
-    // const bucket = objectStorageClient.bucket(bucketName);
-    // const [files] = await bucket.getFiles({ prefix: prefixPath });
-    const files: any[] = [];
+    const allFiles = await getAllFilesRecursively(UPLOADS_DIR);
+    
+    const orphanedFiles: string[] = [];
+    
+    for (const file of allFiles) {
+      const normalizedFile = file.replace(/\\/g, '/');
+      
+      if (!referencedPaths.has(normalizedFile) && 
+          !normalizedFile.startsWith('_quarantine') &&
+          !normalizedFile.includes('.gitkeep')) {
+        orphanedFiles.push(normalizedFile);
+      }
+    }
 
     let deletedCount = 0;
-    const totalFilesInStorage = files.length;
     const deletedFiles: string[] = [];
-
-    // Check each file in storage across the hierarchical structure
-    for (const file of files) {
-      // Get the object path relative to the private directory
-      let objectPath = file.name;
-
-      // Remove the private directory prefix to get the hierarchical path
-      // const prefixPath = ''; // Not available in local storage mode
-      // if (objectPath.startsWith(prefixPath)) {
-      //   objectPath = objectPath.substring(prefixPath.length);
-      //   // Remove leading slash if present
-      //   if (objectPath.startsWith('/')) {
-      //     objectPath = objectPath.substring(1);
-      //   }
-      // }
-
-      // Skip if this file is referenced in the database
-      if (referencedObjectPaths.has(objectPath)) {
-        continue;
-      }
-
-      // Skip directory markers, empty paths, and folders
-      if (file.name.endsWith('/') || !objectPath || objectPath.split('/').length < 4) {
-        // Hierarchical files should have at least: organization-id/building-id/type/filename
-        continue;
-      }
-
-      try {
-        // Delete orphaned file
-        // await file.delete();
-        deletedFiles.push(objectPath);
-        deletedCount++;
-      } catch (err) {
-        // Silently ignore errors in local storage mode
+    
+    if (!dryRun) {
+      for (const file of orphanedFiles) {
+        try {
+          const fullPath = path.join(UPLOADS_DIR, file);
+          await fs.unlink(fullPath);
+          deletedFiles.push(file);
+          deletedCount++;
+        } catch (err) {
+          console.error(`Error deleting file ${file}:`, err);
+        }
       }
     }
 
     res.json({
       success: true,
-      message: `Cleanup complete. Deleted ${deletedCount} orphaned files.`,
+      message: dryRun 
+        ? `Dry run complete. Found ${orphanedFiles.length} orphaned files.`
+        : `Cleanup complete. Deleted ${deletedCount} orphaned files.`,
       details: {
-        totalFilesInStorage,
-        referencedInDatabase: referencedObjectPaths.size,
-        deletedOrphaned: deletedCount,
-        deletedFiles,
+        totalFilesInStorage: allFiles.length,
+        referencedInDatabase: referencedPaths.size,
+        orphanedFiles: orphanedFiles.length,
+        deletedCount: dryRun ? 0 : deletedCount,
+        orphanedFilesList: orphanedFiles.slice(0, 100),
+        deletedFiles: dryRun ? [] : deletedFiles,
+        dryRun,
       },
     });
   } catch (err) {

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useLanguage } from '@/hooks/use-language';
@@ -212,6 +212,17 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
     },
     enabled: open,
   });
+
+  // Auto-select organization if user has access to only one
+  useEffect(() => {
+    if (organizations && organizations.length === 1 && open && !form.getValues('organizationId')) {
+      const singleOrg = organizations[0];
+      form.setValue('organizationId', singleOrg.id);
+      setSelectedOrgType(singleOrg.type || '');
+      // Set default role based on organization type
+      form.setValue('role', singleOrg.type === 'demo' ? 'demo_tenant' : 'tenant');
+    }
+  }, [organizations, open, form]);
 
   // Fetch buildings
   const { data: buildings, error: buildingsError, isLoading: buildingsLoading } = useQuery<BuildingType[]>({

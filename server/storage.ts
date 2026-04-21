@@ -55,6 +55,14 @@ export interface IStorage {
   // User operations
   getUsers(): Promise<User[]>;
   getUsersWithAssignments(): Promise<Array<User & { organizations: Array<{ id: string; name: string; type: string }>; buildings: Array<{ id: string; name: string }>; residences: Array<{ id: string; unitNumber: string; buildingId: string; buildingName: string }> }>>;
+  getUsersWithAssignmentsPaginated(
+    offset?: number, 
+    limit?: number, 
+    filters?: { role?: string; status?: string; organization?: string; orphan?: string; demoOnly?: string; managerOrganizations?: string; search?: string }
+  ): Promise<{
+    users: Array<User & { organizations: Array<{ id: string; name: string; type: string }>; buildings: Array<{ id: string; name: string }>; residences: Array<{ id: string; unitNumber: string; buildingId: string; buildingName: string }> }>;
+    total: number;
+  }>;
   getUsersByOrganizations(_userId: string): Promise<User[]>;
   getUser(_id: string): Promise<User | undefined>;
   getUserOrganizations(_userId: string): Promise<Array<{ organizationId: string }>>;
@@ -280,6 +288,7 @@ export class MemStorage implements IStorage {
       language: 'fr',
       role: 'admin',
       isActive: true,
+      notificationsStartingDate: null,
       lastLoginAt: null,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -302,6 +311,50 @@ export class MemStorage implements IStorage {
       buildings: [],
       residences: []
     }));
+  }
+
+  async getUsersWithAssignmentsPaginated(
+    offset: number = 0,
+    limit: number = 50,
+    filters?: { role?: string; status?: string; organization?: string; orphan?: string; demoOnly?: string; managerOrganizations?: string; search?: string }
+  ): Promise<{
+    users: Array<User & { organizations: Array<{ id: string; name: string; type: string }>; buildings: Array<{ id: string; name: string }>; residences: Array<{ id: string; unitNumber: string; buildingId: string; buildingName: string }> }>;
+    total: number;
+  }> {
+    // For MemStorage, return a paginated subset with empty assignments
+    let users = Array.from(this.users.values());
+    
+    // Apply filters if provided
+    if (filters) {
+      if (filters.role) {
+        users = users.filter(user => user.role === filters.role);
+      }
+      if (filters.status) {
+        const isActive = filters.status === 'active';
+        users = users.filter(user => user.isActive === isActive);
+      }
+      if (filters.search) {
+        const searchLower = filters.search.toLowerCase();
+        users = users.filter(user => 
+          user.email.toLowerCase().includes(searchLower) ||
+          user.firstName.toLowerCase().includes(searchLower) ||
+          user.lastName.toLowerCase().includes(searchLower)
+        );
+      }
+    }
+    
+    const total = users.length;
+    const paginatedUsers = users.slice(offset, offset + limit);
+    
+    return {
+      users: paginatedUsers.map(user => ({
+        ...user,
+        organizations: [],
+        buildings: [],
+        residences: []
+      })),
+      total
+    };
   }
 
   async getUsersByOrganizations(_userId: string): Promise<User[]> {
@@ -329,11 +382,17 @@ export class MemStorage implements IStorage {
     const user: User = {
       ...insertUser,
       id,
+      username: insertUser.username,
+      email: insertUser.email,
+      password: insertUser.password,
+      firstName: insertUser.firstName,
+      lastName: insertUser.lastName,
       phone: insertUser.phone || null,
       profileImage: insertUser.profileImage || '',
       role: insertUser.role || 'tenant',
       language: insertUser.language || 'fr',
       isActive: true,
+      notificationsStartingDate: null,
       lastLoginAt: null,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -362,6 +421,10 @@ export class MemStorage implements IStorage {
     return {
       ..._token,
       id: randomUUID(),
+      userId: _token.userId,
+      token: _token.token,
+      expiresAt: _token.expiresAt,
+      tokenHash: _token.tokenHash,
       createdAt: new Date(),
       usedAt: null,
       isUsed: false,
@@ -393,6 +456,12 @@ export class MemStorage implements IStorage {
     const organization: Organization = {
       ...org,
       id,
+      name: org.name,
+      type: org.type,
+      address: org.address,
+      city: org.city,
+      province: org.province || 'QC',
+      postalCode: org.postalCode,
       phone: org.phone || '',
       email: org.email || '',
       website: org.website || '',
@@ -429,17 +498,28 @@ export class MemStorage implements IStorage {
     const newBuilding: Building = {
       ...building,
       id,
+      name: building.name,
+      organizationId: building.organizationId,
+      address: building.address,
+      city: building.city,
+      province: building.province || 'QC',
+      postalCode: building.postalCode,
+      buildingType: building.buildingType as 'apartment' | 'condo' | 'rental',
       isActive: true,
       createdAt: new Date(),
       updatedAt: new Date(),
       totalUnits: building.totalUnits || 0,
       totalFloors: building.totalFloors || 0,
-      yearBuilt: building.yearBuilt || 0,
-      buildingType: building.buildingType as 'apartment' | 'condo' | 'rental',
-      bankAccountNumber: building.bankAccountNumber || '',
-      bankAccountMinimums: building.bankAccountMinimums ? JSON.stringify(building.bankAccountMinimums) : '',
-      bankAccountUpdatedAt: new Date(),
-      inflationSettings: '',
+      constructionDate: null,
+      bankAccountNumber: building.bankAccountNumber || null,
+      bankAccountMinimums: building.bankAccountMinimums ? JSON.stringify(building.bankAccountMinimums) : null,
+      bankAccountUpdatedAt: null,
+      inflationSettings: null,
+      unplannedBillsAmount: building.unplannedBillsAmount?.toString() || '0',
+      unplannedBillsStartDate: null,
+      financialYearStart: null,
+      generalInflationRate: '2.0',
+      revenueInflationRate: '2.0',
       parkingSpaces: building.parkingSpaces || 0,
       storageSpaces: building.storageSpaces || 0,
       amenities: building.amenities || null,
@@ -489,6 +569,8 @@ export class MemStorage implements IStorage {
     const newResidence: Residence = {
       ...residence,
       id,
+      buildingId: residence.buildingId,
+      unitNumber: residence.unitNumber,
       isActive: true,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -567,14 +649,21 @@ export class MemStorage implements IStorage {
     return {
       ...doc,
       id,
-      description: doc.description || '',
-      buildingId: doc.buildingId || '',
-      residenceId: doc.residenceId || '',
-      fileName: doc.fileName || '',
-      fileSize: doc.fileSize || '',
-      mimeType: doc.mimeType || '',
-      attachedToType: doc.attachedToType || '',
-      attachedToId: doc.attachedToId || '',
+      name: doc.name,
+      documentType: doc.documentType,
+      filePath: doc.filePath,
+      uploadedById: doc.uploadedById,
+      description: doc.description || null,
+      buildingId: doc.buildingId || null,
+      residenceId: doc.residenceId || null,
+      fileName: doc.fileName || null,
+      fileSize: doc.fileSize || null,
+      mimeType: doc.mimeType || null,
+      isVisibleToTenants: doc.isVisibleToTenants || false,
+      isQuarantined: doc.isQuarantined || false,
+      attachedToType: doc.attachedToType || null,
+      attachedToId: doc.attachedToId || null,
+      effectiveDate: doc.effectiveDate ? new Date(doc.effectiveDate) : null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -625,6 +714,21 @@ export class MemStorage implements IStorage {
     const newInvoice: Invoice = {
       ...invoice,
       id,
+      vendorName: invoice.vendorName,
+      invoiceNumber: invoice.invoiceNumber,
+      totalAmount: invoice.totalAmount,
+      dueDate: invoice.dueDate,
+      paymentType: invoice.paymentType,
+      createdBy: invoice.createdBy,
+      buildingId: invoice.buildingId || null,
+      residenceId: invoice.residenceId || null,
+      documentId: invoice.documentId || null,
+      isAiExtracted: invoice.isAiExtracted || false,
+      aiExtractionData: invoice.aiExtractionData || null,
+      extractionConfidence: invoice.extractionConfidence ? invoice.extractionConfidence.toString() : null,
+      frequency: invoice.frequency || null,
+      startDate: invoice.startDate || null,
+      customPaymentDates: invoice.customPaymentDates || null,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -722,6 +826,8 @@ export class MemStorage implements IStorage {
     const newMetric: QualityMetric = {
       ...metric,
       id,
+      metricType: metric.metricType,
+      _value: metric._value,
       timestamp: new Date(),
     };
     this.qualityMetrics.set(id, newMetric);
@@ -738,6 +844,8 @@ export class MemStorage implements IStorage {
     const newConfig: FrameworkConfiguration = {
       ...config,
       id,
+      _key: config._key,
+      _value: config._value,
       description: config.description || '',
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -766,6 +874,8 @@ export class MemStorage implements IStorage {
     const newSuggestion: ImprovementSuggestion = {
       ...suggestion,
       id,
+      title: suggestion.title,
+      description: suggestion.description,
       filePath: suggestion.filePath || null,
       status: suggestion.status as 'New' | 'Acknowledged' | 'Done',
       category: suggestion.category as 'Code Quality' | 'Security' | 'Testing' | 'Documentation' | 'Performance' | 'Continuous Improvement' | 'Replit AI Agent Monitoring' | 'Replit App',
@@ -845,6 +955,11 @@ export class MemStorage implements IStorage {
     const newFeature: Feature = {
       ...feature,
       id,
+      name: feature.name,
+      description: feature.description,
+      category: (feature.category as 'Dashboard & Home' | 'Property Management' | 'Resident Management' | 'Financial Management' | 'Maintenance & Requests' | 'Document Management' | 'Communication' | 'AI & Automation' | 'Development Tools' | 'Reporting & Analytics' | 'Integrations' | 'Website'),
+      status: (feature.status as 'submitted' | 'planned' | 'in-progress' | 'ai-analyzed' | 'completed' | 'cancelled') || 'submitted',
+      priority: (feature.priority as 'low' | 'medium' | 'high' | 'critical') || 'medium',
       isPublicRoadmap: true,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -896,7 +1011,13 @@ export class MemStorage implements IStorage {
     const newItem: ActionableItem = {
       ...item,
       id,
+      title: item.title,
+      description: item.description,
+      type: item.type,
+      acceptanceCriteria: item.acceptanceCriteria || null,
+      status: (item.status as 'pending' | 'in-progress' | 'completed' | 'blocked') || 'pending',
       featureId: item.featureId || randomUUID(),
+      assignedTo: item.assignedTo || null,
       createdAt: new Date(),
       updatedAt: new Date(),
       estimatedHours: item.estimatedHours || null,
@@ -909,6 +1030,7 @@ export class MemStorage implements IStorage {
       orderIndex: 0,
       startedAt: null,
       completedAt: null,
+      implementation_notes: null,
     };
     this.actionableItems.set(id, newItem);
     return newItem;
@@ -942,11 +1064,7 @@ export class MemStorage implements IStorage {
       ipAddress: '',
       userAgent: '',
       tokenHash: null,
-      usedAt: null,
-      createdByUserId: invitation.invitedByUserId,
-      acceptedByUserId: null,
       acceptedAt: null,
-      revokedAt: null,
       revokedByUserId: null,
       lastAccessedAt: null,
     };
@@ -975,12 +1093,15 @@ export class MemStorage implements IStorage {
     const newLog: InvitationAuditLog = { 
       ...log, 
       id, 
+      action: log.action,
+      invitationId: log.invitationId,
+      performedBy: log.performedBy,
       createdAt: new Date(),
       ipAddress: log.ipAddress || '',
       userAgent: log.userAgent || '',
       details: log.details || {},
-      previousStatus: log.previousStatus || 'pending',
-      newStatus: log.newStatus || 'pending'
+      previousStatus: (log.previousStatus as 'pending' | 'accepted' | 'expired' | 'cancelled') || 'pending',
+      newStatus: (log.newStatus as 'pending' | 'accepted' | 'expired' | 'cancelled') || 'pending'
     };
     this.invitationAuditLogs.set(id, newLog);
     return newLog;
@@ -994,6 +1115,11 @@ export class MemStorage implements IStorage {
     return {
       ...comment,
       id,
+      demandId: comment.demandId,
+      commenterId: comment.commenterId,
+      commentText: comment.commentText,
+      commentType: comment.commentType || null,
+      isInternal: comment.isInternal || false,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -1043,15 +1169,24 @@ export class MemStorage implements IStorage {
     const newBug: Bug = {
       ...bug,
       id,
+      createdBy: bug.createdBy,
+      title: bug.title,
+      description: bug.description,
+      category: bug.category,
+      page: bug.page,
+      priority: bug.priority || 'medium',
+      filePath: bug.filePath || null,
+      fileName: bug.fileName || null,
+      fileSize: bug.fileSize || null,
       status: 'new',
       createdAt: new Date(),
       updatedAt: new Date(),
-      reproductionSteps: bug.reproductionSteps || '',
+      reproductionSteps: bug.reproductionSteps || null,
       assignedTo: null,
       resolvedAt: null,
       resolvedBy: null,
       notes: null,
-      environment: bug.environment || '',
+      environment: bug.environment || null,
     };
     this.bugs.set(id, newBug);
     return newBug;
@@ -1120,17 +1255,18 @@ export class MemStorage implements IStorage {
     // For now, return empty attachments - will be implemented once storage is fixed
     const attachments: any[] = [];
     
-    return {
-      ...request,
-      attachmentCount: attachments.length,
-      attachments: []
-    };
+    return request;
   }
   async createFeatureRequest(request: InsertFeatureRequest): Promise<FeatureRequest> {
     const id = randomUUID();
     const newRequest: FeatureRequest = {
       ...request,
       id,
+      title: request.title,
+      description: request.description,
+      category: request.category,
+      priority: request.priority,
+      filePath: request.filePath || null,
       status: 'submitted',
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -1138,8 +1274,8 @@ export class MemStorage implements IStorage {
       assignedTo: null,
       reviewedBy: null,
       reviewedAt: null,
-      estimatedHours: null,
       mergedIntoId: null,
+      adminNotes: null,
     };
     this.featureRequests.set(id, newRequest);
     return newRequest;
@@ -1210,7 +1346,7 @@ class ProductionFallbackStorage implements IStorage {
       id: 'f35647de-5f16-46f2-b30b-09e0469356b1',
       username: 'kevin.hervieux',
       email: 'kevin.hervieux@koveo-gestion.com',
-      password: '$2b$12$sAJXEcITZg5ItQou312JsucLyzByPC6lF7CLvrrLkhxKd1EyfSxda', // admin123
+      password: process.env.ADMIN_PASSWORD_HASH || '',
       firstName: 'Kevin',
       lastName: 'Hervieux',
       phone: '',
@@ -1271,6 +1407,21 @@ class ProductionFallbackStorage implements IStorage {
 
   async getUsersWithAssignments(): Promise<Array<User & { organizations: Array<{ id: string; name: string; type: string }>; buildings: Array<{ id: string; name: string }>; residences: Array<{ id: string; unitNumber: string; buildingId: string; buildingName: string }> }>> {
     return await this.safeDbOperation(() => this.dbStorage.getUsersWithAssignments());
+  }
+
+  async getUsersWithAssignmentsPaginated(
+    offset?: number, 
+    limit?: number, 
+    filters?: { role?: string; status?: string; organization?: string; orphan?: string; demoOnly?: string; managerOrganizations?: string; search?: string }
+  ): Promise<{
+    users: Array<User & { organizations: Array<{ id: string; name: string; type: string }>; buildings: Array<{ id: string; name: string }>; residences: Array<{ id: string; unitNumber: string; buildingId: string; buildingName: string }> }>;
+    total: number;
+  }> {
+    try {
+      return await this.safeDbOperation(() => this.dbStorage.getUsersWithAssignmentsPaginated(offset, limit, filters));
+    } catch {
+      return this.memStorage.getUsersWithAssignmentsPaginated(offset, limit, filters);
+    }
   }
 
   async getUsersByOrganizations(userId: string): Promise<User[]> {
@@ -1382,13 +1533,7 @@ class ProductionFallbackStorage implements IStorage {
     }
   }
 
-  async deleteOrganization(id: string): Promise<boolean> {
-    try {
-      return await this.safeDbOperation(() => this.dbStorage.deleteOrganization(id));
-    } catch {
-      return this.memStorage.deleteOrganization(id);
-    }
-  }
+  // deleteOrganization method not defined in IStorage interface - removed
 
   // Buildings
   async getBuildings(): Promise<Building[]> {
@@ -1499,13 +1644,7 @@ class ProductionFallbackStorage implements IStorage {
     }
   }
 
-  async getContact(id: string): Promise<Contact | undefined> {
-    try {
-      return await this.safeDbOperation(() => this.dbStorage.getContact(id));
-    } catch {
-      return this.memStorage.getContact(id);
-    }
-  }
+  // getContact(id) method not defined in IStorage interface - removed
 
   async createContact(contact: InsertContact): Promise<Contact> {
     try {
@@ -1709,10 +1848,10 @@ class ProductionFallbackStorage implements IStorage {
   async getPermission(id: string): Promise<Permission | undefined> {
     return undefined;
   }
-  async getRolePermissions(role: string): Promise<RolePermission[]> {
+  async getRolePermissions(): Promise<RolePermission[]> {
     return [];
   }
-  async getUserPermissions(userId: string): Promise<UserPermission[]> {
+  async getUserPermissions(): Promise<UserPermission[]> {
     return [];
   }
   async hasPermission(userId: string, permission: string): Promise<boolean> {

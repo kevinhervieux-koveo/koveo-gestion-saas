@@ -1,5 +1,5 @@
 import { LogOut, ChevronDown, ChevronRight, X } from 'lucide-react';
-import { Link, useLocation } from 'wouter';
+import { Link, useLocation, useSearch } from 'wouter';
 import { useLanguage } from '@/hooks/use-language';
 import { translations } from '@/lib/i18n';
 import { useAuth } from '@/hooks/use-auth';
@@ -25,6 +25,7 @@ import { useCommonSpacesAccess } from '@/hooks/use-common-spaces-access';
 export function Sidebar() {
   const { isMobileMenuOpen, closeMobileMenu } = useMobileMenu();
   const [location] = useLocation();
+  const search = useSearch();
   const { t, language } = useLanguage();
   const { logout, user } = useAuth();
   const { hasCommonSpacesAccess } = useCommonSpacesAccess();
@@ -72,6 +73,54 @@ export function Sidebar() {
     });
   };
 
+  // Helper function to determine which pages should preserve query parameters
+  const shouldPreserveParams = (href: string): boolean => {
+    // Preserve params for manager pages that use hierarchical selection
+    const managerPages = [
+      '/manager/buildings',
+      '/manager/residences',
+      '/manager/budget',
+      '/manager/bills',
+      '/manager/demands',
+      '/manager/user-management',
+      '/manager/common-spaces-stats',
+      '/manager/maintenance/inventory',
+      '/manager/maintenance/projects'
+    ];
+    
+    return managerPages.some(page => href.startsWith(page));
+  };
+
+  // Helper function to build URL with preserved query parameters
+  const buildHrefWithParams = (href: string): string => {
+    if (!shouldPreserveParams(href)) {
+      return href;
+    }
+
+    // Parse current URL parameters
+    const urlParams = new URLSearchParams(search);
+    const organizationId = urlParams.get('organization');
+    const buildingId = urlParams.get('building');
+    
+    // If we have organization or building parameters, preserve them
+    if (organizationId || buildingId) {
+      const newParams = new URLSearchParams();
+      
+      if (organizationId) {
+        newParams.set('organization', organizationId);
+      }
+      
+      if (buildingId) {
+        newParams.set('building', buildingId);
+      }
+      
+      const queryString = newParams.toString();
+      return queryString ? `${href}?${queryString}` : href;
+    }
+    
+    return href;
+  };
+
   const renderMenuButton = (section: NavigationSection) => {
     const SectionIcon = section.icon;
     const isExpanded = expandedMenus.includes(section._key);
@@ -101,15 +150,47 @@ export function Sidebar() {
 
   const renderMenuItem = (item: NavigationItem) => {
     const ItemIcon = item.icon;
-    const isActive = location === item.href;
 
     // Use translation keys from i18n system
     const getTranslatedName = (nameKey: string) => {
       return t(nameKey as keyof typeof translations.en);
     };
 
+    // Check if this item has sub-items (is a nested collapsible item)
+    if (item.items && item._key) {
+      const isExpanded = expandedMenus.includes(item._key);
+      
+      return (
+        <div key={item.nameKey}>
+          <button
+            onClick={() => toggleMenu(item._key!)}
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+              isExpanded
+                ? 'bg-koveo-light text-koveo-navy shadow-sm'
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            <div className='flex items-center space-x-3'>
+              <ItemIcon className='w-4 h-4' />
+              <span>{getTranslatedName(item.nameKey)}</span>
+            </div>
+            {isExpanded ? <ChevronDown className='w-3 h-3' /> : <ChevronRight className='w-3 h-3' />}
+          </button>
+          {isExpanded && (
+            <div className='ml-6 mt-1 space-y-1 animate-in slide-in-from-top-2 duration-200'>
+              {item.items.map((subItem) => renderMenuItem(subItem))}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // Regular navigation item with href
+    const hrefWithParams = buildHrefWithParams(item.href!);
+    const isActive = location === item.href || location.split('?')[0] === item.href;
+    
     return (
-      <Link key={item.nameKey} href={item.href}>
+      <Link key={item.nameKey} href={hrefWithParams}>
         <div
           className={`flex items-center space-x-3 px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer ${
             isActive

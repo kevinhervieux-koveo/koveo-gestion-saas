@@ -554,59 +554,6 @@ export default function Settings() {
             </CardContent>
           </Card>
 
-          {/* Future Settings */}
-          <Card>
-            <CardHeader>
-              <CardTitle className='flex items-center gap-2'>
-                <SettingsIcon className='w-5 h-5' />
-                {t('additionalSettings')}
-                <Badge variant='secondary' className='text-xs ml-2'>
-                  {t('future')}
-                </Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
-                <Button
-                  variant='outline'
-                  className='h-auto p-4 flex flex-col space-y-2'
-                  disabled
-                  data-testid='button-notifications'
-                >
-                  <Bell className='w-6 h-6' />
-                  <span>{t('notifications')}</span>
-                  <Badge variant='secondary' className='text-xs'>
-                    {t('future')}
-                  </Badge>
-                </Button>
-                <Button
-                  variant='outline'
-                  className='h-auto p-4 flex flex-col space-y-2'
-                  disabled
-                  data-testid='button-theme'
-                >
-                  <Palette className='w-6 h-6' />
-                  <span>{t('theme')}</span>
-                  <Badge variant='secondary' className='text-xs'>
-                    {t('future')}
-                  </Badge>
-                </Button>
-                <Button
-                  variant='outline'
-                  className='h-auto p-4 flex flex-col space-y-2'
-                  disabled
-                  data-testid='button-advanced'
-                >
-                  <Globe className='w-6 h-6' />
-                  <span>{t('advanced')}</span>
-                  <Badge variant='secondary' className='text-xs'>
-                    {t('future')}
-                  </Badge>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Law 25 Compliance */}
           <Card>
             <CardHeader>
@@ -621,7 +568,7 @@ export default function Settings() {
                   {t('yourDataRights')}
                 </h4>
                 <p className='text-blue-700 dark:text-blue-300 text-sm mb-3'>
-                  {t('dataRightsDescription')}
+                  {t('exportDataDescription')}
                 </p>
               </div>
 
