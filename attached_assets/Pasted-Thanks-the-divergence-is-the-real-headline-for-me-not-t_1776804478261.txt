@@ -1,0 +1,26 @@
+Thanks — the divergence is the real headline for me, not the exact format. Please plan a task to unify both schemes on a single format going forward.
+
+Target format: `{ORG_CODE}-{YYYYMM}-{CAT}-{SEQ4}`
+  example: `MCP1-202607-UTIL-0042`
+
+Components:
+- ORG_CODE — short human-readable org slug (e.g. "MCP1", "MCP2"), stored on organizations as a new `code` column with a unique constraint. For existing orgs, backfill from a sluggified name or assign sequentially.
+- YYYYMM — bill's billing period (not insertion timestamp). Gives chronological buckets for auditors.
+- CAT — 4-char category code. Reuse the same categories already used by AUTO (UTIL, MAIN, INSR, etc.). For MCP-created bills where the caller hasn't specified a category, default to a new `GENL` bucket.
+- SEQ4 — 4-digit zero-padded sequence, scoped per (org, YYYYMM, category). Gets us up to 9999 bills per category per month per org, which is plenty. Implement as a UNIQUE index + retry, or a per-scope counter table — either is fine; pick whatever fits the storage layer best.
+
+This replaces both `MCP-<ms-timestamp>` and `AUTO-{year}-{month}-{CATG}-{base36}-{index}`. AUTO rename to match the same format; the `source` (mcp vs auto) becomes a separate column on the bill, not baked into the number.
+
+Recurring child bills: inherit the parent's number prefix plus a suffix, e.g. `MCP1-202607-UTIL-0042-P01`, `-P02`, etc. Keep that concept, just apply it on top of the new base format.
+
+Migration strategy:
+- Do NOT rename existing bills. The number is likely referenced in emails/PDFs/exports already — changing it would be a support nightmare. Leave historical `MCP-<ms-ts>` and `AUTO-…` rows as-is.
+- Apply the new format to all bills created after the migration ships.
+- Add a feature flag (`BILL_NUMBER_V2`) so the cutover can be staged per-environment and rolled back cleanly if anything surfaces.
+
+Constraints to confirm while you plan:
+- Any foreign references to bill_number as a string rather than bill_id? If so, flag them — the migration needs to ensure both old and new formats continue to resolve.
+- Any exports, reports, or email templates that assume a particular bill-number shape? Those need updating in the same change.
+- Is there anywhere a customer has already seen / saved an `MCP-<ms-ts>` number externally? If yes, the no-rename rule above is non-negotiable.
+
+Proceed with this as the target unless you hit a blocker during planning, in which case flag it back before implementing.
