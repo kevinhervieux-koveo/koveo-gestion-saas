@@ -50,3 +50,5 @@ temp/
 core.*
 *.pid
 *.log
+.jest-cache/
+.jest-cache/
