@@ -1,0 +1,62 @@
+9519c7a87f791e4e1831876b0aee995b
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.applyDangerousInputFieldError = applyDangerousInputFieldError;
+const queryClient_1 = require("@/lib/queryClient");
+/**
+ * If `error` is a DANGEROUS_INPUT 400 from the input-sanitization
+ * middleware (Task #166) AND the offending field exists in `form`,
+ * attach the server's field-level error inline and return true.
+ *
+ * When the field is not present in the form (e.g. the offender was a
+ * nested/hidden value the user cannot directly edit) or the error is
+ * of any other shape, return false and let the caller fall back to
+ * its existing toast / banner / setLoginError behaviour.
+ *
+ * The goal is a surgical improvement: users stop seeing the generic
+ * "The request contains potentially harmful content" toast and
+ * instead see a red underline on the exact input that tripped the
+ * heuristic, with the server's French, field-named message.
+ */
+function applyDangerousInputFieldError(error, form) {
+    if (!(error instanceof queryClient_1.ApiError))
+        return false;
+    if (error.code !== 'DANGEROUS_INPUT')
+        return false;
+    if (!error.fieldPath)
+        return false;
+    // The server returns dotted paths like `profile.firstName`;
+    // react-hook-form addresses nested fields the same way, so the
+    // string can be passed through unchanged. Array segments like
+    // `tags[0]` are also RHF-compatible.
+    const fieldName = error.fieldPath;
+    // Only target fields the form actually knows about — otherwise the
+    // red-underline would attach to nothing and the user would see no
+    // feedback at all. RHF tracks every `register()`ed path on
+    // `control._fields` (for nested objects) and `control._names.mount`
+    // (flat set of mounted names). We probe both so optional fields
+    // whose current value is legitimately `undefined` are still
+    // recognised as registered — the previous `getValues(...) !==
+    // undefined` heuristic would silently skip those.
+    const control = form.control;
+    const mounted = control._names?.mount;
+    const knownByName = mounted instanceof Set && mounted.has(fieldName);
+    const knownByFields = !!control._fields &&
+        Object.prototype.hasOwnProperty.call(control._fields, fieldName.split('.')[0]);
+    if (!knownByName && !knownByFields)
+        return false;
+    form.setError(fieldName, {
+        type: 'server',
+        message: error.message,
+    });
+    // Focus the offender so the red outline is immediately visible on
+    // small screens where the field may be scrolled off.
+    try {
+        form.setFocus(fieldName);
+    }
+    catch {
+        // setFocus throws if the input is unmounted; silently ignore.
+    }
+    return true;
+}
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJmaWxlIjoiL2hvbWUvcnVubmVyL3dvcmtzcGFjZS9jbGllbnQvc3JjL2xpYi9mb3JtLWVycm9ycy50cyIsIm1hcHBpbmdzIjoiOztBQWtCQSxzRUE2Q0M7QUE5REQsbURBQTZDO0FBRTdDOzs7Ozs7Ozs7Ozs7OztHQWNHO0FBQ0gsU0FBZ0IsNkJBQTZCLENBQzNDLEtBQWMsRUFDZCxJQUFpQztJQUVqQyxJQUFJLENBQUMsQ0FBQyxLQUFLLFlBQVksc0JBQVEsQ0FBQztRQUFFLE9BQU8sS0FBSyxDQUFDO0lBQy9DLElBQUksS0FBSyxDQUFDLElBQUksS0FBSyxpQkFBaUI7UUFBRSxPQUFPLEtBQUssQ0FBQztJQUNuRCxJQUFJLENBQUMsS0FBSyxDQUFDLFNBQVM7UUFBRSxPQUFPLEtBQUssQ0FBQztJQUVuQyw0REFBNEQ7SUFDNUQsK0RBQStEO0lBQy9ELDhEQUE4RDtJQUM5RCxxQ0FBcUM7SUFDckMsTUFBTSxTQUFTLEdBQUcsS0FBSyxDQUFDLFNBQW9DLENBQUM7SUFFN0QsbUVBQW1FO0lBQ25FLGtFQUFrRTtJQUNsRSwyREFBMkQ7SUFDM0Qsb0VBQW9FO0lBQ3BFLGdFQUFnRTtJQUNoRSw0REFBNEQ7SUFDNUQsOERBQThEO0lBQzlELGtEQUFrRDtJQUNsRCxNQUFNLE9BQU8sR0FBRyxJQUFJLENBQUMsT0FHcEIsQ0FBQztJQUNGLE1BQU0sT0FBTyxHQUFHLE9BQU8sQ0FBQyxNQUFNLEVBQUUsS0FBSyxDQUFDO0lBQ3RDLE1BQU0sV0FBVyxHQUFHLE9BQU8sWUFBWSxHQUFHLElBQUksT0FBTyxDQUFDLEdBQUcsQ0FBQyxTQUFTLENBQUMsQ0FBQztJQUNyRSxNQUFNLGFBQWEsR0FDakIsQ0FBQyxDQUFDLE9BQU8sQ0FBQyxPQUFPO1FBQ2pCLE1BQU0sQ0FBQyxTQUFTLENBQUMsY0FBYyxDQUFDLElBQUksQ0FBQyxPQUFPLENBQUMsT0FBTyxFQUFFLFNBQVMsQ0FBQyxLQUFLLENBQUMsR0FBRyxDQUFDLENBQUMsQ0FBQyxDQUFDLENBQUMsQ0FBQztJQUNqRixJQUFJLENBQUMsV0FBVyxJQUFJLENBQUMsYUFBYTtRQUFFLE9BQU8sS0FBSyxDQUFDO0lBRWpELElBQUksQ0FBQyxRQUFRLENBQUMsU0FBUyxFQUFFO1FBQ3ZCLElBQUksRUFBRSxRQUFRO1FBQ2QsT0FBTyxFQUFFLEtBQUssQ0FBQyxPQUFPO0tBQ3ZCLENBQUMsQ0FBQztJQUNILGtFQUFrRTtJQUNsRSxxREFBcUQ7SUFDckQsSUFBSSxDQUFDO1FBQ0gsSUFBSSxDQUFDLFFBQVEsQ0FBQyxTQUFTLENBQUMsQ0FBQztJQUMzQixDQUFDO0lBQUMsTUFBTSxDQUFDO1FBQ1AsOERBQThEO0lBQ2hFLENBQUM7SUFDRCxPQUFPLElBQUksQ0FBQztBQUNkLENBQUMiLCJuYW1lcyI6W10sInNvdXJjZXMiOlsiL2hvbWUvcnVubmVyL3dvcmtzcGFjZS9jbGllbnQvc3JjL2xpYi9mb3JtLWVycm9ycy50cyJdLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgdHlwZSB7IFVzZUZvcm1SZXR1cm4sIEZpZWxkUGF0aCwgRmllbGRWYWx1ZXMgfSBmcm9tICdyZWFjdC1ob29rLWZvcm0nO1xuaW1wb3J0IHsgQXBpRXJyb3IgfSBmcm9tICdAL2xpYi9xdWVyeUNsaWVudCc7XG5cbi8qKlxuICogSWYgYGVycm9yYCBpcyBhIERBTkdFUk9VU19JTlBVVCA0MDAgZnJvbSB0aGUgaW5wdXQtc2FuaXRpemF0aW9uXG4gKiBtaWRkbGV3YXJlIChUYXNrICMxNjYpIEFORCB0aGUgb2ZmZW5kaW5nIGZpZWxkIGV4aXN0cyBpbiBgZm9ybWAsXG4gKiBhdHRhY2ggdGhlIHNlcnZlcidzIGZpZWxkLWxldmVsIGVycm9yIGlubGluZSBhbmQgcmV0dXJuIHRydWUuXG4gKlxuICogV2hlbiB0aGUgZmllbGQgaXMgbm90IHByZXNlbnQgaW4gdGhlIGZvcm0gKGUuZy4gdGhlIG9mZmVuZGVyIHdhcyBhXG4gKiBuZXN0ZWQvaGlkZGVuIHZhbHVlIHRoZSB1c2VyIGNhbm5vdCBkaXJlY3RseSBlZGl0KSBvciB0aGUgZXJyb3IgaXNcbiAqIG9mIGFueSBvdGhlciBzaGFwZSwgcmV0dXJuIGZhbHNlIGFuZCBsZXQgdGhlIGNhbGxlciBmYWxsIGJhY2sgdG9cbiAqIGl0cyBleGlzdGluZyB0b2FzdCAvIGJhbm5lciAvIHNldExvZ2luRXJyb3IgYmVoYXZpb3VyLlxuICpcbiAqIFRoZSBnb2FsIGlzIGEgc3VyZ2ljYWwgaW1wcm92ZW1lbnQ6IHVzZXJzIHN0b3Agc2VlaW5nIHRoZSBnZW5lcmljXG4gKiBcIlRoZSByZXF1ZXN0IGNvbnRhaW5zIHBvdGVudGlhbGx5IGhhcm1mdWwgY29udGVudFwiIHRvYXN0IGFuZFxuICogaW5zdGVhZCBzZWUgYSByZWQgdW5kZXJsaW5lIG9uIHRoZSBleGFjdCBpbnB1dCB0aGF0IHRyaXBwZWQgdGhlXG4gKiBoZXVyaXN0aWMsIHdpdGggdGhlIHNlcnZlcidzIEZyZW5jaCwgZmllbGQtbmFtZWQgbWVzc2FnZS5cbiAqL1xuZXhwb3J0IGZ1bmN0aW9uIGFwcGx5RGFuZ2Vyb3VzSW5wdXRGaWVsZEVycm9yPFRGaWVsZFZhbHVlcyBleHRlbmRzIEZpZWxkVmFsdWVzPihcbiAgZXJyb3I6IHVua25vd24sXG4gIGZvcm06IFVzZUZvcm1SZXR1cm48VEZpZWxkVmFsdWVzPixcbik6IGJvb2xlYW4ge1xuICBpZiAoIShlcnJvciBpbnN0YW5jZW9mIEFwaUVycm9yKSkgcmV0dXJuIGZhbHNlO1xuICBpZiAoZXJyb3IuY29kZSAhPT0gJ0RBTkdFUk9VU19JTlBVVCcpIHJldHVybiBmYWxzZTtcbiAgaWYgKCFlcnJvci5maWVsZFBhdGgpIHJldHVybiBmYWxzZTtcblxuICAvLyBUaGUgc2VydmVyIHJldHVybnMgZG90dGVkIHBhdGhzIGxpa2UgYHByb2ZpbGUuZmlyc3ROYW1lYDtcbiAgLy8gcmVhY3QtaG9vay1mb3JtIGFkZHJlc3NlcyBuZXN0ZWQgZmllbGRzIHRoZSBzYW1lIHdheSwgc28gdGhlXG4gIC8vIHN0cmluZyBjYW4gYmUgcGFzc2VkIHRocm91Z2ggdW5jaGFuZ2VkLiBBcnJheSBzZWdtZW50cyBsaWtlXG4gIC8vIGB0YWdzWzBdYCBhcmUgYWxzbyBSSEYtY29tcGF0aWJsZS5cbiAgY29uc3QgZmllbGROYW1lID0gZXJyb3IuZmllbGRQYXRoIGFzIEZpZWxkUGF0aDxURmllbGRWYWx1ZXM+O1xuXG4gIC8vIE9ubHkgdGFyZ2V0IGZpZWxkcyB0aGUgZm9ybSBhY3R1YWxseSBrbm93cyBhYm91dCDigJQgb3RoZXJ3aXNlIHRoZVxuICAvLyByZWQtdW5kZXJsaW5lIHdvdWxkIGF0dGFjaCB0byBub3RoaW5nIGFuZCB0aGUgdXNlciB3b3VsZCBzZWUgbm9cbiAgLy8gZmVlZGJhY2sgYXQgYWxsLiBSSEYgdHJhY2tzIGV2ZXJ5IGByZWdpc3RlcigpYGVkIHBhdGggb25cbiAgLy8gYGNvbnRyb2wuX2ZpZWxkc2AgKGZvciBuZXN0ZWQgb2JqZWN0cykgYW5kIGBjb250cm9sLl9uYW1lcy5tb3VudGBcbiAgLy8gKGZsYXQgc2V0IG9mIG1vdW50ZWQgbmFtZXMpLiBXZSBwcm9iZSBib3RoIHNvIG9wdGlvbmFsIGZpZWxkc1xuICAvLyB3aG9zZSBjdXJyZW50IHZhbHVlIGlzIGxlZ2l0aW1hdGVseSBgdW5kZWZpbmVkYCBhcmUgc3RpbGxcbiAgLy8gcmVjb2duaXNlZCBhcyByZWdpc3RlcmVkIOKAlCB0aGUgcHJldmlvdXMgYGdldFZhbHVlcyguLi4pICE9PVxuICAvLyB1bmRlZmluZWRgIGhldXJpc3RpYyB3b3VsZCBzaWxlbnRseSBza2lwIHRob3NlLlxuICBjb25zdCBjb250cm9sID0gZm9ybS5jb250cm9sIGFzIHVua25vd24gYXMge1xuICAgIF9maWVsZHM/OiBSZWNvcmQ8c3RyaW5nLCB1bmtub3duPjtcbiAgICBfbmFtZXM/OiB7IG1vdW50PzogU2V0PHN0cmluZz4gfTtcbiAgfTtcbiAgY29uc3QgbW91bnRlZCA9IGNvbnRyb2wuX25hbWVzPy5tb3VudDtcbiAgY29uc3Qga25vd25CeU5hbWUgPSBtb3VudGVkIGluc3RhbmNlb2YgU2V0ICYmIG1vdW50ZWQuaGFzKGZpZWxkTmFtZSk7XG4gIGNvbnN0IGtub3duQnlGaWVsZHMgPVxuICAgICEhY29udHJvbC5fZmllbGRzICYmXG4gICAgT2JqZWN0LnByb3RvdHlwZS5oYXNPd25Qcm9wZXJ0eS5jYWxsKGNvbnRyb2wuX2ZpZWxkcywgZmllbGROYW1lLnNwbGl0KCcuJylbMF0pO1xuICBpZiAoIWtub3duQnlOYW1lICYmICFrbm93bkJ5RmllbGRzKSByZXR1cm4gZmFsc2U7XG5cbiAgZm9ybS5zZXRFcnJvcihmaWVsZE5hbWUsIHtcbiAgICB0eXBlOiAnc2VydmVyJyxcbiAgICBtZXNzYWdlOiBlcnJvci5tZXNzYWdlLFxuICB9KTtcbiAgLy8gRm9jdXMgdGhlIG9mZmVuZGVyIHNvIHRoZSByZWQgb3V0bGluZSBpcyBpbW1lZGlhdGVseSB2aXNpYmxlIG9uXG4gIC8vIHNtYWxsIHNjcmVlbnMgd2hlcmUgdGhlIGZpZWxkIG1heSBiZSBzY3JvbGxlZCBvZmYuXG4gIHRyeSB7XG4gICAgZm9ybS5zZXRGb2N1cyhmaWVsZE5hbWUpO1xuICB9IGNhdGNoIHtcbiAgICAvLyBzZXRGb2N1cyB0aHJvd3MgaWYgdGhlIGlucHV0IGlzIHVubW91bnRlZDsgc2lsZW50bHkgaWdub3JlLlxuICB9XG4gIHJldHVybiB0cnVlO1xufVxuIl0sInZlcnNpb24iOjN9

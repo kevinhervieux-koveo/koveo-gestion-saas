@@ -1,0 +1,12 @@
+d1e0ccf85f3f18544f4d3ae9929387b0
+const GoogleGenAI = jest.fn().mockImplementation(() => ({
+  models: {
+    generateContent: jest.fn().mockResolvedValue({
+      text: 'mocked response',
+    }),
+  },
+}));
+
+module.exports = {
+  GoogleGenAI,
+};

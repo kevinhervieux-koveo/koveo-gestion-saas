@@ -1,0 +1,59 @@
+44b74b21b95a2693f97c4844ea681701
+/**
+ * Polyfills for Node.js globals required for Jest when testing
+ * code that uses fetch (e.g., @neondatabase/serverless)
+ * 
+ * undici requires TextEncoder/TextDecoder to be set up first
+ */
+
+const { TextDecoder, TextEncoder } = require('node:util');
+const { ReadableStream, TransformStream } = require('node:stream/web');
+const { clearImmediate } = require('node:timers');
+const { PerformanceObserver, performance } = require('node:perf_hooks');
+
+// Mock MessagePort and MessageChannel to avoid open handles
+class MockMessagePort {
+  start() {}
+  close() {}
+  postMessage() {}
+  addEventListener() {}
+  removeEventListener() {}
+}
+
+class MockMessageChannel {
+  constructor() {
+    this.port1 = new MockMessagePort();
+    this.port2 = new MockMessagePort();
+  }
+}
+
+Object.defineProperties(globalThis, {
+  TextDecoder: { value: TextDecoder },
+  TextEncoder: { value: TextEncoder },
+  ReadableStream: { value: ReadableStream },
+  TransformStream: { value: TransformStream },
+  clearImmediate: { value: clearImmediate },
+  performance: { value: performance },
+  PerformanceObserver: { value: PerformanceObserver },
+  MessageChannel: { value: MockMessageChannel },
+  MessagePort: { value: MockMessagePort },
+});
+
+// Capture the real DATABASE_URL before jest.setup.simple.ts overwrites it with
+// the placeholder test URL. Behavioural integration tests that need a real
+// database connection (see tests/integration/user-residences-end-residency.test.ts)
+// restore process.env.DATABASE_URL from this captured value before importing
+// the db module. Other tests are unaffected.
+if (process.env.DATABASE_URL && !process.env._INTEGRATION_DB_URL) {
+  process.env._INTEGRATION_DB_URL = process.env.DATABASE_URL;
+}
+
+// Use cross-fetch for better JSDOM compatibility
+const fetch = require('cross-fetch');
+
+if (!globalThis.fetch) {
+  globalThis.fetch = fetch;
+  globalThis.Headers = fetch.Headers;
+  globalThis.Request = fetch.Request;
+  globalThis.Response = fetch.Response;
+}

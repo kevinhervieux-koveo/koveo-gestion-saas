@@ -1,0 +1,64 @@
+512bcf83260f314d4776445197c635c7
+"use strict";
+/**
+ * Utility functions for handling numeric inputs across the application
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.stripLeadingZeros = stripLeadingZeros;
+exports.normalizeMoney = normalizeMoney;
+exports.normalizePercentage = normalizePercentage;
+exports.formatDisplayNumber = formatDisplayNumber;
+/**
+ * Strips leading zeros from numeric string inputs
+ * Examples: "0123" -> "123", "00.45" -> "0.45", "000" -> "0"
+ */
+function stripLeadingZeros(value) {
+    if (!value || typeof value !== 'string')
+        return value || '';
+    // Handle empty or whitespace-only strings
+    if (value.trim() === '')
+        return '';
+    // Handle strings that are just zeros
+    if (/^0+$/.test(value))
+        return '0';
+    // Handle decimal numbers (preserve one zero before decimal point if needed)
+    if (value.includes('.')) {
+        const [integer, decimal] = value.split('.');
+        const strippedInteger = integer.replace(/^0+/, '') || '0';
+        return `${strippedInteger}.${decimal}`;
+    }
+    // Handle integer numbers (remove all leading zeros except the last one if all zeros)
+    return value.replace(/^0+/, '') || '0';
+}
+/**
+ * Normalizes money input strings by stripping leading zeros and ensuring proper decimal formatting
+ * Examples: "0123.45" -> "123.45", "000.00" -> "0.00"
+ */
+function normalizeMoney(value) {
+    if (!value || typeof value !== 'string')
+        return value || '';
+    const stripped = stripLeadingZeros(value);
+    // Ensure we don't have multiple decimal points
+    const parts = stripped.split('.');
+    if (parts.length > 2) {
+        return `${parts[0]}.${parts.slice(1).join('')}`;
+    }
+    return stripped;
+}
+/**
+ * Normalizes percentage input strings
+ * Examples: "0003.50" -> "3.50", "025.0" -> "25.0"
+ */
+function normalizePercentage(value) {
+    return stripLeadingZeros(value);
+}
+/**
+ * Formats a numeric value for display, removing unnecessary trailing zeros
+ * Examples: 123.00 -> "123", 123.45 -> "123.45"
+ */
+function formatDisplayNumber(value) {
+    if (value === 0)
+        return '0';
+    return value.toString().replace(/\.0+$/, '');
+}
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJmaWxlIjoiL2hvbWUvcnVubmVyL3dvcmtzcGFjZS9jbGllbnQvc3JjL3V0aWxzL251bWJlci50cyIsIm1hcHBpbmdzIjoiO0FBQUE7O0dBRUc7O0FBTUgsOENBa0JDO0FBTUQsd0NBWUM7QUFNRCxrREFFQztBQU1ELGtEQUdDO0FBekREOzs7R0FHRztBQUNILFNBQWdCLGlCQUFpQixDQUFDLEtBQWE7SUFDN0MsSUFBSSxDQUFDLEtBQUssSUFBSSxPQUFPLEtBQUssS0FBSyxRQUFRO1FBQUUsT0FBTyxLQUFLLElBQUksRUFBRSxDQUFDO0lBRTVELDBDQUEwQztJQUMxQyxJQUFJLEtBQUssQ0FBQyxJQUFJLEVBQUUsS0FBSyxFQUFFO1FBQUUsT0FBTyxFQUFFLENBQUM7SUFFbkMscUNBQXFDO0lBQ3JDLElBQUksTUFBTSxDQUFDLElBQUksQ0FBQyxLQUFLLENBQUM7UUFBRSxPQUFPLEdBQUcsQ0FBQztJQUVuQyw0RUFBNEU7SUFDNUUsSUFBSSxLQUFLLENBQUMsUUFBUSxDQUFDLEdBQUcsQ0FBQyxFQUFFLENBQUM7UUFDeEIsTUFBTSxDQUFDLE9BQU8sRUFBRSxPQUFPLENBQUMsR0FBRyxLQUFLLENBQUMsS0FBSyxDQUFDLEdBQUcsQ0FBQyxDQUFDO1FBQzVDLE1BQU0sZUFBZSxHQUFHLE9BQU8sQ0FBQyxPQUFPLENBQUMsS0FBSyxFQUFFLEVBQUUsQ0FBQyxJQUFJLEdBQUcsQ0FBQztRQUMxRCxPQUFPLEdBQUcsZUFBZSxJQUFJLE9BQU8sRUFBRSxDQUFDO0lBQ3pDLENBQUM7SUFFRCxxRkFBcUY7SUFDckYsT0FBTyxLQUFLLENBQUMsT0FBTyxDQUFDLEtBQUssRUFBRSxFQUFFLENBQUMsSUFBSSxHQUFHLENBQUM7QUFDekMsQ0FBQztBQUVEOzs7R0FHRztBQUNILFNBQWdCLGNBQWMsQ0FBQyxLQUFhO0lBQzFDLElBQUksQ0FBQyxLQUFLLElBQUksT0FBTyxLQUFLLEtBQUssUUFBUTtRQUFFLE9BQU8sS0FBSyxJQUFJLEVBQUUsQ0FBQztJQUU1RCxNQUFNLFFBQVEsR0FBRyxpQkFBaUIsQ0FBQyxLQUFLLENBQUMsQ0FBQztJQUUxQywrQ0FBK0M7SUFDL0MsTUFBTSxLQUFLLEdBQUcsUUFBUSxDQUFDLEtBQUssQ0FBQyxHQUFHLENBQUMsQ0FBQztJQUNsQyxJQUFJLEtBQUssQ0FBQyxNQUFNLEdBQUcsQ0FBQyxFQUFFLENBQUM7UUFDckIsT0FBTyxHQUFHLEtBQUssQ0FBQyxDQUFDLENBQUMsSUFBSSxLQUFLLENBQUMsS0FBSyxDQUFDLENBQUMsQ0FBQyxDQUFDLElBQUksQ0FBQyxFQUFFLENBQUMsRUFBRSxDQUFDO0lBQ2xELENBQUM7SUFFRCxPQUFPLFFBQVEsQ0FBQztBQUNsQixDQUFDO0FBRUQ7OztHQUdHO0FBQ0gsU0FBZ0IsbUJBQW1CLENBQUMsS0FBYTtJQUMvQyxPQUFPLGlCQUFpQixDQUFDLEtBQUssQ0FBQyxDQUFDO0FBQ2xDLENBQUM7QUFFRDs7O0dBR0c7QUFDSCxTQUFnQixtQkFBbUIsQ0FBQyxLQUFhO0lBQy9DLElBQUksS0FBSyxLQUFLLENBQUM7UUFBRSxPQUFPLEdBQUcsQ0FBQztJQUM1QixPQUFPLEtBQUssQ0FBQyxRQUFRLEVBQUUsQ0FBQyxPQUFPLENBQUMsT0FBTyxFQUFFLEVBQUUsQ0FBQyxDQUFDO0FBQy9DLENBQUMiLCJuYW1lcyI6W10sInNvdXJjZXMiOlsiL2hvbWUvcnVubmVyL3dvcmtzcGFjZS9jbGllbnQvc3JjL3V0aWxzL251bWJlci50cyJdLCJzb3VyY2VzQ29udGVudCI6WyIvKipcbiAqIFV0aWxpdHkgZnVuY3Rpb25zIGZvciBoYW5kbGluZyBudW1lcmljIGlucHV0cyBhY3Jvc3MgdGhlIGFwcGxpY2F0aW9uXG4gKi9cblxuLyoqXG4gKiBTdHJpcHMgbGVhZGluZyB6ZXJvcyBmcm9tIG51bWVyaWMgc3RyaW5nIGlucHV0c1xuICogRXhhbXBsZXM6IFwiMDEyM1wiIC0+IFwiMTIzXCIsIFwiMDAuNDVcIiAtPiBcIjAuNDVcIiwgXCIwMDBcIiAtPiBcIjBcIlxuICovXG5leHBvcnQgZnVuY3Rpb24gc3RyaXBMZWFkaW5nWmVyb3ModmFsdWU6IHN0cmluZyk6IHN0cmluZyB7XG4gIGlmICghdmFsdWUgfHwgdHlwZW9mIHZhbHVlICE9PSAnc3RyaW5nJykgcmV0dXJuIHZhbHVlIHx8ICcnO1xuICBcbiAgLy8gSGFuZGxlIGVtcHR5IG9yIHdoaXRlc3BhY2Utb25seSBzdHJpbmdzXG4gIGlmICh2YWx1ZS50cmltKCkgPT09ICcnKSByZXR1cm4gJyc7XG4gIFxuICAvLyBIYW5kbGUgc3RyaW5ncyB0aGF0IGFyZSBqdXN0IHplcm9zXG4gIGlmICgvXjArJC8udGVzdCh2YWx1ZSkpIHJldHVybiAnMCc7XG4gIFxuICAvLyBIYW5kbGUgZGVjaW1hbCBudW1iZXJzIChwcmVzZXJ2ZSBvbmUgemVybyBiZWZvcmUgZGVjaW1hbCBwb2ludCBpZiBuZWVkZWQpXG4gIGlmICh2YWx1ZS5pbmNsdWRlcygnLicpKSB7XG4gICAgY29uc3QgW2ludGVnZXIsIGRlY2ltYWxdID0gdmFsdWUuc3BsaXQoJy4nKTtcbiAgICBjb25zdCBzdHJpcHBlZEludGVnZXIgPSBpbnRlZ2VyLnJlcGxhY2UoL14wKy8sICcnKSB8fCAnMCc7XG4gICAgcmV0dXJuIGAke3N0cmlwcGVkSW50ZWdlcn0uJHtkZWNpbWFsfWA7XG4gIH1cbiAgXG4gIC8vIEhhbmRsZSBpbnRlZ2VyIG51bWJlcnMgKHJlbW92ZSBhbGwgbGVhZGluZyB6ZXJvcyBleGNlcHQgdGhlIGxhc3Qgb25lIGlmIGFsbCB6ZXJvcylcbiAgcmV0dXJuIHZhbHVlLnJlcGxhY2UoL14wKy8sICcnKSB8fCAnMCc7XG59XG5cbi8qKlxuICogTm9ybWFsaXplcyBtb25leSBpbnB1dCBzdHJpbmdzIGJ5IHN0cmlwcGluZyBsZWFkaW5nIHplcm9zIGFuZCBlbnN1cmluZyBwcm9wZXIgZGVjaW1hbCBmb3JtYXR0aW5nXG4gKiBFeGFtcGxlczogXCIwMTIzLjQ1XCIgLT4gXCIxMjMuNDVcIiwgXCIwMDAuMDBcIiAtPiBcIjAuMDBcIlxuICovXG5leHBvcnQgZnVuY3Rpb24gbm9ybWFsaXplTW9uZXkodmFsdWU6IHN0cmluZyk6IHN0cmluZyB7XG4gIGlmICghdmFsdWUgfHwgdHlwZW9mIHZhbHVlICE9PSAnc3RyaW5nJykgcmV0dXJuIHZhbHVlIHx8ICcnO1xuICBcbiAgY29uc3Qgc3RyaXBwZWQgPSBzdHJpcExlYWRpbmdaZXJvcyh2YWx1ZSk7XG4gIFxuICAvLyBFbnN1cmUgd2UgZG9uJ3QgaGF2ZSBtdWx0aXBsZSBkZWNpbWFsIHBvaW50c1xuICBjb25zdCBwYXJ0cyA9IHN0cmlwcGVkLnNwbGl0KCcuJyk7XG4gIGlmIChwYXJ0cy5sZW5ndGggPiAyKSB7XG4gICAgcmV0dXJuIGAke3BhcnRzWzBdfS4ke3BhcnRzLnNsaWNlKDEpLmpvaW4oJycpfWA7XG4gIH1cbiAgXG4gIHJldHVybiBzdHJpcHBlZDtcbn1cblxuLyoqXG4gKiBOb3JtYWxpemVzIHBlcmNlbnRhZ2UgaW5wdXQgc3RyaW5nc1xuICogRXhhbXBsZXM6IFwiMDAwMy41MFwiIC0+IFwiMy41MFwiLCBcIjAyNS4wXCIgLT4gXCIyNS4wXCJcbiAqL1xuZXhwb3J0IGZ1bmN0aW9uIG5vcm1hbGl6ZVBlcmNlbnRhZ2UodmFsdWU6IHN0cmluZyk6IHN0cmluZyB7XG4gIHJldHVybiBzdHJpcExlYWRpbmdaZXJvcyh2YWx1ZSk7XG59XG5cbi8qKlxuICogRm9ybWF0cyBhIG51bWVyaWMgdmFsdWUgZm9yIGRpc3BsYXksIHJlbW92aW5nIHVubmVjZXNzYXJ5IHRyYWlsaW5nIHplcm9zXG4gKiBFeGFtcGxlczogMTIzLjAwIC0+IFwiMTIzXCIsIDEyMy40NSAtPiBcIjEyMy40NVwiXG4gKi9cbmV4cG9ydCBmdW5jdGlvbiBmb3JtYXREaXNwbGF5TnVtYmVyKHZhbHVlOiBudW1iZXIpOiBzdHJpbmcge1xuICBpZiAodmFsdWUgPT09IDApIHJldHVybiAnMCc7XG4gIHJldHVybiB2YWx1ZS50b1N0cmluZygpLnJlcGxhY2UoL1xcLjArJC8sICcnKTtcbn0iXSwidmVyc2lvbiI6M30=

@@ -1,0 +1,11 @@
+2114872efb811395592cd3e8d5cfc653
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.InvoiceCard = exports.InvoiceForm = void 0;
+// Modern invoice management components using the new modular document management structure
+// Re-export InvoiceForm from the consolidated invoices component
+var InvoiceForm_1 = require("../invoices/InvoiceForm");
+Object.defineProperty(exports, "InvoiceForm", { enumerable: true, get: function () { return InvoiceForm_1.InvoiceForm; } });
+var InvoiceCard_1 = require("./InvoiceCard");
+Object.defineProperty(exports, "InvoiceCard", { enumerable: true, get: function () { return InvoiceCard_1.InvoiceCard; } });
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJmaWxlIjoiL2hvbWUvcnVubmVyL3dvcmtzcGFjZS9jbGllbnQvc3JjL2NvbXBvbmVudHMvaW52b2ljZS1tYW5hZ2VtZW50L2luZGV4LnRzIiwibWFwcGluZ3MiOiI7OztBQUFBLDJGQUEyRjtBQUMzRixpRUFBaUU7QUFDakUsdURBQXNEO0FBQTdDLDBHQUFBLFdBQVcsT0FBQTtBQUNwQiw2Q0FBNEM7QUFBbkMsMEdBQUEsV0FBVyxPQUFBIiwibmFtZXMiOltdLCJzb3VyY2VzIjpbIi9ob21lL3J1bm5lci93b3Jrc3BhY2UvY2xpZW50L3NyYy9jb21wb25lbnRzL2ludm9pY2UtbWFuYWdlbWVudC9pbmRleC50cyJdLCJzb3VyY2VzQ29udGVudCI6WyIvLyBNb2Rlcm4gaW52b2ljZSBtYW5hZ2VtZW50IGNvbXBvbmVudHMgdXNpbmcgdGhlIG5ldyBtb2R1bGFyIGRvY3VtZW50IG1hbmFnZW1lbnQgc3RydWN0dXJlXG4vLyBSZS1leHBvcnQgSW52b2ljZUZvcm0gZnJvbSB0aGUgY29uc29saWRhdGVkIGludm9pY2VzIGNvbXBvbmVudFxuZXhwb3J0IHsgSW52b2ljZUZvcm0gfSBmcm9tICcuLi9pbnZvaWNlcy9JbnZvaWNlRm9ybSc7XG5leHBvcnQgeyBJbnZvaWNlQ2FyZCB9IGZyb20gJy4vSW52b2ljZUNhcmQnOyJdLCJ2ZXJzaW9uIjozfQ==

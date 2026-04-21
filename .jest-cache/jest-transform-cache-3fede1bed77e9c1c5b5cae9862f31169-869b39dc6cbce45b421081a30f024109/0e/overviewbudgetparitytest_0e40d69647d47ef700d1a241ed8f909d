@@ -1,0 +1,125 @@
+c0a69a8ce14c0ff7a3246a96b2d35dec
+"use strict";
+/**
+ * @file Overview vs Budget page parity tests
+ * @description Locks in that the Overview page (`client/src/pages/dashboard/overview.tsx`)
+ * and the Budget page (`client/src/pages/manager/budget/index.tsx`) hand
+ * the SAME forecast request body to `POST /api/budgets/:buildingId/forecast`
+ * when both land on a given building in their default state.
+ *
+ * The original bug: Overview hardcoded `capitalInvestmentMode: 'custom'`
+ * while the Budget page defaulted to `'suggested'`. In `'suggested'` mode
+ * the backend auto-injects capital to keep the running balance above the
+ * minimum requirement, which made the same building show different
+ * starting balances on the two pages (e.g. $146,308.22 on Overview vs
+ * $153,656.96 on Budget for 2026-02). Both pages must default to the same
+ * mode and the same start window, otherwise the running totals diverge.
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+const globals_1 = require("@jest/globals");
+const forecast_request_1 = require("../../../client/src/lib/forecast-request");
+const sampleBuildingConfig = {
+    bankAccountStartAmount: 150000,
+    bankAccountMinimums: 17158,
+    generalInflationRate: 0.02,
+    revenueInflationRate: 0.025,
+    financialYearStart: '2026-02-01',
+    emergencyFundMinimum: 10000,
+    operatingCashMinimum: 7158,
+    customBankFields: {},
+};
+const sampleProjectIds = ['proj-roof-2026'];
+/**
+ * Mirror what the Overview page builds in its forecast effect.
+ */
+function buildOverviewBody(opts) {
+    const derivedFiscalMonth = (0, forecast_request_1.deriveStartMonthFromFiscalYearStart)(sampleBuildingConfig.financialYearStart);
+    return (0, forecast_request_1.buildForecastRequestBody)({
+        bankAccountConfig: sampleBuildingConfig,
+        capitalInvestmentMode: 'custom',
+        filters: {
+            viewType: 'month',
+            periodLength: 12,
+            startMonth: derivedFiscalMonth,
+            startYear: opts.startYear,
+        },
+        projectIds: sampleProjectIds,
+        customRevenueLines: [],
+        punctualRevenueGrowth: [],
+    });
+}
+/**
+ * Mirror what the Budget page builds in its forecast effect, AFTER the
+ * default-mode fix and after the financial-year initialisation effect has
+ * snapped startMonth/startYear to the building's fiscal year (the
+ * page-level behaviour exercised in production).
+ */
+function buildBudgetBody(opts) {
+    const derivedFiscalMonth = (0, forecast_request_1.deriveStartMonthFromFiscalYearStart)(sampleBuildingConfig.financialYearStart);
+    return (0, forecast_request_1.buildForecastRequestBody)({
+        bankAccountConfig: sampleBuildingConfig,
+        capitalInvestmentMode: opts.capitalInvestmentMode ?? 'custom',
+        filters: {
+            viewType: 'month',
+            periodLength: 12,
+            startMonth: derivedFiscalMonth,
+            startYear: opts.startYear,
+        },
+        projectIds: sampleProjectIds,
+        customRevenueLines: [],
+        punctualRevenueGrowth: [],
+    });
+}
+(0, globals_1.describe)('Overview vs Budget forecast request parity', () => {
+    (0, globals_1.it)('both pages produce the SAME default request body for the same building', () => {
+        const overview = buildOverviewBody({ startYear: 2026 });
+        const budget = buildBudgetBody({ startYear: 2026 });
+        // Identical mode is the headline regression: prior to the fix, Budget
+        // defaulted to 'suggested' which caused the backend to auto-inject
+        // capital and inflated every subsequent month's balance.
+        (0, globals_1.expect)(budget.capitalInvestmentMode).toBe('custom');
+        (0, globals_1.expect)(overview.capitalInvestmentMode).toBe('custom');
+        (0, globals_1.expect)(budget.capitalInvestmentMode).toBe(overview.capitalInvestmentMode);
+        // Start window must agree period-by-period so the running balance the
+        // backend computes lands on the same calendar month in both pages.
+        (0, globals_1.expect)(budget.startMonth).toBe(overview.startMonth);
+        (0, globals_1.expect)(budget.startYear).toBe(overview.startYear);
+        (0, globals_1.expect)(budget.viewType).toBe(overview.viewType);
+        (0, globals_1.expect)(budget.periodLength).toBe(overview.periodLength);
+        // Bank account inputs (which drive starting balance, minimums and
+        // inflation) must also match.
+        (0, globals_1.expect)(budget.bankAccountStartAmount).toBe(overview.bankAccountStartAmount);
+        (0, globals_1.expect)(budget.bankAccountMinimums).toBe(overview.bankAccountMinimums);
+        (0, globals_1.expect)(budget.emergencyFundMinimum).toBe(overview.emergencyFundMinimum);
+        (0, globals_1.expect)(budget.operatingCashMinimum).toBe(overview.operatingCashMinimum);
+        (0, globals_1.expect)(budget.generalInflationRate).toBe(overview.generalInflationRate);
+        (0, globals_1.expect)(budget.revenueInflationRate).toBe(overview.revenueInflationRate);
+        // Project scoping must be identical.
+        (0, globals_1.expect)(budget.projectIds).toEqual(overview.projectIds);
+    });
+    (0, globals_1.it)('Budget startMonth defaults to the fiscal-year month derived from financialYearStart', () => {
+        const overview = buildOverviewBody({ startYear: 2026 });
+        const budget = buildBudgetBody({ startYear: 2026 });
+        // financialYearStart = '2026-02-01' → month 2.
+        (0, globals_1.expect)(overview.startMonth).toBe(2);
+        (0, globals_1.expect)(budget.startMonth).toBe(2);
+    });
+    (0, globals_1.it)('switching Budget to "suggested" mode produces a visibly different request body', () => {
+        const defaultBody = buildBudgetBody({ startYear: 2026 });
+        const suggestedBody = buildBudgetBody({
+            startYear: 2026,
+            capitalInvestmentMode: 'suggested',
+        });
+        (0, globals_1.expect)(defaultBody.capitalInvestmentMode).toBe('custom');
+        (0, globals_1.expect)(suggestedBody.capitalInvestmentMode).toBe('suggested');
+        (0, globals_1.expect)(defaultBody.capitalInvestmentMode).not.toBe(suggestedBody.capitalInvestmentMode);
+    });
+    (0, globals_1.it)('switching Budget to "urgent" mode also opts out of the shared default', () => {
+        const urgentBody = buildBudgetBody({
+            startYear: 2026,
+            capitalInvestmentMode: 'urgent',
+        });
+        (0, globals_1.expect)(urgentBody.capitalInvestmentMode).toBe('urgent');
+    });
+});
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJmaWxlIjoiL2hvbWUvcnVubmVyL3dvcmtzcGFjZS90ZXN0cy91bml0L2J1ZGdldC9vdmVydmlldy1idWRnZXQtcGFyaXR5LnRlc3QudHMiLCJtYXBwaW5ncyI6IjtBQUFBOzs7Ozs7Ozs7Ozs7OztHQWNHOztBQUVILDJDQUFxRDtBQUNyRCwrRUFHa0Q7QUFFbEQsTUFBTSxvQkFBb0IsR0FBRztJQUMzQixzQkFBc0IsRUFBRSxNQUFNO0lBQzlCLG1CQUFtQixFQUFFLEtBQUs7SUFDMUIsb0JBQW9CLEVBQUUsSUFBSTtJQUMxQixvQkFBb0IsRUFBRSxLQUFLO0lBQzNCLGtCQUFrQixFQUFFLFlBQVk7SUFDaEMsb0JBQW9CLEVBQUUsS0FBSztJQUMzQixvQkFBb0IsRUFBRSxJQUFJO0lBQzFCLGdCQUFnQixFQUFFLEVBQUU7Q0FDckIsQ0FBQztBQUVGLE1BQU0sZ0JBQWdCLEdBQUcsQ0FBQyxnQkFBZ0IsQ0FBQyxDQUFDO0FBRTVDOztHQUVHO0FBQ0gsU0FBUyxpQkFBaUIsQ0FBQyxJQUEyQjtJQUNwRCxNQUFNLGtCQUFrQixHQUFHLElBQUEsc0RBQW1DLEVBQzVELG9CQUFvQixDQUFDLGtCQUFrQixDQUN4QyxDQUFDO0lBQ0YsT0FBTyxJQUFBLDJDQUF3QixFQUFDO1FBQzlCLGlCQUFpQixFQUFFLG9CQUFvQjtRQUN2QyxxQkFBcUIsRUFBRSxRQUFRO1FBQy9CLE9BQU8sRUFBRTtZQUNQLFFBQVEsRUFBRSxPQUFPO1lBQ2pCLFlBQVksRUFBRSxFQUFFO1lBQ2hCLFVBQVUsRUFBRSxrQkFBa0I7WUFDOUIsU0FBUyxFQUFFLElBQUksQ0FBQyxTQUFTO1NBQzFCO1FBQ0QsVUFBVSxFQUFFLGdCQUFnQjtRQUM1QixrQkFBa0IsRUFBRSxFQUFFO1FBQ3RCLHFCQUFxQixFQUFFLEVBQUU7S0FDMUIsQ0FBQyxDQUFDO0FBQ0wsQ0FBQztBQUVEOzs7OztHQUtHO0FBQ0gsU0FBUyxlQUFlLENBQUMsSUFHeEI7SUFDQyxNQUFNLGtCQUFrQixHQUFHLElBQUEsc0RBQW1DLEVBQzVELG9CQUFvQixDQUFDLGtCQUFrQixDQUN4QyxDQUFDO0lBQ0YsT0FBTyxJQUFBLDJDQUF3QixFQUFDO1FBQzlCLGlCQUFpQixFQUFFLG9CQUFvQjtRQUN2QyxxQkFBcUIsRUFBRSxJQUFJLENBQUMscUJBQXFCLElBQUksUUFBUTtRQUM3RCxPQUFPLEVBQUU7WUFDUCxRQUFRLEVBQUUsT0FBTztZQUNqQixZQUFZLEVBQUUsRUFBRTtZQUNoQixVQUFVLEVBQUUsa0JBQWtCO1lBQzlCLFNBQVMsRUFBRSxJQUFJLENBQUMsU0FBUztTQUMxQjtRQUNELFVBQVUsRUFBRSxnQkFBZ0I7UUFDNUIsa0JBQWtCLEVBQUUsRUFBRTtRQUN0QixxQkFBcUIsRUFBRSxFQUFFO0tBQzFCLENBQUMsQ0FBQztBQUNMLENBQUM7QUFFRCxJQUFBLGtCQUFRLEVBQUMsNENBQTRDLEVBQUUsR0FBRyxFQUFFO0lBQzFELElBQUEsWUFBRSxFQUFDLHdFQUF3RSxFQUFFLEdBQUcsRUFBRTtRQUNoRixNQUFNLFFBQVEsR0FBRyxpQkFBaUIsQ0FBQyxFQUFFLFNBQVMsRUFBRSxJQUFJLEVBQUUsQ0FBQyxDQUFDO1FBQ3hELE1BQU0sTUFBTSxHQUFHLGVBQWUsQ0FBQyxFQUFFLFNBQVMsRUFBRSxJQUFJLEVBQUUsQ0FBQyxDQUFDO1FBRXBELHNFQUFzRTtRQUN0RSxtRUFBbUU7UUFDbkUseURBQXlEO1FBQ3pELElBQUEsZ0JBQU0sRUFBQyxNQUFNLENBQUMscUJBQXFCLENBQUMsQ0FBQyxJQUFJLENBQUMsUUFBUSxDQUFDLENBQUM7UUFDcEQsSUFBQSxnQkFBTSxFQUFDLFFBQVEsQ0FBQyxxQkFBcUIsQ0FBQyxDQUFDLElBQUksQ0FBQyxRQUFRLENBQUMsQ0FBQztRQUN0RCxJQUFBLGdCQUFNLEVBQUMsTUFBTSxDQUFDLHFCQUFxQixDQUFDLENBQUMsSUFBSSxDQUFDLFFBQVEsQ0FBQyxxQkFBcUIsQ0FBQyxDQUFDO1FBRTFFLHNFQUFzRTtRQUN0RSxtRUFBbUU7UUFDbkUsSUFBQSxnQkFBTSxFQUFDLE1BQU0sQ0FBQyxVQUFVLENBQUMsQ0FBQyxJQUFJLENBQUMsUUFBUSxDQUFDLFVBQVUsQ0FBQyxDQUFDO1FBQ3BELElBQUEsZ0JBQU0sRUFBQyxNQUFNLENBQUMsU0FBUyxDQUFDLENBQUMsSUFBSSxDQUFDLFFBQVEsQ0FBQyxTQUFTLENBQUMsQ0FBQztRQUNsRCxJQUFBLGdCQUFNLEVBQUMsTUFBTSxDQUFDLFFBQVEsQ0FBQyxDQUFDLElBQUksQ0FBQyxRQUFRLENBQUMsUUFBUSxDQUFDLENBQUM7UUFDaEQsSUFBQSxnQkFBTSxFQUFDLE1BQU0sQ0FBQyxZQUFZLENBQUMsQ0FBQyxJQUFJLENBQUMsUUFBUSxDQUFDLFlBQVksQ0FBQyxDQUFDO1FBRXhELGtFQUFrRTtRQUNsRSw4QkFBOEI7UUFDOUIsSUFBQSxnQkFBTSxFQUFDLE1BQU0sQ0FBQyxzQkFBc0IsQ0FBQyxDQUFDLElBQUksQ0FBQyxRQUFRLENBQUMsc0JBQXNCLENBQUMsQ0FBQztRQUM1RSxJQUFBLGdCQUFNLEVBQUMsTUFBTSxDQUFDLG1CQUFtQixDQUFDLENBQUMsSUFBSSxDQUFDLFFBQVEsQ0FBQyxtQkFBbUIsQ0FBQyxDQUFDO1FBQ3RFLElBQUEsZ0JBQU0sRUFBQyxNQUFNLENBQUMsb0JBQW9CLENBQUMsQ0FBQyxJQUFJLENBQUMsUUFBUSxDQUFDLG9CQUFvQixDQUFDLENBQUM7UUFDeEUsSUFBQSxnQkFBTSxFQUFDLE1BQU0sQ0FBQyxvQkFBb0IsQ0FBQyxDQUFDLElBQUksQ0FBQyxRQUFRLENBQUMsb0JBQW9CLENBQUMsQ0FBQztRQUN4RSxJQUFBLGdCQUFNLEVBQUMsTUFBTSxDQUFDLG9CQUFvQixDQUFDLENBQUMsSUFBSSxDQUFDLFFBQVEsQ0FBQyxvQkFBb0IsQ0FBQyxDQUFDO1FBQ3hFLElBQUEsZ0JBQU0sRUFBQyxNQUFNLENBQUMsb0JBQW9CLENBQUMsQ0FBQyxJQUFJLENBQUMsUUFBUSxDQUFDLG9CQUFvQixDQUFDLENBQUM7UUFFeEUscUNBQXFDO1FBQ3JDLElBQUEsZ0JBQU0sRUFBQyxNQUFNLENBQUMsVUFBVSxDQUFDLENBQUMsT0FBTyxDQUFDLFFBQVEsQ0FBQyxVQUFVLENBQUMsQ0FBQztJQUN6RCxDQUFDLENBQUMsQ0FBQztJQUVILElBQUEsWUFBRSxFQUFDLHFGQUFxRixFQUFFLEdBQUcsRUFBRTtRQUM3RixNQUFNLFFBQVEsR0FBRyxpQkFBaUIsQ0FBQyxFQUFFLFNBQVMsRUFBRSxJQUFJLEVBQUUsQ0FBQyxDQUFDO1FBQ3hELE1BQU0sTUFBTSxHQUFHLGVBQWUsQ0FBQyxFQUFFLFNBQVMsRUFBRSxJQUFJLEVBQUUsQ0FBQyxDQUFDO1FBQ3BELCtDQUErQztRQUMvQyxJQUFBLGdCQUFNLEVBQUMsUUFBUSxDQUFDLFVBQVUsQ0FBQyxDQUFDLElBQUksQ0FBQyxDQUFDLENBQUMsQ0FBQztRQUNwQyxJQUFBLGdCQUFNLEVBQUMsTUFBTSxDQUFDLFVBQVUsQ0FBQyxDQUFDLElBQUksQ0FBQyxDQUFDLENBQUMsQ0FBQztJQUNwQyxDQUFDLENBQUMsQ0FBQztJQUVILElBQUEsWUFBRSxFQUFDLGdGQUFnRixFQUFFLEdBQUcsRUFBRTtRQUN4RixNQUFNLFdBQVcsR0FBRyxlQUFlLENBQUMsRUFBRSxTQUFTLEVBQUUsSUFBSSxFQUFFLENBQUMsQ0FBQztRQUN6RCxNQUFNLGFBQWEsR0FBRyxlQUFlLENBQUM7WUFDcEMsU0FBUyxFQUFFLElBQUk7WUFDZixxQkFBcUIsRUFBRSxXQUFXO1NBQ25DLENBQUMsQ0FBQztRQUVILElBQUEsZ0JBQU0sRUFBQyxXQUFXLENBQUMscUJBQXFCLENBQUMsQ0FBQyxJQUFJLENBQUMsUUFBUSxDQUFDLENBQUM7UUFDekQsSUFBQSxnQkFBTSxFQUFDLGFBQWEsQ0FBQyxxQkFBcUIsQ0FBQyxDQUFDLElBQUksQ0FBQyxXQUFXLENBQUMsQ0FBQztRQUM5RCxJQUFBLGdCQUFNLEVBQUMsV0FBVyxDQUFDLHFCQUFxQixDQUFDLENBQUMsR0FBRyxDQUFDLElBQUksQ0FDaEQsYUFBYSxDQUFDLHFCQUFxQixDQUNwQyxDQUFDO0lBQ0osQ0FBQyxDQUFDLENBQUM7SUFFSCxJQUFBLFlBQUUsRUFBQyx1RUFBdUUsRUFBRSxHQUFHLEVBQUU7UUFDL0UsTUFBTSxVQUFVLEdBQUcsZUFBZSxDQUFDO1lBQ2pDLFNBQVMsRUFBRSxJQUFJO1lBQ2YscUJBQXFCLEVBQUUsUUFBUTtTQUNoQyxDQUFDLENBQUM7UUFDSCxJQUFBLGdCQUFNLEVBQUMsVUFBVSxDQUFDLHFCQUFxQixDQUFDLENBQUMsSUFBSSxDQUFDLFFBQVEsQ0FBQyxDQUFDO0lBQzFELENBQUMsQ0FBQyxDQUFDO0FBQ0wsQ0FBQyxDQUFDLENBQUMiLCJuYW1lcyI6W10sInNvdXJjZXMiOlsiL2hvbWUvcnVubmVyL3dvcmtzcGFjZS90ZXN0cy91bml0L2J1ZGdldC9vdmVydmlldy1idWRnZXQtcGFyaXR5LnRlc3QudHMiXSwic291cmNlc0NvbnRlbnQiOlsiLyoqXG4gKiBAZmlsZSBPdmVydmlldyB2cyBCdWRnZXQgcGFnZSBwYXJpdHkgdGVzdHNcbiAqIEBkZXNjcmlwdGlvbiBMb2NrcyBpbiB0aGF0IHRoZSBPdmVydmlldyBwYWdlIChgY2xpZW50L3NyYy9wYWdlcy9kYXNoYm9hcmQvb3ZlcnZpZXcudHN4YClcbiAqIGFuZCB0aGUgQnVkZ2V0IHBhZ2UgKGBjbGllbnQvc3JjL3BhZ2VzL21hbmFnZXIvYnVkZ2V0L2luZGV4LnRzeGApIGhhbmRcbiAqIHRoZSBTQU1FIGZvcmVjYXN0IHJlcXVlc3QgYm9keSB0byBgUE9TVCAvYXBpL2J1ZGdldHMvOmJ1aWxkaW5nSWQvZm9yZWNhc3RgXG4gKiB3aGVuIGJvdGggbGFuZCBvbiBhIGdpdmVuIGJ1aWxkaW5nIGluIHRoZWlyIGRlZmF1bHQgc3RhdGUuXG4gKlxuICogVGhlIG9yaWdpbmFsIGJ1ZzogT3ZlcnZpZXcgaGFyZGNvZGVkIGBjYXBpdGFsSW52ZXN0bWVudE1vZGU6ICdjdXN0b20nYFxuICogd2hpbGUgdGhlIEJ1ZGdldCBwYWdlIGRlZmF1bHRlZCB0byBgJ3N1Z2dlc3RlZCdgLiBJbiBgJ3N1Z2dlc3RlZCdgIG1vZGVcbiAqIHRoZSBiYWNrZW5kIGF1dG8taW5qZWN0cyBjYXBpdGFsIHRvIGtlZXAgdGhlIHJ1bm5pbmcgYmFsYW5jZSBhYm92ZSB0aGVcbiAqIG1pbmltdW0gcmVxdWlyZW1lbnQsIHdoaWNoIG1hZGUgdGhlIHNhbWUgYnVpbGRpbmcgc2hvdyBkaWZmZXJlbnRcbiAqIHN0YXJ0aW5nIGJhbGFuY2VzIG9uIHRoZSB0d28gcGFnZXMgKGUuZy4gJDE0NiwzMDguMjIgb24gT3ZlcnZpZXcgdnNcbiAqICQxNTMsNjU2Ljk2IG9uIEJ1ZGdldCBmb3IgMjAyNi0wMikuIEJvdGggcGFnZXMgbXVzdCBkZWZhdWx0IHRvIHRoZSBzYW1lXG4gKiBtb2RlIGFuZCB0aGUgc2FtZSBzdGFydCB3aW5kb3csIG90aGVyd2lzZSB0aGUgcnVubmluZyB0b3RhbHMgZGl2ZXJnZS5cbiAqL1xuXG5pbXBvcnQgeyBkZXNjcmliZSwgaXQsIGV4cGVjdCB9IGZyb20gJ0BqZXN0L2dsb2JhbHMnO1xuaW1wb3J0IHtcbiAgYnVpbGRGb3JlY2FzdFJlcXVlc3RCb2R5LFxuICBkZXJpdmVTdGFydE1vbnRoRnJvbUZpc2NhbFllYXJTdGFydCxcbn0gZnJvbSAnLi4vLi4vLi4vY2xpZW50L3NyYy9saWIvZm9yZWNhc3QtcmVxdWVzdCc7XG5cbmNvbnN0IHNhbXBsZUJ1aWxkaW5nQ29uZmlnID0ge1xuICBiYW5rQWNjb3VudFN0YXJ0QW1vdW50OiAxNTAwMDAsXG4gIGJhbmtBY2NvdW50TWluaW11bXM6IDE3MTU4LFxuICBnZW5lcmFsSW5mbGF0aW9uUmF0ZTogMC4wMixcbiAgcmV2ZW51ZUluZmxhdGlvblJhdGU6IDAuMDI1LFxuICBmaW5hbmNpYWxZZWFyU3RhcnQ6ICcyMDI2LTAyLTAxJyxcbiAgZW1lcmdlbmN5RnVuZE1pbmltdW06IDEwMDAwLFxuICBvcGVyYXRpbmdDYXNoTWluaW11bTogNzE1OCxcbiAgY3VzdG9tQmFua0ZpZWxkczoge30sXG59O1xuXG5jb25zdCBzYW1wbGVQcm9qZWN0SWRzID0gWydwcm9qLXJvb2YtMjAyNiddO1xuXG4vKipcbiAqIE1pcnJvciB3aGF0IHRoZSBPdmVydmlldyBwYWdlIGJ1aWxkcyBpbiBpdHMgZm9yZWNhc3QgZWZmZWN0LlxuICovXG5mdW5jdGlvbiBidWlsZE92ZXJ2aWV3Qm9keShvcHRzOiB7IHN0YXJ0WWVhcjogbnVtYmVyIH0pOiBSZWNvcmQ8c3RyaW5nLCB1bmtub3duPiB7XG4gIGNvbnN0IGRlcml2ZWRGaXNjYWxNb250aCA9IGRlcml2ZVN0YXJ0TW9udGhGcm9tRmlzY2FsWWVhclN0YXJ0KFxuICAgIHNhbXBsZUJ1aWxkaW5nQ29uZmlnLmZpbmFuY2lhbFllYXJTdGFydFxuICApO1xuICByZXR1cm4gYnVpbGRGb3JlY2FzdFJlcXVlc3RCb2R5KHtcbiAgICBiYW5rQWNjb3VudENvbmZpZzogc2FtcGxlQnVpbGRpbmdDb25maWcsXG4gICAgY2FwaXRhbEludmVzdG1lbnRNb2RlOiAnY3VzdG9tJyxcbiAgICBmaWx0ZXJzOiB7XG4gICAgICB2aWV3VHlwZTogJ21vbnRoJyxcbiAgICAgIHBlcmlvZExlbmd0aDogMTIsXG4gICAgICBzdGFydE1vbnRoOiBkZXJpdmVkRmlzY2FsTW9udGgsXG4gICAgICBzdGFydFllYXI6IG9wdHMuc3RhcnRZZWFyLFxuICAgIH0sXG4gICAgcHJvamVjdElkczogc2FtcGxlUHJvamVjdElkcyxcbiAgICBjdXN0b21SZXZlbnVlTGluZXM6IFtdLFxuICAgIHB1bmN0dWFsUmV2ZW51ZUdyb3d0aDogW10sXG4gIH0pO1xufVxuXG4vKipcbiAqIE1pcnJvciB3aGF0IHRoZSBCdWRnZXQgcGFnZSBidWlsZHMgaW4gaXRzIGZvcmVjYXN0IGVmZmVjdCwgQUZURVIgdGhlXG4gKiBkZWZhdWx0LW1vZGUgZml4IGFuZCBhZnRlciB0aGUgZmluYW5jaWFsLXllYXIgaW5pdGlhbGlzYXRpb24gZWZmZWN0IGhhc1xuICogc25hcHBlZCBzdGFydE1vbnRoL3N0YXJ0WWVhciB0byB0aGUgYnVpbGRpbmcncyBmaXNjYWwgeWVhciAodGhlXG4gKiBwYWdlLWxldmVsIGJlaGF2aW91ciBleGVyY2lzZWQgaW4gcHJvZHVjdGlvbikuXG4gKi9cbmZ1bmN0aW9uIGJ1aWxkQnVkZ2V0Qm9keShvcHRzOiB7XG4gIHN0YXJ0WWVhcjogbnVtYmVyO1xuICBjYXBpdGFsSW52ZXN0bWVudE1vZGU/OiAndXJnZW50JyB8ICdzdWdnZXN0ZWQnIHwgJ2N1c3RvbSc7XG59KTogUmVjb3JkPHN0cmluZywgdW5rbm93bj4ge1xuICBjb25zdCBkZXJpdmVkRmlzY2FsTW9udGggPSBkZXJpdmVTdGFydE1vbnRoRnJvbUZpc2NhbFllYXJTdGFydChcbiAgICBzYW1wbGVCdWlsZGluZ0NvbmZpZy5maW5hbmNpYWxZZWFyU3RhcnRcbiAgKTtcbiAgcmV0dXJuIGJ1aWxkRm9yZWNhc3RSZXF1ZXN0Qm9keSh7XG4gICAgYmFua0FjY291bnRDb25maWc6IHNhbXBsZUJ1aWxkaW5nQ29uZmlnLFxuICAgIGNhcGl0YWxJbnZlc3RtZW50TW9kZTogb3B0cy5jYXBpdGFsSW52ZXN0bWVudE1vZGUgPz8gJ2N1c3RvbScsXG4gICAgZmlsdGVyczoge1xuICAgICAgdmlld1R5cGU6ICdtb250aCcsXG4gICAgICBwZXJpb2RMZW5ndGg6IDEyLFxuICAgICAgc3RhcnRNb250aDogZGVyaXZlZEZpc2NhbE1vbnRoLFxuICAgICAgc3RhcnRZZWFyOiBvcHRzLnN0YXJ0WWVhcixcbiAgICB9LFxuICAgIHByb2plY3RJZHM6IHNhbXBsZVByb2plY3RJZHMsXG4gICAgY3VzdG9tUmV2ZW51ZUxpbmVzOiBbXSxcbiAgICBwdW5jdHVhbFJldmVudWVHcm93dGg6IFtdLFxuICB9KTtcbn1cblxuZGVzY3JpYmUoJ092ZXJ2aWV3IHZzIEJ1ZGdldCBmb3JlY2FzdCByZXF1ZXN0IHBhcml0eScsICgpID0+IHtcbiAgaXQoJ2JvdGggcGFnZXMgcHJvZHVjZSB0aGUgU0FNRSBkZWZhdWx0IHJlcXVlc3QgYm9keSBmb3IgdGhlIHNhbWUgYnVpbGRpbmcnLCAoKSA9PiB7XG4gICAgY29uc3Qgb3ZlcnZpZXcgPSBidWlsZE92ZXJ2aWV3Qm9keSh7IHN0YXJ0WWVhcjogMjAyNiB9KTtcbiAgICBjb25zdCBidWRnZXQgPSBidWlsZEJ1ZGdldEJvZHkoeyBzdGFydFllYXI6IDIwMjYgfSk7XG5cbiAgICAvLyBJZGVudGljYWwgbW9kZSBpcyB0aGUgaGVhZGxpbmUgcmVncmVzc2lvbjogcHJpb3IgdG8gdGhlIGZpeCwgQnVkZ2V0XG4gICAgLy8gZGVmYXVsdGVkIHRvICdzdWdnZXN0ZWQnIHdoaWNoIGNhdXNlZCB0aGUgYmFja2VuZCB0byBhdXRvLWluamVjdFxuICAgIC8vIGNhcGl0YWwgYW5kIGluZmxhdGVkIGV2ZXJ5IHN1YnNlcXVlbnQgbW9udGgncyBiYWxhbmNlLlxuICAgIGV4cGVjdChidWRnZXQuY2FwaXRhbEludmVzdG1lbnRNb2RlKS50b0JlKCdjdXN0b20nKTtcbiAgICBleHBlY3Qob3ZlcnZpZXcuY2FwaXRhbEludmVzdG1lbnRNb2RlKS50b0JlKCdjdXN0b20nKTtcbiAgICBleHBlY3QoYnVkZ2V0LmNhcGl0YWxJbnZlc3RtZW50TW9kZSkudG9CZShvdmVydmlldy5jYXBpdGFsSW52ZXN0bWVudE1vZGUpO1xuXG4gICAgLy8gU3RhcnQgd2luZG93IG11c3QgYWdyZWUgcGVyaW9kLWJ5LXBlcmlvZCBzbyB0aGUgcnVubmluZyBiYWxhbmNlIHRoZVxuICAgIC8vIGJhY2tlbmQgY29tcHV0ZXMgbGFuZHMgb24gdGhlIHNhbWUgY2FsZW5kYXIgbW9udGggaW4gYm90aCBwYWdlcy5cbiAgICBleHBlY3QoYnVkZ2V0LnN0YXJ0TW9udGgpLnRvQmUob3ZlcnZpZXcuc3RhcnRNb250aCk7XG4gICAgZXhwZWN0KGJ1ZGdldC5zdGFydFllYXIpLnRvQmUob3ZlcnZpZXcuc3RhcnRZZWFyKTtcbiAgICBleHBlY3QoYnVkZ2V0LnZpZXdUeXBlKS50b0JlKG92ZXJ2aWV3LnZpZXdUeXBlKTtcbiAgICBleHBlY3QoYnVkZ2V0LnBlcmlvZExlbmd0aCkudG9CZShvdmVydmlldy5wZXJpb2RMZW5ndGgpO1xuXG4gICAgLy8gQmFuayBhY2NvdW50IGlucHV0cyAod2hpY2ggZHJpdmUgc3RhcnRpbmcgYmFsYW5jZSwgbWluaW11bXMgYW5kXG4gICAgLy8gaW5mbGF0aW9uKSBtdXN0IGFsc28gbWF0Y2guXG4gICAgZXhwZWN0KGJ1ZGdldC5iYW5rQWNjb3VudFN0YXJ0QW1vdW50KS50b0JlKG92ZXJ2aWV3LmJhbmtBY2NvdW50U3RhcnRBbW91bnQpO1xuICAgIGV4cGVjdChidWRnZXQuYmFua0FjY291bnRNaW5pbXVtcykudG9CZShvdmVydmlldy5iYW5rQWNjb3VudE1pbmltdW1zKTtcbiAgICBleHBlY3QoYnVkZ2V0LmVtZXJnZW5jeUZ1bmRNaW5pbXVtKS50b0JlKG92ZXJ2aWV3LmVtZXJnZW5jeUZ1bmRNaW5pbXVtKTtcbiAgICBleHBlY3QoYnVkZ2V0Lm9wZXJhdGluZ0Nhc2hNaW5pbXVtKS50b0JlKG92ZXJ2aWV3Lm9wZXJhdGluZ0Nhc2hNaW5pbXVtKTtcbiAgICBleHBlY3QoYnVkZ2V0LmdlbmVyYWxJbmZsYXRpb25SYXRlKS50b0JlKG92ZXJ2aWV3LmdlbmVyYWxJbmZsYXRpb25SYXRlKTtcbiAgICBleHBlY3QoYnVkZ2V0LnJldmVudWVJbmZsYXRpb25SYXRlKS50b0JlKG92ZXJ2aWV3LnJldmVudWVJbmZsYXRpb25SYXRlKTtcblxuICAgIC8vIFByb2plY3Qgc2NvcGluZyBtdXN0IGJlIGlkZW50aWNhbC5cbiAgICBleHBlY3QoYnVkZ2V0LnByb2plY3RJZHMpLnRvRXF1YWwob3ZlcnZpZXcucHJvamVjdElkcyk7XG4gIH0pO1xuXG4gIGl0KCdCdWRnZXQgc3RhcnRNb250aCBkZWZhdWx0cyB0byB0aGUgZmlzY2FsLXllYXIgbW9udGggZGVyaXZlZCBmcm9tIGZpbmFuY2lhbFllYXJTdGFydCcsICgpID0+IHtcbiAgICBjb25zdCBvdmVydmlldyA9IGJ1aWxkT3ZlcnZpZXdCb2R5KHsgc3RhcnRZZWFyOiAyMDI2IH0pO1xuICAgIGNvbnN0IGJ1ZGdldCA9IGJ1aWxkQnVkZ2V0Qm9keSh7IHN0YXJ0WWVhcjogMjAyNiB9KTtcbiAgICAvLyBmaW5hbmNpYWxZZWFyU3RhcnQgPSAnMjAyNi0wMi0wMScg4oaSIG1vbnRoIDIuXG4gICAgZXhwZWN0KG92ZXJ2aWV3LnN0YXJ0TW9udGgpLnRvQmUoMik7XG4gICAgZXhwZWN0KGJ1ZGdldC5zdGFydE1vbnRoKS50b0JlKDIpO1xuICB9KTtcblxuICBpdCgnc3dpdGNoaW5nIEJ1ZGdldCB0byBcInN1Z2dlc3RlZFwiIG1vZGUgcHJvZHVjZXMgYSB2aXNpYmx5IGRpZmZlcmVudCByZXF1ZXN0IGJvZHknLCAoKSA9PiB7XG4gICAgY29uc3QgZGVmYXVsdEJvZHkgPSBidWlsZEJ1ZGdldEJvZHkoeyBzdGFydFllYXI6IDIwMjYgfSk7XG4gICAgY29uc3Qgc3VnZ2VzdGVkQm9keSA9IGJ1aWxkQnVkZ2V0Qm9keSh7XG4gICAgICBzdGFydFllYXI6IDIwMjYsXG4gICAgICBjYXBpdGFsSW52ZXN0bWVudE1vZGU6ICdzdWdnZXN0ZWQnLFxuICAgIH0pO1xuXG4gICAgZXhwZWN0KGRlZmF1bHRCb2R5LmNhcGl0YWxJbnZlc3RtZW50TW9kZSkudG9CZSgnY3VzdG9tJyk7XG4gICAgZXhwZWN0KHN1Z2dlc3RlZEJvZHkuY2FwaXRhbEludmVzdG1lbnRNb2RlKS50b0JlKCdzdWdnZXN0ZWQnKTtcbiAgICBleHBlY3QoZGVmYXVsdEJvZHkuY2FwaXRhbEludmVzdG1lbnRNb2RlKS5ub3QudG9CZShcbiAgICAgIHN1Z2dlc3RlZEJvZHkuY2FwaXRhbEludmVzdG1lbnRNb2RlXG4gICAgKTtcbiAgfSk7XG5cbiAgaXQoJ3N3aXRjaGluZyBCdWRnZXQgdG8gXCJ1cmdlbnRcIiBtb2RlIGFsc28gb3B0cyBvdXQgb2YgdGhlIHNoYXJlZCBkZWZhdWx0JywgKCkgPT4ge1xuICAgIGNvbnN0IHVyZ2VudEJvZHkgPSBidWlsZEJ1ZGdldEJvZHkoe1xuICAgICAgc3RhcnRZZWFyOiAyMDI2LFxuICAgICAgY2FwaXRhbEludmVzdG1lbnRNb2RlOiAndXJnZW50JyxcbiAgICB9KTtcbiAgICBleHBlY3QodXJnZW50Qm9keS5jYXBpdGFsSW52ZXN0bWVudE1vZGUpLnRvQmUoJ3VyZ2VudCcpO1xuICB9KTtcbn0pO1xuIl0sInZlcnNpb24iOjN9

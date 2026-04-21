@@ -1,0 +1,79 @@
+660980688a51c8f236a82ccbdd10d584
+"use strict";
+/**
+ * Server-side fiscal year utility functions
+ * Port of client-side utilities for use in backend services
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.getFinancialYearRange = getFinancialYearRange;
+exports.groupPaymentsByFiscalYear = groupPaymentsByFiscalYear;
+exports.getPaymentsInFinancialYear = getPaymentsInFinancialYear;
+/**
+ * Calculate the financial year range based on a fiscal year start date and a pivot date.
+ *
+ * @param financialYearStart - The fiscal year start date in format "YYYY-MM-DD" (e.g., "2024-04-01" for April 1st start)
+ * @param pivotDate - The date to use for calculating which financial year we're in (defaults to current date)
+ * @returns An object containing the financial year label, start year, start date, and end date
+ *
+ * @example
+ * // For a fiscal year starting April 1st, on March 15, 2024:
+ * getFinancialYearRange("2024-04-01", new Date(2024, 2, 15))
+ * // Returns: { label: "2023-2024", startYear: "2023", start: Date(2023-04-01), end: Date(2024-03-31) }
+ *
+ * @example
+ * // For calendar year (no fiscal year start):
+ * getFinancialYearRange(null, new Date(2024, 5, 15))
+ * // Returns: { label: "2024", startYear: "2024", start: Date(2024-01-01), end: Date(2024-12-31) }
+ */
+function getFinancialYearRange(financialYearStart, pivotDate = new Date()) {
+    if (!financialYearStart) {
+        const year = pivotDate.getFullYear();
+        return {
+            label: year.toString(),
+            startYear: year.toString(),
+            start: new Date(year, 0, 1),
+            end: new Date(year, 11, 31, 23, 59, 59),
+        };
+    }
+    const [, startMonth, startDay] = financialYearStart.split('-').map(Number);
+    const pivotMonth = pivotDate.getMonth() + 1;
+    const pivotDay = pivotDate.getDate();
+    const startYear = pivotMonth < startMonth || (pivotMonth === startMonth && pivotDay < startDay)
+        ? pivotDate.getFullYear() - 1
+        : pivotDate.getFullYear();
+    const start = new Date(startYear, startMonth - 1, startDay);
+    const end = new Date(startYear + 1, startMonth - 1, startDay - 1, 23, 59, 59);
+    return {
+        label: `${startYear}-${startYear + 1}`,
+        startYear: startYear.toString(),
+        start,
+        end,
+    };
+}
+/**
+ * Group payments by fiscal year
+ * @param payments - Array of payment dates
+ * @param financialYearStart - The building's fiscal year start date
+ * @returns Map of fiscal year label to payment dates in that year
+ */
+function groupPaymentsByFiscalYear(payments, financialYearStart) {
+    const groups = new Map();
+    for (const payment of payments) {
+        const yearRange = getFinancialYearRange(financialYearStart, payment);
+        if (!groups.has(yearRange.label)) {
+            groups.set(yearRange.label, []);
+        }
+        groups.get(yearRange.label).push(payment);
+    }
+    return groups;
+}
+/**
+ * Filter dates that fall within a specific financial year range
+ * @param dates - Array of dates to filter
+ * @param yearRange - The financial year range object
+ * @returns Filtered dates within the year range
+ */
+function getPaymentsInFinancialYear(dates, yearRange) {
+    return dates.filter(date => date >= yearRange.start && date <= yearRange.end);
+}
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJmaWxlIjoiL2hvbWUvcnVubmVyL3dvcmtzcGFjZS9zZXJ2ZXIvdXRpbHMvZmlzY2FsLXllYXIudHMiLCJtYXBwaW5ncyI6IjtBQUFBOzs7R0FHRzs7QUEwQkgsc0RBZ0NDO0FBUUQsOERBZUM7QUFRRCxnRUFLQztBQXJGRDs7Ozs7Ozs7Ozs7Ozs7OztHQWdCRztBQUNILFNBQWdCLHFCQUFxQixDQUNuQyxrQkFBaUMsRUFDakMsWUFBa0IsSUFBSSxJQUFJLEVBQUU7SUFFNUIsSUFBSSxDQUFDLGtCQUFrQixFQUFFLENBQUM7UUFDeEIsTUFBTSxJQUFJLEdBQUcsU0FBUyxDQUFDLFdBQVcsRUFBRSxDQUFDO1FBQ3JDLE9BQU87WUFDTCxLQUFLLEVBQUUsSUFBSSxDQUFDLFFBQVEsRUFBRTtZQUN0QixTQUFTLEVBQUUsSUFBSSxDQUFDLFFBQVEsRUFBRTtZQUMxQixLQUFLLEVBQUUsSUFBSSxJQUFJLENBQUMsSUFBSSxFQUFFLENBQUMsRUFBRSxDQUFDLENBQUM7WUFDM0IsR0FBRyxFQUFFLElBQUksSUFBSSxDQUFDLElBQUksRUFBRSxFQUFFLEVBQUUsRUFBRSxFQUFFLEVBQUUsRUFBRSxFQUFFLEVBQUUsRUFBRSxDQUFDO1NBQ3hDLENBQUM7SUFDSixDQUFDO0lBRUQsTUFBTSxDQUFDLEVBQUUsVUFBVSxFQUFFLFFBQVEsQ0FBQyxHQUFHLGtCQUFrQixDQUFDLEtBQUssQ0FBQyxHQUFHLENBQUMsQ0FBQyxHQUFHLENBQUMsTUFBTSxDQUFDLENBQUM7SUFDM0UsTUFBTSxVQUFVLEdBQUcsU0FBUyxDQUFDLFFBQVEsRUFBRSxHQUFHLENBQUMsQ0FBQztJQUM1QyxNQUFNLFFBQVEsR0FBRyxTQUFTLENBQUMsT0FBTyxFQUFFLENBQUM7SUFFckMsTUFBTSxTQUFTLEdBQ2IsVUFBVSxHQUFHLFVBQVUsSUFBSSxDQUFDLFVBQVUsS0FBSyxVQUFVLElBQUksUUFBUSxHQUFHLFFBQVEsQ0FBQztRQUMzRSxDQUFDLENBQUMsU0FBUyxDQUFDLFdBQVcsRUFBRSxHQUFHLENBQUM7UUFDN0IsQ0FBQyxDQUFDLFNBQVMsQ0FBQyxXQUFXLEVBQUUsQ0FBQztJQUU5QixNQUFNLEtBQUssR0FBRyxJQUFJLElBQUksQ0FBQyxTQUFTLEVBQUUsVUFBVSxHQUFHLENBQUMsRUFBRSxRQUFRLENBQUMsQ0FBQztJQUM1RCxNQUFNLEdBQUcsR0FBRyxJQUFJLElBQUksQ0FBQyxTQUFTLEdBQUcsQ0FBQyxFQUFFLFVBQVUsR0FBRyxDQUFDLEVBQUUsUUFBUSxHQUFHLENBQUMsRUFBRSxFQUFFLEVBQUUsRUFBRSxFQUFFLEVBQUUsQ0FBQyxDQUFDO0lBRTlFLE9BQU87UUFDTCxLQUFLLEVBQUUsR0FBRyxTQUFTLElBQUksU0FBUyxHQUFHLENBQUMsRUFBRTtRQUN0QyxTQUFTLEVBQUUsU0FBUyxDQUFDLFFBQVEsRUFBRTtRQUMvQixLQUFLO1FBQ0wsR0FBRztLQUNKLENBQUM7QUFDSixDQUFDO0FBRUQ7Ozs7O0dBS0c7QUFDSCxTQUFnQix5QkFBeUIsQ0FDdkMsUUFBZ0IsRUFDaEIsa0JBQWlDO0lBRWpDLE1BQU0sTUFBTSxHQUFHLElBQUksR0FBRyxFQUFrQixDQUFDO0lBRXpDLEtBQUssTUFBTSxPQUFPLElBQUksUUFBUSxFQUFFLENBQUM7UUFDL0IsTUFBTSxTQUFTLEdBQUcscUJBQXFCLENBQUMsa0JBQWtCLEVBQUUsT0FBTyxDQUFDLENBQUM7UUFDckUsSUFBSSxDQUFDLE1BQU0sQ0FBQyxHQUFHLENBQUMsU0FBUyxDQUFDLEtBQUssQ0FBQyxFQUFFLENBQUM7WUFDakMsTUFBTSxDQUFDLEdBQUcsQ0FBQyxTQUFTLENBQUMsS0FBSyxFQUFFLEVBQUUsQ0FBQyxDQUFDO1FBQ2xDLENBQUM7UUFDRCxNQUFNLENBQUMsR0FBRyxDQUFDLFNBQVMsQ0FBQyxLQUFLLENBQUUsQ0FBQyxJQUFJLENBQUMsT0FBTyxDQUFDLENBQUM7SUFDN0MsQ0FBQztJQUVELE9BQU8sTUFBTSxDQUFDO0FBQ2hCLENBQUM7QUFFRDs7Ozs7R0FLRztBQUNILFNBQWdCLDBCQUEwQixDQUN4QyxLQUFhLEVBQ2IsU0FBNkI7SUFFN0IsT0FBTyxLQUFLLENBQUMsTUFBTSxDQUFDLElBQUksQ0FBQyxFQUFFLENBQUMsSUFBSSxJQUFJLFNBQVMsQ0FBQyxLQUFLLElBQUksSUFBSSxJQUFJLFNBQVMsQ0FBQyxHQUFHLENBQUMsQ0FBQztBQUNoRixDQUFDIiwibmFtZXMiOltdLCJzb3VyY2VzIjpbIi9ob21lL3J1bm5lci93b3Jrc3BhY2Uvc2VydmVyL3V0aWxzL2Zpc2NhbC15ZWFyLnRzIl0sInNvdXJjZXNDb250ZW50IjpbIi8qKlxuICogU2VydmVyLXNpZGUgZmlzY2FsIHllYXIgdXRpbGl0eSBmdW5jdGlvbnNcbiAqIFBvcnQgb2YgY2xpZW50LXNpZGUgdXRpbGl0aWVzIGZvciB1c2UgaW4gYmFja2VuZCBzZXJ2aWNlc1xuICovXG5cbmV4cG9ydCBpbnRlcmZhY2UgRmluYW5jaWFsWWVhclJhbmdlIHtcbiAgbGFiZWw6IHN0cmluZztcbiAgc3RhcnRZZWFyOiBzdHJpbmc7XG4gIHN0YXJ0OiBEYXRlO1xuICBlbmQ6IERhdGU7XG59XG5cbi8qKlxuICogQ2FsY3VsYXRlIHRoZSBmaW5hbmNpYWwgeWVhciByYW5nZSBiYXNlZCBvbiBhIGZpc2NhbCB5ZWFyIHN0YXJ0IGRhdGUgYW5kIGEgcGl2b3QgZGF0ZS5cbiAqIFxuICogQHBhcmFtIGZpbmFuY2lhbFllYXJTdGFydCAtIFRoZSBmaXNjYWwgeWVhciBzdGFydCBkYXRlIGluIGZvcm1hdCBcIllZWVktTU0tRERcIiAoZS5nLiwgXCIyMDI0LTA0LTAxXCIgZm9yIEFwcmlsIDFzdCBzdGFydClcbiAqIEBwYXJhbSBwaXZvdERhdGUgLSBUaGUgZGF0ZSB0byB1c2UgZm9yIGNhbGN1bGF0aW5nIHdoaWNoIGZpbmFuY2lhbCB5ZWFyIHdlJ3JlIGluIChkZWZhdWx0cyB0byBjdXJyZW50IGRhdGUpXG4gKiBAcmV0dXJucyBBbiBvYmplY3QgY29udGFpbmluZyB0aGUgZmluYW5jaWFsIHllYXIgbGFiZWwsIHN0YXJ0IHllYXIsIHN0YXJ0IGRhdGUsIGFuZCBlbmQgZGF0ZVxuICogXG4gKiBAZXhhbXBsZVxuICogLy8gRm9yIGEgZmlzY2FsIHllYXIgc3RhcnRpbmcgQXByaWwgMXN0LCBvbiBNYXJjaCAxNSwgMjAyNDpcbiAqIGdldEZpbmFuY2lhbFllYXJSYW5nZShcIjIwMjQtMDQtMDFcIiwgbmV3IERhdGUoMjAyNCwgMiwgMTUpKVxuICogLy8gUmV0dXJuczogeyBsYWJlbDogXCIyMDIzLTIwMjRcIiwgc3RhcnRZZWFyOiBcIjIwMjNcIiwgc3RhcnQ6IERhdGUoMjAyMy0wNC0wMSksIGVuZDogRGF0ZSgyMDI0LTAzLTMxKSB9XG4gKiBcbiAqIEBleGFtcGxlXG4gKiAvLyBGb3IgY2FsZW5kYXIgeWVhciAobm8gZmlzY2FsIHllYXIgc3RhcnQpOlxuICogZ2V0RmluYW5jaWFsWWVhclJhbmdlKG51bGwsIG5ldyBEYXRlKDIwMjQsIDUsIDE1KSlcbiAqIC8vIFJldHVybnM6IHsgbGFiZWw6IFwiMjAyNFwiLCBzdGFydFllYXI6IFwiMjAyNFwiLCBzdGFydDogRGF0ZSgyMDI0LTAxLTAxKSwgZW5kOiBEYXRlKDIwMjQtMTItMzEpIH1cbiAqL1xuZXhwb3J0IGZ1bmN0aW9uIGdldEZpbmFuY2lhbFllYXJSYW5nZShcbiAgZmluYW5jaWFsWWVhclN0YXJ0OiBzdHJpbmcgfCBudWxsLFxuICBwaXZvdERhdGU6IERhdGUgPSBuZXcgRGF0ZSgpXG4pOiBGaW5hbmNpYWxZZWFyUmFuZ2Uge1xuICBpZiAoIWZpbmFuY2lhbFllYXJTdGFydCkge1xuICAgIGNvbnN0IHllYXIgPSBwaXZvdERhdGUuZ2V0RnVsbFllYXIoKTtcbiAgICByZXR1cm4ge1xuICAgICAgbGFiZWw6IHllYXIudG9TdHJpbmcoKSxcbiAgICAgIHN0YXJ0WWVhcjogeWVhci50b1N0cmluZygpLFxuICAgICAgc3RhcnQ6IG5ldyBEYXRlKHllYXIsIDAsIDEpLFxuICAgICAgZW5kOiBuZXcgRGF0ZSh5ZWFyLCAxMSwgMzEsIDIzLCA1OSwgNTkpLFxuICAgIH07XG4gIH1cblxuICBjb25zdCBbLCBzdGFydE1vbnRoLCBzdGFydERheV0gPSBmaW5hbmNpYWxZZWFyU3RhcnQuc3BsaXQoJy0nKS5tYXAoTnVtYmVyKTtcbiAgY29uc3QgcGl2b3RNb250aCA9IHBpdm90RGF0ZS5nZXRNb250aCgpICsgMTtcbiAgY29uc3QgcGl2b3REYXkgPSBwaXZvdERhdGUuZ2V0RGF0ZSgpO1xuXG4gIGNvbnN0IHN0YXJ0WWVhciA9XG4gICAgcGl2b3RNb250aCA8IHN0YXJ0TW9udGggfHwgKHBpdm90TW9udGggPT09IHN0YXJ0TW9udGggJiYgcGl2b3REYXkgPCBzdGFydERheSlcbiAgICAgID8gcGl2b3REYXRlLmdldEZ1bGxZZWFyKCkgLSAxXG4gICAgICA6IHBpdm90RGF0ZS5nZXRGdWxsWWVhcigpO1xuXG4gIGNvbnN0IHN0YXJ0ID0gbmV3IERhdGUoc3RhcnRZZWFyLCBzdGFydE1vbnRoIC0gMSwgc3RhcnREYXkpO1xuICBjb25zdCBlbmQgPSBuZXcgRGF0ZShzdGFydFllYXIgKyAxLCBzdGFydE1vbnRoIC0gMSwgc3RhcnREYXkgLSAxLCAyMywgNTksIDU5KTtcblxuICByZXR1cm4ge1xuICAgIGxhYmVsOiBgJHtzdGFydFllYXJ9LSR7c3RhcnRZZWFyICsgMX1gLFxuICAgIHN0YXJ0WWVhcjogc3RhcnRZZWFyLnRvU3RyaW5nKCksXG4gICAgc3RhcnQsXG4gICAgZW5kLFxuICB9O1xufVxuXG4vKipcbiAqIEdyb3VwIHBheW1lbnRzIGJ5IGZpc2NhbCB5ZWFyXG4gKiBAcGFyYW0gcGF5bWVudHMgLSBBcnJheSBvZiBwYXltZW50IGRhdGVzXG4gKiBAcGFyYW0gZmluYW5jaWFsWWVhclN0YXJ0IC0gVGhlIGJ1aWxkaW5nJ3MgZmlzY2FsIHllYXIgc3RhcnQgZGF0ZVxuICogQHJldHVybnMgTWFwIG9mIGZpc2NhbCB5ZWFyIGxhYmVsIHRvIHBheW1lbnQgZGF0ZXMgaW4gdGhhdCB5ZWFyXG4gKi9cbmV4cG9ydCBmdW5jdGlvbiBncm91cFBheW1lbnRzQnlGaXNjYWxZZWFyKFxuICBwYXltZW50czogRGF0ZVtdLFxuICBmaW5hbmNpYWxZZWFyU3RhcnQ6IHN0cmluZyB8IG51bGxcbik6IE1hcDxzdHJpbmcsIERhdGVbXT4ge1xuICBjb25zdCBncm91cHMgPSBuZXcgTWFwPHN0cmluZywgRGF0ZVtdPigpO1xuXG4gIGZvciAoY29uc3QgcGF5bWVudCBvZiBwYXltZW50cykge1xuICAgIGNvbnN0IHllYXJSYW5nZSA9IGdldEZpbmFuY2lhbFllYXJSYW5nZShmaW5hbmNpYWxZZWFyU3RhcnQsIHBheW1lbnQpO1xuICAgIGlmICghZ3JvdXBzLmhhcyh5ZWFyUmFuZ2UubGFiZWwpKSB7XG4gICAgICBncm91cHMuc2V0KHllYXJSYW5nZS5sYWJlbCwgW10pO1xuICAgIH1cbiAgICBncm91cHMuZ2V0KHllYXJSYW5nZS5sYWJlbCkhLnB1c2gocGF5bWVudCk7XG4gIH1cblxuICByZXR1cm4gZ3JvdXBzO1xufVxuXG4vKipcbiAqIEZpbHRlciBkYXRlcyB0aGF0IGZhbGwgd2l0aGluIGEgc3BlY2lmaWMgZmluYW5jaWFsIHllYXIgcmFuZ2VcbiAqIEBwYXJhbSBkYXRlcyAtIEFycmF5IG9mIGRhdGVzIHRvIGZpbHRlclxuICogQHBhcmFtIHllYXJSYW5nZSAtIFRoZSBmaW5hbmNpYWwgeWVhciByYW5nZSBvYmplY3RcbiAqIEByZXR1cm5zIEZpbHRlcmVkIGRhdGVzIHdpdGhpbiB0aGUgeWVhciByYW5nZVxuICovXG5leHBvcnQgZnVuY3Rpb24gZ2V0UGF5bWVudHNJbkZpbmFuY2lhbFllYXIoXG4gIGRhdGVzOiBEYXRlW10sXG4gIHllYXJSYW5nZTogRmluYW5jaWFsWWVhclJhbmdlXG4pOiBEYXRlW10ge1xuICByZXR1cm4gZGF0ZXMuZmlsdGVyKGRhdGUgPT4gZGF0ZSA+PSB5ZWFyUmFuZ2Uuc3RhcnQgJiYgZGF0ZSA8PSB5ZWFyUmFuZ2UuZW5kKTtcbn1cbiJdLCJ2ZXJzaW9uIjozfQ==

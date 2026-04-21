@@ -1,0 +1,84 @@
+5d60c12742d119327d5592300825687c
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.LazyVendorForm = exports.LazyStatusStepper = exports.LazyProjectTimeline = exports.LazyProjectNotes = exports.LazyProjectBudget = exports.LazyProjectElements = exports.LazyProjectForm = void 0;
+exports.ProjectForm = ProjectForm;
+exports.ProjectElements = ProjectElements;
+exports.ProjectBudget = ProjectBudget;
+exports.ProjectNotes = ProjectNotes;
+exports.ProjectTimeline = ProjectTimeline;
+exports.StatusStepper = StatusStepper;
+exports.VendorForm = VendorForm;
+const jsx_runtime_1 = require("react/jsx-runtime");
+/**
+ * Lazy-loaded project components for better code splitting
+ * Reduces main bundle size by loading project components on demand
+ */
+const react_1 = require("react");
+const loading_spinner_1 = require("@/components/ui/loading-spinner");
+// Lazy load project components to reduce bundle size.
+// Note: ProjectTable itself is intentionally NOT lazy here because
+// ProjectTableView imports it statically (it is the default view).
+exports.LazyProjectForm = (0, react_1.lazy)(() => Promise.resolve().then(() => __importStar(require('./ProjectForm'))).then(module => ({ default: module.ProjectForm })));
+exports.LazyProjectElements = (0, react_1.lazy)(() => Promise.resolve().then(() => __importStar(require('./ProjectElements'))).then(module => ({ default: module.ProjectElements })));
+exports.LazyProjectBudget = (0, react_1.lazy)(() => Promise.resolve().then(() => __importStar(require('./ProjectBudget'))).then(module => ({ default: module.ProjectBudget })));
+exports.LazyProjectNotes = (0, react_1.lazy)(() => Promise.resolve().then(() => __importStar(require('./ProjectNotes'))).then(module => ({ default: module.ProjectNotes })));
+exports.LazyProjectTimeline = (0, react_1.lazy)(() => Promise.resolve().then(() => __importStar(require('./ProjectTimeline'))).then(module => ({ default: module.ProjectTimeline })));
+exports.LazyStatusStepper = (0, react_1.lazy)(() => Promise.resolve().then(() => __importStar(require('./StatusStepper'))).then(module => ({ default: module.StatusStepper })));
+exports.LazyVendorForm = (0, react_1.lazy)(() => Promise.resolve().then(() => __importStar(require('../vendors/VendorForm'))).then(module => ({ default: module.VendorForm })));
+// Wrapper components with Suspense for easy use
+function ProjectForm(props) {
+    return ((0, jsx_runtime_1.jsx)(react_1.Suspense, { fallback: (0, jsx_runtime_1.jsx)("div", { className: "h-96 bg-muted rounded-lg animate-pulse" }), children: (0, jsx_runtime_1.jsx)(exports.LazyProjectForm, { ...props }) }));
+}
+function ProjectElements(props) {
+    return ((0, jsx_runtime_1.jsx)(react_1.Suspense, { fallback: (0, jsx_runtime_1.jsx)("div", { className: "h-64 bg-muted rounded-lg animate-pulse flex items-center justify-center", children: (0, jsx_runtime_1.jsx)(loading_spinner_1.LoadingSpinner, {}) }), children: (0, jsx_runtime_1.jsx)(exports.LazyProjectElements, { ...props }) }));
+}
+function ProjectBudget(props) {
+    return ((0, jsx_runtime_1.jsx)(react_1.Suspense, { fallback: (0, jsx_runtime_1.jsx)("div", { className: "h-64 bg-muted rounded-lg animate-pulse flex items-center justify-center", children: (0, jsx_runtime_1.jsx)(loading_spinner_1.LoadingSpinner, {}) }), children: (0, jsx_runtime_1.jsx)(exports.LazyProjectBudget, { ...props }) }));
+}
+function ProjectNotes(props) {
+    return ((0, jsx_runtime_1.jsx)(react_1.Suspense, { fallback: (0, jsx_runtime_1.jsx)("div", { className: "h-64 bg-muted rounded-lg animate-pulse flex items-center justify-center", children: (0, jsx_runtime_1.jsx)(loading_spinner_1.LoadingSpinner, {}) }), children: (0, jsx_runtime_1.jsx)(exports.LazyProjectNotes, { ...props }) }));
+}
+function ProjectTimeline(props) {
+    return ((0, jsx_runtime_1.jsx)(react_1.Suspense, { fallback: (0, jsx_runtime_1.jsx)("div", { className: "h-64 bg-muted rounded-lg animate-pulse flex items-center justify-center", children: (0, jsx_runtime_1.jsx)(loading_spinner_1.LoadingSpinner, {}) }), children: (0, jsx_runtime_1.jsx)(exports.LazyProjectTimeline, { ...props }) }));
+}
+function StatusStepper(props) {
+    return ((0, jsx_runtime_1.jsx)(react_1.Suspense, { fallback: (0, jsx_runtime_1.jsx)("div", { className: "h-48 bg-muted rounded-lg animate-pulse flex items-center justify-center", children: (0, jsx_runtime_1.jsx)(loading_spinner_1.LoadingSpinner, {}) }), children: (0, jsx_runtime_1.jsx)(exports.LazyStatusStepper, { ...props }) }));
+}
+function VendorForm(props) {
+    return ((0, jsx_runtime_1.jsx)(react_1.Suspense, { fallback: (0, jsx_runtime_1.jsx)("div", { className: "h-96 bg-muted rounded-lg animate-pulse flex items-center justify-center", children: (0, jsx_runtime_1.jsx)(loading_spinner_1.LoadingSpinner, {}) }), children: (0, jsx_runtime_1.jsx)(exports.LazyVendorForm, { ...props }) }));
+}
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJmaWxlIjoiL2hvbWUvcnVubmVyL3dvcmtzcGFjZS9jbGllbnQvc3JjL2NvbXBvbmVudHMvbWFpbnRlbmFuY2UvcHJvamVjdHMvbGF6eS1jb21wb25lbnRzLnRzeCIsIm1hcHBpbmdzIjoiOzs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7Ozs7QUF3Q0Esa0NBTUM7QUFFRCwwQ0FNQztBQUVELHNDQU1DO0FBRUQsb0NBTUM7QUFFRCwwQ0FNQztBQUVELHNDQU1DO0FBRUQsZ0NBTUM7O0FBOUZEOzs7R0FHRztBQUVILGlDQUF1QztBQUN2QyxxRUFBaUU7QUFFakUsc0RBQXNEO0FBQ3RELG1FQUFtRTtBQUNuRSxtRUFBbUU7QUFDdEQsUUFBQSxlQUFlLEdBQUcsSUFBQSxZQUFJLEVBQUMsR0FBRyxFQUFFLENBQ3ZDLGtEQUFPLGVBQWUsSUFBRSxJQUFJLENBQUMsTUFBTSxDQUFDLEVBQUUsQ0FBQyxDQUFDLEVBQUUsT0FBTyxFQUFFLE1BQU0sQ0FBQyxXQUFXLEVBQUUsQ0FBQyxDQUFDLENBQzFFLENBQUM7QUFFVyxRQUFBLG1CQUFtQixHQUFHLElBQUEsWUFBSSxFQUFDLEdBQUcsRUFBRSxDQUMzQyxrREFBTyxtQkFBbUIsSUFBRSxJQUFJLENBQUMsTUFBTSxDQUFDLEVBQUUsQ0FBQyxDQUFDLEVBQUUsT0FBTyxFQUFFLE1BQU0sQ0FBQyxlQUFlLEVBQUUsQ0FBQyxDQUFDLENBQ2xGLENBQUM7QUFFVyxRQUFBLGlCQUFpQixHQUFHLElBQUEsWUFBSSxFQUFDLEdBQUcsRUFBRSxDQUN6QyxrREFBTyxpQkFBaUIsSUFBRSxJQUFJLENBQUMsTUFBTSxDQUFDLEVBQUUsQ0FBQyxDQUFDLEVBQUUsT0FBTyxFQUFFLE1BQU0sQ0FBQyxhQUFhLEVBQUUsQ0FBQyxDQUFDLENBQzlFLENBQUM7QUFFVyxRQUFBLGdCQUFnQixHQUFHLElBQUEsWUFBSSxFQUFDLEdBQUcsRUFBRSxDQUN4QyxrREFBTyxnQkFBZ0IsSUFBRSxJQUFJLENBQUMsTUFBTSxDQUFDLEVBQUUsQ0FBQyxDQUFDLEVBQUUsT0FBTyxF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L3J1bm5lci93b3Jrc3BhY2UvY2xpZW50L3NyYy9jb21wb25lbnRzL21haW50ZW5hbmNlL3Byb2plY3RzL2xhenktY29tcG9uZW50cy50c3giXSwic291cmNlc0NvbnRlbnQiOlsiLyoqXG4gKiBMYXp5LWxvYWRlZCBwcm9qZWN0IGNvbXBvbmVudHMgZm9yIGJldHRlciBjb2RlIHNwbGl0dGluZ1xuICogUmVkdWNlcyBtYWluIGJ1bmRsZSBzaXplIGJ5IGxvYWRpbmcgcHJvamVjdCBjb21wb25lbnRzIG9uIGRlbWFuZFxuICovXG5cbmltcG9ydCB7IGxhenksIFN1c3BlbnNlIH0gZnJvbSAncmVhY3QnO1xuaW1wb3J0IHsgTG9hZGluZ1NwaW5uZXIgfSBmcm9tICdAL2NvbXBvbmVudHMvdWkvbG9hZGluZy1zcGlubmVyJztcblxuLy8gTGF6eSBsb2FkIHByb2plY3QgY29tcG9uZW50cyB0byByZWR1Y2UgYnVuZGxlIHNpemUuXG4vLyBOb3RlOiBQcm9qZWN0VGFibGUgaXRzZWxmIGlzIGludGVudGlvbmFsbHkgTk9UIGxhenkgaGVyZSBiZWNhdXNlXG4vLyBQcm9qZWN0VGFibGVWaWV3IGltcG9ydHMgaXQgc3RhdGljYWxseSAoaXQgaXMgdGhlIGRlZmF1bHQgdmlldykuXG5leHBvcnQgY29uc3QgTGF6eVByb2plY3RGb3JtID0gbGF6eSgoKSA9PiBcbiAgaW1wb3J0KCcuL1Byb2plY3RGb3JtJykudGhlbihtb2R1bGUgPT4gKHsgZGVmYXVsdDogbW9kdWxlLlByb2plY3RGb3JtIH0pKVxuKTtcblxuZXhwb3J0IGNvbnN0IExhenlQcm9qZWN0RWxlbWVudHMgPSBsYXp5KCgpID0+IFxuICBpbXBvcnQoJy4vUHJvamVjdEVsZW1lbnRzJykudGhlbihtb2R1bGUgPT4gKHsgZGVmYXVsdDogbW9kdWxlLlByb2plY3RFbGVtZW50cyB9KSlcbik7XG5cbmV4cG9ydCBjb25zdCBMYXp5UHJvamVjdEJ1ZGdldCA9IGxhenkoKCkgPT4gXG4gIGltcG9ydCgnLi9Qcm9qZWN0QnVkZ2V0JykudGhlbihtb2R1bGUgPT4gKHsgZGVmYXVsdDogbW9kdWxlLlByb2plY3RCdWRnZXQgfSkpXG4pO1xuXG5leHBvcnQgY29uc3QgTGF6eVByb2plY3ROb3RlcyA9IGxhenkoKCkgPT5cbiAgaW1wb3J0KCcuL1Byb2plY3ROb3RlcycpLnRoZW4obW9kdWxlID0+ICh7IGRlZmF1bHQ6IG1vZHVsZS5Qcm9qZWN0Tm90ZXMgfSkpXG4pO1xuXG5leHBvcnQgY29uc3QgTGF6eVByb2plY3RUaW1lbGluZSA9IGxhenkoKCkgPT5cbiAgaW1wb3J0KCcuL1Byb2plY3RUaW1lbGluZScpLnRoZW4obW9kdWxlID0+ICh7IGRlZmF1bHQ6IG1vZHVsZS5Qcm9qZWN0VGltZWxpbmUgfSkpXG4pO1xuXG5leHBvcnQgY29uc3QgTGF6eVN0YXR1c1N0ZXBwZXIgPSBsYXp5KCgpID0+XG4gIGltcG9ydCgnLi9TdGF0dXNTdGVwcGVyJykudGhlbihtb2R1bGUgPT4gKHsgZGVmYXVsdDogbW9kdWxlLlN0YXR1c1N0ZXBwZXIgfSkpXG4pO1xuXG5leHBvcnQgY29uc3QgTGF6eVZlbmRvckZvcm0gPSBsYXp5KCgpID0+IFxuICBpbXBvcnQoJy4uL3ZlbmRvcnMvVmVuZG9yRm9ybScpLnRoZW4obW9kdWxlID0+ICh7IGRlZmF1bHQ6IG1vZHVsZS5WZW5kb3JGb3JtIH0pKVxuKTtcblxuLy8gV3JhcHBlciBjb21wb25lbnRzIHdpdGggU3VzcGVuc2UgZm9yIGVhc3kgdXNlXG5leHBvcnQgZnVuY3Rpb24gUHJvamVjdEZvcm0ocHJvcHM6IGFueSkge1xuICByZXR1cm4gKFxuICAgIDxTdXNwZW5zZSBmYWxsYmFjaz17PGRpdiBjbGFzc05hbWU9XCJoLTk2IGJnLW11dGVkIHJvdW5kZWQtbGcgYW5pbWF0ZS1wdWxzZVwiIC8+fT5cbiAgICAgIDxMYXp5UHJvamVjdEZvcm0gey4uLnByb3BzfSAvPlxuICAgIDwvU3VzcGVuc2U+XG4gICk7XG59XG5cbmV4cG9ydCBmdW5jdGlvbiBQcm9qZWN0RWxlbWVudHMocHJvcHM6IGFueSkge1xuICByZXR1cm4gKFxuICAgIDxTdXNwZW5zZSBmYWxsYmFjaz17PGRpdiBjbGFzc05hbWU9XCJoLTY0IGJnLW11dGVkIHJvdW5kZWQtbGcgYW5pbWF0ZS1wdWxzZSBmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlclwiPjxMb2FkaW5nU3Bpbm5lciAvPjwvZGl2Pn0+XG4gICAgICA8TGF6eVByb2plY3RFbGVtZW50cyB7Li4ucHJvcHN9IC8+XG4gICAgPC9TdXNwZW5zZT5cbiAgKTtcbn1cblxuZXhwb3J0IGZ1bmN0aW9uIFByb2plY3RCdWRnZXQocHJvcHM6IGFueSkge1xuICByZXR1cm4gKFxuICAgIDxTdXNwZW5zZSBmYWxsYmFjaz17PGRpdiBjbGFzc05hbWU9XCJoLTY0IGJnLW11dGVkIHJvdW5kZWQtbGcgYW5pbWF0ZS1wdWxzZSBmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlclwiPjxMb2FkaW5nU3Bpbm5lciAvPjwvZGl2Pn0+XG4gICAgICA8TGF6eVByb2plY3RCdWRnZXQgey4uLnByb3BzfSAvPlxuICAgIDwvU3VzcGVuc2U+XG4gICk7XG59XG5cbmV4cG9ydCBmdW5jdGlvbiBQcm9qZWN0Tm90ZXMocHJvcHM6IGFueSkge1xuICByZXR1cm4gKFxuICAgIDxTdXNwZW5zZSBmYWxsYmFjaz17PGRpdiBjbGFzc05hbWU9XCJoLTY0IGJnLW11dGVkIHJvdW5kZWQtbGcgYW5pbWF0ZS1wdWxzZSBmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlclwiPjxMb2FkaW5nU3Bpbm5lciAvPjwvZGl2Pn0+XG4gICAgICA8TGF6eVByb2plY3ROb3RlcyB7Li4ucHJvcHN9IC8+XG4gICAgPC9TdXNwZW5zZT5cbiAgKTtcbn1cblxuZXhwb3J0IGZ1bmN0aW9uIFByb2plY3RUaW1lbGluZShwcm9wczogYW55KSB7XG4gIHJldHVybiAoXG4gICAgPFN1c3BlbnNlIGZhbGxiYWNrPXs8ZGl2IGNsYXNzTmFtZT1cImgtNjQgYmctbXV0ZWQgcm91bmRlZC1sZyBhbmltYXRlLXB1bHNlIGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyXCI+PExvYWRpbmdTcGlubmVyIC8+PC9kaXY+fT5cbiAgICAgIDxMYXp5UHJvamVjdFRpbWVsaW5lIHsuLi5wcm9wc30gLz5cbiAgICA8L1N1c3BlbnNlPlxuICApO1xufVxuXG5leHBvcnQgZnVuY3Rpb24gU3RhdHVzU3RlcHBlcihwcm9wczogYW55KSB7XG4gIHJldHVybiAoXG4gICAgPFN1c3BlbnNlIGZhbGxiYWNrPXs8ZGl2IGNsYXNzTmFtZT1cImgtNDggYmctbXV0ZWQgcm91bmRlZC1sZyBhbmltYXRlLXB1bHNlIGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyXCI+PExvYWRpbmdTcGlubmVyIC8+PC9kaXY+fT5cbiAgICAgIDxMYXp5U3RhdHVzU3RlcHBlciB7Li4ucHJvcHN9IC8+XG4gICAgPC9TdXNwZW5zZT5cbiAgKTtcbn1cblxuZXhwb3J0IGZ1bmN0aW9uIFZlbmRvckZvcm0ocHJvcHM6IGFueSkge1xuICByZXR1cm4gKFxuICAgIDxTdXNwZW5zZSBmYWxsYmFjaz17PGRpdiBjbGFzc05hbWU9XCJoLTk2IGJnLW11dGVkIHJvdW5kZWQtbGcgYW5pbWF0ZS1wdWxzZSBmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlclwiPjxMb2FkaW5nU3Bpbm5lciAvPjwvZGl2Pn0+XG4gICAgICA8TGF6eVZlbmRvckZvcm0gey4uLnByb3BzfSAvPlxuICAgIDwvU3VzcGVuc2U+XG4gICk7XG59Il0sInZlcnNpb24iOjN9

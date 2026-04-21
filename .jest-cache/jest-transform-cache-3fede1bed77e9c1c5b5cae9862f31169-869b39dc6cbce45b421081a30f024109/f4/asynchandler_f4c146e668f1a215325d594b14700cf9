@@ -1,0 +1,38 @@
+b3f076d7600636ce580459a2e1c461d5
+"use strict";
+/**
+ * asyncHandler - lightweight wrapper that funnels async route errors into
+ * the global Express error middleware (`secureErrorHandler` in
+ * `server/middleware/error-security.ts`).
+ *
+ * The wrapper does NOT format the response or decide the status code itself
+ * — it only catches thrown errors, attaches the route-specific generic
+ * error message / log prefix to `res.locals`, and forwards to `next(err)`.
+ * That keeps all status-code mapping, logging, and JSON shape decisions in
+ * a single place (the global error middleware).
+ *
+ * Usage:
+ *   app.get('/api/things', requireAuth, asyncHandler(async (req, res) => {
+ *     const things = await db.select()...;
+ *     res.json(things);
+ *   }, { errorMessage: 'Failed to fetch things', errorLogPrefix: 'Error fetching things' }));
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.asyncHandler = asyncHandler;
+function asyncHandler(handler, options = {}) {
+    return async (req, res, next) => {
+        try {
+            await handler(req, res, next);
+        }
+        catch (error) {
+            if (options.errorMessage) {
+                res.locals.errorMessage = options.errorMessage;
+            }
+            if (options.errorLogPrefix) {
+                res.locals.errorLogPrefix = options.errorLogPrefix;
+            }
+            next(error);
+        }
+    };
+}
+//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJmaWxlIjoiL2hvbWUvcnVubmVyL3dvcmtzcGFjZS9zZXJ2ZXIvdXRpbHMvYXN5bmMtaGFuZGxlci50cyIsIm1hcHBpbmdzIjoiO0FBQUE7Ozs7Ozs7Ozs7Ozs7Ozs7R0FnQkc7O0FBbUJILG9DQWlCQztBQWpCRCxTQUFnQixZQUFZLENBQzFCLE9BQTRFLEVBQzVFLFVBQStCLEVBQUU7SUFFakMsT0FBTyxLQUFLLEVBQUUsR0FBRyxFQUFFLEdBQUcsRUFBRSxJQUFJLEVBQUUsRUFBRTtRQUM5QixJQUFJLENBQUM7WUFDSCxNQUFNLE9BQU8sQ0FBQyxHQUFxQixFQUFFLEdBQUcsRUFBRSxJQUFJLENBQUMsQ0FBQztRQUNsRCxDQUFDO1FBQUMsT0FBTyxLQUFLLEVBQUUsQ0FBQztZQUNmLElBQUksT0FBTyxDQUFDLFlBQVksRUFBRSxDQUFDO2dCQUN6QixHQUFHLENBQUMsTUFBTSxDQUFDLFlBQVksR0FBRyxPQUFPLENBQUMsWUFBWSxDQUFDO1lBQ2pELENBQUM7WUFDRCxJQUFJLE9BQU8sQ0FBQyxjQUFjLEVBQUUsQ0FBQztnQkFDM0IsR0FBRyxDQUFDLE1BQU0sQ0FBQyxjQUFjLEdBQUcsT0FBTyxDQUFDLGNBQWMsQ0FBQztZQUNyRCxDQUFDO1lBQ0QsSUFBSSxDQUFDLEtBQUssQ0FBQyxDQUFDO1FBQ2QsQ0FBQztJQUNILENBQUMsQ0FBQztBQUNKLENBQUMiLCJuYW1lcyI6W10sInNvdXJjZXMiOlsiL2hvbWUvcnVubmVyL3dvcmtzcGFjZS9zZXJ2ZXIvdXRpbHMvYXN5bmMtaGFuZGxlci50cyJdLCJzb3VyY2VzQ29udGVudCI6WyIvKipcbiAqIGFzeW5jSGFuZGxlciAtIGxpZ2h0d2VpZ2h0IHdyYXBwZXIgdGhhdCBmdW5uZWxzIGFzeW5jIHJvdXRlIGVycm9ycyBpbnRvXG4gKiB0aGUgZ2xvYmFsIEV4cHJlc3MgZXJyb3IgbWlkZGxld2FyZSAoYHNlY3VyZUVycm9ySGFuZGxlcmAgaW5cbiAqIGBzZXJ2ZXIvbWlkZGxld2FyZS9lcnJvci1zZWN1cml0eS50c2ApLlxuICpcbiAqIFRoZSB3cmFwcGVyIGRvZXMgTk9UIGZvcm1hdCB0aGUgcmVzcG9uc2Ugb3IgZGVjaWRlIHRoZSBzdGF0dXMgY29kZSBpdHNlbGZcbiAqIOKAlCBpdCBvbmx5IGNhdGNoZXMgdGhyb3duIGVycm9ycywgYXR0YWNoZXMgdGhlIHJvdXRlLXNwZWNpZmljIGdlbmVyaWNcbiAqIGVycm9yIG1lc3NhZ2UgLyBsb2cgcHJlZml4IHRvIGByZXMubG9jYWxzYCwgYW5kIGZvcndhcmRzIHRvIGBuZXh0KGVycilgLlxuICogVGhhdCBrZWVwcyBhbGwgc3RhdHVzLWNvZGUgbWFwcGluZywgbG9nZ2luZywgYW5kIEpTT04gc2hhcGUgZGVjaXNpb25zIGluXG4gKiBhIHNpbmdsZSBwbGFjZSAodGhlIGdsb2JhbCBlcnJvciBtaWRkbGV3YXJlKS5cbiAqXG4gKiBVc2FnZTpcbiAqICAgYXBwLmdldCgnL2FwaS90aGluZ3MnLCByZXF1aXJlQXV0aCwgYXN5bmNIYW5kbGVyKGFzeW5jIChyZXEsIHJlcykgPT4ge1xuICogICAgIGNvbnN0IHRoaW5ncyA9IGF3YWl0IGRiLnNlbGVjdCgpLi4uO1xuICogICAgIHJlcy5qc29uKHRoaW5ncyk7XG4gKiAgIH0sIHsgZXJyb3JNZXNzYWdlOiAnRmFpbGVkIHRvIGZldGNoIHRoaW5ncycsIGVycm9yTG9nUHJlZml4OiAnRXJyb3IgZmV0Y2hpbmcgdGhpbmdzJyB9KSk7XG4gKi9cblxuaW1wb3J0IHR5cGUgeyBSZXF1ZXN0LCBSZXNwb25zZSwgTmV4dEZ1bmN0aW9uLCBSZXF1ZXN0SGFuZGxlciB9IGZyb20gJ2V4cHJlc3MnO1xuXG5leHBvcnQgaW50ZXJmYWNlIEFzeW5jSGFuZGxlck9wdGlvbnMge1xuICAvKipcbiAgICogR2VuZXJpYyBtZXNzYWdlIHVzZWQgaW4gdGhlIEpTT04gYm9keSB3aGVuIHRoZSBoYW5kbGVyIHRocm93cyBhblxuICAgKiB1bmV4cGVjdGVkIChub24tc3RhdHVzLWJlYXJpbmcpIGVycm9yLiBTdG9yZWQgb24gYHJlcy5sb2NhbHNgIHNvIHRoZVxuICAgKiBnbG9iYWwgZXJyb3IgbWlkZGxld2FyZSBjYW4gcGljayBpdCB1cC5cbiAgICovXG4gIGVycm9yTWVzc2FnZT86IHN0cmluZztcbiAgLyoqXG4gICAqIFByZWZpeCB1c2VkIGluIHRoZSBkZXZlbG9wbWVudCBsb2cgbGluZSBmb3IgYW4gdW5leHBlY3RlZCBlcnJvci5cbiAgICogU3RvcmVkIG9uIGByZXMubG9jYWxzYCBzbyB0aGUgZ2xvYmFsIGVycm9yIG1pZGRsZXdhcmUgY2FuIHByZXNlcnZlIHRoZVxuICAgKiBvbGQgcGVyLXJvdXRlIGxvZyBzaGFwZSAoYOKdjCA8cHJlZml4PjogPGVycm9yPmApLlxuICAgKi9cbiAgZXJyb3JMb2dQcmVmaXg/OiBzdHJpbmc7XG59XG5cbmV4cG9ydCBmdW5jdGlvbiBhc3luY0hhbmRsZXI8UmVxIGV4dGVuZHMgUmVxdWVzdCA9IFJlcXVlc3Q+KFxuICBoYW5kbGVyOiAocmVxOiBSZXEsIHJlczogUmVzcG9uc2UsIG5leHQ6IE5leHRGdW5jdGlvbikgPT4gUHJvbWlzZTxhbnk+IHwgYW55LFxuICBvcHRpb25zOiBBc3luY0hhbmRsZXJPcHRpb25zID0ge31cbik6IFJlcXVlc3RIYW5kbGVyIHtcbiAgcmV0dXJuIGFzeW5jIChyZXEsIHJlcywgbmV4dCkgPT4ge1xuICAgIHRyeSB7XG4gICAgICBhd2FpdCBoYW5kbGVyKHJlcSBhcyB1bmtub3duIGFzIFJlcSwgcmVzLCBuZXh0KTtcbiAgICB9IGNhdGNoIChlcnJvcikge1xuICAgICAgaWYgKG9wdGlvbnMuZXJyb3JNZXNzYWdlKSB7XG4gICAgICAgIHJlcy5sb2NhbHMuZXJyb3JNZXNzYWdlID0gb3B0aW9ucy5lcnJvck1lc3NhZ2U7XG4gICAgICB9XG4gICAgICBpZiAob3B0aW9ucy5lcnJvckxvZ1ByZWZpeCkge1xuICAgICAgICByZXMubG9jYWxzLmVycm9yTG9nUHJlZml4ID0gb3B0aW9ucy5lcnJvckxvZ1ByZWZpeDtcbiAgICAgIH1cbiAgICAgIG5leHQoZXJyb3IpO1xuICAgIH1cbiAgfTtcbn1cbiJdLCJ2ZXJzaW9uIjozfQ==
