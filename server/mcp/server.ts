@@ -296,6 +296,7 @@ export function buildWriteErrorResponse(
           text: JSON.stringify({
             status: 'fk_violation',
             code: 'FK_VIOLATION',
+            retryable: false,
             blocking_entity: relatedEntity,
             message,
           }, null, 2),
@@ -311,6 +312,7 @@ export function buildWriteErrorResponse(
         text: JSON.stringify({
           status: 'fk_violation',
           code: 'FK_VIOLATION',
+          retryable: false,
           referenced_entity: relatedEntity,
           message,
         }, null, 2),
@@ -327,7 +329,28 @@ export function buildWriteErrorResponse(
         text: JSON.stringify({
           status: 'unique_violation',
           code: 'UNIQUE_VIOLATION',
+          retryable: false,
           message,
+        }, null, 2),
+      }],
+    };
+  }
+  // Task #245 — surface a wider range of PostgreSQL SQLSTATEs as
+  // structured envelopes so MCP callers can distinguish transient
+  // (retryable) failures from permanent rejections. The driver `message`
+  // and `detail` are intentionally NOT included — only the friendly
+  // per-action sentence and the SQLSTATE itself, which is not sensitive.
+  if (typeof code === 'string' && PG_EXTENDED_ERROR_CATALOG[code]) {
+    const entry = PG_EXTENDED_ERROR_CATALOG[code];
+    return {
+      content: [{
+        type: 'text' as const,
+        text: JSON.stringify({
+          status: entry.status,
+          code: entry.envelopeCode,
+          retryable: entry.retryable,
+          pgCode: code,
+          message: entry.phrase(action, entityLabel),
         }, null, 2),
       }],
     };
@@ -339,6 +362,89 @@ export function buildWriteErrorResponse(
     }],
   };
 }
+
+/**
+ * Extended PostgreSQL SQLSTATE → structured-envelope catalog used by
+ * `buildWriteErrorResponse`. Each entry maps a raw SQLSTATE to a stable
+ * envelope `code`, a `retryable` flag MCP callers use for backoff
+ * decisions, and a friendly per-action message factory. Documented in
+ * `replit.md` under the MCP Tooling section.
+ *
+ * Retryable: 40001, 40P01, 57014, 08006/08001/08003/08004.
+ * Permanent: 23514, 23502 (FK 23503 and unique 23505 are handled with
+ * richer detail-parsing logic above).
+ */
+const PG_EXTENDED_ERROR_CATALOG: Record<
+  string,
+  {
+    status: string;
+    envelopeCode: string;
+    retryable: boolean;
+    phrase: (action: string, label: string) => string;
+  }
+> = {
+  '23514': {
+    status: 'check_violation',
+    envelopeCode: 'CHECK_VIOLATION',
+    retryable: false,
+    phrase: (a, l) => `Cannot ${a} ${l}: one or more values failed a database check constraint.`,
+  },
+  '23502': {
+    status: 'not_null_violation',
+    envelopeCode: 'NOT_NULL_VIOLATION',
+    retryable: false,
+    phrase: (a, l) => `Cannot ${a} ${l}: a required field was missing.`,
+  },
+  '40001': {
+    status: 'serialization_failure',
+    envelopeCode: 'SERIALIZATION_FAILURE',
+    retryable: true,
+    phrase: (a, l) =>
+      `Could not ${a} ${l} due to a transient serialization conflict — please retry with backoff.`,
+  },
+  '40P01': {
+    status: 'deadlock_detected',
+    envelopeCode: 'DEADLOCK_DETECTED',
+    retryable: true,
+    phrase: (a, l) =>
+      `Could not ${a} ${l} because the database detected a deadlock — please retry with backoff.`,
+  },
+  '57014': {
+    status: 'statement_timeout',
+    envelopeCode: 'STATEMENT_TIMEOUT',
+    retryable: true,
+    phrase: (a, l) =>
+      `Could not ${a} ${l} because the database statement timed out — please retry shortly.`,
+  },
+  '08006': {
+    status: 'connection_failure',
+    envelopeCode: 'CONNECTION_FAILURE',
+    retryable: true,
+    phrase: (a, l) =>
+      `Could not ${a} ${l} because the database connection failed — please retry shortly.`,
+  },
+  '08001': {
+    status: 'connection_failure',
+    envelopeCode: 'CONNECTION_FAILURE',
+    retryable: true,
+    phrase: (a, l) =>
+      `Could not ${a} ${l} because the database connection could not be established — please retry shortly.`,
+  },
+  '08003': {
+    status: 'connection_failure',
+    envelopeCode: 'CONNECTION_FAILURE',
+    retryable: true,
+    phrase: (a, l) =>
+      `Could not ${a} ${l} because the database connection was closed — please retry shortly.`,
+  },
+  '08004': {
+    status: 'connection_failure',
+    envelopeCode: 'CONNECTION_FAILURE',
+    retryable: true,
+    phrase: (a, l) =>
+      `Could not ${a} ${l} because the database rejected the connection — please retry shortly.`,
+  },
+};
 
 /**
  * Backwards-compatible alias for delete-action error sanitization. New code

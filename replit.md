@@ -79,6 +79,21 @@ The platform exposes an MCP server at `/mcp` for LLM integration (e.g., Claude D
 - **Session Security**: In production, cookies use `secure: true`, `sameSite: 'strict'`, `httpOnly: true`; session secret must be 32+ characters
 - **Environment Variables**: See `.env.example` for all required and optional variables
 
+### MCP Tooling
+- **Write-Error Envelope (`server/mcp/server.ts` → `buildWriteErrorResponse`)**: All MCP write tools must wrap database failures with this helper. The text payload is a JSON object of shape `{ status, code, retryable, message, pgCode?, referenced_entity?, blocking_entity? }`.
+  - **Permanent codes** (LLM callers should surface to the user, not retry — `retryable: false`):
+    - `FK_VIOLATION` (PG `23503`) — also includes `referenced_entity` (create/update) or `blocking_entity` (delete).
+    - `UNIQUE_VIOLATION` (PG `23505`).
+    - `CHECK_VIOLATION` (PG `23514`).
+    - `NOT_NULL_VIOLATION` (PG `23502`).
+  - **Retryable codes** (LLM callers should retry with exponential backoff — `retryable: true`):
+    - `SERIALIZATION_FAILURE` (PG `40001`).
+    - `DEADLOCK_DETECTED` (PG `40P01`).
+    - `STATEMENT_TIMEOUT` (PG `57014`).
+    - `CONNECTION_FAILURE` (PG `08006`, `08001`, `08003`, `08004`).
+  - **Unknown/unmapped errors** fall back to the plain string `Failed to {action} {entityLabel} — please retry` (no JSON envelope, no retryable flag).
+  - The envelope intentionally excludes the raw driver `message`, `detail`, and stack traces so PII (emails, tokens, file paths, secrets) and schema fragments cannot leak into the LLM transcript. Only the friendly per-action sentence, the stable envelope `code`, and the SQLSTATE are exposed.
+
 ## External Dependencies
 - **@neondatabase/serverless**: Serverless PostgreSQL connector.
 - **drizzle-orm**: Type-safe ORM.
