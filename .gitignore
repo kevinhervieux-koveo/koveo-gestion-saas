@@ -1,9 +1,21 @@
 node_modules
 dist
+dist/
 .DS_Store
 server/public
 vite.config.ts.*
 *.tar.gz
+
+# Python bytecode (no Python source in this project; prevent re-checkin)
+__pycache__/
+*.pyc
+
+# Generated reports / one-off scan outputs
+/reports/*.json
+/reports/*.csv
+/reports/*.md
+/translation-validation-report.json
+/.quality-metrics-history.json
 
 # Backup files and directories - CRITICAL SECURITY
 backups/
@@ -51,4 +63,23 @@ core.*
 *.pid
 *.log
 .jest-cache/
-.jest-cache/
+.tmp-*.json
+
+# Scratch artifacts (test output dumps, cookie jars, ad-hoc screenshots)
+/test-output.txt
+/test-results.txt
+/test-results-*.txt
+/full-test-output.txt
+/db_push_verification.log
+/cookies.txt
+/*-cookies.txt
+/*_cookies.txt
+/test-upload.txt
+/after_login.png
+/bills.png
+/bills_page.png
+/invoices.png
+/*.security
+/architect_review_request.txt
+
+.git.backup.*
