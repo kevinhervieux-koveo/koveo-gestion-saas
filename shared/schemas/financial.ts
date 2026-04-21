@@ -511,18 +511,6 @@ export const insertFinancialCacheSchema = z.object({
   expiresAt: z.date(),
 });
 
-export const insertPaymentSchema = createInsertSchema(payments, {
-  paymentNumber: z.number().int().positive("Payment number must be positive"),
-  scheduledDate: z.coerce.date(),
-  paidDate: z.coerce.date().optional(),
-  amount: z.coerce.number().positive("Payment amount must be positive"),
-  status: z.enum(['pending', 'overdue', 'paid', 'cancelled']).default('pending'),
-  notes: z.string().optional(),
-}).omit({ 
-  id: true, 
-  createdAt: true, 
-  updatedAt: true 
-});
 
 // Types
 
