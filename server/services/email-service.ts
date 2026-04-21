@@ -11,29 +11,28 @@ import {
  * Handles password resets, invitations, and other security-related communications.
  */
 class EmailService {
-  private mailService: MailService;
+  private mailService: MailService | null = null;
   private fromEmail: string = 'info@koveo-gestion.com';
   private fromName: string = 'Koveo Gestion';
 
-  /**
-   * Initializes the EmailService with SendGrid configuration.
-   * Validates that the SENDGRID_API_KEY environment variable is set.
-   *
-   * @throws {Error} When SENDGRID_API_KEY environment variable is not set.
-   *
-   * @example
-   * ```typescript
-   * const emailService = new EmailService();
-   * await emailService.sendPasswordResetEmail('user@example.com', 'John', 'https://reset-url');
-   * ```
-   */
   constructor() {
     if (!process.env.SENDGRID_API_KEY) {
-      throw new Error('SENDGRID_API_KEY environment variable must be set');
+      console.warn(
+        '[EmailService] SENDGRID_API_KEY is not set — email sending is disabled. ' +
+          'Set the SENDGRID_API_KEY secret to enable transactional emails.',
+      );
+      return;
     }
 
     this.mailService = new MailService();
     this.mailService.setApiKey(process.env.SENDGRID_API_KEY);
+  }
+
+  private requireMailService(): MailService {
+    if (!this.mailService) {
+      throw new Error('SENDGRID_API_KEY environment variable must be set');
+    }
+    return this.mailService;
   }
 
   /**
@@ -203,7 +202,7 @@ Quebec Law 25 compliant.
 
       const template = templates[language];
 
-      await this.mailService.send({
+      await this.requireMailService().send({
         to,
         from: {
           email: this.fromEmail,
@@ -446,7 +445,7 @@ Quebec Law 25 compliant.
 
       const template = templates[language];
 
-      await this.mailService.send({
+      await this.requireMailService().send({
         to,
         from: {
           email: this.fromEmail,
@@ -689,7 +688,7 @@ Quebec Law 25 compliant.
 
       const template = templates[language];
 
-      await this.mailService.send({
+      await this.requireMailService().send({
         to,
         from: {
           email: this.fromEmail,
@@ -882,7 +881,7 @@ ${isFrench ? 'Conforme à la Loi 25 du Québec.' : 'Quebec Law 25 compliant.'}
 © 2025 Koveo Gestion
       `;
 
-      await this.mailService.send({
+      await this.requireMailService().send({
         to: recipients,
         from: {
           email: this.fromEmail,
@@ -1156,7 +1155,7 @@ ${isFrench
               },
             };
 
-            return this.mailService.send(msg);
+            return this.requireMailService().send(msg);
           });
 
           // Wait for all emails in this group to be sent
@@ -1351,7 +1350,7 @@ ${isFrench ? 'Conforme à la Loi 25 du Québec.' : 'Quebec Law 25 compliant.'}
 
           const emailAddresses = langRecipients.map(recipient => recipient.email);
 
-          await this.mailService.send({
+          await this.requireMailService().send({
             to: emailAddresses,
             from: {
               email: this.fromEmail,
@@ -1479,7 +1478,7 @@ ${language === 'fr' ? 'Conforme à la Loi 25 du Québec.' : 'Quebec Law 25 compl
 © 2025 Koveo Gestion
       `;
 
-      await this.mailService.send({
+      await this.requireMailService().send({
         to,
         from: {
           email: this.fromEmail,

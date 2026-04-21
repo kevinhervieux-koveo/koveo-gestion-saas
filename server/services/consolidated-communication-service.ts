@@ -47,19 +47,30 @@ interface EmailTemplate {
 }
 
 export class ConsolidatedCommunicationService extends BaseService {
-  private mailService: MailService;
+  private _mailService: MailService | null = null;
   private fromEmail: string = 'info@koveo-gestion.com';
   private fromName: string = 'Koveo Gestion';
 
   constructor() {
     super('ConsolidatedCommunicationService');
-    
+
     if (!process.env.SENDGRID_API_KEY) {
-      throw new Error('SENDGRID_API_KEY environment variable must be set');
+      console.warn(
+        '[ConsolidatedCommunicationService] SENDGRID_API_KEY is not set — email sending is disabled. ' +
+          'Set the SENDGRID_API_KEY secret to enable transactional emails.',
+      );
+      return;
     }
 
-    this.mailService = new MailService();
-    this.mailService.setApiKey(process.env.SENDGRID_API_KEY);
+    this._mailService = new MailService();
+    this._mailService.setApiKey(process.env.SENDGRID_API_KEY);
+  }
+
+  private get mailService(): MailService {
+    if (!this._mailService) {
+      throw new Error('SENDGRID_API_KEY environment variable must be set');
+    }
+    return this._mailService;
   }
 
   // ====================

@@ -46,17 +46,28 @@ interface BillAnalysisResult {
 }
 
 export class ConsolidatedAIService extends BaseService {
-  private genAI: GoogleGenAI;
+  private _genAI: GoogleGenAI | null = null;
 
   constructor() {
     super('ConsolidatedAIService');
-    
+
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
+      console.warn(
+        '[ConsolidatedAIService] GEMINI_API_KEY is not set — AI features are disabled. ' +
+          'Set the GEMINI_API_KEY secret to enable Gemini-powered features.',
+      );
+      return;
+    }
+
+    this._genAI = new GoogleGenAI({ apiKey });
+  }
+
+  private get genAI(): GoogleGenAI {
+    if (!this._genAI) {
       throw new Error('GEMINI_API_KEY environment variable is required');
     }
-    
-    this.genAI = new GoogleGenAI({ apiKey });
+    return this._genAI;
   }
 
   // ====================
