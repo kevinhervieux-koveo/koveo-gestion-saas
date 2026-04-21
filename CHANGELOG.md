@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Breaking Changes
+
+- **MCP `list_buildings` requires `organizationId`**: The `organizationId` parameter
+  on the MCP `list_buildings` tool is now **required** (previously optional).
+  Calls that omitted `organizationId` to retrieve a "global" list of buildings
+  across all organizations will now fail with a schema validation error.
+  Migration: update any MCP client that calls `list_buildings` without
+  `organizationId` to pass the specific organization ID it wants to list
+  buildings for. If a caller needs buildings across multiple organizations, it
+  must invoke `list_buildings` once per organization.
+
 ### Fixed
 
 - **Invitation history preservation**: Re-inviting the same email no longer destroys
