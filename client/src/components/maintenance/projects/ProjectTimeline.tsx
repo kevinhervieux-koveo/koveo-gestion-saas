@@ -608,4 +608,3 @@ export function ProjectTimeline({
   );
 }
 
-export type { ProjectTimelineProps };

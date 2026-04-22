@@ -57,7 +57,7 @@ export interface FormFieldConfig {
   type: FieldType;
   placeholder?: string;
   description?: string;
-  options?: Array<{ _value: string; label: string }>;
+  options?: Array<{ value: string; label: string }>;
   rows?: number;
   disabled?: boolean;
   className?: string;
@@ -225,7 +225,7 @@ StandardForm({
                   placeholder={placeholder}
                   disabled={disabled}
                   {...field}
-                  onChange={(e) => field.onChange(Number(e.target._value))}
+                  onChange={(e) => field.onChange(Number(e.target.value))}
                 />
               ) : type === 'textarea' ? (
                 <Textarea

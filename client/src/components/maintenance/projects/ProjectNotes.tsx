@@ -731,4 +731,3 @@ export function ProjectNotes({
   );
 }
 
-export type { ProjectNotesProps };

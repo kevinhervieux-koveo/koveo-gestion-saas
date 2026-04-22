@@ -483,4 +483,3 @@ export function StatusStepper({
   );
 }
 
-export type { StatusStepperProps };

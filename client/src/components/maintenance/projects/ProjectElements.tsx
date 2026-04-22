@@ -822,4 +822,3 @@ export function ProjectElements({
   );
 }
 
-export type { ProjectElementsProps };

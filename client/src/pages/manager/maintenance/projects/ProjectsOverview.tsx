@@ -441,4 +441,3 @@ export function ProjectsOverview({ className, buildingId, organizationId }: Proj
   );
 }
 
-export type { ProjectsOverviewProps };

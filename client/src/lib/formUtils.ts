@@ -232,11 +232,3 @@ export const focusHelpers = {
 };
 
 // Export all utilities
-export {
-  formUtils as default,
-  defaultValues,
-  validationUtils,
-  formPatterns,
-  submissionHelpers,
-  focusHelpers,
-};

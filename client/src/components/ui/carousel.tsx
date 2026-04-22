@@ -51,7 +51,7 @@ useCarousel() {
    * @param !context - !context parameter.
    */
 
-  if (!_context) {
+  if (!context) {
     throw new Error('useCarousel must be used within a <Carousel />');
   }
 
