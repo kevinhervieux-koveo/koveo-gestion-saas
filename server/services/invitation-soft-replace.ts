@@ -29,13 +29,6 @@ export interface CreateInvitationWithSoftReplaceInput {
 
 export interface CreateInvitationWithSoftReplaceResult {
   invitation: typeof schema.invitations.$inferSelect;
-  /**
-   * Retained for backwards compatibility with the previous soft-replace
-   * contract. Always an empty array now that duplicate invites are rejected
-   * with `InvitationAlreadyPendingError` instead of silently replacing the
-   * prior pending row. Callers should not rely on this field.
-   */
-  replacedInvitationIds: string[];
 }
 
 function buildAuditTag(audit: InvitationAuditMeta): Record<string, unknown> {
@@ -216,7 +209,7 @@ export async function createInvitationWithSoftReplace(
     logError("failed to write invitation_audit_log entry on CREATE", auditErr);
   }
 
-  return { invitation, replacedInvitationIds: [] };
+  return { invitation };
 }
 
 /**
@@ -235,15 +228,3 @@ export class InvitationAlreadyPendingError extends Error {
     );
   }
 }
-
-/**
- * Backwards-compatible alias for the pre-Task #250 race-loss error class.
- * The old soft-replace flow distinguished a "race lost after retry" outcome
- * from the dedup hit; the new flow collapses both into
- * `InvitationAlreadyPendingError`. This alias keeps any older `instanceof`
- * checks compiling without forcing a coordinated rename.
- *
- * @deprecated Use `InvitationAlreadyPendingError` instead.
- */
-export const InvitationSoftReplaceRaceLostError = InvitationAlreadyPendingError;
-export type InvitationSoftReplaceRaceLostError = InvitationAlreadyPendingError;

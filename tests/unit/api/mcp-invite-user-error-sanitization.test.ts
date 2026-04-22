@@ -86,7 +86,7 @@ jest.mock('../../../server/services/invitation-soft-replace', () => {
 });
 
 import { createMcpServer } from '../../../server/mcp/server';
-import { InvitationSoftReplaceRaceLostError } from '../../../server/services/invitation-soft-replace';
+import { InvitationAlreadyPendingError } from '../../../server/services/invitation-soft-replace';
 
 const ORG_ID = 'mcp-org-1';
 const SEED_MANAGER_ID = 'seed-mcp-manager-id';
@@ -205,11 +205,11 @@ describe('MCP invite_user — sanitizes error responses (task #214)', () => {
     expect(consoleErrorSpy).toHaveBeenCalled();
   });
 
-  it('returns the race-loss friendly text when the helper throws InvitationSoftReplaceRaceLostError', async () => {
+  it('returns the race-loss friendly text when the helper throws InvitationAlreadyPendingError', async () => {
     primeSeedSelects();
 
     createInvitationWithSoftReplaceMock.mockRejectedValueOnce(
-      new InvitationSoftReplaceRaceLostError(),
+      new InvitationAlreadyPendingError(),
     );
 
     const handler = registeredTools.get('invite_user');

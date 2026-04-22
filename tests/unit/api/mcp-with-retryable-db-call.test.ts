@@ -30,7 +30,7 @@ jest.mock('../../../server/services/consolidated-ai-service', () => ({ aiService
 jest.mock('../../../server/services/email-service', () => ({ emailService: {} }));
 jest.mock('../../../server/services/invitation-soft-replace', () => ({
   createInvitationWithSoftReplace: jest.fn(),
-  InvitationSoftReplaceRaceLostError: class {},
+  InvitationAlreadyPendingError: class {},
 }));
 
 import {
