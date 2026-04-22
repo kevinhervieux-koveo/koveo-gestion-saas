@@ -54,6 +54,7 @@ export function registerOrganizationRoutes(app: Express): void {
           .select({
             id: organizations.id,
             name: organizations.name,
+            code: organizations.code,
             type: organizations.type,
             address: organizations.address,
             city: organizations.city,
@@ -75,6 +76,7 @@ export function registerOrganizationRoutes(app: Express): void {
           .select({
             id: organizations.id,
             name: organizations.name,
+            code: organizations.code,
             type: organizations.type,
             address: organizations.address,
             city: organizations.city,
@@ -261,6 +263,7 @@ export function registerOrganizationRoutes(app: Express): void {
         .select({
           id: organizations.id,
           name: organizations.name,
+          code: organizations.code,
           type: organizations.type,
           address: organizations.address,
           city: organizations.city,
@@ -306,11 +309,48 @@ export function registerOrganizationRoutes(app: Express): void {
 
       const organizationData = req.body;
 
+      // Auto-generate a unique short org code if the caller did not supply one.
+      // The code is used as the leading segment of unified V2 bill numbers
+      // (e.g. `MCP1-202607-UTIL-0042`). We sluggify the org name and disambiguate
+      // collisions with a numeric suffix.
+      const ensureOrgCode = async (provided: unknown, name: string): Promise<string> => {
+        const sluggify = (s: string) =>
+          s
+            .toUpperCase()
+            .replace(/[^A-Z0-9]+/g, '')
+            .slice(0, 8) || 'ORG';
+        const candidate0 = typeof provided === 'string' && provided.trim().length > 0
+          ? provided.trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8)
+          : sluggify(name);
+        const base = candidate0.length >= 1 ? candidate0 : 'ORG';
+        // Try base, then base+1, base+2... until unique, capped at 8 chars.
+        let suffix = 0;
+        // eslint-disable-next-line no-constant-condition
+        while (true) {
+          const tail = suffix === 0 ? '' : String(suffix);
+          const candidate = (base.slice(0, 8 - tail.length) + tail).slice(0, 8);
+          const [clash] = await db
+            .select({ id: organizations.id })
+            .from(organizations)
+            .where(eq(organizations.code, candidate))
+            .limit(1);
+          if (!clash) return candidate;
+          suffix += 1;
+          if (suffix > 9999) {
+            // Extreme fallback — should never happen in practice.
+            return (base.slice(0, 4) + Math.random().toString(36).slice(2, 6)).toUpperCase();
+          }
+        }
+      };
+
+      const orgCode = await ensureOrgCode(organizationData.code, organizationData.name);
+
       // Insert new organization
       const [newOrganization] = await db
         .insert(organizations)
         .values({
           name: organizationData.name,
+          code: orgCode,
           type: organizationData.type,
           address: organizationData.address,
           city: organizationData.city,
@@ -324,6 +364,7 @@ export function registerOrganizationRoutes(app: Express): void {
         .returning({
           id: organizations.id,
           name: organizations.name,
+          code: organizations.code,
           type: organizations.type,
           address: organizations.address,
           city: organizations.city,

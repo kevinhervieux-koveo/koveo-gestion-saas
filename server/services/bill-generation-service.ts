@@ -6,6 +6,13 @@ import { v4 as uuidv4 } from 'uuid';
 import type { Bill } from '../../shared/schema';
 import { getFinancialYearRange, groupPaymentsByFiscalYear } from '../utils/fiscal-year';
 import type { FinancialYearRange } from '../utils/fiscal-year';
+import { isBillNumberV2Enabled } from '../utils/feature-flags';
+import {
+  generateBillNumberV2,
+  resolveOrgCodeForBuilding,
+  withBillNumberRetry,
+} from './bill-number-generator';
+import { generateChildBillNumber } from '../../shared/schemas/bill-number';
 
 /**
  * Advanced Bill Auto-Generation Service.
@@ -35,8 +42,10 @@ export class BillAutoGenerationService {
 
     const startDate = suggestedDate || new Date();
     
-    // Generate unique bill number with atomic operations
-    const uniqueBillNumber = await this.generateUniqueBillNumber(templateBill.category, startDate);
+    // Generate unique bill number — V2 when flag is on, otherwise legacy AUTO-* format.
+    const uniqueBillNumber = isBillNumberV2Enabled()
+      ? await this.mintIndependentAutoNumber(templateBill, startDate)
+      : await this.generateUniqueBillNumber(templateBill.category, startDate);
     
     // Create the new bill
     const newBill: Bill = {
@@ -44,6 +53,7 @@ export class BillAutoGenerationService {
       ...newBillData,
       id: '', // Will be generated on insert
       billNumber: uniqueBillNumber, // Use atomic bill number
+      source: 'auto' as const,
       billType: 'unique' as const, // Convert to unique bill (one-time occurrence)
       paymentStructure: templateBill.costs && templateBill.costs.length > 1 ? 'installment' as const : 'single' as const,
       paymentType: 'unique' as const, // Legacy field - Convert to unique bill
@@ -140,6 +150,49 @@ export class BillAutoGenerationService {
   }
 
   /**
+   * Mint a V2 bill number for an auto-generated bill that stands on its own
+   * (i.e. is NOT a child part of another occurrence — child parts use the
+   * `-Pxx` suffix produced by `generateChildBillNumber`).
+   * Resolves the org code from the source bill's building and asks the
+   * generator for the next sequence in the (org, period, category) scope.
+   */
+  private async mintIndependentAutoNumber(sourceBill: Bill, dueDate: Date): Promise<string> {
+    const orgCode = await resolveOrgCodeForBuilding(sourceBill.buildingId);
+    return generateBillNumberV2({
+      orgCode,
+      billingPeriod: dueDate,
+      category: sourceBill.category,
+    });
+  }
+
+  /**
+   * Walk an array of generated bills (already shaped by generateForNextYear /
+   * generateFiscalYearSplitBills / generateCustomScheduleNextYearBill) and
+   * replace their legacy AUTO-* numbers with V2 numbers, one per bill.
+   * Each generated bill in these arrays represents an independent occurrence,
+   * so we mint a fresh V2 number per bill (no -Pxx suffix here). Also stamps
+   * `source = 'auto'` so the column is populated for V2-generated rows.
+   * No-op when the V2 flag is off — legacy numbers pass through untouched.
+   */
+  private async applyV2NumbersToGenerated(
+    sourceBill: Bill,
+    generatedBills: Bill[],
+  ): Promise<void> {
+    if (!isBillNumberV2Enabled()) {
+      // Still stamp source='auto' so the column is consistent across paths.
+      for (const b of generatedBills) {
+        (b as any).source = (b as any).source ?? 'auto';
+      }
+      return;
+    }
+    for (const bill of generatedBills) {
+      const dueDate = new Date(bill.startDate as unknown as string);
+      bill.billNumber = await this.mintIndependentAutoNumber(sourceBill, dueDate);
+      (bill as any).source = 'auto';
+    }
+  }
+
+  /**
    * Update source bill end date to the last payment before the new bill date.
    * @param sourceBillId - ID of the source recurrent bill
    * @param newBillDate - Date of the new bill being created
@@ -201,6 +254,7 @@ export class BillAutoGenerationService {
       const firstDate = dueDates[0];
       return [{
         id: '', // Will be generated on insert
+        source: null,
         buildingId: sourceBill.buildingId,
         billNumber: this.generateAdvancedBillNumber(sourceBill, firstDate, 0),
         title: sourceBill.title,
@@ -235,6 +289,7 @@ export class BillAutoGenerationService {
     // For other bill types (monthly, quarterly, installments, etc.), generate as before
     return dueDates.map((dueDate, index) => ({
       id: '', // Will be generated on insert
+      source: null,
       buildingId: sourceBill.buildingId,
       billNumber: this.generateAdvancedBillNumber(sourceBill, dueDate, index),
       title: sourceBill.title,
@@ -299,6 +354,7 @@ export class BillAutoGenerationService {
     
     const generatedBill: Bill = {
       id: '', // Will be generated on insert
+      source: null,
       buildingId: sourceBill.buildingId,
       billNumber: this.generateAdvancedBillNumber(sourceBill, tempDateForBillNumber, 0),
       title: sourceBill.title,
@@ -340,13 +396,36 @@ export class BillAutoGenerationService {
   async generateForNextYearWithPayments(sourceBill: Bill): Promise<Bill[]> {
     try {
       const generatedBills = this.generateForNextYear(sourceBill);
-      
-      // Generate payments for each auto-generated bill to complete payment plan inheritance
+      // Stamp source='auto' on the in-memory rows so legacy callers see it too.
+      for (const b of generatedBills) (b as any).source = (b as any).source ?? 'auto';
+      const v2On = isBillNumberV2Enabled();
+
+      // Generate payments for each auto-generated bill to complete payment plan inheritance.
+      // We mint+insert per bill (with retry) so concurrent SEQ4 races resolve.
       for (const bill of generatedBills) {
-        // Omit id field to let database auto-generate UUID
-        const { id, ...billWithoutId } = bill;
-        const insertResult = await db.insert(bills).values(billWithoutId as any).returning();
-        const newBill = insertResult[0];
+        const { id, billNumber: legacyNumber, ...billWithoutId } = bill as any;
+        const insertResult = await withBillNumberRetry(
+          async () => {
+            if (v2On) {
+              return this.mintIndependentAutoNumber(
+                sourceBill,
+                new Date(bill.startDate as unknown as string),
+              );
+            }
+            return legacyNumber;
+          },
+          async (mintedNumber) => {
+            const rows = await db.insert(bills).values({
+              ...billWithoutId,
+              billNumber: mintedNumber,
+              source: 'auto' as const,
+            }).returning();
+            return rows;
+          },
+        );
+        const newBill = (insertResult as any[])[0];
+        // Reflect the actual persisted number on the in-memory copy.
+        (bill as any).billNumber = newBill.billNumber;
         
         try {
           const { paymentGenerationService } = await import('./payment-generation-service');
@@ -542,6 +621,7 @@ export class BillAutoGenerationService {
 
       const splitBill: Bill = {
         id: '',
+        source: null,
         buildingId: sourceBill.buildingId,
         billNumber: this.generateAdvancedBillNumber(
           sourceBill,
@@ -930,17 +1010,32 @@ export class BillAutoGenerationService {
     const scheduleType = this.detectScheduleType(parentBill);
     const occurrences = this.calculateOccurrences(currentDate, endDate, scheduleType);
 
+    const v2On = isBillNumberV2Enabled();
+
     for (const occurrenceDate of occurrences) {
       // Handle multiple payment plans
       const paymentParts = this.calculatePaymentParts(parentBill, occurrenceDate);
 
+      // For V2: pin the occurrence's confirmed base number AFTER the base insert
+      // succeeds (post-retry). Child parts (partIndex>0) derive their -P## suffix
+      // from this stable base — never from a sibling-pre-retry value or the most
+      // recently pushed array element. This guarantees a flat -P## shape and
+      // keeps child numbers correct even if the base insert had to retry to a
+      // new SEQ4.
+      let occurrenceBaseNumber: string | null = null;
+
       for (let partIndex = 0; partIndex < paymentParts.length; partIndex++) {
         const paymentPart = paymentParts[partIndex];
+
+        // Pre-compute the legacy number so the placeholder in the in-memory
+        // generatedBill matches what gets inserted on the legacy path.
+        const legacyBillNumber = this.generateBillNumber(parentBill, occurrenceDate, partIndex);
 
         const generatedBill = {
           id: uuidv4(),
           buildingId: parentBill.buildingId,
-          billNumber: this.generateBillNumber(parentBill, occurrenceDate, partIndex),
+          billNumber: legacyBillNumber,
+          source: 'auto' as const,
           title: this.generateBillTitle(parentBill, occurrenceDate, partIndex, paymentParts.length),
           description: `Auto-generated from: ${parentBill.title}`,
           category: parentBill.category,
@@ -965,19 +1060,68 @@ export class BillAutoGenerationService {
           updatedAt: new Date(),
         };
 
-        generatedBills.push(generatedBill);
-        billsCreated++;
+        if (v2On) {
+          // Insert immediately so the next iteration's peekNextSeq sees this row
+          // and avoids same-(org,period,cat) SEQ4 collisions. We re-mint inside
+          // the retry wrapper on UNIQUE-constraint races (base parts only —
+          // child -P## numbers are unique by construction once the base is
+          // confirmed).
+          const { id: _omitId, billNumber: _placeholder, ...billRest } = generatedBill as any;
+          if (partIndex === 0) {
+            // Mint a fresh V2 base on each retry attempt and pin the WINNING
+            // value as the occurrence's confirmed base.
+            let confirmedBase = '';
+            await withBillNumberRetry(
+              async () => this.mintIndependentAutoNumber(parentBill, occurrenceDate),
+              async (mintedNumber) => {
+                await db.insert(bills).values({
+                  ...billRest,
+                  billNumber: mintedNumber,
+                  source: 'auto' as const,
+                });
+                confirmedBase = mintedNumber;
+              },
+            );
+            occurrenceBaseNumber = confirmedBase;
+            generatedBills.push({ ...generatedBill, billNumber: confirmedBase } as any);
+          } else {
+            // Derive child number deterministically from the confirmed base.
+            // No re-mint needed: BASE is unique to its scope, so BASE-P## is
+            // unique by construction. We still wrap in retry to fail loudly on
+            // unexpected duplicates.
+            const childNumber = generateChildBillNumber(
+              occurrenceBaseNumber ?? '',
+              partIndex,
+            );
+            await withBillNumberRetry(
+              async () => childNumber,
+              async (mintedNumber) => {
+                await db.insert(bills).values({
+                  ...billRest,
+                  billNumber: mintedNumber,
+                  source: 'auto' as const,
+                });
+              },
+              1, // Single attempt — child collisions indicate a real bug, not a race.
+            );
+            generatedBills.push({ ...generatedBill, billNumber: childNumber } as any);
+          }
+          billsCreated++;
+        } else {
+          generatedBills.push(generatedBill);
+          billsCreated++;
 
-        // Batch insert every 100 bills for performance
-        if (generatedBills.length >= 100) {
-          await this.insertBillsBatch(generatedBills);
-          generatedBills.length = 0;
+          // Batch insert every 100 bills for performance (legacy path only).
+          if (generatedBills.length >= 100) {
+            await this.insertBillsBatch(generatedBills);
+            generatedBills.length = 0;
+          }
         }
       }
     }
 
-    // Insert remaining bills
-    if (generatedBills.length > 0) {
+    // Insert remaining bills (legacy path only — V2 already inserted inline).
+    if (!v2On && generatedBills.length > 0) {
       await this.insertBillsBatch(generatedBills);
     }
 
@@ -1657,13 +1801,32 @@ export class BillAutoGenerationService {
         // Generate new bills
         if (this.canGenerateFromBill(recurrentBill as Bill)) {
           const generatedBills = this.generateForNextYear(recurrentBill as Bill);
-          
-          // Insert in batches
+          // Stamp source on legacy path; V2 mints fresh per insert below.
+          for (const b of generatedBills) (b as any).source = (b as any).source ?? 'auto';
+          const v2On = isBillNumberV2Enabled();
+
+          // Insert one at a time with retry so concurrent SEQ4 races resolve
+          // and so each peekNextSeq sees prior inserts in the same batch.
           for (const generatedBill of generatedBills) {
-            await db.insert(bills).values({
-              ...generatedBill,
-              id: undefined,
-            });
+            const { id: _omitId, billNumber: legacyNumber, ...rest } = generatedBill as any;
+            await withBillNumberRetry(
+              async () => {
+                if (v2On) {
+                  return this.mintIndependentAutoNumber(
+                    recurrentBill as Bill,
+                    new Date(generatedBill.startDate as unknown as string),
+                  );
+                }
+                return legacyNumber;
+              },
+              async (mintedNumber) => {
+                await db.insert(bills).values({
+                  ...rest,
+                  billNumber: mintedNumber,
+                  source: 'auto' as const,
+                });
+              },
+            );
             billsGenerated++;
           }
         }
@@ -1819,25 +1982,33 @@ export class BillAutoGenerationService {
       const sourceDate = new Date(sourceBill.startDate);
       const targetDate = new Date(sourceDate.getFullYear() + 1, sourceDate.getMonth(), sourceDate.getDate());
 
-      // Generate bill number
-      const billNumber = this.generateAdvancedBillNumber(sourceBill, targetDate, 0);
+      // Generate bill number — V2 when flag is on, otherwise legacy AUTO-* format.
+      // We mint here primarily to seed the existence check; the real insert below
+      // re-mints inside withBillNumberRetry so concurrent SEQ4 races resolve.
+      const v2On = isBillNumberV2Enabled();
+      const billNumber = v2On
+        ? await this.mintIndependentAutoNumber(sourceBill, targetDate)
+        : this.generateAdvancedBillNumber(sourceBill, targetDate, 0);
 
-      // Check if auto-bill already exists for this template and date
-      const existingBill = await db
-        .select()
-        .from(bills)
-        .where(
-          and(
-            eq(bills.sourceTemplateId, sourceBill.id),
-            eq(bills.isAutoGenerated, true),
-            eq(bills.billNumber, billNumber)
+      // Check if auto-bill already exists for this template and date (legacy path
+      // only — V2 numbers are unique-per-attempt so this check would always miss).
+      if (!v2On) {
+        const existingBill = await db
+          .select()
+          .from(bills)
+          .where(
+            and(
+              eq(bills.sourceTemplateId, sourceBill.id),
+              eq(bills.isAutoGenerated, true),
+              eq(bills.billNumber, billNumber)
+            )
           )
-        )
-        .limit(1);
+          .limit(1);
 
-      if (existingBill.length > 0) {
-        // console.log(`✅ Auto-bill already exists for ${billNumber}`);
-        return existingBill[0] as Bill;
+        if (existingBill.length > 0) {
+          // console.log(`✅ Auto-bill already exists for ${billNumber}`);
+          return existingBill[0] as Bill;
+        }
       }
 
       // Determine payment structure from costs array
@@ -1853,6 +2024,7 @@ export class BillAutoGenerationService {
       const autoGeneratedBill = {
         buildingId: sourceBill.buildingId,
         billNumber,
+        source: 'auto' as const,
         title: `${sourceBill.title} (Auto-Generated)`,
         description: sourceBill.description,
         category: sourceBill.category,
@@ -1881,20 +2053,38 @@ export class BillAutoGenerationService {
         updatedAt: new Date(),
       };
 
-      // Check for existing bill with same number to avoid duplicates
-      const existingByNumber = await db
-        .select()
-        .from(bills)
-        .where(eq(bills.billNumber, billNumber))
-        .limit(1);
+      // Check for existing bill with same number to avoid duplicates (legacy only;
+      // V2 re-mints per attempt and relies on the UNIQUE-constraint retry).
+      if (!v2On) {
+        const existingByNumber = await db
+          .select()
+          .from(bills)
+          .where(eq(bills.billNumber, billNumber))
+          .limit(1);
 
-      if (existingByNumber.length > 0) {
-        // console.log(`✅ Auto-bill ${billNumber} already exists, skipping duplicate creation`);
-        return existingByNumber[0] as Bill;
+        if (existingByNumber.length > 0) {
+          return existingByNumber[0] as Bill;
+        }
       }
 
-      const insertResult = await db.insert(bills).values(autoGeneratedBill as any).returning();
-      const newBill = insertResult[0];
+      const { billNumber: _omitNum, ...autoBillRest } = autoGeneratedBill as any;
+      const insertResult = await withBillNumberRetry(
+        async () => {
+          if (v2On) {
+            return this.mintIndependentAutoNumber(sourceBill, targetDate);
+          }
+          return billNumber;
+        },
+        async (mintedNumber) => {
+          const rows = await db.insert(bills).values({
+            ...autoBillRest,
+            billNumber: mintedNumber,
+            source: 'auto' as const,
+          } as any).returning();
+          return rows;
+        },
+      );
+      const newBill = (insertResult as any[])[0];
 
       // Generate payments for the auto-generated bill to complete payment plan inheritance
       try {

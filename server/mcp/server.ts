@@ -1193,24 +1193,47 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       if (!building || !orgIds.includes(building.organizationId)) {
         return { content: [{ type: "text" as const, text: "Building not found or access denied" }] };
       }
-      const billNumber = `MCP-${Date.now()}`;
       const user = await getMcpUser(role);
       try {
-        const [bill] = await db
-          .insert(schema.bills)
-          .values({
-            buildingId,
-            billNumber,
-            title,
-            category,
-            totalAmount: String(totalAmount),
-            costs: [String(totalAmount)],
-            paymentType,
-            startDate,
-            status: "draft",
-            createdBy: user?.id,
-          })
-          .returning();
+        const { isBillNumberV2Enabled } = await import("../utils/feature-flags");
+        const {
+          generateBillNumberV2,
+          resolveOrgCodeForBuilding,
+          withBillNumberRetry,
+        } = await import("../services/bill-number-generator");
+
+        const mintNumber = async (): Promise<string> => {
+          if (isBillNumberV2Enabled()) {
+            const orgCode = await resolveOrgCodeForBuilding(buildingId);
+            return generateBillNumberV2({
+              orgCode,
+              billingPeriod: startDate,
+              category,
+            });
+          }
+          return `MCP-${Date.now()}`;
+        };
+
+        const inserted = await withBillNumberRetry(mintNumber, async (billNumber) => {
+          const rows = await db
+            .insert(schema.bills)
+            .values({
+              buildingId,
+              billNumber,
+              source: "mcp",
+              title,
+              category,
+              totalAmount: String(totalAmount),
+              costs: [String(totalAmount)],
+              paymentType,
+              startDate,
+              status: "draft",
+              createdBy: user?.id,
+            })
+            .returning();
+          return rows as any[];
+        });
+        const bill = (inserted as any[])[0];
         return { content: [{ type: "text" as const, text: JSON.stringify(bill, null, 2) }] };
       } catch (e) {
         console.error("[mcp:create_bill]", e);

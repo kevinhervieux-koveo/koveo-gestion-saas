@@ -20,6 +20,8 @@
 
 import { db } from '../db';
 import { eq, and, gte, lte, sql, not, inArray, or, isNull } from 'drizzle-orm';
+import { isBillNumberV2Enabled } from '../utils/feature-flags';
+import { generateBillNumberV2, resolveOrgCodeForBuilding, withBillNumberRetry } from './bill-number-generator';
 import { v4 as uuidv4 } from 'uuid';
 import { BaseService } from './_base/base-service';
 import type { 
@@ -149,12 +151,9 @@ export class ConsolidatedFinancialService extends BaseService {
       }
 
       const startDate = suggestedDate || new Date();
-      const uniqueBillNumber = await this.generateUniqueBillNumber(templateBill.category, startDate);
-      
       const newBillData_prepared = {
         ...templateBill,
         ...newBillData,
-        billNumber: uniqueBillNumber,
         paymentType: 'unique' as const,
         // NEW: Set payment structure fields for single payment
         paymentCount: '1' as const,
@@ -179,9 +178,34 @@ export class ConsolidatedFinancialService extends BaseService {
       // Remove the id field as it will be auto-generated on insert
       delete (newBillData_prepared as any).id;
 
-      // Insert the bill into the database
-      const insertedBills = await db.insert(bills).values(newBillData_prepared).returning();
-      
+      // Insert the bill into the database — re-mint a unified V2 bill number per
+      // attempt so unique-constraint races just retry instead of failing. Stamp
+      // source='auto' to mark it as auto-generated for downstream analytics.
+      const insertedBills = await withBillNumberRetry(
+        async () => {
+          if (isBillNumberV2Enabled()) {
+            const orgCode = await resolveOrgCodeForBuilding((newBillData_prepared as any).buildingId);
+            return generateBillNumberV2({
+              orgCode,
+              billingPeriod: (newBillData_prepared as any).startDate,
+              category: (newBillData_prepared as any).category,
+            });
+          }
+          return this.generateUniqueBillNumber(
+            (newBillData_prepared as any).category,
+            startDate,
+          );
+        },
+        async (billNumber) => {
+          const rows = await db.insert(bills).values({
+            ...(newBillData_prepared as any),
+            billNumber,
+            source: 'auto' as const,
+          }).returning();
+          return rows;
+        },
+      );
+
       if (!insertedBills || insertedBills.length === 0) {
         throw new Error('Failed to insert auto-generated bill into database');
       }
