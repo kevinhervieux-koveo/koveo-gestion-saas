@@ -2673,14 +2673,28 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       });
       if (!auth.ok) return auth.response;
       try {
-        const deleted = await withRetryableDbCall(() => db
-          .delete(schema.bills)
-          .where(eq(schema.bills.id, billId))
-          .returning({ id: schema.bills.id, billNumber: schema.bills.billNumber, title: schema.bills.title }));
+        const result = await withRetryableDbCall(() => db.transaction(async (tx) => {
+          // Explicitly delete dependent payments inside the same
+          // transaction so the MCP response can report exact cascade
+          // counts (rather than relying purely on the DB-level
+          // ON DELETE CASCADE FK, which gives us no row count).
+          const paymentsDeleted = await tx
+            .delete(schema.payments)
+            .where(eq(schema.payments.billId, billId))
+            .returning({ id: schema.payments.id });
+          const deleted = await tx
+            .delete(schema.bills)
+            .where(eq(schema.bills.id, billId))
+            .returning({ id: schema.bills.id, billNumber: schema.bills.billNumber, title: schema.bills.title });
+          return {
+            deleted: deleted[0] ?? null,
+            cascaded: { payments: paymentsDeleted.length },
+          };
+        }));
         return {
           content: [{
             type: "text" as const,
-            text: JSON.stringify({ deleted: deleted[0] ?? null, message: "Bill deleted (cascade applied to payments)" }, null, 2),
+            text: JSON.stringify({ ...result, message: "Bill deleted (cascade applied to payments)" }, null, 2),
           }],
         };
       } catch (e) {
