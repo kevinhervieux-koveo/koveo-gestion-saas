@@ -386,7 +386,7 @@ export function buildWriteErrorResponse(
  * Permanent: 23514, 23502 (FK 23503 and unique 23505 are handled with
  * richer detail-parsing logic above).
  */
-const PG_EXTENDED_ERROR_CATALOG: Record<
+export const PG_EXTENDED_ERROR_CATALOG: Record<
   string,
   {
     status: string;
@@ -457,6 +457,80 @@ const PG_EXTENDED_ERROR_CATALOG: Record<
       `Could not ${a} ${l} because the database rejected the connection — please retry shortly.`,
   },
 };
+
+/**
+ * PostgreSQL SQLSTATEs flagged as transient/retryable by
+ * `PG_EXTENDED_ERROR_CATALOG`. Centralized here so `withRetryableDbCall` and
+ * the catalog cannot drift apart: anything advertised to MCP callers as
+ * `retryable: true` is exactly what we silently retry in-process before the
+ * error ever surfaces to the LLM.
+ *
+ *   40001  serialization_failure
+ *   40P01  deadlock_detected
+ *   57014  statement_timeout (query cancelled)
+ *   08006  connection_failure
+ *   08001  sqlclient_unable_to_establish_sqlconnection
+ *   08003  connection_does_not_exist
+ *   08004  sqlserver_rejected_establishment_of_sqlconnection
+ */
+export const RETRYABLE_PG_CODES: ReadonlySet<string> = new Set([
+  '40001',
+  '40P01',
+  '57014',
+  '08006',
+  '08001',
+  '08003',
+  '08004',
+]);
+
+/**
+ * Run `fn` against the database, retrying on the SQLSTATEs catalogued as
+ * retryable (see `RETRYABLE_PG_CODES`). Non-retryable errors short-circuit
+ * immediately so callers (and `buildWriteErrorResponse`) keep their
+ * deterministic single-attempt behaviour for permanent failures.
+ *
+ * Bounded by `maxAttempts` (default 3). Between attempts we wait a small
+ * exponential backoff (`baseDelayMs * 2^(attempt-1)`) plus uniform jitter in
+ * `[0, baseDelayMs)` so concurrent retriers don't stampede in lockstep.
+ *
+ * `sleep` and `random` are injectable so unit tests can run without a real
+ * timer / RNG.
+ */
+export async function withRetryableDbCall<T>(
+  fn: () => Promise<T>,
+  options: {
+    maxAttempts?: number;
+    baseDelayMs?: number;
+    sleep?: (ms: number) => Promise<void>;
+    random?: () => number;
+  } = {},
+): Promise<T> {
+  const maxAttempts = options.maxAttempts ?? 3;
+  const baseDelayMs = options.baseDelayMs ?? 50;
+  const sleep =
+    options.sleep ?? ((ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms)));
+  const rand = options.random ?? Math.random;
+
+  let lastErr: unknown;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      return await fn();
+    } catch (e) {
+      lastErr = e;
+      const code = (e as { code?: unknown } | null)?.code;
+      const isRetryable = typeof code === 'string' && RETRYABLE_PG_CODES.has(code);
+      if (!isRetryable || attempt === maxAttempts) {
+        throw e;
+      }
+      const backoff = baseDelayMs * Math.pow(2, attempt - 1);
+      const jitter = rand() * baseDelayMs;
+      await sleep(backoff + jitter);
+    }
+  }
+  // Unreachable — the loop either returns or throws — but TypeScript's
+  // control-flow analysis can't prove that, so rethrow defensively.
+  throw lastErr;
+}
 
 /**
  * Backwards-compatible alias for delete-action error sanitization. New code
@@ -702,7 +776,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
         return { content: [{ type: "text" as const, text: "Access denied: organization not in MCP scope" }] };
       }
       try {
-        const [building] = await db
+        const [building] = await withRetryableDbCall(() => db
           .insert(schema.buildings)
           .values({
             organizationId,
@@ -731,7 +805,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
             ...(generalInflationRate !== undefined && { generalInflationRate: String(generalInflationRate) }),
             ...(revenueInflationRate !== undefined && { revenueInflationRate: String(revenueInflationRate) }),
           })
-          .returning();
+          .returning());
         return { content: [{ type: "text" as const, text: JSON.stringify(building, null, 2) }] };
       } catch (e) {
         console.error("[mcp:create_building]", e);
@@ -867,7 +941,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
         return { content: [{ type: "text" as const, text: "Building not found or access denied" }] };
       }
       try {
-        const [residence] = await db.insert(schema.residences).values({
+        const [residence] = await withRetryableDbCall(() => db.insert(schema.residences).values({
           buildingId,
           unitNumber,
           ...(floor !== undefined && { floor }),
@@ -879,7 +953,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
           ...(parkingSpaceNumbers !== undefined && { parkingSpaceNumbers }),
           ...(storageSpaceNumbers !== undefined && { storageSpaceNumbers }),
           ...(ownershipPercentage !== undefined && { ownershipPercentage: String(ownershipPercentage) }),
-        }).returning();
+        }).returning());
         return { content: [{ type: "text" as const, text: JSON.stringify(residence, null, 2) }] };
       } catch (e) {
         console.error("[mcp:create_residence]", e);
@@ -950,7 +1024,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
 
       const effectiveStartDate = startDate ?? new Date().toISOString().slice(0, 10);
       try {
-        const [link] = await db
+        const [link] = await withRetryableDbCall(() => db
           .insert(schema.userResidences)
           .values({
             userId,
@@ -959,7 +1033,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
             startDate: effectiveStartDate,
             isActive: true,
           })
-          .returning();
+          .returning());
         return { content: [{ type: "text" as const, text: JSON.stringify(link, null, 2) }] };
       } catch (e) {
         console.error("[mcp:link_user_to_residence]", e);
@@ -1033,11 +1107,11 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       // AND `endDate` so reads (which only consult `isActive`) and the
       // informational `endDate` stay aligned.
       try {
-        const [updated] = await db
+        const [updated] = await withRetryableDbCall(() => db
           .update(schema.userResidences)
           .set({ isActive: false, endDate: effectiveEndDate, updatedAt: new Date() })
           .where(eq(schema.userResidences.id, existing.id))
-          .returning();
+          .returning());
         return { content: [{ type: "text" as const, text: JSON.stringify(updated, null, 2) }] };
       } catch (e) {
         console.error("[mcp:unlink_user_from_residence]", e);
@@ -1215,7 +1289,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
         };
 
         const inserted = await withBillNumberRetry(mintNumber, async (billNumber) => {
-          const rows = await db
+          const rows = await withRetryableDbCall(() => db
             .insert(schema.bills)
             .values({
               buildingId,
@@ -1230,7 +1304,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
               status: "draft",
               createdBy: user?.id,
             })
-            .returning();
+            .returning());
           return rows as any[];
         });
         const bill = (inserted as any[])[0];
@@ -1262,7 +1336,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
         return { content: [{ type: "text" as const, text: "Access denied" }] };
       }
       try {
-        const [updated] = await db.update(schema.bills).set({ status, updatedAt: new Date() }).where(eq(schema.bills.id, billId)).returning();
+        const [updated] = await withRetryableDbCall(() => db.update(schema.bills).set({ status, updatedAt: new Date() }).where(eq(schema.bills.id, billId)).returning());
         return { content: [{ type: "text" as const, text: JSON.stringify(updated, null, 2) }] };
       } catch (e) {
         console.error("[mcp:update_bill_status]", e);
@@ -1375,10 +1449,10 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
         }
       }
       try {
-        const [request] = await db
+        const [request] = await withRetryableDbCall(() => db
           .insert(schema.maintenanceRequests)
           .values({ residenceId, title, description, category, priority, submittedBy: user?.id, status: "submitted" })
-          .returning();
+          .returning());
         return { content: [{ type: "text" as const, text: JSON.stringify(request, null, 2) }] };
       } catch (e) {
         console.error("[mcp:create_maintenance_request]", e);
@@ -1411,13 +1485,13 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       }
       const user = await getMcpUser(role);
       try {
-        const [updated] = await db.update(schema.maintenanceRequests).set({
+        const [updated] = await withRetryableDbCall(() => db.update(schema.maintenanceRequests).set({
           status,
           updatedAt: new Date(),
           ...(notes && { notes }),
           ...(status === "completed" && { completedDate: new Date() }),
           ...(user && { assignedTo: user.id }),
-        }).where(eq(schema.maintenanceRequests.id, requestId)).returning();
+        }).where(eq(schema.maintenanceRequests.id, requestId)).returning());
         return { content: [{ type: "text" as const, text: JSON.stringify(updated, null, 2) }] };
       } catch (e) {
         console.error("[mcp:update_maintenance_request]", e);
@@ -1517,14 +1591,14 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
         }
       }
       try {
-        const [demand] = await db.insert(schema.demands).values({
+        const [demand] = await withRetryableDbCall(() => db.insert(schema.demands).values({
           buildingId,
           type,
           description,
           submitterId: user?.id,
           status: "submitted" as const,
           ...(residenceId && { residenceId }),
-        }).returning();
+        }).returning());
         return { content: [{ type: "text" as const, text: JSON.stringify(demand, null, 2) }] };
       } catch (e) {
         console.error("[mcp:create_demand]", e);
@@ -1601,10 +1675,10 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       const user = await getMcpUser(role);
       if (!user) return { content: [{ type: "text" as const, text: "MCP user not found" }] };
       try {
-        const [comm] = await db
+        const [comm] = await withRetryableDbCall(() => db
           .insert(schema.generalCommunications)
           .values({ organizationId, title, content, isUrgent, createdBy: user.id, sentAt: new Date() })
-          .returning();
+          .returning());
         return { content: [{ type: "text" as const, text: JSON.stringify(comm, null, 2) }] };
       } catch (e) {
         console.error("[mcp:create_communication]", e);
@@ -1742,7 +1816,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       const user = await getMcpUser(role);
       if (!user) return { content: [{ type: "text" as const, text: "MCP user not found" }] };
       try {
-        const [meeting] = await db
+        const [meeting] = await withRetryableDbCall(() => db
           .insert(schema.meetings)
           .values({
             organizationId,
@@ -1753,7 +1827,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
             duration,
             createdBy: user.id,
           })
-          .returning();
+          .returning());
         return { content: [{ type: "text" as const, text: JSON.stringify(meeting, null, 2) }] };
       } catch (e) {
         console.error("[mcp:create_meeting]", e);
@@ -2064,7 +2138,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       const user = await getMcpUser(role);
 
       try {
-        const [doc] = await db
+        const [doc] = await withRetryableDbCall(() => db
           .insert(schema.documents)
           .values({
             name,
@@ -2079,7 +2153,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
             uploadedById: user?.id || null,
             isVisibleToTenants: role === "tenant" ? false : isVisibleToTenants,
           })
-          .returning();
+          .returning());
 
         await documentService.setDocumentAcl(normalizedPath, user?.id || "system", {
           type: documentType as DocumentType,
@@ -2239,10 +2313,10 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       });
       if (!auth.ok) return auth.response;
       try {
-        const deleted = await db
+        const deleted = await withRetryableDbCall(() => db
           .delete(schema.buildings)
           .where(eq(schema.buildings.id, buildingId))
-          .returning({ id: schema.buildings.id, name: schema.buildings.name });
+          .returning({ id: schema.buildings.id, name: schema.buildings.name }));
         return {
           content: [{
             type: "text" as const,
@@ -2286,7 +2360,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       });
       if (!auth.ok) return auth.response;
       try {
-        const result = await db.transaction(async (tx) => {
+        const result = await withRetryableDbCall(() => db.transaction(async (tx) => {
           const invoicesDeleted = await tx
             .delete(schema.invoices)
             .where(eq(schema.invoices.residenceId, residenceId))
@@ -2335,7 +2409,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
             },
             demandsAssignationCleared: demandsCleared.length,
           };
-        });
+        }));
         return {
           content: [{
             type: "text" as const,
@@ -2376,10 +2450,10 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       });
       if (!auth.ok) return auth.response;
       try {
-        const deleted = await db
+        const deleted = await withRetryableDbCall(() => db
           .delete(schema.bills)
           .where(eq(schema.bills.id, billId))
-          .returning({ id: schema.bills.id, billNumber: schema.bills.billNumber, title: schema.bills.title });
+          .returning({ id: schema.bills.id, billNumber: schema.bills.billNumber, title: schema.bills.title }));
         return {
           content: [{
             type: "text" as const,
@@ -2474,7 +2548,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       const tokenHash = createHash("sha256").update(token).digest("hex");
       const expiresAt = new Date(Date.now() + (expiresInDays ?? 7) * 24 * 60 * 60 * 1000);
 
-      const { invitation } = await createInvitationWithSoftReplace({
+      const { invitation } = await withRetryableDbCall(() => createInvitationWithSoftReplace({
         organizationId,
         // Match the REST path: treat empty / whitespace-only residenceId
         // as null so MCP and REST land on the exact same dedup tuple.
@@ -2491,7 +2565,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
         invitedByUserId: inviter.id,
         audit: { source: "mcp", tool: "invite_user" },
         logError: (msg, err) => console.error(`[mcp:invite_user] ${msg}`, err),
-      });
+      }));
       const normalizedResidenceId = invitation.residenceId;
 
       const [organization] = await db
@@ -2786,10 +2860,10 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
 
       const newExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
       try {
-        await db
+        await withRetryableDbCall(() => db
           .update(schema.invitations)
           .set({ expiresAt: newExpiresAt, status: "pending", updatedAt: new Date() })
-          .where(eq(schema.invitations.id, invitationId));
+          .where(eq(schema.invitations.id, invitationId)));
       } catch (e) {
         console.error("[mcp:resend_invitation] failed to update invitation", e);
         return buildWriteErrorResponse(e, 'invitation', 'update');
@@ -2799,19 +2873,21 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       // resends show up in invitation_audit_log alongside REST resends.
       // Failure to write must NOT mask the successful resend.
       try {
-        await db.insert(schema.invitationAuditLog).values({
-          invitationId,
-          action: "resent",
-          performedBy: caller.id,
-          previousStatus: invitation.status,
-          newStatus: "pending",
-          details: {
-            source: "mcp",
-            tool: "resend_invitation",
-            role,
-            newExpiresAt: newExpiresAt.toISOString(),
-          },
-        });
+        await withRetryableDbCall(() =>
+          db.insert(schema.invitationAuditLog).values({
+            invitationId,
+            action: "resent",
+            performedBy: caller.id,
+            previousStatus: invitation.status,
+            newStatus: "pending",
+            details: {
+              source: "mcp",
+              tool: "resend_invitation",
+              role,
+              newExpiresAt: newExpiresAt.toISOString(),
+            },
+          })
+        );
       } catch (auditErr) {
         console.error("[mcp:resend_invitation] failed to write invitation_audit_log entry", auditErr);
       }
@@ -2930,11 +3006,11 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       const previousStatus = invitation.status;
       let updated: typeof schema.invitations.$inferSelect;
       try {
-        [updated] = await db
+        [updated] = await withRetryableDbCall(() => db
           .update(schema.invitations)
           .set({ status: "cancelled", updatedAt: new Date() })
           .where(eq(schema.invitations.id, invitationId))
-          .returning();
+          .returning());
       } catch (e) {
         console.error("[mcp:cancel_invitation] failed to update invitation", e);
         return buildWriteErrorResponse(e, 'invitation', 'update');
@@ -2948,14 +3024,16 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       // Failure to write the audit row should NOT mask the successful
       // cancellation, so we log-and-swallow.
       try {
-        await db.insert(schema.invitationAuditLog).values({
-          invitationId: updated.id,
-          action: "cancelled",
-          performedBy: caller.id,
-          previousStatus,
-          newStatus: "cancelled",
-          details: { source: "mcp", tool: "cancel_invitation", callerRole: role },
-        });
+        await withRetryableDbCall(() =>
+          db.insert(schema.invitationAuditLog).values({
+            invitationId: updated.id,
+            action: "cancelled",
+            performedBy: caller.id,
+            previousStatus,
+            newStatus: "cancelled",
+            details: { source: "mcp", tool: "cancel_invitation", callerRole: role },
+          })
+        );
       } catch (auditErr) {
         console.error(
           "[mcp:cancel_invitation] failed to write invitation_audit_log entry",

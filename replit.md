@@ -93,6 +93,7 @@ The platform exposes an MCP server at `/mcp` for LLM integration (e.g., Claude D
     - `CONNECTION_FAILURE` (PG `08006`, `08001`, `08003`, `08004`).
   - **Unknown/unmapped errors** fall back to the plain string `Failed to {action} {entityLabel} — please retry` (no JSON envelope, no retryable flag).
   - The envelope intentionally excludes the raw driver `message`, `detail`, and stack traces so PII (emails, tokens, file paths, secrets) and schema fragments cannot leak into the LLM transcript. Only the friendly per-action sentence, the stable envelope `code`, and the SQLSTATE are exposed.
+- **In-process retry (`server/mcp/server.ts` → `withRetryableDbCall`)**: Every MCP write tool wraps its database call(s) with this helper so transient blips (the same SQLSTATEs flagged `retryable: true` above — `40001`, `40P01`, `57014`, `08006/08001/08003/08004`) are absorbed before the error reaches the LLM. Bounded retries (default 3 attempts) with exponential backoff (`baseDelayMs * 2^(attempt-1)`) plus jitter in `[0, baseDelayMs)`. Non-retryable errors short-circuit on the first failure so `buildWriteErrorResponse` keeps its deterministic envelope behaviour for permanent failures. The retryable SQLSTATE set is exported as `RETRYABLE_PG_CODES` and is verified in tests to match the catalog so the two cannot drift.
 
 ## External Dependencies
 - **@neondatabase/serverless**: Serverless PostgreSQL connector.
