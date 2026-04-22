@@ -2314,7 +2314,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
 
   server.tool(
     "delete_building",
-    "Delete a building (admin/manager only). Only buildings inside MCP-scoped organizations can be deleted via MCP. Cascades to residences, bookings, bills, payments, and maintenance records that reference the building.",
+    "Delete a building (admin/manager only). Only buildings inside MCP-scoped organizations can be deleted via MCP. Cascades in application code (inside a single transaction) to all dependent rows: every residence in the building (and each residence's invoices, documents, building elements, maintenance requests, demands, and user-residence links), then building-scoped bills (and their payments), budgets, monthly budgets, capital investments, financial cache, invoices, documents, demands and their demand_comments (rows where this building is the primary buildingId are deleted; rows where it is only the assignationBuildingId are null-ed out), notification configurations and their notification_dispatch_log entries, contacts, common spaces (and their bookings/restrictions), user-building links, building elements, auto-generated projects, and maintenance projects. Returns a structured summary of how many rows were removed from each child table.",
     { role: roleParam, buildingId: z.string().describe("Building ID to delete") },
     async ({ role, buildingId }) => {
       const orgIds = await getMcpOrgIds();
@@ -2328,14 +2328,222 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       });
       if (!auth.ok) return auth.response;
       try {
-        const deleted = await withRetryableDbCall(() => db
-          .delete(schema.buildings)
-          .where(eq(schema.buildings.id, buildingId))
-          .returning({ id: schema.buildings.id, name: schema.buildings.name }));
+        const result = await withRetryableDbCall(() => db.transaction(async (tx) => {
+          // Step 1: cascade through every residence in this building, mirroring
+          // the per-residence cascade implemented by `delete_residence` so that
+          // residence-scoped FK dependents (invoices, documents, building
+          // elements, maintenance requests, demands, user-residence links) are
+          // removed before the residences themselves are dropped.
+          const residenceRows = await tx
+            .select({ id: schema.residences.id })
+            .from(schema.residences)
+            .where(eq(schema.residences.buildingId, buildingId));
+          const residenceIds = residenceRows.map((r) => r.id);
+
+          let resInvoices = 0;
+          let resDocuments = 0;
+          let resBuildingElements = 0;
+          let resMaintenanceRequests = 0;
+          let resDemands = 0;
+          let resDemandComments = 0;
+          let resDemandsCleared = 0;
+          let resUserResidences = 0;
+          let residencesDeletedCount = 0;
+
+          if (residenceIds.length > 0) {
+            resInvoices = (await tx
+              .delete(schema.invoices)
+              .where(inArray(schema.invoices.residenceId, residenceIds))
+              .returning({ id: schema.invoices.id })).length;
+            resDocuments = (await tx
+              .delete(schema.documents)
+              .where(inArray(schema.documents.residenceId, residenceIds))
+              .returning({ id: schema.documents.id })).length;
+            resBuildingElements = (await tx
+              .delete(schema.buildingElements)
+              .where(inArray(schema.buildingElements.residenceId, residenceIds))
+              .returning({ id: schema.buildingElements.id })).length;
+            resMaintenanceRequests = (await tx
+              .delete(schema.maintenanceRequests)
+              .where(inArray(schema.maintenanceRequests.residenceId, residenceIds))
+              .returning({ id: schema.maintenanceRequests.id })).length;
+            // demand_comments.demandId references demands.id without ON
+            // DELETE CASCADE, so dispose of comments before deleting the
+            // parent demands or the FK will block the building delete.
+            const resDemandIdRows = await tx
+              .select({ id: schema.demands.id })
+              .from(schema.demands)
+              .where(inArray(schema.demands.residenceId, residenceIds));
+            const resDemandIds = resDemandIdRows.map((r) => r.id);
+            if (resDemandIds.length > 0) {
+              resDemandComments = (await tx
+                .delete(schema.demandComments)
+                .where(inArray(schema.demandComments.demandId, resDemandIds))
+                .returning({ id: schema.demandComments.id })).length;
+            }
+            resDemands = (await tx
+              .delete(schema.demands)
+              .where(inArray(schema.demands.residenceId, residenceIds))
+              .returning({ id: schema.demands.id })).length;
+            // Clear assignations that point at any of these residences but
+            // live in a primary residence outside the building.
+            resDemandsCleared = (await tx
+              .update(schema.demands)
+              .set({ assignationResidenceId: null })
+              .where(inArray(schema.demands.assignationResidenceId, residenceIds))
+              .returning({ id: schema.demands.id })).length;
+            resUserResidences = (await tx
+              .delete(schema.userResidences)
+              .where(inArray(schema.userResidences.residenceId, residenceIds))
+              .returning({ id: schema.userResidences.id })).length;
+            residencesDeletedCount = (await tx
+              .delete(schema.residences)
+              .where(inArray(schema.residences.id, residenceIds))
+              .returning({ id: schema.residences.id })).length;
+          }
+
+          // Step 2: building-scoped dependents. Even tables whose FK is
+          // declared `ON DELETE CASCADE` are torn down explicitly so the
+          // cascade summary surfaces accurate counts to callers.
+          const billsDeleted = await tx
+            .delete(schema.bills)
+            .where(eq(schema.bills.buildingId, buildingId))
+            .returning({ id: schema.bills.id });
+          const budgetsDeleted = await tx
+            .delete(schema.budgets)
+            .where(eq(schema.budgets.buildingId, buildingId))
+            .returning({ id: schema.budgets.id });
+          const monthlyBudgetsDeleted = await tx
+            .delete(schema.monthlyBudgets)
+            .where(eq(schema.monthlyBudgets.buildingId, buildingId))
+            .returning({ id: schema.monthlyBudgets.id });
+          const capitalInvestmentsDeleted = await tx
+            .delete(schema.capitalInvestments)
+            .where(eq(schema.capitalInvestments.buildingId, buildingId))
+            .returning({ id: schema.capitalInvestments.id });
+          const financialCacheDeleted = await tx
+            .delete(schema.financialCache)
+            .where(eq(schema.financialCache.buildingId, buildingId))
+            .returning({ id: schema.financialCache.id });
+          const buildingInvoicesDeleted = await tx
+            .delete(schema.invoices)
+            .where(eq(schema.invoices.buildingId, buildingId))
+            .returning({ id: schema.invoices.id });
+          const buildingDocumentsDeleted = await tx
+            .delete(schema.documents)
+            .where(eq(schema.documents.buildingId, buildingId))
+            .returning({ id: schema.documents.id });
+          const buildingDemandIdRows = await tx
+            .select({ id: schema.demands.id })
+            .from(schema.demands)
+            .where(eq(schema.demands.buildingId, buildingId));
+          const buildingDemandIds = buildingDemandIdRows.map((r) => r.id);
+          let buildingDemandCommentsCount = 0;
+          if (buildingDemandIds.length > 0) {
+            buildingDemandCommentsCount = (await tx
+              .delete(schema.demandComments)
+              .where(inArray(schema.demandComments.demandId, buildingDemandIds))
+              .returning({ id: schema.demandComments.id })).length;
+          }
+          const buildingDemandsDeleted = await tx
+            .delete(schema.demands)
+            .where(eq(schema.demands.buildingId, buildingId))
+            .returning({ id: schema.demands.id });
+          // Demands that only point at this building as the assignation
+          // target get the assignation cleared rather than deleted.
+          const buildingDemandsCleared = await tx
+            .update(schema.demands)
+            .set({ assignationBuildingId: null })
+            .where(eq(schema.demands.assignationBuildingId, buildingId))
+            .returning({ id: schema.demands.id });
+          // notification_dispatch_log.configurationId references
+          // notification_configurations.id without ON DELETE CASCADE, so
+          // dispose of dispatch records before deleting their parent
+          // configurations.
+          const notificationConfigIdRows = await tx
+            .select({ id: schema.notificationConfigurations.id })
+            .from(schema.notificationConfigurations)
+            .where(eq(schema.notificationConfigurations.buildingId, buildingId));
+          const notificationConfigIds = notificationConfigIdRows.map((r) => r.id);
+          let notificationDispatchLogCount = 0;
+          if (notificationConfigIds.length > 0) {
+            notificationDispatchLogCount = (await tx
+              .delete(schema.notificationDispatchLog)
+              .where(inArray(schema.notificationDispatchLog.configurationId, notificationConfigIds))
+              .returning({ id: schema.notificationDispatchLog.id })).length;
+          }
+          const notificationConfigurationsDeleted = await tx
+            .delete(schema.notificationConfigurations)
+            .where(eq(schema.notificationConfigurations.buildingId, buildingId))
+            .returning({ id: schema.notificationConfigurations.id });
+          const contactsDeleted = await tx
+            .delete(schema.contacts)
+            .where(and(
+              eq(schema.contacts.entity, 'building'),
+              eq(schema.contacts.entityId, buildingId),
+            ))
+            .returning({ id: schema.contacts.id });
+          const commonSpacesDeleted = await tx
+            .delete(schema.commonSpaces)
+            .where(eq(schema.commonSpaces.buildingId, buildingId))
+            .returning({ id: schema.commonSpaces.id });
+          const userBuildingsDeleted = await tx
+            .delete(schema.userBuildings)
+            .where(eq(schema.userBuildings.buildingId, buildingId))
+            .returning({ id: schema.userBuildings.id });
+          // auto_generated_projects.element_id is declared ON DELETE
+          // CASCADE against building_elements, so we delete the
+          // auto-generated projects first to keep accurate counts in the
+          // cascade summary instead of letting the FK silently take them.
+          const autoGeneratedProjectsDeleted = await tx
+            .delete(schema.autoGeneratedProjects)
+            .where(eq(schema.autoGeneratedProjects.buildingId, buildingId))
+            .returning({ id: schema.autoGeneratedProjects.id });
+          const buildingElementsDeleted = await tx
+            .delete(schema.buildingElements)
+            .where(eq(schema.buildingElements.buildingId, buildingId))
+            .returning({ id: schema.buildingElements.id });
+          const maintenanceProjectsDeleted = await tx
+            .delete(schema.maintenanceProjects)
+            .where(eq(schema.maintenanceProjects.buildingId, buildingId))
+            .returning({ id: schema.maintenanceProjects.id });
+
+          const deleted = await tx
+            .delete(schema.buildings)
+            .where(eq(schema.buildings.id, buildingId))
+            .returning({ id: schema.buildings.id, name: schema.buildings.name });
+
+          return {
+            deleted: deleted[0] ?? null,
+            cascaded: {
+              residences: residencesDeletedCount,
+              invoices: resInvoices + buildingInvoicesDeleted.length,
+              documents: resDocuments + buildingDocumentsDeleted.length,
+              bills: billsDeleted.length,
+              budgets: budgetsDeleted.length,
+              monthlyBudgets: monthlyBudgetsDeleted.length,
+              capitalInvestments: capitalInvestmentsDeleted.length,
+              financialCache: financialCacheDeleted.length,
+              demands: resDemands + buildingDemandsDeleted.length,
+              demandComments: resDemandComments + buildingDemandCommentsCount,
+              maintenanceRequests: resMaintenanceRequests,
+              buildingElements: resBuildingElements + buildingElementsDeleted.length,
+              autoGeneratedProjects: autoGeneratedProjectsDeleted.length,
+              maintenanceProjects: maintenanceProjectsDeleted.length,
+              notificationConfigurations: notificationConfigurationsDeleted.length,
+              notificationDispatchLog: notificationDispatchLogCount,
+              contacts: contactsDeleted.length,
+              commonSpaces: commonSpacesDeleted.length,
+              userBuildings: userBuildingsDeleted.length,
+              userResidences: resUserResidences,
+            },
+            demandsAssignationCleared: resDemandsCleared + buildingDemandsCleared.length,
+          };
+        }));
         return {
           content: [{
             type: "text" as const,
-            text: JSON.stringify({ deleted: deleted[0] ?? null, message: "Building deleted (cascade applied)" }, null, 2),
+            text: JSON.stringify({ ...result, message: "Building deleted (cascade applied to residences, bills, budgets, invoices, documents, demands, common spaces, user links, building elements, maintenance projects)" }, null, 2),
           }],
         };
       } catch (e) {
