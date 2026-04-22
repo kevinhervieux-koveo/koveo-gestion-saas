@@ -40,6 +40,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   buildings for. If a caller needs buildings across multiple organizations, it
   must invoke `list_buildings` once per organization.
 
+- **MCP `list_*` tools require an explicit scope** (Task #260): the
+  `organizationId` parameter on `list_users` and `list_pending_invitations` is
+  now **required** (previously optional, with a silent fall-through to "every
+  MCP-scoped org"). The `list_documents` tool now also hard-rejects calls that
+  omit BOTH `buildingId` and `residenceId` before any database read — there
+  is no implicit "list every document in MCP scope" path. The other
+  `list_*` tools were already scoped (either by required `organizationId` or
+  by required `buildingId`, which is itself organization-scoped). The single
+  intentional exemption is `list_organizations`, which is the discovery
+  primitive that returns the MCP-allowlisted org ids and is documented inline
+  in `server/mcp/server.ts`.
+  Migration: update MCP clients that called `list_users` or
+  `list_pending_invitations` without `organizationId` (or `list_documents`
+  without either `buildingId` or `residenceId`) to first call
+  `list_organizations`, then invoke the list tool once per org. Cross-org
+  aggregation must be performed client-side.
+
 ### Fixed
 
 - **Invitation history preservation**: Re-inviting the same email no longer destroys

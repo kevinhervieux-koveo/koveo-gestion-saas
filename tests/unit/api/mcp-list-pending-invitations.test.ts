@@ -3,9 +3,10 @@
  *
  * Covers:
  *   - tenant caller is denied
- *   - admin sees every pending invitation in MCP scope
+ *   - admin sees every pending invitation in the requested MCP-scoped org
  *   - manager sees only invitations they themselves sent
- *   - organizationId filter outside MCP scope is rejected
+ *   - organizationId is required (Task #260) and filter outside MCP scope
+ *     is rejected
  *   - email filter is forwarded to the WHERE clause
  *
  * Mocks the MCP SDK and the Drizzle `db` so the read flow runs without
@@ -150,7 +151,7 @@ describe('MCP list_pending_invitations tool', () => {
     expect(lastSelectCalls.length).toBe(0);
   });
 
-  it('admin sees pending invitations across all MCP-scoped orgs', async () => {
+  it('admin sees every pending invitation in the requested MCP-scoped org', async () => {
     selectQueue.push([{ id: ORG_ID }, { id: ORG_ID_2 }]); // getMcpOrgIds
     selectQueue.push([{ id: SEED_ADMIN_ID, role: 'admin' }]); // lookupMcpUser
     selectQueue.push([{ value: 2 }]); // count
@@ -158,14 +159,14 @@ describe('MCP list_pending_invitations tool', () => {
       pendingInvitation({ id: 'inv-a', organizationId: ORG_ID }),
       pendingInvitation({
         id: 'inv-b',
-        organizationId: ORG_ID_2,
+        organizationId: ORG_ID,
         invitedByUserId: 'someone-else',
       }),
     ];
     selectQueue.push(rows); // final invitations select
 
     const handler = registeredTools.get('list_pending_invitations');
-    const result = await handler!({ role: 'admin' });
+    const result = await handler!({ role: 'admin', organizationId: ORG_ID });
 
     const payload = JSON.parse(result.content[0].text);
     expect(payload).toMatchObject({
@@ -194,7 +195,7 @@ describe('MCP list_pending_invitations tool', () => {
     ]);
 
     const handler = registeredTools.get('list_pending_invitations');
-    const result = await handler!({ role: 'manager' });
+    const result = await handler!({ role: 'manager', organizationId: ORG_ID });
 
     const payload = JSON.parse(result.content[0].text);
     expect(payload.items).toHaveLength(1);
@@ -231,7 +232,7 @@ describe('MCP list_pending_invitations tool', () => {
     ]);
 
     const handler = registeredTools.get('list_pending_invitations');
-    const result = await handler!({ role: 'admin', email: 'target@example.com' });
+    const result = await handler!({ role: 'admin', organizationId: ORG_ID, email: 'target@example.com' });
 
     const payload = JSON.parse(result.content[0].text);
     expect(payload.items).toHaveLength(1);
@@ -257,7 +258,7 @@ describe('MCP list_pending_invitations tool', () => {
     ]);
 
     const handler = registeredTools.get('list_pending_invitations');
-    const result = await handler!({ role: 'admin' });
+    const result = await handler!({ role: 'admin', organizationId: ORG_ID });
 
     const payload = JSON.parse(result.content[0].text);
     expect(payload.items).toHaveLength(1);
@@ -283,7 +284,10 @@ describe('MCP list_pending_invitations tool', () => {
     selectQueue.push([]); // getMcpOrgIds returns nothing
 
     const handler = registeredTools.get('list_pending_invitations');
-    const result = await handler!({ role: 'admin' });
+    // organizationId is required by the schema (Task #260) but the
+    // empty-MCP-scope branch short-circuits BEFORE the in-scope check, so
+    // the value supplied here doesn't need to exist.
+    const result = await handler!({ role: 'admin', organizationId: ORG_ID });
 
     expect(JSON.parse(result.content[0].text)).toEqual({
       items: [],
@@ -306,7 +310,7 @@ describe('MCP list_pending_invitations tool', () => {
     ]); // page rows
 
     const handler = registeredTools.get('list_pending_invitations');
-    const result = await handler!({ role: 'admin', limit: 2, offset: 4 });
+    const result = await handler!({ role: 'admin', organizationId: ORG_ID, limit: 2, offset: 4 });
 
     const payload = JSON.parse(result.content[0].text);
     expect(payload).toMatchObject({
@@ -329,7 +333,7 @@ describe('MCP list_pending_invitations tool', () => {
     selectQueue.push([pendingInvitation({ id: 'inv-tail' })]); // single tail row
 
     const handler = registeredTools.get('list_pending_invitations');
-    const result = await handler!({ role: 'admin', limit: 2, offset: 4 });
+    const result = await handler!({ role: 'admin', organizationId: ORG_ID, limit: 2, offset: 4 });
 
     const payload = JSON.parse(result.content[0].text);
     expect(payload).toMatchObject({
@@ -350,7 +354,7 @@ describe('MCP list_pending_invitations tool', () => {
     const handler = registeredTools.get('list_pending_invitations');
     // The Zod schema should reject 250, but the handler also clamps
     // defensively in case validation is bypassed.
-    const result = await handler!({ role: 'admin', limit: 250 });
+    const result = await handler!({ role: 'admin', organizationId: ORG_ID, limit: 250 });
 
     const payload = JSON.parse(result.content[0].text);
     // Either we got a Zod validation error OR the clamp kicked in.

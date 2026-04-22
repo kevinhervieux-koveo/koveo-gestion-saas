@@ -615,6 +615,13 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
   server.tool(
     "list_organizations",
     "List all MCP-accessible organizations",
+    // Intentional exemption from the "list tools require organizationId"
+    // rule (Task #260): this tool IS the org-discovery primitive callers
+    // use to learn which MCP-scoped orgs exist before passing one of those
+    // ids into every other list_* / get_* tool. Restricting it would create
+    // a chicken-and-egg problem. The result set is already hard-bounded to
+    // the MCP-scoped org allowlist (`getMcpOrgIds`) so it cannot leak
+    // arbitrary tenant data even without an org filter.
     { role: roleParam },
     async ({ role }) => {
       const orgIds = await getMcpOrgIds();
@@ -1122,15 +1129,17 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
 
   server.tool(
     "list_users",
-    "List users in MCP organizations (admin/manager only)",
-    { role: roleParam, organizationId: z.string().optional().describe("Filter by organization ID") },
+    "List users in an MCP organization (admin/manager only)",
+    // Task #260: organizationId is REQUIRED so callers cannot accidentally
+    // page across every MCP-scoped org in a single call. Use list_organizations
+    // to discover ids, then call this tool once per org as needed.
+    { role: roleParam, organizationId: z.string().describe("Organization ID to list users from (required)") },
     async ({ role, organizationId }) => {
       if (role === "tenant") {
         return { content: [{ type: "text" as const, text: "Access denied: tenants cannot list users" }] };
       }
       const orgIds = await getMcpOrgIds();
-      const filterOrgIds = organizationId ? (orgIds.includes(organizationId) ? [organizationId] : []) : orgIds;
-      if (filterOrgIds.length === 0) {
+      if (!orgIds.includes(organizationId)) {
         return { content: [{ type: "text" as const, text: "Access denied: organization not in MCP scope" }] };
       }
       const userOrgs = await db
@@ -1140,7 +1149,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
         })
         .from(schema.userOrganizations)
         .where(
-          and(inArray(schema.userOrganizations.organizationId, filterOrgIds), eq(schema.userOrganizations.isActive, true))
+          and(eq(schema.userOrganizations.organizationId, organizationId), eq(schema.userOrganizations.isActive, true))
         );
       const userIds = [...new Set(userOrgs.map((uo) => uo.userId))];
       if (userIds.length === 0) return { content: [{ type: "text" as const, text: "[]" }] };
@@ -1689,13 +1698,22 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
 
   server.tool(
     "list_documents",
-    "List documents for a building or residence",
+    "List documents for a building or residence (at least one of buildingId / residenceId is required)",
+    // Task #260: at least one of `buildingId` or `residenceId` MUST be supplied
+    // so the result set is always tenant-scoped through a building or
+    // residence the caller already has access to. Both fields stay optional
+    // in the Zod schema (so callers can choose which scope to filter by),
+    // but the handler hard-rejects calls that omit BOTH before any DB read
+    // — there is no "list every document across MCP scope" code path.
     {
       role: roleParam,
-      buildingId: z.string().optional().describe("Filter by building ID"),
-      residenceId: z.string().optional().describe("Filter by residence ID"),
+      buildingId: z.string().optional().describe("Filter by building ID (required if residenceId is omitted)"),
+      residenceId: z.string().optional().describe("Filter by residence ID (required if buildingId is omitted)"),
     },
     async ({ role, buildingId, residenceId }) => {
+      if (!buildingId && !residenceId) {
+        return { content: [{ type: "text" as const, text: "Please provide buildingId or residenceId" }] };
+      }
       const orgIds = await getMcpOrgIds();
       if (buildingId) {
         const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, buildingId));
@@ -1716,9 +1734,6 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       const conditions: SQL[] = [];
       if (buildingId) conditions.push(eq(schema.documents.buildingId, buildingId));
       if (residenceId) conditions.push(eq(schema.documents.residenceId, residenceId));
-      if (conditions.length === 0) {
-        return { content: [{ type: "text" as const, text: "Please provide buildingId or residenceId" }] };
-      }
       const docs = await db
         .select()
         .from(schema.documents)
@@ -2671,13 +2686,14 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
 
   server.tool(
     "list_pending_invitations",
-    "List pending invitations within MCP-scoped organizations (admin/manager only). Tenants are denied. Admins see every pending invitation in MCP scope; managers see only invitations they themselves sent. Optional filters narrow the results by `organizationId` (must be in MCP scope) and/or `email` (case-insensitive exact match). Pagination is controlled by optional `limit` (default 25, max 100) and `offset` (default 0) parameters. The response is `{ items, total, limit, offset, hasMore }`, where each item includes the invitation id, email, role, status, expiresAt, createdAt, organizationId, buildingId, residenceId, invitedByUserId, plus the human-readable organizationName, buildingName, residenceUnitNumber, and invitedByName joined in — enough for the assistant to immediately render results and follow up with resend_invitation or cancel_invitation without extra lookups.",
+    "List pending invitations within an MCP-scoped organization (admin/manager only). Tenants are denied. Admins see every pending invitation in the org; managers see only invitations they themselves sent. `organizationId` (must be in MCP scope) is REQUIRED — call list_organizations first to discover ids, then call this tool once per org. Optional `email` (case-insensitive exact match) further narrows results. Pagination is controlled by optional `limit` (default 25, max 100) and `offset` (default 0) parameters. The response is `{ items, total, limit, offset, hasMore }`, where each item includes the invitation id, email, role, status, expiresAt, createdAt, organizationId, buildingId, residenceId, invitedByUserId, plus the human-readable organizationName, buildingName, residenceUnitNumber, and invitedByName joined in — enough for the assistant to immediately render results and follow up with resend_invitation or cancel_invitation without extra lookups.",
+    // Task #260: organizationId is REQUIRED so callers cannot accidentally
+    // page across every MCP-scoped org's invitations in a single call.
     {
       role: roleParam,
       organizationId: z
         .string()
-        .optional()
-        .describe("Optional MCP-scoped organization ID to filter by"),
+        .describe("MCP-scoped organization ID to list pending invitations from (required)"),
       email: z
         .string()
         .optional()
@@ -2720,22 +2736,17 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
         return { content: [{ type: "text" as const, text: JSON.stringify(emptyPage, null, 2) }] };
       }
 
-      // If a specific org filter is supplied, ensure it sits inside MCP scope
-      // before honouring it. Otherwise we fall back to the full set of MCP orgs.
-      let scopedOrgIds: string[];
-      if (organizationId) {
-        if (!orgIds.includes(organizationId)) {
-          return {
-            content: [{
-              type: "text" as const,
-              text: "Access denied: organization is not in MCP scope",
-            }],
-          };
-        }
-        scopedOrgIds = [organizationId];
-      } else {
-        scopedOrgIds = orgIds;
+      // Task #260: organizationId is required at the schema level. We still
+      // verify it sits inside MCP scope before honouring it.
+      if (!orgIds.includes(organizationId)) {
+        return {
+          content: [{
+            type: "text" as const,
+            text: "Access denied: organization is not in MCP scope",
+          }],
+        };
       }
+      const scopedOrgIds: string[] = [organizationId];
 
       const caller = await getMcpUser(role);
       if (!caller) {
