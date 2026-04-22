@@ -23,6 +23,7 @@ import { documentService, type DocumentType } from '../services/document-service
 import { logDebug, logInfo, logWarn, logError } from '../utils/logger';
 
 import { asyncHandler } from '../utils/async-handler';
+import { sendDbWriteError } from '../utils/rest-db-error';
 // Enhanced security configuration for file uploads
 const SECURITY_CONFIG = {
   MAX_FILE_SIZE: 10 * 1024 * 1024, // Reduced to 10MB for better security
@@ -3792,25 +3793,20 @@ export function registerDocumentRoutes(app: Express): void {
         });
       }
 
-      // Handle unique constraint violations (path conflicts)
-      if (error?.message?.includes('unique constraint') || error?.code === '23505') {
-        return res.status(409).json({
-          message: 'DocumentRecord path conflict - please try uploading again',
-          error: 'Path already exists',
-          error_id: errorEntry.timestamp
+      // Task #257 — surface friendlier database error messages via the
+      // shared MCP classifier so the unique-violation (23505) "path
+      // conflict" branch and the generic 500 fallback both flow through
+      // a single consistent envelope (with Retry-After on transient
+      // failures). The `error_id` is preserved so operators can still
+      // correlate with the audit log.
+      if (typeof (error as { code?: unknown })?.code === 'string') {
+        return sendDbWriteError(res, error, 'document', 'create', {
+          logPrefix: '[DOCUMENT UPLOAD] db error',
+          extraFields: { error_id: errorEntry.timestamp },
         });
       }
 
-      // Handle database errors
-      if (error.message && error.message.includes('database')) {
-        return res.status(500).json({
-          message: 'Failed to save document record',
-          error: 'Database error',
-          error_id: errorEntry.timestamp
-        });
-      }
-
-      // Generic error response
+      // Generic error response (non-DB failure path)
       res.status(500).json({
         message: 'Internal server error',
         error: 'DocumentRecord upload failed',

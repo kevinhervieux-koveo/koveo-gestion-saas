@@ -28,6 +28,7 @@ import { cacheInvalidationService, createInvalidationMiddleware } from '../servi
 import { logDebug, logInfo, logWarn, logError } from '../utils/logger';
 
 import { asyncHandler } from '../utils/async-handler';
+import { sendDbWriteError } from '../utils/rest-db-error';
 /**
  * Helper function to get the correct base URL from REPLIT_DOMAINS.
  * REPLIT_DOMAINS can contain multiple domains separated by commas.
@@ -3008,6 +3009,14 @@ export function registerUserRoutes(app: Express): void {
           error: 'Conflict',
           code: 'INVITATION_ALREADY_PENDING',
           message: error.message,
+        });
+      }
+      // Task #257 — route remaining DB errors through the shared MCP
+      // classifier so unique/FK conflicts and transient failures get
+      // consistent envelopes (and Retry-After) instead of a generic 500.
+      if (typeof (error as { code?: unknown })?.code === 'string') {
+        return sendDbWriteError(res, error, 'invitation', 'create', {
+          logPrefix: '[INVITATIONS] create failed',
         });
       }
       logError('Error creating invitation', error);

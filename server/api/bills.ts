@@ -101,6 +101,7 @@ import {
 } from '../services/bill-number-generator';
 
 import { asyncHandler } from '../utils/async-handler';
+import { sendDbWriteError } from '../utils/rest-db-error';
 const { buildings, bills, documents, payments, userBuildings, residences, userResidences } = schema;
 
 /**
@@ -1060,9 +1061,11 @@ export function registerBillRoutes(app: Express) {
 
       res.status(201).json(newBill[0]);
     } catch (_error: any) {
-      res.status(500).json({
-        message: 'Failed to create bill',
-        _error: _error instanceof Error ? _error.message : 'Unknown error',
+      // Task #257 — route DB errors through the shared MCP classifier so
+      // unique/FK conflicts surface as 409 (with a friendly message) and
+      // transient deadlocks/timeouts surface as 503 + Retry-After.
+      return sendDbWriteError(res, _error, 'bill', 'create', {
+        logPrefix: '[BILLS API] create failed',
       });
     }
   });
@@ -1311,10 +1314,9 @@ export function registerBillRoutes(app: Express) {
 
       res.json(response);
     } catch (_error: any) {
-      // console.error('❌ Error updating bill (PATCH):', _error);
-      res.status(500).json({
-        message: 'Failed to update bill',
-        _error: _error instanceof Error ? _error.message : 'Unknown error',
+      // Task #257 — shared MCP error classifier (see rest-db-error.ts).
+      return sendDbWriteError(res, _error, 'bill', 'update', {
+        logPrefix: '[BILLS API] PATCH update failed',
       });
     }
   });
@@ -1518,10 +1520,9 @@ export function registerBillRoutes(app: Express) {
 
       res.json(response);
     } catch (_error: any) {
-      // console.error('❌ Error updating bill (PUT):', _error);
-      res.status(500).json({
-        message: 'Failed to update bill',
-        _error: _error instanceof Error ? _error.message : 'Unknown error',
+      // Task #257 — shared MCP error classifier (see rest-db-error.ts).
+      return sendDbWriteError(res, _error, 'bill', 'update', {
+        logPrefix: '[BILLS API] PUT update failed',
       });
     }
   });
@@ -1758,10 +1759,11 @@ export function registerBillRoutes(app: Express) {
         bill: deletedBill[0],
       });
     } catch (_error: any) {
-      // console.error('❌ Error deleting bill:', _error);
-      res.status(500).json({
-        message: 'Failed to delete bill',
-        _error: _error instanceof Error ? _error.message : 'Unknown error',
+      // Task #257 — shared MCP error classifier (see rest-db-error.ts).
+      // Delete-action variant emits FK_VIOLATION envelopes with a
+      // `blocking_entity` hint when child rows still reference the bill.
+      return sendDbWriteError(res, _error, 'bill', 'delete', {
+        logPrefix: '[BILLS API] delete failed',
       });
     }
   });
