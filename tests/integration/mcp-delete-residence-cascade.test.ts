@@ -35,16 +35,9 @@
  * available.
  */
 
-// Auto-mocks for the drizzle-orm packages live in `__mocks__/drizzle-orm/*`
-// for the unit-test suite. Real-DB integration tests need the actual
-// drizzle implementation (otherwise tables have no `Symbol.Columns` and
-// every `db.insert(...)` blows up). Unmock before any imports so the real
-// modules are loaded.
-import { jest } from '@jest/globals';
-jest.unmock('drizzle-orm');
-jest.unmock('drizzle-orm/pg-core');
-jest.unmock('drizzle-orm/neon-serverless');
-
+// Task #274 removed the package-wide drizzle-orm auto-mocks, so the real
+// drizzle implementation is loaded by default for integration tests — no
+// manual `jest.unmock` calls are required here.
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import crypto from 'crypto';
 import { eq, inArray } from 'drizzle-orm';

@@ -35,9 +35,10 @@
  */
 
 import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach, jest } from '@jest/globals';
-// Task #153 relocated the auto-applied drizzle-orm mocks under
-// `tests/manual-mocks/` so the real package is loaded by default —
-// no manual `jest.unmock` calls are required here anymore.
+// Task #274 finished removing the package-wide drizzle-orm auto-mocks
+// (the relocated stubs now live opt-in under `tests/manual-mocks/`), so
+// the real package is loaded by default and no `jest.unmock` calls are
+// required here.
 import crypto from 'crypto';
 
 const REAL_DB_URL = process.env._INTEGRATION_DB_URL;
