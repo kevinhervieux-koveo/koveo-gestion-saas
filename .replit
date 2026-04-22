@@ -66,4 +66,4 @@ defaultBucketID = "replit-objstore-080489df-69c3-487c-9caa-3cc4342ecfd3"
 
 [postMerge]
 path = "scripts/post-merge.sh"
-timeoutMs = 20000
+timeoutMs = 180000
