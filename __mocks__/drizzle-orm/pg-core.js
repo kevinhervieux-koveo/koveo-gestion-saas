@@ -1,9 +1,17 @@
 // Direct mock for drizzle-orm/pg-core to fix schema import issues
-const pgEnum = jest.fn().mockImplementation((name, values) => ({
-  name,
-  enumValues: values,
-  enumName: name
-}));
+const pgEnum = jest.fn().mockImplementation((name, values) => {
+  // Mirror drizzle-orm's real pgEnum, which returns a callable that builds a
+  // column when invoked while also exposing enum metadata as properties.
+  // Schema files like shared/schemas/core.ts use it both ways
+  // (e.g. `userRoleEnum('role')` to declare a column).
+  const enumInstance = (columnName) =>
+    createChainableColumn('enum', columnName ?? '', { enum: enumInstance });
+  // `name` is a read-only property on functions, so attach metadata directly
+  // without using Object.assign (which would attempt to overwrite `name`).
+  enumInstance.enumValues = values;
+  enumInstance.enumName = name;
+  return enumInstance;
+});
 
 const pgTable = jest.fn().mockImplementation((name, schema) => ({
   name,
@@ -20,7 +28,7 @@ const createChainableColumn = (type, name, options = {}) => {
   };
   
   // Add all chainable methods that return the same object
-  const chainableMethods = ['primaryKey', 'notNull', 'unique', 'default', 'references', 'onDelete', 'onUpdate', 'array'];
+  const chainableMethods = ['primaryKey', 'notNull', 'unique', 'default', 'defaultNow', 'references', 'onDelete', 'onUpdate', 'array', 'where', 'on'];
   
   chainableMethods.forEach(method => {
     column[method] = jest.fn(() => {
@@ -42,6 +50,9 @@ const uuid = jest.fn().mockImplementation((name) => createChainableColumn('uuid'
 const serial = jest.fn().mockImplementation((name) => createChainableColumn('serial', name));
 const date = jest.fn().mockImplementation((name) => createChainableColumn('date', name));
 const json = jest.fn().mockImplementation((name) => createChainableColumn('json', name));
+const jsonb = jest.fn().mockImplementation((name) => createChainableColumn('jsonb', name));
+const decimal = jest.fn().mockImplementation((name, options) => createChainableColumn('decimal', name, options));
+const numeric = jest.fn().mockImplementation((name, options) => createChainableColumn('numeric', name, options));
 const primaryKey = jest.fn().mockImplementation(() => createChainableColumn('primaryKey'));
 const unique = jest.fn().mockImplementation(() => createChainableColumn('unique'));
 const index = jest.fn().mockImplementation(() => createChainableColumn('index'));
@@ -58,6 +69,9 @@ module.exports = {
   serial,
   date,
   json,
+  jsonb,
+  decimal,
+  numeric,
   primaryKey,
   unique,
   index

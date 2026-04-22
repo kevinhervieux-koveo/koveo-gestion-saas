@@ -69,7 +69,7 @@ const config = {
   },
   
   transformIgnorePatterns: [
-    'node_modules/(?!(wouter|@tanstack|@testing-library|@radix-ui|@hookform|lucide-react|@google/genai|regexparam|@google-cloud|react-router-dom|drizzle-orm|drizzle-zod|@neondatabase))'
+    'node_modules/(?!(wouter|@tanstack|@testing-library|@radix-ui|@hookform|lucide-react|@google/genai|regexparam|@google-cloud|react-router-dom|@neondatabase))'
   ],
   
   testTimeout: 3000,

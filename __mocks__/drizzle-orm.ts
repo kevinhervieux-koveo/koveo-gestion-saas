@@ -170,6 +170,20 @@ export const notInArray = jest.fn().mockImplementation((column: any, values: any
   toString: () => `${column?.name || 'column'} NOT IN (${values.join(', ')})`
 }));
 
+// Lightweight stub for `relations` so schema files that declare relations
+// (e.g. shared/schemas/maintenance.ts) can be loaded under jest without
+// pulling in the real drizzle-orm internals.
+export const relations = jest.fn().mockImplementation((table: any, fn: any) => ({
+  table,
+  config:
+    typeof fn === 'function'
+      ? fn({
+          one: jest.fn(() => ({ type: 'one' })),
+          many: jest.fn(() => ({ type: 'many' })),
+        })
+      : {},
+}));
+
 // Export everything as default for compatibility
 export default {
   eq,

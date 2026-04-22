@@ -52,6 +52,12 @@ const mockSpawn = (command, args, options) => {
 
 // Mock execSync function
 const mockExecSync = (command, options) => {
+  // Return a plausible fake short SHA for git rev-parse so callers (e.g. the
+  // MCP buildSha resolver) can treat the output as a real revision string
+  // rather than the generic mock placeholder.
+  if (typeof command === 'string' && /git\s+rev-parse/.test(command)) {
+    return 'abc1234';
+  }
   return `Mock sync output for: ${command}`;
 };
 
