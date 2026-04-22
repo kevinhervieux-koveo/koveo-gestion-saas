@@ -355,6 +355,8 @@ export interface Translations {
   documentDetailsDescription: string;
   loadingDocument: string;
   documentAttachment: string;
+  previewNotAvailable: string;
+  previewNotAvailableDescription: string;
   backToResidences: string;
   backToBuildings: string;
   backToMyResidence: string;
@@ -2634,6 +2636,8 @@ export const translations: Record<Language, Translations> = {
     documentDetailsDescription: 'View and manage document information',
     loadingDocument: 'Loading document...',
     documentAttachment: 'Document Attachment',
+    previewNotAvailable: 'Preview not available',
+    previewNotAvailableDescription: 'This file type cannot be previewed in the browser. Download the file to open it in a compatible application.',
     backToResidences: 'Back to Residences',
     backToBuildings: 'Back to Buildings',
     backToMyResidence: 'Back to My Residence',
@@ -4756,6 +4760,8 @@ export const translations: Record<Language, Translations> = {
     documentDetailsDescription: 'Afficher et gérer les informations du document',
     loadingDocument: 'Chargement du document...',
     documentAttachment: 'Pièce jointe du document',
+    previewNotAvailable: 'Aperçu non disponible',
+    previewNotAvailableDescription: "Ce type de fichier ne peut pas être prévisualisé dans le navigateur. Téléchargez le fichier pour l'ouvrir dans une application compatible.",
     backToResidences: 'Retour aux résidences',
     backToBuildings: 'Retour aux bâtiments',
     backToMyResidence: 'Retour à ma résidence',
