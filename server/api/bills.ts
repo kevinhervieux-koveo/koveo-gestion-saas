@@ -906,7 +906,9 @@ export function registerBillRoutes(app: Express) {
       // isNotNull whenever either bound is set, so a future refactor that
       // moves the gte/lte into an OR group (or otherwise changes NULL
       // semantics) cannot silently start returning undated bills inside a
-      // date window.
+      // date window. See tests/integration/api-date-range-null-guard-audit.test.ts
+      // for the project-wide invariant any new nullable date-range filter
+      // must satisfy.
       const issueDateRegex = /^\d{4}-\d{2}-\d{2}$/;
       const hasIssueDateFrom = typeof issueDateFrom === 'string' && issueDateRegex.test(issueDateFrom);
       const hasIssueDateTo = typeof issueDateTo === 'string' && issueDateRegex.test(issueDateTo);
