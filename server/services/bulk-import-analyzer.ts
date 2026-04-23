@@ -7,8 +7,18 @@
  * If `ANTHROPIC_API_KEY` is missing the analyzer still works in
  * "fallback" mode — it returns deterministic low-confidence stubs so the
  * UI keeps moving and tests don't need a live key.
+ *
+ * When a `stagedPath` (or raw `buffer` + `mimeType`) is supplied, the
+ * analyzer also forwards the actual document body to Claude:
+ *   - PDFs go through as a base64 `document` block.
+ *   - Images go through as a base64 `image` block.
+ *   - .docx/.xlsx are extracted to plain text via mammoth/xlsx and
+ *     prepended to the text prompt.
+ *   - Anything else (or oversize bytes / extraction failure) silently
+ *     falls back to the filename-only prompt instead of crashing.
  */
 import Anthropic from '@anthropic-ai/sdk';
+import * as fs from 'fs';
 import { logError, logInfo } from '../utils/logger';
 
 export interface AnalyzerConfidence {
@@ -59,7 +69,52 @@ export interface LinkSuggestion extends AnalyzerConfidence {
   reason: string;
 }
 
+/**
+ * Optional file-source hint shared by every analyzer call. When this is
+ * present and the bytes are a supported type, the analyzer attaches the
+ * real document to the Anthropic request for higher-confidence answers.
+ */
+export interface AnalyzerFileSource {
+  stagedPath?: string | null;
+  buffer?: Buffer | null;
+  mimeType?: string | null;
+}
+
 const MODEL = 'claude-3-5-sonnet-latest';
+
+/** Anthropic accepts ~32MB / call; we cap well below that to be safe. */
+const MAX_DOCUMENT_BYTES = 25 * 1024 * 1024;
+/** Cap for extracted Office text so prompts stay within the 1024-token budget. */
+const MAX_EXTRACTED_TEXT = 20_000;
+
+const PDF_MIME = 'application/pdf';
+const IMAGE_MIMES = new Set([
+  'image/png',
+  'image/jpeg',
+  'image/jpg',
+  'image/webp',
+  'image/gif',
+]);
+const DOCX_MIMES = new Set([
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+]);
+const XLSX_MIMES = new Set([
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+]);
+const PLAIN_TEXT_MIMES = new Set(['text/plain', 'text/csv']);
+
+type AnthropicContentBlock =
+  | { type: 'text'; text: string }
+  | {
+      type: 'image';
+      source: { type: 'base64'; media_type: string; data: string };
+    }
+  | {
+      type: 'document';
+      source: { type: 'base64'; media_type: string; data: string };
+    };
 
 let client: Anthropic | null = null;
 function getClient(): Anthropic | null {
@@ -76,20 +131,137 @@ function getClient(): Anthropic | null {
 }
 
 /**
- * Send a prompt to Claude and parse a single JSON object out of the
- * response. Returns null on transport / parse failure so callers can
- * fall back to a deterministic stub.
+ * Read the staged file (or use the supplied buffer) and turn it into
+ * Anthropic content blocks plus an optional text prefix to inject into
+ * the prompt. Any failure (missing file, oversize, unsupported type,
+ * extractor error) returns empty arrays so the analyzer falls back to
+ * the filename-only prompt instead of crashing the run.
  */
-async function callClaudeJson<T>(prompt: string): Promise<T | null> {
+async function loadFileForClaude(
+  source: AnalyzerFileSource | undefined,
+): Promise<{ blocks: AnthropicContentBlock[]; textPrefix: string }> {
+  if (!source) return { blocks: [], textPrefix: '' };
+  const mimeType = (source.mimeType ?? '').toLowerCase();
+  if (!mimeType) return { blocks: [], textPrefix: '' };
+
+  let buffer: Buffer | null = source.buffer ?? null;
+  if (!buffer && source.stagedPath) {
+    try {
+      const stat = fs.statSync(source.stagedPath);
+      if (stat.size > MAX_DOCUMENT_BYTES) {
+        logInfo('[bulkImportAnalyzer] skipping oversize staged file', {
+          metadata: { stagedPath: source.stagedPath, size: stat.size },
+        });
+        return { blocks: [], textPrefix: '' };
+      }
+      buffer = fs.readFileSync(source.stagedPath);
+    } catch (err) {
+      logError('[bulkImportAnalyzer] failed to read staged file', err as Error);
+      return { blocks: [], textPrefix: '' };
+    }
+  }
+  if (!buffer) return { blocks: [], textPrefix: '' };
+  if (buffer.length > MAX_DOCUMENT_BYTES) {
+    return { blocks: [], textPrefix: '' };
+  }
+
+  if (mimeType === PDF_MIME) {
+    return {
+      blocks: [
+        {
+          type: 'document',
+          source: {
+            type: 'base64',
+            media_type: PDF_MIME,
+            data: buffer.toString('base64'),
+          },
+        },
+      ],
+      textPrefix: '',
+    };
+  }
+  if (IMAGE_MIMES.has(mimeType)) {
+    return {
+      blocks: [
+        {
+          type: 'image',
+          source: {
+            type: 'base64',
+            media_type: mimeType === 'image/jpg' ? 'image/jpeg' : mimeType,
+            data: buffer.toString('base64'),
+          },
+        },
+      ],
+      textPrefix: '',
+    };
+  }
+  if (PLAIN_TEXT_MIMES.has(mimeType)) {
+    const text = buffer.toString('utf8').slice(0, MAX_EXTRACTED_TEXT);
+    return { blocks: [], textPrefix: text ? `Document text:\n${text}\n\n` : '' };
+  }
+  if (DOCX_MIMES.has(mimeType)) {
+    try {
+      const mammoth = await import('mammoth');
+      const result = await mammoth.extractRawText({ buffer });
+      const text = (result.value || '').slice(0, MAX_EXTRACTED_TEXT);
+      return { blocks: [], textPrefix: text ? `Document text:\n${text}\n\n` : '' };
+    } catch (err) {
+      logError('[bulkImportAnalyzer] mammoth extraction failed', err as Error);
+      return { blocks: [], textPrefix: '' };
+    }
+  }
+  if (XLSX_MIMES.has(mimeType)) {
+    try {
+      const xlsx = await import('xlsx');
+      const wb = xlsx.read(buffer, { type: 'buffer' });
+      const lines: string[] = [];
+      for (const sheetName of wb.SheetNames) {
+        const sheet = wb.Sheets[sheetName];
+        if (!sheet) continue;
+        const csv = xlsx.utils.sheet_to_csv(sheet);
+        if (csv.trim()) lines.push(`# ${sheetName}\n${csv}`);
+        if (lines.join('\n').length > MAX_EXTRACTED_TEXT) break;
+      }
+      const text = lines.join('\n').slice(0, MAX_EXTRACTED_TEXT);
+      return { blocks: [], textPrefix: text ? `Spreadsheet contents:\n${text}\n\n` : '' };
+    } catch (err) {
+      logError('[bulkImportAnalyzer] xlsx extraction failed', err as Error);
+      return { blocks: [], textPrefix: '' };
+    }
+  }
+
+  return { blocks: [], textPrefix: '' };
+}
+
+/**
+ * Send a prompt (optionally with attached document/image blocks) to
+ * Claude and parse a single JSON object out of the response. Returns
+ * null on transport / parse failure so callers can fall back to a
+ * deterministic stub.
+ */
+async function callClaudeJson<T>(
+  prompt: string,
+  source?: AnalyzerFileSource,
+): Promise<T | null> {
   const c = getClient();
   if (!c) return null;
   try {
+    const { blocks, textPrefix } = await loadFileForClaude(source);
+    const userContent: AnthropicContentBlock[] = [
+      ...blocks,
+      { type: 'text', text: `${textPrefix}${prompt}` },
+    ];
     const res = await c.messages.create({
       model: MODEL,
       max_tokens: 1024,
       system:
         'You analyze property-management documents for a bulk-ingest pipeline. Respond with one JSON object only — no prose, no markdown.',
-      messages: [{ role: 'user', content: prompt }],
+      messages: [
+        {
+          role: 'user',
+          content: userContent as unknown as Anthropic.Messages.MessageParam['content'],
+        },
+      ],
     });
     const text = res.content
       .filter((b) => b.type === 'text')
@@ -128,6 +300,8 @@ export const bulkImportAnalyzer = {
     originalName: string;
     mimeType?: string | null;
     fileSize?: number | null;
+    stagedPath?: string | null;
+    buffer?: Buffer | null;
   }): Promise<ScreeningResult> {
     const prompt = `Analyze this uploaded document for a property-management bulk import.
 Filename: ${input.originalName}
@@ -136,7 +310,11 @@ Size: ${input.fileSize ?? 'unknown'} bytes
 Return JSON with keys: isComplete (bool), isMultiDocument (bool), pageOrderHint (number[] or null),
 rotationDegrees (0|90|180|270), suggestedFilename (string), description (short string),
 confidence (0..1).`;
-    const raw = await callClaudeJson<Partial<ScreeningResult>>(prompt);
+    const raw = await callClaudeJson<Partial<ScreeningResult>>(prompt, {
+      stagedPath: input.stagedPath,
+      buffer: input.buffer,
+      mimeType: input.mimeType,
+    });
     if (!raw) return fallbackScreening(input.originalName);
     return {
       isComplete: !!raw.isComplete,
@@ -156,12 +334,19 @@ confidence (0..1).`;
   async suggestMergeOrSplit(input: {
     originalName: string;
     siblingNames: string[];
+    stagedPath?: string | null;
+    buffer?: Buffer | null;
+    mimeType?: string | null;
   }): Promise<MergeOrSplitResult> {
     const prompt = `You are sorting scanned documents. The current document is "${input.originalName}".
 Other staged docs in this session: ${JSON.stringify(input.siblingNames)}.
 Decide whether to keep, merge, or split. Return JSON: { decision: 'keep'|'merge'|'split',
 reason: string, mergeWithItemId?: string, splitAtPage?: number, confidence: number }.`;
-    const raw = await callClaudeJson<Partial<MergeOrSplitResult>>(prompt);
+    const raw = await callClaudeJson<Partial<MergeOrSplitResult>>(prompt, {
+      stagedPath: input.stagedPath,
+      buffer: input.buffer,
+      mimeType: input.mimeType,
+    });
     if (!raw) {
       return { decision: 'keep', reason: 'fallback', confidence: 0.2 };
     }
@@ -180,13 +365,20 @@ reason: string, mergeWithItemId?: string, splitAtPage?: number, confidence: numb
   async suggestBranch(input: {
     originalName: string;
     description?: string;
+    stagedPath?: string | null;
+    buffer?: Buffer | null;
+    mimeType?: string | null;
   }): Promise<BranchResult> {
     const prompt = `Choose the best destination for this document inside a property-management app.
 Filename: ${input.originalName}
 Description: ${input.description ?? ''}
 Return JSON: { branch: 'building_documents'|'residence_documents'|'demand'|'bill'|'maintenance'|'other',
 residenceHint?: string, reason: string, confidence: number }.`;
-    const raw = await callClaudeJson<Partial<BranchResult>>(prompt);
+    const raw = await callClaudeJson<Partial<BranchResult>>(prompt, {
+      stagedPath: input.stagedPath,
+      buffer: input.buffer,
+      mimeType: input.mimeType,
+    });
     const allowed: BranchResult['branch'][] = [
       'building_documents',
       'residence_documents',
@@ -213,13 +405,20 @@ residenceHint?: string, reason: string, confidence: number }.`;
     originalName: string;
     description?: string;
     branch?: string;
+    stagedPath?: string | null;
+    buffer?: Buffer | null;
+    mimeType?: string | null;
   }): Promise<IdentificationResult> {
     const prompt = `Extract metadata for a document being filed under "${input.branch ?? 'building_documents'}".
 Filename: ${input.originalName}
 Description: ${input.description ?? ''}
 Return JSON: { name: string, description: string, tags: string[],
 effectiveDate?: 'YYYY-MM-DD', metadata: object, confidence: number }.`;
-    const raw = await callClaudeJson<Partial<IdentificationResult>>(prompt);
+    const raw = await callClaudeJson<Partial<IdentificationResult>>(prompt, {
+      stagedPath: input.stagedPath,
+      buffer: input.buffer,
+      mimeType: input.mimeType,
+    });
     if (!raw) {
       return {
         name: input.originalName,
@@ -246,12 +445,19 @@ effectiveDate?: 'YYYY-MM-DD', metadata: object, confidence: number }.`;
   async suggestLinks(input: {
     originalName: string;
     candidates: { id: string; name: string }[];
+    stagedPath?: string | null;
+    buffer?: Buffer | null;
+    mimeType?: string | null;
   }): Promise<LinkSuggestion> {
     const prompt = `Find related documents for "${input.originalName}" from the candidates: ${JSON.stringify(
       input.candidates,
     )}. Return JSON: { beforeItemId?: string, afterItemId?: string,
 relatedItemIds: string[], reason: string, confidence: number }.`;
-    const raw = await callClaudeJson<Partial<LinkSuggestion>>(prompt);
+    const raw = await callClaudeJson<Partial<LinkSuggestion>>(prompt, {
+      stagedPath: input.stagedPath,
+      buffer: input.buffer,
+      mimeType: input.mimeType,
+    });
     if (!raw) {
       return { relatedItemIds: [], reason: 'fallback', confidence: 0.2 };
     }

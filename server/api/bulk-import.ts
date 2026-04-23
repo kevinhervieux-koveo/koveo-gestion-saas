@@ -310,6 +310,7 @@ export function registerBulkImportRoutes(app: Express): void {
         originalName: item.originalName,
         mimeType: item.mimeType,
         fileSize: item.fileSize,
+        stagedPath: item.stagedPath,
       });
       const [updated] = await db
         .update(schema.bulkImportItems)
@@ -345,6 +346,8 @@ export function registerBulkImportRoutes(app: Express): void {
       const result = await bulkImportAnalyzer.suggestMergeOrSplit({
         originalName: item.originalName,
         siblingNames: siblings.filter((s) => s.id !== item.id).map((s) => s.name),
+        stagedPath: item.stagedPath,
+        mimeType: item.mimeType,
       });
       const [updated] = await db
         .update(schema.bulkImportItems)
@@ -375,6 +378,8 @@ export function registerBulkImportRoutes(app: Express): void {
       const result = await bulkImportAnalyzer.suggestBranch({
         originalName: item.originalName,
         description,
+        stagedPath: item.stagedPath,
+        mimeType: item.mimeType,
       });
       const [updated] = await db
         .update(schema.bulkImportItems)
@@ -408,6 +413,8 @@ export function registerBulkImportRoutes(app: Express): void {
         originalName: item.originalName,
         description,
         branch,
+        stagedPath: item.stagedPath,
+        mimeType: item.mimeType,
       });
       const [updated] = await db
         .update(schema.bulkImportItems)
@@ -443,6 +450,8 @@ export function registerBulkImportRoutes(app: Express): void {
       const result = await bulkImportAnalyzer.suggestLinks({
         originalName: item.originalName,
         candidates: candidates.filter((c) => c.id !== item.id),
+        stagedPath: item.stagedPath,
+        mimeType: item.mimeType,
       });
       const [updated] = await db
         .update(schema.bulkImportItems)

@@ -154,6 +154,7 @@ export function registerBulkImportTools(
               originalName: item.originalName,
               mimeType: item.mimeType,
               fileSize: item.fileSize,
+              stagedPath: item.stagedPath,
             })) as unknown as Record<string, unknown>;
             await withRetryableDbCall(() =>
               db
@@ -175,6 +176,8 @@ export function registerBulkImportTools(
             payload = (await bulkImportAnalyzer.suggestMergeOrSplit({
               originalName: item.originalName,
               siblingNames: siblings.filter((s) => s.id !== itemId).map((s) => s.name),
+              stagedPath: item.stagedPath,
+              mimeType: item.mimeType,
             })) as unknown as Record<string, unknown>;
             await withRetryableDbCall(() =>
               db
@@ -194,6 +197,8 @@ export function registerBulkImportTools(
               originalName: item.originalName,
               description:
                 (item.screening as { description?: string } | null)?.description ?? '',
+              stagedPath: item.stagedPath,
+              mimeType: item.mimeType,
             })) as unknown as Record<string, unknown>;
             await withRetryableDbCall(() =>
               db
@@ -216,6 +221,8 @@ export function registerBulkImportTools(
               branch:
                 (item.branchDecision as { branch?: string } | null)?.branch ??
                 'building_documents',
+              stagedPath: item.stagedPath,
+              mimeType: item.mimeType,
             })) as unknown as Record<string, unknown>;
             await withRetryableDbCall(() =>
               db
@@ -241,6 +248,8 @@ export function registerBulkImportTools(
             payload = (await bulkImportAnalyzer.suggestLinks({
               originalName: item.originalName,
               candidates: candidates.filter((c) => c.id !== itemId),
+              stagedPath: item.stagedPath,
+              mimeType: item.mimeType,
             })) as unknown as Record<string, unknown>;
             await withRetryableDbCall(() =>
               db
