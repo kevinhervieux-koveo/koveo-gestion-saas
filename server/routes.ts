@@ -87,7 +87,18 @@ export async function registerRoutes(app: Express) {
   
   // Register MCP routes BEFORE session middleware (MCP /mcp endpoints use
   // their own bearer-token / API-key auth, no session needed).
-  await registerMcpRoutes(app);
+  // A failure here (e.g. a misconfigured MCP_OAUTH_ISSUER in production) must
+  // NOT abort the rest of route registration — otherwise the SPA catch-all
+  // never gets installed and every browser hit returns "Cannot GET /".
+  try {
+    await registerMcpRoutes(app);
+  } catch (mcpError: any) {
+    console.error(
+      '[ROUTES] registerMcpRoutes failed — continuing without MCP endpoints:',
+      mcpError?.message || mcpError,
+      mcpError?.stack || ''
+    );
+  }
   
   // CRITICAL: Apply session middleware BEFORE authentication routes
   app.use(sessionConfig);

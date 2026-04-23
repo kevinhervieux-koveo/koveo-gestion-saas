@@ -19,14 +19,21 @@ const viteLogger = createLogger();
  * @param source
  * @returns Function result.
  */
-export function log(message: string, source = 'express') {
+export function log(message: string, source: string | 'error' | 'warn' = 'express') {
   const formattedTime = new Date().toLocaleTimeString('en-US', {
     hour: 'numeric',
     minute: '2-digit',
     second: '2-digit',
     hour12: true,
   });
-
+  const line = `${formattedTime} [${source}] ${message}`;
+  if (source === 'error') {
+    console.error(line);
+  } else if (source === 'warn') {
+    console.warn(line);
+  } else {
+    console.log(line);
+  }
 }
 
 /**
