@@ -61,6 +61,7 @@ jest.mock('drizzle-orm', () => ({
   ne: jest.fn((column, value) => ({ column, operator: 'ne', value })),
   inArray: jest.fn((column, values) => ({ column, operator: 'inArray', values })),
   isNull: jest.fn((column) => ({ column, operator: 'isNull' })),
+  isNotNull: jest.fn((column) => ({ column, operator: 'isNotNull' })),
   ilike: jest.fn((column, value) => ({ column, operator: 'ilike', value })),
   exists: jest.fn((query) => ({ operator: 'exists', query })),
   sql: Object.assign(
@@ -1095,10 +1096,11 @@ describe('Bills API Integration Tests', () => {
    *   - issueDateFrom adds a `gte(bills.issueDate, value)` condition
    *   - issueDateTo adds a `lte(bills.issueDate, value)` condition
    *   - Both bounds combine
-   *   - Bills with NULL issue_date are excluded when either bound is set
-   *     (the route deliberately does NOT add an `or(isNull(...), ...)`
-   *     escape, relying on SQL NULL semantics where gte/lte vs NULL is
-   *     NULL — i.e. effectively false).
+   *   - Bills with NULL issue_date are excluded explicitly via an
+   *     `isNotNull(bills.issueDate)` guard whenever either bound is set
+   *     (Task #373 made the contract explicit so a future refactor that
+   *     moves the gte/lte into an OR group can't silently start letting
+   *     undated bills through).
    *   - The new filter composes with year / months / category.
    *
    * These tests inspect the structured where-clause object captured by
@@ -1140,12 +1142,13 @@ describe('Bills API Integration Tests', () => {
         operator: 'gte',
         value: '2025-03-01',
       });
-      // Must NOT silently allow NULL issue_date through (no isNull escape).
+      // Explicit guard: `isNotNull(bills.issueDate)` is added so undated
+      // bills are excluded by contract, not by SQL NULL side effects.
       expect(
         collectConditions(where).some(
-          (c: any) => c?.operator === 'isNull' && c?.column === 'bills.issueDate',
+          (c: any) => c?.operator === 'isNotNull' && c?.column === 'bills.issueDate',
         ),
-      ).toBe(false);
+      ).toBe(true);
     });
 
     it('applies a lte(bills.issueDate, value) condition when only issueDateTo is set', async () => {
@@ -1160,9 +1163,9 @@ describe('Bills API Integration Tests', () => {
       });
       expect(
         collectConditions(where).some(
-          (c: any) => c?.operator === 'isNull' && c?.column === 'bills.issueDate',
+          (c: any) => c?.operator === 'isNotNull' && c?.column === 'bills.issueDate',
         ),
-      ).toBe(false);
+      ).toBe(true);
     });
 
     it('applies both gte and lte when issueDateFrom and issueDateTo are set together', async () => {
@@ -1179,12 +1182,12 @@ describe('Bills API Integration Tests', () => {
           expect.objectContaining({ column: 'bills.issueDate', operator: 'lte', value: '2025-09-30' }),
         ]),
       );
-      // Still no isNull escape — NULL issue_date stays excluded.
+      // Explicit isNotNull guard still present when both bounds are set.
       expect(
         collectConditions(where).some(
-          (c: any) => c?.operator === 'isNull' && c?.column === 'bills.issueDate',
+          (c: any) => c?.operator === 'isNotNull' && c?.column === 'bills.issueDate',
         ),
-      ).toBe(false);
+      ).toBe(true);
     });
 
     it('ignores malformed issueDateFrom / issueDateTo values', async () => {
@@ -1198,9 +1201,13 @@ describe('Bills API Integration Tests', () => {
     it('does not add any issue-date condition when neither bound is provided', async () => {
       const where = await captureWhere({ buildingId: testBuilding.id });
       expect(findIssueDateConditions(where)).toHaveLength(0);
+      // Without any bound, the explicit isNotNull guard must NOT be added —
+      // undated bills should still be visible in the unfiltered list.
       expect(
         collectConditions(where).some(
-          (c: any) => c?.operator === 'isNull' && c?.column === 'bills.issueDate',
+          (c: any) =>
+            (c?.operator === 'isNull' || c?.operator === 'isNotNull') &&
+            c?.column === 'bills.issueDate',
         ),
       ).toBe(false);
     });
@@ -1282,10 +1289,11 @@ describe('Bills API Integration Tests', () => {
       const existsCount = all.filter((c: any) => c?.operator === 'exists').length;
       expect(existsCount).toBeGreaterThanOrEqual(2);
 
-      // NULL-exclusion contract still holds even with everything stacked.
+      // NULL-exclusion contract still holds even with everything stacked:
+      // the explicit `isNotNull(bills.issueDate)` guard is present.
       expect(
-        all.some((c: any) => c?.operator === 'isNull' && c?.column === 'bills.issueDate'),
-      ).toBe(false);
+        all.some((c: any) => c?.operator === 'isNotNull' && c?.column === 'bills.issueDate'),
+      ).toBe(true);
     });
 
     it('composes with the year filter (payment-existence subquery still present)', async () => {

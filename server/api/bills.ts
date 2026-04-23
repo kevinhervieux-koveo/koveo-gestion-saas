@@ -902,14 +902,22 @@ export function registerBillRoutes(app: Express) {
       }
 
       // Issue-date range filter (vendor invoice issue date).
-      // NOTE: Bills with a NULL issue_date are excluded when either bound is set,
-      // because gte/lte against NULL evaluates to NULL (effectively false) in SQL.
+      // Bills with a NULL issue_date are excluded explicitly via
+      // isNotNull whenever either bound is set, so a future refactor that
+      // moves the gte/lte into an OR group (or otherwise changes NULL
+      // semantics) cannot silently start returning undated bills inside a
+      // date window.
       const issueDateRegex = /^\d{4}-\d{2}-\d{2}$/;
-      if (typeof issueDateFrom === 'string' && issueDateRegex.test(issueDateFrom)) {
-        conditions.push(gte(bills.issueDate, issueDateFrom));
+      const hasIssueDateFrom = typeof issueDateFrom === 'string' && issueDateRegex.test(issueDateFrom);
+      const hasIssueDateTo = typeof issueDateTo === 'string' && issueDateRegex.test(issueDateTo);
+      if (hasIssueDateFrom || hasIssueDateTo) {
+        conditions.push(isNotNull(bills.issueDate));
       }
-      if (typeof issueDateTo === 'string' && issueDateRegex.test(issueDateTo)) {
-        conditions.push(lte(bills.issueDate, issueDateTo));
+      if (hasIssueDateFrom) {
+        conditions.push(gte(bills.issueDate, issueDateFrom as string));
+      }
+      if (hasIssueDateTo) {
+        conditions.push(lte(bills.issueDate, issueDateTo as string));
       }
 
       if (search && search.trim()) {
