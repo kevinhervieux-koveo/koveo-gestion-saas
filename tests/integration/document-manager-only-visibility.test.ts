@@ -113,6 +113,14 @@ describeIfDb('manager-only document visibility — Task #321', () => {
     // name carry a non-ASCII character so the disposition header can
     // be exercised through the Latin-1 HTTP serialisation path.
     docUnicodeResidence: crypto.randomUUID(),
+    // Task #351: a residence-scoped document whose underlying GCS
+    // object intentionally omits the `custom:aclPolicy` metadata blob,
+    // so the secondary ACL check in /api/documents/:id/file falls
+    // through `getObjectAclPolicy` returning null and `canAccessObject`
+    // returning false. Used to lock down the documented behaviour
+    // (admin bypass, everyone else 403) when production data is
+    // inconsistent and missing the ACL metadata.
+    docMissingAclResidence: crypto.randomUUID(),
   };
   // Filename and display name shared by both /file (uses fileName) and
   // /optimized-file (uses name) for the unicode regression test.
@@ -421,10 +429,64 @@ describeIfDb('manager-only document visibility — Task #321', () => {
       return objectsPath;
     }
 
+    /** Task #351 sibling of stageFile that does NOT write the
+     *  `custom:aclPolicy` metadata blob. Mirrors production rows that
+     *  predate the ACL-stamping code path: the GCS object exists with
+     *  body and contentType, but `getObjectAclPolicy` will resolve to
+     *  null. The local fs / metadata sidecar is still written so the
+     *  optimized-file route stays functional in cleanup; the test
+     *  itself only exercises the GCS-backed `/file` route. */
+    async function stageFileWithoutAcl(docId: string): Promise<string> {
+      const entityRel = `uploads/${TEST_TAG}/${docId}.pdf`;
+      const objectsPath = `/objects/${entityRel}`;
+
+      const objectName = joinObjectKey(entityRel);
+      await bucket.file(objectName).save(PDF_BODY, {
+        contentType: 'application/pdf',
+        resumable: false,
+        // No `metadata.metadata['custom:aclPolicy']` — this is the
+        // entire point of the fixture.
+      });
+      createdGcsObjects.push({ bucketName: gcsBucketName, objectName });
+
+      const localFile = nodePath.join(
+        localUploadsDir,
+        'objects',
+        entityRel
+      );
+      const metaFile = `${localFile}.metadata.json`;
+      await fsPromises.mkdir(nodePath.dirname(localFile), { recursive: true });
+      await fsPromises.writeFile(localFile, PDF_BODY);
+      await fsPromises.writeFile(
+        metaFile,
+        JSON.stringify({
+          originalName: `${docId}.pdf`,
+          mimeType: 'application/pdf',
+          size: PDF_BODY.length,
+          uploadedBy: ids.manager,
+          uploadedAt: new Date().toISOString(),
+          context: {
+            type: 'document',
+            organizationId: ids.org,
+            buildingId: ids.building,
+            residenceId: ids.residence,
+            userRole: 'manager',
+            userId: ids.manager,
+          },
+        })
+      );
+      createdLocalFiles.push(localFile, metaFile);
+
+      return objectsPath;
+    }
+
     const filePathMgrRes = await stageFile(ids.docMgrOnlyResidence);
     const filePathMgrBld = await stageFile(ids.docMgrOnlyBuilding);
     const filePathNormal = await stageFile(ids.docNormalResidence);
     const filePathUnicode = await stageFile(ids.docUnicodeResidence);
+    const filePathMissingAcl = await stageFileWithoutAcl(
+      ids.docMissingAclResidence
+    );
 
     // Documents:
     //  1. Manager-only document on the residence — both isManagerOnly
@@ -495,11 +557,30 @@ describeIfDb('manager-only document visibility — Task #321', () => {
         isVisibleToTenants: true,
         isManagerOnly: true,
       },
+      // Task #351: residence-scoped, non-manager-only, visible to
+      // tenants — so all four roles pass the route's primary scope
+      // check and reach the secondary `canUserAccessDocument` /
+      // `canAccessObject` ACL gate. The underlying GCS object has no
+      // `custom:aclPolicy` metadata, which is the scenario under test.
+      {
+        id: ids.docMissingAclResidence,
+        name: `${TEST_TAG} missing-acl residence`,
+        documentType: 'legal',
+        filePath: filePathMissingAcl,
+        fileName: `${ids.docMissingAclResidence}.pdf`,
+        mimeType: 'application/pdf',
+        fileSize: PDF_BODY.length,
+        residenceId: ids.residence,
+        uploadedById: ids.manager,
+        isVisibleToTenants: true,
+        isManagerOnly: false,
+      },
     ]);
     created.documents.add(ids.docMgrOnlyResidence);
     created.documents.add(ids.docMgrOnlyBuilding);
     created.documents.add(ids.docNormalResidence);
     created.documents.add(ids.docUnicodeResidence);
+    created.documents.add(ids.docMissingAclResidence);
   }, 60000);
 
   afterAll(async () => {
@@ -1214,6 +1295,64 @@ describeIfDb('manager-only document visibility — Task #321', () => {
         `inline; filename="${UNICODE_DOC_NAME}"`
       );
       expect(res.body.equals(PDF_BODY)).toBe(true);
+    }, 30000);
+  });
+
+  // -----------------------------------------------------------------
+  // Task #351: GET /api/documents/:id/file when the underlying GCS
+  // object has NO `custom:aclPolicy` metadata.
+  //
+  // Documented behaviour the route MUST preserve:
+  //   - admin (and demo_admin): `documentService.canUserAccessDocument`
+  //     short-circuits with `{ allowed: true }` BEFORE consulting the
+  //     object metadata, so the request streams the file body (200).
+  //   - everyone else (manager/resident/tenant): `getObjectAclPolicy`
+  //     returns null, `canAccessObject` returns false, the route maps
+  //     that to a 403 "Access denied to file". Notably this is NOT the
+  //     "file not found - allow access check to pass" branch, which
+  //     only fires when the GCS object itself is missing.
+  //
+  // The fixture document is residence-scoped, non-manager-only, and
+  // visible to tenants so the primary scope check at the top of the
+  // route lets all four roles through; the secondary ACL gate is the
+  // sole thing under test.
+  // -----------------------------------------------------------------
+  describe('GET /api/documents/:id/file — missing ACL metadata (Task #351)', () => {
+    async function downloadAs(email: string) {
+      const agent = await loginAs(email);
+      return agent
+        .get(`/api/documents/${ids.docMissingAclResidence}/file`)
+        .buffer(true)
+        .parse((response, cb) => {
+          const chunks: Buffer[] = [];
+          response.on('data', (c: Buffer) => chunks.push(Buffer.from(c)));
+          response.on('end', () =>
+            cb(null, chunks.length ? Buffer.concat(chunks) : Buffer.alloc(0))
+          );
+        });
+    }
+
+    it('admin downloads the file body even with no ACL metadata (admin bypass)', async () => {
+      const res = await downloadAs(emails.admin);
+      expect(res.status).toBe(200);
+      expect(res.headers['content-type']).toMatch(/application\/pdf/);
+      expect(Buffer.isBuffer(res.body)).toBe(true);
+      expect(res.body.equals(PDF_BODY)).toBe(true);
+    }, 30000);
+
+    it('manager is denied (403) when the underlying object has no ACL metadata', async () => {
+      const res = await downloadAs(emails.manager);
+      expect(res.status).toBe(403);
+    }, 30000);
+
+    it('resident is denied (403) when the underlying object has no ACL metadata', async () => {
+      const res = await downloadAs(emails.resident);
+      expect(res.status).toBe(403);
+    }, 30000);
+
+    it('tenant is denied (403) when the underlying object has no ACL metadata', async () => {
+      const res = await downloadAs(emails.tenant);
+      expect(res.status).toBe(403);
     }, 30000);
   });
 });
