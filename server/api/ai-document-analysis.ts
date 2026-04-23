@@ -9,7 +9,7 @@ import type { Express } from 'express';
 import { requireAuth } from '../auth';
 import multer from 'multer';
 import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
-import { aiService } from '../services/consolidated-ai-service';
+import { aiService, ConsolidatedAIService } from '../services/consolidated-ai-service';
 import { secureFileStorage } from '../services/secure-file-storage';
 import { getUploadConfig, type UploadContext } from '@shared/config/upload-config';
 import { z } from 'zod';
@@ -36,19 +36,64 @@ const upload = multer({
     fileSize: 50 * 1024 * 1024, // 50MB limit
   },
   fileFilter: (req, file, cb) => {
-    const allowedTypes = [
-      'image/jpeg', 'image/png', 'image/gif', 'image/webp',
-      'application/pdf',
-      'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-    ];
-    
-    if (allowedTypes.includes(file.mimetype)) {
+    // Union of: types accepted by `extractBillData` (PDF + images) and types
+    // accepted by `suggestDocumentTags` (PDF + images + Word + Excel). Keep
+    // legacy entries (`image/gif`) for backward compatibility with existing
+    // analyze-document callers.
+    const allowedTypes = new Set<string>([
+      ...ConsolidatedAIService.TAG_SUGGESTION_SUPPORTED_MIME_TYPES,
+      'image/gif',
+    ]);
+
+    if (allowedTypes.has(file.mimetype)) {
       cb(null, true);
     } else {
       cb(new Error(`Unsupported file type: ${file.mimetype}`));
     }
   }
+});
+
+// Validation schema for tag suggestion request
+interface TagSuggestionTagInput {
+  id: string;
+  name: string;
+  description?: string | null;
+}
+
+const tagSuggestionTagSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  description: z.string().nullable().optional(),
+});
+
+const tagSuggestionSchema = z.object({
+  tags: z
+    .string()
+    .transform((val, ctx): TagSuggestionTagInput[] => {
+      try {
+        const parsed = JSON.parse(val) as unknown;
+        const validated = z.array(tagSuggestionTagSchema).max(200).parse(parsed);
+        return validated.map((t) => ({
+          id: t.id,
+          name: t.name,
+          description: t.description ?? null,
+        }));
+      } catch {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Invalid tags payload' });
+        return z.NEVER;
+      }
+    }),
+  category: z.string().optional(),
+  scope: z.enum(['building', 'residence']).optional(),
+  max: z
+    .string()
+    .optional()
+    .transform((v): number => {
+      if (!v) return 3;
+      const n = parseInt(v, 10);
+      if (Number.isNaN(n) || n < 1) return 3;
+      return Math.min(n, 10);
+    }),
 });
 
 // Validation schema for AI analysis request
@@ -250,6 +295,84 @@ export function registerAiAnalysisRoutes(app: Express) {
           success: false,
           error: 'Internal server error during AI analysis',
           details: error instanceof Error ? error.message : 'Unknown error'
+        });
+      }
+    }
+  );
+
+  /**
+   * POST /api/ai/suggest-document-tags
+   *
+   * Suggest the most relevant document tag IDs for an uploaded file by sending
+   * the document contents to Gemini along with the candidate tag list. The
+   * caller passes the available tags so we don't duplicate org/scope filtering
+   * logic here. Falls back to an empty array (callers should then use the
+   * client-side keyword scorer) when AI is unavailable.
+   */
+  app.post('/api/ai/suggest-document-tags',
+    requireAuth,
+    aiAnalysisRateLimit,
+    upload.single('document'),
+    async (req: any, res: any) => {
+      try {
+        if (!req.file) {
+          return res.status(400).json({
+            success: false,
+            error: 'No document uploaded',
+          });
+        }
+
+        const validation = tagSuggestionSchema.safeParse(req.body);
+        if (!validation.success) {
+          return res.status(400).json({
+            success: false,
+            error: 'Invalid request data',
+            details: validation.error.issues,
+          });
+        }
+
+        const { tags, category, scope, max } = validation.data;
+        if (tags.length === 0) {
+          return res.json({ success: true, tagIds: [], source: 'ai' });
+        }
+
+        try {
+          const tagIds = await aiService.suggestDocumentTags(
+            req.file.buffer,
+            req.file.mimetype,
+            tags,
+            { category, scope },
+            max
+          );
+
+          return res.json({
+            success: true,
+            tagIds,
+            source: 'ai',
+            metadata: {
+              fileName: req.file.originalname,
+              mimeType: req.file.mimetype,
+              consideredTags: tags.length,
+            },
+          });
+        } catch (aiError) {
+          console.warn(
+            '[AI TAG SUGGEST] AI suggestion unavailable, client should fall back:',
+            aiError instanceof Error ? aiError.message : aiError
+          );
+          return res.status(200).json({
+            success: false,
+            tagIds: [],
+            source: 'unavailable',
+            error: aiError instanceof Error ? aiError.message : 'AI unavailable',
+          });
+        }
+      } catch (error) {
+        console.error('[AI TAG SUGGEST] Unexpected error:', error);
+        res.status(500).json({
+          success: false,
+          tagIds: [],
+          error: 'Internal server error during tag suggestion',
         });
       }
     }

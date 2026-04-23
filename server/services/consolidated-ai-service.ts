@@ -1250,6 +1250,205 @@ IMPORTANT: Retournez UNIQUEMENT l'objet JSON, sans formatage markdown ni explica
     }
     return Math.max(0, Math.min(1, confidence));
   }
+
+  // ====================
+  // DOCUMENT TAG SUGGESTION
+  // ====================
+
+  /**
+   * MIME types accepted by `suggestDocumentTags`. PDFs and images are sent to
+   * Gemini as inline data; Word/Excel files are first converted to plain text
+   * server-side and the extracted text is sent instead. Callers should fall
+   * back to the heuristic scorer for any other type or when the AI service is
+   * unavailable.
+   */
+  static readonly TAG_SUGGESTION_SUPPORTED_MIME_TYPES: readonly string[] = [
+    'application/pdf',
+    'image/jpeg',
+    'image/jpg',
+    'image/png',
+    'image/webp',
+    'image/heic',
+    'image/heif',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  ];
+
+  private static readonly INLINE_TAG_SUGGESTION_TYPES = new Set([
+    'application/pdf',
+    'image/jpeg',
+    'image/jpg',
+    'image/png',
+    'image/webp',
+    'image/heic',
+    'image/heif',
+  ]);
+
+  private static readonly DOCX_MIME_TYPES = new Set([
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  ]);
+
+  private static readonly XLSX_MIME_TYPES = new Set([
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  ]);
+
+  /**
+   * Best-effort plain-text extraction for Office uploads. Returns an empty
+   * string if extraction fails — callers should treat that as "no AI hint
+   * available" and fall back to the keyword scorer.
+   */
+  private async extractOfficeText(fileBuffer: Buffer, mimeType: string): Promise<string> {
+    try {
+      if (ConsolidatedAIService.DOCX_MIME_TYPES.has(mimeType)) {
+        const mammoth = await import('mammoth');
+        const result = await mammoth.extractRawText({ buffer: fileBuffer });
+        return (result.value || '').slice(0, 20000);
+      }
+      if (ConsolidatedAIService.XLSX_MIME_TYPES.has(mimeType)) {
+        const xlsx = await import('xlsx');
+        const wb = xlsx.read(fileBuffer, { type: 'buffer' });
+        const lines: string[] = [];
+        for (const sheetName of wb.SheetNames) {
+          const sheet = wb.Sheets[sheetName];
+          if (!sheet) continue;
+          const csv = xlsx.utils.sheet_to_csv(sheet);
+          if (csv.trim()) {
+            lines.push(`# ${sheetName}\n${csv}`);
+          }
+          if (lines.join('\n').length > 20000) break;
+        }
+        return lines.join('\n').slice(0, 20000);
+      }
+    } catch (err) {
+      console.warn(
+        '[suggestDocumentTags] Office text extraction failed:',
+        err instanceof Error ? err.message : err
+      );
+    }
+    return '';
+  }
+
+  private buildTagSuggestionPrompt(
+    tags: Array<{ id: string; name: string; description?: string | null }>,
+    context: { category?: string; scope?: 'building' | 'residence' } | undefined,
+    maxSuggestions: number
+  ): string {
+    const tagList = tags
+      .map((t) => {
+        const desc = t.description ? ` | description: ${t.description}` : '';
+        return `- id=${t.id} | name: ${t.name}${desc}`;
+      })
+      .join('\n');
+
+    const ctxLines: string[] = [];
+    if (context?.category) ctxLines.push(`Document category: ${context.category}`);
+    if (context?.scope) ctxLines.push(`Scope: ${context.scope}`);
+    const ctxBlock = ctxLines.length > 0 ? `\n${ctxLines.join('\n')}\n` : '';
+
+    return `You are a document classification assistant for Koveo Gestion, a Quebec property-management platform. Read the attached document and pick the tags from the list below that best describe its contents.
+${ctxBlock}
+Available tags:
+${tagList}
+
+Pick up to ${maxSuggestions} tag IDs that clearly apply to this document, ordered from most to least relevant. Only choose tags whose name or description matches what the document is actually about. If no tag clearly applies, return an empty array.
+
+Respond with ONLY a JSON array of tag ID strings, with no markdown, code fences or commentary. Example: ["abc-123","def-456"].`;
+  }
+
+  private parseTagSuggestionResponse(
+    responseText: string,
+    validIds: Set<string>,
+    maxSuggestions: number
+  ): string[] {
+    let cleaned = String(responseText).trim();
+    if (cleaned.startsWith('```json')) {
+      cleaned = cleaned.replace(/^```json\s*/i, '').replace(/\s*```$/, '');
+    } else if (cleaned.startsWith('```')) {
+      cleaned = cleaned.replace(/^```\s*/, '').replace(/\s*```$/, '');
+    }
+    const arrayMatch = cleaned.match(/\[[\s\S]*\]/);
+    if (arrayMatch) cleaned = arrayMatch[0];
+
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(cleaned);
+    } catch {
+      console.warn('[suggestDocumentTags] Failed to parse AI response as JSON');
+      return [];
+    }
+    if (!Array.isArray(parsed)) return [];
+
+    const seen = new Set<string>();
+    const out: string[] = [];
+    for (const item of parsed) {
+      if (typeof item !== 'string') continue;
+      if (!validIds.has(item) || seen.has(item)) continue;
+      seen.add(item);
+      out.push(item);
+      if (out.length >= maxSuggestions) break;
+    }
+    return out;
+  }
+
+  async suggestDocumentTags(
+    fileBuffer: Buffer,
+    mimeType: string,
+    tags: Array<{ id: string; name: string; description?: string | null }>,
+    context?: { category?: string; scope?: 'building' | 'residence' },
+    maxSuggestions: number = 3
+  ): Promise<string[]> {
+    return this.executeWithErrorHandling('suggestDocumentTags', async () => {
+      this.ensureApiKeyAvailable();
+
+      if (!Array.isArray(tags) || tags.length === 0) return [];
+
+      if (!ConsolidatedAIService.TAG_SUGGESTION_SUPPORTED_MIME_TYPES.includes(mimeType)) {
+        throw new Error(`Unsupported file type for tag suggestion: ${mimeType}`);
+      }
+
+      const validIds = new Set(tags.map((t) => t.id));
+      const prompt = this.buildTagSuggestionPrompt(tags, context, maxSuggestions);
+
+      type GeminiContentPart = { text: string } | { inlineData: { data: string; mimeType: string } };
+      const parts: GeminiContentPart[] = [{ text: prompt }];
+
+      if (ConsolidatedAIService.INLINE_TAG_SUGGESTION_TYPES.has(mimeType)) {
+        parts.push({
+          inlineData: { data: fileBuffer.toString('base64'), mimeType },
+        });
+      } else {
+        // Office document: extract text first, then send as a text part.
+        const extracted = await this.extractOfficeText(fileBuffer, mimeType);
+        if (!extracted.trim()) {
+          // No usable text - bail so the caller falls back to the keyword scorer.
+          return [];
+        }
+        parts.push({
+          text: `\nDocument contents (extracted from ${mimeType}):\n"""\n${extracted}\n"""`,
+        });
+      }
+
+      const result = await this.genAI!.models.generateContent({
+        model: 'gemini-2.0-flash',
+        contents: [{ role: 'user', parts }],
+      });
+
+      interface GeminiTextResponse {
+        candidates?: Array<{
+          content?: { parts?: Array<{ text?: string }> };
+        }>;
+      }
+      const typedResult = result as unknown as GeminiTextResponse;
+      const responseText =
+        typedResult.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+
+      return this.parseTagSuggestionResponse(responseText, validIds, maxSuggestions);
+    });
+  }
 }
 
 // Export singleton instance

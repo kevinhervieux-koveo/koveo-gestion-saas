@@ -49,6 +49,31 @@ import { TagPicker, type DocumentTag } from '@/components/document-tags/TagPicke
 import { suggestTagIds } from '@/lib/tag-suggestions';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 
+// MIME types supported by the AI tag suggestion endpoint. Mirrors the
+// server-side allowlist in `consolidated-ai-service.ts` (PDF + images sent
+// inline; Office files are converted to text server-side before being sent
+// to Gemini).
+const AI_TAG_SUGGEST_SUPPORTED_MIME_TYPES: ReadonlySet<string> = new Set([
+  'application/pdf',
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
+  'image/webp',
+  'image/heic',
+  'image/heif',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+]);
+
+type AiTagSuggestionResponse = {
+  success: boolean;
+  tagIds: string[];
+  source?: 'ai' | 'unavailable';
+  error?: string;
+};
+
 type DocumentCreateData = {
   name: string;
   description?: string;
@@ -75,7 +100,7 @@ export function DocumentCreateForm({
   entityName,
 }: DocumentCreateFormProps) {
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   // State for file upload
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -144,9 +169,10 @@ export function DocumentCreateForm({
     }
   });
 
-  // Compute suggested tags based on file name, extracted text, category, and scope.
+  // Compute heuristic suggestions (file name + typed text + category) as a
+  // fallback for when AI isn't available or the file hasn't been analyzed yet.
   const watchedCategory = form.watch('category');
-  const suggestedTags = useMemo(() => {
+  const heuristicSuggestions = useMemo(() => {
     if (allTags.length === 0) return [];
     return suggestTagIds({
       tags: allTags,
@@ -157,6 +183,74 @@ export function DocumentCreateForm({
       max: 3,
     });
   }, [allTags, selectedFile, textContent, watchedCategory, entityType]);
+
+  // AI-derived tag suggestions for the currently uploaded file. Tracks both the
+  // suggested IDs and whether the AI actually answered, so an explicit
+  // "AI found nothing" result suppresses the keyword fallback (keyword-scored
+  // tags should only appear when AI is unavailable or hasn't run).
+  const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
+  const [aiResponded, setAiResponded] = useState(false);
+  const [isFetchingAiTags, setIsFetchingAiTags] = useState(false);
+
+  // When a file is uploaded, ask the server to classify it against the tag list.
+  // Falls back silently to the keyword scorer if AI is unavailable.
+  useEffect(() => {
+    setAiSuggestions([]);
+    setAiResponded(false);
+    if (!selectedFile || allTags.length === 0) {
+      return;
+    }
+    if (!AI_TAG_SUGGEST_SUPPORTED_MIME_TYPES.has(selectedFile.type)) {
+      return;
+    }
+
+    const controller = new AbortController();
+    const fileSnapshot = selectedFile;
+    const tagsForRequest = allTags
+      .filter((t) => t.scope === entityType || t.scope === 'any')
+      .map((t) => ({ id: t.id, name: t.name, description: t.description }));
+    if (tagsForRequest.length === 0) return;
+
+    const formData = new FormData();
+    formData.append('document', fileSnapshot);
+    formData.append('tags', JSON.stringify(tagsForRequest));
+    formData.append('scope', entityType);
+    if (watchedCategory) formData.append('category', watchedCategory);
+    formData.append('max', '3');
+
+    setIsFetchingAiTags(true);
+    fetch('/api/ai/suggest-document-tags', {
+      method: 'POST',
+      credentials: 'include',
+      body: formData,
+      signal: controller.signal,
+    })
+      .then(async (res): Promise<AiTagSuggestionResponse | null> => {
+        if (!res.ok) return null;
+        return res.json() as Promise<AiTagSuggestionResponse>;
+      })
+      .then((data) => {
+        if (!data || !Array.isArray(data.tagIds)) return;
+        if (data.source !== 'ai') return; // 'unavailable' -> keyword fallback
+        setAiResponded(true);
+        setAiSuggestions(
+          data.tagIds.filter((x: unknown): x is string => typeof x === 'string')
+        );
+      })
+      .catch((err: unknown) => {
+        if (err instanceof DOMException && err.name === 'AbortError') return;
+        // Silent fallback - heuristic suggestions remain in effect
+      })
+      .finally(() => setIsFetchingAiTags(false));
+
+    return () => controller.abort();
+  }, [selectedFile, allTags, entityType, watchedCategory]);
+
+  // Prefer AI-derived suggestions whenever the AI actually answered (even when
+  // it returned an empty array - that's an explicit "no tag applies"). Only
+  // fall back to the keyword scorer when AI is unavailable, errored out, or
+  // hasn't been consulted (no file / unsupported MIME type).
+  const suggestedTags = aiResponded ? aiSuggestions : heuristicSuggestions;
 
   // Auto-pre-select suggestions while the user has not manually edited tags.
   useEffect(() => {
@@ -394,7 +488,18 @@ export function DocumentCreateForm({
               />
               {/* Document Tags */}
               <div className="space-y-2">
-                <Label>Étiquettes</Label>
+                <div className="flex items-center justify-between">
+                  <Label>Étiquettes</Label>
+                  {isFetchingAiTags && (
+                    <span
+                      className="text-xs text-muted-foreground flex items-center gap-1"
+                      data-testid="text-ai-tag-suggestion-loading"
+                    >
+                      <span className="animate-spin rounded-full h-3 w-3 border-b-2 border-current"></span>
+                      {language === 'fr' ? 'Analyse IA du document...' : 'AI analyzing document...'}
+                    </span>
+                  )}
+                </div>
                 <TagPicker
                   value={selectedTagIds}
                   onChange={handleTagsChange}
