@@ -7,6 +7,25 @@
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
+
+// Mock the shared AI suggestion cache so we can assert that the analyzer
+// consults it before calling Anthropic and writes the result back. The
+// mock keeps an in-memory Map so a "set" followed by a "get" round-trips,
+// mirroring the real DB-backed behaviour without requiring a database.
+const cacheMockStore = new Map<string, unknown>();
+const getCachedMock = jest.fn(async (key: string) => {
+  return cacheMockStore.has(key) ? cacheMockStore.get(key) : null;
+});
+const setCachedMock = jest.fn(async (key: string, value: unknown) => {
+  cacheMockStore.set(key, value);
+});
+jest.mock('../../../server/services/ai-suggestion-cache', () => ({
+  getCachedSuggestion: (key: string) => getCachedMock(key),
+  setCachedSuggestion: (key: string, value: unknown, ttl: number) =>
+    setCachedMock(key, value, ttl),
+  clearAiSuggestionCache: jest.fn(),
+}));
+
 import { bulkImportAnalyzer } from '../../../server/services/bulk-import-analyzer';
 import { bandForConfidence } from '../../../shared/schemas/bulk-import';
 
@@ -200,6 +219,131 @@ describe('bulkImportAnalyzer file attachments (Task #455)', () => {
     const sent = create.mock.calls[0][0];
     const blocks = sent.messages[0].content as Array<{ type: string }>;
     expect(blocks.every((b) => b.type === 'text')).toBe(true);
+  });
+});
+
+describe('bulkImportAnalyzer per-step cache (Task #462)', () => {
+  let tmpDir: string;
+
+  beforeAll(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'bulk-import-cache-test-'));
+  });
+  afterAll(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+    bulkImportAnalyzer.__setClientForTests(null);
+  });
+  beforeEach(() => {
+    cacheMockStore.clear();
+    getCachedMock.mockClear();
+    setCachedMock.mockClear();
+  });
+
+  function makeFakeClient(jsonPayload: object) {
+    const create = jest.fn().mockResolvedValue({
+      content: [{ type: 'text', text: JSON.stringify(jsonPayload) }],
+    });
+    const fakeClient = {
+      messages: { create },
+    } as unknown as Parameters<typeof bulkImportAnalyzer.__setClientForTests>[0];
+    bulkImportAnalyzer.__setClientForTests(fakeClient);
+    return create;
+  }
+
+  it('skips the Anthropic round-trip on a repeat call with the same file + step', async () => {
+    const pdfPath = path.join(tmpDir, 'cached.pdf');
+    fs.writeFileSync(pdfPath, Buffer.from('%PDF-1.4 cached pdf body'));
+    const create = makeFakeClient({
+      isComplete: true,
+      isMultiDocument: false,
+      pageOrderHint: null,
+      rotationDegrees: 0,
+      suggestedFilename: 'cached.pdf',
+      description: 'Cached',
+      confidence: 0.9,
+    });
+
+    const args = {
+      originalName: 'cached.pdf',
+      mimeType: 'application/pdf',
+      fileSize: 24,
+      stagedPath: pdfPath,
+    };
+
+    const first = await bulkImportAnalyzer.screen(args);
+    const second = await bulkImportAnalyzer.screen(args);
+
+    expect(create).toHaveBeenCalledTimes(1);
+    expect(setCachedMock).toHaveBeenCalledTimes(1);
+    expect(getCachedMock).toHaveBeenCalledTimes(2);
+    expect(second).toEqual(first);
+  });
+
+  it('uses different cache slots for each analyzer step', async () => {
+    const pdfPath = path.join(tmpDir, 'multi.pdf');
+    fs.writeFileSync(pdfPath, Buffer.from('%PDF-1.4 multi step body'));
+
+    makeFakeClient({
+      isComplete: true,
+      isMultiDocument: false,
+      pageOrderHint: null,
+      rotationDegrees: 0,
+      suggestedFilename: 'multi.pdf',
+      description: '',
+      confidence: 0.7,
+    });
+    await bulkImportAnalyzer.screen({
+      originalName: 'multi.pdf',
+      mimeType: 'application/pdf',
+      stagedPath: pdfPath,
+    });
+
+    makeFakeClient({
+      branch: 'building_documents',
+      reason: 'cover page',
+      confidence: 0.8,
+    });
+    await bulkImportAnalyzer.suggestBranch({
+      originalName: 'multi.pdf',
+      mimeType: 'application/pdf',
+      stagedPath: pdfPath,
+    });
+
+    // Same file content but two different steps → two distinct cache
+    // keys, so the writes don't clobber each other.
+    expect(setCachedMock).toHaveBeenCalledTimes(2);
+    const writtenKeys = setCachedMock.mock.calls.map((c) => c[0]);
+    expect(new Set(writtenKeys).size).toBe(2);
+    expect(writtenKeys[0]).toContain(':screen:');
+    expect(writtenKeys[1]).toContain(':branch:');
+  });
+
+  it('invalidates naturally when the prompt-bearing input changes', async () => {
+    const pdfPath = path.join(tmpDir, 'links.pdf');
+    fs.writeFileSync(pdfPath, Buffer.from('%PDF-1.4 link prompt body'));
+    const create = makeFakeClient({
+      relatedItemIds: ['x'],
+      reason: '',
+      confidence: 0.7,
+    });
+
+    await bulkImportAnalyzer.suggestLinks({
+      originalName: 'links.pdf',
+      mimeType: 'application/pdf',
+      stagedPath: pdfPath,
+      candidates: [{ id: '1', name: 'a.pdf' }],
+    });
+    // Different candidate set means a different prompt → cache miss,
+    // second Anthropic call. This is what "prompt changes invalidate
+    // naturally" looks like in practice.
+    await bulkImportAnalyzer.suggestLinks({
+      originalName: 'links.pdf',
+      mimeType: 'application/pdf',
+      stagedPath: pdfPath,
+      candidates: [{ id: '2', name: 'b.pdf' }],
+    });
+
+    expect(create).toHaveBeenCalledTimes(2);
+    expect(setCachedMock).toHaveBeenCalledTimes(2);
   });
 });
 

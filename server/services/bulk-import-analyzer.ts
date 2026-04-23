@@ -18,9 +18,49 @@
  *     falls back to the filename-only prompt instead of crashing.
  */
 import Anthropic from '@anthropic-ai/sdk';
+import { createHash } from 'crypto';
 import * as fs from 'fs';
 import { logError, logInfo } from '../utils/logger';
 import type { BulkImportFallbackReason } from '../../shared/schemas/bulk-import';
+import {
+  getCachedSuggestion,
+  setCachedSuggestion,
+} from './ai-suggestion-cache';
+
+/**
+ * Per-step Anthropic response cache (Task #462).
+ *
+ * Re-running screen → sort → branch → identify → link for a 20MB PDF used
+ * to upload the bytes to Anthropic 5 times. We now key the response by
+ * (step, model, prompt, contentHash) in the shared `ai_suggestion_cache`
+ * table so repeat runs are free and fast. Hashing the prompt into the key
+ * means prompt changes (and therefore semantic changes) invalidate cached
+ * entries naturally without a manual bump.
+ */
+const ANALYZER_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+const ANALYZER_CACHE_KEY_PREFIX = 'bulk-import-analyzer:v1';
+
+type AnalyzerStep =
+  | 'screen'
+  | 'merge-or-split'
+  | 'branch'
+  | 'identify'
+  | 'links';
+
+function buildAnalyzerCacheKey(
+  step: AnalyzerStep,
+  prompt: string,
+  contentHash: string | null,
+): string {
+  const promptHash = createHash('sha256').update(prompt).digest('hex');
+  return [
+    ANALYZER_CACHE_KEY_PREFIX,
+    step,
+    MODEL,
+    promptHash,
+    contentHash || 'no-file',
+  ].join(':');
+}
 
 export interface AnalyzerConfidence {
   /** Numeric 0..1 confidence as reported by the model. */
@@ -150,14 +190,20 @@ async function loadFileForClaude(
 ): Promise<{
   blocks: AnthropicContentBlock[];
   textPrefix: string;
+  contentHash: string | null;
   fallbackReason: BulkImportFallbackReason | null;
 }> {
-  if (!source) return { blocks: [], textPrefix: '', fallbackReason: null };
+  if (!source) {
+    return { blocks: [], textPrefix: '', contentHash: null, fallbackReason: null };
+  }
   const mimeType = (source.mimeType ?? '').toLowerCase();
   // No mimeType + no buffer/path → caller never asked us to attach
   // anything, so this isn't a fallback either.
   if (!mimeType && !source.buffer && !source.stagedPath) {
-    return { blocks: [], textPrefix: '', fallbackReason: null };
+    return { blocks: [], textPrefix: '', contentHash: null, fallbackReason: null };
+  }
+  if (!mimeType) {
+    return { blocks: [], textPrefix: '', contentHash: null, fallbackReason: 'unsupported_mime' };
   }
 
   let buffer: Buffer | null = source.buffer ?? null;
@@ -168,23 +214,35 @@ async function loadFileForClaude(
         logInfo('[bulkImportAnalyzer] skipping oversize staged file', {
           metadata: { stagedPath: source.stagedPath, size: stat.size },
         });
-        return { blocks: [], textPrefix: '', fallbackReason: 'oversize' };
+        return { blocks: [], textPrefix: '', contentHash: null, fallbackReason: 'oversize' };
       }
       buffer = fs.readFileSync(source.stagedPath);
     } catch (err) {
       logError('[bulkImportAnalyzer] failed to read staged file', err as Error);
-      return { blocks: [], textPrefix: '', fallbackReason: 'missing_file' };
+      return { blocks: [], textPrefix: '', contentHash: null, fallbackReason: 'missing_file' };
     }
   }
   if (!buffer) {
-    return { blocks: [], textPrefix: '', fallbackReason: 'missing_file' };
+    return { blocks: [], textPrefix: '', contentHash: null, fallbackReason: 'missing_file' };
   }
   if (buffer.length > MAX_DOCUMENT_BYTES) {
-    return { blocks: [], textPrefix: '', fallbackReason: 'oversize' };
+    return { blocks: [], textPrefix: '', contentHash: null, fallbackReason: 'oversize' };
   }
+
+  // Hashing the bytes once here gives downstream callers a stable
+  // content fingerprint for the analyzer cache without forcing them to
+  // re-read the file. Including the mime in the hash means a file that
+  // somehow gets re-uploaded under a different mime type (e.g. PDF
+  // saved as image/png) does not collide on cache lookups.
+  const contentHash = createHash('sha256')
+    .update(mimeType)
+    .update('\x1f')
+    .update(buffer)
+    .digest('hex');
 
   if (mimeType === PDF_MIME) {
     return {
+      contentHash,
       blocks: [
         {
           type: 'document',
@@ -201,6 +259,7 @@ async function loadFileForClaude(
   }
   if (IMAGE_MIMES.has(mimeType)) {
     return {
+      contentHash,
       blocks: [
         {
           type: 'image',
@@ -220,6 +279,7 @@ async function loadFileForClaude(
     return {
       blocks: [],
       textPrefix: text ? `Document text:\n${text}\n\n` : '',
+      contentHash,
       fallbackReason: null,
     };
   }
@@ -231,11 +291,15 @@ async function loadFileForClaude(
       return {
         blocks: [],
         textPrefix: text ? `Document text:\n${text}\n\n` : '',
+        contentHash,
         fallbackReason: null,
       };
     } catch (err) {
       logError('[bulkImportAnalyzer] mammoth extraction failed', err as Error);
-      return { blocks: [], textPrefix: '', fallbackReason: 'extraction_failed' };
+      // Preserve contentHash even on extractor failure so the cache key
+      // stays content-aware: two different docx files that both fail
+      // extraction must not collide on the same `:no-file` slot.
+      return { blocks: [], textPrefix: '', contentHash, fallbackReason: 'extraction_failed' };
     }
   }
   if (XLSX_MIMES.has(mimeType)) {
@@ -254,15 +318,19 @@ async function loadFileForClaude(
       return {
         blocks: [],
         textPrefix: text ? `Spreadsheet contents:\n${text}\n\n` : '',
+        contentHash,
         fallbackReason: null,
       };
     } catch (err) {
       logError('[bulkImportAnalyzer] xlsx extraction failed', err as Error);
-      return { blocks: [], textPrefix: '', fallbackReason: 'extraction_failed' };
+      return { blocks: [], textPrefix: '', contentHash, fallbackReason: 'extraction_failed' };
     }
   }
 
-  return { blocks: [], textPrefix: '', fallbackReason: 'unsupported_mime' };
+  // Unsupported MIME with bytes available: still return contentHash so
+  // the analyzer cache distinguishes between two different unknown
+  // files that happen to share the same prompt.
+  return { blocks: [], textPrefix: '', contentHash, fallbackReason: 'unsupported_mime' };
 }
 
 /**
@@ -274,6 +342,7 @@ async function loadFileForClaude(
 async function callClaudeJson<T>(
   prompt: string,
   source?: AnalyzerFileSource,
+  step?: AnalyzerStep,
 ): Promise<{ data: T | null; fallbackReason: BulkImportFallbackReason | null }> {
   const c = getClient();
   if (!c) return { data: null, fallbackReason: null };
@@ -281,9 +350,29 @@ async function callClaudeJson<T>(
   try {
     const loaded = await loadFileForClaude(source);
     fallbackReason = loaded.fallbackReason;
+    const { blocks, textPrefix, contentHash } = loaded;
+    // Cache lookup: keyed on the full prompt (which already encodes
+    // step-specific inputs like sibling filenames or candidate ids) plus
+    // the file content hash. A hit returns instantly and skips the
+    // potentially-multi-MB upload to Anthropic entirely.
+    const fullPrompt = `${textPrefix}${prompt}`;
+    const cacheKey = step ? buildAnalyzerCacheKey(step, fullPrompt, contentHash) : null;
+    if (cacheKey) {
+      const hit = await getCachedSuggestion<{
+        data: T | null;
+        fallbackReason: BulkImportFallbackReason | null;
+      }>(cacheKey);
+      if (hit !== null) {
+        logInfo('[bulkImportAnalyzer] cache hit', {
+          metadata: { step, contentHash: contentHash ?? 'no-file' },
+        });
+        return hit;
+      }
+    }
+
     const userContent: AnthropicContentBlock[] = [
-      ...loaded.blocks,
-      { type: 'text', text: `${loaded.textPrefix}${prompt}` },
+      ...blocks,
+      { type: 'text', text: fullPrompt },
     ];
     const res = await c.messages.create({
       model: MODEL,
@@ -304,7 +393,18 @@ async function callClaudeJson<T>(
       .trim();
     const match = text.match(/\{[\s\S]*\}/);
     if (!match) return { data: null, fallbackReason };
-    return { data: JSON.parse(match[0]) as T, fallbackReason };
+    const parsed = JSON.parse(match[0]) as T;
+    const result = { data: parsed, fallbackReason };
+    if (cacheKey) {
+      // Awaited so the cache row is durable before we return — the
+      // write is a single upsert and `setCachedSuggestion` already
+      // swallows transport errors internally, so it cannot throw.
+      // Awaiting also avoids a pending promise outliving the request,
+      // which previously surfaced as "Cannot log after tests are done"
+      // warnings in unit suites without a database.
+      await setCachedSuggestion(cacheKey, result, ANALYZER_CACHE_TTL_MS);
+    }
+    return result;
   } catch (err) {
     logError('[bulkImportAnalyzer] anthropic call failed', err as Error);
     return { data: null, fallbackReason };
@@ -348,11 +448,15 @@ Size: ${input.fileSize ?? 'unknown'} bytes
 Return JSON with keys: isComplete (bool), isMultiDocument (bool), pageOrderHint (number[] or null),
 rotationDegrees (0|90|180|270), suggestedFilename (string), description (short string),
 confidence (0..1).`;
-    const { data: raw, fallbackReason } = await callClaudeJson<Partial<ScreeningResult>>(prompt, {
-      stagedPath: input.stagedPath,
-      buffer: input.buffer,
-      mimeType: input.mimeType,
-    });
+    const { data: raw, fallbackReason } = await callClaudeJson<Partial<ScreeningResult>>(
+      prompt,
+      {
+        stagedPath: input.stagedPath,
+        buffer: input.buffer,
+        mimeType: input.mimeType,
+      },
+      'screen',
+    );
     if (!raw) return fallbackScreening(input.originalName, fallbackReason);
     return {
       isComplete: !!raw.isComplete,
@@ -381,11 +485,15 @@ confidence (0..1).`;
 Other staged docs in this session: ${JSON.stringify(input.siblingNames)}.
 Decide whether to keep, merge, or split. Return JSON: { decision: 'keep'|'merge'|'split',
 reason: string, mergeWithItemId?: string, splitAtPage?: number, confidence: number }.`;
-    const { data: raw, fallbackReason } = await callClaudeJson<Partial<MergeOrSplitResult>>(prompt, {
-      stagedPath: input.stagedPath,
-      buffer: input.buffer,
-      mimeType: input.mimeType,
-    });
+    const { data: raw, fallbackReason } = await callClaudeJson<Partial<MergeOrSplitResult>>(
+      prompt,
+      {
+        stagedPath: input.stagedPath,
+        buffer: input.buffer,
+        mimeType: input.mimeType,
+      },
+      'merge-or-split',
+    );
     if (!raw) {
       return { decision: 'keep', reason: 'fallback', confidence: 0.2, fallbackReason };
     }
@@ -414,11 +522,15 @@ Filename: ${input.originalName}
 Description: ${input.description ?? ''}
 Return JSON: { branch: 'building_documents'|'residence_documents'|'demand'|'bill'|'maintenance'|'other',
 residenceHint?: string, reason: string, confidence: number }.`;
-    const { data: raw, fallbackReason } = await callClaudeJson<Partial<BranchResult>>(prompt, {
-      stagedPath: input.stagedPath,
-      buffer: input.buffer,
-      mimeType: input.mimeType,
-    });
+    const { data: raw, fallbackReason } = await callClaudeJson<Partial<BranchResult>>(
+      prompt,
+      {
+        stagedPath: input.stagedPath,
+        buffer: input.buffer,
+        mimeType: input.mimeType,
+      },
+      'branch',
+    );
     const allowed: BranchResult['branch'][] = [
       'building_documents',
       'residence_documents',
@@ -455,11 +567,15 @@ Filename: ${input.originalName}
 Description: ${input.description ?? ''}
 Return JSON: { name: string, description: string, tags: string[],
 effectiveDate?: 'YYYY-MM-DD', metadata: object, confidence: number }.`;
-    const { data: raw, fallbackReason } = await callClaudeJson<Partial<IdentificationResult>>(prompt, {
-      stagedPath: input.stagedPath,
-      buffer: input.buffer,
-      mimeType: input.mimeType,
-    });
+    const { data: raw, fallbackReason } = await callClaudeJson<Partial<IdentificationResult>>(
+      prompt,
+      {
+        stagedPath: input.stagedPath,
+        buffer: input.buffer,
+        mimeType: input.mimeType,
+      },
+      'identify',
+    );
     if (!raw) {
       return {
         name: input.originalName,
@@ -496,11 +612,15 @@ effectiveDate?: 'YYYY-MM-DD', metadata: object, confidence: number }.`;
       input.candidates,
     )}. Return JSON: { beforeItemId?: string, afterItemId?: string,
 relatedItemIds: string[], reason: string, confidence: number }.`;
-    const { data: raw, fallbackReason } = await callClaudeJson<Partial<LinkSuggestion>>(prompt, {
-      stagedPath: input.stagedPath,
-      buffer: input.buffer,
-      mimeType: input.mimeType,
-    });
+    const { data: raw, fallbackReason } = await callClaudeJson<Partial<LinkSuggestion>>(
+      prompt,
+      {
+        stagedPath: input.stagedPath,
+        buffer: input.buffer,
+        mimeType: input.mimeType,
+      },
+      'links',
+    );
     if (!raw) {
       return { relatedItemIds: [], reason: 'fallback', confidence: 0.2, fallbackReason };
     }
