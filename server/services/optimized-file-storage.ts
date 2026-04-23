@@ -11,6 +11,7 @@ import { existsSync } from 'fs';
 import crypto from 'crypto';
 import { LRUCache as LRU } from 'lru-cache';
 import type { UploadContext } from '@shared/config/upload-config';
+import { normalizeFilename } from '../utils/filenameNormalization';
 
 // Performance-optimized caching with invalidation support
 const filePathCache = new LRU<string, string>({ max: 1000, ttl: 1000 * 60 * 15 }); // 15 min cache
@@ -652,7 +653,11 @@ export class OptimizedFileStorageService {
   }
 
   private generateSecureFilename(originalName: string): string {
-    const sanitized = originalName.replace(/[^a-zA-Z0-9._-]/g, '_');
+    // Delegate to the shared canonical normalizer so this legacy disk-based
+    // storage produces the exact same safe filename rules (NFD diacritic
+    // stripping, length truncation, UUID fallback for empty input) as every
+    // other upload site. See server/utils/filenameNormalization.ts.
+    const sanitized = normalizeFilename(originalName);
     const ext = path.extname(sanitized);
     const name = path.basename(sanitized, ext).substring(0, 50);
     const secureId = crypto.randomUUID().substring(0, 8);
