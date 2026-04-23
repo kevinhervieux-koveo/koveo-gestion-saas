@@ -749,6 +749,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
 
   const roleParam = z
     .enum(["admin", "manager", "tenant"])
+    .optional()
     .describe(
       "The user role to act as. When the MCP server is reached via OAuth, the " +
         "role granted at consent time is the ceiling: you may pass a less-privileged " +
