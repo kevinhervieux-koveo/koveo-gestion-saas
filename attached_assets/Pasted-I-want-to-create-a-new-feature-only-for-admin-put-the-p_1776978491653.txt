@@ -1,0 +1,52 @@
+I want to create a new feature only for admin (put the page in the admin collapsable menu on the left).
+
+The feature is a bulk import of documents that takes 2 arguments :
+- where the folder is (on my local desktop for now)
+- for which building the import is for 
+
+Notes :
+- 	Use AI (use ANTHROPIC_API_KEY)
+-	Show level of confidences from the ai throughout the process
+-	Documents can be all main type of document (pdf,word,excel,etc.)
+-	Saved advancement of the user so he can leave and pickup things after
+-	Create mcp tooling
+-	Create at least one table (your choice) to follow the source of documents/ source name of the document/ final name of the document and where it goes. (this way even if we loose some document for any reason we can reuse the mapping instead of reloading everything)
+-	Add a clear all bulk operation button (with confirmation) the clean the table
+-	Create the contextual documentation available in the “?” button at the bottom left
+
+Step 1: screening
+- user can select all or some of the documents 
+- if there’s folder you can unzip and open them 
+- import/stage documents (if you think this is pertinent)
+- one document at the time 
+- read it to make sure it’s one document (sometime user can scan multiple documents in one go) and make sure it’s complete (mark complete and incomplete documents)
+- pivot document to be readable
+- name the document according to the tittle
+- give a short description of the document
+- sort the pages of the document if they are not in order
+- create a database to note all documents analyzed from the client so we don’t reanalyze a document 
+
+Step 2: Sorting
+- once all documents are read show all the documents not complete 
+- show the suggestion of merge or breaking a document in multiple documents in a viewer
+	- merge show both documents in a viewer with navigation (like the linked document)
+	- break show the document before and after
+	- show break before then analyzed document for merge (will help for mixed up documents)
+- let the user reject/break/merge documents (can edit all documents)
+
+Step 3: Branch
+-	Branch all documents to send them to the right part of the app (building/residence/demands/bills/etc.)
+-	Suggest a branch for all documents to the user
+Step 4: Identification
+-	Identify all documents 
+o	Name
+o	Description
+o	Tag(s)
+o	Dates
+o	Etc.
+-	User must approve all documents and all values
+Step 5 : link
+-	One document at the time shows the suggested links before and after if any
+-	User must approve all links
+
+Let me know if I missed anything or you want more details
