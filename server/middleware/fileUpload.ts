@@ -32,6 +32,9 @@ const fileFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilt
 const upload = multer({
   storage,
   fileFilter,
+  // Force utf8 multipart param parsing so French/diacritic filenames survive
+  // (multer 2.x defaults to latin1, which mangles "Procès-verbal été 2024.pdf").
+  defParamCharset: 'utf8',
   limits: {
     fileSize: 25 * 1024 * 1024, // 25MB limit (matching SharedUploader component)
     files: 1 // Only allow single file upload

@@ -38,6 +38,9 @@ let apiMetrics = {
 // Enhanced multer configuration with optimized storage
 const optimizedUpload = multer({
   dest: '/tmp/uploads_optimized/',
+  // Force utf8 multipart param parsing so French/diacritic filenames survive
+  // (multer 2.x defaults to latin1, which mangles "Procès-verbal été 2024.pdf").
+  defParamCharset: 'utf8',
   limits: {
     fileSize: 50 * 1024 * 1024, // 50MB
     files: 1,

@@ -85,6 +85,9 @@ const aiAnalysisRateLimit = rateLimit({
 // Configure multer for memory storage (temporary processing)
 const upload = multer({
   storage: multer.memoryStorage(),
+  // Force utf8 multipart param parsing so French/diacritic filenames survive
+  // (multer 2.x defaults to latin1, which mangles "Procès-verbal été 2024.pdf").
+  defParamCharset: 'utf8',
   limits: {
     fileSize: 50 * 1024 * 1024, // 50MB limit
   },

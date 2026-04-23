@@ -64,6 +64,9 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage: storage,
+  // Force utf8 multipart param parsing so French/diacritic filenames survive
+  // (multer 2.x defaults to latin1, which mangles "Procès-verbal été 2024.pdf").
+  defParamCharset: 'utf8',
   limits: {
     fileSize: 10 * 1024 * 1024, // 10MB limit
     files: 5 // Maximum 5 files

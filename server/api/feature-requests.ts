@@ -19,8 +19,11 @@ import { asyncHandler } from '../utils/async-handler';
 const objectStorageService = new ObjectStorageService();
 
 // Configure multer for memory storage (files go to object storage)
-const upload = multer({ 
+const upload = multer({
   storage: multer.memoryStorage(),
+  // Force utf8 multipart param parsing so French/diacritic filenames survive
+  // (multer 2.x defaults to latin1, which mangles "Procès-verbal été 2024.pdf").
+  defParamCharset: 'utf8',
   limits: {
     fileSize: 10 * 1024 * 1024, // 10MB limit
   }
@@ -176,7 +179,7 @@ export function registerFeatureRequestRoutes(app: Express): void {
       if (req.file) {
         try {
           // Fix filename encoding issues and sanitize
-          const originalname = Buffer.from(req.file.originalname, 'latin1').toString('utf8');
+          const originalname = req.file.originalname; // multer defParamCharset: 'utf8' already decodes to utf8
           const sanitizedFilename = normalizeFilename(originalname);
           
           // Generate unique path: features/{featureId}/{uuid}_{sanitized_filename}
@@ -355,7 +358,7 @@ export function registerFeatureRequestRoutes(app: Express): void {
       if (req.file) {
         try {
           // Fix filename encoding issues and sanitize
-          const originalname = Buffer.from(req.file.originalname, 'latin1').toString('utf8');
+          const originalname = req.file.originalname; // multer defParamCharset: 'utf8' already decodes to utf8
           const sanitizedFilename = normalizeFilename(originalname);
           
           // Generate unique path: features/{featureId}/{uuid}_{sanitized_filename}
