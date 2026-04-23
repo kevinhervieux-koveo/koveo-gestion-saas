@@ -120,6 +120,8 @@ interface BillFilters {
   status: string;
   vendor: string;
   search: string;
+  issueDateFrom: string;
+  issueDateTo: string;
 }
 
 /**
@@ -181,6 +183,8 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
       status: '',
       vendor: '',
       search: '',
+      issueDateFrom: '',
+      issueDateTo: '',
     },
   });
   const filters = billsTableState.filters;
@@ -295,6 +299,14 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
         params.set('search', filters.search.trim());
       }
 
+      if (filters.issueDateFrom) {
+        params.set('issueDateFrom', filters.issueDateFrom);
+      }
+
+      if (filters.issueDateTo) {
+        params.set('issueDateTo', filters.issueDateTo);
+      }
+
       const url = `/api/bills${params.toString() ? '?' + params.toString() : ''}`;
       // Fetching bills with applied filters
       
@@ -366,6 +378,8 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
       status: '',
       vendor: '',
       search: '',
+      issueDateFrom: '',
+      issueDateTo: '',
     });
   };
 
@@ -377,7 +391,9 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
       filters.billType !== '' ||
       filters.paymentStructure !== '' ||
       filters.status !== '' ||
-      filters.vendor !== ''
+      filters.vendor !== '' ||
+      filters.issueDateFrom !== '' ||
+      filters.issueDateTo !== ''
     );
   };
 
@@ -728,6 +744,36 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
                 onChange: (value) => handleFilterChange('vendor', value as string),
               },
               {
+                id: 'issueDateFrom',
+                label: t('bills.issueDateFrom') || 'Issue date from',
+                type: 'custom',
+                customComponent: (
+                  <Input
+                    type='date'
+                    value={filters.issueDateFrom}
+                    onChange={(e) => handleFilterChange('issueDateFrom', e.target.value)}
+                    data-testid='input-issue-date-from'
+                  />
+                ),
+                value: filters.issueDateFrom,
+                onChange: (value) => handleFilterChange('issueDateFrom', value as string),
+              },
+              {
+                id: 'issueDateTo',
+                label: t('bills.issueDateTo') || 'Issue date to',
+                type: 'custom',
+                customComponent: (
+                  <Input
+                    type='date'
+                    value={filters.issueDateTo}
+                    onChange={(e) => handleFilterChange('issueDateTo', e.target.value)}
+                    data-testid='input-issue-date-to'
+                  />
+                ),
+                value: filters.issueDateTo,
+                onChange: (value) => handleFilterChange('issueDateTo', value as string),
+              },
+              {
                 id: 'status',
                 label: t('status'),
                 type: 'custom',
@@ -793,6 +839,16 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
                 id: 'search',
                 label: 'Search',
                 displayValue: `"${filters.search}"`
+              }] : []),
+              ...(filters.issueDateFrom ? [{
+                id: 'issueDateFrom',
+                label: t('bills.issueDateFrom') || 'Issue date from',
+                displayValue: filters.issueDateFrom
+              }] : []),
+              ...(filters.issueDateTo ? [{
+                id: 'issueDateTo',
+                label: t('bills.issueDateTo') || 'Issue date to',
+                displayValue: filters.issueDateTo
               }] : []),
             ]}
             onReset={clearAllFilters}
