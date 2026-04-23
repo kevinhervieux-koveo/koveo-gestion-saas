@@ -44,6 +44,8 @@ import { useLanguage } from '@/hooks/use-language';
 import { useCreateUpdateMutation } from '@/lib/common-hooks';
 import { SharedUploader } from './SharedUploader';
 import type { UploadContext } from '@shared/config/upload-config';
+import { TagPicker } from '@/components/document-tags/TagPicker';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 
 type DocumentCreateData = {
   name: string;
@@ -76,6 +78,7 @@ export function DocumentCreateForm({
   // State for file upload
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [textContent, setTextContent] = useState<string | null>(null);
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
 
   // Document categories with translations
   const DOCUMENT_CATEGORIES = [
@@ -188,11 +191,25 @@ export function DocumentCreateForm({
     errorTitle: t('error'),
     errorMessage: (error: any) => error?.message || t('failedToCreateDocument'),
     queryKeysToInvalidate: [['/api/documents']],
-    onSuccessCallback: (data) => {
+    onSuccessCallback: async (data) => {
+      // Persist tag assignments after document creation
+      if (selectedTagIds.length > 0 && data?.id) {
+        try {
+          await Promise.all(
+            selectedTagIds.map((tagId) =>
+              apiRequest('POST', `/api/documents/${data.id}/tags`, { tagId })
+            )
+          );
+          queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
+        } catch (e) {
+          // Non-fatal: document was created
+        }
+      }
       // Reset form and close dialog
       form.reset();
       setSelectedFile(null);
       setTextContent(null);
+      setSelectedTagIds([]);
       onClose();
       onSuccess?.(data.id);
     },
@@ -338,6 +355,16 @@ export function DocumentCreateForm({
                   </FormItem>
                 )}
               />
+              {/* Document Tags */}
+              <div className="space-y-2">
+                <Label>Étiquettes</Label>
+                <TagPicker
+                  value={selectedTagIds}
+                  onChange={setSelectedTagIds}
+                  scope={entityType === 'building' ? 'building' : 'residence'}
+                />
+              </div>
+
               {/* Manager-only visibility toggle */}
               <FormField
                 control={form.control}

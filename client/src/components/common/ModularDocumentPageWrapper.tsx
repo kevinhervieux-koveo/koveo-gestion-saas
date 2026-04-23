@@ -36,6 +36,7 @@ import {
   DocumentEditForm
 } from '@/components/document-management';
 import { DocumentCreateForm } from '@/components/document-management/DocumentCreateForm';
+import { TagPicker, TagChips } from '@/components/document-tags/TagPicker';
 import { DocumentInlineViewer } from '@/components/common/DocumentInlineViewer';
 import { FileText, Download } from 'lucide-react';
 import type { DocumentWithMetadata, DocumentPermissions } from '@shared/schemas/documents';
@@ -393,6 +394,7 @@ export default function ModularDocumentPageWrapper({
   // State for bulk delete functionality
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedDocuments, setSelectedDocuments] = useState<Set<string>>(new Set());
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   
   // State for collapsible categories (start with all categories expanded)
@@ -528,7 +530,12 @@ export default function ModularDocumentPageWrapper({
 
     const matchesManagerOnly = !showOnlyManagerOnly || doc.isManagerOnly === true;
 
-    return matchesSearch && matchesCategory && matchesYear && matchesMonth && matchesManagerOnly;
+    const matchesTags =
+      selectedTagIds.length === 0 ||
+      (Array.isArray((doc as any).tags) &&
+        selectedTagIds.every((tid) => (doc as any).tags.some((t: any) => t.id === tid)));
+
+    return matchesSearch && matchesCategory && matchesYear && matchesMonth && matchesManagerOnly && matchesTags;
   }) : [];
 
   // Extract available years from documents (sorted descending)
@@ -826,7 +833,7 @@ export default function ModularDocumentPageWrapper({
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
                 {/* Search */}
                 <div className="space-y-2">
                   <label className="text-sm font-medium">{t('search')}</label>
@@ -911,6 +918,16 @@ export default function ModularDocumentPageWrapper({
                         ))}
                     </SelectContent>
                   </Select>
+                </div>
+
+                {/* Tag Filter */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Étiquettes</label>
+                  <TagPicker
+                    value={selectedTagIds}
+                    onChange={setSelectedTagIds}
+                    placeholder="Filtrer par étiquettes"
+                  />
                 </div>
 
                 {/* View Mode & Actions */}
@@ -1101,21 +1118,25 @@ export default function ModularDocumentPageWrapper({
                                 : 'grid-cols-1'
                             }`}>
                               {categoryDocuments.map((document) => (
-                                <DocumentCard
-                                  key={document.id}
-                                  documentId={document.id}
-                                  title={document.name}
-                                  documentType={document.category || document.documentType}
-                                  createdAt={document.createdAt}
-                                  effectiveDate={document.effectiveDate}
-                                  isVisibleToTenants={document.isVisibleToTenants}
-                                  isManagerOnly={document.isManagerOnly}
-                                  onViewClick={selectionMode ? undefined : handleDocumentView}
-                                  compact={viewMode === 'list'}
-                                  selectable={selectionMode}
-                                  selected={selectedDocuments.has(document.id)}
-                                  onSelectionChange={handleDocumentSelectionChange}
-                                />
+                                <div key={document.id} className="space-y-1">
+                                  <DocumentCard
+                                    documentId={document.id}
+                                    title={document.name}
+                                    documentType={document.category || document.documentType}
+                                    createdAt={document.createdAt}
+                                    effectiveDate={document.effectiveDate}
+                                    isVisibleToTenants={document.isVisibleToTenants}
+                                    isManagerOnly={document.isManagerOnly}
+                                    onViewClick={selectionMode ? undefined : handleDocumentView}
+                                    compact={viewMode === 'list'}
+                                    selectable={selectionMode}
+                                    selected={selectedDocuments.has(document.id)}
+                                    onSelectionChange={handleDocumentSelectionChange}
+                                  />
+                                  {Array.isArray((document as any).tags) && (document as any).tags.length > 0 && (
+                                    <TagChips tags={(document as any).tags} className="px-1" />
+                                  )}
+                                </div>
                               ))}
                             </div>
                           </CardContent>

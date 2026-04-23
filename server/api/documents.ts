@@ -1637,6 +1637,18 @@ export function registerDocumentRoutes(app: Express): void {
         (a, b) => new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime()
       );
 
+      // Attach tags inline for every document
+      try {
+        const { getTagsForDocuments } = await import('./document-tags');
+        const ids = allDocumentRecords.map((d: any) => d.id).filter(Boolean);
+        const tagsByDoc = await getTagsForDocuments(ids);
+        for (const d of allDocumentRecords as any[]) {
+          d.tags = tagsByDoc.get(d.id) || [];
+        }
+      } catch (e) {
+        // Non-fatal: don't block listing if tag table is missing
+      }
+
       const response = {
         documents: allDocumentRecords,
         total: allDocumentRecords.length,
@@ -1697,6 +1709,14 @@ export function registerDocumentRoutes(app: Express): void {
       } else if (document.residenceId) {
         (document as any).entityType = 'residence';
         (document as any).entityId = document.residenceId;
+      }
+
+      try {
+        const { getTagsForDocuments } = await import('./document-tags');
+        const tagsByDoc = await getTagsForDocuments([document.id]);
+        (document as any).tags = tagsByDoc.get(document.id) || [];
+      } catch (e) {
+        (document as any).tags = [];
       }
 
       res.json(document);

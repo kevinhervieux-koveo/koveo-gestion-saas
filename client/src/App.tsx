@@ -65,6 +65,12 @@ const ManagerUserManagement = createOptimizedLoader(
   { enableMemoryCleanup: true }
 );
 
+const ManagerDocumentTags = createOptimizedLoader(
+  () => import('@/pages/manager/document-tags'),
+  'manager-document-tags',
+  { enableMemoryCleanup: true }
+);
+
 // Owner routes removed - consolidating all documentation under admin section
 
 // Optimized lazy-loaded Manager pages
@@ -370,6 +376,7 @@ function Router() {
             <Route path='/manager/invoices'>{() => <ProtectedRoute requiredRole="manager"><ManagerInvoices /></ProtectedRoute>}</Route>
             <Route path='/manager/demands'>{() => <ProtectedRoute requiredRole="manager"><ManagerDemands /></ProtectedRoute>}</Route>
             <Route path='/manager/user-management'>{() => <ProtectedRoute requiredRole="manager"><ManagerUserManagement /></ProtectedRoute>}</Route>
+            <Route path='/manager/document-tags'>{() => <ProtectedRoute requiredRole="manager"><ManagerDocumentTags /></ProtectedRoute>}</Route>
             <Route path='/manager/common-spaces-stats'>{() => <ProtectedRoute requiredRole="manager"><ManagerCommonSpacesStats /></ProtectedRoute>}</Route>
             <Route path='/manager/maintenance/inventory'>{() => <ProtectedRoute requiredRole="manager"><ManagerMaintenanceInventory /></ProtectedRoute>}</Route>
             <Route path='/manager/maintenance/projects'>{() => <ProtectedRoute requiredRole="manager"><ManagerMaintenanceProjects /></ProtectedRoute>}</Route>

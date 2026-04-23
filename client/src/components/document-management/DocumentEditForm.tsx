@@ -23,6 +23,8 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import type { Document } from '@shared/schema';
+import { TagPicker } from '@/components/document-tags/TagPicker';
+import { Label } from '@/components/ui/label';
 
 type DocumentEditFormData = {
   name: string;
@@ -56,6 +58,8 @@ export function DocumentEditForm({
   const { t } = useLanguage();
   const queryClient = useQueryClient();
   const [isDeleting, setIsDeleting] = useState(false);
+  const initialTagIds: string[] = ((document as any).tags || []).map((t: any) => t.id);
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>(initialTagIds);
 
   // Document categories with translations
   const DOCUMENT_CATEGORIES = [
@@ -151,7 +155,23 @@ export function DocumentEditForm({
     }
   };
 
-  const onSubmit = (data: DocumentEditFormData) => {
+  const syncTags = async () => {
+    const before = new Set(initialTagIds);
+    const after = new Set(selectedTagIds);
+    const toAdd = selectedTagIds.filter((id) => !before.has(id));
+    const toRemove = initialTagIds.filter((id) => !after.has(id));
+    try {
+      await Promise.all([
+        ...toAdd.map((tagId) => apiRequest('POST', `/api/documents/${document.id}/tags`, { tagId })),
+        ...toRemove.map((tagId) => apiRequest('DELETE', `/api/documents/${document.id}/tags/${tagId}`)),
+      ]);
+      queryClient.invalidateQueries({ queryKey: ['/api/documents'] });
+    } catch (e) {
+      // Non-fatal
+    }
+  };
+
+  const onSubmit = async (data: DocumentEditFormData) => {
     // Map form fields to server contract
     const formData = {
       name: data.name,
@@ -162,8 +182,8 @@ export function DocumentEditForm({
       isManagerOnly: data.isManagerOnly,
       buildingId,
       residenceId,
-      // Removed tags field as it's not supported by backend
     };
+    await syncTags();
     formControls.submitMutation.mutate(formData);
   };
 
@@ -248,7 +268,14 @@ export function DocumentEditForm({
               )}
             />
 
-            {/* Removed tags field as it's not supported by backend */}
+            <div className="space-y-2">
+              <Label>Étiquettes</Label>
+              <TagPicker
+                value={selectedTagIds}
+                onChange={setSelectedTagIds}
+                scope={buildingId ? 'building' : residenceId ? 'residence' : undefined}
+              />
+            </div>
 
             <FormField
               control={formControls.form.control}

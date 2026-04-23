@@ -1253,6 +1253,7 @@ export interface Translations {
   bills: string;
   demands: string;
   navUserManagement: string;
+  documentTags: string;
   manageCommonSpaces: string;
   documentation: string;
   pillars: string;
@@ -3545,6 +3546,7 @@ export const translations: Record<Language, Translations> = {
     bills: 'Bills',
     demands: 'Demands',
     navUserManagement: 'User Management',
+    documentTags: 'Document Tags',
     manageCommonSpaces: 'Manage Common Spaces',
     documentation: 'Documentation',
     pillars: 'Pillars',
@@ -5621,6 +5623,7 @@ export const translations: Record<Language, Translations> = {
     bills: 'Factures',
     demands: 'Demandes',
     navUserManagement: 'Gestion des utilisateurs',
+    documentTags: 'Étiquettes de documents',
     manageCommonSpaces: 'Gérer les espaces communs',
     documentation: 'Documentation',
     pillars: 'Piliers',

@@ -95,6 +95,14 @@ The platform exposes an MCP server at `/mcp` for LLM integration (e.g., Claude D
   - The envelope intentionally excludes the raw driver `message`, `detail`, and stack traces so PII (emails, tokens, file paths, secrets) and schema fragments cannot leak into the LLM transcript. Only the friendly per-action sentence, the stable envelope `code`, and the SQLSTATE are exposed.
 - **In-process retry (`server/mcp/server.ts` → `withRetryableDbCall`)**: Every MCP write tool wraps its database call(s) with this helper so transient blips (the same SQLSTATEs flagged `retryable: true` above — `40001`, `40P01`, `57014`, `08006/08001/08003/08004`) are absorbed before the error reaches the LLM. Bounded retries (default 3 attempts) with exponential backoff (`baseDelayMs * 2^(attempt-1)`) plus jitter in `[0, baseDelayMs)`. Non-retryable errors short-circuit on the first failure so `buildWriteErrorResponse` keeps its deterministic envelope behaviour for permanent failures. The retryable SQLSTATE set is exported as `RETRYABLE_PG_CODES` and is verified in tests to match the catalog so the two cannot drift.
 
+## Document Tags
+- `document_tags` and `document_tag_assignments` tables (`shared/schemas/documents.ts`).
+- System "Koveo" tags (organizationId NULL, isSystem=true) auto-seeded by `seedKoveoDocumentTags` on startup (idempotent on isSystem+name) — covers CCQ / Loi 16 obligations in French.
+- API: CRUD at `/api/document-tags` plus assign/unassign on `/api/documents/:id/tags` (server/api/document-tags.ts).
+- GET /api/documents and /api/documents/:id include a `tags` array per document.
+- UI: Manager page at `/manager/document-tags`, multi-select TagPicker on document create/edit, tag chips and tag filter on the unified document wrapper.
+- MCP tools: list/create/update/delete document tags + assign/unassign on documents.
+
 ## External Dependencies
 - **@neondatabase/serverless**: Serverless PostgreSQL connector.
 - **drizzle-orm**: Type-safe ORM.

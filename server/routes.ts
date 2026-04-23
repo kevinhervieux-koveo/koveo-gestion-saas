@@ -16,6 +16,8 @@ import { registerOrganizationRoutes } from './api/organizations';
 import { registerUserRoutes } from './api/users';
 import { registerBuildingRoutes } from './api/buildings';
 import { registerDocumentRoutes } from './api/documents';
+import { registerDocumentTagRoutes } from './api/document-tags';
+import { seedKoveoDocumentTags } from './api/document-tags-seed';
 import { registerBugRoutes } from './api/bugs';
 import { registerBillRoutes } from './api/bills';
 import budgetRouter from './api/budgets';
@@ -121,6 +123,9 @@ export async function registerRoutes(app: Express) {
   registerUserRoutes(app);
   registerBuildingRoutes(app);
   registerDocumentRoutes(app);
+  registerDocumentTagRoutes(app);
+  // Idempotent seeding of Koveo system tags (safe to run on every startup)
+  void seedKoveoDocumentTags();
   registerBugRoutes(app);
 
   registerBillRoutes(app);

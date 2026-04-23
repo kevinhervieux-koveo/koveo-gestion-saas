@@ -1,7 +1,8 @@
 import { sql } from 'drizzle-orm';
-import { pgTable, text, timestamp, boolean, varchar, uuid, integer, index } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, boolean, varchar, uuid, integer, index, pgEnum, uniqueIndex } from 'drizzle-orm/pg-core';
 import { z } from 'zod';
 import { buildings, residences } from './property';
+import { organizations } from './core';
 
 
 // Unified documents table
@@ -171,3 +172,80 @@ export const ATTACHABLE_ENTITY_TYPES = {
   BUG_REPORT: 'bug_report', 
   MAINTENANCE_REQUEST: 'maintenance_request'
 } as const;
+
+/**
+ * Document tag scope: where the tag is most relevant.
+ *  - building: applies to building-level documents
+ *  - residence: applies to residence-level documents
+ *  - any: applies anywhere
+ */
+export const documentTagScopeEnum = pgEnum('document_tag_scope', ['building', 'residence', 'any']);
+
+/**
+ * Document tag importance.
+ */
+export const documentTagImportanceEnum = pgEnum('document_tag_importance', [
+  'obligatoire',
+  'nice_to_have',
+  'extra',
+]);
+
+/**
+ * Document tags table. Tags classify documents by real-world role
+ * (e.g. "Procès-verbaux"). System ("Koveo") tags have organizationId = null
+ * and isSystem = true; custom tags belong to a specific organization.
+ */
+export const documentTags = pgTable('document_tags', {
+  id: text('id').primaryKey().default(sql`gen_random_uuid()`),
+  organizationId: varchar('organization_id').references(() => organizations.id, {
+    onDelete: 'cascade',
+  }),
+  name: text('name').notNull(),
+  description: text('description'),
+  scope: documentTagScopeEnum('scope').notNull().default('any'),
+  importance: documentTagImportanceEnum('importance').notNull().default('nice_to_have'),
+  suggestedProfessionals: text('suggested_professionals').array().notNull().default(sql`ARRAY[]::text[]`),
+  isSystem: boolean('is_system').notNull().default(false),
+  source: text('source'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  organizationIdIdx: index('document_tags_organization_id_idx').on(table.organizationId),
+  scopeIdx: index('document_tags_scope_idx').on(table.scope),
+  isSystemIdx: index('document_tags_is_system_idx').on(table.isSystem),
+}));
+
+/**
+ * Join table assigning tags to documents.
+ */
+export const documentTagAssignments = pgTable('document_tag_assignments', {
+  id: text('id').primaryKey().default(sql`gen_random_uuid()`),
+  documentId: text('document_id').notNull().references(() => documents.id, { onDelete: 'cascade' }),
+  tagId: text('tag_id').notNull().references(() => documentTags.id, { onDelete: 'cascade' }),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+}, (table) => ({
+  documentIdIdx: index('document_tag_assignments_document_id_idx').on(table.documentId),
+  tagIdIdx: index('document_tag_assignments_tag_id_idx').on(table.tagId),
+  documentTagUniq: uniqueIndex('document_tag_assignments_document_tag_uniq').on(table.documentId, table.tagId),
+}));
+
+export const insertDocumentTagSchema = z.object({
+  organizationId: z.string().optional().nullable(),
+  name: z.string().min(1, 'Tag name is required').max(150),
+  description: z.string().optional().nullable(),
+  scope: z.enum(['building', 'residence', 'any']).default('any'),
+  importance: z.enum(['obligatoire', 'nice_to_have', 'extra']).default('nice_to_have'),
+  suggestedProfessionals: z.array(z.string()).default([]),
+  isSystem: z.boolean().default(false),
+  source: z.string().optional().nullable(),
+});
+
+export const insertDocumentTagAssignmentSchema = z.object({
+  documentId: z.string().min(1),
+  tagId: z.string().min(1),
+});
+
+export type InsertDocumentTag = z.infer<typeof insertDocumentTagSchema>;
+export type DocumentTag = typeof documentTags.$inferSelect;
+export type InsertDocumentTagAssignment = z.infer<typeof insertDocumentTagAssignmentSchema>;
+export type DocumentTagAssignment = typeof documentTagAssignments.$inferSelect;
