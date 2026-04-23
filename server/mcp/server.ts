@@ -2393,6 +2393,385 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     }
   );
 
+  // Confirms the TARGET user (whose restriction/time-limit is being
+  // read or written) belongs to a building or organization the calling
+  // MCP user can already touch. Used by tools that don't have a
+  // commonSpaceId anchor (global time limits, cross-user listings) so a
+  // manager in org A cannot enumerate or mutate quotas for a user in
+  // org B simply by knowing their userId. Returns true when the target
+  // shares scope with the caller; false otherwise.
+  async function targetUserInScope(role: McpRole, targetUserId: string): Promise<boolean> {
+    const accessible = await getMcpAccessibleBuildingIds(role);
+    if (!accessible || accessible.length === 0) return false;
+    const [resRow] = await db
+      .select({ id: schema.userResidences.id })
+      .from(schema.userResidences)
+      .innerJoin(
+        schema.residences,
+        eq(schema.residences.id, schema.userResidences.residenceId)
+      )
+      .where(
+        and(
+          eq(schema.userResidences.userId, targetUserId),
+          eq(schema.userResidences.isActive, true),
+          inArray(schema.residences.buildingId, accessible)
+        )
+      )
+      .limit(1);
+    if (resRow) return true;
+    const accessibleOrgRows = await db
+      .selectDistinct({ organizationId: schema.buildings.organizationId })
+      .from(schema.buildings)
+      .where(inArray(schema.buildings.id, accessible));
+    const accessibleOrgIds = accessibleOrgRows.map((r) => r.organizationId);
+    if (accessibleOrgIds.length === 0) return false;
+    const [orgRow] = await db
+      .select({ id: schema.userOrganizations.id })
+      .from(schema.userOrganizations)
+      .where(
+        and(
+          eq(schema.userOrganizations.userId, targetUserId),
+          eq(schema.userOrganizations.isActive, true),
+          inArray(schema.userOrganizations.organizationId, accessibleOrgIds)
+        )
+      )
+      .limit(1);
+    return Boolean(orgRow);
+  }
+
+  // ============================================================
+  // Common-space user restrictions & time limits (Task #289).
+  //
+  // Mirrors the manager-only REST endpoints in
+  // `server/api/common-spaces.ts` (~860-1080 for restrictions and
+  // ~1390-1600 for time limits). All tools refuse the `tenant` role and
+  // re-use `authorizeSpaceAccess` so they are clamped to the buildings
+  // the MCP-acting user can already touch (which is itself clamped to
+  // the MCP-scoped org allowlist).
+  // ============================================================
+
+  server.tool(
+    "list_user_booking_restrictions",
+    "List per-user booking restrictions (block/unblock entries) for a common space. Admin/manager only. Returns one row per user that has a restriction record on the space, including the target user's name/email and whether they are currently blocked.",
+    { role: roleParam, spaceId: z.string().describe("Common space ID") },
+    async ({ role, spaceId }) => {
+      if (role === "tenant") {
+        return { content: [{ type: "text" as const, text: "Access denied: tenants cannot view booking restrictions" }] };
+      }
+      const auth = await authorizeSpaceAccess(role, spaceId);
+      if (!auth.ok) return auth.response;
+      const rows = await db
+        .select({
+          id: schema.userBookingRestrictions.id,
+          userId: schema.userBookingRestrictions.userId,
+          commonSpaceId: schema.userBookingRestrictions.commonSpaceId,
+          isBlocked: schema.userBookingRestrictions.isBlocked,
+          reason: schema.userBookingRestrictions.reason,
+          createdAt: schema.userBookingRestrictions.createdAt,
+          updatedAt: schema.userBookingRestrictions.updatedAt,
+          firstName: schema.users.firstName,
+          lastName: schema.users.lastName,
+          email: schema.users.email,
+        })
+        .from(schema.userBookingRestrictions)
+        .innerJoin(schema.users, eq(schema.users.id, schema.userBookingRestrictions.userId))
+        .where(eq(schema.userBookingRestrictions.commonSpaceId, spaceId))
+        .orderBy(schema.users.lastName, schema.users.firstName);
+      return { content: [{ type: "text" as const, text: JSON.stringify(rows, null, 2) }] };
+    }
+  );
+
+  server.tool(
+    "set_user_booking_restriction",
+    "Block or unblock a specific user from booking a common space (admin/manager only). Upserts a row in userBookingRestrictions: if one already exists for the (user, space) pair it is updated, otherwise it is created. Pass isBlocked=false to record an explicit allow override without deleting the row; use remove_user_booking_restriction to delete it entirely.",
+    {
+      role: roleParam,
+      spaceId: z.string().describe("Common space ID"),
+      userId: z.string().describe("Target user ID to block or unblock"),
+      isBlocked: z.boolean().describe("true to block the user from booking this space, false to record an explicit unblock"),
+      reason: z.string().optional().describe("Optional reason shown to managers"),
+    },
+    async ({ role, spaceId, userId, isBlocked, reason }) => {
+      if (role === "tenant") {
+        return { content: [{ type: "text" as const, text: "Access denied: tenants cannot manage booking restrictions" }] };
+      }
+      const auth = await authorizeSpaceAccess(role, spaceId);
+      if (!auth.ok) return auth.response;
+      const [target] = await db
+        .select({ id: schema.users.id })
+        .from(schema.users)
+        .where(eq(schema.users.id, userId))
+        .limit(1);
+      if (!target) {
+        return { content: [{ type: "text" as const, text: "Target user not found" }] };
+      }
+      try {
+        const [existing] = await db
+          .select({ id: schema.userBookingRestrictions.id })
+          .from(schema.userBookingRestrictions)
+          .where(
+            and(
+              eq(schema.userBookingRestrictions.userId, userId),
+              eq(schema.userBookingRestrictions.commonSpaceId, spaceId)
+            )
+          )
+          .limit(1);
+        let row;
+        if (existing) {
+          [row] = await withRetryableDbCall(() => db
+            .update(schema.userBookingRestrictions)
+            .set({ isBlocked, reason: reason ?? null, updatedAt: new Date() })
+            .where(eq(schema.userBookingRestrictions.id, existing.id))
+            .returning());
+        } else {
+          [row] = await withRetryableDbCall(() => db
+            .insert(schema.userBookingRestrictions)
+            .values({ userId, commonSpaceId: spaceId, isBlocked, reason: reason ?? null })
+            .returning());
+        }
+        return { content: [{ type: "text" as const, text: JSON.stringify(row, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:set_user_booking_restriction]", e);
+        return buildWriteErrorResponse(e, 'booking restriction', 'create');
+      }
+    }
+  );
+
+  server.tool(
+    "remove_user_booking_restriction",
+    "Delete the booking-restriction row for a (user, space) pair (admin/manager only). After deletion the user falls back to the default access rules for the space. No-op response is returned if no row exists.",
+    {
+      role: roleParam,
+      spaceId: z.string().describe("Common space ID"),
+      userId: z.string().describe("Target user ID whose restriction row should be deleted"),
+    },
+    async ({ role, spaceId, userId }) => {
+      if (role === "tenant") {
+        return { content: [{ type: "text" as const, text: "Access denied: tenants cannot manage booking restrictions" }] };
+      }
+      const auth = await authorizeSpaceAccess(role, spaceId);
+      if (!auth.ok) return auth.response;
+      try {
+        const deleted = await withRetryableDbCall(() => db
+          .delete(schema.userBookingRestrictions)
+          .where(
+            and(
+              eq(schema.userBookingRestrictions.userId, userId),
+              eq(schema.userBookingRestrictions.commonSpaceId, spaceId)
+            )
+          )
+          .returning({ id: schema.userBookingRestrictions.id }));
+        if (deleted.length === 0) {
+          return { content: [{ type: "text" as const, text: JSON.stringify({ deleted: 0, message: "No restriction row found for this user/space pair" }, null, 2) }] };
+        }
+        return { content: [{ type: "text" as const, text: JSON.stringify({ deleted: deleted.length, ids: deleted.map((d) => d.id), message: "Booking restriction removed" }, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:remove_user_booking_restriction]", e);
+        return buildWriteErrorResponse(e, 'booking restriction', 'delete');
+      }
+    }
+  );
+
+  server.tool(
+    "list_user_time_limits",
+    "List per-user booking time-limit rules (admin/manager only). Filter by userId and/or spaceId. A row with a NULL commonSpaceId is a global limit that applies across every space the user can book. Includes the target space name (when scoped) and the user's name/email.",
+    {
+      role: roleParam,
+      userId: z.string().optional().describe("Optional: only return limits for this user"),
+      spaceId: z.string().optional().describe("Optional: only return limits scoped to this common space (excludes global NULL-space limits)"),
+    },
+    async ({ role, userId, spaceId }) => {
+      if (role === "tenant") {
+        return { content: [{ type: "text" as const, text: "Access denied: tenants cannot view time limits" }] };
+      }
+      if (!userId && !spaceId) {
+        return { content: [{ type: "text" as const, text: "At least one of userId or spaceId is required" }] };
+      }
+      // Clamp by accessible buildings so a manager cannot enumerate
+      // limits attached to spaces in buildings outside their scope.
+      const accessible = await getMcpAccessibleBuildingIds(role);
+      if (!accessible) {
+        return { content: [{ type: "text" as const, text: `MCP ${role} user not found` }] };
+      }
+      if (spaceId) {
+        const auth = await authorizeSpaceAccess(role, spaceId);
+        if (!auth.ok) return auth.response;
+      } else if (userId) {
+        // userId-only query would otherwise expose this user's GLOBAL
+        // (NULL-space) limits to any caller that knows the userId.
+        // Require the target user to share scope with the caller.
+        if (!(await targetUserInScope(role, userId))) {
+          return { content: [{ type: "text" as const, text: "Access denied: target user is not in your MCP scope" }] };
+        }
+      }
+      const conditions: SQL[] = [];
+      if (userId) conditions.push(eq(schema.userTimeLimits.userId, userId));
+      if (spaceId) {
+        conditions.push(eq(schema.userTimeLimits.commonSpaceId, spaceId));
+      } else {
+        // No spaceId filter: only return rows that are either global
+        // (NULL space) or attached to a space inside an accessible
+        // building. The userId-only path is already scope-clamped by
+        // the targetUserInScope check above; the spaceId-attached rows
+        // are clamped here.
+        const accessSql = accessible.length > 0
+          ? or(
+              isNull(schema.userTimeLimits.commonSpaceId),
+              inArray(schema.commonSpaces.buildingId, accessible)
+            )
+          : isNull(schema.userTimeLimits.commonSpaceId);
+        if (accessSql) conditions.push(accessSql);
+      }
+      const rows = await db
+        .select({
+          id: schema.userTimeLimits.id,
+          userId: schema.userTimeLimits.userId,
+          commonSpaceId: schema.userTimeLimits.commonSpaceId,
+          spaceName: schema.commonSpaces.name,
+          limitType: schema.userTimeLimits.limitType,
+          limitHours: schema.userTimeLimits.limitHours,
+          createdAt: schema.userTimeLimits.createdAt,
+          updatedAt: schema.userTimeLimits.updatedAt,
+          firstName: schema.users.firstName,
+          lastName: schema.users.lastName,
+          email: schema.users.email,
+        })
+        .from(schema.userTimeLimits)
+        .leftJoin(schema.commonSpaces, eq(schema.commonSpaces.id, schema.userTimeLimits.commonSpaceId))
+        .innerJoin(schema.users, eq(schema.users.id, schema.userTimeLimits.userId))
+        .where(and(...conditions))
+        .orderBy(schema.userTimeLimits.userId, schema.userTimeLimits.limitType, schema.userTimeLimits.commonSpaceId);
+      return { content: [{ type: "text" as const, text: JSON.stringify(rows, null, 2) }] };
+    }
+  );
+
+  server.tool(
+    "set_user_time_limit",
+    "Create or update a per-user booking time limit (admin/manager only). Upsert key is (userId, commonSpaceId, limitType): omit spaceId for a global limit that applies across every space. limitHours must be 1..8760 (1 year).",
+    {
+      role: roleParam,
+      userId: z.string().describe("Target user ID"),
+      spaceId: z.string().optional().describe("Optional common space ID; omit for a GLOBAL limit applied across every space"),
+      limitType: z.enum(["monthly", "yearly"]).describe("Reset cadence for the hourly quota"),
+      limitHours: z.number().int().min(1).max(8760).describe("Maximum hours allowed in the period (1..8760)"),
+    },
+    async ({ role, userId, spaceId, limitType, limitHours }) => {
+      if (role === "tenant") {
+        return { content: [{ type: "text" as const, text: "Access denied: tenants cannot manage time limits" }] };
+      }
+      // For global limits we still need a valid MCP user record; reuse
+      // the helper through authorizeSpaceAccess when a space is given,
+      // otherwise verify the role through getMcpAccessibleBuildingIds
+      // (returns null for unknown users) AND require the TARGET user
+      // to share scope with the caller — the global path has no
+      // commonSpaceId anchor, so without this check a manager could
+      // mutate any user's quotas across orgs.
+      if (spaceId) {
+        const auth = await authorizeSpaceAccess(role, spaceId);
+        if (!auth.ok) return auth.response;
+      } else {
+        const accessible = await getMcpAccessibleBuildingIds(role);
+        if (!accessible) {
+          return { content: [{ type: "text" as const, text: `MCP ${role} user not found` }] };
+        }
+        if (!(await targetUserInScope(role, userId))) {
+          return { content: [{ type: "text" as const, text: "Access denied: target user is not in your MCP scope" }] };
+        }
+      }
+      const [target] = await db
+        .select({ id: schema.users.id })
+        .from(schema.users)
+        .where(eq(schema.users.id, userId))
+        .limit(1);
+      if (!target) {
+        return { content: [{ type: "text" as const, text: "Target user not found" }] };
+      }
+      try {
+        const [existing] = await db
+          .select({ id: schema.userTimeLimits.id })
+          .from(schema.userTimeLimits)
+          .where(
+            and(
+              eq(schema.userTimeLimits.userId, userId),
+              spaceId
+                ? eq(schema.userTimeLimits.commonSpaceId, spaceId)
+                : isNull(schema.userTimeLimits.commonSpaceId),
+              eq(schema.userTimeLimits.limitType, limitType)
+            )
+          )
+          .limit(1);
+        let row;
+        if (existing) {
+          [row] = await withRetryableDbCall(() => db
+            .update(schema.userTimeLimits)
+            .set({ limitHours, updatedAt: new Date() })
+            .where(eq(schema.userTimeLimits.id, existing.id))
+            .returning());
+        } else {
+          [row] = await withRetryableDbCall(() => db
+            .insert(schema.userTimeLimits)
+            .values({ userId, commonSpaceId: spaceId ?? null, limitType, limitHours })
+            .returning());
+        }
+        return { content: [{ type: "text" as const, text: JSON.stringify(row, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:set_user_time_limit]", e);
+        return buildWriteErrorResponse(e, 'time limit', 'create');
+      }
+    }
+  );
+
+  server.tool(
+    "remove_user_time_limit",
+    "Delete a per-user time-limit row (admin/manager only). Identified by (userId, commonSpaceId, limitType): omit spaceId to target the user's GLOBAL limit. Returns the deleted row count (0 if no matching limit existed).",
+    {
+      role: roleParam,
+      userId: z.string().describe("Target user ID"),
+      spaceId: z.string().optional().describe("Optional common space ID; omit to remove the user's GLOBAL limit"),
+      limitType: z.enum(["monthly", "yearly"]).describe("Which cadence's limit to remove"),
+    },
+    async ({ role, userId, spaceId, limitType }) => {
+      if (role === "tenant") {
+        return { content: [{ type: "text" as const, text: "Access denied: tenants cannot manage time limits" }] };
+      }
+      if (spaceId) {
+        const auth = await authorizeSpaceAccess(role, spaceId);
+        if (!auth.ok) return auth.response;
+      } else {
+        const accessible = await getMcpAccessibleBuildingIds(role);
+        if (!accessible) {
+          return { content: [{ type: "text" as const, text: `MCP ${role} user not found` }] };
+        }
+        // Global delete has no space anchor — require target user
+        // to share scope with the caller.
+        if (!(await targetUserInScope(role, userId))) {
+          return { content: [{ type: "text" as const, text: "Access denied: target user is not in your MCP scope" }] };
+        }
+      }
+      try {
+        const deleted = await withRetryableDbCall(() => db
+          .delete(schema.userTimeLimits)
+          .where(
+            and(
+              eq(schema.userTimeLimits.userId, userId),
+              spaceId
+                ? eq(schema.userTimeLimits.commonSpaceId, spaceId)
+                : isNull(schema.userTimeLimits.commonSpaceId),
+              eq(schema.userTimeLimits.limitType, limitType)
+            )
+          )
+          .returning({ id: schema.userTimeLimits.id }));
+        if (deleted.length === 0) {
+          return { content: [{ type: "text" as const, text: JSON.stringify({ deleted: 0, message: "No matching time-limit row found" }, null, 2) }] };
+        }
+        return { content: [{ type: "text" as const, text: JSON.stringify({ deleted: deleted.length, ids: deleted.map((d) => d.id), message: "Time limit removed" }, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:remove_user_time_limit]", e);
+        return buildWriteErrorResponse(e, 'time limit', 'delete');
+      }
+    }
+  );
+
   server.tool(
     "list_communications",
     "List general communications for an organization",
