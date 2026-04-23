@@ -40,6 +40,7 @@ const BUILD_SHA: string = (() => {
 })();
 import { db } from "../db";
 import * as schema from "@shared/schema";
+import { registerBudgetTools } from "./budget-tools";
 import { eq, and, inArray, desc, asc, isNull, or, sql, count, type SQL } from "drizzle-orm";
 import { DocumentService, type DocumentType } from "../services/document-service";
 import { ObjectStorageService } from "../objectStorage";
@@ -2373,11 +2374,30 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
           `role on the consent screen.`
         : `This MCP session is using the legacy API-key auth path. The "role" argument ` +
           `on each tool call selects which role to act as.`;
+      // Enumerate every tool currently registered on this MCP server so the
+      // tool list is self-describing. Avoids the documentation-drift hazard
+      // where a new tool ships in code but `get_mcp_info` still advertises
+      // the old hand-curated list. The SDK exposes `_registeredTools` as a
+      // map keyed by tool name with `{ description, ... }` values.
+      const registeredToolsMap = (server as unknown as {
+        _registeredTools?: Record<string, { description?: string }>;
+      })._registeredTools;
+      const registeredTools = registeredToolsMap
+        ? Object.keys(registeredToolsMap)
+            .sort()
+            .map((name) => ({
+              name,
+              description: registeredToolsMap[name]?.description ?? "",
+            }))
+        : [];
+
       const info = {
         description: "Koveo Gestion MCP Server - Property Management Platform for Quebec",
         // Build stamp resolved once at module load — lets support confirm
         // the deployed long-lived MCP bundle matches the latest commit.
         buildSha: BUILD_SHA,
+        tools: registeredTools,
+        toolCount: registeredTools.length,
         organizations: orgs,
         users: users.map((u) => ({ ...u, note: `Use role="${u.role}" to act as this user` })),
         // `currentRole` reflects the role this specific call is executing as
@@ -4435,6 +4455,8 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       };
     }
   );
+
+  registerBudgetTools(server, { roleParam, getMcpUser, getMcpOrgIds });
 
   return server;
 }

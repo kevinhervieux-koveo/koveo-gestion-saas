@@ -31,7 +31,7 @@ const debugLog = (endpoint: string, data: any) => {
 // `forecastInputSchema` is now defined in ./forecast-input-schema so that
 // tests can import it without pulling in the rest of this route file.
 
-const updateUnplannedBillsSchema = z.object({
+export const updateUnplannedBillsSchema = z.object({
   unplannedBillsAmount: z.coerce.number().min(0),
   unplannedBillsStartDate: z.string().optional(),
   notes: z.string().optional(),
@@ -671,7 +671,7 @@ async function calculateUnplannedBillsSuggestion(
  * POST /api/budgets/:buildingId/forecast - Generate 25-year budget forecast (READ-ONLY)
  * No side effects - does not update database
  */
-router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
+export const forecastHandler: express.RequestHandler = async (req, res) => {
   try {
     const { buildingId } = req.params;
     
@@ -1986,7 +1986,9 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
       })
     });
   }
-});
+};
+
+router.post('/:buildingId/forecast', requireAuth, forecastHandler);
 
 /**
  * PUT /api/budgets/:buildingId/unplanned-bills - Update unplanned bills amount
