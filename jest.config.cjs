@@ -4,6 +4,7 @@ const config = {
   testEnvironment: 'jsdom',
   setupFiles: ['<rootDir>/jest.polyfills.js'],
   setupFilesAfterEnv: ['<rootDir>/jest.setup.simple.ts'],
+  globalSetup: '<rootDir>/jest.global-setup.cjs',
   
   moduleNameMapper: {
     '^@/lib/logger$': '<rootDir>/__mocks__/client/src/lib/logger.ts',
