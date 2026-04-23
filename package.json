@@ -233,5 +233,23 @@
     "semgrep": "^0.0.1",
     "supertest": "^7.1.4",
     "vitest": "^3.2.4"
+  },
+  "overrides": {
+    "@tootallnate/once": "3.0.1",
+    "@esbuild-kit/core-utils": {
+      "esbuild": "0.25.9"
+    },
+    "@google-cloud/storage": {
+      "uuid": "14.0.0"
+    },
+    "gaxios": {
+      "uuid": "14.0.0"
+    },
+    "googleapis-common": {
+      "uuid": "14.0.0"
+    },
+    "teeny-request": {
+      "uuid": "14.0.0"
+    }
   }
 }
