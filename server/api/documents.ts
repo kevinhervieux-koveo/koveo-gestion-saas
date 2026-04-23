@@ -4415,6 +4415,7 @@ export function registerDocumentRoutes(app: Express): void {
             source: result.previous.source,
           }
         : null,
+      previousIsChainEnd: result.previous.isChainEnd,
       next: result.next.document
         ? {
             id: result.next.document.id,
@@ -4425,6 +4426,7 @@ export function registerDocumentRoutes(app: Express): void {
             source: result.next.source,
           }
         : null,
+      nextIsChainEnd: result.next.isChainEnd,
     });
   }));
 

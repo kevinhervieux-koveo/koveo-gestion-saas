@@ -28,6 +28,8 @@ export interface Translations {
   addNextDocument: string;
   editPreviousLink: string;
   editNextLink: string;
+  firstDocumentOfChain: string;
+  lastDocumentOfChain: string;
   linkPositionLabel: string;
   chainPanelTitle: string;
   chainPanelEmpty: string;
@@ -4432,6 +4434,8 @@ export const translations: Record<Language, Translations> = {
     addNextDocument: 'Link next',
     editPreviousLink: 'Change previous link',
     editNextLink: 'Change next link',
+    firstDocumentOfChain: 'First document of chain',
+    lastDocumentOfChain: 'Last document of chain',
     linkPositionLabel: 'Link as',
     chainPanelTitle: 'Sequence',
     chainPanelEmpty: 'No sequence yet — link a previous or next document to start one.',
@@ -6645,6 +6649,8 @@ export const translations: Record<Language, Translations> = {
     addNextDocument: 'Lier suivant',
     editPreviousLink: 'Modifier le lien précédent',
     editNextLink: 'Modifier le lien suivant',
+    firstDocumentOfChain: 'Premier document de la chaîne',
+    lastDocumentOfChain: 'Dernier document de la chaîne',
     linkPositionLabel: 'Lier comme',
     chainPanelTitle: 'Séquence',
     chainPanelEmpty: 'Aucune séquence — liez un document précédent ou suivant pour en créer une.',

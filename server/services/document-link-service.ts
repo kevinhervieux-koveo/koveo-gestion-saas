@@ -13,6 +13,7 @@ export type LinkPosition = 'before' | 'after';
 export interface ResolvedNeighbor {
   document: Document | null;
   source: 'explicit' | 'date' | null;
+  isChainEnd: boolean;
 }
 
 export interface DocumentNeighbors {
@@ -174,37 +175,48 @@ export async function resolveDocumentNeighbors(
     findExplicitNeighbor(current.id, 'next'),
   ]);
 
+  // The document is "in an explicit chain" if it has any explicit link on
+  // either side. When in a chain, we never fall back to the date-based
+  // neighbor on a side that has no explicit link — instead we mark that
+  // side as the chain end so the UI can render a disabled prev/next button
+  // ("First/Last document of chain") rather than wrap around to an
+  // unrelated date neighbor.
+  const inChain = !!explicitPrev || !!explicitNext;
+
   // For the date-based fallback we fetch a small batch and walk it until we
   // find a document the viewer is allowed to see, so role-based visibility
   // filtering does not silently produce a missing neighbor when valid ones
   // exist further down the date-ordered list.
-  const pickFirstVisible = async (
+  const resolveSide = async (
     explicit: Document | null,
     direction: 'previous' | 'next',
-  ): Promise<Document | null> => {
-    const visibleExplicit = applyVisibility(viewer, explicit);
-    if (visibleExplicit) return visibleExplicit;
+  ): Promise<ResolvedNeighbor> => {
+    if (explicit) {
+      const visibleExplicit = applyVisibility(viewer, explicit);
+      if (visibleExplicit) {
+        return { document: visibleExplicit, source: 'explicit', isChainEnd: false };
+      }
+      // Explicit link exists but is not visible to this viewer — treat as
+      // chain end rather than leaking a date neighbor.
+      return { document: null, source: null, isChainEnd: true };
+    }
+    if (inChain) {
+      return { document: null, source: null, isChainEnd: true };
+    }
     const candidates = await findDateNeighborCandidates(current, direction);
     for (const c of candidates) {
       const visible = applyVisibility(viewer, c);
-      if (visible) return visible;
+      if (visible) {
+        return { document: visible, source: 'date', isChainEnd: false };
+      }
     }
-    return null;
+    return { document: null, source: null, isChainEnd: false };
   };
 
-  const prevDoc = await pickFirstVisible(explicitPrev, 'previous');
-  const nextDoc = await pickFirstVisible(explicitNext, 'next');
+  const previous = await resolveSide(explicitPrev, 'previous');
+  const next = await resolveSide(explicitNext, 'next');
 
-  const prev: ResolvedNeighbor = {
-    document: prevDoc,
-    source: prevDoc ? (prevDoc === explicitPrev ? 'explicit' : 'date') : null,
-  };
-  const next: ResolvedNeighbor = {
-    document: nextDoc,
-    source: nextDoc ? (nextDoc === explicitNext ? 'explicit' : 'date') : null,
-  };
-
-  return { current, previous: prev, next };
+  return { current, previous, next };
 }
 
 /**

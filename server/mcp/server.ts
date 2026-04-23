@@ -5957,9 +5957,11 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
             previous: result.previous.document
               ? { id: result.previous.document.id, name: result.previous.document.name, source: result.previous.source }
               : null,
+            previousIsChainEnd: result.previous.isChainEnd,
             next: result.next.document
               ? { id: result.next.document.id, name: result.next.document.name, source: result.next.source }
               : null,
+            nextIsChainEnd: result.next.isChainEnd,
           }, null, 2),
         }],
       };

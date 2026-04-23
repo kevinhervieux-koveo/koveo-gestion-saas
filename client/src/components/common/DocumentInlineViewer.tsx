@@ -39,7 +39,9 @@ function formatNeighborDate(n: NeighborInfo): string {
 interface NeighborsResponse {
   currentId: string;
   previous: NeighborInfo | null;
+  previousIsChainEnd?: boolean;
   next: NeighborInfo | null;
+  nextIsChainEnd?: boolean;
 }
 
 type PreviewKind = 'pdf' | 'image' | 'text' | 'unsupported';
@@ -327,6 +329,21 @@ export function DocumentInlineViewer({
                     <Pencil className="w-3.5 h-3.5" />
                   </Button>
                 </>
+              ) : neighbors?.previousIsChainEnd ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled
+                  data-testid="button-prev-document-chain-end"
+                  aria-label={t('firstDocumentOfChain') || 'First document of chain'}
+                  title={t('firstDocumentOfChain') || 'First document of chain'}
+                >
+                  <ChevronLeft className="w-4 h-4 mr-1" />
+                  <span className="text-xs text-muted-foreground">
+                    {t('firstDocumentOfChain') || 'First document'}
+                  </span>
+                </Button>
               ) : (
                 <Button
                   type="button"
@@ -386,6 +403,21 @@ export function DocumentInlineViewer({
                     <ChevronRight className="w-4 h-4 ml-1" />
                   </Button>
                 </>
+              ) : neighbors?.nextIsChainEnd ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled
+                  data-testid="button-next-document-chain-end"
+                  aria-label={t('lastDocumentOfChain') || 'Last document of chain'}
+                  title={t('lastDocumentOfChain') || 'Last document of chain'}
+                >
+                  <span className="text-xs text-muted-foreground">
+                    {t('lastDocumentOfChain') || 'Last document'}
+                  </span>
+                  <ChevronRight className="w-4 h-4 ml-1" />
+                </Button>
               ) : (
                 <Button
                   type="button"
