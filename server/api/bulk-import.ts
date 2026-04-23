@@ -273,6 +273,42 @@ export function registerBulkImportRoutes(app: Express): void {
     },
   );
 
+  /**
+   * Stream a staged item's raw bytes so the wizard can render real
+   * thumbnails / inline previews (Task #457). Admin-only, scoped to the
+   * item's own staging directory; we never let callers escape via
+   * `..` because the path comes straight from the DB row, not the URL.
+   */
+  app.get(
+    '/api/admin/bulk-import/items/:id/file',
+    requireAuth,
+    requireRole(['admin']),
+    async (req: AuthenticatedRequest, res: Response) => {
+      const [item] = await db
+        .select()
+        .from(schema.bulkImportItems)
+        .where(eq(schema.bulkImportItems.id, req.params.id));
+      if (!item) return res.status(404).json({ error: 'Item not found' });
+
+      const resolved = path.resolve(item.stagedPath);
+      const stagingRoot = path.resolve(STAGING_ROOT);
+      if (!resolved.startsWith(stagingRoot + path.sep)) {
+        return res.status(400).json({ error: 'Invalid staged path' });
+      }
+      if (!fs.existsSync(resolved)) {
+        return res.status(404).json({ error: 'Staged file missing' });
+      }
+
+      res.setHeader('Content-Type', item.mimeType ?? 'application/octet-stream');
+      res.setHeader('Cache-Control', 'private, max-age=300');
+      res.setHeader(
+        'Content-Disposition',
+        `inline; filename="${encodeURIComponent(item.originalName)}"`,
+      );
+      fs.createReadStream(resolved).pipe(res);
+    },
+  );
+
   /** Patch a single item's per-step decisions. */
   app.patch(
     '/api/admin/bulk-import/items/:id',

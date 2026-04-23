@@ -7,13 +7,6 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -24,7 +17,20 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useLanguage } from '@/hooks/use-language';
-import { Upload, Trash2, Sparkles, ChevronRight, Loader2 } from 'lucide-react';
+import {
+  Upload,
+  Trash2,
+  Sparkles,
+  ChevronRight,
+  Loader2,
+  Building2,
+  FileText,
+  FileSpreadsheet,
+  FileImage,
+  FileArchive,
+  File as FileIcon,
+  MapPin,
+} from 'lucide-react';
 import {
   bandForConfidence,
   type BulkImportItem,
@@ -37,6 +43,47 @@ interface Building {
   id: string;
   name: string;
   organizationId: string;
+  address?: string | null;
+  city?: string | null;
+  province?: string | null;
+  totalUnits?: number | null;
+  buildingType?: string | null;
+}
+
+function iconForMime(mime: string | null | undefined) {
+  const m = (mime ?? '').toLowerCase();
+  if (m.startsWith('image/')) return FileImage;
+  if (m === 'application/pdf') return FileText;
+  if (m.includes('zip') || m.includes('compressed')) return FileArchive;
+  if (m.includes('sheet') || m.includes('excel') || m.includes('csv')) return FileSpreadsheet;
+  if (m.includes('word') || m.includes('document') || m.startsWith('text/')) return FileText;
+  return FileIcon;
+}
+
+function ItemThumbnail({ item }: { item: BulkImportItem }) {
+  const isImage = (item.mimeType ?? '').toLowerCase().startsWith('image/');
+  const [broken, setBroken] = useState(false);
+  const Icon = iconForMime(item.mimeType);
+  if (isImage && !broken) {
+    return (
+      <img
+        src={`/api/admin/bulk-import/items/${item.id}/file`}
+        alt={item.originalName}
+        className="h-14 w-14 flex-shrink-0 rounded-md border object-cover bg-muted"
+        loading="lazy"
+        onError={() => setBroken(true)}
+        data-testid={`thumb-image-${item.id}`}
+      />
+    );
+  }
+  return (
+    <div
+      className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-md border bg-muted text-muted-foreground"
+      data-testid={`thumb-icon-${item.id}`}
+    >
+      <Icon className="h-6 w-6" />
+    </div>
+  );
 }
 
 interface SessionPayload {
@@ -117,7 +164,7 @@ export default function BulkDocumentImportPage() {
   }, [sessionId]);
 
   const { data: buildings = [] } = useQuery<Building[]>({
-    queryKey: ['/api/admin/buildings'],
+    queryKey: ['/api/buildings'],
   });
 
   const { data: payload, isLoading: loadingSession } = useQuery<SessionPayload>({
@@ -294,20 +341,64 @@ export default function BulkDocumentImportPage() {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label>{isFr ? 'Immeuble' : 'Building'}</Label>
-                  <Select value={buildingId} onValueChange={setBuildingId}>
-                    <SelectTrigger data-testid="select-building">
-                      <SelectValue
-                        placeholder={isFr ? 'Choisir un immeuble' : 'Choose a building'}
-                      />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {buildings.map((b) => (
-                        <SelectItem key={b.id} value={b.id}>
-                          {b.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  {buildings.length === 0 ? (
+                    <p className="text-sm text-muted-foreground" data-testid="text-no-buildings">
+                      {isFr ? 'Aucun immeuble disponible.' : 'No buildings available.'}
+                    </p>
+                  ) : (
+                    <div
+                      className="grid gap-3 sm:grid-cols-2"
+                      data-testid="grid-building-picker"
+                    >
+                      {buildings.map((b) => {
+                        const selected = buildingId === b.id;
+                        const location = [b.city, b.province].filter(Boolean).join(', ');
+                        return (
+                          <button
+                            key={b.id}
+                            type="button"
+                            onClick={() => setBuildingId(b.id)}
+                            aria-pressed={selected}
+                            className={`flex items-start gap-3 rounded-lg border p-3 text-left transition hover:border-primary hover:bg-muted/50 ${
+                              selected
+                                ? 'border-primary bg-primary/5 ring-2 ring-primary'
+                                : 'border-border'
+                            }`}
+                            data-testid={`card-building-${b.id}`}
+                          >
+                            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+                              <Building2 className="h-6 w-6" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="truncate font-medium">{b.name}</div>
+                              {b.address && (
+                                <div className="mt-0.5 flex items-start gap-1 text-xs text-muted-foreground">
+                                  <MapPin className="mt-0.5 h-3 w-3 flex-shrink-0" />
+                                  <span className="truncate">
+                                    {b.address}
+                                    {location ? `, ${location}` : ''}
+                                  </span>
+                                </div>
+                              )}
+                              <div className="mt-1 flex flex-wrap items-center gap-1">
+                                {typeof b.totalUnits === 'number' && (
+                                  <Badge variant="secondary" className="text-[10px]">
+                                    {b.totalUnits}{' '}
+                                    {isFr ? 'unités' : 'units'}
+                                  </Badge>
+                                )}
+                                {b.buildingType && (
+                                  <Badge variant="outline" className="text-[10px] capitalize">
+                                    {b.buildingType}
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
                 <Button
                   disabled={!buildingId || createSession.isPending}
@@ -428,14 +519,18 @@ export default function BulkDocumentImportPage() {
                         return (
                           <div
                             key={item.id}
-                            className="flex items-center justify-between rounded-md border p-3"
+                            className="flex items-center justify-between gap-3 rounded-md border p-3"
                             data-testid={`item-row-${item.id}`}
                           >
-                            <div className="flex flex-col">
-                              <span className="font-medium">{item.originalName}</span>
-                              <span className="text-xs text-muted-foreground">
-                                {item.status}
-                              </span>
+                            <div className="flex min-w-0 flex-1 items-center gap-3">
+                              <ItemThumbnail item={item} />
+                              <div className="min-w-0 flex flex-col">
+                                <span className="truncate font-medium">{item.originalName}</span>
+                                <span className="text-xs text-muted-foreground">
+                                  {item.status}
+                                  {item.mimeType ? ` · ${item.mimeType}` : ''}
+                                </span>
+                              </div>
                             </div>
                             <div className="flex items-center gap-3">
                               <ConfidenceBadge value={decision?.confidence} />
