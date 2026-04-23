@@ -50,6 +50,8 @@ import {
   createInvitationWithSoftReplace,
   InvitationAlreadyPendingError,
 } from "../services/invitation-soft-replace";
+import { demandNotificationService } from "../services/demand-notification-service";
+import { insertDemandCommentSchema } from "@shared/schemas/operations";
 
 const MCP_ORG_NAMES = ["MCP-1", "MCP-2"];
 
@@ -1614,6 +1616,162 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       } catch (e) {
         console.error("[mcp:create_demand]", e);
         return buildWriteErrorResponse(e, 'demand', 'create');
+      }
+    }
+  );
+
+  server.tool(
+    "update_demand_status",
+    "Update the status of a demand (admin/manager only). Mirrors the REST PUT /api/demands/:id behavior: records reviewedBy/reviewedAt when status changes and notifies the submitter.",
+    {
+      role: roleParam,
+      demandId: z.string().describe("Demand ID"),
+      status: z
+        .enum([
+          "draft",
+          "submitted",
+          "under_review",
+          "approved",
+          "in_progress",
+          "completed",
+          "rejected",
+          "cancelled",
+        ])
+        .describe("New status"),
+      reviewNotes: z.string().optional().describe("Optional review notes"),
+    },
+    async ({ role, demandId, status, reviewNotes }) => {
+      if (role === "tenant") {
+        return { content: [{ type: "text" as const, text: "Access denied: tenants cannot update demand status" }] };
+      }
+      const orgIds = await getMcpOrgIds();
+      const [demand] = await db.select().from(schema.demands).where(eq(schema.demands.id, demandId));
+      if (!demand) return { content: [{ type: "text" as const, text: "Demand not found" }] };
+      const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, demand.buildingId));
+      if (!building || !orgIds.includes(building.organizationId)) {
+        return { content: [{ type: "text" as const, text: "Access denied" }] };
+      }
+      const user = await getMcpUser(role);
+      const statusChanged = status !== demand.status;
+      try {
+        const [updated] = await withRetryableDbCall(() => db
+          .update(schema.demands)
+          .set({
+            status,
+            updatedAt: new Date(),
+            ...(reviewNotes !== undefined && { reviewNotes }),
+            ...(statusChanged && user && { reviewedBy: user.id, reviewedAt: new Date() }),
+          })
+          .where(eq(schema.demands.id, demandId))
+          .returning());
+        if (user && demand.submitterId && demand.submitterId !== user.id) {
+          demandNotificationService
+            .notifyDemandEdited(demandId, user.id, demand.submitterId)
+            .catch((err) => console.error("[mcp:update_demand_status] notify failed", err));
+        }
+        return { content: [{ type: "text" as const, text: JSON.stringify(updated, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:update_demand_status]", e);
+        return buildWriteErrorResponse(e, 'demand', 'update');
+      }
+    }
+  );
+
+  server.tool(
+    "list_demand_comments",
+    "List comments on a demand, joined with author info. Tenants only see comments on their own demands and never see internal (manager-only) comments.",
+    { role: roleParam, demandId: z.string().describe("Demand ID") },
+    async ({ role, demandId }) => {
+      const orgIds = await getMcpOrgIds();
+      const [demand] = await db.select().from(schema.demands).where(eq(schema.demands.id, demandId));
+      if (!demand) return { content: [{ type: "text" as const, text: "Demand not found" }] };
+      const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, demand.buildingId));
+      if (!building || !orgIds.includes(building.organizationId)) {
+        return { content: [{ type: "text" as const, text: "Access denied" }] };
+      }
+      if (role === "tenant") {
+        const user = await getMcpUser("tenant");
+        if (!user || demand.submitterId !== user.id) {
+          return { content: [{ type: "text" as const, text: "Access denied: tenants can only view comments on their own demands" }] };
+        }
+      }
+      const comments = await db
+        .select({
+          id: schema.demandComments.id,
+          demandId: schema.demandComments.demandId,
+          commentText: schema.demandComments.commentText,
+          commentType: schema.demandComments.commentType,
+          isInternal: schema.demandComments.isInternal,
+          commenterId: schema.demandComments.commenterId,
+          createdAt: schema.demandComments.createdAt,
+          author: {
+            id: schema.users.id,
+            firstName: schema.users.firstName,
+            lastName: schema.users.lastName,
+            email: schema.users.email,
+          },
+        })
+        .from(schema.demandComments)
+        .innerJoin(schema.users, eq(schema.demandComments.commenterId, schema.users.id))
+        .where(eq(schema.demandComments.demandId, demandId))
+        .orderBy(asc(schema.demandComments.createdAt));
+      const visible = role === "tenant" ? comments.filter((c) => !c.isInternal) : comments;
+      return { content: [{ type: "text" as const, text: JSON.stringify(visible, null, 2) }] };
+    }
+  );
+
+  server.tool(
+    "create_demand_comment",
+    "Add a comment to a demand. Tenants may only comment on their own demands and cannot post internal (manager-only) comments. Triggers the demand-commented notification flow.",
+    {
+      role: roleParam,
+      demandId: z.string().describe("Demand ID"),
+      commentText: z.string().describe("Comment body (1-1000 characters)"),
+      commentType: z.string().optional().describe("Optional comment type"),
+      isInternal: z.boolean().optional().describe("Internal/manager-only comment (admin/manager only). Defaults to false."),
+    },
+    async ({ role, demandId, commentText, commentType, isInternal }) => {
+      if (role === "tenant" && isInternal === true) {
+        return { content: [{ type: "text" as const, text: "Access denied: tenants cannot post internal comments" }] };
+      }
+      const orgIds = await getMcpOrgIds();
+      const [demand] = await db.select().from(schema.demands).where(eq(schema.demands.id, demandId));
+      if (!demand) return { content: [{ type: "text" as const, text: "Demand not found" }] };
+      const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, demand.buildingId));
+      if (!building || !orgIds.includes(building.organizationId)) {
+        return { content: [{ type: "text" as const, text: "Access denied" }] };
+      }
+      const user = await getMcpUser(role);
+      if (!user) {
+        return { content: [{ type: "text" as const, text: "MCP user not found" }] };
+      }
+      if (role === "tenant" && demand.submitterId !== user.id) {
+        return { content: [{ type: "text" as const, text: "Access denied: tenants can only comment on their own demands" }] };
+      }
+      const parsed = insertDemandCommentSchema.safeParse({
+        demandId,
+        commenterId: user.id,
+        commentText,
+        commentType,
+        isInternal: isInternal ?? false,
+      });
+      if (!parsed.success) {
+        return { content: [{ type: "text" as const, text: `Invalid comment data: ${parsed.error.issues.map((i) => i.message).join(", ")}` }] };
+      }
+      try {
+        const [comment] = await withRetryableDbCall(() => db
+          .insert(schema.demandComments)
+          .values(parsed.data)
+          .returning());
+        if (demand.submitterId) {
+          demandNotificationService
+            .notifyDemandCommented(demandId, user.id, role, demand.submitterId, demand.buildingId)
+            .catch((err) => console.error("[mcp:create_demand_comment] notify failed", err));
+        }
+        return { content: [{ type: "text" as const, text: JSON.stringify(comment, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:create_demand_comment]", e);
+        return buildWriteErrorResponse(e, 'demand comment', 'create');
       }
     }
   );
