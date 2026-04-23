@@ -1,6 +1,7 @@
 import { Storage, File } from "@google-cloud/storage";
 import { Response } from "express";
 import { randomUUID } from "crypto";
+import { safeMimeType } from "./utils/safe-header";
 import {
   ObjectAclPolicy,
   ObjectPermission,
@@ -110,10 +111,11 @@ export class ObjectStorageService {
       // forcing a download just because the original GCS upload didn't set a
       // specific contentType.
       const existingContentType = res.getHeader("Content-Type");
-      const resolvedContentType =
+      const resolvedContentType = safeMimeType(
         (typeof existingContentType === "string" && existingContentType) ||
-        metadata.contentType ||
-        "application/octet-stream";
+          metadata.contentType ||
+          "application/octet-stream"
+      );
 
       res.set({
         "Content-Type": resolvedContentType,

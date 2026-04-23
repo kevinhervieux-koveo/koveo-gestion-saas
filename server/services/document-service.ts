@@ -23,6 +23,7 @@ import { documents, bills, buildings, residences } from '../../shared/schema';
 import { eq, and, isNotNull } from 'drizzle-orm';
 import { ObjectStorageService, ObjectNotFoundError } from '../objectStorage';
 import { buildContentDisposition } from '../utils/content-disposition';
+import { safeMimeType } from '../utils/safe-header';
 import {
   ObjectAclPolicy,
   ObjectAccessGroupType,
@@ -422,7 +423,7 @@ class DocumentService {
       // application/octet-stream would still be downloaded by the browser
       // even when Content-Disposition is set to inline.
       if (options?.mimeType) {
-        res.setHeader('Content-Type', options.mimeType);
+        res.setHeader('Content-Type', safeMimeType(options.mimeType));
       }
 
       await this.objectStorage.downloadObject(objectFile, res, options?.cacheTtlSec || 3600);

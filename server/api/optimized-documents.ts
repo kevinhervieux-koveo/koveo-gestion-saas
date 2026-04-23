@@ -10,6 +10,7 @@ import { requireAuth } from '../auth';
 import { storage } from '../storage';
 import { optimizedFileStorage } from '../services/optimized-file-storage';
 import { buildContentDisposition } from '../utils/content-disposition';
+import { safeHeaderValue, safeJsonHeaderValue, safeMimeType } from '../utils/safe-header';
 import { getOptimizedUploadConfig, estimateAccessFrequency } from '@shared/config/optimized-upload-config';
 import type { OptimizedUploadContext } from '@shared/config/optimized-upload-config';
 import {
@@ -242,16 +243,20 @@ export function registerOptimizedDocumentRoutes(app: Express): void {
       const disposition = isDownload ? 'attachment' : 'inline';
       
       res.setHeader('Content-Disposition', buildContentDisposition(filename, { type: disposition }));
-      res.setHeader('Content-Type', document.mimeType || 'application/octet-stream');
+      res.setHeader('Content-Type', safeMimeType(document.mimeType));
       res.setHeader('X-Performance-Optimized', 'true');
       res.setHeader('X-Cache-Hit', retrievalResult.fromCache ? 'true' : 'false');
 
       const responseTime = performance.now() - startTime;
-      
-      // Add performance headers
-      res.setHeader('X-Response-Time', `${responseTime.toFixed(2)}ms`);
+
+      // Add performance headers (sanitised – formatted server-side, but pass
+      // through the helper so downstream changes can never inject CR/LF).
+      res.setHeader('X-Response-Time', safeHeaderValue(`${responseTime.toFixed(2)}ms`, '0ms'));
       if (retrievalResult.performanceMetrics) {
-        res.setHeader('X-Storage-Metrics', JSON.stringify(retrievalResult.performanceMetrics));
+        res.setHeader(
+          'X-Storage-Metrics',
+          safeJsonHeaderValue(retrievalResult.performanceMetrics)
+        );
       }
 
       // Stream file to response

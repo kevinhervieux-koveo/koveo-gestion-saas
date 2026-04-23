@@ -52,6 +52,7 @@ import { buildings, organizations, userOrganizations, userBuildings, residences 
 import { documents } from '@shared/schemas/documents';
 import { workflowService } from '../services/workflow-service';
 import { buildContentDisposition } from '../utils/content-disposition';
+import { safeMimeType } from '../utils/safe-header';
 import { documentService } from '../services/document-service';
 import multer from 'multer';
 import path from 'path';
@@ -2237,7 +2238,7 @@ export function registerMaintenanceRoutes(app: Express): void {
       
       // Set appropriate headers
       res.set({
-        'Content-Type': document.mimeType,
+        'Content-Type': safeMimeType(document.mimeType),
         'Content-Disposition': buildContentDisposition(document.fileName, { type: 'inline' }),
         'Content-Length': document.fileSize.toString(),
       });
