@@ -2,57 +2,13 @@ import { describe, it, expect, beforeAll, beforeEach, afterEach } from '@jest/gl
 import { documentService, DocumentContext } from '../services/document-service';
 
 describe('DocumentService Unit Tests', () => {
-  describe('normalizeFilename', () => {
-    it('should normalize simple filenames', () => {
-      const result = documentService.normalizeFilename('test-file.pdf');
-      expect(result).toBe('test-file.pdf');
-    });
-
-    it('should convert uppercase to lowercase', () => {
-      const result = documentService.normalizeFilename('TEST-FILE.PDF');
-      expect(result).toBe('test-file.pdf');
-    });
-
-    it('should replace spaces with underscores', () => {
-      const result = documentService.normalizeFilename('my test file.pdf');
-      expect(result).toBe('my_test_file.pdf');
-    });
-
-    it('should remove accented characters', () => {
-      const result = documentService.normalizeFilename('résumé-été.pdf');
-      expect(result).toBe('resume-ete.pdf');
-    });
-
-    it('should replace special characters with underscores', () => {
-      const result = documentService.normalizeFilename('file@#$%name.pdf');
-      expect(result).toBe('file_name.pdf');
-    });
-
-    it('should collapse multiple underscores into one', () => {
-      const result = documentService.normalizeFilename('file___name.pdf');
-      expect(result).toBe('file_name.pdf');
-    });
-
-    it('should remove leading and trailing underscores', () => {
-      const result = documentService.normalizeFilename('_file_name_.pdf');
-      expect(result).toBe('file_name_.pdf');
-    });
-
-    it('should truncate long filenames while preserving extension', () => {
-      const longName = 'a'.repeat(250) + '.pdf';
-      const result = documentService.normalizeFilename(longName);
-      expect(result.length).toBeLessThanOrEqual(200);
-      expect(result.endsWith('.pdf')).toBe(true);
-    });
-
-    it('should generate fallback for empty filename', () => {
-      const result = documentService.normalizeFilename('');
-      expect(result).toMatch(/^file_[a-f0-9]{8}$/);
-    });
-
-    it('should handle French document names', () => {
-      const result = documentService.normalizeFilename('Contrat de location été 2024.pdf');
-      expect(result).toBe('contrat_de_location_ete_2024.pdf');
+  // The full normalizeFilename behaviour is exercised in
+  // `filename-normalization.test.ts`; DocumentService only re-exports the
+  // shared helper, so a single delegation smoke test is enough here.
+  describe('normalizeFilename (delegates to shared helper)', () => {
+    it('produces the same canonical output as the shared helper', () => {
+      expect(documentService.normalizeFilename('Contrat de location été 2024.pdf'))
+        .toBe('contrat_de_location_ete_2024.pdf');
     });
   });
 

@@ -19,6 +19,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { Response } from 'express';
 import { db } from '../db';
+import { normalizeFilename } from '../utils/filenameNormalization';
 import { documents, bills, buildings, residences } from '../../shared/schema';
 import { eq, and, isNotNull } from 'drizzle-orm';
 import { ObjectStorageService, ObjectNotFoundError } from '../objectStorage';
@@ -93,29 +94,16 @@ class DocumentService {
   }
 
   /**
-   * Normalize a filename to be URL-safe
+   * Normalize a filename to be URL-safe.
+   *
+   * Thin re-export of the shared canonical normalizer in
+   * `server/utils/filenameNormalization.ts`. Kept as an instance method so
+   * existing callers (`documentService.normalizeFilename(...)`) continue to
+   * work, but all upload code should prefer importing `normalizeFilename`
+   * directly from `../utils/filenameNormalization`.
    */
-  normalizeFilename(filename: string): string {
-    if (!filename) return `file_${uuidv4().substring(0, 8)}`;
-
-    let normalized = filename
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLowerCase()
-      .replace(/[^a-z0-9._-]/g, '_')
-      .replace(/_+/g, '_')
-      .replace(/^_+|_+$/g, '');
-
-    if (normalized.length > 200) {
-      const ext = normalized.includes('.') ? normalized.substring(normalized.lastIndexOf('.')) : '';
-      normalized = normalized.substring(0, 200 - ext.length) + ext;
-    }
-
-    if (!normalized || normalized === '.' || normalized === '_') {
-      normalized = `file_${uuidv4().substring(0, 8)}`;
-    }
-
-    return normalized;
+  normalizeFilename(filename: string | null | undefined): string {
+    return normalizeFilename(filename);
   }
 
   /**

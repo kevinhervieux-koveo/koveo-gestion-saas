@@ -66,35 +66,11 @@ import { maintenanceSuggestionService } from '../services/maintenanceSuggestionS
 import { maintenanceJobsScheduler } from '../jobs/maintenanceJobs';
 import { projectPaymentService } from '../services/project-payment-service';
 
-// Security: Secure filename sanitization function
-function sanitizeFilename(filename: string): string {
-  if (!filename || typeof filename !== 'string') {
-    throw new Error('Invalid filename provided');
-  }
-  
-  // Remove path traversal sequences and dangerous characters
-  let sanitized = filename.replace(/\.\.[\\\/]/g, ''); // Remove ../ and ..\
-  sanitized = sanitized.replace(/[\\\/]/g, '_'); // Replace slashes with underscores
-  sanitized = sanitized.replace(/[^a-zA-Z0-9._-]/g, '_'); // Only allow safe characters
-  
-  // Ensure reasonable length
-  if (sanitized.length > 255) {
-    const ext = path.extname(sanitized);
-    const name = path.basename(sanitized, ext).substring(0, 200);
-    sanitized = name + ext;
-  }
-  
-  // Ensure it's not empty
-  if (!sanitized || sanitized === '.' || sanitized === '_') {
-    sanitized = 'file_' + crypto.randomUUID().substring(0, 8);
-  }
-  
-  return sanitized;
-}
-
-// Security: Generate secure random filename
+// Security: Generate secure random filename. Uses the shared canonical
+// `normalizeFilename` so the database `fileName` and the underlying object
+// key never disagree on how special characters / accents are escaped.
 function generateSecureFilename(originalName: string): string {
-  const sanitizedName = sanitizeFilename(originalName);
+  const sanitizedName = normalizeFilename(originalName);
   const ext = path.extname(sanitizedName);
   const baseName = path.basename(sanitizedName, ext);
   const secureId = crypto.randomUUID();
@@ -131,7 +107,7 @@ const maintenanceStorage = multer.diskStorage({
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const sanitizedName = file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const sanitizedName = normalizeFilename(file.originalname);
     cb(null, `maintenance-${uniqueSuffix}-${sanitizedName}`);
   }
 });

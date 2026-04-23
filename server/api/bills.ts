@@ -24,35 +24,11 @@ import { documentService } from '../services/document-service';
 import { logDebug, logInfo, logWarn, logError } from '../utils/logger';
 import { getBillById, getBillWithPayments, getBillsWithPayments, getEffectiveBillType } from '../db/queries/bills-queries';
 
-// Secure filename sanitization function
-function sanitizeFilename(filename: string): string {
-  if (!filename || typeof filename !== 'string') {
-    throw new Error('Invalid filename provided');
-  }
-  
-  // Remove path traversal sequences and dangerous characters
-  let sanitized = filename.replace(/\.\.[\\\/]/g, ''); // Remove ../ and ..\
-  sanitized = sanitized.replace(/[\\\/]/g, '_'); // Replace slashes with underscores
-  sanitized = sanitized.replace(/[^a-zA-Z0-9._-]/g, '_'); // Only allow safe characters
-  
-  // Ensure reasonable length
-  if (sanitized.length > 255) {
-    const ext = path.extname(sanitized);
-    const name = path.basename(sanitized, ext).substring(0, 200);
-    sanitized = name + ext;
-  }
-  
-  // Ensure it's not empty
-  if (!sanitized || sanitized === '.' || sanitized === '_') {
-    sanitized = 'file_' + crypto.randomUUID().substring(0, 8);
-  }
-  
-  return sanitized;
-}
-
-// Generate secure random filename
+// Generate secure random filename. Uses the shared canonical
+// `normalizeFilename` so the resulting object key/database value never drift
+// from the names produced elsewhere in the upload pipeline.
 function generateSecureFilename(originalName: string): string {
-  const sanitizedName = sanitizeFilename(originalName);
+  const sanitizedName = normalizeFilename(originalName);
   const ext = path.extname(sanitizedName);
   const baseName = path.basename(sanitizedName, ext);
   const secureId = crypto.randomUUID();
@@ -289,7 +265,7 @@ const billStorage = multer.diskStorage({
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const sanitizedName = file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const sanitizedName = normalizeFilename(file.originalname);
     cb(null, `bill-${uniqueSuffix}-${sanitizedName}`);
   }
 });
@@ -1992,8 +1968,10 @@ export function registerBillRoutes(app: Express) {
           logError('[BILLS UPLOAD] Object storage error, falling back to local filesystem storage', objectStorageError);
           
           // Fallback to local filesystem
-          // SECURITY: Sanitize organization ID to prevent path traversal
-          const sanitizedOrgId = organizationId.replace(/[^a-zA-Z0-9_-]/g, '_');
+          // SECURITY: Sanitize organization ID to prevent path traversal.
+          // Use the shared canonical normalizer so the directory naming rules
+          // match the rest of the upload pipeline.
+          const sanitizedOrgId = normalizeFilename(organizationId);
           
           // SECURITY: Generate secure filename instead of using original name
           const secureFilename = generateSecureFilename(req.file.originalname);

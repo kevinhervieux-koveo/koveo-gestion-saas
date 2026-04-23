@@ -1,73 +1,56 @@
-import path from 'path';
+import { v4 as uuidv4 } from 'uuid';
 
 /**
- * Normalizes a filename by:
- * - Replacing French accented characters with their base equivalents
- * - Replacing special characters and spaces with underscores
- * - Removing consecutive underscores
- * - Converting to lowercase
- * - Preserving the file extension
- * 
- * @param filename - The original filename to normalize
- * @returns The normalized filename
- * 
+ * Normalize an uploaded filename so it is safe to use as both a database
+ * `fileName` value and as part of an Object Storage / filesystem path.
+ *
+ * This is the SINGLE canonical normalizer used by every upload site:
+ *   - server/api/documents.ts
+ *   - server/api/bills.ts
+ *   - server/api/maintenance.ts
+ *   - server/services/document-service.ts (buildHierarchicalPath)
+ *
+ * Behaviour:
+ *   - Strips Unicode diacritics via NFD decomposition (handles French
+ *     accents and any other combining marks).
+ *   - Lowercases the result for consistency.
+ *   - Replaces every character outside `[a-z0-9._-]` with `_`.
+ *   - Collapses runs of underscores into a single underscore and trims
+ *     leading/trailing underscores.
+ *   - Truncates to 200 characters while preserving the extension.
+ *   - Falls back to `file_<uuid8>` when the input is empty or normalises
+ *     to nothing meaningful.
+ *
+ * @param filename - The original (possibly unsafe) filename.
+ * @returns A filesystem-safe, lowercase filename.
+ *
  * @example
- * normalizeFilename("reçu purlift 2025.pdf") // returns "recu_purlift_2025.pdf"
- * normalizeFilename("Côté & Associés.docx") // returns "cote_associes.docx"
+ * normalizeFilename("reçu purlift 2025.pdf") // "recu_purlift_2025.pdf"
+ * normalizeFilename("Côté & Associés.docx")  // "cote_associes.docx"
  */
-export function normalizeFilename(filename: string): string {
+export function normalizeFilename(filename: string | null | undefined): string {
   if (!filename || typeof filename !== 'string') {
-    throw new Error('Invalid filename provided');
+    return `file_${uuidv4().substring(0, 8)}`;
   }
 
-  // Extract the extension
-  const ext = path.extname(filename);
-  const nameWithoutExt = filename.slice(0, filename.length - ext.length);
+  let normalized = filename
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]/g, '_')
+    .replace(/_+/g, '_')
+    .replace(/^_+|_+$/g, '');
 
-  // Map of French accented characters to their base equivalents
-  const accentMap: Record<string, string> = {
-    'à': 'a', 'á': 'a', 'â': 'a', 'ã': 'a', 'ä': 'a', 'å': 'a',
-    'è': 'e', 'é': 'e', 'ê': 'e', 'ë': 'e',
-    'ì': 'i', 'í': 'i', 'î': 'i', 'ï': 'i',
-    'ò': 'o', 'ó': 'o', 'ô': 'o', 'õ': 'o', 'ö': 'o',
-    'ù': 'u', 'ú': 'u', 'û': 'u', 'ü': 'u',
-    'ý': 'y', 'ÿ': 'y',
-    'ñ': 'n',
-    'ç': 'c',
-    'œ': 'oe',
-    'æ': 'ae',
-    'À': 'A', 'Á': 'A', 'Â': 'A', 'Ã': 'A', 'Ä': 'A', 'Å': 'A',
-    'È': 'E', 'É': 'E', 'Ê': 'E', 'Ë': 'E',
-    'Ì': 'I', 'Í': 'I', 'Î': 'I', 'Ï': 'I',
-    'Ò': 'O', 'Ó': 'O', 'Ô': 'O', 'Õ': 'O', 'Ö': 'O',
-    'Ù': 'U', 'Ú': 'U', 'Û': 'U', 'Ü': 'U',
-    'Ý': 'Y', 'Ÿ': 'Y',
-    'Ñ': 'N',
-    'Ç': 'C',
-    'Œ': 'OE',
-    'Æ': 'AE',
-  };
-
-  // Replace accented characters with their base equivalents
-  let normalized = nameWithoutExt.split('').map(char => accentMap[char] || char).join('');
-
-  // Replace all special characters (anything that's not alphanumeric, hyphen, or underscore) with underscores
-  normalized = normalized.replace(/[^a-zA-Z0-9_-]/g, '_');
-
-  // Remove consecutive underscores (replace multiple _ with single _)
-  normalized = normalized.replace(/_+/g, '_');
-
-  // Remove leading and trailing underscores
-  normalized = normalized.replace(/^_+|_+$/g, '');
-
-  // Convert to lowercase for consistency
-  normalized = normalized.toLowerCase();
-
-  // If the normalized name is empty, use a default
-  if (!normalized) {
-    normalized = 'document';
+  if (normalized.length > 200) {
+    const ext = normalized.includes('.')
+      ? normalized.substring(normalized.lastIndexOf('.'))
+      : '';
+    normalized = normalized.substring(0, 200 - ext.length) + ext;
   }
 
-  // Return with the original extension (lowercase)
-  return normalized + ext.toLowerCase();
+  if (!normalized || normalized === '.' || normalized === '_') {
+    normalized = `file_${uuidv4().substring(0, 8)}`;
+  }
+
+  return normalized;
 }

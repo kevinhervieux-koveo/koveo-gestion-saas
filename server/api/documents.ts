@@ -370,7 +370,7 @@ const documentStorage = multer.diskStorage({
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const sanitizedName = file.originalname.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const sanitizedName = normalizeFilename(file.originalname);
     cb(null, `document-${uniqueSuffix}-${sanitizedName}`);
   }
 });
@@ -2211,7 +2211,7 @@ export function registerDocumentRoutes(app: Express): void {
 
             // Update filePath to use hierarchical path with normalized /objects/ prefix
             filePath = documentService.normalizePath(hierarchicalPath);
-            fileName = documentService.normalizeFilename(req.file.originalname);
+            fileName = normalizeFilename(req.file.originalname);
             
             // Clean up temporary file after successful upload
             if (fs.existsSync(req.file.path)) {
@@ -2221,9 +2221,10 @@ export function registerDocumentRoutes(app: Express): void {
             logError('[BUILDING UPLOAD] Object storage error', objectStorageError);
             logWarn('[BUILDING UPLOAD] Falling back to local filesystem storage');
             
-            // Fallback to local filesystem
-            const unsanitizedFileName = `${uuidv4()}-${req.file.originalname}`;
-            fileName = sanitizeFilePath(unsanitizedFileName);
+            // Fallback to local filesystem. Use the shared canonical
+            // normalizer so the on-disk filename matches what we would have
+            // written to Object Storage / what we save in `fileName`.
+            fileName = `${uuidv4()}_${normalizeFilename(req.file.originalname)}`;
             const permanentDir = path.join(process.cwd(), 'uploads', 'buildings', resolvedBuildingId);
             
             // Ensure directory exists
@@ -2455,7 +2456,7 @@ export function registerDocumentRoutes(app: Express): void {
 
             // Update filePath to use hierarchical path with normalized /objects/ prefix
             filePath = documentService.normalizePath(hierarchicalPath);
-            fileName = documentService.normalizeFilename(req.file.originalname);
+            fileName = normalizeFilename(req.file.originalname);
             
             // Clean up temporary file after successful upload
             if (fs.existsSync(req.file.path)) {
@@ -2465,9 +2466,10 @@ export function registerDocumentRoutes(app: Express): void {
             logError('[RESIDENCE UPLOAD] Object storage error', objectStorageError);
             logWarn('[RESIDENCE UPLOAD] Falling back to local filesystem storage');
             
-            // Fallback to local filesystem
-            const unsanitizedFileName = `${uuidv4()}-${req.file.originalname}`;
-            fileName = sanitizeFilePath(unsanitizedFileName);
+            // Fallback to local filesystem. Use the shared canonical
+            // normalizer so the on-disk filename matches what we would have
+            // written to Object Storage / what we save in `fileName`.
+            fileName = `${uuidv4()}_${normalizeFilename(req.file.originalname)}`;
             const permanentDir = path.join(process.cwd(), 'uploads', 'residences', resolvedResidenceId);
             
             // Ensure directory exists
@@ -2744,12 +2746,11 @@ export function registerDocumentRoutes(app: Express): void {
           return res.status(400).json({ message: fileValidation.error });
         }
 
-        // Generate unique file path with sanitization
-        const fileExtension = path.extname(req.file.originalname);
-        const baseFileName = path.basename(req.file.originalname, fileExtension);
+        // Generate unique file path. Route through the shared canonical
+        // normalizer so the on-disk name and the persisted `fileName` field
+        // follow the same rules as the rest of the upload pipeline.
         const uniqueId = crypto.randomBytes(16).toString('hex');
-        const unsanitizedFileName = `${uniqueId}-${baseFileName}${fileExtension}`;
-        const uniqueFileName = sanitizeFilePath(unsanitizedFileName);
+        const uniqueFileName = `${uniqueId}_${normalizeFilename(req.file.originalname)}`;
         const entityType = existingDocument.buildingId ? 'buildings' : 'residences';
         const entityId = existingDocument.buildingId || existingDocument.residenceId;
         
@@ -3396,7 +3397,7 @@ export function registerDocumentRoutes(app: Express): void {
         // Upload to Object Storage for persistent file storage
         logDebug('[DOCUMENT UPLOAD] Starting object storage upload process for existing document');
         
-        const sanitizedName = sanitizeFilePath(req.file.originalname);
+        const sanitizedName = normalizeFilename(req.file.originalname);
         let filePath: string;
         let uploadedToObjectStorage = false;
 
@@ -3806,11 +3807,10 @@ export function registerDocumentRoutes(app: Express): void {
         logError('[DOCUMENT UPLOAD] Object storage error', objectStorageError);
         logWarn('[DOCUMENT UPLOAD] Falling back to local storage');
         
-        // Generate unique file path with sanitized filename for fallback
-        const fileExtension = path.extname(req.file!.originalname);
-        const baseFileName = path.basename(req.file!.originalname, fileExtension);
-        const unsanitizedName = `${uuidv4()}-${baseFileName}${fileExtension}`;
-        const sanitizedFileName = sanitizeFilePath(unsanitizedName);
+        // Generate unique file path with sanitized filename for fallback.
+        // Use the shared canonical normalizer so the on-disk fallback name
+        // and the persisted `fileName` field always agree.
+        const sanitizedFileName = `${uuidv4()}_${normalizeFilename(req.file!.originalname)}`;
 
         // Create fallback local path
         if (validatedData.residenceId) {
