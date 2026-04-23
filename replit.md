@@ -97,6 +97,7 @@ The platform exposes an MCP server at `/mcp` for LLM integration (e.g., Claude D
 
 ## Maintenance Scripts
 - `scripts/backfill-bill-ai-fields.ts` (Task #347) — one-shot backfill that re-reads `bills.ai_analysis_data` for legacy AI-extracted bills and populates the post-Task-#338 columns (`issue_date`, `vendor_invoice_number`) plus per-installment `bills.costs` arrays when the JSON exposes a `customPayments` breakdown that sums to `total_amount`. Idempotent: only writes columns currently NULL (or a single-entry `costs` placeholder). Logs scanned/updated counts grouped by organization. Run with `npx tsx scripts/backfill-bill-ai-fields.ts` (add `--dry-run` to log without writing).
+- `scripts/normalize-stored-filenames.ts` (Task #394) — one-shot maintenance pass that walks `documents.fileName` and `element_documents.fileName`, runs every stored value through the shared `normalizeFilename` helper (`server/utils/filenameNormalization.ts`), and rewrites rows whose stored value differs. Cleans up legacy filenames uploaded before Tasks #378 / #380 hardened new uploads, so naive Content-Disposition emitters can no longer choke on accents or control characters. Idempotent: a second pass is a no-op once all rows match their normalized form. Logs per-table `scanned / needsUpdate / updated / failed` counts and prints every rename it performs. Run with `npx tsx scripts/normalize-stored-filenames.ts` (add `--dry-run` to log proposed renames without writing).
 
 ## Document Tags
 - `document_tags` and `document_tag_assignments` tables (`shared/schemas/documents.ts`).
