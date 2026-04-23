@@ -1486,25 +1486,27 @@ describeIfDb('manager-only document visibility — Task #321', () => {
   });
 
   // -----------------------------------------------------------------
-  // Task #379: GET /api/documents/:id/optimized-file when the local
-  // file referenced by `documents.filePath` has been removed from disk
-  // while the row remains. Sibling coverage for Task #377, which
-  // pinned down the equivalent behaviour on the GCS-backed `/file`
-  // route.
+  // Task #379 / Task #382: GET /api/documents/:id/optimized-file when
+  // the local file referenced by `documents.filePath` has been removed
+  // from disk while the row remains. Sibling coverage for Task #377,
+  // which pinned down the equivalent behaviour on the GCS-backed
+  // `/file` route.
   //
   // Documented behaviour the route MUST preserve:
   //   - admin / manager / resident / tenant who pass the scope check
   //     (residence-scoped, isVisibleToTenants=true, isManagerOnly=false)
   //     all reach `optimizedFileStorage.retrieveFile`. That method
   //     hits `existsSync(fullPath) === false`, returns
-  //     `{ success: false, error: 'File not found' }`, and the route
-  //     surfaces the missing-file response as HTTP 403 with body
-  //     `{ message: 'File not found', fromCache: false }`.
+  //     `{ success: false, error: 'File not found', notFound: true }`,
+  //     and the route maps the missing-file response to HTTP 404 with
+  //     body `{ message: 'File not found' }` — matching the sibling
+  //     `/file` route's contract from Task #377 so clients can
+  //     distinguish "file vanished" from "you don't have access".
   //   - The shape MUST NOT silently flip to a 500 (server crash),
-  //     a 404 (would imply the row is missing, not the file), or
-  //     leak metadata access errors.
+  //     a 403 (would conflate "file missing" with permission denial),
+  //     or leak metadata access errors.
   // -----------------------------------------------------------------
-  describe('GET /api/documents/:id/optimized-file — missing file on disk (Task #379)', () => {
+  describe('GET /api/documents/:id/optimized-file — missing file on disk (Task #379 / Task #382)', () => {
     async function previewAs(email: string) {
       const agent = await loginAs(email);
       return agent.get(
@@ -1518,22 +1520,23 @@ describeIfDb('manager-only document visibility — Task #321', () => {
       ['resident', () => emails.resident],
       ['tenant', () => emails.tenant],
     ])(
-      '%s receives 403 "File not found" when the on-disk file is gone',
+      '%s receives 404 "File not found" when the on-disk file is gone',
       async (_role, getEmail) => {
         const res = await previewAs(getEmail());
         // The doc passes the scope check for every role here (residence
         // -scoped, tenant-visible, not manager-only), so the response
-        // comes from the `retrieveFile` missing-file branch, not the
-        // scope-based 404. Pinning both the status and the body shape
-        // guards against a future refactor flipping this into a 500
-        // (uncaught error) or a 404 (would conflate "row missing" with
-        // "file missing").
-        expect(res.status).toBe(403);
+        // comes from the `retrieveFile` missing-file branch. Task #382
+        // flipped this from 403 -> 404 to match the sibling `/file`
+        // route and to stop conflating "file vanished" with "access
+        // denied". Pinning both the status and the body shape guards
+        // against future refactors flipping this into a 500 (uncaught
+        // error) or back to a 403.
+        expect(res.status).toBe(404);
         // `retrieveFile` returns `{ success: false, error: 'File not
-        // found' }` (no `fromCache` key) when `existsSync` fails, and
-        // the route serializes that as `{ message, fromCache }` —
-        // undefined values get stripped by JSON, so the wire body is
-        // `{ message: 'File not found' }`.
+        // found', notFound: true }` (no `fromCache` key) when
+        // `existsSync` fails, and the route serializes that as
+        // `{ message, fromCache }` — undefined values get stripped by
+        // JSON, so the wire body is `{ message: 'File not found' }`.
         expect(res.body).toEqual({ message: 'File not found' });
       },
       30000

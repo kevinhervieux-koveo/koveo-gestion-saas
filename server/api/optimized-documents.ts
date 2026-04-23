@@ -230,9 +230,10 @@ export function registerOptimizedDocumentRoutes(app: Express): void {
       );
 
       if (!retrievalResult.success) {
-        return res.status(403).json({ 
+        const status = retrievalResult.notFound ? 404 : 403;
+        return res.status(status).json({
           message: retrievalResult.error,
-          fromCache: retrievalResult.fromCache 
+          fromCache: retrievalResult.fromCache
         });
       }
 

@@ -218,7 +218,7 @@ export class OptimizedFileStorageService {
     relativePath: string,
     userId: string,
     userRole: string
-  ): Promise<{ success: boolean; filePath?: string; error?: string; fromCache?: boolean; performanceMetrics?: any }> {
+  ): Promise<{ success: boolean; filePath?: string; error?: string; notFound?: boolean; fromCache?: boolean; performanceMetrics?: any }> {
     const startTime = performance.now();
     let filesystemOps = 0;
     let fromCache = false;
@@ -269,13 +269,15 @@ export class OptimizedFileStorageService {
           } else {
             return {
               success: false,
-              error: 'File not found (legacy path also invalid)'
+              error: 'File not found (legacy path also invalid)',
+              notFound: true
             };
           }
         } else {
           return {
             success: false,
-            error: 'File not found'
+            error: 'File not found',
+            notFound: true
           };
         }
       }
