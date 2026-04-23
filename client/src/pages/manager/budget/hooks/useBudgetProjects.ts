@@ -39,7 +39,8 @@ function computeCurrentFinancialYear(financialYearStart?: string): number {
  */
 export function useBudgetProjects(
   buildingId: string | undefined,
-  financialYearStart: string | undefined
+  financialYearStart: string | undefined,
+  pendingYears?: Map<string, number>
 ) {
   const [projects, setProjects] = useState<Project[]>([]);
   const projectStatesRef = useRef<Map<string, boolean>>(new Map());
@@ -67,12 +68,14 @@ export function useBudgetProjects(
 
     const convertedProjects: Project[] = relevantProjects.map((project: any) => {
       const includeInBudget = projectStatesRef.current.get(project.id) ?? true;
+      const baseFinancialYear = project.financialYear || currentFinancialYear;
+      const effectiveFinancialYear = pendingYears?.get(project.id) ?? baseFinancialYear;
       return {
         id: project.id,
         title: project.title || 'Untitled Project',
         totalBudget: parseFloat(project.totalBudget || '0'),
         actualCost: parseFloat(project.actualCost || '0'),
-        financialYear: project.financialYear || currentFinancialYear,
+        financialYear: effectiveFinancialYear,
         status: project.status || 'planned',
         type: project.type || 'maintenance',
         origin: project.origin || 'manual',
@@ -110,7 +113,7 @@ export function useBudgetProjects(
       }
       return convertedProjects;
     });
-  }, [maintenanceProjectsResponse, financialYearStart]);
+  }, [maintenanceProjectsResponse, financialYearStart, pendingYears]);
 
   return {
     projects,

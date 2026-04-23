@@ -36,6 +36,8 @@ import {
   AlertCircle,
   List,
   BarChart3,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { GanttChart } from '@/components/GanttChart';
 import { format, startOfMonth, endOfMonth, addMonths, subMonths } from 'date-fns';
@@ -310,6 +312,9 @@ export default function FinancialOverview() {
     }
   }, [projectViewMode]);
   const [projectStates, setProjectStates] = useState<Map<string, boolean>>(new Map());
+  // Local-only fiscal-year offsets for previewing project period shifts on
+  // the overview page. Reset on navigation/refresh and never persisted.
+  const [projectYearOffsets, setProjectYearOffsets] = useState<Map<string, number>>(new Map());
   const [selectedBill, setSelectedBill] = useState<BillPaymentSummary | null>(null);
   
   // Bills month/year filter state (defaults to current month)
@@ -1734,9 +1739,58 @@ export default function FinancialOverview() {
                                 <span className="font-medium">{t('actual')}:</span> $
                                 {project.actualCost?.toLocaleString() || 0}
                               </div>
-                              <div>
-                                <span className="font-medium">Fiscal Year:</span> {getProjectFiscalYear(project, selectedBuilding?.financialYearStart ?? bankAccountConfig?.financialYearStart ?? null)}
-                              </div>
+                              {(() => {
+                                const baseYearStr = getProjectFiscalYear(
+                                  project,
+                                  selectedBuilding?.financialYearStart ?? bankAccountConfig?.financialYearStart ?? null,
+                                );
+                                const baseYear = baseYearStr === 'N/A' ? null : parseInt(baseYearStr, 10);
+                                const offset = projectYearOffsets.get(project.id) ?? 0;
+                                const displayedYear = baseYear !== null ? baseYear + offset : null;
+                                const minYear = currentFiscalYear;
+                                const maxYear = currentFiscalYear + 25;
+                                const canPrev = displayedYear !== null && displayedYear > minYear;
+                                const canNext = displayedYear !== null && displayedYear < maxYear;
+                                const shift = (delta: number) => {
+                                  setProjectYearOffsets(prev => {
+                                    const next = new Map(prev);
+                                    const cur = (next.get(project.id) ?? 0) + delta;
+                                    if (cur === 0) next.delete(project.id);
+                                    else next.set(project.id, cur);
+                                    return next;
+                                  });
+                                };
+                                return (
+                                  <div className="flex items-center gap-1">
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      className="h-6 w-6 p-0"
+                                      disabled={!canPrev}
+                                      onClick={() => shift(-1)}
+                                      data-testid={`button-overview-shift-prev-${project.id}`}
+                                      title="Previous period"
+                                    >
+                                      <ChevronLeft className="w-3 h-3" />
+                                    </Button>
+                                    <span>
+                                      <span className="font-medium">Fiscal Year:</span>{' '}
+                                      {displayedYear ?? baseYearStr}
+                                    </span>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      className="h-6 w-6 p-0"
+                                      disabled={!canNext}
+                                      onClick={() => shift(1)}
+                                      data-testid={`button-overview-shift-next-${project.id}`}
+                                      title="Next period"
+                                    >
+                                      <ChevronRight className="w-3 h-3" />
+                                    </Button>
+                                  </div>
+                                );
+                              })()}
                               <div>
                                 <span className="font-medium">{t('cost')}:</span> $
                                 {(project.estimatedCost || project.totalBudget)?.toLocaleString() || 0}

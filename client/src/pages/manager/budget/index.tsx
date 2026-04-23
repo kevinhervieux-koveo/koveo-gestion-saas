@@ -80,7 +80,10 @@ import {
   Pencil,
   Download,
   List,
-  BarChart3
+  BarChart3,
+  ChevronLeft,
+  ChevronRight,
+  Check
 } from 'lucide-react';
 import { GanttChart } from '@/components/GanttChart';
 
@@ -441,6 +444,10 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
     refetchOnReconnect: false,
   });
 
+  // Pending financial-year shifts (projectId -> new financialYear) applied
+  // locally on the budget page before the manager confirms with a PATCH.
+  const [pendingProjectYears, setPendingProjectYears] = useState<Map<string, number>>(new Map());
+
   // Maintenance projects domain: query + projects[] state + sync effect +
   // projectStatesRef (preserves per-project includeInBudget toggles across refetches).
   const {
@@ -448,7 +455,7 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
     setProjects,
     projectStatesRef,
     projectsLoading,
-  } = useBudgetProjects(buildingId, localSettings.financialYearStart);
+  } = useBudgetProjects(buildingId, localSettings.financialYearStart, pendingProjectYears);
 
   // Initialize local settings when bank account data is loaded
   useEffect(() => {
@@ -1228,6 +1235,58 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
       );
     },
   });
+
+  // Mutation that persists a period shift confirmed from the project card.
+  const confirmProjectYearMutation = useMutation({
+    mutationFn: async ({ id, financialYear }: { id: string; financialYear: number }) => {
+      const response = await apiRequest('PATCH', `/api/maintenance/projects/${id}`, {
+        financialYear,
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(errorData.error || `HTTP ${response.status}`);
+      }
+      return { id, financialYear };
+    },
+    onSuccess: ({ id }) => {
+      setPendingProjectYears(prev => {
+        if (!prev.has(id)) return prev;
+        const next = new Map(prev);
+        next.delete(id);
+        return next;
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/maintenance/buildings', buildingId, 'projects'] });
+      toast({
+        title: language === 'fr' ? 'Période mise à jour' : 'Period updated',
+      });
+    },
+    onError: (error: any) => {
+      handleApiError(
+        error,
+        language,
+        language === 'fr' ? 'Échec de la mise à jour de la période' : 'Failed to update period'
+      );
+    },
+  });
+
+  // Minimum shiftable financial year (cannot move a project before the
+  // current financial year). Maximum is 25 years out — same horizon used by
+  // the overview page's available-fiscal-years selector.
+  const minShiftableYear: number = currentFinancialYear
+    ? parseInt(currentFinancialYear.startYear, 10)
+    : new Date().getFullYear();
+  const maxShiftableYear: number = new Date().getFullYear() + 25;
+
+  const shiftProjectYear = (project: Project, delta: number) => {
+    const baseYear = project.financialYear;
+    const nextYear = baseYear + delta;
+    if (nextYear < minShiftableYear || nextYear > maxShiftableYear) return;
+    setPendingProjectYears(prev => {
+      const next = new Map(prev);
+      next.set(project.id, nextYear);
+      return next;
+    });
+  };
 
   const handleBackToOrganization = () => {
     navigate('/manager/budget');
@@ -3486,8 +3545,16 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
                           }}
                         />
                       ) : projects.length > 0 ? (
-                        projects.map((project) => (
-                          <div key={project.id} className='border rounded-lg p-4 space-y-3'>
+                        projects.map((project) => {
+                          const hasPendingYear = pendingProjectYears.has(project.id);
+                          const isConfirming = confirmProjectYearMutation.isPending &&
+                            confirmProjectYearMutation.variables?.id === project.id;
+                          return (
+                          <div
+                            key={project.id}
+                            className={`border rounded-lg p-4 space-y-3 ${hasPendingYear ? 'border-primary ring-1 ring-primary/40 bg-primary/5' : ''}`}
+                            data-testid={`budget-project-card-${project.id}`}
+                          >
                             <div className='flex items-center justify-between'>
                               <div className='flex-1'>
                                 <div className='flex items-center gap-2'>
@@ -3496,6 +3563,11 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
                                     <Badge variant="secondary" className="text-xs">{t('budgetQuickProjectBadge')}</Badge>
                                   )}
                                   <Badge variant="outline" className="text-xs">{project.status}</Badge>
+                                  {hasPendingYear && (
+                                    <Badge variant="default" className="text-xs" data-testid={`badge-pending-year-${project.id}`}>
+                                      {language === 'fr' ? 'Modification non enregistrée' : 'Unsaved change'}
+                                    </Badge>
+                                  )}
                                 </div>
                                 <div className='grid grid-cols-2 md:grid-cols-4 gap-2 mt-2 text-xs text-muted-foreground'>
                                   <div>
@@ -3504,11 +3576,33 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
                                   <div>
                                     <span className='font-medium'>{t('budgetActualCost')}:</span> ${project.actualCost.toLocaleString()}
                                   </div>
-                                  <div>
-                                    <span className='font-medium'>{t('plannedDate')}:</span>{' '}
-                                    {project.plannedStartDate 
-                                      ? new Date(project.plannedStartDate).toLocaleDateString(language === 'fr' ? 'fr-CA' : 'en-CA', { year: 'numeric', month: 'short', day: 'numeric' })
-                                      : project.financialYear}
+                                  <div className='flex items-center gap-1'>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      className='h-6 w-6 p-0'
+                                      disabled={project.financialYear <= minShiftableYear || isConfirming}
+                                      onClick={() => shiftProjectYear(project, -1)}
+                                      data-testid={`button-shift-prev-year-${project.id}`}
+                                      title={language === 'fr' ? 'Période précédente' : 'Previous period'}
+                                    >
+                                      <ChevronLeft className='w-3 h-3' />
+                                    </Button>
+                                    <span>
+                                      <span className='font-medium'>{language === 'fr' ? 'Année financière' : 'Financial Year'}:</span>{' '}
+                                      {project.financialYear}
+                                    </span>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      className='h-6 w-6 p-0'
+                                      disabled={project.financialYear >= maxShiftableYear || isConfirming}
+                                      onClick={() => shiftProjectYear(project, 1)}
+                                      data-testid={`button-shift-next-year-${project.id}`}
+                                      title={language === 'fr' ? 'Période suivante' : 'Next period'}
+                                    >
+                                      <ChevronRight className='w-3 h-3' />
+                                    </Button>
                                   </div>
                                   <div>
                                     <span className='font-medium'>{t('cost')}:</span> ${(project.estimatedCost || project.totalBudget).toLocaleString()}
@@ -3600,8 +3694,34 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
                                 )}
                               </div>
                             </div>
+                            {hasPendingYear && (
+                              <div className='flex justify-end pt-2 border-t'>
+                                <Button
+                                  size="sm"
+                                  onClick={() => confirmProjectYearMutation.mutate({
+                                    id: project.id,
+                                    financialYear: project.financialYear,
+                                  })}
+                                  disabled={isConfirming}
+                                  data-testid={`button-confirm-year-${project.id}`}
+                                >
+                                  {isConfirming ? (
+                                    <>
+                                      <div className='animate-spin w-3 h-3 border-2 border-white border-t-transparent rounded-full mr-2'></div>
+                                      {t('saving')}
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Check className="w-4 h-4 mr-1" />
+                                      {language === 'fr' ? 'Confirmer' : 'Confirm'}
+                                    </>
+                                  )}
+                                </Button>
+                              </div>
+                            )}
                           </div>
-                        ))
+                          );
+                        })
                       ) : (
                         <div className='text-center py-8 text-muted-foreground'>
                           <Building2 className='w-12 h-12 mx-auto mb-4 text-gray-300' />
