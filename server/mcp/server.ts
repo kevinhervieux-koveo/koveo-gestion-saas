@@ -211,12 +211,12 @@ export function wrapHandlerWithRoleEnforcement<H extends (a: Record<string, unkn
  */
 export function authorizeDeleteInMcpScope(params: {
   role: McpRole;
-  entityKind: 'building' | 'bill' | 'residence';
+  entityKind: 'building' | 'bill' | 'residence' | 'project';
   entityId: string;
   entity: { exists: boolean; organizationId?: string | null };
   mcpOrgIds: string[];
 }): { ok: true } | { ok: false; response: { content: Array<{ type: 'text'; text: string }> } } {
-  const labelMap = { building: 'Building', bill: 'Bill', residence: 'Residence' } as const;
+  const labelMap = { building: 'Building', bill: 'Bill', residence: 'Residence', project: 'Project' } as const;
   const label = labelMap[params.entityKind];
   if (params.role === 'tenant') {
     return {
@@ -235,6 +235,7 @@ export function authorizeDeleteInMcpScope(params: {
       building: 'Access denied: building is not in an MCP-scoped organization',
       bill: 'Access denied: bill is not attached to an MCP-scoped building',
       residence: 'Access denied: residence is not in an MCP-scoped organization',
+      project: 'Access denied: project is not attached to an MCP-scoped building',
     } as const;
     return { ok: false, response: { content: [{ type: 'text' as const, text: scopeMessages[params.entityKind] }] } };
   }
@@ -2703,6 +2704,108 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
         // into the MCP response — see task #239.
         console.error("[mcp:delete_bill]", e);
         return buildWriteErrorResponse(e, 'bill', 'delete');
+      }
+    }
+  );
+
+  server.tool(
+    "delete_project",
+    "Delete a maintenance project (admin/manager only). Only projects attached to buildings inside MCP-scoped organizations can be deleted via MCP. Cascades in application code (inside a single transaction) to all dependent rows: project steps, project elements (junction to building elements), submission vendors, workflow tasks, project notifications, and element project updates. Evaluation suggestions that point at this project are not deleted; their projectId is null-ed out via the DB-level ON DELETE SET NULL FK. Returns a structured summary of how many rows were removed from each child table.",
+    { role: roleParam, projectId: z.string().describe("Maintenance project ID to delete") },
+    async ({ role, projectId }) => {
+      const orgIds = await getMcpOrgIds();
+      const [project] = await db
+        .select()
+        .from(schema.maintenanceProjects)
+        .where(eq(schema.maintenanceProjects.id, projectId));
+      let buildingOrgId: string | null | undefined = undefined;
+      if (project) {
+        const [building] = await db
+          .select({ organizationId: schema.buildings.organizationId })
+          .from(schema.buildings)
+          .where(eq(schema.buildings.id, project.buildingId));
+        buildingOrgId = building?.organizationId;
+      }
+      const auth = authorizeDeleteInMcpScope({
+        role,
+        entityKind: 'project',
+        entityId: projectId,
+        entity: { exists: !!project, organizationId: buildingOrgId },
+        mcpOrgIds: orgIds,
+      });
+      if (!auth.ok) return auth.response;
+      try {
+        const result = await withRetryableDbCall(() => db.transaction(async (tx) => {
+          // Explicitly delete each dependent table inside the same
+          // transaction so the MCP response can report exact cascade
+          // counts (rather than relying purely on the DB-level
+          // ON DELETE CASCADE FK, which gives us no row count).
+          const projectStepsDeleted = await tx
+            .delete(schema.projectSteps)
+            .where(eq(schema.projectSteps.projectId, projectId))
+            .returning({ id: schema.projectSteps.id });
+          const projectElementsDeleted = await tx
+            .delete(schema.projectElements)
+            .where(eq(schema.projectElements.projectId, projectId))
+            .returning({ id: schema.projectElements.id });
+          const submissionVendorsDeleted = await tx
+            .delete(schema.submissionVendors)
+            .where(eq(schema.submissionVendors.projectId, projectId))
+            .returning({ id: schema.submissionVendors.id });
+          const workflowTasksDeleted = await tx
+            .delete(schema.workflowTasks)
+            .where(eq(schema.workflowTasks.projectId, projectId))
+            .returning({ id: schema.workflowTasks.id });
+          const projectNotificationsDeleted = await tx
+            .delete(schema.projectNotifications)
+            .where(eq(schema.projectNotifications.projectId, projectId))
+            .returning({ id: schema.projectNotifications.id });
+          const elementProjectUpdatesDeleted = await tx
+            .delete(schema.elementProjectUpdates)
+            .where(eq(schema.elementProjectUpdates.projectId, projectId))
+            .returning({ id: schema.elementProjectUpdates.id });
+          // Evaluation suggestions that reference this project have
+          // their projectId cleared (DB-level ON DELETE SET NULL handles
+          // it, but we count it explicitly so the MCP response is
+          // honest about what touched the surrounding data).
+          const evaluationSuggestionsCleared = await tx
+            .update(schema.evaluationSuggestions)
+            .set({ projectId: null })
+            .where(eq(schema.evaluationSuggestions.projectId, projectId))
+            .returning({ id: schema.evaluationSuggestions.id });
+          const deleted = await tx
+            .delete(schema.maintenanceProjects)
+            .where(eq(schema.maintenanceProjects.id, projectId))
+            .returning({
+              id: schema.maintenanceProjects.id,
+              projectNumber: schema.maintenanceProjects.projectNumber,
+              title: schema.maintenanceProjects.title,
+            });
+          return {
+            deleted: deleted[0] ?? null,
+            cascaded: {
+              projectSteps: projectStepsDeleted.length,
+              projectElements: projectElementsDeleted.length,
+              submissionVendors: submissionVendorsDeleted.length,
+              workflowTasks: workflowTasksDeleted.length,
+              projectNotifications: projectNotificationsDeleted.length,
+              elementProjectUpdates: elementProjectUpdatesDeleted.length,
+            },
+            evaluationSuggestionsCleared: evaluationSuggestionsCleared.length,
+          };
+        }));
+        return {
+          content: [{
+            type: "text" as const,
+            text: JSON.stringify({ ...result, message: "Project deleted (cascade applied to project steps, project elements, submission vendors, workflow tasks, project notifications, element project updates)" }, null, 2),
+          }],
+        };
+      } catch (e) {
+        // Log full driver error (includes SQL text + bound params) to the
+        // server console so operators can debug, but never interpolate it
+        // into the MCP response — see task #239.
+        console.error("[mcp:delete_project]", e);
+        return buildWriteErrorResponse(e, 'project', 'delete');
       }
     }
   );
