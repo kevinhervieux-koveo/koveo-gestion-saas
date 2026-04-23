@@ -1217,6 +1217,7 @@ export const documents = pgTable("documents", {
         documentType: text("document_type").notNull(),
         filePath: text("file_path").notNull(),
         isVisibleToTenants: boolean("is_visible_to_tenants").default(false).notNull(),
+        isManagerOnly: boolean("is_manager_only").default(false).notNull(),
         residenceId: varchar("residence_id"),
         buildingId: varchar("building_id"),
         uploadedById: varchar("uploaded_by_id").notNull(),

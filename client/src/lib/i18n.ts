@@ -350,6 +350,8 @@ export interface Translations {
   deletingDocument: string;
   documentVisibility: string;
   documentVisibilityDescription: string;
+  managerOnly: string;
+  managerOnlyDescription: string;
   confirmDeleteDocument: string;
   documentDetails: string;
   documentDetailsDescription: string;
@@ -2639,6 +2641,8 @@ export const translations: Record<Language, Translations> = {
     deletingDocument: 'Deleting...',
     documentVisibility: 'Share with Tenants',
     documentVisibilityDescription: 'When enabled, tenants can view and download this document from their portal',
+    managerOnly: 'Manager only',
+    managerOnlyDescription: 'When enabled, only managers assigned to this building (and administrators) can view this document. Residents and tenants will not see it, even if it belongs to their residence or building.',
     confirmDeleteDocument: 'Are you sure you want to delete this document? This action cannot be undone.',
     documentDetails: 'Document Details',
     documentDetailsDescription: 'View and manage document information',
@@ -4771,6 +4775,8 @@ export const translations: Record<Language, Translations> = {
     deletingDocument: 'Suppression en cours...',
     documentVisibility: 'Partager avec les locataires',
     documentVisibilityDescription: 'Lorsque activé, les locataires peuvent voir et télécharger ce document depuis leur portail',
+    managerOnly: 'Gestionnaires seulement',
+    managerOnlyDescription: 'Lorsque activé, seuls les gestionnaires assignés à cet immeuble (et les administrateurs) peuvent consulter ce document. Les résidents et locataires ne le verront pas, même s\'il appartient à leur résidence ou immeuble.',
     confirmDeleteDocument: 'Êtes-vous sûr de vouloir supprimer ce document ? Cette action ne peut pas être annulée.',
     documentDetails: 'Détails du document',
     documentDetailsDescription: 'Afficher et gérer les informations du document',

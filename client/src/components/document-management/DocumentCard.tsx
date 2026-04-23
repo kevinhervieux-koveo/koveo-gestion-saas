@@ -2,6 +2,7 @@ import React from 'react';
 import { Eye, FileText, Image, File, Calendar, User } from 'lucide-react';
 import { StandardCard } from '@/components/common/StandardCard';
 import { Checkbox } from '@/components/ui/checkbox';
+import { useLanguage } from '@/hooks/use-language';
 
 interface DocumentCardProps {
   title: string;
@@ -18,6 +19,7 @@ interface DocumentCardProps {
   mimeType?: string;
   uploadedBy?: string;
   isVisibleToTenants?: boolean;
+  isManagerOnly?: boolean;
   
   // Selection mode
   selectable?: boolean;
@@ -48,6 +50,7 @@ export function DocumentCard({
   mimeType,
   uploadedBy,
   isVisibleToTenants,
+  isManagerOnly,
   selectable = false,
   selected = false,
   onSelectionChange,
@@ -55,6 +58,7 @@ export function DocumentCard({
   compact = false,
   showMetadata = true
 }: DocumentCardProps) {
+  const { t } = useLanguage();
   
   // Get appropriate icon based on document type/mime type
   const getDocumentIcon = () => {
@@ -119,6 +123,11 @@ export function DocumentCard({
       text: '👥 Visible to Tenants',
       variant: 'outline' as const,
       className: 'border-green-300 text-green-700 dark:border-green-600 dark:text-green-400'
+    },
+    isManagerOnly && {
+      text: t('managerOnly'),
+      variant: 'outline' as const,
+      className: 'border-amber-300 text-amber-700 dark:border-amber-600 dark:text-amber-400'
     }
   ].filter(Boolean) : [];
 

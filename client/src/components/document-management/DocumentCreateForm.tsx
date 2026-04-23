@@ -31,7 +31,14 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText, Upload } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { FileText, Upload, Info, Lock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/use-language';
 import { useCreateUpdateMutation } from '@/lib/common-hooks';
@@ -43,6 +50,7 @@ type DocumentCreateData = {
   description?: string;
   category: 'bylaw' | 'financial' | 'maintenance' | 'legal' | 'meeting_minutes' | 'insurance' | 'contracts' | 'permits' | 'inspection' | 'other';
   effectiveDate?: string;
+  isManagerOnly: boolean;
 };
 
 interface DocumentCreateFormProps {
@@ -100,6 +108,7 @@ export function DocumentCreateForm({
       'other'
     ]),
     effectiveDate: z.string().optional(),
+    isManagerOnly: z.boolean(),
   });
 
   // Upload context for secure storage
@@ -119,6 +128,7 @@ export function DocumentCreateForm({
       description: '',
       category: 'other',
       effectiveDate: '',
+      isManagerOnly: false,
     }
   });
 
@@ -136,6 +146,7 @@ export function DocumentCreateForm({
       if (data.effectiveDate && data.effectiveDate.trim() !== '') {
         formData.append('effectiveDate', data.effectiveDate);
       }
+      formData.append('isManagerOnly', data.isManagerOnly ? 'true' : 'false');
       
       // Add entity association
       if (entityType === 'building') {
@@ -324,6 +335,44 @@ export function DocumentCreateForm({
                       />
                     </FormControl>
                     <FormMessage />
+                  </FormItem>
+                )}
+              />
+              {/* Manager-only visibility toggle */}
+              <FormField
+                control={form.control}
+                name="isManagerOnly"
+                render={({ field }) => (
+                  <FormItem className="flex items-start justify-between gap-4 rounded-lg border p-4">
+                    <div className="space-y-1">
+                      <FormLabel className="flex items-center gap-2">
+                        <Lock className="w-4 h-4" />
+                        {t('managerOnly')}
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Info
+                                className="w-4 h-4 text-muted-foreground cursor-help"
+                                data-testid="tooltip-manager-only"
+                              />
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-xs">
+                              {t('managerOnlyDescription')}
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </FormLabel>
+                      <p className="text-xs text-muted-foreground">
+                        {t('managerOnlyDescription')}
+                      </p>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        data-testid="switch-manager-only"
+                      />
+                    </FormControl>
                   </FormItem>
                 )}
               />

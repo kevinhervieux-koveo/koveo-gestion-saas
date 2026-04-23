@@ -167,6 +167,12 @@ export function DocumentViewDialog({ documentId, isOpen, onClose, onEdit, canEdi
                 <Label className="text-sm font-medium">{t('visibleToTenants')}</Label>
                 <p className="text-sm text-gray-600">{document.isVisibleToTenants ? t('yes') : t('no')}</p>
               </div>
+              <div>
+                <Label className="text-sm font-medium">{t('managerOnly')}</Label>
+                <p className="text-sm text-gray-600" data-testid="document-manager-only">
+                  {document.isManagerOnly ? t('yes') : t('no')}
+                </p>
+              </div>
             </div>
 
             {/* Description */}
@@ -1076,6 +1082,8 @@ export default function ModularDocumentPageWrapper({
                                   documentType={document.category || document.documentType}
                                   createdAt={document.createdAt}
                                   effectiveDate={document.effectiveDate}
+                                  isVisibleToTenants={document.isVisibleToTenants}
+                                  isManagerOnly={document.isManagerOnly}
                                   onViewClick={selectionMode ? undefined : handleDocumentView}
                                   compact={viewMode === 'list'}
                                   selectable={selectionMode}

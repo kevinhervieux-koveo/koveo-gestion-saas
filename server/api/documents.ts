@@ -396,6 +396,7 @@ const createDocumentSchema = insertDocumentSchema.extend({
   title: z.string().min(1).max(255),
   description: z.string().optional(),
   isVisibleToTenants: z.boolean().default(false),
+  isManagerOnly: z.boolean().default(false),
 });
 
 const createBuildingDocumentSchema = insertDocumentSchema.extend({
@@ -416,6 +417,7 @@ const uploadDocumentRecordSchema = z.object({
   description: z.string().optional(),
   documentType: z.enum(DOCUMENT_CATEGORIES),
   isVisibleToTenants: z.boolean().default(false),
+  isManagerOnly: z.boolean().default(false),
   residenceId: z.string().uuid().optional(),
   buildingId: z.string().uuid().optional(),
   attachedToType: z.string().optional(),
@@ -1550,6 +1552,18 @@ export function registerDocumentRoutes(app: Express): void {
           return false;
         }
 
+        // Manager-only documents are restricted to admins and managers, even
+        // when residents/tenants would otherwise have residence/building access.
+        if (doc.isManagerOnly) {
+          if (
+            userRole !== 'admin' &&
+            userRole !== 'manager' &&
+            userRole !== 'demo_manager'
+          ) {
+            return false;
+          }
+        }
+
         // Admin can see all documents
         if (userRole === 'admin') {
           return true;
@@ -1918,6 +1932,7 @@ export function registerDocumentRoutes(app: Express): void {
           documentType: documentType || 'other',
           filePath: `text-documents/${userId}/${uuidv4()}.txt`, // Virtual path for text documents
           isVisibleToTenants: otherData.isVisibleToTenants === 'true' || otherData.isVisibleToTenants === true,
+          isManagerOnly: otherData.isManagerOnly === 'true' || otherData.isManagerOnly === true,
           isQuarantined: false, // Text documents are safe by default
           residenceId: residenceId || undefined,
           buildingId: buildingId || undefined,
@@ -1997,6 +2012,7 @@ export function registerDocumentRoutes(app: Express): void {
           documentType: otherData.category || documentType || 'other',
           filePath: `metadata-documents/${userId}/${uuidv4()}`, // Placeholder path for metadata-only documents
           isVisibleToTenants: otherData.isVisibleToTenants === 'true' || otherData.isVisibleToTenants === true || false,
+          isManagerOnly: otherData.isManagerOnly === 'true' || otherData.isManagerOnly === true || false,
           isQuarantined: false, // Metadata documents are safe by default
           residenceId: residenceId || undefined,
           buildingId: buildingId || undefined,
@@ -2188,6 +2204,7 @@ export function registerDocumentRoutes(app: Express): void {
         
         // Convert string boolean fields to actual booleans for validation
         const isVisibleToTenants = otherData.isVisibleToTenants === 'true' || otherData.isVisibleToTenants === true;
+        const isManagerOnly = otherData.isManagerOnly === 'true' || otherData.isManagerOnly === true;
         
         const dataToValidate = {
           ...otherData,
@@ -2199,6 +2216,7 @@ export function registerDocumentRoutes(app: Express): void {
           mimeType: req.file?.mimetype,
           documentType: documentType || type || 'other', // Default to 'other' if not provided
           isVisibleToTenants, // Use converted boolean value
+          isManagerOnly, // Use converted boolean value
         };
         
         // console.log(`🏢 [BUILDING UPLOAD] Data to validate:`, {
@@ -2279,6 +2297,7 @@ export function registerDocumentRoutes(app: Express): void {
           fileSize: validatedData.fileSize,
           mimeType: validatedData.mimeType,
           isVisibleToTenants: validatedData.isVisibleToTenants || false,
+          isManagerOnly: validatedData.isManagerOnly || false,
           isQuarantined: false, // Building documents are validated and safe
           residenceId: undefined,
           buildingId: validatedData.buildingId,
@@ -2429,6 +2448,7 @@ export function registerDocumentRoutes(app: Express): void {
 
         // Convert string boolean fields to actual booleans for validation
         const isVisibleToTenants = otherData.isVisibleToTenants === 'true' || otherData.isVisibleToTenants === true;
+        const isManagerOnly = otherData.isManagerOnly === 'true' || otherData.isManagerOnly === true;
         
         const dataToValidate = {
           ...otherData,
@@ -2440,6 +2460,7 @@ export function registerDocumentRoutes(app: Express): void {
           mimeType: req.file?.mimetype,
           documentType: documentType || type || 'other', // Default to 'other' if not provided
           isVisibleToTenants, // Use converted boolean value
+          isManagerOnly, // Use converted boolean value
         };
         
         // console.log('🔍 Residence document validation debug:', {
@@ -2501,6 +2522,7 @@ export function registerDocumentRoutes(app: Express): void {
           fileSize: validatedData.fileSize,
           mimeType: validatedData.mimeType,
           isVisibleToTenants: validatedData.isVisibleToTenants || false,
+          isManagerOnly: validatedData.isManagerOnly || false,
           isQuarantined: false, // Resident documents are validated and safe
           residenceId: validatedData.residenceId,
           buildingId: residence.buildingId,
@@ -2635,7 +2657,17 @@ export function registerDocumentRoutes(app: Express): void {
       if (req.body.description !== undefined) updateData.description = req.body.description;
       if (req.body.documentType) updateData.documentType = req.body.documentType;
       if (req.body.isVisibleToTenants !== undefined) {
-        updateData.isVisibleToTenants = req.body.isVisibleToTenants === 'true';
+        updateData.isVisibleToTenants = req.body.isVisibleToTenants === 'true' || req.body.isVisibleToTenants === true;
+      }
+      if (req.body.isManagerOnly !== undefined) {
+        // Only admins/managers may toggle the manager-only visibility flag.
+        if (
+          userRole === 'admin' ||
+          userRole === 'manager' ||
+          userRole === 'demo_manager'
+        ) {
+          updateData.isManagerOnly = req.body.isManagerOnly === 'true' || req.body.isManagerOnly === true;
+        }
       }
 
       // console.log(`📝 [DOCUMENT UPDATE] Update data:`, updateData);
@@ -3452,7 +3484,7 @@ export function registerDocumentRoutes(app: Express): void {
         return res.status(401).json({ message: 'User not authenticated' });
       }
       
-      const { textContent, name, description, documentType, attachedToType, attachedToId, buildingId, residenceId, isVisibleToTenants, effectiveDate } = req.body;
+      const { textContent, name, description, documentType, attachedToType, attachedToId, buildingId, residenceId, isVisibleToTenants, isManagerOnly, effectiveDate } = req.body;
       
       // Validate required fields
       if (!textContent || !name) {
@@ -3506,6 +3538,7 @@ export function registerDocumentRoutes(app: Express): void {
         documentType: documentType || 'other',
         filePath: `${storagePath}/${fileName}`,
         isVisibleToTenants: isVisibleToTenants === 'true' || isVisibleToTenants === true,
+        isManagerOnly: isManagerOnly === 'true' || isManagerOnly === true,
         isQuarantined: false, // Text documents are safe by default
         residenceId: residenceId || undefined,
         buildingId: buildingId || undefined,
@@ -3590,6 +3623,7 @@ export function registerDocumentRoutes(app: Express): void {
         description: req.body.description || '',
         documentType: req.body.documentType || req.body.type, // Handle both field names
         isVisibleToTenants: req.body.isVisibleToTenants === 'true',
+        isManagerOnly: req.body.isManagerOnly === 'true',
         residenceId: req.body.residenceId || undefined,
         buildingId: req.body.buildingId || undefined,
         attachedToType: req.body.attachedToType || undefined,
@@ -3766,6 +3800,7 @@ export function registerDocumentRoutes(app: Express): void {
         fileSize: req.file!.size,
         mimeType: req.file!.mimetype,
         isVisibleToTenants: validatedData.isVisibleToTenants,
+        isManagerOnly: validatedData.isManagerOnly,
         isQuarantined: false, // File uploads are validated and safe
         residenceId: validatedData.residenceId,
         buildingId: actualBuildingId,
@@ -3971,6 +4006,15 @@ export function registerDocumentRoutes(app: Express): void {
       let hasAccess = false;
       let accessReason = '';
 
+      // Manager-only documents are restricted to admins/managers regardless of
+      // building/residence assignment. Residents and tenants are denied even
+      // for documents in their own residence/building.
+      const isManagerOnlyDocument = !!document.isManagerOnly;
+      const userIsManagerOrAdmin =
+        userRole === 'admin' ||
+        userRole === 'manager' ||
+        userRole === 'demo_manager';
+
       if (userRole === 'admin') {
         hasAccess = true;
         accessReason = 'Admin has global access';
@@ -4019,6 +4063,13 @@ export function registerDocumentRoutes(app: Express): void {
         }
       }
       
+      // Enforce manager-only flag: revoke any access we might have granted to
+      // residents/tenants based on their residence/building assignment.
+      if (isManagerOnlyDocument && !userIsManagerOrAdmin) {
+        hasAccess = false;
+        accessReason = 'Document is restricted to managers only';
+      }
+
       // Special handling for documents attached to demands
       if (!hasAccess && document.attachedToType === 'demand' && document.attachedToId) {
         const { demands } = await import('../../shared/schemas/operations');
@@ -4033,6 +4084,12 @@ export function registerDocumentRoutes(app: Express): void {
               : 'Manager/admin has access to all demands';
           }
         }
+      }
+
+      // Final manager-only enforcement (covers any access granted by demand path).
+      if (isManagerOnlyDocument && !userIsManagerOrAdmin) {
+        hasAccess = false;
+        accessReason = 'Document is restricted to managers only';
       }
 
       if (!hasAccess) {

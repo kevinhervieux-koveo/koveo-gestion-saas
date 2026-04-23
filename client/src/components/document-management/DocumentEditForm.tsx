@@ -15,7 +15,13 @@ import { StandardFormField } from '@/components/forms/StandardFormField';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/use-language';
 import { apiRequest } from '@/lib/queryClient';
-import { Trash2, Save, X } from 'lucide-react';
+import { Trash2, Save, X, Lock, Info } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import type { Document } from '@shared/schema';
 
 type DocumentEditFormData = {
@@ -24,6 +30,7 @@ type DocumentEditFormData = {
   category: 'bylaw' | 'financial' | 'maintenance' | 'legal' | 'meeting_minutes' | 'insurance' | 'contracts' | 'permits' | 'inspection' | 'other';
   effectiveDate?: string;
   isVisible: boolean;
+  isManagerOnly: boolean;
 };
 
 interface DocumentEditFormProps {
@@ -71,6 +78,7 @@ export function DocumentEditForm({
     category: z.enum(['bylaw', 'financial', 'maintenance', 'legal', 'meeting_minutes', 'insurance', 'contracts', 'permits', 'inspection', 'other']),
     effectiveDate: z.string().optional(),
     isVisible: z.boolean().default(true),
+    isManagerOnly: z.boolean().default(false),
     // Removed tags field as it's not supported by backend
   });
   
@@ -80,6 +88,7 @@ export function DocumentEditForm({
     category: (document.documentType as any) || 'other',
     effectiveDate: document.effectiveDate ? new Date(document.effectiveDate).toISOString().split('T')[0] : '',
     isVisible: document.isVisibleToTenants ?? true,
+    isManagerOnly: document.isManagerOnly ?? false,
     // Removed tags field as it's not supported by backend
   };
 
@@ -150,6 +159,7 @@ export function DocumentEditForm({
       documentType: data.category, // Map category -> documentType
       effectiveDate: data.effectiveDate && data.effectiveDate.trim() !== '' ? data.effectiveDate : undefined,
       isVisibleToTenants: data.isVisible, // Map isVisible -> isVisibleToTenants
+      isManagerOnly: data.isManagerOnly,
       buildingId,
       residenceId,
       // Removed tags field as it's not supported by backend
@@ -263,7 +273,45 @@ export function DocumentEditForm({
                 </FormItem>
               )}
             />
-            
+
+            <FormField
+              control={formControls.form.control}
+              name="isManagerOnly"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-base flex items-center gap-2">
+                      <Lock className="w-4 h-4" />
+                      {t('managerOnly')}
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Info
+                              className="w-4 h-4 text-muted-foreground cursor-help"
+                              data-testid="tooltip-manager-only"
+                            />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs">
+                            {t('managerOnlyDescription')}
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </FormLabel>
+                    <p className="text-sm text-muted-foreground">
+                      {t('managerOnlyDescription')}
+                    </p>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      data-testid="switch-manager-only"
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
             <div className="flex justify-end space-x-3 pt-6 border-t">
               {onCancel && (
                 <Button

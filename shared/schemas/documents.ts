@@ -22,6 +22,7 @@ export const documents = pgTable('documents', {
   fileSize: integer('file_size'), // File size in bytes
   mimeType: text('mime_type'), // MIME type for proper handling
   isVisibleToTenants: boolean('is_visible_to_tenants').default(false).notNull(),
+  isManagerOnly: boolean('is_manager_only').default(false).notNull(),
   isQuarantined: boolean('is_quarantined').default(false).notNull(),
   residenceId: varchar('residence_id').references(() => residences.id),
   buildingId: varchar('building_id').references(() => buildings.id),
@@ -61,6 +62,7 @@ export const insertDocumentSchema = z.object({
   fileSize: z.number().int().optional(),
   mimeType: z.string().optional(),
   isVisibleToTenants: z.boolean().default(false),
+  isManagerOnly: z.boolean().default(false),
   isQuarantined: z.boolean().default(false),
   residenceId: z.string().optional(),
   buildingId: z.string().optional(),

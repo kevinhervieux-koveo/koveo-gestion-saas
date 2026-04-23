@@ -3022,6 +3022,23 @@ export class OptimizedDatabaseStorage implements IStorage {
           return null;
         }
 
+        // Manager-only documents are accessible only to admins and managers
+        // (including demo_manager). Residents and tenants are denied even when
+        // the document belongs to their own residence/building.
+        if (
+          document.isManagerOnly &&
+          userRole !== 'admin' &&
+          userRole !== 'manager' &&
+          userRole !== 'demo_manager'
+        ) {
+          this.logStorageOperation('getDocumentWithScope_MANAGER_ONLY_DENIED', {
+            operationId,
+            documentId,
+            userRole,
+          }, 'DEBUG');
+          return null;
+        }
+
         // Admins can access everything
         if (userRole === 'admin') {
           this.logStorageOperation('getDocumentWithScope_ADMIN_ACCESS', {
@@ -3302,6 +3319,9 @@ export class OptimizedDatabaseStorage implements IStorage {
             conditions.push(inArray(schema.documents.residenceId, residenceIds));
           }
 
+          // Residents cannot see manager-only documents.
+          conditions.push(eq(schema.documents.isManagerOnly, false));
+
           const query = conditions.length > 0
             ? db.select().from(schema.documents).where(and(...conditions))
             : db.select().from(schema.documents);
@@ -3348,6 +3368,9 @@ export class OptimizedDatabaseStorage implements IStorage {
           }
 
           conditions.push(or(...tenantConditions));
+
+          // Tenants cannot see manager-only documents.
+          conditions.push(eq(schema.documents.isManagerOnly, false));
 
           if (filters.residenceId) {
             conditions.push(eq(schema.documents.residenceId, filters.residenceId));

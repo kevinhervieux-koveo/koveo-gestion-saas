@@ -107,6 +107,10 @@ export function registerOptimizedDocumentRoutes(app: Express): void {
         organizationId: z.string().uuid().optional(),
         buildingId: z.string().uuid().optional(),
         residenceId: z.string().uuid().optional(),
+        isManagerOnly: z.preprocess(
+          (v) => v === 'true' || v === true,
+          z.boolean()
+        ).optional(),
       }).parse(req.body);
 
       // Create optimized upload context
@@ -151,6 +155,7 @@ export function registerOptimizedDocumentRoutes(app: Express): void {
         residenceId: uploadData.residenceId,
         uploadedById: user.id,
         isVisibleToTenants: false,
+        isManagerOnly: uploadData.isManagerOnly ?? false,
         documentType: uploadData.documentType,
       };
 
@@ -192,13 +197,21 @@ export function registerOptimizedDocumentRoutes(app: Express): void {
 
       console.log(`📋 [OPTIMIZED] File request - ID: ${documentId}, User: ${user.role}, Download: ${isDownload}`);
 
-      // Fast document lookup with caching
-      const document = await db.query.documents.findFirst({ 
-        where: eq(documents.id, documentId) 
-      });
+      // Authorization: reuse the centralized scope check, which enforces
+      // organization/building/residence assignment AND blocks residents/tenants
+      // from manager-only documents (and managers not assigned to the building).
+      const userOrganizations = await storage.getUserOrganizations(user.id);
+      const userOrganizationIds = userOrganizations.map((org: any) => org.organizationId);
+
+      const document = await storage.getDocumentWithScope(
+        documentId,
+        user.id,
+        user.role,
+        userOrganizationIds
+      );
 
       if (!document) {
-        return res.status(404).json({ message: 'Document not found' });
+        return res.status(404).json({ message: 'Document not found or access denied' });
       }
 
       // Optimized file retrieval
