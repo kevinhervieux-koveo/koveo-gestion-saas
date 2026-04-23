@@ -66,6 +66,7 @@ jest.mock('../../../server/services/email-service', () => ({
 }));
 
 import {
+  buildDowngradeReminderText,
   createMcpServer,
   wrapHandlerWithRoleEnforcement,
 } from '../../../server/mcp/server';
@@ -313,5 +314,93 @@ describe('wrapHandlerWithRoleEnforcement getActingRole integration', () => {
     const res = (await wrapped({ role: 'admin' })) as { content: Array<{ text: string }> };
     expect(handler).not.toHaveBeenCalled();
     expect(res.content[0].text).toContain('Authorization mismatch');
+  });
+});
+
+/**
+ * Task #468 — when a session is operating under a downgraded acting role, the
+ * MCP server should append a reminder to every regular tool response so the
+ * model sees its current (reduced) scope on every turn instead of only after
+ * explicitly calling `get_mcp_info`.
+ */
+describe('downgrade reminder injection on tool responses', () => {
+  it('does not append a reminder when no downgrade is in effect', async () => {
+    createMcpServer({ role: 'admin' });
+    const listOrgs = registeredTools.get('list_organizations')!;
+    selectQueue.push([]); // getMcpOrgIds
+    selectQueue.push([]); // org rows
+    const res = await listOrgs({});
+    const reminderItems = res.content.filter((c) =>
+      c.text.includes('[Acting role reminder]'),
+    );
+    expect(reminderItems).toHaveLength(0);
+  });
+
+  it('appends the reminder to a regular tool response when a downgrade is in effect', async () => {
+    createMcpServer({ role: 'admin' });
+    const downgrade = registeredTools.get('downgrade_acting_role')!;
+    const listOrgs = registeredTools.get('list_organizations')!;
+
+    await downgrade({ role: 'tenant' });
+
+    selectQueue.push([]); // getMcpOrgIds
+    selectQueue.push([]); // org rows
+    const res = await listOrgs({});
+    const reminder = res.content[res.content.length - 1];
+    expect(reminder.text).toBe(buildDowngradeReminderText('admin', 'tenant'));
+    expect(reminder.text).toContain('OAuth-bound to "admin"');
+    expect(reminder.text).toContain('acting as "tenant"');
+    expect(reminder.text).toContain('restore_acting_role');
+  });
+
+  it('does NOT append the reminder to role-meta tool responses', async () => {
+    createMcpServer({ role: 'admin' });
+    const downgrade = registeredTools.get('downgrade_acting_role')!;
+    const restore = registeredTools.get('restore_acting_role')!;
+    const getInfo = registeredTools.get('get_mcp_info')!;
+
+    const downRes = await downgrade({ role: 'tenant' });
+    expect(
+      downRes.content.some((c) => c.text.includes('[Acting role reminder]')),
+    ).toBe(false);
+
+    primeGetMcpInfoSelects();
+    const infoRes = await getInfo({});
+    expect(
+      infoRes.content.some((c) => c.text.includes('[Acting role reminder]')),
+    ).toBe(false);
+
+    const restoreRes = await restore({});
+    expect(
+      restoreRes.content.some((c) => c.text.includes('[Acting role reminder]')),
+    ).toBe(false);
+  });
+
+  it('stops appending the reminder after restore_acting_role', async () => {
+    createMcpServer({ role: 'admin' });
+    const downgrade = registeredTools.get('downgrade_acting_role')!;
+    const restore = registeredTools.get('restore_acting_role')!;
+    const listOrgs = registeredTools.get('list_organizations')!;
+
+    await downgrade({ role: 'tenant' });
+    await restore({});
+
+    selectQueue.push([]); // getMcpOrgIds
+    selectQueue.push([]); // org rows
+    const res = await listOrgs({});
+    expect(
+      res.content.some((c) => c.text.includes('[Acting role reminder]')),
+    ).toBe(false);
+  });
+
+  it('legacy MCP_API_KEY sessions never get the reminder appended', async () => {
+    createMcpServer(undefined);
+    const listOrgs = registeredTools.get('list_organizations')!;
+    selectQueue.push([]);
+    selectQueue.push([]);
+    const res = await listOrgs({ role: 'tenant' });
+    expect(
+      res.content.some((c) => c.text.includes('[Acting role reminder]')),
+    ).toBe(false);
   });
 });

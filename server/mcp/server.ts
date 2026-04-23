@@ -612,6 +612,40 @@ export function buildDeleteErrorResponse(
 export const SANITIZED_EMAIL_ERROR =
   'Email service threw an error while sending — see server logs';
 
+/**
+ * Tools that already carry the OAuth-bound / acting role information in their
+ * primary response payload. We do NOT want to append the generic downgrade
+ * reminder to these — it would either duplicate the information they already
+ * return (`get_mcp_info`) or add noise to a response whose entire purpose is
+ * to manipulate the acting role (`downgrade_acting_role`, `restore_acting_role`).
+ */
+const ROLE_META_TOOL_NAMES: ReadonlySet<string> = new Set([
+  'get_mcp_info',
+  'downgrade_acting_role',
+  'restore_acting_role',
+]);
+
+/**
+ * Build the human-readable reminder text appended to every tool response when
+ * the session is operating under a downgraded acting role. Exported so the
+ * unit tests can assert the exact wording.
+ *
+ * The reminder is intentionally short, prefixed with a clear `[Acting role …]`
+ * marker, and instructs the assistant how to revert (`restore_acting_role`).
+ */
+export function buildDowngradeReminderText(
+  oauthBoundRole: McpRole,
+  currentActingRole: McpRole,
+): string {
+  return (
+    `[Acting role reminder] This MCP session is OAuth-bound to "${oauthBoundRole}" ` +
+    `but a session-level downgrade is in effect — you are currently acting as ` +
+    `"${currentActingRole}", which has reduced privileges. Subsequent tool calls ` +
+    `that omit the \`role\` argument will continue to run as "${currentActingRole}". ` +
+    `Plan accordingly, or call restore_acting_role to revert to "${oauthBoundRole}".`
+  );
+}
+
 export function createMcpServer(authContext?: McpAuthContext): McpServer {
   // When the request was authenticated via OAuth, ALWAYS use the role granted
   // at consent time. Otherwise (legacy MCP_API_KEY path) fall back to the
@@ -658,17 +692,56 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     (server as unknown as { tool: typeof original }).tool = ((
       ...registerArgs: unknown[]
     ) => {
+      const toolName = typeof registerArgs[0] === 'string' ? (registerArgs[0] as string) : '';
       const handlerIdx = registerArgs.length - 1;
       const handler = registerArgs[handlerIdx] as (
         a: Record<string, unknown>,
         ...rest: unknown[]
       ) => unknown;
       if (typeof handler === 'function') {
-        registerArgs[handlerIdx] = wrapHandlerWithRoleEnforcement(
+        const enforced = wrapHandlerWithRoleEnforcement(
           handler,
           enforcedRole,
           () => actingRole ?? enforcedRole,
         );
+        // Append a session-state reminder to every tool response when a
+        // downgrade is in effect, so the model sees the active (reduced)
+        // role on every turn rather than only after explicitly calling
+        // `get_mcp_info`. This makes it much harder for the assistant to
+        // forget that its scope has been narrowed and propose an action
+        // that will fail because of the downgrade. The role-meta tools
+        // (`downgrade_acting_role`, `restore_acting_role`, `get_mcp_info`)
+        // are exempt because they already carry that information in their
+        // primary payload — re-appending it would just be noise.
+        const isRoleMetaTool = ROLE_META_TOOL_NAMES.has(toolName);
+        const wrapped = isRoleMetaTool
+          ? enforced
+          : (async (a: Record<string, unknown>, ...rest: unknown[]) => {
+              const result = await enforced(a, ...rest);
+              const current = actingRole ?? enforcedRole;
+              if (
+                current !== enforcedRole &&
+                result &&
+                typeof result === 'object' &&
+                Array.isArray((result as { content?: unknown }).content)
+              ) {
+                const r = result as {
+                  content: Array<{ type: string; text: string }>;
+                };
+                return {
+                  ...r,
+                  content: [
+                    ...r.content,
+                    {
+                      type: 'text' as const,
+                      text: buildDowngradeReminderText(enforcedRole, current),
+                    },
+                  ],
+                };
+              }
+              return result;
+            }) as typeof enforced;
+        registerArgs[handlerIdx] = wrapped;
       }
       return original(...registerArgs);
     }) as typeof original;
