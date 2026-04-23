@@ -113,7 +113,7 @@ export function BuildingCard({
           className='w-full'
           data-testid={`button-documents-${building.id}`}
         >
-          Documents
+          {t('documents')}
         </Button>
       </Link>
       {showResidencesButton && (
@@ -124,7 +124,7 @@ export function BuildingCard({
             className='w-full'
             data-testid={`button-residences-${building.id}`}
           >
-            Residences
+            {t('residences')}
           </Button>
         </Link>
       )}
