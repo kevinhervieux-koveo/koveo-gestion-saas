@@ -382,3 +382,81 @@ describe('DocumentInlineViewer + DocumentLinkPickerDialog — chip refresh', () 
     expect(mockToast).toHaveBeenCalledTimes(2);
   });
 });
+
+// ---------------------------------------------------------------------------
+// Task #444 — chain-end disabled buttons.
+//
+// When `resolveDocumentNeighbors` reports `previousIsChainEnd` /
+// `nextIsChainEnd`, the viewer must render the disabled
+// `button-prev-document-chain-end` / `button-next-document-chain-end`
+// instead of the empty "Link previous / Link next" CTA. This guards the
+// regression where the unlinked side of a chain wraps around to a
+// date-based neighbor rather than surfacing the "First/Last document of
+// chain" affordance.
+// ---------------------------------------------------------------------------
+describe('DocumentInlineViewer — chain-end disabled buttons', () => {
+  it('renders disabled chain-end buttons with translated labels when both sides are chain ends', async () => {
+    const chainEndFetch = jest.fn(async (input: RequestInfo | URL): Promise<Response> => {
+      const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
+      const [pathname] = url.split('?');
+      if (pathname.match(/^\/api\/documents\/[^/]+\/neighbors$/)) {
+        // Both sides are chain ends — no neighbor doc on either side, but
+        // the chain-end flag is set so the disabled affordance must show.
+        return buildJsonResponse({
+          currentId: 'doc-chain-only',
+          previous: null,
+          previousIsChainEnd: true,
+          next: null,
+          nextIsChainEnd: true,
+        });
+      }
+      if (pathname.match(/^\/api\/documents\/[^/]+\/links$/)) {
+        return buildJsonResponse({ links: [] });
+      }
+      if (pathname.match(/^\/api\/documents\/[^/]+\/file$/)) {
+        return buildBlobResponse();
+      }
+      throw new Error(`Unmocked request: ${url}`);
+    }) as unknown as jest.MockedFunction<typeof fetch>;
+
+    global.fetch = chainEndFetch as unknown as typeof fetch;
+
+    render(
+      <QueryClientProvider client={queryClient}>
+        <DocumentInlineViewer
+          isOpen
+          onClose={jest.fn()}
+          fileUrl={`/api/documents/doc-chain-only/file`}
+          fileName="current.pdf"
+          documentId="doc-chain-only"
+        />
+      </QueryClientProvider>,
+    );
+
+    // Both disabled chain-end buttons must render once the neighbors
+    // query resolves. The "Link previous / Link next" CTAs must NOT show.
+    const prevBtn = await screen.findByTestId('button-prev-document-chain-end');
+    const nextBtn = await screen.findByTestId('button-next-document-chain-end');
+
+    expect(prevBtn).toBeDisabled();
+    expect(nextBtn).toBeDisabled();
+
+    // The mocked `t()` returns the i18n key as-is, so the rendered label,
+    // aria-label, and tooltip must all equal the key the viewer requests.
+    expect(prevBtn).toHaveAttribute('aria-label', 'firstDocumentOfChain');
+    expect(prevBtn).toHaveAttribute('title', 'firstDocumentOfChain');
+    expect(prevBtn).toHaveTextContent('firstDocumentOfChain');
+    expect(nextBtn).toHaveAttribute('aria-label', 'lastDocumentOfChain');
+    expect(nextBtn).toHaveAttribute('title', 'lastDocumentOfChain');
+    expect(nextBtn).toHaveTextContent('lastDocumentOfChain');
+
+    // The "Link previous / Link next" CTAs must be replaced by the
+    // chain-end buttons — never both.
+    expect(screen.queryByTestId('button-link-prev-document')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('button-link-next-document')).not.toBeInTheDocument();
+    // And there are no actual neighbor chips either, since the resolver
+    // intentionally returned no neighbor documents.
+    expect(screen.queryByTestId('button-prev-document')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('button-next-document')).not.toBeInTheDocument();
+  });
+});

@@ -271,6 +271,105 @@ describe('document-link-service: scoreCandidate', () => {
     expect(deleteLog).toHaveLength(2);
   });
 
+  it('resolveDocumentNeighbors marks the unlinked side as chain end when one explicit link exists', async () => {
+    // Task #444: when a doc is part of an explicit chain on ONE side only,
+    // the unlinked side must NOT fall back to a date-based neighbor —
+    // instead it surfaces isChainEnd=true so the UI renders the disabled
+    // "First/Last document of chain" button rather than wrapping around to
+    // an unrelated date neighbor.
+    queue.length = 0;
+    const source = baseDoc({ id: 'src-chain' });
+    const explicitPrev = baseDoc({ id: 'prev-explicit', name: 'Explicit Prev' });
+    // Sequence under Promise.all (interleaved):
+    //   1. loadDocument(source)
+    //   2. fn1 prev outgoing 'before' → row found
+    //   3. fn2 next outgoing 'after'  → empty
+    //   4. fn1 loadDocument(explicitPrev)  (continuation runs first because
+    //      its outgoing await was scheduled first)
+    //   5. fn2 next incoming 'before' → empty
+    enqueue([source]);
+    enqueue([{ id: 'l1', toDocumentId: 'prev-explicit', fromDocumentId: 'src-chain', position: 'before' }]);
+    enqueue([]); // next outgoing empty
+    enqueue([explicitPrev]); // loadDocument(explicitPrev)
+    enqueue([]); // next incoming empty
+
+    const result = await resolveDocumentNeighbors('src-chain');
+    expect(result?.previous.document?.id).toBe('prev-explicit');
+    expect(result?.previous.source).toBe('explicit');
+    expect(result?.previous.isChainEnd).toBe(false);
+    // The unlinked side is the chain end — no date fallback, no neighbor.
+    expect(result?.next.document).toBeNull();
+    expect(result?.next.source).toBeNull();
+    expect(result?.next.isChainEnd).toBe(true);
+    // Critically: the queue should be fully drained, proving no date
+    // fallback queries ran on the next side.
+    expect(queue.length).toBe(0);
+  });
+
+  it('resolveDocumentNeighbors surfaces isChainEnd when an explicit link points to a viewer-hidden doc', async () => {
+    // Task #444: an explicit link whose target is hidden by role-based
+    // visibility (e.g. manager-only doc viewed by a tenant) must surface
+    // isChainEnd=true rather than leaking a date neighbor — the chain
+    // existence itself is preserved while the hidden target is dropped.
+    queue.length = 0;
+    const source = baseDoc({ id: 'src-hidden-next' });
+    const hiddenNext = baseDoc({
+      id: 'next-hidden',
+      name: 'Hidden Next',
+      isManagerOnly: true,
+      isVisibleToTenants: true,
+    });
+    // Sequence under Promise.all:
+    //   1. loadDocument(source)
+    //   2. fn1 prev outgoing 'before' → empty
+    //   3. fn2 next outgoing 'after'  → row found
+    //   4. fn1 prev incoming 'after' → empty (continuation runs first)
+    //   5. fn2 loadDocument(hiddenNext)
+    enqueue([source]);
+    enqueue([]); // prev outgoing empty
+    enqueue([{ id: 'l2', toDocumentId: 'next-hidden', fromDocumentId: 'src-hidden-next', position: 'after' }]);
+    enqueue([]); // prev incoming empty
+    enqueue([hiddenNext]); // loadDocument(hiddenNext)
+
+    const result = await resolveDocumentNeighbors('src-hidden-next', { role: 'tenant' });
+    // Explicit link existed → previous side is also the chain end (no
+    // explicit prev, but inChain=true so no date fallback either).
+    expect(result?.previous.document).toBeNull();
+    expect(result?.previous.isChainEnd).toBe(true);
+    // The next-side explicit target is hidden by visibility → still
+    // chain end, NOT a date neighbor.
+    expect(result?.next.document).toBeNull();
+    expect(result?.next.source).toBeNull();
+    expect(result?.next.isChainEnd).toBe(true);
+    expect(queue.length).toBe(0);
+  });
+
+  it('resolveDocumentNeighbors keeps date fallback (isChainEnd=false) when there are no explicit links', async () => {
+    // Task #444 regression guard: a doc with NO explicit links must keep
+    // the date fallback behavior and report isChainEnd=false on both
+    // sides — flipping this back to chain-end semantics would silently
+    // hide every neighbor for unlinked documents.
+    queue.length = 0;
+    const source = baseDoc({ id: 'src-nolinks' });
+    const datePrev = baseDoc({ id: 'prev-date', effectiveDate: new Date('2025-03-01') });
+    const dateNext = baseDoc({ id: 'next-date', effectiveDate: new Date('2025-05-01') });
+    enqueue([source]);
+    enqueue([]); // outgoing before
+    enqueue([]); // outgoing after
+    enqueue([]); // incoming after (prev side)
+    enqueue([]); // incoming before (next side)
+    enqueue([datePrev]); // date prev candidates
+    enqueue([dateNext]); // date next candidates
+
+    const result = await resolveDocumentNeighbors('src-nolinks');
+    expect(result?.previous.document?.id).toBe('prev-date');
+    expect(result?.previous.source).toBe('date');
+    expect(result?.previous.isChainEnd).toBe(false);
+    expect(result?.next.document?.id).toBe('next-date');
+    expect(result?.next.source).toBe('date');
+    expect(result?.next.isChainEnd).toBe(false);
+  });
+
   it('resolveDocumentNeighbors skips date candidates hidden by viewer visibility', async () => {
     queue.length = 0;
     const source = baseDoc({ id: 'src-vis' });
