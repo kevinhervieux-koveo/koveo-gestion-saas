@@ -353,6 +353,7 @@ function Router() {
             <Route path='/auth/login' component={LoginRedirect} />
 
             {/* Main Dashboard */}
+            <Route path='/dashboard' component={DashboardOverviewRedirect} />
             <Route path='/dashboard/overview' component={DashboardPage} />
             <Route path='/dashboard/communication' component={DashboardCommunicationPage} />
 
@@ -440,6 +441,16 @@ function Router() {
  * LoginRedirect function.
  * @returns Function result.
  */
+function DashboardOverviewRedirect() {
+  const [, setLocation] = useLocation();
+
+  useEffect(() => {
+    setLocation('/dashboard/overview');
+  }, [setLocation]);
+
+  return <LoadingSpinner />;
+}
+
 function LoginRedirect() {
   const [, setLocation] = useLocation();
 
