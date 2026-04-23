@@ -218,6 +218,8 @@ interface BillPaymentSummary {
   scheduledDate: string;
   paidDate: string | null;
   billNumber?: string;
+  vendorInvoiceNumber?: string | null;
+  issueDate?: string | null;
   description?: string | null;
   filePath?: string | null;
   fileName?: string | null;
@@ -1192,7 +1194,15 @@ export default function FinancialOverview() {
                                     </Badge>
                                   )}
                                 </div>
-                                <p className="text-xs text-muted-foreground">{t(bill.category) || bill.category}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {t(bill.category) || bill.category}
+                                  {bill.issueDate && (
+                                    <> · {t('bills.issueDate') || 'Issue Date'}: {format(new Date(bill.issueDate), 'MMM d, yyyy')}</>
+                                  )}
+                                  {bill.vendorInvoiceNumber && (
+                                    <> · #{bill.vendorInvoiceNumber}</>
+                                  )}
+                                </p>
                               </div>
                               <div className="flex items-center gap-2 ml-2">
                                 <span className="font-medium">${parseFloat(bill.paymentAmount).toLocaleString()}</span>
@@ -1269,6 +1279,12 @@ export default function FinancialOverview() {
                                 </div>
                                 <p className="text-xs text-muted-foreground">
                                   {bill.scheduledDate ? format(new Date(bill.scheduledDate), 'MMM d') : ''} - {t(bill.category) || bill.category}
+                                  {bill.issueDate && (
+                                    <> · {t('bills.issueDate') || 'Issue Date'}: {format(new Date(bill.issueDate), 'MMM d, yyyy')}</>
+                                  )}
+                                  {bill.vendorInvoiceNumber && (
+                                    <> · #{bill.vendorInvoiceNumber}</>
+                                  )}
                                 </p>
                               </div>
                               <div className="flex items-center gap-2 ml-2">
@@ -1317,7 +1333,19 @@ export default function FinancialOverview() {
                   <div>
                     <h3 className="font-semibold text-lg">{selectedBill.title}</h3>
                     {selectedBill.billNumber && (
-                      <p className="text-sm text-muted-foreground">#{selectedBill.billNumber}</p>
+                      <p className="text-sm text-muted-foreground">
+                        #{selectedBill.billNumber}
+                        {selectedBill.vendorInvoiceNumber && (
+                          <span className="ml-2">
+                            · {t('bills.vendorInvoiceNumber') || 'Bill / Invoice Number'}: {selectedBill.vendorInvoiceNumber}
+                          </span>
+                        )}
+                      </p>
+                    )}
+                    {selectedBill.issueDate && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {t('bills.issueDate') || 'Issue Date'}: {format(new Date(selectedBill.issueDate), 'MMM d, yyyy')}
+                      </p>
                     )}
                   </div>
 
