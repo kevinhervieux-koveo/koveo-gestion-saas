@@ -668,6 +668,10 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
         startYear: filters.startYear,
       },
       projectIds: includedProjectIds,
+      // Pass any pending Previous/Next project-period shifts so the chart's
+      // server-computed spending line previews the new financial year before
+      // the user clicks Confirm. Empty when no shift is staged.
+      projectYearOverrides: Object.fromEntries(pendingProjectYears),
       customRevenueLines: customRevenueLines || [],
       punctualRevenueGrowth: punctualGrowthEntries || [],
       investmentFilters: investmentFilters || { urgency: 'all' },
@@ -722,7 +726,10 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
     investmentFilters.urgency,
     // CRITICAL: Projects - serialize to detect changes in inclusion status
     // This ensures forecast refetches when projects are toggled or modified
-    JSON.stringify(projects.map(p => ({ id: p.id, includeInBudget: p.includeInBudget })))
+    JSON.stringify(projects.map(p => ({ id: p.id, includeInBudget: p.includeInBudget }))),
+    // Pending project-period shifts so the spending line previews the new
+    // financial year as soon as the user taps Previous/Next.
+    JSON.stringify(Array.from(pendingProjectYears.entries()))
   ]);
 
   // Fetch existing capital investments from database

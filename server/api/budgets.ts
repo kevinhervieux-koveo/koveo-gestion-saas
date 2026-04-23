@@ -691,6 +691,7 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
       lookbackYears,
       capitalInvestmentMode,
       projectIds,
+      projectYearOverrides,
       // Time window parameters
       viewType,
       periodLength,
@@ -1204,6 +1205,43 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
       count: includedProjects.length,
       projects: includedProjects
     });
+
+    // Apply per-project financial-year overrides used by the Budget page to
+    // preview a project period shift before the user clicks Confirm. When an
+    // override is provided for a project, treat it as if its financialYear is
+    // the override and shift the year of plannedStartDate by the same delta
+    // so the cost lands in the equivalent month of the new financial year.
+    if (projectYearOverrides && Object.keys(projectYearOverrides).length > 0) {
+      includedProjects = includedProjects.map(project => {
+        const override = projectYearOverrides[project.id];
+        if (override === undefined) return project;
+        const baseYear = project.financialYear ?? null;
+        let nextPlannedStartDate: typeof project.plannedStartDate = project.plannedStartDate;
+        if (project.plannedStartDate) {
+          const original = new Date(project.plannedStartDate);
+          if (!isNaN(original.getTime())) {
+            const delta = baseYear !== null ? override - baseYear : 0;
+            const shifted = new Date(
+              original.getFullYear() + delta,
+              original.getMonth(),
+              original.getDate()
+            );
+            nextPlannedStartDate = shifted.toISOString().split('T')[0] as typeof project.plannedStartDate;
+          }
+        }
+        return {
+          ...project,
+          financialYear: override,
+          plannedStartDate: nextPlannedStartDate,
+        };
+      });
+
+      debugLog('Applied projectYearOverrides', {
+        buildingId,
+        overrideCount: Object.keys(projectYearOverrides).length,
+        overrides: projectYearOverrides,
+      });
+    }
 
     // Calculate time window for forecast based on user selection.
     // The window only controls what we SLICE and return — we always compute

@@ -65,6 +65,10 @@ export interface BuildForecastRequestBodyArgs {
   capitalInvestmentMode: 'urgent' | 'suggested' | 'custom';
   filters: ForecastFilters;
   projectIds: string[];
+  // Per-project financial-year overrides used to preview a project period
+  // shift before the user clicks Confirm. Keys are project IDs, values are
+  // the previewed financialYear. Omit or pass an empty object to disable.
+  projectYearOverrides?: Record<string, number>;
   customRevenueLines?: unknown[];
   punctualRevenueGrowth?: unknown[];
   investmentFilters?: { urgency?: string };
@@ -112,6 +116,10 @@ export function buildForecastRequestBody(
     customRevenueLines: args.customRevenueLines ?? [],
     punctualRevenueGrowth: args.punctualRevenueGrowth ?? [],
   };
+
+  if (args.projectYearOverrides && Object.keys(args.projectYearOverrides).length > 0) {
+    body.projectYearOverrides = args.projectYearOverrides;
+  }
 
   if (args.investmentFilters) {
     body.investmentFilters = args.investmentFilters;

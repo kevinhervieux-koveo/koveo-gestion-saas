@@ -37,6 +37,10 @@ export const forecastInputSchema = z.object({
     .optional()
     .default('suggested'),
   projectIds: z.array(z.string()).optional(), // Project IDs to include in forecast
+  // Per-project financial-year overrides used to preview a project period
+  // shift before the user clicks Confirm. Maps projectId -> financialYear.
+  // When omitted, projects use their stored financialYear / plannedStartDate.
+  projectYearOverrides: z.record(z.string(), z.coerce.number()).optional(),
   // Extended configuration fields (passed from frontend for parity with budget page)
   emergencyFundMinimum: z.coerce.number().optional(),
   operatingCashMinimum: z.coerce.number().optional(),
