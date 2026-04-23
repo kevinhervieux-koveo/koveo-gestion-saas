@@ -1551,6 +1551,8 @@ export interface Translations {
   'bills.issueDate': string;
   'bills.issueDateFrom': string;
   'bills.issueDateTo': string;
+  'bills.dueDate': string;
+  'bills.amount': string;
   'bills.category': string;
   'bills.status': string;
   'bills.paymentType': string;
@@ -2554,6 +2556,8 @@ export const translations: Record<Language, Translations> = {
     'bills.issueDate': 'Issue Date',
     'bills.issueDateFrom': 'Issue date from',
     'bills.issueDateTo': 'Issue date to',
+    'bills.dueDate': 'Due Date',
+    'bills.amount': 'Amount',
     'bills.category': 'Category',
     'bills.status': 'Status',
     'bills.paymentType': 'Payment Type *',
@@ -4718,6 +4722,8 @@ export const translations: Record<Language, Translations> = {
     'bills.issueDate': "Date d'émission",
     'bills.issueDateFrom': "Date d'émission (du)",
     'bills.issueDateTo': "Date d'émission (au)",
+    'bills.dueDate': "Date d'échéance",
+    'bills.amount': 'Montant',
     'bills.category': 'Catégorie',
     'bills.status': 'Statut',
     'bills.paymentType': 'Type de paiement *',

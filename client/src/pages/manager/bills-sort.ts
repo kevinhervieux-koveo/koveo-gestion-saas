@@ -1,10 +1,76 @@
 /**
- * Sort bills by issue date with the rule that bills missing an issue date
- * always sort to the end, regardless of direction. When sortField is not
- * 'issueDate', the original ordering is preserved.
+ * Sorting helpers for the bills page.
  *
- * Extracted from bills.tsx so it can be unit tested without mounting the
- * entire bills page.
+ * The bills page exposes sort toggles for several columns. All sort fields
+ * follow the same NULL-last rule: bills missing a value for the active sort
+ * field always sort to the end, regardless of direction.
+ *
+ * Extracted from bills.tsx so the sorting logic can be unit tested without
+ * mounting the entire bills page.
+ */
+
+export type BillSortField = 'issueDate' | 'dueDate' | 'amount';
+
+type BillSortable = {
+  issueDate?: unknown;
+  startDate?: unknown;
+  totalAmount?: unknown;
+};
+
+function getSortValue(bill: BillSortable, field: BillSortField): number | null {
+  switch (field) {
+    case 'issueDate': {
+      const v = bill.issueDate;
+      if (v === null || v === undefined || v === '') return null;
+      const t = new Date(v as string).getTime();
+      return Number.isNaN(t) ? null : t;
+    }
+    case 'dueDate': {
+      // The bill's "due date" in the UI corresponds to the schema's startDate
+      // (when the bill series starts / is due).
+      const v = bill.startDate;
+      if (v === null || v === undefined || v === '') return null;
+      const t = new Date(v as string).getTime();
+      return Number.isNaN(t) ? null : t;
+    }
+    case 'amount': {
+      const v = bill.totalAmount;
+      if (v === null || v === undefined || v === '') return null;
+      const n = typeof v === 'number' ? v : Number(v);
+      return Number.isNaN(n) ? null : n;
+    }
+    default:
+      return null;
+  }
+}
+
+/**
+ * Generic bill sort that handles the supported sort fields with NULL-last
+ * semantics. Returns the original ordering when sortField is not recognized.
+ */
+export function sortBills<T extends BillSortable>(
+  bills: T[],
+  sortField?: string,
+  sortDirection?: 'asc' | 'desc',
+): T[] {
+  if (sortField !== 'issueDate' && sortField !== 'dueDate' && sortField !== 'amount') {
+    return bills;
+  }
+  const field = sortField as BillSortField;
+  const direction = sortDirection === 'desc' ? -1 : 1;
+  return [...bills].sort((a, b) => {
+    const av = getSortValue(a, field);
+    const bv = getSortValue(b, field);
+    // NULL values always sort to the end regardless of direction
+    if (av === null && bv === null) return 0;
+    if (av === null) return 1;
+    if (bv === null) return -1;
+    return (av - bv) * direction;
+  });
+}
+
+/**
+ * Backwards-compatible wrapper that only sorts when sortField === 'issueDate'.
  */
 export function sortBillsByIssueDate<T extends { issueDate?: unknown }>(
   bills: T[],
@@ -12,16 +78,5 @@ export function sortBillsByIssueDate<T extends { issueDate?: unknown }>(
   sortDirection?: 'asc' | 'desc',
 ): T[] {
   if (sortField !== 'issueDate') return bills;
-  const direction = sortDirection === 'desc' ? -1 : 1;
-  return [...bills].sort((a, b) => {
-    const aHas = !!a.issueDate;
-    const bHas = !!b.issueDate;
-    // NULL issue dates always sort to the end regardless of direction
-    if (!aHas && !bHas) return 0;
-    if (!aHas) return 1;
-    if (!bHas) return -1;
-    const aTime = new Date(a.issueDate as unknown as string).getTime();
-    const bTime = new Date(b.issueDate as unknown as string).getTime();
-    return (aTime - bTime) * direction;
-  });
+  return sortBills(bills as unknown as (T & BillSortable)[], sortField, sortDirection) as T[];
 }
