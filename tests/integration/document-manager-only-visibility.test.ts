@@ -885,39 +885,39 @@ describeIfDb('manager-only document visibility — Task #321', () => {
   });
 
   describe('Task #333 — manager-only flag survives non-manager edit attempts', () => {
-    it('resident PUT attempting isManagerOnly=false leaves the flag set', async () => {
+    it('resident PUT on a manager-only document returns 404 and leaves the flag set', async () => {
       const agent = await loginAs(emails.resident);
       const res = await agent
         .put(`/api/documents/${ids.docMgrOnlyResidence}`)
         .send({ name: `${TEST_TAG} mutated-by-resident`, isManagerOnly: false });
-      // The PUT route MAY allow the resident to edit (because the doc
-      // is in their residence scope) OR reject the request — what we
-      // MUST guarantee is that the manager-only flag survives. The
-      // existing role guard around line 2704 of server/api/documents.ts
-      // is what's under test here.
-      expect([200, 403, 404]).toContain(res.status);
+      // Task #345: the edit endpoint must mirror the read endpoints and
+      // refuse to surface manager-only documents to residents/tenants —
+      // they should get a 404, not 200/403, even though the document
+      // lives within their residence scope.
+      expect(res.status).toBe(404);
 
       const [row] = await db
         .select()
         .from(schema.documents)
         .where(eq(schema.documents.id, ids.docMgrOnlyResidence));
       expect(row?.isManagerOnly).toBe(true);
+      expect(row?.name).toBe(`${TEST_TAG} mgr-only residence`);
     }, 30000);
 
-    it('tenant PUT attempting isManagerOnly=false leaves the flag set', async () => {
+    it('tenant PUT on a manager-only document returns 404 and leaves the flag set', async () => {
       const agent = await loginAs(emails.tenant);
       const res = await agent
         .put(`/api/documents/${ids.docMgrOnlyBuilding}`)
         .send({ name: `${TEST_TAG} mutated-by-tenant`, isManagerOnly: false });
-      // Same contract as above — accept any non-mutating status, but
-      // assert the persisted flag is unchanged.
-      expect([200, 403, 404]).toContain(res.status);
+      // Task #345: same contract as above for tenants.
+      expect(res.status).toBe(404);
 
       const [row] = await db
         .select()
         .from(schema.documents)
         .where(eq(schema.documents.id, ids.docMgrOnlyBuilding));
       expect(row?.isManagerOnly).toBe(true);
+      expect(row?.name).toBe(`${TEST_TAG} mgr-only building`);
     }, 30000);
 
     it('manager PUT can flip and restore the manager-only flag', async () => {

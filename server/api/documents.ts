@@ -2627,10 +2627,19 @@ export function registerDocumentRoutes(app: Express): void {
       const userId = user.id;
       const documentId = req.params.id;
 
-      // Get existing document first to check permissions and get current file path
-      // FIXED: Pass userId and userRole to enable optimized query path
-      const existingDocument = await storage.getDocuments({ userId, userRole }).then(docs => docs.find(doc => doc.id === documentId));
-      
+      // Get existing document first to check permissions and get current file path.
+      // Use getDocumentWithScope so the manager-only visibility filter is applied
+      // consistently with the read endpoints (Task #345): residents/tenants must
+      // get a 404 on manager-only documents, not be allowed to edit them.
+      const organizations = await storage.getUserOrganizations(userId);
+      const organizationIds = organizations.map((org) => org.organizationId);
+      const existingDocument = await storage.getDocumentWithScope(
+        documentId,
+        userId,
+        userRole,
+        organizationIds
+      );
+
       if (!existingDocument) {
         // console.log(`❌ [DOCUMENT UPDATE] Document not found: ${documentId}`);
         return res.status(404).json({ message: 'Document not found' });
@@ -2650,10 +2659,10 @@ export function registerDocumentRoutes(app: Express): void {
         hasAccess = true;
         // console.log(`✅ [DOCUMENT UPDATE] Admin access granted`);
       } else if (userRole === 'manager' || userRole === 'demo_manager') {
-        // Manager should have access to documents in their organization
-        const organizations = await storage.getUserOrganizations(userId);
+        // Manager should have access to documents in their organization. Reuse
+        // the organizations already fetched above for the scope query.
         const buildings = await storage.getBuildings();
-        const userOrganizations = organizations.map(org => org.organizationId);
+        const userOrganizations = organizationIds;
         
         if (existingDocument.buildingId) {
           const orgBuildings = buildings.filter(building => 

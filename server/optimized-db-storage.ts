@@ -3097,8 +3097,10 @@ export class OptimizedDatabaseStorage implements IStorage {
           }
         }
 
-        // Residents can only access documents from their own residences
-        if (userRole === 'resident') {
+        // Residents can only access documents from their own residences.
+        // demo_resident is treated equivalently to resident throughout the
+        // codebase (see rbac.ts), so we honor the same scope here.
+        if (userRole === 'resident' || userRole === 'demo_resident') {
           const userResidences = await db
             .select({ residenceId: schema.userResidences.residenceId })
             .from(schema.userResidences)
@@ -3121,8 +3123,10 @@ export class OptimizedDatabaseStorage implements IStorage {
           }
         }
 
-        // Tenants can view documents marked as visible to tenants
-        if (userRole === 'tenant') {
+        // Tenants can view documents marked as visible to tenants.
+        // demo_tenant is treated equivalently to tenant throughout the
+        // codebase (see rbac.ts), so we honor the same scope here.
+        if (userRole === 'tenant' || userRole === 'demo_tenant') {
           if (document.isVisibleToTenants) {
             this.logStorageOperation('getDocumentWithScope_TENANT_VIEW_ACCESS', {
               operationId,
