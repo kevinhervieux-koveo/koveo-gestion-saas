@@ -49,7 +49,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     location.includes('/forgot-password') ||
     location.includes('/reset-password') ||
     location.includes('/accept-invitation') ||
-    location === '/' ||
     location === '/features' ||
     location === '/pricing' ||
     location === '/enterprise' ||

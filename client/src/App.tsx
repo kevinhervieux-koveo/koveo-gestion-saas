@@ -276,7 +276,6 @@ function Router() {
 
   // Check if we're on a public page
   const isPublicPage = [
-    '/',
     '/login',
     '/auth/login',
     '/forgot-password',
@@ -295,12 +294,16 @@ function Router() {
     '/terms-of-service',
   ].includes(location);
 
+  // Root path: redirect to dashboard if authenticated, login otherwise.
+  if (location === '/') {
+    return <RootRedirect isAuthenticated={isAuthenticated} />;
+  }
+
   // If we're on a public page, allow access regardless of auth status
   if (isPublicPage) {
     return (
       <Suspense fallback={<LoadingSpinner />}>
         <Switch>
-          <Route path='/' component={HomePage} />
           <Route path='/features' component={FeaturesPage} />
           <Route path='/pricing' component={PricingPage} />
           <Route path='/enterprise' component={EnterprisePage} />
@@ -443,6 +446,22 @@ function LoginRedirect() {
   useEffect(() => {
     setLocation('/dashboard/overview');
   }, [setLocation]);
+
+  return <LoadingSpinner />;
+}
+
+/**
+ * Root path redirect: sends authenticated users to the dashboard
+ * overview and unauthenticated users to the login page. Renders the
+ * shared loading spinner while the redirect happens so the marketing
+ * home page never flashes.
+ */
+function RootRedirect({ isAuthenticated }: { isAuthenticated: boolean }) {
+  const [, setLocation] = useLocation();
+
+  useEffect(() => {
+    setLocation(isAuthenticated ? '/dashboard/overview' : '/login');
+  }, [isAuthenticated, setLocation]);
 
   return <LoadingSpinner />;
 }
