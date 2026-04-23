@@ -103,6 +103,24 @@ const DOCUMENT_FOLDER_MAPPING: Record<string, string> = {
 };
 
 /**
+ * Manager-only flag is privileged: only admins/managers may set it on a
+ * create or upload request. Residents/tenants who pass `isManagerOnly=true`
+ * (whether by mistake, through a tampered form, or via a direct API call)
+ * have the flag silently coerced to `false` so they cannot hide their own
+ * uploads from other co-owners. The PUT update path enforces the same rule
+ * around line 2686.
+ */
+function resolveManagerOnlyFlag(rawValue: unknown, userRole?: string): boolean {
+  const requested = rawValue === 'true' || rawValue === true;
+  if (!requested) return false;
+  return (
+    userRole === 'admin' ||
+    userRole === 'manager' ||
+    userRole === 'demo_manager'
+  );
+}
+
+/**
  * Maps attachedToType string to DocumentType for use with documentService
  * @param attachedToType - The attached entity type (e.g., 'inventory_item', 'maintenance_project')
  * @returns The corresponding DocumentType for documentService
@@ -1956,7 +1974,7 @@ export function registerDocumentRoutes(app: Express): void {
           documentType: documentType || 'other',
           filePath: `text-documents/${userId}/${uuidv4()}.txt`, // Virtual path for text documents
           isVisibleToTenants: otherData.isVisibleToTenants === 'true' || otherData.isVisibleToTenants === true,
-          isManagerOnly: otherData.isManagerOnly === 'true' || otherData.isManagerOnly === true,
+          isManagerOnly: resolveManagerOnlyFlag(otherData.isManagerOnly, userRole),
           isQuarantined: false, // Text documents are safe by default
           residenceId: residenceId || undefined,
           buildingId: buildingId || undefined,
@@ -2036,7 +2054,7 @@ export function registerDocumentRoutes(app: Express): void {
           documentType: otherData.category || documentType || 'other',
           filePath: `metadata-documents/${userId}/${uuidv4()}`, // Placeholder path for metadata-only documents
           isVisibleToTenants: otherData.isVisibleToTenants === 'true' || otherData.isVisibleToTenants === true || false,
-          isManagerOnly: otherData.isManagerOnly === 'true' || otherData.isManagerOnly === true || false,
+          isManagerOnly: resolveManagerOnlyFlag(otherData.isManagerOnly, userRole),
           isQuarantined: false, // Metadata documents are safe by default
           residenceId: residenceId || undefined,
           buildingId: buildingId || undefined,
@@ -2228,7 +2246,7 @@ export function registerDocumentRoutes(app: Express): void {
         
         // Convert string boolean fields to actual booleans for validation
         const isVisibleToTenants = otherData.isVisibleToTenants === 'true' || otherData.isVisibleToTenants === true;
-        const isManagerOnly = otherData.isManagerOnly === 'true' || otherData.isManagerOnly === true;
+        const isManagerOnly = resolveManagerOnlyFlag(otherData.isManagerOnly, userRole);
         
         const dataToValidate = {
           ...otherData,
@@ -2472,7 +2490,7 @@ export function registerDocumentRoutes(app: Express): void {
 
         // Convert string boolean fields to actual booleans for validation
         const isVisibleToTenants = otherData.isVisibleToTenants === 'true' || otherData.isVisibleToTenants === true;
-        const isManagerOnly = otherData.isManagerOnly === 'true' || otherData.isManagerOnly === true;
+        const isManagerOnly = resolveManagerOnlyFlag(otherData.isManagerOnly, userRole);
         
         const dataToValidate = {
           ...otherData,
@@ -3509,6 +3527,7 @@ export function registerDocumentRoutes(app: Express): void {
       }
       
       const { textContent, name, description, documentType, attachedToType, attachedToId, buildingId, residenceId, isVisibleToTenants, isManagerOnly, effectiveDate } = req.body;
+      const userRoleForFlag = req.user?.role;
       
       // Validate required fields
       if (!textContent || !name) {
@@ -3562,7 +3581,7 @@ export function registerDocumentRoutes(app: Express): void {
         documentType: documentType || 'other',
         filePath: `${storagePath}/${fileName}`,
         isVisibleToTenants: isVisibleToTenants === 'true' || isVisibleToTenants === true,
-        isManagerOnly: isManagerOnly === 'true' || isManagerOnly === true,
+        isManagerOnly: resolveManagerOnlyFlag(isManagerOnly, userRoleForFlag),
         isQuarantined: false, // Text documents are safe by default
         residenceId: residenceId || undefined,
         buildingId: buildingId || undefined,
@@ -3647,7 +3666,7 @@ export function registerDocumentRoutes(app: Express): void {
         description: req.body.description || '',
         documentType: req.body.documentType || req.body.type, // Handle both field names
         isVisibleToTenants: req.body.isVisibleToTenants === 'true',
-        isManagerOnly: req.body.isManagerOnly === 'true',
+        isManagerOnly: resolveManagerOnlyFlag(req.body.isManagerOnly, req.user?.role),
         residenceId: req.body.residenceId || undefined,
         buildingId: req.body.buildingId || undefined,
         attachedToType: req.body.attachedToType || undefined,

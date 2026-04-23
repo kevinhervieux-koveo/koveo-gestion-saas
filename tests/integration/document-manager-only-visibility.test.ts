@@ -107,7 +107,7 @@ import session from 'express-session';
 import request from 'supertest';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
-import { inArray } from 'drizzle-orm';
+import { inArray, eq, and } from 'drizzle-orm';
 
 const REAL_DB_URL = process.env._INTEGRATION_DB_URL;
 const TEST_TAG = 'task321-mgr-only-docs';
@@ -675,6 +675,277 @@ describeIfDb('manager-only document visibility — Task #321', () => {
   // ----------------------------------------------------------------
   // GET /api/documents/:id/optimized-file (preview, optimized routes)
   // ----------------------------------------------------------------
+
+  // ----------------------------------------------------------------
+  // Task #333 — manager-only flag MUST be a manager-only privilege.
+  // Residents/tenants cannot escalate visibility on create, and they
+  // cannot strip the flag off an existing manager-only document via
+  // an edit. Covers:
+  //   - POST   /api/documents              (JSON metadata path)
+  //   - POST   /api/documents              (multipart upload path)
+  //   - POST   /api/documents/upload       (optimized create path)
+  //   - POST   /api/documents/optimized-upload (optimized-file path)
+  //   - PUT    /api/documents/:id          (edit round-trip)
+  // ----------------------------------------------------------------
+
+  describe('Task #333 — manager-only flag is privileged on create', () => {
+    // Track docs we create here so they're cleaned up alongside the
+    // suite-level seeded docs in afterAll().
+    function trackCreatedDoc(id: string | undefined | null) {
+      if (id) created.documents.add(id);
+    }
+
+    it('manager CAN create a manager-only document via POST /api/documents', async () => {
+      const agent = await loginAs(emails.manager);
+      const res = await agent
+        .post('/api/documents')
+        .field('name', `${TEST_TAG} mgr-create-mgronly`)
+        .field('documentType', 'legal')
+        .field('residenceId', ids.residence)
+        .field('isVisibleToTenants', 'true')
+        .field('isManagerOnly', 'true');
+      expect([200, 201]).toContain(res.status);
+      const body = res.body?.document ?? res.body;
+      trackCreatedDoc(body?.id);
+      expect(body?.isManagerOnly).toBe(true);
+    }, 30000);
+
+    it('resident CANNOT escalate isManagerOnly=true via POST /api/documents', async () => {
+      const agent = await loginAs(emails.resident);
+      const res = await agent
+        .post('/api/documents')
+        .field('name', `${TEST_TAG} res-create-attempt-mgronly`)
+        .field('documentType', 'legal')
+        .field('residenceId', ids.residence)
+        .field('isVisibleToTenants', 'true')
+        .field('isManagerOnly', 'true');
+      expect([200, 201]).toContain(res.status);
+      const body = res.body?.document ?? res.body;
+      trackCreatedDoc(body?.id);
+      // The flag must be silently coerced to false — residents may not
+      // hide their own uploads from co-owners by spoofing the field.
+      expect(body?.isManagerOnly).toBe(false);
+    }, 30000);
+
+    it('tenant CANNOT escalate isManagerOnly=true via POST /api/documents', async () => {
+      // Tenants are not in the upload-allowed role list, so the request
+      // is normally rejected with 403. The behavioural guarantee under
+      // test is "tenants never end up with a manager-only document
+      // attributed to them", which the 403 satisfies on its own. If a
+      // future change broadens the allowed roles, the optional creation
+      // assertion below will catch any regression that lets the flag
+      // through.
+      const agent = await loginAs(emails.tenant);
+      const res = await agent
+        .post('/api/documents')
+        .field('name', `${TEST_TAG} ten-create-attempt-mgronly`)
+        .field('documentType', 'legal')
+        .field('residenceId', ids.residence)
+        .field('isVisibleToTenants', 'true')
+        .field('isManagerOnly', 'true');
+      if (res.status === 201 || res.status === 200) {
+        const body = res.body?.document ?? res.body;
+        trackCreatedDoc(body?.id);
+        expect(body?.isManagerOnly).toBe(false);
+      } else {
+        expect(res.status).toBe(403);
+      }
+    }, 30000);
+
+    it('resident CANNOT escalate isManagerOnly=true via POST /api/documents/upload (multipart with file)', async () => {
+      const agent = await loginAs(emails.resident);
+      const res = await agent
+        .post('/api/documents/upload')
+        .field('name', `${TEST_TAG} res-upload-attempt-mgronly`)
+        .field('documentType', 'legal')
+        .field('residenceId', ids.residence)
+        .field('isVisibleToTenants', 'true')
+        .field('isManagerOnly', 'true')
+        .attach(
+          'file',
+          Buffer.from('hello world'),
+          { filename: `${TEST_TAG}-res-upload.txt`, contentType: 'text/plain' }
+        );
+
+      // The route may succeed (201) or fail later in the storage stack
+      // because we stub object storage in this test environment — what
+      // we MUST never see is the manager-only flag set on the persisted
+      // record. Probe the DB directly for any document attributed to
+      // this resident with a matching name.
+      const rows = await db
+        .select()
+        .from(schema.documents)
+        .where(
+          and(
+            eq(
+              schema.documents.uploadedById,
+              ids.resident
+            ),
+            eq(
+              schema.documents.name,
+              `${TEST_TAG} res-upload-attempt-mgronly`
+            )
+          )
+        );
+      rows.forEach((r: any) => trackCreatedDoc(r.id));
+      // If a row was created, it MUST NOT be manager-only.
+      for (const r of rows) {
+        expect(r.isManagerOnly).toBe(false);
+      }
+      // Defensive check on the response body itself if present.
+      const body = res.body?.document ?? res.body;
+      if (body?.isManagerOnly !== undefined) {
+        expect(body.isManagerOnly).toBe(false);
+      }
+    }, 30000);
+
+    it('tenant CANNOT escalate isManagerOnly=true via POST /api/documents/upload (multipart with file)', async () => {
+      const agent = await loginAs(emails.tenant);
+      const res = await agent
+        .post('/api/documents/upload')
+        .field('name', `${TEST_TAG} ten-upload-attempt-mgronly`)
+        .field('documentType', 'legal')
+        .field('residenceId', ids.residence)
+        .field('isVisibleToTenants', 'true')
+        .field('isManagerOnly', 'true')
+        .attach(
+          'file',
+          Buffer.from('hello'),
+          { filename: `${TEST_TAG}-ten-upload.txt`, contentType: 'text/plain' }
+        );
+
+      // Mirrors the resident assertion: regardless of where the route
+      // fails (auth, validation, or storage), no row attributed to the
+      // tenant with this name may end up flagged manager-only.
+      const rows = await db
+        .select()
+        .from(schema.documents)
+        .where(
+          and(
+            eq(schema.documents.uploadedById, ids.tenant),
+            eq(
+              schema.documents.name,
+              `${TEST_TAG} ten-upload-attempt-mgronly`
+            )
+          )
+        );
+      rows.forEach((r: any) => trackCreatedDoc(r.id));
+      for (const r of rows) {
+        expect(r.isManagerOnly).toBe(false);
+      }
+      const body = res.body?.document ?? res.body;
+      if (body?.isManagerOnly !== undefined) {
+        expect(body.isManagerOnly).toBe(false);
+      }
+    }, 30000);
+
+    it('resident CANNOT escalate isManagerOnly=true via POST /api/documents/optimized-upload', async () => {
+      const agent = await loginAs(emails.resident);
+      const res = await agent
+        .post('/api/documents/optimized-upload')
+        .field('name', `${TEST_TAG} res-opt-upload-attempt`)
+        .field('documentType', 'legal')
+        .field('buildingId', ids.building)
+        .field('residenceId', ids.residence)
+        .field('isManagerOnly', 'true')
+        .attach(
+          'file',
+          Buffer.from('opt'),
+          { filename: `${TEST_TAG}-res-opt.txt`, contentType: 'text/plain' }
+        );
+
+      // The optimized storage backend is not mocked in this suite, so
+      // the request typically fails before persisting. The behavioural
+      // guarantee is the same as above: NO row owned by the resident
+      // with the spoofed name may carry isManagerOnly=true.
+      const rows = await db
+        .select()
+        .from(schema.documents)
+        .where(
+          and(
+            eq(
+              schema.documents.uploadedById,
+              ids.resident
+            ),
+            eq(
+              schema.documents.name,
+              `${TEST_TAG} res-opt-upload-attempt`
+            )
+          )
+        );
+      rows.forEach((r: any) => trackCreatedDoc(r.id));
+      for (const r of rows) {
+        expect(r.isManagerOnly).toBe(false);
+      }
+      const body = res.body?.document ?? res.body;
+      if (body?.isManagerOnly !== undefined) {
+        expect(body.isManagerOnly).toBe(false);
+      }
+    }, 30000);
+  });
+
+  describe('Task #333 — manager-only flag survives non-manager edit attempts', () => {
+    it('resident PUT attempting isManagerOnly=false leaves the flag set', async () => {
+      const agent = await loginAs(emails.resident);
+      const res = await agent
+        .put(`/api/documents/${ids.docMgrOnlyResidence}`)
+        .send({ name: `${TEST_TAG} mutated-by-resident`, isManagerOnly: false });
+      // The PUT route MAY allow the resident to edit (because the doc
+      // is in their residence scope) OR reject the request — what we
+      // MUST guarantee is that the manager-only flag survives. The
+      // existing role guard around line 2704 of server/api/documents.ts
+      // is what's under test here.
+      expect([200, 403, 404]).toContain(res.status);
+
+      const [row] = await db
+        .select()
+        .from(schema.documents)
+        .where(eq(schema.documents.id, ids.docMgrOnlyResidence));
+      expect(row?.isManagerOnly).toBe(true);
+    }, 30000);
+
+    it('tenant PUT attempting isManagerOnly=false leaves the flag set', async () => {
+      const agent = await loginAs(emails.tenant);
+      const res = await agent
+        .put(`/api/documents/${ids.docMgrOnlyBuilding}`)
+        .send({ name: `${TEST_TAG} mutated-by-tenant`, isManagerOnly: false });
+      // Same contract as above — accept any non-mutating status, but
+      // assert the persisted flag is unchanged.
+      expect([200, 403, 404]).toContain(res.status);
+
+      const [row] = await db
+        .select()
+        .from(schema.documents)
+        .where(eq(schema.documents.id, ids.docMgrOnlyBuilding));
+      expect(row?.isManagerOnly).toBe(true);
+    }, 30000);
+
+    it('manager PUT can flip and restore the manager-only flag', async () => {
+      const agent = await loginAs(emails.manager);
+
+      // Use the building-scoped manager-only doc — the manager has a
+      // direct userBuildings link to that building so the PUT route's
+      // scope query reaches it consistently.
+      const turnOff = await agent
+        .put(`/api/documents/${ids.docMgrOnlyBuilding}`)
+        .send({ isManagerOnly: false });
+      expect(turnOff.status).toBe(200);
+      expect(turnOff.body?.isManagerOnly).toBe(false);
+
+      const turnOn = await agent
+        .put(`/api/documents/${ids.docMgrOnlyBuilding}`)
+        .send({ isManagerOnly: true });
+      expect(turnOn.status).toBe(200);
+      expect(turnOn.body?.isManagerOnly).toBe(true);
+
+      // Restore DB state for downstream assertions in the suite.
+      const [row] = await db
+        .select()
+        .from(schema.documents)
+        .where(eq(schema.documents.id, ids.docMgrOnlyBuilding));
+      expect(row?.isManagerOnly).toBe(true);
+    }, 30000);
+  });
 
   describe('GET /api/documents/:id/optimized-file — preview', () => {
     it('resident receives access-denied (404) on manager-only documents', async () => {

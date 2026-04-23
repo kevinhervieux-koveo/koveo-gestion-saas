@@ -155,7 +155,14 @@ export function registerOptimizedDocumentRoutes(app: Express): void {
         residenceId: uploadData.residenceId,
         uploadedById: user.id,
         isVisibleToTenants: false,
-        isManagerOnly: uploadData.isManagerOnly ?? false,
+        // Only admins/managers may flag a new document as manager-only.
+        // Mirrors the guard in server/api/documents.ts (resolveManagerOnlyFlag)
+        // so residents/tenants can't bypass visibility on this code path either.
+        isManagerOnly:
+          (uploadData.isManagerOnly ?? false) &&
+          (user.role === 'admin' ||
+            user.role === 'manager' ||
+            user.role === 'demo_manager'),
         documentType: uploadData.documentType,
       };
 
