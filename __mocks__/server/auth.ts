@@ -3,6 +3,16 @@
  * Provides mock authentication functions and middleware for testing
  */
 
+// Mock session middleware. Real `server/auth.ts` exports a configured
+// `express-session` instance as `sessionConfig`; tests that boot the real
+// `registerRoutes` (e.g. server/tests/mcp-lazy-mount.test.ts) need a working
+// middleware here so `app.use(sessionConfig)` doesn't blow up. Lazy-required
+// so test files that don't install `express-session` don't pay the cost.
+export const sessionConfig = (req: any, _res: any, next: any) => {
+  req.session = req.session || {};
+  next();
+};
+
 // Mock session store
 export const sessionStore = {
   get: jest.fn(),
