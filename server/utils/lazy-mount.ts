@@ -9,9 +9,13 @@ import express, { type Express, type Router } from 'express';
 export type RouteRegistry = Express | Router;
 
 /**
- * Signature that lazy-loadable route modules must export.
+ * Signature that lazy-loadable route modules must export. Registrars may be
+ * synchronous (the common case — just `app.use(...)` / `app.get(...)` etc.)
+ * or return a Promise when they need to await async setup work before the
+ * router is considered "loaded" (e.g. the MCP module, which seeds sandbox
+ * data and wipes stale OAuth secrets before mounting its handlers).
  */
-export type RouteRegistrar = (registry: RouteRegistry) => void;
+export type RouteRegistrar = (registry: RouteRegistry) => void | Promise<void>;
 
 /**
  * How a request path is matched against a lazy mount. Strings/string[] do a
@@ -58,7 +62,7 @@ export function lazyMount(
     loading = (async () => {
       const t0 = Date.now();
       const register = await loader();
-      register(router);
+      await register(router);
       loaded = true;
       console.log(
         `[lazy-mount] route module loaded in ${Date.now() - t0}ms`,

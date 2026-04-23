@@ -8,11 +8,13 @@ import { requireAuth } from './auth/index';
 import { secureErrorHandler, notFoundHandler } from './middleware/error-security';
 import { enforceDemoSecurity } from './middleware/demo-security';
 import { logDebug, logInfo, logWarn, logError } from './utils/logger';
+import { lazyMount, type LazyRouteMatcher } from './utils/lazy-mount';
 
 // NOTE: MCP modules are intentionally NOT imported at the top level. They
 // are pulled in via `await import('./mcp/index')` only when ENABLE_MCP_SERVER
-// is true, so the OAuth provider singleton, transports, and SDK code never
-// pay their boot cost on a production deploy that doesn't opt in.
+// is true AND the first matching request actually arrives, so the OAuth
+// provider singleton, transports, and SDK code never pay their boot cost on
+// a production deploy until they're truly needed.
 
 // Import API route registration functions
 import { registerOrganizationRoutes } from './api/organizations';
@@ -33,7 +35,6 @@ import { registerInvoiceRoutes } from './api/invoices';
 import { registerPillarsSuggestionsRoutes } from './api/pillars-suggestions';
 import { registerQualityMetricsRoutes } from './api/quality-metrics';
 import { registerFeatureManagementRoutes } from './api/feature-management';
-import { lazyMount } from './utils/lazy-mount';
 import law25ComplianceRouter from './routes/law25-compliance';
 import { performanceRouter } from './performance-api';
 import { webVitalsRouter } from './web-vitals-api';
@@ -102,24 +103,35 @@ export async function registerRoutes(app: Express) {
     process.env.ENABLE_MCP_SERVER === 'true' ||
     (process.env.NODE_ENV !== 'production' && process.env.ENABLE_MCP_SERVER !== 'false');
 
-  // Lazy-loaded MCP module handles. Captured here so the OAuth consent
-  // registration below can reuse the same module instance without a second
-  // dynamic import (and without instantiating koveoMcpOAuthProvider twice).
-  let mcpModule:
-    | typeof import('./mcp/index')
-    | null = null;
+  // Shared lazy import of the MCP module. The pre-session and post-session
+  // lazy mounts both await this same promise so the OAuth provider singleton
+  // (and the rest of the MCP service code) is loaded at most once.
+  let mcpModulePromise: Promise<typeof import('./mcp/index')> | null = null;
+  function loadMcpModule(): Promise<typeof import('./mcp/index')> {
+    if (!mcpModulePromise) mcpModulePromise = import('./mcp/index');
+    return mcpModulePromise;
+  }
 
   if (mcpEnabled) {
-    try {
-      mcpModule = await import('./mcp/index');
-      await mcpModule.registerMcpRoutes(app);
-    } catch (mcpError: any) {
-      console.error(
-        '[ROUTES] registerMcpRoutes failed — continuing without MCP endpoints:',
-        mcpError?.message || mcpError,
-        mcpError?.stack || ''
-      );
-    }
+    // MCP `/mcp` and the SDK-provided OAuth endpoints (`/authorize`,
+    // `/token`, `/register`, `/revoke`, `/.well-known/oauth-*`) use their
+    // own bearer-token / API-key auth — they MUST run before sessionConfig
+    // so the express-session middleware never touches them. We mount a
+    // matcher-gated lazy router here so the actual MCP service code is not
+    // imported until the first matching request arrives.
+    const mcpPreSessionMatcher: LazyRouteMatcher = [
+      '/mcp',
+      '/register',
+      '/authorize',
+      '/token',
+      '/revoke',
+      '/.well-known/oauth-authorization-server',
+      '/.well-known/oauth-protected-resource',
+    ];
+    lazyMount(app, mcpPreSessionMatcher, async () => {
+      const mod = await loadMcpModule();
+      return (registry) => mod.registerMcpRoutes(registry as Express);
+    });
   } else {
     console.log('[ROUTES] MCP server disabled (set ENABLE_MCP_SERVER=true to enable).');
   }
@@ -128,10 +140,18 @@ export async function registerRoutes(app: Express) {
   app.use(sessionConfig);
 
   // OAuth consent UI MUST be mounted AFTER sessionConfig because it reads
-  // and writes req.session to detect the signed-in Koveo user. Only mounted
-  // when MCP is enabled and the lazy import succeeded.
-  if (mcpEnabled && mcpModule) {
-    mcpModule.registerOAuthConsentRoutes(app, mcpModule.koveoMcpOAuthProvider);
+  // and writes req.session to detect the signed-in Koveo user. Lazy-mounted
+  // so the consent view code (and its `KoveoMcpOAuthProvider` reference) is
+  // only pulled in when a user actually hits the consent URL.
+  if (mcpEnabled) {
+    lazyMount(app, '/oauth/consent', async () => {
+      const mod = await loadMcpModule();
+      return (registry) =>
+        mod.registerOAuthConsentRoutes(
+          registry as Express,
+          mod.koveoMcpOAuthProvider,
+        );
+    });
   }
   
   
