@@ -226,9 +226,10 @@ export function convertBillResponseToFormData(aiData: any) {
     // CRITICAL: Override payment structure if we have custom payment dates or custom frequency
     // This ensures installment plans are correctly detected
     const hasCustomPayments = Array.isArray(aiData.customPaymentDates) && aiData.customPaymentDates.length > 0;
+    const hasCustomPaymentsArray = Array.isArray(aiData.customPayments) && aiData.customPayments.length > 0;
     const isCustomFrequency = aiData.frequency === 'custom';
     
-    if (hasCustomPayments || isCustomFrequency) {
+    if (hasCustomPayments || hasCustomPaymentsArray || isCustomFrequency) {
       paymentTypeMapping.billType = 'recurrent';
       paymentTypeMapping.paymentStructure = 'installment';
       paymentTypeMapping.paymentCount = 'multiple';

@@ -187,6 +187,33 @@ describe('convertBillResponseToFormData', () => {
     expect(result.recurrence).toBe(true);
   });
 
+  it('flips to installment when customPayments are present without frequency=custom or customPaymentDates', () => {
+    const aiData = {
+      vendorName: 'Roofing Inc',
+      totalAmount: '1000.00',
+      paymentType: 'one-time',
+      customPayments: [
+        { amount: '400.00', date: '2026-04-01', description: 'Deposit' },
+        { amount: '300.00', date: '2026-05-01' },
+        { amount: '300.00', date: '2026-06-01' },
+      ],
+    };
+
+    const result = convertBillResponseToFormData(aiData);
+
+    expect(result.billType).toBe('recurrent');
+    expect(result.paymentStructure).toBe('installment');
+    expect(result.paymentCount).toBe('multiple');
+    expect(result.recurrence).toBe(true);
+    expect(result.customPayments).toHaveLength(3);
+    expect(result.customPayments[0]).toEqual({
+      amount: '400.00',
+      date: '2026-04-01',
+      description: 'Deposit',
+    });
+    expect(result.recurringPaymentsEqual).toBe(false);
+  });
+
   it('infers a category from the vendor name when AI category is missing or invalid', () => {
     const result = convertBillResponseToFormData({
       vendorName: 'City Water Utility',
