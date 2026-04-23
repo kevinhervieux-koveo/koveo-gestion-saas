@@ -65,6 +65,8 @@ const AI_TAG_SUGGEST_SUPPORTED_MIME_TYPES: ReadonlySet<string> = new Set([
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   'application/vnd.ms-excel',
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'text/plain',
+  'text/csv',
 ]);
 
 type AiTagSuggestionResponse = {

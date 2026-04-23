@@ -1274,6 +1274,8 @@ IMPORTANT: Retournez UNIQUEMENT l'objet JSON, sans formatage markdown ni explica
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     'application/vnd.ms-excel',
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'text/plain',
+    'text/csv',
   ];
 
   private static readonly INLINE_TAG_SUGGESTION_TYPES = new Set([
@@ -1296,6 +1298,11 @@ IMPORTANT: Retournez UNIQUEMENT l'objet JSON, sans formatage markdown ni explica
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   ]);
 
+  private static readonly PLAIN_TEXT_TAG_SUGGESTION_TYPES = new Set([
+    'text/plain',
+    'text/csv',
+  ]);
+
   /**
    * Best-effort plain-text extraction for Office uploads. Returns an empty
    * string if extraction fails — callers should treat that as "no AI hint
@@ -1303,6 +1310,9 @@ IMPORTANT: Retournez UNIQUEMENT l'objet JSON, sans formatage markdown ni explica
    */
   private async extractOfficeText(fileBuffer: Buffer, mimeType: string): Promise<string> {
     try {
+      if (ConsolidatedAIService.PLAIN_TEXT_TAG_SUGGESTION_TYPES.has(mimeType)) {
+        return fileBuffer.toString('utf8').slice(0, 20000);
+      }
       if (ConsolidatedAIService.DOCX_MIME_TYPES.has(mimeType)) {
         const mammoth = await import('mammoth');
         const result = await mammoth.extractRawText({ buffer: fileBuffer });
