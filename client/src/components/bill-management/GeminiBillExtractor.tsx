@@ -213,7 +213,7 @@ function parseAmount(value: any): string {
  * Maps AI-extracted fields to the expected form structure
  * Now handles the new logical sequence extraction format with field confidence
  */
-function convertBillResponseToFormData(aiData: any) {
+export function convertBillResponseToFormData(aiData: any) {
   try {
     // Handle null or undefined data gracefully
     if (!aiData || typeof aiData !== 'object') {
