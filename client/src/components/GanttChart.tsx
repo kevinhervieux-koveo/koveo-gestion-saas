@@ -68,6 +68,12 @@ const STATUS_COLORS: Record<string, string> = {
 const PLACEHOLDER_COLOR = '#d1d5db';
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+const ROW_HEIGHT = 36;
+const TOP_MARGIN = 10;
+const BOTTOM_MARGIN = 10;
+const X_AXIS_HEIGHT = 30;
+const MIN_MONTH_PX = 80;
+
 function parseDate(value?: string | null | Date): Date | null {
   if (!value) return null;
   const d = value instanceof Date ? value : new Date(value);
@@ -113,7 +119,7 @@ export function GanttChart({
   const includeTitle = t('includeInBudget');
   const excludeTitle = t('excludeFromBudget');
 
-  const { rows, domain, ticks } = useMemo(() => {
+  const { rows, domain, ticks, monthSpan } = useMemo(() => {
     const dated: GanttRow[] = [];
     const undated: GanttProject[] = [];
 
@@ -155,9 +161,6 @@ export function GanttChart({
       }
     }
 
-    // Determine the X-axis domain. An explicit dateRange takes precedence
-    // (so callers can anchor to the selected financial year). Otherwise
-    // derive it from the project dates with a sensible calendar fallback.
     let domainStart: number;
     let domainEnd: number;
     const explicitStart = parseDate(dateRange?.start);
@@ -174,7 +177,6 @@ export function GanttChart({
       domainEnd = new Date(now.getFullYear(), 11, 31).getTime();
     }
 
-    // Pad domain to start/end of month
     const padStart = new Date(domainStart);
     padStart.setDate(1);
     padStart.setHours(0, 0, 0, 0);
@@ -184,11 +186,10 @@ export function GanttChart({
     const domainStartTs = padStart.getTime();
     const domainEndTs = padEnd.getTime();
 
-    // Generate ticks - month labels, scale to quarters when span is large
-    const monthSpan =
+    const months =
       (padEnd.getFullYear() - padStart.getFullYear()) * 12 +
       (padEnd.getMonth() - padStart.getMonth());
-    const stepMonths = monthSpan > 24 ? 3 : monthSpan > 12 ? 2 : 1;
+    const stepMonths = months > 24 ? 3 : months > 12 ? 2 : 1;
 
     const tickArr: number[] = [];
     const cursor = new Date(padStart);
@@ -197,7 +198,6 @@ export function GanttChart({
       cursor.setMonth(cursor.getMonth() + stepMonths);
     }
 
-    // Append placeholder rows for projects with no dates
     const placeholderRows: GanttRow[] = undated.map(p => ({
       id: p.id,
       name: p.title,
@@ -215,141 +215,167 @@ export function GanttChart({
       rows: [...dated, ...placeholderRows],
       domain: [domainStartTs, domainEndTs] as [number, number],
       ticks: tickArr,
+      monthSpan: Math.max(1, months),
     };
   }, [projects, dateRange]);
 
-  const yAxisWidth = onToggleInclude ? 200 : 160;
-  const chartHeight = height ?? Math.max(160, rows.length * 36 + 60);
+  const labelWidth = onToggleInclude ? 220 : 180;
+  const chartHeight =
+    height ??
+    Math.max(
+      160,
+      rows.length * ROW_HEIGHT + TOP_MARGIN + BOTTOM_MARGIN + X_AXIS_HEIGHT,
+    );
+  const minTimelineWidth = monthSpan * MIN_MONTH_PX;
 
   if (rows.length === 0) {
     return null;
   }
 
-  // Custom Y-axis tick that renders the row label and (optionally) an
-  // include-in-budget toggle button using foreignObject so HTML controls
-  // can live inside the SVG axis.
-  const renderYTick = (tickProps: any) => {
-    const { x, y, index } = tickProps;
-    const row = rows[index];
-    if (!row) return null;
-    const tickHeight = 28;
-    return (
-      <foreignObject
-        x={x - yAxisWidth}
-        y={y - tickHeight / 2}
-        width={yAxisWidth}
-        height={tickHeight}
+  return (
+    <div className="w-full" data-testid="gantt-chart">
+      <div
+        className="overflow-x-auto"
+        style={{ width: '100%' }}
+        data-testid="gantt-scroll-container"
       >
         <div
-          // @ts-expect-error xmlns is required for foreignObject HTML content
-          xmlns="http://www.w3.org/1999/xhtml"
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            height: '100%',
-            fontSize: 12,
-            paddingRight: 8,
+            display: 'grid',
+            gridTemplateColumns: `${labelWidth}px minmax(${minTimelineWidth}px, 1fr)`,
+            minWidth: labelWidth + minTimelineWidth,
+            height: chartHeight,
           }}
         >
-          <span
+          {/* Sticky labels column */}
+          <div
             style={{
-              flex: 1,
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-              opacity: row.includeInBudget ? 1 : 0.55,
+              position: 'sticky',
+              left: 0,
+              zIndex: 2,
+              background: 'hsl(var(--background))',
+              borderRight: '1px solid hsl(var(--border))',
+              height: chartHeight,
+              boxSizing: 'border-box',
+              paddingTop: TOP_MARGIN,
             }}
-            title={row.name}
+            data-testid="gantt-labels"
           >
-            {row.name}
-          </span>
-          {onToggleInclude && (
-            <button
-              type="button"
-              onClick={() => onToggleInclude(row.id, !row.includeInBudget)}
-              title={row.includeInBudget ? excludeTitle : includeTitle}
-              data-testid={`gantt-toggle-include-${row.id}`}
-              style={{
-                cursor: 'pointer',
-                background: 'transparent',
-                border: 'none',
-                padding: 2,
-                color: row.includeInBudget ? '#2563eb' : '#94a3b8',
-                display: 'inline-flex',
-                alignItems: 'center',
-              }}
-            >
-              {row.includeInBudget ? (
-                <Eye size={14} />
-              ) : (
-                <EyeOff size={14} />
-              )}
-            </button>
-          )}
-        </div>
-      </foreignObject>
-    );
-  };
-
-  return (
-    <div style={{ width: '100%', height: chartHeight }} data-testid="gantt-chart">
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart
-          data={rows}
-          layout="vertical"
-          margin={{ top: 10, right: 20, left: 10, bottom: 10 }}
-          barCategoryGap="20%"
-        >
-          <CartesianGrid strokeDasharray="3 3" horizontal={false} />
-          <XAxis
-            type="number"
-            domain={domain}
-            ticks={ticks}
-            tickFormatter={ts => formatMonth(ts, locale)}
-            tick={{ fontSize: 11 }}
-          />
-          <YAxis
-            type="category"
-            dataKey="name"
-            width={yAxisWidth}
-            tick={renderYTick}
-            interval={0}
-          />
-          <Tooltip
-            cursor={{ fill: 'rgba(0,0,0,0.04)' }}
-            content={({ active, payload }) => {
-              if (!active || !payload || payload.length === 0) return null;
-              const row = payload[0].payload as GanttRow;
-              return (
-                <div className="rounded-md border bg-background p-2 text-xs shadow-md">
-                  <div className="font-medium">{row.name}</div>
-                  {row.status && (
-                    <div className="text-muted-foreground capitalize">
-                      {row.status.replace(/_/g, ' ')}
-                    </div>
-                  )}
-                  {row.hasDates && row.startTs && row.endTs ? (
-                    <div className="text-muted-foreground">
-                      {formatDate(row.startTs, locale)} —{' '}
-                      {formatDate(row.endTs, locale)}
-                    </div>
-                  ) : (
-                    <div className="text-muted-foreground italic">
-                      {noDatesLabel}
-                    </div>
-                  )}
-                </div>
-              );
-            }}
-          />
-          <Bar dataKey="range" minPointSize={4} radius={[3, 3, 3, 3]}>
             {rows.map(row => (
-              <Cell key={row.id} fill={row.color} fillOpacity={row.opacity} />
+              <div
+                key={row.id}
+                style={{
+                  height: ROW_HEIGHT,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  fontSize: 12,
+                  paddingRight: 8,
+                  paddingLeft: 4,
+                  boxSizing: 'border-box',
+                }}
+              >
+                <span
+                  style={{
+                    flex: 1,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    opacity: row.includeInBudget ? 1 : 0.55,
+                  }}
+                  title={row.name}
+                >
+                  {row.name}
+                </span>
+                {onToggleInclude && (
+                  <button
+                    type="button"
+                    onClick={() => onToggleInclude(row.id, !row.includeInBudget)}
+                    title={row.includeInBudget ? excludeTitle : includeTitle}
+                    data-testid={`gantt-toggle-include-${row.id}`}
+                    style={{
+                      cursor: 'pointer',
+                      background: 'transparent',
+                      border: 'none',
+                      padding: 2,
+                      color: row.includeInBudget ? '#2563eb' : '#94a3b8',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                    }}
+                  >
+                    {row.includeInBudget ? <Eye size={14} /> : <EyeOff size={14} />}
+                  </button>
+                )}
+              </div>
             ))}
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
+          </div>
+
+          {/* Scrollable timeline (chart) */}
+          <div style={{ height: chartHeight, minWidth: minTimelineWidth }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={rows}
+                layout="vertical"
+                margin={{ top: TOP_MARGIN, right: 20, left: 0, bottom: BOTTOM_MARGIN }}
+                barCategoryGap={0}
+              >
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                <XAxis
+                  type="number"
+                  domain={domain}
+                  ticks={ticks}
+                  tickFormatter={ts => formatMonth(ts, locale)}
+                  tick={{ fontSize: 11 }}
+                  height={X_AXIS_HEIGHT}
+                />
+                <YAxis
+                  type="category"
+                  dataKey="name"
+                  hide
+                />
+                <Tooltip
+                  cursor={{ fill: 'rgba(0,0,0,0.04)' }}
+                  content={({ active, payload }) => {
+                    if (!active || !payload || payload.length === 0) return null;
+                    const row = payload[0].payload as GanttRow;
+                    return (
+                      <div className="rounded-md border bg-background p-2 text-xs shadow-md">
+                        <div className="font-medium">{row.name}</div>
+                        {row.status && (
+                          <div className="text-muted-foreground capitalize">
+                            {row.status.replace(/_/g, ' ')}
+                          </div>
+                        )}
+                        {row.hasDates && row.startTs && row.endTs ? (
+                          <div className="text-muted-foreground">
+                            {formatDate(row.startTs, locale)} —{' '}
+                            {formatDate(row.endTs, locale)}
+                          </div>
+                        ) : (
+                          <div className="text-muted-foreground italic">
+                            {noDatesLabel}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  }}
+                />
+                <Bar
+                  dataKey="range"
+                  minPointSize={4}
+                  radius={[3, 3, 3, 3]}
+                  barSize={ROW_HEIGHT * 0.7}
+                >
+                  {rows.map(row => (
+                    <Cell key={row.id} fill={row.color} fillOpacity={row.opacity} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      </div>
+
       {/* Legend */}
       <div className="flex flex-wrap gap-3 mt-2 text-xs text-muted-foreground">
         {Object.entries(STATUS_COLORS).map(([status, color]) => {
