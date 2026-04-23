@@ -13,7 +13,7 @@ import { requireAuth, requireRole } from '../auth';
  * Register demo management routes.
  * @param app
  */
-export function registerDemoManagementRoutes(app: Express): void {
+export function registerDemoManagementRoutes(app: import('../utils/lazy-mount').RouteRegistry): void {
   /**
    * GET /api/demo/health
    * Check the health status of demo organizations.

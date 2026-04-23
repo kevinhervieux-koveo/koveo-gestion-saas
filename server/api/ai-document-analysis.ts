@@ -239,7 +239,7 @@ function generateContextPrompt(formType: string, uploadContext?: UploadContext):
 /**
  * Register AI document analysis routes
  */
-export function registerAiAnalysisRoutes(app: Express) {
+export function registerAiAnalysisRoutes(app: import('../utils/lazy-mount').RouteRegistry) {
   /**
    * POST /api/ai/analyze-document
    * Analyze uploaded document using AI

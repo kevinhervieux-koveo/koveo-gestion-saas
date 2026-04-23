@@ -18,11 +18,9 @@ import { logDebug, logInfo, logWarn, logError } from './utils/logger';
 import { registerOrganizationRoutes } from './api/organizations';
 import { registerUserRoutes } from './api/users';
 import { registerBuildingRoutes } from './api/buildings';
-import { registerDocumentRoutes } from './api/documents';
 import { registerDocumentTagRoutes } from './api/document-tags';
 import { seedKoveoDocumentTags } from './api/document-tags-seed';
 import { registerBugRoutes } from './api/bugs';
-import { registerBillRoutes } from './api/bills';
 import budgetRouter from './api/budgets';
 import { registerResidenceRoutes } from './api/residences';
 import { registerDemandRoutes } from './api/demands';
@@ -30,15 +28,12 @@ import { registerFeatureRequestRoutes } from './api/feature-requests';
 import { registerContactRoutes } from './api/contacts';
 import { registerCommonSpacesRoutes } from './api/common-spaces';
 import { registerPermissionsRoutes } from './api/permissions';
-import { registerDemoManagementRoutes } from './api/demo-management';
-import { registerCommunicationRoutes } from './api/communication';
 import { registerTrialRequestRoutes } from './api/trial-request';
 import { registerInvoiceRoutes } from './api/invoices';
-import { registerAiAnalysisRoutes } from './api/ai-document-analysis';
 import { registerPillarsSuggestionsRoutes } from './api/pillars-suggestions';
 import { registerQualityMetricsRoutes } from './api/quality-metrics';
 import { registerFeatureManagementRoutes } from './api/feature-management';
-import { registerMaintenanceRoutes } from './api/maintenance';
+import { lazyMount } from './utils/lazy-mount';
 import law25ComplianceRouter from './routes/law25-compliance';
 import { performanceRouter } from './performance-api';
 import { webVitalsRouter } from './web-vitals-api';
@@ -152,32 +147,43 @@ export async function registerRoutes(app: Express) {
   registerOrganizationRoutes(app);
   registerUserRoutes(app);
   registerBuildingRoutes(app);
-  registerDocumentRoutes(app);
   registerDocumentTagRoutes(app);
   // Idempotent seeding of Koveo system tags (safe to run on every startup)
   void seedKoveoDocumentTags();
   registerBugRoutes(app);
 
-  registerBillRoutes(app);
-  
   // Budget routes
   app.use('/api/budgets', requireAuth, budgetRouter);
-  
+
   registerResidenceRoutes(app);
   registerDemandRoutes(app);
   registerFeatureRequestRoutes(app);
   registerContactRoutes(app);
   registerCommonSpacesRoutes(app);
   registerPermissionsRoutes(app);
-  registerDemoManagementRoutes(app);
-  registerCommunicationRoutes(app);
   registerTrialRequestRoutes(app);
   registerInvoiceRoutes(app);
-  registerAiAnalysisRoutes(app);
   registerPillarsSuggestionsRoutes(app);
   registerQualityMetricsRoutes(app);
   registerFeatureManagementRoutes(app);
-  registerMaintenanceRoutes(app);
+
+  // Lazy-loaded route modules — heavy modules whose service-layer
+  // dependencies (AI helpers, validators, cache stores) are only pulled in
+  // on first matching request. See server/utils/lazy-mount.ts.
+  lazyMount(app, '/api/documents', async () => (await import('./api/documents')).registerDocumentRoutes);
+  // Bills owns /api/bills/* AND a couple of /api/buildings/:id/bills/* endpoints.
+  // Match the latter by regex so generic /api/buildings traffic doesn't trigger
+  // the bills module load.
+  const billsBuildingPattern = /^\/api\/buildings\/[^/]+\/bills(?:\/|$)/;
+  lazyMount(
+    app,
+    (path: string) => path.startsWith('/api/bills') || billsBuildingPattern.test(path),
+    async () => (await import('./api/bills')).registerBillRoutes,
+  );
+  lazyMount(app, '/api/communication', async () => (await import('./api/communication')).registerCommunicationRoutes);
+  lazyMount(app, '/api/maintenance', async () => (await import('./api/maintenance')).registerMaintenanceRoutes);
+  lazyMount(app, '/api/demo', async () => (await import('./api/demo-management')).registerDemoManagementRoutes);
+  lazyMount(app, '/api/ai', async () => (await import('./api/ai-document-analysis')).registerAiAnalysisRoutes);
   
   // Performance monitoring routes
   app.use(performanceRouter);

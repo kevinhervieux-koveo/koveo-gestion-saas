@@ -496,7 +496,7 @@ function calculateFirstIncompleteTab(currentStatus: string, skipFlags: any): str
 /**
  * Register maintenance API routes
  */
-export function registerMaintenanceRoutes(app: Express): void {
+export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').RouteRegistry): void {
   
   // ===========================================
   // UNIFORMAT CATALOG MANAGEMENT

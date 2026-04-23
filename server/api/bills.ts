@@ -457,7 +457,7 @@ function normalizeFilePath(filePath: string): string {
  * @param app
  * @returns Function result.
  */
-export function registerBillRoutes(app: Express) {
+export function registerBillRoutes(app: import('../utils/lazy-mount').RouteRegistry) {
   /**
    * POST /api/bills/extract-data
    * Extract bill data from uploaded file using Gemini AI.

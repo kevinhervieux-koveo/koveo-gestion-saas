@@ -457,7 +457,7 @@ const uploadDocumentRecordSchema = z.object({
  * @param app
  * @returns Function result.
  */
-export function registerDocumentRoutes(app: Express): void {
+export function registerDocumentRoutes(app: import('../utils/lazy-mount').RouteRegistry): void {
   logInfo('[DOCUMENT ROUTES] Registering document routes');
   
   // Security audit logging

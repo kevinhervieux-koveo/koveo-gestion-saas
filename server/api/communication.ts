@@ -131,7 +131,7 @@ async function authorizeBuildingAccess(
  *
  * @param app - Express application instance.
  */
-export function registerCommunicationRoutes(app: Express): void {
+export function registerCommunicationRoutes(app: import('../utils/lazy-mount').RouteRegistry): void {
   // ==========================================
   // ORGANIZATION CONTEXT ROUTES
   // ==========================================
