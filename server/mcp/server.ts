@@ -5414,7 +5414,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
             details: {
               source: "mcp",
               tool: "resend_invitation",
-              role,
+              callerRole: role,
               newExpiresAt: newExpiresAt.toISOString(),
             },
           })
