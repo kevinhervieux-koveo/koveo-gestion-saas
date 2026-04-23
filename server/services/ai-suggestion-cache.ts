@@ -7,16 +7,16 @@
  * user has already triggered, and entries survive deploys.
  *
  * Entries carry an `expiresAt` so readers transparently treat stale rows as
- * misses, and writers opportunistically prune expired rows on insert. A
- * soft cap on total entries keeps the table from growing without bound when
- * usage spikes.
+ * misses. A scheduled maintenance job (see `server/jobs/maintenanceJobs.ts`)
+ * is responsible for pruning expired rows and enforcing the soft size cap so
+ * write-path latency stays predictable.
  */
 
 import { asc, eq, lt, sql } from 'drizzle-orm';
 import { db } from '../db';
 import { aiSuggestionCache } from '@shared/schemas/infrastructure';
 
-const MAX_ENTRIES = 1000;
+export const AI_SUGGESTION_CACHE_MAX_ENTRIES = 1000;
 
 export async function getCachedSuggestion<T>(key: string): Promise<T | null> {
   try {
@@ -69,34 +69,6 @@ export async function setCachedSuggestion<T>(
           createdAt: now,
         },
       });
-
-    // Opportunistic cleanup so the table stays small. Both queries are
-    // best-effort: failures here must not break the request that produced
-    // the cache write.
-    await db
-      .delete(aiSuggestionCache)
-      .where(lt(aiSuggestionCache.expiresAt, new Date()))
-      .catch(() => {});
-
-    const [{ count }] = await db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(aiSuggestionCache);
-    if (count > MAX_ENTRIES) {
-      const overflow = count - MAX_ENTRIES;
-      const oldest = await db
-        .select({ cacheKey: aiSuggestionCache.cacheKey })
-        .from(aiSuggestionCache)
-        .orderBy(asc(aiSuggestionCache.createdAt))
-        .limit(overflow);
-      if (oldest.length > 0) {
-        for (const row of oldest) {
-          await db
-            .delete(aiSuggestionCache)
-            .where(eq(aiSuggestionCache.cacheKey, row.cacheKey))
-            .catch(() => {});
-        }
-      }
-    }
   } catch (error) {
     console.warn(
       '[AI SUGGESTION CACHE] Write failed, suggestion will not be cached:',
@@ -107,4 +79,77 @@ export async function setCachedSuggestion<T>(
 
 export async function clearAiSuggestionCache(): Promise<void> {
   await db.delete(aiSuggestionCache);
+}
+
+/**
+ * Result of a cache pruning pass.
+ */
+export interface AiSuggestionCachePruneResult {
+  expiredDeleted: number;
+  overflowDeleted: number;
+}
+
+/**
+ * Prune expired rows and enforce the soft size cap on the suggestion cache.
+ *
+ * Intended to be called from the maintenance job scheduler. Safe to call
+ * concurrently: each step is best-effort and surfaces a result rather than
+ * throwing, so callers can log and move on.
+ */
+export async function pruneAiSuggestionCache(
+  maxEntries: number = AI_SUGGESTION_CACHE_MAX_ENTRIES
+): Promise<AiSuggestionCachePruneResult> {
+  const result: AiSuggestionCachePruneResult = {
+    expiredDeleted: 0,
+    overflowDeleted: 0,
+  };
+
+  try {
+    const expired = await db
+      .delete(aiSuggestionCache)
+      .where(lt(aiSuggestionCache.expiresAt, new Date()))
+      .returning({ cacheKey: aiSuggestionCache.cacheKey });
+    result.expiredDeleted = expired.length;
+  } catch (error) {
+    console.warn(
+      '[AI SUGGESTION CACHE] Failed to prune expired rows:',
+      error instanceof Error ? error.message : error
+    );
+  }
+
+  try {
+    const [{ count }] = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(aiSuggestionCache);
+
+    if (count > maxEntries) {
+      const overflow = count - maxEntries;
+      const oldest = await db
+        .select({ cacheKey: aiSuggestionCache.cacheKey })
+        .from(aiSuggestionCache)
+        .orderBy(asc(aiSuggestionCache.createdAt))
+        .limit(overflow);
+
+      for (const row of oldest) {
+        try {
+          await db
+            .delete(aiSuggestionCache)
+            .where(eq(aiSuggestionCache.cacheKey, row.cacheKey));
+          result.overflowDeleted++;
+        } catch (error) {
+          console.warn(
+            '[AI SUGGESTION CACHE] Failed to evict overflow row:',
+            error instanceof Error ? error.message : error
+          );
+        }
+      }
+    }
+  } catch (error) {
+    console.warn(
+      '[AI SUGGESTION CACHE] Failed to enforce size cap:',
+      error instanceof Error ? error.message : error
+    );
+  }
+
+  return result;
 }

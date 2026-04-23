@@ -16,6 +16,7 @@ import {
 } from '@shared/schemas/maintenance';
 import { organizations, userOrganizations, buildings } from '@shared/schema';
 import { maintenanceSuggestionService } from '../services/maintenanceSuggestionService';
+import { pruneAiSuggestionCache } from '../services/ai-suggestion-cache';
 
 /**
  * Job execution statistics interface
@@ -58,6 +59,8 @@ export class MaintenanceJobsScheduler {
   private runCount = 0;
   private buildingLocks = new Map<string, Date>(); // Advisory locks per building
   private lastExecutionStats: JobExecutionStats | null = null;
+  private isPruningCache = false;
+  private lastCachePrune: { ranAt: Date; expiredDeleted: number; overflowDeleted: number } | null = null;
 
   constructor() {
     // Initialize scheduler
@@ -83,9 +86,52 @@ export class MaintenanceJobsScheduler {
       timezone: 'America/Montreal'
     });
 
+    // Schedule hourly cleanup of the AI suggestion cache (top of every hour).
+    cron.schedule('0 * * * *', async () => {
+      await this.runAiSuggestionCachePrune();
+    }, {
+      timezone: 'America/Montreal'
+    });
+
     console.log('✅ Maintenance jobs scheduled');
     console.log('📅 Daily suggestions: Every day at 02:15 AM (America/Montreal)');
     console.log('🔄 Weekly rebalancing: Saturdays at 03:00 AM (America/Montreal)');
+    console.log('🧹 AI suggestion cache prune: Hourly (America/Montreal)');
+  }
+
+  /**
+   * Periodic cleanup of the shared AI suggestion cache.
+   *
+   * Pruning was previously inlined in the cache write path; running it here
+   * keeps request latency tight and ensures expired rows are evicted even
+   * when writes go quiet.
+   */
+  private async runAiSuggestionCachePrune(): Promise<void> {
+    if (this.isPruningCache) {
+      console.log('⏭️ AI suggestion cache prune already running, skipping...');
+      return;
+    }
+
+    this.isPruningCache = true;
+    const startedAt = new Date();
+    try {
+      const result = await pruneAiSuggestionCache();
+      this.lastCachePrune = {
+        ranAt: startedAt,
+        expiredDeleted: result.expiredDeleted,
+        overflowDeleted: result.overflowDeleted,
+      };
+
+      if (result.expiredDeleted > 0 || result.overflowDeleted > 0) {
+        console.log(
+          `🧹 AI suggestion cache pruned: expired=${result.expiredDeleted}, overflow=${result.overflowDeleted}`
+        );
+      }
+    } catch (error: any) {
+      console.error('❌ Error pruning AI suggestion cache:', error);
+    } finally {
+      this.isPruningCache = false;
+    }
   }
 
   /**
@@ -451,6 +497,10 @@ export class MaintenanceJobsScheduler {
     nextScheduled: string;
     buildingLocks: number;
     lastExecution?: JobExecutionStats;
+    aiSuggestionCache?: {
+      isRunning: boolean;
+      lastRun: { ranAt: Date; expiredDeleted: number; overflowDeleted: number } | null;
+    };
   }> {
     // Calculate next scheduled run (tomorrow at 02:15 AM)
     const now = new Date();
@@ -464,7 +514,11 @@ export class MaintenanceJobsScheduler {
       runCount: this.runCount,
       nextScheduled: nextRun.toISOString(),
       buildingLocks: this.buildingLocks.size,
-      lastExecution: this.lastExecutionStats || undefined
+      lastExecution: this.lastExecutionStats || undefined,
+      aiSuggestionCache: {
+        isRunning: this.isPruningCache,
+        lastRun: this.lastCachePrune,
+      }
     };
   }
 
