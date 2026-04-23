@@ -2081,6 +2081,10 @@ export function registerBillRoutes(app: Express) {
         const updateData: unknown = {
           filePath,
           fileName,
+          // Preserve the user's original UTF-8 filename so download endpoints
+          // can serve it via RFC 5987 even though `fileName` is normalized
+          // (Task #420).
+          originalFileName: req.file.originalname,
           fileSize: req.file.size,
           isAiAnalyzed: !!analysisResult,
           aiAnalysisData: analysisResult,
@@ -2118,6 +2122,7 @@ export function registerBillRoutes(app: Express) {
               documentType: 'attachment',
               filePath,
               fileName,
+              originalFileName: req.file.originalname,
               fileSize: req.file.size,
               mimeType: req.file.mimetype,
               isVisibleToTenants: false,
@@ -2150,6 +2155,7 @@ export function registerBillRoutes(app: Express) {
             documentType: 'attachment',
             filePath,
             fileName,
+            originalFileName: req.file.originalname,
             fileSize: req.file.size,
             mimeType: req.file.mimetype,
             isVisibleToTenants: false,
@@ -2214,6 +2220,12 @@ export function registerBillRoutes(app: Express) {
 
       let filePath = billData.filePath;
       let fileName = billData.fileName;
+      // Prefer the original UTF-8 filename so French/accented downloads keep
+      // the user's name (Task #420). Falls back to the normalized stored
+      // name when the legacy column is empty (e.g. bills uploaded before the
+      // column existed).
+      let displayName: string | null | undefined =
+        billData.originalFileName || billData.fileName;
 
       if (!filePath || !fileName) {
         // Check documents table for linked attachments
@@ -2221,6 +2233,7 @@ export function registerBillRoutes(app: Express) {
           .select({
             filePath: documents.filePath,
             fileName: documents.fileName,
+            originalFileName: documents.originalFileName,
           })
           .from(documents)
           .where(
@@ -2234,6 +2247,7 @@ export function registerBillRoutes(app: Express) {
         if (linkedDoc.length > 0 && linkedDoc[0].filePath && linkedDoc[0].fileName) {
           filePath = linkedDoc[0].filePath;
           fileName = linkedDoc[0].fileName;
+          displayName = linkedDoc[0].originalFileName || linkedDoc[0].fileName;
         }
       }
 
@@ -2260,7 +2274,7 @@ export function registerBillRoutes(app: Express) {
       const downloadSuccess = await documentService.downloadDocument(
         filePath,
         res,
-        { filename: fileName, inline }
+        { filename: displayName || fileName, inline }
       );
       
       if (downloadSuccess) {
@@ -3568,6 +3582,7 @@ export function registerBillRoutes(app: Express) {
             const documentData = {
               name: file.originalname,
               fileName: normalizeFilename(file.originalname),
+              originalFileName: file.originalname,
               filePath: uploadResult.filePath!,
               fileSize: file.size,
               mimeType: file.mimetype,

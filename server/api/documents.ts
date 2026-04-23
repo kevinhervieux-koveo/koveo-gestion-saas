@@ -2342,6 +2342,9 @@ export function registerDocumentRoutes(app: Express): void {
           documentType: validatedData.documentType,
           filePath: validatedData.filePath || `temp-path-${Date.now()}`,
           fileName: validatedData.fileName,
+          // Capture the user-supplied UTF-8 filename so downloads can serve
+          // it via RFC 5987 even though `fileName` is normalized (Task #420).
+          originalFileName: req.file?.originalname,
           fileSize: validatedData.fileSize,
           mimeType: validatedData.mimeType,
           isVisibleToTenants: validatedData.isVisibleToTenants || false,
@@ -2568,6 +2571,8 @@ export function registerDocumentRoutes(app: Express): void {
           documentType: validatedData.documentType,
           filePath: validatedData.filePath || `temp-path-${Date.now()}`,
           fileName: validatedData.fileName,
+          // Preserve the uploader's original UTF-8 filename (Task #420).
+          originalFileName: req.file?.originalname,
           fileSize: validatedData.fileSize,
           mimeType: validatedData.mimeType,
           isVisibleToTenants: validatedData.isVisibleToTenants || false,
@@ -2774,6 +2779,9 @@ export function registerDocumentRoutes(app: Express): void {
         // Update file-related fields
         updateData.filePath = relativePath;
         updateData.fileName = uniqueFileName;
+        // Refresh the original UTF-8 filename when the file is replaced
+        // (Task #420).
+        updateData.originalFileName = req.file.originalname;
         updateData.fileSize = req.file.size;
         updateData.mimeType = req.file.mimetype;
 
@@ -3854,6 +3862,9 @@ export function registerDocumentRoutes(app: Express): void {
         documentType: validatedData.documentType,
         filePath: filePath,
         fileName: normalizeFilename(req.file!.originalname),
+        // Preserve the original UTF-8 filename for download headers and UI
+        // surfaces; `fileName` is the ASCII-safe slug used on disk (Task #420).
+        originalFileName: req.file!.originalname,
         fileSize: req.file!.size,
         mimeType: req.file!.mimetype,
         isVisibleToTenants: validatedData.isVisibleToTenants,
@@ -4254,8 +4265,15 @@ export function registerDocumentRoutes(app: Express): void {
           normalizedPath
         }, 'DEBUG');
         
-        // Get filename for Content-Disposition header
-        const fileName = (document as any).fileName || document.name || path.basename(document.filePath);
+        // Get filename for Content-Disposition header. Prefer the original
+        // UTF-8 name supplied at upload time so French/accented filenames
+        // round-trip back to the user (Task #420); fall back to the
+        // normalized stored name and finally to the document title.
+        const fileName =
+          document.originalFileName ||
+          document.fileName ||
+          document.name ||
+          path.basename(document.filePath);
         // Always serve as attachment (never inline) to prevent active content
         // (HTML/JS) from executing in the browser's same-origin context even if
         // a malicious file were somehow stored.

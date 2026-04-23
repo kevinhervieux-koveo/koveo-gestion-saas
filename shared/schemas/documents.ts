@@ -19,7 +19,12 @@ export const documents = pgTable('documents', {
   description: text('description'),
   documentType: text('document_type').notNull(),
   filePath: text('file_path').notNull().unique(),
-  fileName: text('file_name'), // Original filename
+  fileName: text('file_name'), // Stored (normalized) filename
+  // Original UTF-8 display name supplied by the uploader (Task #420). The
+  // `fileName` column above holds the ASCII-safe slug used on disk so paths
+  // and DB rows stay consistent, while this column preserves the original
+  // (potentially accented) name for download headers and UI display.
+  originalFileName: text('original_file_name'),
   fileSize: integer('file_size'), // File size in bytes
   mimeType: text('mime_type'), // MIME type for proper handling
   isVisibleToTenants: boolean('is_visible_to_tenants').default(false).notNull(),
@@ -60,6 +65,7 @@ export const insertDocumentSchema = z.object({
   documentType: z.string().min(1, 'Document type is required'),
   filePath: z.string().min(1, 'File path is required'),
   fileName: z.string().optional(),
+  originalFileName: z.string().optional(),
   fileSize: z.number().int().optional(),
   mimeType: z.string().optional(),
   isVisibleToTenants: z.boolean().default(false),
@@ -79,6 +85,7 @@ export const attachDocumentSchema = z.object({
   description: z.string().optional(),
   documentType: z.enum(['attachment', 'screenshot', 'evidence', 'supporting_document']).default('attachment'),
   fileName: z.string().min(1, 'File name is required'),
+  originalFileName: z.string().optional(),
   fileSize: z.number().int().optional(),
   mimeType: z.string().optional(),
   attachedToType: z.enum(['bill', 'feature_request', 'bug_report', 'maintenance_request']),

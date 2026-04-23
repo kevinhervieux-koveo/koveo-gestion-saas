@@ -38,6 +38,7 @@ import {
 import { DocumentCreateForm } from '@/components/document-management/DocumentCreateForm';
 import { TagPicker, TagChips } from '@/components/document-tags/TagPicker';
 import { DocumentInlineViewer } from '@/components/common/DocumentInlineViewer';
+import type { Document } from '@shared/schema';
 import { DocumentLinkPickerDialog } from '@/components/documents/DocumentLinkPickerDialog';
 import { FileText, Download, Link as LinkIcon } from 'lucide-react';
 import type { DocumentWithMetadata, DocumentPermissions } from '@shared/schemas/documents';
@@ -62,7 +63,7 @@ export function DocumentViewDialog({ documentId, isOpen, onClose, onEdit, canEdi
   useEffect(() => {
     setInlineViewerDocId(documentId);
   }, [documentId, isOpen]);
-  const { data: document, isLoading } = useQuery({
+  const { data: document, isLoading } = useQuery<Document & { category?: string | null }>({
     queryKey: ['/api/documents', inlineViewerDocId],
     queryFn: async () => {
       const response = await apiRequest('GET', `/api/documents/${inlineViewerDocId}`);
@@ -201,7 +202,7 @@ export function DocumentViewDialog({ documentId, isOpen, onClose, onEdit, canEdi
                   <div className="flex items-center gap-3">
                     <FileText className="w-5 h-5 text-gray-500" />
                     <div>
-                      <p className="text-sm font-medium">{document.fileName || document.name}</p>
+                      <p className="text-sm font-medium">{document.originalFileName || document.fileName || document.name}</p>
                       <p className="text-xs text-gray-500">{t('documentAttachment')}</p>
                     </div>
                   </div>
@@ -257,7 +258,7 @@ export function DocumentViewDialog({ documentId, isOpen, onClose, onEdit, canEdi
           isOpen={inlineViewerOpen}
           onClose={() => setInlineViewerOpen(false)}
           fileUrl={`/api/documents/${inlineViewerDocId}/file`}
-          fileName={document.fileName || document.name}
+          fileName={document.originalFileName || document.fileName || document.name}
           mimeType={document.mimeType}
           documentId={inlineViewerDocId}
           onNavigate={(nextId) => setInlineViewerDocId(nextId)}

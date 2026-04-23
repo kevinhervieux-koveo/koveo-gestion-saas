@@ -511,6 +511,10 @@ export const elementDocuments = pgTable('element_documents', {
   historyId: uuid('history_id').references(() => elementHistory.id, { onDelete: 'set null' }),
   documentType: documentTypeEnum('document_type').notNull(),
   fileName: varchar('file_name', { length: 255 }).notNull(),
+  // Original UTF-8 filename supplied by the uploader (Task #420). The
+  // `fileName` column above is normalized to ASCII for filesystem safety,
+  // while this column preserves the user-facing name for download headers.
+  originalFileName: text('original_file_name'),
   filePath: text('file_path').notNull(),
   fileSize: integer('file_size'), // in bytes
   mimeType: varchar('mime_type', { length: 100 }),
@@ -772,6 +776,7 @@ export const insertElementDocumentSchema = z.object({
   elementId: z.string().uuid(),
   historyId: z.string().uuid().optional(),
   fileName: z.string().min(1).max(255),
+  originalFileName: z.string().optional(),
   filePath: z.string().min(1),
   fileSize: z.number().int().positive().optional(),
   mimeType: z.string().max(100).optional(),

@@ -2035,6 +2035,9 @@ export function registerMaintenanceRoutes(app: Express): void {
           documentType,
           filePath: storageResult.filePath!,
           fileName: normalizeFilename(file.originalname),
+          // Preserve the user's original UTF-8 filename so downloads can serve
+          // it via RFC 5987 even though `fileName` is normalized (Task #420).
+          originalFileName: file.originalname,
           fileSize: file.size,
           mimeType: file.mimetype,
           uploadedBy: user.id,
@@ -2178,6 +2181,7 @@ export function registerMaintenanceRoutes(app: Express): void {
         .select({ 
           filePath: elementDocuments.filePath,
           fileName: elementDocuments.fileName,
+          originalFileName: elementDocuments.originalFileName,
           mimeType: elementDocuments.mimeType,
           fileSize: elementDocuments.fileSize,
           buildingId: buildingElements.buildingId 
@@ -2216,10 +2220,15 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(404).json({ error: 'File not found on disk' });
       }
       
-      // Set appropriate headers
+      // Set appropriate headers. Prefer the original UTF-8 filename so users
+      // see the name they uploaded rather than the normalized slug
+      // (Task #420).
       res.set({
         'Content-Type': safeMimeType(document.mimeType),
-        'Content-Disposition': buildContentDisposition(document.fileName, { type: 'inline' }),
+        'Content-Disposition': buildContentDisposition(
+          document.originalFileName || document.fileName,
+          { type: 'inline' }
+        ),
         'Content-Length': document.fileSize.toString(),
       });
       
@@ -2376,6 +2385,7 @@ export function registerMaintenanceRoutes(app: Express): void {
           id: documents.id,
           filePath: documents.filePath,
           fileName: documents.fileName,
+          originalFileName: documents.originalFileName,
           mimeType: documents.mimeType,
           name: documents.name,
           buildingId: documents.buildingId,
@@ -2405,7 +2415,14 @@ export function registerMaintenanceRoutes(app: Express): void {
         return res.status(410).json({ error: 'Document quarantined or unavailable' });
       }
 
-      const displayName = submissionDocument.name || documentRecord[0].fileName || documentRecord[0].name || 'document';
+      // Prefer the original UTF-8 filename so French/accented documents
+      // download with the name the uploader actually chose (Task #420).
+      const displayName =
+        submissionDocument.name ||
+        documentRecord[0].originalFileName ||
+        documentRecord[0].fileName ||
+        documentRecord[0].name ||
+        'document';
       const mimeType = submissionDocument.type || documentRecord[0].mimeType;
 
       // Pass the DB-recorded MIME type through to the document service so the

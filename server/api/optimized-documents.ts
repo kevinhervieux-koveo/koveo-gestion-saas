@@ -10,6 +10,7 @@ import { requireAuth } from '../auth';
 import { storage } from '../storage';
 import { optimizedFileStorage } from '../services/optimized-file-storage';
 import { buildContentDisposition } from '../utils/content-disposition';
+import { normalizeFilename } from '../utils/filenameNormalization';
 import { safeHeaderValue, safeJsonHeaderValue, safeMimeType } from '../utils/safe-header';
 import { getOptimizedUploadConfig, estimateAccessFrequency } from '@shared/config/optimized-upload-config';
 import type { OptimizedUploadContext } from '@shared/config/optimized-upload-config';
@@ -151,6 +152,8 @@ export function registerOptimizedDocumentRoutes(app: Express): void {
         name: uploadData.name,
         description: uploadData.description,
         filePath: storageResult.filePath!,
+        fileName: normalizeFilename(file.originalname),
+        originalFileName: file.originalname,
         mimeType: file.mimetype,
         fileSize: file.size,
         buildingId: uploadData.buildingId,
@@ -238,8 +241,14 @@ export function registerOptimizedDocumentRoutes(app: Express): void {
         });
       }
 
-      // Set appropriate headers
-      const filename = document.name || path.basename(document.filePath);
+      // Set appropriate headers. Prefer the original UTF-8 filename so users
+      // see the name they uploaded rather than the normalized slug
+      // (Task #420).
+      const filename =
+        document.originalFileName ||
+        document.fileName ||
+        document.name ||
+        path.basename(document.filePath);
       const disposition = isDownload ? 'attachment' : 'inline';
       
       res.setHeader('Content-Disposition', buildContentDisposition(filename, { type: disposition }));

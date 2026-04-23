@@ -1600,7 +1600,7 @@ export function BillDetail({
   const [viewingBillDoc, setViewingBillDoc] = useState<{ url: string; downloadUrl?: string; name?: string } | null>(null);
 
   // Fetch fresh bill data to ensure we have updated document information
-  const { data: freshBill, error: freshBillError, isLoading: freshBillLoading } = useQuery({
+  const { data: freshBill, error: freshBillError, isLoading: freshBillLoading } = useQuery<Bill>({
     queryKey: ['/api/bills', bill.id],
     queryFn: async () => {
       const response = await fetch(`/api/bills/${bill.id}`, {
@@ -1757,7 +1757,7 @@ export function BillDetail({
               <div className='flex items-center justify-between p-3 bg-gray-50 rounded-lg'>
                 <div className='flex items-center gap-2'>
                   <FileText className='w-4 h-4 text-blue-600' />
-                  <span className='text-sm'>{sanitizeFileName(currentBill.fileName)}</span>
+                  <span className='text-sm'>{sanitizeFileName(currentBill.originalFileName || currentBill.fileName)}</span>
                   {currentBill.isAiAnalyzed && (
                     <Badge variant='outline' className='text-xs'>
                       AI Analyzed
@@ -1768,7 +1768,7 @@ export function BillDetail({
                   <Button
                     variant='outline'
                     size='sm'
-                    onClick={() => setViewingBillDoc({ url: `/api/bills/${currentBill.id}/download-document?inline=true`, downloadUrl: `/api/bills/${currentBill.id}/download-document`, name: currentBill.fileName || 'bill-document' })}
+                    onClick={() => setViewingBillDoc({ url: `/api/bills/${currentBill.id}/download-document?inline=true`, downloadUrl: `/api/bills/${currentBill.id}/download-document`, name: currentBill.originalFileName || currentBill.fileName || 'bill-document' })}
                     className='flex items-center gap-1'
                     data-testid={`button-view-document-${currentBill.id}`}
                   >
@@ -1782,7 +1782,7 @@ export function BillDetail({
                       // Download the document
                       const link = document.createElement('a');
                       link.href = `/api/bills/${currentBill.id}/download-document`;
-                      link.download = currentBill.fileName || 'bill-document';
+                      link.download = currentBill.originalFileName || currentBill.fileName || 'bill-document';
                       document.body.appendChild(link);
                       link.click();
                       document.body.removeChild(link);
@@ -1811,7 +1811,7 @@ export function BillDetail({
                   <Button
                     variant='outline'
                     size='sm'
-                    onClick={() => setViewingBillDoc({ url: `/api/documents/${doc.id}/file`, downloadUrl: `/api/documents/${doc.id}/file?download=true`, name: doc.fileName || doc.name })}
+                    onClick={() => setViewingBillDoc({ url: `/api/documents/${doc.id}/file`, downloadUrl: `/api/documents/${doc.id}/file?download=true`, name: doc.originalFileName || doc.fileName || doc.name })}
                     className='flex items-center gap-1'
                     data-testid={`button-view-document-${doc.id}`}
                   >
@@ -1839,7 +1839,7 @@ export function BillDetail({
                         
                         const link = document.createElement('a');
                         link.href = url;
-                        link.download = doc.fileName || doc.name || 'document';
+                        link.download = doc.originalFileName || doc.fileName || doc.name || 'document';
                         document.body.appendChild(link);
                         link.click();
                         

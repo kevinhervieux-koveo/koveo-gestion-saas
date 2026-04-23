@@ -164,7 +164,11 @@ export const bills = pgTable('bills', {
   endDate: date('end_date'), // For recurrent bills, when they end (optional for ongoing)
   status: billStatusEnum('status').notNull().default('draft'),
   filePath: text('file_path'), // Path to uploaded bill document
-  fileName: text('file_name'), // Original filename
+  fileName: text('file_name'), // Stored (normalized) filename
+  // Original UTF-8 filename supplied by the uploader (Task #420). Preserved
+  // so download endpoints can serve the user-facing name even though
+  // `fileName` / `filePath` are normalized to ASCII for storage.
+  originalFileName: text('original_file_name'),
   fileSize: integer('file_size'), // File size in bytes
   isAiAnalyzed: boolean('is_ai_analyzed').default(false),
   aiAnalysisData: jsonb('ai_analysis_data'), // Store AI-extracted data
