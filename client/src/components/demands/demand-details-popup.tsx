@@ -33,6 +33,7 @@ import { queryClient } from '@/lib/queryClient';
 import { sanitizeComment, sanitizeDescription } from '@/utils/sanitize';
 import { useLanguage } from '@/hooks/use-language';
 import { useLocation } from 'wouter';
+import { TagChips } from '@/components/document-tags/TagPicker';
 
 // Types
 /**
@@ -687,38 +688,43 @@ export default function DemandDetailsPopup({
                   };
                   
                   return (
-                    <div key={doc.id} className='flex items-center gap-2 p-3 bg-gray-50 rounded-md border'>
-                      {isImage ? (
-                        <Image className='h-5 w-5 text-blue-500' />
-                      ) : (
-                        <Paperclip className='h-5 w-5 text-gray-500' />
-                      )}
-                      <div className='flex-1'>
-                        <span className='text-sm font-medium'>{filename}</span>
-                        {doc.description && (
-                          <p className='text-xs text-muted-foreground'>{doc.description}</p>
+                    <div key={doc.id} className='p-3 bg-gray-50 rounded-md border space-y-2'>
+                      <div className='flex items-center gap-2'>
+                        {isImage ? (
+                          <Image className='h-5 w-5 text-blue-500' />
+                        ) : (
+                          <Paperclip className='h-5 w-5 text-gray-500' />
                         )}
+                        <div className='flex-1'>
+                          <span className='text-sm font-medium'>{filename}</span>
+                          {doc.description && (
+                            <p className='text-xs text-muted-foreground'>{doc.description}</p>
+                          )}
+                        </div>
+                        <div className='flex gap-2'>
+                          <Button
+                            variant='outline'
+                            size='sm'
+                            onClick={handleView}
+                            data-testid={`button-view-document-${doc.id}`}
+                          >
+                            <Eye className='h-3 w-3 mr-1' />
+                            {t('view')}
+                          </Button>
+                          <Button
+                            variant='outline'
+                            size='sm'
+                            onClick={handleDownload}
+                            data-testid={`button-download-document-${doc.id}`}
+                          >
+                            <Download className='h-3 w-3 mr-1' />
+                            {t('download')}
+                          </Button>
+                        </div>
                       </div>
-                      <div className='flex gap-2'>
-                        <Button
-                          variant='outline'
-                          size='sm'
-                          onClick={handleView}
-                          data-testid={`button-view-document-${doc.id}`}
-                        >
-                          <Eye className='h-3 w-3 mr-1' />
-                          {t('view')}
-                        </Button>
-                        <Button
-                          variant='outline'
-                          size='sm'
-                          onClick={handleDownload}
-                          data-testid={`button-download-document-${doc.id}`}
-                        >
-                          <Download className='h-3 w-3 mr-1' />
-                          {t('download')}
-                        </Button>
-                      </div>
+                      {Array.isArray(doc.tags) && doc.tags.length > 0 && (
+                        <TagChips tags={doc.tags} />
+                      )}
                     </div>
                   );
                 })}

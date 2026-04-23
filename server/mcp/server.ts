@@ -5201,7 +5201,6 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       return { content: [{ type: "text" as const, text: "Unassigned" }] };
     },
   );
->>>>>>> de959276d (Task #324: Document Tags system for Koveo Gestion)
 
   return server;
 }
