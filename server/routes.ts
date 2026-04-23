@@ -34,7 +34,7 @@ import { registerInvoiceRoutes } from './api/invoices';
 import { registerPillarsSuggestionsRoutes } from './api/pillars-suggestions';
 import { registerQualityMetricsRoutes } from './api/quality-metrics';
 import { registerFeatureManagementRoutes } from './api/feature-management';
-import { lazyMount } from './utils/lazy-mount';
+import { lazyMount, type LazyRouteMatcher, type RouteRegistrar } from './utils/lazy-mount';
 import { registerAutoRoutes } from './api/auto/_register';
 import law25ComplianceRouter from './routes/law25-compliance';
 import { performanceRouter } from './performance-api';
@@ -198,22 +198,13 @@ export async function registerRoutes(app: Express) {
 
   // Lazy-loaded route modules — heavy modules whose service-layer
   // dependencies (AI helpers, validators, cache stores) are only pulled in
-  // on first matching request. See server/utils/lazy-mount.ts.
-  lazyMount(app, '/api/documents', async () => (await import('./api/documents')).registerDocumentRoutes);
-  // Bills owns /api/bills/* AND a couple of /api/buildings/:id/bills/* endpoints.
-  // Match the latter by regex so generic /api/buildings traffic doesn't trigger
-  // the bills module load.
-  const billsBuildingPattern = /^\/api\/buildings\/[^/]+\/bills(?:\/|$)/;
-  lazyMount(
-    app,
-    (path: string) => path.startsWith('/api/bills') || billsBuildingPattern.test(path),
-    async () => (await import('./api/bills')).registerBillRoutes,
-  );
-  lazyMount(app, '/api/communication', async () => (await import('./api/communication')).registerCommunicationRoutes);
-  lazyMount(app, '/api/maintenance', async () => (await import('./api/maintenance')).registerMaintenanceRoutes);
-  lazyMount(app, '/api/demo', async () => (await import('./api/demo-management')).registerDemoManagementRoutes);
-  lazyMount(app, '/api/ai', async () => (await import('./api/ai-document-analysis')).registerAiAnalysisRoutes);
-  lazyMount(app, '/api/admin/bulk-import', async () => (await import('./api/bulk-import')).registerBulkImportRoutes);
+  // on first matching request. See server/utils/lazy-mount.ts. The matcher
+  // and loader for each mount lives in `HEAVY_LAZY_MOUNTS` (exported below)
+  // so the lazy-mount regression test can iterate the SAME values without
+  // copy-paste drift.
+  for (const spec of HEAVY_LAZY_MOUNTS) {
+    lazyMount(app, spec.matcher, spec.loader);
+  }
 
   // Auto-discovered API modules (drop new files in `server/api/auto/` —
   // see `server/api/auto/README.md`). This is the ONLY hook needed to add
@@ -738,3 +729,59 @@ export async function registerRoutes(app: Express) {
   
   logInfo('All routes registered successfully');
 }
+/**
+ * Heavy lazy-mount specs wired into `registerRoutes` above. Exported so the
+ * regression test in `tests/integration/heavy-lazy-mounts.test.ts` can iterate
+ * the EXACT matchers + loaders that production registers — preventing silent
+ * drift if a new lazy mount is added or an existing one is un-lazied.
+ */
+export interface HeavyLazyMountSpec {
+  /** Stable name used for test labels and diagnostics. */
+  name: string;
+  matcher: LazyRouteMatcher;
+  loader: () => Promise<RouteRegistrar>;
+}
+
+// Bills owns /api/bills/* AND a couple of /api/buildings/:id/bills/* endpoints.
+// Match the latter by regex so generic /api/buildings traffic doesn't trigger
+// the bills module load.
+const BILLS_BUILDING_PATTERN = /^\/api\/buildings\/[^/]+\/bills(?:\/|$)/;
+
+export const HEAVY_LAZY_MOUNTS: readonly HeavyLazyMountSpec[] = [
+  {
+    name: 'documents',
+    matcher: '/api/documents',
+    loader: async () => (await import('./api/documents')).registerDocumentRoutes,
+  },
+  {
+    name: 'bills',
+    matcher: (path: string) =>
+      path.startsWith('/api/bills') || BILLS_BUILDING_PATTERN.test(path),
+    loader: async () => (await import('./api/bills')).registerBillRoutes,
+  },
+  {
+    name: 'communication',
+    matcher: '/api/communication',
+    loader: async () => (await import('./api/communication')).registerCommunicationRoutes,
+  },
+  {
+    name: 'maintenance',
+    matcher: '/api/maintenance',
+    loader: async () => (await import('./api/maintenance')).registerMaintenanceRoutes,
+  },
+  {
+    name: 'demo',
+    matcher: '/api/demo',
+    loader: async () => (await import('./api/demo-management')).registerDemoManagementRoutes,
+  },
+  {
+    name: 'ai',
+    matcher: '/api/ai',
+    loader: async () => (await import('./api/ai-document-analysis')).registerAiAnalysisRoutes,
+  },
+  {
+    name: 'admin-bulk-import',
+    matcher: '/api/admin/bulk-import',
+    loader: async () => (await import('./api/bulk-import')).registerBulkImportRoutes,
+  },
+];
