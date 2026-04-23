@@ -128,6 +128,8 @@ describeIfDb('manager-only document visibility — Task #321', () => {
     // when both the primary and fallback object lookups raise
     // ObjectNotFoundError, plus the route's bottom-of-handler 404
     // ("File not found") that the fallback ultimately funnels into.
+    // Task #379 reuses the same fixture to pin down the sibling
+    // `/api/documents/:id/optimized-file` missing-file branch.
     docMissingFileResidence: crypto.randomUUID(),
     // Task #377: same missing-file scenario, but the document is
     // flagged manager-only so residents/tenants are denied at the
@@ -1481,5 +1483,60 @@ describeIfDb('manager-only document visibility — Task #321', () => {
       const res = await downloadFile(emails.tenant, ids.docMissingFileMgrOnly);
       expect(res.status).toBe(403);
     }, 30000);
+  });
+
+  // -----------------------------------------------------------------
+  // Task #379: GET /api/documents/:id/optimized-file when the local
+  // file referenced by `documents.filePath` has been removed from disk
+  // while the row remains. Sibling coverage for Task #377, which
+  // pinned down the equivalent behaviour on the GCS-backed `/file`
+  // route.
+  //
+  // Documented behaviour the route MUST preserve:
+  //   - admin / manager / resident / tenant who pass the scope check
+  //     (residence-scoped, isVisibleToTenants=true, isManagerOnly=false)
+  //     all reach `optimizedFileStorage.retrieveFile`. That method
+  //     hits `existsSync(fullPath) === false`, returns
+  //     `{ success: false, error: 'File not found' }`, and the route
+  //     surfaces the missing-file response as HTTP 403 with body
+  //     `{ message: 'File not found', fromCache: false }`.
+  //   - The shape MUST NOT silently flip to a 500 (server crash),
+  //     a 404 (would imply the row is missing, not the file), or
+  //     leak metadata access errors.
+  // -----------------------------------------------------------------
+  describe('GET /api/documents/:id/optimized-file — missing file on disk (Task #379)', () => {
+    async function previewAs(email: string) {
+      const agent = await loginAs(email);
+      return agent.get(
+        `/api/documents/${ids.docMissingFileResidence}/optimized-file`
+      );
+    }
+
+    it.each([
+      ['admin', () => emails.admin],
+      ['manager', () => emails.manager],
+      ['resident', () => emails.resident],
+      ['tenant', () => emails.tenant],
+    ])(
+      '%s receives 403 "File not found" when the on-disk file is gone',
+      async (_role, getEmail) => {
+        const res = await previewAs(getEmail());
+        // The doc passes the scope check for every role here (residence
+        // -scoped, tenant-visible, not manager-only), so the response
+        // comes from the `retrieveFile` missing-file branch, not the
+        // scope-based 404. Pinning both the status and the body shape
+        // guards against a future refactor flipping this into a 500
+        // (uncaught error) or a 404 (would conflate "row missing" with
+        // "file missing").
+        expect(res.status).toBe(403);
+        // `retrieveFile` returns `{ success: false, error: 'File not
+        // found' }` (no `fromCache` key) when `existsSync` fails, and
+        // the route serializes that as `{ message, fromCache }` —
+        // undefined values get stripped by JSON, so the wire body is
+        // `{ message: 'File not found' }`.
+        expect(res.body).toEqual({ message: 'File not found' });
+      },
+      30000
+    );
   });
 });
