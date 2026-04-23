@@ -9,7 +9,10 @@ import { secureErrorHandler, notFoundHandler } from './middleware/error-security
 import { enforceDemoSecurity } from './middleware/demo-security';
 import { logDebug, logInfo, logWarn, logError } from './utils/logger';
 
-import { registerMcpRoutes, registerOAuthConsentRoutes, koveoMcpOAuthProvider } from './mcp/index';
+// NOTE: MCP modules are intentionally NOT imported at the top level. They
+// are pulled in via `await import('./mcp/index')` only when ENABLE_MCP_SERVER
+// is true, so the OAuth provider singleton, transports, and SDK code never
+// pay their boot cost on a production deploy that doesn't opt in.
 
 // Import API route registration functions
 import { registerOrganizationRoutes } from './api/organizations';
@@ -94,22 +97,47 @@ export async function registerRoutes(app: Express) {
   // A failure here (e.g. a misconfigured MCP_OAUTH_ISSUER in production) must
   // NOT abort the rest of route registration — otherwise the SPA catch-all
   // never gets installed and every browser hit returns "Cannot GET /".
-  try {
-    await registerMcpRoutes(app);
-  } catch (mcpError: any) {
-    console.error(
-      '[ROUTES] registerMcpRoutes failed — continuing without MCP endpoints:',
-      mcpError?.message || mcpError,
-      mcpError?.stack || ''
-    );
+  //
+  // The MCP server (OAuth provider, transports, tool registration) is opt-in
+  // in production: it costs noticeable boot memory and is not used by the
+  // user-facing app. Default OFF in production; default ON in dev/test so
+  // local workflows keep working unchanged. Set ENABLE_MCP_SERVER=true on a
+  // production deploy to turn it on.
+  const mcpEnabled =
+    process.env.ENABLE_MCP_SERVER === 'true' ||
+    (process.env.NODE_ENV !== 'production' && process.env.ENABLE_MCP_SERVER !== 'false');
+
+  // Lazy-loaded MCP module handles. Captured here so the OAuth consent
+  // registration below can reuse the same module instance without a second
+  // dynamic import (and without instantiating koveoMcpOAuthProvider twice).
+  let mcpModule:
+    | typeof import('./mcp/index')
+    | null = null;
+
+  if (mcpEnabled) {
+    try {
+      mcpModule = await import('./mcp/index');
+      await mcpModule.registerMcpRoutes(app);
+    } catch (mcpError: any) {
+      console.error(
+        '[ROUTES] registerMcpRoutes failed — continuing without MCP endpoints:',
+        mcpError?.message || mcpError,
+        mcpError?.stack || ''
+      );
+    }
+  } else {
+    console.log('[ROUTES] MCP server disabled (set ENABLE_MCP_SERVER=true to enable).');
   }
-  
+
   // CRITICAL: Apply session middleware BEFORE authentication routes
   app.use(sessionConfig);
 
   // OAuth consent UI MUST be mounted AFTER sessionConfig because it reads
-  // and writes req.session to detect the signed-in Koveo user.
-  registerOAuthConsentRoutes(app, koveoMcpOAuthProvider);
+  // and writes req.session to detect the signed-in Koveo user. Only mounted
+  // when MCP is enabled and the lazy import succeeded.
+  if (mcpEnabled && mcpModule) {
+    mcpModule.registerOAuthConsentRoutes(app, mcpModule.koveoMcpOAuthProvider);
+  }
   
   
   // Setup authentication routes - session middleware must be applied first

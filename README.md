@@ -310,6 +310,39 @@ NODE_ENV=production                   # Environment mode
 SYNC_DEMO_ON_DEPLOY=true             # Demo data sync
 ```
 
+### Boot-time memory tuning
+
+The server is tuned to start cleanly on a 0.5 vCPU / 2 GiB Reserved VM by
+deferring every non-critical subsystem off the boot path. The following
+flags control what runs at startup; defaults are chosen so a fresh
+production deploy stays under the memory ceiling:
+
+```bash
+# Skip the entire advanced query-optimization stack (baseline metrics,
+# materialized views refresh, scope-cache warmup for every active user,
+# reference-cache warmup, verification passes). Caches populate lazily
+# on first request. Recommended ON for memory-constrained deployments.
+SKIP_QUERY_OPTIMIZATION=true
+
+# Enable the MCP (Model Context Protocol) server: OAuth provider,
+# transports, tool registration, hourly sweep. Default OFF in production
+# because it is not used by the user-facing app and costs noticeable
+# boot memory. Default ON in dev/test.
+ENABLE_MCP_SERVER=true
+```
+
+When `SKIP_QUERY_OPTIMIZATION` is *not* set, cache warmup
+(`warmupCaches` / `warmupScopeCaches`) is automatically deferred to
+~30 seconds after the HTTP port is bound, so it never competes with
+route registration for memory. The Gemini AI client is also lazy: it
+is built the first time an AI feature is actually invoked, never at
+module-import time, so deployments that don't use AI features pay no
+boot cost for it.
+
+A boot-footprint summary line is logged right after `Server listening on
+http://0.0.0.0:5000` so production logs make it obvious which subsystems
+were skipped vs deferred.
+
 ## Quebec Compliance
 
 Koveo Gestion is built specifically for Quebec's regulatory environment:

@@ -261,6 +261,18 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
         `🏗️  Build mode: ${process.env.NODE_ENV === 'production' ? 'Production' : 'Development'}`
       );
 
+      // Boot footprint summary — makes the new lazy/deferred behavior obvious
+      // in production logs so it's easy to confirm what didn't run at boot.
+      const skippedQueryOpt = process.env.SKIP_QUERY_OPTIMIZATION === 'true';
+      const mcpEnabled =
+        process.env.ENABLE_MCP_SERVER === 'true' ||
+        (process.env.NODE_ENV !== 'production' && process.env.ENABLE_MCP_SERVER !== 'false');
+      log(
+        `🪶 Boot footprint: query-optimization=${skippedQueryOpt ? 'SKIPPED' : 'enabled (warmup deferred 30s)'}, ` +
+          `mcp-server=${mcpEnabled ? 'enabled' : 'OFF (set ENABLE_MCP_SERVER=true to enable)'}, ` +
+          `gemini-ai=lazy (built on first AI request)`
+      );
+
       // In non-production environments, probe a small sample of seeded
       // demo document file paths and warn if the underlying object-storage
       // bytes are missing. This catches the common drift where a demo env
@@ -642,10 +654,12 @@ async function initializeDatabaseInBackground(): Promise<void> {
       }
 
       // Initialize advanced query optimization system
-      // Skip in production if SKIP_QUERY_OPTIMIZATION is set (for faster deployment)
-      if (process.env.SKIP_QUERY_OPTIMIZATION === 'true' && process.env.NODE_ENV === 'production') {
-        log('⚠️ Skipping query optimization system (SKIP_QUERY_OPTIMIZATION=true)');
-        log('💡 Set SKIP_QUERY_OPTIMIZATION=false to enable full optimization features');
+      // Skip when SKIP_QUERY_OPTIMIZATION=true. The flag now applies in any
+      // environment (not only production) so memory-constrained deploys —
+      // e.g. the 0.5 vCPU / 2 GiB Reserved VM that was OOM-killed on boot —
+      // can opt out cleanly. Caches will populate lazily on first request.
+      if (process.env.SKIP_QUERY_OPTIMIZATION === 'true') {
+        log('⏭️  Skipping query optimization system (SKIP_QUERY_OPTIMIZATION=true). Caches populate lazily on first use.');
       } else {
         try {
           log('🚀 Initializing advanced query optimization system...');

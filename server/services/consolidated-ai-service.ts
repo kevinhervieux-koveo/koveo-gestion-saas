@@ -82,15 +82,18 @@ export class ConsolidatedAIService extends BaseService {
 
   constructor() {
     super('ConsolidatedAIService');
-    this.initializeAI();
+    // Gemini client is constructed lazily on first use via getGeminiClient().
+    // Constructing it eagerly at module-import time costs noticeable memory at
+    // boot and is unnecessary for any request that doesn't hit AI features.
   }
 
   private initializeAI(): void {
+    if (this.apiKeyChecked) return;
     const apiKey = process.env.GEMINI_API_KEY;
     if (apiKey) {
       try {
         this.genAI = new GoogleGenAI({ apiKey });
-        console.log('[ConsolidatedAIService] Gemini AI initialized successfully');
+        console.log('[ConsolidatedAIService] Gemini AI initialized successfully (lazy)');
       } catch (error) {
         console.error('[ConsolidatedAIService] Failed to initialize Gemini AI:', error);
         this.genAI = null;
@@ -101,13 +104,23 @@ export class ConsolidatedAIService extends BaseService {
     this.apiKeyChecked = true;
   }
 
-  private ensureApiKeyAvailable(): void {
+  /**
+   * Lazy accessor for the Gemini client. Builds and caches on first call so
+   * that boot-time memory does not include the SDK's internal state for
+   * deployments that never invoke AI features.
+   */
+  private getGeminiClient(): GoogleGenAI {
     if (!this.apiKeyChecked) {
       this.initializeAI();
     }
     if (!this.genAI) {
       throw new Error('AI service is not available. Please ensure GEMINI_API_KEY is configured.');
     }
+    return this.genAI;
+  }
+
+  private ensureApiKeyAvailable(): void {
+    this.getGeminiClient();
   }
 
   private getApiKey(): string {
@@ -399,7 +412,7 @@ Generate a comprehensive analysis with MULTIPLE numbered actionable items for th
       
       **IMPORTANT: Your response MUST be a raw JSON object only, without any Markdown formatting, backticks, or explanatory text. Do not wrap the JSON in triple backticks or any other non-JSON characters.**`;
 
-      const response = await this.genAI.models.generateContent({
+      const response = await this.getGeminiClient().models.generateContent({
         model: 'gemini-2.0-flash',
         contents: [
           {
@@ -470,7 +483,7 @@ Generate a comprehensive analysis with MULTIPLE numbered actionable items for th
         "reasoning": "Brief explanation of the recommendation"
       }`;
 
-      const response = await this.genAI.models.generateContent({
+      const response = await this.getGeminiClient().models.generateContent({
         model: 'gemini-2.0-flash',
         config: {
           responseMimeType: 'application/json',
@@ -544,7 +557,7 @@ Follow these steps in order:
 Your final output must be only the JSON object.
 Example for a custom frequency: {"vendorName":"Hydro Quebec","invoiceNumber":"HQ-123","totalAmount":450.75,"dueDate":"2025-10-15","paymentType":"recurring","frequency":"custom","startDate":null,"customPaymentDates":["2025-10-15", "2025-11-15", "2026-01-15"]}`;
 
-      const result = await this.genAI.models.generateContent({
+      const result = await this.getGeminiClient().models.generateContent({
         model: 'gemini-2.0-flash',
         contents: [{
           role: 'user',
@@ -906,7 +919,7 @@ IMPORTANT: Retournez UNIQUEMENT l'objet JSON, sans formatage markdown ni explica
 
       const prompt = prompts[language as 'en' | 'fr'] || prompts.en;
 
-      const result = await this.genAI.models.generateContent({
+      const result = await this.getGeminiClient().models.generateContent({
         model: 'gemini-2.0-flash',
         contents: [{
           role: 'user',
@@ -1112,7 +1125,7 @@ IMPORTANT: Retournez UNIQUEMENT l'objet JSON, sans formatage markdown ni explica
    */
   async validateApiKey(): Promise<boolean> {
     try {
-      await this.genAI.models.generateContent({
+      await this.getGeminiClient().models.generateContent({
         model: 'gemini-2.0-flash',
         contents: [{
           role: 'user',
@@ -1447,7 +1460,7 @@ Respond with ONLY a JSON array of tag ID strings, with no markdown, code fences 
         });
       }
 
-      const result = await this.genAI!.models.generateContent({
+      const result = await this.getGeminiClient().models.generateContent({
         model: 'gemini-2.0-flash',
         contents: [{ role: 'user', parts }],
       });

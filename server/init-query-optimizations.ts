@@ -72,17 +72,23 @@ export class QueryOptimizationManager {
       // Step 2: Apply database optimizations (indexes, materialized views)
       await this.applyDatabaseOptimizations();
 
-      // Step 3: Initialize query optimization services
-      await this.initializeOptimizationServices();
-
-      // Step 4: Warm up caches
-      await this.warmupCaches();
+      // Step 3 & 4 (cache warmup) intentionally deferred: see scheduleDeferredWarmup().
+      // Warming up reference caches + per-user scope caches at boot is the dominant
+      // memory cost on the Reserved VM and is not on the critical path for first
+      // request — a cache miss simply causes the relevant query to run normally.
 
       // Step 5: Enable performance monitoring
       await this.enablePerformanceMonitoring();
 
       // Step 6: Verify optimization effectiveness
       await this.verifyOptimizations();
+
+      // Optimization services are considered "ready" — warmup happens lazily.
+      this.optimizationStatus.optimizationServicesReady = true;
+
+      // Kick off cache warmup well after the HTTP server is listening so it
+      // never competes with route registration for memory at boot.
+      this.scheduleDeferredWarmup();
 
       this.optimizationStatus.initializationTime = Date.now() - startTime;
       if (process.env.NODE_ENV !== 'production') console.log(`✅ Query optimization system initialized in ${this.optimizationStatus.initializationTime}ms`);
@@ -187,6 +193,31 @@ export class QueryOptimizationManager {
       logError('Error initializing optimization services', error);
       this.optimizationStatus.errors.push(`Service initialization error: ${error.message}`);
     }
+  }
+
+  /**
+   * Schedule cache warmup to happen well after the HTTP server has bound the
+   * port. Boot path must stay light to keep Reserved VM memory under the
+   * ceiling; warmup is best-effort and never crashes the process.
+   */
+  private scheduleDeferredWarmup(): void {
+    const delayMs = 30_000;
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`⏳ Scheduling cache warmup in ${delayMs / 1000}s (deferred to keep boot memory low)`);
+    }
+    const t = setTimeout(async () => {
+      try {
+        if (process.env.NODE_ENV !== 'production') console.log('🔥 Running deferred cache warmup...');
+        await optimizedQueryService.warmupCaches();
+        await this.warmupCaches();
+        if (process.env.NODE_ENV !== 'production') console.log('✅ Deferred cache warmup complete');
+      } catch (error: any) {
+        // Never crash the process for a warmup failure.
+        logWarn(`Deferred cache warmup failed (non-fatal): ${error?.message || error}`);
+      }
+    }, delayMs);
+    // Don't keep the event loop alive solely for this timer.
+    t.unref?.();
   }
 
   /**
