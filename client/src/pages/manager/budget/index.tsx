@@ -30,6 +30,7 @@ import { BudgetChart } from './BudgetChart';
 import { BudgetProjectDialogs, type QuickProjectData, type EditingProjectData } from './BudgetProjectDialogs';
 import { useBudgetUICollapse } from './hooks/useBudgetUICollapse';
 import { useBudgetProjects } from './hooks/useBudgetProjects';
+import { BudgetProjectCard } from './components/BudgetProjectCard';
 import type {
   BudgetProps,
   PunctualRevenueGrowth,
@@ -3557,176 +3558,74 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
                           const isConfirming = confirmProjectYearMutation.isPending &&
                             confirmProjectYearMutation.variables?.id === project.id;
                           return (
-                          <div
+                          <BudgetProjectCard
                             key={project.id}
-                            className={`border rounded-lg p-4 space-y-3 ${hasPendingYear ? 'border-primary ring-1 ring-primary/40 bg-primary/5' : ''}`}
-                            data-testid={`budget-project-card-${project.id}`}
-                          >
-                            <div className='flex items-center justify-between'>
-                              <div className='flex-1'>
-                                <div className='flex items-center gap-2'>
-                                  <h4 className='font-medium text-sm'>{project.title}</h4>
-                                  {project.isQuickProject && (
-                                    <Badge variant="secondary" className="text-xs">{t('budgetQuickProjectBadge')}</Badge>
-                                  )}
-                                  <Badge variant="outline" className="text-xs">{project.status}</Badge>
-                                  {hasPendingYear && (
-                                    <Badge variant="default" className="text-xs" data-testid={`badge-pending-year-${project.id}`}>
-                                      {language === 'fr' ? 'Modification non enregistrée' : 'Unsaved change'}
-                                    </Badge>
-                                  )}
-                                </div>
-                                <div className='grid grid-cols-2 md:grid-cols-4 gap-2 mt-2 text-xs text-muted-foreground'>
-                                  <div>
-                                    <span className='font-medium'>{t('budget')}:</span> ${project.totalBudget.toLocaleString()}
-                                  </div>
-                                  <div>
-                                    <span className='font-medium'>{t('budgetActualCost')}:</span> ${project.actualCost.toLocaleString()}
-                                  </div>
-                                  <div className='flex items-center gap-1'>
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      className='h-6 w-6 p-0'
-                                      disabled={project.financialYear <= minShiftableYear || isConfirming}
-                                      onClick={() => shiftProjectYear(project, -1)}
-                                      data-testid={`button-shift-prev-year-${project.id}`}
-                                      title={language === 'fr' ? 'Période précédente' : 'Previous period'}
-                                    >
-                                      <ChevronLeft className='w-3 h-3' />
-                                    </Button>
-                                    <span>
-                                      <span className='font-medium'>{language === 'fr' ? 'Année financière' : 'Financial Year'}:</span>{' '}
-                                      {project.financialYear}
-                                    </span>
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      className='h-6 w-6 p-0'
-                                      disabled={project.financialYear >= maxShiftableYear || isConfirming}
-                                      onClick={() => shiftProjectYear(project, 1)}
-                                      data-testid={`button-shift-next-year-${project.id}`}
-                                      title={language === 'fr' ? 'Période suivante' : 'Next period'}
-                                    >
-                                      <ChevronRight className='w-3 h-3' />
-                                    </Button>
-                                  </div>
-                                  <div>
-                                    <span className='font-medium'>{t('cost')}:</span> ${(project.estimatedCost || project.totalBudget).toLocaleString()}
-                                  </div>
-                                </div>
-                              </div>
-                              <div className='flex items-center gap-2 flex-shrink-0'>
-                                <Label htmlFor={`project-include-${project.id}`} className="text-xs hidden sm:inline">{t('budgetIncludeInBudget')}</Label>
-                                <Switch 
-                                  id={`project-include-${project.id}`}
-                                  checked={project.includeInBudget}
-                                  onCheckedChange={(checked) => {
-                                    // Update ref to persist state across refetches
-                                    projectStatesRef.current.set(project.id, checked);
-                                    // Update local state
-                                    setProjects(prev => prev.map(p => 
-                                      p.id === project.id ? { ...p, includeInBudget: checked } : p
-                                    ));
-                                  }}
-                                  data-testid={`switch-project-include-${project.id}`}
-                                />
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={async () => {
-                                    if (project.isQuickProject) {
-                                      // For quick projects, open the simple edit dialog
-                                      const plannedDate = project.plannedStartDate ? new Date(project.plannedStartDate) : null;
-                                      setEditingProject({
-                                        id: project.id,
-                                        title: project.title,
-                                        totalBudget: project.totalBudget.toString(),
-                                        financialYear: project.financialYear.toString(),
-                                        plannedMonth: plannedDate ? (plannedDate.getMonth() + 1).toString() : '1',
-                                        plannedDay: plannedDate ? plannedDate.getDate().toString() : '1',
-                                        description: '',
-                                        isQuickProject: true,
-                                      });
-                                      setEditProjectDialogOpen(true);
-                                    } else {
-                                      // For real projects, fetch the full project data and open the workflow modal
-                                      try {
-                                        const response = await apiRequest('GET', `/api/maintenance/projects/${project.id}`);
-                                        if (response.ok) {
-                                          const result = await response.json();
-                                          // API returns { success: true, data: {...project} }
-                                          const fullProject = result.data || result;
-                                          setSelectedProjectForWorkflow(fullProject);
-                                          setShowProjectWorkflowModal(true);
-                                        } else {
-                                          toast({
-                                            title: t('error'),
-                                            description: language === 'fr' ? 'Impossible de charger le projet' : 'Failed to load project',
-                                            variant: 'destructive',
-                                          });
-                                        }
-                                      } catch (error) {
-                                        logError('Failed to fetch project:', error);
-                                        toast({
-                                          title: t('error'),
-                                          description: language === 'fr' ? 'Impossible de charger le projet' : 'Failed to load project',
-                                          variant: 'destructive',
-                                        });
-                                      }
-                                    }
-                                  }}
-                                  className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50 flex-shrink-0"
-                                  data-testid={`button-edit-project-${project.id}`}
-                                  title={t('edit')}
-                                >
-                                  <Pencil className="w-4 h-4" />
-                                </Button>
-                                {project.isQuickProject && (
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => {
-                                      if (confirm(t('budgetDeleteQuickProjectConfirm').replace('{title}', project.title))) {
-                                        deleteQuickProjectMutation.mutate(project.id);
-                                      }
-                                    }}
-                                    disabled={deleteQuickProjectMutation.isPending}
-                                    className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                                    data-testid={`button-delete-quick-project-${project.id}`}
-                                    title={t('delete')}
-                                  >
-                                    <Trash2 className="w-4 h-4" />
-                                  </Button>
-                                )}
-                              </div>
-                            </div>
-                            {hasPendingYear && (
-                              <div className='flex justify-end pt-2 border-t'>
-                                <Button
-                                  size="sm"
-                                  onClick={() => confirmProjectYearMutation.mutate({
-                                    id: project.id,
-                                    financialYear: project.financialYear,
-                                  })}
-                                  disabled={isConfirming}
-                                  data-testid={`button-confirm-year-${project.id}`}
-                                >
-                                  {isConfirming ? (
-                                    <>
-                                      <div className='animate-spin w-3 h-3 border-2 border-white border-t-transparent rounded-full mr-2'></div>
-                                      {t('saving')}
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Check className="w-4 h-4 mr-1" />
-                                      {language === 'fr' ? 'Confirmer' : 'Confirm'}
-                                    </>
-                                  )}
-                                </Button>
-                              </div>
-                            )}
-                          </div>
+                            project={project}
+                            hasPendingYear={hasPendingYear}
+                            isConfirming={isConfirming}
+                            minShiftableYear={minShiftableYear}
+                            maxShiftableYear={maxShiftableYear}
+                            language={language}
+                            t={t}
+                            deleteQuickProjectPending={deleteQuickProjectMutation.isPending}
+                            onShiftYear={(p, delta) => shiftProjectYear(p, delta)}
+                            onConfirmYear={(p) =>
+                              confirmProjectYearMutation.mutate({
+                                id: p.id,
+                                financialYear: p.financialYear,
+                              })
+                            }
+                            onToggleInclude={(p, value) => {
+                              projectStatesRef.current.set(p.id, value);
+                              setProjects(prev => prev.map(pp =>
+                                pp.id === p.id ? { ...pp, includeInBudget: value } : pp
+                              ));
+                            }}
+                            onEdit={async (p) => {
+                              if (p.isQuickProject) {
+                                const plannedDate = p.plannedStartDate ? new Date(p.plannedStartDate) : null;
+                                setEditingProject({
+                                  id: p.id,
+                                  title: p.title,
+                                  totalBudget: p.totalBudget.toString(),
+                                  financialYear: p.financialYear.toString(),
+                                  plannedMonth: plannedDate ? (plannedDate.getMonth() + 1).toString() : '1',
+                                  plannedDay: plannedDate ? plannedDate.getDate().toString() : '1',
+                                  description: '',
+                                  isQuickProject: true,
+                                });
+                                setEditProjectDialogOpen(true);
+                              } else {
+                                try {
+                                  const response = await apiRequest('GET', `/api/maintenance/projects/${p.id}`);
+                                  if (response.ok) {
+                                    const result = await response.json();
+                                    const fullProject = result.data || result;
+                                    setSelectedProjectForWorkflow(fullProject);
+                                    setShowProjectWorkflowModal(true);
+                                  } else {
+                                    toast({
+                                      title: t('error'),
+                                      description: language === 'fr' ? 'Impossible de charger le projet' : 'Failed to load project',
+                                      variant: 'destructive',
+                                    });
+                                  }
+                                } catch (error) {
+                                  logError('Failed to fetch project:', error);
+                                  toast({
+                                    title: t('error'),
+                                    description: language === 'fr' ? 'Impossible de charger le projet' : 'Failed to load project',
+                                    variant: 'destructive',
+                                  });
+                                }
+                              }
+                            }}
+                            onDeleteQuickProject={(p) => {
+                              if (confirm(t('budgetDeleteQuickProjectConfirm').replace('{title}', p.title))) {
+                                deleteQuickProjectMutation.mutate(p.id);
+                              }
+                            }}
+                          />
                           );
                         })
                       ) : (

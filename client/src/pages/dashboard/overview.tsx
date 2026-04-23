@@ -52,6 +52,7 @@ import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/
 import { renderDualLine } from '@/components/common/DualLineChart';
 import { budgetColors, buildChartConfig, currencyFormatter } from '@/lib/chart-colors';
 import { buildForecastRequestBody, deriveStartMonthFromFiscalYearStart } from '@/lib/forecast-request';
+import { OverviewProjectCard } from './components/OverviewProjectCard';
 
 function getProjectFiscalYear(
   project: { financialYear?: number | null; plannedStartDate?: string | null },
@@ -1712,111 +1713,41 @@ export default function FinancialOverview() {
                       }}
                     />
                   ) : selectedBuildingProjects.length > 0 ? (
-                    selectedBuildingProjects.map(project => (
-                      <div key={project.id} className="border rounded-lg p-4 space-y-3" data-testid={`project-${project.id}`}>
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 flex-wrap">
-                              <h4 className="font-medium text-sm">{project.title}</h4>
-                              <Badge variant="default" className="text-xs">
-                                {project.buildingName}
-                              </Badge>
-                              {project.isQuickProject && (
-                                <Badge variant="secondary" className="text-xs">
-                                  {t('quickProject')}
-                                </Badge>
-                              )}
-                              <Badge variant="outline" className="text-xs">
-                                {project.status}
-                              </Badge>
-                            </div>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2 text-xs text-muted-foreground">
-                              <div>
-                                <span className="font-medium">{t('budget')}:</span> $
-                                {project.totalBudget?.toLocaleString() || 0}
-                              </div>
-                              <div>
-                                <span className="font-medium">{t('actual')}:</span> $
-                                {project.actualCost?.toLocaleString() || 0}
-                              </div>
-                              {(() => {
-                                const baseYearStr = getProjectFiscalYear(
-                                  project,
-                                  selectedBuilding?.financialYearStart ?? bankAccountConfig?.financialYearStart ?? null,
-                                );
-                                const baseYear = baseYearStr === 'N/A' ? null : parseInt(baseYearStr, 10);
-                                const offset = projectYearOffsets.get(project.id) ?? 0;
-                                const displayedYear = baseYear !== null ? baseYear + offset : null;
-                                const minYear = currentFiscalYear;
-                                const maxYear = currentFiscalYear + 25;
-                                const canPrev = displayedYear !== null && displayedYear > minYear;
-                                const canNext = displayedYear !== null && displayedYear < maxYear;
-                                const shift = (delta: number) => {
-                                  setProjectYearOffsets(prev => {
-                                    const next = new Map(prev);
-                                    const cur = (next.get(project.id) ?? 0) + delta;
-                                    if (cur === 0) next.delete(project.id);
-                                    else next.set(project.id, cur);
-                                    return next;
-                                  });
-                                };
-                                return (
-                                  <div className="flex items-center gap-1">
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      className="h-6 w-6 p-0"
-                                      disabled={!canPrev}
-                                      onClick={() => shift(-1)}
-                                      data-testid={`button-overview-shift-prev-${project.id}`}
-                                      title="Previous period"
-                                    >
-                                      <ChevronLeft className="w-3 h-3" />
-                                    </Button>
-                                    <span>
-                                      <span className="font-medium">Fiscal Year:</span>{' '}
-                                      {displayedYear ?? baseYearStr}
-                                    </span>
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      className="h-6 w-6 p-0"
-                                      disabled={!canNext}
-                                      onClick={() => shift(1)}
-                                      data-testid={`button-overview-shift-next-${project.id}`}
-                                      title="Next period"
-                                    >
-                                      <ChevronRight className="w-3 h-3" />
-                                    </Button>
-                                  </div>
-                                );
-                              })()}
-                              <div>
-                                <span className="font-medium">{t('cost')}:</span> $
-                                {(project.estimatedCost || project.totalBudget)?.toLocaleString() || 0}
-                              </div>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2 flex-shrink-0">
-                            <Label htmlFor={`project-include-${project.id}`} className="text-xs hidden sm:inline">
-                              {t('include')}
-                            </Label>
-                            <Switch
-                              id={`project-include-${project.id}`}
-                              checked={project.includeInBudget}
-                              onCheckedChange={checked => {
-                                setProjectStates(prev => {
-                                  const next = new Map(prev);
-                                  next.set(project.id, checked);
-                                  return next;
-                                });
-                              }}
-                              data-testid={`switch-project-include-${project.id}`}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    ))
+                    selectedBuildingProjects.map(project => {
+                      const baseYearStr = getProjectFiscalYear(
+                        project,
+                        selectedBuilding?.financialYearStart ?? bankAccountConfig?.financialYearStart ?? null,
+                      );
+                      const baseYear = baseYearStr === 'N/A' ? null : parseInt(baseYearStr, 10);
+                      return (
+                        <OverviewProjectCard
+                          key={project.id}
+                          project={project}
+                          baseYearLabel={baseYearStr}
+                          baseYear={baseYear}
+                          offset={projectYearOffsets.get(project.id) ?? 0}
+                          minYear={currentFiscalYear}
+                          maxYear={currentFiscalYear + 25}
+                          t={t}
+                          onShift={(id, delta) => {
+                            setProjectYearOffsets(prev => {
+                              const next = new Map(prev);
+                              const cur = (next.get(id) ?? 0) + delta;
+                              if (cur === 0) next.delete(id);
+                              else next.set(id, cur);
+                              return next;
+                            });
+                          }}
+                          onToggleInclude={(id, value) => {
+                            setProjectStates(prev => {
+                              const next = new Map(prev);
+                              next.set(id, value);
+                              return next;
+                            });
+                          }}
+                        />
+                      );
+                    })
                   ) : (
                     <div className="text-center py-8 text-muted-foreground">
                       <Building2 className="w-12 h-12 mx-auto mb-4 text-gray-300" />
