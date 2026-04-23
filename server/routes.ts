@@ -531,21 +531,6 @@ export async function registerRoutes(app: Express) {
     }
   });
 
-  // Get presigned URL for uploading a document to object storage
-  app.post('/api/objects/upload', requireAuth, async (req: any, res) => {
-    try {
-      const { ObjectStorageService } = await import('./objectStorage');
-      const objectStorageService = new ObjectStorageService();
-      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
-      res.json({ uploadURL });
-    } catch (error: any) {
-      logError('Error getting upload URL', error);
-      res.status(500).json({ 
-        error: 'Failed to get upload URL',
-        message: error.message 
-      });
-    }
-  });
   
   // SEO routes: robots.txt and sitemap.xml (must be before SPA catch-all)
   const SEO_PUBLIC_PATHS = [

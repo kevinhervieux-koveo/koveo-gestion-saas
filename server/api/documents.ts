@@ -2813,12 +2813,39 @@ export function registerDocumentRoutes(app: Express): void {
         return res.status(403).json({ message: 'Access denied' });
       }
 
-      // Set ACL policy for the object
+      // Validate that the provided path is an /objects/ path (must be from our
+      // own storage, not an arbitrary URL or local path)
       const { ObjectStorageService } = await import('../objectStorage');
       const { ObjectAccessGroupType, ObjectPermission } = await import('../objectAcl');
-      
       const objectStorageService = new ObjectStorageService();
-      
+
+      const normalizedForCheck = objectStorageService.normalizeObjectEntityPath(filePath);
+      if (!normalizedForCheck.startsWith('/objects/')) {
+        return res.status(400).json({ message: 'Invalid file path: must reference an object storage path' });
+      }
+
+      // Prevent path-rebinding: reject if the object already has an ACL set
+      // by a different user. A freshly uploaded object will have no ACL yet.
+      const existingAcl = await objectStorageService.getExistingObjectAcl(filePath);
+      if (existingAcl && existingAcl.owner && existingAcl.owner !== userId) {
+        return res.status(403).json({ message: 'Access denied: object belongs to another user' });
+      }
+
+      // Validate the uploaded object's MIME type against the allowlist.
+      // Fail-closed: reject when no content-type is stamped on the object
+      // (an object without recognized metadata cannot be trusted as a
+      // legitimate user upload) OR when the type is not in the allowlist.
+      // This blocks HTML/JS attachments and any path that wasn't produced
+      // by a server-validated upload pipeline.
+      const objectContentType = await objectStorageService.getObjectContentType(filePath);
+      if (!objectContentType || !SECURITY_CONFIG.ALLOWED_MIME_TYPES.includes(objectContentType)) {
+        return res.status(400).json({
+          message: objectContentType
+            ? `File type not allowed: ${objectContentType}`
+            : 'File type could not be verified',
+        });
+      }
+
       // Build ACL policy based on document properties
       const aclPolicy = {
         owner: userId,
@@ -4072,6 +4099,24 @@ export function registerDocumentRoutes(app: Express): void {
         });
       }
 
+      // Object-level ACL check: verify the requesting user has access to the
+      // underlying storage object, not only to the document record. This
+      // prevents the path-rebinding attack where a user points their own
+      // document at another user's file and reads it through this endpoint.
+      if (document.filePath && document.filePath.startsWith('/objects/')) {
+        const aclAccess = await documentService.canUserAccessDocument(userId, userRole, document.filePath);
+        if (!aclAccess.allowed) {
+          logDocumentOperation('OBJECT_ACL_DENIED', {
+            operationId,
+            documentId,
+            userId,
+            filePath: document.filePath,
+            reason: aclAccess.reason,
+          }, 'WARN');
+          return res.status(403).json({ message: 'Access denied to file' });
+        }
+      }
+
       // Download document using Object Storage via documentService (unified approach)
       // This is the ONLY download method - no local filesystem fallbacks for Autoscale compatibility
       if (!document.filePath) {
@@ -4097,10 +4142,13 @@ export function registerDocumentRoutes(app: Express): void {
         
         // Get filename for Content-Disposition header
         const fileName = (document as any).fileName || document.name || path.basename(document.filePath);
+        // Always serve as attachment (never inline) to prevent active content
+        // (HTML/JS) from executing in the browser's same-origin context even if
+        // a malicious file were somehow stored.
         const downloadOptions = {
           cacheTtlSec: 3600,
           filename: fileName,
-          inline: !isDownload,
+          inline: false,
           mimeType: (document as any).mimeType ?? undefined,
         };
         

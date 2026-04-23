@@ -460,6 +460,21 @@ export function registerDemandRoutes(app: Express) {
         fileSize: fileInfo.fileSize,
       };
 
+      // Verify object ownership before binding a client-supplied /objects/ path.
+      // If the object already has an ACL set by a different user, reject the
+      // request to prevent path-rebinding / ACL-hijacking attacks.
+      if (fileInfo.filePath && fileInfo.filePath.startsWith('/objects/')) {
+        try {
+          const objectStorageService = new ObjectStorageService();
+          const existingAcl = await objectStorageService.getExistingObjectAcl(fileInfo.filePath);
+          if (existingAcl && existingAcl.owner && existingAcl.owner !== user.id) {
+            return res.status(403).json({ message: 'Access denied: object belongs to another user' });
+          }
+        } catch (aclCheckError) {
+          if (process.env.NODE_ENV === 'development') console.error('Failed to check ACL on demand file:', aclCheckError);
+        }
+      }
+
       const newDemand = await db.insert(demands).values([demandInsertData]).returning();
 
       // Set ACL on object storage file if it's an object storage path

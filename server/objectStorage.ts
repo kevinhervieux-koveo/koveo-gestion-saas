@@ -295,6 +295,38 @@ export class ObjectStorageService {
     return objectStorageClient.bucket(bucketName).file(objectName);
   }
 
+  // Returns the existing ACL policy for an object, or null if none is set.
+  // Useful to check whether a path already belongs to another user before
+  // accepting a client-supplied path binding.
+  async getExistingObjectAcl(rawPath: string): Promise<ObjectAclPolicy | null> {
+    try {
+      const normalizedPath = this.normalizeObjectEntityPath(rawPath);
+      if (!normalizedPath.startsWith("/")) {
+        return null;
+      }
+      const objectFile = await this.getObjectEntityFile(normalizedPath);
+      return await getObjectAclPolicy(objectFile);
+    } catch {
+      return null;
+    }
+  }
+
+  // Returns the content-type stored in GCS object metadata for the given path,
+  // or null when the object cannot be found or has no content-type set.
+  async getObjectContentType(rawPath: string): Promise<string | null> {
+    try {
+      const normalizedPath = this.normalizeObjectEntityPath(rawPath);
+      if (!normalizedPath.startsWith("/")) {
+        return null;
+      }
+      const objectFile = await this.getObjectEntityFile(normalizedPath);
+      const [metadata] = await objectFile.getMetadata();
+      return (metadata?.contentType as string) || null;
+    } catch {
+      return null;
+    }
+  }
+
   // Tries to set the ACL policy for the object entity and return the normalized path
   async trySetObjectEntityAclPolicy(
     rawPath: string,
