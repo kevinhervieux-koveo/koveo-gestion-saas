@@ -35,6 +35,7 @@ import { registerPillarsSuggestionsRoutes } from './api/pillars-suggestions';
 import { registerQualityMetricsRoutes } from './api/quality-metrics';
 import { registerFeatureManagementRoutes } from './api/feature-management';
 import { lazyMount } from './utils/lazy-mount';
+import { registerAutoRoutes } from './api/auto/_register';
 import law25ComplianceRouter from './routes/law25-compliance';
 import { performanceRouter } from './performance-api';
 import { webVitalsRouter } from './web-vitals-api';
@@ -213,7 +214,12 @@ export async function registerRoutes(app: Express) {
   lazyMount(app, '/api/demo', async () => (await import('./api/demo-management')).registerDemoManagementRoutes);
   lazyMount(app, '/api/ai', async () => (await import('./api/ai-document-analysis')).registerAiAnalysisRoutes);
   lazyMount(app, '/api/admin/bulk-import', async () => (await import('./api/bulk-import')).registerBulkImportRoutes);
-  
+
+  // Auto-discovered API modules (drop new files in `server/api/auto/` —
+  // see `server/api/auto/README.md`). This is the ONLY hook needed to add
+  // new feature endpoints; do NOT add new `register*Routes` calls above.
+  await registerAutoRoutes(app);
+
   // Performance monitoring routes
   app.use(performanceRouter);
   app.use(webVitalsRouter);

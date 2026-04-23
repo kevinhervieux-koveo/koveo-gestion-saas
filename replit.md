@@ -95,6 +95,35 @@ The platform exposes an MCP server at `/mcp` for LLM integration (e.g., Claude D
   - The envelope intentionally excludes the raw driver `message`, `detail`, and stack traces so PII (emails, tokens, file paths, secrets) and schema fragments cannot leak into the LLM transcript. Only the friendly per-action sentence, the stable envelope `code`, and the SQLSTATE are exposed.
 - **In-process retry (`server/mcp/server.ts` → `withRetryableDbCall`)**: Every MCP write tool wraps its database call(s) with this helper so transient blips (the same SQLSTATEs flagged `retryable: true` above — `40001`, `40P01`, `57014`, `08006/08001/08003/08004`) are absorbed before the error reaches the LLM. Bounded retries (default 3 attempts) with exponential backoff (`baseDelayMs * 2^(attempt-1)`) plus jitter in `[0, baseDelayMs)`. Non-retryable errors short-circuit on the first failure so `buildWriteErrorResponse` keeps its deterministic envelope behaviour for permanent failures. The retryable SQLSTATE set is exported as `RETRYABLE_PG_CODES` and is verified in tests to match the catalog so the two cannot drift.
 
+## Conflict-Minimizing Feature Convention (READ BEFORE ADDING ANY NEW FEATURE)
+
+The single biggest source of rebase conflicts between parallel tasks has been the small number of "central registry" files that every feature edits in the same place: `server/routes.ts`, `client/src/App.tsx`, `client/src/config/navigation.ts`, `client/src/config/help-content.ts`, `shared/schema.ts`. Two tasks both appending a line to the same block look like a conflict to git even though the additions are logically independent.
+
+To make this rare, the codebase has two **auto-discovery** zones. **For any NEW feature work, use these. Do not edit the central registry files unless you have a documented reason.**
+
+### Backend — `server/api/auto/`
+- New API modules: create `server/api/auto/<feature>.ts`.
+- Default-export a `(app) => void` registrar.
+- Add **one alphabetically-sorted entry** to `server/api/auto/index.ts`:
+  - Eager: `widgets: { load: () => import('./widgets') },`
+  - Lazy: `widgets: { load: () => import('./widgets'), lazy: { matcher: '/api/widgets' } },` — the module file is NOT imported until the first request matching `matcher` arrives.
+- Do NOT add `import { registerXxxRoutes } from './api/<feature>'` or `registerXxxRoutes(app)` calls to `server/routes.ts`. The single `await registerAutoRoutes(app)` already wired in `server/routes.ts` covers everything in the auto folder.
+- Background: see `server/api/auto/README.md`. The conflict surface shrinks from a 700-line file to a small registry where each entry is one independent line, sorted alphabetically — git's recursive merge resolves parallel additions automatically in the common case. Two tasks adding the same key still collide, but adjacent additions to different keys do not.
+
+### Frontend — `client/src/pages/auto/`
+- New pages: create `client/src/pages/auto/<feature>.tsx`.
+- Default-export the page component AND `export const route: AutoPageRoute = { path, role? }`.
+- Vite's `import.meta.glob` discovers the file at build time. The page is mounted via `<AutoPageRoutes />` already wired into the main `<Switch>` in `client/src/App.tsx`. **No edits to `App.tsx` are needed.**
+- Background: see `client/src/pages/auto/README.md`.
+
+### What still requires editing central files
+- Routes that must mount before session middleware (MCP/OAuth) — keep in `server/routes.ts`.
+- Sidebar/navigation entries (`client/src/config/navigation.ts`) and contextual help (`client/src/config/help-content.ts`): not yet auto-discovered. Edit them carefully (one-line additions sorted with their existing peers minimize conflict surface).
+- Schema additions still require a one-line `export *` in `shared/schema.ts`. Always append at the end of the existing block to keep diffs minimal.
+
+### Migrating existing features
+Migration is **explicitly out of scope**. The existing `register*Routes` calls in `server/routes.ts` and the explicit `<Route>` entries in `App.tsx` continue to work unchanged. Only NEW features should use the auto folders. Touching working code just to migrate it would re-introduce the very conflicts the convention is designed to prevent.
+
 ## Maintenance Scripts
 - `scripts/backfill-bill-ai-fields.ts` (Task #347) — one-shot backfill that re-reads `bills.ai_analysis_data` for legacy AI-extracted bills and populates the post-Task-#338 columns (`issue_date`, `vendor_invoice_number`) plus per-installment `bills.costs` arrays when the JSON exposes a `customPayments` breakdown that sums to `total_amount`. Idempotent: only writes columns currently NULL (or a single-entry `costs` placeholder). Logs scanned/updated counts grouped by organization. Run with `npx tsx scripts/backfill-bill-ai-fields.ts` (add `--dry-run` to log without writing).
 - `scripts/normalize-stored-filenames.ts` (Task #394) — one-shot maintenance pass that walks `documents.fileName` and `element_documents.fileName`, runs every stored value through the shared `normalizeFilename` helper (`server/utils/filenameNormalization.ts`), and rewrites rows whose stored value differs. Cleans up legacy filenames uploaded before Tasks #378 / #380 hardened new uploads, so naive Content-Disposition emitters can no longer choke on accents or control characters. Idempotent: a second pass is a no-op once all rows match their normalized form. Logs per-table `scanned / needsUpdate / updated / failed` counts and prints every rename it performs. Run with `npx tsx scripts/normalize-stored-filenames.ts` (add `--dry-run` to log proposed renames without writing).

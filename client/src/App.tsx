@@ -38,6 +38,7 @@ import { HelpOverlay } from '@/components/help/HelpOverlay';
 import { HelpHighlighter } from '@/components/help/HelpHighlighter';
 import { ProtectedRoute } from '@/components/common/ProtectedRoute';
 import { InstallPrompt } from '@/components/common/InstallPrompt';
+import { AutoPageRoutes } from '@/pages/auto/_register';
 
 // Optimized lazy-loaded Admin pages
 const AdminOrganizations = optimizedPageLoaders.AdminOrganizations;
@@ -407,6 +408,11 @@ function Router() {
             <Route path='/settings/settings' component={SettingsSettings} />
             <Route path='/settings/bug-reports' component={SettingsBugReports} />
             <Route path='/settings/idea-box' component={SettingsIdeaBox} />
+
+            {/* Auto-discovered pages — drop new pages in
+                client/src/pages/auto/ instead of editing this file.
+                See client/src/pages/auto/README.md. */}
+            <AutoPageRoutes />
 
             {/* 404 */}
             <Route component={NotFound} />
