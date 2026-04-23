@@ -13,6 +13,7 @@ import { requireAuth } from '../auth';
 import multer from 'multer';
 import { v4 as uuidv4 } from 'uuid';
 import { ObjectStorageService } from '../objectStorage';
+import { normalizeFilename } from '../utils/filenameNormalization';
 
 import { asyncHandler } from '../utils/async-handler';
 const objectStorageService = new ObjectStorageService();
@@ -24,11 +25,6 @@ const upload = multer({
     fileSize: 10 * 1024 * 1024, // 10MB limit
   }
 });
-
-// Helper function to sanitize filenames
-function sanitizeFilePath(filePath: string): string {
-  return filePath.replace(/[^a-zA-Z0-9._\/-]/g, '_');
-}
 
 // Helper function to upload file to object storage
 async function uploadToObjectStorage(
@@ -181,7 +177,7 @@ export function registerFeatureRequestRoutes(app: Express): void {
         try {
           // Fix filename encoding issues and sanitize
           const originalname = Buffer.from(req.file.originalname, 'latin1').toString('utf8');
-          const sanitizedFilename = sanitizeFilePath(originalname);
+          const sanitizedFilename = normalizeFilename(originalname);
           
           // Generate unique path: features/{featureId}/{uuid}_{sanitized_filename}
           const uniqueId = uuidv4();
@@ -360,7 +356,7 @@ export function registerFeatureRequestRoutes(app: Express): void {
         try {
           // Fix filename encoding issues and sanitize
           const originalname = Buffer.from(req.file.originalname, 'latin1').toString('utf8');
-          const sanitizedFilename = sanitizeFilePath(originalname);
+          const sanitizedFilename = normalizeFilename(originalname);
           
           // Generate unique path: features/{featureId}/{uuid}_{sanitized_filename}
           const uniqueId = uuidv4();

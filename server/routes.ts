@@ -514,8 +514,9 @@ export async function registerRoutes(app: Express) {
       
       const { randomUUID } = await import('crypto');
       const demandId = randomUUID();
-      // Sanitize filename to prevent path traversal
-      const sanitizedFilename = filename.replace(/[^a-zA-Z0-9._-]/g, '_');
+      // Sanitize filename to prevent path traversal (shared canonical helper)
+      const { normalizeFilename } = await import('./utils/filenameNormalization');
+      const sanitizedFilename = normalizeFilename(filename);
       const objectPath = `demands/${demandId}/${sanitizedFilename}`;
       
       const { ObjectStorageService } = await import('./objectStorage');

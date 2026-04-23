@@ -10,31 +10,16 @@ import fs from 'fs/promises';
 import { existsSync } from 'fs';
 import crypto from 'crypto';
 import { generateStorageDirectory, validateUploadContext, type UploadContext } from '@shared/config/upload-config';
+import { normalizeFilename } from '../utils/filenameNormalization';
 
-// Secure filename sanitization function
+// Thin wrapper over the shared canonical normalizer so every upload site
+// produces the exact same safe filename rules (NFD diacritic stripping,
+// length truncation, UUID fallback for empty input, etc.).
 function sanitizeFilename(filename: string): string {
   if (!filename || typeof filename !== 'string') {
     throw new Error('Invalid filename provided');
   }
-  
-  // Remove path traversal sequences and dangerous characters
-  let sanitized = filename.replace(/\.\.[\\\/]/g, ''); // Remove ../ and ..\
-  sanitized = sanitized.replace(/[\\\/]/g, '_'); // Replace slashes with underscores
-  sanitized = sanitized.replace(/[^a-zA-Z0-9._-]/g, '_'); // Only allow safe characters
-  
-  // Ensure reasonable length
-  if (sanitized.length > 255) {
-    const ext = path.extname(sanitized);
-    const name = path.basename(sanitized, ext).substring(0, 200);
-    sanitized = name + ext;
-  }
-  
-  // Ensure it's not empty
-  if (!sanitized || sanitized === '.' || sanitized === '_') {
-    sanitized = 'file_' + crypto.randomUUID().substring(0, 8);
-  }
-  
-  return sanitized;
+  return normalizeFilename(filename);
 }
 
 // Generate cryptographically secure random filename
