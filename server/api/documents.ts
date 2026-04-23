@@ -1347,6 +1347,7 @@ export function registerDocumentRoutes(app: Express): void {
       const attachedToType = req.query.attachedToType as string; // Filter by attached entity type
       const attachedToId = req.query.attachedToId as string; // Filter by attached entity ID
       const managerOnlyFilter = req.query.isManagerOnly === 'true'; // Filter to only manager-only documents
+      const hasLinksFilter = req.query.hasLinks === 'true'; // Filter to only documents that are part of a sequence (have an explicit before/after link)
       
       // Infer view type from which ID parameter is provided:
       // - If buildingId is provided (and no residenceId), it's a building documents view
@@ -1672,12 +1673,48 @@ export function registerDocumentRoutes(app: Express): void {
         // Non-fatal: don't block listing if tag table is missing
       }
 
+      // Attach explicit document-link summaries inline so the list/grid can
+      // render a "linked" indicator (and a hover-preview of the previous/next
+      // document name) without an extra round-trip per row. Non-fatal on
+      // error so listing still works if the link table is missing/broken.
+      let documentsAfterLinkFilter = allDocumentRecords;
+      try {
+        const { getLinkSummariesForDocuments } = await import(
+          '../services/document-link-service'
+        );
+        const ids = allDocumentRecords.map((d: any) => d.id).filter(Boolean);
+        // Pass the requester's role so the helper hides neighbor names that
+        // the visibility rules (manager-only / tenant-only) would block from
+        // the regular listing endpoint. Without this, the linked-indicator
+        // hover would leak hidden document names through visible siblings.
+        const linksByDoc = await getLinkSummariesForDocuments(ids, {
+          role: req.user?.role ?? null,
+        });
+        for (const d of allDocumentRecords as any[]) {
+          const summary = linksByDoc.get(d.id);
+          d.links = summary ?? null;
+          d.hasLinks = !!summary && (!!summary.previous || !!summary.next);
+        }
+        if (hasLinksFilter) {
+          documentsAfterLinkFilter = allDocumentRecords.filter(
+            (d: any) => d.hasLinks === true,
+          );
+        }
+      } catch (e) {
+        // If the link lookup fails we still want to return documents; just
+        // skip the filter so we don't return an empty list silently.
+        for (const d of allDocumentRecords as any[]) {
+          if (d.links === undefined) d.links = null;
+          if (d.hasLinks === undefined) d.hasLinks = false;
+        }
+      }
+
       const response = {
-        documents: allDocumentRecords,
-        total: allDocumentRecords.length,
-        buildingCount: allDocumentRecords.filter((d) => d.documentCategory === 'building').length,
-        residentCount: allDocumentRecords.filter((d) => d.documentCategory === 'resident').length,
-        legacyCount: allDocumentRecords.filter((d) => d.documentCategory === 'legacy').length,
+        documents: documentsAfterLinkFilter,
+        total: documentsAfterLinkFilter.length,
+        buildingCount: documentsAfterLinkFilter.filter((d) => d.documentCategory === 'building').length,
+        residentCount: documentsAfterLinkFilter.filter((d) => d.documentCategory === 'resident').length,
+        legacyCount: documentsAfterLinkFilter.filter((d) => d.documentCategory === 'legacy').length,
       };
       // Log successful document access
       logSecurityEvent('DOCUMENT_LIST_ACCESS', user, true, undefined, {

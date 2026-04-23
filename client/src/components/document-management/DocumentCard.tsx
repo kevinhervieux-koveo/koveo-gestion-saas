@@ -1,8 +1,14 @@
 import React from 'react';
-import { Eye, FileText, Image, File, Calendar, User } from 'lucide-react';
+import { Eye, FileText, Image, File, Calendar, User, Link as LinkIcon } from 'lucide-react';
 import { StandardCard } from '@/components/common/StandardCard';
 import { Checkbox } from '@/components/ui/checkbox';
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { useLanguage } from '@/hooks/use-language';
+
+export interface DocumentLinkSummary {
+  previous?: { id: string; name: string };
+  next?: { id: string; name: string };
+}
 
 interface DocumentCardProps {
   title: string;
@@ -20,6 +26,7 @@ interface DocumentCardProps {
   uploadedBy?: string;
   isVisibleToTenants?: boolean;
   isManagerOnly?: boolean;
+  links?: DocumentLinkSummary | null;
   
   // Selection mode
   selectable?: boolean;
@@ -51,6 +58,7 @@ export function DocumentCard({
   uploadedBy,
   isVisibleToTenants,
   isManagerOnly,
+  links,
   selectable = false,
   selected = false,
   onSelectionChange,
@@ -179,21 +187,88 @@ export function DocumentCard({
     }
   };
 
+  // Linked-document indicator: shown when the document has at least one
+  // explicit before/after link. Hovering (or tapping) the badge reveals the
+  // names of the previous/next document so users can identify the chain
+  // without opening the viewer.
+  const hasLinks = !!links && (!!links.previous || !!links.next);
+  const linkedBadge = hasLinks ? (
+    <div
+      className="absolute top-2 left-2 z-10"
+      onClick={(e) => e.stopPropagation()}
+      data-testid={`document-linked-indicator-${documentId}`}
+    >
+      <HoverCard openDelay={120} closeDelay={80}>
+        <HoverCardTrigger asChild>
+          <button
+            type="button"
+            className="inline-flex items-center gap-1 rounded-full border border-blue-300 bg-white/90 dark:bg-gray-800/90 px-2 py-0.5 text-[10px] font-medium text-blue-700 dark:text-blue-300 shadow-sm hover:bg-blue-50 dark:hover:bg-blue-950"
+            aria-label={t('partOfSequence')}
+            title={t('partOfSequence')}
+            data-testid={`document-linked-trigger-${documentId}`}
+          >
+            <LinkIcon className="h-3 w-3" />
+            <span>{t('partOfSequence')}</span>
+          </button>
+        </HoverCardTrigger>
+        <HoverCardContent
+          align="start"
+          className="w-64 p-3 text-xs"
+          data-testid={`document-linked-hover-${documentId}`}
+        >
+          <div className="space-y-2">
+            {links?.previous ? (
+              <div>
+                <div className="text-muted-foreground uppercase tracking-wide text-[10px]">
+                  {t('linkedPrevious')}
+                </div>
+                <div
+                  className="font-medium truncate"
+                  data-testid={`document-linked-previous-${documentId}`}
+                >
+                  {links.previous.name}
+                </div>
+              </div>
+            ) : null}
+            {links?.next ? (
+              <div>
+                <div className="text-muted-foreground uppercase tracking-wide text-[10px]">
+                  {t('linkedNext')}
+                </div>
+                <div
+                  className="font-medium truncate"
+                  data-testid={`document-linked-next-${documentId}`}
+                >
+                  {links.next.name}
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </HoverCardContent>
+      </HoverCard>
+    </div>
+  ) : null;
+
+  const card = (
+    <StandardCard
+      title={title}
+      description={!compact ? description : undefined}
+      icon={getDocumentIcon()}
+      badges={badges}
+      actions={actions}
+      metadata={metadata}
+      onClick={onViewClick ? () => onViewClick(documentId) : undefined}
+      spacing={compact ? 'compact' : 'normal'}
+      className={className}
+      testId={`document-card-${documentId}`}
+    />
+  );
+
   if (selectable) {
     return (
       <div className="relative group">
-        <StandardCard
-          title={title}
-          description={!compact ? description : undefined}
-          icon={getDocumentIcon()}
-          badges={badges}
-          actions={actions}
-          metadata={metadata}
-          onClick={onViewClick ? () => onViewClick(documentId) : undefined}
-          spacing={compact ? 'compact' : 'normal'}
-          className={className}
-          testId={`document-card-${documentId}`}
-        />
+        {card}
+        {linkedBadge}
         <div 
           className="absolute top-2 right-2 z-10"
           onClick={(e) => e.stopPropagation()}
@@ -209,18 +284,14 @@ export function DocumentCard({
     );
   }
 
-  return (
-    <StandardCard
-      title={title}
-      description={!compact ? description : undefined}
-      icon={getDocumentIcon()}
-      badges={badges}
-      actions={actions}
-      metadata={metadata}
-      onClick={onViewClick ? () => onViewClick(documentId) : undefined}
-      spacing={compact ? 'compact' : 'normal'}
-      className={className}
-      testId={`document-card-${documentId}`}
-    />
-  );
+  if (linkedBadge) {
+    return (
+      <div className="relative group">
+        {card}
+        {linkedBadge}
+      </div>
+    );
+  }
+
+  return card;
 }

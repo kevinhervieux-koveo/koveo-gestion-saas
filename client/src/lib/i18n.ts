@@ -374,6 +374,10 @@ export interface Translations {
   managerOnly: string;
   managerOnlyDescription: string;
   showManagerOnlyDocuments: string;
+  showOnlyLinkedDocuments: string;
+  partOfSequence: string;
+  linkedPrevious: string;
+  linkedNext: string;
   confirmDeleteDocument: string;
   documentDetails: string;
   documentDetailsDescription: string;
@@ -2684,6 +2688,10 @@ export const translations: Record<Language, Translations> = {
     managerOnly: 'Manager only',
     managerOnlyDescription: 'When enabled, only managers assigned to this building (and administrators) can view this document. Residents and tenants will not see it, even if it belongs to their residence or building.',
     showManagerOnlyDocuments: 'Show only manager-only documents',
+    showOnlyLinkedDocuments: 'Show only documents that are part of a sequence',
+    partOfSequence: 'Part of a sequence',
+    linkedPrevious: 'Previous',
+    linkedNext: 'Next',
     confirmDeleteDocument: 'Are you sure you want to delete this document? This action cannot be undone.',
     documentDetails: 'Document Details',
     documentDetailsDescription: 'View and manage document information',
@@ -4850,6 +4858,10 @@ export const translations: Record<Language, Translations> = {
     managerOnly: 'Gestionnaires seulement',
     managerOnlyDescription: 'Lorsque activé, seuls les gestionnaires assignés à cet immeuble (et les administrateurs) peuvent consulter ce document. Les résidents et locataires ne le verront pas, même s\'il appartient à leur résidence ou immeuble.',
     showManagerOnlyDocuments: 'Afficher uniquement les documents pour gestionnaires',
+    showOnlyLinkedDocuments: 'Afficher uniquement les documents faisant partie d\u2019une s\u00e9quence',
+    partOfSequence: 'Fait partie d\u2019une s\u00e9quence',
+    linkedPrevious: 'Pr\u00e9c\u00e9dent',
+    linkedNext: 'Suivant',
     confirmDeleteDocument: 'Êtes-vous sûr de vouloir supprimer ce document ? Cette action ne peut pas être annulée.',
     documentDetails: 'Détails du document',
     documentDetailsDescription: 'Afficher et gérer les informations du document',

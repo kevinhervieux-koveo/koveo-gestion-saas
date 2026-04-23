@@ -11,11 +11,17 @@ type DeleteCall = { kind: 'delete' };
 const deleteLog: DeleteCall[] = [];
 
 const buildSelectBuilder = () => {
+  // The builder is itself thenable so awaiting after `.where(...)` (without
+  // a final `.limit(...)`) resolves with the next queued result. This lets
+  // tests model both "fetch one" (.limit(1)) and "fetch all" call sites.
+  const resolveQueued = () => Promise.resolve(queue.shift() ?? []);
   const builder: any = {
     from: () => builder,
     where: () => builder,
     orderBy: () => builder,
-    limit: () => Promise.resolve(queue.shift() ?? []),
+    limit: () => resolveQueued(),
+    then: (onFulfilled: any, onRejected: any) =>
+      resolveQueued().then(onFulfilled, onRejected),
   };
   return builder;
 };
@@ -56,6 +62,7 @@ import {
   resolveDocumentNeighbors,
   upsertDocumentLink,
   deleteDocumentLink,
+  getLinkSummariesForDocuments,
 } from '../../server/services/document-link-service';
 import type { Document } from '../../shared/schema';
 
@@ -301,6 +308,109 @@ describe('document-link-service: scoreCandidate', () => {
     // The invariant requires four cleanups before the insert: A's outgoing
     // 'after', A's incoming 'before', B's outgoing 'before', B's incoming 'after'.
     expect(deleteLog).toHaveLength(4);
+  });
+
+  it('getLinkSummariesForDocuments returns prev/next previews per document', async () => {
+    queue.length = 0;
+    // Two outgoing links seeded onto the source doc:
+    //   - {from=doc-a, position='before', to=doc-prev}  → A's previous = prev
+    //   - {from=doc-a, position='after',  to=doc-next}  → A's next     = next
+    // Plus one incoming row for doc-b:
+    //   - {from=doc-other, position='before', to=doc-b}  → B's next   = doc-other
+    enqueue([
+      {
+        id: 'l1',
+        fromDocumentId: 'doc-a',
+        toDocumentId: 'doc-prev',
+        position: 'before',
+        ordinal: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'l2',
+        fromDocumentId: 'doc-a',
+        toDocumentId: 'doc-next',
+        position: 'after',
+        ordinal: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'l3',
+        fromDocumentId: 'doc-other',
+        toDocumentId: 'doc-b',
+        position: 'before',
+        ordinal: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ]);
+    enqueue([
+      { id: 'doc-a', name: 'Source A' },
+      { id: 'doc-b', name: 'Source B' },
+      { id: 'doc-prev', name: 'Previous Doc' },
+      { id: 'doc-next', name: 'Next Doc' },
+      { id: 'doc-other', name: 'Other Doc' },
+    ]);
+
+    const summaries = await getLinkSummariesForDocuments(['doc-a', 'doc-b']);
+    expect(summaries.get('doc-a')).toEqual({
+      previous: { id: 'doc-prev', name: 'Previous Doc' },
+      next: { id: 'doc-next', name: 'Next Doc' },
+    });
+    // doc-b is the *target* of an incoming 'before' link from doc-other,
+    // which means doc-other comes after doc-b in the chain.
+    expect(summaries.get('doc-b')).toEqual({
+      next: { id: 'doc-other', name: 'Other Doc' },
+    });
+  });
+
+  it('getLinkSummariesForDocuments returns an empty map when there are no links', async () => {
+    queue.length = 0;
+    enqueue([]); // no links at all → second db.select for names is skipped
+    const summaries = await getLinkSummariesForDocuments(['doc-x']);
+    expect(summaries.size).toBe(0);
+  });
+
+  it('getLinkSummariesForDocuments hides neighbor names the viewer cannot see', async () => {
+    // Regression: the linked-indicator hover must not leak names of
+    // documents that role-based visibility (manager-only / tenant-only)
+    // would normally hide from the viewer's listing endpoint.
+    queue.length = 0;
+    enqueue([
+      {
+        id: 'l1',
+        fromDocumentId: 'doc-visible',
+        toDocumentId: 'doc-manager-only',
+        position: 'after',
+        ordinal: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'l2',
+        fromDocumentId: 'doc-visible',
+        toDocumentId: 'doc-tenant-hidden',
+        position: 'before',
+        ordinal: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ]);
+    enqueue([
+      { id: 'doc-visible', name: 'Visible', isManagerOnly: false, isVisibleToTenants: true },
+      { id: 'doc-manager-only', name: 'Manager Only', isManagerOnly: true, isVisibleToTenants: true },
+      { id: 'doc-tenant-hidden', name: 'Hidden From Tenants', isManagerOnly: false, isVisibleToTenants: false },
+    ]);
+
+    const summaries = await getLinkSummariesForDocuments(['doc-visible'], {
+      role: 'tenant',
+    });
+    // Both neighbors must be filtered out — manager-only is hidden from
+    // tenants, and isVisibleToTenants=false also hides the previous one.
+    // The visible doc therefore has no neighbors to advertise.
+    expect(summaries.get('doc-visible')).toBeUndefined();
   });
 
   it('caps shared-tag bonus at 20 points (4 tags max)', () => {

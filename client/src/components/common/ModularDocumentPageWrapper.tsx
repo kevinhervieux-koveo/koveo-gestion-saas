@@ -401,6 +401,7 @@ export default function ModularDocumentPageWrapper({
   const [selectedYear, setSelectedYear] = useState('all');
   const [selectedMonth, setSelectedMonth] = useState('all');
   const [showOnlyManagerOnly, setShowOnlyManagerOnly] = useState(false);
+  const [showOnlyLinked, setShowOnlyLinked] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   
   // State for bulk delete functionality
@@ -463,12 +464,15 @@ export default function ModularDocumentPageWrapper({
 
   // Fetch documents for this entity
   const { data: documentResponse, isLoading, error: documentsError } = useQuery({
-    queryKey: ['/api/documents', type, entityId, { isManagerOnly: showOnlyManagerOnly }],
+    queryKey: ['/api/documents', type, entityId, { isManagerOnly: showOnlyManagerOnly, hasLinks: showOnlyLinked }],
     queryFn: async () => {
       const param = type === 'building' ? 'buildingId' : 'residenceId';
       const queryParams = new URLSearchParams({ [param]: entityId as string });
       if (showOnlyManagerOnly) {
         queryParams.set('isManagerOnly', 'true');
+      }
+      if (showOnlyLinked) {
+        queryParams.set('hasLinks', 'true');
       }
       const response = await apiRequest('GET', `/api/documents?${queryParams.toString()}`);
       return response.json();
@@ -679,6 +683,7 @@ export default function ModularDocumentPageWrapper({
     setSelectedYear('all');
     setSelectedMonth('all');
     setShowOnlyManagerOnly(false);
+    setShowOnlyLinked(false);
   };
 
   // Bulk delete handlers
@@ -1045,6 +1050,21 @@ export default function ModularDocumentPageWrapper({
                   </Label>
                 </div>
               )}
+
+              <div className="mt-4 flex items-center gap-2">
+                <Checkbox
+                  id="filter-has-links"
+                  checked={showOnlyLinked}
+                  onCheckedChange={(checked) => setShowOnlyLinked(checked === true)}
+                  data-testid="checkbox-filter-has-links"
+                />
+                <Label
+                  htmlFor="filter-has-links"
+                  className="text-sm font-medium cursor-pointer"
+                >
+                  {t('showOnlyLinkedDocuments')}
+                </Label>
+              </div>
             </CardContent>
           </Card>
 
@@ -1054,7 +1074,7 @@ export default function ModularDocumentPageWrapper({
               <span className="text-sm text-muted-foreground">
                 {filteredDocuments.length} {filteredDocuments.length !== 1 ? t('documentsFound') : t('documentFound')}
               </span>
-              {(searchTerm || selectedCategory !== 'all' || selectedYear !== 'all' || selectedMonth !== 'all' || showOnlyManagerOnly) && (
+              {(searchTerm || selectedCategory !== 'all' || selectedYear !== 'all' || selectedMonth !== 'all' || showOnlyManagerOnly || showOnlyLinked) && (
                 <Badge variant="secondary">{t('filtered')}</Badge>
               )}
             </div>
@@ -1077,13 +1097,13 @@ export default function ModularDocumentPageWrapper({
                   </div>
                   <h3 className="text-lg font-semibold text-gray-600 mb-2">{t('noDocumentsFound')}</h3>
                   <p className="text-gray-500 mb-4">
-                    {searchTerm || selectedCategory !== 'all' || selectedYear !== 'all' || selectedMonth !== 'all' || showOnlyManagerOnly
+                    {searchTerm || selectedCategory !== 'all' || selectedYear !== 'all' || selectedMonth !== 'all' || showOnlyManagerOnly || showOnlyLinked
                       ? t('noDocumentsMatchFilters')
                       : t('noDocumentsUploadedYet')
                     }
                   </p>
                   <div className="flex gap-2 justify-center">
-                    {(searchTerm || selectedCategory !== 'all' || selectedYear !== 'all' || selectedMonth !== 'all' || showOnlyManagerOnly) && (
+                    {(searchTerm || selectedCategory !== 'all' || selectedYear !== 'all' || selectedMonth !== 'all' || showOnlyManagerOnly || showOnlyLinked) && (
                       <Button variant="outline" onClick={clearFilters}>
                         {t('clearFilters')}
                       </Button>
@@ -1138,6 +1158,7 @@ export default function ModularDocumentPageWrapper({
                                     effectiveDate={document.effectiveDate}
                                     isVisibleToTenants={document.isVisibleToTenants}
                                     isManagerOnly={document.isManagerOnly}
+                                    links={(document as any).links ?? null}
                                     onViewClick={selectionMode ? undefined : handleDocumentView}
                                     compact={viewMode === 'list'}
                                     selectable={selectionMode}

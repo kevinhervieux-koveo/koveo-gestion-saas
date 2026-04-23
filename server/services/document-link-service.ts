@@ -208,6 +208,110 @@ export async function resolveDocumentNeighbors(
 }
 
 /**
+ * Link summary used by the documents list view: which documents have an
+ * explicit `before` and/or `after` neighbor, and a tiny preview (id + name)
+ * of each so the UI can show "previous: X / next: Y" on hover without an
+ * extra round-trip per row.
+ *
+ * Implementation: a single batched query over `documentLinks` where either
+ * end of the link is in the requested set, then a single batched lookup of
+ * the involved documents to fill in display names. The returned map only
+ * contains entries for documents that have at least one explicit link.
+ */
+export interface DocumentLinkSummary {
+  previous?: { id: string; name: string };
+  next?: { id: string; name: string };
+}
+
+export async function getLinkSummariesForDocuments(
+  documentIds: string[],
+  viewer?: ViewerContext,
+): Promise<Map<string, DocumentLinkSummary>> {
+  const result = new Map<string, DocumentLinkSummary>();
+  if (documentIds.length === 0) return result;
+
+  const links = await db
+    .select()
+    .from(documentLinks)
+    .where(
+      or(
+        inArray(documentLinks.fromDocumentId, documentIds),
+        inArray(documentLinks.toDocumentId, documentIds),
+      ),
+    );
+  if (links.length === 0) return result;
+
+  // Collect every document id we need to display a name for: both endpoints
+  // of every relevant link, even when one endpoint is outside the original
+  // set (so the hover preview can still show that name).
+  const neighborIds = new Set<string>();
+  for (const l of links) {
+    neighborIds.add(l.fromDocumentId);
+    neighborIds.add(l.toDocumentId);
+  }
+  // Fetch the visibility-relevant fields too so we can hide neighbor names
+  // the viewer is not allowed to see (manager-only / tenant-restricted).
+  // Without this filter, the linked-indicator hover would leak document
+  // names that the listing endpoint itself would never return.
+  const docs = neighborIds.size
+    ? await db
+        .select({
+          id: documents.id,
+          name: documents.name,
+          isManagerOnly: documents.isManagerOnly,
+          isVisibleToTenants: documents.isVisibleToTenants,
+        })
+        .from(documents)
+        .where(inArray(documents.id, Array.from(neighborIds)))
+    : [];
+  const visibleById = new Map<string, { id: string; name: string }>();
+  for (const d of docs) {
+    // Reuse the same visibility predicate the viewer/resolver uses so that
+    // list-view link previews can never expose a document the user could
+    // not open directly.
+    const visible = applyVisibility(viewer, {
+      ...(d as unknown as Document),
+    });
+    if (visible) visibleById.set(d.id, { id: d.id, name: d.name });
+  }
+
+  const ensure = (id: string): DocumentLinkSummary => {
+    let s = result.get(id);
+    if (!s) {
+      s = {};
+      result.set(id, s);
+    }
+    return s;
+  };
+
+  // For each link {from=A, to=B, position=P}:
+  //   - A's side P is B
+  //   - B's side opposite(P) is A
+  // Mirror the bidirectional resolver so the list view agrees with the
+  // viewer about what counts as a "previous" or "next" neighbor.
+  // Skip a side entirely when the neighbor isn't visible to the viewer —
+  // we'd rather drop the indicator than reveal a hidden document's name.
+  for (const l of links) {
+    const fromIsTracked = documentIds.includes(l.fromDocumentId);
+    const toIsTracked = documentIds.includes(l.toDocumentId);
+    const visibleFrom = visibleById.get(l.fromDocumentId);
+    const visibleTo = visibleById.get(l.toDocumentId);
+    if (fromIsTracked && visibleTo) {
+      const side = l.position === 'before' ? 'previous' : 'next';
+      const summary = ensure(l.fromDocumentId);
+      summary[side] = visibleTo;
+    }
+    if (toIsTracked && visibleFrom) {
+      const side = l.position === 'before' ? 'next' : 'previous';
+      const summary = ensure(l.toDocumentId);
+      summary[side] = visibleFrom;
+    }
+  }
+
+  return result;
+}
+
+/**
  * List explicit links for a document (both `from` and `to` directions).
  */
 export async function listLinksForDocument(documentId: string): Promise<DocumentLink[]> {
