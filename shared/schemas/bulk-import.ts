@@ -244,6 +244,23 @@ export type BulkImportItemStatus =
  */
 export type ConfidenceBand = 'low' | 'medium' | 'high';
 
+/**
+ * Why the analyzer could not feed the real document bytes to Claude and
+ * had to fall back to a filename-only prompt. Surfaced per-item so the
+ * UI can explain *why* a result came back with low confidence instead of
+ * showing a generic low-confidence badge.
+ *
+ * - `oversize`           — the file is larger than the analyzer's cap.
+ * - `unsupported_mime`   — the MIME type isn't one we know how to send.
+ * - `extraction_failed`  — mammoth/xlsx extraction threw an error.
+ * - `missing_file`       — the staged path could not be read.
+ */
+export type BulkImportFallbackReason =
+  | 'oversize'
+  | 'unsupported_mime'
+  | 'extraction_failed'
+  | 'missing_file';
+
 export function bandForConfidence(confidence: number | null | undefined): ConfidenceBand {
   if (confidence == null || Number.isNaN(confidence)) return 'low';
   if (confidence >= 0.8) return 'high';

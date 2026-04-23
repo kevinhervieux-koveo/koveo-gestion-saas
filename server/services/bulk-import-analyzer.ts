@@ -20,10 +20,18 @@
 import Anthropic from '@anthropic-ai/sdk';
 import * as fs from 'fs';
 import { logError, logInfo } from '../utils/logger';
+import type { BulkImportFallbackReason } from '../../shared/schemas/bulk-import';
 
 export interface AnalyzerConfidence {
   /** Numeric 0..1 confidence as reported by the model. */
   confidence: number;
+  /**
+   * Set when the analyzer could not attach the real document bytes to
+   * the prompt and had to fall back to a filename-only request. `null`
+   * means the document body was sent normally (or no source was supplied
+   * at all, which isn't a fallback).
+   */
+  fallbackReason?: BulkImportFallbackReason | null;
 }
 
 export interface ScreeningResult extends AnalyzerConfidence {
@@ -139,10 +147,18 @@ function getClient(): Anthropic | null {
  */
 async function loadFileForClaude(
   source: AnalyzerFileSource | undefined,
-): Promise<{ blocks: AnthropicContentBlock[]; textPrefix: string }> {
-  if (!source) return { blocks: [], textPrefix: '' };
+): Promise<{
+  blocks: AnthropicContentBlock[];
+  textPrefix: string;
+  fallbackReason: BulkImportFallbackReason | null;
+}> {
+  if (!source) return { blocks: [], textPrefix: '', fallbackReason: null };
   const mimeType = (source.mimeType ?? '').toLowerCase();
-  if (!mimeType) return { blocks: [], textPrefix: '' };
+  // No mimeType + no buffer/path → caller never asked us to attach
+  // anything, so this isn't a fallback either.
+  if (!mimeType && !source.buffer && !source.stagedPath) {
+    return { blocks: [], textPrefix: '', fallbackReason: null };
+  }
 
   let buffer: Buffer | null = source.buffer ?? null;
   if (!buffer && source.stagedPath) {
@@ -152,17 +168,19 @@ async function loadFileForClaude(
         logInfo('[bulkImportAnalyzer] skipping oversize staged file', {
           metadata: { stagedPath: source.stagedPath, size: stat.size },
         });
-        return { blocks: [], textPrefix: '' };
+        return { blocks: [], textPrefix: '', fallbackReason: 'oversize' };
       }
       buffer = fs.readFileSync(source.stagedPath);
     } catch (err) {
       logError('[bulkImportAnalyzer] failed to read staged file', err as Error);
-      return { blocks: [], textPrefix: '' };
+      return { blocks: [], textPrefix: '', fallbackReason: 'missing_file' };
     }
   }
-  if (!buffer) return { blocks: [], textPrefix: '' };
+  if (!buffer) {
+    return { blocks: [], textPrefix: '', fallbackReason: 'missing_file' };
+  }
   if (buffer.length > MAX_DOCUMENT_BYTES) {
-    return { blocks: [], textPrefix: '' };
+    return { blocks: [], textPrefix: '', fallbackReason: 'oversize' };
   }
 
   if (mimeType === PDF_MIME) {
@@ -178,6 +196,7 @@ async function loadFileForClaude(
         },
       ],
       textPrefix: '',
+      fallbackReason: null,
     };
   }
   if (IMAGE_MIMES.has(mimeType)) {
@@ -193,21 +212,30 @@ async function loadFileForClaude(
         },
       ],
       textPrefix: '',
+      fallbackReason: null,
     };
   }
   if (PLAIN_TEXT_MIMES.has(mimeType)) {
     const text = buffer.toString('utf8').slice(0, MAX_EXTRACTED_TEXT);
-    return { blocks: [], textPrefix: text ? `Document text:\n${text}\n\n` : '' };
+    return {
+      blocks: [],
+      textPrefix: text ? `Document text:\n${text}\n\n` : '',
+      fallbackReason: null,
+    };
   }
   if (DOCX_MIMES.has(mimeType)) {
     try {
       const mammoth = await import('mammoth');
       const result = await mammoth.extractRawText({ buffer });
       const text = (result.value || '').slice(0, MAX_EXTRACTED_TEXT);
-      return { blocks: [], textPrefix: text ? `Document text:\n${text}\n\n` : '' };
+      return {
+        blocks: [],
+        textPrefix: text ? `Document text:\n${text}\n\n` : '',
+        fallbackReason: null,
+      };
     } catch (err) {
       logError('[bulkImportAnalyzer] mammoth extraction failed', err as Error);
-      return { blocks: [], textPrefix: '' };
+      return { blocks: [], textPrefix: '', fallbackReason: 'extraction_failed' };
     }
   }
   if (XLSX_MIMES.has(mimeType)) {
@@ -223,14 +251,18 @@ async function loadFileForClaude(
         if (lines.join('\n').length > MAX_EXTRACTED_TEXT) break;
       }
       const text = lines.join('\n').slice(0, MAX_EXTRACTED_TEXT);
-      return { blocks: [], textPrefix: text ? `Spreadsheet contents:\n${text}\n\n` : '' };
+      return {
+        blocks: [],
+        textPrefix: text ? `Spreadsheet contents:\n${text}\n\n` : '',
+        fallbackReason: null,
+      };
     } catch (err) {
       logError('[bulkImportAnalyzer] xlsx extraction failed', err as Error);
-      return { blocks: [], textPrefix: '' };
+      return { blocks: [], textPrefix: '', fallbackReason: 'extraction_failed' };
     }
   }
 
-  return { blocks: [], textPrefix: '' };
+  return { blocks: [], textPrefix: '', fallbackReason: 'unsupported_mime' };
 }
 
 /**
@@ -242,14 +274,16 @@ async function loadFileForClaude(
 async function callClaudeJson<T>(
   prompt: string,
   source?: AnalyzerFileSource,
-): Promise<T | null> {
+): Promise<{ data: T | null; fallbackReason: BulkImportFallbackReason | null }> {
   const c = getClient();
-  if (!c) return null;
+  if (!c) return { data: null, fallbackReason: null };
+  let fallbackReason: BulkImportFallbackReason | null = null;
   try {
-    const { blocks, textPrefix } = await loadFileForClaude(source);
+    const loaded = await loadFileForClaude(source);
+    fallbackReason = loaded.fallbackReason;
     const userContent: AnthropicContentBlock[] = [
-      ...blocks,
-      { type: 'text', text: `${textPrefix}${prompt}` },
+      ...loaded.blocks,
+      { type: 'text', text: `${loaded.textPrefix}${prompt}` },
     ];
     const res = await c.messages.create({
       model: MODEL,
@@ -269,11 +303,11 @@ async function callClaudeJson<T>(
       .join('\n')
       .trim();
     const match = text.match(/\{[\s\S]*\}/);
-    if (!match) return null;
-    return JSON.parse(match[0]) as T;
+    if (!match) return { data: null, fallbackReason };
+    return { data: JSON.parse(match[0]) as T, fallbackReason };
   } catch (err) {
     logError('[bulkImportAnalyzer] anthropic call failed', err as Error);
-    return null;
+    return { data: null, fallbackReason };
   }
 }
 
@@ -283,7 +317,10 @@ function clampConfidence(value: unknown): number {
   return Math.max(0, Math.min(1, n));
 }
 
-function fallbackScreening(originalName: string): ScreeningResult {
+function fallbackScreening(
+  originalName: string,
+  fallbackReason: BulkImportFallbackReason | null = null,
+): ScreeningResult {
   return {
     isComplete: true,
     isMultiDocument: false,
@@ -292,6 +329,7 @@ function fallbackScreening(originalName: string): ScreeningResult {
     suggestedFilename: originalName,
     description: 'Auto-stub description (Anthropic unavailable).',
     confidence: 0.2,
+    fallbackReason,
   };
 }
 
@@ -310,12 +348,12 @@ Size: ${input.fileSize ?? 'unknown'} bytes
 Return JSON with keys: isComplete (bool), isMultiDocument (bool), pageOrderHint (number[] or null),
 rotationDegrees (0|90|180|270), suggestedFilename (string), description (short string),
 confidence (0..1).`;
-    const raw = await callClaudeJson<Partial<ScreeningResult>>(prompt, {
+    const { data: raw, fallbackReason } = await callClaudeJson<Partial<ScreeningResult>>(prompt, {
       stagedPath: input.stagedPath,
       buffer: input.buffer,
       mimeType: input.mimeType,
     });
-    if (!raw) return fallbackScreening(input.originalName);
+    if (!raw) return fallbackScreening(input.originalName, fallbackReason);
     return {
       isComplete: !!raw.isComplete,
       isMultiDocument: !!raw.isMultiDocument,
@@ -328,6 +366,7 @@ confidence (0..1).`;
         : input.originalName,
       description: typeof raw.description === 'string' ? raw.description : '',
       confidence: clampConfidence(raw.confidence),
+      fallbackReason,
     };
   },
 
@@ -342,13 +381,13 @@ confidence (0..1).`;
 Other staged docs in this session: ${JSON.stringify(input.siblingNames)}.
 Decide whether to keep, merge, or split. Return JSON: { decision: 'keep'|'merge'|'split',
 reason: string, mergeWithItemId?: string, splitAtPage?: number, confidence: number }.`;
-    const raw = await callClaudeJson<Partial<MergeOrSplitResult>>(prompt, {
+    const { data: raw, fallbackReason } = await callClaudeJson<Partial<MergeOrSplitResult>>(prompt, {
       stagedPath: input.stagedPath,
       buffer: input.buffer,
       mimeType: input.mimeType,
     });
     if (!raw) {
-      return { decision: 'keep', reason: 'fallback', confidence: 0.2 };
+      return { decision: 'keep', reason: 'fallback', confidence: 0.2, fallbackReason };
     }
     return {
       decision:
@@ -359,6 +398,7 @@ reason: string, mergeWithItemId?: string, splitAtPage?: number, confidence: numb
       splitAtPage:
         typeof raw.splitAtPage === 'number' ? raw.splitAtPage : undefined,
       confidence: clampConfidence(raw.confidence),
+      fallbackReason,
     };
   },
 
@@ -374,7 +414,7 @@ Filename: ${input.originalName}
 Description: ${input.description ?? ''}
 Return JSON: { branch: 'building_documents'|'residence_documents'|'demand'|'bill'|'maintenance'|'other',
 residenceHint?: string, reason: string, confidence: number }.`;
-    const raw = await callClaudeJson<Partial<BranchResult>>(prompt, {
+    const { data: raw, fallbackReason } = await callClaudeJson<Partial<BranchResult>>(prompt, {
       stagedPath: input.stagedPath,
       buffer: input.buffer,
       mimeType: input.mimeType,
@@ -388,7 +428,7 @@ residenceHint?: string, reason: string, confidence: number }.`;
       'other',
     ];
     if (!raw) {
-      return { branch: 'building_documents', reason: 'fallback', confidence: 0.2 };
+      return { branch: 'building_documents', reason: 'fallback', confidence: 0.2, fallbackReason };
     }
     return {
       branch: allowed.includes(raw.branch as BranchResult['branch'])
@@ -398,6 +438,7 @@ residenceHint?: string, reason: string, confidence: number }.`;
         typeof raw.residenceHint === 'string' ? raw.residenceHint : undefined,
       reason: typeof raw.reason === 'string' ? raw.reason : '',
       confidence: clampConfidence(raw.confidence),
+      fallbackReason,
     };
   },
 
@@ -414,7 +455,7 @@ Filename: ${input.originalName}
 Description: ${input.description ?? ''}
 Return JSON: { name: string, description: string, tags: string[],
 effectiveDate?: 'YYYY-MM-DD', metadata: object, confidence: number }.`;
-    const raw = await callClaudeJson<Partial<IdentificationResult>>(prompt, {
+    const { data: raw, fallbackReason } = await callClaudeJson<Partial<IdentificationResult>>(prompt, {
       stagedPath: input.stagedPath,
       buffer: input.buffer,
       mimeType: input.mimeType,
@@ -426,6 +467,7 @@ effectiveDate?: 'YYYY-MM-DD', metadata: object, confidence: number }.`;
         tags: [],
         metadata: {},
         confidence: 0.2,
+        fallbackReason,
       };
     }
     return {
@@ -439,6 +481,7 @@ effectiveDate?: 'YYYY-MM-DD', metadata: object, confidence: number }.`;
           ? (raw.metadata as Record<string, unknown>)
           : {},
       confidence: clampConfidence(raw.confidence),
+      fallbackReason,
     };
   },
 
@@ -453,13 +496,13 @@ effectiveDate?: 'YYYY-MM-DD', metadata: object, confidence: number }.`;
       input.candidates,
     )}. Return JSON: { beforeItemId?: string, afterItemId?: string,
 relatedItemIds: string[], reason: string, confidence: number }.`;
-    const raw = await callClaudeJson<Partial<LinkSuggestion>>(prompt, {
+    const { data: raw, fallbackReason } = await callClaudeJson<Partial<LinkSuggestion>>(prompt, {
       stagedPath: input.stagedPath,
       buffer: input.buffer,
       mimeType: input.mimeType,
     });
     if (!raw) {
-      return { relatedItemIds: [], reason: 'fallback', confidence: 0.2 };
+      return { relatedItemIds: [], reason: 'fallback', confidence: 0.2, fallbackReason };
     }
     return {
       beforeItemId: typeof raw.beforeItemId === 'string' ? raw.beforeItemId : undefined,
@@ -469,6 +512,7 @@ relatedItemIds: string[], reason: string, confidence: number }.`;
         : [],
       reason: typeof raw.reason === 'string' ? raw.reason : '',
       confidence: clampConfidence(raw.confidence),
+      fallbackReason,
     };
   },
 

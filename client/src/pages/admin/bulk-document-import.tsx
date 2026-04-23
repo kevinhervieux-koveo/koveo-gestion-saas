@@ -33,6 +33,7 @@ import {
 } from 'lucide-react';
 import {
   bandForConfidence,
+  type BulkImportFallbackReason,
   type BulkImportItem,
   type BulkImportSession,
   type BulkImportStep,
@@ -136,6 +137,39 @@ function ConfidenceBadge({ value }: { value: number | undefined | null }) {
       data-testid={`badge-confidence-${band}`}
     >
       <Sparkles className="h-3 w-3" /> {pct}
+    </span>
+  );
+}
+
+const FALLBACK_REASON_LABEL_EN: Record<BulkImportFallbackReason, string> = {
+  oversize: 'File too large to analyze',
+  unsupported_mime: 'File type not supported by AI',
+  extraction_failed: 'Could not extract document text',
+  missing_file: 'Staged file unreadable',
+};
+const FALLBACK_REASON_LABEL_FR: Record<BulkImportFallbackReason, string> = {
+  oversize: 'Fichier trop volumineux pour l’analyse',
+  unsupported_mime: 'Type de fichier non pris en charge',
+  extraction_failed: 'Extraction du texte impossible',
+  missing_file: 'Fichier en attente illisible',
+};
+
+function FallbackReasonBadge({
+  reason,
+  isFr,
+}: {
+  reason: BulkImportFallbackReason | null | undefined;
+  isFr: boolean;
+}) {
+  if (!reason) return null;
+  const labels = isFr ? FALLBACK_REASON_LABEL_FR : FALLBACK_REASON_LABEL_EN;
+  return (
+    <span
+      className="inline-flex items-center rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-900 ring-1 ring-amber-200"
+      data-testid={`badge-fallback-${reason}`}
+      title={labels[reason]}
+    >
+      {labels[reason]}
     </span>
   );
 }
@@ -514,7 +548,10 @@ export default function BulkDocumentImportPage() {
                         const action = stepActionFor(currentStep);
                         const field = stepConfidenceField[currentStep];
                         const decision = field
-                          ? (item[field] as { confidence?: number } | null)
+                          ? (item[field] as {
+                              confidence?: number;
+                              fallbackReason?: BulkImportFallbackReason | null;
+                            } | null)
                           : null;
                         return (
                           <div
@@ -533,6 +570,10 @@ export default function BulkDocumentImportPage() {
                               </div>
                             </div>
                             <div className="flex items-center gap-3">
+                              <FallbackReasonBadge
+                                reason={decision?.fallbackReason}
+                                isFr={isFr}
+                              />
                               <ConfidenceBadge value={decision?.confidence} />
                               {action && (
                                 <Button
