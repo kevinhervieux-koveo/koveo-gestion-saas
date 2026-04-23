@@ -41,7 +41,8 @@ const BUILD_SHA: string = (() => {
 import { db } from "../db";
 import * as schema from "@shared/schema";
 import { registerBudgetTools } from "./budget-tools";
-import { eq, and, inArray, desc, asc, isNull, or, sql, count, type SQL } from "drizzle-orm";
+import * as commonSpaceRules from "../api/common-spaces-rules";
+import { eq, and, inArray, desc, asc, isNull, or, sql, count, gte, lte, type SQL } from "drizzle-orm";
 import { DocumentService, type DocumentType } from "../services/document-service";
 import { ObjectStorageService } from "../objectStorage";
 import { aiService } from "../services/consolidated-ai-service";
@@ -1789,6 +1790,606 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       }
       const spaces = await db.select().from(schema.commonSpaces).where(eq(schema.commonSpaces.buildingId, buildingId));
       return { content: [{ type: "text" as const, text: JSON.stringify(spaces, null, 2) }] };
+    }
+  );
+
+  // ============================================================
+  // Common-spaces extended MCP coverage (Task #194).
+  //
+  // The helpers in `../api/common-spaces-rules` are the SAME ones the
+  // resident/manager REST routes use, so opening-hours, user time-limit,
+  // blocked-user, and conflict-detection behaviour are guaranteed to
+  // match between the web UI and these MCP tools.
+  // ============================================================
+
+  // Compute the set of buildings the MCP-acting user can actually
+  // touch, mirroring REST's `getAccessibleBuildingIds`
+  // (`server/api/common-spaces.ts`) and clamped by the MCP-scoped org
+  // allowlist so an OAuth manager can never reach buildings outside
+  // MCP scope. Resolution order matches REST exactly:
+  //   1. admin role                                  -> every active
+  //                                                     building (clamped)
+  //   2. Koveo / canAccessAllOrganizations link      -> every active
+  //                                                     building (clamped)
+  //   3. manager role with active userOrganizations  -> buildings of
+  //                                                     those orgs (clamped)
+  //   4. fallback (incl. tenants and managers w/o
+  //      org link)                                   -> active
+  //                                                     userResidences
+  //                                                     building links
+  //                                                     (clamped)
+  // Returns `null` when the MCP user record cannot be resolved.
+  async function getMcpAccessibleBuildingIds(role: McpRole): Promise<string[] | null> {
+    const user = await getMcpUser(role);
+    if (!user) return null;
+    const mcpOrgIds = await getMcpOrgIds();
+    if (mcpOrgIds.length === 0) return [];
+
+    const allActiveBuildings = async (): Promise<string[]> => {
+      const rows = await db
+        .select({ buildingId: schema.buildings.id })
+        .from(schema.buildings)
+        .where(
+          and(
+            eq(schema.buildings.isActive, true),
+            inArray(schema.buildings.organizationId, mcpOrgIds)
+          )
+        );
+      return rows.map((r) => r.buildingId);
+    };
+
+    if (role === "admin") return allActiveBuildings();
+
+    const userOrgs = await db
+      .select({
+        organizationId: schema.userOrganizations.organizationId,
+        organizationName: schema.organizations.name,
+        canAccessAllOrganizations: schema.userOrganizations.canAccessAllOrganizations,
+      })
+      .from(schema.userOrganizations)
+      .innerJoin(
+        schema.organizations,
+        eq(schema.organizations.id, schema.userOrganizations.organizationId)
+      )
+      .where(
+        and(
+          eq(schema.userOrganizations.userId, user.id),
+          eq(schema.userOrganizations.isActive, true)
+        )
+      );
+
+    const hasGlobalAccess = userOrgs.some(
+      (o) => o.organizationName === "Koveo" || o.canAccessAllOrganizations
+    );
+    if (hasGlobalAccess) return allActiveBuildings();
+
+    if (role === "manager" && userOrgs.length > 0) {
+      const userOrgIds = userOrgs
+        .map((o) => o.organizationId)
+        .filter((id) => mcpOrgIds.includes(id));
+      if (userOrgIds.length > 0) {
+        const rows = await db
+          .select({ buildingId: schema.buildings.id })
+          .from(schema.buildings)
+          .where(
+            and(
+              inArray(schema.buildings.organizationId, userOrgIds),
+              eq(schema.buildings.isActive, true)
+            )
+          );
+        return rows.map((r) => r.buildingId);
+      }
+      // fall through to residence-linked path if no MCP-scoped org link
+    }
+
+    // Fallback: residence-linked buildings (covers tenants and the
+    // manager-without-org-link case, matching REST behaviour).
+    const rows = await db
+      .selectDistinct({ buildingId: schema.residences.buildingId })
+      .from(schema.userResidences)
+      .innerJoin(schema.residences, eq(schema.residences.id, schema.userResidences.residenceId))
+      .innerJoin(schema.buildings, eq(schema.buildings.id, schema.residences.buildingId))
+      .where(
+        and(
+          eq(schema.userResidences.userId, user.id),
+          eq(schema.userResidences.isActive, true),
+          eq(schema.buildings.isActive, true),
+          inArray(schema.buildings.organizationId, mcpOrgIds)
+        )
+      );
+    return rows.map((r) => r.buildingId);
+  }
+
+  // Resolve the space, then verify the MCP-acting user actually has
+  // access to its building (admin/manager/tenant rules, see
+  // `getMcpAccessibleBuildingIds`).
+  async function authorizeSpaceAccess(role: McpRole, spaceId: string): Promise<
+    | { ok: true; space: { id: string; name: string; buildingId: string; isReservable: boolean; openingHours: unknown }; userId: string }
+    | { ok: false; response: { content: Array<{ type: "text"; text: string }> } }
+  > {
+    const space = await commonSpaceRules.loadCommonSpaceForBookingChecks(spaceId);
+    if (!space) {
+      return { ok: false, response: { content: [{ type: "text" as const, text: "Common space not found" }] } };
+    }
+    const user = await getMcpUser(role);
+    if (!user) {
+      return { ok: false, response: { content: [{ type: "text" as const, text: `MCP ${role} user not found` }] } };
+    }
+    const accessible = await getMcpAccessibleBuildingIds(role);
+    if (!accessible || !accessible.includes(space.buildingId)) {
+      return { ok: false, response: { content: [{ type: "text" as const, text: "Access denied: you do not have access to the building containing this common space" }] } };
+    }
+    return { ok: true, space, userId: user.id };
+  }
+
+  server.tool(
+    "get_common_space",
+    "Get details of a specific common space",
+    { role: roleParam, spaceId: z.string().describe("Common space ID") },
+    async ({ role, spaceId }) => {
+      const auth = await authorizeSpaceAccess(role, spaceId);
+      if (!auth.ok) return auth.response;
+      const [space] = await db.select().from(schema.commonSpaces).where(eq(schema.commonSpaces.id, spaceId));
+      return { content: [{ type: "text" as const, text: JSON.stringify(space, null, 2) }] };
+    }
+  );
+
+  server.tool(
+    "list_common_space_bookings",
+    "List bookings for a common space, optionally filtered by date range. Tenants only see their own bookings; admins/managers see all.",
+    {
+      role: roleParam,
+      spaceId: z.string().describe("Common space ID"),
+      startDate: z.string().optional().describe("ISO datetime; only bookings starting at or after this are returned"),
+      endDate: z.string().optional().describe("ISO datetime; only bookings ending at or before this are returned"),
+    },
+    async ({ role, spaceId, startDate, endDate }) => {
+      const auth = await authorizeSpaceAccess(role, spaceId);
+      if (!auth.ok) return auth.response;
+      const conditions = [eq(schema.bookings.commonSpaceId, spaceId)];
+      if (startDate) {
+        const d = new Date(startDate);
+        if (isNaN(d.getTime())) {
+          return { content: [{ type: "text" as const, text: "Invalid startDate: expected ISO datetime string" }] };
+        }
+        conditions.push(gte(schema.bookings.startTime, d));
+      }
+      if (endDate) {
+        const d = new Date(endDate);
+        if (isNaN(d.getTime())) {
+          return { content: [{ type: "text" as const, text: "Invalid endDate: expected ISO datetime string" }] };
+        }
+        conditions.push(lte(schema.bookings.endTime, d));
+      }
+      if (role === "tenant" && auth.userId) {
+        conditions.push(eq(schema.bookings.userId, auth.userId));
+      }
+      const rows = await db
+        .select({
+          id: schema.bookings.id,
+          commonSpaceId: schema.bookings.commonSpaceId,
+          userId: schema.bookings.userId,
+          userName: sql<string>`CONCAT(${schema.users.firstName}, ' ', ${schema.users.lastName})`,
+          userEmail: schema.users.email,
+          startTime: schema.bookings.startTime,
+          endTime: schema.bookings.endTime,
+          status: schema.bookings.status,
+          createdAt: schema.bookings.createdAt,
+        })
+        .from(schema.bookings)
+        .innerJoin(schema.users, eq(schema.bookings.userId, schema.users.id))
+        .where(and(...conditions))
+        .orderBy(asc(schema.bookings.startTime));
+      return { content: [{ type: "text" as const, text: JSON.stringify(rows, null, 2) }] };
+    }
+  );
+
+  server.tool(
+    "list_my_common_space_bookings",
+    "List the current MCP user's bookings (any status) across MCP-scoped common spaces. For tenants, only buildings where the user still has an active userResidences link are included.",
+    { role: roleParam },
+    async ({ role }) => {
+      const user = await getMcpUser(role);
+      if (!user) return { content: [{ type: "text" as const, text: "MCP user not found" }] };
+      // Restrict to buildings the MCP-acting user can actually see
+      // (mirrors REST getAccessibleBuildingIds, role-aware, and already
+      // clamped to MCP-scoped orgs).
+      const accessibleBuildingIds = await getMcpAccessibleBuildingIds(role);
+      if (!accessibleBuildingIds || accessibleBuildingIds.length === 0) {
+        return { content: [{ type: "text" as const, text: JSON.stringify([], null, 2) }] };
+      }
+      const conditions = [
+        eq(schema.bookings.userId, user.id),
+        inArray(schema.commonSpaces.buildingId, accessibleBuildingIds),
+      ];
+      const rows = await db
+        .select({
+          id: schema.bookings.id,
+          commonSpaceId: schema.bookings.commonSpaceId,
+          commonSpaceName: schema.commonSpaces.name,
+          buildingId: schema.commonSpaces.buildingId,
+          buildingName: schema.buildings.name,
+          startTime: schema.bookings.startTime,
+          endTime: schema.bookings.endTime,
+          status: schema.bookings.status,
+          createdAt: schema.bookings.createdAt,
+        })
+        .from(schema.bookings)
+        .innerJoin(schema.commonSpaces, eq(schema.bookings.commonSpaceId, schema.commonSpaces.id))
+        .innerJoin(schema.buildings, eq(schema.commonSpaces.buildingId, schema.buildings.id))
+        .where(and(...conditions))
+        .orderBy(desc(schema.bookings.startTime));
+      return { content: [{ type: "text" as const, text: JSON.stringify(rows, null, 2) }] };
+    }
+  );
+
+  server.tool(
+    "get_common_space_availability",
+    "Compute available booking windows for a common space on a given date (America/Montreal). Returns the configured opening hours for the day, all confirmed bookings for that day, and the resulting free slots.",
+    {
+      role: roleParam,
+      spaceId: z.string().describe("Common space ID"),
+      date: z.string().describe("Target date (YYYY-MM-DD) interpreted in America/Montreal"),
+    },
+    async ({ role, spaceId, date }) => {
+      const auth = await authorizeSpaceAccess(role, spaceId);
+      if (!auth.ok) return auth.response;
+      const space = auth.space;
+      const dayMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date);
+      if (!dayMatch) {
+        return { content: [{ type: "text" as const, text: "Invalid date: expected YYYY-MM-DD" }] };
+      }
+      // Compute the UTC instants for [00:00, 24:00) America/Montreal on
+      // the requested calendar date — DST-safe (offset is -05:00 in
+      // winter, -04:00 in summer; this works year-round).
+      const tz = "America/Montreal";
+      const tzOffsetMinutes = (instant: Date): number => {
+        const parts = new Intl.DateTimeFormat("en-US", {
+          timeZone: tz,
+          year: "numeric", month: "2-digit", day: "2-digit",
+          hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false,
+        }).formatToParts(instant);
+        const get = (t: string) => parts.find((p) => p.type === t)!.value;
+        const asUtc = Date.UTC(
+          parseInt(get("year")), parseInt(get("month")) - 1, parseInt(get("day")),
+          parseInt(get("hour")) % 24, parseInt(get("minute")), parseInt(get("second"))
+        );
+        return (asUtc - instant.getTime()) / 60000;
+      };
+      const candidate = new Date(`${date}T00:00:00Z`);
+      const offMin = tzOffsetMinutes(candidate);
+      const dayStart = new Date(candidate.getTime() - offMin * 60000);
+      const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000);
+      const weekday = dayStart
+        .toLocaleDateString("en-US", { weekday: "long", timeZone: tz })
+        .toLowerCase();
+      const hours = commonSpaceRules.normalizeOpeningHours(space.openingHours);
+      const dayHours = hours.find((h) => h.day && h.day.toLowerCase() === weekday);
+
+      // Include any booking that overlaps the day window (start < dayEnd
+      // AND end > dayStart), not just bookings fully contained in it,
+      // so cross-midnight reservations are not silently ignored.
+      const dayBookings = await db
+        .select({
+          id: schema.bookings.id,
+          startTime: schema.bookings.startTime,
+          endTime: schema.bookings.endTime,
+        })
+        .from(schema.bookings)
+        .where(
+          and(
+            eq(schema.bookings.commonSpaceId, spaceId),
+            eq(schema.bookings.status, "confirmed"),
+            lte(schema.bookings.startTime, dayEnd),
+            gte(schema.bookings.endTime, dayStart)
+          )
+        )
+        .orderBy(asc(schema.bookings.startTime));
+
+      let freeSlots: Array<{ start: string; end: string }> = [];
+      if (dayHours) {
+        const toMinutes = (t: string) => {
+          const [h, m] = t.split(":").map((n) => parseInt(n, 10));
+          return h * 60 + m;
+        };
+        const fmt = (mins: number) =>
+          `${Math.floor(mins / 60).toString().padStart(2, "0")}:${(mins % 60).toString().padStart(2, "0")}`;
+        const open = toMinutes(dayHours.open);
+        const close = toMinutes(dayHours.close);
+        // Express each booking as minutes-from-dayStart in absolute time,
+        // then clip to the opening window. This handles cross-midnight
+        // bookings correctly (e.g. 22:00 -> 02:00 next day shows up as a
+        // busy block ending at `close` on the earlier day and starting at
+        // `open` on the later day).
+        const busy = dayBookings
+          .map((b) => {
+            const s = new Date(b.startTime as unknown as string);
+            const e = new Date(b.endTime as unknown as string);
+            const sm = Math.round((s.getTime() - dayStart.getTime()) / 60000);
+            const em = Math.round((e.getTime() - dayStart.getTime()) / 60000);
+            return { sm: Math.max(sm, open), em: Math.min(em, close) };
+          })
+          .filter((b) => b.em > b.sm)
+          .sort((a, b) => a.sm - b.sm);
+        let cursor = open;
+        for (const b of busy) {
+          if (b.sm > cursor) freeSlots.push({ start: fmt(cursor), end: fmt(b.sm) });
+          cursor = Math.max(cursor, b.em);
+        }
+        if (cursor < close) freeSlots.push({ start: fmt(cursor), end: fmt(close) });
+      }
+
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: JSON.stringify(
+              {
+                spaceId,
+                date,
+                isReservable: space.isReservable,
+                openingHours: dayHours ?? null,
+                bookings: dayBookings,
+                freeSlots,
+              },
+              null,
+              2
+            ),
+          },
+        ],
+      };
+    }
+  );
+
+  server.tool(
+    "create_common_space_booking",
+    "Create a booking for a common space. Enforces opening hours, blocked-user rules, monthly/yearly time limits, and overlap detection — identical to the REST API used by the resident UI.",
+    {
+      role: roleParam,
+      spaceId: z.string().describe("Common space ID"),
+      startTime: z.string().describe("ISO datetime for booking start"),
+      endTime: z.string().describe("ISO datetime for booking end"),
+    },
+    async ({ role, spaceId, startTime, endTime }) => {
+      const auth = await authorizeSpaceAccess(role, spaceId);
+      if (!auth.ok) return auth.response;
+      const space = auth.space;
+      if (!space.isReservable) {
+        return { content: [{ type: "text" as const, text: "This common space is not reservable" }] };
+      }
+      const start = new Date(startTime);
+      const end = new Date(endTime);
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        return { content: [{ type: "text" as const, text: "Invalid startTime or endTime: expected ISO datetime strings" }] };
+      }
+      if (start >= end) {
+        return { content: [{ type: "text" as const, text: "Invalid time range: startTime must be before endTime" }] };
+      }
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+      if (start < fiveMinutesAgo) {
+        return { content: [{ type: "text" as const, text: "Cannot book in the past" }] };
+      }
+      const user = await getMcpUser(role);
+      if (!user) return { content: [{ type: "text" as const, text: "MCP user not found" }] };
+
+      if (await commonSpaceRules.isUserBlocked(user.id, spaceId)) {
+        return { content: [{ type: "text" as const, text: "Access denied: you are blocked from booking this space" }] };
+      }
+      const hours = commonSpaceRules.normalizeOpeningHours(space.openingHours);
+      if (hours.length > 0 && !commonSpaceRules.isWithinOpeningHours(start, end, hours)) {
+        return { content: [{ type: "text" as const, text: "Booking time is outside opening hours" }] };
+      }
+      if (await commonSpaceRules.hasOverlappingBookings(spaceId, start, end)) {
+        return { content: [{ type: "text" as const, text: "Time slot is already booked" }] };
+      }
+      const durationHours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+      const limitCheck = await commonSpaceRules.checkUserTimeLimit(user.id, spaceId, durationHours);
+      if (!limitCheck.withinLimit) {
+        return { content: [{ type: "text" as const, text: limitCheck.message ?? "User time limit exceeded" }] };
+      }
+
+      try {
+        const [booking] = await withRetryableDbCall(() => db
+          .insert(schema.bookings)
+          .values({
+            commonSpaceId: spaceId,
+            userId: user.id,
+            startTime: start,
+            endTime: end,
+            status: "confirmed",
+          })
+          .returning());
+        return { content: [{ type: "text" as const, text: JSON.stringify(booking, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:create_common_space_booking]", e);
+        return buildWriteErrorResponse(e, 'booking', 'create');
+      }
+    }
+  );
+
+  server.tool(
+    "cancel_common_space_booking",
+    "Cancel a confirmed common-space booking. Tenants may only cancel their own bookings AND must still have an active residence link to the space's building. Managers/admins may cancel any booking on a space inside their accessible buildings.",
+    { role: roleParam, bookingId: z.string().describe("Booking ID to cancel") },
+    async ({ role, bookingId }) => {
+      const [booking] = await db
+        .select({
+          id: schema.bookings.id,
+          userId: schema.bookings.userId,
+          status: schema.bookings.status,
+          commonSpaceId: schema.bookings.commonSpaceId,
+        })
+        .from(schema.bookings)
+        .where(eq(schema.bookings.id, bookingId))
+        .limit(1);
+      if (!booking) {
+        return { content: [{ type: "text" as const, text: "Booking not found" }] };
+      }
+      // Route through the same building-access check as every other
+      // common-space tool, so tenant active-residence and manager
+      // accessible-buildings rules are enforced uniformly.
+      const auth = await authorizeSpaceAccess(role, booking.commonSpaceId);
+      if (!auth.ok) return auth.response;
+      const isOwner = booking.userId === auth.userId;
+      const isStaff = role === "admin" || role === "manager";
+      if (!isOwner && !isStaff) {
+        return { content: [{ type: "text" as const, text: "Access denied: tenants may only cancel their own bookings" }] };
+      }
+      try {
+        const [updated] = await withRetryableDbCall(() => db
+          .update(schema.bookings)
+          .set({ status: "cancelled", updatedAt: new Date() })
+          .where(eq(schema.bookings.id, bookingId))
+          .returning());
+        return { content: [{ type: "text" as const, text: JSON.stringify(updated, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:cancel_common_space_booking]", e);
+        return buildWriteErrorResponse(e, 'booking', 'update');
+      }
+    }
+  );
+
+  server.tool(
+    "create_common_space",
+    "Create a new common space in a building (admin/manager only).",
+    {
+      role: roleParam,
+      buildingId: z.string().describe("Building ID"),
+      name: z.string().describe("Common space name"),
+      description: z.string().optional().describe("Optional description"),
+      isReservable: z.boolean().default(true).describe("Whether the space accepts bookings"),
+      capacity: z.number().int().positive().optional().describe("Maximum capacity"),
+      openingHours: z
+        .array(
+          z.object({
+            day: z.enum(["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]),
+            open: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, "HH:MM"),
+            close: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, "HH:MM"),
+          })
+        )
+        .optional()
+        .describe("Per-day opening hours; omit for an unrestricted space"),
+      bookingRules: z.string().optional().describe("Free-text booking rules shown to residents"),
+    },
+    async ({ role, buildingId, name, description, isReservable, capacity, openingHours, bookingRules }) => {
+      if (role === "tenant") {
+        return { content: [{ type: "text" as const, text: "Access denied: tenants cannot create common spaces" }] };
+      }
+      const accessibleBuildingIds = await getMcpAccessibleBuildingIds(role);
+      if (!accessibleBuildingIds || !accessibleBuildingIds.includes(buildingId)) {
+        return { content: [{ type: "text" as const, text: "Access denied: you do not have access to this building" }] };
+      }
+      const [duplicate] = await db
+        .select({ id: schema.commonSpaces.id })
+        .from(schema.commonSpaces)
+        .where(and(eq(schema.commonSpaces.name, name), eq(schema.commonSpaces.buildingId, buildingId)))
+        .limit(1);
+      if (duplicate) {
+        return { content: [{ type: "text" as const, text: "A common space with this name already exists in this building" }] };
+      }
+      try {
+        const [created] = await withRetryableDbCall(() => db
+          .insert(schema.commonSpaces)
+          .values({
+            buildingId,
+            name,
+            ...(description !== undefined && { description }),
+            isReservable,
+            ...(capacity !== undefined && { capacity }),
+            ...(openingHours !== undefined && { openingHours }),
+            ...(bookingRules !== undefined && { bookingRules }),
+          })
+          .returning());
+        return { content: [{ type: "text" as const, text: JSON.stringify(created, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:create_common_space]", e);
+        return buildWriteErrorResponse(e, 'common space', 'create');
+      }
+    }
+  );
+
+  server.tool(
+    "update_common_space",
+    "Update an existing common space (admin/manager only). Only provided fields are updated.",
+    {
+      role: roleParam,
+      spaceId: z.string().describe("Common space ID"),
+      name: z.string().optional(),
+      description: z.string().optional(),
+      isReservable: z.boolean().optional(),
+      capacity: z.number().int().positive().optional(),
+      openingHours: z
+        .array(
+          z.object({
+            day: z.enum(["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]),
+            open: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, "HH:MM"),
+            close: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/, "HH:MM"),
+          })
+        )
+        .optional(),
+      bookingRules: z.string().optional(),
+    },
+    async ({ role, spaceId, name, description, isReservable, capacity, openingHours, bookingRules }) => {
+      if (role === "tenant") {
+        return { content: [{ type: "text" as const, text: "Access denied: tenants cannot update common spaces" }] };
+      }
+      const auth = await authorizeSpaceAccess(role, spaceId);
+      if (!auth.ok) return auth.response;
+      const patch: Record<string, unknown> = { updatedAt: new Date() };
+      if (name !== undefined) patch.name = name;
+      if (description !== undefined) patch.description = description;
+      if (isReservable !== undefined) patch.isReservable = isReservable;
+      if (capacity !== undefined) patch.capacity = capacity;
+      if (openingHours !== undefined) patch.openingHours = openingHours;
+      if (bookingRules !== undefined) patch.bookingRules = bookingRules;
+      try {
+        const [updated] = await withRetryableDbCall(() => db
+          .update(schema.commonSpaces)
+          .set(patch)
+          .where(eq(schema.commonSpaces.id, spaceId))
+          .returning());
+        return { content: [{ type: "text" as const, text: JSON.stringify(updated, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:update_common_space]", e);
+        return buildWriteErrorResponse(e, 'common space', 'update');
+      }
+    }
+  );
+
+  server.tool(
+    "delete_common_space",
+    "Delete a common space (admin/manager only). Refuses if any confirmed future bookings exist; cascades through Postgres FKs to past bookings, restrictions, and time-limit rows.",
+    { role: roleParam, spaceId: z.string().describe("Common space ID") },
+    async ({ role, spaceId }) => {
+      if (role === "tenant") {
+        return { content: [{ type: "text" as const, text: "Access denied: tenants cannot delete common spaces" }] };
+      }
+      const auth = await authorizeSpaceAccess(role, spaceId);
+      if (!auth.ok) return auth.response;
+      const [futureBooking] = await db
+        .select({ id: schema.bookings.id })
+        .from(schema.bookings)
+        .where(
+          and(
+            eq(schema.bookings.commonSpaceId, spaceId),
+            eq(schema.bookings.status, "confirmed"),
+            gte(schema.bookings.startTime, new Date())
+          )
+        )
+        .limit(1);
+      if (futureBooking) {
+        return { content: [{ type: "text" as const, text: "Cannot delete common space: confirmed future bookings exist. Cancel them first." }] };
+      }
+      try {
+        const [deleted] = await withRetryableDbCall(() => db
+          .delete(schema.commonSpaces)
+          .where(eq(schema.commonSpaces.id, spaceId))
+          .returning({ id: schema.commonSpaces.id, name: schema.commonSpaces.name }));
+        return { content: [{ type: "text" as const, text: JSON.stringify({ deleted, message: "Common space deleted" }, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:delete_common_space]", e);
+        return buildWriteErrorResponse(e, 'common space', 'delete');
+      }
     }
   );
 

@@ -4,6 +4,13 @@ import { db } from '../db';
 import { requireAuth, requireRole } from '../auth';
 import { z } from 'zod';
 import * as schema from '@shared/schema';
+import {
+  getUserBookingHours,
+  checkUserTimeLimit,
+  hasOverlappingBookings,
+  isUserBlocked,
+  isWithinOpeningHours,
+} from './common-spaces-rules';
 
 const {
   commonSpaces,
@@ -149,204 +156,11 @@ async function getAccessibleBuildingIds(user: any): Promise<string[]> {
 }
 
 /**
- * Helper function to calculate user's total booking hours for a time period.
- * @param userId
- * @param commonSpaceId
- * @param limitType
+ * Booking-rule helpers (`getUserBookingHours`, `checkUserTimeLimit`,
+ * `hasOverlappingBookings`, `isUserBlocked`, `isWithinOpeningHours`)
+ * live in `./common-spaces-rules` so the MCP server can reuse the same
+ * validation. Imported above.
  */
-async function getUserBookingHours(
-  userId: string,
-  commonSpaceId: string | null,
-  limitType: 'monthly' | 'yearly'
-): Promise<number> {
-  const now = new Date();
-  let startDate: Date;
-
-  if (limitType === 'monthly') {
-    startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-  } else {
-    startDate = new Date(now.getFullYear(), 0, 1);
-  }
-
-  const conditions = [
-    eq(bookings.userId, userId),
-    eq(bookings.status, 'confirmed'),
-    gte(bookings.startTime, startDate),
-  ];
-
-  if (commonSpaceId) {
-    conditions.push(eq(bookings.commonSpaceId, commonSpaceId));
-  }
-
-  const userBookings = await db
-    .select({
-      totalHours: sql<number>`EXTRACT(EPOCH FROM SUM(${bookings.endTime} - ${bookings.startTime})) / 3600`,
-    })
-    .from(bookings)
-    .where(and(...conditions));
-
-  return userBookings[0]?.totalHours || 0;
-}
-
-/**
- * Helper function to check if user has exceeded their booking time limit.
- * @param userId
- * @param commonSpaceId
- * @param newBookingHours
- */
-async function checkUserTimeLimit(
-  userId: string,
-  commonSpaceId: string,
-  newBookingHours: number
-): Promise<{ withinLimit: boolean; message?: string; remainingHours?: number }> {
-  // Get user's time limits for this space (specific or global)
-  const timeLimits = await db
-    .select()
-    .from(userTimeLimits)
-    .where(
-      and(
-        eq(userTimeLimits.userId, userId),
-        or(
-          eq(userTimeLimits.commonSpaceId, commonSpaceId),
-          sql`${userTimeLimits.commonSpaceId} IS NULL`
-        )
-      )
-    )
-    .orderBy(userTimeLimits.commonSpaceId); // Specific limits come first (nulls last)
-
-  if (timeLimits.length === 0) {
-    return { withinLimit: true }; // No limits set
-  }
-
-  // Use the most specific limit (space-specific over global)
-  const activeLimit = timeLimits[0];
-  const currentHours = await getUserBookingHours(
-    userId,
-    activeLimit.commonSpaceId,
-    activeLimit.limitType as 'monthly' | 'yearly'
-  );
-
-  const totalAfterBooking = currentHours + newBookingHours;
-  const remainingHours = Math.max(0, activeLimit.limitHours - currentHours);
-
-  if (totalAfterBooking > activeLimit.limitHours) {
-    const limitPeriod = activeLimit.limitType === 'monthly' ? 'ce mois' : 'cette année';
-    return {
-      withinLimit: false,
-      message: `Limite de temps dépassée. Vous avez utilisé ${Math.round(currentHours)}h sur ${activeLimit.limitHours}h autorisées pour ${limitPeriod}. Il vous reste ${Math.round(remainingHours)}h disponibles.`,
-      remainingHours,
-    };
-  }
-
-  return { withinLimit: true, remainingHours };
-}
-
-/**
- * Helper function to check if a time slot overlaps with existing bookings.
- * @param commonSpaceId
- * @param startTime
- * @param endTime
- * @param excludeBookingId
- */
-async function hasOverlappingBookings(
-  commonSpaceId: string,
-  startTime: Date,
-  endTime: Date,
-  excludeBookingId?: string
-): Promise<boolean> {
-  const conditions = [
-    eq(bookings.commonSpaceId, commonSpaceId),
-    eq(bookings.status, 'confirmed'),
-    or(
-      // New booking starts during existing booking
-      and(gte(bookings.startTime, startTime), lte(bookings.startTime, endTime)),
-      // New booking ends during existing booking
-      and(gte(bookings.endTime, startTime), lte(bookings.endTime, endTime)),
-      // New booking completely contains existing booking
-      and(lte(bookings.startTime, startTime), gte(bookings.endTime, endTime)),
-      // Existing booking completely contains new booking
-      and(gte(bookings.startTime, startTime), lte(bookings.endTime, endTime))
-    ),
-  ];
-
-  if (excludeBookingId) {
-    conditions.push(sql`${bookings.id} != ${excludeBookingId}`);
-  }
-
-  const overlapping = await db
-    .select({ id: bookings.id })
-    .from(bookings)
-    .where(and(...conditions))
-    .limit(1);
-
-  return overlapping.length > 0;
-}
-
-/**
- * Helper function to check if user is blocked from booking a space.
- * @param userId
- * @param commonSpaceId
- */
-async function isUserBlocked(userId: string, commonSpaceId: string): Promise<boolean> {
-  const restriction = await db
-    .select({ isBlocked: userBookingRestrictions.isBlocked })
-    .from(userBookingRestrictions)
-    .where(
-      and(
-        eq(userBookingRestrictions.userId, userId),
-        eq(userBookingRestrictions.commonSpaceId, commonSpaceId)
-      )
-    )
-    .limit(1);
-
-  return restriction.length > 0 && restriction[0].isBlocked;
-}
-
-/**
- * Helper function to check if booking time is within opening hours.
- * @param startTime
- * @param endTime
- * @param openingHours
- */
-function isWithinOpeningHours(startTime: Date, endTime: Date, openingHours: any): boolean {
-  let hours: any = openingHours;
-  if (typeof hours === 'string') {
-    try {
-      hours = JSON.parse(hours);
-    } catch {
-      return true;
-    }
-  }
-  if (!Array.isArray(hours) || hours.length === 0) {
-    return true; // No restrictions if no opening hours defined
-  }
-
-  // Convert to Quebec local timezone (America/Montreal)
-  const timezone = 'America/Montreal';
-  const startDay = startTime.toLocaleDateString('en-US', { weekday: 'long', timeZone: timezone }).toLowerCase();
-  const endDay = endTime.toLocaleDateString('en-US', { weekday: 'long', timeZone: timezone }).toLowerCase();
-
-  // For simplicity, require booking to be within same day
-  if (startDay !== endDay) {
-    return false;
-  }
-
-  const dayHours = openingHours.find((oh) => oh.day.toLowerCase() === startDay);
-  if (!dayHours) {
-    return false; // No hours defined for this day
-  }
-
-  // Extract hours and minutes in local timezone
-  const startHour = parseInt(startTime.toLocaleString('en-US', { hour: '2-digit', hour12: false, timeZone: timezone }));
-  const startMinute = parseInt(startTime.toLocaleString('en-US', { minute: '2-digit', timeZone: timezone }));
-  const endHour = parseInt(endTime.toLocaleString('en-US', { hour: '2-digit', hour12: false, timeZone: timezone }));
-  const endMinute = parseInt(endTime.toLocaleString('en-US', { minute: '2-digit', timeZone: timezone }));
-
-  const startTimeStr = `${startHour.toString().padStart(2, '0')}:${startMinute.toString().padStart(2, '0')}`;
-  const endTimeStr = `${endHour.toString().padStart(2, '0')}:${endMinute.toString().padStart(2, '0')}`;
-
-  return startTimeStr >= dayHours.open && endTimeStr <= dayHours.close;
-}
 
 /**
  * Registers all common spaces API endpoints.
