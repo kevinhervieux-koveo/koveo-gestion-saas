@@ -12,24 +12,14 @@ import crypto from 'crypto';
 import { generateStorageDirectory, validateUploadContext, type UploadContext } from '@shared/config/upload-config';
 import { normalizeFilename } from '../utils/filenameNormalization';
 
-// Thin wrapper over the shared canonical normalizer so every upload site
-// produces the exact same safe filename rules (NFD diacritic stripping,
-// length truncation, UUID fallback for empty input, etc.).
-function sanitizeFilename(filename: string): string {
-  if (!filename || typeof filename !== 'string') {
-    throw new Error('Invalid filename provided');
-  }
-  return normalizeFilename(filename);
-}
-
-// Generate cryptographically secure random filename
+// Generate a unique on-disk filename. Uses the shared canonical
+// `normalizeFilename` so the trailing segment of the stored path always
+// matches the `fileName` we persist in the database (Task #406). The
+// `${uuid}_` prefix preserves uniqueness without collisions.
 function generateSecureFilename(originalName: string): string {
-  const sanitizedName = sanitizeFilename(originalName);
-  const ext = path.extname(sanitizedName);
+  const normalized = normalizeFilename(originalName);
   const secureId = crypto.randomUUID();
-  const timestamp = Date.now();
-  const randomSuffix = crypto.randomBytes(4).toString('hex');
-  return `${secureId}_${timestamp}_${randomSuffix}${ext}`;
+  return `${secureId}_${normalized}`;
 }
 
 export interface StorageResult {

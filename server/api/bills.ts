@@ -272,6 +272,9 @@ const billStorage = multer.diskStorage({
 
 const upload = multer({
   storage: billStorage,
+  // Force utf8 multipart param parsing so French/diacritic filenames survive
+  // (multer 2.x defaults to latin1, which mangles "Procès-verbal été 2024.pdf").
+  defParamCharset: 'utf8',
   fileFilter: (req, file, cb) => {
     const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'application/pdf'];
     if (allowedTypes.includes(file.mimetype)) {

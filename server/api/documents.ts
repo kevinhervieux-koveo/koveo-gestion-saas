@@ -377,6 +377,11 @@ const documentStorage = multer.diskStorage({
 
 const upload = multer({
   storage: documentStorage,
+  // Multer 2.x defaults to latin1 for multipart parameters, which mangles
+  // French/diacritic filenames coming from real browsers (e.g. "Procès-verbal
+  // été 2024.pdf"). Force utf8 so `file.originalname` matches what the user
+  // actually uploaded — the canonical normalizer relies on this.
+  defParamCharset: 'utf8',
   limits: {
     fileSize: SECURITY_CONFIG.MAX_FILE_SIZE,
     files: 1, // Only allow one file at a time
