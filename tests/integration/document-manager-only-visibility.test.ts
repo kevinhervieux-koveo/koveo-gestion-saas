@@ -109,7 +109,18 @@ describeIfDb('manager-only document visibility — Task #321', () => {
     docMgrOnlyResidence: crypto.randomUUID(),
     docMgrOnlyBuilding: crypto.randomUUID(),
     docNormalResidence: crypto.randomUUID(),
+    // Task #349: a manager-only doc whose stored filename + display
+    // name carry a non-ASCII character so the disposition header can
+    // be exercised through the Latin-1 HTTP serialisation path.
+    docUnicodeResidence: crypto.randomUUID(),
   };
+  // Filename and display name shared by both /file (uses fileName) and
+  // /optimized-file (uses name) for the unicode regression test.
+  const UNICODE_FILENAME = 'héllo.pdf';
+  const UNICODE_DOC_NAME = `${TEST_TAG} héllo unicode`;
+  // Display names per docId — shared by the optimized-file assertions
+  // so the inline-disposition filename can be checked exactly.
+  const DOC_DISPLAY_NAMES: Record<string, string> = {};
   const emails = {
     admin: `${ids.admin}@${TEST_TAG}.test`,
     manager: `${ids.manager}@${TEST_TAG}.test`,
@@ -413,6 +424,7 @@ describeIfDb('manager-only document visibility — Task #321', () => {
     const filePathMgrRes = await stageFile(ids.docMgrOnlyResidence);
     const filePathMgrBld = await stageFile(ids.docMgrOnlyBuilding);
     const filePathNormal = await stageFile(ids.docNormalResidence);
+    const filePathUnicode = await stageFile(ids.docUnicodeResidence);
 
     // Documents:
     //  1. Manager-only document on the residence — both isManagerOnly
@@ -422,6 +434,11 @@ describeIfDb('manager-only document visibility — Task #321', () => {
     //     as visible to tenants for the same reason).
     //  3. A normal residence-scoped document that resident & tenant
     //     SHOULD be able to see, used as a positive sanity control.
+    DOC_DISPLAY_NAMES[ids.docMgrOnlyResidence] = `${TEST_TAG} mgr-only residence`;
+    DOC_DISPLAY_NAMES[ids.docMgrOnlyBuilding] = `${TEST_TAG} mgr-only building`;
+    DOC_DISPLAY_NAMES[ids.docNormalResidence] = `${TEST_TAG} normal residence`;
+    DOC_DISPLAY_NAMES[ids.docUnicodeResidence] = UNICODE_DOC_NAME;
+
     await db.insert(schema.documents).values([
       {
         id: ids.docMgrOnlyResidence,
@@ -462,10 +479,27 @@ describeIfDb('manager-only document visibility — Task #321', () => {
         isVisibleToTenants: true,
         isManagerOnly: false,
       },
+      {
+        // Manager-only doc whose stored fileName + display name carry
+        // a Latin-1 character ("é"). Drives the Task #349 unicode
+        // disposition assertions on both /file and /optimized-file.
+        id: ids.docUnicodeResidence,
+        name: UNICODE_DOC_NAME,
+        documentType: 'legal',
+        filePath: filePathUnicode,
+        fileName: UNICODE_FILENAME,
+        mimeType: 'application/pdf',
+        fileSize: PDF_BODY.length,
+        residenceId: ids.residence,
+        uploadedById: ids.manager,
+        isVisibleToTenants: true,
+        isManagerOnly: true,
+      },
     ]);
     created.documents.add(ids.docMgrOnlyResidence);
     created.documents.add(ids.docMgrOnlyBuilding);
     created.documents.add(ids.docNormalResidence);
+    created.documents.add(ids.docUnicodeResidence);
   }, 60000);
 
   afterAll(async () => {
@@ -768,6 +802,12 @@ describeIfDb('manager-only document visibility — Task #321', () => {
           });
         expect(res.status).toBe(200);
         expect(res.headers['content-type']).toMatch(/application\/pdf/);
+        // The /file route always serves with attachment disposition (it
+        // never previews inline) so the browser triggers a real download
+        // with the original filename stored on the document row.
+        expect(res.headers['content-disposition']).toBe(
+          `attachment; filename="${docId}.pdf"`
+        );
         expect(Buffer.isBuffer(res.body)).toBe(true);
         expect(res.body.length).toBe(PDF_BODY.length);
         expect(res.body.equals(PDF_BODY)).toBe(true);
@@ -787,8 +827,33 @@ describeIfDb('manager-only document visibility — Task #321', () => {
           });
         expect(res.status).toBe(200);
         expect(res.headers['content-type']).toMatch(/application\/pdf/);
+        expect(res.headers['content-disposition']).toBe(
+          `attachment; filename="${docId}.pdf"`
+        );
         expect(res.body.equals(PDF_BODY)).toBe(true);
       }
+    }, 30000);
+
+    it('admin download preserves a non-ASCII filename in Content-Disposition', async () => {
+      const agent = await loginAs(emails.admin);
+      const res = await agent
+        .get(`/api/documents/${ids.docUnicodeResidence}/file`)
+        .buffer(true)
+        .parse((response, cb) => {
+          const chunks: Buffer[] = [];
+          response.on('data', (c: Buffer) => chunks.push(Buffer.from(c)));
+          response.on('end', () => cb(null, Buffer.concat(chunks)));
+        });
+      expect(res.status).toBe(200);
+      expect(res.headers['content-type']).toMatch(/application\/pdf/);
+      // Node's HTTP stack serialises header values as Latin-1, so the
+      // single-byte "é" (U+00E9 → 0xE9) round-trips losslessly through
+      // supertest's parser. This guards against future regressions that
+      // would either mojibake the byte or strip the accented character.
+      expect(res.headers['content-disposition']).toBe(
+        `attachment; filename="${UNICODE_FILENAME}"`
+      );
+      expect(res.body.equals(PDF_BODY)).toBe(true);
     }, 30000);
   });
 
@@ -1100,6 +1165,14 @@ describeIfDb('manager-only document visibility — Task #321', () => {
           });
         expect(res.status).toBe(200);
         expect(res.headers['content-type']).toMatch(/application\/pdf/);
+        // The optimized-file route is the preview path: it sets
+        // disposition=inline so the browser renders the PDF in place
+        // instead of forcing a download. Filename source is the
+        // human-readable `documents.name` column.
+        const expectedName = DOC_DISPLAY_NAMES[docId];
+        expect(res.headers['content-disposition']).toBe(
+          `inline; filename="${expectedName}"`
+        );
         expect(res.body.equals(PDF_BODY)).toBe(true);
       }
     }, 30000);
@@ -1117,8 +1190,30 @@ describeIfDb('manager-only document visibility — Task #321', () => {
           });
         expect(res.status).toBe(200);
         expect(res.headers['content-type']).toMatch(/application\/pdf/);
+        const expectedName = DOC_DISPLAY_NAMES[docId];
+        expect(res.headers['content-disposition']).toBe(
+          `inline; filename="${expectedName}"`
+        );
         expect(res.body.equals(PDF_BODY)).toBe(true);
       }
+    }, 30000);
+
+    it('admin preview preserves a non-ASCII filename in Content-Disposition', async () => {
+      const agent = await loginAs(emails.admin);
+      const res = await agent
+        .get(`/api/documents/${ids.docUnicodeResidence}/optimized-file`)
+        .buffer(true)
+        .parse((response, cb) => {
+          const chunks: Buffer[] = [];
+          response.on('data', (c: Buffer) => chunks.push(Buffer.from(c)));
+          response.on('end', () => cb(null, Buffer.concat(chunks)));
+        });
+      expect(res.status).toBe(200);
+      expect(res.headers['content-type']).toMatch(/application\/pdf/);
+      expect(res.headers['content-disposition']).toBe(
+        `inline; filename="${UNICODE_DOC_NAME}"`
+      );
+      expect(res.body.equals(PDF_BODY)).toBe(true);
     }, 30000);
   });
 });
