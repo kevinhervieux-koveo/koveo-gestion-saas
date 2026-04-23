@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Check, ChevronsUpDown, Tag as TagIcon, X } from 'lucide-react';
+import { Check, ChevronsUpDown, Sparkles, Tag as TagIcon, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -31,9 +31,17 @@ interface TagPickerProps {
   scope?: 'building' | 'residence';
   placeholder?: string;
   disabled?: boolean;
+  suggestedTagIds?: string[];
 }
 
-export function TagPicker({ value, onChange, scope, placeholder = 'Select tags', disabled }: TagPickerProps) {
+export function TagPicker({
+  value,
+  onChange,
+  scope,
+  placeholder = 'Select tags',
+  disabled,
+  suggestedTagIds = [],
+}: TagPickerProps) {
   const [open, setOpen] = useState(false);
   const { data, isLoading } = useQuery<{ tags: DocumentTag[] }>({
     queryKey: ['/api/document-tags'],
@@ -42,9 +50,18 @@ export function TagPicker({ value, onChange, scope, placeholder = 'Select tags',
   const allTags = data?.tags ?? [];
 
   const filteredTags = useMemo(() => {
-    if (!scope) return allTags;
-    return allTags.filter((t) => t.scope === scope || t.scope === 'any');
-  }, [allTags, scope]);
+    const base = scope ? allTags.filter((t) => t.scope === scope || t.scope === 'any') : allTags;
+    if (suggestedTagIds.length === 0) return base;
+    const suggestedSet = new Set(suggestedTagIds);
+    return [...base].sort((a, b) => {
+      const sa = suggestedSet.has(a.id) ? 0 : 1;
+      const sb = suggestedSet.has(b.id) ? 0 : 1;
+      if (sa !== sb) return sa - sb;
+      return 0;
+    });
+  }, [allTags, scope, suggestedTagIds]);
+
+  const suggestedSet = useMemo(() => new Set(suggestedTagIds), [suggestedTagIds]);
 
   const selectedTags = allTags.filter((t) => value.includes(t.id));
 
@@ -53,8 +70,27 @@ export function TagPicker({ value, onChange, scope, placeholder = 'Select tags',
     else onChange([...value, id]);
   };
 
+  const unappliedSuggestions = suggestedTagIds.filter((id) => !value.includes(id));
+  const applySuggestions = () => {
+    if (unappliedSuggestions.length === 0) return;
+    const merged = Array.from(new Set([...value, ...unappliedSuggestions]));
+    onChange(merged);
+  };
+
   return (
     <div className="space-y-2">
+      {suggestedTagIds.length > 0 && unappliedSuggestions.length > 0 && (
+        <button
+          type="button"
+          onClick={applySuggestions}
+          disabled={disabled}
+          data-testid="button-apply-suggested-tags"
+          className="flex items-center gap-1 text-xs text-amber-700 dark:text-amber-400 hover:underline disabled:opacity-50"
+        >
+          <Sparkles className="h-3 w-3" />
+          Appliquer les {unappliedSuggestions.length} suggestion{unappliedSuggestions.length > 1 ? 's' : ''}
+        </button>
+      )}
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
@@ -83,18 +119,29 @@ export function TagPicker({ value, onChange, scope, placeholder = 'Select tags',
               <CommandGroup>
                 {filteredTags.map((tag) => {
                   const checked = value.includes(tag.id);
+                  const suggested = suggestedSet.has(tag.id);
                   return (
                     <CommandItem
                       key={tag.id}
                       onSelect={() => toggle(tag.id)}
                       data-testid={`option-tag-${tag.id}`}
+                      className={cn(suggested && 'bg-amber-50 dark:bg-amber-950/20')}
                     >
                       <Check className={cn('mr-2 h-4 w-4', checked ? 'opacity-100' : 'opacity-0')} />
-                      <div className="flex flex-col">
-                        <span className="text-sm">{tag.name}</span>
+                      <div className="flex flex-col flex-1">
+                        <span className="text-sm flex items-center gap-1">
+                          {tag.name}
+                          {suggested && (
+                            <Sparkles
+                              className="h-3 w-3 text-amber-500"
+                              data-testid={`icon-suggested-${tag.id}`}
+                            />
+                          )}
+                        </span>
                         <span className="text-xs text-muted-foreground">
                           {tag.scope} · {tag.importance}
                           {tag.isSystem ? ' · Koveo' : ''}
+                          {suggested ? ' · Suggéré' : ''}
                         </span>
                       </div>
                     </CommandItem>

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -44,7 +45,8 @@ import { useLanguage } from '@/hooks/use-language';
 import { useCreateUpdateMutation } from '@/lib/common-hooks';
 import { SharedUploader } from './SharedUploader';
 import type { UploadContext } from '@shared/config/upload-config';
-import { TagPicker } from '@/components/document-tags/TagPicker';
+import { TagPicker, type DocumentTag } from '@/components/document-tags/TagPicker';
+import { suggestTagIds } from '@/lib/tag-suggestions';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 
 type DocumentCreateData = {
@@ -79,6 +81,13 @@ export function DocumentCreateForm({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [textContent, setTextContent] = useState<string | null>(null);
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+  const userEditedTagsRef = useRef(false);
+
+  // Fetch tags for suggestion scoring (cached and shared with TagPicker).
+  const { data: tagsData } = useQuery<{ tags: DocumentTag[] }>({
+    queryKey: ['/api/document-tags'],
+  });
+  const allTags = tagsData?.tags ?? [];
 
   // Document categories with translations
   const DOCUMENT_CATEGORIES = [
@@ -134,6 +143,31 @@ export function DocumentCreateForm({
       isManagerOnly: false,
     }
   });
+
+  // Compute suggested tags based on file name, extracted text, category, and scope.
+  const watchedCategory = form.watch('category');
+  const suggestedTags = useMemo(() => {
+    if (allTags.length === 0) return [];
+    return suggestTagIds({
+      tags: allTags,
+      fileName: selectedFile?.name ?? null,
+      extractedText: textContent,
+      category: watchedCategory,
+      scope: entityType,
+      max: 3,
+    });
+  }, [allTags, selectedFile, textContent, watchedCategory, entityType]);
+
+  // Auto-pre-select suggestions while the user has not manually edited tags.
+  useEffect(() => {
+    if (userEditedTagsRef.current) return;
+    setSelectedTagIds(suggestedTags);
+  }, [suggestedTags]);
+
+  const handleTagsChange = (next: string[]) => {
+    userEditedTagsRef.current = true;
+    setSelectedTagIds(next);
+  };
 
   // Create document mutation
   const createDocumentMutation = useCreateUpdateMutation<any, DocumentCreateData>({
@@ -210,6 +244,7 @@ export function DocumentCreateForm({
       setSelectedFile(null);
       setTextContent(null);
       setSelectedTagIds([]);
+      userEditedTagsRef.current = false;
       onClose();
       onSuccess?.(data.id);
     },
@@ -246,6 +281,8 @@ export function DocumentCreateForm({
       form.reset();
       setSelectedFile(null);
       setTextContent(null);
+      setSelectedTagIds([]);
+      userEditedTagsRef.current = false;
       onClose();
     }
   };
@@ -360,8 +397,9 @@ export function DocumentCreateForm({
                 <Label>Étiquettes</Label>
                 <TagPicker
                   value={selectedTagIds}
-                  onChange={setSelectedTagIds}
+                  onChange={handleTagsChange}
                   scope={entityType === 'building' ? 'building' : 'residence'}
+                  suggestedTagIds={suggestedTags}
                 />
               </div>
 
