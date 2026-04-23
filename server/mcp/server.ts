@@ -1853,6 +1853,326 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     }
   );
 
+  // ===========================================
+  // INVENTORY (BUILDING ELEMENTS) — Task #301
+  // ===========================================
+  // Read/write coverage for building inventory elements (UNIFORMAT II).
+  // RBAC: tenants are blocked on every tool below; only admin/manager may
+  // operate. Org scope is validated via building.organizationId ∈ MCP orgs
+  // for tools that take a buildingId, and via the element's building for
+  // tools that take an elementId.
+
+  server.tool(
+    "list_inventory_elements",
+    "List building inventory elements (UNIFORMAT II classified) for a building. Admin/manager only. Optional filters: condition (excellent|good|fair|poor|critical), category (UNIFORMAT major group such as 'Substructure', 'Shell', 'Interiors', 'Services', etc.).",
+    {
+      role: roleParam,
+      buildingId: z.string().describe("Building ID"),
+      condition: z.enum(["excellent", "good", "fair", "poor", "critical"]).optional().describe("Filter by current condition"),
+      category: z.string().optional().describe("Filter by UNIFORMAT category (e.g. 'Shell')"),
+    },
+    async ({ role, buildingId, condition, category }) => {
+      if (role === "tenant") {
+        return { content: [{ type: "text" as const, text: "Access denied: tenants cannot view inventory elements" }] };
+      }
+      const orgIds = await getMcpOrgIds();
+      const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, buildingId));
+      if (!building || !orgIds.includes(building.organizationId)) {
+        return { content: [{ type: "text" as const, text: "Building not found or access denied" }] };
+      }
+      const conditions: SQL[] = [eq(schema.buildingElements.buildingId, buildingId)];
+      if (condition) conditions.push(eq(schema.buildingElements.currentCondition, condition));
+      if (category) {
+        const matchingCodes = await db
+          .select({ code: schema.uniformatCodes.code })
+          .from(schema.uniformatCodes)
+          .where(sql`lower(${schema.uniformatCodes.category}) = lower(${category})`);
+        if (matchingCodes.length === 0) {
+          return { content: [{ type: "text" as const, text: "[]" }] };
+        }
+        conditions.push(inArray(schema.buildingElements.uniformatCode, matchingCodes.map((c) => c.code)));
+      }
+      const elements = await db
+        .select()
+        .from(schema.buildingElements)
+        .where(and(...conditions))
+        .orderBy(desc(schema.buildingElements.createdAt));
+      return { content: [{ type: "text" as const, text: JSON.stringify(elements, null, 2) }] };
+    }
+  );
+
+  server.tool(
+    "get_inventory_element",
+    "Get full details of a single building inventory element. Admin/manager only.",
+    { role: roleParam, elementId: z.string().describe("Building element ID") },
+    async ({ role, elementId }) => {
+      if (role === "tenant") {
+        return { content: [{ type: "text" as const, text: "Access denied: tenants cannot view inventory elements" }] };
+      }
+      const orgIds = await getMcpOrgIds();
+      const [element] = await db.select().from(schema.buildingElements).where(eq(schema.buildingElements.id, elementId));
+      if (!element) return { content: [{ type: "text" as const, text: "Inventory element not found" }] };
+      const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, element.buildingId));
+      if (!building || !orgIds.includes(building.organizationId)) {
+        return { content: [{ type: "text" as const, text: "Access denied" }] };
+      }
+      return { content: [{ type: "text" as const, text: JSON.stringify(element, null, 2) }] };
+    }
+  );
+
+  server.tool(
+    "create_inventory_element",
+    "Create a new building inventory element classified by a UNIFORMAT II code. Admin/manager only. Use search_uniformat_codes first to pick the right classification code.",
+    {
+      role: roleParam,
+      buildingId: z.string().describe("Building ID"),
+      uniformatCode: z.string().describe("UNIFORMAT II classification code (e.g. 'B2010')"),
+      name: z.string().describe("Element name"),
+      currentCondition: z.enum(["excellent", "good", "fair", "poor", "critical"]).describe("Current condition"),
+      description: z.string().optional().describe("Element description"),
+      residenceId: z.string().optional().describe("Optional residence ID; omit for building-wide elements"),
+      originalConstructionDate: z.string().optional().describe("Original construction date (YYYY-MM-DD)"),
+      originalLifespan: z.number().int().positive().optional().describe("Original lifespan in years"),
+      currentLifespan: z.number().int().positive().optional().describe("Current adjusted lifespan in years"),
+      lastInspectionDate: z.string().optional().describe("Last inspection date (YYYY-MM-DD)"),
+      nextEvaluationDate: z.string().optional().describe("Next evaluation date (YYYY-MM-DD)"),
+      unit: z.string().optional().describe("Measurement unit (e.g. 'm2', 'm', 'unit')"),
+      unitValue: z.number().positive().optional().describe("Quantity in the specified unit"),
+      reconstructionCost: z.number().positive().optional().describe("Estimated reconstruction cost"),
+      costEstimationDate: z.string().optional().describe("Cost estimation date (YYYY-MM-DD)"),
+      access: z.enum(["not_restrained", "restrained"]).optional().describe("Access type"),
+      charge: z.enum(["common", "personnal"]).optional().describe("Charge type"),
+      notes: z.string().optional().describe("Free-form notes"),
+    },
+    async (args) => {
+      const { role, buildingId, residenceId, ...rest } = args;
+      if (role === "tenant") {
+        return { content: [{ type: "text" as const, text: "Access denied: tenants cannot create inventory elements" }] };
+      }
+      const orgIds = await getMcpOrgIds();
+      const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, buildingId));
+      if (!building || !orgIds.includes(building.organizationId)) {
+        return { content: [{ type: "text" as const, text: "Building not found or access denied" }] };
+      }
+      // Match the maintenance API rule: building elements may only be created
+      // against a level-3 UNIFORMAT code. Levels 1-2 are grouping-only.
+      const { UNIFORMAT_CATALOG } = await import("@shared/data/uniformat-catalog");
+      const uniformatEntry = UNIFORMAT_CATALOG.find((e) => e.code === rest.uniformatCode);
+      if (!uniformatEntry) {
+        return { content: [{ type: "text" as const, text: `Unknown UNIFORMAT code: ${rest.uniformatCode}. Use search_uniformat_codes to find a valid level-3 code.` }] };
+      }
+      if (uniformatEntry.level !== 3) {
+        return { content: [{ type: "text" as const, text: `UNIFORMAT code ${rest.uniformatCode} is level ${uniformatEntry.level}; building elements may only be created against level-3 codes (the leaf elements). Use search_uniformat_codes with level=3 to pick a valid code.` }] };
+      }
+      // Validate that the optional residenceId actually belongs to the
+      // supplied building. The DB column is unconstrained (no FK), so MCP
+      // must enforce this itself to prevent cross-building links.
+      if (residenceId) {
+        const [residence] = await db
+          .select({ id: schema.residences.id, buildingId: schema.residences.buildingId })
+          .from(schema.residences)
+          .where(eq(schema.residences.id, residenceId));
+        if (!residence) {
+          return { content: [{ type: "text" as const, text: `Residence not found: ${residenceId}` }] };
+        }
+        if (residence.buildingId !== buildingId) {
+          return { content: [{ type: "text" as const, text: `Residence ${residenceId} does not belong to building ${buildingId}` }] };
+        }
+      }
+      try {
+        const values: typeof schema.buildingElements.$inferInsert = {
+          buildingId,
+          uniformatCode: rest.uniformatCode,
+          name: rest.name,
+          currentCondition: rest.currentCondition,
+          ...(residenceId !== undefined && { residenceId }),
+          ...(rest.description !== undefined && { description: rest.description }),
+          ...(rest.originalConstructionDate !== undefined && { originalConstructionDate: rest.originalConstructionDate }),
+          ...(rest.originalLifespan !== undefined && { originalLifespan: rest.originalLifespan }),
+          ...(rest.currentLifespan !== undefined && { currentLifespan: rest.currentLifespan }),
+          ...(rest.lastInspectionDate !== undefined && { lastInspectionDate: rest.lastInspectionDate }),
+          ...(rest.nextEvaluationDate !== undefined && { nextEvaluationDate: rest.nextEvaluationDate }),
+          ...(rest.unit !== undefined && { unit: rest.unit }),
+          ...(rest.unitValue !== undefined && { unitValue: String(rest.unitValue) }),
+          ...(rest.reconstructionCost !== undefined && { reconstructionCost: String(rest.reconstructionCost) }),
+          ...(rest.costEstimationDate !== undefined && { costEstimationDate: rest.costEstimationDate }),
+          ...(rest.access !== undefined && { access: rest.access }),
+          ...(rest.charge !== undefined && { charge: rest.charge }),
+          ...(rest.notes !== undefined && { notes: rest.notes }),
+        };
+        const [element] = await withRetryableDbCall(() => db.insert(schema.buildingElements).values(values).returning());
+        return { content: [{ type: "text" as const, text: JSON.stringify(element, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:create_inventory_element]", e);
+        return buildWriteErrorResponse(e, 'inventory element', 'create');
+      }
+    }
+  );
+
+  server.tool(
+    "update_inventory_element",
+    "Update an existing building inventory element. Admin/manager only. Supply only the fields you want to change.",
+    {
+      role: roleParam,
+      elementId: z.string().describe("Building element ID"),
+      name: z.string().optional().describe("Element name"),
+      description: z.string().optional().describe("Element description"),
+      currentCondition: z.enum(["excellent", "good", "fair", "poor", "critical"]).optional().describe("Current condition"),
+      lastInspectionDate: z.string().optional().describe("Last inspection date (YYYY-MM-DD)"),
+      nextEvaluationDate: z.string().optional().describe("Next evaluation date (YYYY-MM-DD)"),
+      currentLifespan: z.number().int().positive().optional().describe("Current adjusted lifespan in years"),
+      reconstructionCost: z.number().positive().optional().describe("Estimated reconstruction cost"),
+      costEstimationDate: z.string().optional().describe("Cost estimation date (YYYY-MM-DD)"),
+      unit: z.string().optional().describe("Measurement unit"),
+      unitValue: z.number().positive().optional().describe("Quantity in the specified unit"),
+      access: z.enum(["not_restrained", "restrained"]).optional().describe("Access type"),
+      charge: z.enum(["common", "personnal"]).optional().describe("Charge type"),
+      notes: z.string().optional().describe("Free-form notes"),
+    },
+    async (args) => {
+      const { role, elementId, ...rest } = args;
+      if (role === "tenant") {
+        return { content: [{ type: "text" as const, text: "Access denied: tenants cannot update inventory elements" }] };
+      }
+      const orgIds = await getMcpOrgIds();
+      const [element] = await db.select().from(schema.buildingElements).where(eq(schema.buildingElements.id, elementId));
+      if (!element) return { content: [{ type: "text" as const, text: "Inventory element not found" }] };
+      const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, element.buildingId));
+      if (!building || !orgIds.includes(building.organizationId)) {
+        return { content: [{ type: "text" as const, text: "Access denied" }] };
+      }
+      const update: Partial<typeof schema.buildingElements.$inferInsert> = {
+        updatedAt: new Date(),
+        ...(rest.name !== undefined && { name: rest.name }),
+        ...(rest.description !== undefined && { description: rest.description }),
+        ...(rest.currentCondition !== undefined && { currentCondition: rest.currentCondition }),
+        ...(rest.lastInspectionDate !== undefined && { lastInspectionDate: rest.lastInspectionDate }),
+        ...(rest.nextEvaluationDate !== undefined && { nextEvaluationDate: rest.nextEvaluationDate }),
+        ...(rest.currentLifespan !== undefined && { currentLifespan: rest.currentLifespan }),
+        ...(rest.reconstructionCost !== undefined && { reconstructionCost: String(rest.reconstructionCost) }),
+        ...(rest.costEstimationDate !== undefined && { costEstimationDate: rest.costEstimationDate }),
+        ...(rest.unit !== undefined && { unit: rest.unit }),
+        ...(rest.unitValue !== undefined && { unitValue: String(rest.unitValue) }),
+        ...(rest.access !== undefined && { access: rest.access }),
+        ...(rest.charge !== undefined && { charge: rest.charge }),
+        ...(rest.notes !== undefined && { notes: rest.notes }),
+      };
+      try {
+        const [updated] = await withRetryableDbCall(() => db
+          .update(schema.buildingElements)
+          .set(update)
+          .where(eq(schema.buildingElements.id, elementId))
+          .returning());
+        return { content: [{ type: "text" as const, text: JSON.stringify(updated, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:update_inventory_element]", e);
+        return buildWriteErrorResponse(e, 'inventory element', 'update');
+      }
+    }
+  );
+
+  server.tool(
+    "delete_inventory_element",
+    "Delete a building inventory element (admin/manager only). Returns a structured FK-violation envelope if other records (e.g. project elements, history that has been preserved at the application layer) still reference it.",
+    { role: roleParam, elementId: z.string().describe("Building element ID to delete") },
+    async ({ role, elementId }) => {
+      if (role === "tenant") {
+        return { content: [{ type: "text" as const, text: "Access denied: tenants cannot delete inventory elements" }] };
+      }
+      const orgIds = await getMcpOrgIds();
+      const [element] = await db.select().from(schema.buildingElements).where(eq(schema.buildingElements.id, elementId));
+      if (!element) return { content: [{ type: "text" as const, text: `Inventory element not found: ${elementId}` }] };
+      const [building] = await db
+        .select({ organizationId: schema.buildings.organizationId })
+        .from(schema.buildings)
+        .where(eq(schema.buildings.id, element.buildingId));
+      if (!building || !orgIds.includes(building.organizationId)) {
+        return { content: [{ type: "text" as const, text: "Access denied: inventory element is not in an MCP-scoped organization" }] };
+      }
+      try {
+        const [deleted] = await withRetryableDbCall(() => db
+          .delete(schema.buildingElements)
+          .where(eq(schema.buildingElements.id, elementId))
+          .returning({ id: schema.buildingElements.id, name: schema.buildingElements.name, uniformatCode: schema.buildingElements.uniformatCode }));
+        return {
+          content: [{
+            type: "text" as const,
+            text: JSON.stringify({ deleted, message: "Inventory element deleted (cascade applied to history, evaluation suggestions, project elements, element documents, element project updates)" }, null, 2),
+          }],
+        };
+      } catch (e) {
+        console.error("[mcp:delete_inventory_element]", e);
+        return buildWriteErrorResponse(e, 'inventory element', 'delete');
+      }
+    }
+  );
+
+  server.tool(
+    "search_uniformat_codes",
+    "Search the UNIFORMAT II catalog (Quebec construction standards, FR/EN) to find a classification code before creating or updating an inventory element. Matches code, French/English name, description, and synonyms. Returns up to 50 results.",
+    {
+      role: roleParam,
+      query: z.string().max(100).optional().describe("Free-text search (code, name, description, or synonym in FR or EN). Optional — omit for pure browsing by level/category."),
+      level: z.number().int().min(1).max(3).optional().describe("Restrict to a specific UNIFORMAT level (1, 2, or 3). Level 3 is required for createable elements."),
+      category: z.string().optional().describe("Filter by major-group category (e.g. 'Shell', 'Services')"),
+    },
+    async ({ role, query, level, category }) => {
+      if (role === "tenant") {
+        return { content: [{ type: "text" as const, text: "Access denied: tenants cannot browse the UNIFORMAT catalog via MCP" }] };
+      }
+      // At least one of query/level/category must be provided so we never
+      // dump the entire catalog without intent.
+      if (!query && level === undefined && !category) {
+        return { content: [{ type: "text" as const, text: "Please provide at least one of: query, level, or category." }] };
+      }
+      const { UNIFORMAT_CATALOG } = await import("@shared/data/uniformat-catalog");
+      let results = UNIFORMAT_CATALOG;
+      if (query && query.trim().length > 0) {
+        const searchLower = query.toLowerCase();
+        results = results.filter((item) =>
+          item.code.toLowerCase().includes(searchLower) ||
+          item.nameFr.toLowerCase().includes(searchLower) ||
+          item.nameEn.toLowerCase().includes(searchLower) ||
+          (item.descriptionFr && item.descriptionFr.toLowerCase().includes(searchLower)) ||
+          (item.descriptionEn && item.descriptionEn.toLowerCase().includes(searchLower)) ||
+          (item.synonymsEn && item.synonymsEn.some((s) => s.toLowerCase().includes(searchLower))) ||
+          (item.synonymsFr && item.synonymsFr.some((s) => s.toLowerCase().includes(searchLower)))
+        );
+      }
+      if (level) results = results.filter((item) => item.level === level);
+      if (category) {
+        const cLower = category.toLowerCase();
+        results = results.filter((item) => item.category.toLowerCase().includes(cLower));
+      }
+      results = results.slice(0, 50);
+      return { content: [{ type: "text" as const, text: JSON.stringify(results, null, 2) }] };
+    }
+  );
+
+  server.tool(
+    "list_element_history",
+    "List the repair / minor_rehab / major_rehab / replacement / construction history for a single inventory element. Admin/manager only. Returns events ordered by event date (most recent first).",
+    { role: roleParam, elementId: z.string().describe("Building element ID") },
+    async ({ role, elementId }) => {
+      if (role === "tenant") {
+        return { content: [{ type: "text" as const, text: "Access denied: tenants cannot view inventory element history" }] };
+      }
+      const orgIds = await getMcpOrgIds();
+      const [element] = await db.select().from(schema.buildingElements).where(eq(schema.buildingElements.id, elementId));
+      if (!element) return { content: [{ type: "text" as const, text: "Inventory element not found" }] };
+      const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, element.buildingId));
+      if (!building || !orgIds.includes(building.organizationId)) {
+        return { content: [{ type: "text" as const, text: "Access denied" }] };
+      }
+      const history = await db
+        .select()
+        .from(schema.elementHistory)
+        .where(eq(schema.elementHistory.elementId, elementId))
+        .orderBy(desc(schema.elementHistory.eventDate));
+      return { content: [{ type: "text" as const, text: JSON.stringify(history, null, 2) }] };
+    }
+  );
+
   server.tool(
     "get_mcp_info",
     "Get information about the MCP setup including available organizations, users, and roles",
