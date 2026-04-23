@@ -29,6 +29,7 @@ import {
   canAccessObject,
   setObjectAclPolicy,
 } from '../objectAcl';
+import { buildContentDisposition } from '../utils/content-disposition';
 
 const OBJECTS_PREFIX = '/objects/';
 
@@ -408,7 +409,10 @@ class DocumentService {
       // Set content-disposition header if filename provided
       if (options?.filename) {
         const disposition = options?.inline ? 'inline' : 'attachment';
-        res.setHeader('Content-Disposition', `${disposition}; filename="${options.filename}"`);
+        res.setHeader(
+          'Content-Disposition',
+          buildContentDisposition(disposition, options.filename)
+        );
       }
 
       // Forward the DB-recorded MIME type so the response carries the correct
