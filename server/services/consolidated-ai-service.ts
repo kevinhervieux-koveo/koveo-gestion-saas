@@ -1424,9 +1424,14 @@ Respond with ONLY a JSON array of tag ID strings, with no markdown, code fences 
         // Office document: extract text first, then send as a text part.
         const extracted = await this.extractOfficeText(fileBuffer, mimeType);
         if (!extracted.trim()) {
-          // No usable text - bail so the caller falls back to the keyword scorer.
+          console.warn(
+            `[suggestDocumentTags] No text extracted from ${mimeType}; falling back to keyword scorer`
+          );
           return [];
         }
+        console.log(
+          `[suggestDocumentTags] Using text-extraction path for ${mimeType} (${extracted.length} chars)`
+        );
         parts.push({
           text: `\nDocument contents (extracted from ${mimeType}):\n"""\n${extracted}\n"""`,
         });
