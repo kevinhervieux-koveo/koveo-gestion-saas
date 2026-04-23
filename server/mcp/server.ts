@@ -45,6 +45,7 @@ import { DocumentService, type DocumentType } from "../services/document-service
 import { ObjectStorageService } from "../objectStorage";
 import { aiService } from "../services/consolidated-ai-service";
 import { emailService } from "../services/email-service";
+import { workflowService } from "../services/workflow-service";
 import {
   createInvitationWithSoftReplace,
   InvitationAlreadyPendingError,
@@ -2808,6 +2809,402 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
         return buildWriteErrorResponse(e, 'project', 'delete');
       }
     }
+  );
+
+  // ===========================================
+  // MAINTENANCE PROJECT TOOLS (Task #302)
+  // ===========================================
+  //
+  // Helper that loads a project, verifies it belongs to a building inside an
+  // MCP-scoped organization, and returns either the loaded project + building
+  // or a ready-to-return MCP error response. Used by every project tool below
+  // so the scope check is identical everywhere.
+  async function loadMcpScopedProject(projectId: string): Promise<
+    | { ok: true; project: typeof schema.maintenanceProjects.$inferSelect; building: typeof schema.buildings.$inferSelect }
+    | { ok: false; response: { content: Array<{ type: 'text'; text: string }> } }
+  > {
+    const orgIds = await getMcpOrgIds();
+    const [project] = await db
+      .select()
+      .from(schema.maintenanceProjects)
+      .where(eq(schema.maintenanceProjects.id, projectId));
+    if (!project) {
+      return { ok: false, response: { content: [{ type: 'text' as const, text: `Project not found: ${projectId}` }] } };
+    }
+    const [building] = await db
+      .select()
+      .from(schema.buildings)
+      .where(eq(schema.buildings.id, project.buildingId));
+    if (!building || !orgIds.includes(building.organizationId)) {
+      return { ok: false, response: { content: [{ type: 'text' as const, text: 'Access denied: project is not attached to an MCP-scoped building' }] } };
+    }
+    return { ok: true, project, building };
+  }
+
+  server.tool(
+    "list_projects",
+    "List maintenance projects for a building (admin/manager/tenant). Optional status filter. Building must be inside an MCP-scoped organization. Returns id, projectNumber, title, status, priority, plannedStartDate, plannedEndDate, totalBudget for each project.",
+    {
+      role: roleParam,
+      buildingId: z.string().describe("Building ID"),
+      status: z
+        .enum(["planned", "submission", "pre_work", "in_progress", "post_work", "completed"])
+        .optional()
+        .describe("Filter by workflow status"),
+    },
+    async ({ role, buildingId, status }) => {
+      const orgIds = await getMcpOrgIds();
+      const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, buildingId));
+      if (!building || !orgIds.includes(building.organizationId)) {
+        return { content: [{ type: "text" as const, text: "Building not found or access denied" }] };
+      }
+      const conditions = [eq(schema.maintenanceProjects.buildingId, buildingId)];
+      if (status) conditions.push(eq(schema.maintenanceProjects.status, status));
+      const projects = await db
+        .select({
+          id: schema.maintenanceProjects.id,
+          projectNumber: schema.maintenanceProjects.projectNumber,
+          title: schema.maintenanceProjects.title,
+          status: schema.maintenanceProjects.status,
+          priority: schema.maintenanceProjects.priority,
+          type: schema.maintenanceProjects.type,
+          plannedStartDate: schema.maintenanceProjects.plannedStartDate,
+          plannedEndDate: schema.maintenanceProjects.plannedEndDate,
+          totalBudget: schema.maintenanceProjects.totalBudget,
+          actualCost: schema.maintenanceProjects.actualCost,
+        })
+        .from(schema.maintenanceProjects)
+        .where(and(...conditions))
+        .orderBy(desc(schema.maintenanceProjects.createdAt));
+      return { content: [{ type: "text" as const, text: JSON.stringify(projects, null, 2) }] };
+    },
+  );
+
+  server.tool(
+    "get_project",
+    "Get full details of a maintenance project including current workflow state and a project-steps summary. Project's building must be inside an MCP-scoped organization.",
+    { role: roleParam, projectId: z.string().describe("Maintenance project ID") },
+    async ({ role, projectId }) => {
+      const scope = await loadMcpScopedProject(projectId);
+      if (!scope.ok) return scope.response;
+      let workflowState: unknown = null;
+      try {
+        workflowState = await workflowService.getProjectWorkflowState(projectId);
+      } catch (e) {
+        console.error("[mcp:get_project] workflow state error", e);
+      }
+      const steps = await db
+        .select({
+          id: schema.projectSteps.id,
+          stepType: schema.projectSteps.stepType,
+          status: schema.projectSteps.status,
+          isRequired: schema.projectSteps.isRequired,
+          startedAt: schema.projectSteps.startedAt,
+          completedAt: schema.projectSteps.completedAt,
+        })
+        .from(schema.projectSteps)
+        .where(eq(schema.projectSteps.projectId, projectId));
+      return {
+        content: [{
+          type: "text" as const,
+          text: JSON.stringify({ project: scope.project, workflowState, steps }, null, 2),
+        }],
+      };
+    },
+  );
+
+  server.tool(
+    "create_project",
+    "Create a new maintenance project for a building (admin/manager only). Auto-generates a project number. Building must be inside an MCP-scoped organization. Optional fields: priority (defaults to medium), totalBudget, plannedStartDate, plannedEndDate (YYYY-MM-DD). Returns the created project row.",
+    {
+      role: roleParam,
+      buildingId: z.string().describe("Building ID (must be MCP-scoped)"),
+      title: z.string().min(1).max(200).describe("Project title"),
+      priority: z.enum(["low", "medium", "high", "critical"]).optional().describe("Priority (defaults to medium)"),
+      totalBudget: z.number().positive().optional().describe("Total project budget"),
+      plannedStartDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD").optional().describe("Planned start date"),
+      plannedEndDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD").optional().describe("Planned end date"),
+    },
+    async ({ role, buildingId, title, priority, totalBudget, plannedStartDate, plannedEndDate }) => {
+      if (role === "tenant") {
+        return { content: [{ type: "text" as const, text: "Access denied: tenants cannot create projects" }] };
+      }
+      const orgIds = await getMcpOrgIds();
+      const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, buildingId));
+      if (!building || !orgIds.includes(building.organizationId)) {
+        return { content: [{ type: "text" as const, text: "Building not found or access denied" }] };
+      }
+      const user = await getMcpUser(role);
+      if (!user) {
+        return { content: [{ type: "text" as const, text: "MCP user account not found" }] };
+      }
+      try {
+        const [project] = await withRetryableDbCall(() => db
+          .insert(schema.maintenanceProjects)
+          .values({
+            buildingId,
+            projectNumber: `MCP-PROJ-${Date.now()}-${randomBytes(2).toString("hex")}`,
+            title,
+            type: "not_sure",
+            status: "planned",
+            priority: priority ?? "medium",
+            ...(totalBudget !== undefined && { totalBudget: String(totalBudget) }),
+            ...(plannedStartDate !== undefined && { plannedStartDate }),
+            ...(plannedEndDate !== undefined && { plannedEndDate }),
+            createdBy: user.id,
+          })
+          .returning());
+        return { content: [{ type: "text" as const, text: JSON.stringify(project, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:create_project]", e);
+        return buildWriteErrorResponse(e, 'project', 'create');
+      }
+    },
+  );
+
+  server.tool(
+    "update_project",
+    "Update a maintenance project's metadata (admin/manager only): title, priority, totalBudget, plannedStartDate, plannedEndDate. Project's building must be inside an MCP-scoped organization. To advance workflow stage, use advance_project_status instead.",
+    {
+      role: roleParam,
+      projectId: z.string().describe("Maintenance project ID"),
+      title: z.string().min(1).max(200).optional().describe("New title"),
+      priority: z.enum(["low", "medium", "high", "critical"]).optional().describe("New priority"),
+      totalBudget: z.number().positive().optional().describe("New total budget"),
+      plannedStartDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD").optional().describe("New planned start date"),
+      plannedEndDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD").optional().describe("New planned end date"),
+    },
+    async ({ role, projectId, title, priority, totalBudget, plannedStartDate, plannedEndDate }) => {
+      if (role === "tenant") {
+        return { content: [{ type: "text" as const, text: "Access denied: tenants cannot update projects" }] };
+      }
+      const scope = await loadMcpScopedProject(projectId);
+      if (!scope.ok) return scope.response;
+      const updateData: Record<string, unknown> = { updatedAt: new Date() };
+      if (title !== undefined) updateData.title = title;
+      if (priority !== undefined) updateData.priority = priority;
+      if (totalBudget !== undefined) updateData.totalBudget = String(totalBudget);
+      if (plannedStartDate !== undefined) updateData.plannedStartDate = plannedStartDate;
+      if (plannedEndDate !== undefined) updateData.plannedEndDate = plannedEndDate;
+      if (Object.keys(updateData).length === 1) {
+        return { content: [{ type: "text" as const, text: "No fields to update" }] };
+      }
+      try {
+        const [updated] = await withRetryableDbCall(() => db
+          .update(schema.maintenanceProjects)
+          .set(updateData)
+          .where(eq(schema.maintenanceProjects.id, projectId))
+          .returning());
+        return { content: [{ type: "text" as const, text: JSON.stringify(updated, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:update_project]", e);
+        return buildWriteErrorResponse(e, 'project', 'update');
+      }
+    },
+  );
+
+  server.tool(
+    "advance_project_status",
+    "Advance a project to its next workflow stage (admin/manager only). Mirrors POST /api/maintenance/projects/:id/advance-status: looks up nextStatus via workflowService.getProjectWorkflowState (honours skip flags), then updates the project with the matching phase timestamp. When the current status is 'completed', the call is rejected. Project's building must be inside an MCP-scoped organization.",
+    { role: roleParam, projectId: z.string().describe("Maintenance project ID") },
+    async ({ role, projectId }) => {
+      if (role === "tenant") {
+        return { content: [{ type: "text" as const, text: "Access denied: tenants cannot advance project status" }] };
+      }
+      const scope = await loadMcpScopedProject(projectId);
+      if (!scope.ok) return scope.response;
+      const currentStatus = scope.project.status as
+        | "planned" | "submission" | "pre_work" | "in_progress" | "post_work" | "completed";
+      if (currentStatus === "completed") {
+        return { content: [{ type: "text" as const, text: "Project is already completed and cannot advance further" }] };
+      }
+      let workflowState;
+      try {
+        workflowState = await workflowService.getProjectWorkflowState(projectId);
+      } catch (e) {
+        console.error("[mcp:advance_project_status] workflow lookup", e);
+        return buildWriteErrorResponse(e, 'project', 'update');
+      }
+      if (!workflowState || !workflowState.canProgress || !workflowState.nextStatus) {
+        return { content: [{ type: "text" as const, text: "Cannot advance from current status (project may need linked elements, may be a Quick Project, or may already be complete)" }] };
+      }
+      const nextStatus = workflowState.nextStatus;
+      const today = new Date().toISOString().split('T')[0];
+      // Mirrors the per-transition timestamp writes in
+      // POST /api/maintenance/projects/:id/advance-status. Only writes columns
+      // that actually exist on the maintenanceProjects table. The REST handler
+      // also references `submissionDate`, `preWorkStartDate`, and `workEndDate`,
+      // none of which exist in shared/schemas/maintenance.ts, so they are
+      // silently dropped by Drizzle there and are intentionally not included
+      // here either; runtime behaviour is identical.
+      try {
+        const [updated] = await withRetryableDbCall(() => db
+          .update(schema.maintenanceProjects)
+          .set({
+            status: nextStatus,
+            updatedAt: new Date(),
+            ...(nextStatus === "in_progress" && { actualStartDate: today }),
+            ...(nextStatus === "completed" && { actualEndDate: today }),
+          })
+          .where(eq(schema.maintenanceProjects.id, projectId))
+          .returning());
+        return {
+          content: [{
+            type: "text" as const,
+            text: JSON.stringify({
+              previousStatus: currentStatus,
+              newStatus: nextStatus,
+              project: updated,
+            }, null, 2),
+          }],
+        };
+      } catch (e) {
+        console.error("[mcp:advance_project_status]", e);
+        return buildWriteErrorResponse(e, 'project', 'update');
+      }
+    },
+  );
+
+  server.tool(
+    "add_project_task",
+    "Add a custom workflow task to a project phase (admin/manager only). Phase must be one of pre_work, in_progress, post_work. If orderIndex is omitted, the task is appended to the end of the phase. Project's building must be inside an MCP-scoped organization.",
+    {
+      role: roleParam,
+      projectId: z.string().describe("Maintenance project ID"),
+      phase: z.enum(["pre_work", "in_progress", "post_work"]).describe("Workflow phase"),
+      taskName: z.string().min(1).max(255).describe("Task name"),
+      description: z.string().optional().describe("Task description"),
+      cost: z.number().positive().optional().describe("Task cost"),
+      dueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD").optional().describe("Due date"),
+      orderIndex: z.number().int().min(0).optional().describe("Order within the phase (defaults to end)"),
+    },
+    async ({ role, projectId, phase, taskName, description, cost, dueDate, orderIndex }) => {
+      if (role === "tenant") {
+        return { content: [{ type: "text" as const, text: "Access denied: tenants cannot add project tasks" }] };
+      }
+      const scope = await loadMcpScopedProject(projectId);
+      if (!scope.ok) return scope.response;
+      try {
+        let resolvedOrderIndex = orderIndex;
+        if (resolvedOrderIndex === undefined) {
+          const [{ value: maxOrder } = { value: null }] = await db
+            .select({ value: sql<number | null>`max(${schema.workflowTasks.orderIndex})` })
+            .from(schema.workflowTasks)
+            .where(and(eq(schema.workflowTasks.projectId, projectId), eq(schema.workflowTasks.phase, phase)));
+          resolvedOrderIndex = (maxOrder ?? -1) + 1;
+        }
+        const [task] = await withRetryableDbCall(() => db
+          .insert(schema.workflowTasks)
+          .values({
+            projectId,
+            phase,
+            taskName,
+            ...(description !== undefined && { description }),
+            ...(cost !== undefined && { cost: String(cost) }),
+            ...(dueDate !== undefined && { dueDate }),
+            orderIndex: resolvedOrderIndex,
+          })
+          .returning());
+        return { content: [{ type: "text" as const, text: JSON.stringify(task, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:add_project_task]", e);
+        return buildWriteErrorResponse(e, 'project task', 'create');
+      }
+    },
+  );
+
+  server.tool(
+    "update_project_task",
+    "Update or complete a project workflow task (admin/manager only). Update taskName, description, cost, dueDate, or mark isCompleted. Task's project building must be inside an MCP-scoped organization.",
+    {
+      role: roleParam,
+      taskId: z.string().describe("Workflow task ID"),
+      taskName: z.string().min(1).max(255).optional().describe("New task name"),
+      description: z.string().optional().describe("New description"),
+      cost: z.number().positive().optional().describe("New cost"),
+      dueDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD").optional().describe("New due date"),
+      isCompleted: z.boolean().optional().describe("Mark task complete or incomplete"),
+    },
+    async ({ role, taskId, taskName, description, cost, dueDate, isCompleted }) => {
+      if (role === "tenant") {
+        return { content: [{ type: "text" as const, text: "Access denied: tenants cannot update project tasks" }] };
+      }
+      const [task] = await db
+        .select({ id: schema.workflowTasks.id, projectId: schema.workflowTasks.projectId })
+        .from(schema.workflowTasks)
+        .where(eq(schema.workflowTasks.id, taskId));
+      if (!task) {
+        return { content: [{ type: "text" as const, text: `Task not found: ${taskId}` }] };
+      }
+      const scope = await loadMcpScopedProject(task.projectId);
+      if (!scope.ok) return scope.response;
+      const updateData: Record<string, unknown> = { updatedAt: new Date() };
+      if (taskName !== undefined) updateData.taskName = taskName;
+      if (description !== undefined) updateData.description = description;
+      if (cost !== undefined) updateData.cost = String(cost);
+      if (dueDate !== undefined) updateData.dueDate = dueDate;
+      if (isCompleted !== undefined) updateData.isCompleted = isCompleted;
+      if (Object.keys(updateData).length === 1) {
+        return { content: [{ type: "text" as const, text: "No fields to update" }] };
+      }
+      try {
+        const [updated] = await withRetryableDbCall(() => db
+          .update(schema.workflowTasks)
+          .set(updateData)
+          .where(eq(schema.workflowTasks.id, taskId))
+          .returning());
+        return { content: [{ type: "text" as const, text: JSON.stringify(updated, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:update_project_task]", e);
+        return buildWriteErrorResponse(e, 'project task', 'update');
+      }
+    },
+  );
+
+  server.tool(
+    "assign_project_vendor",
+    "Attach a vendor submission (quote) to a project (admin/manager only). Mirrors POST /api/maintenance/projects/:id/vendors. Project's building must be inside an MCP-scoped organization.",
+    {
+      role: roleParam,
+      projectId: z.string().describe("Maintenance project ID"),
+      vendorName: z.string().min(1).max(255).describe("Vendor name"),
+      projectType: z
+        .enum(["repair", "minor_rehab", "major_rehab", "replacement", "not_sure"])
+        .describe("Project type the quote is for"),
+      price: z.number().min(0).optional().describe("Quoted price"),
+      addedLifespan: z.number().int().positive().optional().describe("Years of added lifespan (rehab only)"),
+      availableDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD").optional().describe("Vendor availability date"),
+      contactInfo: z.string().optional().describe("Vendor contact info"),
+      notes: z.string().optional().describe("Submission notes"),
+      preferred: z.boolean().optional().describe("Mark this submission as preferred"),
+    },
+    async ({ role, projectId, vendorName, projectType, price, addedLifespan, availableDate, contactInfo, notes, preferred }) => {
+      if (role === "tenant") {
+        return { content: [{ type: "text" as const, text: "Access denied: tenants cannot assign vendors to projects" }] };
+      }
+      const scope = await loadMcpScopedProject(projectId);
+      if (!scope.ok) return scope.response;
+      try {
+        const [submission] = await withRetryableDbCall(() => db
+          .insert(schema.submissionVendors)
+          .values({
+            projectId,
+            vendorName,
+            projectType,
+            ...(price !== undefined && { price: String(price) }),
+            ...(addedLifespan !== undefined && { addedLifespan }),
+            ...(availableDate !== undefined && { availableDate }),
+            ...(contactInfo !== undefined && { contactInfo }),
+            ...(notes !== undefined && { notes }),
+            ...(preferred !== undefined && { preferred }),
+          })
+          .returning());
+        return { content: [{ type: "text" as const, text: JSON.stringify(submission, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:assign_project_vendor]", e);
+        return buildWriteErrorResponse(e, 'project vendor submission', 'create');
+      }
+    },
   );
 
   server.tool(
