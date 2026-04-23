@@ -22,6 +22,7 @@ import { db } from '../db';
 import { documents, bills, buildings, residences } from '../../shared/schema';
 import { eq, and, isNotNull } from 'drizzle-orm';
 import { ObjectStorageService, ObjectNotFoundError } from '../objectStorage';
+import { buildContentDisposition } from '../utils/content-disposition';
 import {
   ObjectAclPolicy,
   ObjectAccessGroupType,
@@ -29,7 +30,6 @@ import {
   canAccessObject,
   setObjectAclPolicy,
 } from '../objectAcl';
-import { buildContentDisposition } from '../utils/content-disposition';
 
 const OBJECTS_PREFIX = '/objects/';
 
@@ -408,10 +408,11 @@ class DocumentService {
 
       // Set content-disposition header if filename provided
       if (options?.filename) {
-        const disposition = options?.inline ? 'inline' : 'attachment';
         res.setHeader(
           'Content-Disposition',
-          buildContentDisposition(disposition, options.filename)
+          buildContentDisposition(options.filename, {
+            type: options?.inline ? 'inline' : 'attachment',
+          })
         );
       }
 

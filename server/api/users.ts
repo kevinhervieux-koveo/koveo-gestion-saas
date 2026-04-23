@@ -28,6 +28,7 @@ import { cacheInvalidationService, createInvalidationMiddleware } from '../servi
 import { logDebug, logInfo, logWarn, logError } from '../utils/logger';
 
 import { asyncHandler } from '../utils/async-handler';
+import { buildContentDisposition } from '../utils/content-disposition';
 import { sendDbWriteError } from '../utils/rest-db-error';
 /**
  * Helper function to get the correct base URL from REPLIT_DOMAINS.
@@ -2385,7 +2386,10 @@ export function registerUserRoutes(app: Express): void {
       res.setHeader('Content-Type', 'application/json');
       res.setHeader(
         'Content-Disposition',
-        `attachment; filename="user-data-export-${currentUser.id}-${new Date().toISOString().split('T')[0]}.json"`
+        buildContentDisposition(
+          `user-data-export-${currentUser.id}-${new Date().toISOString().split('T')[0]}.json`,
+          { type: 'attachment' }
+        )
       );
       res.json(exportData);
     }, { errorMessage: 'Failed to export user data', errorLogPrefix: '❌ Error exporting user data', extraErrorFields: { error: 'Internal server error' } }));

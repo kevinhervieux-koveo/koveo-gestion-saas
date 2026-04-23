@@ -1,91 +1,67 @@
 /**
- * RFC 6266 / RFC 5987 compliant `Content-Disposition` header builder.
+ * Build a safe RFC 6266 / RFC 5987 compliant Content-Disposition header value.
  *
- * The naive `${disposition}; filename="${name}"` pattern breaks when the
- * filename contains:
- *   - literal double quotes or backslashes (corrupts the quoted-string),
- *   - semicolons or other separators (browsers truncate the value),
- *   - control characters (HTTP forbids them in field values),
- *   - non-Latin-1 code points (Node's HTTP layer throws
- *     `TypeError: Invalid character in header content`).
+ * Naive interpolation like `attachment; filename="${name}"` crashes Node's HTTP
+ * stack with `TypeError: Invalid character in header content` whenever the
+ * filename contains characters that cannot legally appear in an HTTP header
+ * value (quotes, control chars, non-ASCII bytes such as emoji or CJK).
  *
- * This helper always emits a safe ASCII `filename=` parameter and adds a
- * `filename*=UTF-8''<percent-encoded>` form whenever the original name
- * contains anything outside the printable ASCII subset that quoted-string
- * tolerates. Both download endpoints share this helper so they cannot
- * drift apart.
+ * This helper:
+ *   1. Strips dangerous characters from the ASCII fallback `filename` token
+ *      (quotes, backslashes, control chars, and any non-ASCII bytes).
+ *   2. Provides an RFC 5987 `filename*=UTF-8''<percent-encoded>` parameter so
+ *      modern user agents still receive the original Unicode name.
  */
+export type ContentDispositionType = 'attachment' | 'inline';
 
-const DISPOSITION_TYPE_RE = /^[a-zA-Z]+$/;
-
-/**
- * Returns true when the character is safe to appear inside an RFC 6266
- * `quoted-string` value without backslash-escaping and without forcing
- * the encoded `filename*` fallback. We intentionally exclude characters
- * that browsers historically mishandle (CR/LF, the high-bit Latin-1
- * range, control chars) so the ASCII fallback is always a usable name.
- */
-function isSafeQuotedChar(code: number): boolean {
-  // Printable ASCII excluding DEL (0x7F). The following are technically
-  // legal inside a quoted-string but are flagged as unsafe so the ASCII
-  // fallback never carries a value that real-world clients mis-parse:
-  //   - 0x22 `"` and 0x5C `\` (would require backslash-escaping which
-  //     older Safari handles incorrectly),
-  //   - 0x3B `;` (the RFC allows it inside quotes, but several
-  //     intermediaries and download managers treat it as a parameter
-  //     separator and truncate the filename).
-  if (code < 0x20 || code >= 0x7f) return false;
-  if (code === 0x22 || code === 0x5c || code === 0x3b) return false;
-  return true;
+export interface BuildContentDispositionOptions {
+  type?: ContentDispositionType;
+  fallbackFilename?: string;
 }
 
-function buildAsciiFallback(filename: string): string {
-  let out = '';
+const DEFAULT_FALLBACK = 'download';
+
+function sanitizeAsciiFilename(filename: string, fallback: string): string {
+  let ascii = '';
   for (const ch of filename) {
-    const code = ch.codePointAt(0)!;
-    if (isSafeQuotedChar(code)) {
-      out += ch;
-    } else {
-      out += '_';
+    const code = ch.codePointAt(0) ?? 0;
+    if (code < 0x20 || code === 0x7f) continue;
+    if (code > 0x7e) {
+      ascii += '_';
+      continue;
     }
+    if (ch === '"' || ch === '\\') {
+      ascii += '_';
+      continue;
+    }
+    ascii += ch;
   }
-  // Collapse the underscore runs we just introduced so the fallback
-  // stays readable (e.g. an emoji surrogate pair becomes a single `_`).
-  out = out.replace(/_+/g, '_').replace(/^_+|_+$/g, '');
-  return out || 'download';
+  ascii = ascii.replace(/_+/g, '_').replace(/^[._\s]+|[._\s]+$/g, '').trim();
+  return ascii.length > 0 ? ascii : fallback;
 }
 
-/**
- * Build a safe `Content-Disposition` header value.
- *
- * @param disposition `"inline"` or `"attachment"` (any RFC 6266 token).
- * @param filename    The user-visible filename. May contain anything.
- */
+function encodeRfc5987(value: string): string {
+  return encodeURIComponent(value)
+    .replace(/['()*]/g, (c) => '%' + c.charCodeAt(0).toString(16).toUpperCase())
+    .replace(/%(?:7C|60|5E)/g, (s) => decodeURIComponent(s));
+}
+
 export function buildContentDisposition(
-  disposition: string,
-  filename: string
+  filename: string | null | undefined,
+  options: BuildContentDispositionOptions = {}
 ): string {
-  const dispToken = DISPOSITION_TYPE_RE.test(disposition) ? disposition : 'attachment';
-  const safeName = typeof filename === 'string' && filename.length > 0 ? filename : 'download';
+  const type: ContentDispositionType = options.type ?? 'attachment';
+  const fallback = options.fallbackFilename ?? DEFAULT_FALLBACK;
 
-  const ascii = buildAsciiFallback(safeName);
+  const raw = typeof filename === 'string' && filename.length > 0 ? filename : fallback;
+  const ascii = sanitizeAsciiFilename(raw, fallback);
 
-  // Always emit the `filename*` form when the original name differs from
-  // the ASCII fallback. RFC 5987 requires UTF-8, percent-encoding every
-  // byte that is not in the `attr-char` set.
-  const needsExtended = ascii !== safeName;
+  let header = `${type}; filename="${ascii}"`;
 
-  const header = `${dispToken}; filename="${ascii}"`;
-  if (!needsExtended) return header;
+  const needsExtended = raw !== ascii;
+  if (needsExtended) {
+    header += `; filename*=UTF-8''${encodeRfc5987(raw)}`;
+  }
 
-  // `encodeURIComponent` already percent-encodes everything outside
-  // `A-Za-z0-9-_.!~*'()`; we additionally encode the few characters it
-  // leaves alone that are NOT in RFC 5987's `attr-char` set
-  // (`! # $ & + - . ^ _ ` | ~` plus alphanumerics).
-  const extended = encodeURIComponent(safeName).replace(
-    /['()*!]/g,
-    (c) => '%' + c.charCodeAt(0).toString(16).toUpperCase()
-  );
-
-  return `${header}; filename*=UTF-8''${extended}`;
+  return header;
 }

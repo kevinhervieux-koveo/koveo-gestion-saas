@@ -2,6 +2,7 @@ import { Express } from 'express';
 import fs from 'fs/promises';
 import path from 'path';
 import { requireAuth } from '../auth/index';
+import { buildContentDisposition } from '../utils/content-disposition';
 
 // Interface for documentation data
 interface DocumentationData {
@@ -317,7 +318,7 @@ export function registerDocumentationRoutes(app: Express) {
       const filename = `koveo-llm-documentation-${timestamp}.md`;
       
       res.setHeader('Content-Type', 'text/markdown');
-      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.setHeader('Content-Disposition', buildContentDisposition(filename, { type: 'attachment' }));
       res.send(documentationData);
       
       // console.log(`✅ LLM documentation generated: ${filename}`);

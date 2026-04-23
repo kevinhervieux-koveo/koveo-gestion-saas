@@ -9,6 +9,7 @@ import type { Express } from 'express';
 import { requireAuth } from '../auth';
 import { storage } from '../storage';
 import { optimizedFileStorage } from '../services/optimized-file-storage';
+import { buildContentDisposition } from '../utils/content-disposition';
 import { getOptimizedUploadConfig, estimateAccessFrequency } from '@shared/config/optimized-upload-config';
 import type { OptimizedUploadContext } from '@shared/config/optimized-upload-config';
 import {
@@ -22,7 +23,6 @@ import path from 'path';
 import crypto from 'crypto';
 import { eq } from 'drizzle-orm';
 import { db } from '../db';
-import { buildContentDisposition } from '../utils/content-disposition';
 
 // Performance monitoring
 let apiMetrics = {
@@ -240,7 +240,7 @@ export function registerOptimizedDocumentRoutes(app: Express): void {
       const filename = document.name || path.basename(document.filePath);
       const disposition = isDownload ? 'attachment' : 'inline';
       
-      res.setHeader('Content-Disposition', buildContentDisposition(disposition, filename));
+      res.setHeader('Content-Disposition', buildContentDisposition(filename, { type: disposition }));
       res.setHeader('Content-Type', document.mimeType || 'application/octet-stream');
       res.setHeader('X-Performance-Optimized', 'true');
       res.setHeader('X-Cache-Hit', retrievalResult.fromCache ? 'true' : 'false');
