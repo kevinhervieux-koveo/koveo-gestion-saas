@@ -9,11 +9,10 @@ import express, { type Express, type Router } from 'express';
 export type RouteRegistry = Express | Router;
 
 /**
- * Signature that lazy-loadable route modules must export. Registrars may be
- * synchronous (the common case — just `app.use(...)` / `app.get(...)` etc.)
- * or return a Promise when they need to await async setup work before the
- * router is considered "loaded" (e.g. the MCP module, which seeds sandbox
- * data and wipes stale OAuth secrets before mounting its handlers).
+ * Signature that lazy-loadable route modules must export. The registrar may
+ * be sync or async — async lets a module do one-shot setup (DB seeding, OAuth
+ * issuer resolution, etc.) inline with route mounting without forcing every
+ * caller to split the work between the loader and the registrar.
  */
 export type RouteRegistrar = (registry: RouteRegistry) => void | Promise<void>;
 

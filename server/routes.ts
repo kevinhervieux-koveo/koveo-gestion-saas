@@ -8,13 +8,12 @@ import { requireAuth } from './auth/index';
 import { secureErrorHandler, notFoundHandler } from './middleware/error-security';
 import { enforceDemoSecurity } from './middleware/demo-security';
 import { logDebug, logInfo, logWarn, logError } from './utils/logger';
-import { lazyMount, type LazyRouteMatcher } from './utils/lazy-mount';
 
 // NOTE: MCP modules are intentionally NOT imported at the top level. They
-// are pulled in via `await import('./mcp/index')` only when ENABLE_MCP_SERVER
-// is true AND the first matching request actually arrives, so the OAuth
-// provider singleton, transports, and SDK code never pay their boot cost on
-// a production deploy until they're truly needed.
+// are pulled in via the lazy-mount trampoline (see `lazyMount` calls below)
+// only when a real request hits an MCP/OAuth prefix, so the OAuth provider
+// singleton, transports, and SDK code never pay their boot cost on a
+// production deploy that doesn't actually receive MCP traffic.
 
 // Import API route registration functions
 import { registerOrganizationRoutes } from './api/organizations';
@@ -35,6 +34,7 @@ import { registerInvoiceRoutes } from './api/invoices';
 import { registerPillarsSuggestionsRoutes } from './api/pillars-suggestions';
 import { registerQualityMetricsRoutes } from './api/quality-metrics';
 import { registerFeatureManagementRoutes } from './api/feature-management';
+import { lazyMount } from './utils/lazy-mount';
 import law25ComplianceRouter from './routes/law25-compliance';
 import { performanceRouter } from './performance-api';
 import { webVitalsRouter } from './web-vitals-api';
@@ -88,50 +88,59 @@ const upload = multer({
 
 export async function registerRoutes(app: Express) {
   
-  // Register MCP routes BEFORE session middleware (MCP /mcp endpoints use
-  // their own bearer-token / API-key auth, no session needed).
-  // A failure here (e.g. a misconfigured MCP_OAUTH_ISSUER in production) must
-  // NOT abort the rest of route registration — otherwise the SPA catch-all
-  // never gets installed and every browser hit returns "Cannot GET /".
-  //
   // The MCP server (OAuth provider, transports, tool registration) is opt-in
   // in production: it costs noticeable boot memory and is not used by the
   // user-facing app. Default OFF in production; default ON in dev/test so
   // local workflows keep working unchanged. Set ENABLE_MCP_SERVER=true on a
   // production deploy to turn it on.
+  //
+  // Even when enabled, the MCP module graph (OAuth provider singleton,
+  // SDK transports, tool registry) is loaded LAZILY via `mountLazyRouter`:
+  // the first request to a matching prefix triggers a single dynamic import
+  // and route registration; subsequent requests bypass the trampoline. This
+  // means a deploy that opts in but never receives an MCP request pays zero
+  // boot cost. A misconfiguration (e.g. missing MCP_OAUTH_ISSUER in prod)
+  // therefore can no longer abort `registerRoutes` — the SPA catch-all is
+  // always installed and any error surfaces only on the first /mcp hit.
   const mcpEnabled =
     process.env.ENABLE_MCP_SERVER === 'true' ||
     (process.env.NODE_ENV !== 'production' && process.env.ENABLE_MCP_SERVER !== 'false');
 
-  // Shared lazy import of the MCP module. The pre-session and post-session
-  // lazy mounts both await this same promise so the OAuth provider singleton
-  // (and the rest of the MCP service code) is loaded at most once.
-  let mcpModulePromise: Promise<typeof import('./mcp/index')> | null = null;
-  function loadMcpModule(): Promise<typeof import('./mcp/index')> {
-    if (!mcpModulePromise) mcpModulePromise = import('./mcp/index');
-    return mcpModulePromise;
-  }
+  // Memoized loader so both the pre-session (MCP + OAuth issuer endpoints)
+  // and post-session (OAuth consent UI) lazy mounts share a SINGLE dynamic
+  // import. Node's module cache would already dedupe back-to-back imports,
+  // but holding the promise ourselves keeps the contract obvious and lets
+  // the two registrars use the same `koveoMcpOAuthProvider` singleton.
+  const loadMcpModule = (() => {
+    let cached: Promise<typeof import('./mcp/index')> | null = null;
+    return () => (cached ??= import('./mcp/index'));
+  })();
 
   if (mcpEnabled) {
-    // MCP `/mcp` and the SDK-provided OAuth endpoints (`/authorize`,
-    // `/token`, `/register`, `/revoke`, `/.well-known/oauth-*`) use their
-    // own bearer-token / API-key auth — they MUST run before sessionConfig
-    // so the express-session middleware never touches them. We mount a
-    // matcher-gated lazy router here so the actual MCP service code is not
-    // imported until the first matching request arrives.
-    const mcpPreSessionMatcher: LazyRouteMatcher = [
-      '/mcp',
-      '/register',
-      '/authorize',
-      '/token',
-      '/revoke',
-      '/.well-known/oauth-authorization-server',
-      '/.well-known/oauth-protected-resource',
-    ];
-    lazyMount(app, mcpPreSessionMatcher, async () => {
-      const mod = await loadMcpModule();
-      return (registry) => mod.registerMcpRoutes(registry as Express);
-    });
+    // Pre-session: MCP transport endpoints + the SDK's OAuth issuer routes.
+    // These must run BEFORE sessionConfig because /mcp uses bearer/API-key
+    // auth and intentionally does not touch the user session.
+    lazyMount(
+      app,
+      [
+        '/mcp',
+        '/register',
+        '/authorize',
+        '/token',
+        '/revoke',
+        '/.well-known/oauth-authorization-server',
+        '/.well-known/oauth-protected-resource',
+      ],
+      async () => {
+        const mod = await loadMcpModule();
+        // The lazy-mount trampoline hands us a `Router`, which structurally
+        // satisfies every method `registerMcpRoutes` calls (use/get/post/
+        // delete). The cast is safe at runtime; TypeScript just can't narrow
+        // a Router to the wider `Express` application type.
+        return (registry) =>
+          mod.registerMcpRoutes(registry as unknown as Express);
+      },
+    );
   } else {
     console.log('[ROUTES] MCP server disabled (set ENABLE_MCP_SERVER=true to enable).');
   }
@@ -139,18 +148,17 @@ export async function registerRoutes(app: Express) {
   // CRITICAL: Apply session middleware BEFORE authentication routes
   app.use(sessionConfig);
 
-  // OAuth consent UI MUST be mounted AFTER sessionConfig because it reads
-  // and writes req.session to detect the signed-in Koveo user. Lazy-mounted
-  // so the consent view code (and its `KoveoMcpOAuthProvider` reference) is
-  // only pulled in when a user actually hits the consent URL.
   if (mcpEnabled) {
+    // Post-session: OAuth consent UI reads/writes req.session to detect the
+    // signed-in Koveo user, so it MUST be mounted after sessionConfig.
     lazyMount(app, '/oauth/consent', async () => {
       const mod = await loadMcpModule();
-      return (registry) =>
+      return (registry) => {
         mod.registerOAuthConsentRoutes(
-          registry as Express,
+          registry as unknown as Express,
           mod.koveoMcpOAuthProvider,
         );
+      };
     });
   }
   
