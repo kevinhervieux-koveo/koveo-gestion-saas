@@ -4013,7 +4013,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
 
   server.tool(
     "delete_building",
-    "Delete a building (admin/manager only). Only buildings inside MCP-scoped organizations can be deleted via MCP. Cascades in application code (inside a single transaction) to all dependent rows: every residence in the building (and each residence's invoices, documents, building elements, maintenance requests, demands, and user-residence links), then building-scoped bills (and their payments), budgets, monthly budgets, capital investments, financial cache, invoices, documents, demands and their demand_comments (rows where this building is the primary buildingId are deleted; rows where it is only the assignationBuildingId are null-ed out), notification configurations and their notification_dispatch_log entries, contacts, common spaces (and their bookings/restrictions), user-building links, building elements, auto-generated projects, and maintenance projects. Returns a structured summary of how many rows were removed from each child table.",
+    "Delete a building (admin/manager only). Only buildings inside MCP-scoped organizations can be deleted via MCP. Cascades in application code (inside a single transaction) to all dependent rows: every residence in the building (and each residence's invoices, documents, building elements, maintenance requests, demands, and user-residence links), then building-scoped bills (and their payments), budgets, monthly budgets, capital investments, financial cache, invoices, documents, demands and their demand_comments (rows where this building is the primary buildingId are deleted; rows where it is only the assignationBuildingId are null-ed out), notification configurations and their notification_dispatch_log entries, contacts, common spaces (and their bookings/restrictions), user-building links, building elements, auto-generated projects, and maintenance projects. Pending invitations attached directly to the building or to any of its residences are soft-cancelled (status set to 'cancelled' and the dangling residenceId/buildingId nulled); already-terminal invitations are left alone. Returns a structured summary of how many rows were removed from each child table.",
     { role: roleParam, buildingId: z.string().describe("Building ID to delete") },
     async ({ role, buildingId }) => {
       const orgIds = await getMcpOrgIds();
@@ -4047,6 +4047,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
           let resDemandComments = 0;
           let resDemandsCleared = 0;
           let resUserResidences = 0;
+          let resInvitationsCancelled = 0;
           let residencesDeletedCount = 0;
 
           if (residenceIds.length > 0) {
@@ -4095,6 +4096,29 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
               .delete(schema.userResidences)
               .where(inArray(schema.userResidences.residenceId, residenceIds))
               .returning({ id: schema.userResidences.id })).length;
+            // Soft-cancel invitations attached to any residence in this
+            // building (see task #383). The status='pending' guard keeps
+            // already-terminal rows untouched so the audit trail is
+            // preserved. We null both residenceId AND buildingId here:
+            // every residence in residenceIds belongs to the building
+            // being deleted, so any buildingId on the invitation is
+            // about to dangle anyway. Nulling it in the same pass also
+            // prevents the dual-linked edge case where the building-
+            // scope sweep below (filtered by status='pending') would
+            // skip the row we just cancelled and leave buildingId set.
+            resInvitationsCancelled = (await tx
+              .update(schema.invitations)
+              .set({
+                status: 'cancelled',
+                residenceId: null,
+                buildingId: null,
+                updatedAt: new Date(),
+              })
+              .where(and(
+                inArray(schema.invitations.residenceId, residenceIds),
+                eq(schema.invitations.status, 'pending'),
+              ))
+              .returning({ id: schema.invitations.id })).length;
             residencesDeletedCount = (await tx
               .delete(schema.residences)
               .where(inArray(schema.residences.id, residenceIds))
@@ -4206,6 +4230,19 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
             .delete(schema.maintenanceProjects)
             .where(eq(schema.maintenanceProjects.buildingId, buildingId))
             .returning({ id: schema.maintenanceProjects.id });
+          // Soft-cancel pending invitations directly attached to this
+          // building (see task #383). Residence-scoped invitations were
+          // already swept in Step 1 above. We also null the dangling
+          // buildingId so any future inspection doesn't dereference a
+          // missing building row.
+          const buildingInvitationsCancelled = await tx
+            .update(schema.invitations)
+            .set({ status: 'cancelled', buildingId: null, updatedAt: new Date() })
+            .where(and(
+              eq(schema.invitations.buildingId, buildingId),
+              eq(schema.invitations.status, 'pending'),
+            ))
+            .returning({ id: schema.invitations.id });
 
           const deleted = await tx
             .delete(schema.buildings)
@@ -4235,6 +4272,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
               commonSpaces: commonSpacesDeleted.length,
               userBuildings: userBuildingsDeleted.length,
               userResidences: resUserResidences,
+              invitations: resInvitationsCancelled + buildingInvitationsCancelled.length,
             },
             demandsAssignationCleared: resDemandsCleared + buildingDemandsCleared.length,
           };
@@ -4242,7 +4280,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
         return {
           content: [{
             type: "text" as const,
-            text: JSON.stringify({ ...result, message: "Building deleted (cascade applied to residences, bills, budgets, invoices, documents, demands, common spaces, user links, building elements, maintenance projects)" }, null, 2),
+            text: JSON.stringify({ ...result, message: "Building deleted (cascade applied to residences, bills, budgets, invoices, documents, demands, common spaces, user links, building elements, maintenance projects, invitations)" }, null, 2),
           }],
         };
       } catch (e) {
@@ -4257,7 +4295,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
 
   server.tool(
     "delete_residence",
-    "Delete a single residence (admin/manager only). Only residences attached to buildings inside MCP-scoped organizations can be deleted via MCP. Cascades in application code (inside a single transaction) to all dependent rows: invoices, documents, building elements, maintenance requests, demands (rows where this residence is the primary residenceId are deleted; rows where it is only the assignationResidenceId are null-ed out), and user-residence links. Returns a structured summary of how many rows were removed from each child table.",
+    "Delete a single residence (admin/manager only). Only residences attached to buildings inside MCP-scoped organizations can be deleted via MCP. Cascades in application code (inside a single transaction) to all dependent rows: invoices, documents, building elements, maintenance requests, demands (rows where this residence is the primary residenceId are deleted; rows where it is only the assignationResidenceId are null-ed out), and user-residence links. Pending invitations whose residenceId points at this residence are soft-cancelled (status set to 'cancelled' and the dangling residenceId nulled); already-terminal invitations are left alone. Returns a structured summary of how many rows were removed from each child table.",
     { role: roleParam, residenceId: z.string().describe("Residence ID to delete") },
     async ({ role, residenceId }) => {
       const orgIds = await getMcpOrgIds();
@@ -4315,6 +4353,22 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
             .delete(schema.userResidences)
             .where(eq(schema.userResidences.residenceId, residenceId))
             .returning({ id: schema.userResidences.id });
+          // invitations.residenceId has no FK in the database (see task
+          // #383). Soft-cancel any non-terminal invitation pointing at
+          // this residence and null the dangling residenceId so the
+          // accept/resend/cancel flows treat it as a finished
+          // invitation instead of attempting to dereference a missing
+          // residence row. Already-terminal rows
+          // (accepted/cancelled/expired) are left alone to preserve the
+          // audit trail.
+          const invitationsCancelled = await tx
+            .update(schema.invitations)
+            .set({ status: 'cancelled', residenceId: null, updatedAt: new Date() })
+            .where(and(
+              eq(schema.invitations.residenceId, residenceId),
+              eq(schema.invitations.status, 'pending'),
+            ))
+            .returning({ id: schema.invitations.id });
           const deleted = await tx
             .delete(schema.residences)
             .where(eq(schema.residences.id, residenceId))
@@ -4328,6 +4382,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
               maintenanceRequests: maintenanceRequestsDeleted.length,
               buildingElements: buildingElementsDeleted.length,
               userResidences: userResidencesDeleted.length,
+              invitations: invitationsCancelled.length,
             },
             demandsAssignationCleared: demandsCleared.length,
           };
@@ -4335,7 +4390,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
         return {
           content: [{
             type: "text" as const,
-            text: JSON.stringify({ ...result, message: "Residence deleted (cascade applied to invoices, documents, building elements, maintenance requests, demands, user links)" }, null, 2),
+            text: JSON.stringify({ ...result, message: "Residence deleted (cascade applied to invoices, documents, building elements, maintenance requests, demands, user links, invitations)" }, null, 2),
           }],
         };
       } catch (e) {

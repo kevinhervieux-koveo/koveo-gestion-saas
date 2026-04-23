@@ -89,6 +89,7 @@ describeIfDb('MCP delete_residence cascade — real Postgres (Task #266)', () =>
     buildingElementIds: new Set<string>(),
     demandIds: new Set<string>(),
     userResidenceIds: new Set<string>(),
+    invitationIds: new Set<string>(),
     uniformatCode: null as string | null,
     uniformatCodeCreatedByUs: false,
   };
@@ -132,6 +133,11 @@ describeIfDb('MCP delete_residence cascade — real Postgres (Task #266)', () =>
       await db
         .delete(schema.userResidences)
         .where(inArray(schema.userResidences.id, [...created.userResidenceIds]));
+    }
+    if (created.invitationIds.size) {
+      await db
+        .delete(schema.invitations)
+        .where(inArray(schema.invitations.id, [...created.invitationIds]));
     }
     if (created.residenceIds.size) {
       await db
@@ -350,6 +356,59 @@ describeIfDb('MCP delete_residence cascade — real Postgres (Task #266)', () =>
     });
     created.userResidenceIds.add(userResidenceId);
 
+    // 11. Invitations attached to the residence (task #383). Seed
+    //     three rows so we can verify the cascade only touches pending
+    //     invitations and leaves terminal ones alone:
+    //     - pending invitation pointing at the residence -> cancelled
+    //     - accepted invitation pointing at the residence -> left alone
+    //     - pending invitation pointing at the SIBLING residence ->
+    //       left alone (not in the deleted residence's scope)
+    const pendingInvitationId = crypto.randomUUID();
+    const acceptedInvitationId = crypto.randomUUID();
+    const siblingInvitationId = crypto.randomUUID();
+    const future = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    await db.insert(schema.invitations).values([
+      {
+        id: pendingInvitationId,
+        organizationId: created.organizationId,
+        residenceId,
+        email: `${TEST_TAG}-pending@example.test`,
+        token: `tok-pending-${pendingInvitationId}`,
+        tokenHash: `hash-pending-${pendingInvitationId}`,
+        role: 'tenant',
+        status: 'pending',
+        invitedByUserId: userId,
+        expiresAt: future,
+      },
+      {
+        id: acceptedInvitationId,
+        organizationId: created.organizationId,
+        residenceId,
+        email: `${TEST_TAG}-accepted@example.test`,
+        token: `tok-accepted-${acceptedInvitationId}`,
+        tokenHash: `hash-accepted-${acceptedInvitationId}`,
+        role: 'tenant',
+        status: 'accepted',
+        invitedByUserId: userId,
+        expiresAt: future,
+      },
+      {
+        id: siblingInvitationId,
+        organizationId: created.organizationId,
+        residenceId: siblingResidenceId,
+        email: `${TEST_TAG}-sibling@example.test`,
+        token: `tok-sibling-${siblingInvitationId}`,
+        tokenHash: `hash-sibling-${siblingInvitationId}`,
+        role: 'tenant',
+        status: 'pending',
+        invitedByUserId: userId,
+        expiresAt: future,
+      },
+    ]);
+    created.invitationIds.add(pendingInvitationId);
+    created.invitationIds.add(acceptedInvitationId);
+    created.invitationIds.add(siblingInvitationId);
+
     // ---- Invoke the real MCP `delete_residence` handler ----
     const server = createMcpServer();
     const handler = getToolHandler(server, 'delete_residence');
@@ -365,6 +424,7 @@ describeIfDb('MCP delete_residence cascade — real Postgres (Task #266)', () =>
       maintenanceRequests: 1,
       buildingElements: 1,
       userResidences: 1,
+      invitations: 1, // only the pending invitation; accepted is left alone
     });
     expect(parsed.demandsAssignationCleared).toBe(1);
 
@@ -450,5 +510,45 @@ describeIfDb('MCP delete_residence cascade — real Postgres (Task #266)', () =>
       .from(schema.demands)
       .where(eq(schema.demands.assignationResidenceId, residenceId));
     expect(danglingAssignation).toHaveLength(0);
+
+    // Invitation cascade (task #383): the pending invitation pointing
+    // at the deleted residence was soft-cancelled and its residenceId
+    // nulled, the accepted invitation was left untouched, and the
+    // sibling residence's pending invitation is unaffected.
+    const pendingAfter = await db
+      .select({
+        id: schema.invitations.id,
+        status: schema.invitations.status,
+        residenceId: schema.invitations.residenceId,
+      })
+      .from(schema.invitations)
+      .where(eq(schema.invitations.id, pendingInvitationId));
+    expect(pendingAfter).toHaveLength(1);
+    expect(pendingAfter[0].status).toBe('cancelled');
+    expect(pendingAfter[0].residenceId).toBeNull();
+
+    const acceptedAfter = await db
+      .select({
+        id: schema.invitations.id,
+        status: schema.invitations.status,
+        residenceId: schema.invitations.residenceId,
+      })
+      .from(schema.invitations)
+      .where(eq(schema.invitations.id, acceptedInvitationId));
+    expect(acceptedAfter).toHaveLength(1);
+    expect(acceptedAfter[0].status).toBe('accepted');
+    expect(acceptedAfter[0].residenceId).toBe(residenceId);
+
+    const siblingInvAfter = await db
+      .select({
+        id: schema.invitations.id,
+        status: schema.invitations.status,
+        residenceId: schema.invitations.residenceId,
+      })
+      .from(schema.invitations)
+      .where(eq(schema.invitations.id, siblingInvitationId));
+    expect(siblingInvAfter).toHaveLength(1);
+    expect(siblingInvAfter[0].status).toBe('pending');
+    expect(siblingInvAfter[0].residenceId).toBe(siblingResidenceId);
   }, 60000);
 });
