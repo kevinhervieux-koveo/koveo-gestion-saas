@@ -14,10 +14,49 @@ import { delayedUpdateService } from '../services/delayed-update-service';
 import { cacheInvalidationService, createInvalidationMiddleware } from '../services/cache-invalidation-service';
 
 import { asyncHandler } from '../utils/async-handler';
+
 /**
- *
- * @param app
+ * Resolves the organization ID that owns a given building.
+ * Returns null when the building does not exist.
  */
+async function getBuildingOrganizationId(buildingId: string): Promise<string | null> {
+  const row = await db
+    .select({ organizationId: buildings.organizationId })
+    .from(buildings)
+    .where(eq(buildings.id, buildingId))
+    .limit(1);
+  return row[0]?.organizationId ?? null;
+}
+
+/**
+ * Returns true when the caller is allowed to manage the given building's data.
+ * Permitted when:
+ *   - user.role === 'admin', OR
+ *   - user.canAccessAllOrganizations is true, OR
+ *   - user is an active manager/demo_manager of the building's organization.
+ */
+async function userCanManageBuilding(user: any, buildingId: string): Promise<boolean> {
+  if (user.role === 'admin' || user.canAccessAllOrganizations) return true;
+
+  const isManager = user.role === 'manager' || user.role === 'demo_manager';
+  if (!isManager) return false;
+
+  const organizationId = await getBuildingOrganizationId(buildingId);
+  if (!organizationId) return false;
+
+  const result = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(userOrganizations)
+    .where(
+      and(
+        eq(userOrganizations.userId, user.id),
+        eq(userOrganizations.organizationId, organizationId),
+        eq(userOrganizations.isActive, true)
+      )
+    );
+  return Number(result[0].count) > 0;
+}
+
 /**
  * RegisterResidenceRoutes function.
  * @param app
@@ -43,6 +82,42 @@ export function registerResidenceRoutes(app: Express) {
     asyncHandler(async (req: any, res: any) => {
         const { residenceId } = req.params;
         const currentUser = req.user;
+
+        // Verify the caller has scope access to this residence:
+        // - admin or global-access user, OR
+        // - a manager of the building's organization, OR
+        // - a user directly assigned to this residence
+
+        // First, resolve the building for this residence (needed for manager check)
+        const residenceRow = await db
+          .select({ buildingId: residences.buildingId })
+          .from(residences)
+          .where(eq(residences.id, residenceId))
+          .limit(1);
+
+        if (residenceRow.length === 0) {
+          return res.status(404).json({ message: 'Residence not found' });
+        }
+
+        const canManage = await userCanManageBuilding(currentUser, residenceRow[0].buildingId);
+
+        if (!canManage) {
+          // Fall back to checking direct residence assignment
+          const callerAssignment = await db
+            .select({ count: sql<number>`count(*)` })
+            .from(userResidences)
+            .where(
+              and(
+                eq(userResidences.residenceId, residenceId),
+                eq(userResidences.userId, currentUser.id),
+                eq(userResidences.isActive, true)
+              )
+            );
+
+          if (Number(callerAssignment[0].count) === 0) {
+            return res.status(403).json({ message: 'Access denied' });
+          }
+        }
 
         // Get assigned users with their details
         const assignedUsers = await db
@@ -78,9 +153,42 @@ export function registerResidenceRoutes(app: Express) {
       operation: 'update'
     }),
     asyncHandler(async (req: any, res: any) => {
-        const { userId } = req.params;
+        const { residenceId, userId } = req.params;
         const { firstName, lastName, email, phone } = req.body;
         const currentUser = req.user;
+
+        // Authorization: only admins, global-access users, or managers of the
+        // building's organization may update assigned-user profiles.
+        const residenceRowForAuth = await db
+          .select({ buildingId: residences.buildingId })
+          .from(residences)
+          .where(eq(residences.id, residenceId))
+          .limit(1);
+
+        if (residenceRowForAuth.length === 0) {
+          return res.status(404).json({ message: 'Residence not found' });
+        }
+
+        const canManage = await userCanManageBuilding(currentUser, residenceRowForAuth[0].buildingId);
+        if (!canManage) {
+          return res.status(403).json({ message: 'Access denied' });
+        }
+
+        // Verify the target user is actually assigned to the given residence
+        const targetAssignment = await db
+          .select({ count: sql<number>`count(*)` })
+          .from(userResidences)
+          .where(
+            and(
+              eq(userResidences.residenceId, residenceId),
+              eq(userResidences.userId, userId),
+              eq(userResidences.isActive, true)
+            )
+          );
+
+        if (Number(targetAssignment[0].count) === 0) {
+          return res.status(404).json({ message: 'User not found in this residence' });
+        }
 
         // Update user information
         await db
@@ -367,9 +475,27 @@ export function registerResidenceRoutes(app: Express) {
   app.put('/api/residences/:id', requireAuth, async (req: any, res: any) => {
     try {
       const { id } = req.params;
+      const currentUser = req.user;
       const updateData = req.body;
 
       if (process.env.NODE_ENV === 'development') console.log(`🏠 Updating residence ${id} with data:`, updateData);
+
+      // Authorization: only admins, global-access users, or managers of the
+      // building's organization may update residence records.
+      const residenceRowForAuth = await db
+        .select({ buildingId: residences.buildingId })
+        .from(residences)
+        .where(eq(residences.id, id))
+        .limit(1);
+
+      if (residenceRowForAuth.length === 0) {
+        return res.status(404).json({ message: 'Residence not found' });
+      }
+
+      const canManage = await userCanManageBuilding(currentUser, residenceRowForAuth[0].buildingId);
+      if (!canManage) {
+        return res.status(403).json({ message: 'Access denied' });
+      }
 
       // Remove readonly fields
       delete updateData.id;
@@ -437,6 +563,7 @@ export function registerResidenceRoutes(app: Express) {
     requireAuth,
     asyncHandler(async (req: any, res: any) => {
         const { buildingId } = req.params;
+        const currentUser = req.user;
 
         // Get building details
         const building = await db
@@ -450,6 +577,14 @@ export function registerResidenceRoutes(app: Express) {
         }
 
         const buildingData = building[0];
+
+        // Authorization: only admins, global-access users, or managers of the
+        // building's organization may generate residences.
+        const canManage = await userCanManageBuilding(currentUser, buildingId);
+        if (!canManage) {
+          return res.status(403).json({ message: 'Access denied' });
+        }
+
         const totalUnits = buildingData.totalUnits;
         const totalFloors = buildingData.totalFloors || 1;
 
