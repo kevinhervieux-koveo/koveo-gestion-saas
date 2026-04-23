@@ -108,8 +108,11 @@ npm run preview         # Preview production build
 
 # Database
 npm run db:generate     # Generate database migrations
-npm run db:push         # Push schema changes to database
+npm run db:push         # Push schema changes to local dev database
 npm run db:studio       # Open Drizzle Studio
+npx tsx scripts/run-migrations.ts             # Apply pending SQL migrations
+npx tsx scripts/run-migrations.ts --status    # Show applied / pending
+npx tsx scripts/run-migrations.ts --baseline  # Force-baseline existing DB
 
 # Testing
 npm test                # Run all tests
@@ -122,6 +125,59 @@ npm run lint            # Run ESLint
 npm run type-check      # Run TypeScript checks
 npm run format          # Format code with Prettier
 ```
+
+### Database Migrations
+
+Schema changes are tracked as numbered SQL files under `migrations/`
+(e.g. `0008_org_code_and_bill_source.sql`). A custom runner at
+`scripts/run-migrations.ts` applies any unapplied files in lexical
+order and records each one in a `schema_migrations` table.
+
+**On deploy / publish:** the production server invokes the runner
+automatically at startup, before any HTTP routes are registered.
+Migrations therefore run before the new server starts serving traffic.
+If a migration fails, server startup aborts and the deploy fails
+loudly — there is no half-applied state because each file runs in its
+own transaction. The runner uses a Postgres advisory lock so multiple
+booting Autoscale instances cannot race each other. The startup logs
+include `Highest applied migration: <filename>` so it is obvious from
+the deploy logs whether prod is in sync.
+
+**On a database that pre-existed this runner** (e.g. our current
+production, which was historically managed via `db:push`), the very
+first run sees an empty `schema_migrations` table plus an existing
+`users` table and auto-baselines: every numbered file currently in
+`migrations/` is recorded as already applied without re-executing it.
+This prevents the first post-deploy run from trying to recreate
+existing tables.
+
+**Adding a new migration:**
+
+1. Create the next numbered file in `migrations/`, e.g.
+   `migrations/0009_add_widgets_table.sql`.
+2. Write the change as idempotent SQL where possible
+   (`CREATE TABLE IF NOT EXISTS …`, `ALTER TABLE … ADD COLUMN IF NOT EXISTS …`,
+   `DO $$ BEGIN IF NOT EXISTS (...) THEN ... END IF; END $$;` for
+   constraints).
+3. Run it locally against your dev DB:
+   `npx tsx scripts/run-migrations.ts`.
+4. Update `shared/schema.ts` to match.
+5. Commit both the SQL file and the schema change. The next deploy
+   will apply the SQL automatically.
+
+**Recovering from a failed deploy-time migration:**
+
+- The deploy will have aborted before serving the new code, so the old
+  app is still running against the old schema.
+- Inspect the failure in the deploy logs (`[migrate] FAILED applying
+  …`), fix the SQL (either the same file if it never recorded, or by
+  adding a follow-up numbered file), and redeploy. The runner will
+  pick up only the still-unapplied files.
+- To inspect state ad-hoc:
+  `npx tsx scripts/run-migrations.ts --status`.
+
+`SKIP_DB_MIGRATIONS=true` disables the startup runner (used by tests).
+`RUN_DB_MIGRATIONS=true` opts in for non-production environments.
 
 ### Development Workflow
 

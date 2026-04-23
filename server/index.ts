@@ -322,7 +322,14 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
           } catch (error: any) {
             log(`❌ Application load failed in production: ${error.message}`, 'error');
             log(`❌ Stack trace: ${error.stack}`, 'error');
-            // In production, we want to know about failures but keep health checks working
+            // Migration failures (and any other startup failure) MUST abort
+            // the process so the deploy fails loudly rather than serving the
+            // new code against an outdated schema. The platform will surface
+            // the non-zero exit and roll back / retry the deploy.
+            if ((error as any)?.isMigrationError === true || process.env.FAIL_FAST_ON_STARTUP_ERROR !== 'false') {
+              log('❌ Aborting process so the deploy fails loudly.', 'error');
+              setTimeout(() => process.exit(1), 100);
+            }
           }
         }, 2000); // Delay 2 seconds to ensure port is fully open and responsive
       }
@@ -414,6 +421,46 @@ async function loadFullApplication(): Promise<void> {
       }
 
       log('✅ Production environment validation passed');
+    }
+
+    // Apply any pending database migrations BEFORE registering routes,
+    // so the server never starts serving traffic against an outdated
+    // schema. The runner is idempotent, uses a Postgres advisory lock
+    // for safe concurrent invocation, and auto-baselines pre-existing
+    // databases on first run. A failure here aborts startup so the
+    // deploy fails loudly. Only runs in production (dev keeps using
+    // `db:push`); set RUN_DB_MIGRATIONS=true to force in dev, or
+    // SKIP_DB_MIGRATIONS=true to opt out in production (tests).
+    const shouldRunMigrations =
+      process.env.SKIP_DB_MIGRATIONS !== 'true' &&
+      (process.env.NODE_ENV === 'production' ||
+        process.env.RUN_DB_MIGRATIONS === 'true');
+    if (shouldRunMigrations) {
+      try {
+        log('🔄 Running database migrations...');
+        const { runMigrations } = await import('../scripts/run-migrations');
+        const r = await runMigrations({});
+        if (r.baselined.length > 0) {
+          log(`📝 Baselined ${r.baselined.length} migration(s) as already applied.`);
+        }
+        if (r.applied.length > 0) {
+          log(`✅ Applied ${r.applied.length} migration(s): ${r.applied.join(', ')}`);
+        } else {
+          log('✅ No pending migrations.');
+        }
+        if (r.highestApplied) {
+          log(`📌 Highest applied migration: ${r.highestApplied}`);
+        }
+      } catch (migrationErr: any) {
+        log(`❌ Database migrations failed: ${migrationErr.message}`, 'error');
+        log(`❌ Stack: ${migrationErr.stack}`, 'error');
+        // Tag the error so the outer catch knows this is a migration
+        // failure and must abort the process unconditionally.
+        try { (migrationErr as any).isMigrationError = true; } catch {}
+        throw migrationErr;
+      }
+    } else {
+      log('⏭️  Skipping migration runner (dev mode or SKIP_DB_MIGRATIONS).');
     }
 
     // Load API routes FIRST to ensure they have priority over static files  

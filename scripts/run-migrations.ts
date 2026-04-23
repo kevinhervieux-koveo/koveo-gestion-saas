@@ -1,0 +1,303 @@
+#!/usr/bin/env tsx
+/**
+ * Custom database migration runner for Koveo Gestion.
+ *
+ * Why a custom runner (not `drizzle-kit migrate`):
+ * - The `migrations/meta/_journal.json` is out of sync with the actual
+ *   numbered SQL files in `migrations/` (different tag names, missing
+ *   indexes), the result of mixing hand-written migrations with files
+ *   generated at different times.
+ * - Production has historically been kept in sync via `drizzle-kit push`,
+ *   which never wrote anything to a migrations history table, so we need
+ *   a runner that can be safely "baselined" against an existing schema.
+ *
+ * What this runner does:
+ * 1. Connects to `DATABASE_URL_KOVEO` if set (production), otherwise
+ *    `DATABASE_URL` (development / CI).
+ * 2. Ensures a `schema_migrations(filename text primary key, checksum text,
+ *    applied_at timestamptz default now())` table exists.
+ * 3. On first run against a database that already has application tables
+ *    (detected via the `users` table) AND has no rows in
+ *    `schema_migrations`, AUTO-BASELINES: marks every numbered migration
+ *    file currently in `migrations/` as already applied without executing
+ *    it. This prevents the first deploy after this change from trying to
+ *    re-create existing tables.
+ * 4. Applies every numbered `NNNN_*.sql` file in `migrations/` whose
+ *    filename is not yet recorded in `schema_migrations`, in lexical
+ *    order, each in its own transaction. Records the filename + sha256.
+ * 5. Exits non-zero on any error so the deploy aborts.
+ * 6. Prints either "Applied N migration(s): ..." or
+ *    "No pending migrations.".
+ *
+ * Notes:
+ * - Only files matching /^\d{4}_.+\.sql$/ are considered. Ad-hoc fix
+ *   files (e.g. `fix_submission_vendors_schema.sql`) are intentionally
+ *   ignored — they were one-off repairs and are not part of the chain.
+ * - `--baseline` forces the auto-baseline behaviour even if the
+ *   `users`-table heuristic does not match. Useful to bootstrap a
+ *   freshly-restored prod snapshot.
+ * - `--status` prints the highest applied migration and exits 0 without
+ *   applying anything. Used by the server at startup.
+ */
+import {
+  Pool,
+  type PoolClient,
+  type WebSocketConstructor,
+  neonConfig,
+} from '@neondatabase/serverless';
+import ws from 'ws';
+import { createHash } from 'crypto';
+import { readFileSync, readdirSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+if (!neonConfig.webSocketConstructor) {
+  neonConfig.webSocketConstructor = ws as unknown as WebSocketConstructor;
+}
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const MIGRATIONS_DIR = join(__dirname, '..', 'migrations');
+const NUMBERED_RE = /^\d{4}_.+\.sql$/;
+
+export interface MigrationResult {
+  applied: string[];
+  baselined: string[];
+  highestApplied: string | null;
+  pending: string[];
+}
+
+function log(msg: string): void {
+  console.log(`[migrate] ${msg}`);
+}
+
+function err(msg: string): void {
+  console.error(`[migrate] ${msg}`);
+}
+
+function listMigrationFiles(): string[] {
+  return readdirSync(MIGRATIONS_DIR)
+    .filter((f) => NUMBERED_RE.test(f))
+    .sort();
+}
+
+function checksum(content: string): string {
+  return createHash('sha256').update(content).digest('hex');
+}
+
+function resolveDatabaseUrl(): string {
+  // In production we deliberately prefer DATABASE_URL_KOVEO so the deploy
+  // step migrates the real production database. In any other environment
+  // we use DATABASE_URL so that local invocations target the dev DB and
+  // never accidentally write to prod.
+  const isProd = process.env.NODE_ENV === 'production';
+  const url = isProd
+    ? process.env.DATABASE_URL_KOVEO || process.env.DATABASE_URL
+    : process.env.DATABASE_URL || process.env.DATABASE_URL_KOVEO;
+  if (!url) {
+    throw new Error(
+      'No database URL configured. Set DATABASE_URL_KOVEO (production) or DATABASE_URL (development).',
+    );
+  }
+  return url;
+}
+
+// Stable advisory lock key so concurrent runners (e.g. multiple
+// Autoscale containers booting at once) serialize on the same lock
+// rather than racing each other.
+const MIGRATION_LOCK_KEY = '7426891234567890';
+
+async function ensureMigrationsTable(client: PoolClient): Promise<void> {
+  await client.query(`
+    CREATE TABLE IF NOT EXISTS schema_migrations (
+      filename   text PRIMARY KEY,
+      checksum   text NOT NULL,
+      applied_at timestamptz NOT NULL DEFAULT now()
+    )
+  `);
+}
+
+async function getAppliedFilenames(client: PoolClient): Promise<Set<string>> {
+  const { rows } = await client.query<{ filename: string }>(
+    'SELECT filename FROM schema_migrations',
+  );
+  return new Set(rows.map((r) => r.filename));
+}
+
+async function tableExists(client: PoolClient, name: string): Promise<boolean> {
+  const { rows } = await client.query<{ exists: boolean }>(
+    `SELECT EXISTS (
+       SELECT 1 FROM information_schema.tables
+       WHERE table_schema = 'public' AND table_name = $1
+     ) AS exists`,
+    [name],
+  );
+  return rows[0]?.exists === true;
+}
+
+async function highestAppliedVersion(
+  client: PoolClient,
+): Promise<string | null> {
+  const { rows } = await client.query<{ filename: string }>(
+    'SELECT filename FROM schema_migrations ORDER BY filename DESC LIMIT 1',
+  );
+  return rows[0]?.filename ?? null;
+}
+
+async function recordMigration(
+  client: PoolClient,
+  filename: string,
+  sum: string,
+): Promise<void> {
+  await client.query(
+    `INSERT INTO schema_migrations(filename, checksum)
+     VALUES ($1, $2)
+     ON CONFLICT (filename) DO NOTHING`,
+    [filename, sum],
+  );
+}
+
+async function applyMigration(
+  pool: Pool,
+  filename: string,
+  sql: string,
+  sum: string,
+): Promise<void> {
+  // Each migration runs in its own dedicated connection/transaction so
+  // a long-running migration does not affect the advisory-lock session.
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query(sql);
+    await client.query(
+      `INSERT INTO schema_migrations(filename, checksum) VALUES ($1, $2)`,
+      [filename, sum],
+    );
+    await client.query('COMMIT');
+  } catch (e) {
+    await client.query('ROLLBACK').catch(() => undefined);
+    throw e;
+  } finally {
+    client.release();
+  }
+}
+
+export async function runMigrations(opts: {
+  baseline?: boolean;
+  statusOnly?: boolean;
+}): Promise<MigrationResult> {
+  const url = resolveDatabaseUrl();
+  const pool = new Pool({ connectionString: url });
+  const result: MigrationResult = {
+    applied: [],
+    baselined: [],
+    highestApplied: null,
+    pending: [],
+  };
+
+  // Use a single dedicated client for table creation, advisory lock,
+  // and history reads/writes. The advisory lock is session-scoped, so
+  // it must be acquired and released on the same connection.
+  const lockClient = await pool.connect();
+  let lockHeld = false;
+  try {
+    await ensureMigrationsTable(lockClient);
+
+    if (!opts.statusOnly) {
+      await lockClient.query('SELECT pg_advisory_lock($1)', [
+        MIGRATION_LOCK_KEY,
+      ]);
+      lockHeld = true;
+    }
+
+    const files = listMigrationFiles();
+    const applied = await getAppliedFilenames(lockClient);
+
+    if (opts.statusOnly) {
+      result.highestApplied = await highestAppliedVersion(lockClient);
+      result.pending = files.filter((f) => !applied.has(f));
+      log(
+        `Status: ${applied.size} applied, ${result.pending.length} pending. ` +
+          `Highest: ${result.highestApplied ?? '<none>'}.`,
+      );
+      if (result.pending.length > 0) {
+        log(`Pending: ${result.pending.join(', ')}`);
+      }
+      return result;
+    }
+
+    // Auto-baseline: if the migration table is empty but the database
+    // already has application tables, mark every existing migration as
+    // already applied. This handles the transition from `db:push` based
+    // schema management to the migration runner.
+    const isEmptyHistory = applied.size === 0;
+    const hasUsersTable = await tableExists(lockClient, 'users');
+    const shouldBaseline =
+      isEmptyHistory && (opts.baseline || hasUsersTable);
+    if (shouldBaseline) {
+      log(
+        `Empty schema_migrations + existing schema detected — baselining ${files.length} file(s) as already applied.`,
+      );
+      for (const f of files) {
+        const content = readFileSync(join(MIGRATIONS_DIR, f), 'utf8');
+        await recordMigration(lockClient, f, checksum(content));
+        result.baselined.push(f);
+        applied.add(f);
+      }
+    }
+
+    const pending = files.filter((f) => !applied.has(f));
+    if (pending.length === 0) {
+      log('No pending migrations.');
+    } else {
+      log(`Applying ${pending.length} pending migration(s)...`);
+      for (const f of pending) {
+        const content = readFileSync(join(MIGRATIONS_DIR, f), 'utf8');
+        const sum = checksum(content);
+        log(`  -> ${f}`);
+        try {
+          await applyMigration(pool, f, content, sum);
+        } catch (e) {
+          err(`FAILED applying ${f}: ${(e as Error).message}`);
+          throw e;
+        }
+        result.applied.push(f);
+      }
+      log(`Applied ${result.applied.length} migration(s).`);
+    }
+
+    result.highestApplied = await highestAppliedVersion(lockClient);
+    if (result.highestApplied) {
+      log(`Highest applied migration: ${result.highestApplied}`);
+    }
+    return result;
+  } finally {
+    if (lockHeld) {
+      await lockClient
+        .query('SELECT pg_advisory_unlock($1)', [MIGRATION_LOCK_KEY])
+        .catch(() => undefined);
+    }
+    lockClient.release();
+    await pool.end().catch(() => undefined);
+  }
+}
+
+const isMain = (() => {
+  try {
+    return import.meta.url === `file://${process.argv[1]}`;
+  } catch {
+    return false;
+  }
+})();
+
+if (isMain) {
+  const args = new Set(process.argv.slice(2));
+  runMigrations({
+    baseline: args.has('--baseline'),
+    statusOnly: args.has('--status'),
+  })
+    .then(() => process.exit(0))
+    .catch((e) => {
+      err(`Migration run failed: ${(e as Error).stack || (e as Error).message}`);
+      process.exit(1);
+    });
+}
