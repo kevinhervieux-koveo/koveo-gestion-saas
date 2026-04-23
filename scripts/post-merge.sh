@@ -28,6 +28,20 @@ END $$;
 
 ALTER TABLE bills
   ADD COLUMN IF NOT EXISTS source varchar(8);
+
+-- Shared, database-backed cache for AI-generated suggestions (Task #355).
+-- Created idempotently here so the table exists even if drizzle-kit push
+-- bails out on an unrelated pre-existing constraint issue.
+CREATE TABLE IF NOT EXISTS ai_suggestion_cache (
+  cache_key text PRIMARY KEY,
+  value json NOT NULL,
+  expires_at timestamp NOT NULL,
+  created_at timestamp NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS ai_suggestion_cache_expires_idx
+  ON ai_suggestion_cache(expires_at);
+CREATE INDEX IF NOT EXISTS ai_suggestion_cache_created_idx
+  ON ai_suggestion_cache(created_at);
 SQL
 fi
 

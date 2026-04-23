@@ -12,20 +12,22 @@ import multer from 'multer';
 import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import { aiService, ConsolidatedAIService } from '../services/consolidated-ai-service';
 import { secureFileStorage } from '../services/secure-file-storage';
+import {
+  clearAiSuggestionCache,
+  getCachedSuggestion,
+  setCachedSuggestion,
+} from '../services/ai-suggestion-cache';
 import { getUploadConfig, type UploadContext } from '@shared/config/upload-config';
 import { z } from 'zod';
 
-// In-memory TTL cache for tag suggestion results. Repeated uploads of the same
-// file (same hash + same candidate tag set + same context) within the TTL skip
-// the Gemini round-trip entirely, which makes the upload dialog feel instant
-// when users briefly toggle category or reopen the form.
+// Shared, database-backed TTL cache for tag suggestion results. Repeated
+// uploads of the same file (same hash + same candidate tag set + same
+// context) within the TTL skip the Gemini round-trip entirely, which makes
+// the upload dialog feel instant when users briefly toggle category or
+// reopen the form. The cache is shared across server instances so any user
+// benefits from a suggestion that anyone else already triggered, and entries
+// survive deploys.
 const TAG_SUGGESTION_CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
-const TAG_SUGGESTION_CACHE_MAX_ENTRIES = 200;
-interface TagSuggestionCacheEntry {
-  tagIds: string[];
-  expiresAt: number;
-}
-const tagSuggestionCache = new Map<string, TagSuggestionCacheEntry>();
 
 function buildTagSuggestionCacheKey(
   fileBuffer: Buffer,
@@ -52,34 +54,17 @@ function buildTagSuggestionCacheKey(
   return ['v3', fileHash, mimeType, tagFingerprint, category ?? '', scope ?? '', String(max)].join(':');
 }
 
-function getCachedTagSuggestion(key: string): string[] | null {
-  const entry = tagSuggestionCache.get(key);
-  if (!entry) return null;
-  if (entry.expiresAt <= Date.now()) {
-    tagSuggestionCache.delete(key);
-    return null;
-  }
-  // Refresh insertion order so the LRU-ish FIFO eviction keeps hot entries.
-  tagSuggestionCache.delete(key);
-  tagSuggestionCache.set(key, entry);
-  return entry.tagIds;
+async function getCachedTagSuggestion(key: string): Promise<string[] | null> {
+  return getCachedSuggestion<string[]>(key);
 }
 
-function setCachedTagSuggestion(key: string, tagIds: string[]): void {
-  tagSuggestionCache.set(key, {
-    tagIds,
-    expiresAt: Date.now() + TAG_SUGGESTION_CACHE_TTL_MS,
-  });
-  while (tagSuggestionCache.size > TAG_SUGGESTION_CACHE_MAX_ENTRIES) {
-    const oldestKey = tagSuggestionCache.keys().next().value;
-    if (oldestKey === undefined) break;
-    tagSuggestionCache.delete(oldestKey);
-  }
+async function setCachedTagSuggestion(key: string, tagIds: string[]): Promise<void> {
+  await setCachedSuggestion<string[]>(key, tagIds, TAG_SUGGESTION_CACHE_TTL_MS);
 }
 
 // Exposed for tests to reset state between cases.
-export function __clearTagSuggestionCacheForTests(): void {
-  tagSuggestionCache.clear();
+export async function __clearTagSuggestionCacheForTests(): Promise<void> {
+  await clearAiSuggestionCache();
 }
 
 // Rate limiting for AI analysis (expensive operation)
@@ -412,7 +397,7 @@ export function registerAiAnalysisRoutes(app: Express) {
           scope,
           max
         );
-        const cachedTagIds = getCachedTagSuggestion(cacheKey);
+        const cachedTagIds = await getCachedTagSuggestion(cacheKey);
         if (cachedTagIds) {
           return res.json({
             success: true,
@@ -436,7 +421,7 @@ export function registerAiAnalysisRoutes(app: Express) {
             max
           );
 
-          setCachedTagSuggestion(cacheKey, tagIds);
+          await setCachedTagSuggestion(cacheKey, tagIds);
 
           return res.json({
             success: true,

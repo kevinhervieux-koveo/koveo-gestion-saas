@@ -134,6 +134,28 @@ export type OauthClient = typeof oauthClients.$inferSelect;
 export type OauthAuthCode = typeof oauthAuthCodes.$inferSelect;
 export type OauthToken = typeof oauthTokens.$inferSelect;
 
+/**
+ * Shared cache for AI-generated suggestions (tag suggestions, etc.).
+ *
+ * Lives in the database so every server instance hits the same cache and a
+ * deploy / restart does not wipe it. Entries carry their own TTL via
+ * `expiresAt`; readers must check expiry and writers should opportunistically
+ * prune stale rows. The cache key is a deterministic fingerprint of the
+ * inputs (file hash + candidate set + context), so any user uploading the
+ * same file with the same options benefits from prior suggestions.
+ */
+export const aiSuggestionCache = pgTable('ai_suggestion_cache', {
+  cacheKey: text('cache_key').primaryKey(),
+  value: json('value').notNull(),
+  expiresAt: timestamp('expires_at').notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (table) => ({
+  expiresIdx: index('ai_suggestion_cache_expires_idx').on(table.expiresAt),
+  createdIdx: index('ai_suggestion_cache_created_idx').on(table.createdAt),
+}));
+
+export type AiSuggestionCacheEntry = typeof aiSuggestionCache.$inferSelect;
+
 // Insert schemas
 export const insertSslCertificateSchema = z.object({
   domain: z.string(),
