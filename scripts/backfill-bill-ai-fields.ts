@@ -19,6 +19,9 @@
  * Usage:
  *   npx tsx scripts/backfill-bill-ai-fields.ts            # apply changes
  *   npx tsx scripts/backfill-bill-ai-fields.ts --dry-run  # log only
+ *
+ * The picker helpers below are exported so they can be unit-tested in
+ * tests/unit/backfill-bill-ai-fields.test.ts without touching the DB.
  */
 
 import { drizzle } from 'drizzle-orm/neon-http';
@@ -28,18 +31,14 @@ import { bills } from '../shared/schemas/financial';
 import { buildings } from '../shared/schemas/property';
 
 const DRY_RUN = process.argv.includes('--dry-run');
-
-if (!process.env.DATABASE_URL) {
-  console.error('[backfill-bill-ai-fields] DATABASE_URL is not set. Aborting.');
-  process.exit(2);
-}
-
-const sql = neon(process.env.DATABASE_URL);
-const db = drizzle(sql);
+const IS_MAIN_MODULE =
+  typeof require !== 'undefined' && require.main === module;
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+export const VENDOR_INVOICE_NUMBER_MAX_LENGTH = 100;
+export const COSTS_TOTAL_TOLERANCE = 0.01;
 
-function asString(v: unknown): string | null {
+export function asString(v: unknown): string | null {
   if (typeof v === 'string') {
     const t = v.trim();
     return t.length === 0 ? null : t;
@@ -47,7 +46,7 @@ function asString(v: unknown): string | null {
   return null;
 }
 
-function pickIssueDate(analysis: Record<string, unknown>): string | null {
+export function pickIssueDate(analysis: Record<string, unknown>): string | null {
   const candidate = asString(analysis.issueDate) ?? asString(analysis.issue_date);
   if (!candidate || !DATE_RE.test(candidate)) return null;
   // Strict calendar validation: reject impossible dates like 2025-02-31
@@ -70,7 +69,7 @@ function pickIssueDate(analysis: Record<string, unknown>): string | null {
   return candidate;
 }
 
-function pickVendorInvoiceNumber(
+export function pickVendorInvoiceNumber(
   analysis: Record<string, unknown>,
 ): string | null {
   const candidate =
@@ -79,10 +78,10 @@ function pickVendorInvoiceNumber(
     asString(analysis.invoiceNumber) ??
     asString(analysis.vendorInvoiceNumber);
   if (!candidate) return null;
-  return candidate.slice(0, 100);
+  return candidate.slice(0, VENDOR_INVOICE_NUMBER_MAX_LENGTH);
 }
 
-function pickInstallmentCosts(
+export function pickInstallmentCosts(
   analysis: Record<string, unknown>,
   currentCosts: string[] | null,
   totalAmount: string,
@@ -105,7 +104,7 @@ function pickInstallmentCosts(
   const sum = amounts.reduce((acc, n) => acc + Number(n), 0);
   const total = Number(totalAmount);
   if (!Number.isFinite(total)) return null;
-  if (Math.abs(sum - total) > 0.01) return null;
+  if (Math.abs(sum - total) > COSTS_TOTAL_TOLERANCE) return null;
 
   return amounts;
 }
@@ -119,6 +118,14 @@ interface OrgStats {
 }
 
 async function main(): Promise<void> {
+  if (!process.env.DATABASE_URL) {
+    console.error('[backfill-bill-ai-fields] DATABASE_URL is not set. Aborting.');
+    process.exit(2);
+  }
+
+  const sql = neon(process.env.DATABASE_URL);
+  const db = drizzle(sql);
+
   console.log(
     `[backfill-bill-ai-fields] starting${DRY_RUN ? ' (dry-run)' : ''}`,
   );
@@ -263,9 +270,11 @@ async function main(): Promise<void> {
   );
 }
 
-main()
-  .then(() => process.exit(0))
-  .catch((err) => {
-    console.error('[backfill-bill-ai-fields] failed:', err);
-    process.exit(1);
-  });
+if (IS_MAIN_MODULE) {
+  main()
+    .then(() => process.exit(0))
+    .catch((err) => {
+      console.error('[backfill-bill-ai-fields] failed:', err);
+      process.exit(1);
+    });
+}
