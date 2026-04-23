@@ -60,6 +60,7 @@ import crypto from 'crypto';
 import fs from 'fs';
 import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import { secureFileStorage } from '../services/secure-file-storage';
+import { normalizeFilename } from '../utils/filenameNormalization';
 import { getUploadConfig, type UploadContext } from '@shared/config/upload-config';
 import { maintenanceSuggestionService } from '../services/maintenanceSuggestionService';
 import { maintenanceJobsScheduler } from '../jobs/maintenanceJobs';
@@ -2054,7 +2055,7 @@ export function registerMaintenanceRoutes(app: Express): void {
           elementId,
           documentType,
           filePath: storageResult.filePath!,
-          fileName: file.originalname,
+          fileName: normalizeFilename(file.originalname),
           fileSize: file.size,
           mimeType: file.mimetype,
           uploadedBy: user.id,

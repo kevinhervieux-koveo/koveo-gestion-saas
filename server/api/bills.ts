@@ -3586,7 +3586,7 @@ export function registerBillRoutes(app: Express) {
             // Create document record using upload result
             const documentData = {
               name: file.originalname,
-              fileName: file.originalname,
+              fileName: normalizeFilename(file.originalname),
               filePath: uploadResult.filePath!,
               fileSize: file.size,
               mimeType: file.mimetype,
