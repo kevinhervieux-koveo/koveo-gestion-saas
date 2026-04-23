@@ -393,6 +393,7 @@ export interface Translations {
   documentsDeleted: string;
   successfullyDeleted: string;
   failedToDelete: string;
+  failedToDeleteDocumentsCount: string;
   deselectAll: string;
   buildingIdRequired: string;
   residenceIdRequired: string;
@@ -2688,6 +2689,7 @@ export const translations: Record<Language, Translations> = {
     documentsDeleted: 'Documents deleted',
     successfullyDeleted: 'Successfully deleted',
     failedToDelete: 'Failed to delete',
+    failedToDeleteDocumentsCount: 'Failed to delete {count} document(s). Please try again.',
     deselectAll: 'Deselect all',
     buildingIdRequired: 'Building ID is required to view documents',
     residenceIdRequired: 'Residence ID is required to view documents',
@@ -4826,6 +4828,7 @@ export const translations: Record<Language, Translations> = {
     documentsDeleted: 'Documents supprimés',
     successfullyDeleted: 'Supprimé avec succès',
     failedToDelete: 'Échec de la suppression',
+    failedToDeleteDocumentsCount: 'Échec de la suppression de {count} document(s). Veuillez réessayer.',
     deselectAll: 'Tout désélectionner',
     buildingIdRequired: 'L\'ID du bâtiment est requis pour voir les documents',
     residenceIdRequired: 'L\'ID de la résidence est requis pour voir les documents',

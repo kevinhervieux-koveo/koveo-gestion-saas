@@ -727,9 +727,7 @@ export default function ModularDocumentPageWrapper({
       handleApiError(
         firstError,
         language,
-        language === 'fr'
-          ? `Échec de la suppression de ${failedDeletions.length} document(s). Veuillez réessayer.`
-          : `Failed to delete ${failedDeletions.length} document(s). Please try again.`
+        t('failedToDeleteDocumentsCount').replace('{count}', String(failedDeletions.length))
       );
     }
 
