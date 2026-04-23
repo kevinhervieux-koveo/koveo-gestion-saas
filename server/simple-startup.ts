@@ -36,10 +36,31 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: [
+        "'self'",
+        "'unsafe-inline'",
+        'https://replit.com',
+        'https://replit-cdn.com',
+        'https://*.replit.com',
+        'https://*.replit-cdn.com',
+      ],
+      scriptSrcElem: [
+        "'self'",
+        "'unsafe-inline'",
+        'https://replit.com',
+        'https://replit-cdn.com',
+        'https://*.replit.com',
+        'https://*.replit-cdn.com',
+      ],
       styleSrc: ["'self'", "'unsafe-inline'"],
       imgSrc: ["'self'", "data:", "https:"],
-      connectSrc: ["'self'"],
+      connectSrc: [
+        "'self'",
+        'https://replit.com',
+        'https://replit-cdn.com',
+        'https://*.replit.com',
+        'https://*.replit-cdn.com',
+      ],
     },
   },
   crossOriginEmbedderPolicy: false,
