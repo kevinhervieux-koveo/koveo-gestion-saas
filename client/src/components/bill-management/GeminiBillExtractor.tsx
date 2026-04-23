@@ -258,6 +258,26 @@ function convertBillResponseToFormData(aiData: any) {
     // Parse the amount safely (handles both string and number)
     const parsedAmount = parseAmount(aiData.totalAmount);
     
+    // Build customPayments. Prefer per-payment amounts when the model provides
+    // them (newer prompt) and fall back to dividing the total over the dates.
+    let customPayments: { amount: string; date: string; description: string }[] = [];
+    if (Array.isArray(aiData.customPayments) && aiData.customPayments.length > 0) {
+      customPayments = aiData.customPayments.map((p: any, index: number) => ({
+        amount: parseAmount(p.amount) || '0.00',
+        date: p.date || '',
+        description: p.description || `Payment ${index + 1}`,
+      })).filter(p => p.date);
+    } else if (Array.isArray(aiData.customPaymentDates) && aiData.customPaymentDates.length > 0) {
+      const numPayments = aiData.customPaymentDates.length;
+      const totalAmount = parseFloat(parsedAmount || '0');
+      const individualAmount = numPayments > 0 ? (totalAmount / numPayments).toFixed(2) : parsedAmount;
+      customPayments = aiData.customPaymentDates.map((date: string, index: number) => ({
+        amount: individualAmount || '0.00',
+        date,
+        description: `Payment ${index + 1}`,
+      }));
+    }
+
     // Map AI response to bill form fields with robust null checking
     const formData: any = {
       title,
@@ -272,32 +292,36 @@ function convertBillResponseToFormData(aiData: any) {
       description: aiData.description || (aiData.vendorName ? `Bill from ${aiData.vendorName}` : 'Extracted bill'),
       startDate: aiData.dueDate || aiData.startDate || '',
       schedulePayment: mapFrequencyToSchedule(aiData.frequency),
-      customPayments: aiData.customPaymentDates?.map((date: string, index: number) => {
-        // Calculate individual payment amount by dividing total by number of payments
-        const numPayments = aiData.customPaymentDates?.length || 1;
-        const totalAmount = parseFloat(parsedAmount || '0');
-        const individualAmount = numPayments > 0 ? (totalAmount / numPayments).toFixed(2) : parsedAmount;
-        return {
-          amount: individualAmount || '0.00',
-          date: date,
-          description: `Payment ${index + 1}`
-        };
-      }) || []
+      customPayments,
     };
-    
-    // Don't set endDate for installment plans - they should continue indefinitely
+
+    // Optional / pass-through fields populated by the newer extraction prompt.
     if (aiData.endDate && paymentTypeMapping.paymentStructure !== 'installment') {
       formData.endDate = aiData.endDate;
     }
-    
-    // Include issue date if available (new field from logical extraction)
-    if (aiData.issueDate) {
-      formData.issueDate = aiData.issueDate;
+    if (aiData.issueDate) formData.issueDate = aiData.issueDate;
+    // Vendor's invoice number comes back as either `billNumber` or
+    // `invoiceNumber` depending on which prompt branch fired. We never use this
+    // for our system-generated bill number; it goes into vendorInvoiceNumber.
+    const vendorInvoice = aiData.billNumber || aiData.invoiceNumber;
+    if (vendorInvoice) formData.vendorInvoiceNumber = vendorInvoice;
+
+    if (typeof aiData.yearInterval === 'number' && aiData.yearInterval >= 1) {
+      formData.yearInterval = aiData.yearInterval;
     }
-    
-    // Include bill number if available (new field from logical extraction)
-    if (aiData.billNumber) {
-      formData.billNumber = aiData.billNumber;
+    if (aiData.hasInitialPayment === true || aiData.initialPaymentAmount) {
+      formData.hasInitialPayment = true;
+      const initial = parseAmount(aiData.initialPaymentAmount);
+      if (initial) formData.initialPaymentAmount = initial;
+    }
+    const recurringAmount = parseAmount(aiData.recurringPaymentAmount);
+    if (recurringAmount) formData.recurringPaymentAmount = recurringAmount;
+    if (typeof aiData.recurringPaymentsEqual === 'boolean') {
+      formData.recurringPaymentsEqual = aiData.recurringPaymentsEqual;
+    } else if (customPayments.length > 1) {
+      // Detect unequal installments from the per-payment amounts.
+      const first = customPayments[0].amount;
+      formData.recurringPaymentsEqual = customPayments.every(p => p.amount === first);
     }
 
     return formData;

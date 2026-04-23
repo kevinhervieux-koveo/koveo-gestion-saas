@@ -128,6 +128,8 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
       startDate: bill?.startDate || '',
       endDate: bill?.endDate || '',
       status: bill?.status || 'draft',
+      issueDate: parsedPaymentData.issueDate,
+      vendorInvoiceNumber: parsedPaymentData.vendorInvoiceNumber,
     }
   });
 
@@ -405,6 +407,8 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
       form.setValue('initialPaymentAmount', newParsedData.initialPaymentAmount);
       form.setValue('recurringPaymentAmount', newParsedData.recurringPaymentAmount);
       form.setValue('customPayments', newParsedData.customPayments);
+      form.setValue('issueDate', newParsedData.issueDate);
+      form.setValue('vendorInvoiceNumber', newParsedData.vendorInvoiceNumber);
     }
   }, [bill?.id, form, isTemplate]);
 
@@ -461,69 +465,89 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
         overallConfidence: data.confidence
       };
       setAiExtractionData(extractionDataWithConfidence);
-      
+
       const formData = data.formData;
       const hasCustomPayments = Array.isArray(formData.customPayments) && formData.customPayments.length > 0;
-      
+
+      // Non-destructive setter: only overwrite empty / untouched fields so a
+      // user who has already typed a value isn't clobbered by a re-extraction.
+      const touched = form.formState.touchedFields as Record<string, unknown>;
+      const isEmpty = (v: unknown) =>
+        v === undefined || v === null || v === '' ||
+        (Array.isArray(v) && v.length === 0);
+      const setIfEmpty = (key: keyof BillFormData, value: any) => {
+        if (value === undefined || value === null) return;
+        if (touched[key as string]) return;
+        if (!isEmpty(form.getValues(key))) return;
+        form.setValue(key, value, { shouldDirty: true });
+      };
+
       // STEP 1: Set payment structure fields FIRST (in correct order)
-      // This ensures UI sections are visible before we populate them
-      
+      // This ensures UI sections are visible before we populate them.
+      // NOTE: paymentStructure / billType drive conditional UI rendering and
+      // also need to stay in sync with the legacy fields paymentType /
+      // paymentCount / recurrence (still required by the API/DB). We mirror
+      // those here so the form passes server-side validation.
+
       // 1a. Set billType first (unique vs recurrent)
-      if (formData.billType) {
-        form.setValue('billType', formData.billType as 'unique' | 'recurrent');
-      } else {
-        const inferredBillType = formData.recurrence ? 'recurrent' : 
-                                 (hasCustomPayments ? 'recurrent' : (formData.paymentType || 'unique'));
-        form.setValue('billType', inferredBillType);
-      }
-      
+      const inferredBillType: 'unique' | 'recurrent' = formData.billType
+        ? (formData.billType as 'unique' | 'recurrent')
+        : (formData.recurrence || hasCustomPayments ? 'recurrent' : (formData.paymentType || 'unique'));
+      setIfEmpty('billType', inferredBillType);
+      setIfEmpty('paymentType', inferredBillType);
+      setIfEmpty('recurrence', inferredBillType === 'recurrent');
+
       // 1b. Set paymentStructure (single vs installment)
-      if (formData.paymentStructure) {
-        form.setValue('paymentStructure', formData.paymentStructure as 'single' | 'installment');
-      } else {
-        const hasMultiplePayments = hasCustomPayments || formData.paymentCount === 'multiple';
-        form.setValue('paymentStructure', hasMultiplePayments ? 'installment' : 'single');
-      }
-      
-      // 1c. If custom payments detected, set schedule to custom and recurringPaymentsEqual to false
+      const inferredStructure: 'single' | 'installment' = formData.paymentStructure
+        ? (formData.paymentStructure as 'single' | 'installment')
+        : ((hasCustomPayments || formData.paymentCount === 'multiple') ? 'installment' : 'single');
+      setIfEmpty('paymentStructure', inferredStructure);
+      setIfEmpty('paymentCount', inferredStructure === 'installment' ? 'multiple' : '1');
+
+      // 1c. Schedule + year interval
       if (hasCustomPayments) {
-        form.setValue('schedulePayment', 'custom');
-        form.setValue('recurringPaymentsEqual', false);
+        setIfEmpty('schedulePayment', 'custom');
+        setIfEmpty('recurringPaymentsEqual', false);
+      } else if (formData.schedulePayment) {
+        setIfEmpty('schedulePayment', formData.schedulePayment);
       }
-      
+      if (typeof formData.yearInterval === 'number' && formData.yearInterval >= 1) {
+        setIfEmpty('yearInterval', formData.yearInterval);
+      }
+
       // STEP 2: Set basic form fields (vendor, title, dates, etc.)
-      // Don't set endDate for recurrent bills - they should auto-generate for next year
-      const isRecurrentBill = formData.billType === 'recurrent' || formData.recurrence || hasCustomPayments;
-      const basicFields = ['title', 'vendor', 'description', 'startDate', 'dueDate', 'billNumber'];
-      basicFields.forEach(key => {
-        const value = formData[key];
-        if (value && typeof value === 'string') {
-          form.setValue(key as keyof BillFormData, value);
-        }
-      });
-      
-      // Only set endDate for non-recurrent bills (unique/one-time bills)
-      if (formData.endDate && !isRecurrentBill) {
-        form.setValue('endDate', formData.endDate);
+      const isRecurrentBill = inferredBillType === 'recurrent' || hasCustomPayments;
+      setIfEmpty('title', formData.title);
+      setIfEmpty('vendor', formData.vendor);
+      setIfEmpty('description', formData.description);
+      setIfEmpty('startDate', formData.startDate);
+      setIfEmpty('issueDate', formData.issueDate);
+      setIfEmpty('vendorInvoiceNumber', formData.vendorInvoiceNumber || formData.billNumber);
+      if (!isRecurrentBill) {
+        setIfEmpty('endDate', formData.endDate);
       }
-      
-      // Set category
-      if (formData.category) {
-        form.setValue('category', formData.category as any);
-      }
-      
+      setIfEmpty('category', formData.category);
+
       // STEP 3: Set payment amount fields based on payment structure
-      if (formData.singlePaymentAmount && form.getValues('paymentStructure') === 'single') {
-        form.setValue('singlePaymentAmount', formData.singlePaymentAmount);
+      if (inferredStructure === 'single') {
+        setIfEmpty('singlePaymentAmount', formData.singlePaymentAmount || formData.totalAmount);
+      } else {
+        // Installment: support unequal recurring (initial + recurring) or per-payment custom amounts
+        if (formData.hasInitialPayment) {
+          setIfEmpty('hasInitialPayment', true);
+          setIfEmpty('initialPaymentAmount', formData.initialPaymentAmount);
+        }
+        setIfEmpty('recurringPaymentAmount', formData.recurringPaymentAmount);
+        if (typeof formData.recurringPaymentsEqual === 'boolean') {
+          setIfEmpty('recurringPaymentsEqual', formData.recurringPaymentsEqual);
+        }
       }
-      if (formData.totalAmount) {
-        form.setValue('totalAmount', formData.totalAmount);
-      }
-      
+      setIfEmpty('totalAmount', formData.totalAmount);
+
       // STEP 4: Set custom payments LAST (after payment structure is configured)
-      if (hasCustomPayments) {
+      if (hasCustomPayments && isEmpty(form.getValues('customPayments')) && !touched['customPayments']) {
         setCustomPayments(formData.customPayments);
-        form.setValue('customPayments', formData.customPayments);
+        form.setValue('customPayments', formData.customPayments, { shouldDirty: true });
       }
 
       // Build toast description with confidence and notes
@@ -572,79 +596,110 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
       setAiExtractionData(analysisData.extractedData);
       setIsExtracting(false);
       
-      // Auto-populate form with extracted data
+      // Auto-populate form with extracted data (non-destructive)
       if (analysisData.extractedData) {
         const data = analysisData.extractedData;
-        
+
         // Detect custom payment dates (indicates installment plan)
         const hasCustomPaymentDates = Array.isArray(data.customPaymentDates) && data.customPaymentDates.length > 0;
         const hasCustomPayments = Array.isArray(data.customPayments) && data.customPayments.length > 0;
         const isCustomFrequency = data.frequency === 'custom';
         const isInstallmentPlan = hasCustomPaymentDates || hasCustomPayments || isCustomFrequency;
-        
-        // STEP 1: Set payment structure fields FIRST (same logic as handleAiExtractionComplete)
-        // This ensures UI sections are visible before we populate them
-        
-        // 1a. Set billType (unique vs recurrent)
+
+        const touched = form.formState.touchedFields as Record<string, unknown>;
+        const isEmpty = (v: unknown) =>
+          v === undefined || v === null || v === '' ||
+          (Array.isArray(v) && v.length === 0);
+        const setIfEmpty = (key: keyof BillFormData, value: any) => {
+          if (value === undefined || value === null) return;
+          if (touched[key as string]) return;
+          if (!isEmpty(form.getValues(key))) return;
+          form.setValue(key, value, { shouldDirty: true });
+        };
+
+        // STEP 1: Payment structure (mirror legacy paymentType / paymentCount /
+        // recurrence so server-side validation continues to pass).
+        const inferredBillType: 'unique' | 'recurrent' = isInstallmentPlan
+          ? 'recurrent'
+          : (data.billType || (data.paymentType === 'recurring' ? 'recurrent' : 'unique'));
+        setIfEmpty('billType', inferredBillType);
+        setIfEmpty('paymentType', inferredBillType);
+        setIfEmpty('recurrence', inferredBillType === 'recurrent');
+
+        const inferredStructure: 'single' | 'installment' = isInstallmentPlan
+          ? 'installment'
+          : (data.paymentStructure || 'single');
+        setIfEmpty('paymentStructure', inferredStructure);
+        setIfEmpty('paymentCount', inferredStructure === 'installment' ? 'multiple' : '1');
+
         if (isInstallmentPlan) {
-          form.setValue('billType', 'recurrent');
-        } else if (data.billType) {
-          form.setValue('billType', data.billType);
-        } else {
-          form.setValue('billType', 'unique');
+          setIfEmpty('schedulePayment', 'custom');
+          setIfEmpty('recurringPaymentsEqual', false);
+        } else if (data.frequency) {
+          const freq = String(data.frequency).toLowerCase();
+          const sched = freq.includes('week') ? 'weekly'
+            : freq.includes('quarter') ? 'quarterly'
+            : (freq.includes('year') || freq.includes('annual')) ? 'yearly'
+            : freq.includes('month') ? 'monthly'
+            : undefined;
+          if (sched) setIfEmpty('schedulePayment', sched);
         }
-        
-        // 1b. Set paymentStructure (single vs installment)
-        if (isInstallmentPlan) {
-          form.setValue('paymentStructure', 'installment');
-        } else if (data.paymentStructure) {
-          form.setValue('paymentStructure', data.paymentStructure);
-        } else {
-          form.setValue('paymentStructure', 'single');
+        if (typeof data.yearInterval === 'number' && data.yearInterval >= 1) {
+          setIfEmpty('yearInterval', data.yearInterval);
         }
-        
-        // 1c. If custom payments detected, set schedule to custom and recurringPaymentsEqual to false
-        if (isInstallmentPlan) {
-          form.setValue('schedulePayment', 'custom');
-          form.setValue('recurringPaymentsEqual', false);
-        }
-        
-        // STEP 2: Set basic form fields
-        if (data.title) form.setValue('title', data.title);
-        if (data.vendor) form.setValue('vendor', data.vendor);
-        
-        // Handle amount - check both 'amount' and 'totalAmount' field names
-        const extractedAmount = data.amount || data.totalAmount;
-        if (extractedAmount) {
-          form.setValue('totalAmount', extractedAmount.toString());
+
+        // STEP 2: Basic fields
+        setIfEmpty('title', data.title);
+        setIfEmpty('vendor', data.vendor || data.vendorName);
+        setIfEmpty('description', data.description);
+        setIfEmpty('startDate', data.date || data.startDate || data.dueDate);
+        setIfEmpty('issueDate', data.issueDate);
+        setIfEmpty('vendorInvoiceNumber', data.vendorInvoiceNumber || data.billNumber || data.invoiceNumber);
+        setIfEmpty('category', data.category);
+
+        // STEP 3: Amount fields
+        const extractedAmount = data.amount ?? data.totalAmount;
+        if (extractedAmount !== undefined && extractedAmount !== null) {
+          setIfEmpty('totalAmount', extractedAmount.toString());
           if (!isInstallmentPlan) {
-            form.setValue('singlePaymentAmount', extractedAmount.toString());
+            setIfEmpty('singlePaymentAmount', extractedAmount.toString());
           }
         }
-        
-        if (data.category) form.setValue('category', data.category);
-        if (data.date) form.setValue('startDate', data.date);
-        if (data.description) form.setValue('description', data.description);
-        
-        // STEP 3: Set custom payments if detected
-        if (hasCustomPaymentDates) {
-          // Convert customPaymentDates to customPayments format - check both field names
-          const amountValue = data.amount || data.totalAmount;
-          const totalAmount = parseFloat(amountValue?.toString() || '0');
-          const numPayments = data.customPaymentDates.length;
-          const individualAmount = numPayments > 0 ? (totalAmount / numPayments).toFixed(2) : '0.00';
-          
-          const customPaymentsData = data.customPaymentDates.map((date: string, index: number) => ({
-            amount: individualAmount,
-            date: date,
-            description: `Payment ${index + 1}`
-          }));
-          
+        if (isInstallmentPlan) {
+          if (data.hasInitialPayment) {
+            setIfEmpty('hasInitialPayment', true);
+            if (data.initialPaymentAmount !== undefined && data.initialPaymentAmount !== null) {
+              setIfEmpty('initialPaymentAmount', data.initialPaymentAmount.toString());
+            }
+          }
+          if (data.recurringPaymentAmount !== undefined && data.recurringPaymentAmount !== null) {
+            setIfEmpty('recurringPaymentAmount', data.recurringPaymentAmount.toString());
+          }
+        }
+
+        // STEP 4: Custom payments
+        if ((hasCustomPaymentDates || hasCustomPayments) &&
+            isEmpty(form.getValues('customPayments')) && !touched['customPayments']) {
+          let customPaymentsData: { amount: string; date: string; description: string }[] = [];
+          if (hasCustomPayments) {
+            // Prefer per-payment amounts the model returned
+            customPaymentsData = data.customPayments.map((p: any, i: number) => ({
+              amount: p.amount !== undefined && p.amount !== null ? p.amount.toString() : '0.00',
+              date: p.date,
+              description: p.description || `Payment ${i + 1}`,
+            }));
+          } else {
+            const totalAmount = parseFloat((extractedAmount ?? '0').toString());
+            const numPayments = data.customPaymentDates.length;
+            const individualAmount = numPayments > 0 ? (totalAmount / numPayments).toFixed(2) : '0.00';
+            customPaymentsData = data.customPaymentDates.map((date: string, i: number) => ({
+              amount: individualAmount,
+              date,
+              description: `Payment ${i + 1}`,
+            }));
+          }
           setCustomPayments(customPaymentsData);
-          form.setValue('customPayments', customPaymentsData);
-        } else if (hasCustomPayments) {
-          setCustomPayments(data.customPayments);
-          form.setValue('customPayments', data.customPayments);
+          form.setValue('customPayments', customPaymentsData, { shouldDirty: true });
         }
       }
       
@@ -1385,6 +1440,46 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
                   </FormLabel>
                   <FormControl>
                     <Input placeholder="e.g., Hydro Quebec" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Vendor invoice number (from the document, not the system bill #) */}
+            <FormField
+              control={form.control}
+              name="vendorInvoiceNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('bills.vendorInvoiceNumber') || 'Bill / Invoice Number'}</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="e.g., INV-12345"
+                      {...field}
+                      value={field.value ?? ''}
+                      data-testid="input-vendor-invoice-number"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Issue date (date printed on the document) */}
+            <FormField
+              control={form.control}
+              name="issueDate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('bills.issueDate') || 'Issue Date'}</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="date"
+                      {...field}
+                      value={field.value ?? ''}
+                      data-testid="input-issue-date"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

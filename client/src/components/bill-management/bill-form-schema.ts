@@ -30,6 +30,15 @@ export const billFormSchema = z.object({
   description: z.string().max(1000, 'Description must be less than 1000 characters').optional(),
   category: z.enum(BILL_CATEGORIES),
   vendor: z.string().max(150, 'Vendor name must be less than 150 characters').optional(),
+  // Vendor's own invoice/bill number printed on the document (distinct from
+  // the system-generated `bill_number` minted server-side).
+  vendorInvoiceNumber: z.string().max(100, 'Bill number must be less than 100 characters').optional(),
+  // Date the vendor issued the document (separate from `startDate`, which is
+  // when our payment series starts).
+  issueDate: z.string().optional().refine((val) => {
+    if (!val) return true;
+    return !isNaN(Date.parse(val));
+  }, 'Issue date must be a valid date'),
   billType: z.enum(['unique', 'recurrent']),
   paymentStructure: z.enum(['single', 'installment']),
   paymentCount: z.enum(['1', 'multiple']).optional(),
@@ -173,6 +182,8 @@ export function parseBillPaymentData(bill: Bill | null | undefined) {
       initialPaymentAmount: '',
       recurringPaymentAmount: '',
       customPayments: [] as CustomPayment[],
+      issueDate: '',
+      vendorInvoiceNumber: '',
     };
   }
 
@@ -276,5 +287,7 @@ export function parseBillPaymentData(bill: Bill | null | undefined) {
     recurringPaymentAmount,
     customPayments,
     calculatedTotalFromCustomPayments,
+    issueDate: bill.issueDate ? String(bill.issueDate).split('T')[0] : '',
+    vendorInvoiceNumber: bill.vendorInvoiceNumber || '',
   };
 }

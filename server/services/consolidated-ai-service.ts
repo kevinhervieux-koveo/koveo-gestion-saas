@@ -57,6 +57,12 @@ interface BillExtractionResult {
   startDate: string | null;
   endDate: string | null;
   customPaymentDates: string[] | null;
+  customPayments: { amount: number; date: string; description?: string }[] | null;
+  hasInitialPayment: boolean | null;
+  initialPaymentAmount: number | null;
+  recurringPaymentAmount: number | null;
+  recurringPaymentsEqual: boolean | null;
+  yearInterval: number | null;
   category: string;
   fieldConfidence: {
     vendorName: number;
@@ -739,6 +745,12 @@ Return a single JSON object with this exact structure:
   "startDate": "YYYY-MM-DD or null",
   "endDate": "YYYY-MM-DD or null",
   "customPaymentDates": ["YYYY-MM-DD", ...] or null,
+  "customPayments": [{"amount": 123.45, "date": "YYYY-MM-DD", "description": "optional label"}, ...] or null,
+  "hasInitialPayment": true | false,
+  "initialPaymentAmount": 123.45 or null,
+  "recurringPaymentAmount": 123.45 or null,
+  "recurringPaymentsEqual": true | false,
+  "yearInterval": 1,
   "category": "category_name",
   "fieldConfidence": {
     "vendorName": 0.0-1.0,
@@ -750,6 +762,12 @@ Return a single JSON object with this exact structure:
   },
   "extractionNotes": ["Any notes about extraction quality or issues"]
 }
+
+INSTALLMENT AMOUNT RULES:
+- When extracting customPaymentDates, ALSO populate customPayments with one entry per scheduled payment, including the per-payment amount printed on the document. Do NOT just divide the total — use the actual amount printed for each installment when visible.
+- If the document shows a larger first payment / down payment followed by equal recurring payments, set hasInitialPayment=true, initialPaymentAmount=<first amount>, and recurringPaymentAmount=<the smaller recurring amount>.
+- Set recurringPaymentsEqual=false when per-installment amounts differ.
+- For yearly bills that repeat every N years (e.g. multi-year permits, biennial inspections), set yearInterval to that integer (default 1).
 
 IMPORTANT: Return ONLY the JSON object, no markdown formatting or explanation.`,
         
@@ -859,6 +877,12 @@ Retournez un seul objet JSON avec cette structure exacte:
   "startDate": "YYYY-MM-DD ou null",
   "endDate": "YYYY-MM-DD ou null",
   "customPaymentDates": ["YYYY-MM-DD", ...] ou null,
+  "customPayments": [{"amount": 123.45, "date": "YYYY-MM-DD", "description": "étiquette optionnelle"}, ...] ou null,
+  "hasInitialPayment": true | false,
+  "initialPaymentAmount": 123.45 ou null,
+  "recurringPaymentAmount": 123.45 ou null,
+  "recurringPaymentsEqual": true | false,
+  "yearInterval": 1,
   "category": "nom_catégorie",
   "fieldConfidence": {
     "vendorName": 0.0-1.0,
@@ -870,6 +894,12 @@ Retournez un seul objet JSON avec cette structure exacte:
   },
   "extractionNotes": ["Notes sur la qualité d'extraction ou problèmes"]
 }
+
+RÈGLES DES MONTANTS DE VERSEMENTS:
+- Lorsque vous extrayez customPaymentDates, REMPLISSEZ AUSSI customPayments avec une entrée par versement, en incluant le montant exact imprimé pour chaque date. NE divisez PAS simplement le total — utilisez le montant réellement imprimé pour chaque versement quand il est visible.
+- Si le document montre un premier versement / acompte plus important suivi de paiements récurrents égaux, mettez hasInitialPayment=true, initialPaymentAmount=<premier montant>, et recurringPaymentAmount=<le montant récurrent>.
+- Mettez recurringPaymentsEqual=false quand les montants des versements diffèrent.
+- Pour les factures annuelles qui se répètent tous les N ans (ex: permis pluriannuels, inspections bisannuelles), mettez yearInterval à cet entier (défaut 1).
 
 IMPORTANT: Retournez UNIQUEMENT l'objet JSON, sans formatage markdown ni explication.`
       };
@@ -991,6 +1021,26 @@ IMPORTANT: Retournez UNIQUEMENT l'objet JSON, sans formatage markdown ni explica
         customPaymentDates: Array.isArray(extractedData.customPaymentDates) 
           ? extractedData.customPaymentDates.map(validateDate).filter((d): d is string => d !== null) 
           : null,
+        customPayments: Array.isArray(extractedData.customPayments)
+          ? extractedData.customPayments
+              .map((p: any) => {
+                const amt = validateAmount(p?.amount);
+                const date = validateDate(p?.date);
+                if (amt === null || !date) return null;
+                return {
+                  amount: amt,
+                  date,
+                  description: typeof p?.description === 'string' ? p.description.substring(0, 200) : undefined,
+                };
+              })
+              .filter((p: any): p is { amount: number; date: string; description?: string } => p !== null)
+          : null,
+        hasInitialPayment: typeof extractedData.hasInitialPayment === 'boolean' ? extractedData.hasInitialPayment : null,
+        initialPaymentAmount: validateAmount(extractedData.initialPaymentAmount),
+        recurringPaymentAmount: validateAmount(extractedData.recurringPaymentAmount),
+        recurringPaymentsEqual: typeof extractedData.recurringPaymentsEqual === 'boolean' ? extractedData.recurringPaymentsEqual : null,
+        yearInterval: (typeof extractedData.yearInterval === 'number' && extractedData.yearInterval >= 1 && extractedData.yearInterval <= 99)
+          ? Math.floor(extractedData.yearInterval) : null,
         category: validCategories.includes(extractedData.category) ? extractedData.category : 'other',
         fieldConfidence,
         overallConfidence: Math.round(overallConfidence * 100) / 100,

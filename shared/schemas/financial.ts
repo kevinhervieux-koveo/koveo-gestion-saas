@@ -151,6 +151,10 @@ export const bills = pgTable('bills', {
    */
   paymentType: paymentTypeEnum('payment_type').notNull(),
   
+  // AI-extracted vendor-facing identifiers (populated from uploaded bill documents).
+  // Distinct from `billNumber` above, which is the system-generated, organization-unique number.
+  issueDate: date('issue_date'), // Date the vendor issued / dated the invoice
+  vendorInvoiceNumber: varchar('vendor_invoice_number', { length: 100 }), // Vendor's own invoice/bill number on the document
   schedulePayment: schedulePaymentEnum('schedule_payment'), // Only for installment payments
   yearInterval: integer('year_interval').notNull().default(1), // For recurrent bills: how many years between occurrences (1-99)
   scheduleCustom: date('schedule_custom').array(), // Custom dates for custom schedules

@@ -230,6 +230,8 @@ export interface Translations {
   searchDemands: string;
   title: string;
   vendor: string;
+  vendorInvoiceNumber: string;
+  issueDate: string;
   category: string;
   selectCategory: string;
   billTitle: string;
@@ -1526,6 +1528,8 @@ export interface Translations {
   'bills.autoSaving': string;
   'bills.title': string;
   'bills.vendor': string;
+  'bills.vendorInvoiceNumber': string;
+  'bills.issueDate': string;
   'bills.category': string;
   'bills.status': string;
   'bills.paymentType': string;
@@ -2432,6 +2436,8 @@ export const translations: Record<Language, Translations> = {
     searchDemands: 'Search demands...',
     title: 'Title',
     vendor: 'Vendor',
+    vendorInvoiceNumber: 'Bill / Invoice Number',
+    issueDate: 'Issue Date',
     category: 'Category',
     selectCategory: 'Select category',
     billTitle: 'Bill Title',
@@ -2523,6 +2529,8 @@ export const translations: Record<Language, Translations> = {
     'bills.autoSaving': 'Auto-saving...',
     'bills.title': 'Title',
     'bills.vendor': 'Vendor',
+    'bills.vendorInvoiceNumber': 'Bill / Invoice Number',
+    'bills.issueDate': 'Issue Date',
     'bills.category': 'Category',
     'bills.status': 'Status',
     'bills.paymentType': 'Payment Type *',
@@ -4575,6 +4583,8 @@ export const translations: Record<Language, Translations> = {
     searchDemands: 'Rechercher des demandes...',
     title: 'Titre',
     vendor: 'Fournisseur',
+    vendorInvoiceNumber: 'Numéro de facture',
+    issueDate: "Date d'émission",
     category: 'Catégorie',
     selectCategory: 'Sélectionner la catégorie',
     billTitle: 'Titre de la facture',
@@ -4662,6 +4672,8 @@ export const translations: Record<Language, Translations> = {
     'bills.autoSaving': 'Sauvegarde automatique...',
     'bills.title': 'Titre',
     'bills.vendor': 'Fournisseur',
+    'bills.vendorInvoiceNumber': 'Numéro de facture',
+    'bills.issueDate': "Date d'émission",
     'bills.category': 'Catégorie',
     'bills.status': 'Statut',
     'bills.paymentType': 'Type de paiement *',
