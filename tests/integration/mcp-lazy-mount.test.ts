@@ -1,8 +1,8 @@
 /**
  * @jest-environment node
  *
- * Task #470 — End-to-end smoke test that locks the lazy-mount contract for
- * the MCP server in `server/routes.ts`.
+ * Task #470 + Task #475 — End-to-end smoke test that locks the lazy-mount
+ * contract for the MCP server in `server/routes.ts`.
  *
  * Task #454 wired the MCP / OAuth-issuer prefixes through the lazy-mount
  * trampoline so the heavy MCP module graph (OAuth provider singleton,
@@ -13,25 +13,43 @@
  * refactor that re-introduces an eager `await import('./mcp/index')`
  * inside `server/routes.ts` and silently regresses production boot cost.
  *
- * This test exercises the REAL `registerRoutes(app)` wiring and asserts:
+ * `server/routes.ts` lazy-mounts the MCP module from TWO different
+ * blocks that share the SAME memoized `loadMcpModule` closure:
  *
- *   1. After `registerRoutes` returns, the `server/mcp/index` module has
- *      NOT been pulled into Node's module cache (proves no eager import
- *      at the top of routes.ts and no eager call to the lazy loader
- *      inside `registerRoutes`).
- *   2. A request to a non-MCP path does not trigger the load either
- *      (proves the lazy-mount predicate isn't accidentally matching
- *      everything).
- *   3. A request to a real MCP/OAuth-issuer prefix — here
- *      `/.well-known/oauth-authorization-server` — DOES trigger the
- *      load (proves the trampoline is actually wired to that prefix).
+ *   - Pre-session: the MCP transport endpoints + the SDK's OAuth-issuer
+ *     routes (`/mcp`, `/.well-known/oauth-authorization-server`, ...).
+ *   - Post-session: the user-facing OAuth consent UI (`/oauth/consent`),
+ *     mounted AFTER `sessionConfig` because it reads the Koveo session.
+ *
+ * This test exercises the REAL `registerRoutes(app)` wiring twice — one
+ * `it()` per prefix block — to lock both lazy mounts independently. A
+ * future refactor that hoists either loader out of its `lazyMount`
+ * closure, or replaces the dynamic import with a static
+ * `import './mcp/...'`, fails one or both `it()` blocks.
+ *
+ * Two independent load signals are used because they suit different
+ * scenarios:
+ *
+ *   - Pre-session scenario: snapshot Node's `require.cache` for
+ *     `server/mcp/index`. This works because the test runs FIRST in
+ *     declaration order, so the cache is clean and the dynamic
+ *     `import('./mcp/index')` is what populates it.
+ *
+ *   - Post-session (consent UI) scenario: count the `[lazy-mount]
+ *     route module loaded` log line that `server/utils/lazy-mount.ts`
+ *     emits whenever a lazy loader resolves SUCCESSFULLY. The
+ *     `require.cache` signal would be unreliable here because the
+ *     pre-session scenario has already pulled `server/mcp/index` in
+ *     and Jest's module registry intercepts `delete require.cache[...]`.
+ *     The consent registrar (`registerOAuthConsentRoutes`) doesn't call
+ *     `seedMcpData`, so the log line is reliably emitted on success.
  *
  * The test bypasses the `__mocks__/server/routes.ts` jest moduleNameMapper
  * by `require()`-ing the real source via its absolute path, which doesn't
  * match any of the mapper's anchored patterns.
  */
 
-import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
+import { describe, it, expect, beforeAll, afterAll, jest } from '@jest/globals';
 import path from 'path';
 import express, { type Express } from 'express';
 import http from 'http';
@@ -108,6 +126,57 @@ function get(url: string): Promise<{ status: number }> {
   });
 }
 
+/**
+ * Build a fresh Express app wired with the REAL `registerRoutes`. The
+ * `__mocks__/server/routes.ts` moduleNameMapper is bypassed by
+ * importing the real source via its absolute on-disk path — none of the
+ * mapper's anchored patterns (`^../../server/routes$`, etc.) match an
+ * absolute path with a `.ts` suffix.
+ */
+async function buildAppWithRealRoutes(): Promise<Express> {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const realRoutes = require(ROUTES_ABS_PATH) as {
+    registerRoutes: (app: Express) => Promise<unknown>;
+  };
+
+  const app = express();
+  app.use(express.json());
+  await realRoutes.registerRoutes(app);
+
+  // Yield to flush any microtasks the registrars scheduled.
+  await new Promise((r) => setImmediate(r));
+
+  return app;
+}
+
+/**
+ * Spy on `console.log` and count the `[lazy-mount] route module loaded`
+ * lines that `server/utils/lazy-mount.ts` writes whenever a `lazyMount`
+ * loader resolves successfully. Returns a counter handle that the
+ * caller can read and restore.
+ */
+function installLazyMountLoadCounter(): {
+  getCount: () => number;
+  restore: () => void;
+} {
+  let count = 0;
+  const spy = jest
+    .spyOn(console, 'log')
+    .mockImplementation((...args: unknown[]) => {
+      const first = args[0];
+      if (
+        typeof first === 'string' &&
+        first.includes('[lazy-mount] route module loaded')
+      ) {
+        count += 1;
+      }
+    });
+  return {
+    getCount: () => count,
+    restore: () => spy.mockRestore(),
+  };
+}
+
 describe('MCP server stays unloaded until a real MCP request arrives', () => {
   const previousEnv: Record<string, string | undefined> = {};
 
@@ -135,10 +204,11 @@ describe('MCP server stays unloaded until a real MCP request arrives', () => {
   });
 
   it(
-    'only imports server/mcp/index after the first matching request',
+    'a pre-session MCP/OAuth-issuer prefix triggers the load on its own',
     async () => {
-      // Defensive: make sure no earlier suite in the same worker pulled in
-      // the MCP module graph. If it did, evict it so we measure THIS run.
+      // Defensive: make sure no earlier suite in the same worker pulled
+      // in the MCP module graph. If it did, evict it so we measure THIS
+      // run.
       for (const key of Object.keys(require.cache)) {
         const norm = key.replace(/\\/g, '/');
         if (
@@ -150,26 +220,12 @@ describe('MCP server stays unloaded until a real MCP request arrives', () => {
       }
       expect(isMcpIndexLoaded()).toBe(false);
 
-      // Bypass the `__mocks__/server/routes.ts` moduleNameMapper by
-      // requiring the real source via its absolute on-disk path — none of
-      // the mapper's anchored patterns (`^../../server/routes$`, etc.)
-      // match an absolute path with a `.ts` suffix.
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const realRoutes = require(ROUTES_ABS_PATH) as {
-        registerRoutes: (app: Express) => Promise<unknown>;
-      };
-
-      const app = express();
-      app.use(express.json());
-      await realRoutes.registerRoutes(app);
-
-      // Yield to flush any microtasks the registrars scheduled.
-      await new Promise((r) => setImmediate(r));
+      const app = await buildAppWithRealRoutes();
 
       // Contract #1: registerRoutes itself must NOT have triggered the
       // MCP module load. If a future refactor adds an eager
-      // `await import('./mcp/index')` (or hoists `loadMcpModule()` out of
-      // its lazy closure) this assertion fails.
+      // `await import('./mcp/index')` (or hoists `loadMcpModule()` out
+      // of either lazy closure) this assertion fails.
       expect(isMcpIndexLoaded()).toBe(false);
 
       const server = await listen(app);
@@ -180,13 +236,72 @@ describe('MCP server stays unloaded until a real MCP request arrives', () => {
         await get(`${server.url}/api/__definitely_not_a_real_endpoint__`);
         expect(isMcpIndexLoaded()).toBe(false);
 
-        // Contract #3: hitting a real MCP-prefix path triggers the load.
-        // `/.well-known/oauth-authorization-server` is one of the prefixes
-        // wired up in the pre-session lazyMount block in routes.ts.
+        // Contract #3: hitting a real pre-session MCP-prefix path
+        // triggers the load. `/.well-known/oauth-authorization-server`
+        // is one of the prefixes wired up in the pre-session lazyMount
+        // block in routes.ts.
         await get(`${server.url}/.well-known/oauth-authorization-server`);
         expect(isMcpIndexLoaded()).toBe(true);
       } finally {
         await server.close();
+      }
+    },
+    30_000,
+  );
+
+  it(
+    'a /oauth/consent request triggers the load on its own (post-session lazyMount stays lazy)',
+    async () => {
+      // Task #475 regression guard: prove the post-session
+      // `lazyMount(app, '/oauth/consent', ...)` loader fires on its
+      // own when the user-agent hits the consent UI — independent of
+      // the pre-session block. We can't reuse the `require.cache`
+      // signal here because the previous `it()` block has already
+      // pulled `server/mcp/index` into the cache and Jest's runtime
+      // intercepts `delete require.cache[...]` so we can't reset it.
+      //
+      // Instead, count the `[lazy-mount] route module loaded` log
+      // line that `lazy-mount.ts` writes on a successful loader
+      // resolve. `registerOAuthConsentRoutes` doesn't call
+      // `seedMcpData`, so the log line is reliably emitted on the
+      // happy path. A FRESH `registerRoutes(app)` call gives the
+      // post-session `lazyMount` a brand-new closure with `loaded =
+      // false`, so the loader has to fire again on the consent hit
+      // — and the spy attributes that fire to THIS request.
+      //
+      // If a future refactor hoists the consent-UI loader out of its
+      // `lazyMount(app, '/oauth/consent', ...)` closure, splits the
+      // consent UI onto its own non-lazy `import './mcp/...'`, or
+      // somehow couples the consent load to a pre-session prefix
+      // hit, the counter expectation flips and this fails.
+      const app = await buildAppWithRealRoutes();
+
+      // Install the counter AFTER routes are registered so the
+      // pre-session lazyMount's earlier load (from the previous
+      // `it()` block, if any) is excluded from the count, and the
+      // counter starts at zero relative to THIS scenario's request.
+      const counter = installLazyMountLoadCounter();
+      try {
+        // Contract: even after `registerRoutes` returns, no new
+        // lazy-mount load has happened just by virtue of this app
+        // being built — the post-session `lazyMount` must not have
+        // eagerly resolved its loader.
+        expect(counter.getCount()).toBe(0);
+
+        const server = await listen(app);
+        try {
+          // The consent UI registers `/oauth/consent/...` routes
+          // (start, approve, deny). We don't care about the response
+          // status — even a 4xx proves the trampoline ran the loader
+          // and registered the consent router. We assert on the
+          // load-signal side effect, not on response body.
+          await get(`${server.url}/oauth/consent/start`);
+          expect(counter.getCount()).toBe(1);
+        } finally {
+          await server.close();
+        }
+      } finally {
+        counter.restore();
       }
     },
     30_000,
