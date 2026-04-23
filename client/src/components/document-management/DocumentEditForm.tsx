@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { z } from 'zod';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCreateUpdateMutation } from '@/lib/common-hooks';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -23,8 +23,9 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import type { Document } from '@shared/schema';
-import { TagPicker } from '@/components/document-tags/TagPicker';
+import { TagPicker, type DocumentTag } from '@/components/document-tags/TagPicker';
 import { Label } from '@/components/ui/label';
+import { suggestTagIds } from '@/lib/tag-suggestions';
 
 type DocumentEditFormData = {
   name: string;
@@ -113,6 +114,30 @@ export function DocumentEditForm({
       update: t('documentUpdatedSuccessfully'),
     },
   });
+
+  // Fetch all available tags so we can compute suggestions for the existing document.
+  const { data: tagsData } = useQuery<{ tags: DocumentTag[] }>({
+    queryKey: ['/api/document-tags'],
+  });
+  const allTags = tagsData?.tags ?? [];
+
+  const watchedCategory = formControls.form.watch('category');
+  const tagScope: 'building' | 'residence' | undefined = buildingId
+    ? 'building'
+    : residenceId
+      ? 'residence'
+      : undefined;
+
+  const suggestedTags = useMemo(() => {
+    if (allTags.length === 0) return [];
+    return suggestTagIds({
+      tags: allTags,
+      fileName: document.name ?? null,
+      category: watchedCategory,
+      scope: tagScope,
+      max: 3,
+    });
+  }, [allTags, document.name, watchedCategory, tagScope]);
 
   // Delete mutation
   const deleteMutation = useCreateUpdateMutation<unknown, void>({
@@ -273,7 +298,8 @@ export function DocumentEditForm({
               <TagPicker
                 value={selectedTagIds}
                 onChange={setSelectedTagIds}
-                scope={buildingId ? 'building' : residenceId ? 'residence' : undefined}
+                scope={tagScope}
+                suggestedTagIds={suggestedTags}
               />
             </div>
 
