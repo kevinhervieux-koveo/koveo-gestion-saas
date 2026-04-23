@@ -473,6 +473,12 @@ export function registerUserRoutes(app: Express): void {
         });
       }
 
+      // Hash password before storing
+      if (validatedData.password) {
+        const saltRounds = 12;
+        validatedData.password = await bcrypt.hash(validatedData.password, saltRounds);
+      }
+
       const user = await storage.createUser(validatedData);
 
       // Log successful user creation

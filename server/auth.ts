@@ -3,6 +3,7 @@ import session from 'express-session';
 import connectPg from 'connect-pg-simple';
 import { createHash, randomBytes } from 'crypto';
 import * as bcrypt from 'bcryptjs';
+import rateLimit from 'express-rate-limit';
 import { storage } from './storage';
 import { sql, db, pool } from './db';
 import { config } from './config/index';
@@ -554,9 +555,33 @@ export function authorize(permission: string) {
  * @param app
  * @returns Function result.
  */
+const loginRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many login attempts, please try again later.', code: 'RATE_LIMIT_EXCEEDED' },
+});
+
+const forgotPasswordRateLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many password reset requests, please try again later.', code: 'RATE_LIMIT_EXCEEDED' },
+});
+
+const resetPasswordRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many password reset attempts, please try again later.', code: 'RATE_LIMIT_EXCEEDED' },
+});
+
 export function setupAuthRoutes(app: any) {
   // Login route
-  app.post('/api/auth/login', async (req: Request, res: Response) => {
+  app.post('/api/auth/login', loginRateLimiter, async (req: Request, res: Response) => {
     try {
       const { email, password } = req.body;
       // Login attempt initiated
@@ -743,30 +768,6 @@ export function setupAuthRoutes(app: any) {
     }
   });
 
-  // Debug endpoint to check auth configuration (production only, temporary)
-  app.get('/api/auth/debug', async (req: Request, res: Response) => {
-    const debugInfo = {
-      hasSession: !!req.session,
-      sessionId: req.sessionID,
-      userId: req.session?.userId,
-      userRole: req.session?.userRole,
-      nodeEnv: process.env.NODE_ENV,
-      hasDatabaseUrl: !!process.env.DATABASE_URL,
-      hasSessionSecret: !!process.env.SESSION_SECRET,
-      cookies: req.headers.cookie ? 'present' : 'missing',
-      cookieHeader: req.headers.cookie,
-      sessionStore: req.session?.store?.constructor?.name || 'unknown',
-      userAgent: req.headers['user-agent'],
-      host: req.headers.host,
-      protocol: req.protocol,
-      secure: req.secure,
-      trustProxy: !!req.app.get('trust proxy'),
-    };
-
-    // console.log('Auth debug info:', debugInfo);
-    return res.json(debugInfo);
-  });
-
   // Test cookie setting endpoint
   app.post('/api/auth/test-cookie', (req: Request, res: Response) => {
     // Set a test session value
@@ -848,7 +849,7 @@ export function setupAuthRoutes(app: any) {
   );
 
   // Password Reset Request Route
-  app.post('/api/auth/forgot-password', async (req: Request, res: Response) => {
+  app.post('/api/auth/forgot-password', forgotPasswordRateLimiter, async (req: Request, res: Response) => {
     try {
       const { email } = req.body;
 
@@ -939,7 +940,7 @@ export function setupAuthRoutes(app: any) {
   });
 
   // Password Reset Route
-  app.post('/api/auth/reset-password', async (req: Request, res: Response) => {
+  app.post('/api/auth/reset-password', resetPasswordRateLimiter, async (req: Request, res: Response) => {
     try {
       const { token, password } = req.body;
 
