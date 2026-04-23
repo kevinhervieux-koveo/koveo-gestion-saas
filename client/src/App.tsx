@@ -41,11 +41,6 @@ import { InstallPrompt } from '@/components/common/InstallPrompt';
 
 // Optimized lazy-loaded Admin pages
 const AdminOrganizations = optimizedPageLoaders.AdminOrganizations;
-const AdminDocumentation = createOptimizedLoader(
-  () => import('@/pages/admin/documentation'),
-  'admin-documentation',
-  { enableMemoryCleanup: true }
-);
 const AdminQuality = optimizedPageLoaders.AdminQuality;
 const AdminPermissions = createOptimizedLoader(
   () => import('@/pages/admin/permissions'),
@@ -70,8 +65,6 @@ const ManagerDocumentTags = createOptimizedLoader(
   'manager-document-tags',
   { enableMemoryCleanup: true }
 );
-
-// Owner routes removed - consolidating all documentation under admin section
 
 // Optimized lazy-loaded Manager pages
 const ManagerBuildings = optimizedPageLoaders.ManagerBuildings;
@@ -356,13 +349,10 @@ function Router() {
 
             {/* Admin routes */}
             <Route path='/admin/organizations'>{() => <ProtectedRoute requiredRole="admin"><AdminOrganizations /></ProtectedRoute>}</Route>
-            <Route path='/admin/documentation'>{() => <ProtectedRoute requiredRole="admin"><AdminDocumentation /></ProtectedRoute>}</Route>
             <Route path='/admin/quality'>{() => <ProtectedRoute requiredRole="admin"><AdminQuality /></ProtectedRoute>}</Route>
             <Route path='/admin/compliance'>{() => <ProtectedRoute requiredRole="admin"><AdminCompliance /></ProtectedRoute>}</Route>
             <Route path='/admin/permissions'>{() => <ProtectedRoute requiredRole="admin"><AdminPermissions /></ProtectedRoute>}</Route>
             <Route path='/admin/performance'>{() => <ProtectedRoute requiredRole="admin"><PerformanceDashboardPage /></ProtectedRoute>}</Route>
-
-            {/* Owner routes removed - documentation consolidated under admin section */}
 
             {/* Manager routes */}
             <Route path='/manager/buildings'>{() => <ProtectedRoute requiredRole="manager"><ManagerBuildings /></ProtectedRoute>}</Route>

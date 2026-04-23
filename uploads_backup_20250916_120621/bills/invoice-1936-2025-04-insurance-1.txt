@@ -1,0 +1,33 @@
+FACTURE / INVOICE
+===================
+
+Numéro de facture / Invoice Number: 1936-2025-04-INSURANCE-1
+Date: 2025-04-26
+
+FACTURER À / BILL TO:
+1936 Nitzsche Track Building 5
+2536 montée Sainte-Catherine
+Québec, Canada
+
+FOURNISSEUR / VENDOR:
+Desjardins Assurances
+
+DESCRIPTION / DESCRIPTION:
+Insurance - Desjardins Assurances
+
+CATÉGORIE / CATEGORY: Insurance
+
+MONTANT / AMOUNT:
+Sous-total / Subtotal: $2751.00 CAD
+TPS (5%) / GST: $137.55 CAD
+TVQ (9.975%) / QST: $274.41 CAD
+TOTAL: $3162.96 CAD
+
+CONDITIONS DE PAIEMENT / PAYMENT TERMS:
+Net 30 jours / Net 30 days
+
+Merci de votre confiance / Thank you for your business
+===============================================
+
+Ce document est généré automatiquement pour les besoins de test du système Koveo Gestion.
+This document is automatically generated for Koveo Gestion system testing purposes.

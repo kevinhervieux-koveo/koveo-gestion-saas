@@ -1,0 +1,30 @@
+*** DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ***
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+===============================================================
+
+MAINTENANCE LOG
+
+Unit: 507
+Building: 7393 Abernathy Green Building 5
+Address: 163 Brandyn Rapid
+Document 1 of 1
+
+MAINTENANCE LOG
+
+Maintenance History for Unit 507:
+
+10/14/2024 - HVAC maintenance
+Status: Completed
+Cost: $463
+
+9/7/2025 - Annual inspection
+Status: In Progress
+Estimated Cost: $221
+
+Next Scheduled Maintenance: 4/11/2026

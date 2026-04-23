@@ -1,0 +1,16 @@
+*** DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ***
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+
+===============================================================
+
+RECEIPT DOCUMENT
+
+File: receipt-17f6-2024-08-administration
+Category: Financial Document
+Amount: $392
+Date: 09/08/2025
+Status: Demo File
+
+This is a generated demo document for testing purposes.

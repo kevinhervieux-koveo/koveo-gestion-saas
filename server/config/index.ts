@@ -120,7 +120,7 @@ export const config = {
       const isRuntimeDeployment = process.env.REPLIT_DEPLOYMENT === '1';
       const isRuntimeKoveoProduction = requestDomain?.includes('koveo-gestion.com');
       const isRuntimeProduction = isRuntimeDeployment || isRuntimeKoveoProduction || envConfig.isProduction;
-      
+
       // Use DATABASE_URL_KOVEO for production/deployment, DATABASE_URL for workspace
       return isRuntimeProduction ? (env.DATABASE_URL_KOVEO || env.DATABASE_URL) : env.DATABASE_URL;
     },
@@ -168,10 +168,10 @@ export const config = {
     law25Compliance: true,
   },
 
-  // Debug logging configuration - TEMPORARILY ENABLED FOR DEBUGGING
+  // Debug logging configuration
   logging: {
-    enabled: true, // TEMPORARILY ENABLED to debug production 500 errors
-    level: 'DEBUG', // TEMPORARILY SET to DEBUG for error diagnosis
+    enabled: envConfig.isDevelopment, // Only log in development (not DATABASE_URL_KOVEO)
+    level: envConfig.isDevelopment ? 'DEBUG' : 'ERROR',
     categories: {
       auth: true,
       api: true,

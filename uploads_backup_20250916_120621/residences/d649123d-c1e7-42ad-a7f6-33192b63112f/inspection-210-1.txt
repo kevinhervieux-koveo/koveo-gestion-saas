@@ -1,0 +1,36 @@
+*** DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ***
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+===============================================================
+
+INSPECTION REPORT
+
+Unit: 210
+Building: 64671 Green Close Building 4
+Address: 90540 Abernathy Valley
+Document 1 of 2
+
+INSPECTION REPORT
+
+Inspection Date: 9/8/2025
+Inspector: Clyde Wisoky-Witting
+
+Inspection Results:
+✓ Electrical systems - Good condition
+✓ Plumbing - Good condition  
+✓ Heating/Cooling - Good condition
+⚠ Minor paint touch-up needed in bedroom
+✓ Windows and doors - Good condition
+✓ Smoke detectors - Working properly
+
+Overall Rating: Good
+
+Notes:
+Vomito subiungo abscido civitas facilis. Patior dedecor acerbitas repellendus accommodo solum doloremque celo vigilo. Deripio cotidie utrimque bestia bibo speculum.
+
+Inspector Signature: ____________________

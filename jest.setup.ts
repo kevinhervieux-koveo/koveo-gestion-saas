@@ -574,12 +574,6 @@ const apiRouteHandlers: Record<string, (url: string, options?: any) => Promise<a
     analysis: { type: 'contract', confidence: 0.95, summary: 'Test document analysis' } 
   }),
   
-  // Documentation routes
-  '/api/documentation/comprehensive': async () => ({ 
-    success: true, 
-    data: { sections: ['intro', 'features', 'api'], totalPages: 45 } 
-  }),
-  
   // Company/Story routes
   '/api/company/history': async () => ({ 
     success: true, 

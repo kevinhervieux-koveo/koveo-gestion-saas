@@ -1,0 +1,26 @@
+*** DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ***
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+===============================================================
+
+RECEIPT DOCUMENT
+
+Bill Number: FDE5-2024-09-SUPPLIES-2
+Title: Supplies (2) - Kutch - Schimmel
+Vendor: Fay - Barton
+Category: Supplies
+Total Amount: $4670.34
+Description: Monthly supplies service for November 2024 - Invoice 2
+
+Payment Amount: $4670.34
+Payment Date: 9/7/2025
+Payment Method: Electronic Transfer
+Reference Number: PAY-Q4YEFFLN
+
+This payment has been processed successfully.
+Building Management Office

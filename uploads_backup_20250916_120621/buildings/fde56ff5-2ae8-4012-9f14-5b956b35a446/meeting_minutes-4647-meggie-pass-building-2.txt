@@ -1,0 +1,39 @@
+*** DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ***
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+===============================================================
+
+BOARD MEETING MINUTES
+
+Building: 4647 Meggie Pass Building 2
+Organization: da67894c-fbbe-4f0f-b686-ee1d1cb13891
+Document Date: 9/7/2025
+Document 1 of 1
+
+BOARD MEETING MINUTES
+
+Meeting Date: 9/8/2025
+Meeting Time: 19:00
+Location: 4647 Meggie Pass Building 2 Community Room
+
+Attendees:
+- Santos Franecki (Board President)
+- Julian Pfeffer (Treasurer)  
+- Essie Watsica (Secretary)
+- Archie Hartmann (Property Manager)
+
+Agenda Items:
+1. Budget Review - Animus celer commodi quibusdam auditor alii itaque sui.
+2. Maintenance Updates - Adamo vacuus blanditiis stella umquam defetiscor non creator deputo.
+3. New Policies - Quasi vorago cunae consuasor.
+
+Action Items:
+- Vobis teres ullam.
+- Suus utique quasi tamdiu verumtamen aranea.
+
+Next Meeting: 9/4/2026

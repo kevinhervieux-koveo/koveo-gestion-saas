@@ -233,7 +233,6 @@ function isWriteOperation(method: string, path: string, queryString?: string, is
     /^\/api\/contacts$/,
     /^\/api\/features$/,
     /^\/api\/health$/,
-    /^\/api\/documentation$/,
     /^\/api\/pillars-suggestions$/,
     /^\/api\/quality-metrics$/,
     

@@ -41,7 +41,6 @@ export const NAVIGATION_KEYS = {
   manageCommonSpaces: 'manageCommonSpaces',
   admin: 'admin',
   organizations: 'organizations',
-  documentation: 'documentation',
   pillars: 'pillars',
   roadmap: 'roadmap',
   qualityAssurance: 'qualityAssurance',
@@ -146,7 +145,6 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
     requiredRole: 'admin',
     items: [
       { nameKey: 'organizations', href: '/admin/organizations', icon: Building },
-      { nameKey: 'documentation', href: '/admin/documentation', icon: FileText },
       { nameKey: 'navQualityAssurance', href: '/admin/quality', icon: CheckCircle },
       { nameKey: 'navLaw25Compliance', href: '/admin/compliance', icon: Shield },
       { nameKey: 'rbacPermissions', href: '/admin/permissions', icon: ShieldCheck },

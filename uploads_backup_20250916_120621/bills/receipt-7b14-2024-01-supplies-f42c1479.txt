@@ -1,0 +1,26 @@
+*** DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ***
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+===============================================================
+
+RECEIPT DOCUMENT
+
+Bill Number: 7B14-2024-01-SUPPLIES
+Title: Supplies  - Wiza - Kassulke
+Vendor: Cremin Group
+Category: Supplies
+Total Amount: $2408.09
+Description: Monthly supplies service for August 2024
+
+Payment Amount: $2408.09
+Payment Date: 9/8/2025
+Payment Method: Check
+Reference Number: PAY-F2D6AAAN
+
+This payment has been processed successfully.
+Building Management Office

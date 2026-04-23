@@ -37,7 +37,6 @@ const allPages = [
   // Admin pages (require admin role)
   { path: '/admin/organizations', name: 'Admin Organizations' },
   { path: '/admin/compliance', name: 'Admin Compliance' },
-  { path: '/admin/documentation', name: 'Admin Documentation' },
   { path: '/admin/permissions', name: 'Admin Permissions' },
   { path: '/admin/quality', name: 'Admin Quality' },
   
@@ -80,7 +79,6 @@ const pageComponents = {
   '/dashboard/calendar': () => import('@/pages/dashboard/calendar'),
   '/admin/organizations': () => import('@/pages/admin/organizations'),
   '/admin/compliance': () => import('@/pages/admin/compliance'),
-  '/admin/documentation': () => import('@/pages/admin/documentation'),
   '/admin/permissions': () => import('@/pages/admin/permissions'),
   '/admin/quality': () => import('@/pages/admin/quality'),
   '/manager/bills': () => import('@/pages/manager/bills'),

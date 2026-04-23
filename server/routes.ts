@@ -32,7 +32,6 @@ import { registerCommunicationRoutes } from './api/communication';
 import { registerTrialRequestRoutes } from './api/trial-request';
 import { registerInvoiceRoutes } from './api/invoices';
 import { registerAiAnalysisRoutes } from './api/ai-document-analysis';
-import { registerDocumentationRoutes } from './api/documentation';
 import { registerPillarsSuggestionsRoutes } from './api/pillars-suggestions';
 import { registerQualityMetricsRoutes } from './api/quality-metrics';
 import { registerFeatureManagementRoutes } from './api/feature-management';
@@ -147,7 +146,6 @@ export async function registerRoutes(app: Express) {
   registerTrialRequestRoutes(app);
   registerInvoiceRoutes(app);
   registerAiAnalysisRoutes(app);
-  registerDocumentationRoutes(app);
   registerPillarsSuggestionsRoutes(app);
   registerQualityMetricsRoutes(app);
   registerFeatureManagementRoutes(app);

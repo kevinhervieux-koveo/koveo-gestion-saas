@@ -39,11 +39,8 @@ const config = {
     'wouter': '<rootDir>/__mocks__/wouter.js',
     
     '^@/pages/manager/budget$': '<rootDir>/__mocks__/client/src/pages/manager/budget.tsx',
-    '^@/pages/admin/documentation$': '<rootDir>/__mocks__/client/src/pages/admin/documentation.tsx',
     '^client/src/pages/manager/budget$': '<rootDir>/__mocks__/client/src/pages/manager/budget.tsx',
-    '^client/src/pages/admin/documentation$': '<rootDir>/__mocks__/client/src/pages/admin/documentation.tsx',
     '^\\.\\./\\.\\./client/src/pages/manager/budget$': '<rootDir>/__mocks__/client/src/pages/manager/budget.tsx',
-    '^\\.\\./\\.\\./client/src/pages/admin/documentation$': '<rootDir>/__mocks__/client/src/pages/admin/documentation.tsx',
     
     '^uuid$': '<rootDir>/__mocks__/uuid.cjs',
 

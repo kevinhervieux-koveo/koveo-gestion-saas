@@ -1,0 +1,26 @@
+*** DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ***
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+===============================================================
+
+RECEIPT DOCUMENT
+
+Bill Number: 7B14-2024-09-SECURITY-2
+Title: Security (2) - McDermott, Ebert and Luettgen
+Vendor: Zieme Group
+Category: Security
+Total Amount: $4141.62
+Description: Monthly security service for December 2024 - Invoice 2
+
+Payment Amount: $4141.62
+Payment Date: 9/8/2025
+Payment Method: Check
+Reference Number: PAY-VB0VFW1U
+
+This payment has been processed successfully.
+Building Management Office

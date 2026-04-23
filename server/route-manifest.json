@@ -2,9 +2,9 @@
   "generatedBy": "scripts/generate-route-manifest.ts",
   "description": "Auto-generated inventory of all routes reachable through server/routes.ts. Regenerate with `npx tsx scripts/generate-route-manifest.ts` whenever routes change. The drift guard in tests/security/route-manifest-drift.test.ts fails the build if a new write endpoint is added without updating this manifest, or if a write endpoint is registered outside the /api/* global demo-security mount.",
   "totals": {
-    "allRoutes": 351,
-    "writeRoutes": 196,
-    "apiWriteRoutes": 187
+    "allRoutes": 361,
+    "writeRoutes": 204,
+    "apiWriteRoutes": 195
   },
   "routes": [
     {
@@ -20,6 +20,11 @@
     {
       "method": "POST",
       "path": "/api/ai/reanalyze-document",
+      "file": "api/ai-document-analysis.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/ai/suggest-document-tags",
       "file": "api/ai-document-analysis.ts"
     },
     {
@@ -598,33 +603,48 @@
       "file": "api/demo-management.ts"
     },
     {
-      "method": "GET",
-      "path": "/api/documentation/comprehensive",
-      "file": "api/documentation.ts"
+      "method": "DELETE",
+      "path": "/api/document-tags/:id",
+      "file": "api/document-tags.ts"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/documents/:id/tags/:tagId",
+      "file": "api/document-tags.ts"
     },
     {
       "method": "GET",
-      "path": "/api/documentation/file/*",
-      "file": "api/documentation.ts"
+      "path": "/api/document-tags",
+      "file": "api/document-tags.ts"
     },
     {
       "method": "GET",
-      "path": "/api/documentation/files",
-      "file": "api/documentation.ts"
+      "path": "/api/documents/:id/tags",
+      "file": "api/document-tags.ts"
     },
     {
-      "method": "GET",
-      "path": "/api/documentation/git-status",
-      "file": "api/documentation.ts"
+      "method": "PATCH",
+      "path": "/api/document-tags/:id",
+      "file": "api/document-tags.ts"
     },
     {
       "method": "POST",
-      "path": "/api/documentation/llm-generate",
-      "file": "api/documentation.ts"
+      "path": "/api/document-tags",
+      "file": "api/document-tags.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/documents/:id/tags",
+      "file": "api/document-tags.ts"
     },
     {
       "method": "DELETE",
       "path": "/api/documents/:id",
+      "file": "api/documents.ts"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/documents/:id/links/:position",
       "file": "api/documents.ts"
     },
     {
@@ -639,7 +659,27 @@
     },
     {
       "method": "GET",
+      "path": "/api/documents/:id/chain",
+      "file": "api/documents.ts"
+    },
+    {
+      "method": "GET",
       "path": "/api/documents/:id/file",
+      "file": "api/documents.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/api/documents/:id/link-suggestions",
+      "file": "api/documents.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/api/documents/:id/links",
+      "file": "api/documents.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/api/documents/:id/neighbors",
       "file": "api/documents.ts"
     },
     {
@@ -655,6 +695,21 @@
     {
       "method": "POST",
       "path": "/api/documents",
+      "file": "api/documents.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/documents/:id/chain/remove",
+      "file": "api/documents.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/documents/:id/chain/reorder",
+      "file": "api/documents.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/documents/:id/links",
       "file": "api/documents.ts"
     },
     {
@@ -1444,6 +1499,11 @@
     },
     {
       "method": "GET",
+      "path": "/api/invitations/:id/history",
+      "file": "api/users.ts"
+    },
+    {
+      "method": "GET",
       "path": "/api/invitations/pending",
       "file": "api/users.ts"
     },
@@ -1584,11 +1644,6 @@
     },
     {
       "method": "GET",
-      "path": "/api/auth/debug",
-      "file": "auth.ts"
-    },
-    {
-      "method": "GET",
       "path": "/api/auth/user",
       "file": "auth.ts"
     },
@@ -1720,11 +1775,6 @@
     {
       "method": "POST",
       "path": "/api/features/trigger-sync",
-      "file": "routes.ts"
-    },
-    {
-      "method": "POST",
-      "path": "/api/objects/upload",
       "file": "routes.ts"
     },
     {

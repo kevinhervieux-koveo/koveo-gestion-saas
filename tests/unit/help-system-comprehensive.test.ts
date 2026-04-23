@@ -252,7 +252,6 @@ describe('Help System - Route Coverage', () => {
     '/dashboard/overview',
     '/dashboard/communication',
     '/admin/organizations',
-    '/admin/documentation',
     '/admin/quality',
     '/admin/compliance',
     '/admin/permissions',

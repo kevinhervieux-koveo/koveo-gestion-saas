@@ -78,12 +78,6 @@ export const helpContentMap: Record<string, HelpContent> = {
       { label: { en: 'Contact Information', fr: 'Coordonnées' }, description: { en: 'Primary contact details for the organization', fr: 'Coordonnées principales de l\'organisation' } },
     ],
   },
-  '/admin/documentation': {
-    title: { en: 'Documentation', fr: 'Documentation' },
-    description: { en: 'Access and manage system documentation and guides.', fr: 'Accédez et gérez la documentation et les guides du système.' },
-    goal: { en: 'Provide comprehensive documentation for administrators and users.', fr: 'Fournir une documentation complète pour les administrateurs et les utilisateurs.' },
-    howToUse: { en: 'Browse documentation by category, search for specific topics, and manage documentation files.', fr: 'Parcourez la documentation par catégorie, recherchez des sujets spécifiques et gérez les fichiers de documentation.' },
-  },
   '/admin/quality': {
     title: { en: 'Quality Management', fr: 'Gestion de la Qualité' },
     description: { en: 'Monitor and manage quality metrics across the system.', fr: 'Surveillez et gérez les indicateurs de qualité dans le système.' },

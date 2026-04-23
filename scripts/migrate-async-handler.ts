@@ -13,7 +13,6 @@ const FILES = [
   'server/api/feature-requests.ts',
   'server/api/invoices.ts',
   'server/api/organizations.ts',
-  'server/api/documentation.ts',
   'server/api/demo-management.ts',
   'server/api/dynamic-budgets.ts',
   'server/api/cleanup.ts',

@@ -1,0 +1,36 @@
+*** DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ***
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+===============================================================
+
+INSPECTION REPORT
+
+Unit: 933
+Building: 68391 Brent Shoals Building 3
+Address: 285 Garrick Spring
+Document 1 of 1
+
+INSPECTION REPORT
+
+Inspection Date: 9/7/2025
+Inspector: Omar Smitham Jr.
+
+Inspection Results:
+✓ Electrical systems - Good condition
+✓ Plumbing - Good condition  
+✓ Heating/Cooling - Good condition
+⚠ Minor paint touch-up needed in bedroom
+✓ Windows and doors - Good condition
+✓ Smoke detectors - Working properly
+
+Overall Rating: Good
+
+Notes:
+Apostolus crepusculum volva nihil curvo cenaculum terror sumptus. Administratio colo cupressus tabgo ipsam subnecto virtus decens cetera itaque. Harum cui commodo deleo soluta strues.
+
+Inspector Signature: ____________________

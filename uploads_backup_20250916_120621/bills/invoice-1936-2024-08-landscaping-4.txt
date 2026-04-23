@@ -1,0 +1,33 @@
+FACTURE / INVOICE
+===================
+
+Numéro de facture / Invoice Number: 1936-2024-08-LANDSCAPING-4
+Date: 2024-08-26
+
+FACTURER À / BILL TO:
+1936 Nitzsche Track Building 5
+2536 montée Sainte-Catherine
+Québec, Canada
+
+FOURNISSEUR / VENDOR:
+Green Thumb Services
+
+DESCRIPTION / DESCRIPTION:
+Landscaping - Green Thumb Services
+
+CATÉGORIE / CATEGORY: Landscaping
+
+MONTANT / AMOUNT:
+Sous-total / Subtotal: $913.00 CAD
+TPS (5%) / GST: $45.65 CAD
+TVQ (9.975%) / QST: $91.07 CAD
+TOTAL: $1049.72 CAD
+
+CONDITIONS DE PAIEMENT / PAYMENT TERMS:
+Net 30 jours / Net 30 days
+
+Merci de votre confiance / Thank you for your business
+===============================================
+
+Ce document est généré automatiquement pour les besoins de test du système Koveo Gestion.
+This document is automatically generated for Koveo Gestion system testing purposes.

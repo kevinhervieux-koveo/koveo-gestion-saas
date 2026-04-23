@@ -110,24 +110,6 @@ describe('Content-Disposition regression coverage by endpoint', () => {
     expect(cd).not.toMatch(/[\r\n]/);
   });
 
-  it('POST /api/documentation/llm-generate – documentation.ts', async () => {
-    const app = makeAppForHandler((_req, res) => {
-      // Mirrors server/api/documentation.ts llm-generate handler.
-      const filename = `koveo-llm-📚-${trickyName}`;
-      res.setHeader('Content-Type', 'text/markdown');
-      res.setHeader(
-        'Content-Disposition',
-        buildContentDisposition(filename, { type: 'attachment' })
-      );
-      res.send('# docs');
-    });
-    const r = await request(app).get('/download');
-    expect(r.status).toBe(200);
-    const cd = r.headers['content-disposition'];
-    expect(cd).toMatch(/^attachment;\s*filename="/);
-    expect(cd).toContain("filename*=UTF-8''");
-  });
-
   it('GET /api/documents/optimized/:id – optimized-documents.ts', async () => {
     const app = makeAppForHandler((_req, res) => {
       // Mirrors server/api/optimized-documents.ts file-serving handler.

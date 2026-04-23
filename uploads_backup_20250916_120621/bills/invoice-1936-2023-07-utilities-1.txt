@@ -1,0 +1,33 @@
+FACTURE / INVOICE
+===================
+
+Numéro de facture / Invoice Number: 1936-2023-07-UTILITIES-1
+Date: 2023-07-26
+
+FACTURER À / BILL TO:
+1936 Nitzsche Track Building 5
+2536 montée Sainte-Catherine
+Québec, Canada
+
+FOURNISSEUR / VENDOR:
+Énergir
+
+DESCRIPTION / DESCRIPTION:
+Utilities - Énergir
+
+CATÉGORIE / CATEGORY: Utilities
+
+MONTANT / AMOUNT:
+Sous-total / Subtotal: $1280.00 CAD
+TPS (5%) / GST: $64.00 CAD
+TVQ (9.975%) / QST: $127.68 CAD
+TOTAL: $1471.68 CAD
+
+CONDITIONS DE PAIEMENT / PAYMENT TERMS:
+Net 30 jours / Net 30 days
+
+Merci de votre confiance / Thank you for your business
+===============================================
+
+Ce document est généré automatiquement pour les besoins de test du système Koveo Gestion.
+This document is automatically generated for Koveo Gestion system testing purposes.

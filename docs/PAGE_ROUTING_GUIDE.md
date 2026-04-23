@@ -60,7 +60,6 @@ client/src/pages/
 
 ```text
 /admin/organizations - Organization management
-/admin/documentation - Documentation management
 /admin/roadmap - Product roadmap
 /admin/quality - Quality assurance
 /admin/suggestions - User suggestions

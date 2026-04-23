@@ -22,7 +22,9 @@ export const debugLogger = {
     const logMessage = `${prefix} [${timestamp}] ${category}:${event}`;
     
     if (data && Object.keys(data).length > 0) {
+      console.log(logMessage, data);
     } else {
+      console.log(logMessage);
     }
   }
 };

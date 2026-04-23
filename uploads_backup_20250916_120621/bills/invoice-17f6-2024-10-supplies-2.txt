@@ -1,0 +1,28 @@
+*** DEMO NOTICE - FOR DEMONSTRATION PURPOSES ONLY ***
+
+This document contains fictional data created for product demonstration.
+In a real environment, this would contain actual uploaded content from property managers.
+All information shown is generated automatically for testing and demo purposes.
+
+This demo showcases the document management capabilities of Koveo Gestion.
+
+===============================================================
+
+INVOICE DOCUMENT
+
+Bill Number: 17F6
+Category: SUPPLIES
+Amount: $247
+Date: 09/08/2025
+
+Document Details:
+This is a demo INVOICE for SUPPLIES services.
+All amounts and details are fictional for demonstration purposes.
+
+Payment Terms: Net 30 days
+Vendor: Demo Services Inc.
+Contact: demo@example.com
+Phone: (514) 555-0123
+
+Status: Paid
+Processing Date: 09/08/2025

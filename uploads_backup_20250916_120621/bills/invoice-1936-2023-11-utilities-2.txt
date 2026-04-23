@@ -1,0 +1,33 @@
+FACTURE / INVOICE
+===================
+
+Numéro de facture / Invoice Number: 1936-2023-11-UTILITIES-2
+Date: 2023-11-15
+
+FACTURER À / BILL TO:
+1936 Nitzsche Track Building 5
+2536 montée Sainte-Catherine
+Québec, Canada
+
+FOURNISSEUR / VENDOR:
+Hydro-Québec
+
+DESCRIPTION / DESCRIPTION:
+Utilities - Hydro-Québec
+
+CATÉGORIE / CATEGORY: Utilities
+
+MONTANT / AMOUNT:
+Sous-total / Subtotal: $1310.00 CAD
+TPS (5%) / GST: $65.50 CAD
+TVQ (9.975%) / QST: $130.67 CAD
+TOTAL: $1506.17 CAD
+
+CONDITIONS DE PAIEMENT / PAYMENT TERMS:
+Net 30 jours / Net 30 days
+
+Merci de votre confiance / Thank you for your business
+===============================================
+
+Ce document est généré automatiquement pour les besoins de test du système Koveo Gestion.
+This document is automatically generated for Koveo Gestion system testing purposes.
