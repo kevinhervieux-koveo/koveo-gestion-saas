@@ -2,31 +2,63 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { createHash, randomBytes } from "crypto";
 import { execSync } from "child_process";
+import { readFileSync } from "fs";
+import { join } from "path";
 
 /**
- * Build/version stamp surfaced through the `get_mcp_info` tool so support
- * can verify, from outside the long-lived MCP process, which commit the
- * deployed handler was built from. A stale bundle (e.g. after a soft-replace
- * rewire) would otherwise be invisible. Resolved once at module load.
+ * Build stamp surfaced through the `get_mcp_info` tool so support can verify,
+ * from outside the long-lived MCP process, which commit the running bundle
+ * was built from. A stale bundle (e.g. after a soft-replace rewire) would
+ * otherwise be invisible. Resolved once at module load.
  *
- * Resolution order (deploy-marker first, dev-friendly fallback last):
- *   1. Platform-provided deploy env vars (REPLIT_DEPLOYMENT_ID,
- *      REPL_DEPLOYMENT_ID, SOURCE_VERSION) — these change every deploy, which
- *      is exactly what makes them useful as a staleness marker. In Replit's
- *      deployed containers `git rev-parse` succeeds but returns the same
- *      commit hash across redeploys of the same SHA, so it cannot detect a
- *      stale bundle on its own.
- *   2. `git rev-parse --short HEAD` — useful in local dev where the deploy
- *      env vars are unset.
- *   3. The literal string "unknown" — last-resort fallback.
+ * Previously this resolver preferred `REPLIT_DEPLOYMENT_ID` /
+ * `REPL_DEPLOYMENT_ID` / `SOURCE_VERSION`, but on Replit autoscale those env
+ * vars are stable per-deployment-slot rather than per-build, so they never
+ * moved across redeploys and the same UUID was reported for every shipped
+ * commit. They are removed from the precedence here.
+ *
+ * Resolution order (real per-build stamp first, dev fallback last):
+ *   1. `dist/build-info.json` written by `scripts/write-build-info.ts`
+ *      during the production build. Authoritative when present.
+ *   2. `BUILD_SHA` / `BUILD_TIME` env vars — lets a deploy pipeline inject
+ *      the stamp without writing a file.
+ *   3. `git rev-parse --short HEAD` and the current ISO timestamp — used in
+ *      local `npm run dev` and any container where `.git` is available.
+ *   4. The literal string `"unknown"` (SHA) / current ISO timestamp (time).
+ *
+ * To verify a deploy moved: capture `buildSha` and `buildTime` from
+ * `get_mcp_info` before redeploying, redeploy, then call `get_mcp_info`
+ * again. Different commit → `buildSha` changes. No-op redeploy of the same
+ * commit → `buildSha` stays the same but `buildTime` advances.
  */
+type BuildStamp = { buildSha?: unknown; buildTime?: unknown };
+
+function readBuildStampFile(): BuildStamp {
+  // The production build writes `dist/build-info.json` at the project root.
+  // The deployed bundle (`dist/index.js`) is invoked with cwd = project root,
+  // so a single cwd-relative lookup is enough and avoids ESM/CJS gymnastics
+  // around `import.meta.url`.
+  const file = join(process.cwd(), "dist", "build-info.json");
+  try {
+    const raw = readFileSync(file, "utf8");
+    const parsed = JSON.parse(raw) as BuildStamp;
+    if (parsed && typeof parsed === "object") {
+      return parsed;
+    }
+  } catch {
+    // No stamp file (e.g. dev mode) — fall through to env / git resolution.
+  }
+  return {};
+}
+
+const BUILD_STAMP = readBuildStampFile();
+
 const BUILD_SHA: string = (() => {
-  const deployMarker =
-    process.env.REPLIT_DEPLOYMENT_ID ||
-    process.env.REPL_DEPLOYMENT_ID ||
-    process.env.SOURCE_VERSION;
-  if (deployMarker) {
-    return deployMarker;
+  if (typeof BUILD_STAMP.buildSha === "string" && BUILD_STAMP.buildSha) {
+    return BUILD_STAMP.buildSha;
+  }
+  if (process.env.BUILD_SHA) {
+    return process.env.BUILD_SHA;
   }
   try {
     return execSync("git rev-parse --short HEAD", {
@@ -37,6 +69,16 @@ const BUILD_SHA: string = (() => {
   } catch {
     return "unknown";
   }
+})();
+
+const BUILD_TIME: string = (() => {
+  if (typeof BUILD_STAMP.buildTime === "string" && BUILD_STAMP.buildTime) {
+    return BUILD_STAMP.buildTime;
+  }
+  if (process.env.BUILD_TIME) {
+    return process.env.BUILD_TIME;
+  }
+  return new Date().toISOString();
 })();
 import { db } from "../db";
 import * as schema from "@shared/schema";
@@ -3594,7 +3636,11 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
         description: "Koveo Gestion MCP Server - Property Management Platform for Quebec",
         // Build stamp resolved once at module load — lets support confirm
         // the deployed long-lived MCP bundle matches the latest commit.
+        // Compare `buildSha`/`buildTime` before and after a redeploy to
+        // confirm the bundle actually moved. See the resolver block at the
+        // top of this file for the full precedence.
         buildSha: BUILD_SHA,
+        buildTime: BUILD_TIME,
         tools: registeredTools,
         toolCount: registeredTools.length,
         organizations: orgs,

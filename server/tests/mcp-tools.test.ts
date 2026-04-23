@@ -1236,8 +1236,18 @@ describe('MCP Server', () => {
       return JSON.parse(parseToolResponse(result as { content?: Array<{ text?: string }> }));
     }
 
-    const ENV_KEYS = ['REPLIT_DEPLOYMENT_ID', 'REPL_DEPLOYMENT_ID', 'SOURCE_VERSION'] as const;
+    // Env vars that participate in the new resolver, plus the now-removed
+    // deploy markers — we clear the latter so a stray value in the test env
+    // can never silently pass through.
+    const ENV_KEYS = [
+      'BUILD_SHA',
+      'BUILD_TIME',
+      'REPLIT_DEPLOYMENT_ID',
+      'REPL_DEPLOYMENT_ID',
+      'SOURCE_VERSION',
+    ] as const;
     let savedEnv: Partial<Record<(typeof ENV_KEYS)[number], string | undefined>>;
+    let stampFile: { buildSha?: string; buildTime?: string } | null = null;
 
     beforeEach(() => {
       savedEnv = {};
@@ -1245,6 +1255,22 @@ describe('MCP Server', () => {
         savedEnv[k] = process.env[k];
         delete process.env[k];
       }
+      stampFile = null;
+      jest.doMock('fs', () => {
+        const actual = jest.requireActual('fs');
+        return {
+          ...actual,
+          readFileSync: (path: string, encoding?: unknown) => {
+            if (typeof path === 'string' && path.endsWith('build-info.json')) {
+              if (stampFile) {
+                return JSON.stringify(stampFile);
+              }
+              throw Object.assign(new Error('ENOENT'), { code: 'ENOENT' });
+            }
+            return actual.readFileSync(path, encoding as never);
+          },
+        };
+      });
     });
 
     afterEach(() => {
@@ -1255,6 +1281,7 @@ describe('MCP Server', () => {
           process.env[k] = savedEnv[k];
         }
       }
+      jest.dontMock('fs');
       jest.resetModules();
     });
 
@@ -1269,31 +1296,55 @@ describe('MCP Server', () => {
       return info;
     }
 
-    it('prefers REPLIT_DEPLOYMENT_ID over git when set', async () => {
-      process.env.REPLIT_DEPLOYMENT_ID = 'deploy-abc-123';
+    it('prefers dist/build-info.json when present', async () => {
+      stampFile = { buildSha: 'stampsha', buildTime: '2026-04-23T00:00:00.000Z' };
+      process.env.BUILD_SHA = 'env-sha-should-be-ignored';
       const info = await loadAndCallInfo();
-      expect(info.buildSha).toBe('deploy-abc-123');
+      expect(info.buildSha).toBe('stampsha');
+      expect(info.buildTime).toBe('2026-04-23T00:00:00.000Z');
     });
 
-    it('prefers REPL_DEPLOYMENT_ID when REPLIT_DEPLOYMENT_ID is unset', async () => {
-      process.env.REPL_DEPLOYMENT_ID = 'repl-deploy-xyz';
+    it('prefers BUILD_SHA env var over git when no stamp file is present', async () => {
+      process.env.BUILD_SHA = 'env-sha-123';
+      process.env.BUILD_TIME = '2026-04-22T12:34:56.000Z';
       const info = await loadAndCallInfo();
-      expect(info.buildSha).toBe('repl-deploy-xyz');
+      expect(info.buildSha).toBe('env-sha-123');
+      expect(info.buildTime).toBe('2026-04-22T12:34:56.000Z');
     });
 
-    it('prefers SOURCE_VERSION when other deploy env vars are unset', async () => {
-      process.env.SOURCE_VERSION = 'src-ver-789';
-      const info = await loadAndCallInfo();
-      expect(info.buildSha).toBe('src-ver-789');
-    });
-
-    it('falls back to git short HEAD (or "unknown") when no deploy env vars are set', async () => {
+    it('falls back to git short HEAD (or "unknown") when no stamp file or env var is set', async () => {
       const info = await loadAndCallInfo();
       expect(typeof info.buildSha).toBe('string');
-      // Either a 7-ish char git short SHA, or "unknown" when git is unavailable.
+      // Either a hex git short SHA, or "unknown" when git is unavailable.
       expect(info.buildSha as string).toMatch(/^[0-9a-f]{4,40}$|^unknown$/);
-      // Critically, it must not equal one of the deploy markers we cleared.
+      // Must not be a UUID — the old deploy-marker bug surfaced UUIDs here.
+      expect(info.buildSha as string).not.toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
+      );
+    });
+
+    it('ignores the legacy REPLIT_DEPLOYMENT_ID / SOURCE_VERSION env vars', async () => {
+      process.env.REPLIT_DEPLOYMENT_ID = 'deploy-abc-123';
+      process.env.SOURCE_VERSION = 'src-ver-789';
+      const info = await loadAndCallInfo();
       expect(info.buildSha).not.toBe('deploy-abc-123');
+      expect(info.buildSha).not.toBe('src-ver-789');
+    });
+
+    it('always surfaces a buildTime that parses as a valid ISO date', async () => {
+      stampFile = { buildSha: 'stampsha', buildTime: '2026-04-23T01:02:03.000Z' };
+      const info = await loadAndCallInfo();
+      expect(typeof info.buildTime).toBe('string');
+      const parsed = new Date(info.buildTime as string);
+      expect(Number.isNaN(parsed.getTime())).toBe(false);
+      expect(parsed.toISOString()).toBe('2026-04-23T01:02:03.000Z');
+    });
+
+    it('falls back buildTime to a current ISO timestamp when nothing else is set', async () => {
+      const info = await loadAndCallInfo();
+      expect(typeof info.buildTime).toBe('string');
+      const parsed = new Date(info.buildTime as string);
+      expect(Number.isNaN(parsed.getTime())).toBe(false);
     });
   });
 
