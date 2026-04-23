@@ -121,6 +121,20 @@ describeIfDb('manager-only document visibility — Task #321', () => {
     // (admin bypass, everyone else 403) when production data is
     // inconsistent and missing the ACL metadata.
     docMissingAclResidence: crypto.randomUUID(),
+    // Task #377: residence-scoped, tenant-visible document whose
+    // `/objects/...` filePath was never staged in GCS or on local
+    // disk. Exercises the `canUserAccessDocument` fallback branch
+    // that returns `{ allowed: true, reason: 'File not found...' }`
+    // when both the primary and fallback object lookups raise
+    // ObjectNotFoundError, plus the route's bottom-of-handler 404
+    // ("File not found") that the fallback ultimately funnels into.
+    docMissingFileResidence: crypto.randomUUID(),
+    // Task #377: same missing-file scenario, but the document is
+    // flagged manager-only so residents/tenants are denied at the
+    // route's primary scope/manager-only check (403) — proving that
+    // unauthorised roles still receive scope-based denial and never
+    // reach the missing-file 404 branch.
+    docMissingFileMgrOnly: crypto.randomUUID(),
   };
   // Filename and display name shared by both /file (uses fileName) and
   // /optimized-file (uses name) for the unicode regression test.
@@ -575,12 +589,54 @@ describeIfDb('manager-only document visibility — Task #321', () => {
         isVisibleToTenants: true,
         isManagerOnly: false,
       },
+      // Task #377: residence-scoped, tenant-visible — every role
+      // passes the route's primary scope check and reaches the
+      // secondary `canUserAccessDocument` ACL branch. The filePath
+      // points at a `/objects/...` location that is intentionally
+      // NEVER staged in GCS or on local disk, so both
+      // `getObjectEntityFile` lookups inside `canUserAccessDocument`
+      // throw `ObjectNotFoundError` and the fallback returns
+      // `{ allowed: true, reason: 'File not found...' }`. The route
+      // then proceeds to `downloadDocument`, which exhausts every
+      // candidate path and answers with 404 "File not found".
+      {
+        id: ids.docMissingFileResidence,
+        name: `${TEST_TAG} missing-file residence`,
+        documentType: 'legal',
+        filePath: `/objects/uploads/${TEST_TAG}/missing/${ids.docMissingFileResidence}.pdf`,
+        fileName: `${ids.docMissingFileResidence}.pdf`,
+        mimeType: 'application/pdf',
+        fileSize: PDF_BODY.length,
+        residenceId: ids.residence,
+        uploadedById: ids.manager,
+        isVisibleToTenants: true,
+        isManagerOnly: false,
+      },
+      // Task #377: same missing-file scenario, manager-only flagged.
+      // Residents/tenants must be denied at the route's primary
+      // scope/manager-only check (403) and never reach the
+      // missing-file 404 — proving the two branches are independent.
+      {
+        id: ids.docMissingFileMgrOnly,
+        name: `${TEST_TAG} missing-file mgr-only`,
+        documentType: 'legal',
+        filePath: `/objects/uploads/${TEST_TAG}/missing/${ids.docMissingFileMgrOnly}.pdf`,
+        fileName: `${ids.docMissingFileMgrOnly}.pdf`,
+        mimeType: 'application/pdf',
+        fileSize: PDF_BODY.length,
+        residenceId: ids.residence,
+        uploadedById: ids.manager,
+        isVisibleToTenants: true,
+        isManagerOnly: true,
+      },
     ]);
     created.documents.add(ids.docMgrOnlyResidence);
     created.documents.add(ids.docMgrOnlyBuilding);
     created.documents.add(ids.docNormalResidence);
     created.documents.add(ids.docUnicodeResidence);
     created.documents.add(ids.docMissingAclResidence);
+    created.documents.add(ids.docMissingFileResidence);
+    created.documents.add(ids.docMissingFileMgrOnly);
   }, 60000);
 
   afterAll(async () => {
@@ -1352,6 +1408,77 @@ describeIfDb('manager-only document visibility — Task #321', () => {
 
     it('tenant is denied (403) when the underlying object has no ACL metadata', async () => {
       const res = await downloadAs(emails.tenant);
+      expect(res.status).toBe(403);
+    }, 30000);
+  });
+
+  // -----------------------------------------------------------------
+  // Task #377: GET /api/documents/:id/file when the underlying file
+  // is entirely absent from storage (no GCS object, no local fs).
+  //
+  // Documented behaviour the route MUST preserve:
+  //   - For users who pass the route's primary scope check, the
+  //     secondary `documentService.canUserAccessDocument` ACL check
+  //     hits its `ObjectNotFoundError` fallback branch and returns
+  //     `{ allowed: true, reason: 'File not found - allowing access
+  //     check to pass' }`. The route then proceeds to
+  //     `downloadDocument`, which exhausts every candidate path and
+  //     responds with 404 "File not found" — NOT 403 "Access denied".
+  //   - For users who fail the primary scope check (or are blocked by
+  //     the manager-only flag), the 403 "Access denied" still wins
+  //     and they never reach the missing-file 404 branch.
+  //
+  // This pins down the contract so a future change that flips the
+  // fallback to `allowed: false`, or that drops the route's bottom-of
+  // -handler 404, is caught immediately.
+  // -----------------------------------------------------------------
+  describe('GET /api/documents/:id/file — missing file in storage (Task #377)', () => {
+    async function downloadFile(email: string, docId: string) {
+      const agent = await loginAs(email);
+      return agent.get(`/api/documents/${docId}/file`);
+    }
+
+    // ---- Authorised roles (residence-scoped, tenant-visible) ----
+
+    it('admin receives 404 (file-not-found) — not 403 — for an authorised, missing file', async () => {
+      const res = await downloadFile(emails.admin, ids.docMissingFileResidence);
+      expect(res.status).toBe(404);
+    }, 30000);
+
+    it('manager receives 404 (file-not-found) — not 403 — for an authorised, missing file', async () => {
+      const res = await downloadFile(emails.manager, ids.docMissingFileResidence);
+      expect(res.status).toBe(404);
+    }, 30000);
+
+    it('resident receives 404 (file-not-found) — not 403 — for an authorised, missing file', async () => {
+      const res = await downloadFile(emails.resident, ids.docMissingFileResidence);
+      expect(res.status).toBe(404);
+    }, 30000);
+
+    it('tenant receives 404 (file-not-found) — not 403 — for an authorised, missing file', async () => {
+      const res = await downloadFile(emails.tenant, ids.docMissingFileResidence);
+      expect(res.status).toBe(404);
+    }, 30000);
+
+    // ---- Unauthorised roles (manager-only flag blocks them) ----
+
+    it('admin still receives 404 on a missing manager-only file (admin bypasses the flag)', async () => {
+      const res = await downloadFile(emails.admin, ids.docMissingFileMgrOnly);
+      expect(res.status).toBe(404);
+    }, 30000);
+
+    it('manager still receives 404 on a missing manager-only file (manager has scope access)', async () => {
+      const res = await downloadFile(emails.manager, ids.docMissingFileMgrOnly);
+      expect(res.status).toBe(404);
+    }, 30000);
+
+    it('resident receives 403 on a missing manager-only file (scope-based denial wins over missing-file 404)', async () => {
+      const res = await downloadFile(emails.resident, ids.docMissingFileMgrOnly);
+      expect(res.status).toBe(403);
+    }, 30000);
+
+    it('tenant receives 403 on a missing manager-only file (scope-based denial wins over missing-file 404)', async () => {
+      const res = await downloadFile(emails.tenant, ids.docMissingFileMgrOnly);
       expect(res.status).toBe(403);
     }, 30000);
   });
