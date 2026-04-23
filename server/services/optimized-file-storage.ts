@@ -9,7 +9,7 @@ import path from 'path';
 import fs from 'fs/promises';
 import { existsSync } from 'fs';
 import crypto from 'crypto';
-import LRU from 'lru-cache';
+import { LRUCache as LRU } from 'lru-cache';
 import type { UploadContext } from '@shared/config/upload-config';
 
 // Performance-optimized caching with invalidation support

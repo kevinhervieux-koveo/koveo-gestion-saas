@@ -45,6 +45,8 @@ const config = {
     '^\\.\\./\\.\\./client/src/pages/manager/budget$': '<rootDir>/__mocks__/client/src/pages/manager/budget.tsx',
     '^\\.\\./\\.\\./client/src/pages/admin/documentation$': '<rootDir>/__mocks__/client/src/pages/admin/documentation.tsx',
     
+    '^uuid$': '<rootDir>/__mocks__/uuid.cjs',
+
     '^child_process$': '<rootDir>/__mocks__/child_process.js',
     '^util$': '<rootDir>/__mocks__/util.js',
   },

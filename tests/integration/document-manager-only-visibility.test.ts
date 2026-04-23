@@ -40,73 +40,24 @@ jest.mock('../../server/config/index', () => {
   return require(path.resolve(__dirname, '../../server/config/index.ts'));
 });
 
-// Stub object-storage and the optimized file-storage service. The real
-// modules pull in `@google-cloud/storage` (transitively loads ESM `uuid`)
-// and `lru-cache`, neither of which Jest can transform under the current
-// config. The access-control checks under test happen before any file
-// streaming, so a thin stub that logs the call and returns 404 is enough
-// to keep the route handlers happy for the positive (admin/manager) cases.
 // `uuid` v14 ships ESM-only `dist-node` which Jest's CJS transform
-// cannot parse. Replace with a tiny CJS-friendly stub — the actual UUID
-// values produced are irrelevant to the access-control behaviour we
-// assert on.
-jest.mock('uuid', () => {
-  const { randomUUID } = require('crypto');
-  return {
-    v1: () => randomUUID(),
-    v3: () => randomUUID(),
-    v4: () => randomUUID(),
-    v5: () => randomUUID(),
-    v6: () => randomUUID(),
-    v7: () => randomUUID(),
-    NIL: '00000000-0000-0000-0000-000000000000',
-    MAX: 'ffffffff-ffff-ffff-ffff-ffffffffffff',
-    parse: (s: string) => s,
-    stringify: (b: any) => String(b),
-    validate: () => true,
-    version: () => 4,
-  };
-});
-
-jest.mock('../../server/objectStorage', () => {
-  class ObjectNotFoundError extends Error {
-    constructor() {
-      super('Object not found');
-      this.name = 'ObjectNotFoundError';
-    }
-  }
-  const stub = {
-    ObjectNotFoundError,
-    ObjectStorageService: class {
-      async downloadObject(_path: string, res: any) {
-        res.status(404).json({ message: 'stubbed: file streaming disabled in tests' });
-      }
-      normalizeObjectEntityPath(p: string) { return p; }
-      async getObjectEntityFile() { throw new ObjectNotFoundError(); }
-      async canAccessObjectEntity() { return false; }
-    },
-    objectStorageClient: {},
-    parseObjectPath: (p: string) => ({ bucketName: 'stub', objectName: p }),
-  };
-  return stub;
-});
-
-jest.mock('../../server/services/optimized-file-storage', () => ({
-  optimizedFileStorage: {
-    async streamFile(_filePath: string, res: any) {
-      res.status(404).json({ message: 'stubbed: optimized streaming disabled in tests' });
-    },
-    async getFileMetadata() { return null; },
-    invalidateCache: () => {},
-    invalidateAllCaches: () => {},
-  },
-}));
+// cannot parse, so jest.config.cjs maps the bare `uuid` specifier to a
+// CJS shim under `__mocks__/uuid.cjs`. With that mapper in place we can
+// import the real `server/objectStorage` (and its transitive
+// `@google-cloud/storage` -> `gaxios` -> `uuid` chain) and the real
+// `server/services/optimized-file-storage` without any local
+// `jest.mock` stubs. That, in turn, lets this suite assert the actual
+// 200 + body that admins/managers receive on a download — not just
+// "the route did not return 403/404 access-denied".
 
 import express from 'express';
 import session from 'express-session';
 import request from 'supertest';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
+import fs from 'fs';
+import fsPromises from 'fs/promises';
+import nodePath from 'path';
 import { inArray, eq, and } from 'drizzle-orm';
 
 const REAL_DB_URL = process.env._INTEGRATION_DB_URL;
@@ -128,6 +79,23 @@ describeIfDb('manager-only document visibility — Task #321', () => {
     organizations: new Set(),
     users: new Set(),
   };
+
+  // Tracks every real artefact written to GCS / local disk so afterAll
+  // can clean up regardless of test outcome.
+  const createdGcsObjects: Array<{ bucketName: string; objectName: string }> =
+    [];
+  const createdLocalFiles: string[] = [];
+
+  // Tiny but valid 1-page PDF body. Used as the on-storage content for
+  // every document so admin/manager downloads can assert a real,
+  // non-empty body instead of just "the route did not deny access".
+  const PDF_BODY = Buffer.from(
+    '%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n' +
+      '2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj\n' +
+      '3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 10 10]>>endobj\n' +
+      'trailer<</Root 1 0 R>>\n%%EOF',
+    'utf8'
+  );
 
   const PASSWORD = 'Password!234';
   const ids = {
@@ -340,6 +308,112 @@ describeIfDb('manager-only document visibility — Task #321', () => {
     await db.insert(schema.userResidences).values(residenceLinks);
     residenceLinks.forEach((l) => created.userResidences.add(l.id));
 
+    // Stage real file content for every document under test. The
+    // `/api/documents/:id/file` route streams via GCS-backed
+    // `objectStorage`, while `/api/documents/:id/optimized-file`
+    // streams from the local `uploads/` tree via
+    // `optimizedFileStorage`. To exercise BOTH end-to-end we publish
+    // the same PDF body in both places and reference it from the
+    // document row via a `/objects/...` path.
+    const { objectStorageClient } = require('../../server/objectStorage');
+    const privateObjectDir = process.env.PRIVATE_OBJECT_DIR;
+    if (!privateObjectDir) {
+      throw new Error(
+        'PRIVATE_OBJECT_DIR is not set; this suite requires Replit Object Storage.'
+      );
+    }
+    // PRIVATE_OBJECT_DIR is `/<bucket>[/<prefix...>]`. Strip the
+    // leading slash, then peel off the bucket; the remainder (which
+    // may be empty if no prefix is configured) is the in-bucket
+    // prefix the runtime code (`getObjectEntityFile`) appends entity
+    // ids to. Empty prefix MUST NOT produce a leading slash in the
+    // GCS object key, otherwise tests stage files at `/uploads/...`
+    // while production code looks them up at `uploads/...`.
+    const [gcsBucketName, ...gcsPrefixParts] = privateObjectDir
+      .replace(/^\/+/, '')
+      .split('/');
+    const gcsPrefix = gcsPrefixParts.join('/'); // '' when no prefix
+    const joinObjectKey = (rel: string) =>
+      gcsPrefix ? `${gcsPrefix}/${rel}` : rel;
+    const bucket = objectStorageClient.bucket(gcsBucketName);
+
+    const localUploadsDir = nodePath.join(process.cwd(), 'uploads');
+
+    /** Stages the PDF body in GCS + local fs and returns the
+     *  `/objects/...` document filePath that both routes will accept. */
+    async function stageFile(docId: string): Promise<string> {
+      const entityRel = `uploads/${TEST_TAG}/${docId}.pdf`;
+      const objectsPath = `/objects/${entityRel}`;
+
+      // 1) GCS upload at <PRIVATE_OBJECT_DIR>/<entityRel> — this is
+      //    where ObjectStorageService.getObjectEntityFile() looks.
+      //    The route's secondary ACL check (`canUserAccessDocument`)
+      //    consults the GCS object's `custom:aclPolicy` metadata, so
+      //    we stamp an ORGANIZATION-scoped READ rule that resolves to
+      //    "true" for our manager via their `user_organizations` row.
+      //    Admins bypass this check entirely.
+      const objectName = joinObjectKey(entityRel);
+      const aclPolicy = {
+        owner: ids.admin,
+        visibility: 'private' as const,
+        aclRules: [
+          {
+            group: { type: 'organization', id: ids.org },
+            permission: 'read',
+          },
+        ],
+      };
+      await bucket.file(objectName).save(PDF_BODY, {
+        contentType: 'application/pdf',
+        resumable: false,
+        metadata: {
+          metadata: {
+            'custom:aclPolicy': JSON.stringify(aclPolicy),
+          },
+        },
+      });
+      createdGcsObjects.push({ bucketName: gcsBucketName, objectName });
+
+      // 2) Local fs file + sibling metadata for the optimized route.
+      //    sanitizePath() strips the leading slash, so the on-disk
+      //    location is `uploads/objects/<entityRel>`.
+      const localFile = nodePath.join(
+        localUploadsDir,
+        'objects',
+        entityRel
+      );
+      const metaFile = `${localFile}.metadata.json`;
+      await fsPromises.mkdir(nodePath.dirname(localFile), { recursive: true });
+      await fsPromises.writeFile(localFile, PDF_BODY);
+      await fsPromises.writeFile(
+        metaFile,
+        JSON.stringify({
+          originalName: `${docId}.pdf`,
+          mimeType: 'application/pdf',
+          size: PDF_BODY.length,
+          uploadedBy: ids.manager,
+          uploadedAt: new Date().toISOString(),
+          // Manager access in optimizedFileStorage.checkFileAccess
+          // requires `context.organizationId` to be set.
+          context: {
+            type: 'document',
+            organizationId: ids.org,
+            buildingId: ids.building,
+            residenceId: ids.residence,
+            userRole: 'manager',
+            userId: ids.manager,
+          },
+        })
+      );
+      createdLocalFiles.push(localFile, metaFile);
+
+      return objectsPath;
+    }
+
+    const filePathMgrRes = await stageFile(ids.docMgrOnlyResidence);
+    const filePathMgrBld = await stageFile(ids.docMgrOnlyBuilding);
+    const filePathNormal = await stageFile(ids.docNormalResidence);
+
     // Documents:
     //  1. Manager-only document on the residence — both isManagerOnly
     //     and isVisibleToTenants are true to prove the manager-only
@@ -353,7 +427,10 @@ describeIfDb('manager-only document visibility — Task #321', () => {
         id: ids.docMgrOnlyResidence,
         name: `${TEST_TAG} mgr-only residence`,
         documentType: 'legal',
-        filePath: `tests/${TEST_TAG}/${ids.docMgrOnlyResidence}.pdf`,
+        filePath: filePathMgrRes,
+        fileName: `${ids.docMgrOnlyResidence}.pdf`,
+        mimeType: 'application/pdf',
+        fileSize: PDF_BODY.length,
         residenceId: ids.residence,
         uploadedById: ids.manager,
         isVisibleToTenants: true,
@@ -363,7 +440,10 @@ describeIfDb('manager-only document visibility — Task #321', () => {
         id: ids.docMgrOnlyBuilding,
         name: `${TEST_TAG} mgr-only building`,
         documentType: 'legal',
-        filePath: `tests/${TEST_TAG}/${ids.docMgrOnlyBuilding}.pdf`,
+        filePath: filePathMgrBld,
+        fileName: `${ids.docMgrOnlyBuilding}.pdf`,
+        mimeType: 'application/pdf',
+        fileSize: PDF_BODY.length,
         buildingId: ids.building,
         uploadedById: ids.manager,
         isVisibleToTenants: true,
@@ -373,7 +453,10 @@ describeIfDb('manager-only document visibility — Task #321', () => {
         id: ids.docNormalResidence,
         name: `${TEST_TAG} normal residence`,
         documentType: 'legal',
-        filePath: `tests/${TEST_TAG}/${ids.docNormalResidence}.pdf`,
+        filePath: filePathNormal,
+        fileName: `${ids.docNormalResidence}.pdf`,
+        mimeType: 'application/pdf',
+        fileSize: PDF_BODY.length,
         residenceId: ids.residence,
         uploadedById: ids.manager,
         isVisibleToTenants: true,
@@ -387,6 +470,26 @@ describeIfDb('manager-only document visibility — Task #321', () => {
 
   afterAll(async () => {
     if (!REAL_DB_URL || !db) return;
+
+    // Best-effort cleanup of GCS objects + local fs artefacts staged
+    // in beforeAll. Errors are swallowed individually so one missing
+    // artefact never blocks DB row cleanup below.
+    try {
+      const { objectStorageClient } = require('../../server/objectStorage');
+      for (const obj of createdGcsObjects) {
+        await objectStorageClient
+          .bucket(obj.bucketName)
+          .file(obj.objectName)
+          .delete({ ignoreNotFound: true })
+          .catch(() => {});
+      }
+    } catch {
+      /* ignore */
+    }
+    for (const f of createdLocalFiles) {
+      await fsPromises.unlink(f).catch(() => {});
+    }
+
     if (created.documents.size) {
       await db
         .delete(schema.documents)
@@ -652,22 +755,39 @@ describeIfDb('manager-only document visibility — Task #321', () => {
       }
     }, 30000);
 
-    it('admin is NOT blocked by access control on manager-only documents', async () => {
+    it('admin receives the streamed PDF body for manager-only documents', async () => {
       const agent = await loginAs(emails.admin);
       for (const docId of [ids.docMgrOnlyResidence, ids.docMgrOnlyBuilding]) {
-        const res = await agent.get(`/api/documents/${docId}/file`);
-        // The seeded document references a path that does not exist
-        // in object storage, so the actual stream may 404/500 — what
-        // we MUST never see is a 403 access-denied.
-        expect(res.status).not.toBe(403);
+        const res = await agent
+          .get(`/api/documents/${docId}/file`)
+          .buffer(true)
+          .parse((response, cb) => {
+            const chunks: Buffer[] = [];
+            response.on('data', (c: Buffer) => chunks.push(Buffer.from(c)));
+            response.on('end', () => cb(null, Buffer.concat(chunks)));
+          });
+        expect(res.status).toBe(200);
+        expect(res.headers['content-type']).toMatch(/application\/pdf/);
+        expect(Buffer.isBuffer(res.body)).toBe(true);
+        expect(res.body.length).toBe(PDF_BODY.length);
+        expect(res.body.equals(PDF_BODY)).toBe(true);
       }
     }, 30000);
 
-    it('manager is NOT blocked by access control on manager-only documents', async () => {
+    it('manager receives the streamed PDF body for manager-only documents', async () => {
       const agent = await loginAs(emails.manager);
       for (const docId of [ids.docMgrOnlyResidence, ids.docMgrOnlyBuilding]) {
-        const res = await agent.get(`/api/documents/${docId}/file`);
-        expect(res.status).not.toBe(403);
+        const res = await agent
+          .get(`/api/documents/${docId}/file`)
+          .buffer(true)
+          .parse((response, cb) => {
+            const chunks: Buffer[] = [];
+            response.on('data', (c: Buffer) => chunks.push(Buffer.from(c)));
+            response.on('end', () => cb(null, Buffer.concat(chunks)));
+          });
+        expect(res.status).toBe(200);
+        expect(res.headers['content-type']).toMatch(/application\/pdf/);
+        expect(res.body.equals(PDF_BODY)).toBe(true);
       }
     }, 30000);
   });
@@ -967,24 +1087,37 @@ describeIfDb('manager-only document visibility — Task #321', () => {
       }
     }, 30000);
 
-    it('admin passes the access check on manager-only documents', async () => {
+    it('admin receives the streamed PDF body for manager-only documents', async () => {
       const agent = await loginAs(emails.admin);
       for (const docId of [ids.docMgrOnlyResidence, ids.docMgrOnlyBuilding]) {
-        const res = await agent.get(`/api/documents/${docId}/optimized-file`);
-        // Document scope authorization passes; the file itself does
-        // not exist on disk, so a non-404 access-denied is acceptable
-        // (typically 403 from the file retrieval layer or 500). The
-        // critical assertion is that we do NOT see the 404 "not found
-        // or access denied" returned by getDocumentWithScope().
-        expect(res.status).not.toBe(404);
+        const res = await agent
+          .get(`/api/documents/${docId}/optimized-file`)
+          .buffer(true)
+          .parse((response, cb) => {
+            const chunks: Buffer[] = [];
+            response.on('data', (c: Buffer) => chunks.push(Buffer.from(c)));
+            response.on('end', () => cb(null, Buffer.concat(chunks)));
+          });
+        expect(res.status).toBe(200);
+        expect(res.headers['content-type']).toMatch(/application\/pdf/);
+        expect(res.body.equals(PDF_BODY)).toBe(true);
       }
     }, 30000);
 
-    it('manager passes the access check on manager-only documents', async () => {
+    it('manager receives the streamed PDF body for manager-only documents', async () => {
       const agent = await loginAs(emails.manager);
       for (const docId of [ids.docMgrOnlyResidence, ids.docMgrOnlyBuilding]) {
-        const res = await agent.get(`/api/documents/${docId}/optimized-file`);
-        expect(res.status).not.toBe(404);
+        const res = await agent
+          .get(`/api/documents/${docId}/optimized-file`)
+          .buffer(true)
+          .parse((response, cb) => {
+            const chunks: Buffer[] = [];
+            response.on('data', (c: Buffer) => chunks.push(Buffer.from(c)));
+            response.on('end', () => cb(null, Buffer.concat(chunks)));
+          });
+        expect(res.status).toBe(200);
+        expect(res.headers['content-type']).toMatch(/application\/pdf/);
+        expect(res.body.equals(PDF_BODY)).toBe(true);
       }
     }, 30000);
   });
