@@ -117,7 +117,7 @@ async function getAccessibleBuildingIds(user: any): Promise<string[]> {
     .innerJoin(userOrganizations, eq(userOrganizations.organizationId, schema.organizations.id))
     .where(and(eq(userOrganizations.userId, user.id), eq(userOrganizations.isActive, true)));
 
-  const hasGlobalAccess = userOrgs.some((org) => org.organizationName === 'Koveo' || org.canAccessAllOrganizations);
+  const hasGlobalAccess = userOrgs.some((org) => org.canAccessAllOrganizations);
 
   if (hasGlobalAccess) {
     const allBuildings = await db

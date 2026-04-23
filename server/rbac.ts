@@ -110,29 +110,15 @@ export async function getUserAccessibleOrganizations(userId: string): Promise<st
     // Check each user organization membership
     for (const userOrg of userOrgs) {
       if (userOrg.canAccessAllOrganizations) {
-        // User can access all organizations
+        // User can access all organizations (explicit flag only — never inferred from org name)
         const allOrgs = await db.query.organizations.findMany({
           where: eq(schema.organizations.isActive, true),
         });
         allOrgs.forEach((org) => accessibleOrgIds.add(org.id));
         break;
       } else {
-        // Check if this is the Koveo organization (also grants global access)
-        const org = await db.query.organizations.findFirst({
-          where: eq(schema.organizations.id, userOrg.organizationId),
-        });
-        
-        if (org && org.name && org.name.toLowerCase() === 'koveo') {
-          // Koveo organization grants access to all
-          const allOrgs = await db.query.organizations.findMany({
-            where: eq(schema.organizations.isActive, true),
-          });
-          allOrgs.forEach((allOrg) => accessibleOrgIds.add(allOrg.id));
-          break;
-        } else {
-          // User can access their own organization
-          accessibleOrgIds.add(userOrg.organizationId);
-        }
+        // User can access their own organization
+        accessibleOrgIds.add(userOrg.organizationId);
       }
     }
 

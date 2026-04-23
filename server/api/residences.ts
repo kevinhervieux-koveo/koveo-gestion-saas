@@ -133,7 +133,7 @@ export function registerResidenceRoutes(app: Express) {
 
       const hasGlobalAccess =
         user.role === 'admin' ||
-        userOrgs.some((org) => org.organizationName === 'Koveo' || org.canAccessAllOrganizations);
+        userOrgs.some((org) => org.canAccessAllOrganizations);
 
       if (hasGlobalAccess) {
         if (process.env.NODE_ENV === 'development') {

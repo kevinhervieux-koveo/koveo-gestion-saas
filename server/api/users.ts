@@ -2869,6 +2869,20 @@ export function registerUserRoutes(app: Express): void {
           });
         }
 
+        // SECURITY FIX: Ensure the target organization is within the manager's own scope
+        const managerOrgs = await storage.getUserOrganizations(currentUser.id);
+        const managerOrgIds = managerOrgs.map((o: any) => o.organizationId);
+        if (!managerOrgIds.includes(organizationId)) {
+          logWarn('[SECURITY] Manager attempted to invite into out-of-scope organization', {
+            userId: currentUser.id,
+            metadata: { targetOrganizationId: organizationId },
+          });
+          return res.status(403).json({
+            message: 'Cannot create invitations for organizations outside your scope',
+            code: 'ORGANIZATION_SCOPE_VIOLATION',
+          });
+        }
+
         // Get the demo organization to check if it's a demo org
         const targetOrg = await db
           .select()
@@ -3299,6 +3313,32 @@ export function registerUserRoutes(app: Express): void {
           message: 'Invitation has been cancelled',
           code: 'INVITATION_CANCELLED',
         });
+      }
+
+      // SECURITY FIX: Defense-in-depth scope revalidation at redemption time.
+      // If the invitation was created by a manager (non-admin), confirm that the
+      // inviter still belongs to the target organization. This catches any
+      // out-of-scope invitations that slipped through (e.g. pre-patch tokens or
+      // future creation-path regressions) before they can grant cross-tenant membership.
+      if (invitation.invitedByUserId && invitation.organizationId) {
+        const inviter = await storage.getUser(invitation.invitedByUserId);
+        if (inviter && inviter.role !== 'admin') {
+          const inviterOrgs = await storage.getUserOrganizations(invitation.invitedByUserId);
+          const inviterOrgIds = inviterOrgs.map((o: any) => o.organizationId);
+          if (!inviterOrgIds.includes(invitation.organizationId)) {
+            logWarn('[SECURITY] Invitation acceptance blocked: inviter no longer belongs to target organization', {
+              userId: invitation.invitedByUserId,
+              metadata: {
+                invitationId: invitation.id,
+                targetOrganizationId: invitation.organizationId,
+              },
+            });
+            return res.status(403).json({
+              message: 'This invitation is no longer valid',
+              code: 'INVITATION_SCOPE_VIOLATION',
+            });
+          }
+        }
       }
 
       // Validate required fields

@@ -44,14 +44,14 @@ export async function getUserBuildingAccess(userId: string): Promise<UserAccess>
     .innerJoin(organizations, eq(userOrganizations.organizationId, organizations.id))
     .where(and(eq(userOrganizations.userId, userId), eq(userOrganizations.isActive, true)));
 
-  const isKoveoUser = userOrgs.some((org) => org.organizationName === 'Koveo');
+  const hasGlobalAccess = userOrgs.some((org) => org.canAccessAllOrganizations);
   const organizationIds = userOrgs.map((org) => org.organizationId);
 
   return {
-    hasAccess: userOrgs.length > 0 || isKoveoUser,
-    accessType: isKoveoUser ? 'koveo-global' : 'organization',
+    hasAccess: userOrgs.length > 0,
+    accessType: hasGlobalAccess ? 'koveo-global' : 'organization',
     organizationIds,
-    isKoveoUser,
+    isKoveoUser: hasGlobalAccess,
   };
 }
 

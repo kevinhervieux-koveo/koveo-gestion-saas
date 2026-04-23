@@ -159,11 +159,11 @@ export function registerBuildingRoutes(app: Express): void {
 
       const hasGlobalAccess =
         currentUser.role === 'admin' ||
-        userOrgs.some((org) => org.organizationName === 'Koveo' || org.canAccessAllOrganizations);
+        userOrgs.some((org) => org.canAccessAllOrganizations);
 
       if (hasGlobalAccess) {
 
-        // Koveo users can see ALL buildings from ALL organizations (or filtered by organizationId)
+        // Global-access users can see ALL buildings from ALL organizations (or filtered by organizationId)
         const whereConditions = [eq(buildings.isActive, true)];
         if (organizationIdFilter) {
           whereConditions.push(eq(buildings.organizationId, organizationIdFilter));
@@ -509,7 +509,7 @@ export function registerBuildingRoutes(app: Express): void {
 
       const hasGlobalAccess =
         currentUser.role === 'admin' ||
-        userOrgs.some((org) => org.organizationName === 'Koveo' || org.canAccessAllOrganizations);
+        userOrgs.some((org) => org.canAccessAllOrganizations);
 
       if (hasGlobalAccess) {
         hasAccess = true;
