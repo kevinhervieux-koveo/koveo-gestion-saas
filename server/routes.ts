@@ -184,6 +184,7 @@ export async function registerRoutes(app: Express) {
   lazyMount(app, '/api/maintenance', async () => (await import('./api/maintenance')).registerMaintenanceRoutes);
   lazyMount(app, '/api/demo', async () => (await import('./api/demo-management')).registerDemoManagementRoutes);
   lazyMount(app, '/api/ai', async () => (await import('./api/ai-document-analysis')).registerAiAnalysisRoutes);
+  lazyMount(app, '/api/admin/bulk-import', async () => (await import('./api/bulk-import')).registerBulkImportRoutes);
   
   // Performance monitoring routes
   app.use(performanceRouter);

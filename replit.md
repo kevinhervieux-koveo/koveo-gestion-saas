@@ -130,3 +130,12 @@ The platform exposes an MCP server at `/mcp` for LLM integration (e.g., Claude D
 - `scripts/check-migration-coverage.ts` compares `shared/schema.ts` against the cumulative `migrations/*.sql` set by spinning up two ephemeral PGlite databases (one applies the migrations, the other applies `drizzle-kit export` of the schema) and diffing tables, columns, enums, primary keys, and unique constraints via `information_schema`.
 - Wired into `.husky/pre-commit` (runs only when `shared/schemas/*` or `migrations/NNNN_*.sql` are staged) and `.github/workflows/migration-coverage-check.yml`.
 - Pure helpers (`splitSqlStatements`, `diff`, `hasDrift`, `formatReport`) are covered by `tests/unit/check-migration-coverage.test.ts`.
+
+## Bulk Document Import (Task #451)
+- Admin-only page at `/admin/bulk-document-import` walks the user through a five-step AI-assisted onboarding pipeline (screening → sorting → branching → identification → linking) for one building.
+- Backend at `server/api/bulk-import.ts` (REST) and `server/mcp/bulk-import-tools.ts` (MCP) drive the pipeline. Files are staged under `.staging/bulk-import/<sessionId>/` and never enter the real `documents` table until the linking step accepts them.
+- AI is wrapped in `server/services/bulk-import-analyzer.ts` (Anthropic Claude). Falls back to deterministic low-confidence stubs when `ANTHROPIC_API_KEY` is missing.
+- Schema lives in `shared/schemas/bulk-import.ts` (`bulk_import_sessions`, `bulk_import_items`, `client_document_fingerprints`); migration `migrations/0009_bulk_document_import.sql`.
+- Per-org dedup via `client_document_fingerprints (organization_id, content_hash)` unique index.
+- Sessions auto-resume via `localStorage` (`bulkImportActiveSessionId`) and a server-side `currentStep` field.
+- Bilingual help entry registered in `client/src/config/help-content.ts`; navigation entry in `client/src/config/navigation.ts` (admin only).

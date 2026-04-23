@@ -83,6 +83,7 @@ const BUILD_TIME: string = (() => {
 import { db } from "../db";
 import * as schema from "@shared/schema";
 import { registerBudgetTools } from "./budget-tools";
+import { registerBulkImportTools } from "./bulk-import-tools";
 import * as commonSpaceRules from "../api/common-spaces-rules";
 import { eq, and, inArray, desc, asc, isNull, or, sql, count, gte, lte, type SQL } from "drizzle-orm";
 import { DocumentService, type DocumentType } from "../services/document-service";
@@ -5757,6 +5758,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
   );
 
   registerBudgetTools(server, { roleParam, getMcpUser, getMcpOrgIds });
+  registerBulkImportTools(server, { roleParam, getMcpUser, getMcpOrgIds });
 
   // ===========================================================================
   // Document Tags

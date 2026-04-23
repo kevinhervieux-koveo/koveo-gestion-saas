@@ -63,6 +63,53 @@ export const helpContentMap: Record<string, HelpContent> = {
   },
 
   // ===== ADMIN PAGES =====
+  '/admin/bulk-document-import': {
+    title: { en: 'Bulk Document Import', fr: 'Importation Documentaire en Lot' },
+    description: {
+      en: 'Ingest folders of mixed documents (PDF, Word, Excel, images, zips) for one building and let the AI assistant route each file into the correct place.',
+      fr: 'Importez des dossiers de documents variés (PDF, Word, Excel, images, archives ZIP) pour un immeuble et laissez l’assistant IA acheminer chaque fichier au bon endroit.',
+    },
+    goal: {
+      en: 'Onboard a building’s historical paperwork in one supervised pass — Anthropic suggests filenames, destinations, and metadata while you keep final approval.',
+      fr: 'Intégrez la paperasse historique d’un immeuble en une passe supervisée — Anthropic suggère noms, destinations et métadonnées pendant que vous gardez l’approbation finale.',
+    },
+    howToUse: {
+      en: 'Pick a building, upload files, then walk the 5 AI-assisted steps (screening, sorting, branching, identification, linking). Each suggestion shows a confidence badge. The session auto-saves so you can close the tab and resume later.',
+      fr: 'Choisissez un immeuble, téléversez les fichiers puis suivez les 5 étapes assistées par IA (filtrage, tri, aiguillage, identification, liaison). Chaque suggestion affiche un badge de confiance. La session est sauvegardée automatiquement — vous pouvez fermer l’onglet et reprendre plus tard.',
+    },
+    buttons: [
+      {
+        label: { en: 'Create session', fr: 'Créer la session' },
+        description: {
+          en: 'Start (or resume) a bulk-import session for the selected building',
+          fr: 'Démarrer (ou reprendre) une session d’importation en lot pour l’immeuble sélectionné',
+        },
+      },
+      {
+        label: { en: 'Choose files', fr: 'Choisir des fichiers' },
+        description: {
+          en: 'Stage files in the session — they are NOT saved to documents until the linking step accepts them',
+          fr: 'Stocker les fichiers dans la session — ils ne sont PAS enregistrés dans les documents tant que l’étape de liaison ne les accepte pas',
+        },
+      },
+      {
+        label: { en: 'Clear all', fr: 'Tout effacer' },
+        description: {
+          en: 'Wipe the session and all staged files (requires typing DELETE to confirm)',
+          fr: 'Effacer la session et tous les fichiers en attente (nécessite de saisir DELETE pour confirmer)',
+        },
+      },
+    ],
+    relationships: [
+      {
+        page: { en: 'Documents', fr: 'Documents' },
+        description: {
+          en: 'Items committed at the linking step land in the building/residence document trees',
+          fr: 'Les éléments validés à l’étape de liaison atterrissent dans les arborescences de documents de l’immeuble/résidence',
+        },
+      },
+    ],
+  },
   '/admin/organizations': {
     title: { en: 'Organizations Management', fr: 'Gestion des Organisations' },
     description: { en: 'Manage all organizations in the system.', fr: 'Gérez toutes les organisations dans le système.' },
