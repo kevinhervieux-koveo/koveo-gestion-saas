@@ -1293,7 +1293,6 @@ export interface Translations {
   navUserManagement: string;
   documentTags: string;
   manageCommonSpaces: string;
-  documentation: string;
   pillars: string;
   roadmap: string;
   navQualityAssurance: string;
@@ -3607,7 +3606,6 @@ export const translations: Record<Language, Translations> = {
     navUserManagement: 'User Management',
     documentTags: 'Document Tags',
     manageCommonSpaces: 'Manage Common Spaces',
-    documentation: 'Documentation',
     pillars: 'Pillars',
     roadmap: 'Roadmap',
     navQualityAssurance: 'Quality Assurance',
@@ -5728,7 +5726,6 @@ export const translations: Record<Language, Translations> = {
     navUserManagement: 'Gestion des utilisateurs',
     documentTags: 'Étiquettes de documents',
     manageCommonSpaces: 'Gérer les espaces communs',
-    documentation: 'Documentation',
     pillars: 'Piliers',
     roadmap: 'Feuille de route',
     navQualityAssurance: 'Assurance qualité',
