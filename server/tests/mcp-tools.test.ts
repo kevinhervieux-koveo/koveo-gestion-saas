@@ -53,8 +53,8 @@ import { createMcpServer } from '../mcp/server';
 
 const EXPECTED_TOOLS = [
   'list_organizations', 'get_organization',
-  'list_buildings', 'get_building', 'create_building',
-  'list_residences', 'get_residence', 'create_residence',
+  'list_buildings', 'get_building', 'create_building', 'update_building',
+  'list_residences', 'get_residence', 'create_residence', 'update_residence',
   'list_users', 'get_user',
   'list_demands', 'get_demand', 'create_demand',
   'list_maintenance_requests', 'get_maintenance_request',
@@ -231,6 +231,114 @@ describe('MCP Server', () => {
         unitNumber: '101',
       }, {});
       expect(parseToolResponse(result)).toContain('Access denied');
+    });
+  });
+
+  describe('Building/Residence Update Tools', () => {
+    function installUpdateMock(returningRow: unknown) {
+      const updateChain = {
+        set: jest.fn().mockReturnThis(),
+        where: jest.fn().mockReturnThis(),
+        returning: jest.fn().mockResolvedValue([returningRow]),
+      };
+      (mockDb as unknown as { update: jest.Mock }).update = jest.fn(() => updateChain);
+      return updateChain;
+    }
+
+    it('denies tenants from updating buildings', async () => {
+      const handler = getToolHandler(server, 'update_building');
+      const result = await handler({ role: 'tenant', buildingId: 'b-1', name: 'New' }, {});
+      expect(parseToolResponse(result)).toContain('Access denied');
+      expect(parseToolResponse(result)).toContain('tenant');
+    });
+
+    it('denies tenants from updating residences', async () => {
+      const handler = getToolHandler(server, 'update_residence');
+      const result = await handler({ role: 'tenant', residenceId: 'r-1', floor: 5 }, {});
+      expect(parseToolResponse(result)).toContain('Access denied');
+      expect(parseToolResponse(result)).toContain('tenant');
+    });
+
+    it('denies update_building when target is outside the MCP org scope', async () => {
+      mockSelectChain.where
+        .mockImplementationOnce(() => createWhereResult([{ id: 'org-1' }])) // getMcpOrgIds
+        .mockImplementationOnce(() => createWhereResult([{ id: 'b-x', organizationId: 'other-org', name: 'Old' }]));
+      const handler = getToolHandler(server, 'update_building');
+      const result = await handler({ role: 'admin', buildingId: 'b-x', name: 'New' }, {});
+      expect(parseToolResponse(result)).toContain('Building not found or access denied');
+    });
+
+    it('denies update_residence when target is outside the MCP org scope', async () => {
+      mockSelectChain.where
+        .mockImplementationOnce(() => createWhereResult([{ id: 'org-1' }])) // getMcpOrgIds
+        .mockImplementationOnce(() => createWhereResult([{ id: 'r-x', buildingId: 'b-x' }]))
+        .mockImplementationOnce(() => createWhereResult([{ id: 'b-x', organizationId: 'other-org' }]));
+      const handler = getToolHandler(server, 'update_residence');
+      const result = await handler({ role: 'admin', residenceId: 'r-x', floor: 3 }, {});
+      expect(parseToolResponse(result)).toContain('Residence not found or access denied');
+    });
+
+    it('partially updates a building, leaving omitted fields untouched', async () => {
+      const seeded = {
+        id: 'b-1',
+        organizationId: 'org-1',
+        name: 'Old Name',
+        address: '1 Old St',
+        city: 'Montreal',
+        postalCode: 'H1A1A1',
+        buildingType: 'apartment',
+        totalUnits: 10,
+        province: 'QC',
+      };
+      mockSelectChain.where
+        .mockImplementationOnce(() => createWhereResult([{ id: 'org-1' }]))
+        .mockImplementationOnce(() => createWhereResult([seeded]));
+      const updated = { ...seeded, name: 'New Name' };
+      const updateChain = installUpdateMock(updated);
+      const handler = getToolHandler(server, 'update_building');
+      const result = await handler({ role: 'admin', buildingId: 'b-1', name: 'New Name' }, {});
+      const parsed = JSON.parse(parseToolResponse(result));
+      expect(parsed.name).toBe('New Name');
+      expect(parsed.address).toBe('1 Old St');
+      expect(parsed.city).toBe('Montreal');
+      expect(parsed.totalUnits).toBe(10);
+      const setArg = (updateChain.set as jest.Mock).mock.calls[0][0];
+      expect(setArg).toHaveProperty('name', 'New Name');
+      expect(setArg).not.toHaveProperty('address');
+      expect(setArg).not.toHaveProperty('city');
+      expect(setArg).not.toHaveProperty('totalUnits');
+      expect(setArg).not.toHaveProperty('organizationId');
+    });
+
+    it('partially updates a residence, leaving omitted fields untouched', async () => {
+      const seeded = {
+        id: 'r-1',
+        buildingId: 'b-1',
+        unitNumber: '101',
+        floor: 1,
+        bedrooms: 2,
+        bathrooms: '1.5',
+        monthlyFees: '500.00',
+      };
+      mockSelectChain.where
+        .mockImplementationOnce(() => createWhereResult([{ id: 'org-1' }]))
+        .mockImplementationOnce(() => createWhereResult([seeded]))
+        .mockImplementationOnce(() => createWhereResult([{ id: 'b-1', organizationId: 'org-1' }]));
+      const updated = { ...seeded, floor: 7 };
+      const updateChain = installUpdateMock(updated);
+      const handler = getToolHandler(server, 'update_residence');
+      const result = await handler({ role: 'manager', residenceId: 'r-1', floor: 7 }, {});
+      const parsed = JSON.parse(parseToolResponse(result));
+      expect(parsed.floor).toBe(7);
+      expect(parsed.unitNumber).toBe('101');
+      expect(parsed.bedrooms).toBe(2);
+      expect(parsed.bathrooms).toBe('1.5');
+      const setArg = (updateChain.set as jest.Mock).mock.calls[0][0];
+      expect(setArg).toHaveProperty('floor', 7);
+      expect(setArg).not.toHaveProperty('unitNumber');
+      expect(setArg).not.toHaveProperty('bedrooms');
+      expect(setArg).not.toHaveProperty('bathrooms');
+      expect(setArg).not.toHaveProperty('buildingId');
     });
   });
 

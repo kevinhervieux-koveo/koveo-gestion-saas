@@ -828,6 +828,151 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
   );
 
   server.tool(
+    "update_building",
+    "Update an existing building (admin/manager only). Only fields supplied are changed; organizationId is immutable.",
+    {
+      role: roleParam,
+      buildingId: z.string().describe("Building ID"),
+      name: z.string().optional().describe("Building name"),
+      address: z.string().optional().describe("Street address"),
+      city: z.string().optional().describe("City"),
+      postalCode: z.string().optional().describe("Postal code"),
+      buildingType: z.enum(["apartment", "condo", "rental"]).optional().describe("Building type"),
+      totalUnits: z.number().int().optional().describe("Total number of units"),
+      province: z.string().length(2).optional().describe("Province code"),
+      constructionDate: z
+        .string()
+        .regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD")
+        .optional()
+        .describe("Construction date (YYYY-MM-DD)"),
+      totalFloors: z.number().int().optional().describe("Total number of floors"),
+      parkingSpaces: z.number().int().optional().describe("Total parking spaces"),
+      storageSpaces: z.number().int().optional().describe("Total storage spaces"),
+      amenities: z.array(z.string()).optional().describe("List of building amenities"),
+      managementCompany: z.string().optional().describe("Management company name"),
+      bankAccountNumber: z.string().optional().describe("Bank account number"),
+      bankAccountNotes: z.string().optional().describe("Bank reconciliation notes"),
+      bankAccountStartDate: z
+        .string()
+        .datetime({ offset: true })
+        .optional()
+        .describe("Bank account start date (ISO 8601 datetime)"),
+      bankAccountStartAmount: z.number().optional().describe("Bank account starting balance"),
+      bankAccountMinimums: z
+        .string()
+        .refine((s) => {
+          try {
+            JSON.parse(s);
+            return true;
+          } catch {
+            return false;
+          }
+        }, "Must be a valid JSON string")
+        .optional()
+        .describe("JSON string of minimum balance settings"),
+      unplannedBillsAmount: z.number().optional().describe("Monthly unplanned bills budget"),
+      unplannedBillsStartDate: z
+        .string()
+        .regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD")
+        .optional()
+        .describe("Unplanned bills start date (YYYY-MM-DD)"),
+      inflationSettings: z
+        .string()
+        .refine((s) => {
+          try {
+            JSON.parse(s);
+            return true;
+          } catch {
+            return false;
+          }
+        }, "Must be a valid JSON string")
+        .optional()
+        .describe("JSON string of inflation configuration by category"),
+      financialYearStart: z
+        .string()
+        .regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD")
+        .optional()
+        .describe("Financial year start date (YYYY-MM-DD)"),
+      generalInflationRate: z.number().optional().describe("General inflation rate percentage"),
+      revenueInflationRate: z.number().optional().describe("Revenue inflation rate percentage"),
+    },
+    async ({
+      role,
+      buildingId,
+      name,
+      address,
+      city,
+      postalCode,
+      buildingType,
+      totalUnits,
+      province,
+      constructionDate,
+      totalFloors,
+      parkingSpaces,
+      storageSpaces,
+      amenities,
+      managementCompany,
+      bankAccountNumber,
+      bankAccountNotes,
+      bankAccountStartDate,
+      bankAccountStartAmount,
+      bankAccountMinimums,
+      unplannedBillsAmount,
+      unplannedBillsStartDate,
+      inflationSettings,
+      financialYearStart,
+      generalInflationRate,
+      revenueInflationRate,
+    }) => {
+      if (role === "tenant") {
+        return { content: [{ type: "text" as const, text: "Access denied: tenants cannot update buildings" }] };
+      }
+      const orgIds = await getMcpOrgIds();
+      const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, buildingId));
+      if (!building || !orgIds.includes(building.organizationId)) {
+        return { content: [{ type: "text" as const, text: "Building not found or access denied" }] };
+      }
+      try {
+        const [updated] = await withRetryableDbCall(() => db
+          .update(schema.buildings)
+          .set({
+            ...(name !== undefined && { name }),
+            ...(address !== undefined && { address }),
+            ...(city !== undefined && { city }),
+            ...(postalCode !== undefined && { postalCode }),
+            ...(buildingType !== undefined && { buildingType }),
+            ...(totalUnits !== undefined && { totalUnits }),
+            ...(province !== undefined && { province }),
+            ...(constructionDate !== undefined && { constructionDate }),
+            ...(totalFloors !== undefined && { totalFloors }),
+            ...(parkingSpaces !== undefined && { parkingSpaces }),
+            ...(storageSpaces !== undefined && { storageSpaces }),
+            ...(amenities !== undefined && { amenities }),
+            ...(managementCompany !== undefined && { managementCompany }),
+            ...(bankAccountNumber !== undefined && { bankAccountNumber }),
+            ...(bankAccountNotes !== undefined && { bankAccountNotes }),
+            ...(bankAccountStartDate !== undefined && { bankAccountStartDate: new Date(bankAccountStartDate) }),
+            ...(bankAccountStartAmount !== undefined && { bankAccountStartAmount: String(bankAccountStartAmount) }),
+            ...(bankAccountMinimums !== undefined && { bankAccountMinimums }),
+            ...(unplannedBillsAmount !== undefined && { unplannedBillsAmount: String(unplannedBillsAmount) }),
+            ...(unplannedBillsStartDate !== undefined && { unplannedBillsStartDate }),
+            ...(inflationSettings !== undefined && { inflationSettings }),
+            ...(financialYearStart !== undefined && { financialYearStart }),
+            ...(generalInflationRate !== undefined && { generalInflationRate: String(generalInflationRate) }),
+            ...(revenueInflationRate !== undefined && { revenueInflationRate: String(revenueInflationRate) }),
+            updatedAt: new Date(),
+          })
+          .where(eq(schema.buildings.id, buildingId))
+          .returning());
+        return { content: [{ type: "text" as const, text: JSON.stringify(updated, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:update_building]", e);
+        return buildWriteErrorResponse(e, 'building', 'update');
+      }
+    }
+  );
+
+  server.tool(
     "list_residences",
     "List residences in a building",
     { role: roleParam, buildingId: z.string().describe("Building ID") },
@@ -971,6 +1116,80 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       } catch (e) {
         console.error("[mcp:create_residence]", e);
         return buildWriteErrorResponse(e, 'residence', 'create');
+      }
+    }
+  );
+
+  server.tool(
+    "update_residence",
+    "Update an existing residence (admin/manager only). Only fields supplied are changed; buildingId is immutable.",
+    {
+      role: roleParam,
+      residenceId: z.string().describe("Residence ID"),
+      unitNumber: z.string().optional().describe("Unit number"),
+      floor: z.number().int().optional().describe("Floor number"),
+      bedrooms: z.number().int().optional().describe("Number of bedrooms"),
+      bathrooms: z.number().optional().describe("Number of bathrooms"),
+      monthlyFees: z.number().optional().describe("Monthly fees amount"),
+      squareFootage: z.number().optional().describe("Square footage"),
+      balcony: z.boolean().optional().describe("Whether the residence has a balcony"),
+      parkingSpaceNumbers: z.array(z.string()).optional().describe("Assigned parking space numbers"),
+      storageSpaceNumbers: z.array(z.string()).optional().describe("Assigned storage space numbers"),
+      ownershipPercentage: z
+        .number()
+        .min(0)
+        .max(100)
+        .optional()
+        .describe("Ownership percentage for condo fee allocation (0-100)"),
+    },
+    async ({
+      role,
+      residenceId,
+      unitNumber,
+      floor,
+      bedrooms,
+      bathrooms,
+      monthlyFees,
+      squareFootage,
+      balcony,
+      parkingSpaceNumbers,
+      storageSpaceNumbers,
+      ownershipPercentage,
+    }) => {
+      if (role === "tenant") {
+        return { content: [{ type: "text" as const, text: "Access denied: tenants cannot update residences" }] };
+      }
+      const orgIds = await getMcpOrgIds();
+      const [residence] = await db.select().from(schema.residences).where(eq(schema.residences.id, residenceId));
+      if (!residence) {
+        return { content: [{ type: "text" as const, text: "Residence not found or access denied" }] };
+      }
+      const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, residence.buildingId));
+      if (!building || !orgIds.includes(building.organizationId)) {
+        return { content: [{ type: "text" as const, text: "Residence not found or access denied" }] };
+      }
+      try {
+        const [updated] = await withRetryableDbCall(() => db
+          .update(schema.residences)
+          .set({
+            ...(unitNumber !== undefined && { unitNumber }),
+            ...(floor !== undefined && { floor }),
+            ...(bedrooms !== undefined && { bedrooms }),
+            ...(bathrooms !== undefined && { bathrooms: String(bathrooms) }),
+            ...(monthlyFees !== undefined && { monthlyFees: String(monthlyFees) }),
+            ...(squareFootage !== undefined && { squareFootage: String(squareFootage) }),
+            ...(balcony !== undefined && { balcony }),
+            ...(parkingSpaceNumbers !== undefined && { parkingSpaceNumbers }),
+            ...(storageSpaceNumbers !== undefined && { storageSpaceNumbers }),
+            ...(ownershipPercentage !== undefined && { ownershipPercentage: String(ownershipPercentage) }),
+            updatedAt: new Date(),
+          })
+          .where(eq(schema.residences.id, residenceId))
+          .returning());
+        return { content: [{ type: "text" as const, text: JSON.stringify(updated, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:update_residence]", e);
+        return buildWriteErrorResponse(e, 'residence', 'update');
       }
     }
   );
