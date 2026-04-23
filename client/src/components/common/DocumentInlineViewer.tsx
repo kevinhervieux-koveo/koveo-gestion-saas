@@ -1,9 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Download, X, FileText, Loader2 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Download, X, FileText, Loader2, ChevronLeft, ChevronRight, LinkIcon, Pencil } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/use-language';
+import { DocumentLinkPickerDialog } from '@/components/documents/DocumentLinkPickerDialog';
 
 interface DocumentInlineViewerProps {
   isOpen: boolean;
@@ -12,6 +15,30 @@ interface DocumentInlineViewerProps {
   fileName?: string | null;
   downloadUrl?: string;
   mimeType?: string | null;
+  documentId?: string;
+  onNavigate?: (documentId: string) => void;
+}
+
+interface NeighborInfo {
+  id: string;
+  name: string;
+  source: 'explicit' | 'date';
+  effectiveDate: string | null;
+  createdAt: string;
+}
+
+function formatNeighborDate(n: NeighborInfo): string {
+  const raw = n.effectiveDate ?? n.createdAt;
+  if (!raw) return '';
+  const d = new Date(raw);
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toLocaleDateString();
+}
+
+interface NeighborsResponse {
+  currentId: string;
+  previous: NeighborInfo | null;
+  next: NeighborInfo | null;
 }
 
 type PreviewKind = 'pdf' | 'image' | 'text' | 'unsupported';
@@ -54,9 +81,17 @@ export function DocumentInlineViewer({
   fileName,
   downloadUrl,
   mimeType,
+  documentId,
+  onNavigate,
 }: DocumentInlineViewerProps) {
   const { toast } = useToast();
   const { t } = useLanguage();
+  const [linkPickerOpen, setLinkPickerOpen] = useState<false | 'before' | 'after'>(false);
+
+  const { data: neighbors } = useQuery<NeighborsResponse>({
+    queryKey: ['/api/documents', documentId, 'neighbors'],
+    enabled: !!documentId && isOpen,
+  });
 
   const previewKind = useMemo(
     () => detectPreviewKind(mimeType, fileName),
@@ -250,9 +285,120 @@ export function DocumentInlineViewer({
             </Button>
           </div>
         </DialogHeader>
+        {documentId && (
+          <div
+            className="flex items-center justify-between gap-2 px-4 py-2 border-b shrink-0 bg-muted/30"
+            data-testid="document-sequence-chips"
+          >
+            <div className="flex items-center gap-2">
+              {neighbors?.previous ? (
+                <>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onNavigate?.(neighbors.previous!.id)}
+                    disabled={!onNavigate}
+                    data-testid="button-prev-document"
+                  >
+                    <ChevronLeft className="w-4 h-4 mr-1" />
+                    <span className="flex flex-col items-start leading-tight">
+                      <span className="truncate max-w-[180px]">{neighbors.previous.name}</span>
+                      <span className="text-[10px] text-muted-foreground">
+                        {formatNeighborDate(neighbors.previous)}
+                      </span>
+                    </span>
+                    <Badge variant="secondary" className="ml-2 text-xs">
+                      {neighbors.previous.source === 'explicit' ? t('linkedBadge') : t('byDateBadge')}
+                    </Badge>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => setLinkPickerOpen('before')}
+                    data-testid="button-edit-prev-link"
+                    aria-label={t('editPreviousLink') || 'Change previous link'}
+                    title={t('editPreviousLink') || 'Change previous link'}
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setLinkPickerOpen('before')}
+                  data-testid="button-link-prev-document"
+                >
+                  <LinkIcon className="w-4 h-4 mr-1" />
+                  {t('addPreviousDocument') || 'Link previous'}
+                </Button>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              {neighbors?.next ? (
+                <>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => setLinkPickerOpen('after')}
+                    data-testid="button-edit-next-link"
+                    aria-label={t('editNextLink') || 'Change next link'}
+                    title={t('editNextLink') || 'Change next link'}
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onNavigate?.(neighbors.next!.id)}
+                    disabled={!onNavigate}
+                    data-testid="button-next-document"
+                  >
+                    <Badge variant="secondary" className="mr-2 text-xs">
+                      {neighbors.next.source === 'explicit' ? t('linkedBadge') : t('byDateBadge')}
+                    </Badge>
+                    <span className="flex flex-col items-end leading-tight">
+                      <span className="truncate max-w-[180px]">{neighbors.next.name}</span>
+                      <span className="text-[10px] text-muted-foreground">
+                        {formatNeighborDate(neighbors.next)}
+                      </span>
+                    </span>
+                    <ChevronRight className="w-4 h-4 ml-1" />
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setLinkPickerOpen('after')}
+                  data-testid="button-link-next-document"
+                >
+                  <LinkIcon className="w-4 h-4 mr-1" />
+                  {t('addNextDocument') || 'Link next'}
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
         <div className="flex-1 min-h-0 bg-gray-100 dark:bg-gray-900">
           {isOpen && renderPreview()}
         </div>
+        {documentId && linkPickerOpen !== false && (
+          <DocumentLinkPickerDialog
+            open={!!linkPickerOpen}
+            onOpenChange={(o) => { if (!o) setLinkPickerOpen(false); }}
+            documentId={documentId}
+            position={linkPickerOpen}
+          />
+        )}
       </DialogContent>
     </Dialog>
   );

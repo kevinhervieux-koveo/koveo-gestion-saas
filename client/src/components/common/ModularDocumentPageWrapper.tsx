@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useLocation, useParams } from 'wouter';
 import { Grid, List, ArrowLeft, Plus, Search, Filter, Building, Home, ChevronDown, ChevronRight, Eye, CheckSquare, Trash2, X } from 'lucide-react';
@@ -38,7 +38,8 @@ import {
 import { DocumentCreateForm } from '@/components/document-management/DocumentCreateForm';
 import { TagPicker, TagChips } from '@/components/document-tags/TagPicker';
 import { DocumentInlineViewer } from '@/components/common/DocumentInlineViewer';
-import { FileText, Download } from 'lucide-react';
+import { DocumentLinkPickerDialog } from '@/components/documents/DocumentLinkPickerDialog';
+import { FileText, Download, Link as LinkIcon } from 'lucide-react';
 import type { DocumentWithMetadata, DocumentPermissions } from '@shared/schemas/documents';
 
 // Document View Dialog Component
@@ -54,19 +55,27 @@ export function DocumentViewDialog({ documentId, isOpen, onClose, onEdit, canEdi
   const { t } = useLanguage();
   const { toast } = useToast();
   const [inlineViewerOpen, setInlineViewerOpen] = useState(false);
+  // When the user clicks a prev/next chip in the inline viewer we point the
+  // viewer at the new document without unmounting the host dialog. Reset
+  // when the host dialog is closed or the parent documentId changes.
+  const [inlineViewerDocId, setInlineViewerDocId] = useState<string>(documentId);
+  useEffect(() => {
+    setInlineViewerDocId(documentId);
+  }, [documentId, isOpen]);
   const { data: document, isLoading } = useQuery({
-    queryKey: ['/api/documents', documentId],
+    queryKey: ['/api/documents', inlineViewerDocId],
     queryFn: async () => {
-      const response = await apiRequest('GET', `/api/documents/${documentId}`);
+      const response = await apiRequest('GET', `/api/documents/${inlineViewerDocId}`);
       return response.json();
     },
-    enabled: isOpen && !!documentId,
+    enabled: isOpen && !!inlineViewerDocId,
   });
 
   const handleDownload = async () => {
     try {
       // Use fetch with credentials to ensure authentication
-      const response = await fetch(`/api/documents/${documentId}/file?download=true`, {
+      const activeId = inlineViewerDocId || documentId;
+      const response = await fetch(`/api/documents/${activeId}/file?download=true`, {
         method: 'GET',
         credentials: 'include',
       });
@@ -247,9 +256,11 @@ export function DocumentViewDialog({ documentId, isOpen, onClose, onEdit, canEdi
         <DocumentInlineViewer
           isOpen={inlineViewerOpen}
           onClose={() => setInlineViewerOpen(false)}
-          fileUrl={`/api/documents/${documentId}/file`}
+          fileUrl={`/api/documents/${inlineViewerDocId}/file`}
           fileName={document.fileName || document.name}
           mimeType={document.mimeType}
+          documentId={inlineViewerDocId}
+          onNavigate={(nextId) => setInlineViewerDocId(nextId)}
         />
       )}
     </Dialog>
@@ -637,6 +648,7 @@ export default function ModularDocumentPageWrapper({
 
   // State for document view and edit dialogs
   const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null);
+  const [linkPickerDocumentId, setLinkPickerDocumentId] = useState<string | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
@@ -1134,6 +1146,22 @@ export default function ModularDocumentPageWrapper({
                                   {Array.isArray((document as any).tags) && (document as any).tags.length > 0 && (
                                     <TagChips tags={(document as any).tags} className="px-1" />
                                   )}
+                                  {!selectionMode && userPermissions.canEdit && (
+                                    <div className="flex justify-end px-1">
+                                      <Button
+                                        type="button"
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
+                                        onClick={() => setLinkPickerDocumentId(document.id)}
+                                        data-testid={`button-link-document-${document.id}`}
+                                        title={t('addNextDocument') || 'Link to another document'}
+                                      >
+                                        <LinkIcon className="w-3.5 h-3.5 mr-1" />
+                                        {t('addNextDocument') || 'Link'}
+                                      </Button>
+                                    </div>
+                                  )}
                                 </div>
                               ))}
                             </div>
@@ -1191,6 +1219,16 @@ export default function ModularDocumentPageWrapper({
                   queryKey: ['/api/documents', type, entityId],
                 });
               }}
+            />
+          )}
+
+          {/* Document Link Picker Dialog */}
+          {linkPickerDocumentId && (
+            <DocumentLinkPickerDialog
+              open={!!linkPickerDocumentId}
+              onOpenChange={(o) => { if (!o) setLinkPickerDocumentId(null); }}
+              documentId={linkPickerDocumentId}
+              position="after"
             />
           )}
 

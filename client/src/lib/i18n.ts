@@ -10,6 +10,25 @@ export type Language = 'en' | 'fr';
  * Supports Quebec's bilingual requirements with French and English translations.
  */
 export interface Translations {
+  documentLinkCreatedTitle: string;
+  documentLinkCreatedDesc: string;
+  documentLinkErrorTitle: string;
+  documentLinkErrorDesc: string;
+  linkPreviousDocumentTitle: string;
+  linkNextDocumentTitle: string;
+  linkDocumentPickerDescription: string;
+  linkDocumentSearchPlaceholder: string;
+  linkDocumentNoCandidates: string;
+  linkExplainSharedCategory: string;
+  linkExplainSharedTags: string;
+  linkExplainCloseInTime: string;
+  linkedBadge: string;
+  byDateBadge: string;
+  addPreviousDocument: string;
+  addNextDocument: string;
+  editPreviousLink: string;
+  editNextLink: string;
+  linkPositionLabel: string;
   dashboard: string;
   pillarFramework: string;
   qualityAssurance: string;
@@ -4375,6 +4394,25 @@ export const translations: Record<Language, Translations> = {
     enterpriseRequestQuote: 'Request Quote',
     enterprisePerDoor: 'per door',
     enterprisePerMonth: 'per month',
+    documentLinkCreatedTitle: 'Documents linked',
+    documentLinkCreatedDesc: 'The document sequence has been updated.',
+    documentLinkErrorTitle: 'Could not link documents',
+    documentLinkErrorDesc: 'Please try again.',
+    linkPreviousDocumentTitle: 'Link previous document',
+    linkNextDocumentTitle: 'Link next document',
+    linkDocumentPickerDescription: 'Pick a document to chain in your reading sequence. Suggestions are ranked by relevance.',
+    linkDocumentSearchPlaceholder: 'Search by name…',
+    linkDocumentNoCandidates: 'No matching documents found in this scope.',
+    linkExplainSharedCategory: 'Same category',
+    linkExplainSharedTags: 'Shared tags',
+    linkExplainCloseInTime: 'Close in time',
+    linkedBadge: 'Linked',
+    byDateBadge: 'By date',
+    addPreviousDocument: 'Link previous',
+    addNextDocument: 'Link next',
+    editPreviousLink: 'Change previous link',
+    editNextLink: 'Change next link',
+    linkPositionLabel: 'Link as',
   },
   fr: {
 
@@ -6555,5 +6593,24 @@ export const translations: Record<Language, Translations> = {
     enterpriseRequestQuote: 'Demander un devis',
     enterprisePerDoor: 'par porte',
     enterprisePerMonth: 'par mois',
+    documentLinkCreatedTitle: 'Documents liés',
+    documentLinkCreatedDesc: 'La séquence de documents a été mise à jour.',
+    documentLinkErrorTitle: 'Impossible de lier les documents',
+    documentLinkErrorDesc: 'Veuillez réessayer.',
+    linkPreviousDocumentTitle: 'Lier le document précédent',
+    linkNextDocumentTitle: 'Lier le document suivant',
+    linkDocumentPickerDescription: 'Choisissez un document à enchaîner dans votre séquence de lecture. Les suggestions sont classées par pertinence.',
+    linkDocumentSearchPlaceholder: 'Rechercher par nom…',
+    linkDocumentNoCandidates: 'Aucun document correspondant dans ce périmètre.',
+    linkExplainSharedCategory: 'Même catégorie',
+    linkExplainSharedTags: 'Étiquettes communes',
+    linkExplainCloseInTime: 'Date proche',
+    linkedBadge: 'Lié',
+    byDateBadge: 'Par date',
+    addPreviousDocument: 'Lier précédent',
+    addNextDocument: 'Lier suivant',
+    editPreviousLink: 'Modifier le lien précédent',
+    editNextLink: 'Modifier le lien suivant',
+    linkPositionLabel: 'Lier comme',
   }
 };

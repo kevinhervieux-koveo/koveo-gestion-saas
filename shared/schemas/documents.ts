@@ -249,3 +249,47 @@ export type InsertDocumentTag = z.infer<typeof insertDocumentTagSchema>;
 export type DocumentTag = typeof documentTags.$inferSelect;
 export type InsertDocumentTagAssignment = z.infer<typeof insertDocumentTagAssignmentSchema>;
 export type DocumentTagAssignment = typeof documentTagAssignments.$inferSelect;
+
+/**
+ * Position of a linked document relative to the source document in a sequence.
+ *  - before: the linked target comes BEFORE the source document
+ *  - after: the linked target comes AFTER the source document
+ */
+export const documentLinkPositionEnum = pgEnum('document_link_position', ['before', 'after']);
+
+/**
+ * Explicit links between documents to define a reading sequence.
+ * Each row says: from `fromDocumentId`, the document reached at `position`
+ * is `toDocumentId`. A document has at most one explicit `before` and one
+ * explicit `after` link (enforced via uniqueness on (fromDocumentId, position)).
+ * When no explicit link exists, the resolver falls back to date-based ordering.
+ */
+export const documentLinks = pgTable('document_links', {
+  id: text('id').primaryKey().default(sql`gen_random_uuid()`),
+  fromDocumentId: text('from_document_id').notNull().references(() => documents.id, { onDelete: 'cascade' }),
+  toDocumentId: text('to_document_id').notNull().references(() => documents.id, { onDelete: 'cascade' }),
+  position: documentLinkPositionEnum('position').notNull(),
+  ordinal: integer('ordinal'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  fromDocumentIdIdx: index('document_links_from_document_id_idx').on(table.fromDocumentId),
+  toDocumentIdIdx: index('document_links_to_document_id_idx').on(table.toDocumentId),
+  // Each document has at most one outgoing `before` and one outgoing `after`.
+  fromPositionUniq: uniqueIndex('document_links_from_position_uniq').on(table.fromDocumentId, table.position),
+  // Branching prevention: each document can be the target of at most one
+  // incoming link per direction. Combined with `fromPositionUniq` this means
+  // any document has at most one previous and at most one next.
+  toPositionUniq: uniqueIndex('document_links_to_position_uniq').on(table.toDocumentId, table.position),
+  edgeUniq: uniqueIndex('document_links_edge_uniq').on(table.fromDocumentId, table.toDocumentId, table.position),
+}));
+
+export const insertDocumentLinkSchema = z.object({
+  fromDocumentId: z.string().min(1, 'fromDocumentId is required'),
+  toDocumentId: z.string().min(1, 'toDocumentId is required'),
+  position: z.enum(['before', 'after']),
+  ordinal: z.number().int().optional().nullable(),
+});
+
+export type InsertDocumentLink = z.infer<typeof insertDocumentLinkSchema>;
+export type DocumentLink = typeof documentLinks.$inferSelect;

@@ -4326,4 +4326,135 @@ export function registerDocumentRoutes(app: Express): void {
     }
   });
 
+  // ===========================================================================
+  // Document linking (date-based sequence with explicit overrides)
+  // ===========================================================================
+  const checkDocumentAccess = async (documentId: string, user: any) => {
+    const orgs = await storage.getUserOrganizations(user.id);
+    const orgIds = orgs.map((o: any) => o.organizationId);
+    return storage.getDocumentWithScope(documentId, user.id, user.role, orgIds);
+  };
+
+  app.get('/api/documents/:id/neighbors', requireAuth, asyncHandler(async (req: any, res) => {
+    const accessible = await checkDocumentAccess(req.params.id, req.user);
+    if (!accessible) {
+      return res.status(404).json({ message: 'Document not found or access denied' });
+    }
+    const { resolveDocumentNeighbors } = await import('../services/document-link-service');
+    const result = await resolveDocumentNeighbors(req.params.id, { role: req.user.role });
+    if (!result) return res.status(404).json({ message: 'Document not found' });
+    res.json({
+      currentId: result.current.id,
+      previous: result.previous.document
+        ? {
+            id: result.previous.document.id,
+            name: result.previous.document.name,
+            effectiveDate: result.previous.document.effectiveDate,
+            createdAt: result.previous.document.createdAt,
+            documentType: result.previous.document.documentType,
+            source: result.previous.source,
+          }
+        : null,
+      next: result.next.document
+        ? {
+            id: result.next.document.id,
+            name: result.next.document.name,
+            effectiveDate: result.next.document.effectiveDate,
+            createdAt: result.next.document.createdAt,
+            documentType: result.next.document.documentType,
+            source: result.next.source,
+          }
+        : null,
+    });
+  }));
+
+  app.get('/api/documents/:id/links', requireAuth, asyncHandler(async (req: any, res) => {
+    const accessible = await checkDocumentAccess(req.params.id, req.user);
+    if (!accessible) {
+      return res.status(404).json({ message: 'Document not found or access denied' });
+    }
+    const { listLinksForDocument } = await import('../services/document-link-service');
+    const links = await listLinksForDocument(req.params.id);
+    res.json({ links });
+  }));
+
+  const linkBodySchema = z.object({
+    targetDocumentId: z.string().min(1),
+    position: z.enum(['before', 'after']),
+    ordinal: z.number().int().optional(),
+  });
+
+  app.post('/api/documents/:id/links', requireAuth, requireRole(['admin', 'manager', 'demo_manager']), asyncHandler(async (req: any, res) => {
+    const accessible = await checkDocumentAccess(req.params.id, req.user);
+    if (!accessible) {
+      return res.status(404).json({ message: 'Document not found or access denied' });
+    }
+    const parsed = linkBodySchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({ message: 'Invalid request', errors: parsed.error.errors });
+    }
+    const targetAccessible = await checkDocumentAccess(parsed.data.targetDocumentId, req.user);
+    if (!targetAccessible) {
+      return res.status(404).json({ message: 'Target document not found or access denied' });
+    }
+    const { upsertDocumentLink, DocumentLinkValidationError } = await import('../services/document-link-service');
+    try {
+      const link = await upsertDocumentLink({
+        fromDocumentId: req.params.id,
+        toDocumentId: parsed.data.targetDocumentId,
+        position: parsed.data.position,
+        ordinal: parsed.data.ordinal ?? null,
+      });
+      res.status(201).json(link);
+    } catch (e: any) {
+      if (e instanceof DocumentLinkValidationError) {
+        return res.status(400).json({ message: e.message, code: e.code });
+      }
+      logError('Error creating document link', e);
+      res.status(500).json({ message: 'Failed to create document link' });
+    }
+  }));
+
+  app.delete('/api/documents/:id/links/:position', requireAuth, requireRole(['admin', 'manager', 'demo_manager']), asyncHandler(async (req: any, res) => {
+    const accessible = await checkDocumentAccess(req.params.id, req.user);
+    if (!accessible) {
+      return res.status(404).json({ message: 'Document not found or access denied' });
+    }
+    const position = req.params.position;
+    if (position !== 'before' && position !== 'after') {
+      return res.status(400).json({ message: 'Position must be "before" or "after"' });
+    }
+    const { deleteDocumentLink } = await import('../services/document-link-service');
+    const removed = await deleteDocumentLink({ fromDocumentId: req.params.id, position });
+    if (!removed) return res.status(404).json({ message: 'Link not found' });
+    res.json({ status: 'ok' });
+  }));
+
+  app.get('/api/documents/:id/link-suggestions', requireAuth, asyncHandler(async (req: any, res) => {
+    const accessible = await checkDocumentAccess(req.params.id, req.user);
+    if (!accessible) {
+      return res.status(404).json({ message: 'Document not found or access denied' });
+    }
+    const { suggestLinkTargets } = await import('../services/document-link-service');
+    const query = typeof req.query.q === 'string' ? req.query.q : undefined;
+    const limit = req.query.limit ? Math.min(parseInt(req.query.limit, 10) || 10, 50) : 10;
+    const result = await suggestLinkTargets({ documentId: req.params.id, query, limit, viewer: { role: req.user.role } });
+    if (!result) return res.status(404).json({ message: 'Document not found' });
+    res.json({
+      suggestions: result.suggestions.map((s) => ({
+        document: {
+          id: s.document.id,
+          name: s.document.name,
+          documentType: s.document.documentType,
+          effectiveDate: s.document.effectiveDate,
+          createdAt: s.document.createdAt,
+          buildingId: s.document.buildingId,
+          residenceId: s.document.residenceId,
+        },
+        score: Math.round(s.score * 100) / 100,
+        explain: s.explain,
+      })),
+    });
+  }));
+
 }

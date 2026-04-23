@@ -5901,5 +5901,165 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     },
   );
 
+  // ===========================================================================
+  // Document Links — sequence chaining with AI suggestions (Task #397)
+  // ===========================================================================
+  // All document-link tools are scoped through the document's building/
+  // residence: a tool returns "not found / access denied" when the doc
+  // (or for create, the target doc) is outside the MCP-scoped orgs.
+  const assertDocInMcpScope = async (documentId: string, mcpOrgIds: string[]) => {
+    const [doc] = await db.select().from(schema.documents).where(eq(schema.documents.id, documentId)).limit(1);
+    if (!doc) return null;
+    if (doc.buildingId) {
+      const [b] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, doc.buildingId)).limit(1);
+      if (!b || !mcpOrgIds.includes(b.organizationId)) return null;
+    } else if (doc.residenceId) {
+      const [r] = await db.select().from(schema.residences).where(eq(schema.residences.id, doc.residenceId)).limit(1);
+      if (!r) return null;
+      const [b] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, r.buildingId)).limit(1);
+      if (!b || !mcpOrgIds.includes(b.organizationId)) return null;
+    } else {
+      return null; // Documents without building/residence scope are not addressable.
+    }
+    return doc;
+  };
+
+  server.tool(
+    "list_document_links",
+    "List explicit before/after links anchored at a document. Returns rows from `document_links` where the document is either source or target.",
+    { role: roleParam, documentId: z.string().describe("Document ID") },
+    async ({ documentId }) => {
+      const orgIds = await getMcpOrgIds();
+      const doc = await assertDocInMcpScope(documentId, orgIds);
+      if (!doc) return { content: [{ type: "text" as const, text: "Document not found or access denied" }] };
+      const { listLinksForDocument } = await import("../services/document-link-service");
+      const links = await listLinksForDocument(documentId);
+      return { content: [{ type: "text" as const, text: JSON.stringify(links, null, 2) }] };
+    },
+  );
+
+  server.tool(
+    "get_document_neighbors",
+    "Resolve previous/next documents for a document by combining explicit links with date-based ordering (scoped to same building/residence).",
+    { role: roleParam, documentId: z.string().describe("Document ID") },
+    async ({ role, documentId }) => {
+      const orgIds = await getMcpOrgIds();
+      const doc = await assertDocInMcpScope(documentId, orgIds);
+      if (!doc) return { content: [{ type: "text" as const, text: "Document not found or access denied" }] };
+      const { resolveDocumentNeighbors } = await import("../services/document-link-service");
+      const result = await resolveDocumentNeighbors(documentId, { role });
+      if (!result) return { content: [{ type: "text" as const, text: "Document not found" }] };
+      return {
+        content: [{
+          type: "text" as const,
+          text: JSON.stringify({
+            currentId: result.current.id,
+            previous: result.previous.document
+              ? { id: result.previous.document.id, name: result.previous.document.name, source: result.previous.source }
+              : null,
+            next: result.next.document
+              ? { id: result.next.document.id, name: result.next.document.name, source: result.next.source }
+              : null,
+          }, null, 2),
+        }],
+      };
+    },
+  );
+
+  server.tool(
+    "create_document_link",
+    "Create or replace an explicit document link. Each document has at most one explicit `before` and one explicit `after` (admin/manager only).",
+    {
+      role: roleParam,
+      fromDocumentId: z.string().describe("Source document ID"),
+      toDocumentId: z.string().describe("Target document ID"),
+      position: z.enum(["before", "after"]).describe("Whether the target comes before or after the source"),
+      ordinal: z.number().int().optional().describe("Optional explicit ordinal for tie-breaking"),
+    },
+    async ({ role, fromDocumentId, toDocumentId, position, ordinal }) => {
+      if (role !== "admin" && role !== "manager" && role !== "demo_manager") {
+        return { content: [{ type: "text" as const, text: "Access denied: only admin or manager roles can manage document links" }] };
+      }
+      const orgIds = await getMcpOrgIds();
+      const fromDoc = await assertDocInMcpScope(fromDocumentId, orgIds);
+      const toDoc = await assertDocInMcpScope(toDocumentId, orgIds);
+      if (!fromDoc) return { content: [{ type: "text" as const, text: "Source document not found or access denied" }] };
+      if (!toDoc) return { content: [{ type: "text" as const, text: "Target document not found or access denied" }] };
+      try {
+        const { upsertDocumentLink, DocumentLinkValidationError } = await import("../services/document-link-service");
+        try {
+          const link = await upsertDocumentLink({ fromDocumentId, toDocumentId, position, ordinal: ordinal ?? null });
+          return { content: [{ type: "text" as const, text: JSON.stringify(link, null, 2) }] };
+        } catch (e) {
+          if (e instanceof DocumentLinkValidationError) {
+            return { content: [{ type: "text" as const, text: `Validation error: ${e.message}` }] };
+          }
+          throw e;
+        }
+      } catch (e) {
+        console.error("[mcp:create_document_link]", e);
+        return buildWriteErrorResponse(e, "document link", "create");
+      }
+    },
+  );
+
+  server.tool(
+    "delete_document_link",
+    "Remove the explicit `before` or `after` link anchored at a document (admin/manager only).",
+    {
+      role: roleParam,
+      fromDocumentId: z.string().describe("Source document ID"),
+      position: z.enum(["before", "after"]).describe("Which side to remove"),
+    },
+    async ({ role, fromDocumentId, position }) => {
+      if (role !== "admin" && role !== "manager" && role !== "demo_manager") {
+        return { content: [{ type: "text" as const, text: "Access denied: only admin or manager roles can manage document links" }] };
+      }
+      const orgIds = await getMcpOrgIds();
+      const doc = await assertDocInMcpScope(fromDocumentId, orgIds);
+      if (!doc) return { content: [{ type: "text" as const, text: "Document not found or access denied" }] };
+      const { deleteDocumentLink } = await import("../services/document-link-service");
+      const removed = await deleteDocumentLink({ fromDocumentId, position });
+      return { content: [{ type: "text" as const, text: removed ? "Deleted" : "Link not found" }] };
+    },
+  );
+
+  server.tool(
+    "suggest_document_links",
+    "Get AI-ranked candidate documents to link from `documentId`. Ranking is deterministic (name similarity, shared category, shared tags, date proximity, same building/residence) and includes an `explain` payload.",
+    {
+      role: roleParam,
+      documentId: z.string().describe("Source document ID"),
+      query: z.string().optional().describe("Optional free-text query to bias the ranking"),
+      limit: z.number().int().min(1).max(50).optional().describe("Max suggestions to return (default 10)"),
+    },
+    async ({ role, documentId, query, limit }) => {
+      const orgIds = await getMcpOrgIds();
+      const doc = await assertDocInMcpScope(documentId, orgIds);
+      if (!doc) return { content: [{ type: "text" as const, text: "Document not found or access denied" }] };
+      const { suggestLinkTargets } = await import("../services/document-link-service");
+      const result = await suggestLinkTargets({ documentId, query, limit, viewer: { role } });
+      if (!result) return { content: [{ type: "text" as const, text: "Document not found" }] };
+      return {
+        content: [{
+          type: "text" as const,
+          text: JSON.stringify({
+            suggestions: result.suggestions.map((s) => ({
+              document: {
+                id: s.document.id,
+                name: s.document.name,
+                documentType: s.document.documentType,
+                effectiveDate: s.document.effectiveDate,
+                createdAt: s.document.createdAt,
+              },
+              score: Math.round(s.score * 100) / 100,
+              explain: s.explain,
+            })),
+          }, null, 2),
+        }],
+      };
+    },
+  );
+
   return server;
 }

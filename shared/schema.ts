@@ -97,6 +97,8 @@ export type {
 export type {
   Document,
   InsertDocument,
+  DocumentLink,
+  InsertDocumentLink,
 } from './schemas/documents';
 
 export type {
@@ -144,6 +146,7 @@ export {
 } from './schemas/operations';
 export {
   documents,
+  documentLinks,
 } from './schemas/documents';
 export {
   developmentPillars,

@@ -309,6 +309,13 @@ export function UnifiedDocumentViewer({
           onClose={() => setViewingDoc(null)}
           fileUrl={`/api/documents/${viewingDoc.id}/file`}
           fileName={viewingDoc.name}
+          documentId={viewingDoc.id}
+          onNavigate={(nextId) => {
+            const target = (Array.isArray(documents) ? documents : []).find(
+              (d: Document) => d.id === nextId,
+            );
+            setViewingDoc({ id: nextId, name: target?.name });
+          }}
         />
       )}
     </div>
