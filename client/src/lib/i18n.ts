@@ -1225,6 +1225,12 @@ export interface Translations {
   monthly: string;
   yearly: string;
   manageProjectsForCurrentYear: string;
+  listView: string;
+  ganttView: string;
+  noDatesSet: string;
+  statusSubmission: string;
+  statusPreWork: string;
+  statusPostWork: string;
   loadingProjects: string;
   quickProject: string;
   actual: string;
@@ -3506,6 +3512,12 @@ export const translations: Record<Language, Translations> = {
     monthly: 'Monthly',
     yearly: 'Yearly',
     manageProjectsForCurrentYear: 'Manage projects for current financial year and future periods',
+    listView: 'List view',
+    ganttView: 'Gantt view',
+    noDatesSet: 'No dates set',
+    statusSubmission: 'Submission',
+    statusPreWork: 'Pre work',
+    statusPostWork: 'Post work',
     loadingProjects: 'Loading projects...',
     quickProject: 'Quick Project',
     actual: 'Actual',
@@ -5571,6 +5583,12 @@ export const translations: Record<Language, Translations> = {
     monthly: 'Mensuel',
     yearly: 'Annuel',
     manageProjectsForCurrentYear: 'Gérer les projets pour l\'année financière actuelle et les périodes futures',
+    listView: 'Vue liste',
+    ganttView: 'Vue Gantt',
+    noDatesSet: 'Aucune date définie',
+    statusSubmission: 'Soumission',
+    statusPreWork: 'Pré-travaux',
+    statusPostWork: 'Post-travaux',
     loadingProjects: 'Chargement des projets...',
     quickProject: 'Projet rapide',
     actual: 'Réel',

@@ -1635,7 +1635,7 @@ export default function FinancialOverview() {
                       className="h-7 px-2"
                       onClick={() => setProjectViewMode('list')}
                       data-testid="button-projects-view-list"
-                      title="List view"
+                      title={t('listView')}
                     >
                       <List className="w-4 h-4" />
                     </Button>
@@ -1646,7 +1646,7 @@ export default function FinancialOverview() {
                       className="h-7 px-2"
                       onClick={() => setProjectViewMode('gantt')}
                       data-testid="button-projects-view-gantt"
-                      title="Gantt view"
+                      title={t('ganttView')}
                     >
                       <BarChart3 className="w-4 h-4" />
                     </Button>

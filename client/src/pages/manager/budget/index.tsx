@@ -3403,7 +3403,7 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
                           className='h-7 px-2'
                           onClick={() => setProjectViewMode('list')}
                           data-testid='button-projects-view-list'
-                          title={language === 'fr' ? 'Vue liste' : 'List view'}
+                          title={t('listView')}
                         >
                           <List className='w-4 h-4' />
                         </Button>
@@ -3414,7 +3414,7 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
                           className='h-7 px-2'
                           onClick={() => setProjectViewMode('gantt')}
                           data-testid='button-projects-view-gantt'
-                          title={language === 'fr' ? 'Vue Gantt' : 'Gantt view'}
+                          title={t('ganttView')}
                         >
                           <BarChart3 className='w-4 h-4' />
                         </Button>

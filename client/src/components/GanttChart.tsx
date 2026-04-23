@@ -10,6 +10,17 @@ import {
   Cell,
 } from 'recharts';
 import { Eye, EyeOff } from 'lucide-react';
+import { useLanguage } from '@/hooks/use-language';
+import type { Translations } from '@/lib/i18n';
+
+const STATUS_LABEL_KEYS: Record<string, keyof Translations> = {
+  planned: 'planned',
+  submission: 'statusSubmission',
+  pre_work: 'statusPreWork',
+  in_progress: 'inProgress',
+  post_work: 'statusPostWork',
+  completed: 'completed',
+};
 
 export interface GanttProject {
   id: string;
@@ -96,8 +107,9 @@ export function GanttChart({
   dateRange,
   onToggleInclude,
 }: GanttChartProps) {
+  const { t } = useLanguage();
   const locale = language === 'fr' ? 'fr-CA' : 'en-CA';
-  const noDatesLabel = language === 'fr' ? 'Aucune date définie' : 'No dates set';
+  const noDatesLabel = t('noDatesSet');
   const includeTitle = language === 'fr' ? 'Inclure au budget' : 'Include in budget';
   const excludeTitle = language === 'fr' ? 'Exclure du budget' : 'Exclude from budget';
 
@@ -340,15 +352,19 @@ export function GanttChart({
       </ResponsiveContainer>
       {/* Legend */}
       <div className="flex flex-wrap gap-3 mt-2 text-xs text-muted-foreground">
-        {Object.entries(STATUS_COLORS).map(([status, color]) => (
-          <div key={status} className="flex items-center gap-1">
-            <span
-              className="inline-block w-3 h-3 rounded-sm"
-              style={{ backgroundColor: color }}
-            />
-            <span className="capitalize">{status.replace(/_/g, ' ')}</span>
-          </div>
-        ))}
+        {Object.entries(STATUS_COLORS).map(([status, color]) => {
+          const labelKey = STATUS_LABEL_KEYS[status];
+          const label = labelKey ? t(labelKey) : status.replace(/_/g, ' ');
+          return (
+            <div key={status} className="flex items-center gap-1">
+              <span
+                className="inline-block w-3 h-3 rounded-sm"
+                style={{ backgroundColor: color }}
+              />
+              <span className="capitalize">{label}</span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
