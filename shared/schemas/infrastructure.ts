@@ -75,6 +75,22 @@ export const sessions = pgTable('session', {
 }));
 
 /**
+ * Migration history table managed by `scripts/run-migrations.ts`.
+ *
+ * Declared here purely so Drizzle's schema diff tooling (`db:push`,
+ * `drizzle-kit`) treats the table as known and never proposes to drop it.
+ * The runner is the sole writer — application code must not insert into,
+ * update, or delete from this table.
+ */
+export const schemaMigrations = pgTable('schema_migrations', {
+  filename: text('filename').primaryKey(),
+  checksum: text('checksum').notNull(),
+  appliedAt: timestamp('applied_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+export type SchemaMigration = typeof schemaMigrations.$inferSelect;
+
+/**
  * OAuth 2.0 dynamically-registered clients (Claude.ai web connector, etc).
  * One row per client registered through RFC 7591 dynamic client registration.
  */

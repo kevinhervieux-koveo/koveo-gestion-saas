@@ -735,7 +735,6 @@ export class MemStorage implements IStorage {
       vendorName: invoice.vendorName,
       invoiceNumber: invoice.invoiceNumber,
       totalAmount: invoice.totalAmount,
-      dueDate: invoice.dueDate,
       paymentType: invoice.paymentType,
       createdBy: invoice.createdBy,
       buildingId: invoice.buildingId || null,
@@ -745,16 +744,14 @@ export class MemStorage implements IStorage {
       aiExtractionData: invoice.aiExtractionData || null,
       extractionConfidence: invoice.extractionConfidence ? invoice.extractionConfidence.toString() : null,
       frequency: invoice.frequency || null,
-      startDate: invoice.startDate || null,
-      customPaymentDates: invoice.customPaymentDates || null,
       createdAt: new Date(),
       updatedAt: new Date(),
       // Ensure dates are strings for Drizzle compatibility
       dueDate: invoice.dueDate instanceof Date ? invoice.dueDate.toISOString().split('T')[0] : invoice.dueDate,
-      startDate: invoice.startDate instanceof Date ? invoice.startDate.toISOString().split('T')[0] : invoice.startDate,
+      startDate: invoice.startDate instanceof Date ? invoice.startDate.toISOString().split('T')[0] : (invoice.startDate || null),
       customPaymentDates: invoice.customPaymentDates?.map(date => 
         date instanceof Date ? date.toISOString().split('T')[0] : date
-      ),
+      ) ?? null,
     };
     this.invoices.set(id, newInvoice);
     return newInvoice;

@@ -1582,7 +1582,6 @@ export interface Translations {
   'bills.customPaymentSchedule': string;
   'bills.individualPaymentAmounts': string;
   'bills.addPayment': string;
-  'bills.amount': string;
   'bills.date': string;
   'bills.description': string;
   'bills.notes': string;
@@ -2570,7 +2569,6 @@ export const translations: Record<Language, Translations> = {
     'bills.issueDateFrom': 'Issue date from',
     'bills.issueDateTo': 'Issue date to',
     'bills.dueDate': 'Due Date',
-    'bills.amount': 'Amount',
     'bills.category': 'Category',
     'bills.status': 'Status',
     'bills.paymentType': 'Payment Type *',
@@ -4749,7 +4747,6 @@ export const translations: Record<Language, Translations> = {
     'bills.issueDateFrom': "Date d'émission (du)",
     'bills.issueDateTo': "Date d'émission (au)",
     'bills.dueDate': "Date d'échéance",
-    'bills.amount': 'Montant',
     'bills.category': 'Catégorie',
     'bills.status': 'Statut',
     'bills.paymentType': 'Type de paiement *',
