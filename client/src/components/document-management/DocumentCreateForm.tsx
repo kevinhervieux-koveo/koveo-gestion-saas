@@ -114,7 +114,7 @@ export function DocumentCreateForm({
   const { data: tagsData } = useQuery<{ tags: DocumentTag[] }>({
     queryKey: ['/api/document-tags'],
   });
-  const allTags = tagsData?.tags ?? [];
+  const allTags = useMemo(() => tagsData?.tags ?? [], [tagsData]);
 
   // Document categories with translations
   const DOCUMENT_CATEGORIES = [
@@ -255,10 +255,14 @@ export function DocumentCreateForm({
   const suggestedTags = aiResponded ? aiSuggestions : heuristicSuggestions;
 
   // Auto-pre-select suggestions while the user has not manually edited tags.
+  // Depend on a stable joined-id key so equal-but-new-reference suggestion
+  // arrays don't retrigger setState and cause an infinite render loop.
+  const suggestedTagsKey = suggestedTags.join(',');
   useEffect(() => {
     if (userEditedTagsRef.current) return;
-    setSelectedTagIds(suggestedTags);
-  }, [suggestedTags]);
+    setSelectedTagIds((prev) => (prev.join(',') === suggestedTagsKey ? prev : suggestedTags));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [suggestedTagsKey]);
 
   const handleTagsChange = (next: string[]) => {
     userEditedTagsRef.current = true;
