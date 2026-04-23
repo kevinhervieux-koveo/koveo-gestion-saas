@@ -37,6 +37,7 @@ import { HelpButton } from '@/components/help/HelpButton';
 import { HelpOverlay } from '@/components/help/HelpOverlay';
 import { HelpHighlighter } from '@/components/help/HelpHighlighter';
 import { ProtectedRoute } from '@/components/common/ProtectedRoute';
+import { InstallPrompt } from '@/components/common/InstallPrompt';
 
 // Optimized lazy-loaded Admin pages
 const AdminOrganizations = optimizedPageLoaders.AdminOrganizations;
@@ -470,6 +471,7 @@ function App() {
               <TooltipProvider>
                 <Toaster />
                 <Router />
+                <InstallPrompt />
               </TooltipProvider>
             </HelpProvider>
           </MobileMenuProvider>
