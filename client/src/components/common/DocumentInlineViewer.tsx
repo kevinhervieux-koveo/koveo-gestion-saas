@@ -3,10 +3,11 @@ import { useQuery } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Download, X, FileText, Loader2, ChevronLeft, ChevronRight, LinkIcon, Pencil } from 'lucide-react';
+import { Download, X, FileText, Loader2, ChevronLeft, ChevronRight, LinkIcon, Pencil, ListOrdered } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/use-language';
 import { DocumentLinkPickerDialog } from '@/components/documents/DocumentLinkPickerDialog';
+import { DocumentSequencePanel } from '@/components/documents/DocumentSequencePanel';
 
 interface DocumentInlineViewerProps {
   isOpen: boolean;
@@ -87,6 +88,7 @@ export function DocumentInlineViewer({
   const { toast } = useToast();
   const { t } = useLanguage();
   const [linkPickerOpen, setLinkPickerOpen] = useState<false | 'before' | 'after'>(false);
+  const [sequencePanelOpen, setSequencePanelOpen] = useState(false);
 
   const { data: neighbors } = useQuery<NeighborsResponse>({
     queryKey: ['/api/documents', documentId, 'neighbors'],
@@ -339,6 +341,17 @@ export function DocumentInlineViewer({
               )}
             </div>
             <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant={sequencePanelOpen ? 'secondary' : 'ghost'}
+                size="sm"
+                onClick={() => setSequencePanelOpen((v) => !v)}
+                data-testid="button-toggle-sequence-panel"
+                aria-pressed={sequencePanelOpen}
+              >
+                <ListOrdered className="w-4 h-4 mr-1" />
+                {t('chainPanelTitle') || 'Sequence'}
+              </Button>
               {neighbors?.next ? (
                 <>
                   <Button
@@ -388,8 +401,17 @@ export function DocumentInlineViewer({
             </div>
           </div>
         )}
-        <div className="flex-1 min-h-0 bg-gray-100 dark:bg-gray-900">
-          {isOpen && renderPreview()}
+        <div className="flex-1 min-h-0 flex">
+          <div className="flex-1 min-w-0 bg-gray-100 dark:bg-gray-900">
+            {isOpen && renderPreview()}
+          </div>
+          {documentId && sequencePanelOpen && (
+            <DocumentSequencePanel
+              documentId={documentId}
+              onNavigate={onNavigate}
+              className="w-80 shrink-0 border-l overflow-y-auto bg-background"
+            />
+          )}
         </div>
         {documentId && linkPickerOpen !== false && (
           <DocumentLinkPickerDialog

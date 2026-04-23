@@ -29,6 +29,14 @@ export interface Translations {
   editPreviousLink: string;
   editNextLink: string;
   linkPositionLabel: string;
+  chainPanelTitle: string;
+  chainPanelEmpty: string;
+  chainCurrentBadge: string;
+  chainRemoveAction: string;
+  chainDragHandleLabel: string;
+  chainReorderErrorTitle: string;
+  chainRemoveSuccessTitle: string;
+  chainRemoveErrorTitle: string;
   dashboard: string;
   pillarFramework: string;
   qualityAssurance: string;
@@ -4425,6 +4433,14 @@ export const translations: Record<Language, Translations> = {
     editPreviousLink: 'Change previous link',
     editNextLink: 'Change next link',
     linkPositionLabel: 'Link as',
+    chainPanelTitle: 'Sequence',
+    chainPanelEmpty: 'No sequence yet — link a previous or next document to start one.',
+    chainCurrentBadge: 'Current',
+    chainRemoveAction: 'Remove from sequence',
+    chainDragHandleLabel: 'Drag to reorder',
+    chainReorderErrorTitle: 'Reorder failed',
+    chainRemoveSuccessTitle: 'Removed from sequence',
+    chainRemoveErrorTitle: 'Remove failed',
   },
   fr: {
 
@@ -6630,5 +6646,13 @@ export const translations: Record<Language, Translations> = {
     editPreviousLink: 'Modifier le lien précédent',
     editNextLink: 'Modifier le lien suivant',
     linkPositionLabel: 'Lier comme',
+    chainPanelTitle: 'Séquence',
+    chainPanelEmpty: 'Aucune séquence — liez un document précédent ou suivant pour en créer une.',
+    chainCurrentBadge: 'Actuel',
+    chainRemoveAction: 'Retirer de la séquence',
+    chainDragHandleLabel: 'Glisser pour réordonner',
+    chainReorderErrorTitle: 'Échec du réordonnancement',
+    chainRemoveSuccessTitle: 'Retiré de la séquence',
+    chainRemoveErrorTitle: 'Échec du retrait',
   }
 };

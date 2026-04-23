@@ -446,6 +446,189 @@ export async function deleteDocumentLink(params: {
 }
 
 // =============================================================================
+// Chain resolution & reorder helpers
+// =============================================================================
+
+/**
+ * Resolve the full chain (connected component via explicit `before`/`after`
+ * links) that contains `documentId`. Walks the explicit-link graph in both
+ * directions starting from the seed and returns the documents in reading
+ * order (oldest → newest from the chain's point of view, i.e. head→tail).
+ *
+ * Returns `null` if the seed document does not exist. A document with no
+ * explicit links resolves to a single-element chain `[doc]`.
+ *
+ * Cycles cannot occur in a well-formed dataset (each doc has at most one
+ * `before` and one `after`), but a `seen` set guards against pathological
+ * cases so the walk always terminates.
+ */
+export async function resolveChain(documentId: string): Promise<Document[] | null> {
+  const start = await loadDocument(documentId);
+  if (!start) return null;
+
+  const seen = new Set<string>([start.id]);
+
+  const before: Document[] = [];
+  let cursor: Document | null = start;
+  while (cursor) {
+    const prev = await findExplicitNeighbor(cursor.id, 'previous');
+    if (!prev || seen.has(prev.id)) break;
+    seen.add(prev.id);
+    before.unshift(prev);
+    cursor = prev;
+  }
+
+  const after: Document[] = [];
+  cursor = start;
+  while (cursor) {
+    const nxt = await findExplicitNeighbor(cursor.id, 'next');
+    if (!nxt || seen.has(nxt.id)) break;
+    seen.add(nxt.id);
+    after.push(nxt);
+    cursor = nxt;
+  }
+
+  return [...before, start, ...after];
+}
+
+/**
+ * Rewrite the explicit `before`/`after` links for the documents in
+ * `orderedIds` so that they form the exact chain `id[0] → id[1] → ... → id[n-1]`.
+ *
+ * All existing explicit links touching ANY of these documents (in either
+ * direction) are deleted before the new chain edges are inserted, so the
+ * result is the canonical representation: each pair gets one `after` row,
+ * which the resolver also reads as the next doc's `before`.
+ *
+ * Constraints:
+ *  - All ids must exist.
+ *  - All documents must share the same building/residence scope (same rule
+ *    enforced by `upsertDocumentLink`).
+ *  - Duplicates in `orderedIds` are rejected.
+ *
+ * A single-element list is a no-op for the link table — it still removes
+ * any pre-existing links that touched that document, which is the right
+ * behavior when the user has just removed every neighbor.
+ */
+export async function reorderChain(orderedIds: string[]): Promise<void> {
+  if (orderedIds.length === 0) return;
+
+  const seen = new Set<string>();
+  for (const id of orderedIds) {
+    if (seen.has(id)) {
+      throw new DocumentLinkValidationError('Duplicate document ids in chain', 'duplicate_ids');
+    }
+    seen.add(id);
+  }
+
+  const docs = await db
+    .select()
+    .from(documents)
+    .where(inArray(documents.id, orderedIds));
+  if (docs.length !== orderedIds.length) {
+    throw new DocumentLinkValidationError('One or more chain documents not found', 'not_found');
+  }
+  const first = docs[0];
+  for (const d of docs) {
+    if ((d.buildingId ?? null) !== (first.buildingId ?? null)
+        || (d.residenceId ?? null) !== (first.residenceId ?? null)) {
+      throw new DocumentLinkValidationError(
+        'Chain documents must belong to the same building and residence',
+        'scope_mismatch',
+      );
+    }
+  }
+
+  await db.transaction(async (tx) => {
+    await tx
+      .delete(documentLinks)
+      .where(
+        or(
+          inArray(documentLinks.fromDocumentId, orderedIds),
+          inArray(documentLinks.toDocumentId, orderedIds),
+        ),
+      );
+
+    if (orderedIds.length >= 2) {
+      const now = new Date();
+      const rows = [] as Array<{
+        fromDocumentId: string;
+        toDocumentId: string;
+        position: LinkPosition;
+        ordinal: number | null;
+        updatedAt: Date;
+      }>;
+      for (let i = 0; i < orderedIds.length - 1; i++) {
+        rows.push({
+          fromDocumentId: orderedIds[i],
+          toDocumentId: orderedIds[i + 1],
+          position: 'after',
+          ordinal: null,
+          updatedAt: now,
+        });
+      }
+      await tx.insert(documentLinks).values(rows);
+    }
+  });
+}
+
+/**
+ * Remove a single document from its chain. Deletes every explicit link
+ * touching the document and, if it had both a previous AND a next neighbor,
+ * stitches them back together with a single `after` link so the rest of the
+ * chain stays connected.
+ *
+ * Returns the new `[prev, next]` pair (each may be null) so the caller can
+ * confirm what was stitched.
+ */
+export async function removeFromChain(
+  documentId: string,
+): Promise<{ previous: Document | null; next: Document | null }> {
+  const [prev, next] = await Promise.all([
+    findExplicitNeighbor(documentId, 'previous'),
+    findExplicitNeighbor(documentId, 'next'),
+  ]);
+
+  await db.transaction(async (tx) => {
+    await tx
+      .delete(documentLinks)
+      .where(
+        or(
+          eq(documentLinks.fromDocumentId, documentId),
+          eq(documentLinks.toDocumentId, documentId),
+        ),
+      );
+
+    if (prev && next) {
+      // Defensive: clear any link rows that would collide with the new
+      // stitched edge before inserting it.
+      await tx
+        .delete(documentLinks)
+        .where(and(eq(documentLinks.fromDocumentId, prev.id), eq(documentLinks.position, 'after')));
+      await tx
+        .delete(documentLinks)
+        .where(and(eq(documentLinks.toDocumentId, next.id), eq(documentLinks.position, 'after')));
+      await tx
+        .delete(documentLinks)
+        .where(and(eq(documentLinks.fromDocumentId, next.id), eq(documentLinks.position, 'before')));
+      await tx
+        .delete(documentLinks)
+        .where(and(eq(documentLinks.toDocumentId, prev.id), eq(documentLinks.position, 'before')));
+
+      await tx.insert(documentLinks).values({
+        fromDocumentId: prev.id,
+        toDocumentId: next.id,
+        position: 'after',
+        ordinal: null,
+        updatedAt: new Date(),
+      });
+    }
+  });
+
+  return { previous: prev, next };
+}
+
+// =============================================================================
 // AI suggestion scorer
 // =============================================================================
 

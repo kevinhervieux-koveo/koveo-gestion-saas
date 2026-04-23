@@ -4490,6 +4490,106 @@ export function registerDocumentRoutes(app: Express): void {
     res.json({ status: 'ok' });
   }));
 
+  app.get('/api/documents/:id/chain', requireAuth, asyncHandler(async (req: any, res) => {
+    const accessible = await checkDocumentAccess(req.params.id, req.user);
+    if (!accessible) {
+      return res.status(404).json({ message: 'Document not found or access denied' });
+    }
+    const { resolveChain } = await import('../services/document-link-service');
+    const chain = await resolveChain(req.params.id);
+    if (!chain) return res.status(404).json({ message: 'Document not found' });
+    res.json({
+      currentId: req.params.id,
+      documents: chain.map((d) => ({
+        id: d.id,
+        name: d.name,
+        documentType: d.documentType,
+        effectiveDate: d.effectiveDate,
+        createdAt: d.createdAt,
+      })),
+    });
+  }));
+
+  const reorderChainSchema = z.object({
+    orderedIds: z.array(z.string().min(1)).min(1),
+  });
+
+  app.post(
+    '/api/documents/:id/chain/reorder',
+    requireAuth,
+    requireRole(['admin', 'manager', 'demo_manager']),
+    asyncHandler(async (req: any, res) => {
+      const accessible = await checkDocumentAccess(req.params.id, req.user);
+      if (!accessible) {
+        return res.status(404).json({ message: 'Document not found or access denied' });
+      }
+      const parsed = reorderChainSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ message: 'Invalid request', errors: parsed.error.errors });
+      }
+      // The seed document must be part of the proposed order so the request
+      // can't be used to rewrite an unrelated chain via a doc the caller
+      // happens to have access to.
+      if (!parsed.data.orderedIds.includes(req.params.id)) {
+        return res.status(400).json({
+          message: 'orderedIds must include the seed document id',
+          code: 'seed_missing',
+        });
+      }
+      // Verify the caller can access every other document in the proposed order.
+      for (const id of parsed.data.orderedIds) {
+        if (id === req.params.id) continue;
+        const ok = await checkDocumentAccess(id, req.user);
+        if (!ok) {
+          return res
+            .status(404)
+            .json({ message: `Document ${id} not found or access denied` });
+        }
+      }
+      const { reorderChain, resolveChain, DocumentLinkValidationError } =
+        await import('../services/document-link-service');
+      try {
+        await reorderChain(parsed.data.orderedIds);
+        const chain = await resolveChain(req.params.id);
+        res.json({
+          currentId: req.params.id,
+          documents: (chain ?? []).map((d) => ({
+            id: d.id,
+            name: d.name,
+            documentType: d.documentType,
+            effectiveDate: d.effectiveDate,
+            createdAt: d.createdAt,
+          })),
+        });
+      } catch (e: any) {
+        if (e instanceof DocumentLinkValidationError) {
+          return res.status(400).json({ message: e.message, code: e.code });
+        }
+        logError('Error reordering document chain', e);
+        res.status(500).json({ message: 'Failed to reorder document chain' });
+      }
+    }),
+  );
+
+  app.post(
+    '/api/documents/:id/chain/remove',
+    requireAuth,
+    requireRole(['admin', 'manager', 'demo_manager']),
+    asyncHandler(async (req: any, res) => {
+      const accessible = await checkDocumentAccess(req.params.id, req.user);
+      if (!accessible) {
+        return res.status(404).json({ message: 'Document not found or access denied' });
+      }
+      const { removeFromChain } = await import('../services/document-link-service');
+      const result = await removeFromChain(req.params.id);
+      res.json({
+        removedId: req.params.id,
+        previous: result.previous ? { id: result.previous.id, name: result.previous.name } : null,
+        next: result.next ? { id: result.next.id, name: result.next.name } : null,
+      });
+    }),
+  );
+
   app.get('/api/documents/:id/link-suggestions', requireAuth, asyncHandler(async (req: any, res) => {
     const accessible = await checkDocumentAccess(req.params.id, req.user);
     if (!accessible) {

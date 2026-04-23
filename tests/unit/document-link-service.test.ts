@@ -43,16 +43,26 @@ const buildInsertBuilder = () => {
   const builder: any = {
     values: () => builder,
     returning: () => Promise.resolve(queue.shift() ?? []),
+    // Make `await db.insert(...).values(...)` resolve without consuming a
+    // queue entry, so callers that don't chain `.returning()` (e.g. the
+    // batch reorderChain helper) still work in the mock.
+    then: (onFulfilled: any) => Promise.resolve([]).then(onFulfilled),
   };
   return builder;
 };
 
+const fakeDb: any = {
+  select: () => buildSelectBuilder(),
+  delete: () => buildDeleteBuilder(),
+  insert: () => buildInsertBuilder(),
+  // The reorder/remove helpers run their writes inside a transaction.
+  // Resolve with the same fake `db` so writes go through the same mocked
+  // builders the existing tests already exercise.
+  transaction: async (fn: any) => fn(fakeDb),
+};
+
 jest.mock('../../server/db', () => ({
-  db: {
-    select: () => buildSelectBuilder(),
-    delete: () => buildDeleteBuilder(),
-    insert: () => buildInsertBuilder(),
-  },
+  db: fakeDb,
 }));
 
 import {
@@ -63,6 +73,10 @@ import {
   upsertDocumentLink,
   deleteDocumentLink,
   getLinkSummariesForDocuments,
+  resolveChain,
+  reorderChain,
+  removeFromChain,
+  DocumentLinkValidationError,
 } from '../../server/services/document-link-service';
 import type { Document } from '../../shared/schema';
 
@@ -424,5 +438,158 @@ describe('document-link-service: scoreCandidate', () => {
     const tagPiece = Math.min(7 * 5, 20);
     expect(tagPiece).toBe(20);
     expect(r.score).toBeLessThan(50);
+  });
+});
+
+describe('document-link-service: resolveChain', () => {
+  it('returns null when the seed document does not exist', async () => {
+    queue.length = 0;
+    enqueue([]); // loadDocument(seed)
+    const chain = await resolveChain('missing');
+    expect(chain).toBeNull();
+  });
+
+  it('returns a single-element chain when the seed has no explicit links', async () => {
+    queue.length = 0;
+    const seed = baseDoc({ id: 'solo' });
+    enqueue([seed]); // loadDocument(seed)
+    enqueue([]); // walk back: outgoing 'before' empty
+    enqueue([]); // walk back: incoming 'after' empty
+    enqueue([]); // walk forward: outgoing 'after' empty
+    enqueue([]); // walk forward: incoming 'before' empty
+    const chain = await resolveChain('solo');
+    expect(chain?.map((d) => d.id)).toEqual(['solo']);
+  });
+
+  it('walks the chain in both directions and returns ids in head→tail order', async () => {
+    queue.length = 0;
+    const a = baseDoc({ id: 'A' });
+    const b = baseDoc({ id: 'B' });
+    const c = baseDoc({ id: 'C' });
+    const d = baseDoc({ id: 'D' });
+    // Seed is C. Chain: A → B → C → D.
+    // Sequence:
+    //  loadDocument(C)
+    //  walk back from C: outgoing 'before' on C → B (loadDocument(B))
+    //  walk back from B: outgoing 'before' on B → A (loadDocument(A))
+    //  walk back from A: outgoing 'before' empty, then incoming 'after' empty
+    //  walk forward from C: outgoing 'after' on C → D (loadDocument(D))
+    //  walk forward from D: outgoing 'after' empty, then incoming 'before' empty
+    enqueue([c]);
+    enqueue([{ id: 'l-cb', toDocumentId: 'B', fromDocumentId: 'C', position: 'before' }]);
+    enqueue([b]);
+    enqueue([{ id: 'l-bb', toDocumentId: 'A', fromDocumentId: 'B', position: 'before' }]);
+    enqueue([a]);
+    enqueue([]); // walk back from A: outgoing 'before' empty
+    enqueue([]); // walk back from A: incoming 'after' empty
+    enqueue([{ id: 'l-ca', toDocumentId: 'D', fromDocumentId: 'C', position: 'after' }]);
+    enqueue([d]);
+    enqueue([]); // walk forward from D: outgoing 'after' empty
+    enqueue([]); // walk forward from D: incoming 'before' empty
+
+    const chain = await resolveChain('C');
+    expect(chain?.map((x) => x.id)).toEqual(['A', 'B', 'C', 'D']);
+  });
+});
+
+describe('document-link-service: reorderChain', () => {
+  it('rejects duplicate ids before touching the database', async () => {
+    queue.length = 0;
+    deleteLog.length = 0;
+    await expect(reorderChain(['A', 'B', 'A'])).rejects.toBeInstanceOf(DocumentLinkValidationError);
+    expect(deleteLog).toHaveLength(0);
+  });
+
+  it('rejects when a referenced document is missing', async () => {
+    queue.length = 0;
+    enqueue([baseDoc({ id: 'A', buildingId: 'b1', residenceId: null })]); // only one row returned for two ids
+    await expect(reorderChain(['A', 'B'])).rejects.toBeInstanceOf(DocumentLinkValidationError);
+  });
+
+  it('rejects when chain documents span different scopes', async () => {
+    queue.length = 0;
+    enqueue([
+      baseDoc({ id: 'A', buildingId: 'b1', residenceId: null }),
+      baseDoc({ id: 'B', buildingId: 'b2', residenceId: null }),
+    ]);
+    await expect(reorderChain(['A', 'B'])).rejects.toBeInstanceOf(DocumentLinkValidationError);
+  });
+
+  it('clears existing links and inserts N-1 sequential after links', async () => {
+    queue.length = 0;
+    deleteLog.length = 0;
+    enqueue([
+      baseDoc({ id: 'A', buildingId: 'b1', residenceId: null }),
+      baseDoc({ id: 'B', buildingId: 'b1', residenceId: null }),
+      baseDoc({ id: 'C', buildingId: 'b1', residenceId: null }),
+    ]);
+    await reorderChain(['A', 'B', 'C']);
+    // The transaction performs exactly one bulk delete and one bulk insert.
+    expect(deleteLog).toHaveLength(1);
+  });
+
+  it('is a no-op for a single-element list (still clears that doc\'s old links)', async () => {
+    queue.length = 0;
+    deleteLog.length = 0;
+    enqueue([baseDoc({ id: 'A', buildingId: 'b1', residenceId: null })]);
+    await reorderChain(['A']);
+    expect(deleteLog).toHaveLength(1);
+  });
+
+  it('returns immediately for an empty list without touching the database', async () => {
+    queue.length = 0;
+    deleteLog.length = 0;
+    await reorderChain([]);
+    expect(deleteLog).toHaveLength(0);
+  });
+});
+
+describe('document-link-service: removeFromChain', () => {
+  it('stitches neighbors together when both sides exist', async () => {
+    queue.length = 0;
+    deleteLog.length = 0;
+    const prev = baseDoc({ id: 'P' });
+    const next = baseDoc({ id: 'N' });
+    // Sequence (Promise.all for explicit lookup):
+    //  prev: outgoing 'before' on doc → row → loadDocument(P)
+    //  next: outgoing 'after'  on doc → row → loadDocument(N)
+    enqueue([{ id: 'l-prev', toDocumentId: 'P', fromDocumentId: 'D', position: 'before' }]);
+    enqueue([{ id: 'l-next', toDocumentId: 'N', fromDocumentId: 'D', position: 'after' }]);
+    enqueue([prev]);
+    enqueue([next]);
+    const result = await removeFromChain('D');
+    expect(result.previous?.id).toBe('P');
+    expect(result.next?.id).toBe('N');
+    // 1 bulk delete (touching D) + 4 collision-clear deletes around the
+    // stitched edge before the insert.
+    expect(deleteLog).toHaveLength(5);
+  });
+
+  it('removes links without inserting a stitch when only one neighbor exists', async () => {
+    queue.length = 0;
+    deleteLog.length = 0;
+    const prev = baseDoc({ id: 'P' });
+    enqueue([{ id: 'l-prev', toDocumentId: 'P', fromDocumentId: 'D', position: 'before' }]);
+    enqueue([]); // outgoing 'after' empty
+    enqueue([prev]);
+    enqueue([]); // incoming 'before' for next side: empty
+    const result = await removeFromChain('D');
+    expect(result.previous?.id).toBe('P');
+    expect(result.next).toBeNull();
+    // Only the bulk delete; no stitching pass.
+    expect(deleteLog).toHaveLength(1);
+  });
+
+  it('is a no-op (single delete) when the document has no neighbors', async () => {
+    queue.length = 0;
+    deleteLog.length = 0;
+    enqueue([]); // outgoing 'before'
+    enqueue([]); // outgoing 'after'
+    enqueue([]); // incoming 'after' (prev side fallback)
+    enqueue([]); // incoming 'before' (next side fallback)
+    const result = await removeFromChain('D');
+    expect(result.previous).toBeNull();
+    expect(result.next).toBeNull();
+    expect(deleteLog).toHaveLength(1);
   });
 });
