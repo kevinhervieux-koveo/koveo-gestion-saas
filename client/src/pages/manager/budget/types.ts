@@ -167,6 +167,8 @@ export interface Project {
   isQuickProject: boolean;
   plannedStartDate?: string;
   plannedEndDate?: string;
+  actualStartDate?: string;
+  actualEndDate?: string;
   estimatedCost?: number;
   includeInBudget: boolean;
 }

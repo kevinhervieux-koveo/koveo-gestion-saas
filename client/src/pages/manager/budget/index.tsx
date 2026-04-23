@@ -78,8 +78,11 @@ import {
   RefreshCw,
   HelpCircle,
   Pencil,
-  Download
+  Download,
+  List,
+  BarChart3
 } from 'lucide-react';
+import { GanttChart } from '@/components/GanttChart';
 
 
 function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) {
@@ -271,6 +274,18 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
   };
   
   const [filters, setFilters] = useState<BudgetFilters>(getInitialFilters());
+
+  // Projects panel view mode (list vs gantt) - persisted per session
+  const [projectViewMode, setProjectViewMode] = useState<'list' | 'gantt'>(() => {
+    if (typeof window === 'undefined') return 'list';
+    const saved = window.sessionStorage.getItem('budget.projectViewMode');
+    return saved === 'gantt' ? 'gantt' : 'list';
+  });
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.sessionStorage.setItem('budget.projectViewMode', projectViewMode);
+    }
+  }, [projectViewMode]);
   
   // Log filter changes
   useEffect(() => {
@@ -3376,11 +3391,40 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
                       <Building2 className='w-5 h-5' />
                       {t('budgetProjectManagement')}
                     </div>
-                    {cardsCollapsed.project ? (
-                      <ChevronDown className='w-5 h-5' />
-                    ) : (
-                      <ChevronUp className='w-5 h-5' />
-                    )}
+                    <div className='flex items-center gap-2'>
+                      <div
+                        className='inline-flex rounded-md border bg-muted/30'
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Button
+                          type='button'
+                          size='sm'
+                          variant={projectViewMode === 'list' ? 'default' : 'ghost'}
+                          className='h-7 px-2'
+                          onClick={() => setProjectViewMode('list')}
+                          data-testid='button-projects-view-list'
+                          title={language === 'fr' ? 'Vue liste' : 'List view'}
+                        >
+                          <List className='w-4 h-4' />
+                        </Button>
+                        <Button
+                          type='button'
+                          size='sm'
+                          variant={projectViewMode === 'gantt' ? 'default' : 'ghost'}
+                          className='h-7 px-2'
+                          onClick={() => setProjectViewMode('gantt')}
+                          data-testid='button-projects-view-gantt'
+                          title={language === 'fr' ? 'Vue Gantt' : 'Gantt view'}
+                        >
+                          <BarChart3 className='w-4 h-4' />
+                        </Button>
+                      </div>
+                      {cardsCollapsed.project ? (
+                        <ChevronDown className='w-5 h-5' />
+                      ) : (
+                        <ChevronUp className='w-5 h-5' />
+                      )}
+                    </div>
                   </CardTitle>
                   <div className='text-sm text-muted-foreground'>
                     {t('budgetManageProjectsForCurrentYear')}
@@ -3411,6 +3455,36 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
                           <RefreshCw className='w-8 h-8 mx-auto mb-4 animate-spin text-gray-300' />
                           <p>{t('loadingProjects')}</p>
                         </div>
+                      ) : projects.length > 0 && projectViewMode === 'gantt' ? (
+                        <GanttChart
+                          language={language}
+                          dateRange={(() => {
+                            const sm = (filters.startMonth ?? 1) - 1;
+                            const sy = filters.startYear ?? new Date().getFullYear();
+                            const months = filters.viewType === 'year'
+                              ? filters.periodLength * 12
+                              : filters.periodLength;
+                            const start = new Date(sy, sm, 1);
+                            const end = new Date(sy, sm + months, 1);
+                            return { start, end };
+                          })()}
+                          projects={projects.map(p => ({
+                            id: p.id,
+                            title: p.title,
+                            status: p.status,
+                            plannedStartDate: p.plannedStartDate,
+                            plannedEndDate: p.plannedEndDate,
+                            actualStartDate: p.actualStartDate,
+                            actualEndDate: p.actualEndDate,
+                            includeInBudget: p.includeInBudget,
+                          }))}
+                          onToggleInclude={(id, value) => {
+                            projectStatesRef.current.set(id, value);
+                            setProjects(prev => prev.map(pp =>
+                              pp.id === id ? { ...pp, includeInBudget: value } : pp
+                            ));
+                          }}
+                        />
                       ) : projects.length > 0 ? (
                         projects.map((project) => (
                           <div key={project.id} className='border rounded-lg p-4 space-y-3'>

@@ -34,7 +34,10 @@ import {
   Download,
   FileText,
   AlertCircle,
+  List,
+  BarChart3,
 } from 'lucide-react';
+import { GanttChart } from '@/components/GanttChart';
 import { format, startOfMonth, endOfMonth, addMonths, subMonths } from 'date-fns';
 import {
   LineChart as RechartsLineChart,
@@ -135,6 +138,8 @@ interface Project {
   isQuickProject: boolean;
   plannedStartDate?: string;
   plannedEndDate?: string;
+  actualStartDate?: string;
+  actualEndDate?: string;
   estimatedCost?: number;
   buildingId?: string;
   buildingName?: string;
@@ -233,7 +238,7 @@ interface MonthlyBillsSummary {
 }
 
 export default function FinancialOverview() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { user } = useAuth();
   const overviewChartRef = useRef<HTMLDivElement>(null);
 
@@ -294,6 +299,16 @@ export default function FinancialOverview() {
     },
   });
   const [projectCollapsed, setProjectCollapsed] = useState(false);
+  const [projectViewMode, setProjectViewMode] = useState<'list' | 'gantt'>(() => {
+    if (typeof window === 'undefined') return 'list';
+    const saved = window.sessionStorage.getItem('overview.projectViewMode');
+    return saved === 'gantt' ? 'gantt' : 'list';
+  });
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.sessionStorage.setItem('overview.projectViewMode', projectViewMode);
+    }
+  }, [projectViewMode]);
   const [projectStates, setProjectStates] = useState<Map<string, boolean>>(new Map());
   const [selectedBill, setSelectedBill] = useState<BillPaymentSummary | null>(null);
   
@@ -1608,11 +1623,40 @@ export default function FinancialOverview() {
                     {selectedBuildingProjects.length} {t('projects')}
                   </Badge>
                 </div>
-                {projectCollapsed ? (
-                  <ChevronDown className="w-5 h-5" />
-                ) : (
-                  <ChevronUp className="w-5 h-5" />
-                )}
+                <div className="flex items-center gap-2">
+                  <div
+                    className="inline-flex rounded-md border bg-muted/30"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={projectViewMode === 'list' ? 'default' : 'ghost'}
+                      className="h-7 px-2"
+                      onClick={() => setProjectViewMode('list')}
+                      data-testid="button-projects-view-list"
+                      title="List view"
+                    >
+                      <List className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={projectViewMode === 'gantt' ? 'default' : 'ghost'}
+                      className="h-7 px-2"
+                      onClick={() => setProjectViewMode('gantt')}
+                      data-testid="button-projects-view-gantt"
+                      title="Gantt view"
+                    >
+                      <BarChart3 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  {projectCollapsed ? (
+                    <ChevronDown className="w-5 h-5" />
+                  ) : (
+                    <ChevronUp className="w-5 h-5" />
+                  )}
+                </div>
               </CardTitle>
               <div className="text-sm text-muted-foreground">
                 {t('manageProjectsForCurrentYear')}
@@ -1624,13 +1668,44 @@ export default function FinancialOverview() {
                   {t('projectsAffectingBudget')}
                 </div>
 
-                {/* Project List */}
+                {/* Project List or Gantt */}
                 <div className="space-y-3">
                   {projectsLoading ? (
                     <div className="text-center py-8 text-muted-foreground">
                       <RefreshCw className="w-8 h-8 mx-auto mb-4 animate-spin text-gray-300" />
                       <p>{t('loadingProjects')}</p>
                     </div>
+                  ) : selectedBuildingProjects.length > 0 && projectViewMode === 'gantt' ? (
+                    <GanttChart
+                      dateRange={(() => {
+                        const sm = (filters.startMonth ?? 1) - 1;
+                        const sy = filters.startYear ?? new Date().getFullYear();
+                        const months = filters.viewType === 'year'
+                          ? filters.periodLength * 12
+                          : filters.periodLength;
+                        const start = new Date(sy, sm, 1);
+                        const end = new Date(sy, sm + months, 1);
+                        return { start, end };
+                      })()}
+                      projects={selectedBuildingProjects.map(p => ({
+                        id: p.id,
+                        title: p.title,
+                        status: p.status,
+                        plannedStartDate: p.plannedStartDate,
+                        plannedEndDate: p.plannedEndDate,
+                        actualStartDate: p.actualStartDate,
+                        actualEndDate: p.actualEndDate,
+                        includeInBudget: p.includeInBudget,
+                      }))}
+                      language={language}
+                      onToggleInclude={(id, value) => {
+                        setProjectStates(prev => {
+                          const next = new Map(prev);
+                          next.set(id, value);
+                          return next;
+                        });
+                      }}
+                    />
                   ) : selectedBuildingProjects.length > 0 ? (
                     selectedBuildingProjects.map(project => (
                       <div key={project.id} className="border rounded-lg p-4 space-y-3" data-testid={`project-${project.id}`}>
