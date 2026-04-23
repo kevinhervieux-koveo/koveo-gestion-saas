@@ -1228,6 +1228,8 @@ export interface Translations {
   listView: string;
   ganttView: string;
   noDatesSet: string;
+  includeInBudget: string;
+  excludeFromBudget: string;
   statusSubmission: string;
   statusPreWork: string;
   statusPostWork: string;
@@ -3515,6 +3517,8 @@ export const translations: Record<Language, Translations> = {
     listView: 'List view',
     ganttView: 'Gantt view',
     noDatesSet: 'No dates set',
+    includeInBudget: 'Include in budget',
+    excludeFromBudget: 'Exclude from budget',
     statusSubmission: 'Submission',
     statusPreWork: 'Pre work',
     statusPostWork: 'Post work',
@@ -5586,6 +5590,8 @@ export const translations: Record<Language, Translations> = {
     listView: 'Vue liste',
     ganttView: 'Vue Gantt',
     noDatesSet: 'Aucune date définie',
+    includeInBudget: 'Inclure au budget',
+    excludeFromBudget: 'Exclure du budget',
     statusSubmission: 'Soumission',
     statusPreWork: 'Pré-travaux',
     statusPostWork: 'Post-travaux',

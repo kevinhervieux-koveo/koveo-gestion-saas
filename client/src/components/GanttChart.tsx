@@ -110,8 +110,8 @@ export function GanttChart({
   const { t } = useLanguage();
   const locale = language === 'fr' ? 'fr-CA' : 'en-CA';
   const noDatesLabel = t('noDatesSet');
-  const includeTitle = language === 'fr' ? 'Inclure au budget' : 'Include in budget';
-  const excludeTitle = language === 'fr' ? 'Exclure du budget' : 'Exclude from budget';
+  const includeTitle = t('includeInBudget');
+  const excludeTitle = t('excludeFromBudget');
 
   const { rows, domain, ticks } = useMemo(() => {
     const dated: GanttRow[] = [];
