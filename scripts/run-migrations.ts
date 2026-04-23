@@ -55,8 +55,12 @@ if (!neonConfig.webSocketConstructor) {
   neonConfig.webSocketConstructor = ws as unknown as WebSocketConstructor;
 }
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const MIGRATIONS_DIR = join(__dirname, '..', 'migrations');
+// Use a uniquely-named local rather than `__dirname` so this module can
+// also be `require()`d from a CommonJS context (e.g. ts-jest under
+// `module: CommonJS`), which auto-injects its own `__dirname` and
+// would otherwise collide with this declaration.
+const RUNNER_DIR = dirname(fileURLToPath(import.meta.url));
+const MIGRATIONS_DIR = join(RUNNER_DIR, '..', 'migrations');
 const NUMBERED_RE = /^\d{4}_.+\.sql$/;
 
 export interface MigrationResult {
