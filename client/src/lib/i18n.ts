@@ -401,6 +401,8 @@ export interface Translations {
   productionDatabaseIdWarning: string;
   goToTestResidence: string;
   viewAndActions: string;
+  tags: string;
+  filterByTags: string;
   documentFound: string;
   documentsFound: string;
   success: string;
@@ -2694,6 +2696,8 @@ export const translations: Record<Language, Translations> = {
     productionDatabaseIdWarning: 'Note: This may be a production database ID that doesn\'t exist in the development environment.',
     goToTestResidence: 'Go to Test Residence',
     viewAndActions: 'View & Actions',
+    tags: 'Tags',
+    filterByTags: 'Filter by tags',
     documentFound: 'document found',
     documentsFound: 'documents found',
     success: 'Success',
@@ -4830,6 +4834,8 @@ export const translations: Record<Language, Translations> = {
     productionDatabaseIdWarning: 'Remarque : Il peut s\'agir d\'un ID de base de données de production qui n\'existe pas dans l\'environnement de développement.',
     goToTestResidence: 'Aller à la résidence de test',
     viewAndActions: 'Affichage et actions',
+    tags: 'Étiquettes',
+    filterByTags: 'Filtrer par étiquettes',
     documentFound: 'document trouvé',
     documentsFound: 'documents trouvés',
     success: 'Succès',

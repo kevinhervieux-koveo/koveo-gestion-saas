@@ -922,11 +922,11 @@ export default function ModularDocumentPageWrapper({
 
                 {/* Tag Filter */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Étiquettes</label>
+                  <label className="text-sm font-medium">{t('tags')}</label>
                   <TagPicker
                     value={selectedTagIds}
                     onChange={setSelectedTagIds}
-                    placeholder="Filtrer par étiquettes"
+                    placeholder={t('filterByTags')}
                   />
                 </div>
 
