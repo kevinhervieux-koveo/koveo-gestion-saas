@@ -208,7 +208,11 @@ export function allowedRolesFor(enforcedRole: McpRole): McpRole[] {
  *   - returns an `Authorization mismatch` text response when the caller-
  *     supplied `role` is NOT a permitted downgrade (e.g. tenant trying to
  *     act as manager, or manager trying to act as admin),
- *   - injects `enforcedRole` into args when no `role` was supplied.
+ *   - injects the session's *acting role* into args when no `role` was
+ *     supplied. The acting role defaults to `enforcedRole` but can be
+ *     downgraded for the rest of the session via the `downgrade_acting_role`
+ *     tool (and reset via `restore_acting_role`). The optional
+ *     `getActingRole` callback is what makes that downgrade visible here.
  *
  * When `enforcedRole` is undefined (legacy MCP_API_KEY path), the wrapper just
  * forwards args to the handler so callers can self-select a role.
@@ -216,15 +220,17 @@ export function allowedRolesFor(enforcedRole: McpRole): McpRole[] {
 export function wrapHandlerWithRoleEnforcement<H extends (a: Record<string, unknown>, ...rest: unknown[]) => unknown>(
   handler: H,
   enforcedRole: McpRole | undefined,
+  getActingRole?: () => McpRole,
 ): H {
   if (!enforcedRole) return handler;
   const allowed = allowedRolesFor(enforcedRole);
   const wrapped = async (a: Record<string, unknown>, ...rest: unknown[]) => {
     const args = (a && typeof a === 'object') ? a : {};
-    let effectiveRole: McpRole = enforcedRole;
+    const defaultRole: McpRole = getActingRole ? getActingRole() : enforcedRole;
+    let effectiveRole: McpRole = defaultRole;
     if ('role' in args) {
       const supplied = (args as { role?: unknown }).role;
-      if (typeof supplied === 'string' && supplied !== enforcedRole) {
+      if (typeof supplied === 'string') {
         if (!(allowed as string[]).includes(supplied)) {
           return {
             content: [{
@@ -240,6 +246,11 @@ export function wrapHandlerWithRoleEnforcement<H extends (a: Record<string, unkn
             }],
           };
         }
+        // An explicit `role` always wins over the session's acting role,
+        // even when it equals the OAuth-bound role — that lets the caller
+        // make a per-call call as the OAuth-bound role even after a sticky
+        // downgrade (and lets `downgrade_acting_role` see the requested
+        // target role rather than the previously-downgraded role).
         effectiveRole = supplied as McpRole;
       }
     }
@@ -620,15 +631,26 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     version: "1.0.0",
   });
 
+  // Per-session "acting role" state. Defaults to the OAuth-bound role and can
+  // be downgraded for the remainder of this MCP session via the
+  // `downgrade_acting_role` tool (and reset via `restore_acting_role`). The
+  // closure scope here is the MCP session scope — `createMcpServer` is invoked
+  // per `initialize` request — so this state cannot leak across users or
+  // tokens. Legacy MCP_API_KEY sessions have no enforcedRole and therefore no
+  // acting role to track.
+  let actingRole: McpRole | undefined = enforcedRole;
+
   // CENTRAL RBAC ENFORCEMENT: when an OAuth token granted a specific role at
   // consent time, every tool handler must see a trusted role — either the
-  // OAuth-bound role, or a permitted *downgrade* of it (admin → manager/tenant,
-  // manager → tenant). The wrapper (a) injects the OAuth-bound role when no
-  // `role` arg was sent, (b) accepts a permitted downgrade and forwards it so
-  // tenant-scoped restrictions apply, or (c) returns a clear error response
-  // when the caller-supplied `role` would *escalate* beyond the OAuth-bound
-  // ceiling. Silently rewriting a mismatched arg masks bugs, so we fail loudly
-  // for escalation attempts and tell them how to re-authorize.
+  // session's current acting role (defaults to the OAuth-bound role, may be a
+  // permitted downgrade after `downgrade_acting_role`), or a permitted
+  // *downgrade* of the OAuth-bound role passed explicitly via the `role` arg.
+  // The wrapper (a) injects the acting role when no `role` arg was sent,
+  // (b) accepts a permitted explicit downgrade and forwards it so tenant-
+  // scoped restrictions apply, or (c) returns a clear error response when the
+  // caller-supplied `role` would *escalate* beyond the OAuth-bound ceiling.
+  // Silently rewriting a mismatched arg masks bugs, so we fail loudly for
+  // escalation attempts and tell them how to re-authorize.
   if (enforcedRole) {
     const original = server.tool.bind(server) as unknown as (
       ...args: unknown[]
@@ -642,7 +664,11 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
         ...rest: unknown[]
       ) => unknown;
       if (typeof handler === 'function') {
-        registerArgs[handlerIdx] = wrapHandlerWithRoleEnforcement(handler, enforcedRole);
+        registerArgs[handlerIdx] = wrapHandlerWithRoleEnforcement(
+          handler,
+          enforcedRole,
+          () => actingRole ?? enforcedRole,
+        );
       }
       return original(...registerArgs);
     }) as typeof original;
@@ -3575,6 +3601,99 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
   );
 
   server.tool(
+    "downgrade_acting_role",
+    "Downgrade the MCP session's acting role to a less-privileged role within the OAuth-bound ceiling. " +
+      "Subsequent tool calls that omit the `role` argument will run as the downgraded role. " +
+      "Calls that explicitly pass a `role` continue to be validated against the OAuth-bound ceiling. " +
+      "Use `restore_acting_role` to revert to the original OAuth-bound role. " +
+      "Only available on OAuth-authenticated sessions; legacy API-key sessions have no role to downgrade from.",
+    { role: roleParam },
+    async ({ role }) => {
+      if (!enforcedRole) {
+        return {
+          content: [{
+            type: "text" as const,
+            text:
+              "No OAuth-bound role to downgrade from: this MCP session is using the legacy " +
+              "MCP_API_KEY auth path, which has no acting-role state. Pass the desired `role` " +
+              "argument on each tool call instead.",
+          }],
+        };
+      }
+      // The wrapper above already validated `role` against allowedRolesFor(enforcedRole),
+      // so by the time we get here the requested downgrade is permitted.
+      const target = role as McpRole;
+      const previous = actingRole ?? enforcedRole;
+      actingRole = target;
+      const noChange = previous === target;
+      return {
+        content: [{
+          type: "text" as const,
+          text: JSON.stringify(
+            {
+              ok: true,
+              oauthBoundRole: enforcedRole,
+              previousActingRole: previous,
+              actingRole: target,
+              noChange,
+              message: noChange
+                ? `Acting role unchanged: this session is already acting as "${target}".`
+                : `Acting role downgraded from "${previous}" to "${target}". ` +
+                  `Subsequent tool calls without an explicit \`role\` argument will run as "${target}". ` +
+                  `Call restore_acting_role to revert to the OAuth-bound role "${enforcedRole}".`,
+            },
+            null,
+            2,
+          ),
+        }],
+      };
+    },
+  );
+
+  server.tool(
+    "restore_acting_role",
+    "Restore the MCP session's acting role to the original OAuth-bound role granted at consent time. " +
+      "Use this to revert a previous `downgrade_acting_role` call. " +
+      "Only available on OAuth-authenticated sessions; legacy API-key sessions have no role to restore.",
+    {},
+    async () => {
+      if (!enforcedRole) {
+        return {
+          content: [{
+            type: "text" as const,
+            text:
+              "No OAuth-bound role to restore: this MCP session is using the legacy " +
+              "MCP_API_KEY auth path, which has no acting-role state. Pass the desired `role` " +
+              "argument on each tool call instead.",
+          }],
+        };
+      }
+      const previous = actingRole ?? enforcedRole;
+      actingRole = enforcedRole;
+      const noChange = previous === enforcedRole;
+      return {
+        content: [{
+          type: "text" as const,
+          text: JSON.stringify(
+            {
+              ok: true,
+              oauthBoundRole: enforcedRole,
+              previousActingRole: previous,
+              actingRole: enforcedRole,
+              noChange,
+              message: noChange
+                ? `Acting role unchanged: this session is already acting as the OAuth-bound role "${enforcedRole}".`
+                : `Acting role restored from "${previous}" back to the OAuth-bound role "${enforcedRole}".`,
+            },
+            null,
+            2,
+          ),
+        }],
+      };
+    },
+  );
+
+  server.tool(
     "get_mcp_info",
     "Get information about the MCP setup including available organizations, users, and roles",
     { role: roleParam },
@@ -3602,20 +3721,32 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       // `role: "tenant"` will see `role === "tenant"` here). When the
       // legacy MCP_API_KEY path is in use, it's the caller-supplied arg.
       const oauthBoundRole = enforcedRole ?? null;
+      const currentActingRole: McpRole | null = oauthBoundRole
+        ? actingRole ?? oauthBoundRole
+        : null;
       const allowedRoles: McpRole[] = oauthBoundRole
         ? allowedRolesFor(oauthBoundRole)
         : ["admin", "manager", "tenant"];
+      const downgradeActive =
+        oauthBoundRole !== null && currentActingRole !== oauthBoundRole;
       const roleNote = oauthBoundRole
         ? `This MCP session is OAuth-authenticated and bound to role "${oauthBoundRole}". ` +
-          `You may pass any of [${allowedRoles.map((r) => `"${r}"`).join(', ')}] as the ` +
+          `The current acting role is "${currentActingRole}"` +
+          (downgradeActive
+            ? ` (a session-level downgrade is in effect — call restore_acting_role to revert).`
+            : ` (no downgrade in effect).`) +
+          ` You may pass any of [${allowedRoles.map((r) => `"${r}"`).join(', ')}] as the ` +
           `"role" argument on tool calls — the OAuth-bound role is the ceiling, and ` +
           `lower-privileged roles are accepted as a downgrade so you can explore what a ` +
           `tenant (or, for admin sessions, a manager) sees within the same session. ` +
+          `For a sticky downgrade that applies to every subsequent tool call without ` +
+          `re-passing \`role\`, use the downgrade_acting_role tool. ` +
           `Passing a more-privileged role returns an authorization-mismatch error; ` +
           `to escalate, disconnect the connector and re-authorize, selecting the desired ` +
           `role on the consent screen.`
         : `This MCP session is using the legacy API-key auth path. The "role" argument ` +
-          `on each tool call selects which role to act as.`;
+          `on each tool call selects which role to act as. The downgrade_acting_role ` +
+          `and restore_acting_role tools are not usable on this auth path.`;
       // Enumerate every tool currently registered on this MCP server so the
       // tool list is self-describing. Avoids the documentation-drift hazard
       // where a new tool ships in code but `get_mcp_info` still advertises
@@ -3649,8 +3780,14 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
         // `currentRole` reflects the role this specific call is executing as
         // (may be a downgrade from the OAuth-bound role). `allowedRoles` lists
         // every role the current session may pass as `role` on tool calls.
+        // `actingRole` is the *sticky* downgraded role for the session — it's
+        // what gets injected into subsequent tool calls that omit `role`.
+        // `downgradeActive` is a convenience flag for clients that just want
+        // to know whether the acting role differs from the OAuth-bound role.
         currentRole: role,
         oauthBoundRole,
+        actingRole: currentActingRole,
+        downgradeActive,
         allowedRoles,
         roleNote,
         // `note` is an alias for `roleNote` so MCP clients that look for a
