@@ -83,3 +83,4 @@ core.*
 /architect_review_request.txt
 
 .git.backup.*
+.github/workflows/
