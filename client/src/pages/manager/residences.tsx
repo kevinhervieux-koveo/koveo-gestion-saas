@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { logDebug } from '@/lib/logger';
+import { useTableState } from '@/lib/common-hooks';
 import { useQuery } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { Header } from '@/components/layout/header';
@@ -91,10 +92,36 @@ interface ManagerResidencesProps {
 function ManagerResidences({ organizationId, buildingId, showBackButton, backButtonLabel, onBack }: ManagerResidencesProps) {
   const [, navigate] = useLocation();
   const { t } = useLanguage();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedFloor, setSelectedFloor] = useState<string>('all');
-  const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+  // Mirror the search box + floor filter to the URL so reloads and shared
+  // links restore the same view. Only the bills page used to have this --
+  // the shared `useTableState` urlSync option lets us opt in with a few
+  // lines instead of copy-pasting the parser/serializer.
+  const residencesUrlSync = useMemo(
+    () => ({
+      fields: {
+        floor: { defaultValue: 'all' },
+      },
+      searchParam: 'search',
+    }),
+    [],
+  );
+
+  const tableState = useTableState<{ floor: string }>({
+    initialPageSize: itemsPerPage,
+    initialFilters: { floor: 'all' },
+    urlSync: residencesUrlSync,
+  });
+  const {
+    searchTerm,
+    setSearchTerm,
+    filters,
+    updateFilter,
+    currentPage,
+    setCurrentPage,
+  } = tableState;
+  const selectedFloor = filters.floor;
 
   // Component initialization logging
   useEffect(() => {
@@ -205,14 +232,14 @@ function ManagerResidences({ organizationId, buildingId, showBackButton, backBut
 
   const handleFloorChange = (value: string) => {
     logDebug('🔍 [RESIDENCES] User action: Floor filter changed', { floor: value });
-    setSelectedFloor(value);
+    updateFilter('floor', value);
     setCurrentPage(1);
   };
 
   const handleSearchChange = (value: string) => {
     logDebug('🔍 [RESIDENCES] User action: Search term changed', { searchTerm: value });
+    // useTableState's setSearchTerm already resets currentPage to 1.
     setSearchTerm(value);
-    setCurrentPage(1);
   };
 
   // Pagination calculations

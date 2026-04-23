@@ -3,7 +3,7 @@
  * Consolidates frequently used hook patterns to reduce redundancy.
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import {
   useMutation,
   useQueryClient,
@@ -235,17 +235,209 @@ export function useFormState(initialOpen = false) {
 }
 
 /**
+ * Per-field URL serialization spec used by the opt-in `urlSync` option on
+ * `useSearchFilter` / `useTableState`.
+ *
+ * - `param`: query-string key to use (defaults to the filter key name,
+ *   prefixed by `urlSync.prefix` if set).
+ * - `encode`: turn the live value into a string. Returning `null` or
+ *   `undefined` (or an empty string) means "omit from the URL".
+ * - `decode`: parse a raw URL string back into the field's type. Returning
+ *   `undefined` skips the value (initial state falls back to the default).
+ * - `defaultValue`: when the live value matches this, the key is omitted so
+ *   that "Clear filters" yields a clean URL. Accepts a function so callers
+ *   can plumb in dynamically-loaded defaults (e.g. the building's current
+ *   fiscal year on the bills page).
+ */
+export interface UrlSyncFieldSpec<V = unknown> {
+  param?: string;
+  encode?: (value: V) => string | null | undefined;
+  decode?: (raw: string) => V | undefined;
+  defaultValue?: V | (() => V);
+}
+
+/**
+ * Opt-in URL synchronization for the shared list-page hooks. Only fields
+ * explicitly listed in `fields` are mirrored to the query string; the
+ * sort + search params are likewise opt-in via `sortFieldParam` /
+ * `sortDirectionParam` / `searchParam`. Unrelated query params (e.g. a
+ * hierarchical-selection HOC's `organization` / `building`) are preserved
+ * because the writer only mutates its own keys.
+ */
+export interface UrlSyncOptions<T> {
+  enabled?: boolean;
+  prefix?: string;
+  fields?: { [K in keyof T]?: UrlSyncFieldSpec<T[K]> };
+  searchParam?: string;
+  sortFieldParam?: string;
+  sortDirectionParam?: string;
+}
+
+function getFieldDefault<V>(spec: UrlSyncFieldSpec<V>): V | undefined {
+  if (typeof spec.defaultValue === 'function') {
+    return (spec.defaultValue as () => V)();
+  }
+  return spec.defaultValue;
+}
+
+function encodeFieldValue<V>(spec: UrlSyncFieldSpec<V>, value: V): string | null {
+  if (spec.encode) {
+    const out = spec.encode(value);
+    return out === undefined || out === null || out === '' ? null : out;
+  }
+  if (value === undefined || value === null) return null;
+  if (typeof value === 'string' && value === '') return null;
+  if (Array.isArray(value)) {
+    return value.length === 0 ? null : value.map(String).join(',');
+  }
+  const def = getFieldDefault(spec);
+  if (def !== undefined && Object.is(value, def)) return null;
+  return String(value);
+}
+
+function decodeFieldValue<V>(spec: UrlSyncFieldSpec<V>, raw: string): V | undefined {
+  if (spec.decode) return spec.decode(raw);
+  return raw as unknown as V;
+}
+
+interface ParsedUrlState<T> {
+  filters: Partial<T>;
+  searchTerm?: string;
+  sortField?: string;
+  sortDirection?: 'asc' | 'desc';
+}
+
+function readUrlState<T>(opts: UrlSyncOptions<T>): ParsedUrlState<T> {
+  if (typeof window === 'undefined' || opts.enabled === false) {
+    return { filters: {} };
+  }
+  const params = new URLSearchParams(window.location.search);
+  const prefix = opts.prefix ?? '';
+  const filters: Partial<T> = {};
+  if (opts.fields) {
+    for (const key of Object.keys(opts.fields) as Array<keyof T>) {
+      const spec = opts.fields[key];
+      if (!spec) continue;
+      const param = prefix + (spec.param ?? String(key));
+      const raw = params.get(param);
+      if (raw === null) continue;
+      const decoded = decodeFieldValue(spec, raw);
+      if (decoded !== undefined) {
+        filters[key] = decoded;
+      }
+    }
+  }
+  const result: ParsedUrlState<T> = { filters };
+  if (opts.searchParam) {
+    const raw = params.get(prefix + opts.searchParam);
+    if (raw !== null) result.searchTerm = raw;
+  }
+  if (opts.sortFieldParam) {
+    const raw = params.get(prefix + opts.sortFieldParam);
+    if (raw) result.sortField = raw;
+  }
+  if (opts.sortDirectionParam) {
+    const raw = params.get(prefix + opts.sortDirectionParam);
+    if (raw === 'asc' || raw === 'desc') result.sortDirection = raw;
+  }
+  return result;
+}
+
+interface WriteUrlStateInput<T> {
+  filters?: T;
+  searchTerm?: string;
+  sortField?: string;
+  sortDirection?: 'asc' | 'desc';
+  writeFilters?: boolean;
+  writeSort?: boolean;
+}
+
+function writeUrlState<T>(opts: UrlSyncOptions<T>, state: WriteUrlStateInput<T>): void {
+  if (typeof window === 'undefined' || opts.enabled === false) return;
+  const params = new URLSearchParams(window.location.search);
+  const prefix = opts.prefix ?? '';
+
+  if (state.writeFilters !== false && opts.fields && state.filters) {
+    for (const key of Object.keys(opts.fields) as Array<keyof T>) {
+      const spec = opts.fields[key];
+      if (!spec) continue;
+      const param = prefix + (spec.param ?? String(key));
+      params.delete(param);
+      const encoded = encodeFieldValue(spec, state.filters[key] as T[keyof T]);
+      if (encoded !== null) params.set(param, encoded);
+    }
+  }
+
+  if (state.writeFilters !== false && opts.searchParam && state.searchTerm !== undefined) {
+    const param = prefix + opts.searchParam;
+    params.delete(param);
+    if (state.searchTerm) params.set(param, state.searchTerm);
+  }
+
+  if (state.writeSort) {
+    if (opts.sortFieldParam) {
+      const sfParam = prefix + opts.sortFieldParam;
+      params.delete(sfParam);
+      if (state.sortField) params.set(sfParam, state.sortField);
+    }
+    if (opts.sortDirectionParam) {
+      const sdParam = prefix + opts.sortDirectionParam;
+      params.delete(sdParam);
+      if (state.sortField && state.sortDirection) {
+        params.set(sdParam, state.sortDirection);
+      }
+    }
+  }
+
+  const next = params.toString();
+  const current = window.location.search.startsWith('?')
+    ? window.location.search.slice(1)
+    : window.location.search;
+  if (next === current) return;
+  const newUrl = `${window.location.pathname}${next ? `?${next}` : ''}${window.location.hash}`;
+  window.history.replaceState(window.history.state, '', newUrl);
+}
+
+/**
  * Common search and filter state hook.
  * @param initialSearch - Initial search term.
  * @param initialFilters - Initial filters.
+ * @param urlSync - Optional URL synchronization. When provided, the listed
+ *   filter fields (and `searchTerm`, if `searchParam` is set) are seeded
+ *   from `window.location.search` on mount and mirrored back via
+ *   `history.replaceState` whenever they change. Unrelated query params
+ *   are preserved.
  * @returns Search and filter state management.
  */
 export function useSearchFilter<T = Record<string, unknown>>(
   initialSearch = '',
-  initialFilters = {} as T
+  initialFilters = {} as T,
+  urlSync?: UrlSyncOptions<T>,
 ) {
-  const [searchTerm, setSearchTerm] = useState(initialSearch);
-  const [filters, setFilters] = useState<T>(initialFilters);
+  const initialFromUrl = useRef<ParsedUrlState<T> | null>(
+    urlSync ? readUrlState<T>(urlSync) : null,
+  ).current;
+  const [searchTerm, setSearchTerm] = useState<string>(
+    initialFromUrl?.searchTerm ?? initialSearch,
+  );
+  const [filters, setFilters] = useState<T>(() => ({
+    ...initialFilters,
+    ...(initialFromUrl?.filters ?? {}),
+  }));
+
+  const urlSyncRef = useRef(urlSync);
+  urlSyncRef.current = urlSync;
+
+  useEffect(() => {
+    const opts = urlSyncRef.current;
+    if (!opts) return;
+    writeUrlState(opts, {
+      filters,
+      searchTerm,
+      writeFilters: true,
+      writeSort: false,
+    });
+  }, [filters, searchTerm]);
 
   const updateFilter = useCallback((_key: keyof T, _value: T[keyof T]) => {
     setFilters((prev) => ({ ...prev, [_key]: _value }));
@@ -321,20 +513,48 @@ export function useTableState<T = Record<string, unknown>>(options: {
   initialSortField?: string;
   initialSortDirection?: 'asc' | 'desc';
   initialFilters?: T;
+  urlSync?: UrlSyncOptions<T>;
 } = {}) {
   const {
     initialPageSize = 10,
     initialSortField = '',
     initialSortDirection = 'asc',
     initialFilters = {} as T,
+    urlSync,
   } = options;
+
+  const initialFromUrl = useRef<ParsedUrlState<T> | null>(
+    urlSync ? readUrlState<T>(urlSync) : null,
+  ).current;
 
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(initialPageSize);
-  const [sortField, setSortField] = useState(initialSortField);
-  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>(initialSortDirection);
-  
-  const searchFilter = useSearchFilter('', initialFilters);
+  const [sortField, setSortField] = useState(
+    initialFromUrl?.sortField ?? initialSortField,
+  );
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>(
+    initialFromUrl?.sortDirection ?? initialSortDirection,
+  );
+
+  const searchFilter = useSearchFilter('', initialFilters, urlSync);
+
+  const urlSyncRef = useRef(urlSync);
+  urlSyncRef.current = urlSync;
+
+  // Mirror sort changes back to the URL. Filter/search writes are owned by
+  // `useSearchFilter`; we only touch the sort keys here, which keeps the
+  // two writers from clobbering each other's params.
+  useEffect(() => {
+    const opts = urlSyncRef.current;
+    if (!opts) return;
+    if (!opts.sortFieldParam && !opts.sortDirectionParam) return;
+    writeUrlState(opts, {
+      sortField,
+      sortDirection,
+      writeFilters: false,
+      writeSort: true,
+    });
+  }, [sortField, sortDirection]);
 
   const handleSort = useCallback((field: string) => {
     if (sortField === field) {

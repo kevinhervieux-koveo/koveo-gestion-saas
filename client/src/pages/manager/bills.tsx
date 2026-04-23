@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { format as formatDate } from 'date-fns';
 import { Header } from '@/components/layout/header';
 import { DocumentInlineViewer } from '@/components/common/DocumentInlineViewer';
@@ -109,126 +109,6 @@ const getCategoryLabel = (category: string, t: (key: string) => string) => {
   return t(categoryTranslationKeys[category] || category);
 };
 
-// Query-string keys used to persist the bills filters + sort in the URL.
-// Keeping them centralized makes it harder to drift between the parser
-// and serializer below.
-const BILLS_URL_KEYS = {
-  category: 'category',
-  year: 'year',
-  months: 'months',
-  billType: 'billType',
-  paymentStructure: 'paymentStructure',
-  status: 'status',
-  vendor: 'vendor',
-  search: 'search',
-  issueDateFrom: 'issueDateFrom',
-  issueDateTo: 'issueDateTo',
-  sortField: 'sortField',
-  sortDirection: 'sortDirection',
-} as const;
-
-interface ParsedBillsUrlState {
-  filters: Partial<BillFilters>;
-  sortField?: string;
-  sortDirection?: 'asc' | 'desc';
-}
-
-/**
- * Parse the current `window.location.search` into a partial set of bill
- * filters + sort. Anything missing/blank stays undefined so the caller
- * can fall back to its own defaults (e.g. fiscal year, empty sort).
- */
-function parseBillsUrlState(): ParsedBillsUrlState {
-  if (typeof window === 'undefined') return { filters: {} };
-  const params = new URLSearchParams(window.location.search);
-  const filters: Partial<BillFilters> = {};
-
-  const category = params.get(BILLS_URL_KEYS.category);
-  if (category) filters.category = category;
-
-  const year = params.get(BILLS_URL_KEYS.year);
-  if (year) filters.year = year;
-
-  const months = params.get(BILLS_URL_KEYS.months);
-  if (months) {
-    filters.months = months.split(',').map(s => s.trim()).filter(Boolean);
-  }
-
-  const billType = params.get(BILLS_URL_KEYS.billType);
-  if (billType) filters.billType = billType;
-
-  const paymentStructure = params.get(BILLS_URL_KEYS.paymentStructure);
-  if (paymentStructure) filters.paymentStructure = paymentStructure;
-
-  const status = params.get(BILLS_URL_KEYS.status);
-  if (status) filters.status = status;
-
-  const vendor = params.get(BILLS_URL_KEYS.vendor);
-  if (vendor) filters.vendor = vendor;
-
-  const search = params.get(BILLS_URL_KEYS.search);
-  if (search) filters.search = search;
-
-  const issueDateFrom = params.get(BILLS_URL_KEYS.issueDateFrom);
-  if (issueDateFrom) filters.issueDateFrom = issueDateFrom;
-
-  const issueDateTo = params.get(BILLS_URL_KEYS.issueDateTo);
-  if (issueDateTo) filters.issueDateTo = issueDateTo;
-
-  const sortField = params.get(BILLS_URL_KEYS.sortField) ?? undefined;
-  const rawDir = params.get(BILLS_URL_KEYS.sortDirection);
-  const sortDirection = rawDir === 'asc' || rawDir === 'desc' ? rawDir : undefined;
-
-  return { filters, sortField: sortField || undefined, sortDirection };
-}
-
-/**
- * Build the URL query string (without the leading '?') for the given
- * filters + sort. Bill-related keys are merged into the supplied
- * `existingSearch` so unrelated query params (e.g. `organization` /
- * `building` from `withHierarchicalSelection`) are preserved.
- *
- * `defaultYear` is the value that should be treated as "no explicit
- * year filter" (the building's current fiscal year). When the active
- * year matches it, the `year` key is omitted so that Clear Filters
- * (which resets to the default year) yields a truly empty query
- * string for the bill keys.
- */
-function serializeBillsUrlState(
-  filters: BillFilters,
-  sortField: string,
-  sortDirection: 'asc' | 'desc',
-  existingSearch: string,
-  defaultYear: string,
-): string {
-  const params = new URLSearchParams(existingSearch);
-  // Wipe any stale bill keys before re-applying so we don't leak
-  // values that no longer match the current state.
-  for (const key of Object.values(BILLS_URL_KEYS)) {
-    params.delete(key);
-  }
-
-  if (filters.category) params.set(BILLS_URL_KEYS.category, filters.category);
-  if (filters.year && filters.year !== defaultYear) {
-    params.set(BILLS_URL_KEYS.year, filters.year);
-  }
-  if (filters.months && filters.months.length > 0) {
-    params.set(BILLS_URL_KEYS.months, filters.months.join(','));
-  }
-  if (filters.billType) params.set(BILLS_URL_KEYS.billType, filters.billType);
-  if (filters.paymentStructure) params.set(BILLS_URL_KEYS.paymentStructure, filters.paymentStructure);
-  if (filters.status) params.set(BILLS_URL_KEYS.status, filters.status);
-  if (filters.vendor) params.set(BILLS_URL_KEYS.vendor, filters.vendor);
-  if (filters.search) params.set(BILLS_URL_KEYS.search, filters.search);
-  if (filters.issueDateFrom) params.set(BILLS_URL_KEYS.issueDateFrom, filters.issueDateFrom);
-  if (filters.issueDateTo) params.set(BILLS_URL_KEYS.issueDateTo, filters.issueDateTo);
-  if (sortField) {
-    params.set(BILLS_URL_KEYS.sortField, sortField);
-    params.set(BILLS_URL_KEYS.sortDirection, sortDirection);
-  }
-  return params.toString();
-}
-
 /**
  * Filters for bills (excluding buildingId which comes from hierarchical selection)
  */
@@ -290,31 +170,58 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
     !!buildingId
   );
 
-  // Parse URL query string once on mount so reloads/shared links restore
-  // the same filtered, sorted view. We only read window.location.search
-  // here to seed `useTableState` -- subsequent updates are written back
-  // via the sync effect below using history.replaceState.
-  const initialUrlState = useRef(parseBillsUrlState()).current;
+  // The URL-sync default for `year` is the building's current fiscal
+  // year. We stash it in a ref so the (memoized) urlSync config can
+  // read the latest value via a getter without re-creating itself
+  // every render -- otherwise the hook's effect would thrash.
+  const defaultYearRef = useRef(currentFinancialYear.label);
+  defaultYearRef.current = currentFinancialYear.label;
 
-  // Shared table state hook tracks filters/search for the bills list.
-  // The bills page renders without pagination/sort, so we only use the
-  // filters slice; pulling them through `useTableState` keeps the state
-  // shape consistent with the other manager pages.
+  const billsUrlSync = useMemo(
+    () => ({
+      // Bills uses `search` as a filter field (server-side query param),
+      // not the table's free-form searchTerm, so the searchParam is
+      // intentionally omitted to avoid double-syncing.
+      fields: {
+        category: {},
+        year: { defaultValue: () => defaultYearRef.current },
+        months: {
+          encode: (v: string[]) => (v.length > 0 ? v.join(',') : null),
+          decode: (raw: string) =>
+            raw.split(',').map((s) => s.trim()).filter(Boolean),
+        },
+        billType: {},
+        paymentStructure: {},
+        status: {},
+        vendor: {},
+        search: {},
+        issueDateFrom: {},
+        issueDateTo: {},
+      },
+      sortFieldParam: 'sortField',
+      sortDirectionParam: 'sortDirection',
+    }),
+    [],
+  );
+
+  // Shared table state hook tracks filters/sort for the bills list, with
+  // URL sync enabled so reloads + shared links reproduce the same view.
+  // The bills page renders without pagination, so we only use the filter
+  // and sort slices.
   const billsTableState = useTableState<BillFilters>({
     initialFilters: {
-      category: initialUrlState.filters.category ?? '',
-      year: initialUrlState.filters.year ?? currentFinancialYear.label,
-      months: initialUrlState.filters.months ?? [],
-      billType: initialUrlState.filters.billType ?? '',
-      paymentStructure: initialUrlState.filters.paymentStructure ?? '',
-      status: initialUrlState.filters.status ?? '',
-      vendor: initialUrlState.filters.vendor ?? '',
-      search: initialUrlState.filters.search ?? '',
-      issueDateFrom: initialUrlState.filters.issueDateFrom ?? '',
-      issueDateTo: initialUrlState.filters.issueDateTo ?? '',
+      category: '',
+      year: currentFinancialYear.label,
+      months: [],
+      billType: '',
+      paymentStructure: '',
+      status: '',
+      vendor: '',
+      search: '',
+      issueDateFrom: '',
+      issueDateTo: '',
     },
-    initialSortField: initialUrlState.sortField ?? '',
-    initialSortDirection: initialUrlState.sortDirection ?? 'asc',
+    urlSync: billsUrlSync,
   });
   const filters = billsTableState.filters;
   const setFilters = billsTableState.setFilters;
@@ -329,7 +236,10 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
   // This prevents overriding user's manual year selection after initial load.
   // Seed the ref from the URL: if the URL supplied a year, the auto-init
   // effect must NOT override it on first load.
-  const yearFilterInitializedRef = useRef(Boolean(initialUrlState.filters.year));
+  const yearFilterInitializedRef = useRef(
+    typeof window !== 'undefined' &&
+      new URLSearchParams(window.location.search).has('year'),
+  );
 
   // Update filters when currentFinancialYear changes - only after building data loads
   // After initial load, user's manual year selection takes precedence
@@ -341,30 +251,6 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
       yearFilterInitializedRef.current = true;
     }
   }, [currentFinancialYear.label, buildingData]);
-
-  // Mirror the current filters + sort back to the URL so reloads and
-  // shared links reproduce the same view. We use history.replaceState
-  // (not navigate) so we don't push extra entries onto the browser
-  // history stack while the user is just adjusting filters. The
-  // serializer merges into `window.location.search` so unrelated keys
-  // (notably `organization` / `building` from the hierarchical
-  // selection HOC) are preserved.
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const current = window.location.search.startsWith('?')
-      ? window.location.search.slice(1)
-      : window.location.search;
-    const next = serializeBillsUrlState(
-      filters,
-      sortField,
-      sortDirection,
-      current,
-      currentFinancialYear.label,
-    );
-    if (next === current) return;
-    const newUrl = `${window.location.pathname}${next ? `?${next}` : ''}${window.location.hash}`;
-    window.history.replaceState(window.history.state, '', newUrl);
-  }, [filters, sortField, sortDirection, currentFinancialYear.label]);
 
   const [showAllFutureYears, setShowAllFutureYears] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -543,18 +429,9 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
     });
     setSortField('');
     setSortDirection('asc');
-    // Also wipe any bill-related query params so the URL matches the
-    // freshly-cleared state. We strip ONLY the bill keys -- unrelated
-    // params (e.g. `organization` / `building`) must survive.
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      for (const key of Object.values(BILLS_URL_KEYS)) {
-        params.delete(key);
-      }
-      const queryString = params.toString();
-      const newUrl = `${window.location.pathname}${queryString ? `?${queryString}` : ''}${window.location.hash}`;
-      window.history.replaceState(window.history.state, '', newUrl);
-    }
+    // The shared `urlSync` writers in useTableState/useSearchFilter clean
+    // up the bill-related query params automatically because the year
+    // now matches its default and every other filter is empty.
   };
 
   const hasActiveFilters = () => {
