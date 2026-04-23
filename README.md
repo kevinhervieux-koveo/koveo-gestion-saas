@@ -133,15 +133,24 @@ Schema changes are tracked as numbered SQL files under `migrations/`
 `scripts/run-migrations.ts` applies any unapplied files in lexical
 order and records each one in a `schema_migrations` table.
 
-**On deploy / publish:** the production server invokes the runner
-automatically at startup, before any HTTP routes are registered.
-Migrations therefore run before the new server starts serving traffic.
-If a migration fails, server startup aborts and the deploy fails
-loudly — there is no half-applied state because each file runs in its
-own transaction. The runner uses a Postgres advisory lock so multiple
-booting Autoscale instances cannot race each other. The startup logs
-include `Highest applied migration: <filename>` so it is obvious from
-the deploy logs whether prod is in sync.
+**On deploy / publish:** the runner is wired into the deploy *build*
+phase. The build command in `.replit` is
+`npm run build && npm run migrate`, where `npm run migrate` invokes
+`npx tsx scripts/run-migrations.ts` against the production database.
+A non-zero exit from the migrate step fails the build itself, so the
+deploy aborts before `npm run start` is ever invoked and the previous
+revision keeps serving traffic. The failing filename is printed as
+`[migrate] FAILED applying <filename>` in the deploy build logs.
+
+As a defense-in-depth belt-and-braces measure, the production server
+*also* invokes the runner at startup before any HTTP routes are
+registered, so even an out-of-band boot (e.g. a manual `npm run start`)
+will not serve traffic against an out-of-date schema. There is no
+half-applied state because each file runs in its own transaction. The
+runner uses a Postgres advisory lock so multiple booting Autoscale
+instances cannot race each other. The startup logs include
+`Highest applied migration: <filename>` so it is obvious from the
+deploy logs whether prod is in sync.
 
 **On a database that pre-existed this runner** (e.g. our current
 production, which was historically managed via `db:push`), the very
