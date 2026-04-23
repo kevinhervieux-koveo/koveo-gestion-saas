@@ -126,3 +126,7 @@ The platform exposes an MCP server at `/mcp` for LLM integration (e.g., Claude D
 - **Replit**: Development and hosting platform.
 - **Express.js**: Backend web framework.
 - **SendGrid**: Email service.
+## Schema-drift guard
+- `scripts/check-migration-coverage.ts` compares `shared/schema.ts` against the cumulative `migrations/*.sql` set by spinning up two ephemeral PGlite databases (one applies the migrations, the other applies `drizzle-kit export` of the schema) and diffing tables, columns, enums, primary keys, and unique constraints via `information_schema`.
+- Wired into `.husky/pre-commit` (runs only when `shared/schemas/*` or `migrations/NNNN_*.sql` are staged) and `.github/workflows/migration-coverage-check.yml`.
+- Pure helpers (`splitSqlStatements`, `diff`, `hasDrift`, `formatReport`) are covered by `tests/unit/check-migration-coverage.test.ts`.
