@@ -9,27 +9,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Breaking Changes
 
-- **Duplicate invites now reject with 409 instead of soft-replacing the prior pending invitation** (Task #250):
-  Previously, calling `POST /api/invitations` (REST) or `invite_user` (MCP) a second time
-  for the same `(organizationId, email, residenceId)` tuple silently marked the prior
-  pending invite as `status='replaced'`, wrote a `replaced` entry to
-  `invitation_audit_log`, and returned a brand-new invitation. That behavior is
-  removed. Duplicate invites now return:
+- **MCP `invite_user` duplicate invites reject — post-#9 soft-replace rolled back**
+  (Task #250): An earlier iteration of this work landed a soft-replace flow that
+  marked the prior pending invite as `status='replaced'`, wrote a `replaced`
+  entry to `invitation_audit_log`, and returned a brand-new invitation row.
+  **That soft-replace flow has been rolled back.** Calling `invite_user` (MCP)
+  or `POST /api/invitations` (REST) a second time for the same
+  `(organizationId, email, residenceId)` tuple now rejects the duplicate and
+  leaves the prior pending invite completely untouched — no status change, no
+  `replaced` audit row, no new invitation row, and no email send. Responses:
+    - MCP: `{ status: 'already_invited', code: 'INVITATION_ALREADY_PENDING', message: '...' }`.
     - REST: HTTP `409 Conflict` with body
       `{ error: 'Conflict', code: 'INVITATION_ALREADY_PENDING', message: '...' }`.
-    - MCP: a structured tool response with
-      `{ status: 'already_invited', code: 'INVITATION_ALREADY_PENDING', message: '...' }`.
-  The prior pending invite is left completely untouched — no status change, no
-  `replaced` audit row, no new invitation row, and no email send.
-  Migration: callers must explicitly choose between `resend_invitation` (extend
-  the existing invite's expiry) or `cancel_invitation` followed by a fresh
-  `invite_user` / `POST /api/invitations` (start over with a new token). The
-  helper function and helper error class have been renamed/aliased: prefer
-  `InvitationAlreadyPendingError` from
-  `server/services/invitation-soft-replace`. The previous
+  Migration: clients must branch on `code === 'INVITATION_ALREADY_PENDING'`
+  and explicitly call `resend_invitation` (extend the existing invite's expiry)
+  or `cancel_invitation` followed by a fresh `invite_user` (start over with a
+  new token). The helper error class is now `InvitationAlreadyPendingError`
+  from `server/services/invitation-soft-replace`; the previous
   `InvitationSoftReplaceRaceLostError` export remains as a deprecated alias.
   Note: the `replaced` value of the `invitation_status` enum is intentionally
-  retained — other historical audit rows still reference it.
+  retained for historical audit rows that still reference it, but the live
+  flow no longer writes that value.
 
 - **MCP `list_buildings` requires `organizationId`**: The `organizationId` parameter
   on the MCP `list_buildings` tool is now **required** (previously optional).
@@ -57,13 +57,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `list_organizations`, then invoke the list tool once per org. Cross-org
   aggregation must be performed client-side.
 
+### Changed
+
+- **MCP `update_maintenance_request` auto-assigns the caller on the first
+  transition**: On the first status transition where the request's
+  `assignedTo` is `null`, `assignedTo` is now set to the calling user.
+  Subsequent status transitions do **not** overwrite an existing `assignedTo`
+  — once a request is assigned (whether by this auto-assign on first
+  transition or by an explicit assignment), later callers moving it through
+  further statuses will not be silently substituted in.
+  Migration: integrations that assumed `assignedTo` stays untouched across
+  status changes must adjust — expect the first transition to populate it
+  with the caller's user id.
+
+- **MCP `delete_bill` response shape aligned with `delete_building` /
+  `delete_residence`**: `delete_bill` now returns
+  `{ deleted: { id, billNumber, title }, cascaded: { payments }, message }`,
+  matching the structured shape already used by `delete_building` and
+  `delete_residence`. The `cascaded.payments` field reports the payments
+  removed as part of the bill's delete cascade. Clients parsing the previous
+  flat response must update to read `deleted.id` / `deleted.billNumber` /
+  `deleted.title` and inspect `cascaded.payments` for the cascade summary.
+
+### Added
+
+- **MCP `create_bill` response includes `source: "mcp"`**: The `create_bill`
+  tool response now carries a `source: "mcp"` field so downstream consumers
+  can distinguish bills created via MCP from those created via the REST API
+  or the UI. Backward-compatible — existing fields are unchanged.
+
 ### Fixed
 
-- **Invitation history preservation**: Re-inviting the same email no longer destroys
-  the prior invitation row or its audit trail. Duplicate invites now soft-replace the
-  prior pending invitation (`status = 'replaced'`) and write a `replaced` entry to
-  `invitation_audit_log` linking the old and new invitation IDs. Both the REST
-  `POST /api/invitations` endpoint and the MCP `invite_user` tool follow the new flow.
 - **Invitation dedup scoping**: Duplicate-detection now keys on
   (organization, email, residence) using `IS NOT DISTINCT FROM` semantics for
   `residence_id`. The previous (organization, email)-only predicate silently
@@ -73,28 +97,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   invitation row is hard-deleted; the denormalized context lives in the
   `details` JSON column.
 
-### Added
+### Confirmed
 
-- **Invitation status `replaced`**: New value in the `invitation_status` enum used
-  by the soft-replace flow above.
+- **Tenant-role downgrade caller identity is the OAuth user**: When an
+  OAuth-bound MCP caller downgrades to a lower-privileged role (e.g.
+  admin → tenant), the caller identity used for result scoping and audit
+  attribution resolves to the **OAuth-authenticated user** (e.g.
+  `bd318cc4-…` from the QA session) — **not** the MCP service account
+  (`222f5a0d-…`). The downgrade narrows scope/visibility only; it does not
+  impersonate the service principal. Tools whose result scoping is affected
+  include `list_demands`, `list_maintenance_requests`, `create_demand`, and
+  `create_maintenance_request` (the created/listed rows are attributed to,
+  and filtered by, the OAuth user).
+  Migration note: any client that hard-coded the MCP service-account UUID
+  to filter responses will no longer match — filter on the OAuth user id
+  instead.
+- **Bill numbering format is `MCP-<ms-timestamp>`**: Bills created via the
+  MCP `create_bill` tool currently receive a `billNumber` of the form
+  `MCP-<ms-timestamp>` (e.g. `MCP-1729712345678`), where the suffix is a
+  millisecond Unix timestamp generated server-side at create time. This
+  format is **subject to change before GA** and should not be relied on for
+  parsing or sort-ordering by integrators.
 
-### Changed
-
-- **MCP role downgrade attribution (clarification)**: When an OAuth-bound MCP
-  caller downgrades to a lower-privileged role (e.g. admin → tenant), the
-  caller identity used for audit attribution (`performed_by`, `invitedByUserId`,
-  etc.) remains the OAuth user — *not* the MCP service principal. The downgrade
-  narrows scope/visibility only; it does not impersonate. This is intentional so
-  that audit logs always point at the human responsible for an action.
+### Other Changes
 
 - **Documentation Updates**: Comprehensive review and update of all project documentation (September 2025)
 - **Translation Coverage**: Extended bilingual validation across 19+ routes with Quebec French compliance
 - **Test Infrastructure**: Stable Jest configuration with ES module support and comprehensive mock architecture
 - **Quality System**: Enhanced quality metrics tracking with A+ code quality grade
 - **Developer Experience**: Improved documentation structure and development guidelines
-
-### Changed
-
 - **Test Coverage**: Increased to 90%+ across critical application paths
 - **Documentation Structure**: Consolidated and updated all guides for current project state
 - **Quality Metrics**: Enhanced tracking with detailed success metrics per component category
