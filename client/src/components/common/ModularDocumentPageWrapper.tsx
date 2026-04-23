@@ -19,6 +19,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Collapsible,
   CollapsibleContent,
@@ -386,6 +387,7 @@ export default function ModularDocumentPageWrapper({
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedYear, setSelectedYear] = useState('all');
   const [selectedMonth, setSelectedMonth] = useState('all');
+  const [showOnlyManagerOnly, setShowOnlyManagerOnly] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   
   // State for bulk delete functionality
@@ -447,10 +449,14 @@ export default function ModularDocumentPageWrapper({
 
   // Fetch documents for this entity
   const { data: documentResponse, isLoading, error: documentsError } = useQuery({
-    queryKey: ['/api/documents', type, entityId],
+    queryKey: ['/api/documents', type, entityId, { isManagerOnly: showOnlyManagerOnly }],
     queryFn: async () => {
       const param = type === 'building' ? 'buildingId' : 'residenceId';
-      const response = await apiRequest('GET', `/api/documents?${param}=${entityId}`);
+      const queryParams = new URLSearchParams({ [param]: entityId as string });
+      if (showOnlyManagerOnly) {
+        queryParams.set('isManagerOnly', 'true');
+      }
+      const response = await apiRequest('GET', `/api/documents?${queryParams.toString()}`);
       return response.json();
     },
     enabled: !!entityId,
@@ -520,7 +526,9 @@ export default function ModularDocumentPageWrapper({
       matchesMonth = (docDate.getMonth() + 1).toString() === selectedMonth;
     }
 
-    return matchesSearch && matchesCategory && matchesYear && matchesMonth;
+    const matchesManagerOnly = !showOnlyManagerOnly || doc.isManagerOnly === true;
+
+    return matchesSearch && matchesCategory && matchesYear && matchesMonth && matchesManagerOnly;
   }) : [];
 
   // Extract available years from documents (sorted descending)
@@ -650,6 +658,7 @@ export default function ModularDocumentPageWrapper({
     setSelectedCategory('all');
     setSelectedYear('all');
     setSelectedMonth('all');
+    setShowOnlyManagerOnly(false);
   };
 
   // Bulk delete handlers
@@ -991,6 +1000,23 @@ export default function ModularDocumentPageWrapper({
                   </div>
                 </div>
               </div>
+
+              {isManager && (
+                <div className="mt-4 flex items-center gap-2">
+                  <Checkbox
+                    id="filter-manager-only"
+                    checked={showOnlyManagerOnly}
+                    onCheckedChange={(checked) => setShowOnlyManagerOnly(checked === true)}
+                    data-testid="checkbox-filter-manager-only"
+                  />
+                  <Label
+                    htmlFor="filter-manager-only"
+                    className="text-sm font-medium cursor-pointer"
+                  >
+                    {t('showManagerOnlyDocuments')}
+                  </Label>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -1000,7 +1026,7 @@ export default function ModularDocumentPageWrapper({
               <span className="text-sm text-muted-foreground">
                 {filteredDocuments.length} {filteredDocuments.length !== 1 ? t('documentsFound') : t('documentFound')}
               </span>
-              {(searchTerm || selectedCategory !== 'all' || selectedYear !== 'all' || selectedMonth !== 'all') && (
+              {(searchTerm || selectedCategory !== 'all' || selectedYear !== 'all' || selectedMonth !== 'all' || showOnlyManagerOnly) && (
                 <Badge variant="secondary">{t('filtered')}</Badge>
               )}
             </div>
@@ -1023,13 +1049,13 @@ export default function ModularDocumentPageWrapper({
                   </div>
                   <h3 className="text-lg font-semibold text-gray-600 mb-2">{t('noDocumentsFound')}</h3>
                   <p className="text-gray-500 mb-4">
-                    {searchTerm || selectedCategory !== 'all' || selectedYear !== 'all' || selectedMonth !== 'all'
+                    {searchTerm || selectedCategory !== 'all' || selectedYear !== 'all' || selectedMonth !== 'all' || showOnlyManagerOnly
                       ? t('noDocumentsMatchFilters')
                       : t('noDocumentsUploadedYet')
                     }
                   </p>
                   <div className="flex gap-2 justify-center">
-                    {(searchTerm || selectedCategory !== 'all' || selectedYear !== 'all' || selectedMonth !== 'all') && (
+                    {(searchTerm || selectedCategory !== 'all' || selectedYear !== 'all' || selectedMonth !== 'all' || showOnlyManagerOnly) && (
                       <Button variant="outline" onClick={clearFilters}>
                         {t('clearFilters')}
                       </Button>

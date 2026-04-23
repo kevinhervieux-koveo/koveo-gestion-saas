@@ -1323,6 +1323,7 @@ export function registerDocumentRoutes(app: Express): void {
       const specificBuildingId = req.query.buildingId as string; // Filter by specific building
       const attachedToType = req.query.attachedToType as string; // Filter by attached entity type
       const attachedToId = req.query.attachedToId as string; // Filter by attached entity ID
+      const managerOnlyFilter = req.query.isManagerOnly === 'true'; // Filter to only manager-only documents
       
       // Infer view type from which ID parameter is provided:
       // - If buildingId is provided (and no residenceId), it's a building documents view
@@ -1474,7 +1475,10 @@ export function registerDocumentRoutes(app: Express): void {
         if (attachedToId) {
           additionalFilters.attachedToId = attachedToId;
         }
-        
+        if (managerOnlyFilter) {
+          additionalFilters.isManagerOnly = true;
+        }
+
         documents = await getDocumentsForUser(userId, userRole, additionalFilters);
         const documentsTime = performance.now() - documentsStart;
         logDocumentOperation('OPTIMIZED_DOCUMENTS_SUCCESS', {

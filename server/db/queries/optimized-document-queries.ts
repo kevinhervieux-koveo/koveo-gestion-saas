@@ -47,6 +47,7 @@ export interface DocumentFilters {
   attachedToType?: string;
   attachedToId?: string;
   onlyBuildingLevel?: boolean; // If true, exclude residence documents (residenceId must be NULL)
+  isManagerOnly?: boolean; // If true, only return documents flagged as manager-only
   limit?: number;
   offset?: number;
 }
@@ -101,6 +102,11 @@ export async function getDocumentsWithRelations(
   // Filter to only building-level documents (exclude residence documents)
   if (filters.onlyBuildingLevel) {
     conditions.push(isNull(documents.residenceId));
+  }
+
+  // Filter to only manager-only documents
+  if (filters.isManagerOnly) {
+    conditions.push(eq(documents.isManagerOnly, true));
   }
 
   // Build query with all joins
