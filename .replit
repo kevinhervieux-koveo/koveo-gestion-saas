@@ -16,24 +16,8 @@ from = "/*"
 to = "/index.html"
 
 [[ports]]
-localPort = 80
-externalPort = 3000
-
-[[ports]]
-localPort = 4999
-externalPort = 6800
-
-[[ports]]
 localPort = 5000
 externalPort = 80
-
-[[ports]]
-localPort = 5001
-externalPort = 8081
-
-[[ports]]
-localPort = 8080
-externalPort = 8008
 
 [env]
 PORT = "5000"
