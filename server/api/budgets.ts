@@ -14,6 +14,7 @@ import {
 } from '../utils/inflation';
 import { ScenarioEngine, ScenarioInput } from '../utils/scenarios.js';
 import { forecastInputSchema } from './forecast-input-schema';
+import { applyProjectYearOverrides } from './apply-project-year-overrides';
 
 const router = express.Router();
 
@@ -1212,29 +1213,7 @@ router.post('/:buildingId/forecast', requireAuth, async (req, res) => {
     // the override and shift the year of plannedStartDate by the same delta
     // so the cost lands in the equivalent month of the new financial year.
     if (projectYearOverrides && Object.keys(projectYearOverrides).length > 0) {
-      includedProjects = includedProjects.map(project => {
-        const override = projectYearOverrides[project.id];
-        if (override === undefined) return project;
-        const baseYear = project.financialYear ?? null;
-        let nextPlannedStartDate: typeof project.plannedStartDate = project.plannedStartDate;
-        if (project.plannedStartDate) {
-          const original = new Date(project.plannedStartDate);
-          if (!isNaN(original.getTime())) {
-            const delta = baseYear !== null ? override - baseYear : 0;
-            const shifted = new Date(
-              original.getFullYear() + delta,
-              original.getMonth(),
-              original.getDate()
-            );
-            nextPlannedStartDate = shifted.toISOString().split('T')[0] as typeof project.plannedStartDate;
-          }
-        }
-        return {
-          ...project,
-          financialYear: override,
-          plannedStartDate: nextPlannedStartDate,
-        };
-      });
+      includedProjects = applyProjectYearOverrides(includedProjects, projectYearOverrides);
 
       debugLog('Applied projectYearOverrides', {
         buildingId,
