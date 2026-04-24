@@ -26,6 +26,14 @@ jest.mock('../../../server/services/ai-suggestion-cache', () => ({
   clearAiSuggestionCache: jest.fn(),
 }));
 
+// Force mammoth's text extractor to throw so we can exercise the
+// 'extraction_failed' branch of loadFileForClaude without authoring a
+// genuinely corrupt .docx fixture. Only the docx-extraction tests below
+// rely on this; nothing else in this file extracts .docx.
+jest.mock('mammoth', () => ({
+  extractRawText: jest.fn().mockRejectedValue(new Error('forced mammoth failure')),
+}));
+
 import { bulkImportAnalyzer } from '../../../server/services/bulk-import-analyzer';
 import { bandForConfidence } from '../../../shared/schemas/bulk-import';
 
@@ -484,6 +492,186 @@ describe('bulkImportAnalyzer fallbackReason propagation (Task #493)', () => {
       fs.writeFileSync(pdfPath, Buffer.from('%PDF-1.4 normal pdf body'));
       const r = await bulkImportAnalyzer.identify({
         originalName: 'ok.pdf',
+        mimeType: 'application/pdf',
+        stagedPath: pdfPath,
+      });
+      expect(r.fallbackReason).toBeNull();
+    });
+  });
+
+  const mergeOrSplitPayload = {
+    decision: 'keep',
+    reason: 'fine',
+    confidence: 0.6,
+  };
+  const branchPayload = {
+    branch: 'building_documents',
+    reason: 'cover page',
+    confidence: 0.7,
+  };
+  const linksPayload = {
+    relatedItemIds: [],
+    reason: 'no related',
+    confidence: 0.6,
+  };
+
+  describe('suggestMergeOrSplit()', () => {
+    it("emits fallbackReason 'oversize' for a >25MB buffer", async () => {
+      makeFakeClient(mergeOrSplitPayload);
+      const r = await bulkImportAnalyzer.suggestMergeOrSplit({
+        originalName: 'huge.pdf',
+        siblingNames: [],
+        mimeType: 'application/pdf',
+        buffer: Buffer.alloc(OVERSIZE_BYTES, 0),
+      });
+      expect(r.fallbackReason).toBe('oversize');
+    });
+
+    it("emits fallbackReason 'unsupported_mime' for application/zip", async () => {
+      makeFakeClient(mergeOrSplitPayload);
+      const zipPath = path.join(tmpDir, 'merge.zip');
+      fs.writeFileSync(zipPath, Buffer.from('PK\u0003\u0004 fake'));
+      const r = await bulkImportAnalyzer.suggestMergeOrSplit({
+        originalName: 'archive.zip',
+        siblingNames: [],
+        mimeType: 'application/zip',
+        stagedPath: zipPath,
+      });
+      expect(r.fallbackReason).toBe('unsupported_mime');
+    });
+
+    it("emits fallbackReason 'missing_file' for a non-existent staged path", async () => {
+      makeFakeClient(mergeOrSplitPayload);
+      const r = await bulkImportAnalyzer.suggestMergeOrSplit({
+        originalName: 'gone.pdf',
+        siblingNames: [],
+        mimeType: 'application/pdf',
+        stagedPath: path.join(tmpDir, 'does-not-exist-merge.pdf'),
+      });
+      expect(r.fallbackReason).toBe('missing_file');
+    });
+
+    it('emits fallbackReason null for a normal PDF', async () => {
+      makeFakeClient(mergeOrSplitPayload);
+      const pdfPath = path.join(tmpDir, 'ok-merge.pdf');
+      fs.writeFileSync(pdfPath, Buffer.from('%PDF-1.4 normal pdf body'));
+      const r = await bulkImportAnalyzer.suggestMergeOrSplit({
+        originalName: 'ok.pdf',
+        siblingNames: [],
+        mimeType: 'application/pdf',
+        stagedPath: pdfPath,
+      });
+      expect(r.fallbackReason).toBeNull();
+    });
+  });
+
+  describe('suggestBranch()', () => {
+    it("emits fallbackReason 'oversize' for a >25MB buffer", async () => {
+      makeFakeClient(branchPayload);
+      const r = await bulkImportAnalyzer.suggestBranch({
+        originalName: 'huge.pdf',
+        mimeType: 'application/pdf',
+        buffer: Buffer.alloc(OVERSIZE_BYTES, 0),
+      });
+      expect(r.fallbackReason).toBe('oversize');
+    });
+
+    it("emits fallbackReason 'unsupported_mime' for application/zip", async () => {
+      makeFakeClient(branchPayload);
+      const zipPath = path.join(tmpDir, 'branch.zip');
+      fs.writeFileSync(zipPath, Buffer.from('PK\u0003\u0004 fake'));
+      const r = await bulkImportAnalyzer.suggestBranch({
+        originalName: 'archive.zip',
+        mimeType: 'application/zip',
+        stagedPath: zipPath,
+      });
+      expect(r.fallbackReason).toBe('unsupported_mime');
+    });
+
+    it("emits fallbackReason 'missing_file' for a non-existent staged path", async () => {
+      makeFakeClient(branchPayload);
+      const r = await bulkImportAnalyzer.suggestBranch({
+        originalName: 'gone.pdf',
+        mimeType: 'application/pdf',
+        stagedPath: path.join(tmpDir, 'does-not-exist-branch.pdf'),
+      });
+      expect(r.fallbackReason).toBe('missing_file');
+    });
+
+    it('emits fallbackReason null for a normal PDF', async () => {
+      makeFakeClient(branchPayload);
+      const pdfPath = path.join(tmpDir, 'ok-branch.pdf');
+      fs.writeFileSync(pdfPath, Buffer.from('%PDF-1.4 normal pdf body'));
+      const r = await bulkImportAnalyzer.suggestBranch({
+        originalName: 'ok.pdf',
+        mimeType: 'application/pdf',
+        stagedPath: pdfPath,
+      });
+      expect(r.fallbackReason).toBeNull();
+    });
+
+    it("emits fallbackReason 'extraction_failed' when the .docx extractor throws", async () => {
+      // The top-level jest.mock of 'mammoth' forces extractRawText to
+      // reject, so any docx mime routed through loadFileForClaude must
+      // surface fallbackReason='extraction_failed'. This is the one
+      // entry-point covering the extractor-failure branch as required
+      // by the task acceptance criteria.
+      makeFakeClient(branchPayload);
+      const docxPath = path.join(tmpDir, 'broken.docx');
+      fs.writeFileSync(docxPath, Buffer.from('PK\u0003\u0004 not really a docx'));
+      const r = await bulkImportAnalyzer.suggestBranch({
+        originalName: 'broken.docx',
+        mimeType:
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        stagedPath: docxPath,
+      });
+      expect(r.fallbackReason).toBe('extraction_failed');
+    });
+  });
+
+  describe('suggestLinks()', () => {
+    it("emits fallbackReason 'oversize' for a >25MB buffer", async () => {
+      makeFakeClient(linksPayload);
+      const r = await bulkImportAnalyzer.suggestLinks({
+        originalName: 'huge.pdf',
+        candidates: [{ id: '1', name: 'a.pdf' }],
+        mimeType: 'application/pdf',
+        buffer: Buffer.alloc(OVERSIZE_BYTES, 0),
+      });
+      expect(r.fallbackReason).toBe('oversize');
+    });
+
+    it("emits fallbackReason 'unsupported_mime' for application/zip", async () => {
+      makeFakeClient(linksPayload);
+      const zipPath = path.join(tmpDir, 'links.zip');
+      fs.writeFileSync(zipPath, Buffer.from('PK\u0003\u0004 fake'));
+      const r = await bulkImportAnalyzer.suggestLinks({
+        originalName: 'archive.zip',
+        candidates: [{ id: '1', name: 'a.pdf' }],
+        mimeType: 'application/zip',
+        stagedPath: zipPath,
+      });
+      expect(r.fallbackReason).toBe('unsupported_mime');
+    });
+
+    it("emits fallbackReason 'missing_file' for a non-existent staged path", async () => {
+      makeFakeClient(linksPayload);
+      const r = await bulkImportAnalyzer.suggestLinks({
+        originalName: 'gone.pdf',
+        candidates: [{ id: '1', name: 'a.pdf' }],
+        mimeType: 'application/pdf',
+        stagedPath: path.join(tmpDir, 'does-not-exist-links.pdf'),
+      });
+      expect(r.fallbackReason).toBe('missing_file');
+    });
+
+    it('emits fallbackReason null for a normal PDF', async () => {
+      makeFakeClient(linksPayload);
+      const pdfPath = path.join(tmpDir, 'ok-links.pdf');
+      fs.writeFileSync(pdfPath, Buffer.from('%PDF-1.4 normal pdf body'));
+      const r = await bulkImportAnalyzer.suggestLinks({
+        originalName: 'ok.pdf',
+        candidates: [{ id: '1', name: 'a.pdf' }],
         mimeType: 'application/pdf',
         stagedPath: pdfPath,
       });
