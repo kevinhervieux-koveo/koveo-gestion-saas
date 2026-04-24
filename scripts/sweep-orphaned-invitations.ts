@@ -44,13 +44,37 @@ interface OrphanRow {
   residence_dangling: boolean;
 }
 
+/**
+ * Result returned by `sweepOrphanedInvitations`. Lets callers (e.g. the
+ * integration test in tests/integration/sweep-orphaned-invitations.test.ts)
+ * assert exactly what the sweep observed and wrote without scraping
+ * console output.
+ */
+export interface SweepResult {
+  exitCode: number;
+  detected: number;
+  cancelled: number;
+  buildingDangling: number;
+  residenceDangling: number;
+  bothDangling: number;
+}
+
 function describeError(err: unknown): string {
   if (err instanceof Error) return err.message;
   return String(err);
 }
 
-async function main(): Promise<number> {
-  const dryRun = process.argv.includes('--dry-run');
+/**
+ * Runs the orphan-invitation sweep against the active drizzle `db`
+ * connection. Exported so integration tests can drive the sweep
+ * directly against a real Postgres instance — see Task #496.
+ *
+ * Pass `dryRun: true` to report counts without writing anything.
+ */
+export async function sweepOrphanedInvitations(
+  opts: { dryRun?: boolean } = {}
+): Promise<SweepResult> {
+  const dryRun = opts.dryRun ?? false;
 
   // Identify orphans first so we can report counts BEFORE writing. The
   // detection predicate is intentionally identical to the one used in the
@@ -82,7 +106,14 @@ async function main(): Promise<number> {
     orphans = result.rows as unknown as OrphanRow[];
   } catch (err) {
     console.error(`[sweep-invitations] Failed to query invitations: ${describeError(err)}`);
-    return 1;
+    return {
+      exitCode: 1,
+      detected: 0,
+      cancelled: 0,
+      buildingDangling: 0,
+      residenceDangling: 0,
+      bothDangling: 0,
+    };
   }
 
   const total = orphans.length;
@@ -99,7 +130,14 @@ async function main(): Promise<number> {
 
   if (total === 0) {
     console.log('[sweep-invitations] Nothing to do.');
-    return 0;
+    return {
+      exitCode: 0,
+      detected: 0,
+      cancelled: 0,
+      buildingDangling,
+      residenceDangling,
+      bothDangling,
+    };
   }
 
   if (dryRun) {
@@ -112,7 +150,14 @@ async function main(): Promise<number> {
           `${o.residence_dangling ? '(MISSING)' : ''}`
       );
     }
-    return 0;
+    return {
+      exitCode: 0,
+      detected: total,
+      cancelled: 0,
+      buildingDangling,
+      residenceDangling,
+      bothDangling,
+    };
   }
 
   let cancelled = 0;
@@ -173,7 +218,14 @@ async function main(): Promise<number> {
     });
   } catch (err) {
     console.error(`[sweep-invitations] Sweep failed (rolled back): ${describeError(err)}`);
-    return 1;
+    return {
+      exitCode: 1,
+      detected: total,
+      cancelled: 0,
+      buildingDangling,
+      residenceDangling,
+      bothDangling,
+    };
   }
 
   console.log(`[sweep-invitations] Done. Cancelled ${cancelled} invitation(s).`);
@@ -184,13 +236,39 @@ async function main(): Promise<number> {
         `re-run the script to verify the database is clean.`
     );
   }
-  return 0;
+  return {
+    exitCode: 0,
+    detected: total,
+    cancelled,
+    buildingDangling,
+    residenceDangling,
+    bothDangling,
+  };
 }
 
-main().then(
-  (code) => process.exit(code),
-  (err) => {
-    console.error(`[sweep-invitations] Unexpected error: ${describeError(err)}`);
-    process.exit(1);
-  }
-);
+async function main(): Promise<number> {
+  const dryRun = process.argv.includes('--dry-run');
+  const result = await sweepOrphanedInvitations({ dryRun });
+  return result.exitCode;
+}
+
+// Only auto-run when invoked as a script (e.g. `tsx scripts/sweep-orphaned-invitations.ts`).
+// The basename check works in both ESM (tsx — where `require.main` is unavailable)
+// and CJS (Jest's transform — where `process.argv[1]` is the jest binary, not this
+// module) without needing `import.meta`. When the test imports
+// `sweepOrphanedInvitations` directly, the IIFE below is skipped and the test
+// drives the function on its own terms.
+const isMainScript =
+  typeof process !== 'undefined' &&
+  typeof process.argv[1] === 'string' &&
+  /[/\\]sweep-orphaned-invitations\.(ts|js|mjs|cjs)$/.test(process.argv[1]);
+
+if (isMainScript) {
+  main().then(
+    (code) => process.exit(code),
+    (err) => {
+      console.error(`[sweep-invitations] Unexpected error: ${describeError(err)}`);
+      process.exit(1);
+    }
+  );
+}
