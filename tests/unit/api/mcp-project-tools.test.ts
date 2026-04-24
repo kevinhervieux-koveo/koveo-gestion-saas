@@ -71,10 +71,12 @@ jest.mock('../../../server/db', () => ({ db: mockDb }));
 // hit besides `db`. Stub it so the test can assert delegation explicitly.
 const mockGetProjectWorkflowState = jest.fn();
 const mockGetAllowedReopenTargets = jest.fn();
+const mockReopenToPhase = jest.fn();
 jest.mock('../../../server/services/workflow-service', () => ({
   workflowService: {
     getProjectWorkflowState: (...args: unknown[]) => mockGetProjectWorkflowState(...args),
     getAllowedReopenTargets: (...args: unknown[]) => mockGetAllowedReopenTargets(...args),
+    reopenToPhase: (...args: unknown[]) => mockReopenToPhase(...args),
   },
 }));
 
@@ -176,6 +178,7 @@ describe('MCP project tools — Task #315 mocked unit tests', () => {
     mockDb.update.mockReset().mockReturnValue(mockUpdateChain);
     mockGetProjectWorkflowState.mockReset();
     mockGetAllowedReopenTargets.mockReset();
+    mockReopenToPhase.mockReset();
   });
 
   // ===========================================================================
@@ -203,6 +206,13 @@ describe('MCP project tools — Task #315 mocked unit tests', () => {
   it('registers list_allowed_reopen_targets (Task #528 read-tool coverage)', () => {
     const tools = (server as unknown as { _registeredTools: Record<string, unknown> })._registeredTools;
     expect(tools.list_allowed_reopen_targets).toBeDefined();
+  });
+
+  // Task #561 — `reopen_project_status` is the write counterpart to
+  // `list_allowed_reopen_targets` and shares the same scope helper.
+  it('registers reopen_project_status (Task #561 write-tool coverage)', () => {
+    const tools = (server as unknown as { _registeredTools: Record<string, unknown> })._registeredTools;
+    expect(tools.reopen_project_status).toBeDefined();
   });
 
   // ===========================================================================
@@ -239,6 +249,11 @@ describe('MCP project tools — Task #315 mocked unit tests', () => {
         tool: 'assign_project_vendor',
         args: { role: 'tenant', projectId: 'p-1', vendorName: 'V', projectType: 'repair' },
         deny: /tenants cannot assign vendors to projects/i,
+      },
+      {
+        tool: 'reopen_project_status',
+        args: { role: 'tenant', projectId: 'p-1', targetStatus: 'planned' },
+        deny: /tenants cannot reopen project status/i,
       },
     ];
 
@@ -369,6 +384,10 @@ describe('MCP project tools — Task #315 mocked unit tests', () => {
       {
         tool: 'assign_project_vendor',
         args: { role: 'admin', projectId: 'p-1', vendorName: 'V', projectType: 'repair' },
+      },
+      {
+        tool: 'reopen_project_status',
+        args: { role: 'admin', projectId: 'p-1', targetStatus: 'planned' },
       },
     ];
     it.each(scopeCases)(
@@ -790,6 +809,217 @@ describe('MCP project tools — Task #315 mocked unit tests', () => {
       const parsed = JSON.parse(textOf(result));
       expect(parsed.code).toBe('FK_VIOLATION');
       expect(parsed.message).toMatch(/Cannot update project/i);
+      errSpy.mockRestore();
+    });
+  });
+
+  // ===========================================================================
+  // Task #561 — `reopen_project_status` mocked coverage.
+  //
+  // The write counterpart to `list_allowed_reopen_targets`. Shares
+  // `loadMcpScopedProject` with the existing project tools and
+  // delegates the actual mutation to `workflowService.reopenToPhase`,
+  // which validates the targetStatus against `getAllowedReopenTargets`
+  // and then resets downstream phase artifacts / date columns. The
+  // tests below assert:
+  //
+  //   1. Tenant role is denied before any DB call (covered above in
+  //      the parametrised `writeCases` table — repeated here as a
+  //      narrowly-scoped guard so `mockReopenToPhase` is verified
+  //      untouched).
+  //   2. The MCP-org scope guard rejects an out-of-scope project
+  //      (also exercised in `scopeCases`, repeated here to assert
+  //      `reopenToPhase` is never called when scope rejects).
+  //   3. A missing project surfaces the shared "Project not found"
+  //      message before delegation.
+  //   4. The happy path delegates to `workflowService.reopenToPhase`
+  //      with `(projectId, targetStatus, reason)` and returns
+  //      `{ previousStatus, newStatus, workflowState }` where
+  //      `previousStatus` is the project's current status (captured
+  //      *before* the mutation).
+  //   5. The `reason` argument is forwarded verbatim and is optional
+  //      (omitting it must call `reopenToPhase` with `undefined`).
+  //   6. Manager role is allowed (parity with admin).
+  //   7. Errors thrown by `reopenToPhase` (e.g. the "Cannot reopen to
+  //      X. Allowed targets: ..." validation thrown when the AI
+  //      assistant requests a non-allowed targetStatus, or a raw
+  //      driver FK violation) are funneled through
+  //      `buildWriteErrorResponse` rather than leaking the raw
+  //      driver error.
+  // ===========================================================================
+  describe('reopen_project_status — Task #561 write-tool coverage', () => {
+    it('denies tenant role before any DB call (and never calls reopenToPhase)', async () => {
+      const handler = getToolHandler(server, 'reopen_project_status');
+      const result = await handler(
+        { role: 'tenant', projectId: 'p-1', targetStatus: 'planned' },
+        {},
+      );
+      expect(textOf(result)).toMatch(/tenants cannot reopen project status/i);
+      expect(mockDb.select).not.toHaveBeenCalled();
+      expect(mockDb.update).not.toHaveBeenCalled();
+      expect(mockReopenToPhase).not.toHaveBeenCalled();
+    });
+
+    it('refuses a project whose building is outside the MCP scope', async () => {
+      queueScopedProjectLookup({
+        project: { id: 'p-1', buildingId: 'b-x', status: 'in_progress' },
+        building: { id: 'b-x', organizationId: 'other-org' },
+      });
+      const handler = getToolHandler(server, 'reopen_project_status');
+      const result = await handler(
+        { role: 'admin', projectId: 'p-1', targetStatus: 'planned' },
+        {},
+      );
+      expect(textOf(result)).toMatch(/project is not attached to an MCP-scoped building/);
+      expect(mockReopenToPhase).not.toHaveBeenCalled();
+    });
+
+    it('refuses a missing project with the shared "Project not found" message', async () => {
+      mockSelectChain.where
+        .mockImplementationOnce(() => createWhereResult([{ id: 'mcp-org-1' }]))
+        .mockImplementationOnce(() => createWhereResult([])); // project lookup → empty
+      const handler = getToolHandler(server, 'reopen_project_status');
+      const result = await handler(
+        { role: 'admin', projectId: 'missing', targetStatus: 'planned' },
+        {},
+      );
+      expect(textOf(result)).toMatch(/Project not found: missing/);
+      expect(mockReopenToPhase).not.toHaveBeenCalled();
+    });
+
+    it('delegates to workflowService.reopenToPhase with (projectId, targetStatus, reason)', async () => {
+      queueScopedProjectLookup({
+        project: { id: 'p-1', buildingId: 'b-1', status: 'in_progress' },
+        building: { id: 'b-1', organizationId: 'mcp-org-1' },
+      });
+      const fakeWorkflowState = {
+        currentStatus: 'planned',
+        completedStatuses: [],
+        canProgress: true,
+        nextStatus: 'submission',
+      };
+      mockReopenToPhase.mockResolvedValueOnce(fakeWorkflowState);
+
+      const handler = getToolHandler(server, 'reopen_project_status');
+      const result = await handler(
+        {
+          role: 'admin',
+          projectId: 'p-1',
+          targetStatus: 'planned',
+          reason: 'AI assistant rollback',
+        },
+        {},
+      );
+
+      expect(mockReopenToPhase).toHaveBeenCalledTimes(1);
+      expect(mockReopenToPhase).toHaveBeenCalledWith('p-1', 'planned', 'AI assistant rollback');
+      const parsed = JSON.parse(textOf(result));
+      // previousStatus must reflect the project's status *before* the
+      // mutation (captured from loadMcpScopedProject), not whatever
+      // the workflowService eventually returns.
+      expect(parsed.previousStatus).toBe('in_progress');
+      expect(parsed.newStatus).toBe('planned');
+      expect(parsed.workflowState).toEqual(fakeWorkflowState);
+    });
+
+    it('forwards an undefined reason when the optional argument is omitted', async () => {
+      queueScopedProjectLookup({
+        project: { id: 'p-1', buildingId: 'b-1', status: 'completed' },
+        building: { id: 'b-1', organizationId: 'mcp-org-1' },
+      });
+      mockReopenToPhase.mockResolvedValueOnce({
+        currentStatus: 'post_work',
+        completedStatuses: ['planned', 'submission', 'pre_work', 'in_progress'],
+        canProgress: true,
+        nextStatus: 'completed',
+      });
+      const handler = getToolHandler(server, 'reopen_project_status');
+      await handler(
+        { role: 'admin', projectId: 'p-1', targetStatus: 'post_work' },
+        {},
+      );
+      expect(mockReopenToPhase).toHaveBeenCalledWith('p-1', 'post_work', undefined);
+    });
+
+    it('manager role is allowed (parity with admin) and reaches the workflow service', async () => {
+      queueScopedProjectLookup({
+        project: { id: 'p-1', buildingId: 'b-1', status: 'in_progress' },
+        building: { id: 'b-1', organizationId: 'mcp-org-1' },
+      });
+      mockReopenToPhase.mockResolvedValueOnce({
+        currentStatus: 'pre_work',
+        completedStatuses: ['planned', 'submission'],
+        canProgress: true,
+        nextStatus: 'in_progress',
+      });
+      const handler = getToolHandler(server, 'reopen_project_status');
+      const result = await handler(
+        { role: 'manager', projectId: 'p-1', targetStatus: 'pre_work' },
+        {},
+      );
+      expect(textOf(result)).not.toMatch(/Access denied/);
+      expect(mockReopenToPhase).toHaveBeenCalledTimes(1);
+      const parsed = JSON.parse(textOf(result));
+      expect(parsed.previousStatus).toBe('in_progress');
+      expect(parsed.newStatus).toBe('pre_work');
+    });
+
+    it('returns a sanitized error response when reopenToPhase throws a driver error', async () => {
+      queueScopedProjectLookup({
+        project: { id: 'p-1', buildingId: 'b-1', status: 'in_progress' },
+        building: { id: 'b-1', organizationId: 'mcp-org-1' },
+      });
+      const errSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      mockReopenToPhase.mockRejectedValueOnce(PG_FK_VIOLATION);
+      const handler = getToolHandler(server, 'reopen_project_status');
+      const result = await handler(
+        { role: 'admin', projectId: 'p-1', targetStatus: 'planned' },
+        {},
+      );
+      const parsed = JSON.parse(textOf(result));
+      expect(parsed.code).toBe('FK_VIOLATION');
+      expect(parsed.message).toMatch(/Cannot update project/i);
+      // The raw driver error must NOT leak through.
+      expect(textOf(result)).not.toMatch(/violates foreign key constraint/);
+      errSpy.mockRestore();
+    });
+
+    it('surfaces the workflowService validation error when targetStatus is not allowed', async () => {
+      // workflowService.reopenToPhase throws "Cannot reopen to X.
+      // Allowed targets: ..." when the AI assistant tries to revert
+      // a project to a status that wasn't in the allowed list. The
+      // MCP handler must surface a sanitized response (no raw error
+      // leaking through) — this is the regression the task brief
+      // explicitly calls out: "could silently allow an AI assistant
+      // to revert a project ... to a non-allowed previous status."
+      queueScopedProjectLookup({
+        project: { id: 'p-1', buildingId: 'b-1', status: 'planned' },
+        building: { id: 'b-1', organizationId: 'mcp-org-1' },
+      });
+      const errSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      mockReopenToPhase.mockRejectedValueOnce(
+        new Error('Cannot reopen to in_progress. Allowed targets: '),
+      );
+      const handler = getToolHandler(server, 'reopen_project_status');
+      const result = await handler(
+        { role: 'admin', projectId: 'p-1', targetStatus: 'in_progress' },
+        {},
+      );
+      const text = textOf(result);
+      // No SQLSTATE → buildWriteErrorResponse falls back to the
+      // generic "Failed to update project — please retry" sentence.
+      // The important regression guard is: the raw "Cannot reopen
+      // to ... Allowed targets: ..." sentence must NOT leak (the AI
+      // assistant should never be coached on which non-allowed
+      // targets it tried), and the response must be the sanitized
+      // fallback message.
+      expect(text).toMatch(/Failed to update project/i);
+      expect(text).not.toMatch(/Cannot reopen to/);
+      expect(text).not.toMatch(/Allowed targets:/);
+      // No DB write should have happened from the MCP handler itself
+      // — the throw bubbled out of workflowService before any
+      // caller-managed transaction could have been started.
+      expect(mockDb.update).not.toHaveBeenCalled();
       errSpy.mockRestore();
     });
   });

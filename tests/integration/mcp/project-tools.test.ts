@@ -378,6 +378,12 @@ describeIfDb('MCP project tools — Task #315 integration', () => {
       // loadMcpScopedProject guard, so a regression in that helper
       // would surface here alongside the other project tools.
       'list_allowed_reopen_targets',
+      // Task #561 — reopen_project_status is the write counterpart
+      // to list_allowed_reopen_targets and shares the same guard.
+      // A regression that allowed an out-of-scope reopen would let
+      // an AI assistant flip the workflow status of a project in a
+      // tenant whose org is not MCP-allowlisted.
+      'reopen_project_status',
     ]) {
       const handler = getToolHandler(adminSrv, tool);
       const args: Record<string, unknown> = { role: 'admin', projectId: outsideProjectId };
@@ -393,9 +399,24 @@ describeIfDb('MCP project tools — Task #315 integration', () => {
       if (tool === 'update_project') {
         args.title = `${TEST_TAG} oos`;
       }
+      if (tool === 'reopen_project_status') {
+        args.targetStatus = 'planned';
+      }
       const res = await handler(args);
       expect(textOf(res)).toMatch(/not found or access denied|not attached to an MCP/i);
     }
+
+    // Belt-and-braces guard for Task #561: even after the access
+    // denied response, the out-of-scope project's status must be
+    // unchanged in the database. This is the regression the task
+    // brief explicitly worries about ("could silently allow an AI
+    // assistant to revert a project that's outside its allowed
+    // scope") — assert it directly against the row.
+    const [outsideAfterScopeReject] = await db
+      .select({ status: schema.maintenanceProjects.status })
+      .from(schema.maintenanceProjects)
+      .where(eq(schema.maintenanceProjects.id, outsideProjectId));
+    expect(outsideAfterScopeReject.status).toBe('planned');
 
     // list_projects refuses by buildingId rather than projectId.
     const list = getToolHandler(adminSrv, 'list_projects');
@@ -838,6 +859,7 @@ describeIfDb('MCP project tools — Task #315 integration', () => {
   });
 
   // -----------------------------------------------------------------
+  // -----------------------------------------------------------------
   // Task #557 — skip-flag end-to-end coverage.
   //
   // The default happy-path (above) walks every status. Here we flip
@@ -1060,5 +1082,196 @@ describeIfDb('MCP project tools — Task #315 integration', () => {
       expect(persisted2.actualStartDate).toBeNull();
       expect(persisted2.actualEndDate).toBe(today);
     }, 120000);
+  });
+
+  // -----------------------------------------------------------------
+  // Task #561 — `reopen_project_status` write-tool coverage. This is
+  // the write counterpart to `list_allowed_reopen_targets`. The
+  // mocked unit tests prove role-gating, scope-rejection, and that
+  // workflow-service errors are funneled through
+  // `buildWriteErrorResponse`. The block below exercises the
+  // happy-path against a real `workflowService.reopenToPhase` and
+  // real Postgres rows so the behaviour the task brief calls out
+  // ("flips a project's status and resets the appropriate downstream
+  // date columns / phase artifacts when called with an allowed
+  // targetStatus, and refuses non-allowed targets") is locked in.
+  // -----------------------------------------------------------------
+  describe('reopen_project_status — Task #561 write-tool coverage', () => {
+    it('flips status, clears actual dates, and refuses non-allowed targets', async () => {
+      const adminSrv = serverFor('admin', adminUserId);
+      const mgrSrv = serverFor('manager', managerUserId);
+
+      // 1. Create a fresh project, walk it all the way to
+      //    `completed` so both `actualStartDate` and `actualEndDate`
+      //    are populated and every previous status is in the
+      //    allowed-reopen list.
+      const createRes = await getToolHandler(adminSrv, 'create_project')({
+        role: 'admin',
+        buildingId: buildingInScopeId,
+        title: `${TEST_TAG} reopen-flow`,
+      });
+      const project = parseJson<{ id: string }>(createRes);
+      created.projectIds.add(project.id);
+
+      // Park the project at `completed` directly with stamped actual
+      // dates so the reopen call's date-clearing branch becomes
+      // observable. Mirrors how the unit suite skips intermediate
+      // transitions to keep the integration cost bounded.
+      const baselineDate = '2025-01-15';
+      await db
+        .update(schema.maintenanceProjects)
+        .set({
+          status: 'completed',
+          actualStartDate: baselineDate,
+          actualEndDate: baselineDate,
+          updatedAt: new Date(),
+        })
+        .where(eq(schema.maintenanceProjects.id, project.id));
+
+      // 2. Fetch the allowed reopen targets so the test stays
+      //    coupled to the real workflowService.getAllowedReopenTargets
+      //    contract — if a future refactor changes which statuses
+      //    are reachable from `completed`, the assertion below will
+      //    fail loudly rather than silently drift.
+      const targetsHandler = getToolHandler(adminSrv, 'list_allowed_reopen_targets');
+      const targetsRes = await targetsHandler({ role: 'admin', projectId: project.id });
+      const targets = parseJson<{
+        currentStatus: string;
+        allowedTargets: string[];
+      }>(targetsRes);
+      expect(targets.currentStatus).toBe('completed');
+      expect(targets.allowedTargets).toEqual(
+        expect.arrayContaining(['planned', 'submission', 'pre_work', 'in_progress', 'post_work']),
+      );
+
+      // 3. Refuse a non-allowed target. `completed` is the project's
+      //    *current* status, so attempting to reopen to it must be
+      //    rejected by workflowService.reopenToPhase. The MCP
+      //    handler must surface that rejection through
+      //    buildWriteErrorResponse — and crucially, the row must
+      //    not move.
+      const reopenHandler = getToolHandler(adminSrv, 'reopen_project_status');
+      const refusedRes = await reopenHandler({
+        role: 'admin',
+        projectId: project.id,
+        // `completed` is not in allowedTargets (it's the current
+        // status). targetStatus enum still accepts it, so the
+        // workflowService validation is what should reject.
+        targetStatus: 'completed',
+      });
+      expect(textOf(refusedRes)).toMatch(/Failed to update project|already at completed/i);
+
+      const [unchanged] = await db
+        .select({
+          status: schema.maintenanceProjects.status,
+          actualStartDate: schema.maintenanceProjects.actualStartDate,
+          actualEndDate: schema.maintenanceProjects.actualEndDate,
+        })
+        .from(schema.maintenanceProjects)
+        .where(eq(schema.maintenanceProjects.id, project.id));
+      expect(unchanged.status).toBe('completed');
+      expect(unchanged.actualStartDate).toBe(baselineDate);
+      expect(unchanged.actualEndDate).toBe(baselineDate);
+
+      // 4. Happy-path reopen to `pre_work`. This index sits before
+      //    `in_progress` (so `actualStartDate` should be cleared)
+      //    and before `completed` (so `actualEndDate` should also
+      //    be cleared) — exercising both date-reset branches in
+      //    workflowService.reopenToPhase in a single call.
+      const reopenedRes = await reopenHandler({
+        role: 'admin',
+        projectId: project.id,
+        targetStatus: 'pre_work',
+        reason: `${TEST_TAG} reopen reason`,
+      });
+      const reopened = parseJson<{
+        previousStatus: string;
+        newStatus: string;
+        workflowState: { currentStatus: string; canProgress: boolean };
+      }>(reopenedRes);
+      expect(reopened.previousStatus).toBe('completed');
+      expect(reopened.newStatus).toBe('pre_work');
+      expect(reopened.workflowState.currentStatus).toBe('pre_work');
+      expect(reopened.workflowState.canProgress).toBe(true);
+
+      // 5. Verify the row really was updated in Postgres (no
+      //    implicit mocking — workflowService wrote against real
+      //    drizzle). actualCost should also be recalculated to a
+      //    decimal string by the cost recalculation step inside
+      //    reopenToPhase.
+      const [persisted] = await db
+        .select({
+          status: schema.maintenanceProjects.status,
+          actualStartDate: schema.maintenanceProjects.actualStartDate,
+          actualEndDate: schema.maintenanceProjects.actualEndDate,
+          actualCost: schema.maintenanceProjects.actualCost,
+        })
+        .from(schema.maintenanceProjects)
+        .where(eq(schema.maintenanceProjects.id, project.id));
+      expect(persisted.status).toBe('pre_work');
+      // pre_work sits before in_progress and before completed in
+      // STATUS_PROGRESSION → both actualStartDate AND actualEndDate
+      // must have been reset to NULL by reopenToPhase.
+      expect(persisted.actualStartDate).toBeNull();
+      expect(persisted.actualEndDate).toBeNull();
+      // actualCost must be present (recalculated to a decimal
+      // string by calculateActualCostFromCompletedPhases).
+      expect(persisted.actualCost).not.toBeNull();
+      expect(Number(persisted.actualCost)).not.toBeNaN();
+
+      // 6. Manager role parity — the manager can also reopen
+      //    (further back this time, to `planned`). Mirrors the
+      //    update_project parity check elsewhere in this suite.
+      const managerReopenHandler = getToolHandler(mgrSrv, 'reopen_project_status');
+      const mgrReopenedRes = await managerReopenHandler({
+        role: 'manager',
+        projectId: project.id,
+        targetStatus: 'planned',
+      });
+      const mgrReopened = parseJson<{
+        previousStatus: string;
+        newStatus: string;
+      }>(mgrReopenedRes);
+      expect(mgrReopened.previousStatus).toBe('pre_work');
+      expect(mgrReopened.newStatus).toBe('planned');
+
+      const [persistedAfterMgr] = await db
+        .select({ status: schema.maintenanceProjects.status })
+        .from(schema.maintenanceProjects)
+        .where(eq(schema.maintenanceProjects.id, project.id));
+      expect(persistedAfterMgr.status).toBe('planned');
+    }, 120000);
+
+    it('denies tenant role and leaves the project status unchanged', async () => {
+      const adminSrv = serverFor('admin', adminUserId);
+      const tenantSrv = serverFor('tenant', tenantUserId);
+
+      // Seed a project parked at in_progress so a successful reopen
+      // would actually be observable as a status flip.
+      const createRes = await getToolHandler(adminSrv, 'create_project')({
+        role: 'admin',
+        buildingId: buildingInScopeId,
+        title: `${TEST_TAG} reopen-tenant`,
+      });
+      const project = parseJson<{ id: string }>(createRes);
+      created.projectIds.add(project.id);
+      await db
+        .update(schema.maintenanceProjects)
+        .set({ status: 'in_progress', updatedAt: new Date() })
+        .where(eq(schema.maintenanceProjects.id, project.id));
+
+      const tenantRes = await getToolHandler(tenantSrv, 'reopen_project_status')({
+        role: 'tenant',
+        projectId: project.id,
+        targetStatus: 'planned',
+      });
+      expect(textOf(tenantRes)).toMatch(/tenants cannot reopen project status/i);
+
+      const [persisted] = await db
+        .select({ status: schema.maintenanceProjects.status })
+        .from(schema.maintenanceProjects)
+        .where(eq(schema.maintenanceProjects.id, project.id));
+      expect(persisted.status).toBe('in_progress');
+    }, 60000);
   });
 });
