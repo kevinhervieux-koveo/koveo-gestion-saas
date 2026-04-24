@@ -3997,6 +3997,108 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
   );
 
   server.tool(
+    "create_element_history_event",
+    "Log a work-history event (construction / repair / minor_rehab / major_rehab / replacement) on a building inventory element. Admin/manager only. The element's organization is resolved from its building, and writes are attributed to the OAuth-bound MCP user. When a non-null `lifespanImpact` is supplied, the element's `currentLifespan` is increased by that many years (mirroring the inventory maintenance API).",
+    {
+      role: roleParam,
+      elementId: z.string().describe("Building element ID the event applies to"),
+      eventType: z
+        .enum(["construction", "repair", "minor_rehab", "major_rehab", "replacement"])
+        .describe("Type of work performed"),
+      eventDate: z
+        .string()
+        .regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD")
+        .describe("Date the work was performed (YYYY-MM-DD)"),
+      workDescription: z.string().min(1).describe("Description of the work performed"),
+      cost: z.number().nonnegative().optional().describe("Cost of the work (>= 0)"),
+      vendorId: z
+        .string()
+        .optional()
+        .describe("Vendor ID. Must belong to the same organization as the element's building."),
+      vendorName: z
+        .string()
+        .max(200)
+        .optional()
+        .describe("Vendor name stored as a free-text historical record (used when no vendorId is available, or alongside it)."),
+      lifespanImpact: z
+        .number()
+        .int()
+        .min(0)
+        .max(100)
+        .optional()
+        .describe("Years to add to the element's currentLifespan (0-100). When provided non-null, currentLifespan is bumped by this value. Matches the 0-100 range enforced by the inventory bulk-changes maintenance API."),
+      warranty: z
+        .record(z.any())
+        .optional()
+        .describe("Warranty details as a JSON object (e.g. { endDate: 'YYYY-MM-DD', terms: '12 months parts and labour' })."),
+    },
+    async ({ role, elementId, eventType, eventDate, workDescription, cost, vendorId, vendorName, lifespanImpact, warranty }) => {
+      if (role === "tenant") {
+        return { content: [{ type: "text" as const, text: "Access denied: tenants cannot log inventory element history" }] };
+      }
+      const orgIds = await getMcpOrgIds();
+      const [element] = await db.select().from(schema.buildingElements).where(eq(schema.buildingElements.id, elementId));
+      if (!element) return { content: [{ type: "text" as const, text: "Inventory element not found" }] };
+      const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, element.buildingId));
+      if (!building || !orgIds.includes(building.organizationId)) {
+        return { content: [{ type: "text" as const, text: "Access denied" }] };
+      }
+      // Validate vendor (if supplied) belongs to the element's organization. The
+      // FK on element_history.vendor_id only ensures the vendor exists, not that
+      // it lives in the same org — MCP must enforce that itself to prevent
+      // cross-org vendor leakage.
+      if (vendorId) {
+        const [vendor] = await db
+          .select({ id: schema.vendors.id, organizationId: schema.vendors.organizationId })
+          .from(schema.vendors)
+          .where(eq(schema.vendors.id, vendorId));
+        if (!vendor) {
+          return { content: [{ type: "text" as const, text: `Vendor not found: ${vendorId}` }] };
+        }
+        if (vendor.organizationId !== building.organizationId) {
+          return { content: [{ type: "text" as const, text: `Vendor ${vendorId} does not belong to the element's organization` }] };
+        }
+      }
+      const user = await getMcpUser(role);
+      if (!user) return { content: [{ type: "text" as const, text: "MCP user not found" }] };
+      try {
+        const result = await withRetryableDbCall(() => db.transaction(async (tx) => {
+          const [event] = await tx
+            .insert(schema.elementHistory)
+            .values({
+              elementId,
+              eventType,
+              eventDate,
+              workDescription,
+              createdBy: user.id,
+              ...(cost !== undefined && { cost: String(cost) }),
+              ...(vendorId !== undefined && { vendorId }),
+              ...(vendorName !== undefined && { vendorName }),
+              ...(lifespanImpact !== undefined && lifespanImpact !== null && { lifespanImpact }),
+              ...(warranty !== undefined && { warranty }),
+            })
+            .returning();
+          let updatedElement: { id: string; currentLifespan: number | null } | null = null;
+          if (lifespanImpact !== undefined && lifespanImpact !== null) {
+            const newCurrentLifespan = (element.currentLifespan ?? 0) + lifespanImpact;
+            const [el] = await tx
+              .update(schema.buildingElements)
+              .set({ currentLifespan: newCurrentLifespan, updatedAt: new Date() })
+              .where(eq(schema.buildingElements.id, elementId))
+              .returning({ id: schema.buildingElements.id, currentLifespan: schema.buildingElements.currentLifespan });
+            updatedElement = el ?? null;
+          }
+          return { event, updatedElement };
+        }));
+        return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:create_element_history_event]", e);
+        return buildWriteErrorResponse(e, 'element history event', 'create');
+      }
+    }
+  );
+
+  server.tool(
     "downgrade_acting_role",
     "Downgrade the MCP session's acting role to a less-privileged role within the OAuth-bound ceiling. " +
       "Subsequent tool calls that omit the `role` argument will run as the downgraded role. " +
