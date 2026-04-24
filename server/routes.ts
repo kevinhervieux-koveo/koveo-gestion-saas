@@ -35,6 +35,7 @@ import { registerPillarsSuggestionsRoutes } from './api/pillars-suggestions';
 import { registerQualityMetricsRoutes } from './api/quality-metrics';
 import { registerFeatureManagementRoutes } from './api/feature-management';
 import { lazyMount, type LazyRouteMatcher, type RouteRegistrar } from './utils/lazy-mount';
+import { assertHeavyModulesNotEagerlyLoaded } from './utils/heavy-module-guard';
 import { registerAutoRoutes } from './api/auto/_register';
 import law25ComplianceRouter from './routes/law25-compliance';
 import { performanceRouter } from './performance-api';
@@ -728,18 +729,31 @@ export async function registerRoutes(app: Express) {
   }
   
   logInfo('All routes registered successfully');
+
+  // Fail fast (in dev/test) if any module that's supposed to be lazy-mounted
+  // ended up in require.cache during route registration. See
+  // server/utils/heavy-module-guard.ts for the full rationale.
+  assertHeavyModulesNotEagerlyLoaded({ denylist: HEAVY_LAZY_MOUNT_DENYLIST });
 }
+
 /**
  * Heavy lazy-mount specs wired into `registerRoutes` above. Exported so the
  * regression test in `tests/integration/heavy-lazy-mounts.test.ts` can iterate
  * the EXACT matchers + loaders that production registers — preventing silent
  * drift if a new lazy mount is added or an existing one is un-lazied.
+ *
+ * `modulePath` is the repo-relative source path of the module each loader
+ * imports. {@link HEAVY_LAZY_MOUNT_DENYLIST} below derives from these so the
+ * boot-time guard (see `server/utils/heavy-module-guard.ts`) and the
+ * lazy-mount registration share a single source of truth.
  */
 export interface HeavyLazyMountSpec {
   /** Stable name used for test labels and diagnostics. */
   name: string;
   matcher: LazyRouteMatcher;
   loader: () => Promise<RouteRegistrar>;
+  /** Source path the loader imports (no extension). */
+  modulePath: string;
 }
 
 // Bills owns /api/bills/* AND a couple of /api/buildings/:id/bills/* endpoints.
@@ -752,36 +766,56 @@ export const HEAVY_LAZY_MOUNTS: readonly HeavyLazyMountSpec[] = [
     name: 'documents',
     matcher: '/api/documents',
     loader: async () => (await import('./api/documents')).registerDocumentRoutes,
+    modulePath: 'server/api/documents',
   },
   {
     name: 'bills',
     matcher: (path: string) =>
       path.startsWith('/api/bills') || BILLS_BUILDING_PATTERN.test(path),
     loader: async () => (await import('./api/bills')).registerBillRoutes,
+    modulePath: 'server/api/bills',
   },
   {
     name: 'communication',
     matcher: '/api/communication',
     loader: async () => (await import('./api/communication')).registerCommunicationRoutes,
+    modulePath: 'server/api/communication',
   },
   {
     name: 'maintenance',
     matcher: '/api/maintenance',
     loader: async () => (await import('./api/maintenance')).registerMaintenanceRoutes,
+    modulePath: 'server/api/maintenance',
   },
   {
     name: 'demo',
     matcher: '/api/demo',
     loader: async () => (await import('./api/demo-management')).registerDemoManagementRoutes,
+    modulePath: 'server/api/demo-management',
   },
   {
     name: 'ai',
     matcher: '/api/ai',
     loader: async () => (await import('./api/ai-document-analysis')).registerAiAnalysisRoutes,
+    modulePath: 'server/api/ai-document-analysis',
   },
   {
     name: 'admin-bulk-import',
     matcher: '/api/admin/bulk-import',
     loader: async () => (await import('./api/bulk-import')).registerBulkImportRoutes,
+    modulePath: 'server/api/bulk-import',
   },
+];
+
+/**
+ * Module paths the boot-time guard refuses to see in `require.cache` after
+ * `registerRoutes()` returns. Derived from {@link HEAVY_LAZY_MOUNTS} so adding
+ * a new lazy mount automatically gets the "stay lazy" enforcement — plus
+ * `server/mcp/index`, which is lazy-mounted directly inside `registerRoutes`
+ * (it isn't in HEAVY_LAZY_MOUNTS because its mount is gated on
+ * ENABLE_MCP_SERVER and split across pre-/post-session blocks).
+ */
+export const HEAVY_LAZY_MOUNT_DENYLIST: readonly string[] = [
+  'server/mcp/index',
+  ...HEAVY_LAZY_MOUNTS.map((m) => m.modulePath),
 ];
