@@ -1,9 +1,123 @@
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 import runtimeErrorOverlay from '@replit/vite-plugin-runtime-error-modal';
+
+// Removes calls to `logDebug(...)` and `logInfo(...)` from client source
+// in production builds. The wrapper functions in `client/src/lib/logger.ts`
+// already collapse to no-ops in production, but their string/object
+// arguments still ship in the bundle. Esbuild's `pure` annotation only
+// drops direct globals like `console.log`, not these imported wrappers,
+// so we strip the calls at the source level. Call expressions are
+// replaced with `void 0` so they remain valid JS in any position
+// (statement, ternary, &&-chain, etc.).
+function stripDebugLogs(): Plugin {
+  const callRe = /(?<![\w$.])(logDebug|logInfo)\s*\(/g;
+  const loggerSuffix = path.join('lib', 'logger.ts');
+  return {
+    name: 'strip-debug-logs',
+    apply: 'build',
+    enforce: 'pre',
+    transform(code, id) {
+      if (!/\.(tsx?|jsx?)$/.test(id)) return null;
+      if (id.includes('node_modules')) return null;
+      if (id.endsWith(loggerSuffix)) return null;
+      callRe.lastIndex = 0;
+      if (!callRe.test(code)) return null;
+      callRe.lastIndex = 0;
+
+      let out = '';
+      let lastIdx = 0;
+      let m: RegExpExecArray | null;
+      while ((m = callRe.exec(code)) !== null) {
+        const start = m.index;
+        let i = m.index + m[0].length; // position right after the opening '('
+        let depth = 1;
+        let strDelim: string | null = null; // ' " or `
+        const tplBraceStack: number[] = []; // nesting of `${...}` inside template literals
+
+        while (i < code.length && depth > 0) {
+          const ch = code[i];
+          const next = code[i + 1];
+          if (strDelim) {
+            if (ch === '\\') {
+              i += 2;
+              continue;
+            }
+            if (strDelim === '`') {
+              if (ch === '$' && next === '{') {
+                tplBraceStack.push(1);
+                strDelim = null;
+                i += 2;
+                continue;
+              }
+              if (ch === '`') {
+                strDelim = null;
+                i++;
+                continue;
+              }
+            } else if (ch === strDelim) {
+              strDelim = null;
+              i++;
+              continue;
+            }
+            i++;
+            continue;
+          }
+          if (ch === '/' && next === '/') {
+            while (i < code.length && code[i] !== '\n') i++;
+            continue;
+          }
+          if (ch === '/' && next === '*') {
+            i += 2;
+            while (i < code.length - 1 && !(code[i] === '*' && code[i + 1] === '/')) i++;
+            i += 2;
+            continue;
+          }
+          if (ch === '"' || ch === "'" || ch === '`') {
+            strDelim = ch;
+            i++;
+            continue;
+          }
+          if (tplBraceStack.length > 0) {
+            if (ch === '{') {
+              tplBraceStack[tplBraceStack.length - 1]++;
+            } else if (ch === '}') {
+              tplBraceStack[tplBraceStack.length - 1]--;
+              if (tplBraceStack[tplBraceStack.length - 1] === 0) {
+                tplBraceStack.pop();
+                strDelim = '`';
+                i++;
+                continue;
+              }
+            }
+          }
+          if (ch === '(') depth++;
+          else if (ch === ')') depth--;
+          i++;
+        }
+        if (depth !== 0) {
+          // Couldn't balance parens (parse error or unsupported syntax).
+          // Bail out for safety: leave this call untouched.
+          continue;
+        }
+        out += code.slice(lastIdx, start) + 'void 0';
+        lastIdx = i;
+        callRe.lastIndex = i;
+      }
+      if (lastIdx === 0) return null;
+      out += code.slice(lastIdx);
+      return { code: out, map: null };
+    },
+  };
+}
+
 export default defineConfig(({ command, mode }) => ({
-  plugins: [react(), runtimeErrorOverlay()],
+  plugins: [
+    react(),
+    runtimeErrorOverlay(),
+    ...(command === 'build' && mode === 'production' ? [stripDebugLogs()] : []),
+  ],
   resolve: {
     alias: {
       '@': path.resolve(import.meta.dirname, 'client', 'src'),

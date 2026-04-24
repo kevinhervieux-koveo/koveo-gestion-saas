@@ -90,7 +90,7 @@ export function useProjectWorkflowState(projectId: string) {
       
       if (!response.ok) {
         const error = await response.json().catch(() => ({ message: 'Failed to fetch workflow state' }));
-        console.error('🔍 [WORKFLOW HOOK] Error response:', error);
+        console.error('[WORKFLOW HOOK] Error response:', error);
         throw new Error(error.message || 'Failed to fetch workflow state');
       }
       
