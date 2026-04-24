@@ -1,0 +1,204 @@
+(index):1 Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner.
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Bank account query: {selectedBuildingId: '', hasUser: true, bankAccountConfig: undefined, bankAccountLoading: false, bankAccountIsError: false, …}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Query state: {selectedBuildingId: '', filters: {…}, forecastData: undefined, forecastLoading: false, forecastError: null, …}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Aggregating projects: {buildingsCount: 0, projectQueriesCount: 0}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] No buildings available
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Bank account query: {selectedBuildingId: '', hasUser: true, bankAccountConfig: undefined, bankAccountLoading: false, bankAccountIsError: false, …}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Query state: {selectedBuildingId: '', filters: {…}, forecastData: undefined, forecastLoading: false, forecastError: null, …}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Aggregating projects: {buildingsCount: 0, projectQueriesCount: 0}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] No buildings available
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Bank account query: {selectedBuildingId: '', hasUser: true, bankAccountConfig: undefined, bankAccountLoading: false, bankAccountIsError: false, …}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Query state: {selectedBuildingId: '', filters: {…}, forecastData: undefined, forecastLoading: false, forecastError: null, …}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Aggregating projects: {buildingsCount: 8, projectQueriesCount: 8}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 0 (4647 Meggie Pass Building 2): {buildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 1 (4804 Stuart Gateway Building 1): {buildingId: '5fd273e9-328f-4e31-98f0-8e82526c79e8', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 2 (563 montée des pionniers): {buildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 3 (64671 Green Close Building 4): {buildingId: 'ad5ed375-3319-46bc-8093-c4341174bebd', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 4 (68391 Brent Shoals Building 3): {buildingId: '2a4e811b-8ccf-4f1e-8fe0-79746dc7ed1d', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 5 (7393 Abernathy Green Building 5): {buildingId: '17f65eef-a91f-4268-82ec-91727b9fe7f8', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 6 (Demo Condo): {buildingId: 'e55c083e-a5c4-4371-9aaa-a2204f23e679', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 7 (Démo Appartement): {buildingId: 'fbc1bb8b-a63c-4712-8d1e-c03f32c5c586', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Total projects aggregated: 0
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Bank account query: {selectedBuildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', hasUser: true, bankAccountConfig: undefined, bankAccountLoading: true, bankAccountIsError: false, …}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Query state: {selectedBuildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', filters: {…}, forecastData: undefined, forecastLoading: false, forecastError: null, …}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Aggregating projects: {buildingsCount: 8, projectQueriesCount: 8}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 0 (4647 Meggie Pass Building 2): {buildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 1 (4804 Stuart Gateway Building 1): {buildingId: '5fd273e9-328f-4e31-98f0-8e82526c79e8', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 2 (563 montée des pionniers): {buildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 3 (64671 Green Close Building 4): {buildingId: 'ad5ed375-3319-46bc-8093-c4341174bebd', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 4 (68391 Brent Shoals Building 3): {buildingId: '2a4e811b-8ccf-4f1e-8fe0-79746dc7ed1d', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 5 (7393 Abernathy Green Building 5): {buildingId: '17f65eef-a91f-4268-82ec-91727b9fe7f8', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 6 (Demo Condo): {buildingId: 'e55c083e-a5c4-4371-9aaa-a2204f23e679', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 7 (Démo Appartement): {buildingId: 'fbc1bb8b-a63c-4712-8d1e-c03f32c5c586', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Total projects aggregated: 0
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Resetting filtersInitialized for new building: bfee4e0b-aa89-44b8-b3b2-0419bab47897
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Fetching bank account config for: bfee4e0b-aa89-44b8-b3b2-0419bab47897
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Bank account query: {selectedBuildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', hasUser: true, bankAccountConfig: undefined, bankAccountLoading: true, bankAccountIsError: false, …}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Query state: {selectedBuildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', filters: {…}, forecastData: undefined, forecastLoading: false, forecastError: null, …}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Aggregating projects: {buildingsCount: 8, projectQueriesCount: 8}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 0 (4647 Meggie Pass Building 2): {buildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 1 (4804 Stuart Gateway Building 1): {buildingId: '5fd273e9-328f-4e31-98f0-8e82526c79e8', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 2 (563 montée des pionniers): {buildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 3 (64671 Green Close Building 4): {buildingId: 'ad5ed375-3319-46bc-8093-c4341174bebd', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 4 (68391 Brent Shoals Building 3): {buildingId: '2a4e811b-8ccf-4f1e-8fe0-79746dc7ed1d', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 5 (7393 Abernathy Green Building 5): {buildingId: '17f65eef-a91f-4268-82ec-91727b9fe7f8', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 6 (Demo Condo): {buildingId: 'e55c083e-a5c4-4371-9aaa-a2204f23e679', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 7 (Démo Appartement): {buildingId: 'fbc1bb8b-a63c-4712-8d1e-c03f32c5c586', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Total projects aggregated: 0
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Bank account query: {selectedBuildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', hasUser: true, bankAccountConfig: undefined, bankAccountLoading: true, bankAccountIsError: false, …}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Query state: {selectedBuildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', filters: {…}, forecastData: undefined, forecastLoading: false, forecastError: null, …}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Aggregating projects: {buildingsCount: 8, projectQueriesCount: 8}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 0 (4647 Meggie Pass Building 2): {buildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 0 projects from 4647 Meggie Pass Building 2
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 1 (4804 Stuart Gateway Building 1): {buildingId: '5fd273e9-328f-4e31-98f0-8e82526c79e8', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 2 (563 montée des pionniers): {buildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 3 (64671 Green Close Building 4): {buildingId: 'ad5ed375-3319-46bc-8093-c4341174bebd', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 4 (68391 Brent Shoals Building 3): {buildingId: '2a4e811b-8ccf-4f1e-8fe0-79746dc7ed1d', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 5 (7393 Abernathy Green Building 5): {buildingId: '17f65eef-a91f-4268-82ec-91727b9fe7f8', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 6 (Demo Condo): {buildingId: 'e55c083e-a5c4-4371-9aaa-a2204f23e679', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 7 (Démo Appartement): {buildingId: 'fbc1bb8b-a63c-4712-8d1e-c03f32c5c586', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Total projects aggregated: 0
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Bank account query: {selectedBuildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', hasUser: true, bankAccountConfig: undefined, bankAccountLoading: true, bankAccountIsError: false, …}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Query state: {selectedBuildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', filters: {…}, forecastData: undefined, forecastLoading: false, forecastError: null, …}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Aggregating projects: {buildingsCount: 8, projectQueriesCount: 8}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 0 (4647 Meggie Pass Building 2): {buildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 0 projects from 4647 Meggie Pass Building 2
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 1 (4804 Stuart Gateway Building 1): {buildingId: '5fd273e9-328f-4e31-98f0-8e82526c79e8', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 0 projects from 4804 Stuart Gateway Building 1
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 2 (563 montée des pionniers): {buildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 3 (64671 Green Close Building 4): {buildingId: 'ad5ed375-3319-46bc-8093-c4341174bebd', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 4 (68391 Brent Shoals Building 3): {buildingId: '2a4e811b-8ccf-4f1e-8fe0-79746dc7ed1d', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 0 projects from 68391 Brent Shoals Building 3
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 5 (7393 Abernathy Green Building 5): {buildingId: '17f65eef-a91f-4268-82ec-91727b9fe7f8', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 0 projects from 7393 Abernathy Green Building 5
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 6 (Demo Condo): {buildingId: 'e55c083e-a5c4-4371-9aaa-a2204f23e679', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 7 (Démo Appartement): {buildingId: 'fbc1bb8b-a63c-4712-8d1e-c03f32c5c586', hasData: false, success: undefined, projectsCount: 0, rawData: undefined}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Total projects aggregated: 0
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Bank account query: {selectedBuildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', hasUser: true, bankAccountConfig: undefined, bankAccountLoading: true, bankAccountIsError: false, …}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Query state: {selectedBuildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', filters: {…}, forecastData: undefined, forecastLoading: false, forecastError: null, …}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Aggregating projects: {buildingsCount: 8, projectQueriesCount: 8}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 0 (4647 Meggie Pass Building 2): {buildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 0 projects from 4647 Meggie Pass Building 2
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 1 (4804 Stuart Gateway Building 1): {buildingId: '5fd273e9-328f-4e31-98f0-8e82526c79e8', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 0 projects from 4804 Stuart Gateway Building 1
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 2 (563 montée des pionniers): {buildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', hasData: true, success: true, projectsCount: 11, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 11 projects from 563 montée des pionniers
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 3 (64671 Green Close Building 4): {buildingId: 'ad5ed375-3319-46bc-8093-c4341174bebd', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 0 projects from 64671 Green Close Building 4
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 4 (68391 Brent Shoals Building 3): {buildingId: '2a4e811b-8ccf-4f1e-8fe0-79746dc7ed1d', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 0 projects from 68391 Brent Shoals Building 3
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 5 (7393 Abernathy Green Building 5): {buildingId: '17f65eef-a91f-4268-82ec-91727b9fe7f8', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 0 projects from 7393 Abernathy Green Building 5
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 6 (Demo Condo): {buildingId: 'e55c083e-a5c4-4371-9aaa-a2204f23e679', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 0 projects from Demo Condo
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 7 (Démo Appartement): {buildingId: 'fbc1bb8b-a63c-4712-8d1e-c03f32c5c586', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 0 projects from Démo Appartement
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Total projects aggregated: 11
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Bank account query: {selectedBuildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', hasUser: true, bankAccountConfig: undefined, bankAccountLoading: true, bankAccountIsError: false, …}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Query state: {selectedBuildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', filters: {…}, forecastData: undefined, forecastLoading: false, forecastError: null, …}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Aggregating projects: {buildingsCount: 8, projectQueriesCount: 8}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 0 (4647 Meggie Pass Building 2): {buildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 0 projects from 4647 Meggie Pass Building 2
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 1 (4804 Stuart Gateway Building 1): {buildingId: '5fd273e9-328f-4e31-98f0-8e82526c79e8', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 0 projects from 4804 Stuart Gateway Building 1
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 2 (563 montée des pionniers): {buildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', hasData: true, success: true, projectsCount: 11, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 11 projects from 563 montée des pionniers
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 3 (64671 Green Close Building 4): {buildingId: 'ad5ed375-3319-46bc-8093-c4341174bebd', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 0 projects from 64671 Green Close Building 4
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 4 (68391 Brent Shoals Building 3): {buildingId: '2a4e811b-8ccf-4f1e-8fe0-79746dc7ed1d', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 0 projects from 68391 Brent Shoals Building 3
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 5 (7393 Abernathy Green Building 5): {buildingId: '17f65eef-a91f-4268-82ec-91727b9fe7f8', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 0 projects from 7393 Abernathy Green Building 5
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 6 (Demo Condo): {buildingId: 'e55c083e-a5c4-4371-9aaa-a2204f23e679', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 0 projects from Demo Condo
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 7 (Démo Appartement): {buildingId: 'fbc1bb8b-a63c-4712-8d1e-c03f32c5c586', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 0 projects from Démo Appartement
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Total projects aggregated: 11
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Bank account query: {selectedBuildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', hasUser: true, bankAccountConfig: undefined, bankAccountLoading: true, bankAccountIsError: false, …}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Query state: {selectedBuildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', filters: {…}, forecastData: undefined, forecastLoading: false, forecastError: null, …}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Aggregating projects: {buildingsCount: 8, projectQueriesCount: 8}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 0 (4647 Meggie Pass Building 2): {buildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 0 projects from 4647 Meggie Pass Building 2
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 1 (4804 Stuart Gateway Building 1): {buildingId: '5fd273e9-328f-4e31-98f0-8e82526c79e8', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 0 projects from 4804 Stuart Gateway Building 1
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 2 (563 montée des pionniers): {buildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', hasData: true, success: true, projectsCount: 11, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 11 projects from 563 montée des pionniers
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 3 (64671 Green Close Building 4): {buildingId: 'ad5ed375-3319-46bc-8093-c4341174bebd', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 0 projects from 64671 Green Close Building 4
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 4 (68391 Brent Shoals Building 3): {buildingId: '2a4e811b-8ccf-4f1e-8fe0-79746dc7ed1d', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 0 projects from 68391 Brent Shoals Building 3
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 5 (7393 Abernathy Green Building 5): {buildingId: '17f65eef-a91f-4268-82ec-91727b9fe7f8', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 0 projects from 7393 Abernathy Green Building 5
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 6 (Demo Condo): {buildingId: 'e55c083e-a5c4-4371-9aaa-a2204f23e679', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 0 projects from Demo Condo
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 7 (Démo Appartement): {buildingId: 'fbc1bb8b-a63c-4712-8d1e-c03f32c5c586', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 0 projects from Démo Appartement
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Total projects aggregated: 11
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Bank account config response: {0: 'Parking', 1: 'Gym', 2: 'Pool', bankAccountNumber: null, bankAccountNotes: null, bankAccountStartDate: null, bankAccountStartAmount: null, bankAccountMinimums: null, …}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Bank account query: {selectedBuildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', hasUser: true, bankAccountConfig: {…}, bankAccountLoading: false, bankAccountIsError: false, …}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Query state: {selectedBuildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', filters: {…}, forecastData: undefined, forecastLoading: false, forecastError: null, …}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Aggregating projects: {buildingsCount: 8, projectQueriesCount: 8}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 0 (4647 Meggie Pass Building 2): {buildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 0 projects from 4647 Meggie Pass Building 2
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 1 (4804 Stuart Gateway Building 1): {buildingId: '5fd273e9-328f-4e31-98f0-8e82526c79e8', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 0 projects from 4804 Stuart Gateway Building 1
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 2 (563 montée des pionniers): {buildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', hasData: true, success: true, projectsCount: 11, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 11 projects from 563 montée des pionniers
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 3 (64671 Green Close Building 4): {buildingId: 'ad5ed375-3319-46bc-8093-c4341174bebd', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 0 projects from 64671 Green Close Building 4
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 4 (68391 Brent Shoals Building 3): {buildingId: '2a4e811b-8ccf-4f1e-8fe0-79746dc7ed1d', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 0 projects from 68391 Brent Shoals Building 3
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 5 (7393 Abernathy Green Building 5): {buildingId: '17f65eef-a91f-4268-82ec-91727b9fe7f8', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 0 projects from 7393 Abernathy Green Building 5
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 6 (Demo Condo): {buildingId: 'e55c083e-a5c4-4371-9aaa-a2204f23e679', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 0 projects from Demo Condo
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 7 (Démo Appartement): {buildingId: 'fbc1bb8b-a63c-4712-8d1e-c03f32c5c586', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 0 projects from Démo Appartement
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Total projects aggregated: 11
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Bank account query: {selectedBuildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', hasUser: true, bankAccountConfig: {…}, bankAccountLoading: false, bankAccountIsError: false, …}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Query state: {selectedBuildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', filters: {…}, forecastData: undefined, forecastLoading: false, forecastError: null, …}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Aggregating projects: {buildingsCount: 8, projectQueriesCount: 8}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 0 (4647 Meggie Pass Building 2): {buildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 0 projects from 4647 Meggie Pass Building 2
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 1 (4804 Stuart Gateway Building 1): {buildingId: '5fd273e9-328f-4e31-98f0-8e82526c79e8', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 0 projects from 4804 Stuart Gateway Building 1
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 2 (563 montée des pionniers): {buildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', hasData: true, success: true, projectsCount: 11, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 11 projects from 563 montée des pionniers
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 3 (64671 Green Close Building 4): {buildingId: 'ad5ed375-3319-46bc-8093-c4341174bebd', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 0 projects from 64671 Green Close Building 4
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 4 (68391 Brent Shoals Building 3): {buildingId: '2a4e811b-8ccf-4f1e-8fe0-79746dc7ed1d', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 0 projects from 68391 Brent Shoals Building 3
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 5 (7393 Abernathy Green Building 5): {buildingId: '17f65eef-a91f-4268-82ec-91727b9fe7f8', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 0 projects from 7393 Abernathy Green Building 5
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 6 (Demo Condo): {buildingId: 'e55c083e-a5c4-4371-9aaa-a2204f23e679', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 0 projects from Demo Condo
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 7 (Démo Appartement): {buildingId: 'fbc1bb8b-a63c-4712-8d1e-c03f32c5c586', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 0 projects from Démo Appartement
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Total projects aggregated: 11
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Bank account query: {selectedBuildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', hasUser: true, bankAccountConfig: {…}, bankAccountLoading: false, bankAccountIsError: false, …}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Query state: {selectedBuildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', filters: {…}, forecastData: undefined, forecastLoading: false, forecastError: null, …}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Aggregating projects: {buildingsCount: 8, projectQueriesCount: 8}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 0 (4647 Meggie Pass Building 2): {buildingId: 'bfee4e0b-aa89-44b8-b3b2-0419bab47897', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 0 projects from 4647 Meggie Pass Building 2
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 1 (4804 Stuart Gateway Building 1): {buildingId: '5fd273e9-328f-4e31-98f0-8e82526c79e8', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 0 projects from 4804 Stuart Gateway Building 1
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 2 (563 montée des pionniers): {buildingId: '409986ca-8e25-4547-b00d-6dae6e4ac26b', hasData: true, success: true, projectsCount: 11, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 11 projects from 563 montée des pionniers
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 3 (64671 Green Close Building 4): {buildingId: 'ad5ed375-3319-46bc-8093-c4341174bebd', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 0 projects from 64671 Green Close Building 4
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 4 (68391 Brent Shoals Building 3): {buildingId: '2a4e811b-8ccf-4f1e-8fe0-79746dc7ed1d', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 0 projects from 68391 Brent Shoals Building 3
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 5 (7393 Abernathy Green Building 5): {buildingId: '17f65eef-a91f-4268-82ec-91727b9fe7f8', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 0 projects from 7393 Abernathy Green Building 5
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 6 (Demo Condo): {buildingId: 'e55c083e-a5c4-4371-9aaa-a2204f23e679', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 0 projects from Demo Condo
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Building 7 (Démo Appartement): {buildingId: 'fbc1bb8b-a63c-4712-8d1e-c03f32c5c586', hasData: true, success: true, projectsCount: 0, rawData: {…}}
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Added 0 projects from Démo Appartement
+logger-DYEi-hVh.js:1 [DEBUG] [FinancialOverview] Total projects aggregated: 11
