@@ -234,6 +234,11 @@ export function GanttChart({
   }
 
   const domainSpan = domain[1] - domain[0];
+  const todayTs = Date.now();
+  const todayInRange =
+    domainSpan > 0 && todayTs >= domain[0] && todayTs <= domain[1];
+  const todayPct = todayInRange ? ((todayTs - domain[0]) / domainSpan) * 100 : 0;
+  const todayLabel = t('today');
 
   return (
     <div className="w-full" data-testid="gantt-chart">
@@ -298,6 +303,31 @@ export function GanttChart({
                   </div>
                 );
               })}
+              {todayInRange && (
+                <div
+                  data-testid="gantt-today-pill"
+                  title={formatDate(todayTs, locale)}
+                  style={{
+                    position: 'absolute',
+                    left: `${todayPct}%`,
+                    top: 4,
+                    transform: 'translateX(-50%)',
+                    fontSize: 10,
+                    lineHeight: '16px',
+                    height: 18,
+                    padding: '0 6px',
+                    borderRadius: 9999,
+                    background: '#ef4444',
+                    color: 'white',
+                    fontWeight: 600,
+                    whiteSpace: 'nowrap',
+                    zIndex: 1,
+                    pointerEvents: 'auto',
+                  }}
+                >
+                  {todayLabel}
+                </div>
+              )}
             </div>
           </div>
 
@@ -373,7 +403,30 @@ export function GanttChart({
           </div>
 
           {/* Scrollable timeline (chart) */}
-          <div style={{ height: chartHeight, minWidth: minTimelineWidth }}>
+          <div
+            style={{
+              height: chartHeight,
+              minWidth: minTimelineWidth,
+              position: 'relative',
+            }}
+          >
+            {todayInRange && (
+              <div
+                data-testid="gantt-today-line"
+                title={`${todayLabel} — ${formatDate(todayTs, locale)}`}
+                style={{
+                  position: 'absolute',
+                  left: `${todayPct}%`,
+                  top: TOP_MARGIN,
+                  bottom: X_AXIS_HEIGHT + BOTTOM_MARGIN,
+                  width: 0,
+                  borderLeft: '2px dashed #ef4444',
+                  pointerEvents: 'none',
+                  zIndex: 1,
+                  transform: 'translateX(-1px)',
+                }}
+              />
+            )}
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={rows}
