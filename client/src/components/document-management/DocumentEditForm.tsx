@@ -121,6 +121,21 @@ export function DocumentEditForm({
   });
   const allTags = tagsData?.tags ?? [];
 
+  // Pull the document's extracted text content so suggestions on edit can
+  // mirror the higher-quality matches we get on create. The endpoint
+  // gracefully returns an empty string for file types it can't extract
+  // (PDF, images, etc.), in which case we fall back to filename + category
+  // scoring exactly like before.
+  const { data: textData } = useQuery<{
+    text: string;
+    hasText: boolean;
+    mimeType: string | null;
+    reason?: string;
+  }>({
+    queryKey: ['/api/documents', document.id, 'text'],
+  });
+  const extractedText = textData?.text ?? null;
+
   const watchedCategory = formControls.form.watch('category');
   const tagScope: 'building' | 'residence' | undefined = buildingId
     ? 'building'
@@ -133,11 +148,12 @@ export function DocumentEditForm({
     return suggestTagIds({
       tags: allTags,
       fileName: document.name ?? null,
+      extractedText,
       category: watchedCategory,
       scope: tagScope,
       max: 3,
     });
-  }, [allTags, document.name, watchedCategory, tagScope]);
+  }, [allTags, document.name, extractedText, watchedCategory, tagScope]);
 
   // Delete mutation
   const deleteMutation = useCreateUpdateMutation<unknown, void>({

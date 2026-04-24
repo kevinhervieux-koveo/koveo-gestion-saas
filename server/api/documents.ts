@@ -4386,6 +4386,101 @@ export function registerDocumentRoutes(app: import('../utils/lazy-mount').RouteR
     }
   });
 
+  // Returns the document's extracted plain-text content (or empty when the
+  // file type isn't text-extractable). Used by the document edit dialog to
+  // refine its keyword tag suggestions for legacy documents whose filenames
+  // alone don't capture what the document is actually about.
+  //
+  // Only handles cheap, server-side extractable types: text/plain, text/csv,
+  // .docx (mammoth), .xlsx (exceljs). PDFs and images intentionally return
+  // an empty string — getting their text would require OCR / Gemini, which
+  // is too expensive to run on every edit-dialog open.
+  app.get('/api/documents/:id/text', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      const userRole = user.role;
+      const userId = user.id;
+      const documentId = req.params.id;
+
+      const organizations = await storage.getUserOrganizations(userId);
+      const organizationIds = organizations.map((org) => org.organizationId);
+
+      const document = await storage.getDocumentWithScope(
+        documentId,
+        userId,
+        userRole,
+        organizationIds
+      );
+
+      if (!document) {
+        return res.status(404).json({ message: 'Document not found or access denied' });
+      }
+
+      const mimeType = document.mimeType;
+      const filePath = document.filePath;
+
+      const { isTextExtractableMimeType, extractTextFromBuffer } = await import(
+        '../services/document-text-extractor'
+      );
+
+      if (!filePath || !isTextExtractableMimeType(mimeType)) {
+        return res.json({
+          text: '',
+          hasText: false,
+          mimeType: mimeType ?? null,
+          reason: !filePath ? 'no_file' : 'unsupported_mime',
+        });
+      }
+
+      // Re-check object-level ACL to prevent path-rebinding attacks on the
+      // text endpoint, mirroring what /api/documents/:id/file does.
+      if (filePath.startsWith('/objects/')) {
+        const aclAccess = await documentService.canUserAccessDocument(
+          userId,
+          userRole,
+          filePath
+        );
+        if (!aclAccess.allowed) {
+          return res.status(403).json({ message: 'Access denied to file' });
+        }
+      }
+
+      try {
+        const { ObjectStorageService } = await import('../objectStorage');
+        const objectStorageService = new ObjectStorageService();
+        const normalizedPath = documentService.normalizePath(filePath);
+        const objectFile = await objectStorageService.getObjectEntityFile(normalizedPath);
+        const [buffer] = await objectFile.download();
+
+        const text = await extractTextFromBuffer(buffer, mimeType);
+        return res.json({
+          text,
+          hasText: text.trim().length > 0,
+          mimeType,
+        });
+      } catch (downloadError: any) {
+        // Treat any storage / extraction failure as "no text available" so
+        // the edit dialog can fall back to filename-only suggestions instead
+        // of surfacing a scary error to the user.
+        logWarn('[DOCUMENT TEXT] Could not extract text', {
+          metadata: {
+            documentId,
+            error: downloadError?.message,
+          },
+        });
+        return res.json({
+          text: '',
+          hasText: false,
+          mimeType: mimeType ?? null,
+          reason: 'extraction_failed',
+        });
+      }
+    } catch (error: any) {
+      logError('Error fetching document text', error);
+      res.status(500).json({ message: 'Failed to fetch document text' });
+    }
+  });
+
   // ===========================================================================
   // Document linking (date-based sequence with explicit overrides)
   // ===========================================================================
