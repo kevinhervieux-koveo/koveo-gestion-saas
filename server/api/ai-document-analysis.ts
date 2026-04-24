@@ -27,9 +27,14 @@ import { z } from 'zod';
 // reopen the form. The cache is shared across server instances so any user
 // benefits from a suggestion that anyone else already triggered, and entries
 // survive deploys.
-const TAG_SUGGESTION_CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
+//
+// Exported so the document edit-dialog endpoint
+// (`POST /api/documents/:id/suggest-tags`) can populate / read the same
+// rows: a freshly-uploaded file will already have an entry from the create
+// flow, and re-editing the same document should hit it directly.
+export const TAG_SUGGESTION_CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
 
-function buildTagSuggestionCacheKey(
+export function buildTagSuggestionCacheKey(
   fileBuffer: Buffer,
   mimeType: string,
   tags: TagSuggestionTagInput[],
@@ -54,11 +59,11 @@ function buildTagSuggestionCacheKey(
   return ['v3', fileHash, mimeType, tagFingerprint, category ?? '', scope ?? '', String(max)].join(':');
 }
 
-async function getCachedTagSuggestion(key: string): Promise<string[] | null> {
+export async function getCachedTagSuggestion(key: string): Promise<string[] | null> {
   return getCachedSuggestion<string[]>(key);
 }
 
-async function setCachedTagSuggestion(key: string, tagIds: string[]): Promise<void> {
+export async function setCachedTagSuggestion(key: string, tagIds: string[]): Promise<void> {
   await setCachedSuggestion<string[]>(key, tagIds, TAG_SUGGESTION_CACHE_TTL_MS);
 }
 
@@ -110,7 +115,7 @@ const upload = multer({
 });
 
 // Validation schema for tag suggestion request
-interface TagSuggestionTagInput {
+export interface TagSuggestionTagInput {
   id: string;
   name: string;
   description?: string | null;

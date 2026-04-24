@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { z } from 'zod';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCreateUpdateMutation } from '@/lib/common-hooks';
@@ -26,6 +26,30 @@ import type { Document } from '@shared/schema';
 import { TagPicker, type DocumentTag } from '@/components/document-tags/TagPicker';
 import { Label } from '@/components/ui/label';
 import { suggestTagIds } from '@/lib/tag-suggestions';
+
+// MIME types the server-side AI tag suggestion path can classify. Mirrors the
+// allowlist on the server (`ConsolidatedAIService.TAG_SUGGESTION_SUPPORTED_MIME_TYPES`)
+// and the create dialog. Office/text formats also work, but the cheap text
+// extractor handles them already — keeping this list to PDFs and images limits
+// the edit-time AI calls to the cases the text endpoint can't handle on its
+// own.
+const AI_EDIT_SUGGEST_PDF_AND_IMAGE_MIMES: ReadonlySet<string> = new Set([
+  'application/pdf',
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
+  'image/webp',
+  'image/heic',
+  'image/heif',
+]);
+
+type DocumentEditAiTagResponse = {
+  success: boolean;
+  tagIds: string[];
+  source?: 'ai' | 'unavailable' | 'unsupported_mime' | 'no_file';
+  cached?: boolean;
+  error?: string;
+};
 
 type DocumentEditFormData = {
   name: string;
@@ -143,7 +167,10 @@ export function DocumentEditForm({
       ? 'residence'
       : undefined;
 
-  const suggestedTags = useMemo(() => {
+  // Heuristic suggestion fallback (filename + extracted text + category).
+  // Used whenever AI is unavailable, hasn't run yet, or the file type isn't
+  // one Gemini can classify.
+  const heuristicSuggestions = useMemo(() => {
     if (allTags.length === 0) return [];
     return suggestTagIds({
       tags: allTags,
@@ -154,6 +181,73 @@ export function DocumentEditForm({
       max: 3,
     });
   }, [allTags, document.name, extractedText, watchedCategory, tagScope]);
+
+  // For PDFs and images the cheap text endpoint returns nothing, so mirror the
+  // create dialog and ask the server-side Gemini path to classify the existing
+  // file. Repeat edits hit the shared, database-backed cache so we don't burn
+  // quota. Falls back silently to the heuristic scorer when AI is unavailable.
+  const documentMime = (document as any).mimeType as string | undefined;
+  const isAiSupportedFile =
+    !!documentMime && AI_EDIT_SUGGEST_PDF_AND_IMAGE_MIMES.has(documentMime);
+
+  const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
+  const [aiResponded, setAiResponded] = useState(false);
+  const [isFetchingAiTags, setIsFetchingAiTags] = useState(false);
+
+  useEffect(() => {
+    setAiSuggestions([]);
+    setAiResponded(false);
+    if (!isAiSupportedFile || allTags.length === 0) return;
+
+    const tagsForRequest = allTags
+      .filter((t) => (tagScope ? t.scope === tagScope || t.scope === 'any' : true))
+      .map((t) => ({ id: t.id, name: t.name, description: t.description ?? null }));
+    if (tagsForRequest.length === 0) return;
+
+    const controller = new AbortController();
+    setIsFetchingAiTags(true);
+
+    (async () => {
+      try {
+        // apiRequest throws on non-2xx, so a denied/missing response naturally
+        // falls through to the keyword scorer.
+        const response = await apiRequest(
+          'POST',
+          `/api/documents/${document.id}/suggest-tags`,
+          {
+            tags: tagsForRequest,
+            scope: tagScope,
+            category: watchedCategory,
+            max: 3,
+          },
+        );
+        if (controller.signal.aborted) return;
+        const data = (await response.json()) as DocumentEditAiTagResponse;
+        if (!data || !Array.isArray(data.tagIds)) return;
+        // Only treat AI-sourced answers as authoritative. Other sources
+        // (`unsupported_mime`, `unavailable`, `no_file`) leave the heuristic
+        // suggestions in place.
+        if (data.source !== 'ai') return;
+        setAiResponded(true);
+        setAiSuggestions(
+          data.tagIds.filter((x): x is string => typeof x === 'string'),
+        );
+      } catch (err) {
+        if (err instanceof DOMException && err.name === 'AbortError') return;
+        // Silent fallback — heuristic suggestions remain in effect.
+      } finally {
+        if (!controller.signal.aborted) setIsFetchingAiTags(false);
+      }
+    })();
+
+    return () => controller.abort();
+  }, [document.id, isAiSupportedFile, allTags, tagScope, watchedCategory]);
+
+  // Prefer AI-derived suggestions whenever Gemini actually answered (an empty
+  // array is a meaningful "no tag applies"). Otherwise fall back to the
+  // keyword scorer so legacy text/Office documents — and any case where AI is
+  // unavailable — still get useful hints.
+  const suggestedTags = aiResponded ? aiSuggestions : heuristicSuggestions;
 
   // Delete mutation
   const deleteMutation = useCreateUpdateMutation<unknown, void>({
@@ -310,7 +404,18 @@ export function DocumentEditForm({
             />
 
             <div className="space-y-2">
-              <Label>Étiquettes</Label>
+              <div className="flex items-center justify-between">
+                <Label>Étiquettes</Label>
+                {isFetchingAiTags && (
+                  <span
+                    className="text-xs text-muted-foreground flex items-center gap-1"
+                    data-testid="text-ai-tag-suggestion-loading"
+                  >
+                    <span className="animate-spin rounded-full h-3 w-3 border-b-2 border-current"></span>
+                    Analyse IA du document...
+                  </span>
+                )}
+              </div>
               <TagPicker
                 value={selectedTagIds}
                 onChange={setSelectedTagIds}

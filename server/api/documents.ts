@@ -4481,6 +4481,216 @@ export function registerDocumentRoutes(app: import('../utils/lazy-mount').RouteR
     }
   });
 
+  // Returns AI-generated tag suggestions for an existing document. The edit
+  // dialog calls this for PDFs and images (and any other AI-supported MIME
+  // types) where the cheap text-extraction path used by `/api/documents/:id/text`
+  // can't surface anything useful. We re-stream the file from object storage
+  // through Gemini once per (file content + tag set + context) tuple — repeat
+  // edits hit the shared, database-backed cache and skip the AI round-trip.
+  // Falls back gracefully (`source: 'unsupported_mime' | 'unavailable' | 'no_file'`)
+  // so the client can stick with the keyword scorer when AI isn't an option.
+  //
+  // Body: { tags: TagInput[], category?: string, scope?: 'building'|'residence', max?: number }
+  //   - `tags` is the candidate list scoped & filtered by the caller (mirrors
+  //     the upload endpoint's contract so the same cache key is reused for a
+  //     freshly-uploaded file).
+  app.post('/api/documents/:id/suggest-tags', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      const userRole = user.role;
+      const userId = user.id;
+      const documentId = req.params.id;
+
+      const tagInputSchema = z.object({
+        id: z.string().min(1),
+        name: z.string().min(1),
+        description: z.string().nullable().optional(),
+      });
+      const bodySchema = z.object({
+        tags: z.array(tagInputSchema).max(200),
+        category: z.string().optional(),
+        scope: z.enum(['building', 'residence']).optional(),
+        max: z.number().int().min(1).max(10).optional(),
+      });
+      const parsed = bodySchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({
+          success: false,
+          tagIds: [],
+          error: 'Invalid request data',
+          details: parsed.error.issues,
+        });
+      }
+      const tags = parsed.data.tags.map((t) => ({
+        id: t.id,
+        name: t.name,
+        description: t.description ?? null,
+      }));
+      const category = parsed.data.category;
+      const scope = parsed.data.scope;
+      const max = parsed.data.max ?? 3;
+
+      if (tags.length === 0) {
+        return res.json({ success: true, tagIds: [], source: 'ai' });
+      }
+
+      const organizations = await storage.getUserOrganizations(userId);
+      const organizationIds = organizations.map((org) => org.organizationId);
+      const document = await storage.getDocumentWithScope(
+        documentId,
+        userId,
+        userRole,
+        organizationIds
+      );
+      if (!document) {
+        return res.status(404).json({
+          success: false,
+          tagIds: [],
+          error: 'Document not found or access denied',
+        });
+      }
+
+      const mimeType = document.mimeType;
+      const filePath = document.filePath;
+
+      const { ConsolidatedAIService, aiService } = await import(
+        '../services/consolidated-ai-service'
+      );
+
+      // Bail out early when the file type isn't one Gemini can classify so the
+      // client switches to the keyword scorer instead of waiting for nothing.
+      if (
+        !mimeType ||
+        !ConsolidatedAIService.TAG_SUGGESTION_SUPPORTED_MIME_TYPES.includes(mimeType)
+      ) {
+        return res.json({
+          success: true,
+          tagIds: [],
+          source: 'unsupported_mime',
+          mimeType: mimeType ?? null,
+        });
+      }
+      if (!filePath) {
+        return res.json({
+          success: true,
+          tagIds: [],
+          source: 'no_file',
+          mimeType,
+        });
+      }
+
+      // Re-check object-level ACL to prevent path-rebinding attacks, mirroring
+      // what the /file and /text endpoints do.
+      if (filePath.startsWith('/objects/')) {
+        const aclAccess = await documentService.canUserAccessDocument(
+          userId,
+          userRole,
+          filePath
+        );
+        if (!aclAccess.allowed) {
+          return res.status(403).json({
+            success: false,
+            tagIds: [],
+            error: 'Access denied to file',
+          });
+        }
+      }
+
+      let buffer: Buffer;
+      try {
+        const { ObjectStorageService } = await import('../objectStorage');
+        const objectStorageService = new ObjectStorageService();
+        const normalizedPath = documentService.normalizePath(filePath);
+        const objectFile = await objectStorageService.getObjectEntityFile(normalizedPath);
+        const [downloaded] = await objectFile.download();
+        buffer = downloaded;
+      } catch (downloadError: any) {
+        // Treat any storage failure as "AI unavailable" so the edit dialog
+        // falls back to the keyword scorer instead of surfacing a scary error.
+        logWarn('[DOCUMENT SUGGEST-TAGS] Could not download file', {
+          metadata: { documentId, error: downloadError?.message },
+        });
+        return res.json({
+          success: false,
+          tagIds: [],
+          source: 'unavailable',
+          error: 'File unavailable for AI analysis',
+        });
+      }
+
+      const {
+        buildTagSuggestionCacheKey,
+        getCachedTagSuggestion,
+        setCachedTagSuggestion,
+      } = await import('./ai-document-analysis');
+
+      const cacheKey = buildTagSuggestionCacheKey(
+        buffer,
+        mimeType,
+        tags,
+        category,
+        scope,
+        max
+      );
+      const cachedTagIds = await getCachedTagSuggestion(cacheKey);
+      if (cachedTagIds) {
+        return res.json({
+          success: true,
+          tagIds: cachedTagIds,
+          source: 'ai',
+          cached: true,
+          metadata: {
+            documentId,
+            mimeType,
+            consideredTags: tags.length,
+          },
+        });
+      }
+
+      try {
+        const tagIds = await aiService.suggestDocumentTags(
+          buffer,
+          mimeType,
+          tags,
+          { category, scope },
+          max
+        );
+        await setCachedTagSuggestion(cacheKey, tagIds);
+        return res.json({
+          success: true,
+          tagIds,
+          source: 'ai',
+          cached: false,
+          metadata: {
+            documentId,
+            mimeType,
+            consideredTags: tags.length,
+          },
+        });
+      } catch (aiError) {
+        logWarn('[DOCUMENT SUGGEST-TAGS] AI suggestion unavailable', {
+          metadata: {
+            documentId,
+            error: aiError instanceof Error ? aiError.message : String(aiError),
+          },
+        });
+        return res.json({
+          success: false,
+          tagIds: [],
+          source: 'unavailable',
+          error: aiError instanceof Error ? aiError.message : 'AI unavailable',
+        });
+      }
+    } catch (error: any) {
+      logError('Error suggesting document tags', error);
+      res.status(500).json({
+        success: false,
+        tagIds: [],
+        error: 'Failed to suggest tags',
+      });
+    }
+  });
+
   // ===========================================================================
   // Document linking (date-based sequence with explicit overrides)
   // ===========================================================================
