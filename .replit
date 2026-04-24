@@ -116,3 +116,6 @@ timeoutMs = 180000
 
 [userenv.shared]
 MCP_OAUTH_ISSUER = "https://koveo-gestion.com"
+
+[userenv.production]
+ENABLE_MCP_SERVER = "true"
