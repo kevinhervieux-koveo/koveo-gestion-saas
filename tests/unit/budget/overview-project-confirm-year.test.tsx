@@ -33,7 +33,7 @@ jest.mock('@/lib/queryClient', () => ({
   getQueryFn: () => async () => null,
 }));
 
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 
 const MIN_YEAR = 2025;
 const MAX_YEAR = MIN_YEAR + 25;
@@ -72,6 +72,18 @@ function OverviewProjectList({ projects }: OverviewListProps) {
         const next = new Map(prev);
         next.delete(id);
         return next;
+      });
+      // Mirror the production wiring in
+      // `client/src/pages/dashboard/overview.tsx` — confirming a
+      // project's fiscal-year shift must invalidate both the project
+      // list and the budget forecast so the overview chart re-renders
+      // with the new server-side period without requiring the user to
+      // touch the filters.
+      queryClient.invalidateQueries({
+        queryKey: ['/api/maintenance/buildings'],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['/api/budgets/forecast'],
       });
     },
   });
@@ -211,5 +223,49 @@ describe('OverviewProjectCard — Confirm persists fiscal-year shift', () => {
     expect(
       screen.queryByTestId('button-overview-confirm-year-p1'),
     ).toBeNull();
+  });
+
+  it('invalidates the budget forecast query on confirm success so the overview chart refreshes', async () => {
+    // Spy on the shared queryClient that the production overview page
+    // uses to refresh server-backed queries on mutation success.
+    const invalidateSpy = jest.spyOn(queryClient, 'invalidateQueries');
+
+    try {
+      renderList([
+        {
+          id: 'p1',
+          title: 'Roof repair',
+          status: 'planned',
+          baseYear: 2026,
+          includeInBudget: true,
+        },
+      ]);
+
+      fireEvent.click(screen.getByTestId('button-overview-shift-next-p1'));
+      await waitFor(() =>
+        expect(screen.getByTestId('overview-fy-p1')).toHaveTextContent('2027'),
+      );
+
+      fireEvent.click(screen.getByTestId('button-overview-confirm-year-p1'));
+
+      // Wait for the PATCH to fire so we know the mutation reached its
+      // onSuccess handler.
+      await waitFor(() => expect(apiRequestMock).toHaveBeenCalledTimes(1));
+
+      // The maintenance project list AND the budget forecast must both
+      // be invalidated. Without the forecast invalidation the overview
+      // chart keeps showing the pre-confirm period until the user
+      // touches a filter — see Task #522.
+      await waitFor(() => {
+        expect(invalidateSpy).toHaveBeenCalledWith({
+          queryKey: ['/api/maintenance/buildings'],
+        });
+        expect(invalidateSpy).toHaveBeenCalledWith({
+          queryKey: ['/api/budgets/forecast'],
+        });
+      });
+    } finally {
+      invalidateSpy.mockRestore();
+    }
   });
 });

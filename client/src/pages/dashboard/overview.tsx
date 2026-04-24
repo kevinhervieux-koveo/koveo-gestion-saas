@@ -345,6 +345,13 @@ export default function FinancialOverview() {
         return next;
       });
       queryClient.invalidateQueries({ queryKey: ['/api/maintenance/buildings'] });
+      // The overview chart's `/api/budgets/forecast` query is keyed off the
+      // project list (via `projectQueries.map(q => q.dataUpdatedAt)`), but
+      // changing a project's `financialYear` also reshapes the server-side
+      // forecast even when the project list is otherwise identical. Force
+      // the chart to refetch immediately so the user sees the new period
+      // without having to touch the filters.
+      queryClient.invalidateQueries({ queryKey: ['/api/budgets/forecast'] });
       toast({
         title: language === 'fr' ? 'Période mise à jour' : 'Period updated',
       });
