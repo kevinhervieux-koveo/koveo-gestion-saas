@@ -97,6 +97,8 @@ export async function registerMcpRoutes(app: Express) {
   if (process.env.NODE_ENV !== "production") {
     await seedMcpData();
   } else if (process.env.MCP_SEED_PRODUCTION === "true") {
+    // One-time, opt-in production seed: keep this visible so operators can
+    // confirm via deploy logs that the sandbox seed actually ran.
     console.log("[MCP SEED] MCP_SEED_PRODUCTION=true detected — running production sandbox seed (idempotent).");
     try {
       await seedMcpData();
@@ -106,9 +108,9 @@ export async function registerMcpRoutes(app: Express) {
       console.error("[MCP SEED] Production sandbox seed failed:", message, stack ?? "");
       throw error;
     }
-  } else {
-    console.log("[MCP SEED] Production environment: sandbox seeding disabled. Set MCP_SEED_PRODUCTION=true on a deploy to seed once.");
   }
+  // Production-default branch (seeding disabled) intentionally silent — there is
+  // no operator action needed and the message just clutters every cold start.
 
   const issuerOrigin = resolveIssuerOrigin();
   const issuerUrl = new URL(issuerOrigin);
@@ -311,5 +313,7 @@ export async function registerMcpRoutes(app: Express) {
   }, 60 * 60 * 1000);
   sweep.unref?.();
 
-  console.log(`[MCP] OAuth-protected MCP server registered at /mcp (issuer=${issuerOrigin})`);
+  if (process.env.NODE_ENV !== "production") {
+    console.log(`[MCP] OAuth-protected MCP server registered at /mcp (issuer=${issuerOrigin})`);
+  }
 }

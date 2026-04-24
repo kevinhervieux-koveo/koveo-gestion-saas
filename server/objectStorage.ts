@@ -12,6 +12,8 @@ import {
 
 const REPLIT_SIDECAR_ENDPOINT = "http://127.0.0.1:1106";
 
+const isDev = process.env.NODE_ENV !== "production";
+
 // The object storage client is used to interact with the object storage service
 export const objectStorageClient = new Storage({
   credentials: {
@@ -364,7 +366,9 @@ export class ObjectStorageService {
   // Deletes an object from storage
   async deleteObject(filePath: string): Promise<boolean> {
     try {
-      console.log(`🗑️ [OBJECT_STORAGE] Attempting to delete object: ${filePath}`);
+      if (isDev) {
+        console.log(`🗑️ [OBJECT_STORAGE] Attempting to delete object: ${filePath}`);
+      }
       
       // Handle paths starting with /objects/
       let objectPath = filePath;
@@ -397,7 +401,9 @@ export class ObjectStorageService {
 
       // Delete the file
       await file.delete();
-      console.log(`✅ [OBJECT_STORAGE] Successfully deleted object: ${filePath}`);
+      if (isDev) {
+        console.log(`✅ [OBJECT_STORAGE] Successfully deleted object: ${filePath}`);
+      }
       return true;
     } catch (error: any) {
       console.error(`❌ [OBJECT_STORAGE] Error deleting object: ${filePath}`, error);
