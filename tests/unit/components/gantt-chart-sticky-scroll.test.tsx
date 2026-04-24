@@ -115,4 +115,39 @@ describe('GanttChart horizontal scrolling layout', () => {
       expect(labels).toHaveTextContent(project.title);
     }
   });
+
+  describe('today indicator', () => {
+    let nowSpy: jest.SpiedFunction<typeof Date.now> | undefined;
+
+    afterEach(() => {
+      nowSpy?.mockRestore();
+      nowSpy = undefined;
+    });
+
+    it('renders the dashed today line and "Today" pill when today falls inside the date range', () => {
+      // Pick a "now" that sits squarely inside the chart's 2026-01-01 → 2027-12-31 window.
+      const insideRange = new Date('2026-07-01T12:00:00Z').getTime();
+      nowSpy = jest.spyOn(Date, 'now').mockReturnValue(insideRange);
+
+      render(<GanttChart projects={projects} dateRange={dateRange} language="en" />);
+
+      const pill = screen.getByTestId('gantt-today-pill');
+      const line = screen.getByTestId('gantt-today-line');
+      expect(pill).toBeInTheDocument();
+      expect(line).toBeInTheDocument();
+      // Pill should display the localized "today" label.
+      expect(pill).toHaveTextContent('today');
+    });
+
+    it('hides the today line and pill when today falls outside the date range', () => {
+      // "Now" is years before the chart range, so the indicator must be suppressed.
+      const outsideRange = new Date('1999-01-01T12:00:00Z').getTime();
+      nowSpy = jest.spyOn(Date, 'now').mockReturnValue(outsideRange);
+
+      render(<GanttChart projects={projects} dateRange={dateRange} language="en" />);
+
+      expect(screen.queryByTestId('gantt-today-pill')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('gantt-today-line')).not.toBeInTheDocument();
+    });
+  });
 });
