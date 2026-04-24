@@ -753,12 +753,9 @@ export function registerBudgetTools(server: McpServer, deps: BudgetToolDeps): vo
         });
 
         // Delegate to PUT /api/budgets/:buildingId/investments so the row
-        // construction lives in one place. The PUT handler deletes all
-        // type='custom' rows and reinserts the array — so we read the
-        // existing custom investments first, append the new entry, and let
-        // the handler persist the full set. Note: this regenerates the ids
-        // of any other custom investments for this building, mirroring the
-        // budget UI's bulk-save behavior.
+        // construction lives in one place. The PUT handler upserts by id
+        // (Task #526), so existing custom investments keep their database
+        // ids and only the appended entry is freshly inserted.
         const listResp = await invokeRouteHandler(investmentsGetHandler, {
           params: { buildingId },
         });
@@ -858,6 +855,10 @@ export function registerBudgetTools(server: McpServer, deps: BudgetToolDeps): vo
       if (role === "tenant")
         return accessDenied("Access denied: tenants cannot update capital investments");
       const orgIds = await getMcpOrgIds();
+      // Look up the investment so we can validate scope and the row type
+      // (auto-generated investments must not be mutated through MCP). The
+      // actual write goes through the canonical PUT handler below so id
+      // stability and the row construction stay in one place.
       const [investment] = await db
         .select()
         .from(schema.capitalInvestments)
@@ -870,23 +871,65 @@ export function registerBudgetTools(server: McpServer, deps: BudgetToolDeps): vo
       const building = await loadScopedBuilding(investment.buildingId, orgIds);
       if (!building) return accessDenied("Investment is not in an MCP-scoped building");
       try {
-        const updates: Partial<typeof schema.capitalInvestments.$inferInsert> = {
-          updatedAt: new Date(),
+        // Read every custom investment for the building, mutate the matching
+        // row in memory while preserving its database id, then echo the full
+        // list back to the canonical PUT handler. The handler upserts by id
+        // so the row keeps its original primary key after the save.
+        const listResp = await invokeRouteHandler(investmentsGetHandler, {
+          params: { buildingId: investment.buildingId },
+        });
+        if (listResp.status >= 400) {
+          return buildWriteErrorResponse(
+            new Error(payloadErrorMessage(listResp.payload)),
+            "capital investment",
+            "update",
+          );
+        }
+        const existing = Array.isArray(listResp.payload)
+          ? (listResp.payload as Array<Record<string, unknown>>)
+          : [];
+        const customRows = existing.filter((r) => r.type === "custom");
+        const target = customRows.find((r) => r.id === investmentId);
+        if (!target) return accessDenied(`Capital investment not found: ${investmentId}`);
+
+        const updatedRow: Record<string, unknown> = {
+          ...target,
+          ...(title !== undefined ? { title } : {}),
+          ...(amount !== undefined ? { amount } : {}),
+          ...(targetDate !== undefined ? { targetDate } : {}),
+          ...(urgency !== undefined ? { urgency } : {}),
+          ...(ownershipType !== undefined ? { ownershipType } : {}),
+          ...(description !== undefined ? { description } : {}),
+          ...(category !== undefined ? { category } : {}),
         };
-        if (title !== undefined) updates.title = title;
-        if (amount !== undefined) updates.amount = amount.toString();
-        if (targetDate !== undefined) updates.targetDate = targetDate;
-        if (urgency !== undefined) updates.urgency = urgency;
-        if (ownershipType !== undefined) updates.ownershipType = ownershipType;
-        if (description !== undefined) updates.description = description;
-        if (category !== undefined) updates.category = category;
-        const [updated] = await withRetryableDbCall(() =>
-          db
-            .update(schema.capitalInvestments)
-            .set(updates)
-            .where(eq(schema.capitalInvestments.id, investmentId))
-            .returning(),
+        const nextRows = customRows.map((r) =>
+          r.id === investmentId ? updatedRow : r,
         );
+
+        const putResp = await withRetryableDbCall(() =>
+          invokeRouteHandler(investmentsPutHandler, {
+            params: { buildingId: investment.buildingId },
+            body: { investments: nextRows },
+          }),
+        );
+        if (putResp.status >= 400) {
+          return buildWriteErrorResponse(
+            new Error(payloadErrorMessage(putResp.payload)),
+            "capital investment",
+            "update",
+          );
+        }
+
+        // Re-read so the response reflects the canonical post-save row,
+        // including any DB-side coercions (decimals stringified, dates as
+        // ISO strings, refreshed updatedAt timestamp).
+        const afterResp = await invokeRouteHandler(investmentsGetHandler, {
+          params: { buildingId: investment.buildingId },
+        });
+        const afterRows = Array.isArray(afterResp.payload)
+          ? (afterResp.payload as Array<Record<string, unknown>>)
+          : [];
+        const updated = afterRows.find((r) => r.id === investmentId) ?? updatedRow;
         return ok(updated);
       } catch (e) {
         console.error("[mcp:update_capital_investment]", e);
@@ -906,6 +949,9 @@ export function registerBudgetTools(server: McpServer, deps: BudgetToolDeps): vo
       if (role === "tenant")
         return accessDenied("Access denied: tenants cannot delete capital investments");
       const orgIds = await getMcpOrgIds();
+      // Same scope/type validation pattern as update_capital_investment — the
+      // actual delete is performed by the canonical PUT handler so other
+      // custom investments keep their ids.
       const [investment] = await db
         .select()
         .from(schema.capitalInvestments)
@@ -918,11 +964,38 @@ export function registerBudgetTools(server: McpServer, deps: BudgetToolDeps): vo
       const building = await loadScopedBuilding(investment.buildingId, orgIds);
       if (!building) return accessDenied("Investment is not in an MCP-scoped building");
       try {
-        await withRetryableDbCall(() =>
-          db
-            .delete(schema.capitalInvestments)
-            .where(eq(schema.capitalInvestments.id, investmentId)),
+        const listResp = await invokeRouteHandler(investmentsGetHandler, {
+          params: { buildingId: investment.buildingId },
+        });
+        if (listResp.status >= 400) {
+          return buildWriteErrorResponse(
+            new Error(payloadErrorMessage(listResp.payload)),
+            "capital investment",
+            "delete",
+          );
+        }
+        const existing = Array.isArray(listResp.payload)
+          ? (listResp.payload as Array<Record<string, unknown>>)
+          : [];
+        const customRows = existing.filter((r) => r.type === "custom");
+        if (!customRows.some((r) => r.id === investmentId)) {
+          return accessDenied(`Capital investment not found: ${investmentId}`);
+        }
+        const remaining = customRows.filter((r) => r.id !== investmentId);
+
+        const putResp = await withRetryableDbCall(() =>
+          invokeRouteHandler(investmentsPutHandler, {
+            params: { buildingId: investment.buildingId },
+            body: { investments: remaining },
+          }),
         );
+        if (putResp.status >= 400) {
+          return buildWriteErrorResponse(
+            new Error(payloadErrorMessage(putResp.payload)),
+            "capital investment",
+            "delete",
+          );
+        }
         return ok({ status: "ok", deletedId: investmentId });
       } catch (e) {
         console.error("[mcp:delete_capital_investment]", e);

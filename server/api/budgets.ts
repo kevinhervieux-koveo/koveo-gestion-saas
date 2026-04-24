@@ -2108,12 +2108,19 @@ router.get('/:buildingId/investments', requireAuth, investmentsGetHandler);
 /**
  * PUT /api/budgets/:buildingId/investments - Save capital investments for a building.
  * Exported so MCP tools can invoke the same logic via invokeRouteHandler.
+ *
+ * Preserves the database `id` of every existing custom investment whose `id`
+ * appears in the incoming list (Task #526). This lets MCP tools — and any
+ * other automation that holds onto an investment id between calls — keep
+ * referencing the same row after the budget UI saves. Rows whose ids are
+ * dropped from the payload are removed; entries without a matching id are
+ * inserted as new rows. Auto-generated investments are never touched.
  */
 export const investmentsPutHandler: express.RequestHandler = async (req, res) => {
   try {
     const { buildingId } = req.params;
     const { investments } = req.body;
-    
+
     debugLog('PUT /:buildingId/investments', { 
       buildingId, 
       count: investments?.length || 0,
@@ -2135,44 +2142,101 @@ export const investmentsPutHandler: express.RequestHandler = async (req, res) =>
       return res.status(400).json({ _error: 'Investments must be an array' });
     }
 
-    // Delete existing custom investments for this building (keep auto-generated)
-    await db
-      .delete(capitalInvestments)
+    // Read the ids of the existing custom investments so we can diff the
+    // payload against what's already persisted instead of replacing the whole
+    // set on every save.
+    const existingCustomRows = await db
+      .select({ id: capitalInvestments.id })
+      .from(capitalInvestments)
       .where(
         and(
           eq(capitalInvestments.buildingId, buildingId),
           eq(capitalInvestments.type, 'custom')
         )
       );
+    const existingIds = new Set(existingCustomRows.map((r) => r.id));
 
-    // Insert new custom investments
-    if (investments.length > 0) {
-      const validatedInvestments = investments.map((investment: any) => {
-        const validated = insertCapitalInvestmentSchema.parse({
-          ...investment,
-          buildingId,
-          type: 'custom', // Ensure type is set for custom investments
-        });
-        // Convert fields to proper database types - explicitly construct to satisfy TypeScript
-        return {
-          type: 'custom' as const,
-          buildingId: validated.buildingId,
-          title: validated.title,
-          urgency: validated.urgency,
-          ownershipType: validated.ownershipType,
-          amount: validated.amount.toString(),
-          targetDate: validated.targetDate.toISOString().split('T')[0],
-          description: validated.description,
-          category: validated.category,
-        };
+    type RowValues = {
+      type: 'custom';
+      buildingId: string;
+      title: string;
+      urgency: 'not_urgent' | 'urgent' | 'suggested';
+      ownershipType: 'residences' | 'owner';
+      amount: string;
+      targetDate: string;
+      description: string | null | undefined;
+      category: string | null | undefined;
+    };
+
+    const incomingIds = new Set<string>();
+    const toUpdate: Array<{ id: string; values: RowValues }> = [];
+    const toInsert: RowValues[] = [];
+
+    for (const investment of investments as Array<Record<string, unknown>>) {
+      const validated = insertCapitalInvestmentSchema.parse({
+        ...investment,
+        buildingId,
+        type: 'custom', // Ensure type is set for custom investments
       });
+      const values: RowValues = {
+        type: 'custom' as const,
+        buildingId: validated.buildingId,
+        title: validated.title,
+        urgency: validated.urgency,
+        ownershipType: validated.ownershipType,
+        amount: validated.amount.toString(),
+        targetDate: validated.targetDate.toISOString().split('T')[0],
+        description: validated.description,
+        category: validated.category,
+      };
 
-      await db.insert(capitalInvestments).values(validatedInvestments);
+      const candidateId = typeof investment.id === 'string' ? investment.id : undefined;
+      if (candidateId && existingIds.has(candidateId) && !incomingIds.has(candidateId)) {
+        // Existing row — preserve the id and update in place.
+        incomingIds.add(candidateId);
+        toUpdate.push({ id: candidateId, values });
+      } else {
+        // No id, unknown id, or duplicate id in the payload — treat as new.
+        // The DB will assign a fresh UUID via the column default.
+        toInsert.push(values);
+      }
+    }
+
+    // Only delete the existing custom rows that the client dropped from the
+    // payload — auto-generated rows are filtered out by the type predicate.
+    const idsToDelete = [...existingIds].filter((id) => !incomingIds.has(id));
+    if (idsToDelete.length > 0) {
+      await db
+        .delete(capitalInvestments)
+        .where(
+          and(
+            eq(capitalInvestments.buildingId, buildingId),
+            eq(capitalInvestments.type, 'custom'),
+            inArray(capitalInvestments.id, idsToDelete)
+          )
+        );
+    }
+
+    // Update existing rows in place so consumers can keep referencing the
+    // same database id after a save.
+    for (const { id, values } of toUpdate) {
+      await db
+        .update(capitalInvestments)
+        .set({ ...values, updatedAt: new Date() })
+        .where(eq(capitalInvestments.id, id));
+    }
+
+    // Insert any net-new entries.
+    if (toInsert.length > 0) {
+      await db.insert(capitalInvestments).values(toInsert);
     }
 
     debugLog('PUT /:buildingId/investments - Success', { 
       buildingId, 
       savedCount: investments.length,
+      updatedCount: toUpdate.length,
+      insertedCount: toInsert.length,
+      deletedCount: idsToDelete.length,
       timestamp: new Date().toISOString() 
     });
 
