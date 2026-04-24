@@ -94,7 +94,10 @@ import ModularDocumentPageWrapper from '@/components/common/ModularDocumentPageW
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const wouter = require('wouter');
 
-const ENTITY_ID = 'building-fixture-id';
+const BUILDING_ID = 'building-fixture-id';
+const RESIDENCE_ID = 'residence-fixture-id';
+// Backwards-compatible alias used by the building-variant tests below.
+const ENTITY_ID = BUILDING_ID;
 
 interface DocFixture {
   id: string;
@@ -167,8 +170,12 @@ const fetchMock = jest.fn(
       });
     }
 
-    if (pathname === `/api/manager/buildings/${ENTITY_ID}`) {
-      return buildJsonResponse({ id: ENTITY_ID, name: 'Test Building' });
+    if (pathname === `/api/manager/buildings/${BUILDING_ID}`) {
+      return buildJsonResponse({ id: BUILDING_ID, name: 'Test Building' });
+    }
+
+    if (pathname === `/api/residences/${RESIDENCE_ID}`) {
+      return buildJsonResponse({ id: RESIDENCE_ID, name: 'Test Residence' });
     }
 
     if (pathname === '/api/documents') {
@@ -229,6 +236,23 @@ function renderWrapper() {
         userRole="manager"
         backPath="/back"
         entityIdParam="id"
+      />
+    </QueryClientProvider>,
+  );
+}
+
+function renderResidenceWrapper() {
+  wouter.__setLocation('/manager/residences/' + RESIDENCE_ID + '/documents');
+  wouter.__setParams({ residenceId: RESIDENCE_ID });
+
+  const qc = makeQueryClient();
+  return render(
+    <QueryClientProvider client={qc}>
+      <ModularDocumentPageWrapper
+        type="residence"
+        userRole="manager"
+        backPath="/back"
+        entityIdParam="residenceId"
       />
     </QueryClientProvider>,
   );
@@ -385,5 +409,175 @@ describe('ModularDocumentPageWrapper — URL filter persistence (Task #326)', ()
     });
 
     expect(window.history.length).toBe(startLength);
+  }, 10000);
+});
+
+/**
+ * Task #531 — The residence variant of the wrapper hits a different entity
+ * API path (`/api/residences/:id`) and a different documents-list parameter
+ * (`residenceId` instead of `buildingId`). The URL-filter persistence wiring
+ * lives in shared code, but a building-only test would silently miss
+ * residence-side regressions, so we exercise the same round-trip on the
+ * residence variant.
+ */
+describe('ModularDocumentPageWrapper — URL filter persistence on the residence variant (Task #531)', () => {
+  let originalFetch: typeof fetch | undefined;
+
+  beforeEach(() => {
+    originalFetch = global.fetch;
+    global.fetch = fetchMock as unknown as typeof fetch;
+    fetchMock.mockClear();
+    mockToast.mockClear();
+    wouter.__resetMocks();
+    window.history.replaceState(null, '', '/');
+  });
+
+  afterEach(() => {
+    cleanup();
+    if (originalFetch) {
+      global.fetch = originalFetch;
+    }
+    window.history.replaceState(null, '', '/');
+  });
+
+  it('rehydrates filter state from URL search params on mount', async () => {
+    window.history.replaceState(
+      null,
+      '',
+      '/?search=Legal&category=legal&year=2025&month=3&isManagerOnly=true',
+    );
+
+    renderResidenceWrapper();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('input-search-documents')).toHaveValue('Legal');
+      expect(
+        screen.getByTestId('checkbox-filter-manager-only'),
+      ).toBeInTheDocument();
+    });
+
+    expect(
+      screen.getByTestId('checkbox-filter-manager-only'),
+    ).toHaveAttribute('aria-checked', 'true');
+
+    await waitFor(() => {
+      expect(screen.getByTestId('doc-title-doc-legal-2025')).toBeInTheDocument();
+      expect(
+        screen.queryByTestId('doc-title-doc-legal-2024'),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByTestId('doc-title-doc-financial-2025'),
+      ).not.toBeInTheDocument();
+    });
+
+    // The residence variant must request documents scoped by residenceId
+    // and forward the rehydrated `isManagerOnly=true` filter.
+    const docCalls = fetchMock.mock.calls
+      .map(([url]) => String(url))
+      .filter((u) => u.startsWith('/api/documents?'));
+    expect(docCalls.length).toBeGreaterThan(0);
+    expect(
+      docCalls.some(
+        (u) =>
+          u.includes(`residenceId=${RESIDENCE_ID}`) &&
+          u.includes('isManagerOnly=true'),
+      ),
+    ).toBe(true);
+  }, 10000);
+
+  it('writes filter changes back into the URL with replaceState', async () => {
+    renderResidenceWrapper();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('input-search-documents')).toBeInTheDocument();
+    });
+
+    fireEvent.change(screen.getByTestId('input-search-documents'), {
+      target: { value: 'Legal' },
+    });
+
+    await waitFor(() => {
+      const sp = new URLSearchParams(window.location.search);
+      expect(sp.get('search')).toBe('Legal');
+    });
+
+    // Toggle the manager-only checkbox (gated by `isManager`, which the
+    // mocked `/api/auth/user` response satisfies).
+    fireEvent.click(screen.getByTestId('checkbox-filter-manager-only'));
+
+    await waitFor(() => {
+      const sp = new URLSearchParams(window.location.search);
+      expect(sp.get('isManagerOnly')).toBe('true');
+      expect(sp.get('search')).toBe('Legal');
+    });
+  }, 10000);
+
+  it('round-trips category, year and month through the URL', async () => {
+    window.history.replaceState(
+      null,
+      '',
+      '/?category=financial&year=2025&month=8',
+    );
+
+    renderResidenceWrapper();
+
+    await waitFor(() => {
+      // Only the financial-2025 document survives the rehydrated filters.
+      expect(
+        screen.getByTestId('doc-title-doc-financial-2025'),
+      ).toBeInTheDocument();
+      expect(
+        screen.queryByTestId('doc-title-doc-legal-2025'),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByTestId('doc-title-doc-legal-2024'),
+      ).not.toBeInTheDocument();
+    });
+
+    // Clearing should drop every filter param from the URL.
+    fireEvent.click(screen.getByTestId('button-clear-filters'));
+
+    await waitFor(() => {
+      const sp = new URLSearchParams(window.location.search);
+      expect(sp.get('search')).toBeNull();
+      expect(sp.get('category')).toBeNull();
+      expect(sp.get('year')).toBeNull();
+      expect(sp.get('month')).toBeNull();
+      expect(sp.get('isManagerOnly')).toBeNull();
+    });
+  }, 10000);
+
+  it('preserves the residence-id query parameter when filters change', async () => {
+    // Simulate a deep link that carries the residence id in the query
+    // string (the wrapper accepts the entity id from either the path
+    // params or the URL search params). This guards against a regression
+    // where the URL-sync effect would clobber the residence id.
+    window.history.replaceState(null, '', `/?residenceId=${RESIDENCE_ID}`);
+
+    renderResidenceWrapper();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('input-search-documents')).toBeInTheDocument();
+    });
+
+    fireEvent.change(screen.getByTestId('input-search-documents'), {
+      target: { value: 'invoices' },
+    });
+
+    await waitFor(() => {
+      const sp = new URLSearchParams(window.location.search);
+      expect(sp.get('search')).toBe('invoices');
+      expect(sp.get('residenceId')).toBe(RESIDENCE_ID);
+    });
+
+    // Toggling the manager-only checkbox must also leave residenceId in place.
+    fireEvent.click(screen.getByTestId('checkbox-filter-manager-only'));
+
+    await waitFor(() => {
+      const sp = new URLSearchParams(window.location.search);
+      expect(sp.get('isManagerOnly')).toBe('true');
+      expect(sp.get('residenceId')).toBe(RESIDENCE_ID);
+      expect(sp.get('search')).toBe('invoices');
+    });
   }, 10000);
 });
