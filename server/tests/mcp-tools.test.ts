@@ -1547,58 +1547,61 @@ describe('MCP Server', () => {
       });
     });
 
-    it('denies tenants before any DB read', async () => {
+    it('denies tenants', async () => {
+      // The handler reads the MCP-scoped orgs, the common space, and its
+      // building before calling `authorizeDeleteInMcpScope`, so we must
+      // seed those reads even for a tenant — the role check happens after
+      // them (centralized in the shared helper).
+      mockSelectChain.where
+        .mockImplementationOnce(() => createWhereResult([{ id: 'org-1' }]))
+        .mockImplementationOnce(() =>
+          createWhereResult([{ id: 'cs-1', buildingId: 'b-1' }]),
+        )
+        .mockImplementationOnce(() => createWhereResult([{ organizationId: 'org-1' }]));
       const handler = getToolHandler(server, 'delete_common_space');
       const result = await handler({ role: 'tenant', spaceId: 'cs-1' }, {});
       expect(parseToolResponse(result)).toBe(
         'Access denied: tenants cannot delete common spaces',
       );
-      // Tenant is rejected before authorizeSpaceAccess runs.
+      // Tool now goes through the shared helper, not authorizeSpaceAccess.
       expect(commonSpaceRules.loadCommonSpaceForBookingChecks).not.toHaveBeenCalled();
       expect(deleteCalls).toEqual([]);
     });
 
     it('returns "Common space not found" when the space does not exist', async () => {
-      (commonSpaceRules.loadCommonSpaceForBookingChecks as jest.Mock).mockResolvedValue(null);
+      mockSelectChain.where
+        .mockImplementationOnce(() => createWhereResult([{ id: 'org-1' }])) // getMcpOrgIds
+        .mockImplementationOnce(() => createWhereResult([])); // commonSpaces lookup → empty
       const handler = getToolHandler(server, 'delete_common_space');
       const result = await handler({ role: 'admin', spaceId: 'missing' }, {});
-      expect(parseToolResponse(result)).toBe('Common space not found');
+      expect(parseToolResponse(result)).toContain('Common space not found: missing');
       expect(deleteCalls).toEqual([]);
     });
 
-    it('denies access when the space is in a building outside MCP scope', async () => {
-      (commonSpaceRules.loadCommonSpaceForBookingChecks as jest.Mock).mockResolvedValue({
-        id: 'cs-1',
-        name: 'Pool',
-        buildingId: 'b-other',
-        isReservable: true,
-        openingHours: null,
-      });
-      // authorizeSpaceAccess: getMcpUser → getMcpAccessibleBuildingIds(getMcpUser, getMcpOrgIds, allActiveBuildings)
+    it('denies access when the space is attached to a building outside MCP scope', async () => {
       mockSelectChain.where
-        .mockImplementationOnce(() => createWhereResult([{ id: 'u-1', role: 'admin' }])) // getMcpUser
-        .mockImplementationOnce(() => createWhereResult([{ id: 'u-1', role: 'admin' }])) // getMcpUser inside getMcpAccessibleBuildingIds
         .mockImplementationOnce(() => createWhereResult([{ id: 'org-1' }])) // getMcpOrgIds
-        .mockImplementationOnce(() => createWhereResult([{ buildingId: 'b-1' }])); // allActiveBuildings (admin)
+        .mockImplementationOnce(() =>
+          createWhereResult([{ id: 'cs-1', buildingId: 'b-other' }]),
+        )
+        .mockImplementationOnce(() =>
+          createWhereResult([{ organizationId: 'other-org' }]),
+        );
       const handler = getToolHandler(server, 'delete_common_space');
       const result = await handler({ role: 'admin', spaceId: 'cs-1' }, {});
-      expect(parseToolResponse(result)).toContain('do not have access to the building');
+      expect(parseToolResponse(result)).toBe(
+        'Access denied: common space is not attached to an MCP-scoped building',
+      );
       expect(deleteCalls).toEqual([]);
     });
 
     it('refuses to delete when a confirmed future booking exists', async () => {
-      (commonSpaceRules.loadCommonSpaceForBookingChecks as jest.Mock).mockResolvedValue({
-        id: 'cs-1',
-        name: 'Pool',
-        buildingId: 'b-1',
-        isReservable: true,
-        openingHours: null,
-      });
       mockSelectChain.where
-        .mockImplementationOnce(() => createWhereResult([{ id: 'u-1', role: 'admin' }]))
-        .mockImplementationOnce(() => createWhereResult([{ id: 'u-1', role: 'admin' }]))
-        .mockImplementationOnce(() => createWhereResult([{ id: 'org-1' }]))
-        .mockImplementationOnce(() => createWhereResult([{ buildingId: 'b-1' }]))
+        .mockImplementationOnce(() => createWhereResult([{ id: 'org-1' }])) // getMcpOrgIds
+        .mockImplementationOnce(() =>
+          createWhereResult([{ id: 'cs-1', buildingId: 'b-1' }]),
+        )
+        .mockImplementationOnce(() => createWhereResult([{ organizationId: 'org-1' }]))
         .mockImplementationOnce(() => createWhereResult([{ id: 'booking-future' }])); // future booking found
       const handler = getToolHandler(server, 'delete_common_space');
       const result = await handler({ role: 'admin', spaceId: 'cs-1' }, {});
@@ -1608,18 +1611,12 @@ describe('MCP Server', () => {
     });
 
     it('deletes a common space inside MCP scope as admin and returns the deleted/message shape', async () => {
-      (commonSpaceRules.loadCommonSpaceForBookingChecks as jest.Mock).mockResolvedValue({
-        id: 'cs-1',
-        name: 'Pool',
-        buildingId: 'b-1',
-        isReservable: true,
-        openingHours: null,
-      });
       mockSelectChain.where
-        .mockImplementationOnce(() => createWhereResult([{ id: 'u-1', role: 'admin' }]))
-        .mockImplementationOnce(() => createWhereResult([{ id: 'u-1', role: 'admin' }]))
-        .mockImplementationOnce(() => createWhereResult([{ id: 'org-1' }]))
-        .mockImplementationOnce(() => createWhereResult([{ buildingId: 'b-1' }]))
+        .mockImplementationOnce(() => createWhereResult([{ id: 'org-1' }])) // getMcpOrgIds
+        .mockImplementationOnce(() =>
+          createWhereResult([{ id: 'cs-1', buildingId: 'b-1' }]),
+        )
+        .mockImplementationOnce(() => createWhereResult([{ organizationId: 'org-1' }]))
         .mockImplementationOnce(() => createWhereResult([])); // no future bookings
       returningRows = [{ id: 'cs-1', name: 'Pool' }];
 
@@ -1636,19 +1633,13 @@ describe('MCP Server', () => {
     });
 
     it('returns a readable failure message when the delete throws', async () => {
-      (commonSpaceRules.loadCommonSpaceForBookingChecks as jest.Mock).mockResolvedValue({
-        id: 'cs-1',
-        name: 'Pool',
-        buildingId: 'b-1',
-        isReservable: true,
-        openingHours: null,
-      });
       mockSelectChain.where
-        .mockImplementationOnce(() => createWhereResult([{ id: 'u-1', role: 'admin' }]))
-        .mockImplementationOnce(() => createWhereResult([{ id: 'u-1', role: 'admin' }]))
-        .mockImplementationOnce(() => createWhereResult([{ id: 'org-1' }]))
-        .mockImplementationOnce(() => createWhereResult([{ buildingId: 'b-1' }]))
-        .mockImplementationOnce(() => createWhereResult([]));
+        .mockImplementationOnce(() => createWhereResult([{ id: 'org-1' }])) // getMcpOrgIds
+        .mockImplementationOnce(() =>
+          createWhereResult([{ id: 'cs-1', buildingId: 'b-1' }]),
+        )
+        .mockImplementationOnce(() => createWhereResult([{ organizationId: 'org-1' }]))
+        .mockImplementationOnce(() => createWhereResult([])); // no future bookings
       deleteError = new Error(
         'update or delete on table "common_spaces" violates foreign key constraint',
       );
@@ -1683,7 +1674,17 @@ describe('MCP Server', () => {
       });
     });
 
-    it('denies tenants before any DB read', async () => {
+    it('denies tenants', async () => {
+      // The handler reads the MCP-scoped orgs, the inventory element, and
+      // its building before calling `authorizeDeleteInMcpScope`, so we
+      // must seed those reads even for a tenant — the role check happens
+      // after them (centralized in the shared helper).
+      mockSelectChain.where
+        .mockImplementationOnce(() => createWhereResult([{ id: 'org-1' }]))
+        .mockImplementationOnce(() =>
+          createWhereResult([{ id: 'be-1', buildingId: 'b-1' }]),
+        )
+        .mockImplementationOnce(() => createWhereResult([{ organizationId: 'org-1' }]));
       const handler = getToolHandler(server, 'delete_inventory_element');
       const result = await handler({ role: 'tenant', elementId: 'be-1' }, {});
       expect(parseToolResponse(result)).toBe(

@@ -276,17 +276,32 @@ export function wrapHandlerWithRoleEnforcement<H extends (a: Record<string, unkn
  */
 export function authorizeDeleteInMcpScope(params: {
   role: McpRole;
-  entityKind: 'building' | 'bill' | 'residence' | 'project';
+  entityKind: 'building' | 'bill' | 'residence' | 'project' | 'common_space' | 'inventory_element';
   entityId: string;
   entity: { exists: boolean; organizationId?: string | null };
   mcpOrgIds: string[];
 }): { ok: true } | { ok: false; response: { content: Array<{ type: 'text'; text: string }> } } {
-  const labelMap = { building: 'Building', bill: 'Bill', residence: 'Residence', project: 'Project' } as const;
+  const labelMap = {
+    building: 'Building',
+    bill: 'Bill',
+    residence: 'Residence',
+    project: 'Project',
+    common_space: 'Common space',
+    inventory_element: 'Inventory element',
+  } as const;
+  const pluralWordMap = {
+    building: 'buildings',
+    bill: 'bills',
+    residence: 'residences',
+    project: 'projects',
+    common_space: 'common spaces',
+    inventory_element: 'inventory elements',
+  } as const;
   const label = labelMap[params.entityKind];
   if (params.role === 'tenant') {
     return {
       ok: false,
-      response: { content: [{ type: 'text' as const, text: `Access denied: tenants cannot delete ${params.entityKind}s` }] },
+      response: { content: [{ type: 'text' as const, text: `Access denied: tenants cannot delete ${pluralWordMap[params.entityKind]}` }] },
     };
   }
   if (!params.entity.exists) {
@@ -301,6 +316,8 @@ export function authorizeDeleteInMcpScope(params: {
       bill: 'Access denied: bill is not attached to an MCP-scoped building',
       residence: 'Access denied: residence is not in an MCP-scoped organization',
       project: 'Access denied: project is not attached to an MCP-scoped building',
+      common_space: 'Access denied: common space is not attached to an MCP-scoped building',
+      inventory_element: 'Access denied: inventory element is not in an MCP-scoped organization',
     } as const;
     return { ok: false, response: { content: [{ type: 'text' as const, text: scopeMessages[params.entityKind] }] } };
   }
@@ -2902,10 +2919,32 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     "Delete a common space (admin/manager only). Refuses if any confirmed future bookings exist; cascades through Postgres FKs to past bookings, restrictions, and time-limit rows.",
     { role: roleParam, spaceId: z.string().describe("Common space ID") },
     async ({ role, spaceId }) => {
-      if (role === "tenant") {
-        return { content: [{ type: "text" as const, text: "Access denied: tenants cannot delete common spaces" }] };
+      // Centralize the role + MCP-scope rules through the shared
+      // `authorizeDeleteInMcpScope` helper (same pattern as
+      // delete_bill / delete_project / delete_residence). Resolve the
+      // space's building organizationId first, then defer the
+      // tenant-denial / not-found / out-of-scope wording to the helper
+      // so it stays consistent with the other delete tools.
+      const orgIds = await getMcpOrgIds();
+      const [space] = await db
+        .select({ id: schema.commonSpaces.id, buildingId: schema.commonSpaces.buildingId })
+        .from(schema.commonSpaces)
+        .where(eq(schema.commonSpaces.id, spaceId));
+      let buildingOrgId: string | null | undefined = undefined;
+      if (space) {
+        const [building] = await db
+          .select({ organizationId: schema.buildings.organizationId })
+          .from(schema.buildings)
+          .where(eq(schema.buildings.id, space.buildingId));
+        buildingOrgId = building?.organizationId;
       }
-      const auth = await authorizeSpaceAccess(role, spaceId);
+      const auth = authorizeDeleteInMcpScope({
+        role,
+        entityKind: 'common_space',
+        entityId: spaceId,
+        entity: { exists: !!space, organizationId: buildingOrgId },
+        mcpOrgIds: orgIds,
+      });
       if (!auth.ok) return auth.response;
       const [futureBooking] = await db
         .select({ id: schema.bookings.id })
@@ -3756,19 +3795,30 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     "Delete a building inventory element (admin/manager only). Returns a structured FK-violation envelope if other records (e.g. project elements, history that has been preserved at the application layer) still reference it.",
     { role: roleParam, elementId: z.string().describe("Building element ID to delete") },
     async ({ role, elementId }) => {
-      if (role === "tenant") {
-        return { content: [{ type: "text" as const, text: "Access denied: tenants cannot delete inventory elements" }] };
-      }
+      // Centralize the role + MCP-scope rules through the shared
+      // `authorizeDeleteInMcpScope` helper (same pattern as
+      // delete_bill / delete_project / delete_residence). Resolve the
+      // element's building organizationId first, then defer the
+      // tenant-denial / not-found / out-of-scope wording to the helper
+      // so it stays consistent with the other delete tools.
       const orgIds = await getMcpOrgIds();
       const [element] = await db.select().from(schema.buildingElements).where(eq(schema.buildingElements.id, elementId));
-      if (!element) return { content: [{ type: "text" as const, text: `Inventory element not found: ${elementId}` }] };
-      const [building] = await db
-        .select({ organizationId: schema.buildings.organizationId })
-        .from(schema.buildings)
-        .where(eq(schema.buildings.id, element.buildingId));
-      if (!building || !orgIds.includes(building.organizationId)) {
-        return { content: [{ type: "text" as const, text: "Access denied: inventory element is not in an MCP-scoped organization" }] };
+      let buildingOrgId: string | null | undefined = undefined;
+      if (element) {
+        const [building] = await db
+          .select({ organizationId: schema.buildings.organizationId })
+          .from(schema.buildings)
+          .where(eq(schema.buildings.id, element.buildingId));
+        buildingOrgId = building?.organizationId;
       }
+      const auth = authorizeDeleteInMcpScope({
+        role,
+        entityKind: 'inventory_element',
+        entityId: elementId,
+        entity: { exists: !!element, organizationId: buildingOrgId },
+        mcpOrgIds: orgIds,
+      });
+      if (!auth.ok) return auth.response;
       try {
         const [deleted] = await withRetryableDbCall(() => db
           .delete(schema.buildingElements)
