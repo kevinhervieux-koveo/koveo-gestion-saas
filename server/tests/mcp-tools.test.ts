@@ -1176,6 +1176,210 @@ describe('MCP Server', () => {
     });
   });
 
+  describe('delete_project', () => {
+    type DeleteCall = {
+      table:
+        | 'projectSteps'
+        | 'projectElements'
+        | 'submissionVendors'
+        | 'workflowTasks'
+        | 'projectNotifications'
+        | 'elementProjectUpdates'
+        | 'maintenanceProjects'
+        | 'unknown';
+    };
+    type UpdateCall = { table: 'evaluationSuggestions' | 'unknown' };
+    let deleteCalls: DeleteCall[];
+    let updateCalls: UpdateCall[];
+    let returningsByTable: Partial<Record<DeleteCall['table'], unknown[]>>;
+    let updateReturningsByTable: Partial<Record<UpdateCall['table'], unknown[]>>;
+    let txError: Error | null;
+
+    const PROJECT_TABLE_MAP = new Map<unknown, DeleteCall['table']>([
+      [schema.projectSteps, 'projectSteps'],
+      [schema.projectElements, 'projectElements'],
+      [schema.submissionVendors, 'submissionVendors'],
+      [schema.workflowTasks, 'workflowTasks'],
+      [schema.projectNotifications, 'projectNotifications'],
+      [schema.elementProjectUpdates, 'elementProjectUpdates'],
+      [schema.maintenanceProjects, 'maintenanceProjects'],
+    ]);
+    const PROJECT_UPDATE_TABLE_MAP = new Map<unknown, UpdateCall['table']>([
+      [schema.evaluationSuggestions, 'evaluationSuggestions'],
+    ]);
+
+    function tableNameFor(t: unknown): DeleteCall['table'] {
+      return PROJECT_TABLE_MAP.get(t) ?? 'unknown';
+    }
+
+    function makeChain(rows: unknown[]) {
+      return {
+        where: jest.fn().mockReturnThis(),
+        returning: jest.fn().mockResolvedValue(rows),
+      };
+    }
+
+    beforeEach(() => {
+      deleteCalls = [];
+      updateCalls = [];
+      returningsByTable = {};
+      updateReturningsByTable = {};
+      txError = null;
+
+      const tx = {
+        delete: jest.fn((table: unknown) => {
+          const name = tableNameFor(table);
+          deleteCalls.push({ table: name });
+          const rows = returningsByTable[name] ?? [];
+          return makeChain(rows);
+        }),
+        update: jest.fn((table: unknown) => {
+          const name = (PROJECT_UPDATE_TABLE_MAP.get(table) ?? 'unknown') as UpdateCall['table'];
+          updateCalls.push({ table: name });
+          const rows = updateReturningsByTable[name] ?? [];
+          return {
+            set: jest.fn().mockReturnThis(),
+            where: jest.fn().mockReturnThis(),
+            returning: jest.fn().mockResolvedValue(rows),
+          };
+        }),
+      };
+
+      (mockDb as unknown as { transaction: jest.Mock }).transaction = jest.fn(
+        async (fn: (t: typeof tx) => Promise<unknown>) => {
+          if (txError) throw txError;
+          return fn(tx);
+        },
+      );
+      (mockDb as unknown as { delete: jest.Mock }).delete = jest.fn(() => makeChain([]));
+    });
+
+    it('denies tenants', async () => {
+      // getMcpOrgIds + project lookup + building lookup must still resolve
+      // because authorization happens after those reads (the handler uses
+      // `authorizeDeleteInMcpScope` to centralize the role/scope rules).
+      mockSelectChain.where
+        .mockImplementationOnce(() => createWhereResult([{ id: 'org-1' }]))
+        .mockImplementationOnce(() =>
+          createWhereResult([{ id: 'p-1', buildingId: 'b-1' }]),
+        )
+        .mockImplementationOnce(() => createWhereResult([{ organizationId: 'org-1' }]));
+      const handler = getToolHandler(server, 'delete_project');
+      const result = await handler({ role: 'tenant', projectId: 'p-1' }, {});
+      expect(parseToolResponse(result)).toBe(
+        'Access denied: tenants cannot delete projects',
+      );
+      // No transaction should have started for a tenant call.
+      expect(deleteCalls).toEqual([]);
+      expect(updateCalls).toEqual([]);
+    });
+
+    it('returns "not found" when the project does not exist', async () => {
+      mockSelectChain.where
+        .mockImplementationOnce(() => createWhereResult([{ id: 'org-1' }]))
+        .mockImplementationOnce(() => createWhereResult([])); // project lookup → empty
+      const handler = getToolHandler(server, 'delete_project');
+      const result = await handler({ role: 'admin', projectId: 'missing' }, {});
+      expect(parseToolResponse(result)).toContain('Project not found: missing');
+      expect(deleteCalls).toEqual([]);
+    });
+
+    it('denies access when the project is attached to a building outside MCP scope', async () => {
+      mockSelectChain.where
+        .mockImplementationOnce(() => createWhereResult([{ id: 'org-1' }]))
+        .mockImplementationOnce(() =>
+          createWhereResult([{ id: 'p-1', buildingId: 'b-x' }]),
+        )
+        .mockImplementationOnce(() =>
+          createWhereResult([{ organizationId: 'other-org' }]),
+        );
+      const handler = getToolHandler(server, 'delete_project');
+      const result = await handler({ role: 'admin', projectId: 'p-1' }, {});
+      expect(parseToolResponse(result)).toBe(
+        'Access denied: project is not attached to an MCP-scoped building',
+      );
+      expect(deleteCalls).toEqual([]);
+    });
+
+    it('deletes a project inside MCP scope as admin and returns the deleted/cascaded/evaluationSuggestionsCleared shape', async () => {
+      mockSelectChain.where
+        .mockImplementationOnce(() => createWhereResult([{ id: 'org-1' }]))
+        .mockImplementationOnce(() =>
+          createWhereResult([{ id: 'p-1', buildingId: 'b-1' }]),
+        )
+        .mockImplementationOnce(() => createWhereResult([{ organizationId: 'org-1' }]));
+      returningsByTable.projectSteps = [{ id: 'ps-1' }, { id: 'ps-2' }];
+      returningsByTable.projectElements = [{ id: 'pe-1' }];
+      returningsByTable.submissionVendors = [
+        { id: 'sv-1' },
+        { id: 'sv-2' },
+        { id: 'sv-3' },
+      ];
+      returningsByTable.workflowTasks = [{ id: 'wt-1' }];
+      returningsByTable.projectNotifications = [{ id: 'pn-1' }, { id: 'pn-2' }];
+      returningsByTable.elementProjectUpdates = [{ id: 'epu-1' }];
+      returningsByTable.maintenanceProjects = [
+        { id: 'p-1', projectNumber: 'P-001', title: 'Lobby Refresh' },
+      ];
+      updateReturningsByTable.evaluationSuggestions = [
+        { id: 'es-1' },
+        { id: 'es-2' },
+      ];
+
+      const handler = getToolHandler(server, 'delete_project');
+      const result = await handler({ role: 'admin', projectId: 'p-1' }, {});
+      const parsed = JSON.parse(parseToolResponse(result));
+
+      expect(parsed.deleted).toEqual({
+        id: 'p-1',
+        projectNumber: 'P-001',
+        title: 'Lobby Refresh',
+      });
+      expect(parsed.cascaded).toEqual({
+        projectSteps: 2,
+        projectElements: 1,
+        submissionVendors: 3,
+        workflowTasks: 1,
+        projectNotifications: 2,
+        elementProjectUpdates: 1,
+      });
+      expect(parsed.evaluationSuggestionsCleared).toBe(2);
+      expect(parsed.message).toMatch(/cascade applied/i);
+
+      // Assert the cascade-table delete order: every dependent child table is
+      // torn down before the parent `maintenanceProjects` row.
+      expect(deleteCalls.map((c) => c.table)).toEqual([
+        'projectSteps',
+        'projectElements',
+        'submissionVendors',
+        'workflowTasks',
+        'projectNotifications',
+        'elementProjectUpdates',
+        'maintenanceProjects',
+      ]);
+      // Evaluation suggestions are nulled (UPDATE ... SET project_id = NULL),
+      // not deleted, so they appear in the update calls list.
+      expect(updateCalls.map((c) => c.table)).toEqual(['evaluationSuggestions']);
+    });
+
+    it('returns a readable failure message when the cascade transaction fails', async () => {
+      mockSelectChain.where
+        .mockImplementationOnce(() => createWhereResult([{ id: 'org-1' }]))
+        .mockImplementationOnce(() =>
+          createWhereResult([{ id: 'p-1', buildingId: 'b-1' }]),
+        )
+        .mockImplementationOnce(() => createWhereResult([{ organizationId: 'org-1' }]));
+      txError = new Error(
+        'update or delete on table "maintenance_projects" violates foreign key constraint',
+      );
+      const handler = getToolHandler(server, 'delete_project');
+      const result = await handler({ role: 'admin', projectId: 'p-1' }, {});
+      const text = parseToolResponse(result);
+      expect(text).toContain('Failed to delete');
+      expect(text).toContain('project');
+    });
+  });
+
   describe('get_mcp_info allowedRoles / currentRole / note', () => {
     function parseInfo(result: unknown) {
       return JSON.parse(parseToolResponse(result as { content?: Array<{ text?: string }> }));
