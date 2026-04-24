@@ -5398,6 +5398,71 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
   );
 
   server.tool(
+    "list_allowed_reopen_targets",
+    "List the previous workflow statuses a project can be reopened/reverted to (admin/manager only). Mirrors GET /api/maintenance/projects/:id/reopen-targets by surfacing workflowService.getAllowedReopenTargets, returning each previously-completed or skipped status that precedes the current one. Project's building must be inside an MCP-scoped organization. Use the returned values as the targetStatus argument to reopen_project_status.",
+    { role: roleParam, projectId: z.string().describe("Maintenance project ID") },
+    async ({ role, projectId }) => {
+      if (role === "tenant") {
+        return { content: [{ type: "text" as const, text: "Access denied: tenants cannot view reopen targets" }] };
+      }
+      const scope = await loadMcpScopedProject(projectId);
+      if (!scope.ok) return scope.response;
+      try {
+        const allowedTargets = await workflowService.getAllowedReopenTargets(projectId);
+        return {
+          content: [{
+            type: "text" as const,
+            text: JSON.stringify({
+              currentStatus: scope.project.status,
+              allowedTargets,
+            }, null, 2),
+          }],
+        };
+      } catch (e) {
+        console.error("[mcp:list_allowed_reopen_targets]", e);
+        return buildWriteErrorResponse(e, 'project', 'update');
+      }
+    },
+  );
+
+  server.tool(
+    "reopen_project_status",
+    "Reopen/revert a project to a previous workflow stage (admin/manager only). Mirrors POST /api/maintenance/projects/:id/reopen-step: validates targetStatus against workflowService.getAllowedReopenTargets, resets downstream phase artifacts and date columns, and recalculates actualCost from the remaining completed phases. targetStatus must be one of the previously-completed or skipped statuses returned by list_allowed_reopen_targets. Project's building must be inside an MCP-scoped organization.",
+    {
+      role: roleParam,
+      projectId: z.string().describe("Maintenance project ID"),
+      targetStatus: z
+        .enum(["planned", "submission", "pre_work", "in_progress", "post_work", "completed"])
+        .describe("Previous workflow status to revert to. Must appear in list_allowed_reopen_targets."),
+      reason: z.string().optional().describe("Optional reason logged with the reopen action"),
+    },
+    async ({ role, projectId, targetStatus, reason }) => {
+      if (role === "tenant") {
+        return { content: [{ type: "text" as const, text: "Access denied: tenants cannot reopen project status" }] };
+      }
+      const scope = await loadMcpScopedProject(projectId);
+      if (!scope.ok) return scope.response;
+      const previousStatus = scope.project.status;
+      try {
+        const workflowState = await workflowService.reopenToPhase(projectId, targetStatus, reason);
+        return {
+          content: [{
+            type: "text" as const,
+            text: JSON.stringify({
+              previousStatus,
+              newStatus: targetStatus,
+              workflowState,
+            }, null, 2),
+          }],
+        };
+      } catch (e) {
+        console.error("[mcp:reopen_project_status]", e);
+        return buildWriteErrorResponse(e, 'project', 'update');
+      }
+    },
+  );
+
+  server.tool(
     "add_project_task",
     "Add a custom workflow task to a project phase (admin/manager only). Phase must be one of pre_work, in_progress, post_work. If orderIndex is omitted, the task is appended to the end of the phase. Project's building must be inside an MCP-scoped organization.",
     {
