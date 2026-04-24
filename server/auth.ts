@@ -98,11 +98,14 @@ function getDatabaseUrl(requestDomain?: string): string {
   const isKoveoRequest = requestDomain?.includes('koveo-gestion.com');
   const isProduction = config.server.isProduction || isKoveoRequest;
   
-  // Debug logging for session store database selection
-  console.log('🔍 [SESSION STORE DB] Domain:', requestDomain || 'none');
-  console.log('🔍 [SESSION STORE DB] Is Production:', isProduction);
-  console.log('🔍 [SESSION STORE DB] Has DATABASE_URL_KOVEO:', !!process.env.DATABASE_URL_KOVEO);
-  console.log('🔍 [SESSION STORE DB] Using:', isProduction ? 'DATABASE_URL_KOVEO' : 'DATABASE_URL');
+  // Debug logging for session store database selection (dev only — never log
+  // database routing details in production deployment logs)
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('🔍 [SESSION STORE DB] Domain:', requestDomain || 'none');
+    console.log('🔍 [SESSION STORE DB] Is Production:', isProduction);
+    console.log('🔍 [SESSION STORE DB] Has DATABASE_URL_KOVEO:', !!process.env.DATABASE_URL_KOVEO);
+    console.log('🔍 [SESSION STORE DB] Using:', isProduction ? 'DATABASE_URL_KOVEO' : 'DATABASE_URL');
+  }
   
   // Mask the database URL for security - only show connection type and domain
   const maskedUrl = finalUrl ? `${finalUrl.split('://')[0]}://***@[masked-host]/[masked-db]` : '[no-url]';
