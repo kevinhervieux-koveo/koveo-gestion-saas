@@ -3998,7 +3998,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
 
   server.tool(
     "create_element_history_event",
-    "Log a work-history event (construction / repair / minor_rehab / major_rehab / replacement) on a building inventory element. Admin/manager only. The element's organization is resolved from its building, and writes are attributed to the OAuth-bound MCP user. When a non-null `lifespanImpact` is supplied, the element's `currentLifespan` is increased by that many years (mirroring the inventory maintenance API).",
+    "Log a work-history event (construction / repair / minor_rehab / major_rehab / replacement) on a building inventory element. Admin/manager only. The element's organization is resolved from its building, and writes are attributed to the OAuth-bound MCP user. When a non-null `lifespanImpact` is supplied, the element's `currentLifespan` is increased by that many years (mirroring the inventory maintenance API). When `eventType` is `repair` or `minor_rehab`, the element's `lastInspectionDate` is also bumped to the supplied `eventDate` (matching the REST behaviour of `POST /api/maintenance/elements/:elementId/history`).",
     {
       role: roleParam,
       elementId: z.string().describe("Building element ID the event applies to"),
@@ -4078,14 +4078,24 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
               ...(warranty !== undefined && { warranty }),
             })
             .returning();
-          let updatedElement: { id: string; currentLifespan: number | null } | null = null;
+          let updatedElement: { id: string; currentLifespan: number | null; lastInspectionDate: string | null } | null = null;
+          const elementUpdates: { currentLifespan?: number; lastInspectionDate?: string; updatedAt: Date } = { updatedAt: new Date() };
           if (lifespanImpact !== undefined && lifespanImpact !== null) {
-            const newCurrentLifespan = (element.currentLifespan ?? 0) + lifespanImpact;
+            elementUpdates.currentLifespan = (element.currentLifespan ?? 0) + lifespanImpact;
+          }
+          if (eventType === "repair" || eventType === "minor_rehab") {
+            elementUpdates.lastInspectionDate = eventDate;
+          }
+          if (elementUpdates.currentLifespan !== undefined || elementUpdates.lastInspectionDate !== undefined) {
             const [el] = await tx
               .update(schema.buildingElements)
-              .set({ currentLifespan: newCurrentLifespan, updatedAt: new Date() })
+              .set(elementUpdates)
               .where(eq(schema.buildingElements.id, elementId))
-              .returning({ id: schema.buildingElements.id, currentLifespan: schema.buildingElements.currentLifespan });
+              .returning({
+                id: schema.buildingElements.id,
+                currentLifespan: schema.buildingElements.currentLifespan,
+                lastInspectionDate: schema.buildingElements.lastInspectionDate,
+              });
             updatedElement = el ?? null;
           }
           return { event, updatedElement };
