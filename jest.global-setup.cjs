@@ -61,12 +61,29 @@ function runDrizzleKitPush(databaseUrl) {
       const stdout = Buffer.concat(out).toString('utf8');
       const stderr = Buffer.concat(err).toString('utf8');
       // drizzle-kit push exits 0 even when a SQL statement errors
-      // mid-run, so also fail on a captured pg `error: ` line.
-      if (code !== 0 || /(^|\n)error:\s/i.test(`${stdout}\n${stderr}`)) {
+      // mid-run, so also fail on a captured pg `error: ` line. Task
+      // #521: when the test database has already been migrated, the
+      // push reports Postgres SQLSTATE 42710 (`duplicate_object`) /
+      // 42P07 (`duplicate_table`) as "already exists" lines. Those
+      // are no-ops for an idempotent re-sync, so filter them out and
+      // only fail on the remaining (genuine) errors.
+      const combined = `${stdout}\n${stderr}`;
+      const errorLines = combined
+        .split('\n')
+        .filter((line) => /^error:\s/i.test(line));
+      const benignErrorLines = errorLines.filter((line) => /already exists/i.test(line));
+      const fatalErrorLines = errorLines.filter((line) => !/already exists/i.test(line));
+      if (code !== 0 || fatalErrorLines.length > 0) {
         reject(new Error(
           `drizzle-kit push failed (exit ${code})\n${stdout}\n${stderr}`,
         ));
       } else {
+        if (benignErrorLines.length > 0) {
+          console.log(
+            `[jest.global-setup] ignored ${benignErrorLines.length} ` +
+            `benign "already exists" error(s) from drizzle-kit push`,
+          );
+        }
         resolve();
       }
     });
