@@ -491,6 +491,7 @@ export default function BulkDocumentImportPage() {
   const [showHelp, setShowHelp] = useState(false);
   const [expandedHistoryId, setExpandedHistoryId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const folderInputRef = useRef<HTMLInputElement>(null);
 
   // Resume on reload via localStorage.
   useEffect(() => {
@@ -819,18 +820,47 @@ export default function BulkDocumentImportPage() {
                       }}
                       data-testid="input-file"
                     />
-                    <Button
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={uploadFiles.isPending}
-                      data-testid="button-upload"
-                    >
-                      {uploadFiles.isPending ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      ) : (
-                        <Upload className="mr-2 h-4 w-4" />
-                      )}
-                      {isFr ? 'Choisir des fichiers' : 'Choose files'}
-                    </Button>
+                    <input
+                      ref={folderInputRef}
+                      type="file"
+                      multiple
+                      className="hidden"
+                      webkitdirectory=""
+                      directory=""
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files.length > 0) {
+                          uploadFiles.mutate(e.target.files);
+                        }
+                      }}
+                      data-testid="input-folder"
+                    />
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={uploadFiles.isPending}
+                        data-testid="button-upload"
+                      >
+                        {uploadFiles.isPending ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                          <Upload className="mr-2 h-4 w-4" />
+                        )}
+                        {isFr ? 'Choisir des fichiers' : 'Choose files'}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => folderInputRef.current?.click()}
+                        disabled={uploadFiles.isPending}
+                        data-testid="button-upload-folder"
+                      >
+                        {uploadFiles.isPending ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                          <Upload className="mr-2 h-4 w-4" />
+                        )}
+                        {isFr ? 'Choisir un dossier' : 'Choose folder'}
+                      </Button>
+                    </div>
                     <p className="text-sm text-muted-foreground">
                       {items.length}{' '}
                       {isFr ? 'fichier(s) en attente' : 'file(s) staged'}
