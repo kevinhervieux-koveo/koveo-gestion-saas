@@ -1274,4 +1274,134 @@ describeIfDb('MCP project tools — Task #315 integration', () => {
       expect(persisted.status).toBe('in_progress');
     }, 60000);
   });
+
+  // -----------------------------------------------------------------
+  // Task #582 — Prove the actual-cost recalculation after
+  // `reopen_project_status` produces the right number, not just a
+  // non-null/numeric value. Task #561 above only asserts the column
+  // ends up populated; a regression that returned 0 (or summed in
+  // tasks from now-reopened phases) would slip past it and silently
+  // corrupt project actual-cost reporting in the dashboard.
+  //
+  // The seed has completed workflow_tasks across pre_work,
+  // in_progress and post_work with known costs, plus an incomplete
+  // pre_work task that must always be excluded by the
+  // `isCompleted = true` filter inside
+  // `workflowService.calculateActualCostFromCompletedPhases`. After
+  // reopening from `completed` back to `pre_work`, the rollup must
+  // drop the in_progress and post_work contributions (those phases
+  // are no longer in `completedStatuses`) while keeping the
+  // pre_work completed tasks (pre_work is the new currentStatus,
+  // and the recalc includes the current phase's completed tasks
+  // by design — see the OR-branch in
+  // calculateActualCostFromCompletedPhases).
+  // -----------------------------------------------------------------
+  describe('reopen_project_status — Task #582 actual-cost recalculation', () => {
+    it('rolls up only the still-counted phases when reopening to pre_work', async () => {
+      const adminSrv = serverFor('admin', adminUserId);
+
+      // 1. Create a project (starts at `planned`) so the
+      //    workflowService rollup has a real row to work against.
+      const createRes = await getToolHandler(adminSrv, 'create_project')({
+        role: 'admin',
+        buildingId: buildingInScopeId,
+        title: `${TEST_TAG} reopen-cost`,
+      });
+      const project = parseJson<{ id: string }>(createRes);
+      created.projectIds.add(project.id);
+
+      // 2. Seed workflow_tasks with known costs across every task
+      //    phase. We insert directly via drizzle (rather than
+      //    add_project_task + update_project_task) so the test
+      //    stays narrowly focused on the reopen-recalc behaviour
+      //    and does not depend on the unrelated
+      //    update_project_task code path. Each `cost` value is
+      //    distinct so any silent off-by-one in the SUM() would be
+      //    visible in the assertion.
+      const seedTask = async (
+        phase: 'pre_work' | 'in_progress' | 'post_work',
+        cost: string,
+        isCompleted: boolean,
+        orderIndex: number,
+      ) => {
+        const id = crypto.randomUUID();
+        await db.insert(schema.workflowTasks).values({
+          id,
+          projectId: project.id,
+          phase,
+          taskName: `${TEST_TAG} ${phase} ${orderIndex}`,
+          cost,
+          isCompleted,
+          orderIndex,
+        });
+        // Tracked in the suite-level set so the existing tag-based
+        // afterAll teardown will FK-safely delete these rows before
+        // the projects/users/buildings cleanup steps.
+        created.workflowTaskIds.add(id);
+      };
+
+      // pre_work: two completed tasks (100.00 + 50.00 = 150.00)
+      // and one INCOMPLETE task (999.00) that must never count.
+      await seedTask('pre_work', '100.00', true, 0);
+      await seedTask('pre_work', '50.00', true, 1);
+      await seedTask('pre_work', '999.00', false, 2);
+      // in_progress: 200.00, completed.
+      await seedTask('in_progress', '200.00', true, 0);
+      // post_work: 300.00, completed.
+      await seedTask('post_work', '300.00', true, 0);
+
+      // 3. Park the project at `completed` so every phase sits in
+      //    `completedStatuses`. Mirrors the pattern used by the
+      //    Task #561 happy-path block above.
+      await db
+        .update(schema.maintenanceProjects)
+        .set({
+          status: 'completed',
+          actualStartDate: '2025-01-15',
+          actualEndDate: '2025-01-20',
+          updatedAt: new Date(),
+        })
+        .where(eq(schema.maintenanceProjects.id, project.id));
+
+      // 4. Reopen back to `pre_work`. After this call:
+      //    - completedStatuses = ['planned', 'submission']
+      //    - currentStatus     = 'pre_work'
+      //    The recalc therefore only counts task phases where
+      //    completedStatuses.includes(phase) || currentStatus===phase.
+      //    That selects pre_work (current) and excludes in_progress
+      //    and post_work — those are the regression we want to
+      //    catch.
+      const reopenHandler = getToolHandler(adminSrv, 'reopen_project_status');
+      const reopenedRes = await reopenHandler({
+        role: 'admin',
+        projectId: project.id,
+        targetStatus: 'pre_work',
+        reason: `${TEST_TAG} cost-recalc`,
+      });
+      const reopened = parseJson<{ newStatus: string }>(reopenedRes);
+      expect(reopened.newStatus).toBe('pre_work');
+
+      // 5. Read the persisted actualCost and assert the EXACT
+      //    decimal-string value the rollup must produce:
+      //    - pre_work completed tasks  → 100 + 50 = 150 (counted: current phase)
+      //    - pre_work incomplete task  →   0       (filtered by isCompleted)
+      //    - in_progress completed     →   0       (no longer in completedStatuses)
+      //    - post_work  completed      →   0       (no longer in completedStatuses)
+      //    Total = 150.00 → stored as "150.00" by `.toFixed(2)`.
+      const [persisted] = await db
+        .select({
+          status: schema.maintenanceProjects.status,
+          actualCost: schema.maintenanceProjects.actualCost,
+        })
+        .from(schema.maintenanceProjects)
+        .where(eq(schema.maintenanceProjects.id, project.id));
+      expect(persisted.status).toBe('pre_work');
+      // Exact value — not just non-null. A regression returning 0
+      // (e.g. the OR-branch dropped the current phase) would yield
+      // "0.00"; a regression that kept summing in_progress/post_work
+      // would yield "650.00". Both must fail this assertion.
+      expect(persisted.actualCost).toBe('150.00');
+      expect(Number(persisted.actualCost)).toBe(150);
+    }, 120000);
+  });
 });
