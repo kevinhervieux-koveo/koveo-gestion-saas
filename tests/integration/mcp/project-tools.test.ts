@@ -836,4 +836,229 @@ describeIfDb('MCP project tools — Task #315 integration', () => {
       expect(parsed.allowedTargets).not.toContain('completed');
     }, 60000);
   });
+
+  // -----------------------------------------------------------------
+  // Task #557 — skip-flag end-to-end coverage.
+  //
+  // The default happy-path (above) walks every status. Here we flip
+  // skip flags directly in the DB (the MCP create_project tool does
+  // not accept them) and confirm `advance_project_status`:
+  //   1. Honours each skip flag via workflowService.getNextStatus —
+  //      the previousStatus / newStatus pair must jump over the
+  //      skipped phases instead of visiting them.
+  //   2. Still stamps `actualStartDate` exactly on the
+  //      `* → in_progress` transition (and only that one), even
+  //      when the prior phase was skipped.
+  //   3. Still stamps `actualEndDate` exactly on the
+  //      `* → completed` transition (and only that one), even when
+  //      the prior phase (post_work) was skipped.
+  //
+  // These behaviours are the interaction between the skip-flag
+  // branches in `getNextStatus` (server/services/workflow-service.ts
+  // L430–455) and the per-transition spread in `advance_project_status`
+  // (server/mcp/server.ts ~L5599–5660). Mocked unit tests cover them
+  // separately; this is the only place they're proved together
+  // against a real Postgres row.
+  // -----------------------------------------------------------------
+  describe('advance_project_status — Task #557 skip-flag coverage', () => {
+    it('skipSubmission + skipPostWork: planned → pre_work → in_progress → completed, with timestamps on the right transitions only', async () => {
+      const adminSrv = serverFor('admin', adminUserId);
+
+      const createRes = await getToolHandler(adminSrv, 'create_project')({
+        role: 'admin',
+        buildingId: buildingInScopeId,
+        title: `${TEST_TAG} skip-sub-post`,
+      });
+      const project = parseJson<{ id: string; status: string }>(createRes);
+      created.projectIds.add(project.id);
+      expect(project.status).toBe('planned');
+
+      // Flip skip flags directly — create_project does not expose
+      // them, but advance_project_status reads them via
+      // workflowService.getProjectWorkflowState on every call.
+      await db
+        .update(schema.maintenanceProjects)
+        .set({
+          skipSubmission: true,
+          skipPostWork: true,
+          updatedAt: new Date(),
+        })
+        .where(eq(schema.maintenanceProjects.id, project.id));
+
+      const advanceHandler = getToolHandler(adminSrv, 'advance_project_status');
+
+      // ── Call 1: planned → pre_work (submission skipped) ─────────
+      const res1 = await advanceHandler({ role: 'admin', projectId: project.id });
+      const step1 = parseJson<{
+        previousStatus: string;
+        newStatus: string;
+        project: { status: string; actualStartDate: string | null; actualEndDate: string | null };
+      }>(res1);
+      expect(step1.previousStatus).toBe('planned');
+      // Critical: must skip 'submission' and land on 'pre_work'.
+      expect(step1.newStatus).toBe('pre_work');
+      expect(step1.project.status).toBe('pre_work');
+      // Neither in_progress nor completed → no actual* stamping yet.
+      expect(step1.project.actualStartDate).toBeNull();
+      expect(step1.project.actualEndDate).toBeNull();
+
+      const [persisted1] = await db
+        .select({
+          status: schema.maintenanceProjects.status,
+          actualStartDate: schema.maintenanceProjects.actualStartDate,
+          actualEndDate: schema.maintenanceProjects.actualEndDate,
+        })
+        .from(schema.maintenanceProjects)
+        .where(eq(schema.maintenanceProjects.id, project.id));
+      expect(persisted1.status).toBe('pre_work');
+      expect(persisted1.actualStartDate).toBeNull();
+      expect(persisted1.actualEndDate).toBeNull();
+
+      // ── Call 2: pre_work → in_progress (stamps actualStartDate) ─
+      const res2 = await advanceHandler({ role: 'admin', projectId: project.id });
+      const step2 = parseJson<{
+        previousStatus: string;
+        newStatus: string;
+        project: { status: string; actualStartDate: string | null; actualEndDate: string | null };
+      }>(res2);
+      expect(step2.previousStatus).toBe('pre_work');
+      expect(step2.newStatus).toBe('in_progress');
+      expect(step2.project.status).toBe('in_progress');
+
+      const today = new Date().toISOString().split('T')[0];
+      // actualStartDate must be stamped *exactly* on this transition.
+      expect(step2.project.actualStartDate).toBe(today);
+      // actualEndDate must NOT be stamped yet.
+      expect(step2.project.actualEndDate).toBeNull();
+
+      const [persisted2] = await db
+        .select({
+          status: schema.maintenanceProjects.status,
+          actualStartDate: schema.maintenanceProjects.actualStartDate,
+          actualEndDate: schema.maintenanceProjects.actualEndDate,
+        })
+        .from(schema.maintenanceProjects)
+        .where(eq(schema.maintenanceProjects.id, project.id));
+      expect(persisted2.status).toBe('in_progress');
+      expect(persisted2.actualStartDate).toBe(today);
+      expect(persisted2.actualEndDate).toBeNull();
+
+      // ── Call 3: in_progress → completed (post_work skipped, stamps actualEndDate) ─
+      const res3 = await advanceHandler({ role: 'admin', projectId: project.id });
+      const step3 = parseJson<{
+        previousStatus: string;
+        newStatus: string;
+        project: { status: string; actualStartDate: string | null; actualEndDate: string | null };
+      }>(res3);
+      expect(step3.previousStatus).toBe('in_progress');
+      // Critical: must skip 'post_work' and land on 'completed'.
+      expect(step3.newStatus).toBe('completed');
+      expect(step3.project.status).toBe('completed');
+      // actualStartDate stays at today (set on the previous transition).
+      expect(step3.project.actualStartDate).toBe(today);
+      // actualEndDate must be stamped *exactly* on this transition.
+      expect(step3.project.actualEndDate).toBe(today);
+
+      const [persisted3] = await db
+        .select({
+          status: schema.maintenanceProjects.status,
+          actualStartDate: schema.maintenanceProjects.actualStartDate,
+          actualEndDate: schema.maintenanceProjects.actualEndDate,
+        })
+        .from(schema.maintenanceProjects)
+        .where(eq(schema.maintenanceProjects.id, project.id));
+      expect(persisted3.status).toBe('completed');
+      expect(persisted3.actualStartDate).toBe(today);
+      expect(persisted3.actualEndDate).toBe(today);
+
+      // Once `completed`, further advances must be rejected — same
+      // guard the non-skip happy-path proves above.
+      const resAfter = await advanceHandler({ role: 'admin', projectId: project.id });
+      expect(textOf(resAfter)).toMatch(/already completed/i);
+    }, 120000);
+
+    it('skipPreWork + skipInProgress: submission jumps straight to post_work without stamping actualStartDate', async () => {
+      // Symmetric coverage for the other two skippable phases. The
+      // important property here is the *negative*: no actualStartDate
+      // is stamped because the `in_progress` phase is skipped — the
+      // spread in advance_project_status only fires when newStatus is
+      // exactly 'in_progress' / 'completed'.
+      const adminSrv = serverFor('admin', adminUserId);
+
+      const createRes = await getToolHandler(adminSrv, 'create_project')({
+        role: 'admin',
+        buildingId: buildingInScopeId,
+        title: `${TEST_TAG} skip-pre-in`,
+      });
+      const project = parseJson<{ id: string }>(createRes);
+      created.projectIds.add(project.id);
+
+      // Park at `submission` and turn on the two middle skip flags.
+      await db
+        .update(schema.maintenanceProjects)
+        .set({
+          status: 'submission',
+          skipPreWork: true,
+          skipInProgress: true,
+          updatedAt: new Date(),
+        })
+        .where(eq(schema.maintenanceProjects.id, project.id));
+
+      const advanceHandler = getToolHandler(adminSrv, 'advance_project_status');
+
+      // ── submission → post_work (pre_work + in_progress skipped) ─
+      const res = await advanceHandler({ role: 'admin', projectId: project.id });
+      const step = parseJson<{
+        previousStatus: string;
+        newStatus: string;
+        project: { status: string; actualStartDate: string | null; actualEndDate: string | null };
+      }>(res);
+      expect(step.previousStatus).toBe('submission');
+      expect(step.newStatus).toBe('post_work');
+      expect(step.project.status).toBe('post_work');
+      // in_progress was skipped → actualStartDate must NOT be stamped.
+      expect(step.project.actualStartDate).toBeNull();
+      expect(step.project.actualEndDate).toBeNull();
+
+      const [persisted] = await db
+        .select({
+          status: schema.maintenanceProjects.status,
+          actualStartDate: schema.maintenanceProjects.actualStartDate,
+          actualEndDate: schema.maintenanceProjects.actualEndDate,
+        })
+        .from(schema.maintenanceProjects)
+        .where(eq(schema.maintenanceProjects.id, project.id));
+      expect(persisted.status).toBe('post_work');
+      expect(persisted.actualStartDate).toBeNull();
+      expect(persisted.actualEndDate).toBeNull();
+
+      // ── post_work → completed (stamps actualEndDate) ─────────────
+      const res2 = await advanceHandler({ role: 'admin', projectId: project.id });
+      const step2 = parseJson<{
+        previousStatus: string;
+        newStatus: string;
+        project: { status: string; actualStartDate: string | null; actualEndDate: string | null };
+      }>(res2);
+      expect(step2.previousStatus).toBe('post_work');
+      expect(step2.newStatus).toBe('completed');
+      expect(step2.project.status).toBe('completed');
+      // actualStartDate was never stamped (in_progress was skipped),
+      // so the row must still report null even at completion.
+      expect(step2.project.actualStartDate).toBeNull();
+      const today = new Date().toISOString().split('T')[0];
+      expect(step2.project.actualEndDate).toBe(today);
+
+      const [persisted2] = await db
+        .select({
+          status: schema.maintenanceProjects.status,
+          actualStartDate: schema.maintenanceProjects.actualStartDate,
+          actualEndDate: schema.maintenanceProjects.actualEndDate,
+        })
+        .from(schema.maintenanceProjects)
+        .where(eq(schema.maintenanceProjects.id, project.id));
+      expect(persisted2.status).toBe('completed');
+      expect(persisted2.actualStartDate).toBeNull();
+      expect(persisted2.actualEndDate).toBe(today);
+    }, 120000);
+  });
 });
