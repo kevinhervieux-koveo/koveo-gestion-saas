@@ -15,8 +15,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Switch } from '@/components/ui/switch';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useQuery, useQueries } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
+import { useQuery, useQueries, useMutation } from '@tanstack/react-query';
+import { apiRequest, queryClient } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
 import { useCurrentFinancialYear } from '@/hooks/use-current-financial-year';
 import { getFinancialYearRange } from '@/utils/financial-year';
 import {
@@ -246,6 +247,7 @@ interface MonthlyBillsSummary {
 export default function FinancialOverview() {
   const { t, language } = useLanguage();
   const { user } = useAuth();
+  const { toast } = useToast();
   const overviewChartRef = useRef<HTMLDivElement>(null);
 
   const handleDownloadChartPDF = async () => {
@@ -316,9 +318,45 @@ export default function FinancialOverview() {
     }
   }, [projectViewMode]);
   const [projectStates, setProjectStates] = useState<Map<string, boolean>>(new Map());
-  // Local-only fiscal-year offsets for previewing project period shifts on
-  // the overview page. Reset on navigation/refresh and never persisted.
+  // Per-project fiscal-year offsets for previewing project period shifts on
+  // the overview page. Until the user clicks Confirm the change is local
+  // only; Confirm persists the new financialYear via the maintenance API.
   const [projectYearOffsets, setProjectYearOffsets] = useState<Map<string, number>>(new Map());
+
+  // Mutation that persists a project's shifted financial year so the change
+  // survives a page refresh (mirrors `confirmProjectYearMutation` on the
+  // manager budget page).
+  const confirmProjectYearMutation = useMutation({
+    mutationFn: async ({ id, financialYear }: { id: string; financialYear: number }) => {
+      const response = await apiRequest('PATCH', `/api/maintenance/projects/${id}`, {
+        financialYear,
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(errorData.error || `HTTP ${response.status}`);
+      }
+      return { id, financialYear };
+    },
+    onSuccess: ({ id }) => {
+      setProjectYearOffsets(prev => {
+        if (!prev.has(id)) return prev;
+        const next = new Map(prev);
+        next.delete(id);
+        return next;
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/maintenance/buildings'] });
+      toast({
+        title: language === 'fr' ? 'Période mise à jour' : 'Period updated',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: language === 'fr' ? 'Échec de la mise à jour de la période' : 'Failed to update period',
+        description: error?.message,
+        variant: 'destructive',
+      });
+    },
+  });
   const [selectedBill, setSelectedBill] = useState<BillPaymentSummary | null>(null);
   
   // Bills month/year filter state (defaults to current month)
@@ -1748,6 +1786,8 @@ export default function FinancialOverview() {
                         selectedBuilding?.financialYearStart ?? bankAccountConfig?.financialYearStart ?? null,
                       );
                       const baseYear = baseYearStr === 'N/A' ? null : parseInt(baseYearStr, 10);
+                      const isConfirming = confirmProjectYearMutation.isPending &&
+                        confirmProjectYearMutation.variables?.id === project.id;
                       return (
                         <OverviewProjectCard
                           key={project.id}
@@ -1758,6 +1798,8 @@ export default function FinancialOverview() {
                           minYear={currentFiscalYear}
                           maxYear={currentFiscalYear + 25}
                           t={t}
+                          language={language}
+                          isConfirming={isConfirming}
                           onShift={(id, delta) => {
                             setProjectYearOffsets(prev => {
                               const next = new Map(prev);
@@ -1766,6 +1808,9 @@ export default function FinancialOverview() {
                               else next.set(id, cur);
                               return next;
                             });
+                          }}
+                          onConfirmYear={(id, financialYear) => {
+                            confirmProjectYearMutation.mutate({ id, financialYear });
                           }}
                           onToggleInclude={(id, value) => {
                             setProjectStates(prev => {

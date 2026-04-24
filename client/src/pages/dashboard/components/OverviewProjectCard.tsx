@@ -2,7 +2,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
 
 export interface OverviewProjectCardProject {
   id: string;
@@ -26,6 +26,9 @@ export interface OverviewProjectCardProps {
   t: (key: string) => string;
   onShift: (projectId: string, delta: number) => void;
   onToggleInclude: (projectId: string, value: boolean) => void;
+  isConfirming?: boolean;
+  onConfirmYear?: (projectId: string, financialYear: number) => void;
+  language?: string;
 }
 
 export function OverviewProjectCard({
@@ -38,14 +41,21 @@ export function OverviewProjectCard({
   t,
   onShift,
   onToggleInclude,
+  isConfirming = false,
+  onConfirmYear,
+  language = 'en',
 }: OverviewProjectCardProps) {
   const displayedYear = baseYear !== null ? baseYear + offset : null;
   const canPrev = displayedYear !== null && displayedYear > minYear;
   const canNext = displayedYear !== null && displayedYear < maxYear;
+  const hasPendingYear =
+    offset !== 0 && baseYear !== null && displayedYear !== null;
 
   return (
     <div
-      className="border rounded-lg p-4 space-y-3"
+      className={`border rounded-lg p-4 space-y-3 ${
+        hasPendingYear ? 'border-primary ring-1 ring-primary/40 bg-primary/5' : ''
+      }`}
       data-testid={`project-${project.id}`}
     >
       <div className="flex items-center justify-between">
@@ -65,6 +75,15 @@ export function OverviewProjectCard({
             <Badge variant="outline" className="text-xs">
               {project.status}
             </Badge>
+            {hasPendingYear && (
+              <Badge
+                variant="default"
+                className="text-xs"
+                data-testid={`badge-overview-pending-year-${project.id}`}
+              >
+                {language === 'fr' ? 'Modification non enregistrée' : 'Unsaved change'}
+              </Badge>
+            )}
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2 text-xs text-muted-foreground">
             <div>
@@ -80,7 +99,7 @@ export function OverviewProjectCard({
                 size="sm"
                 variant="ghost"
                 className="h-6 w-6 p-0"
-                disabled={!canPrev}
+                disabled={!canPrev || isConfirming}
                 onClick={() => onShift(project.id, -1)}
                 data-testid={`button-overview-shift-prev-${project.id}`}
                 title="Previous period"
@@ -95,7 +114,7 @@ export function OverviewProjectCard({
                 size="sm"
                 variant="ghost"
                 className="h-6 w-6 p-0"
-                disabled={!canNext}
+                disabled={!canNext || isConfirming}
                 onClick={() => onShift(project.id, 1)}
                 data-testid={`button-overview-shift-next-${project.id}`}
                 title="Next period"
@@ -124,6 +143,28 @@ export function OverviewProjectCard({
           />
         </div>
       </div>
+      {hasPendingYear && onConfirmYear && (
+        <div className="flex justify-end pt-2 border-t">
+          <Button
+            size="sm"
+            onClick={() => onConfirmYear(project.id, displayedYear!)}
+            disabled={isConfirming}
+            data-testid={`button-overview-confirm-year-${project.id}`}
+          >
+            {isConfirming ? (
+              <>
+                <div className="animate-spin w-3 h-3 border-2 border-white border-t-transparent rounded-full mr-2"></div>
+                {t('saving')}
+              </>
+            ) : (
+              <>
+                <Check className="w-4 h-4 mr-1" />
+                {language === 'fr' ? 'Confirmer' : 'Confirm'}
+              </>
+            )}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
