@@ -54,13 +54,32 @@ export async function setupVite(app: Express, server: Server) {
     allowedHosts: true as const,
   };
 
+  // `viteConfig` may be exported as either an object or a function (the
+  // function form is required when using `defineConfig(({ command, mode }) => …)`
+  // so that `command`/`mode` can vary). Spreading a function value would
+  // silently drop every option (including `root`, `resolve.alias`, and
+  // `plugins`), which makes Vite resolve `/src/main.tsx` against the project
+  // root instead of `client/`. Always normalize to a plain object first.
+  const resolvedViteConfig =
+    typeof viteConfig === 'function'
+      ? await (viteConfig as any)({ command: 'serve', mode: 'development' })
+      : viteConfig;
+
   const vite = await createViteServer({
-    ...viteConfig,
+    ...resolvedViteConfig,
     configFile: false,
     customLogger: {
       ...viteLogger,
       error: (msg, _options) => {
         viteLogger.error(msg, _options);
+        // "Pre-transform error: Failed to load url …" is emitted transiently
+        // while Vite is still warming optimizeDeps. Vite recovers from it on
+        // the next request, so killing the dev server here would just produce
+        // intermittent boot failures whenever a browser races optimizeDeps.
+        const text = typeof msg === 'string' ? msg : String(msg ?? '');
+        if (text.includes('Pre-transform error: Failed to load url')) {
+          return;
+        }
         process.exit(1);
       },
     },
