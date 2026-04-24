@@ -140,12 +140,11 @@ run_test_file "Integration-User-Invitation" "tests/integration/user-invitation.t
 # Communication integration tests
 run_test_file "Integration-Communication-API" "tests/integration/communication-api.test.ts" "Communication API integration tests"
 # Budget integration tests
-run_test_file "Integration-Budget-Form-Validation" "tests/integration/budget-form-validation.test.tsx" "Budget form validation integration tests"
-run_test_file "Integration-Budget-React-Query" "tests/integration/budget-react-query.test.tsx" "Budget React Query integration tests"
-run_test_file "Integration-Budget-Page-Comprehensive" "tests/integration/budget-page-comprehensive.test.tsx" "Budget page comprehensive integration tests"
-run_test_file "Integration-Budget-Endpoints" "tests/integration/budget-endpoints-comprehensive.test.ts" "Budget endpoints comprehensive tests"
-run_test_file "Integration-Budget-Forecast-Inflation" "tests/integration/budgets.forecast.inflation.test.ts" "Budget forecast inflation tests"
-run_test_file "Integration-Budget-Forecast" "tests/integration/budgets.forecast.test.ts" "Budget forecast tests"
+# Note: Several legacy budget integration files were retired (Task #609); only
+# the suites that actually live in tests/integration/ are listed below.
+run_test_file "Integration-Budgets-Investments-Upsert" "tests/integration/budgets-investments-upsert.test.ts" "Budget investments upsert integration tests"
+run_test_file "Integration-Budget-Graph-Consistency" "tests/integration/budget-graph-consistency.test.ts" "Budget graph consistency integration tests"
+run_test_file "Integration-Budget-Page-Render" "tests/integration/budget-page-render.test.tsx" "Budget page render integration tests"
 
 # Phase 5: Page Integration Tests
 echo "Phase 5: Page Integration Tests"
