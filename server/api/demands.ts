@@ -686,6 +686,9 @@ export function registerDemandRoutes(app: Express) {
           isInternal: demandComments.isInternal,
           commenterId: demandComments.commenterId,
           createdAt: demandComments.createdAt,
+          filePath: demandComments.filePath,
+          fileName: demandComments.fileName,
+          fileSize: demandComments.fileSize,
           author: {
             id: users.id,
             firstName: users.firstName,

@@ -93,6 +93,9 @@ interface DemandComment {
   isInternal?: boolean;
   commenterId: string;
   createdAt: string;
+  filePath?: string | null;
+  fileName?: string | null;
+  fileSize?: number | null;
   author: {
     id: string;
     firstName: string;
@@ -767,23 +770,111 @@ export default function DemandDetailsPopup({
 
             {/* Comments List */}
             <div className='space-y-3 max-h-60 overflow-y-auto'>
-              {comments.map((comment) => (
-                <Card key={comment.id}>
-                  <CardContent className='p-4'>
-                    <div className='flex justify-between items-start mb-2'>
-                      <div className='font-medium text-sm'>
-                        {comment.author 
-                          ? `${comment.author.firstName} ${comment.author.lastName}`
-                          : 'Utilisateur supprimé'}
+              {comments.map((comment) => {
+                const commentFilePath = comment.filePath || undefined;
+                const commentFileName = comment.fileName || undefined;
+                const commentIsImage = commentFileName
+                  ? /\.(jpg|jpeg|png|gif|webp)$/i.test(commentFileName)
+                  : false;
+
+                const formatBytes = (size: number) => {
+                  if (size < 1024) return `${size} B`;
+                  if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
+                  return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+                };
+
+                const handleViewCommentFile = () => {
+                  if (commentFilePath) {
+                    setViewingFile({ url: commentFilePath, name: commentFileName });
+                  }
+                };
+
+                const handleDownloadCommentFile = async () => {
+                  if (!commentFilePath || !commentFileName) return;
+                  try {
+                    const response = await fetch(commentFilePath, {
+                      method: 'GET',
+                      credentials: 'include',
+                    });
+
+                    if (!response.ok) {
+                      throw new Error(`Download failed: ${response.status} ${response.statusText}`);
+                    }
+
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+
+                    const link = window.document.createElement('a');
+                    link.href = url;
+                    link.download = commentFileName;
+                    window.document.body.appendChild(link);
+                    link.click();
+
+                    window.document.body.removeChild(link);
+                    window.URL.revokeObjectURL(url);
+                  } catch (error: any) {
+                    alert(`Download failed: ${error.message || 'Unknown error'}`);
+                  }
+                };
+
+                return (
+                  <Card key={comment.id}>
+                    <CardContent className='p-4'>
+                      <div className='flex justify-between items-start mb-2'>
+                        <div className='font-medium text-sm'>
+                          {comment.author
+                            ? `${comment.author.firstName} ${comment.author.lastName}`
+                            : 'Utilisateur supprimé'}
+                        </div>
+                        <div className='text-xs text-muted-foreground'>
+                          {new Date(comment.createdAt).toLocaleString()}
+                        </div>
                       </div>
-                      <div className='text-xs text-muted-foreground'>
-                        {new Date(comment.createdAt).toLocaleString()}
-                      </div>
-                    </div>
-                    <p className='text-sm whitespace-pre-wrap'>{sanitizeComment(comment.commentText)}</p>
-                  </CardContent>
-                </Card>
-              ))}
+                      <p className='text-sm whitespace-pre-wrap'>{sanitizeComment(comment.commentText)}</p>
+                      {commentFilePath && commentFileName && (
+                        <div
+                          className='mt-2 flex items-center gap-2 p-2 bg-gray-50 rounded-md'
+                          data-testid={`comment-attachment-${comment.id}`}
+                        >
+                          {commentIsImage ? (
+                            <Image className='h-4 w-4 text-blue-500' />
+                          ) : (
+                            <Paperclip className='h-4 w-4 text-gray-500' />
+                          )}
+                          <div className='flex-1 min-w-0'>
+                            <div className='text-sm truncate'>{commentFileName}</div>
+                            {typeof comment.fileSize === 'number' && comment.fileSize > 0 && (
+                              <div className='text-xs text-muted-foreground'>
+                                {formatBytes(comment.fileSize)}
+                              </div>
+                            )}
+                          </div>
+                          <div className='flex gap-2'>
+                            <Button
+                              variant='outline'
+                              size='sm'
+                              onClick={handleViewCommentFile}
+                              data-testid={`button-view-comment-attachment-${comment.id}`}
+                            >
+                              <Eye className='h-3 w-3 mr-1' />
+                              {t('view')}
+                            </Button>
+                            <Button
+                              variant='outline'
+                              size='sm'
+                              onClick={handleDownloadCommentFile}
+                              data-testid={`button-download-comment-attachment-${comment.id}`}
+                            >
+                              <Download className='h-3 w-3 mr-1' />
+                              {t('download')}
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
               {comments.length === 0 && (
                 <p className='text-center text-muted-foreground py-4'>{t('noCommentsYet')}</p>
               )}
