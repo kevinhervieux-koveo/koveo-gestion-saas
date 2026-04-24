@@ -73,6 +73,7 @@ const TOP_MARGIN = 10;
 const BOTTOM_MARGIN = 10;
 const X_AXIS_HEIGHT = 30;
 const MIN_MONTH_PX = 80;
+const HEADER_HEIGHT = 28;
 
 function parseDate(value?: string | null | Date): Date | null {
   if (!value) return null;
@@ -232,6 +233,8 @@ export function GanttChart({
     return null;
   }
 
+  const domainSpan = domain[1] - domain[0];
+
   return (
     <div className="w-full" data-testid="gantt-chart">
       <div
@@ -239,6 +242,65 @@ export function GanttChart({
         style={{ width: '100%' }}
         data-testid="gantt-scroll-container"
       >
+        <div
+          style={{
+            minWidth: labelWidth + minTimelineWidth,
+          }}
+        >
+          {/* Sticky period header row */}
+          <div
+            style={{
+              position: 'sticky',
+              top: 0,
+              zIndex: 3,
+              display: 'grid',
+              gridTemplateColumns: `${labelWidth}px minmax(${minTimelineWidth}px, 1fr)`,
+              background: 'hsl(var(--background))',
+              borderBottom: '1px solid hsl(var(--border))',
+            }}
+            data-testid="gantt-period-header"
+          >
+            <div
+              style={{
+                position: 'sticky',
+                left: 0,
+                zIndex: 4,
+                background: 'hsl(var(--background))',
+                borderRight: '1px solid hsl(var(--border))',
+                height: HEADER_HEIGHT,
+              }}
+            />
+            <div
+              style={{
+                position: 'relative',
+                height: HEADER_HEIGHT,
+              }}
+            >
+              {ticks.map((t, idx) => {
+                const pct = domainSpan > 0 ? ((t - domain[0]) / domainSpan) * 100 : 0;
+                return (
+                  <div
+                    key={t}
+                    data-testid={`gantt-period-label-${idx}`}
+                    style={{
+                      position: 'absolute',
+                      left: `${pct}%`,
+                      top: 0,
+                      transform: 'translateX(-50%)',
+                      fontSize: 11,
+                      lineHeight: `${HEADER_HEIGHT}px`,
+                      color: 'hsl(var(--muted-foreground))',
+                      whiteSpace: 'nowrap',
+                      paddingLeft: idx === 0 ? 4 : 0,
+                    }}
+                  >
+                    {formatMonth(t, locale)}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
         <div
           style={{
             display: 'grid',
@@ -373,6 +435,7 @@ export function GanttChart({
               </BarChart>
             </ResponsiveContainer>
           </div>
+        </div>
         </div>
       </div>
 
