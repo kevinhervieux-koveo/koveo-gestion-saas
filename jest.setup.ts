@@ -177,21 +177,30 @@ if (typeof Response === 'undefined') {
 // BROWSER API POLYFILLS AND MOCKS
 // =============================================================================
 
-// Mock implementations for browser APIs
-(global as any).ResizeObserver = jest.fn().mockImplementation(() => ({
-  observe: jest.fn(),
-  unobserve: jest.fn(),
-  disconnect: jest.fn(),
-}));
+// Layout polyfills are installed as real classes (not jest.fn() mocks) so they
+// survive `jest.resetAllMocks()` / `jest.restoreAllMocks()` calls in test
+// suites. Radix UI primitives (Switch, Select, Dialog, ...) call
+// `new ResizeObserver(cb).observe(node)` during layout effects; if the
+// polyfill were a `jest.fn()` whose implementation got wiped by a mock reset,
+// every subsequent render would crash with
+// "resizeObserver.observe is not a function".
+class ResizeObserverPolyfill {
+  observe(): void {}
+  unobserve(): void {}
+  disconnect(): void {}
+}
+(global as any).ResizeObserver = ResizeObserverPolyfill;
 
-(global as any).IntersectionObserver = jest.fn().mockImplementation(() => ({
-  observe: jest.fn(),
-  unobserve: jest.fn(),
-  disconnect: jest.fn(),
-  root: null,
-  rootMargin: '',
-  thresholds: [],
-}));
+class IntersectionObserverPolyfill {
+  root: Element | null = null;
+  rootMargin: string = '';
+  thresholds: ReadonlyArray<number> = [];
+  observe(): void {}
+  unobserve(): void {}
+  disconnect(): void {}
+  takeRecords(): IntersectionObserverEntry[] { return []; }
+}
+(global as any).IntersectionObserver = IntersectionObserverPolyfill;
 
 // =============================================================================
 // NAVIGATION AND ROUTER MOCKING ENHANCEMENTS
@@ -268,20 +277,22 @@ if (typeof window !== 'undefined') {
   state: any;
 };
 
-// Mock matchMedia for responsive design tests
+// matchMedia polyfill installed as a plain function (not a jest.fn()) so it
+// survives `jest.resetAllMocks()` / `jest.restoreAllMocks()` calls.
 if (typeof window !== 'undefined') {
   Object.defineProperty(window, 'matchMedia', {
     writable: true,
-    value: jest.fn().mockImplementation((query: string) => ({
+    configurable: true,
+    value: (query: string) => ({
       matches: false,
       media: query,
       onchange: null,
-      addListener: jest.fn(), // deprecated
-      removeListener: jest.fn(), // deprecated
-      addEventListener: jest.fn(),
-      removeEventListener: jest.fn(),
-      dispatchEvent: jest.fn(),
-    })),
+      addListener: () => {}, // deprecated
+      removeListener: () => {}, // deprecated
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      dispatchEvent: () => false,
+    }),
   });
 }
 

@@ -13,33 +13,48 @@ configure({
   asyncUtilTimeout: 5000, // Increased timeout for API interactions
 });
 
-// Global mocks for budget test environment
-global.ResizeObserver = jest.fn().mockImplementation(() => ({
-  observe: jest.fn(),
-  unobserve: jest.fn(),
-  disconnect: jest.fn(),
-}));
+// Layout polyfills are installed as real classes/functions (not jest.fn()
+// mocks) so they survive `jest.resetAllMocks()` / `jest.restoreAllMocks()`
+// calls in test suites. Radix UI primitives (Switch, Select, Dialog, ...)
+// call `new ResizeObserver(cb).observe(node)` during layout effects; if the
+// polyfill were a `jest.fn()` whose implementation got wiped by a mock reset,
+// every subsequent render would crash with
+// "resizeObserver.observe is not a function".
+class ResizeObserverPolyfill {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+}
+global.ResizeObserver = ResizeObserverPolyfill;
 
-// Mock IntersectionObserver for chart rendering
-global.IntersectionObserver = jest.fn().mockImplementation(() => ({
-  observe: jest.fn(),
-  unobserve: jest.fn(),
-  disconnect: jest.fn(),
-}));
+class IntersectionObserverPolyfill {
+  constructor() {
+    this.root = null;
+    this.rootMargin = '';
+    this.thresholds = [];
+  }
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+  takeRecords() { return []; }
+}
+global.IntersectionObserver = IntersectionObserverPolyfill;
 
-// Mock window.matchMedia for responsive components
+// matchMedia polyfill installed as a plain function (not a jest.fn()) so it
+// survives `jest.resetAllMocks()` / `jest.restoreAllMocks()` calls.
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: jest.fn().mockImplementation(query => ({
+  configurable: true,
+  value: (query) => ({
     matches: false,
     media: query,
     onchange: null,
-    addListener: jest.fn(), // deprecated
-    removeListener: jest.fn(), // deprecated
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn(),
-    dispatchEvent: jest.fn(),
-  })),
+    addListener: () => {}, // deprecated
+    removeListener: () => {}, // deprecated
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    dispatchEvent: () => false,
+  }),
 });
 
 // Mock console methods for cleaner test output

@@ -48,23 +48,36 @@ afterAll(() => {
 
 // Note: TextEncoder/TextDecoder and fetch are now polyfilled in jest.polyfills.js
 
-// Basic ResizeObserver mock
-(global as any).ResizeObserver = jest.fn().mockImplementation(() => ({
-  observe: jest.fn(),
-  unobserve: jest.fn(),
-  disconnect: jest.fn(),
-}));
+// Layout polyfills are installed as real classes (not jest.fn() mocks) so they
+// survive `jest.resetAllMocks()` / `jest.restoreAllMocks()` calls in test
+// suites. Radix UI primitives (Switch, Select, Dialog, ...) call
+// `new ResizeObserver(cb).observe(node)` during layout effects; if the
+// polyfill were a `jest.fn()` whose implementation got wiped by a mock reset,
+// every subsequent render would crash with
+// "resizeObserver.observe is not a function".
+class ResizeObserverPolyfill {
+  observe(): void {}
+  unobserve(): void {}
+  disconnect(): void {}
+}
+(global as any).ResizeObserver = ResizeObserverPolyfill;
 
-// Basic matchMedia mock
+// Basic matchMedia polyfill installed as a plain function (not a jest.fn())
+// for the same reason as ResizeObserver above.
 if (typeof window !== 'undefined') {
   Object.defineProperty(window, 'matchMedia', {
     writable: true,
-    value: jest.fn().mockImplementation((query: string) => ({
+    configurable: true,
+    value: (query: string) => ({
       matches: false,
       media: query,
-      addEventListener: jest.fn(),
-      removeEventListener: jest.fn(),
-    })),
+      onchange: null,
+      addListener: () => {},
+      removeListener: () => {},
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      dispatchEvent: () => false,
+    }),
   });
 }
 

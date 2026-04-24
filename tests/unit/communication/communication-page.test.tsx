@@ -261,18 +261,6 @@ describe('Communication Page Test Suite', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    // Re-install ResizeObserver polyfill as a real class so it survives any
-    // mock resets between tests. Radix UI primitives (Select, Switch, Dialog)
-    // call `new ResizeObserver(cb).observe(node)` during layout effects; if the
-    // polyfill is a `jest.fn()` whose implementation gets wiped by
-    // `resetAllMocks`/`restoreMocks`, every subsequent render crashes with
-    // "resizeObserver.observe is not a function" before any test ids appear.
-    (global as unknown as { ResizeObserver: unknown }).ResizeObserver = class {
-      observe() {}
-      unobserve() {}
-      disconnect() {}
-    };
-
     // Mock fetch for React Query's default queryFn
     global.fetch = jest.fn((url: string, options?: RequestInit) => {
       const urlStr = url.toString();

@@ -41,37 +41,45 @@ afterAll(() => {
   server?.close();
 });
 
-// Mock window.matchMedia
+// Layout polyfills are installed as real classes/functions (not jest.fn()
+// mocks) so they survive `jest.resetAllMocks()` / `jest.restoreAllMocks()`
+// calls in test suites. Radix UI primitives (Switch, Select, Dialog, ...)
+// call `new ResizeObserver(cb).observe(node)` during layout effects; if the
+// polyfill were a `jest.fn()` whose implementation got wiped by a mock reset,
+// every subsequent render would crash with
+// "resizeObserver.observe is not a function".
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: jest.fn().mockImplementation((query) => ({
+  configurable: true,
+  value: (query: string) => ({
     matches: false,
     media: query,
     onchange: null,
-    addListener: jest.fn(), // deprecated
-    removeListener: jest.fn(), // deprecated
-    addEventListener: jest.fn(),
-    removeEventListener: jest.fn(),
-    dispatchEvent: jest.fn(),
-  })),
+    addListener: () => {}, // deprecated
+    removeListener: () => {}, // deprecated
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    dispatchEvent: () => false,
+  }),
 });
 
-// Mock ResizeObserver
-global.ResizeObserver = jest.fn().mockImplementation(() => ({
-  observe: jest.fn(),
-  unobserve: jest.fn(),
-  disconnect: jest.fn(),
-})) as any;
+class ResizeObserverPolyfill {
+  observe(): void {}
+  unobserve(): void {}
+  disconnect(): void {}
+}
+global.ResizeObserver = ResizeObserverPolyfill as any;
 
-// Mock IntersectionObserver
-global.IntersectionObserver = jest.fn().mockImplementation(() => ({
-  observe: jest.fn(),
-  unobserve: jest.fn(),
-  disconnect: jest.fn(),
-  root: null,
-  rootMargin: '',
-  thresholds: [],
-})) as any;
+class IntersectionObserverPolyfill {
+  root: Element | null = null;
+  rootMargin: string = '';
+  thresholds: ReadonlyArray<number> = [];
+  observe(): void {}
+  unobserve(): void {}
+  disconnect(): void {}
+  takeRecords(): IntersectionObserverEntry[] { return []; }
+}
+global.IntersectionObserver = IntersectionObserverPolyfill as any;
 
 // Global test configuration for DOM APIs
 Object.defineProperty(global, 'performance', {
