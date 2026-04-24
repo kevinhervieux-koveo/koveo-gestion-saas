@@ -26,6 +26,27 @@ import crypto from 'crypto';
 import { eq } from 'drizzle-orm';
 import { db } from '../db';
 
+/**
+ * Decide whether to emit the optional diagnostic headers
+ * (`X-Performance-Optimized`, `X-Cache-Hit`, `X-Response-Time`,
+ * `X-Storage-Metrics`) on the optimized download endpoint.
+ *
+ * These headers expose internal cache state and storage metrics and were
+ * previously sent on every response. To prevent external integrations from
+ * depending on internal implementation details we now gate them behind an
+ * explicit admin-only debug flag (`?debug=1` / `?debug=true`). Non-admin
+ * users — and admins who don't opt in — receive only the standard download
+ * headers (Task #398).
+ *
+ * Exported so the gating behaviour can be unit-tested in isolation.
+ */
+export function shouldEmitDiagnostics(req: any): boolean {
+  const user = req?.user;
+  if (!user || user.role !== 'admin') return false;
+  const debug = req?.query?.debug;
+  return debug === '1' || debug === 'true';
+}
+
 // Performance monitoring
 let apiMetrics = {
   requestCount: 0,
@@ -256,19 +277,26 @@ export function registerOptimizedDocumentRoutes(app: Express): void {
       
       res.setHeader('Content-Disposition', buildContentDisposition(filename, { type: disposition }));
       res.setHeader('Content-Type', safeMimeType(document.mimeType));
-      res.setHeader('X-Performance-Optimized', 'true');
-      res.setHeader('X-Cache-Hit', retrievalResult.fromCache ? 'true' : 'false');
 
       const responseTime = performance.now() - startTime;
 
-      // Add performance headers (sanitised – formatted server-side, but pass
-      // through the helper so downstream changes can never inject CR/LF).
-      res.setHeader('X-Response-Time', safeHeaderValue(`${responseTime.toFixed(2)}ms`, '0ms'));
-      if (retrievalResult.performanceMetrics) {
-        res.setHeader(
-          'X-Storage-Metrics',
-          safeJsonHeaderValue(retrievalResult.performanceMetrics)
-        );
+      // Diagnostic headers (cache state, response time, storage metrics) leak
+      // internal implementation detail and were previously emitted on every
+      // response. They are now gated behind an explicit admin-only debug flag
+      // so external integrations can't start depending on them and ordinary
+      // clients see only the standard download headers (Task #398).
+      if (shouldEmitDiagnostics(req)) {
+        res.setHeader('X-Performance-Optimized', 'true');
+        res.setHeader('X-Cache-Hit', retrievalResult.fromCache ? 'true' : 'false');
+        // Sanitised – formatted server-side, but pass through the helper so
+        // downstream changes can never inject CR/LF.
+        res.setHeader('X-Response-Time', safeHeaderValue(`${responseTime.toFixed(2)}ms`, '0ms'));
+        if (retrievalResult.performanceMetrics) {
+          res.setHeader(
+            'X-Storage-Metrics',
+            safeJsonHeaderValue(retrievalResult.performanceMetrics)
+          );
+        }
       }
 
       // Stream file to response
