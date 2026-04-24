@@ -135,8 +135,8 @@ npm run test:unit -- tests/unit/api/budgets-focused.test.ts tests/unit/utils/bud
 # tests/unit/api/budgets.test.ts shell — see Task #597 / Task #580):
 npm run test:integration -- tests/integration/budgets-investments-upsert.test.ts
 
-# Integration tests for budget forecasting
-npm run test:integration -- tests/integration/budgets.forecast.test.ts
+# Integration tests for budget forecasting and page render
+npm run test:integration -- tests/integration/budget-graph-consistency.test.ts tests/integration/budget-page-render.test.tsx
 
 # Comprehensive budget tests with custom config
 npx jest --config jest.budget.config.js

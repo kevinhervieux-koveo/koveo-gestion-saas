@@ -1,11 +1,11 @@
 {
   "budgetTestSuite": {
     "description": "Configuration for comprehensive budget testing in CI/CD pipeline",
-    "version": "1.1.0",
-    "notes": "tests/unit/api/budgets.test.ts was retired in Task #597 (it had been gated by describe.skip and never ran). Its valuable cases now live in tests/integration/budgets-investments-upsert.test.ts (Task #580).",
+    "version": "1.2.0",
+    "notes": "tests/unit/api/budgets.test.ts was retired in Task #597 (it had been gated by describe.skip and never ran). Its valuable cases now live in tests/integration/budgets-investments-upsert.test.ts (Task #580). Task #603 dropped the dead reference to tests/integration/budgets.forecast.test.ts (file never existed); forecast coverage is provided by tests/integration/budget-graph-consistency.test.ts and the page-render regression in tests/integration/budget-page-render.test.tsx.",
     "testCommands": {
       "budgetUnitTests": "npm run test:unit -- tests/unit/api/budgets-focused.test.ts tests/unit/utils/budgetCalculations.test.ts tests/unit/budget-page-comprehensive-fixed.test.tsx",
-      "budgetIntegrationTests": "npm run test:integration -- tests/integration/budgets-investments-upsert.test.ts tests/integration/budgets.forecast.test.ts",
+      "budgetIntegrationTests": "npm run test:integration -- tests/integration/budgets-investments-upsert.test.ts tests/integration/budget-graph-consistency.test.ts tests/integration/budget-page-render.test.tsx",
       "budgetComprehensiveTests": "npx jest --config jest.budget.config.js",
       "budgetCoverageTests": "npx jest --config jest.budget.config.js --coverage"
     },
@@ -44,7 +44,8 @@
       ],
       "integration": [
         "tests/integration/budgets-investments-upsert.test.ts",
-        "tests/integration/budgets.forecast.test.ts"
+        "tests/integration/budget-graph-consistency.test.ts",
+        "tests/integration/budget-page-render.test.tsx"
       ],
       "sourceFiles": [
         "server/api/budgets.ts",
