@@ -34,6 +34,7 @@ UNIT_PATHS=(
   server/tests/ai-document-extra-methods.test.ts
   server/tests/ai-invoice-extract-route.test.ts
   server/tests/ai-suggest-payment-schedule-route.test.ts
+  server/tests/document-text-endpoint.test.ts
 )
 
 COMMON_FLAGS=(
