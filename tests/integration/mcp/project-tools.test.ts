@@ -636,7 +636,75 @@ describeIfDb('MCP project tools — Task #315 integration', () => {
       .where(eq(schema.maintenanceProjects.id, project.id));
     expect(persistedAtInProgress.status).toBe('in_progress');
     expect(persistedAtInProgress.actualStartDate).toBe(today);
-  }, 90000);
+
+    // ── advance_project_status: in_progress → post_work ────────────
+    // Walk the remaining workflow phases through a real
+    // workflowService call (no mocks). The post_work transition does
+    // not stamp any actual* date — only `in_progress` (already
+    // covered above) and `completed` (next call) do — so neither
+    // actualStartDate nor actualEndDate should change here.
+    const advanceToPostWorkRes = await advanceHandler({ role: 'admin', projectId: project.id });
+    const advancedToPostWork = parseJson<{
+      previousStatus: string;
+      newStatus: string;
+      project: { status: string; actualStartDate: string | null; actualEndDate: string | null };
+    }>(advanceToPostWorkRes);
+    expect(advancedToPostWork.previousStatus).toBe('in_progress');
+    expect(advancedToPostWork.newStatus).toBe('post_work');
+    expect(advancedToPostWork.project.status).toBe('post_work');
+    // actualStartDate stays at today (set on the previous transition);
+    // actualEndDate is still null because we have not yet hit
+    // `completed`.
+    expect(advancedToPostWork.project.actualStartDate).toBe(today);
+    expect(advancedToPostWork.project.actualEndDate).toBeNull();
+
+    const [persistedAtPostWork] = await db
+      .select({
+        status: schema.maintenanceProjects.status,
+        actualStartDate: schema.maintenanceProjects.actualStartDate,
+        actualEndDate: schema.maintenanceProjects.actualEndDate,
+      })
+      .from(schema.maintenanceProjects)
+      .where(eq(schema.maintenanceProjects.id, project.id));
+    expect(persistedAtPostWork.status).toBe('post_work');
+    expect(persistedAtPostWork.actualStartDate).toBe(today);
+    expect(persistedAtPostWork.actualEndDate).toBeNull();
+
+    // ── advance_project_status: post_work → completed ──────────────
+    // This is the branch the unit test only covers via mocks: the
+    // `nextStatus === 'completed'` spread in server/mcp/server.ts
+    // stamps `actualEndDate = today`. Closes the loop on the
+    // per-transition timestamp behaviour against a real DB.
+    const advanceToCompletedRes = await advanceHandler({ role: 'admin', projectId: project.id });
+    const advancedToCompleted = parseJson<{
+      previousStatus: string;
+      newStatus: string;
+      project: { status: string; actualStartDate: string | null; actualEndDate: string | null };
+    }>(advanceToCompletedRes);
+    expect(advancedToCompleted.previousStatus).toBe('post_work');
+    expect(advancedToCompleted.newStatus).toBe('completed');
+    expect(advancedToCompleted.project.status).toBe('completed');
+    expect(advancedToCompleted.project.actualStartDate).toBe(today);
+    expect(advancedToCompleted.project.actualEndDate).toBe(today);
+
+    const [persistedAtCompleted] = await db
+      .select({
+        status: schema.maintenanceProjects.status,
+        actualStartDate: schema.maintenanceProjects.actualStartDate,
+        actualEndDate: schema.maintenanceProjects.actualEndDate,
+      })
+      .from(schema.maintenanceProjects)
+      .where(eq(schema.maintenanceProjects.id, project.id));
+    expect(persistedAtCompleted.status).toBe('completed');
+    expect(persistedAtCompleted.actualStartDate).toBe(today);
+    expect(persistedAtCompleted.actualEndDate).toBe(today);
+
+    // Once `completed`, a further advance_project_status call must
+    // be rejected by the explicit guard in the MCP handler (the row
+    // is already at the terminal status).
+    const advanceAfterCompletedRes = await advanceHandler({ role: 'admin', projectId: project.id });
+    expect(textOf(advanceAfterCompletedRes)).toMatch(/already completed/i);
+  }, 120000);
 
   // -----------------------------------------------------------------
   // Manager (the *other* allowed write role beyond admin) can drive
