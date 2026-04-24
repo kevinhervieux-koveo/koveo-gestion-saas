@@ -517,9 +517,9 @@ export default function BulkDocumentImportPage() {
   const currentStep: BulkImportStep = session?.currentStep ?? 'upload';
 
   const createSession = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (targetBuildingId: string) => {
       const res = await apiRequest('POST', '/api/admin/bulk-import/sessions', {
-        buildingId,
+        buildingId: targetBuildingId,
       });
       return res.json() as Promise<BulkImportSession>;
     },
@@ -706,21 +706,30 @@ export default function BulkDocumentImportPage() {
                       {buildings.map((b) => {
                         const selected = buildingId === b.id;
                         const location = [b.city, b.province].filter(Boolean).join(', ');
+                        const isCreating = createSession.isPending && selected;
                         return (
                           <button
                             key={b.id}
                             type="button"
-                            onClick={() => setBuildingId(b.id)}
+                            disabled={createSession.isPending}
+                            onClick={() => {
+                              setBuildingId(b.id);
+                              createSession.mutate(b.id);
+                            }}
                             aria-pressed={selected}
-                            className={`flex items-start gap-3 rounded-lg border p-3 text-left transition hover:border-primary hover:bg-muted/50 ${
+                            className={`flex items-start gap-3 rounded-lg border p-3 text-left transition hover:border-primary hover:bg-muted/50 disabled:cursor-not-allowed disabled:opacity-60 ${
                               selected
                                 ? 'border-primary bg-primary/5 ring-2 ring-primary'
                                 : 'border-border'
                             }`}
                             data-testid={`card-building-${b.id}`}
                           >
-                            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
-                              <Building2 className="h-6 w-6" />
+                            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+                              {isCreating ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Building2 className="h-4 w-4" />
+                              )}
                             </div>
                             <div className="min-w-0 flex-1">
                               <div className="truncate font-medium">{b.name}</div>
@@ -753,16 +762,6 @@ export default function BulkDocumentImportPage() {
                     </div>
                   )}
                 </div>
-                <Button
-                  disabled={!buildingId || createSession.isPending}
-                  onClick={() => createSession.mutate()}
-                  data-testid="button-create-session"
-                >
-                  {createSession.isPending && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  )}
-                  {isFr ? 'Créer la session' : 'Create session'}
-                </Button>
               </CardContent>
             </Card>
           )}
