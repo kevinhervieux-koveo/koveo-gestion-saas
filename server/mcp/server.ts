@@ -1980,6 +1980,74 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     }
   );
 
+  // Shared schema for the optional `attachment` parameter on the demand and
+  // demand-comment creation tools. Mirrors the shape REST callers send to
+  // POST /api/demands (`attachments[0]`): an object-storage URL, an optional
+  // original filename, and an optional byte size.
+  const demandAttachmentParam = z
+    .object({
+      url: z.string().min(1).describe("Object-storage URL or path (typically `/objects/...`) returned by an upload helper."),
+      originalName: z.string().optional().describe("Original filename to display in the UI."),
+      size: z.number().int().nonnegative().optional().describe("File size in bytes."),
+    })
+    .optional()
+    .describe("Optional single-file attachment. ACL is verified for ownership and bound to the calling user.");
+
+  function normalizeAttachmentInput(
+    attachment: { url?: string; originalName?: string; size?: number } | undefined
+  ): { filePath?: string; fileName?: string; fileSize?: number } {
+    if (!attachment || !attachment.url) return {};
+    const filePath = attachment.url;
+    const fileName = attachment.originalName || filePath.split("/").pop() || "";
+    return {
+      filePath,
+      fileName: fileName || undefined,
+      fileSize: attachment.size,
+    };
+  }
+
+  // Mirror of the ACL ownership guard in POST /api/demands: when the supplied
+  // path is an object-storage entity, refuse to bind it if its ACL already
+  // names a different owner. Failures from the storage layer are logged and
+  // treated as "no existing ACL" — same as the REST handler does. Returns
+  // null when the binding is acceptable; otherwise an error message string.
+  async function verifyAttachmentOwnership(
+    filePath: string,
+    userId: string
+  ): Promise<string | null> {
+    if (!filePath.startsWith("/objects/")) return null;
+    try {
+      const svc = new ObjectStorageService();
+      const existingAcl = await svc.getExistingObjectAcl(filePath);
+      if (existingAcl && existingAcl.owner && existingAcl.owner !== userId) {
+        return "Access denied: object belongs to another user";
+      }
+    } catch (aclCheckError) {
+      if (process.env.NODE_ENV === "development") {
+        console.error("[mcp] Failed to check ACL on demand attachment:", aclCheckError);
+      }
+    }
+    return null;
+  }
+
+  // Mirror of the post-insert ACL set in POST /api/demands. Failures are
+  // logged but never bubble up — the row is already inserted and the REST
+  // handler treats this best-effort too.
+  async function applyAttachmentAcl(filePath: string, userId: string): Promise<void> {
+    if (!filePath.startsWith("/objects/")) return;
+    try {
+      const svc = new ObjectStorageService();
+      await svc.trySetObjectEntityAclPolicy(filePath, {
+        visibility: "private",
+        owner: userId,
+      });
+    } catch (aclError) {
+      if (process.env.NODE_ENV === "development") {
+        console.error("[mcp] Failed to set ACL on demand attachment:", aclError);
+      }
+    }
+  }
+
   server.tool(
     "list_demands",
     "List demands (requests/complaints) for a building",
@@ -2033,15 +2101,16 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
 
   server.tool(
     "create_demand",
-    "Create a new demand (request/complaint)",
+    "Create a new demand (request/complaint). Optionally attach a single file by passing an `attachment` (e.g. an object-storage URL the assistant just uploaded). The ACL on `/objects/...` paths is verified for ownership and then bound to the calling user, mirroring POST /api/demands.",
     {
       role: roleParam,
       buildingId: z.string().describe("Building ID"),
       type: z.enum(["complaint", "information", "maintenance", "other"]).describe("Demand type"),
       description: z.string().describe("Detailed description"),
       residenceId: z.string().optional().describe("Optional residence ID"),
+      attachment: demandAttachmentParam,
     },
-    async ({ role, buildingId, type, description, residenceId }) => {
+    async ({ role, buildingId, type, description, residenceId, attachment }) => {
       const orgIds = await getMcpOrgIds();
       const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, buildingId));
       if (!building || !orgIds.includes(building.organizationId)) {
@@ -2070,6 +2139,21 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
           return { content: [{ type: "text" as const, text: "Access denied: tenant is not linked to this residence" }] };
         }
       }
+      // Resolve attachment + verify ACL ownership on object-storage paths
+      // before we accept the path binding. If an attachment is supplied we
+      // refuse the request entirely when we cannot resolve the calling user,
+      // so attachment metadata is never persisted without an enforced ACL
+      // owner — matching POST /api/demands behavior.
+      const fileInfo = normalizeAttachmentInput(attachment);
+      if (fileInfo.filePath && !user) {
+        return { content: [{ type: "text" as const, text: "MCP user not found" }] };
+      }
+      if (fileInfo.filePath && user) {
+        const aclError = await verifyAttachmentOwnership(fileInfo.filePath, user.id);
+        if (aclError) {
+          return { content: [{ type: "text" as const, text: aclError }] };
+        }
+      }
       try {
         const [demand] = await withRetryableDbCall(() => db.insert(schema.demands).values({
           buildingId,
@@ -2078,7 +2162,13 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
           submitterId: user?.id,
           status: "submitted" as const,
           ...(residenceId && { residenceId }),
+          ...(fileInfo.filePath && { filePath: fileInfo.filePath }),
+          ...(fileInfo.fileName && { fileName: fileInfo.fileName }),
+          ...(fileInfo.fileSize !== undefined && { fileSize: fileInfo.fileSize }),
         }).returning());
+        if (fileInfo.filePath && user) {
+          await applyAttachmentAcl(fileInfo.filePath, user.id);
+        }
         return { content: [{ type: "text" as const, text: JSON.stringify(demand, null, 2) }] };
       } catch (e) {
         console.error("[mcp:create_demand]", e);
@@ -2189,15 +2279,16 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
 
   server.tool(
     "create_demand_comment",
-    "Add a comment to a demand. Tenants may only comment on their own demands and cannot post internal (manager-only) comments. Triggers the demand-commented notification flow.",
+    "Add a comment to a demand. Tenants may only comment on their own demands and cannot post internal (manager-only) comments. Triggers the demand-commented notification flow. Optionally attach a single file by passing an `attachment` (e.g. an object-storage URL the assistant just uploaded); the ACL check + binding mirrors the demand attachment flow.",
     {
       role: roleParam,
       demandId: z.string().describe("Demand ID"),
       commentText: z.string().describe("Comment body (1-1000 characters)"),
       commentType: z.string().optional().describe("Optional comment type"),
       isInternal: z.boolean().optional().describe("Internal/manager-only comment (admin/manager only). Defaults to false."),
+      attachment: demandAttachmentParam,
     },
-    async ({ role, demandId, commentText, commentType, isInternal }) => {
+    async ({ role, demandId, commentText, commentType, isInternal, attachment }) => {
       if (role === "tenant" && isInternal === true) {
         return { content: [{ type: "text" as const, text: "Access denied: tenants cannot post internal comments" }] };
       }
@@ -2215,21 +2306,46 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       if (role === "tenant" && demand.submitterId !== user.id) {
         return { content: [{ type: "text" as const, text: "Access denied: tenants can only comment on their own demands" }] };
       }
+      const fileInfo = normalizeAttachmentInput(attachment);
+      if (fileInfo.filePath) {
+        const aclError = await verifyAttachmentOwnership(fileInfo.filePath, user.id);
+        if (aclError) {
+          return { content: [{ type: "text" as const, text: aclError }] };
+        }
+      }
       const parsed = insertDemandCommentSchema.safeParse({
         demandId,
         commenterId: user.id,
         commentText,
         commentType,
         isInternal: isInternal ?? false,
+        ...(fileInfo.filePath && { filePath: fileInfo.filePath }),
+        ...(fileInfo.fileName && { fileName: fileInfo.fileName }),
+        ...(fileInfo.fileSize !== undefined && { fileSize: fileInfo.fileSize }),
       });
       if (!parsed.success) {
         return { content: [{ type: "text" as const, text: `Invalid comment data: ${parsed.error.issues.map((i) => i.message).join(", ")}` }] };
       }
       try {
+        // Explicit insert payload (rather than `parsed.data` directly) so the
+        // required columns stay non-optional for Drizzle's insert overload.
+        const insertValues = {
+          demandId,
+          commenterId: user.id,
+          commentText,
+          commentType,
+          isInternal: isInternal ?? false,
+          ...(fileInfo.filePath && { filePath: fileInfo.filePath }),
+          ...(fileInfo.fileName && { fileName: fileInfo.fileName }),
+          ...(fileInfo.fileSize !== undefined && { fileSize: fileInfo.fileSize }),
+        };
         const [comment] = await withRetryableDbCall(() => db
           .insert(schema.demandComments)
-          .values(parsed.data)
+          .values(insertValues)
           .returning());
+        if (fileInfo.filePath) {
+          await applyAttachmentAcl(fileInfo.filePath, user.id);
+        }
         if (demand.submitterId) {
           demandNotificationService
             .notifyDemandCommented(demandId, user.id, role, demand.submitterId, demand.buildingId)

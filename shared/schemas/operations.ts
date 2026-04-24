@@ -255,6 +255,12 @@ export const demandComments = pgTable('demands_comments', {
   commentText: text('comment_text').notNull(),
   commentType: text('comment_type'),
   isInternal: boolean('is_internal').default(false),
+  // Optional single-file attachment (mirrors the demands table fields).
+  // Populated by the MCP `create_demand_comment` tool when an AI assistant
+  // supplies an object-storage URL alongside the comment text.
+  filePath: text('file_path'),
+  fileName: text('file_name'),
+  fileSize: integer('file_size'),
   createdAt: timestamp('created_at').defaultNow(),
   updatedAt: timestamp('updated_at').defaultNow(),
 }, (table) => ({
@@ -589,6 +595,10 @@ export const insertDemandCommentSchema = z.object({
     .max(1000, 'Comment must not exceed 1000 characters'),
   commentType: z.string().optional(),
   isInternal: z.boolean().default(false),
+  // Optional single-file attachment (mirrors insertDemandSchema).
+  filePath: z.string().optional(),
+  fileName: z.string().optional(),
+  fileSize: z.number().int().optional(),
 });
 
 export const insertBugSchema = z.object({

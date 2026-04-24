@@ -69,8 +69,17 @@ jest.mock('../../../server/db', () => ({
 jest.mock('../../../server/services/document-service', () => ({
   DocumentService: jest.fn().mockImplementation(() => ({})),
 }));
+const getExistingObjectAclMock = jest.fn() as jest.Mock<Promise<unknown>, [string]>;
+const trySetObjectEntityAclPolicyMock = jest.fn() as jest.Mock<
+  Promise<string>,
+  [string, { visibility: string; owner: string }]
+>;
 jest.mock('../../../server/objectStorage', () => ({
-  ObjectStorageService: jest.fn().mockImplementation(() => ({})),
+  ObjectStorageService: jest.fn().mockImplementation(() => ({
+    getExistingObjectAcl: (path: string) => getExistingObjectAclMock(path),
+    trySetObjectEntityAclPolicy: (path: string, policy: { visibility: string; owner: string }) =>
+      trySetObjectEntityAclPolicyMock(path, policy),
+  })),
 }));
 jest.mock('../../../server/services/consolidated-ai-service', () => ({
   aiService: {},
@@ -121,6 +130,10 @@ beforeEach(() => {
   updateCalls.length = 0;
   notifyDemandEditedMock.mockClear();
   notifyDemandCommentedMock.mockClear();
+  getExistingObjectAclMock.mockReset();
+  getExistingObjectAclMock.mockResolvedValue(null);
+  trySetObjectEntityAclPolicyMock.mockReset();
+  trySetObjectEntityAclPolicyMock.mockResolvedValue('/objects/whatever');
   // Use the legacy (no-OAuth) registration path so the seed-account lookups run.
   createMcpServer(undefined);
 });
@@ -429,5 +442,185 @@ describe('MCP create_demand_comment tool', () => {
     });
     expect(result.content[0].text).toContain('Invalid comment data');
     expect(insertCalls.length).toBe(0);
+  });
+});
+
+describe('MCP demand attachment handling', () => {
+  it('create_demand stores the attachment fields and binds the object ACL to the caller', async () => {
+    selectQueue.push([{ id: ORG_ID }]); // getMcpOrgIds
+    selectQueue.push([buildingRow()]); // building lookup
+    selectQueue.push([{ id: SEED_MANAGER_ID, role: 'manager' }]); // getMcpUser
+
+    const handler = registeredTools.get('create_demand');
+    expect(handler).toBeDefined();
+
+    const result = await handler!({
+      role: 'manager',
+      buildingId: BUILDING_ID,
+      type: 'maintenance',
+      description: 'Hallway light is flickering and needs to be replaced.',
+      attachment: {
+        url: '/objects/uploads/demand-photo.png',
+        originalName: 'demand-photo.png',
+        size: 12345,
+      },
+    });
+
+    // The ownership-check helper was consulted before the row was inserted.
+    expect(getExistingObjectAclMock).toHaveBeenCalledWith('/objects/uploads/demand-photo.png');
+    // The new demand row carries the file metadata.
+    expect(insertCalls).toHaveLength(1);
+    expect(insertCalls[0].values).toMatchObject({
+      buildingId: BUILDING_ID,
+      type: 'maintenance',
+      filePath: '/objects/uploads/demand-photo.png',
+      fileName: 'demand-photo.png',
+      fileSize: 12345,
+    });
+    // The ACL set call binds the object to the calling user with `private`
+    // visibility, matching POST /api/demands.
+    expect(trySetObjectEntityAclPolicyMock).toHaveBeenCalledWith(
+      '/objects/uploads/demand-photo.png',
+      { visibility: 'private', owner: SEED_MANAGER_ID },
+    );
+    // Sanity-check the response contains the inserted row.
+    expect(result.content[0].text).toContain('demand-photo.png');
+  });
+
+  it('create_demand rejects an attachment whose ACL is owned by another user', async () => {
+    selectQueue.push([{ id: ORG_ID }]);
+    selectQueue.push([buildingRow()]);
+    selectQueue.push([{ id: SEED_MANAGER_ID, role: 'manager' }]);
+
+    getExistingObjectAclMock.mockResolvedValueOnce({ owner: OTHER_USER_ID, visibility: 'private' });
+
+    const handler = registeredTools.get('create_demand');
+    const result = await handler!({
+      role: 'manager',
+      buildingId: BUILDING_ID,
+      type: 'complaint',
+      description: 'Loud noises late at night from the neighbouring unit.',
+      attachment: {
+        url: '/objects/uploads/owned-by-someone-else.pdf',
+      },
+    });
+
+    expect(result.content[0].text).toContain('Access denied: object belongs to another user');
+    // No insert and no ACL rebinding should have happened.
+    expect(insertCalls).toHaveLength(0);
+    expect(trySetObjectEntityAclPolicyMock).not.toHaveBeenCalled();
+  });
+
+  it('create_demand_comment stores the attachment fields and binds the object ACL to the caller', async () => {
+    selectQueue.push([{ id: ORG_ID }]);
+    selectQueue.push([demandRow({ submitterId: OTHER_USER_ID })]);
+    selectQueue.push([buildingRow()]);
+    selectQueue.push([{ id: SEED_MANAGER_ID, role: 'manager' }]);
+
+    const handler = registeredTools.get('create_demand_comment');
+    const result = await handler!({
+      role: 'manager',
+      demandId: DEMAND_ID,
+      commentText: 'See the attached invoice for the repair quote.',
+      attachment: {
+        url: '/objects/uploads/quote.pdf',
+        originalName: 'quote.pdf',
+        size: 5432,
+      },
+    });
+
+    expect(getExistingObjectAclMock).toHaveBeenCalledWith('/objects/uploads/quote.pdf');
+    expect(insertCalls).toHaveLength(1);
+    expect(insertCalls[0].values).toMatchObject({
+      demandId: DEMAND_ID,
+      commenterId: SEED_MANAGER_ID,
+      commentText: 'See the attached invoice for the repair quote.',
+      filePath: '/objects/uploads/quote.pdf',
+      fileName: 'quote.pdf',
+      fileSize: 5432,
+    });
+    expect(trySetObjectEntityAclPolicyMock).toHaveBeenCalledWith(
+      '/objects/uploads/quote.pdf',
+      { visibility: 'private', owner: SEED_MANAGER_ID },
+    );
+    // The notification flow still fires for non-self comments.
+    expect(notifyDemandCommentedMock).toHaveBeenCalled();
+    expect(result.content[0].text).toContain('quote.pdf');
+  });
+
+  it('create_demand_comment rejects an attachment whose ACL is owned by another user', async () => {
+    selectQueue.push([{ id: ORG_ID }]);
+    selectQueue.push([demandRow({ submitterId: SEED_TENANT_ID })]);
+    selectQueue.push([buildingRow()]);
+    selectQueue.push([{ id: SEED_TENANT_ID, role: 'tenant' }]);
+
+    getExistingObjectAclMock.mockResolvedValueOnce({ owner: OTHER_USER_ID, visibility: 'private' });
+
+    const handler = registeredTools.get('create_demand_comment');
+    const result = await handler!({
+      role: 'tenant',
+      demandId: DEMAND_ID,
+      commentText: 'Adding a screenshot for context.',
+      attachment: {
+        url: '/objects/uploads/not-mine.png',
+      },
+    });
+
+    expect(result.content[0].text).toContain('Access denied: object belongs to another user');
+    expect(insertCalls).toHaveLength(0);
+    expect(trySetObjectEntityAclPolicyMock).not.toHaveBeenCalled();
+    expect(notifyDemandCommentedMock).not.toHaveBeenCalled();
+  });
+
+  it('non-object-storage attachment URLs skip the ACL flow but still record metadata', async () => {
+    selectQueue.push([{ id: ORG_ID }]);
+    selectQueue.push([buildingRow()]);
+    selectQueue.push([{ id: SEED_ADMIN_ID, role: 'admin' }]);
+
+    const handler = registeredTools.get('create_demand');
+    await handler!({
+      role: 'admin',
+      buildingId: BUILDING_ID,
+      type: 'other',
+      description: 'External link to additional documentation about the issue.',
+      attachment: {
+        url: 'https://example.com/docs/spec.pdf',
+        originalName: 'spec.pdf',
+        size: 999,
+      },
+    });
+
+    // External URLs are not object-storage paths, so the ACL helpers must not
+    // be called (the REST endpoint behaves the same way).
+    expect(getExistingObjectAclMock).not.toHaveBeenCalled();
+    expect(trySetObjectEntityAclPolicyMock).not.toHaveBeenCalled();
+    // But the file metadata is still recorded on the demand row.
+    expect(insertCalls).toHaveLength(1);
+    expect(insertCalls[0].values).toMatchObject({
+      filePath: 'https://example.com/docs/spec.pdf',
+      fileName: 'spec.pdf',
+      fileSize: 999,
+    });
+  });
+
+  it('create_demand_comment without an attachment leaves the file fields unset and the ACL helpers untouched', async () => {
+    selectQueue.push([{ id: ORG_ID }]);
+    selectQueue.push([demandRow({ submitterId: OTHER_USER_ID })]);
+    selectQueue.push([buildingRow()]);
+    selectQueue.push([{ id: SEED_MANAGER_ID, role: 'manager' }]);
+
+    const handler = registeredTools.get('create_demand_comment');
+    await handler!({
+      role: 'manager',
+      demandId: DEMAND_ID,
+      commentText: 'No file needed here.',
+    });
+
+    expect(insertCalls).toHaveLength(1);
+    expect(insertCalls[0].values).not.toHaveProperty('filePath');
+    expect(insertCalls[0].values).not.toHaveProperty('fileName');
+    expect(insertCalls[0].values).not.toHaveProperty('fileSize');
+    expect(getExistingObjectAclMock).not.toHaveBeenCalled();
+    expect(trySetObjectEntityAclPolicyMock).not.toHaveBeenCalled();
   });
 });
