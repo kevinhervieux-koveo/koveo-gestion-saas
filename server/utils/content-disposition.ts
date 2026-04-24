@@ -30,7 +30,13 @@ function sanitizeAsciiFilename(filename: string, fallback: string): string {
       ascii += '_';
       continue;
     }
-    if (ch === '"' || ch === '\\') {
+    // Quotes and backslashes are unsafe inside the quoted-string fallback.
+    // Semicolons are technically legal inside a quoted-string, but some
+    // intermediaries and download managers treat them as parameter
+    // separators and truncate the filename — strip them in the ASCII
+    // fallback and rely on the RFC 5987 extended form to preserve the
+    // original name.
+    if (ch === '"' || ch === '\\' || ch === ';') {
       ascii += '_';
       continue;
     }
@@ -38,6 +44,14 @@ function sanitizeAsciiFilename(filename: string, fallback: string): string {
   }
   ascii = ascii.replace(/_+/g, '_').replace(/^[._\s]+|[._\s]+$/g, '').trim();
   return ascii.length > 0 ? ascii : fallback;
+}
+
+const VALID_DISPOSITION_TYPES: ReadonlySet<string> = new Set(['attachment', 'inline']);
+
+function normalizeDispositionType(value: unknown): ContentDispositionType {
+  return typeof value === 'string' && VALID_DISPOSITION_TYPES.has(value)
+    ? (value as ContentDispositionType)
+    : 'attachment';
 }
 
 function encodeRfc5987(value: string): string {
@@ -50,7 +64,7 @@ export function buildContentDisposition(
   filename: string | null | undefined,
   options: BuildContentDispositionOptions = {}
 ): string {
-  const type: ContentDispositionType = options.type ?? 'attachment';
+  const type = normalizeDispositionType(options.type);
   const fallback = options.fallbackFilename ?? DEFAULT_FALLBACK;
 
   const raw = typeof filename === 'string' && filename.length > 0 ? filename : fallback;

@@ -187,7 +187,16 @@ describe('MCP invite_user — sanitizes error responses (task #214)', () => {
     });
 
     const text = result.content[0].text;
-    expect(text).toBe('Failed to create invitation — please retry');
+    // Task #245 — connection failures (08006 etc.) now route through
+    // buildWriteErrorResponse and surface as a structured envelope so MCP
+    // callers can distinguish transient/retryable failures. The driver
+    // message and bound parameters are intentionally NOT included.
+    const parsed = JSON.parse(text) as Record<string, unknown>;
+    expect(parsed.status).toBe('connection_failure');
+    expect(parsed.code).toBe('CONNECTION_FAILURE');
+    expect(parsed.retryable).toBe(true);
+    expect(parsed.pgCode).toBe('08006');
+    expect(typeof parsed.message).toBe('string');
     for (const leak of [
       'select "id"',
       'organizations',

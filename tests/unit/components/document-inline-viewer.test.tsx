@@ -286,12 +286,14 @@ async function expectInlineViewerOpenedFor(expectedSrc: string) {
 describe('DocumentInlineViewer', () => {
   it('does not render the iframe when closed and never opens a popup', () => {
     render(
-      <DocumentInlineViewer
-        isOpen={false}
-        onClose={jest.fn()}
-        fileUrl="/api/documents/abc/file"
-        fileName="sample.pdf"
-      />
+      withQueryClient(
+        <DocumentInlineViewer
+          isOpen={false}
+          onClose={jest.fn()}
+          fileUrl="/api/documents/abc/file"
+          fileName="sample.pdf"
+        />
+      )
     );
     expect(screen.queryByTestId('iframe-inline-viewer')).not.toBeInTheDocument();
     expect(windowOpenSpy).not.toHaveBeenCalled();
@@ -299,25 +301,29 @@ describe('DocumentInlineViewer', () => {
 
   it('renders an iframe pointing at fileUrl when open (no new browser tab)', async () => {
     render(
-      <DocumentInlineViewer
-        isOpen
-        onClose={jest.fn()}
-        fileUrl="/api/documents/abc/file"
-        fileName="sample.pdf"
-      />
+      withQueryClient(
+        <DocumentInlineViewer
+          isOpen
+          onClose={jest.fn()}
+          fileUrl="/api/documents/abc/file"
+          fileName="sample.pdf"
+        />
+      )
     );
     await expectInlineViewerOpenedFor('/api/documents/abc/file');
   });
 
   it('Download button fetches the file with credentials and triggers a save', async () => {
     render(
-      <DocumentInlineViewer
-        isOpen
-        onClose={jest.fn()}
-        fileUrl="/api/documents/abc/file"
-        downloadUrl="/api/documents/abc/file?download=true"
-        fileName="sample.pdf"
-      />
+      withQueryClient(
+        <DocumentInlineViewer
+          isOpen
+          onClose={jest.fn()}
+          fileUrl="/api/documents/abc/file"
+          downloadUrl="/api/documents/abc/file?download=true"
+          fileName="sample.pdf"
+        />
+      )
     );
 
     await settlePreviewAndClearSpies('/api/documents/abc/file');
@@ -336,12 +342,14 @@ describe('DocumentInlineViewer', () => {
 
   it('falls back to fileUrl with ?download=true when no downloadUrl is provided', async () => {
     render(
-      <DocumentInlineViewer
-        isOpen
-        onClose={jest.fn()}
-        fileUrl="/api/documents/abc/file"
-        fileName="sample.pdf"
-      />
+      withQueryClient(
+        <DocumentInlineViewer
+          isOpen
+          onClose={jest.fn()}
+          fileUrl="/api/documents/abc/file"
+          fileName="sample.pdf"
+        />
+      )
     );
     await settlePreviewAndClearSpies('/api/documents/abc/file');
     await clickAndWait('button-inline-viewer-download');
@@ -351,12 +359,14 @@ describe('DocumentInlineViewer', () => {
 
   it('preserves existing query string when appending download flag', async () => {
     render(
-      <DocumentInlineViewer
-        isOpen
-        onClose={jest.fn()}
-        fileUrl="/api/documents/abc/file?inline=true"
-        fileName="sample.pdf"
-      />
+      withQueryClient(
+        <DocumentInlineViewer
+          isOpen
+          onClose={jest.fn()}
+          fileUrl="/api/documents/abc/file?inline=true"
+          fileName="sample.pdf"
+        />
+      )
     );
     await settlePreviewAndClearSpies('/api/documents/abc/file?inline=true');
     await clickAndWait('button-inline-viewer-download');
@@ -371,12 +381,14 @@ describe('DocumentInlineViewer', () => {
       buildFetchResponse({ ok: false, status: 500, statusText: 'Server Error' });
 
     render(
-      <DocumentInlineViewer
-        isOpen
-        onClose={jest.fn()}
-        fileUrl="/api/documents/abc/file"
-        fileName="sample.pdf"
-      />
+      withQueryClient(
+        <DocumentInlineViewer
+          isOpen
+          onClose={jest.fn()}
+          fileUrl="/api/documents/abc/file"
+          fileName="sample.pdf"
+        />
+      )
     );
     await clickAndWait('button-inline-viewer-download');
     await waitFor(() => expect(mockToast).toHaveBeenCalled());
@@ -385,12 +397,14 @@ describe('DocumentInlineViewer', () => {
 
   it('renders an <img> (not an iframe) for image filenames', () => {
     render(
-      <DocumentInlineViewer
-        isOpen
-        onClose={jest.fn()}
-        fileUrl="/api/documents/img-1/file"
-        fileName="photo.png"
-      />
+      withQueryClient(
+        <DocumentInlineViewer
+          isOpen
+          onClose={jest.fn()}
+          fileUrl="/api/documents/img-1/file"
+          fileName="photo.png"
+        />
+      )
     );
     const img = screen.getByTestId('img-inline-viewer') as HTMLImageElement;
     expect(img).toBeInTheDocument();
@@ -402,13 +416,15 @@ describe('DocumentInlineViewer', () => {
 
   it('renders an <img> when only an image MIME type is provided (no extension)', () => {
     render(
-      <DocumentInlineViewer
-        isOpen
-        onClose={jest.fn()}
-        fileUrl="/api/documents/img-2/file"
-        fileName="screenshot"
-        mimeType="image/jpeg"
-      />
+      withQueryClient(
+        <DocumentInlineViewer
+          isOpen
+          onClose={jest.fn()}
+          fileUrl="/api/documents/img-2/file"
+          fileName="screenshot"
+          mimeType="image/jpeg"
+        />
+      )
     );
     expect(screen.getByTestId('img-inline-viewer')).toBeInTheDocument();
     expect(screen.queryByTestId('iframe-inline-viewer')).not.toBeInTheDocument();
@@ -416,12 +432,14 @@ describe('DocumentInlineViewer', () => {
 
   it('renders the unsupported fallback for .docx files with a working download button', async () => {
     render(
-      <DocumentInlineViewer
-        isOpen
-        onClose={jest.fn()}
-        fileUrl="/api/documents/doc-1/file"
-        fileName="contract.docx"
-      />
+      withQueryClient(
+        <DocumentInlineViewer
+          isOpen
+          onClose={jest.fn()}
+          fileUrl="/api/documents/doc-1/file"
+          fileName="contract.docx"
+        />
+      )
     );
 
     expect(screen.getByTestId('inline-viewer-unsupported')).toBeInTheDocument();
@@ -439,13 +457,15 @@ describe('DocumentInlineViewer', () => {
 
   it('renders the unsupported fallback for an Office Word MIME type', () => {
     render(
-      <DocumentInlineViewer
-        isOpen
-        onClose={jest.fn()}
-        fileUrl="/api/documents/doc-2/file"
-        fileName="memo"
-        mimeType="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-      />
+      withQueryClient(
+        <DocumentInlineViewer
+          isOpen
+          onClose={jest.fn()}
+          fileUrl="/api/documents/doc-2/file"
+          fileName="memo"
+          mimeType="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        />
+      )
     );
     expect(screen.getByTestId('inline-viewer-unsupported')).toBeInTheDocument();
     expect(screen.queryByTestId('img-inline-viewer')).not.toBeInTheDocument();
@@ -457,12 +477,14 @@ describe('DocumentInlineViewer', () => {
       buildFetchResponse({ ok: false, status: 404, statusText: 'Not Found' });
 
     render(
-      <DocumentInlineViewer
-        isOpen
-        onClose={jest.fn()}
-        fileUrl="/api/documents/missing/file"
-        fileName="missing.pdf"
-      />
+      withQueryClient(
+        <DocumentInlineViewer
+          isOpen
+          onClose={jest.fn()}
+          fileUrl="/api/documents/missing/file"
+          fileName="missing.pdf"
+        />
+      )
     );
 
     await flushAsyncEffects();
@@ -481,12 +503,14 @@ describe('DocumentInlineViewer', () => {
       });
 
     render(
-      <DocumentInlineViewer
-        isOpen
-        onClose={jest.fn()}
-        fileUrl="/api/documents/slow/file"
-        fileName="slow.pdf"
-      />
+      withQueryClient(
+        <DocumentInlineViewer
+          isOpen
+          onClose={jest.fn()}
+          fileUrl="/api/documents/slow/file"
+          fileName="slow.pdf"
+        />
+      )
     );
 
     await flushAsyncEffects();
@@ -501,12 +525,14 @@ describe('DocumentInlineViewer', () => {
   it('Close button invokes onClose', () => {
     const onClose = jest.fn();
     render(
-      <DocumentInlineViewer
-        isOpen
-        onClose={onClose}
-        fileUrl="/api/documents/abc/file"
-        fileName="sample.pdf"
-      />
+      withQueryClient(
+        <DocumentInlineViewer
+          isOpen
+          onClose={onClose}
+          fileUrl="/api/documents/abc/file"
+          fileName="sample.pdf"
+        />
+      )
     );
     fireEvent.click(screen.getByTestId('button-inline-viewer-close'));
     expect(onClose).toHaveBeenCalledTimes(1);
@@ -520,12 +546,14 @@ describe('DocumentInlineViewer', () => {
 describe('AttachedFileSection', () => {
   it('opens the inline viewer dialog with iframe when View is clicked (no popup)', async () => {
     render(
-      <AttachedFileSection
-        entityType="document"
-        entityId="doc-123"
-        filePath="/api/documents/doc-123/file"
-        fileName="lease.pdf"
-      />
+      withQueryClient(
+        <AttachedFileSection
+          entityType="document"
+          entityId="doc-123"
+          filePath="/api/documents/doc-123/file"
+          fileName="lease.pdf"
+        />
+      )
     );
 
     expect(screen.queryByTestId('iframe-inline-viewer')).not.toBeInTheDocument();
@@ -542,12 +570,14 @@ describe('AttachedFileSection', () => {
     'wires the iframe to the $entityType entity endpoint',
     async ({ entityType, id, url }) => {
       render(
-        <AttachedFileSection
-          entityType={entityType}
-          entityId={id}
-          filePath={`/uploads/${id}.pdf`}
-          fileName="x.pdf"
-        />
+        withQueryClient(
+          <AttachedFileSection
+            entityType={entityType}
+            entityId={id}
+            filePath={`/uploads/${id}.pdf`}
+            fileName="x.pdf"
+          />
+        )
       );
       await clickAndWait('button-view-file');
       await expectInlineViewerOpenedFor(url);
@@ -556,12 +586,14 @@ describe('AttachedFileSection', () => {
 
   it('Download button inside the viewer fetches the file with credentials', async () => {
     render(
-      <AttachedFileSection
-        entityType="bill"
-        entityId="bill-7"
-        filePath="/uploads/bill-7.pdf"
-        fileName="bill-7.pdf"
-      />
+      withQueryClient(
+        <AttachedFileSection
+          entityType="bill"
+          entityId="bill-7"
+          filePath="/uploads/bill-7.pdf"
+          fileName="bill-7.pdf"
+        />
+      )
     );
     await clickAndWait('button-view-file');
     await settlePreviewAndClearSpies('/api/bills/bill-7/file');
@@ -591,13 +623,15 @@ describe('StandardDocumentAttachments', () => {
     ];
 
     render(
-      <StandardDocumentAttachments
-        onDocumentChange={jest.fn()}
-        attachedFiles={attachedFiles}
-        onRemoveFile={jest.fn()}
-        uploadProgress={{}}
-        uploadContext={{ type: 'documents' }}
-      />
+      withQueryClient(
+        <StandardDocumentAttachments
+          onDocumentChange={jest.fn()}
+          attachedFiles={attachedFiles}
+          onRemoveFile={jest.fn()}
+          uploadProgress={{}}
+          uploadContext={{ type: 'documents' }}
+        />
+      )
     );
 
     await clickAndWait('button-view-att-1');

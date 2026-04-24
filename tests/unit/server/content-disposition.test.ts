@@ -52,12 +52,14 @@ async function roundTripHeader(headerValue: string): Promise<string> {
 
 describe('buildContentDisposition', () => {
   it('passes through a plain ASCII filename unchanged', () => {
-    const header = buildContentDisposition('attachment', 'invoice.pdf');
+    const header = buildContentDisposition('invoice.pdf', { type: 'attachment' });
     expect(header).toBe('attachment; filename="invoice.pdf"');
   });
 
   it('escapes literal double quotes by replacing them with underscores', () => {
-    const header = buildContentDisposition('attachment', 'weird "quoted" name.pdf');
+    const header = buildContentDisposition('weird "quoted" name.pdf', {
+      type: 'attachment',
+    });
     // Quotes are unsafe inside the quoted-string fallback. They get
     // replaced in the ASCII fallback and the original survives via the
     // RFC 5987 extended form.
@@ -71,7 +73,7 @@ describe('buildContentDisposition', () => {
     // some intermediaries and download managers treat them as parameter
     // separators and truncate the filename. We force the RFC 5987 form
     // so the original name still round-trips intact.
-    const header = buildContentDisposition('attachment', 'a;b;c.txt');
+    const header = buildContentDisposition('a;b;c.txt', { type: 'attachment' });
     expect(header).toMatch(/^attachment; filename="[^";]*"; filename\*=UTF-8''/);
     expect(header).toContain("filename*=UTF-8''a%3Bb%3Bc.txt");
     // Ensure no raw semicolon survives inside the ASCII fallback.
@@ -80,40 +82,42 @@ describe('buildContentDisposition', () => {
   });
 
   it('escapes backslashes', () => {
-    const header = buildContentDisposition('attachment', 'a\\b.txt');
+    const header = buildContentDisposition('a\\b.txt', { type: 'attachment' });
     expect(header).toContain("filename*=UTF-8''a%5Cb.txt");
     expect(header).not.toMatch(/filename="[^"]*\\[^"]*"/);
   });
 
   it('encodes emoji via filename* and keeps a safe ASCII fallback', () => {
-    const header = buildContentDisposition('attachment', 'party-🎉.pdf');
+    const header = buildContentDisposition('party-🎉.pdf', { type: 'attachment' });
     expect(header).toContain("filename*=UTF-8''party-%F0%9F%8E%89.pdf");
     expect(header).toMatch(/^attachment; filename="party-_\.pdf"; /);
   });
 
   it('encodes CJK characters via filename*', () => {
-    const header = buildContentDisposition('inline', '報告書.pdf');
+    const header = buildContentDisposition('報告書.pdf', { type: 'inline' });
     expect(header.startsWith('inline; ')).toBe(true);
     expect(header).toContain("filename*=UTF-8''%E5%A0%B1%E5%91%8A%E6%9B%B8.pdf");
   });
 
   it('encodes Cyrillic characters via filename*', () => {
-    const header = buildContentDisposition('attachment', 'отчёт.pdf');
+    const header = buildContentDisposition('отчёт.pdf', { type: 'attachment' });
     expect(header).toContain("filename*=UTF-8''%D0%BE%D1%82%D1%87%D1%91%D1%82.pdf");
   });
 
   it('falls back to "download" when the filename is empty', () => {
-    const header = buildContentDisposition('attachment', '');
+    const header = buildContentDisposition('', { type: 'attachment' });
     expect(header).toBe('attachment; filename="download"');
   });
 
   it('rejects unsafe disposition tokens and defaults to attachment', () => {
-    const header = buildContentDisposition('inva lid', 'file.txt');
+    const header = buildContentDisposition('file.txt', {
+      type: 'inva lid' as unknown as 'attachment',
+    });
     expect(header).toBe('attachment; filename="file.txt"');
   });
 
   it('preserves Latin-1 accented filenames via filename* (no Latin-1 in the raw header)', () => {
-    const header = buildContentDisposition('attachment', 'héllo.pdf');
+    const header = buildContentDisposition('héllo.pdf', { type: 'attachment' });
     // The ASCII fallback strips the accent; the original survives via
     // the encoded form. Critically, the header value is now pure ASCII
     // so Node will not throw at send-time.
@@ -135,7 +139,7 @@ describe('buildContentDisposition', () => {
 
     for (const name of tricky) {
       it(`survives a real Node HTTP round trip for ${JSON.stringify(name)}`, async () => {
-        const header = buildContentDisposition('attachment', name);
+        const header = buildContentDisposition(name, { type: 'attachment' });
         await expect(roundTripHeader(header)).resolves.toBe(header);
       });
     }
