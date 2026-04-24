@@ -85,6 +85,7 @@ import * as schema from "@shared/schema";
 import { registerBudgetTools } from "./budget-tools";
 import { registerBulkImportTools } from "./bulk-import-tools";
 import * as commonSpaceRules from "../api/common-spaces-rules";
+import { adjustResidenceCount } from "../api/buildings/operations";
 import { eq, and, inArray, desc, asc, isNull, or, sql, count, gte, lte, type SQL } from "drizzle-orm";
 import { DocumentService, type DocumentType } from "../services/document-service";
 import { ObjectStorageService } from "../objectStorage";
@@ -1075,39 +1076,141 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       if (!building || !orgIds.includes(building.organizationId)) {
         return { content: [{ type: "text" as const, text: "Building not found or access denied" }] };
       }
+
+      // Mirror the REST PUT handler's residence-count rules:
+      //   - Only admins may change `totalUnits`, because the change adds
+      //     or soft-deletes residence rows (which can destroy data).
+      //   - The building update + residence adjustment must run inside a
+      //     single transaction so a mid-flight failure cannot leave
+      //     `buildings.totalUnits` updated while the residence rows are
+      //     out of sync (the drift Task #172 closed for the REST path).
+      const previousTotalUnits = building.totalUnits ?? 0;
+      const totalUnitsChanging =
+        totalUnits !== undefined && totalUnits !== previousTotalUnits;
+      if (totalUnitsChanging && role !== "admin") {
+        return {
+          content: [{
+            type: "text" as const,
+            text:
+              "Access denied: only admins can change a building's totalUnits, " +
+              "because doing so adds or soft-deletes residence rows.",
+          }],
+        };
+      }
+
+      // The other side effects the REST PUT writes are stored as
+      // plain columns on the building row (bankAccount*, inflation*,
+      // unplannedBills*, etc.) and have no separate recompute step in
+      // the REST handler — there is no budget-recompute, no
+      // notification fan-out, no derived-table refresh to mirror here.
+      // If a future REST change adds a real side effect, this comment
+      // should be revisited along with the REST PUT handler.
       try {
-        const [updated] = await withRetryableDbCall(() => db
-          .update(schema.buildings)
-          .set({
-            ...(name !== undefined && { name }),
-            ...(address !== undefined && { address }),
-            ...(city !== undefined && { city }),
-            ...(postalCode !== undefined && { postalCode }),
-            ...(buildingType !== undefined && { buildingType }),
-            ...(totalUnits !== undefined && { totalUnits }),
-            ...(province !== undefined && { province }),
-            ...(constructionDate !== undefined && { constructionDate }),
-            ...(totalFloors !== undefined && { totalFloors }),
-            ...(parkingSpaces !== undefined && { parkingSpaces }),
-            ...(storageSpaces !== undefined && { storageSpaces }),
-            ...(amenities !== undefined && { amenities }),
-            ...(managementCompany !== undefined && { managementCompany }),
-            ...(bankAccountNumber !== undefined && { bankAccountNumber }),
-            ...(bankAccountNotes !== undefined && { bankAccountNotes }),
-            ...(bankAccountStartDate !== undefined && { bankAccountStartDate: new Date(bankAccountStartDate) }),
-            ...(bankAccountStartAmount !== undefined && { bankAccountStartAmount: String(bankAccountStartAmount) }),
-            ...(bankAccountMinimums !== undefined && { bankAccountMinimums }),
-            ...(unplannedBillsAmount !== undefined && { unplannedBillsAmount: String(unplannedBillsAmount) }),
-            ...(unplannedBillsStartDate !== undefined && { unplannedBillsStartDate }),
-            ...(inflationSettings !== undefined && { inflationSettings }),
-            ...(financialYearStart !== undefined && { financialYearStart }),
-            ...(generalInflationRate !== undefined && { generalInflationRate: String(generalInflationRate) }),
-            ...(revenueInflationRate !== undefined && { revenueInflationRate: String(revenueInflationRate) }),
-            updatedAt: new Date(),
-          })
-          .where(eq(schema.buildings.id, buildingId))
-          .returning());
-        return { content: [{ type: "text" as const, text: JSON.stringify(updated, null, 2) }] };
+        const result = await withRetryableDbCall(() => db.transaction(async (tx) => {
+          const [updated] = await tx
+            .update(schema.buildings)
+            .set({
+              ...(name !== undefined && { name }),
+              ...(address !== undefined && { address }),
+              ...(city !== undefined && { city }),
+              ...(postalCode !== undefined && { postalCode }),
+              ...(buildingType !== undefined && { buildingType }),
+              ...(totalUnits !== undefined && { totalUnits }),
+              ...(province !== undefined && { province }),
+              ...(constructionDate !== undefined && { constructionDate }),
+              ...(totalFloors !== undefined && { totalFloors }),
+              ...(parkingSpaces !== undefined && { parkingSpaces }),
+              ...(storageSpaces !== undefined && { storageSpaces }),
+              ...(amenities !== undefined && { amenities }),
+              ...(managementCompany !== undefined && { managementCompany }),
+              ...(bankAccountNumber !== undefined && { bankAccountNumber }),
+              ...(bankAccountNotes !== undefined && { bankAccountNotes }),
+              ...(bankAccountStartDate !== undefined && { bankAccountStartDate: new Date(bankAccountStartDate) }),
+              ...(bankAccountStartAmount !== undefined && { bankAccountStartAmount: String(bankAccountStartAmount) }),
+              ...(bankAccountMinimums !== undefined && { bankAccountMinimums }),
+              ...(unplannedBillsAmount !== undefined && { unplannedBillsAmount: String(unplannedBillsAmount) }),
+              ...(unplannedBillsStartDate !== undefined && { unplannedBillsStartDate }),
+              ...(inflationSettings !== undefined && { inflationSettings }),
+              ...(financialYearStart !== undefined && { financialYearStart }),
+              ...(generalInflationRate !== undefined && { generalInflationRate: String(generalInflationRate) }),
+              ...(revenueInflationRate !== undefined && { revenueInflationRate: String(revenueInflationRate) }),
+              updatedAt: new Date(),
+            })
+            .where(eq(schema.buildings.id, buildingId))
+            .returning();
+
+          let adjustment: Awaited<ReturnType<typeof adjustResidenceCount>> | null = null;
+          if (totalUnitsChanging) {
+            // `totalFloors` may not be in the update payload; fall back
+            // to the persisted value (mirroring the REST handler's
+            // `buildingData.totalFloors || existingBuilding[0].totalFloors || 1`).
+            const effectiveFloors =
+              totalFloors !== undefined
+                ? totalFloors
+                : building.totalFloors ?? 1;
+            adjustment = await adjustResidenceCount(
+              buildingId,
+              building.organizationId,
+              totalUnits!,
+              previousTotalUnits,
+              effectiveFloors || 1,
+              tx as unknown as typeof db,
+            );
+          }
+
+          return { updated, adjustment };
+        }));
+
+        // Decrease path mirrors the REST PUT: the building row's new
+        // (lower) `totalUnits` is committed, but the residence rows are
+        // NOT auto-deleted because some may carry users or documents.
+        // Surface the candidate list so the assistant can call
+        // `delete_residence` for each one it actually wants to remove.
+        if (
+          result.adjustment &&
+          result.adjustment.action === 'decreased' &&
+          result.adjustment.residencesToSelect
+        ) {
+          const toRemove = previousTotalUnits - (totalUnits ?? previousTotalUnits);
+          return {
+            content: [{
+              type: "text" as const,
+              text: JSON.stringify({
+                building: result.updated,
+                residenceAdjustment: {
+                  action: 'decreased',
+                  needsResidenceSelection: true,
+                  residencesToRemove: toRemove,
+                  residencesToSelect: result.adjustment.residencesToSelect,
+                  instruction:
+                    `Building totalUnits was lowered from ${previousTotalUnits} to ${totalUnits}, ` +
+                    `but residence rows were not auto-deleted. Pick ${toRemove} residence` +
+                    `${toRemove === 1 ? '' : 's'} from \`residencesToSelect\` (rows without ` +
+                    `users or documents are listed first) and call the \`delete_residence\` ` +
+                    `tool for each one to bring the residence count back in sync.`,
+                },
+              }, null, 2),
+            }],
+          };
+        }
+
+        if (result.adjustment && result.adjustment.action === 'increased') {
+          const added = (totalUnits ?? previousTotalUnits) - previousTotalUnits;
+          return {
+            content: [{
+              type: "text" as const,
+              text: JSON.stringify({
+                building: result.updated,
+                residenceAdjustment: {
+                  action: 'increased',
+                  residencesAdded: added,
+                },
+              }, null, 2),
+            }],
+          };
+        }
+
+        return { content: [{ type: "text" as const, text: JSON.stringify(result.updated, null, 2) }] };
       } catch (e) {
         console.error("[mcp:update_building]", e);
         return buildWriteErrorResponse(e, 'building', 'update');
