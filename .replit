@@ -40,15 +40,15 @@ args = "Type checking"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
+args = "Build verification"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
 args = "Fast unit tests"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
 args = "Full unit tests"
-
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Build verification"
 
 [[workflows.workflow]]
 name = "Start application"
@@ -71,12 +71,23 @@ args = "npm run check"
 isValidation = true
 
 [[workflows.workflow]]
+name = "Build verification"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run build"
+
+[workflows.workflow.metadata]
+isValidation = true
+
+[[workflows.workflow]]
 name = "Fast unit tests"
 author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm run test:fast"
+args = "bash scripts/run-unit-tests.sh fast"
 
 [workflows.workflow.metadata]
 isValidation = true
@@ -87,18 +98,7 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm run test:unit"
-
-[workflows.workflow.metadata]
-isValidation = true
-
-[[workflows.workflow]]
-name = "Build verification"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npm run build"
+args = "bash scripts/run-unit-tests.sh full"
 
 [workflows.workflow.metadata]
 isValidation = true
