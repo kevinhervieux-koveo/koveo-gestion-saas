@@ -4099,6 +4099,195 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
   );
 
   server.tool(
+    "update_element_history_event",
+    "Edit an existing inventory work-history event (construction / repair / minor_rehab / major_rehab / replacement). Admin/manager only. Pass only the fields you want to change; omitted fields are left untouched. The event's element must live in an MCP-scoped organization, and a supplied `vendorId` must belong to the same organization. When `lifespanImpact` changes (including to / from null), the parent element's `currentLifespan` is recomputed by the delta consistently with `create_element_history_event`'s create-side behavior, inside the same transaction.",
+    {
+      role: roleParam,
+      historyId: z.string().describe("Element history event ID to update"),
+      eventType: z
+        .enum(["construction", "repair", "minor_rehab", "major_rehab", "replacement"])
+        .optional()
+        .describe("New type of work performed"),
+      eventDate: z
+        .string()
+        .regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD")
+        .optional()
+        .describe("New date the work was performed (YYYY-MM-DD)"),
+      workDescription: z.string().min(1).optional().describe("New description of the work performed"),
+      cost: z.number().nonnegative().nullable().optional().describe("New cost (>= 0). Pass null to clear."),
+      vendorId: z
+        .string()
+        .nullable()
+        .optional()
+        .describe("New vendor ID. Must belong to the element's organization. Pass null to detach the vendor."),
+      vendorName: z
+        .string()
+        .max(200)
+        .nullable()
+        .optional()
+        .describe("New free-text vendor name stored as historical record. Pass null to clear."),
+      lifespanImpact: z
+        .number()
+        .int()
+        .min(0)
+        .max(100)
+        .nullable()
+        .optional()
+        .describe("New years to add to the element's currentLifespan (0-100). When this changes, the element's currentLifespan is adjusted by `(new ?? 0) - (old ?? 0)` and clamped at 0. Pass null to clear and refund the previous bump."),
+      warranty: z
+        .record(z.any())
+        .nullable()
+        .optional()
+        .describe("New warranty details JSON object. Pass null to clear."),
+    },
+    async ({ role, historyId, eventType, eventDate, workDescription, cost, vendorId, vendorName, lifespanImpact, warranty }) => {
+      if (role === "tenant") {
+        return { content: [{ type: "text" as const, text: "Access denied: tenants cannot update inventory element history" }] };
+      }
+      const orgIds = await getMcpOrgIds();
+      const [existing] = await db
+        .select()
+        .from(schema.elementHistory)
+        .where(eq(schema.elementHistory.id, historyId));
+      if (!existing) {
+        return { content: [{ type: "text" as const, text: "Element history event not found" }] };
+      }
+      const [element] = await db
+        .select()
+        .from(schema.buildingElements)
+        .where(eq(schema.buildingElements.id, existing.elementId));
+      if (!element) {
+        return { content: [{ type: "text" as const, text: "Inventory element not found" }] };
+      }
+      const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, element.buildingId));
+      if (!building || !orgIds.includes(building.organizationId)) {
+        return { content: [{ type: "text" as const, text: "Access denied" }] };
+      }
+      // Validate vendor (if a non-null id supplied) belongs to the element's
+      // organization. Same cross-org guard as the create-side handler.
+      if (vendorId) {
+        const [vendor] = await db
+          .select({ id: schema.vendors.id, organizationId: schema.vendors.organizationId })
+          .from(schema.vendors)
+          .where(eq(schema.vendors.id, vendorId));
+        if (!vendor) {
+          return { content: [{ type: "text" as const, text: `Vendor not found: ${vendorId}` }] };
+        }
+        if (vendor.organizationId !== building.organizationId) {
+          return { content: [{ type: "text" as const, text: `Vendor ${vendorId} does not belong to the element's organization` }] };
+        }
+      }
+      // Build the partial update payload. Each field is only included when
+      // the caller explicitly passed it (undefined => no change). `null`
+      // explicitly clears the column for nullable fields.
+      const eventUpdate: Record<string, unknown> = {};
+      if (eventType !== undefined) eventUpdate.eventType = eventType;
+      if (eventDate !== undefined) eventUpdate.eventDate = eventDate;
+      if (workDescription !== undefined) eventUpdate.workDescription = workDescription;
+      if (cost !== undefined) eventUpdate.cost = cost === null ? null : String(cost);
+      if (vendorId !== undefined) eventUpdate.vendorId = vendorId;
+      if (vendorName !== undefined) eventUpdate.vendorName = vendorName;
+      if (lifespanImpact !== undefined) eventUpdate.lifespanImpact = lifespanImpact;
+      if (warranty !== undefined) eventUpdate.warranty = warranty;
+      // Detect a change to lifespanImpact so we can adjust currentLifespan in
+      // the same transaction. We treat omitted (undefined) as "no change",
+      // and treat both `null` and `undefined` storage as 0 when computing
+      // the delta — mirroring create-side `(currentLifespan ?? 0) + impact`.
+      const lifespanProvided = lifespanImpact !== undefined;
+      const oldImpact = existing.lifespanImpact ?? 0;
+      const newImpact = lifespanImpact === undefined
+        ? oldImpact
+        : (lifespanImpact ?? 0);
+      const lifespanDelta = lifespanProvided ? newImpact - oldImpact : 0;
+      try {
+        const result = await withRetryableDbCall(() => db.transaction(async (tx) => {
+          let updatedEvent = existing;
+          if (Object.keys(eventUpdate).length > 0) {
+            const [row] = await tx
+              .update(schema.elementHistory)
+              .set(eventUpdate)
+              .where(eq(schema.elementHistory.id, historyId))
+              .returning();
+            if (row) updatedEvent = row;
+          }
+          let updatedElement: { id: string; currentLifespan: number | null } | null = null;
+          if (lifespanProvided && lifespanDelta !== 0) {
+            const newCurrentLifespan = Math.max(0, (element.currentLifespan ?? 0) + lifespanDelta);
+            const [el] = await tx
+              .update(schema.buildingElements)
+              .set({ currentLifespan: newCurrentLifespan, updatedAt: new Date() })
+              .where(eq(schema.buildingElements.id, element.id))
+              .returning({ id: schema.buildingElements.id, currentLifespan: schema.buildingElements.currentLifespan });
+            updatedElement = el ?? null;
+          }
+          return { event: updatedEvent, updatedElement };
+        }));
+        return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:update_element_history_event]", e);
+        return buildWriteErrorResponse(e, 'element history event', 'update');
+      }
+    }
+  );
+
+  server.tool(
+    "delete_element_history_event",
+    "Delete an inventory work-history event. Admin/manager only. The event's element must live in an MCP-scoped organization. If the event carried a non-null `lifespanImpact`, the parent element's `currentLifespan` is reduced by that many years (clamped at 0) inside the same transaction so the bump previously applied by `create_element_history_event` is rolled back. FK violations and other DB errors are surfaced through the standard structured envelope.",
+    {
+      role: roleParam,
+      historyId: z.string().describe("Element history event ID to delete"),
+    },
+    async ({ role, historyId }) => {
+      if (role === "tenant") {
+        return { content: [{ type: "text" as const, text: "Access denied: tenants cannot delete inventory element history" }] };
+      }
+      const orgIds = await getMcpOrgIds();
+      const [existing] = await db
+        .select()
+        .from(schema.elementHistory)
+        .where(eq(schema.elementHistory.id, historyId));
+      if (!existing) {
+        return { content: [{ type: "text" as const, text: "Element history event not found" }] };
+      }
+      const [element] = await db
+        .select()
+        .from(schema.buildingElements)
+        .where(eq(schema.buildingElements.id, existing.elementId));
+      if (!element) {
+        return { content: [{ type: "text" as const, text: "Inventory element not found" }] };
+      }
+      const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, element.buildingId));
+      if (!building || !orgIds.includes(building.organizationId)) {
+        return { content: [{ type: "text" as const, text: "Access denied" }] };
+      }
+      try {
+        const result = await withRetryableDbCall(() => db.transaction(async (tx) => {
+          const [deleted] = await tx
+            .delete(schema.elementHistory)
+            .where(eq(schema.elementHistory.id, historyId))
+            .returning({ id: schema.elementHistory.id });
+          let updatedElement: { id: string; currentLifespan: number | null } | null = null;
+          const refund = existing.lifespanImpact ?? 0;
+          if (refund !== 0) {
+            const newCurrentLifespan = Math.max(0, (element.currentLifespan ?? 0) - refund);
+            const [el] = await tx
+              .update(schema.buildingElements)
+              .set({ currentLifespan: newCurrentLifespan, updatedAt: new Date() })
+              .where(eq(schema.buildingElements.id, element.id))
+              .returning({ id: schema.buildingElements.id, currentLifespan: schema.buildingElements.currentLifespan });
+            updatedElement = el ?? null;
+          }
+          return { deleted: deleted ?? { id: historyId }, updatedElement };
+        }));
+        return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:delete_element_history_event]", e);
+        return buildWriteErrorResponse(e, 'element history event', 'delete');
+      }
+    }
+  );
+
+  server.tool(
     "downgrade_acting_role",
     "Downgrade the MCP session's acting role to a less-privileged role within the OAuth-bound ceiling. " +
       "Subsequent tool calls that omit the `role` argument will run as the downgraded role. " +
