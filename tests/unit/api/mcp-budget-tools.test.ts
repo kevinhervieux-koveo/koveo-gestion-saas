@@ -672,4 +672,282 @@ describe('MCP budget tools — Task #527 mocked unit tests', () => {
       expect(mockDb.insert).not.toHaveBeenCalled();
     });
   });
+
+  // ===========================================================================
+  // 6. update_capital_investment — routes through investmentsPutHandler so the
+  //    existing custom row keeps its database id (Task #526). Mirrors the
+  //    create test pattern (mock the whole select/findFirst sequence end to
+  //    end). The key behavioral assertions are:
+  //      - the matching custom id triggers an UPDATE in place (not insert),
+  //      - the response echoes the same id the caller supplied,
+  //      - tenant role is denied before any DB work,
+  //      - auto-generated rows are refused (caller-friendly accessDenied),
+  //      - underlying handler errors surface via buildWriteErrorResponse.
+  // ===========================================================================
+  describe('update_capital_investment', () => {
+    const investmentId = '99999999-9999-9999-9999-999999999999';
+    const customInvestment = {
+      id: investmentId,
+      buildingId: BUILDING_ID,
+      title: 'Old roof plan',
+      description: null,
+      amount: '5000',
+      targetDate: '2026-06-01',
+      urgency: 'not_urgent',
+      type: 'custom',
+      ownershipType: 'residences',
+      category: null,
+      createdAt: new Date('2024-01-01'),
+      updatedAt: new Date('2024-01-01'),
+    };
+
+    it('preserves the database id of the updated custom investment', async () => {
+      // Call order inside the tool:
+      //   1. getMcpOrgIds          → orgs select
+      //   2. investment lookup     → custom investment select
+      //   3. loadScopedBuilding    → building select
+      //   4. investmentsGetHandler → findFirst + select (existing rows)
+      //   5. investmentsPutHandler → findFirst + select(existing ids) + update
+      //   6. investmentsGetHandler → findFirst + select (post-save rows)
+      mockSelectChain.where
+        .mockImplementationOnce(() => thenable([{ id: ORG_ID }]))
+        .mockImplementationOnce(() => thenable([customInvestment]))
+        .mockImplementationOnce(() => thenable([buildingRow]));
+      // investmentsGetHandler (initial): findFirst + select → existing rows.
+      mockQuery.buildings.findFirst.mockResolvedValueOnce({ id: BUILDING_ID });
+      mockSelectChain.where.mockImplementationOnce(() => thenable([customInvestment]));
+      // investmentsPutHandler:
+      //   - findFirst (building scope)
+      //   - select existing custom ids → returns [{id: investmentId}] so the
+      //     handler routes the entry to its UPDATE branch (id-preserving).
+      mockQuery.buildings.findFirst.mockResolvedValueOnce({ id: BUILDING_ID });
+      mockSelectChain.where.mockImplementationOnce(() => thenable([{ id: investmentId }]));
+      // Final re-list (to echo canonical post-save row): findFirst + select.
+      mockQuery.buildings.findFirst.mockResolvedValueOnce({ id: BUILDING_ID });
+      const updatedRow = { ...customInvestment, title: 'New roof plan' };
+      mockSelectChain.where.mockImplementationOnce(() => thenable([updatedRow]));
+
+      const handler = getToolHandler(server, 'update_capital_investment');
+      const result = await handler(
+        {
+          role: 'manager',
+          investmentId,
+          title: 'New roof plan',
+        },
+        {},
+      );
+
+      const text = textOf(result);
+      expect(text).not.toMatch(/Access denied/);
+      const parsed = JSON.parse(text);
+      // The id round-trips unchanged — this is the regression guard for
+      // Task #526.
+      expect(parsed.id).toBe(investmentId);
+      expect(parsed.title).toBe('New roof plan');
+
+      // db.update was invoked exactly once (the existing id matched, so the
+      // PUT handler took the UPDATE branch instead of insert).
+      expect(mockDb.update).toHaveBeenCalledTimes(1);
+      const setArg = (mockUpdateChain.set as jest.Mock).mock
+        .calls[0][0] as Record<string, unknown>;
+      expect(setArg.title).toBe('New roof plan');
+      expect(setArg.type).toBe('custom');
+      expect(setArg.updatedAt).toBeInstanceOf(Date);
+      // No deletes (id is still in the payload) and no inserts (no net-new).
+      expect(mockDb.delete).not.toHaveBeenCalled();
+      expect(mockDb.insert).not.toHaveBeenCalled();
+    });
+
+    it('denies tenant role before any DB call', async () => {
+      const handler = getToolHandler(server, 'update_capital_investment');
+      const result = await handler(
+        {
+          role: 'tenant',
+          investmentId,
+          title: 'should-be-blocked',
+        },
+        {},
+      );
+      expect(textOf(result)).toMatch(/tenants cannot update capital investments/i);
+      expect(mockDb.select).not.toHaveBeenCalled();
+      expect(mockDb.update).not.toHaveBeenCalled();
+    });
+
+    it('refuses to update an auto-generated investment', async () => {
+      // Order: orgs → investment lookup. The investment is auto_generated,
+      // so the tool short-circuits before loadScopedBuilding or the PUT.
+      mockSelectChain.where
+        .mockImplementationOnce(() => thenable([{ id: ORG_ID }]))
+        .mockImplementationOnce(() => thenable([{ ...customInvestment, type: 'auto_generated' }]));
+
+      const handler = getToolHandler(server, 'update_capital_investment');
+      const result = await handler({ role: 'admin', investmentId, title: 'nope' }, {});
+      expect(textOf(result)).toMatch(/Refusing to update auto-generated/i);
+      // The PUT handler never ran, so no writes were attempted.
+      expect(mockDb.update).not.toHaveBeenCalled();
+      expect(mockDb.insert).not.toHaveBeenCalled();
+      expect(mockDb.delete).not.toHaveBeenCalled();
+    });
+
+    it('returns access-denied when the investment id does not exist', async () => {
+      // getMcpOrgIds → orgs, then investment lookup → empty.
+      mockSelectChain.where
+        .mockImplementationOnce(() => thenable([{ id: ORG_ID }]))
+        .mockImplementationOnce(() => thenable<unknown[]>([]));
+      const handler = getToolHandler(server, 'update_capital_investment');
+      const result = await handler(
+        { role: 'admin', investmentId, title: 'whatever' },
+        {},
+      );
+      expect(textOf(result)).toMatch(/Capital investment not found/);
+      expect(mockDb.update).not.toHaveBeenCalled();
+    });
+
+    it('surfaces underlying PUT failures via buildWriteErrorResponse', async () => {
+      const errSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      // Order: orgs → investment lookup → building lookup → GET → PUT (fails).
+      mockSelectChain.where
+        .mockImplementationOnce(() => thenable([{ id: ORG_ID }]))
+        .mockImplementationOnce(() => thenable([customInvestment]))
+        .mockImplementationOnce(() => thenable([buildingRow]));
+      // GET handler initial: findFirst + select existing rows.
+      mockQuery.buildings.findFirst.mockResolvedValueOnce({ id: BUILDING_ID });
+      mockSelectChain.where.mockImplementationOnce(() => thenable([customInvestment]));
+      // PUT handler: building.findFirst returns null → the handler returns
+      // 404. The MCP layer must wrap that in a friendly write-error envelope
+      // instead of leaking the raw `{_error: 'Building not found'}` payload.
+      mockQuery.buildings.findFirst.mockResolvedValueOnce(null);
+
+      const handler = getToolHandler(server, 'update_capital_investment');
+      const result = await handler(
+        { role: 'admin', investmentId, title: 'broken' },
+        {},
+      );
+      const text = textOf(result);
+      expect(text).toMatch(/Failed to update capital investment/i);
+      expect(text).not.toMatch(/Internal server error/);
+      // The handler aborted before any write was attempted.
+      expect(mockDb.update).not.toHaveBeenCalled();
+      expect(mockDb.insert).not.toHaveBeenCalled();
+      expect(mockDb.delete).not.toHaveBeenCalled();
+      errSpy.mockRestore();
+    });
+  });
+
+  // ===========================================================================
+  // 7. delete_capital_investment — also routes through investmentsPutHandler
+  //    (rather than issuing a direct DELETE) so the rest of the building's
+  //    custom investments keep their ids.
+  // ===========================================================================
+  describe('delete_capital_investment', () => {
+    const targetId = '88888888-8888-8888-8888-888888888888';
+    const otherId = '77777777-7777-7777-7777-777777777777';
+    const targetRow = {
+      id: targetId,
+      buildingId: BUILDING_ID,
+      title: 'To remove',
+      description: null,
+      amount: '1000',
+      targetDate: '2026-06-01',
+      urgency: 'not_urgent',
+      type: 'custom',
+      ownershipType: 'residences',
+      category: null,
+      createdAt: new Date('2024-01-01'),
+      updatedAt: new Date('2024-01-01'),
+    };
+    const otherRow = { ...targetRow, id: otherId, title: 'Should survive' };
+
+    it('routes through the canonical PUT handler so other custom rows keep their ids', async () => {
+      // Order: orgs → investment lookup → building lookup → GET → PUT.
+      mockSelectChain.where
+        .mockImplementationOnce(() => thenable([{ id: ORG_ID }]))
+        .mockImplementationOnce(() => thenable([targetRow]))
+        .mockImplementationOnce(() => thenable([buildingRow]));
+      // GET handler initial: findFirst + select existing rows (target + other).
+      mockQuery.buildings.findFirst.mockResolvedValueOnce({ id: BUILDING_ID });
+      mockSelectChain.where.mockImplementationOnce(() => thenable([targetRow, otherRow]));
+      // PUT handler: building scope check + existing custom ids select.
+      // Returning BOTH ids ensures the diff against the payload (which only
+      // contains `otherRow`) deletes `targetId` and updates `otherId`. This
+      // proves the surviving row took the id-preserving UPDATE branch
+      // instead of being torn down and re-inserted with a new id.
+      mockQuery.buildings.findFirst.mockResolvedValueOnce({ id: BUILDING_ID });
+      mockSelectChain.where.mockImplementationOnce(() =>
+        thenable([{ id: targetId }, { id: otherId }]),
+      );
+
+      const handler = getToolHandler(server, 'delete_capital_investment');
+      const result = await handler({ role: 'manager', investmentId: targetId }, {});
+      const text = textOf(result);
+      expect(text).not.toMatch(/Access denied/);
+      const parsed = JSON.parse(text);
+      expect(parsed.status).toBe('ok');
+      expect(parsed.deletedId).toBe(targetId);
+
+      // db.delete was invoked exactly once on capital_investments (the
+      // dropped id).
+      expect(mockDb.delete).toHaveBeenCalledTimes(1);
+      // db.update was invoked exactly once for the surviving row — proving
+      // the id was preserved instead of regenerated.
+      expect(mockDb.update).toHaveBeenCalledTimes(1);
+      const setArg = (mockUpdateChain.set as jest.Mock).mock
+        .calls[0][0] as Record<string, unknown>;
+      expect(setArg.title).toBe('Should survive');
+      // No inserts — every payload entry matched an existing id.
+      expect(mockDb.insert).not.toHaveBeenCalled();
+    });
+
+    it('denies tenant role before any DB call', async () => {
+      const handler = getToolHandler(server, 'delete_capital_investment');
+      const result = await handler({ role: 'tenant', investmentId: targetId }, {});
+      expect(textOf(result)).toMatch(/tenants cannot delete capital investments/i);
+      expect(mockDb.select).not.toHaveBeenCalled();
+      expect(mockDb.delete).not.toHaveBeenCalled();
+    });
+
+    it('refuses to delete an auto-generated investment', async () => {
+      mockSelectChain.where
+        .mockImplementationOnce(() => thenable([{ id: ORG_ID }]))
+        .mockImplementationOnce(() => thenable([{ ...targetRow, type: 'auto_generated' }]));
+
+      const handler = getToolHandler(server, 'delete_capital_investment');
+      const result = await handler({ role: 'admin', investmentId: targetId }, {});
+      expect(textOf(result)).toMatch(/Refusing to delete auto-generated/i);
+      expect(mockDb.delete).not.toHaveBeenCalled();
+      expect(mockDb.update).not.toHaveBeenCalled();
+    });
+
+    it('returns access-denied when the investment id does not exist', async () => {
+      mockSelectChain.where
+        .mockImplementationOnce(() => thenable([{ id: ORG_ID }]))
+        .mockImplementationOnce(() => thenable<unknown[]>([]));
+      const handler = getToolHandler(server, 'delete_capital_investment');
+      const result = await handler({ role: 'admin', investmentId: targetId }, {});
+      expect(textOf(result)).toMatch(/Capital investment not found/);
+      expect(mockDb.delete).not.toHaveBeenCalled();
+    });
+
+    it('surfaces underlying PUT failures via buildWriteErrorResponse', async () => {
+      const errSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      // Order: orgs → investment lookup → building lookup → GET → PUT (fails).
+      mockSelectChain.where
+        .mockImplementationOnce(() => thenable([{ id: ORG_ID }]))
+        .mockImplementationOnce(() => thenable([targetRow]))
+        .mockImplementationOnce(() => thenable([buildingRow]));
+      // GET handler initial: findFirst + select existing rows.
+      mockQuery.buildings.findFirst.mockResolvedValueOnce({ id: BUILDING_ID });
+      mockSelectChain.where.mockImplementationOnce(() => thenable([targetRow]));
+      // PUT handler: building.findFirst returns null → 404 → wrapped error.
+      mockQuery.buildings.findFirst.mockResolvedValueOnce(null);
+
+      const handler = getToolHandler(server, 'delete_capital_investment');
+      const result = await handler({ role: 'admin', investmentId: targetId }, {});
+      const text = textOf(result);
+      expect(text).toMatch(/Failed to delete capital investment/i);
+      expect(text).not.toMatch(/Internal server error/);
+      expect(mockDb.delete).not.toHaveBeenCalled();
+      errSpy.mockRestore();
+    });
+  });
 });
