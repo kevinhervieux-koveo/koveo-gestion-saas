@@ -105,6 +105,15 @@ const SAMPLE_MATCHING_PATH: Record<string, string> = {
   demo: '/api/demo',
   ai: '/api/ai',
   'admin-bulk-import': '/api/admin/bulk-import',
+  // Task #489 mounts. Each sample path is a prefix the production matcher
+  // is guaranteed to fire on; the buildings sample deliberately avoids any
+  // /api/buildings/:id/bills sub-URL so it does NOT also load `bills`.
+  users: '/api/users',
+  organizations: '/api/organizations',
+  buildings: '/api/buildings',
+  demands: '/api/demands',
+  'common-spaces': '/api/common-spaces',
+  budgets: '/api/budgets',
 };
 
 /**
@@ -141,20 +150,26 @@ describe('heavy /api lazy mounts stay unloaded until first matching request', ()
     expect(missing).toEqual([]);
   });
 
-  it('registers exactly the seven documented heavy mounts', () => {
+  it('registers exactly the thirteen documented heavy mounts', () => {
     // Lock the count so a NEW lazy mount in routes.ts forces a deliberate
     // update here (and hence forces the author to add a sample path and
     // re-run the parameterized suite below).
-    expect(HEAVY_LAZY_MOUNTS).toHaveLength(7);
+    expect(HEAVY_LAZY_MOUNTS).toHaveLength(13);
     expect(HEAVY_LAZY_MOUNTS.map((s) => s.name).sort()).toEqual(
       [
         'admin-bulk-import',
         'ai',
         'bills',
+        'budgets',
+        'buildings',
+        'common-spaces',
         'communication',
+        'demands',
         'demo',
         'documents',
         'maintenance',
+        'organizations',
+        'users',
       ],
     );
   });
@@ -217,6 +232,11 @@ describe('heavy /api lazy mounts stay unloaded until first matching request', ()
 
     const server = await listen(app);
     try {
+      // A request to /api/buildings/:id/bills MUST trigger ONLY the bills
+      // mount. Pre-task-#489 this was trivially true (buildings was eager);
+      // post-#489 the buildings module is also lazy and matches anything
+      // under /api/buildings/* — its matcher must explicitly carve out the
+      // bills sub-URLs so it does NOT also load on a /bills hit.
       await get(`${server.url}/api/buildings/abc-123/bills`);
       spies.forEach((spy, j) => {
         if (j === billsIdx) {
@@ -226,13 +246,25 @@ describe('heavy /api lazy mounts stay unloaded until first matching request', ()
         }
       });
 
-      // And the regex must NOT match an unrelated /api/buildings path —
-      // otherwise generic building traffic would silently un-lazy bills.
+      // And the regex must NOT match an unrelated /api/buildings sub-URL.
+      // Now that buildings is itself lazy-mounted, that traffic correctly
+      // loads `buildings` (and ONLY `buildings`) — proving the bills regex
+      // doesn't bleed across into generic building paths.
       const { app: app2, spies: spies2 } = buildAppWithSpies();
+      const buildingsIdx = HEAVY_LAZY_MOUNTS.findIndex(
+        (s) => s.name === 'buildings',
+      );
+      expect(buildingsIdx).toBeGreaterThanOrEqual(0);
       const server2 = await listen(app2);
       try {
         await get(`${server2.url}/api/buildings/abc-123/residences`);
-        spies2.forEach((spy) => expect(spy).not.toHaveBeenCalled());
+        spies2.forEach((spy, j) => {
+          if (j === buildingsIdx) {
+            expect(spy).toHaveBeenCalledTimes(1);
+          } else {
+            expect(spy).not.toHaveBeenCalled();
+          }
+        });
       } finally {
         await server2.close();
       }

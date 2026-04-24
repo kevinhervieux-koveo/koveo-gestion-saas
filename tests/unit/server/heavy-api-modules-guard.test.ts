@@ -72,18 +72,10 @@ const INFRASTRUCTURE_FILES: ReadonlySet<string> = new Set([
  * Keys are paths relative to `server/api/` using forward slashes.
  */
 const CHEAP_HEAVY_ALLOWLIST: Readonly<Record<string, string>> = {
-  'users.ts':
-    'Hot-path: /api/users/me and friends are pulled by every authenticated page on first paint; lazy-mount would add a one-time hop to every cold start. Tracked for future split-by-feature.',
-  'budgets.ts':
-    'Bound under requireAuth before HEAVY_LAZY_MOUNTS are wired and used by the budget page on first load; deferring the load would just shift the same cost to first interaction.',
-  'common-spaces.ts':
-    'Registered eagerly and consumed by the residences UI on first authenticated render; the module imports cheap drizzle helpers, no AI/SDK weight despite the line count.',
-  'buildings.ts':
-    'Eager registrar fans out to small per-feature submodules under `server/api/buildings/`; size is structural (route definitions), not heavy deps.',
-  'organizations.ts':
-    'Bootstrap data for the org switcher pulled on first page load; lazy-mount would block the very first authenticated request.',
-  'demands.ts':
-    'Demand list is in the resident landing page; lazy-mount would add a deferred-import round-trip on the home screen.',
+  // Empty as of task #489 — every previously allowlisted module has been
+  // migrated to HEAVY_LAZY_MOUNTS in `server/routes.ts`. Add a new entry
+  // here ONLY with a code-review-grade rationale that explains why the
+  // module truly cannot be lazy-mounted.
 };
 
 /** Recursively list every `*.ts` file under `dir`. */
@@ -282,13 +274,14 @@ describe('heavy server/api module guard (Task #488)', () => {
     expect(belowThreshold).toEqual([]);
   });
 
-  it('discovers the seven HEAVY_LAZY_MOUNTS loaders from server/routes.ts', () => {
+  it('discovers the thirteen HEAVY_LAZY_MOUNTS loaders from server/routes.ts', () => {
     // Sanity: the parser must keep working even if routes.ts is
     // reformatted. If this fails, the main guard above silently
     // degrades into "everything looks eager", so we assert the
     // discovery surface explicitly.
     const lazyMounted = discoverLazyMountedFiles();
     const expected = [
+      // Original seven (task #471).
       'documents.ts',
       'bills.ts',
       'communication.ts',
@@ -296,6 +289,13 @@ describe('heavy server/api module guard (Task #488)', () => {
       'demo-management.ts',
       'ai-document-analysis.ts',
       'bulk-import.ts',
+      // Migrated by task #489 from the cheap-heavy allowlist.
+      'users.ts',
+      'organizations.ts',
+      'buildings.ts',
+      'demands.ts',
+      'common-spaces.ts',
+      'budgets.ts',
     ];
     const missing = expected.filter(
       (name) => !lazyMounted.has(path.resolve(API_DIR, name)),

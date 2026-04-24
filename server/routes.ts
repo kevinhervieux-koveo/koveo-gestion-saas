@@ -16,18 +16,18 @@ import { logDebug, logInfo, logWarn, logError } from './utils/logger';
 // production deploy that doesn't actually receive MCP traffic.
 
 // Import API route registration functions
-import { registerOrganizationRoutes } from './api/organizations';
-import { registerUserRoutes } from './api/users';
-import { registerBuildingRoutes } from './api/buildings';
+//
+// NOTE: The largest registrars (users, budgets, common-spaces, buildings,
+// organizations, demands) are intentionally NOT imported at the top level.
+// They are wired through `HEAVY_LAZY_MOUNTS` below so their service-layer
+// dependencies (bcrypt, AI helpers, drizzle query builders, validators,
+// cache stores) only enter `require.cache` on the first matching request.
 import { registerDocumentTagRoutes } from './api/document-tags';
 import { seedKoveoDocumentTags } from './api/document-tags-seed';
 import { registerBugRoutes } from './api/bugs';
-import budgetRouter from './api/budgets';
 import { registerResidenceRoutes } from './api/residences';
-import { registerDemandRoutes } from './api/demands';
 import { registerFeatureRequestRoutes } from './api/feature-requests';
 import { registerContactRoutes } from './api/contacts';
-import { registerCommonSpacesRoutes } from './api/common-spaces';
 import { registerPermissionsRoutes } from './api/permissions';
 import { registerTrialRequestRoutes } from './api/trial-request';
 import { registerInvoiceRoutes } from './api/invoices';
@@ -174,22 +174,14 @@ export async function registerRoutes(app: Express) {
   app.use('/api/*', enforceDemoSecurity());
   
   // Register all API routes
-  registerOrganizationRoutes(app);
-  registerUserRoutes(app);
-  registerBuildingRoutes(app);
   registerDocumentTagRoutes(app);
   // Idempotent seeding of Koveo system tags (safe to run on every startup)
   void seedKoveoDocumentTags();
   registerBugRoutes(app);
 
-  // Budget routes
-  app.use('/api/budgets', requireAuth, budgetRouter);
-
   registerResidenceRoutes(app);
-  registerDemandRoutes(app);
   registerFeatureRequestRoutes(app);
   registerContactRoutes(app);
-  registerCommonSpacesRoutes(app);
   registerPermissionsRoutes(app);
   registerTrialRequestRoutes(app);
   registerInvoiceRoutes(app);
@@ -761,6 +753,20 @@ export interface HeavyLazyMountSpec {
 // the bills module load.
 const BILLS_BUILDING_PATTERN = /^\/api\/buildings\/[^/]+\/bills(?:\/|$)/;
 
+// The buildings module also owns the `/api/buildings/:id/bills/*` URL space
+// from the bills perspective — but bills is a SEPARATE lazy mount. We must
+// NOT load the buildings module just because a request hits a bills sub-URL,
+// otherwise the bills regex test (and the boot-cost gain in production) is
+// silently undone. The matcher below excludes the bills regex branch.
+function buildingsLazyMatcher(path: string): boolean {
+  if (BILLS_BUILDING_PATTERN.test(path)) return false;
+  return (
+    path.startsWith('/api/buildings') ||
+    path.startsWith('/api/admin/buildings') ||
+    path.startsWith('/api/manager/buildings')
+  );
+}
+
 export const HEAVY_LAZY_MOUNTS: readonly HeavyLazyMountSpec[] = [
   {
     name: 'documents',
@@ -804,6 +810,67 @@ export const HEAVY_LAZY_MOUNTS: readonly HeavyLazyMountSpec[] = [
     matcher: '/api/admin/bulk-import',
     loader: async () => (await import('./api/bulk-import')).registerBulkImportRoutes,
     modulePath: 'server/api/bulk-import',
+  },
+  // Task #489: defer the six largest eager registrars. Each one previously
+  // sat on `CHEAP_HEAVY_ALLOWLIST` despite pulling in heavy dependency
+  // graphs (bcrypt, drizzle query builders, validators, cache stores).
+  {
+    name: 'users',
+    matcher: [
+      '/api/users',
+      '/api/user-organizations',
+      '/api/user-residences',
+      '/api/user/permissions',
+      '/api/admin/all-user-organizations',
+      '/api/admin/all-user-residences',
+      '/api/invitations',
+    ],
+    loader: async () => (await import('./api/users')).registerUserRoutes,
+    modulePath: 'server/api/users',
+  },
+  {
+    name: 'organizations',
+    matcher: ['/api/organizations', '/api/admin/organizations'],
+    loader: async () =>
+      (await import('./api/organizations')).registerOrganizationRoutes,
+    modulePath: 'server/api/organizations',
+  },
+  {
+    name: 'buildings',
+    matcher: buildingsLazyMatcher,
+    loader: async () =>
+      (await import('./api/buildings')).registerBuildingRoutes,
+    modulePath: 'server/api/buildings',
+  },
+  {
+    name: 'demands',
+    matcher: '/api/demands',
+    loader: async () => (await import('./api/demands')).registerDemandRoutes,
+    modulePath: 'server/api/demands',
+  },
+  {
+    name: 'common-spaces',
+    matcher: '/api/common-spaces',
+    loader: async () =>
+      (await import('./api/common-spaces')).registerCommonSpacesRoutes,
+    modulePath: 'server/api/common-spaces',
+  },
+  {
+    name: 'budgets',
+    matcher: '/api/budgets',
+    loader: async () => {
+      // Budgets exports a default `Router` (rather than a `register*Routes`
+      // function) and is mounted under `/api/budgets` with `requireAuth`.
+      // The lazy registrar just re-applies the same wiring on the
+      // trampoline's internal router, so the existing route paths
+      // (`/:buildingId`, `/:buildingId/summary`, ...) keep resolving as
+      // before — only the import is deferred.
+      const { default: budgetRouter } = await import('./api/budgets');
+      return (registry) => {
+        (registry as Express).use('/api/budgets', requireAuth, budgetRouter);
+      };
+    },
+    modulePath: 'server/api/budgets',
   },
 ];
 
