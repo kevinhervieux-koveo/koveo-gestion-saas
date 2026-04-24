@@ -85,6 +85,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   tool response now carries a `source: "mcp"` field so downstream consumers
   can distinguish bills created via MCP from those created via the REST API
   or the UI. Backward-compatible — existing fields are unchanged.
+- **MCP `delete_project` tool surfaced to the chat assistant** (Task #296):
+  The `delete_project` tool — which removes a maintenance project from a
+  building inside an MCP-scoped organization — is now discoverable by the
+  chat assistant. It is enumerated in the `get_mcp_info` tool catalog
+  alongside the other delete tools (`delete_building`, `delete_residence`,
+  `delete_bill`) via the auto-generated `tools` array, and its capability is
+  explicitly called out below in this CHANGELOG and in the MCP Tooling
+  section of `replit.md`. Admin/manager only; tenants are rejected. Cascades
+  in a single transaction to project steps, project elements, submission
+  vendors, workflow tasks, project notifications, and element project
+  updates; evaluation suggestions that reference the deleted project have
+  their `projectId` null-ed out via the existing DB-level
+  `ON DELETE SET NULL` FK. The response is the same structured
+  `{ deleted, cascaded, evaluationSuggestionsCleared, message }` shape used
+  by the other delete tools, so existing FK/unique-violation envelopes
+  carry over unchanged.
 
 ### Fixed
 
