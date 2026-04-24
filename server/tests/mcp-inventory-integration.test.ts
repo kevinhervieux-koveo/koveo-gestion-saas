@@ -156,6 +156,7 @@ describeIfDb('MCP inventory tools — real Postgres', () => {
   const createdElementIds: string[] = [];
   const createdHistoryIds: string[] = [];
   const createdProjectIds: string[] = [];
+  const createdVendorIds: string[] = [];
 
   // The MCP server resolves the acting user by role via these seed
   // accounts. The inventory tools never look these users up themselves
@@ -445,6 +446,12 @@ describeIfDb('MCP inventory tools — real Postgres', () => {
         .delete(schema.buildingElements)
         .where(eq(schema.buildingElements.id, id));
     }
+    // Vendors must be removed before their parent organization is dropped
+    // (cascade would otherwise yank the wrong rows). Vendors created in
+    // `mcpOrgId` (which can be a pre-existing org) would otherwise leak.
+    for (const id of createdVendorIds) {
+      await db.delete(schema.vendors).where(eq(schema.vendors.id, id));
+    }
     if (secondBuildingResidenceId) {
       await db
         .delete(schema.residences)
@@ -558,6 +565,21 @@ describeIfDb('MCP inventory tools — real Postgres', () => {
       {
         tool: 'list_element_history',
         args: () => ({ role: 'tenant', elementId: baseElementId }),
+      },
+      {
+        tool: 'update_element_history_event',
+        args: () => ({
+          role: 'tenant',
+          historyId: createdHistoryIds[0],
+          cost: 1,
+        }),
+      },
+      {
+        tool: 'delete_element_history_event',
+        args: () => ({
+          role: 'tenant',
+          historyId: createdHistoryIds[0],
+        }),
       },
     ];
 
@@ -1229,6 +1251,518 @@ describeIfDb('MCP inventory tools — real Postgres', () => {
         .where(eq(schema.buildingElements.id, elementId));
       expect(row!.currentLifespan).toBe(initialLifespan + lifespanImpact);
       expect(row!.lastInspectionDate).toBe(initialInspection);
+    }, 30000);
+  });
+
+  // -------------------------------------------------------------------
+  // update_element_history_event + delete_element_history_event
+  //
+  // Shared helpers seed a fresh element + history pair per test so the
+  // lifespan-delta math and refund assertions stay independent. The
+  // tools live in `server/mcp/server.ts` next to `create_element_history_event`
+  // and run their event-write + element-recompute inside one transaction.
+  // -------------------------------------------------------------------
+  /**
+   * Seed an element with a known starting `currentLifespan` plus a single
+   * history row whose `lifespanImpact` is `historyImpact`. The element's
+   * `currentLifespan` is initialized to `initialLifespan + (historyImpact ?? 0)`
+   * so it represents the state AFTER the history bump was originally
+   * applied — the realistic precondition for an update / delete that
+   * needs to roll the bump back or re-bump it.
+   */
+  async function seedElementWithHistory(opts: {
+    initialLifespan: number;
+    historyImpact: number | null;
+    eventType?:
+      | 'construction'
+      | 'repair'
+      | 'minor_rehab'
+      | 'major_rehab'
+      | 'replacement';
+    cost?: string;
+    vendorId?: string;
+  }): Promise<{ elementId: string; historyId: string }> {
+    const startingLifespan = opts.initialLifespan + (opts.historyImpact ?? 0);
+    const [el] = await db
+      .insert(schema.buildingElements)
+      .values({
+        buildingId: inScopeBuildingId,
+        uniformatCode: TEST_LEVEL3_CODE,
+        name: `inv-it-edit-${randomUUID().slice(0, 8)}`,
+        currentCondition: 'good',
+        currentLifespan: startingLifespan,
+      })
+      .returning({ id: schema.buildingElements.id });
+    createdElementIds.push(el.id);
+    const [hist] = await db
+      .insert(schema.elementHistory)
+      .values({
+        elementId: el.id,
+        eventType: opts.eventType ?? 'minor_rehab',
+        eventDate: '2024-01-15',
+        workDescription: 'edit-test seed event',
+        createdBy: adminUserId,
+        ...(opts.cost !== undefined && { cost: opts.cost }),
+        ...(opts.vendorId !== undefined && { vendorId: opts.vendorId }),
+        ...(opts.historyImpact !== null && {
+          lifespanImpact: opts.historyImpact,
+        }),
+      })
+      .returning({ id: schema.elementHistory.id });
+    createdHistoryIds.push(hist.id);
+    return { elementId: el.id, historyId: hist.id };
+  }
+
+  describe('update_element_history_event', () => {
+    it('rejects when the history row\'s element lives in a non-MCP organization', async () => {
+      // Seed a history row attached to the out-of-scope element so the
+      // tool's element->building->organization lookup falls outside the
+      // MCP scope. Without this guard, an MCP caller could mutate work
+      // history on someone else's portfolio just by knowing the row id.
+      const [hist] = await db
+        .insert(schema.elementHistory)
+        .values({
+          elementId: outOfScopeElementId,
+          eventType: 'repair',
+          eventDate: '2024-04-04',
+          workDescription: 'out-of-scope row for update guard',
+          createdBy: adminUserId,
+        })
+        .returning({ id: schema.elementHistory.id });
+      createdHistoryIds.push(hist.id);
+
+      const handler = getToolHandler(server, 'update_element_history_event');
+      const result = await handler(
+        {
+          role: 'admin',
+          historyId: hist.id,
+          workDescription: 'attempted overwrite from MCP scope',
+        },
+        {},
+      );
+      expect(parseToolText(result)).toMatch(/access denied/i);
+
+      // The row is unchanged — the org guard short-circuited before the
+      // transaction opened.
+      const [after] = await db
+        .select({
+          workDescription: schema.elementHistory.workDescription,
+        })
+        .from(schema.elementHistory)
+        .where(eq(schema.elementHistory.id, hist.id));
+      expect(after!.workDescription).toBe('out-of-scope row for update guard');
+    }, 30000);
+
+    it('updates cost / vendor / event type and returns the new row', async () => {
+      const vendorId = (
+        await db
+          .insert(schema.vendors)
+          .values({
+            organizationId: mcpOrgId,
+            name: `inv-it-update-vendor-${randomUUID().slice(0, 8)}`,
+            isActive: true,
+          })
+          .returning({ id: schema.vendors.id })
+      )[0].id;
+      createdVendorIds.push(vendorId);
+
+      const { historyId } = await seedElementWithHistory({
+        initialLifespan: 20,
+        historyImpact: 0,
+        eventType: 'minor_rehab',
+        cost: '100.00',
+      });
+
+      const handler = getToolHandler(server, 'update_element_history_event');
+      const result = await handler(
+        {
+          role: 'admin',
+          historyId,
+          eventType: 'major_rehab',
+          cost: 1234.56,
+          vendorId,
+        },
+        {},
+      );
+      const text = parseToolText(result);
+      expect(text).not.toMatch(/access denied|not found|failed to update/i);
+      const parsed = JSON.parse(text) as {
+        event: {
+          id: string;
+          eventType: string;
+          cost: string | null;
+          vendorId: string | null;
+          workDescription: string;
+        };
+        updatedElement: { id: string; currentLifespan: number | null } | null;
+      };
+      expect(parsed.event.id).toBe(historyId);
+      expect(parsed.event.eventType).toBe('major_rehab');
+      // Drizzle's decimal columns round-trip as strings — Postgres normalises
+      // 1234.56 to "1234.56" with trailing zeros preserved.
+      expect(parsed.event.cost).toBe('1234.56');
+      expect(parsed.event.vendorId).toBe(vendorId);
+      // Untouched fields are preserved (the seed value).
+      expect(parsed.event.workDescription).toBe('edit-test seed event');
+      // No `lifespanImpact` change → tool must skip the element write.
+      expect(parsed.updatedElement).toBeNull();
+
+      // DB read-back confirms the columns moved.
+      const [row] = await db
+        .select({
+          eventType: schema.elementHistory.eventType,
+          cost: schema.elementHistory.cost,
+          vendorId: schema.elementHistory.vendorId,
+        })
+        .from(schema.elementHistory)
+        .where(eq(schema.elementHistory.id, historyId));
+      expect(row!.eventType).toBe('major_rehab');
+      expect(row!.cost).toBe('1234.56');
+      expect(row!.vendorId).toBe(vendorId);
+    }, 30000);
+
+    it('rejects vendors from a different organization (cross-org guard)', async () => {
+      const foreignVendorId = (
+        await db
+          .insert(schema.vendors)
+          .values({
+            organizationId: otherOrgId,
+            name: `inv-it-foreign-vendor-${randomUUID().slice(0, 8)}`,
+            isActive: true,
+          })
+          .returning({ id: schema.vendors.id })
+      )[0].id;
+      createdVendorIds.push(foreignVendorId);
+
+      const { historyId } = await seedElementWithHistory({
+        initialLifespan: 10,
+        historyImpact: 0,
+      });
+
+      const handler = getToolHandler(server, 'update_element_history_event');
+      const result = await handler(
+        { role: 'admin', historyId, vendorId: foreignVendorId },
+        {},
+      );
+      expect(parseToolText(result)).toMatch(
+        /does not belong to the element's organization/i,
+      );
+
+      // The vendor was NOT attached.
+      const [row] = await db
+        .select({ vendorId: schema.elementHistory.vendorId })
+        .from(schema.elementHistory)
+        .where(eq(schema.elementHistory.id, historyId));
+      expect(row!.vendorId).toBeNull();
+    }, 30000);
+
+    it.each([
+      { from: 5, to: 10, description: 'increase (+5)' },
+      { from: 10, to: 2, description: 'decrease (-8)' },
+    ] as const)(
+      'changes lifespanImpact $from→$to and shifts currentLifespan by the delta ($description)',
+      async ({ from, to }) => {
+        const initialLifespan = 30;
+        const { elementId, historyId } = await seedElementWithHistory({
+          initialLifespan,
+          historyImpact: from,
+        });
+        // Sanity: the seeded element reflects the prior bump.
+        const [pre] = await db
+          .select({ currentLifespan: schema.buildingElements.currentLifespan })
+          .from(schema.buildingElements)
+          .where(eq(schema.buildingElements.id, elementId));
+        expect(pre!.currentLifespan).toBe(initialLifespan + from);
+
+        const handler = getToolHandler(server, 'update_element_history_event');
+        const result = await handler(
+          { role: 'admin', historyId, lifespanImpact: to },
+          {},
+        );
+        const text = parseToolText(result);
+        expect(text).not.toMatch(/access denied|failed to update/i);
+        const parsed = JSON.parse(text) as {
+          event: { id: string; lifespanImpact: number | null };
+          updatedElement: { id: string; currentLifespan: number | null } | null;
+        };
+        expect(parsed.event.lifespanImpact).toBe(to);
+        expect(parsed.updatedElement).not.toBeNull();
+        expect(parsed.updatedElement!.id).toBe(elementId);
+        expect(parsed.updatedElement!.currentLifespan).toBe(
+          initialLifespan + to,
+        );
+
+        const [post] = await db
+          .select({ currentLifespan: schema.buildingElements.currentLifespan })
+          .from(schema.buildingElements)
+          .where(eq(schema.buildingElements.id, elementId));
+        expect(post!.currentLifespan).toBe(initialLifespan + to);
+      },
+      30000,
+    );
+
+    it('clamps currentLifespan at 0 when the lifespan delta would push it negative', async () => {
+      // Element starts at 1, history's prior bump was 10 → so the
+      // realistic post-create currentLifespan baked into the seed is 11.
+      // Wait — we want to provoke the clamp on *update*, so the delta
+      // (new - old) must exceed currentLifespan in the negative direction.
+      // Seed: history.lifespanImpact=10, element.currentLifespan=3
+      // (someone trimmed the element down between create and update).
+      // Update: lifespanImpact -> 0  =>  delta = -10  =>  Math.max(0, 3-10) = 0.
+      const [el] = await db
+        .insert(schema.buildingElements)
+        .values({
+          buildingId: inScopeBuildingId,
+          uniformatCode: TEST_LEVEL3_CODE,
+          name: `inv-it-clamp-${randomUUID().slice(0, 8)}`,
+          currentCondition: 'good',
+          currentLifespan: 3,
+        })
+        .returning({ id: schema.buildingElements.id });
+      createdElementIds.push(el.id);
+      const [hist] = await db
+        .insert(schema.elementHistory)
+        .values({
+          elementId: el.id,
+          eventType: 'minor_rehab',
+          eventDate: '2024-02-02',
+          workDescription: 'clamp-test seed',
+          createdBy: adminUserId,
+          lifespanImpact: 10,
+        })
+        .returning({ id: schema.elementHistory.id });
+      createdHistoryIds.push(hist.id);
+
+      const handler = getToolHandler(server, 'update_element_history_event');
+      const result = await handler(
+        { role: 'admin', historyId: hist.id, lifespanImpact: 0 },
+        {},
+      );
+      const parsed = JSON.parse(parseToolText(result)) as {
+        updatedElement: { currentLifespan: number | null } | null;
+      };
+      expect(parsed.updatedElement).not.toBeNull();
+      expect(parsed.updatedElement!.currentLifespan).toBe(0);
+
+      const [row] = await db
+        .select({ currentLifespan: schema.buildingElements.currentLifespan })
+        .from(schema.buildingElements)
+        .where(eq(schema.buildingElements.id, el.id));
+      expect(row!.currentLifespan).toBe(0);
+    }, 30000);
+
+    it('clearing lifespanImpact to null refunds the prior bump', async () => {
+      const initialLifespan = 25;
+      const priorBump = 6;
+      const { elementId, historyId } = await seedElementWithHistory({
+        initialLifespan,
+        historyImpact: priorBump,
+      });
+
+      const handler = getToolHandler(server, 'update_element_history_event');
+      const result = await handler(
+        { role: 'admin', historyId, lifespanImpact: null },
+        {},
+      );
+      const text = parseToolText(result);
+      expect(text).not.toMatch(/access denied|failed to update/i);
+      const parsed = JSON.parse(text) as {
+        event: { lifespanImpact: number | null };
+        updatedElement: { currentLifespan: number | null } | null;
+      };
+      expect(parsed.event.lifespanImpact).toBeNull();
+      expect(parsed.updatedElement).not.toBeNull();
+      // Refund: (initial+priorBump) + (0 - priorBump) = initial.
+      expect(parsed.updatedElement!.currentLifespan).toBe(initialLifespan);
+
+      const [row] = await db
+        .select({
+          currentLifespan: schema.buildingElements.currentLifespan,
+          lifespanImpact: schema.elementHistory.lifespanImpact,
+        })
+        .from(schema.buildingElements)
+        .innerJoin(
+          schema.elementHistory,
+          eq(schema.elementHistory.elementId, schema.buildingElements.id),
+        )
+        .where(
+          and(
+            eq(schema.buildingElements.id, elementId),
+            eq(schema.elementHistory.id, historyId),
+          ),
+        );
+      expect(row!.currentLifespan).toBe(initialLifespan);
+      expect(row!.lifespanImpact).toBeNull();
+    }, 30000);
+  });
+
+  describe('delete_element_history_event', () => {
+    it('rejects when the history row\'s element lives in a non-MCP organization', async () => {
+      // Same guard as the update tool — out-of-scope deletes must be
+      // refused before the transaction even opens.
+      const [hist] = await db
+        .insert(schema.elementHistory)
+        .values({
+          elementId: outOfScopeElementId,
+          eventType: 'repair',
+          eventDate: '2024-05-05',
+          workDescription: 'out-of-scope row for delete guard',
+          createdBy: adminUserId,
+        })
+        .returning({ id: schema.elementHistory.id });
+      createdHistoryIds.push(hist.id);
+
+      const handler = getToolHandler(server, 'delete_element_history_event');
+      const result = await handler(
+        { role: 'admin', historyId: hist.id },
+        {},
+      );
+      expect(parseToolText(result)).toMatch(/access denied/i);
+
+      // Row still present.
+      const stillThere = await db
+        .select({ id: schema.elementHistory.id })
+        .from(schema.elementHistory)
+        .where(eq(schema.elementHistory.id, hist.id));
+      expect(stillThere).toHaveLength(1);
+    }, 30000);
+
+    it('deletes the row and refunds lifespanImpact from currentLifespan', async () => {
+      const initialLifespan = 18;
+      const priorBump = 4;
+      const { elementId, historyId } = await seedElementWithHistory({
+        initialLifespan,
+        historyImpact: priorBump,
+      });
+
+      const handler = getToolHandler(server, 'delete_element_history_event');
+      const result = await handler(
+        { role: 'admin', historyId },
+        {},
+      );
+      const text = parseToolText(result);
+      expect(text).not.toMatch(/access denied|fk_violation|failed to delete/i);
+      const parsed = JSON.parse(text) as {
+        deleted: { id: string };
+        updatedElement: { id: string; currentLifespan: number | null } | null;
+      };
+      expect(parsed.deleted.id).toBe(historyId);
+      expect(parsed.updatedElement).not.toBeNull();
+      expect(parsed.updatedElement!.id).toBe(elementId);
+      expect(parsed.updatedElement!.currentLifespan).toBe(initialLifespan);
+
+      // History row is gone, element refund persisted.
+      const remainingHistory = await db
+        .select({ id: schema.elementHistory.id })
+        .from(schema.elementHistory)
+        .where(eq(schema.elementHistory.id, historyId));
+      expect(remainingHistory).toHaveLength(0);
+      const [row] = await db
+        .select({ currentLifespan: schema.buildingElements.currentLifespan })
+        .from(schema.buildingElements)
+        .where(eq(schema.buildingElements.id, elementId));
+      expect(row!.currentLifespan).toBe(initialLifespan);
+    }, 30000);
+
+    it('clamps the refund at 0 when prior bump exceeds currentLifespan', async () => {
+      // Defensive against the same negative-clamp regression as the update
+      // path — if someone manually trimmed the element below the prior
+      // bump, deleting the history row must still leave the element at 0
+      // rather than dipping into negatives.
+      const [el] = await db
+        .insert(schema.buildingElements)
+        .values({
+          buildingId: inScopeBuildingId,
+          uniformatCode: TEST_LEVEL3_CODE,
+          name: `inv-it-del-clamp-${randomUUID().slice(0, 8)}`,
+          currentCondition: 'good',
+          currentLifespan: 2,
+        })
+        .returning({ id: schema.buildingElements.id });
+      createdElementIds.push(el.id);
+      const [hist] = await db
+        .insert(schema.elementHistory)
+        .values({
+          elementId: el.id,
+          eventType: 'minor_rehab',
+          eventDate: '2024-03-03',
+          workDescription: 'delete-clamp seed',
+          createdBy: adminUserId,
+          lifespanImpact: 12,
+        })
+        .returning({ id: schema.elementHistory.id });
+      createdHistoryIds.push(hist.id);
+
+      const handler = getToolHandler(server, 'delete_element_history_event');
+      const result = await handler(
+        { role: 'admin', historyId: hist.id },
+        {},
+      );
+      const parsed = JSON.parse(parseToolText(result)) as {
+        deleted: { id: string };
+        updatedElement: { currentLifespan: number | null } | null;
+      };
+      expect(parsed.deleted.id).toBe(hist.id);
+      expect(parsed.updatedElement).not.toBeNull();
+      expect(parsed.updatedElement!.currentLifespan).toBe(0);
+    }, 30000);
+
+    it('returns the structured FK_VIOLATION envelope when the DB raises 23503', async () => {
+      // No FK currently points TO `element_history`, so a real 23503 is
+      // not organically reachable. The envelope wiring through
+      // `buildWriteErrorResponse` must still be exercised end-to-end so a
+      // future schema change (e.g. an audit table referencing the row)
+      // doesn't quietly bypass the structured error contract. The tool's
+      // delete runs inside `db.transaction(...)`, so we mock the
+      // transaction itself to throw a Postgres-shaped error.
+      const { historyId } = await seedElementWithHistory({
+        initialLifespan: 5,
+        historyImpact: 0,
+      });
+
+      const fkError = Object.assign(new Error('fk violation'), {
+        code: '23503',
+        detail:
+          `Key (id)=(${historyId}) is still referenced from table "audit_logs".`,
+      });
+
+      const transactionSpy = jest
+        .spyOn(db, 'transaction')
+        .mockImplementationOnce((async () => {
+          throw fkError;
+        }) as never);
+
+      try {
+        const handler = getToolHandler(server, 'delete_element_history_event');
+        const result = await handler(
+          { role: 'admin', historyId },
+          {},
+        );
+        const parsed = JSON.parse(parseToolText(result)) as {
+          status: string;
+          code: string;
+          retryable: boolean;
+          blocking_entity: string;
+          message: string;
+        };
+        expect(parsed.status).toBe('fk_violation');
+        expect(parsed.code).toBe('FK_VIOLATION');
+        expect(parsed.retryable).toBe(false);
+        // `audit_logs` is not in FK_TABLE_TO_ENTITY → fallback strips the
+        // trailing "s" to produce a singular entity label.
+        expect(parsed.blocking_entity).toBe('audit_log');
+        expect(parsed.message).toMatch(/cannot delete element history event/i);
+      } finally {
+        transactionSpy.mockRestore();
+      }
+
+      // The history row is still present because the simulated transaction
+      // threw before any real delete fired.
+      const stillThere = await db
+        .select({ id: schema.elementHistory.id })
+        .from(schema.elementHistory)
+        .where(eq(schema.elementHistory.id, historyId));
+      expect(stillThere).toHaveLength(1);
     }, 30000);
   });
 
