@@ -64,6 +64,8 @@ describeIfDb('bulk-import REST endpoints — Task #456', () => {
   let app: express.Application;
   let db: any;
   let schema: any;
+  let bulkImportAnalyzer: typeof import('../../server/services/bulk-import-analyzer').bulkImportAnalyzer;
+  let screenAllInProgress: Set<string>;
 
   const ids = {
     org: crypto.randomUUID(),
@@ -84,10 +86,18 @@ describeIfDb('bulk-import REST endpoints — Task #456', () => {
     process.env.SESSION_SECRET =
       process.env.SESSION_SECRET || 'test-session-secret-task456';
     process.env.NODE_ENV = process.env.NODE_ENV || 'test';
+    // Ensure the analyzer takes the real-client path so our test fake
+    // (`__setClientForTests`) is actually exercised by the screen-all
+    // loop instead of falling back to the no-API-key stub.
+    process.env.ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY || 'test-fake-key';
 
     db = require('../../server/db').db;
     schema = require('@shared/schema');
-    const { registerBulkImportRoutes } = require('../../server/api/bulk-import');
+    const bulkImportModule = require('../../server/api/bulk-import');
+    const { registerBulkImportRoutes } = bulkImportModule;
+    screenAllInProgress = bulkImportModule.screenAllInProgress;
+    bulkImportAnalyzer =
+      require('../../server/services/bulk-import-analyzer').bulkImportAnalyzer;
 
     app = express();
     app.use(express.json());
@@ -555,4 +565,187 @@ describeIfDb('bulk-import REST endpoints — Task #456', () => {
       .set('x-test-user-id', ids.admin);
     expect(evil.status).toBe(400);
   });
+
+  /**
+   * Task #593: clearing a session must stop the in-flight `screen-all`
+   * background loop on its very next iteration. We seed a handful of
+   * pending items, swap in a slow Anthropic stub so the loop is
+   * guaranteed to still be running when the DELETE lands, then assert
+   * that the cancellation set is emptied promptly and that the loop
+   * stopped before screening every item (i.e. no wasted Anthropic
+   * calls on cleared rows).
+   */
+  it('cancels the screen-all loop when the session is cleared mid-flight', async () => {
+    const sid = await createSession();
+
+    // Stage four pending items so the loop has to make several
+    // sequential Anthropic calls; the DELETE in the middle should
+    // interrupt processing well before the queue drains.
+    const filenames = ['a.pdf', 'b.pdf', 'c.pdf', 'd.pdf'];
+    for (const name of filenames) {
+      const upload = await request(app)
+        .post(`/api/admin/bulk-import/sessions/${sid}/items`)
+        .set('x-test-user-id', ids.admin)
+        .attach('files', Buffer.concat([PDF_BODY, Buffer.from(name)]), {
+          filename: name,
+          contentType: 'application/pdf',
+        });
+      expect(upload.status).toBe(201);
+      upload.body.forEach((row: any) => trackedItems.add(row.id));
+    }
+
+    // Slow fake Anthropic transport: every screen() takes ~150 ms so
+    // four items would need ~600 ms total. We will DELETE after the
+    // first one or two complete and assert the rest are skipped.
+    const slowSpy = jest.fn().mockImplementation(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 150));
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              isComplete: true,
+              isMultiDocument: false,
+              pageOrderHint: null,
+              rotationDegrees: 0,
+              suggestedFilename: 'x.pdf',
+              description: 'fake',
+              confidence: 0.7,
+            }),
+          },
+        ],
+      };
+    });
+    bulkImportAnalyzer.__setClientForTests({
+      messages: { create: slowSpy },
+    } as unknown as Parameters<
+      typeof bulkImportAnalyzer.__setClientForTests
+    >[0]);
+
+    try {
+      const start = await request(app)
+        .post(`/api/admin/bulk-import/sessions/${sid}/screen-all`)
+        .set('x-test-user-id', ids.admin);
+      expect(start.status).toBe(202);
+      expect(start.body.status).toBe('started');
+      // The loop is scheduled fire-and-forget; give it a moment to
+      // start the first item and then clear before the queue drains.
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      expect(screenAllInProgress.has(sid)).toBe(true);
+
+      const del = await request(app)
+        .delete(`/api/admin/bulk-import/sessions/${sid}`)
+        .set('x-test-user-id', ids.admin);
+      expect(del.status).toBe(200);
+
+      // The DELETE handler removes the session id synchronously, so
+      // the next iteration of the loop will see an empty set and
+      // exit. After that finally block runs, the set must be empty.
+      const deadline = Date.now() + 2_000;
+      while (screenAllInProgress.has(sid) && Date.now() < deadline) {
+        await new Promise((resolve) => setTimeout(resolve, 25));
+      }
+      expect(screenAllInProgress.has(sid)).toBe(false);
+
+      // Snapshot the call count right after cancellation, then wait
+      // long enough that any uncancelled loop would have made several
+      // more screen() calls. The count must not grow.
+      const callsAtCancel = slowSpy.mock.calls.length;
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      expect(slowSpy.mock.calls.length).toBe(callsAtCancel);
+
+      // And we must have stopped early: with 4 items @150 ms each the
+      // unbounded loop would call screen() 4 times. Cancellation should
+      // hold this strictly below the queue length.
+      expect(slowSpy.mock.calls.length).toBeLessThan(filenames.length);
+
+      // Items got deleted by the cascade DELETE — the screen-all loop
+      // never inserted any rows, so trackedItems entries for the now-
+      // gone items would just no-op in beforeEach but we drop them
+      // explicitly to keep the cleanup path tidy.
+      for (const itemId of Array.from(trackedItems)) {
+        const rows = await db
+          .select()
+          .from(schema.bulkImportItems)
+          .where(eq(schema.bulkImportItems.id, itemId));
+        if (rows.length === 0) trackedItems.delete(itemId);
+      }
+    } finally {
+      bulkImportAnalyzer.__setClientForTests(null);
+      // Defensive: drop the session id from the cancellation set in
+      // case the test failed before the natural cleanup ran.
+      screenAllInProgress.delete(sid);
+    }
+  }, 15_000);
+
+  /**
+   * Companion check for Task #593: a `screen-all` POST against a
+   * session that already has the loop running must be a no-op (still
+   * 202) and must not start a second background loop.
+   */
+  it('does not start a second screen-all loop when one is already running', async () => {
+    const sid = await createSession();
+    await request(app)
+      .post(`/api/admin/bulk-import/sessions/${sid}/items`)
+      .set('x-test-user-id', ids.admin)
+      .attach('files', Buffer.concat([PDF_BODY, Buffer.from('once.pdf')]), {
+        filename: 'once.pdf',
+        contentType: 'application/pdf',
+      })
+      .then((res) => res.body.forEach((r: any) => trackedItems.add(r.id)));
+
+    const slowSpy = jest.fn().mockImplementation(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 250));
+      return {
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              isComplete: true,
+              isMultiDocument: false,
+              pageOrderHint: null,
+              rotationDegrees: 0,
+              suggestedFilename: 'once.pdf',
+              description: 'fake',
+              confidence: 0.7,
+            }),
+          },
+        ],
+      };
+    });
+    bulkImportAnalyzer.__setClientForTests({
+      messages: { create: slowSpy },
+    } as unknown as Parameters<
+      typeof bulkImportAnalyzer.__setClientForTests
+    >[0]);
+
+    try {
+      const first = await request(app)
+        .post(`/api/admin/bulk-import/sessions/${sid}/screen-all`)
+        .set('x-test-user-id', ids.admin);
+      expect(first.status).toBe(202);
+      expect(first.body.status).toBe('started');
+
+      // While the first loop is still on its first item, fire a
+      // duplicate request: it must short-circuit with `in-progress`.
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      const second = await request(app)
+        .post(`/api/admin/bulk-import/sessions/${sid}/screen-all`)
+        .set('x-test-user-id', ids.admin);
+      expect(second.status).toBe(202);
+      expect(second.body.status).toBe('in-progress');
+
+      // Wait for the (single) loop to finish and verify only one
+      // Anthropic call was made for the one staged item.
+      const deadline = Date.now() + 2_000;
+      while (screenAllInProgress.has(sid) && Date.now() < deadline) {
+        await new Promise((resolve) => setTimeout(resolve, 25));
+      }
+      expect(screenAllInProgress.has(sid)).toBe(false);
+      expect(slowSpy.mock.calls.length).toBe(1);
+    } finally {
+      bulkImportAnalyzer.__setClientForTests(null);
+      screenAllInProgress.delete(sid);
+    }
+  }, 15_000);
 });

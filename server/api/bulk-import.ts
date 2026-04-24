@@ -30,9 +30,13 @@ const STAGING_ROOT = path.join(process.cwd(), '.staging', 'bulk-import');
  * Sessions that currently have a fire-and-forget `screen-all` loop
  * running on this process. Prevents the wizard's auto-trigger from
  * stacking up duplicate background passes when polling refreshes the
- * page (Task #575). Cleared inside the background job's `finally`.
+ * page (Task #575). Also doubles as the cancellation signal for
+ * Task #593: the DELETE handler removes the session id from the set,
+ * which the loop checks between iterations and bails on so a clear
+ * stops the work immediately. Cleared inside the background job's
+ * `finally`. Exported so integration tests can assert prompt cleanup.
  */
-const screenAllInProgress = new Set<string>();
+export const screenAllInProgress = new Set<string>();
 
 function stagingDirFor(sessionId: string): string {
   const dir = path.join(STAGING_ROOT, sessionId);
@@ -212,6 +216,10 @@ export function registerBulkImportRoutes(app: Express): void {
     async (req: AuthenticatedRequest, res: Response) => {
       const session = await loadSession(req.params.id);
       if (!session) return res.status(404).json({ error: 'Session not found' });
+      // Cancel any in-flight screen-all loop FIRST so it stops on its
+      // next iteration instead of racing with the row/file cleanup
+      // below (Task #593).
+      screenAllInProgress.delete(session.id);
       await db
         .update(schema.bulkImportSessions)
         .set({ status: 'cleared', updatedAt: new Date() })
@@ -416,11 +424,23 @@ export function registerBulkImportRoutes(app: Express): void {
             metadata: { sessionId: session.id, itemCount: pendingItems.length },
           });
           for (const item of pendingItems) {
+            // Cancellation check (Task #593): if the admin cleared the
+            // session via DELETE the cancellation slot is gone, so we
+            // bail out before doing any more work or burning Anthropic
+            // tokens on a session whose rows are about to be wiped.
+            if (!screenAllInProgress.has(session.id)) break;
             try {
               await db
                 .update(schema.bulkImportItems)
                 .set({ status: 'screening', updatedAt: new Date() })
                 .where(eq(schema.bulkImportItems.id, item.id));
+
+              // Re-check cancellation between the status UPDATE and the
+              // (slow) Anthropic call so a clear that lands in this
+              // narrow window does not waste tokens or hit a
+              // missing-staged-file error if the staging cleanup wins
+              // the race.
+              if (!screenAllInProgress.has(session.id)) break;
 
               const result = await bulkImportAnalyzer.screen({
                 originalName: item.originalName,
@@ -428,6 +448,11 @@ export function registerBulkImportRoutes(app: Express): void {
                 fileSize: item.fileSize,
                 stagedPath: item.stagedPath,
               });
+
+              // Re-check cancellation after the (slow) Anthropic call
+              // so a clear that lands while we were waiting on the API
+              // does not race the final UPDATE on a deleted row.
+              if (!screenAllInProgress.has(session.id)) break;
 
               await db
                 .update(schema.bulkImportItems)
@@ -440,7 +465,11 @@ export function registerBulkImportRoutes(app: Express): void {
             } catch (err) {
               logError('[bulk-import] screen-all item failed', err as Error);
               // Roll the item back to `pending` so a future trigger can
-              // retry it instead of leaving it stuck in `'screening'`.
+              // retry it instead of leaving it stuck in `'screening'`
+              // — but only if the session is still around. If the
+              // admin just cleared it, the row is being deleted anyway
+              // and an UPDATE here would just spam logs.
+              if (!screenAllInProgress.has(session.id)) break;
               try {
                 await db
                   .update(schema.bulkImportItems)
