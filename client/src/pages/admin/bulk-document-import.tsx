@@ -582,6 +582,25 @@ export default function BulkDocumentImportPage() {
         description: isFr ? 'Vous pouvez téléverser des fichiers.' : 'You can upload files now.',
       });
     },
+    onError: (err: unknown) => {
+      setBuildingId('');
+      const rawDetail = err instanceof Error ? err.message : '';
+      // Keep the toast clean: drop HTML-ish noise from proxy/error pages and
+      // cap length so a server stack trace can't blow up the toast.
+      const safeDetail =
+        rawDetail && !/<[^>]+>/.test(rawDetail)
+          ? rawDetail.slice(0, 140)
+          : '';
+      toast({
+        variant: 'destructive',
+        title: isFr
+          ? 'Impossible de démarrer la session'
+          : 'Could not start session',
+        description: isFr
+          ? `Veuillez réessayer ou choisir un autre immeuble.${safeDetail ? ` (${safeDetail})` : ''}`
+          : `Please try again or pick another building.${safeDetail ? ` (${safeDetail})` : ''}`,
+      });
+    },
   });
 
   const updateStep = useMutation({
