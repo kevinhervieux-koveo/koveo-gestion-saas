@@ -114,7 +114,9 @@ run_test_file "Unit-User-API" "tests/unit/user-api.test.ts" "User API endpoint t
 # Additional budget unit tests
 run_test_file "Unit-Budget-Page-Fixed" "tests/unit/budget-page-comprehensive-fixed.test.tsx" "Budget page comprehensive unit tests (fixed)"
 run_test_file "Unit-Budget-API-Focused" "tests/unit/api/budgets-focused.test.ts" "Budget API focused unit tests"
-run_test_file "Unit-Budget-API" "tests/unit/api/budgets.test.ts" "Budget API unit tests"
+# Note: tests/unit/api/budgets.test.ts was retired (Task #597). Its valuable
+# cases are now exercised against a real DB in
+# tests/integration/budgets-investments-upsert.test.ts (Task #580).
 run_test_file "Unit-Budget-Calculations" "tests/unit/utils/budgetCalculations.test.ts" "Budget calculation utility tests"
 
 # Phase 3: Integration Tests

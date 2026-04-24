@@ -129,7 +129,11 @@ args = "bash scripts/ci-cd-budget-pipeline.sh"
 #### Individual Budget Tests
 ```bash
 # Unit tests for budget functionality
-npm run test:unit -- tests/unit/api/budgets.test.ts tests/unit/utils/budgetCalculations.test.ts tests/unit/budget-page-comprehensive.test.tsx
+npm run test:unit -- tests/unit/api/budgets-focused.test.ts tests/unit/utils/budgetCalculations.test.ts tests/unit/budget-page-comprehensive-fixed.test.tsx
+
+# Real-DB coverage for the upsert path (replaces the retired
+# tests/unit/api/budgets.test.ts shell — see Task #597 / Task #580):
+npm run test:integration -- tests/integration/budgets-investments-upsert.test.ts
 
 # Integration tests for budget forecasting
 npm run test:integration -- tests/integration/budgets.forecast.test.ts
