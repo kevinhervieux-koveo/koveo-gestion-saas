@@ -110,6 +110,282 @@ async function loadSession(sessionId: string) {
   return row;
 }
 
+/**
+ * Per-step "run-all" support (Task #592).
+ *
+ * Each AI step has an idempotent server-side loop that walks every
+ * eligible item in the session and runs the analyzer against it. The
+ * UI auto-triggers this when an admin lands on Sorting / Branching /
+ * Identification / Linking, the same way Screening already does, so
+ * there is no per-file button to click.
+ *
+ * State lives in two places:
+ *   - `inFlightRunAll` (in-process Set) prevents two parallel loops
+ *     for the same (session, step) inside one Node process.
+ *   - `session.progress.runAll[step]` is the durable progress payload
+ *     the wizard polls — `{ total, processed, failed, startedAt,
+ *     finishedAt }` — so refreshing the page (or hopping to another
+ *     admin tab) shows the same "X of Y processed…" line.
+ */
+type AutoStep = 'screening' | 'sorting' | 'branching' | 'identification' | 'linking';
+
+const AUTO_STEPS: readonly AutoStep[] = [
+  'screening',
+  'sorting',
+  'branching',
+  'identification',
+  'linking',
+] as const;
+
+const STEP_ELIGIBLE_STATUSES: Record<AutoStep, schema.BulkImportItem['status'][]> = {
+  screening: ['pending'],
+  sorting: ['screened'],
+  branching: ['sorted'],
+  identification: ['branched'],
+  linking: ['identified'],
+};
+
+const inFlightRunAll = new Set<string>();
+
+interface RunAllProgress {
+  total: number;
+  processed: number;
+  failed: number;
+  startedAt: string;
+  finishedAt: string | null;
+}
+
+function runAllKey(sessionId: string, step: AutoStep): string {
+  return `${sessionId}:${step}`;
+}
+
+function getRunAllMap(
+  progress: Record<string, unknown> | null | undefined,
+): Record<string, RunAllProgress> {
+  const raw = (progress ?? {}) as Record<string, unknown>;
+  const existing = raw.runAll;
+  if (existing && typeof existing === 'object' && !Array.isArray(existing)) {
+    return { ...(existing as Record<string, RunAllProgress>) };
+  }
+  return {};
+}
+
+async function patchRunAllProgress(
+  sessionId: string,
+  step: AutoStep,
+  patch: Partial<RunAllProgress>,
+): Promise<void> {
+  const session = await loadSession(sessionId);
+  if (!session) return;
+  const runAll = getRunAllMap(session.progress);
+  const current = runAll[step] ?? {
+    total: 0,
+    processed: 0,
+    failed: 0,
+    startedAt: new Date().toISOString(),
+    finishedAt: null,
+  };
+  runAll[step] = { ...current, ...patch };
+  const nextProgress = {
+    ...((session.progress ?? {}) as Record<string, unknown>),
+    runAll,
+  };
+  await db
+    .update(schema.bulkImportSessions)
+    .set({ progress: nextProgress, updatedAt: new Date() })
+    .where(eq(schema.bulkImportSessions.id, sessionId));
+}
+
+/**
+ * Run a single AI step against one staged item and persist the result.
+ * Centralised so per-item endpoints and the run-all loop share the
+ * exact same behaviour (and therefore the per-item "Retry" button is
+ * a true retry, not a different code path).
+ */
+async function processItemForStep(
+  step: AutoStep,
+  item: schema.BulkImportItem,
+  sessionItems: { id: string; name: string }[],
+): Promise<schema.BulkImportItem> {
+  if (step === 'screening') {
+    const result = await bulkImportAnalyzer.screen({
+      originalName: item.originalName,
+      mimeType: item.mimeType,
+      fileSize: item.fileSize,
+      stagedPath: item.stagedPath,
+    });
+    const [updated] = await db
+      .update(schema.bulkImportItems)
+      .set({
+        screening: result as unknown as Record<string, unknown>,
+        status: 'screened',
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.bulkImportItems.id, item.id))
+      .returning();
+    return updated;
+  }
+  if (step === 'sorting') {
+    const result = await bulkImportAnalyzer.suggestMergeOrSplit({
+      originalName: item.originalName,
+      siblingNames: sessionItems.filter((s) => s.id !== item.id).map((s) => s.name),
+      stagedPath: item.stagedPath,
+      mimeType: item.mimeType,
+    });
+    const [updated] = await db
+      .update(schema.bulkImportItems)
+      .set({
+        sortingDecision: result as unknown as Record<string, unknown>,
+        status: 'sorted',
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.bulkImportItems.id, item.id))
+      .returning();
+    return updated;
+  }
+  if (step === 'branching') {
+    const description =
+      (item.screening as { description?: string } | null)?.description ?? '';
+    const result = await bulkImportAnalyzer.suggestBranch({
+      originalName: item.originalName,
+      description,
+      stagedPath: item.stagedPath,
+      mimeType: item.mimeType,
+    });
+    const [updated] = await db
+      .update(schema.bulkImportItems)
+      .set({
+        branchDecision: result as unknown as Record<string, unknown>,
+        status: 'branched',
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.bulkImportItems.id, item.id))
+      .returning();
+    return updated;
+  }
+  if (step === 'identification') {
+    const branch =
+      (item.branchDecision as { branch?: string } | null)?.branch ?? 'building_documents';
+    const description =
+      (item.screening as { description?: string } | null)?.description ?? '';
+    const result = await bulkImportAnalyzer.identify({
+      originalName: item.originalName,
+      description,
+      branch,
+      stagedPath: item.stagedPath,
+      mimeType: item.mimeType,
+    });
+    const [updated] = await db
+      .update(schema.bulkImportItems)
+      .set({
+        identification: result as unknown as Record<string, unknown>,
+        status: 'identified',
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.bulkImportItems.id, item.id))
+      .returning();
+    return updated;
+  }
+  // linking
+  const result = await bulkImportAnalyzer.suggestLinks({
+    originalName: item.originalName,
+    candidates: sessionItems.filter((c) => c.id !== item.id),
+    stagedPath: item.stagedPath,
+    mimeType: item.mimeType,
+  });
+  const [updated] = await db
+    .update(schema.bulkImportItems)
+    .set({
+      linkDecisions: result as unknown as Record<string, unknown>,
+      status: 'linked',
+      updatedAt: new Date(),
+    })
+    .where(eq(schema.bulkImportItems.id, item.id))
+    .returning();
+  return updated;
+}
+
+/**
+ * Spawn the background loop that walks every eligible item for a step.
+ * Fire-and-forget: returns the kicked-off promise so tests can `await`
+ * it but production callers (the route) just throw it on the floor and
+ * let the Node event loop drain it after the response goes out. This is
+ * what lets an admin navigate away mid-run without the work stopping.
+ */
+async function runAllForStep(sessionId: string, step: AutoStep): Promise<void> {
+  const key = runAllKey(sessionId, step);
+  if (inFlightRunAll.has(key)) return;
+  inFlightRunAll.add(key);
+
+  try {
+    const items = await db
+      .select()
+      .from(schema.bulkImportItems)
+      .where(eq(schema.bulkImportItems.sessionId, sessionId));
+
+    const eligibleStatuses = STEP_ELIGIBLE_STATUSES[step];
+    const eligible = items.filter((i) => eligibleStatuses.includes(i.status));
+    const sessionItems = items.map((i) => ({ id: i.id, name: i.originalName }));
+
+    await patchRunAllProgress(sessionId, step, {
+      total: eligible.length,
+      processed: 0,
+      failed: 0,
+      startedAt: new Date().toISOString(),
+      finishedAt: null,
+    });
+
+    if (eligible.length === 0) {
+      await patchRunAllProgress(sessionId, step, {
+        finishedAt: new Date().toISOString(),
+      });
+      return;
+    }
+
+    let processed = 0;
+    let failed = 0;
+    for (const item of eligible) {
+      // Cooperative cancellation (Task #593): if the admin cleared the
+      // session via DELETE the key is removed from `inFlightRunAll`, so
+      // we bail out before doing any more work or burning AI tokens on
+      // a session whose rows are about to be wiped. Generalizes the
+      // screening-only cancellation from Task #593 to all five steps.
+      if (!inFlightRunAll.has(key)) break;
+
+      try {
+        await processItemForStep(step, item, sessionItems);
+      } catch (err) {
+        failed += 1;
+        logError(
+          `[bulk-import] run-all ${step} failed for item ${item.id}`,
+          err as Error,
+        );
+      }
+      processed += 1;
+      // Persist after every item so the polling client sees movement.
+      await patchRunAllProgress(sessionId, step, { processed, failed });
+    }
+
+    await patchRunAllProgress(sessionId, step, {
+      finishedAt: new Date().toISOString(),
+    });
+    logInfo('[bulk-import] run-all finished', {
+      metadata: { sessionId, step, processed, failed },
+    });
+  } catch (err) {
+    logError('[bulk-import] run-all loop crashed', err as Error);
+    try {
+      await patchRunAllProgress(sessionId, step, {
+        finishedAt: new Date().toISOString(),
+      });
+    } catch {
+      /* swallow — already in error path */
+    }
+  } finally {
+    inFlightRunAll.delete(key);
+  }
+}
+
 export function registerBulkImportRoutes(app: Express): void {
   /** Create a new session (or return the existing active one) for a building. */
   app.post(
@@ -216,10 +492,17 @@ export function registerBulkImportRoutes(app: Express): void {
     async (req: AuthenticatedRequest, res: Response) => {
       const session = await loadSession(req.params.id);
       if (!session) return res.status(404).json({ error: 'Session not found' });
-      // Cancel any in-flight screen-all loop FIRST so it stops on its
+      // Cancel any in-flight run-all loop FIRST so it stops on its
       // next iteration instead of racing with the row/file cleanup
-      // below (Task #593).
-      screenAllInProgress.delete(session.id);
+      // below (Task #593, generalized from screening-only to all five
+      // steps in Task #592). The loop checks `inFlightRunAll.has(key)`
+      // between items, so deleting the keys here is the cancellation
+      // signal.
+      for (const key of inFlightRunAll) {
+        if (key.startsWith(`${session.id}:`)) {
+          inFlightRunAll.delete(key);
+        }
+      }
       await db
         .update(schema.bulkImportSessions)
         .set({ status: 'cleared', updatedAt: new Date() })
@@ -347,292 +630,97 @@ export function registerBulkImportRoutes(app: Express): void {
     },
   );
 
-  /** Run AI screening for one item. */
-  app.post(
-    '/api/admin/bulk-import/items/:id/screen',
-    requireAuth,
-    requireRole(['admin']),
-    async (req: AuthenticatedRequest, res: Response) => {
-      const [item] = await db
-        .select()
-        .from(schema.bulkImportItems)
-        .where(eq(schema.bulkImportItems.id, req.params.id));
-      if (!item) return res.status(404).json({ error: 'Item not found' });
-      const result = await bulkImportAnalyzer.screen({
-        originalName: item.originalName,
-        mimeType: item.mimeType,
-        fileSize: item.fileSize,
-        stagedPath: item.stagedPath,
-      });
-      const [updated] = await db
-        .update(schema.bulkImportItems)
-        .set({
-          screening: result as unknown as Record<string, unknown>,
-          status: 'screened',
-          updatedAt: new Date(),
-        })
-        .where(eq(schema.bulkImportItems.id, item.id))
-        .returning();
-      return res.json(updated);
-    },
-  );
-
   /**
-   * Auto-screen every pending item in a session (Task #575).
-   *
-   * The wizard fires this once when the admin reaches the Screening
-   * step so they no longer have to click "Screen" per file. The actual
-   * loop runs as a fire-and-forget background job — closing the
-   * browser does not stop it. Re-entrancy is prevented by the
-   * `screenAllInProgress` lock, which mirrors the natural per-item
-   * `'screening'` status check the wizard does on the client side.
-   *
-   * Items whose bytes are too large for AI analysis still go through
-   * the existing oversize fallback inside `bulkImportAnalyzer.screen`
-   * (filename-only prompt + `fallbackReason: 'oversize'`), so they
-   * land in `'screened'` with a low-confidence result and a clear
-   * badge, with no user action required.
+   * Per-item AI step endpoints. The wizard auto-runs every step in
+   * bulk via `/sessions/:id/run-all` (Task #592), so these handlers
+   * are now reserved for the per-row "Retry" button shown when a
+   * single item came back in a fallback state. Keeping them as thin
+   * wrappers around the shared `processItemForStep` helper guarantees
+   * the retry path produces exactly the same result as the bulk loop.
    */
-  app.post(
-    '/api/admin/bulk-import/sessions/:id/screen-all',
-    requireAuth,
-    requireRole(['admin']),
-    async (req: AuthenticatedRequest, res: Response) => {
-      const session = await loadSession(req.params.id);
-      if (!session) return res.status(404).json({ error: 'Session not found' });
-
-      if (screenAllInProgress.has(session.id)) {
-        return res.status(202).json({ status: 'in-progress', sessionId: session.id });
-      }
-      screenAllInProgress.add(session.id);
-
-      // Fire-and-forget: the loop runs after we respond so the HTTP
-      // connection (and the user's browser) can go away without
-      // stopping the screening pass.
-      void (async () => {
+  function registerPerItemStep(action: string, step: AutoStep) {
+    app.post(
+      `/api/admin/bulk-import/items/:id/${action}`,
+      requireAuth,
+      requireRole(['admin']),
+      async (req: AuthenticatedRequest, res: Response) => {
         try {
-          const pendingItems = await db
+          const [item] = await db
             .select()
             .from(schema.bulkImportItems)
-            .where(
-              and(
-                eq(schema.bulkImportItems.sessionId, session.id),
-                eq(schema.bulkImportItems.status, 'pending'),
-              ),
-            );
-          logInfo('[bulk-import] screen-all started', {
-            metadata: { sessionId: session.id, itemCount: pendingItems.length },
-          });
-          for (const item of pendingItems) {
-            // Cancellation check (Task #593): if the admin cleared the
-            // session via DELETE the cancellation slot is gone, so we
-            // bail out before doing any more work or burning Anthropic
-            // tokens on a session whose rows are about to be wiped.
-            if (!screenAllInProgress.has(session.id)) break;
-            try {
-              await db
-                .update(schema.bulkImportItems)
-                .set({ status: 'screening', updatedAt: new Date() })
-                .where(eq(schema.bulkImportItems.id, item.id));
-
-              // Re-check cancellation between the status UPDATE and the
-              // (slow) Anthropic call so a clear that lands in this
-              // narrow window does not waste tokens or hit a
-              // missing-staged-file error if the staging cleanup wins
-              // the race.
-              if (!screenAllInProgress.has(session.id)) break;
-
-              const result = await bulkImportAnalyzer.screen({
-                originalName: item.originalName,
-                mimeType: item.mimeType,
-                fileSize: item.fileSize,
-                stagedPath: item.stagedPath,
-              });
-
-              // Re-check cancellation after the (slow) Anthropic call
-              // so a clear that lands while we were waiting on the API
-              // does not race the final UPDATE on a deleted row.
-              if (!screenAllInProgress.has(session.id)) break;
-
-              await db
-                .update(schema.bulkImportItems)
-                .set({
-                  screening: result as unknown as Record<string, unknown>,
-                  status: 'screened',
-                  updatedAt: new Date(),
-                })
-                .where(eq(schema.bulkImportItems.id, item.id));
-            } catch (err) {
-              logError('[bulk-import] screen-all item failed', err as Error);
-              // Roll the item back to `pending` so a future trigger can
-              // retry it instead of leaving it stuck in `'screening'`
-              // — but only if the session is still around. If the
-              // admin just cleared it, the row is being deleted anyway
-              // and an UPDATE here would just spam logs.
-              if (!screenAllInProgress.has(session.id)) break;
-              try {
-                await db
-                  .update(schema.bulkImportItems)
-                  .set({ status: 'pending', updatedAt: new Date() })
-                  .where(eq(schema.bulkImportItems.id, item.id));
-              } catch (rollbackErr) {
-                logError(
-                  '[bulk-import] screen-all rollback failed',
-                  rollbackErr as Error,
-                );
-              }
-            }
-          }
-          logInfo('[bulk-import] screen-all finished', {
-            metadata: { sessionId: session.id, itemCount: pendingItems.length },
-          });
-        } finally {
-          screenAllInProgress.delete(session.id);
+            .where(eq(schema.bulkImportItems.id, req.params.id));
+          if (!item) return res.status(404).json({ error: 'Item not found' });
+          const sessionItems = await db
+            .select({
+              id: schema.bulkImportItems.id,
+              name: schema.bulkImportItems.originalName,
+            })
+            .from(schema.bulkImportItems)
+            .where(eq(schema.bulkImportItems.sessionId, item.sessionId));
+          const updated = await processItemForStep(step, item, sessionItems);
+          return res.json(updated);
+        } catch (err) {
+          logError(`[bulk-import] per-item ${step} failed`, err as Error);
+          return res.status(500).json({ error: `Failed to run ${step}` });
         }
-      })();
+      },
+    );
+  }
+  registerPerItemStep('screen', 'screening');
+  registerPerItemStep('sort', 'sorting');
+  registerPerItemStep('branch', 'branching');
+  registerPerItemStep('identify', 'identification');
+  registerPerItemStep('link', 'linking');
 
-      return res.status(202).json({ status: 'started', sessionId: session.id });
-    },
-  );
-
-  /** Run AI sort/merge/split for one item. */
+  /**
+   * Auto-run an AI step for every eligible item in one session
+   * (Task #592, generalizing Task #575's screening-only auto loop).
+   * Idempotent: a second call while a loop is already in flight returns
+   * the current progress instead of starting a parallel run. The actual
+   * processing happens in the background so admins can navigate away
+   * mid-run, and the loop is cooperatively cancellable via
+   * `inFlightRunAll` (see Task #593) — clearing the session removes
+   * the in-flight key, which the loop checks between items.
+   */
+  const runAllSchema = z.object({
+    step: z.enum(['screening', 'sorting', 'branching', 'identification', 'linking']),
+  });
   app.post(
-    '/api/admin/bulk-import/items/:id/sort',
+    '/api/admin/bulk-import/sessions/:id/run-all',
     requireAuth,
     requireRole(['admin']),
     async (req: AuthenticatedRequest, res: Response) => {
-      const [item] = await db
-        .select()
-        .from(schema.bulkImportItems)
-        .where(eq(schema.bulkImportItems.id, req.params.id));
-      if (!item) return res.status(404).json({ error: 'Item not found' });
-      const siblings = await db
-        .select({
-          id: schema.bulkImportItems.id,
-          name: schema.bulkImportItems.originalName,
-        })
-        .from(schema.bulkImportItems)
-        .where(eq(schema.bulkImportItems.sessionId, item.sessionId));
-      const result = await bulkImportAnalyzer.suggestMergeOrSplit({
-        originalName: item.originalName,
-        siblingNames: siblings.filter((s) => s.id !== item.id).map((s) => s.name),
-        stagedPath: item.stagedPath,
-        mimeType: item.mimeType,
-      });
-      const [updated] = await db
-        .update(schema.bulkImportItems)
-        .set({
-          sortingDecision: result as unknown as Record<string, unknown>,
-          status: 'sorted',
-          updatedAt: new Date(),
-        })
-        .where(eq(schema.bulkImportItems.id, item.id))
-        .returning();
-      return res.json(updated);
-    },
-  );
+      try {
+        const { step } = runAllSchema.parse(req.body);
+        const session = await loadSession(req.params.id);
+        if (!session) return res.status(404).json({ error: 'Session not found' });
 
-  /** Run AI branch suggestion. */
-  app.post(
-    '/api/admin/bulk-import/items/:id/branch',
-    requireAuth,
-    requireRole(['admin']),
-    async (req: AuthenticatedRequest, res: Response) => {
-      const [item] = await db
-        .select()
-        .from(schema.bulkImportItems)
-        .where(eq(schema.bulkImportItems.id, req.params.id));
-      if (!item) return res.status(404).json({ error: 'Item not found' });
-      const description =
-        (item.screening as { description?: string } | null)?.description ?? '';
-      const result = await bulkImportAnalyzer.suggestBranch({
-        originalName: item.originalName,
-        description,
-        stagedPath: item.stagedPath,
-        mimeType: item.mimeType,
-      });
-      const [updated] = await db
-        .update(schema.bulkImportItems)
-        .set({
-          branchDecision: result as unknown as Record<string, unknown>,
-          status: 'branched',
-          updatedAt: new Date(),
-        })
-        .where(eq(schema.bulkImportItems.id, item.id))
-        .returning();
-      return res.json(updated);
-    },
-  );
+        const key = runAllKey(session.id, step);
+        const alreadyRunning = inFlightRunAll.has(key);
 
-  /** Run AI identification (name/tags/metadata). */
-  app.post(
-    '/api/admin/bulk-import/items/:id/identify',
-    requireAuth,
-    requireRole(['admin']),
-    async (req: AuthenticatedRequest, res: Response) => {
-      const [item] = await db
-        .select()
-        .from(schema.bulkImportItems)
-        .where(eq(schema.bulkImportItems.id, req.params.id));
-      if (!item) return res.status(404).json({ error: 'Item not found' });
-      const branch =
-        (item.branchDecision as { branch?: string } | null)?.branch ?? 'building_documents';
-      const description =
-        (item.screening as { description?: string } | null)?.description ?? '';
-      const result = await bulkImportAnalyzer.identify({
-        originalName: item.originalName,
-        description,
-        branch,
-        stagedPath: item.stagedPath,
-        mimeType: item.mimeType,
-      });
-      const [updated] = await db
-        .update(schema.bulkImportItems)
-        .set({
-          identification: result as unknown as Record<string, unknown>,
-          status: 'identified',
-          updatedAt: new Date(),
-        })
-        .where(eq(schema.bulkImportItems.id, item.id))
-        .returning();
-      return res.json(updated);
-    },
-  );
+        if (!alreadyRunning) {
+          // Fire-and-forget: kick off the loop and respond immediately.
+          // The Node event loop will keep draining it after the HTTP
+          // response goes out, which is what lets the admin navigate
+          // away mid-run.
+          void runAllForStep(session.id, step);
+        }
 
-  /** Run AI link suggestions for one item. */
-  app.post(
-    '/api/admin/bulk-import/items/:id/link',
-    requireAuth,
-    requireRole(['admin']),
-    async (req: AuthenticatedRequest, res: Response) => {
-      const [item] = await db
-        .select()
-        .from(schema.bulkImportItems)
-        .where(eq(schema.bulkImportItems.id, req.params.id));
-      if (!item) return res.status(404).json({ error: 'Item not found' });
-      const candidates = await db
-        .select({
-          id: schema.bulkImportItems.id,
-          name: schema.bulkImportItems.originalName,
-        })
-        .from(schema.bulkImportItems)
-        .where(eq(schema.bulkImportItems.sessionId, item.sessionId));
-      const result = await bulkImportAnalyzer.suggestLinks({
-        originalName: item.originalName,
-        candidates: candidates.filter((c) => c.id !== item.id),
-        stagedPath: item.stagedPath,
-        mimeType: item.mimeType,
-      });
-      const [updated] = await db
-        .update(schema.bulkImportItems)
-        .set({
-          linkDecisions: result as unknown as Record<string, unknown>,
-          status: 'linked',
-          updatedAt: new Date(),
-        })
-        .where(eq(schema.bulkImportItems.id, item.id))
-        .returning();
-      return res.json(updated);
+        // Return the current progress snapshot (wait briefly for the
+        // loop to write its initial entry so the client doesn't see
+        // a stale `null`).
+        const fresh = await loadSession(session.id);
+        const runAll = getRunAllMap(fresh?.progress);
+        return res.json({
+          step,
+          alreadyRunning,
+          progress: runAll[step] ?? null,
+        });
+      } catch (err) {
+        if (err instanceof z.ZodError) return res.status(400).json({ error: err.errors });
+        logError('[bulk-import] run-all failed', err as Error);
+        return res.status(500).json({ error: 'Failed to start run-all' });
+      }
     },
   );
 

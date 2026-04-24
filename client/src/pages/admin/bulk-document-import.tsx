@@ -34,6 +34,7 @@ import {
   History,
   AlertTriangle,
   Play,
+  RotateCw,
 } from 'lucide-react';
 import {
   bandForConfidence,
@@ -105,6 +106,45 @@ const STEP_ORDER: BulkImportStep[] = [
   'linking',
   'complete',
 ];
+
+/** AI steps that are auto-run server-side (Task #592). */
+type AutoStep = 'screening' | 'sorting' | 'branching' | 'identification' | 'linking';
+const AUTO_STEPS: ReadonlyArray<AutoStep> = [
+  'screening',
+  'sorting',
+  'branching',
+  'identification',
+  'linking',
+];
+function isAutoStep(step: BulkImportStep): step is AutoStep {
+  return (AUTO_STEPS as readonly string[]).includes(step);
+}
+
+/** Status the item must be in before a step's run-all loop will pick it up. */
+const STEP_PRE_STATUS: Record<AutoStep, BulkImportItem['status']> = {
+  screening: 'pending',
+  sorting: 'screened',
+  branching: 'sorted',
+  identification: 'branched',
+  linking: 'identified',
+};
+
+interface RunAllProgress {
+  total: number;
+  processed: number;
+  failed: number;
+  startedAt: string;
+  finishedAt: string | null;
+}
+
+function readRunAllProgress(
+  session: BulkImportSession | undefined,
+  step: AutoStep,
+): RunAllProgress | null {
+  const progress = session?.progress as Record<string, unknown> | null | undefined;
+  const runAll = progress?.runAll as Record<string, RunAllProgress> | undefined;
+  return runAll?.[step] ?? null;
+}
 
 const STEP_LABEL_EN: Record<BulkImportStep, string> = {
   upload: 'Upload',
@@ -669,6 +709,41 @@ export default function BulkDocumentImportPage() {
       }),
   });
 
+  /**
+   * Auto-trigger the server-side "run-all" loop for the current AI step
+   * (Task #592). The endpoint is idempotent — calling it twice while a
+   * loop is in flight is a no-op — so re-renders/remounts are safe. We
+   * still keep a per-(session, step) ref so we don't fire on every
+   * polling refresh.
+   */
+  const runAll = useMutation({
+    mutationFn: async (step: AutoStep) => {
+      const res = await apiRequest(
+        'POST',
+        `/api/admin/bulk-import/sessions/${sessionId}/run-all`,
+        { step },
+      );
+      return res.json();
+    },
+    onSuccess: () =>
+      queryClient.invalidateQueries({
+        queryKey: ['/api/admin/bulk-import/sessions', sessionId],
+      }),
+  });
+
+  const triggeredAutoRunRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (!sessionId || !session) return;
+    if (!isAutoStep(currentStep)) return;
+    const key = `${sessionId}:${currentStep}`;
+    if (triggeredAutoRunRef.current.has(key)) return;
+    triggeredAutoRunRef.current.add(key);
+    runAll.mutate(currentStep);
+    // We intentionally only depend on sessionId + currentStep so the
+    // mutation fires exactly once per (session, step) per visit.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionId, currentStep, !!session]);
+
   const clearAll = useMutation({
     mutationFn: async () => {
       await apiRequest('DELETE', `/api/admin/bulk-import/sessions/${sessionId}`, {});
@@ -689,24 +764,12 @@ export default function BulkDocumentImportPage() {
     ? "Importez en lot des dossiers de documents (PDF, Word, Excel, images, zips) pour un immeuble. L'assistant IA vous guide à travers cinq étapes : filtrage, tri, aiguillage, identification et liaison. Vous pouvez fermer la page à tout moment et reprendre — la session est sauvegardée."
     : 'Bulk-import folders of mixed documents (PDF, Word, Excel, images, zips) for one building. The AI assistant walks you through five steps: screening, sorting, branching, identification, and linking. You can close the page at any time and resume — the session is saved.';
 
-  const stepActionFor = (step: BulkImportStep): null | {
-    label: string;
-    action: 'screen' | 'sort' | 'branch' | 'identify' | 'link' | 'commit';
-  } => {
-    switch (step) {
-      case 'screening':
-        return { label: isFr ? 'Filtrer' : 'Screen', action: 'screen' };
-      case 'sorting':
-        return { label: isFr ? 'Trier' : 'Sort', action: 'sort' };
-      case 'branching':
-        return { label: isFr ? 'Aiguiller' : 'Branch', action: 'branch' };
-      case 'identification':
-        return { label: isFr ? 'Identifier' : 'Identify', action: 'identify' };
-      case 'linking':
-        return { label: isFr ? 'Lier' : 'Link', action: 'link' };
-      default:
-        return null;
-    }
+  const stepRetryAction: Record<AutoStep, 'screen' | 'sort' | 'branch' | 'identify' | 'link'> = {
+    screening: 'screen',
+    sorting: 'sort',
+    branching: 'branch',
+    identification: 'identify',
+    linking: 'link',
   };
 
   const stepConfidenceField: Record<string, keyof BulkImportItem> = {
@@ -968,47 +1031,60 @@ export default function BulkDocumentImportPage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    {/*
-                      Screening progress summary (Task #575). The auto
-                      screen-all loop runs server-side; here we just
-                      tell the admin where it's at. We treat anything
-                      past `screening` as "done" because once an item
-                      transitions to `screened` (or any later status)
-                      its screening result is final.
-                    */}
-                    {currentStep === 'screening' && items.length > 0 && (() => {
-                      const total = items.length;
-                      const done = items.filter(
-                        (i) => i.status !== 'pending' && i.status !== 'screening',
-                      ).length;
-                      const inProgress = items.some(
-                        (i) => i.status === 'pending' || i.status === 'screening',
-                      );
-                      return (
-                        <div
-                          className="mb-3 flex items-center gap-2 rounded-md border bg-muted/40 px-3 py-2 text-sm"
-                          data-testid="screening-progress"
-                        >
-                          {inProgress ? (
-                            <>
+                    {/* Auto-run progress (Task #592) — replaces the
+                        per-file action buttons that used to live below.
+                        Generalizes the screening-only progress UI from
+                        Task #575 to all five AI steps. */}
+                    {isAutoStep(currentStep) &&
+                      (() => {
+                        const progress = readRunAllProgress(session, currentStep);
+                        const total = progress?.total ?? 0;
+                        const processed = progress?.processed ?? 0;
+                        const failed = progress?.failed ?? 0;
+                        const isRunning =
+                          (!!progress && !progress.finishedAt) ||
+                          runAll.isPending;
+                        const noWork = !progress && !runAll.isPending;
+                        return (
+                          <div
+                            className="mb-3 flex flex-wrap items-center gap-3 rounded-md border bg-muted/40 px-3 py-2 text-sm"
+                            data-testid={`auto-run-progress-${currentStep}`}
+                          >
+                            {isRunning ? (
                               <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                              <span data-testid="screening-progress-text">
-                                {isFr
-                                  ? `Filtrage de ${done} sur ${total} fichier(s)…`
-                                  : `Screening ${done} of ${total} files…`}
-                              </span>
-                            </>
-                          ) : (
-                            <span
-                              className="font-medium text-emerald-700"
-                              data-testid="screening-progress-text"
-                            >
-                              {isFr ? 'Tous les fichiers ont été filtrés.' : 'All files screened.'}
+                            ) : (
+                              <Sparkles className="h-4 w-4 text-muted-foreground" />
+                            )}
+                            <span className="font-medium">
+                              {noWork
+                                ? isFr
+                                  ? 'Démarrage…'
+                                  : 'Starting…'
+                                : isFr
+                                ? `${processed} sur ${total} traité(s)…`
+                                : `${processed} of ${total} processed…`}
                             </span>
-                          )}
-                        </div>
-                      );
-                    })()}
+                            {failed > 0 && (
+                              <span
+                                className="text-xs text-amber-700"
+                                data-testid={`auto-run-failed-${currentStep}`}
+                              >
+                                {isFr
+                                  ? `${failed} échec(s)`
+                                  : `${failed} failed`}
+                              </span>
+                            )}
+                            {progress?.finishedAt && (
+                              <span
+                                className="text-xs text-emerald-700"
+                                data-testid={`auto-run-done-${currentStep}`}
+                              >
+                                {isFr ? 'Terminé' : 'Done'}
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })()}
                     <div className="space-y-2">
                       {items.length === 0 && (
                         <p className="text-sm text-muted-foreground">
@@ -1016,7 +1092,6 @@ export default function BulkDocumentImportPage() {
                         </p>
                       )}
                       {items.map((item) => {
-                        const action = stepActionFor(currentStep);
                         const field = stepConfidenceField[currentStep];
                         const decision = field
                           ? (item[field] as {
@@ -1024,13 +1099,27 @@ export default function BulkDocumentImportPage() {
                               fallbackReason?: BulkImportFallbackReason | null;
                             } | null)
                           : null;
-                        // Per-item "Screen" buttons are gone (Task
-                        // #575): the screening step runs automatically
-                        // server-side. Other AI steps still expose a
-                        // per-item button so admins can trigger them
-                        // individually as before.
-                        const showActionButton =
-                          !!action && currentStep !== 'screening';
+                        const isAuto = isAutoStep(currentStep);
+                        const retryAction = isAuto
+                          ? stepRetryAction[currentStep as AutoStep]
+                          : null;
+                        // Retry surfaces when this item is still
+                        // sitting in the pre-step status after the
+                        // run-all loop has finished, OR when the AI
+                        // came back with a fallback reason for the
+                        // current step. Generalizes Task #575's
+                        // screening-only auto behaviour to all five
+                        // AI steps.
+                        const progress = isAuto
+                          ? readRunAllProgress(session, currentStep as AutoStep)
+                          : null;
+                        const stillEligible =
+                          isAuto &&
+                          item.status === STEP_PRE_STATUS[currentStep as AutoStep];
+                        const showRetry =
+                          !!retryAction &&
+                          ((!!decision?.fallbackReason) ||
+                            (stillEligible && !!progress?.finishedAt));
                         return (
                           <div
                             key={item.id}
@@ -1061,19 +1150,25 @@ export default function BulkDocumentImportPage() {
                                 isFr={isFr}
                               />
                               <ConfidenceBadge value={decision?.confidence} />
-                              {showActionButton && action && (
+                              {showRetry && retryAction && (
                                 <Button
                                   size="sm"
+                                  variant="outline"
                                   onClick={() =>
-                                    runStep.mutate({ itemId: item.id, action: action.action })
+                                    runStep.mutate({
+                                      itemId: item.id,
+                                      action: retryAction,
+                                    })
                                   }
                                   disabled={runStep.isPending}
-                                  data-testid={`button-${action.action}-${item.id}`}
+                                  data-testid={`button-retry-${currentStep}-${item.id}`}
                                 >
-                                  {runStep.isPending && (
+                                  {runStep.isPending ? (
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <RotateCw className="mr-2 h-4 w-4" />
                                   )}
-                                  {action.label}
+                                  {isFr ? 'Réessayer' : 'Retry'}
                                 </Button>
                               )}
                               {currentStep === 'linking' && item.status === 'linked' && (
