@@ -1,7 +1,11 @@
 /**
- * Task #327 — Frontend coverage for the manager-only filter checkbox
- * added in Task #322. The toggle is rendered only for manager-class
- * roles and, when flipped, must refetch with `?isManagerOnly=true`.
+ * Task #326 — Persist document filters in the URL.
+ *
+ * The wrapper renders the document filter controls (search box, category,
+ * year, month, manager-only toggle). On mount it must rehydrate state
+ * from the URL search params, and on every change it must push the
+ * active filters back into `window.location.search` (without a full
+ * navigation) so reloads and shared links land on the same view.
  */
 
 import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
@@ -59,17 +63,12 @@ jest.mock('@/components/document-management', () => ({
   DocumentCard: ({
     documentId,
     title,
-    isManagerOnly,
   }: {
     documentId: string;
     title: string;
-    isManagerOnly?: boolean;
   }) => (
     <div data-testid={`mock-document-card-${documentId}`}>
       <span data-testid={`doc-title-${documentId}`}>{title}</span>
-      <span data-testid={`doc-mgronly-${documentId}`}>
-        {isManagerOnly ? 'mgr-only' : 'normal'}
-      </span>
     </div>
   ),
   SharedUploader: () => null,
@@ -100,16 +99,34 @@ const ENTITY_ID = 'building-fixture-id';
 interface DocFixture {
   id: string;
   name: string;
+  category: string;
   isManagerOnly: boolean;
+  effectiveDate: string;
 }
 
 const ALL_DOCS: DocFixture[] = [
-  { id: 'doc-mgr-only-1', name: 'Manager-only Bylaw', isManagerOnly: true },
-  { id: 'doc-mgr-only-2', name: 'Confidential Audit', isManagerOnly: true },
-  { id: 'doc-normal-1', name: 'Public Notice', isManagerOnly: false },
+  {
+    id: 'doc-legal-2025',
+    name: 'Legal 2025',
+    category: 'legal',
+    isManagerOnly: true,
+    effectiveDate: '2025-03-12T00:00:00.000Z',
+  },
+  {
+    id: 'doc-legal-2024',
+    name: 'Legal 2024',
+    category: 'legal',
+    isManagerOnly: false,
+    effectiveDate: '2024-06-04T00:00:00.000Z',
+  },
+  {
+    id: 'doc-financial-2025',
+    name: 'Financial 2025',
+    category: 'financial',
+    isManagerOnly: false,
+    effectiveDate: '2025-08-21T00:00:00.000Z',
+  },
 ];
-
-let currentRole: string;
 
 function buildJsonResponse(body: unknown): Response {
   const headers = new Headers({ 'content-type': 'application/json' });
@@ -146,7 +163,7 @@ const fetchMock = jest.fn(
       return buildJsonResponse({
         id: 'user-fixture',
         email: 'fixture@example.com',
-        role: currentRole,
+        role: 'manager',
       });
     }
 
@@ -155,38 +172,22 @@ const fetchMock = jest.fn(
     }
 
     if (pathname === '/api/documents') {
-      // Mirror the production route's role gating so the test never
-      // accidentally certifies a UI bug by serving the wrong fixture.
       const wantsManagerOnly = params.get('isManagerOnly') === 'true';
-      const isPrivileged =
-        currentRole === 'admin' ||
-        currentRole === 'manager' ||
-        currentRole === 'demo_manager';
-
-      let filtered: DocFixture[];
-      if (!isPrivileged) {
-        filtered = ALL_DOCS.filter((d) => !d.isManagerOnly);
-        if (wantsManagerOnly) filtered = [];
-      } else if (wantsManagerOnly) {
-        filtered = ALL_DOCS.filter((d) => d.isManagerOnly);
-      } else {
-        filtered = [...ALL_DOCS];
-      }
-
+      const docs = wantsManagerOnly
+        ? ALL_DOCS.filter((d) => d.isManagerOnly)
+        : ALL_DOCS;
       return buildJsonResponse({
-        documents: filtered.map((d) => ({
+        documents: docs.map((d) => ({
           ...d,
-          documentType: 'legal',
-          category: 'legal',
-          uploadedAt: '2024-01-15T00:00:00.000Z',
-          createdAt: '2024-01-15T00:00:00.000Z',
-          effectiveDate: '2024-01-15T00:00:00.000Z',
+          documentType: d.category,
+          uploadedAt: d.effectiveDate,
+          createdAt: d.effectiveDate,
           isVisibleToTenants: !d.isManagerOnly,
           tags: [],
           links: null,
           hasLinks: false,
         })),
-        total: filtered.length,
+        total: docs.length,
       });
     }
 
@@ -216,31 +217,24 @@ function makeQueryClient(): QueryClient {
   });
 }
 
-function renderWrapper(role: string, type: 'building' | 'residence' = 'building') {
-  currentRole = role;
-  wouter.__setLocation('/');
+function renderWrapper() {
+  wouter.__setLocation('/manager/buildings/' + ENTITY_ID + '/documents');
   wouter.__setParams({ id: ENTITY_ID });
 
-  const userRole: 'manager' | 'resident' =
-    role === 'admin' || role === 'manager' || role === 'demo_manager'
-      ? 'manager'
-      : 'resident';
-
   const qc = makeQueryClient();
-  const utils = render(
+  return render(
     <QueryClientProvider client={qc}>
       <ModularDocumentPageWrapper
-        type={type}
-        userRole={userRole}
+        type="building"
+        userRole="manager"
         backPath="/back"
         entityIdParam="id"
       />
     </QueryClientProvider>,
   );
-  return { qc, ...utils };
 }
 
-describe('ModularDocumentPageWrapper — manager-only filter checkbox (Task #327)', () => {
+describe('ModularDocumentPageWrapper — URL filter persistence (Task #326)', () => {
   let originalFetch: typeof fetch | undefined;
 
   beforeEach(() => {
@@ -249,12 +243,7 @@ describe('ModularDocumentPageWrapper — manager-only filter checkbox (Task #327
     fetchMock.mockClear();
     mockToast.mockClear();
     wouter.__resetMocks();
-    // Task #326 — the wrapper now mirrors filters into the URL, so reset
-    // the shared jsdom location between tests to avoid leaking filter
-    // state from a previous case into the next render.
-    if (typeof window !== 'undefined') {
-      window.history.replaceState(null, '', '/');
-    }
+    window.history.replaceState(null, '', '/');
   });
 
   afterEach(() => {
@@ -262,124 +251,139 @@ describe('ModularDocumentPageWrapper — manager-only filter checkbox (Task #327
     if (originalFetch) {
       global.fetch = originalFetch;
     }
+    window.history.replaceState(null, '', '/');
   });
 
-  it.each([
-    ['admin', true],
-    ['manager', true],
-    ['demo_manager', true],
-    ['resident', false],
-    ['demo_resident', false],
-    ['tenant', false],
-    ['demo_tenant', false],
-  ])(
-    'role=%s → checkbox %s rendered',
-    async (role, shouldExist) => {
-      renderWrapper(role);
+  it('rehydrates filter state from URL search params on mount', async () => {
+    window.history.replaceState(
+      null,
+      '',
+      '/?search=Legal&category=legal&year=2025&month=3&isManagerOnly=true',
+    );
 
-      await waitFor(() => {
-        expect(
-          fetchMock.mock.calls.some(([url]) =>
-            String(url).startsWith('/api/documents?'),
-          ),
-        ).toBe(true);
-      });
-
-      await waitFor(
-        () => {
-          const checkbox = screen.queryByTestId('checkbox-filter-manager-only');
-          if (shouldExist) {
-            expect(checkbox).toBeInTheDocument();
-          } else {
-            expect(checkbox).not.toBeInTheDocument();
-          }
-        },
-        { timeout: 2000 },
-      );
-    },
-    10000,
-  );
-
-  it('manager: initial fetch omits isManagerOnly and shows every document', async () => {
-    renderWrapper('manager');
+    renderWrapper();
 
     await waitFor(() => {
-      expect(screen.getByTestId('doc-title-doc-mgr-only-1')).toBeInTheDocument();
-      expect(screen.getByTestId('doc-title-doc-mgr-only-2')).toBeInTheDocument();
-      expect(screen.getByTestId('doc-title-doc-normal-1')).toBeInTheDocument();
+      expect(screen.getByTestId('input-search-documents')).toHaveValue('Legal');
+      // The manager-only checkbox is gated on the user query resolving.
+      expect(
+        screen.getByTestId('checkbox-filter-manager-only'),
+      ).toBeInTheDocument();
     });
 
+    // Radix Checkbox renders a button with aria-checked / data-state.
+    expect(
+      screen.getByTestId('checkbox-filter-manager-only'),
+    ).toHaveAttribute('aria-checked', 'true');
+
+    // Only the matching document survives every active filter.
+    await waitFor(() => {
+      expect(screen.getByTestId('doc-title-doc-legal-2025')).toBeInTheDocument();
+      expect(
+        screen.queryByTestId('doc-title-doc-legal-2024'),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByTestId('doc-title-doc-financial-2025'),
+      ).not.toBeInTheDocument();
+    });
+
+    // Initial fetch must include the rehydrated `isManagerOnly=true`.
     const docCalls = fetchMock.mock.calls
       .map(([url]) => String(url))
       .filter((u) => u.startsWith('/api/documents?'));
     expect(docCalls.length).toBeGreaterThan(0);
-    expect(docCalls.every((u) => !u.includes('isManagerOnly=true'))).toBe(true);
+    expect(docCalls.some((u) => u.includes('isManagerOnly=true'))).toBe(true);
   }, 10000);
 
-  it('manager: toggling the checkbox refetches with isManagerOnly=true and hides normal docs', async () => {
-    renderWrapper('manager');
+  it('writes filter changes back into the URL with replaceState', async () => {
+    renderWrapper();
 
     await waitFor(() => {
-      expect(screen.getByTestId('checkbox-filter-manager-only')).toBeInTheDocument();
-      expect(screen.getByTestId('doc-title-doc-normal-1')).toBeInTheDocument();
+      expect(screen.getByTestId('input-search-documents')).toBeInTheDocument();
     });
 
-    fetchMock.mockClear();
+    // Type into the search box.
+    fireEvent.change(screen.getByTestId('input-search-documents'), {
+      target: { value: 'Legal' },
+    });
 
+    await waitFor(() => {
+      const sp = new URLSearchParams(window.location.search);
+      expect(sp.get('search')).toBe('Legal');
+    });
+
+    // Toggle the manager-only checkbox.
     fireEvent.click(screen.getByTestId('checkbox-filter-manager-only'));
 
     await waitFor(() => {
-      const filteredCalls = fetchMock.mock.calls
-        .map(([url]) => String(url))
-        .filter((u) => u.startsWith('/api/documents?'));
-      expect(filteredCalls.length).toBeGreaterThan(0);
-      expect(
-        filteredCalls.some((u) => u.includes('isManagerOnly=true')),
-      ).toBe(true);
-      expect(filteredCalls.every((u) => u.includes(`buildingId=${ENTITY_ID}`))).toBe(
-        true,
-      );
-    });
-
-    await waitFor(() => {
-      expect(screen.getByTestId('doc-title-doc-mgr-only-1')).toBeInTheDocument();
-      expect(screen.getByTestId('doc-title-doc-mgr-only-2')).toBeInTheDocument();
-      expect(
-        screen.queryByTestId('doc-title-doc-normal-1'),
-      ).not.toBeInTheDocument();
+      const sp = new URLSearchParams(window.location.search);
+      expect(sp.get('isManagerOnly')).toBe('true');
+      expect(sp.get('search')).toBe('Legal');
     });
   }, 10000);
 
-  it('manager: untoggling the checkbox refetches without the filter and restores all docs', async () => {
-    renderWrapper('manager');
+  it('clears URL params when filters return to their defaults', async () => {
+    window.history.replaceState(null, '', '/?search=Legal&isManagerOnly=true');
+    renderWrapper();
 
     await waitFor(() => {
-      expect(screen.getByTestId('checkbox-filter-manager-only')).toBeInTheDocument();
+      expect(screen.getByTestId('input-search-documents')).toHaveValue('Legal');
     });
 
-    const checkbox = screen.getByTestId('checkbox-filter-manager-only');
-    fireEvent.click(checkbox);
-    await waitFor(() => {
-      expect(
-        screen.queryByTestId('doc-title-doc-normal-1'),
-      ).not.toBeInTheDocument();
-    });
-
-    fetchMock.mockClear();
-
-    fireEvent.click(checkbox);
+    fireEvent.click(screen.getByTestId('button-clear-filters'));
 
     await waitFor(() => {
-      const calls = fetchMock.mock.calls
-        .map(([url]) => String(url))
-        .filter((u) => u.startsWith('/api/documents?'));
-      expect(calls.length).toBeGreaterThan(0);
-      expect(calls.every((u) => !u.includes('isManagerOnly=true'))).toBe(true);
+      const sp = new URLSearchParams(window.location.search);
+      expect(sp.get('search')).toBeNull();
+      expect(sp.get('category')).toBeNull();
+      expect(sp.get('year')).toBeNull();
+      expect(sp.get('month')).toBeNull();
+      expect(sp.get('isManagerOnly')).toBeNull();
+    });
+  }, 10000);
+
+  it('preserves unrelated query params (such as the entity id) when syncing', async () => {
+    window.history.replaceState(null, '', `/?buildingId=${ENTITY_ID}`);
+    renderWrapper();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('input-search-documents')).toBeInTheDocument();
+    });
+
+    fireEvent.change(screen.getByTestId('input-search-documents'), {
+      target: { value: 'invoices' },
     });
 
     await waitFor(() => {
-      expect(screen.getByTestId('doc-title-doc-normal-1')).toBeInTheDocument();
-      expect(screen.getByTestId('doc-title-doc-mgr-only-1')).toBeInTheDocument();
+      const sp = new URLSearchParams(window.location.search);
+      expect(sp.get('search')).toBe('invoices');
+      expect(sp.get('buildingId')).toBe(ENTITY_ID);
     });
+  }, 10000);
+
+  it('does not push browser history entries while filters change', async () => {
+    renderWrapper();
+
+    await waitFor(() => {
+      expect(screen.getByTestId('input-search-documents')).toBeInTheDocument();
+    });
+
+    const startLength = window.history.length;
+
+    fireEvent.change(screen.getByTestId('input-search-documents'), {
+      target: { value: 'a' },
+    });
+    fireEvent.change(screen.getByTestId('input-search-documents'), {
+      target: { value: 'ab' },
+    });
+    fireEvent.change(screen.getByTestId('input-search-documents'), {
+      target: { value: 'abc' },
+    });
+
+    await waitFor(() => {
+      expect(new URLSearchParams(window.location.search).get('search')).toBe('abc');
+    });
+
+    expect(window.history.length).toBe(startLength);
   }, 10000);
 });

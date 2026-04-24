@@ -394,15 +394,75 @@ export default function ModularDocumentPageWrapper({
 
   // State for document interactions
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  
+
+  // Read initial filter values from the URL so reloads and shared links
+  // restore the same filtered view the user (or sender) was looking at.
+  const initialFilters = (() => {
+    if (typeof window === 'undefined') {
+      return {
+        searchTerm: '',
+        selectedCategory: 'all',
+        selectedYear: 'all',
+        selectedMonth: 'all',
+        showOnlyManagerOnly: false,
+      };
+    }
+    const sp = new URLSearchParams(window.location.search);
+    return {
+      searchTerm: sp.get('search') ?? '',
+      selectedCategory: sp.get('category') ?? 'all',
+      selectedYear: sp.get('year') ?? 'all',
+      selectedMonth: sp.get('month') ?? 'all',
+      showOnlyManagerOnly: sp.get('isManagerOnly') === 'true',
+    };
+  })();
+
   // State for filtering and search
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedYear, setSelectedYear] = useState('all');
-  const [selectedMonth, setSelectedMonth] = useState('all');
-  const [showOnlyManagerOnly, setShowOnlyManagerOnly] = useState(false);
+  const [searchTerm, setSearchTerm] = useState(initialFilters.searchTerm);
+  const [selectedCategory, setSelectedCategory] = useState(initialFilters.selectedCategory);
+  const [selectedYear, setSelectedYear] = useState(initialFilters.selectedYear);
+  const [selectedMonth, setSelectedMonth] = useState(initialFilters.selectedMonth);
+  const [showOnlyManagerOnly, setShowOnlyManagerOnly] = useState(
+    initialFilters.showOnlyManagerOnly,
+  );
   const [showOnlyLinked, setShowOnlyLinked] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+
+  // Mirror the active filter state into the URL search params so reloads
+  // and shared links keep the same filtered view. We use replaceState to
+  // avoid polluting browser history while typing in the search box and to
+  // avoid triggering a full wouter navigation.
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const sp = new URLSearchParams(window.location.search);
+
+    const sync = (key: string, value: string | null) => {
+      if (value === null || value === '') {
+        sp.delete(key);
+      } else {
+        sp.set(key, value);
+      }
+    };
+
+    sync('search', searchTerm || null);
+    sync('category', selectedCategory !== 'all' ? selectedCategory : null);
+    sync('year', selectedYear !== 'all' ? selectedYear : null);
+    sync('month', selectedMonth !== 'all' ? selectedMonth : null);
+    sync('isManagerOnly', showOnlyManagerOnly ? 'true' : null);
+
+    const queryString = sp.toString();
+    const newUrl = `${window.location.pathname}${queryString ? `?${queryString}` : ''}${window.location.hash}`;
+    const currentUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+    if (newUrl !== currentUrl) {
+      window.history.replaceState(window.history.state, '', newUrl);
+    }
+  }, [
+    searchTerm,
+    selectedCategory,
+    selectedYear,
+    selectedMonth,
+    showOnlyManagerOnly,
+  ]);
   
   // State for bulk delete functionality
   const [selectionMode, setSelectionMode] = useState(false);
