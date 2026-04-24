@@ -149,7 +149,7 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
       { nameKey: 'navQualityAssurance', href: '/admin/quality', icon: CheckCircle },
       { nameKey: 'navLaw25Compliance', href: '/admin/compliance', icon: Shield },
       { nameKey: 'rbacPermissions', href: '/admin/permissions', icon: ShieldCheck },
-      { nameKey: 'bulkDocumentImport', href: '/admin/bulk-document-import', icon: Folder },
+      { nameKey: 'navBulkDocumentImport', href: '/admin/bulk-document-import', icon: Folder },
     ],
   },
   {

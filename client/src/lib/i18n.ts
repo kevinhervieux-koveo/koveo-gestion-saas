@@ -1297,6 +1297,7 @@ export interface Translations {
   roadmap: string;
   navQualityAssurance: string;
   navLaw25Compliance: string;
+  navBulkDocumentImport: string;
   rbacPermissions: string;
   modernPropertyManagement: string;
   comprehensivePropertyManagement: string;
@@ -3610,6 +3611,7 @@ export const translations: Record<Language, Translations> = {
     roadmap: 'Roadmap',
     navQualityAssurance: 'Quality Assurance',
     navLaw25Compliance: 'Law 25 Compliance',
+    navBulkDocumentImport: 'Bulk Document Import',
     rbacPermissions: 'RBAC Permissions',
     modernPropertyManagement: 'Modern Property Management',
     comprehensivePropertyManagement: 'Comprehensive property management solution designed specifically for Quebec residential communities',
@@ -5731,6 +5733,7 @@ export const translations: Record<Language, Translations> = {
     roadmap: 'Feuille de route',
     navQualityAssurance: 'Assurance qualité',
     navLaw25Compliance: 'Conformité Loi 25',
+    navBulkDocumentImport: 'Importation de documents en masse',
     rbacPermissions: 'Permissions RBAC',
     modernPropertyManagement: 'Gestion immobilière moderne',
     forQuebec: 'pour le Québec',

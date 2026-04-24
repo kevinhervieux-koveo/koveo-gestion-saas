@@ -341,7 +341,7 @@ function Router() {
 
       {/* Mobile sidebar overlay - only visible when mobile menu is open */}
       <div className='md:hidden'>
-        <Sidebar />
+        <Sidebar forceExpanded />
       </div>
 
       {/* Main content area */}
