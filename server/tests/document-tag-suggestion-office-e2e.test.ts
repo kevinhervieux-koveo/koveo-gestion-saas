@@ -5,11 +5,11 @@
  * real Office documents.
  *
  * Unlike `suggest-document-tags-office.test.ts` (which mocks mammoth and
- * xlsx) and `ai-document-tag-suggestion.test.ts` (which mocks the entire
+ * exceljs) and `ai-document-tag-suggestion.test.ts` (which mocks the entire
  * `aiService`), this test exercises the full pipeline:
  *   - The actual `/api/ai/suggest-document-tags` route handler
  *   - The real `ConsolidatedAIService.suggestDocumentTags` implementation
- *   - The real mammoth and xlsx libraries against genuine fixture files
+ *   - The real mammoth and exceljs libraries against genuine fixture files
  *
  * Only the Gemini SDK (`@google/genai`) is stubbed at the network layer so
  * we don't actually contact Google's API. This is the layer most likely to
@@ -159,7 +159,7 @@ describe('POST /api/ai/suggest-document-tags - real DOCX/XLSX end-to-end', () =>
     expect(joined).toContain(DOCX_MIME);
   });
 
-  it('extracts CSV text from a real .xlsx via xlsx and forwards it to Gemini', async () => {
+  it('extracts CSV text from a real .xlsx via exceljs and forwards it to Gemini', async () => {
     generateContentMock.mockResolvedValue(
       makeGeminiResponse(['tag-budget', 'tag-insurance'])
     );
@@ -193,8 +193,7 @@ describe('POST /api/ai/suggest-document-tags - real DOCX/XLSX end-to-end', () =>
       .map((p) => p.text)
       .join('\n');
 
-    // Real xlsx parsing must surface the sheet name header and row data
-    // produced by sheet_to_csv.
+    // Real exceljs parsing must surface the sheet name header and row data.
     expect(joined).toContain('# Budget');
     expect(joined).toContain('Elevator Maintenance,1500');
     expect(joined).toContain('Annual Insurance Premium,4800');

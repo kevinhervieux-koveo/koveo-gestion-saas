@@ -304,14 +304,26 @@ async function loadFileForClaude(
   }
   if (XLSX_MIMES.has(mimeType)) {
     try {
-      const xlsx = await import('xlsx');
-      const wb = xlsx.read(buffer, { type: 'buffer' });
+      const ExcelJS = await import('exceljs');
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.load(buffer);
       const lines: string[] = [];
-      for (const sheetName of wb.SheetNames) {
-        const sheet = wb.Sheets[sheetName];
-        if (!sheet) continue;
-        const csv = xlsx.utils.sheet_to_csv(sheet);
-        if (csv.trim()) lines.push(`# ${sheetName}\n${csv}`);
+      for (const worksheet of workbook.worksheets) {
+        const rows: string[] = [];
+        worksheet.eachRow((row) => {
+          const cells: string[] = [];
+          row.eachCell({ includeEmpty: true }, (cell) => {
+            const value = cell.text ?? '';
+            if (value.includes(',') || value.includes('"') || value.includes('\n')) {
+              cells.push(`"${value.replace(/"/g, '""')}"`);
+            } else {
+              cells.push(value);
+            }
+          });
+          rows.push(cells.join(','));
+        });
+        const csv = rows.join('\n');
+        if (csv.trim()) lines.push(`# ${worksheet.name}\n${csv}`);
         if (lines.join('\n').length > MAX_EXTRACTED_TEXT) break;
       }
       const text = lines.join('\n').slice(0, MAX_EXTRACTED_TEXT);
