@@ -812,6 +812,152 @@ describeIfDb('manager-only document visibility — Task #321', () => {
     }, 30000);
   });
 
+  // Task #327 — GET /api/documents?isManagerOnly=true: managers see
+  // only flagged docs in scope; residents/tenants cannot leverage the
+  // filter to surface restricted docs.
+
+  describe('GET /api/documents?isManagerOnly=true — Task #327 filter', () => {
+    interface DocRow {
+      id?: string;
+      isManagerOnly?: boolean;
+    }
+    const docsFromBody = (body: unknown): DocRow[] => {
+      if (Array.isArray(body)) return body as DocRow[];
+      const wrapped = (body as { documents?: unknown } | null)?.documents;
+      return Array.isArray(wrapped) ? (wrapped as DocRow[]) : [];
+    };
+
+    it('admin (residence scope): returns ONLY manager-only documents', async () => {
+      const agent = await loginAs(emails.admin);
+      const res = await agent
+        .get('/api/documents')
+        .query({ residenceId: ids.residence, isManagerOnly: 'true' });
+      expect(res.status).toBe(200);
+      const idsReturned = listIds(res.body);
+      expect(idsReturned).toEqual(
+        expect.arrayContaining([
+          ids.docMgrOnlyResidence,
+          ids.docUnicodeResidence,
+        ])
+      );
+      expect(idsReturned).not.toContain(ids.docNormalResidence);
+      expect(idsReturned).not.toContain(ids.docMissingAclResidence);
+      expect(idsReturned).not.toContain(ids.docMissingFileResidence);
+      for (const d of docsFromBody(res.body)) {
+        expect(d.isManagerOnly).toBe(true);
+      }
+    }, 30000);
+
+    it('admin (building scope): returns ONLY manager-only documents', async () => {
+      const agent = await loginAs(emails.admin);
+      const res = await agent
+        .get('/api/documents')
+        .query({ buildingId: ids.building, isManagerOnly: 'true' });
+      expect(res.status).toBe(200);
+      const idsReturned = listIds(res.body);
+      expect(idsReturned).toEqual(
+        expect.arrayContaining([ids.docMgrOnlyBuilding])
+      );
+      for (const d of docsFromBody(res.body)) {
+        expect(d.isManagerOnly).toBe(true);
+      }
+    }, 30000);
+
+    it('manager (residence scope): returns ONLY manager-only documents', async () => {
+      const agent = await loginAs(emails.manager);
+      const res = await agent
+        .get('/api/documents')
+        .query({ residenceId: ids.residence, isManagerOnly: 'true' });
+      expect(res.status).toBe(200);
+      const idsReturned = listIds(res.body);
+      expect(idsReturned).toEqual(
+        expect.arrayContaining([
+          ids.docMgrOnlyResidence,
+          ids.docUnicodeResidence,
+        ])
+      );
+      expect(idsReturned).not.toContain(ids.docNormalResidence);
+      for (const d of docsFromBody(res.body)) {
+        expect(d.isManagerOnly).toBe(true);
+      }
+    }, 30000);
+
+    it('manager (building scope): returns ONLY manager-only documents', async () => {
+      const agent = await loginAs(emails.manager);
+      const res = await agent
+        .get('/api/documents')
+        .query({ buildingId: ids.building, isManagerOnly: 'true' });
+      expect(res.status).toBe(200);
+      const idsReturned = listIds(res.body);
+      expect(idsReturned).toEqual(
+        expect.arrayContaining([ids.docMgrOnlyBuilding])
+      );
+      for (const d of docsFromBody(res.body)) {
+        expect(d.isManagerOnly).toBe(true);
+      }
+    }, 30000);
+
+    it('resident: passing isManagerOnly=true cannot expose restricted docs', async () => {
+      const agent = await loginAs(emails.resident);
+
+      const residenceRes = await agent
+        .get('/api/documents')
+        .query({ residenceId: ids.residence, isManagerOnly: 'true' });
+      expect(residenceRes.status).toBe(200);
+      const residenceIdsReturned = listIds(residenceRes.body);
+      expect(residenceIdsReturned).not.toContain(ids.docMgrOnlyResidence);
+      expect(residenceIdsReturned).not.toContain(ids.docUnicodeResidence);
+      // Non-restricted control must also be excluded by the server-side
+      // filter — the toggle gives a non-manager nothing extra.
+      expect(residenceIdsReturned).not.toContain(ids.docNormalResidence);
+
+      const buildingRes = await agent
+        .get('/api/documents')
+        .query({ buildingId: ids.building, isManagerOnly: 'true' });
+      expect(buildingRes.status).toBe(200);
+      expect(listIds(buildingRes.body)).not.toContain(ids.docMgrOnlyBuilding);
+    }, 30000);
+
+    it('tenant: passing isManagerOnly=true cannot expose restricted docs', async () => {
+      const agent = await loginAs(emails.tenant);
+
+      const residenceRes = await agent
+        .get('/api/documents')
+        .query({ residenceId: ids.residence, isManagerOnly: 'true' });
+      expect(residenceRes.status).toBe(200);
+      const residenceIdsReturned = listIds(residenceRes.body);
+      expect(residenceIdsReturned).not.toContain(ids.docMgrOnlyResidence);
+      expect(residenceIdsReturned).not.toContain(ids.docUnicodeResidence);
+      expect(residenceIdsReturned).not.toContain(ids.docNormalResidence);
+
+      const buildingRes = await agent
+        .get('/api/documents')
+        .query({ buildingId: ids.building, isManagerOnly: 'true' });
+      expect(buildingRes.status).toBe(200);
+      expect(listIds(buildingRes.body)).not.toContain(ids.docMgrOnlyBuilding);
+    }, 30000);
+
+    it('admin (organization scope, no narrow filter): returns ONLY manager-only docs', async () => {
+      const agent = await loginAs(emails.admin);
+      const res = await agent
+        .get('/api/documents')
+        .query({ isManagerOnly: 'true' });
+      expect(res.status).toBe(200);
+      const idsReturned = listIds(res.body);
+      expect(idsReturned).toEqual(
+        expect.arrayContaining([
+          ids.docMgrOnlyResidence,
+          ids.docMgrOnlyBuilding,
+          ids.docUnicodeResidence,
+        ])
+      );
+      expect(idsReturned).not.toContain(ids.docNormalResidence);
+      for (const d of docsFromBody(res.body)) {
+        expect(d.isManagerOnly).toBe(true);
+      }
+    }, 30000);
+  });
+
   // ----------------------------------------------------------------
   // GET /api/documents/:id (single fetch)
   // ----------------------------------------------------------------
