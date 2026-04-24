@@ -968,6 +968,13 @@ describeIfDb('MCP delete_building cascade — real Postgres (Task #273)', () => 
     expect(dualPendingAfter[0].residenceId).toBeNull();
     expect(dualPendingAfter[0].buildingId).toBeNull();
 
+    // Status stays 'accepted' (the MCP cascade only flips PENDING rows
+    // to 'cancelled'), but buildingId is now NULL because of the FK
+    // ON DELETE SET NULL added in task #391 / migration 0009 — the
+    // database nulls the dangling pointer when its parent building row
+    // is hard-deleted, regardless of the invitation's status. Before
+    // task #391 this column would still hold the (now-orphaned)
+    // buildingId.
     const bldgAcceptedAfter = await db
       .select({
         id: schema.invitations.id,
@@ -978,8 +985,11 @@ describeIfDb('MCP delete_building cascade — real Postgres (Task #273)', () => 
       .where(eq(schema.invitations.id, invBldgAcceptedId));
     expect(bldgAcceptedAfter).toHaveLength(1);
     expect(bldgAcceptedAfter[0].status).toBe('accepted');
-    expect(bldgAcceptedAfter[0].buildingId).toBe(targetBuildingId);
+    expect(bldgAcceptedAfter[0].buildingId).toBeNull();
 
+    // Same story for the previously-cancelled residence-scoped
+    // invitation: status is preserved, but the orphan-prone residenceId
+    // is now NULL thanks to the new FK SET NULL.
     const resCancelledAfter = await db
       .select({
         id: schema.invitations.id,
@@ -990,7 +1000,7 @@ describeIfDb('MCP delete_building cascade — real Postgres (Task #273)', () => 
       .where(eq(schema.invitations.id, invResCancelledId));
     expect(resCancelledAfter).toHaveLength(1);
     expect(resCancelledAfter[0].status).toBe('cancelled');
-    expect(resCancelledAfter[0].residenceId).toBe(residenceId);
+    expect(resCancelledAfter[0].residenceId).toBeNull();
 
     const siblingPendingAfter = await db
       .select({

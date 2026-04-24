@@ -536,8 +536,15 @@ describeIfDb('MCP delete_residence cascade — real Postgres (Task #266)', () =>
       .from(schema.invitations)
       .where(eq(schema.invitations.id, acceptedInvitationId));
     expect(acceptedAfter).toHaveLength(1);
+    // Status stays 'accepted' (the MCP cascade only flips PENDING rows
+    // to 'cancelled'). residenceId is now NULL because of the FK
+    // ON DELETE SET NULL added in task #391 / migration 0009 — the
+    // database itself nulls the dangling pointer when its parent
+    // residence row is hard-deleted, regardless of the invitation's
+    // status. Before task #391 this column would still hold the
+    // (now-orphaned) residenceId.
     expect(acceptedAfter[0].status).toBe('accepted');
-    expect(acceptedAfter[0].residenceId).toBe(residenceId);
+    expect(acceptedAfter[0].residenceId).toBeNull();
 
     const siblingInvAfter = await db
       .select({
