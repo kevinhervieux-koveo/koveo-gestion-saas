@@ -7,10 +7,6 @@
  * - Invoice data extraction
  * - Document understanding and structured data extraction
  * 
- * Replaces:
- * - gemini-analysis.ts
- * - gemini-bill-analyzer.ts
- * - geminiService.ts
  */
 
 import { GoogleGenAI } from '@google/genai';
@@ -1497,4 +1493,3 @@ export const aiService = new ConsolidatedAIService();
 // Export backward compatibility aliases
 export const geminiAnalysisService = aiService;
 export const geminiBillAnalyzer = aiService;
-export const geminiService = aiService;
