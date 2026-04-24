@@ -4564,7 +4564,7 @@ export function registerDocumentRoutes(app: import('../utils/lazy-mount').RouteR
         !ConsolidatedAIService.TAG_SUGGESTION_SUPPORTED_MIME_TYPES.includes(mimeType)
       ) {
         return res.json({
-          success: true,
+          success: false,
           tagIds: [],
           source: 'unsupported_mime',
           mimeType: mimeType ?? null,
@@ -4572,7 +4572,7 @@ export function registerDocumentRoutes(app: import('../utils/lazy-mount').RouteR
       }
       if (!filePath) {
         return res.json({
-          success: true,
+          success: false,
           tagIds: [],
           source: 'no_file',
           mimeType,
