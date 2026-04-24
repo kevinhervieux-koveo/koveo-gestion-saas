@@ -340,6 +340,70 @@ describe('GeminiBillExtractor → ModularBillForm AI extraction edge cases', () 
     expect(payload.startDate).toBe('2026-03-01');
   });
 
+  it('upfront deposit + equal recurring payments: form prefills both amounts and save expands them into a 12-payment costs array with deposit at index 0', async () => {
+    // Mirrors the convertBillResponseToFormData unit test that covers
+    // `hasInitialPayment: true` + `initialPaymentAmount` + `recurringPaymentAmount`,
+    // but exercises the full extractor → ModularBillForm prefill → save path.
+    // The saver should expand the two scalar amounts into a 12-entry costs
+    // array whose first entry is the upfront deposit and remaining 11 entries
+    // are the recurring payment amount.
+    nextAiResponse = {
+      vendorName: 'Lease Co',
+      totalAmount: '1600.00', // 500 deposit + 11 * 100 recurring
+      paymentType: 'recurring installment',
+      frequency: 'monthly',
+      hasInitialPayment: true,
+      initialPaymentAmount: '500.00',
+      recurringPaymentAmount: '100.00',
+      recurringPaymentsEqual: true,
+      dueDate: '2026-03-01',
+      category: 'professional_services',
+    };
+
+    renderForm();
+    await triggerFakeUpload();
+
+    // The deposit input only renders when hasInitialPayment is true on the
+    // form, so finding '500.00' as a display value also asserts that the
+    // hasInitialPayment toggle was flipped on by the prefill.
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('500.00')).toBeInTheDocument();
+    });
+    expect(screen.getByDisplayValue('100.00')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('Lease Co')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('2026-03-01')).toBeInTheDocument();
+
+    const recurrentRadio = screen.getByTestId('radio-bill-type-recurrent');
+    const installmentRadio = screen.getByTestId('radio-payment-structure-installment');
+    await waitFor(() => {
+      expect(recurrentRadio.getAttribute('aria-checked')).toBe('true');
+    });
+    expect(installmentRadio.getAttribute('aria-checked')).toBe('true');
+
+    const payload = await clickSaveAndGetPutPayload();
+    expect(payload.billType).toBe('recurrent');
+    expect(payload.paymentStructure).toBe('installment');
+    expect(payload.paymentType).toBe('recurrent');
+    expect(payload.paymentCount).toBe('multiple');
+    expect(payload.recurrence).toBe(true);
+    // Equal recurring plan keeps the AI-detected schedule (monthly) instead
+    // of collapsing to "custom".
+    expect(payload.schedulePayment).toBe('monthly');
+    expect(payload.recurringPaymentsEqual).toBe(true);
+    expect(payload.hasInitialPayment).toBe(true);
+    expect(payload.initialPaymentAmount).toBe('500.00');
+    expect(payload.recurringPaymentAmount).toBe('100.00');
+    // Deposit + 11 equal recurring payments = 12 cost entries total.
+    expect(payload.costs).toHaveLength(12);
+    expect(payload.costs[0]).toBe('500.00');
+    expect(payload.costs.slice(1).every((c: string) => c === '100.00')).toBe(true);
+    // No per-payment custom dates for an equal recurring plan.
+    expect(payload.scheduleCustom).toEqual([]);
+    expect(payload.vendor).toBe('Lease Co');
+    expect(payload.startDate).toBe('2026-03-01');
+    expect(payload.totalAmount).toBe('1600.00');
+  });
+
   it('one-time single-payment bill maps to unique + single and saves the singlePaymentAmount', async () => {
     nextAiResponse = {
       vendorName: 'Hydro Quebec',

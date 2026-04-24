@@ -549,12 +549,21 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
       } else {
         // Installment: support unequal recurring (initial + recurring) or per-payment custom amounts
         if (formData.hasInitialPayment) {
-          setIfEmpty('hasInitialPayment', true);
+          // hasInitialPayment is a structure-determining toggle (controls
+          // whether the deposit input renders). Its default is `false`, which
+          // setIfEmpty treats as non-empty, so use setIfNotTouched so the AI
+          // can flip it true without clobbering an explicit user choice.
+          setIfNotTouched('hasInitialPayment', true);
           setIfEmpty('initialPaymentAmount', formData.initialPaymentAmount);
         }
         setIfEmpty('recurringPaymentAmount', formData.recurringPaymentAmount);
-        if (typeof formData.recurringPaymentsEqual === 'boolean') {
-          setIfEmpty('recurringPaymentsEqual', formData.recurringPaymentsEqual);
+        if (!hasCustomPayments && typeof formData.recurringPaymentsEqual === 'boolean') {
+          // recurringPaymentsEqual also drives which inputs render, so it
+          // needs the same setIfNotTouched treatment as the other structure
+          // toggles in STEP 1. STEP 1c already pinned this to `false` when
+          // there are custom per-payment dates, so only touch it here for
+          // non-custom installment plans.
+          setIfNotTouched('recurringPaymentsEqual', formData.recurringPaymentsEqual);
         }
       }
       setIfEmpty('totalAmount', formData.totalAmount);
