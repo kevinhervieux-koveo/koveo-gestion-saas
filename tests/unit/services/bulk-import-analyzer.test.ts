@@ -347,6 +347,151 @@ describe('bulkImportAnalyzer per-step cache (Task #462)', () => {
   });
 });
 
+describe('bulkImportAnalyzer fallbackReason propagation (Task #493)', () => {
+  // Regression coverage: every analyzer entry point must surface the
+  // fallbackReason emitted by callClaudeJson so the UI badge can explain
+  // *why* a result fell back to a filename-only prompt instead of
+  // sending the real bytes. Without these assertions a future refactor
+  // could silently drop the field again.
+  let tmpDir: string;
+
+  beforeAll(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'bulk-import-fallback-test-'));
+  });
+  afterAll(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+    bulkImportAnalyzer.__setClientForTests(null);
+  });
+  beforeEach(() => {
+    cacheMockStore.clear();
+    getCachedMock.mockClear();
+    setCachedMock.mockClear();
+  });
+
+  function makeFakeClient(jsonPayload: object) {
+    const create = jest.fn().mockResolvedValue({
+      content: [{ type: 'text', text: JSON.stringify(jsonPayload) }],
+    });
+    const fakeClient = {
+      messages: { create },
+    } as unknown as Parameters<typeof bulkImportAnalyzer.__setClientForTests>[0];
+    bulkImportAnalyzer.__setClientForTests(fakeClient);
+    return create;
+  }
+
+  const screenPayload = {
+    isComplete: true,
+    isMultiDocument: false,
+    pageOrderHint: null,
+    rotationDegrees: 0,
+    suggestedFilename: 'doc.pdf',
+    description: 'desc',
+    confidence: 0.7,
+  };
+  const identifyPayload = {
+    name: 'Doc',
+    description: 'desc',
+    tags: [],
+    metadata: {},
+    confidence: 0.7,
+  };
+
+  // 25MB cap inside the analyzer; one byte over forces the oversize branch.
+  const OVERSIZE_BYTES = 25 * 1024 * 1024 + 1;
+
+  describe('screen()', () => {
+    it("emits fallbackReason 'oversize' for a >25MB buffer", async () => {
+      makeFakeClient(screenPayload);
+      const r = await bulkImportAnalyzer.screen({
+        originalName: 'huge.pdf',
+        mimeType: 'application/pdf',
+        buffer: Buffer.alloc(OVERSIZE_BYTES, 0),
+      });
+      expect(r.fallbackReason).toBe('oversize');
+    });
+
+    it("emits fallbackReason 'unsupported_mime' for application/zip", async () => {
+      makeFakeClient(screenPayload);
+      const zipPath = path.join(tmpDir, 'screen.zip');
+      fs.writeFileSync(zipPath, Buffer.from('PK\u0003\u0004 fake'));
+      const r = await bulkImportAnalyzer.screen({
+        originalName: 'archive.zip',
+        mimeType: 'application/zip',
+        stagedPath: zipPath,
+      });
+      expect(r.fallbackReason).toBe('unsupported_mime');
+    });
+
+    it("emits fallbackReason 'missing_file' for a non-existent staged path", async () => {
+      makeFakeClient(screenPayload);
+      const r = await bulkImportAnalyzer.screen({
+        originalName: 'gone.pdf',
+        mimeType: 'application/pdf',
+        stagedPath: path.join(tmpDir, 'does-not-exist-screen.pdf'),
+      });
+      expect(r.fallbackReason).toBe('missing_file');
+    });
+
+    it('emits fallbackReason null for a normal PDF', async () => {
+      makeFakeClient(screenPayload);
+      const pdfPath = path.join(tmpDir, 'ok-screen.pdf');
+      fs.writeFileSync(pdfPath, Buffer.from('%PDF-1.4 normal pdf body'));
+      const r = await bulkImportAnalyzer.screen({
+        originalName: 'ok.pdf',
+        mimeType: 'application/pdf',
+        stagedPath: pdfPath,
+      });
+      expect(r.fallbackReason).toBeNull();
+    });
+  });
+
+  describe('identify()', () => {
+    it("emits fallbackReason 'oversize' for a >25MB buffer", async () => {
+      makeFakeClient(identifyPayload);
+      const r = await bulkImportAnalyzer.identify({
+        originalName: 'huge.pdf',
+        mimeType: 'application/pdf',
+        buffer: Buffer.alloc(OVERSIZE_BYTES, 0),
+      });
+      expect(r.fallbackReason).toBe('oversize');
+    });
+
+    it("emits fallbackReason 'unsupported_mime' for application/zip", async () => {
+      makeFakeClient(identifyPayload);
+      const zipPath = path.join(tmpDir, 'identify.zip');
+      fs.writeFileSync(zipPath, Buffer.from('PK\u0003\u0004 fake'));
+      const r = await bulkImportAnalyzer.identify({
+        originalName: 'archive.zip',
+        mimeType: 'application/zip',
+        stagedPath: zipPath,
+      });
+      expect(r.fallbackReason).toBe('unsupported_mime');
+    });
+
+    it("emits fallbackReason 'missing_file' for a non-existent staged path", async () => {
+      makeFakeClient(identifyPayload);
+      const r = await bulkImportAnalyzer.identify({
+        originalName: 'gone.pdf',
+        mimeType: 'application/pdf',
+        stagedPath: path.join(tmpDir, 'does-not-exist-identify.pdf'),
+      });
+      expect(r.fallbackReason).toBe('missing_file');
+    });
+
+    it('emits fallbackReason null for a normal PDF', async () => {
+      makeFakeClient(identifyPayload);
+      const pdfPath = path.join(tmpDir, 'ok-identify.pdf');
+      fs.writeFileSync(pdfPath, Buffer.from('%PDF-1.4 normal pdf body'));
+      const r = await bulkImportAnalyzer.identify({
+        originalName: 'ok.pdf',
+        mimeType: 'application/pdf',
+        stagedPath: pdfPath,
+      });
+      expect(r.fallbackReason).toBeNull();
+    });
+  });
+});
+
 describe('bandForConfidence helper', () => {
   it('maps numeric confidence into low/medium/high bands', () => {
     expect(bandForConfidence(0.95)).toBe('high');
