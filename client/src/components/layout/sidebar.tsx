@@ -6,7 +6,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import koveoLogo from '@/assets/koveo-logo.jpg';
+import koveoLogoK from '@assets/koveo_logo_k_1776982179758.jpg';
 import koveoLogoWide from '@assets/koveo_logo_small_1777056266792.jpg';
 import {
   getFilteredNavigation,
@@ -16,8 +16,7 @@ import {
 
 import { useMobileMenu } from '@/hooks/use-mobile-menu';
 import { useCommonSpacesAccess } from '@/hooks/use-common-spaces-access';
-
-const SIDEBAR_COLLAPSED_KEY = 'sidebar-collapsed';
+import { useSidebarState } from '@/hooks/use-sidebar-state';
 
 interface SidebarProps {
   /**
@@ -41,38 +40,18 @@ export function Sidebar({ forceExpanded = false }: SidebarProps) {
   const { hasCommonSpacesAccess } = useCommonSpacesAccess();
   const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
 
-  const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
-    if (forceExpanded) return false;
-    if (typeof window !== 'undefined') {
-      try {
-        return window.localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === 'true';
-      } catch {
-        return false;
-      }
-    }
-    return false;
-  });
+  const { isCollapsed, toggleCollapsed: toggleCollapsedShared } = useSidebarState();
 
   // Effective collapsed state: the mobile drawer instance never collapses.
   const collapsed = forceExpanded ? false : isCollapsed;
 
   const toggleCollapsed = () => {
-    setIsCollapsed((prev) => {
-      const next = !prev;
-      if (typeof window !== 'undefined') {
-        try {
-          window.localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(next));
-        } catch {
-          // ignore storage errors
-        }
-      }
-      // When expanding, keep the user's previously expanded section state.
-      // When collapsing, close any open submenus so the rail stays clean.
-      if (next) {
-        setExpandedMenus([]);
-      }
-      return next;
-    });
+    // When collapsing, close any open submenus so the rail stays clean.
+    // When expanding, keep the user's previously expanded section state.
+    if (!isCollapsed) {
+      setExpandedMenus([]);
+    }
+    toggleCollapsedShared();
   };
 
   // Close mobile menu when clicking on navigation items
@@ -379,9 +358,9 @@ export function Sidebar({ forceExpanded = false }: SidebarProps) {
                     aria-label='Koveo Gestion'
                   >
                     <img
-                      src={koveoLogo}
+                      src={koveoLogoK}
                       alt='Koveo Gestion'
-                      className='h-9 w-9 object-contain rounded'
+                      className='h-10 w-10 object-contain rounded'
                     />
                   </div>
                 ) : (

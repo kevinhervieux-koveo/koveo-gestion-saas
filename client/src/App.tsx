@@ -7,6 +7,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { LanguageProvider } from '@/hooks/use-language';
 import { AuthProvider, useAuth } from '@/hooks/use-auth';
 import { Sidebar } from '@/components/layout/sidebar';
+import { SidebarStateProvider, useSidebarState } from '@/hooks/use-sidebar-state';
 import { Suspense, useEffect } from 'react';
 import React from 'react';
 import { memoryOptimizer } from '@/utils/memory-monitor';
@@ -332,6 +333,12 @@ function Router() {
     return <LoadingSpinner />;
   }
 
+  return <AuthenticatedLayout />;
+}
+
+function AuthenticatedLayout() {
+  const { isCollapsed } = useSidebarState();
+
   return (
     <div className='h-full flex bg-gray-50 font-inter'>
       {/* Desktop sidebar - always visible on desktop */}
@@ -344,8 +351,15 @@ function Router() {
         <Sidebar forceExpanded />
       </div>
 
-      {/* Main content area */}
-      <div className='flex-1 flex flex-col min-w-0'>
+      {/* Main content area. When the desktop sidebar is collapsed, we add a
+          marker class so page-level wrappers (e.g. `max-w-7xl mx-auto`) can
+          widen to fill the freed-up space. The CSS rules live in
+          `client/src/index.css`. */}
+      <div
+        className={`flex-1 flex flex-col min-w-0 sidebar-aware-content ${
+          isCollapsed ? 'sidebar-collapsed-layout' : ''
+        }`}
+      >
         <Suspense fallback={<LoadingSpinner />}>
           <Switch>
             {/* Login page - redirect authenticated users to dashboard */}
@@ -506,13 +520,15 @@ function App() {
         <AuthErrorBoundary>
           <AuthProvider>
           <MobileMenuProvider>
-            <HelpProvider>
-              <TooltipProvider>
-                <Toaster />
-                <Router />
-                <InstallPrompt />
-              </TooltipProvider>
-            </HelpProvider>
+            <SidebarStateProvider>
+              <HelpProvider>
+                <TooltipProvider>
+                  <Toaster />
+                  <Router />
+                  <InstallPrompt />
+                </TooltipProvider>
+              </HelpProvider>
+            </SidebarStateProvider>
           </MobileMenuProvider>
           </AuthProvider>
         </AuthErrorBoundary>

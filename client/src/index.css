@@ -175,6 +175,36 @@
   border-color: var(--koveo-silver);
 }
 
+/* Sidebar-aware main content widening.
+ *
+ * When the desktop sidebar is collapsed, the wrapper around the routed page
+ * receives the `sidebar-collapsed-layout` class. Most pages constrain their
+ * content with a `max-w-{4..7}xl mx-auto` container; here we neutralize that
+ * cap so cards, tables, and graphs grow to fill the freed-up horizontal
+ * space. We deliberately scope this to descendants combining `mx-auto` with a
+ * page-level width class to avoid widening intentionally narrow inline
+ * content (e.g. `max-w-xs` snippets inside cards) or portaled dialogs (which
+ * render outside this wrapper anyway).
+ *
+ * The transition matches the sidebar's 300ms collapse animation so the
+ * content reflow stays smooth.
+ */
+.sidebar-aware-content .max-w-4xl.mx-auto,
+.sidebar-aware-content .max-w-5xl.mx-auto,
+.sidebar-aware-content .max-w-6xl.mx-auto,
+.sidebar-aware-content .max-w-7xl.mx-auto {
+  transition: max-width 300ms ease-in-out;
+}
+
+.sidebar-collapsed-layout .max-w-4xl.mx-auto,
+.sidebar-collapsed-layout .max-w-5xl.mx-auto,
+.sidebar-collapsed-layout .max-w-6xl.mx-auto,
+.sidebar-collapsed-layout .max-w-7xl.mx-auto {
+  /* Use a concrete length (rather than `none`) so the transition between the
+   * Tailwind cap (e.g. 80rem) and the expanded value interpolates smoothly. */
+  max-width: 100%;
+}
+
 /* Mobile-optimized logo styles */
 .koveo-logo {
   transition: all 0.2s ease-in-out;
