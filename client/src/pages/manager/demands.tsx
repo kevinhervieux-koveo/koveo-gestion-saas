@@ -25,6 +25,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { queryClient, apiRequest } from '@/lib/queryClient';
+import { logDebug } from '@/lib/logger';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/use-language';
 import { handleApiError } from '@/lib/demo-error-handler';
@@ -92,7 +93,7 @@ export default function ManagerDemandsPage() {
   const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
-    console.log('🔍 [DEMANDS] Component mounted');
+    logDebug('[DEMANDS] Component mounted');
   }, []);
 
   const getTypeLabel = (type: string) => {
@@ -122,10 +123,9 @@ export default function ManagerDemandsPage() {
     queryKey: ['/api/demands'],
     refetchInterval: 30000,
     queryFn: async ({ queryKey }) => {
-      console.log('🔍 [DEMANDS] Fetching demands');
       const response = await fetch(queryKey[0] as string);
       const data = await response.json();
-      console.log('🔍 [DEMANDS] Received demands:', { count: data?.length });
+      logDebug('[DEMANDS] Received demands', { count: data?.length });
       return data;
     },
   });

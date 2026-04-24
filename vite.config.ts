@@ -2,7 +2,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 import runtimeErrorOverlay from '@replit/vite-plugin-runtime-error-modal';
-export default defineConfig({
+export default defineConfig(({ command, mode }) => ({
   plugins: [react(), runtimeErrorOverlay()],
   resolve: {
     alias: {
@@ -12,6 +12,17 @@ export default defineConfig({
     },
   },
   root: path.resolve(import.meta.dirname, 'client'),
+  esbuild:
+    command === 'build' && mode === 'production'
+      ? {
+          // Strip diagnostic console calls (log/debug/info/trace) and any
+          // `debugger` statements from the production client bundle so the
+          // browser console only shows real warnings/errors. `console.warn`
+          // and `console.error` are intentionally preserved.
+          pure: ['console.log', 'console.debug', 'console.info', 'console.trace'],
+          drop: ['debugger'],
+        }
+      : undefined,
   build: {
     outDir: path.resolve(import.meta.dirname, 'dist/public'),
     emptyOutDir: true,
@@ -53,4 +64,4 @@ export default defineConfig({
       deny: ['**/.*'],
     },
   },
-});
+}));

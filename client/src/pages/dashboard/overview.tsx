@@ -392,7 +392,6 @@ export default function FinancialOverview() {
   useEffect(() => {
     if (selectedBuildingId && filtersInitializedForBuildingRef.current !== selectedBuildingId) {
       setFiltersInitialized(false);
-      logDebug('[FinancialOverview] Resetting filtersInitialized for new building:', selectedBuildingId);
     }
   }, [selectedBuildingId]);
 
@@ -401,14 +400,16 @@ export default function FinancialOverview() {
   const { data: bankAccountConfig, isLoading: bankAccountLoading, error: bankAccountError, isError: bankAccountIsError } = useQuery<BankAccountConfig>({
     queryKey: ['/api/budgets', selectedBuildingId, 'bank-account'],
     queryFn: async () => {
-      logDebug('[FinancialOverview] Fetching bank account config for:', selectedBuildingId);
       try {
         const response = await apiRequest(
           'GET',
           `/api/budgets/${selectedBuildingId}/bank-account`
         );
         const data = await response.json();
-        logDebug('[FinancialOverview] Bank account config response:', data);
+        logDebug('[FinancialOverview] Bank account config loaded', {
+          buildingId: selectedBuildingId,
+          hasConfig: !!data,
+        });
         return data as BankAccountConfig;
       } catch (error: any) {
         logError('[FinancialOverview] Bank account config error:', {
@@ -422,22 +423,11 @@ export default function FinancialOverview() {
     retry: (failureCount, error: any) => {
       // Retry on auth errors up to 3 times (session might be initializing)
       if (error?.message?.includes('401') && failureCount < 3) {
-        logDebug('[FinancialOverview] Retrying bank account query due to 401...', { attempt: failureCount + 1 });
         return true;
       }
       return false;
     },
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),
-  });
-
-  // Log bank account query state
-  logDebug('[FinancialOverview] Bank account query:', {
-    selectedBuildingId,
-    hasUser: !!user,
-    bankAccountConfig,
-    bankAccountLoading,
-    bankAccountIsError,
-    bankAccountError: bankAccountError ? String(bankAccountError) : null,
   });
 
   // Calculate month ranges for bills summary based on filter selection
@@ -572,14 +562,6 @@ export default function FinancialOverview() {
       const effectiveStartMonth = derivedFiscalMonth ?? filters.startMonth;
       const effectiveStartYear = filters.startYear;
 
-      logDebug('[FinancialOverview] Resolved start window:', {
-        financialYearStart: bankAccountConfig?.financialYearStart,
-        filtersStartMonth: filters.startMonth,
-        filtersStartYear: filters.startYear,
-        effectiveStartMonth,
-        effectiveStartYear,
-      });
-
       // Get included projects for ONLY the selected building (not all buildings)
       // Find the selected building's index in the buildings array
       const buildingIndex = buildings?.findIndex(b => b.id === selectedBuildingId) ?? -1;
@@ -606,44 +588,24 @@ export default function FinancialOverview() {
         punctualRevenueGrowth: bankAccountConfig?.punctualRevenueGrowth || [],
       });
 
-      logDebug('[FinancialOverview] Making API request:', {
-        buildingId: selectedBuildingId,
-        params: forecastParams,
-        url: `/api/budgets/${selectedBuildingId}/forecast`,
-      });
-
       const response = await apiRequest(
         'POST',
         `/api/budgets/${selectedBuildingId}/forecast`,
         forecastParams
       );
-      
+
       // Parse the JSON response
       const data = await response.json();
-      
-      logDebug('[FinancialOverview] API response:', {
-        data,
+
+      logDebug('[FinancialOverview] Forecast loaded', {
+        buildingId: selectedBuildingId,
         hasForecast: !!(data as any)?.forecast,
         forecastLength: (data as any)?.forecast?.length,
       });
-      
+
       return data as BudgetForecastResponse;
     },
     enabled: !!selectedBuildingId && !!bankAccountConfig && filtersInitialized,
-  });
-
-  // Debug logging
-  logDebug('[FinancialOverview] Query state:', {
-    selectedBuildingId,
-    filters,
-    forecastData,
-    forecastLoading,
-    forecastError,
-    hasForecast: !!(forecastData as any)?.forecast,
-    forecastLength: (forecastData as any)?.forecast?.length,
-    bankAccountConfig,
-    bankAccountLoading,
-    forecastQueryEnabled: !!selectedBuildingId && !!bankAccountConfig,
   });
 
   // Initialize project states when projects are first loaded
@@ -730,11 +692,10 @@ export default function FinancialOverview() {
     if (isNewBuilding && selectedBuildingId) {
       setStartingFiscalYear(calculatedStartYear);
       lastInitializedBuildingIdRef.current = selectedBuildingId;
-      logDebug('[FinancialOverview] Starting fiscal year initialized for building:', { 
-        buildingId: selectedBuildingId, 
+      logDebug('[FinancialOverview] Starting fiscal year initialized', {
+        buildingId: selectedBuildingId,
         startYear: calculatedStartYear,
         fiscalMonth,
-        source: 'financialYearStart'
       });
     }
     
@@ -797,14 +758,6 @@ export default function FinancialOverview() {
       filtersInitializedForBuildingRef.current = selectedBuildingId;
       setFiltersInitialized(true);
     }
-    
-    logDebug('[FinancialOverview] Filters updated with fiscal month', {
-      startMonth: fiscalMonth,
-      startYear: effectiveStartYear,
-      viewType,
-      periodLength,
-      filtersInitialized: true,
-    });
   }, [selectedBuildingId, bankAccountConfig?.financialYearStart, bankAccountLoading, futureProjection, startingFiscalYear]);
 
   const buildingForecast = useMemo(() => {
@@ -819,28 +772,13 @@ export default function FinancialOverview() {
 
   // Aggregate all projects from all buildings
   const allProjects = useMemo(() => {
-    logDebug('[FinancialOverview] Aggregating projects:', {
-      buildingsCount: buildings?.length || 0,
-      projectQueriesCount: projectQueries.length,
-    });
-
     if (!buildings) {
-      logDebug('[FinancialOverview] No buildings available');
       return [];
     }
-    
+
     const projects: Project[] = [];
     buildings.forEach((building, index) => {
       const projectData = projectQueries[index]?.data as unknown as { success: boolean; data: any[] } | undefined;
-      
-      logDebug(`[FinancialOverview] Building ${index} (${building.name}):`, {
-        buildingId: building.id,
-        hasData: !!projectData,
-        success: projectData?.success,
-        projectsCount: projectData?.data?.length || 0,
-        rawData: projectData,
-      });
-
       if (projectData?.data) {
         const buildingProjectsWithMeta = projectData.data.map(project => ({
           ...project,
@@ -849,11 +787,13 @@ export default function FinancialOverview() {
           includeInBudget: projectStates.get(project.id) ?? true,
         }));
         projects.push(...buildingProjectsWithMeta);
-        logDebug(`[FinancialOverview] Added ${buildingProjectsWithMeta.length} projects from ${building.name}`);
       }
     });
-    
-    logDebug('[FinancialOverview] Total projects aggregated:', projects.length);
+
+    logDebug('[FinancialOverview] Aggregated projects across buildings', {
+      buildingsCount: buildings.length,
+      totalProjects: projects.length,
+    });
     return projects;
   }, [buildings, projectQueries, projectStates]);
 

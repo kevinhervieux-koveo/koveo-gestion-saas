@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import { logDebug } from '@/lib/logger';
 import type { UserWithAssignments, Organization, User } from '@shared/schema';
 
 interface UserOrganizationsTabProps {
@@ -71,14 +72,13 @@ export function UserOrganizationsTab({
 
   // Debug logging to identify issues
   useEffect(() => {
-    console.log('🏢 [ORG_TAB] Component render:', {
+    logDebug('[ORG_TAB] Component render', {
       userEmail: currentUser?.email,
       userRole: currentUser?.role,
       totalOrganizations: organizations.length,
-      currentUserOrganizationIds: currentUserOrganizations,
       availableOrganizationsCount: availableOrganizations.length,
       isAdmin: currentUser?.role === 'admin',
-      isLoading
+      isLoading,
     });
   }, [currentUser, organizations, currentUserOrganizations, availableOrganizations.length, isLoading]);
 

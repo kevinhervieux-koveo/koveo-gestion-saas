@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/select';
 // import { useBuildingContext } from '@/hooks/use-building-context';
 import { cn } from '@/lib/utils';
+import { logDebug } from '@/lib/logger';
 import {
   ChevronLeft,
   Building,
@@ -55,7 +56,7 @@ export function ProjectsHeader({
             variant="ghost" 
             size="sm" 
             onClick={() => {
-              console.log('🔍 [PROJECTS] Navigating back to building', { buildingId, buildingName });
+              logDebug('[PROJECTS] Navigating back to building', { buildingId, buildingName });
               onBack?.();
             }} 
             data-testid="back-to-building"

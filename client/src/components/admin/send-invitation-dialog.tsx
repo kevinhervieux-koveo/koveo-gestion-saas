@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
+import { logDebug } from '@/lib/logger';
 import { useCreateUpdateMutation } from '@/lib/common-hooks';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
@@ -215,7 +216,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
         throw new Error(`Failed to fetch organizations: ${response.statusText}`);
       }
       const data = await response.json();
-      console.log('🔍 [INVITE_DIALOG] Fetched organizations:', data);
+      logDebug('[INVITE_DIALOG] Fetched organizations', { count: Array.isArray(data) ? data.length : 0 });
       return Array.isArray(data) ? data : [];
     },
     enabled: open,
@@ -261,11 +262,10 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
   // Helper functions for filtering data based on selections
   const getFilteredOrganizations = () => {
     if (!organizations || !Array.isArray(organizations)) {
-      console.log('🔍 [INVITE_DIALOG] No organizations or not array:', organizations);
       return [];
     }
 
-    // Filter out any invalid organizations with detailed logging
+    // Filter out any invalid organizations
     const validOrgs = organizations.filter((org) => {
       const isValid =
         org &&
@@ -279,8 +279,6 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
 
       return isValid;
     });
-
-    console.log('🔍 [INVITE_DIALOG] Valid organizations after filtering:', validOrgs);
 
     if (currentUser?.role === 'admin') {
       // Admins can add users to any organization

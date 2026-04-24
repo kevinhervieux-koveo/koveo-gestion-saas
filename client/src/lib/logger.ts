@@ -1,4 +1,6 @@
-const isDevelopment = import.meta.env.DEV;
+const isProduction =
+  import.meta.env.PROD === true || import.meta.env.MODE === 'production';
+const isDevelopment = import.meta.env.DEV === true && !isProduction;
 
 export function logDebug(message: string, ...args: unknown[]): void {
   if (isDevelopment) {
