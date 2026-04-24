@@ -481,6 +481,16 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
         if (!isEmpty(form.getValues(key))) return;
         form.setValue(key, value, { shouldDirty: true });
       };
+      // Structure-determining fields (billType, paymentStructure, schedule…)
+      // always have a non-empty default ('unique' / 'single' / etc.), so the
+      // empty-only setter would silently drop AI-detected installment plans.
+      // For these fields we honour the same touched-by-user guard but allow
+      // overwriting the placeholder defaults so installment plans surface.
+      const setIfNotTouched = (key: keyof BillFormData, value: any) => {
+        if (value === undefined || value === null) return;
+        if (touched[key as string]) return;
+        form.setValue(key, value, { shouldDirty: true });
+      };
 
       // STEP 1: Set payment structure fields FIRST (in correct order)
       // This ensures UI sections are visible before we populate them.
@@ -493,23 +503,23 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
       const inferredBillType: 'unique' | 'recurrent' = formData.billType
         ? (formData.billType as 'unique' | 'recurrent')
         : (formData.recurrence || hasCustomPayments ? 'recurrent' : (formData.paymentType || 'unique'));
-      setIfEmpty('billType', inferredBillType);
-      setIfEmpty('paymentType', inferredBillType);
-      setIfEmpty('recurrence', inferredBillType === 'recurrent');
+      setIfNotTouched('billType', inferredBillType);
+      setIfNotTouched('paymentType', inferredBillType);
+      setIfNotTouched('recurrence', inferredBillType === 'recurrent');
 
       // 1b. Set paymentStructure (single vs installment)
       const inferredStructure: 'single' | 'installment' = formData.paymentStructure
         ? (formData.paymentStructure as 'single' | 'installment')
         : ((hasCustomPayments || formData.paymentCount === 'multiple') ? 'installment' : 'single');
-      setIfEmpty('paymentStructure', inferredStructure);
-      setIfEmpty('paymentCount', inferredStructure === 'installment' ? 'multiple' : '1');
+      setIfNotTouched('paymentStructure', inferredStructure);
+      setIfNotTouched('paymentCount', inferredStructure === 'installment' ? 'multiple' : '1');
 
       // 1c. Schedule + year interval
       if (hasCustomPayments) {
-        setIfEmpty('schedulePayment', 'custom');
-        setIfEmpty('recurringPaymentsEqual', false);
+        setIfNotTouched('schedulePayment', 'custom');
+        setIfNotTouched('recurringPaymentsEqual', false);
       } else if (formData.schedulePayment) {
-        setIfEmpty('schedulePayment', formData.schedulePayment);
+        setIfNotTouched('schedulePayment', formData.schedulePayment);
       }
       if (typeof formData.yearInterval === 'number' && formData.yearInterval >= 1) {
         setIfEmpty('yearInterval', formData.yearInterval);
