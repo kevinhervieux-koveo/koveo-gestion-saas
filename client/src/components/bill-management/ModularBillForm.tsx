@@ -314,9 +314,14 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
             billData.yearInterval = formData.yearInterval || 1;
           }
         } else if (formData.billType === 'recurrent') {
-          // For single payment recurrent bills, default to yearly schedule
-          billData.schedulePayment = 'yearly';
-          billData.yearInterval = formData.yearInterval || 1;
+          // Single payment recurrent bills: respect the chosen schedule (weekly/monthly/quarterly/yearly)
+          billData.schedulePayment = formData.schedulePayment || 'yearly';
+          // Only attach yearInterval when the schedule is actually yearly
+          if (billData.schedulePayment === 'yearly') {
+            billData.yearInterval = formData.yearInterval || 1;
+          } else {
+            delete billData.yearInterval;
+          }
         } else {
           delete billData.schedulePayment;
           delete billData.yearInterval;
@@ -994,9 +999,14 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
           billData.yearInterval = data.yearInterval || 1;
         }
       } else if (data.billType === 'recurrent' && data.paymentStructure === 'single') {
-        // Single payment recurrent bills: default to yearly schedule
-        billData.schedulePayment = 'yearly';
-        billData.yearInterval = data.yearInterval || 1;
+        // Single payment recurrent bills: respect the chosen schedule (weekly/monthly/quarterly/yearly)
+        billData.schedulePayment = data.schedulePayment || 'yearly';
+        // Only attach yearInterval when the schedule is actually yearly
+        if (billData.schedulePayment === 'yearly') {
+          billData.yearInterval = data.yearInterval || 1;
+        } else {
+          delete billData.yearInterval;
+        }
       } else {
         delete billData.schedulePayment;
         delete billData.yearInterval;

@@ -299,6 +299,47 @@ describe('GeminiBillExtractor → ModularBillForm AI extraction edge cases', () 
     expect(payload.startDate).toBe('2026-02-01');
   });
 
+  it('recurring monthly single-payment bill preserves schedulePayment="monthly" on save (no silent flip to yearly)', async () => {
+    // AI extracts a recurring bill that is paid in a single amount each
+    // cycle (e.g. monthly insurance premium). The form should detect
+    // `recurrent + single` and the saver must respect the monthly cadence
+    // instead of unconditionally rewriting it to "yearly".
+    nextAiResponse = {
+      vendorName: 'Monthly Insurance Co',
+      totalAmount: '85.00',
+      dueDate: '2026-03-01',
+      paymentType: 'recurring',
+      frequency: 'monthly',
+      category: 'insurance',
+    };
+
+    renderForm();
+    await triggerFakeUpload();
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('Monthly Insurance Co')).toBeInTheDocument();
+    });
+    expect(screen.getByDisplayValue('2026-03-01')).toBeInTheDocument();
+
+    const recurrentRadio = screen.getByTestId('radio-bill-type-recurrent');
+    const singleRadio = screen.getByTestId('radio-payment-structure-single');
+    await waitFor(() => {
+      expect(recurrentRadio.getAttribute('aria-checked')).toBe('true');
+    });
+    expect(singleRadio.getAttribute('aria-checked')).toBe('true');
+
+    const payload = await clickSaveAndGetPutPayload();
+    expect(payload.billType).toBe('recurrent');
+    expect(payload.paymentStructure).toBe('single');
+    // The AI-extracted monthly cadence must survive the save round-trip.
+    expect(payload.schedulePayment).toBe('monthly');
+    // yearInterval is only relevant for yearly schedules and must not be
+    // attached to a monthly recurring single-payment bill.
+    expect(payload.yearInterval).toBeUndefined();
+    expect(payload.vendor).toBe('Monthly Insurance Co');
+    expect(payload.startDate).toBe('2026-03-01');
+  });
+
   it('one-time single-payment bill maps to unique + single and saves the singlePaymentAmount', async () => {
     nextAiResponse = {
       vendorName: 'Hydro Quebec',
