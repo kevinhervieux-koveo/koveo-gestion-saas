@@ -444,6 +444,78 @@ describeIfDb('bulk-import REST endpoints — Task #456', () => {
     trackedItems.delete(item.id);
   });
 
+  it('auto-screens every pending item via POST /screen-all and is idempotent (Task #575)', async () => {
+    const sid = await createSession();
+    const upload = await request(app)
+      .post(`/api/admin/bulk-import/sessions/${sid}/items`)
+      .set('x-test-user-id', ids.admin)
+      .attach('files', PDF_BODY, {
+        filename: 'auto-1.pdf',
+        contentType: 'application/pdf',
+      })
+      .attach('files', PNG_BODY, {
+        filename: 'auto-2.png',
+        contentType: 'image/png',
+      });
+    expect(upload.status).toBe(201);
+    upload.body.forEach((row: any) => trackedItems.add(row.id));
+
+    // First call kicks off the fire-and-forget loop and must respond
+    // immediately without blocking on the AI work.
+    const start = Date.now();
+    const trigger = await request(app)
+      .post(`/api/admin/bulk-import/sessions/${sid}/screen-all`)
+      .set('x-test-user-id', ids.admin);
+    expect(trigger.status).toBe(202);
+    expect(trigger.body.status).toBe('started');
+    expect(Date.now() - start).toBeLessThan(2000);
+
+    // A second call while the loop is still running must be reported
+    // as already in progress so the wizard does not stack duplicates.
+    const again = await request(app)
+      .post(`/api/admin/bulk-import/sessions/${sid}/screen-all`)
+      .set('x-test-user-id', ids.admin);
+    expect(again.status).toBe(202);
+    expect(['started', 'in-progress']).toContain(again.body.status);
+
+    // Wait for the background loop to finish — every item should land
+    // in `screened` (or downstream status) with a screening payload.
+    const deadline = Date.now() + 30_000;
+    let finalRows: any[] = [];
+    while (Date.now() < deadline) {
+      finalRows = await db
+        .select()
+        .from(schema.bulkImportItems)
+        .where(eq(schema.bulkImportItems.sessionId, sid));
+      if (
+        finalRows.length === upload.body.length &&
+        finalRows.every((r) => r.status !== 'pending' && r.status !== 'screening')
+      ) {
+        break;
+      }
+      await new Promise((r) => setTimeout(r, 200));
+    }
+    expect(finalRows).toHaveLength(upload.body.length);
+    finalRows.forEach((row) => {
+      expect(['screened']).toContain(row.status);
+      expect(row.screening).toBeTruthy();
+      expect(typeof row.screening.confidence).toBe('number');
+    });
+  }, 45_000);
+
+  it('screen-all returns 404 for an unknown session and rejects non-admins', async () => {
+    const missing = await request(app)
+      .post(`/api/admin/bulk-import/sessions/${crypto.randomUUID()}/screen-all`)
+      .set('x-test-user-id', ids.admin);
+    expect(missing.status).toBe(404);
+
+    const sid = await createSession();
+    const forbidden = await request(app)
+      .post(`/api/admin/bulk-import/sessions/${sid}/screen-all`)
+      .set('x-test-user-id', ids.nonAdmin);
+    expect([401, 403]).toContain(forbidden.status);
+  });
+
   it('returns 404 for unknown session/item IDs and rejects invalid stagedPath escapes', async () => {
     const get = await request(app)
       .get(`/api/admin/bulk-import/sessions/${crypto.randomUUID()}`)

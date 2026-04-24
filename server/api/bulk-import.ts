@@ -26,6 +26,14 @@ import { logError, logInfo } from '../utils/logger';
 
 const STAGING_ROOT = path.join(process.cwd(), '.staging', 'bulk-import');
 
+/**
+ * Sessions that currently have a fire-and-forget `screen-all` loop
+ * running on this process. Prevents the wizard's auto-trigger from
+ * stacking up duplicate background passes when polling refreshes the
+ * page (Task #575). Cleared inside the background job's `finally`.
+ */
+const screenAllInProgress = new Set<string>();
+
 function stagingDirFor(sessionId: string): string {
   const dir = path.join(STAGING_ROOT, sessionId);
   fs.mkdirSync(dir, { recursive: true });
@@ -358,6 +366,103 @@ export function registerBulkImportRoutes(app: Express): void {
         .where(eq(schema.bulkImportItems.id, item.id))
         .returning();
       return res.json(updated);
+    },
+  );
+
+  /**
+   * Auto-screen every pending item in a session (Task #575).
+   *
+   * The wizard fires this once when the admin reaches the Screening
+   * step so they no longer have to click "Screen" per file. The actual
+   * loop runs as a fire-and-forget background job — closing the
+   * browser does not stop it. Re-entrancy is prevented by the
+   * `screenAllInProgress` lock, which mirrors the natural per-item
+   * `'screening'` status check the wizard does on the client side.
+   *
+   * Items whose bytes are too large for AI analysis still go through
+   * the existing oversize fallback inside `bulkImportAnalyzer.screen`
+   * (filename-only prompt + `fallbackReason: 'oversize'`), so they
+   * land in `'screened'` with a low-confidence result and a clear
+   * badge, with no user action required.
+   */
+  app.post(
+    '/api/admin/bulk-import/sessions/:id/screen-all',
+    requireAuth,
+    requireRole(['admin']),
+    async (req: AuthenticatedRequest, res: Response) => {
+      const session = await loadSession(req.params.id);
+      if (!session) return res.status(404).json({ error: 'Session not found' });
+
+      if (screenAllInProgress.has(session.id)) {
+        return res.status(202).json({ status: 'in-progress', sessionId: session.id });
+      }
+      screenAllInProgress.add(session.id);
+
+      // Fire-and-forget: the loop runs after we respond so the HTTP
+      // connection (and the user's browser) can go away without
+      // stopping the screening pass.
+      void (async () => {
+        try {
+          const pendingItems = await db
+            .select()
+            .from(schema.bulkImportItems)
+            .where(
+              and(
+                eq(schema.bulkImportItems.sessionId, session.id),
+                eq(schema.bulkImportItems.status, 'pending'),
+              ),
+            );
+          logInfo('[bulk-import] screen-all started', {
+            metadata: { sessionId: session.id, itemCount: pendingItems.length },
+          });
+          for (const item of pendingItems) {
+            try {
+              await db
+                .update(schema.bulkImportItems)
+                .set({ status: 'screening', updatedAt: new Date() })
+                .where(eq(schema.bulkImportItems.id, item.id));
+
+              const result = await bulkImportAnalyzer.screen({
+                originalName: item.originalName,
+                mimeType: item.mimeType,
+                fileSize: item.fileSize,
+                stagedPath: item.stagedPath,
+              });
+
+              await db
+                .update(schema.bulkImportItems)
+                .set({
+                  screening: result as unknown as Record<string, unknown>,
+                  status: 'screened',
+                  updatedAt: new Date(),
+                })
+                .where(eq(schema.bulkImportItems.id, item.id));
+            } catch (err) {
+              logError('[bulk-import] screen-all item failed', err as Error);
+              // Roll the item back to `pending` so a future trigger can
+              // retry it instead of leaving it stuck in `'screening'`.
+              try {
+                await db
+                  .update(schema.bulkImportItems)
+                  .set({ status: 'pending', updatedAt: new Date() })
+                  .where(eq(schema.bulkImportItems.id, item.id));
+              } catch (rollbackErr) {
+                logError(
+                  '[bulk-import] screen-all rollback failed',
+                  rollbackErr as Error,
+                );
+              }
+            }
+          }
+          logInfo('[bulk-import] screen-all finished', {
+            metadata: { sessionId: session.id, itemCount: pendingItems.length },
+          });
+        } finally {
+          screenAllInProgress.delete(session.id);
+        }
+      })();
+
+      return res.status(202).json({ status: 'started', sessionId: session.id });
     },
   );
 

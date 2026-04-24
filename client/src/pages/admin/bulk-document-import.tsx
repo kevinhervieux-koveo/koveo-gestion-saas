@@ -510,7 +510,17 @@ export default function BulkDocumentImportPage() {
   const { data: payload, isLoading: loadingSession } = useQuery<SessionPayload>({
     queryKey: ['/api/admin/bulk-import/sessions', sessionId],
     enabled: !!sessionId,
-    refetchInterval: 5000,
+    // Poll faster while auto-screening is in progress so the per-item
+    // status / confidence badges update in near real-time. Once every
+    // file has a final status we throttle back to 5s (Task #575).
+    refetchInterval: (query) => {
+      const data = query.state.data as SessionPayload | undefined;
+      if (!data) return 5000;
+      const screeningActive =
+        data.session.currentStep === 'screening' &&
+        data.items.some((i) => i.status === 'pending' || i.status === 'screening');
+      return screeningActive ? 2000 : 5000;
+    },
   });
 
   const session = payload?.session;
@@ -565,6 +575,78 @@ export default function BulkDocumentImportPage() {
       toast({ title: isFr ? 'Téléversement réussi' : 'Files uploaded' });
     },
   });
+
+  /**
+   * Kick off the server-side fire-and-forget screen-all loop (Task
+   * #575). The server returns immediately and processes pending items
+   * sequentially in the background, so we never block the user — they
+   * can leave the page and the screening will continue.
+   */
+  const screenAll = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest(
+        'POST',
+        `/api/admin/bulk-import/sessions/${sessionId}/screen-all`,
+        {},
+      );
+      return res.json();
+    },
+    onSuccess: () =>
+      queryClient.invalidateQueries({
+        queryKey: ['/api/admin/bulk-import/sessions', sessionId],
+      }),
+  });
+
+  /**
+   * Track which session we've already auto-triggered screen-all for so
+   * the effect below does not fire repeatedly while the wizard polls.
+   * The server-side lock is the real source of truth (it returns 202
+   * `in-progress` if already running), but skipping a redundant POST
+   * avoids needless network traffic. The flag is only set after the
+   * mutation *succeeds* so a transient network failure does not
+   * permanently disable the auto-trigger for this session.
+   */
+  const autoScreenedSessionRef = useRef<string | null>(null);
+  /**
+   * Synchronous guard against firing the mutation twice from rapid
+   * re-renders before the first request resolves (the ref above is
+   * only set on success, so it cannot guard against the in-flight
+   * window on its own).
+   */
+  const screenAllInFlightRef = useRef(false);
+
+  useEffect(() => {
+    if (!sessionId) return;
+    if (currentStep !== 'screening') return;
+    if (items.length === 0) return;
+    if (autoScreenedSessionRef.current === sessionId) return;
+    if (screenAllInFlightRef.current) return;
+
+    const hasScreening = items.some((i) => i.status === 'screening');
+    const hasPending = items.some((i) => i.status === 'pending');
+    // If any item is already screening, the server-side loop is in
+    // progress — just keep polling, do not re-trigger (matches the
+    // task spec exactly).
+    if (hasScreening) {
+      autoScreenedSessionRef.current = sessionId;
+      return;
+    }
+    if (!hasPending) return;
+
+    screenAllInFlightRef.current = true;
+    screenAll.mutate(undefined, {
+      onSuccess: () => {
+        autoScreenedSessionRef.current = sessionId;
+        screenAllInFlightRef.current = false;
+      },
+      onError: () => {
+        // Leave `autoScreenedSessionRef` unset so the next poll can
+        // retry the trigger after a transient failure.
+        screenAllInFlightRef.current = false;
+      },
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionId, currentStep, items.length, items.map((i) => i.status).join(',')]);
 
   const runStep = useMutation({
     mutationFn: async ({
@@ -886,6 +968,47 @@ export default function BulkDocumentImportPage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
+                    {/*
+                      Screening progress summary (Task #575). The auto
+                      screen-all loop runs server-side; here we just
+                      tell the admin where it's at. We treat anything
+                      past `screening` as "done" because once an item
+                      transitions to `screened` (or any later status)
+                      its screening result is final.
+                    */}
+                    {currentStep === 'screening' && items.length > 0 && (() => {
+                      const total = items.length;
+                      const done = items.filter(
+                        (i) => i.status !== 'pending' && i.status !== 'screening',
+                      ).length;
+                      const inProgress = items.some(
+                        (i) => i.status === 'pending' || i.status === 'screening',
+                      );
+                      return (
+                        <div
+                          className="mb-3 flex items-center gap-2 rounded-md border bg-muted/40 px-3 py-2 text-sm"
+                          data-testid="screening-progress"
+                        >
+                          {inProgress ? (
+                            <>
+                              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                              <span data-testid="screening-progress-text">
+                                {isFr
+                                  ? `Filtrage de ${done} sur ${total} fichier(s)…`
+                                  : `Screening ${done} of ${total} files…`}
+                              </span>
+                            </>
+                          ) : (
+                            <span
+                              className="font-medium text-emerald-700"
+                              data-testid="screening-progress-text"
+                            >
+                              {isFr ? 'Tous les fichiers ont été filtrés.' : 'All files screened.'}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })()}
                     <div className="space-y-2">
                       {items.length === 0 && (
                         <p className="text-sm text-muted-foreground">
@@ -901,6 +1024,13 @@ export default function BulkDocumentImportPage() {
                               fallbackReason?: BulkImportFallbackReason | null;
                             } | null)
                           : null;
+                        // Per-item "Screen" buttons are gone (Task
+                        // #575): the screening step runs automatically
+                        // server-side. Other AI steps still expose a
+                        // per-item button so admins can trigger them
+                        // individually as before.
+                        const showActionButton =
+                          !!action && currentStep !== 'screening';
                         return (
                           <div
                             key={item.id}
@@ -918,12 +1048,20 @@ export default function BulkDocumentImportPage() {
                               </div>
                             </div>
                             <div className="flex items-center gap-3">
+                              {currentStep === 'screening' &&
+                                (item.status === 'pending' ||
+                                  item.status === 'screening') && (
+                                  <Loader2
+                                    className="h-4 w-4 animate-spin text-muted-foreground"
+                                    data-testid={`screening-spinner-${item.id}`}
+                                  />
+                                )}
                               <FallbackReasonBadge
                                 reason={decision?.fallbackReason}
                                 isFr={isFr}
                               />
                               <ConfidenceBadge value={decision?.confidence} />
-                              {action && (
+                              {showActionButton && action && (
                                 <Button
                                   size="sm"
                                   onClick={() =>
