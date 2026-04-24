@@ -49,7 +49,12 @@ jest.mock('../services/consolidated-ai-service', () => ({
   },
 }));
 
+jest.mock('../api/common-spaces-rules', () => ({
+  loadCommonSpaceForBookingChecks: jest.fn(),
+}));
+
 import { createMcpServer } from '../mcp/server';
+import * as commonSpaceRules from '../api/common-spaces-rules';
 
 const EXPECTED_TOOLS = [
   'list_organizations', 'get_organization',
@@ -1515,6 +1520,249 @@ describe('MCP Server', () => {
       const text = parseToolResponse(result);
       expect(text).toContain('Failed to delete');
       expect(text).toContain('project');
+    });
+  });
+
+  describe('delete_common_space', () => {
+    let deleteCalls: Array<{ table: 'commonSpaces' | 'unknown' }>;
+    let returningRows: unknown[];
+    let deleteError: Error | null;
+
+    beforeEach(() => {
+      deleteCalls = [];
+      returningRows = [];
+      deleteError = null;
+      (commonSpaceRules.loadCommonSpaceForBookingChecks as jest.Mock).mockReset();
+
+      (mockDb as unknown as { delete: jest.Mock }).delete = jest.fn((table: unknown) => {
+        const name = table === schema.commonSpaces ? 'commonSpaces' : 'unknown';
+        deleteCalls.push({ table: name });
+        return {
+          where: jest.fn().mockReturnThis(),
+          returning: jest.fn().mockImplementation(async () => {
+            if (deleteError) throw deleteError;
+            return returningRows;
+          }),
+        };
+      });
+    });
+
+    it('denies tenants before any DB read', async () => {
+      const handler = getToolHandler(server, 'delete_common_space');
+      const result = await handler({ role: 'tenant', spaceId: 'cs-1' }, {});
+      expect(parseToolResponse(result)).toBe(
+        'Access denied: tenants cannot delete common spaces',
+      );
+      // Tenant is rejected before authorizeSpaceAccess runs.
+      expect(commonSpaceRules.loadCommonSpaceForBookingChecks).not.toHaveBeenCalled();
+      expect(deleteCalls).toEqual([]);
+    });
+
+    it('returns "Common space not found" when the space does not exist', async () => {
+      (commonSpaceRules.loadCommonSpaceForBookingChecks as jest.Mock).mockResolvedValue(null);
+      const handler = getToolHandler(server, 'delete_common_space');
+      const result = await handler({ role: 'admin', spaceId: 'missing' }, {});
+      expect(parseToolResponse(result)).toBe('Common space not found');
+      expect(deleteCalls).toEqual([]);
+    });
+
+    it('denies access when the space is in a building outside MCP scope', async () => {
+      (commonSpaceRules.loadCommonSpaceForBookingChecks as jest.Mock).mockResolvedValue({
+        id: 'cs-1',
+        name: 'Pool',
+        buildingId: 'b-other',
+        isReservable: true,
+        openingHours: null,
+      });
+      // authorizeSpaceAccess: getMcpUser → getMcpAccessibleBuildingIds(getMcpUser, getMcpOrgIds, allActiveBuildings)
+      mockSelectChain.where
+        .mockImplementationOnce(() => createWhereResult([{ id: 'u-1', role: 'admin' }])) // getMcpUser
+        .mockImplementationOnce(() => createWhereResult([{ id: 'u-1', role: 'admin' }])) // getMcpUser inside getMcpAccessibleBuildingIds
+        .mockImplementationOnce(() => createWhereResult([{ id: 'org-1' }])) // getMcpOrgIds
+        .mockImplementationOnce(() => createWhereResult([{ buildingId: 'b-1' }])); // allActiveBuildings (admin)
+      const handler = getToolHandler(server, 'delete_common_space');
+      const result = await handler({ role: 'admin', spaceId: 'cs-1' }, {});
+      expect(parseToolResponse(result)).toContain('do not have access to the building');
+      expect(deleteCalls).toEqual([]);
+    });
+
+    it('refuses to delete when a confirmed future booking exists', async () => {
+      (commonSpaceRules.loadCommonSpaceForBookingChecks as jest.Mock).mockResolvedValue({
+        id: 'cs-1',
+        name: 'Pool',
+        buildingId: 'b-1',
+        isReservable: true,
+        openingHours: null,
+      });
+      mockSelectChain.where
+        .mockImplementationOnce(() => createWhereResult([{ id: 'u-1', role: 'admin' }]))
+        .mockImplementationOnce(() => createWhereResult([{ id: 'u-1', role: 'admin' }]))
+        .mockImplementationOnce(() => createWhereResult([{ id: 'org-1' }]))
+        .mockImplementationOnce(() => createWhereResult([{ buildingId: 'b-1' }]))
+        .mockImplementationOnce(() => createWhereResult([{ id: 'booking-future' }])); // future booking found
+      const handler = getToolHandler(server, 'delete_common_space');
+      const result = await handler({ role: 'admin', spaceId: 'cs-1' }, {});
+      expect(parseToolResponse(result)).toContain('Cannot delete common space');
+      expect(parseToolResponse(result)).toContain('future bookings');
+      expect(deleteCalls).toEqual([]);
+    });
+
+    it('deletes a common space inside MCP scope as admin and returns the deleted/message shape', async () => {
+      (commonSpaceRules.loadCommonSpaceForBookingChecks as jest.Mock).mockResolvedValue({
+        id: 'cs-1',
+        name: 'Pool',
+        buildingId: 'b-1',
+        isReservable: true,
+        openingHours: null,
+      });
+      mockSelectChain.where
+        .mockImplementationOnce(() => createWhereResult([{ id: 'u-1', role: 'admin' }]))
+        .mockImplementationOnce(() => createWhereResult([{ id: 'u-1', role: 'admin' }]))
+        .mockImplementationOnce(() => createWhereResult([{ id: 'org-1' }]))
+        .mockImplementationOnce(() => createWhereResult([{ buildingId: 'b-1' }]))
+        .mockImplementationOnce(() => createWhereResult([])); // no future bookings
+      returningRows = [{ id: 'cs-1', name: 'Pool' }];
+
+      const handler = getToolHandler(server, 'delete_common_space');
+      const result = await handler({ role: 'admin', spaceId: 'cs-1' }, {});
+      const parsed = JSON.parse(parseToolResponse(result));
+
+      expect(parsed.deleted).toEqual({ id: 'cs-1', name: 'Pool' });
+      expect(parsed.message).toMatch(/common space deleted/i);
+      // The cascade is enforced by Postgres FKs (bookings, restrictions,
+      // time-limit rows), so the only application-level delete is the
+      // `commonSpaces` row itself.
+      expect(deleteCalls.map((c) => c.table)).toEqual(['commonSpaces']);
+    });
+
+    it('returns a readable failure message when the delete throws', async () => {
+      (commonSpaceRules.loadCommonSpaceForBookingChecks as jest.Mock).mockResolvedValue({
+        id: 'cs-1',
+        name: 'Pool',
+        buildingId: 'b-1',
+        isReservable: true,
+        openingHours: null,
+      });
+      mockSelectChain.where
+        .mockImplementationOnce(() => createWhereResult([{ id: 'u-1', role: 'admin' }]))
+        .mockImplementationOnce(() => createWhereResult([{ id: 'u-1', role: 'admin' }]))
+        .mockImplementationOnce(() => createWhereResult([{ id: 'org-1' }]))
+        .mockImplementationOnce(() => createWhereResult([{ buildingId: 'b-1' }]))
+        .mockImplementationOnce(() => createWhereResult([]));
+      deleteError = new Error(
+        'update or delete on table "common_spaces" violates foreign key constraint',
+      );
+      const handler = getToolHandler(server, 'delete_common_space');
+      const result = await handler({ role: 'admin', spaceId: 'cs-1' }, {});
+      const text = parseToolResponse(result);
+      expect(text).toContain('Failed to delete');
+      expect(text).toContain('common space');
+    });
+  });
+
+  describe('delete_inventory_element', () => {
+    let deleteCalls: Array<{ table: 'buildingElements' | 'unknown' }>;
+    let returningRows: unknown[];
+    let deleteError: Error | null;
+
+    beforeEach(() => {
+      deleteCalls = [];
+      returningRows = [];
+      deleteError = null;
+
+      (mockDb as unknown as { delete: jest.Mock }).delete = jest.fn((table: unknown) => {
+        const name = table === schema.buildingElements ? 'buildingElements' : 'unknown';
+        deleteCalls.push({ table: name });
+        return {
+          where: jest.fn().mockReturnThis(),
+          returning: jest.fn().mockImplementation(async () => {
+            if (deleteError) throw deleteError;
+            return returningRows;
+          }),
+        };
+      });
+    });
+
+    it('denies tenants before any DB read', async () => {
+      const handler = getToolHandler(server, 'delete_inventory_element');
+      const result = await handler({ role: 'tenant', elementId: 'be-1' }, {});
+      expect(parseToolResponse(result)).toBe(
+        'Access denied: tenants cannot delete inventory elements',
+      );
+      expect(deleteCalls).toEqual([]);
+    });
+
+    it('returns "Inventory element not found" when the element does not exist', async () => {
+      mockSelectChain.where
+        .mockImplementationOnce(() => createWhereResult([{ id: 'org-1' }])) // getMcpOrgIds
+        .mockImplementationOnce(() => createWhereResult([])); // buildingElements lookup → empty
+      const handler = getToolHandler(server, 'delete_inventory_element');
+      const result = await handler({ role: 'admin', elementId: 'missing' }, {});
+      expect(parseToolResponse(result)).toContain('Inventory element not found: missing');
+      expect(deleteCalls).toEqual([]);
+    });
+
+    it('denies access when the element is attached to a building outside MCP scope', async () => {
+      mockSelectChain.where
+        .mockImplementationOnce(() => createWhereResult([{ id: 'org-1' }])) // getMcpOrgIds
+        .mockImplementationOnce(() =>
+          createWhereResult([{ id: 'be-1', buildingId: 'b-other' }]),
+        )
+        .mockImplementationOnce(() =>
+          createWhereResult([{ organizationId: 'other-org' }]),
+        );
+      const handler = getToolHandler(server, 'delete_inventory_element');
+      const result = await handler({ role: 'admin', elementId: 'be-1' }, {});
+      expect(parseToolResponse(result)).toBe(
+        'Access denied: inventory element is not in an MCP-scoped organization',
+      );
+      expect(deleteCalls).toEqual([]);
+    });
+
+    it('deletes an inventory element inside MCP scope as admin and returns the deleted/message shape', async () => {
+      mockSelectChain.where
+        .mockImplementationOnce(() => createWhereResult([{ id: 'org-1' }])) // getMcpOrgIds
+        .mockImplementationOnce(() =>
+          createWhereResult([{ id: 'be-1', buildingId: 'b-1' }]),
+        )
+        .mockImplementationOnce(() =>
+          createWhereResult([{ organizationId: 'org-1' }]),
+        );
+      returningRows = [{ id: 'be-1', name: 'Roof Membrane', uniformatCode: 'B3010' }];
+
+      const handler = getToolHandler(server, 'delete_inventory_element');
+      const result = await handler({ role: 'admin', elementId: 'be-1' }, {});
+      const parsed = JSON.parse(parseToolResponse(result));
+
+      expect(parsed.deleted).toEqual({
+        id: 'be-1',
+        name: 'Roof Membrane',
+        uniformatCode: 'B3010',
+      });
+      expect(parsed.message).toMatch(/cascade applied/i);
+      // Cascade is enforced by Postgres FKs (history, evaluation suggestions,
+      // project elements, element documents, element project updates), so the
+      // only application-level delete is the `buildingElements` row itself.
+      expect(deleteCalls.map((c) => c.table)).toEqual(['buildingElements']);
+    });
+
+    it('returns a readable failure message when the delete throws', async () => {
+      mockSelectChain.where
+        .mockImplementationOnce(() => createWhereResult([{ id: 'org-1' }]))
+        .mockImplementationOnce(() =>
+          createWhereResult([{ id: 'be-1', buildingId: 'b-1' }]),
+        )
+        .mockImplementationOnce(() =>
+          createWhereResult([{ organizationId: 'org-1' }]),
+        );
+      deleteError = new Error(
+        'update or delete on table "building_elements" violates foreign key constraint',
+      );
+      const handler = getToolHandler(server, 'delete_inventory_element');
+      const result = await handler({ role: 'admin', elementId: 'be-1' }, {});
+      const text = parseToolResponse(result);
+      expect(text).toContain('Failed to delete');
+      expect(text).toContain('inventory element');
     });
   });
 
