@@ -989,6 +989,250 @@ describeIfDb('MCP inventory tools — real Postgres', () => {
   });
 
   // -------------------------------------------------------------------
+  // create_element_history_event — lastInspectionDate sync
+  //
+  // Locks in the chat-side parity with `POST /api/maintenance/elements/
+  // :elementId/history`: only `repair` and `minor_rehab` should bump the
+  // element's `lastInspectionDate` (and `updatedAt`) to the supplied
+  // `eventDate`; the other event types must leave it untouched. The
+  // combined `lifespanImpact` + repair-style case must also write both
+  // `currentLifespan` AND `lastInspectionDate` inside the same
+  // transaction so a future refactor cannot silently split the bump.
+  // -------------------------------------------------------------------
+  describe('create_element_history_event — lastInspectionDate sync', () => {
+    /**
+     * Seeds a fresh element with a known initial `lastInspectionDate` and
+     * `currentLifespan` so each event-type assertion has a stable baseline
+     * without polluting the shared `baseElementId` fixture used elsewhere.
+     */
+    async function seedFreshHistoryElement(opts: {
+      initialInspection: string; // YYYY-MM-DD
+      initialLifespan: number;
+    }): Promise<string> {
+      const [el] = await db
+        .insert(schema.buildingElements)
+        .values({
+          buildingId: inScopeBuildingId,
+          uniformatCode: TEST_LEVEL3_CODE,
+          name: `inv-it-history-${randomUUID().slice(0, 8)}`,
+          currentCondition: 'good',
+          lastInspectionDate: opts.initialInspection,
+          currentLifespan: opts.initialLifespan,
+        })
+        .returning({ id: schema.buildingElements.id });
+      createdElementIds.push(el.id);
+      return el.id;
+    }
+
+    it.each([
+      { eventType: 'repair', expectedBump: true },
+      { eventType: 'minor_rehab', expectedBump: true },
+      { eventType: 'construction', expectedBump: false },
+      { eventType: 'major_rehab', expectedBump: false },
+      { eventType: 'replacement', expectedBump: false },
+    ] as const)(
+      'eventType=$eventType — lastInspectionDate is bumped only for repair-style events',
+      async ({ eventType, expectedBump }) => {
+        const initialInspection = '2020-01-01';
+        const initialLifespan = 30;
+        const eventDate = '2025-04-15';
+        const elementId = await seedFreshHistoryElement({
+          initialInspection,
+          initialLifespan,
+        });
+
+        const [before] = await db
+          .select({
+            updatedAt: schema.buildingElements.updatedAt,
+            lastInspectionDate: schema.buildingElements.lastInspectionDate,
+            currentLifespan: schema.buildingElements.currentLifespan,
+          })
+          .from(schema.buildingElements)
+          .where(eq(schema.buildingElements.id, elementId));
+        expect(before!.lastInspectionDate).toBe(initialInspection);
+        expect(before!.currentLifespan).toBe(initialLifespan);
+
+        // Wait long enough that `new Date()` inside the tool will be
+        // strictly later than the `defaultNow()` captured on insert. The
+        // millisecond wall-clock advance is what makes the `updatedAt`
+        // ordering assertion below reliable.
+        await new Promise((r) => setTimeout(r, 50));
+
+        const handler = getToolHandler(server, 'create_element_history_event');
+        const result = await handler(
+          {
+            role: 'admin',
+            elementId,
+            eventType,
+            eventDate,
+            workDescription: `${eventType} event integration test`,
+          },
+          {},
+        );
+        const text = parseToolText(result);
+        expect(text).not.toMatch(/access denied|not found|failed to create/i);
+        const parsed = JSON.parse(text) as {
+          event: { id: string; eventType: string; elementId: string };
+          updatedElement: {
+            id: string;
+            currentLifespan: number | null;
+            lastInspectionDate: string | null;
+          } | null;
+        };
+        createdHistoryIds.push(parsed.event.id);
+        expect(parsed.event.eventType).toBe(eventType);
+        expect(parsed.event.elementId).toBe(elementId);
+
+        const [after] = await db
+          .select({
+            updatedAt: schema.buildingElements.updatedAt,
+            lastInspectionDate: schema.buildingElements.lastInspectionDate,
+            currentLifespan: schema.buildingElements.currentLifespan,
+          })
+          .from(schema.buildingElements)
+          .where(eq(schema.buildingElements.id, elementId));
+
+        if (expectedBump) {
+          // repair / minor_rehab — both the column and its `updatedAt`
+          // sibling must move, and the tool must echo the same value.
+          expect(after!.lastInspectionDate).toBe(eventDate);
+          expect(after!.updatedAt!.getTime()).toBeGreaterThan(
+            before!.updatedAt!.getTime(),
+          );
+          expect(parsed.updatedElement).not.toBeNull();
+          expect(parsed.updatedElement!.id).toBe(elementId);
+          expect(parsed.updatedElement!.lastInspectionDate).toBe(eventDate);
+        } else {
+          // construction / major_rehab / replacement — no `lifespanImpact`
+          // was supplied either, so the tool must skip the element write
+          // entirely. That means `updatedAt` is preserved and the tool
+          // returns `updatedElement: null` so callers can tell the
+          // element row was untouched.
+          expect(after!.lastInspectionDate).toBe(initialInspection);
+          expect(after!.updatedAt!.getTime()).toBe(
+            before!.updatedAt!.getTime(),
+          );
+          expect(parsed.updatedElement).toBeNull();
+        }
+        // `currentLifespan` is only ever touched when `lifespanImpact` is
+        // supplied, regardless of the event type.
+        expect(after!.currentLifespan).toBe(initialLifespan);
+      },
+      30000,
+    );
+
+    it('updates currentLifespan AND lastInspectionDate in the same transaction when lifespanImpact + repair-style eventType are supplied', async () => {
+      const initialInspection = '2019-05-05';
+      const initialLifespan = 25;
+      const lifespanImpact = 7;
+      const eventDate = '2025-08-01';
+      const elementId = await seedFreshHistoryElement({
+        initialInspection,
+        initialLifespan,
+      });
+
+      const handler = getToolHandler(server, 'create_element_history_event');
+      const result = await handler(
+        {
+          role: 'admin',
+          elementId,
+          eventType: 'repair',
+          eventDate,
+          workDescription: 'combined lifespan + inspection bump',
+          lifespanImpact,
+        },
+        {},
+      );
+      const text = parseToolText(result);
+      expect(text).not.toMatch(/access denied|not found|failed to create/i);
+      const parsed = JSON.parse(text) as {
+        event: { id: string; lifespanImpact: number | null };
+        updatedElement: {
+          id: string;
+          currentLifespan: number | null;
+          lastInspectionDate: string | null;
+        } | null;
+      };
+      createdHistoryIds.push(parsed.event.id);
+
+      // Tool response — both writes are reflected in the returned snapshot.
+      expect(parsed.updatedElement).not.toBeNull();
+      expect(parsed.updatedElement!.currentLifespan).toBe(
+        initialLifespan + lifespanImpact,
+      );
+      expect(parsed.updatedElement!.lastInspectionDate).toBe(eventDate);
+
+      // DB read-back — both writes landed atomically. If the bump had
+      // been split across two updates a half-applied state would surface
+      // here when one of them silently no-op'd.
+      const [row] = await db
+        .select({
+          currentLifespan: schema.buildingElements.currentLifespan,
+          lastInspectionDate: schema.buildingElements.lastInspectionDate,
+        })
+        .from(schema.buildingElements)
+        .where(eq(schema.buildingElements.id, elementId));
+      expect(row!.currentLifespan).toBe(initialLifespan + lifespanImpact);
+      expect(row!.lastInspectionDate).toBe(eventDate);
+    }, 30000);
+
+    it('non-repair eventType + lifespanImpact bumps currentLifespan but leaves lastInspectionDate untouched', async () => {
+      // Guards against the inverse mistake of the bump above: a future
+      // refactor that always sets `lastInspectionDate = eventDate` once
+      // any element write happens (e.g. because the lifespan branch
+      // already opens an UPDATE) would break parity with the REST
+      // endpoint, which only treats `repair`/`minor_rehab` as inspection
+      // events.
+      const initialInspection = '2018-03-03';
+      const initialLifespan = 40;
+      const lifespanImpact = 5;
+      const elementId = await seedFreshHistoryElement({
+        initialInspection,
+        initialLifespan,
+      });
+
+      const handler = getToolHandler(server, 'create_element_history_event');
+      const result = await handler(
+        {
+          role: 'admin',
+          elementId,
+          eventType: 'major_rehab',
+          eventDate: '2026-02-02',
+          workDescription: 'major rehab with lifespan bump',
+          lifespanImpact,
+        },
+        {},
+      );
+      const text = parseToolText(result);
+      expect(text).not.toMatch(/access denied|not found|failed to create/i);
+      const parsed = JSON.parse(text) as {
+        event: { id: string };
+        updatedElement: {
+          currentLifespan: number | null;
+          lastInspectionDate: string | null;
+        } | null;
+      };
+      createdHistoryIds.push(parsed.event.id);
+
+      expect(parsed.updatedElement).not.toBeNull();
+      expect(parsed.updatedElement!.currentLifespan).toBe(
+        initialLifespan + lifespanImpact,
+      );
+      expect(parsed.updatedElement!.lastInspectionDate).toBe(initialInspection);
+
+      const [row] = await db
+        .select({
+          currentLifespan: schema.buildingElements.currentLifespan,
+          lastInspectionDate: schema.buildingElements.lastInspectionDate,
+        })
+        .from(schema.buildingElements)
+        .where(eq(schema.buildingElements.id, elementId));
+      expect(row!.currentLifespan).toBe(initialLifespan + lifespanImpact);
+      expect(row!.lastInspectionDate).toBe(initialInspection);
+    }, 30000);
+  });
+
+  // -------------------------------------------------------------------
   // delete_inventory_element — cascade success + FK envelope
   // -------------------------------------------------------------------
   describe('delete_inventory_element', () => {
