@@ -348,9 +348,11 @@ router.get('/:buildingId/summary', requireAuth, async (req, res) => {
 });
 
 /**
- * Update building bank account number with reconciliation note.
+ * PUT /api/budgets/:buildingId/bank-account - Persist bank-account fields and
+ * the extended budget configuration (stored in `buildings.amenities`).
+ * Exported so MCP tools can invoke the same logic via invokeRouteHandler.
  */
-router.put('/:buildingId/bank-account', requireAuth, async (req, res) => {
+export const bankAccountPutHandler: express.RequestHandler = async (req, res) => {
   try {
     const { buildingId } = req.params;
     debugLog('PUT /:buildingId/bank-account - Request received', { 
@@ -471,12 +473,16 @@ router.put('/:buildingId/bank-account', requireAuth, async (req, res) => {
     console.error('❌ Error updating bank account:', error);
     res.status(500).json({ _error: 'Internal server error' });
   }
-});
+};
+
+router.put('/:buildingId/bank-account', requireAuth, bankAccountPutHandler);
 
 /**
- * Get building bank account info.
+ * GET /api/budgets/:buildingId/bank-account - Read bank-account fields and the
+ * extended budget configuration. Exported so MCP tools can invoke the same
+ * logic via invokeRouteHandler.
  */
-router.get('/:buildingId/bank-account', requireAuth, async (req, res) => {
+export const bankAccountGetHandler: express.RequestHandler = async (req, res) => {
   try {
     const { buildingId } = req.params;
     
@@ -568,7 +574,9 @@ router.get('/:buildingId/bank-account', requireAuth, async (req, res) => {
     console.error('❌ Error fetching bank account info:', error);
     res.status(500).json({ _error: 'Internal server error' });
   }
-});
+};
+
+router.get('/:buildingId/bank-account', requireAuth, bankAccountGetHandler);
 
 /**
  * Calculate suggested unplanned bills amount based on historical payment data
@@ -1991,10 +1999,10 @@ export const forecastHandler: express.RequestHandler = async (req, res) => {
 router.post('/:buildingId/forecast', requireAuth, forecastHandler);
 
 /**
- * PUT /api/budgets/:buildingId/unplanned-bills - Update unplanned bills amount
- * Separate endpoint for database mutations
+ * PUT /api/budgets/:buildingId/unplanned-bills - Update unplanned bills amount.
+ * Exported so MCP tools can invoke the same logic via invokeRouteHandler.
  */
-router.put('/:buildingId/unplanned-bills', requireAuth, async (req, res) => {
+export const unplannedBillsPutHandler: express.RequestHandler = async (req, res) => {
   try {
     const { buildingId } = req.params;
     
@@ -2051,12 +2059,15 @@ router.put('/:buildingId/unplanned-bills', requireAuth, async (req, res) => {
     console.error('❌ Error updating unplanned bills amount:', error);
     res.status(500).json({ _error: 'Internal server error' });
   }
-});
+};
+
+router.put('/:buildingId/unplanned-bills', requireAuth, unplannedBillsPutHandler);
 
 /**
- * GET /api/budgets/:buildingId/investments - Get capital investments for a building
+ * GET /api/budgets/:buildingId/investments - Get capital investments for a building.
+ * Exported so MCP tools can invoke the same logic via invokeRouteHandler.
  */
-router.get('/:buildingId/investments', requireAuth, async (req, res) => {
+export const investmentsGetHandler: express.RequestHandler = async (req, res) => {
   try {
     const { buildingId } = req.params;
     
@@ -2090,12 +2101,15 @@ router.get('/:buildingId/investments', requireAuth, async (req, res) => {
     console.error('❌ Error fetching capital investments:', error);
     res.status(500).json({ _error: 'Internal server error' });
   }
-});
+};
+
+router.get('/:buildingId/investments', requireAuth, investmentsGetHandler);
 
 /**
- * PUT /api/budgets/:buildingId/investments - Save capital investments for a building
+ * PUT /api/budgets/:buildingId/investments - Save capital investments for a building.
+ * Exported so MCP tools can invoke the same logic via invokeRouteHandler.
  */
-router.put('/:buildingId/investments', requireAuth, async (req, res) => {
+export const investmentsPutHandler: express.RequestHandler = async (req, res) => {
   try {
     const { buildingId } = req.params;
     const { investments } = req.body;
@@ -2174,6 +2188,8 @@ router.put('/:buildingId/investments', requireAuth, async (req, res) => {
       message: 'Failed to save capital investments'
     });
   }
-});
+};
+
+router.put('/:buildingId/investments', requireAuth, investmentsPutHandler);
 
 export default router;

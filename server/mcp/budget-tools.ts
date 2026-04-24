@@ -1,14 +1,18 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { randomUUID } from "crypto";
-import type { Request, Response } from "express";
+import type { Request, RequestHandler, Response } from "express";
 import { db } from "../db";
 import * as schema from "@shared/schema";
-import { eq, asc } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import {
   forecastHandler,
+  bankAccountGetHandler,
+  bankAccountPutHandler,
+  unplannedBillsPutHandler,
+  investmentsGetHandler,
+  investmentsPutHandler,
   calculateMinimumRequirement,
-  updateUnplannedBillsSchema,
 } from "../api/budgets";
 import { forecastInputSchema } from "../api/forecast-input-schema";
 import { insertCapitalInvestmentSchema } from "@shared/schema";
@@ -112,16 +116,17 @@ async function saveExtendedConfig(
 }
 
 /**
- * Typed in-process adapter for invoking the exported forecast Express handler.
- * Constructs a minimal Request/Response pair sufficient for the handler's
- * surface area (it only reads `params`/`body` and writes `status`/`json`).
+ * Typed in-process adapter for invoking exported Express handlers from MCP
+ * tools. Constructs a minimal Request/Response pair sufficient for the budget
+ * handlers' surface area (they only read `params`/`body` and write
+ * `status`/`json`).
  */
 interface CapturedResponse {
   status: number;
   payload: unknown;
 }
 
-class ForecastResponseAdapter {
+class RouteResponseAdapter {
   statusCode = 200;
   headersSent = false;
   private resolved = false;
@@ -171,25 +176,50 @@ class ForecastResponseAdapter {
   }
 }
 
-async function invokeForecastHandler(
-  buildingId: string,
-  body: z.infer<typeof forecastInputSchema>,
+/**
+ * Invoke an exported Express RequestHandler in-process and capture the
+ * response. Used by MCP budget tools to share the canonical handler logic
+ * with the HTTP routes (instead of duplicating Drizzle queries).
+ */
+async function invokeRouteHandler(
+  handler: RequestHandler,
+  options: { params?: Record<string, string>; body?: unknown },
 ): Promise<CapturedResponse> {
   return new Promise<CapturedResponse>((resolve) => {
-    const adapter = new ForecastResponseAdapter(resolve);
+    const adapter = new RouteResponseAdapter(resolve);
     const req = {
-      params: { buildingId },
-      body,
+      params: options.params ?? {},
+      body: options.body ?? {},
       query: {},
       headers: {},
     } as unknown as Request;
-    Promise.resolve(forecastHandler(req, adapter as unknown as Response, () => undefined)).catch(
-      (e: unknown) => {
-        console.error("[mcp:invokeForecastHandler]", e);
+    try {
+      const result = handler(
+        req,
+        adapter as unknown as Response,
+        () => undefined,
+      ) as unknown as Promise<unknown> | undefined;
+      Promise.resolve(result).catch((e: unknown) => {
+        console.error("[mcp:invokeRouteHandler]", e);
         resolve({ status: 500, payload: { _error: "Internal server error" } });
-      },
-    );
+      });
+    } catch (e) {
+      console.error("[mcp:invokeRouteHandler]", e);
+      resolve({ status: 500, payload: { _error: "Internal server error" } });
+    }
   });
+}
+
+function isErrorPayload(payload: unknown): payload is { _error: string; details?: unknown } {
+  return !!payload && typeof payload === "object" && "_error" in payload;
+}
+
+function payloadErrorMessage(payload: unknown): string {
+  if (isErrorPayload(payload)) {
+    const detail = payload.details ? `: ${JSON.stringify(payload.details)}` : "";
+    return `${payload._error}${detail}`;
+  }
+  return typeof payload === "string" ? payload : JSON.stringify(payload);
 }
 
 /**
@@ -237,83 +267,6 @@ const settingsUpdateSchema = z.object({
   customBankFields: z.record(z.string(), z.number()).optional(),
 });
 
-type SettingsUpdate = z.infer<typeof settingsUpdateSchema>;
-
-function applySettingsUpdate(
-  building: Building,
-  partial: SettingsUpdate,
-): { topLevel: BuildingUpdate; extendedConfig: ExtendedBudgetConfig } {
-  const extendedConfig = getExtendedConfig(building);
-  const topLevel: BuildingUpdate = {};
-
-  if (partial.bankAccountNumber !== undefined)
-    topLevel.bankAccountNumber = partial.bankAccountNumber;
-  if (partial.bankAccountNotes !== undefined)
-    topLevel.bankAccountNotes = partial.bankAccountNotes;
-  if (partial.bankAccountStartDate !== undefined)
-    topLevel.bankAccountStartDate = partial.bankAccountStartDate
-      ? new Date(partial.bankAccountStartDate)
-      : null;
-  if (partial.bankAccountStartAmount !== undefined)
-    topLevel.bankAccountStartAmount = partial.bankAccountStartAmount.toString();
-  if (partial.bankAccountMinimums !== undefined)
-    topLevel.bankAccountMinimums = partial.bankAccountMinimums;
-  if (partial.generalInflationRate !== undefined)
-    topLevel.generalInflationRate = partial.generalInflationRate.toString();
-  if (partial.revenueInflationRate !== undefined)
-    topLevel.revenueInflationRate = partial.revenueInflationRate.toString();
-  if (partial.financialYearStart !== undefined)
-    topLevel.financialYearStart = partial.financialYearStart || null;
-  if (partial.unplannedBillsAmount !== undefined)
-    topLevel.unplannedBillsAmount = partial.unplannedBillsAmount.toString();
-  if (partial.unplannedBillsStartDate !== undefined)
-    topLevel.unplannedBillsStartDate = partial.unplannedBillsStartDate || null;
-
-  // Extended config keys merge into the existing amenities document.
-  const extKeys: Array<keyof ExtendedBudgetConfig> = [
-    "emergencyFundMinimum",
-    "operatingCashMinimum",
-    "revenueGrowthRate",
-    "revenueInflation",
-    "reserveFundTarget",
-    "utilityInflationRate",
-    "maintenanceInflationRate",
-    "costInflationRate",
-    "specialInvestmentBudget",
-    "investmentHorizonYears",
-    "capitalProjectReserve",
-    "useGlobalBillsInflation",
-    "globalBillsInflationRate",
-    "categoryInflationRates",
-    "customBankFields",
-  ];
-  for (const key of extKeys) {
-    const value = partial[key as keyof SettingsUpdate];
-    if (value !== undefined) {
-      // Type-safe field-by-field assignment via a discriminated union.
-      switch (key) {
-        case "useGlobalBillsInflation":
-          extendedConfig.useGlobalBillsInflation = value as boolean;
-          break;
-        case "categoryInflationRates":
-          extendedConfig.categoryInflationRates = value as Record<string, number>;
-          break;
-        case "customBankFields":
-          extendedConfig.customBankFields = value as Record<string, number>;
-          break;
-        default:
-          extendedConfig[key as Exclude<
-            keyof ExtendedBudgetConfig,
-            "useGlobalBillsInflation" | "categoryInflationRates" | "customBankFields" |
-              "customRevenueLines" | "punctualRevenueGrowth"
-          >] = value as number;
-      }
-    }
-  }
-
-  return { topLevel, extendedConfig };
-}
-
 export function registerBudgetTools(server: McpServer, deps: BudgetToolDeps): void {
   const { roleParam, getMcpOrgIds } = deps;
 
@@ -326,33 +279,47 @@ export function registerBudgetTools(server: McpServer, deps: BudgetToolDeps): vo
       const building = await loadScopedBuilding(buildingId, orgIds);
       if (!building) return accessDenied("Building not found or access denied");
 
+      // Delegate to the canonical Express handlers so the MCP response stays
+      // in lock-step with what the budget UI consumes.
+      const bankResp = await invokeRouteHandler(bankAccountGetHandler, {
+        params: { buildingId },
+      });
+      if (bankResp.status >= 400) {
+        return accessDenied(
+          `Failed to read bank-account settings (status ${bankResp.status}): ${payloadErrorMessage(
+            bankResp.payload,
+          )}`,
+        );
+      }
+      const investmentsResp = await invokeRouteHandler(investmentsGetHandler, {
+        params: { buildingId },
+      });
+      if (investmentsResp.status >= 400) {
+        return accessDenied(
+          `Failed to read capital investments (status ${investmentsResp.status}): ${payloadErrorMessage(
+            investmentsResp.payload,
+          )}`,
+        );
+      }
+
+      const bank = (bankResp.payload ?? {}) as Record<string, unknown>;
       const ext = getExtendedConfig(building);
-      const minimumRequirement = calculateMinimumRequirement(
-        ext.emergencyFundMinimum,
-        ext.operatingCashMinimum,
-        ext.customBankFields,
-      );
-      const investments = await db
-        .select()
-        .from(schema.capitalInvestments)
-        .where(eq(schema.capitalInvestments.buildingId, buildingId))
-        .orderBy(asc(schema.capitalInvestments.targetDate));
 
       return ok({
         buildingId: building.id,
         buildingName: building.name,
-        bankAccountNumber: building.bankAccountNumber,
-        bankAccountNotes: building.bankAccountNotes,
-        bankAccountStartDate: building.bankAccountStartDate,
-        bankAccountStartAmount: building.bankAccountStartAmount,
-        bankAccountMinimums: building.bankAccountMinimums,
-        bankAccountUpdatedAt: building.bankAccountUpdatedAt,
-        generalInflationRate: building.generalInflationRate,
-        revenueInflationRate: building.revenueInflationRate,
-        unplannedBillsAmount: building.unplannedBillsAmount,
-        unplannedBillsStartDate: building.unplannedBillsStartDate,
-        financialYearStart: building.financialYearStart,
-        minimumRequirement,
+        bankAccountNumber: bank.bankAccountNumber,
+        bankAccountNotes: bank.bankAccountNotes,
+        bankAccountStartDate: bank.bankAccountStartDate,
+        bankAccountStartAmount: bank.bankAccountStartAmount,
+        bankAccountMinimums: bank.bankAccountMinimums,
+        bankAccountUpdatedAt: bank.bankAccountUpdatedAt,
+        generalInflationRate: bank.generalInflationRate,
+        revenueInflationRate: bank.revenueInflationRate,
+        unplannedBillsAmount: bank.unplannedBillsAmount,
+        unplannedBillsStartDate: bank.unplannedBillsStartDate,
+        financialYearStart: bank.financialYearStart,
+        minimumRequirement: bank.minimumRequirement,
         emergencyFundMinimum: ext.emergencyFundMinimum,
         operatingCashMinimum: ext.operatingCashMinimum,
         revenueGrowthRate: ext.revenueGrowthRate,
@@ -370,7 +337,7 @@ export function registerBudgetTools(server: McpServer, deps: BudgetToolDeps): vo
         customBankFields: ext.customBankFields ?? {},
         customRevenueLines: ext.customRevenueLines ?? [],
         punctualRevenueGrowth: ext.punctualRevenueGrowth ?? [],
-        capitalInvestments: investments,
+        capitalInvestments: investmentsResp.payload ?? [],
       });
     },
   );
@@ -390,8 +357,41 @@ export function registerBudgetTools(server: McpServer, deps: BudgetToolDeps): vo
       const building = await loadScopedBuilding(buildingId, orgIds);
       if (!building) return accessDenied("Building not found or access denied");
       try {
-        const { topLevel, extendedConfig } = applySettingsUpdate(building, settings);
-        await withRetryableDbCall(() => saveExtendedConfig(buildingId, extendedConfig, topLevel));
+        // Delegate to PUT /api/budgets/:buildingId/bank-account so the MCP and
+        // the budget UI write through the exact same handler. The handler
+        // rebuilds the entire amenities document from the request body, so we
+        // must echo every existing extended-config field back; only the keys
+        // present in `settings` are overridden.
+        const ext = getExtendedConfig(building);
+        const body: Record<string, unknown> = {
+          bankAccountNumber: building.bankAccountNumber,
+          bankAccountNotes: building.bankAccountNotes,
+          bankAccountStartDate: building.bankAccountStartDate
+            ? new Date(building.bankAccountStartDate).toISOString().split("T")[0]
+            : null,
+          bankAccountStartAmount: building.bankAccountStartAmount,
+          bankAccountMinimums: building.bankAccountMinimums,
+          generalInflationRate: building.generalInflationRate,
+          revenueInflationRate: building.revenueInflationRate,
+          unplannedBillsAmount: building.unplannedBillsAmount,
+          unplannedBillsStartDate: building.unplannedBillsStartDate,
+          financialYearStart: building.financialYearStart,
+          ...ext,
+          ...settings,
+        };
+        const { status, payload } = await withRetryableDbCall(() =>
+          invokeRouteHandler(bankAccountPutHandler, {
+            params: { buildingId },
+            body,
+          }),
+        );
+        if (status >= 400) {
+          return buildWriteErrorResponse(
+            new Error(payloadErrorMessage(payload)),
+            "budget settings",
+            "update",
+          );
+        }
         return ok({ status: "ok", buildingId, updated: Object.keys(settings) });
       } catch (e) {
         console.error("[mcp:update_budget_settings]", e);
@@ -646,29 +646,35 @@ export function registerBudgetTools(server: McpServer, deps: BudgetToolDeps): vo
       const building = await loadScopedBuilding(buildingId, orgIds);
       if (!building) return accessDenied("Building not found or access denied");
       try {
-        const validated = updateUnplannedBillsSchema.parse(input);
-        await withRetryableDbCall(() =>
-          db
-            .update(schema.buildings)
-            .set({
-              unplannedBillsAmount: validated.unplannedBillsAmount.toString(),
-              unplannedBillsStartDate: validated.unplannedBillsStartDate || null,
-              bankAccountNotes: validated.notes || null,
-              updatedAt: new Date(),
-            })
-            .where(eq(schema.buildings.id, buildingId)),
+        // Delegate to the canonical PUT handler so input validation, the
+        // `notes || null` clearing semantics, and the updatedAt bump all stay
+        // in one place.
+        const { status, payload } = await withRetryableDbCall(() =>
+          invokeRouteHandler(unplannedBillsPutHandler, {
+            params: { buildingId },
+            body: input,
+          }),
         );
+        if (status >= 400) {
+          if (status === 400) {
+            return accessDenied(`Invalid input: ${payloadErrorMessage(payload)}`);
+          }
+          return buildWriteErrorResponse(
+            new Error(payloadErrorMessage(payload)),
+            "unplanned bills",
+            "update",
+          );
+        }
+        const respBody = (payload ?? {}) as Record<string, unknown>;
         return ok({
           status: "ok",
           buildingId,
-          unplannedBillsAmount: validated.unplannedBillsAmount,
-          unplannedBillsStartDate: validated.unplannedBillsStartDate ?? null,
-          notes: validated.notes ?? null,
+          unplannedBillsAmount: respBody.unplannedBillsAmount ?? input.unplannedBillsAmount,
+          unplannedBillsStartDate:
+            respBody.unplannedBillsStartDate ?? input.unplannedBillsStartDate ?? null,
+          notes: respBody.notes ?? input.notes ?? null,
         });
       } catch (e) {
-        if (e instanceof z.ZodError) {
-          return accessDenied(`Invalid input: ${JSON.stringify(e.errors)}`);
-        }
         console.error("[mcp:update_unplanned_bills]", e);
         return buildWriteErrorResponse(e, "unplanned bills", "update");
       }
@@ -684,12 +690,17 @@ export function registerBudgetTools(server: McpServer, deps: BudgetToolDeps): vo
       const orgIds = await getMcpOrgIds();
       const building = await loadScopedBuilding(buildingId, orgIds);
       if (!building) return accessDenied("Building not found or access denied");
-      const investments = await db
-        .select()
-        .from(schema.capitalInvestments)
-        .where(eq(schema.capitalInvestments.buildingId, buildingId))
-        .orderBy(asc(schema.capitalInvestments.targetDate));
-      return ok(investments);
+      // Delegate to GET /api/budgets/:buildingId/investments so ordering and
+      // shape match the budget UI.
+      const { status, payload } = await invokeRouteHandler(investmentsGetHandler, {
+        params: { buildingId },
+      });
+      if (status >= 400) {
+        return accessDenied(
+          `Failed to read capital investments (status ${status}): ${payloadErrorMessage(payload)}`,
+        );
+      }
+      return ok(payload ?? []);
     },
   );
 
@@ -727,7 +738,9 @@ export function registerBudgetTools(server: McpServer, deps: BudgetToolDeps): vo
       const building = await loadScopedBuilding(buildingId, orgIds);
       if (!building) return accessDenied("Building not found or access denied");
       try {
-        const validated = insertCapitalInvestmentSchema.parse({
+        // Validate up-front so we can return a friendly Zod error before
+        // touching the database.
+        insertCapitalInvestmentSchema.parse({
           buildingId,
           title,
           amount,
@@ -738,23 +751,72 @@ export function registerBudgetTools(server: McpServer, deps: BudgetToolDeps): vo
           description: description ?? null,
           category: category ?? null,
         });
-        const [created] = await withRetryableDbCall(() =>
-          db
-            .insert(schema.capitalInvestments)
-            .values({
-              type: "custom" as const,
-              buildingId: validated.buildingId,
-              title: validated.title,
-              amount: validated.amount.toString(),
-              targetDate: validated.targetDate.toISOString().split("T")[0],
-              urgency: validated.urgency,
-              ownershipType: validated.ownershipType,
-              description: validated.description ?? null,
-              category: validated.category ?? null,
-            })
-            .returning(),
+
+        // Delegate to PUT /api/budgets/:buildingId/investments so the row
+        // construction lives in one place. The PUT handler deletes all
+        // type='custom' rows and reinserts the array — so we read the
+        // existing custom investments first, append the new entry, and let
+        // the handler persist the full set. Note: this regenerates the ids
+        // of any other custom investments for this building, mirroring the
+        // budget UI's bulk-save behavior.
+        const listResp = await invokeRouteHandler(investmentsGetHandler, {
+          params: { buildingId },
+        });
+        if (listResp.status >= 400) {
+          return buildWriteErrorResponse(
+            new Error(payloadErrorMessage(listResp.payload)),
+            "capital investment",
+            "create",
+          );
+        }
+        const existing = Array.isArray(listResp.payload)
+          ? (listResp.payload as Array<Record<string, unknown>>)
+          : [];
+        const existingCustom = existing.filter((r) => r.type === "custom");
+        const newEntry = {
+          buildingId,
+          title,
+          amount,
+          targetDate,
+          urgency,
+          ownershipType,
+          description: description ?? null,
+          category: category ?? null,
+        };
+        const putResp = await withRetryableDbCall(() =>
+          invokeRouteHandler(investmentsPutHandler, {
+            params: { buildingId },
+            body: { investments: [...existingCustom, newEntry] },
+          }),
         );
-        return ok(created);
+        if (putResp.status >= 400) {
+          return buildWriteErrorResponse(
+            new Error(payloadErrorMessage(putResp.payload)),
+            "capital investment",
+            "create",
+          );
+        }
+
+        // Re-list to find the newly inserted row by content match (the PUT
+        // handler doesn't return rows, and all custom ids were regenerated).
+        const afterResp = await invokeRouteHandler(investmentsGetHandler, {
+          params: { buildingId },
+        });
+        const afterRows = Array.isArray(afterResp.payload)
+          ? (afterResp.payload as Array<Record<string, unknown>>)
+          : [];
+        const expectedAmount = amount.toString();
+        const created =
+          afterRows.find(
+            (r) =>
+              r.type === "custom" &&
+              r.title === title &&
+              String(r.amount) === expectedAmount &&
+              r.targetDate === targetDate &&
+              r.urgency === urgency &&
+              r.ownershipType === ownershipType,
+          ) ?? null;
+        return ok(created ?? newEntry);
       } catch (e) {
         if (e instanceof z.ZodError) {
           return accessDenied(`Invalid input: ${JSON.stringify(e.errors)}`);
@@ -886,13 +948,12 @@ export function registerBudgetTools(server: McpServer, deps: BudgetToolDeps): vo
       const building = await loadScopedBuilding(buildingId, orgIds);
       if (!building) return accessDenied("Building not found or access denied");
       const validated = forecastArgs as z.infer<typeof forecastInputSchema>;
-      const { status, payload } = await invokeForecastHandler(buildingId, validated);
+      const { status, payload } = await invokeRouteHandler(forecastHandler, {
+        params: { buildingId },
+        body: validated,
+      });
       if (status >= 400) {
-        return accessDenied(
-          `Forecast failed (status ${status}): ${
-            typeof payload === "object" ? JSON.stringify(payload) : String(payload)
-          }`,
-        );
+        return accessDenied(`Forecast failed (status ${status}): ${payloadErrorMessage(payload)}`);
       }
       return ok(payload);
     },
