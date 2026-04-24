@@ -70,9 +70,11 @@ jest.mock('../../../server/db', () => ({ db: mockDb }));
 // `workflow-service` is the only collaborator that the MCP project tools
 // hit besides `db`. Stub it so the test can assert delegation explicitly.
 const mockGetProjectWorkflowState = jest.fn();
+const mockGetAllowedReopenTargets = jest.fn();
 jest.mock('../../../server/services/workflow-service', () => ({
   workflowService: {
     getProjectWorkflowState: (...args: unknown[]) => mockGetProjectWorkflowState(...args),
+    getAllowedReopenTargets: (...args: unknown[]) => mockGetAllowedReopenTargets(...args),
   },
 }));
 
@@ -173,6 +175,7 @@ describe('MCP project tools — Task #315 mocked unit tests', () => {
     mockUpdateChain.returning.mockReset().mockResolvedValue([{}]);
     mockDb.update.mockReset().mockReturnValue(mockUpdateChain);
     mockGetProjectWorkflowState.mockReset();
+    mockGetAllowedReopenTargets.mockReset();
   });
 
   // ===========================================================================
@@ -192,6 +195,14 @@ describe('MCP project tools — Task #315 mocked unit tests', () => {
     ]) {
       expect(tools[name]).toBeDefined();
     }
+  });
+
+  // Task #528 — `list_allowed_reopen_targets` is the additional
+  // project-related read tool that shares `loadMcpScopedProject` with
+  // the eight tools above and was not covered by Task #315.
+  it('registers list_allowed_reopen_targets (Task #528 read-tool coverage)', () => {
+    const tools = (server as unknown as { _registeredTools: Record<string, unknown> })._registeredTools;
+    expect(tools.list_allowed_reopen_targets).toBeDefined();
   });
 
   // ===========================================================================
@@ -684,6 +695,102 @@ describe('MCP project tools — Task #315 mocked unit tests', () => {
       const parsed = JSON.parse(textOf(result));
       expect(parsed.code).toBe('FK_VIOLATION');
       expect(parsed.message).toMatch(/Cannot update project task/i);
+    });
+  });
+
+  // ===========================================================================
+  // Task #528 — `list_allowed_reopen_targets` mocked coverage.
+  //
+  // This tool is read-only and shares `loadMcpScopedProject` with the
+  // eight write/read tools above. It delegates to
+  // `workflowService.getAllowedReopenTargets` and surfaces the project's
+  // current status alongside the list. The tests below assert:
+  //
+  //   1. Tenant role is denied before any DB call.
+  //   2. The MCP-org scope guard rejects an out-of-scope project (a
+  //      regression in `loadMcpScopedProject` would otherwise leak the
+  //      project's workflow history into the AI-assistant context).
+  //   3. A missing project is reported with the shared
+  //      "Project not found" message.
+  //   4. The happy path delegates to `workflowService.getAllowedReopenTargets`
+  //      with the project id and returns `{ currentStatus, allowedTargets }`.
+  //   5. A workflow-service throw is funneled through
+  //      `buildWriteErrorResponse` rather than leaking the raw driver
+  //      error.
+  // ===========================================================================
+  describe('list_allowed_reopen_targets — Task #528 read-tool coverage', () => {
+    it('denies tenant role before any DB call', async () => {
+      const handler = getToolHandler(server, 'list_allowed_reopen_targets');
+      const result = await handler({ role: 'tenant', projectId: 'p-1' }, {});
+      expect(textOf(result)).toMatch(/tenants cannot view reopen targets/i);
+      expect(mockDb.select).not.toHaveBeenCalled();
+      expect(mockGetAllowedReopenTargets).not.toHaveBeenCalled();
+    });
+
+    it('refuses a project whose building is outside the MCP scope', async () => {
+      queueScopedProjectLookup({
+        project: { id: 'p-1', buildingId: 'b-x', status: 'in_progress' },
+        building: { id: 'b-x', organizationId: 'other-org' },
+      });
+      const handler = getToolHandler(server, 'list_allowed_reopen_targets');
+      const result = await handler({ role: 'admin', projectId: 'p-1' }, {});
+      expect(textOf(result)).toMatch(/project is not attached to an MCP-scoped building/);
+      expect(mockGetAllowedReopenTargets).not.toHaveBeenCalled();
+    });
+
+    it('refuses a missing project with the shared "Project not found" message', async () => {
+      mockSelectChain.where
+        .mockImplementationOnce(() => createWhereResult([{ id: 'mcp-org-1' }]))
+        .mockImplementationOnce(() => createWhereResult([])); // project lookup → empty
+      const handler = getToolHandler(server, 'list_allowed_reopen_targets');
+      const result = await handler({ role: 'admin', projectId: 'missing' }, {});
+      expect(textOf(result)).toMatch(/Project not found: missing/);
+      expect(mockGetAllowedReopenTargets).not.toHaveBeenCalled();
+    });
+
+    it('returns currentStatus + allowedTargets from workflowService.getAllowedReopenTargets', async () => {
+      queueScopedProjectLookup({
+        project: { id: 'p-1', buildingId: 'b-1', status: 'in_progress' },
+        building: { id: 'b-1', organizationId: 'mcp-org-1' },
+      });
+      mockGetAllowedReopenTargets.mockResolvedValueOnce(['planned', 'submission', 'pre_work']);
+
+      const handler = getToolHandler(server, 'list_allowed_reopen_targets');
+      const result = await handler({ role: 'admin', projectId: 'p-1' }, {});
+      expect(mockGetAllowedReopenTargets).toHaveBeenCalledTimes(1);
+      expect(mockGetAllowedReopenTargets).toHaveBeenCalledWith('p-1');
+      const parsed = JSON.parse(textOf(result));
+      expect(parsed.currentStatus).toBe('in_progress');
+      expect(parsed.allowedTargets).toEqual(['planned', 'submission', 'pre_work']);
+    });
+
+    it('manager role is allowed (parity with admin) and reaches the workflow service', async () => {
+      queueScopedProjectLookup({
+        project: { id: 'p-1', buildingId: 'b-1', status: 'completed' },
+        building: { id: 'b-1', organizationId: 'mcp-org-1' },
+      });
+      mockGetAllowedReopenTargets.mockResolvedValueOnce(['post_work']);
+      const handler = getToolHandler(server, 'list_allowed_reopen_targets');
+      const result = await handler({ role: 'manager', projectId: 'p-1' }, {});
+      expect(textOf(result)).not.toMatch(/Access denied/);
+      const parsed = JSON.parse(textOf(result));
+      expect(parsed.currentStatus).toBe('completed');
+      expect(parsed.allowedTargets).toEqual(['post_work']);
+    });
+
+    it('returns a sanitized error response when workflowService throws', async () => {
+      queueScopedProjectLookup({
+        project: { id: 'p-1', buildingId: 'b-1', status: 'in_progress' },
+        building: { id: 'b-1', organizationId: 'mcp-org-1' },
+      });
+      const errSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      mockGetAllowedReopenTargets.mockRejectedValueOnce(PG_FK_VIOLATION);
+      const handler = getToolHandler(server, 'list_allowed_reopen_targets');
+      const result = await handler({ role: 'admin', projectId: 'p-1' }, {});
+      const parsed = JSON.parse(textOf(result));
+      expect(parsed.code).toBe('FK_VIOLATION');
+      expect(parsed.message).toMatch(/Cannot update project/i);
+      errSpy.mockRestore();
     });
   });
 

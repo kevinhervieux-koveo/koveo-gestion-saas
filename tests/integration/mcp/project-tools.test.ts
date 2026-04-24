@@ -374,6 +374,10 @@ describeIfDb('MCP project tools — Task #315 integration', () => {
       'advance_project_status',
       'add_project_task',
       'assign_project_vendor',
+      // Task #528 — list_allowed_reopen_targets shares the same
+      // loadMcpScopedProject guard, so a regression in that helper
+      // would surface here alongside the other project tools.
+      'list_allowed_reopen_targets',
     ]) {
       const handler = getToolHandler(adminSrv, tool);
       const args: Record<string, unknown> = { role: 'admin', projectId: outsideProjectId };
@@ -747,4 +751,89 @@ describeIfDb('MCP project tools — Task #315 integration', () => {
     expect(persisted.title).toBe(`${TEST_TAG} mgr-edited`);
     expect(persisted.priority).toBe('low');
   }, 60000);
+
+  // -----------------------------------------------------------------
+  // Task #528 — `list_allowed_reopen_targets` is the additional
+  // project-related read tool that shares the `loadMcpScopedProject`
+  // guard but was not covered by Task #315. The block below proves:
+  //
+  //   - Tenants are denied (mirrors the unit role-gate).
+  //   - The tool returns the previously-completed/skipped statuses for
+  //     an in-scope project as the project advances through the
+  //     workflow (delegates to workflowService.getAllowedReopenTargets
+  //     against the real DB).
+  //   - Manager role can drive the read tool (parity with admin).
+  // -----------------------------------------------------------------
+  describe('list_allowed_reopen_targets — Task #528 read-tool coverage', () => {
+    it('denies tenant role', async () => {
+      const tenantSrv = serverFor('tenant', tenantUserId);
+      const handler = getToolHandler(tenantSrv, 'list_allowed_reopen_targets');
+      const res = await handler({ role: 'tenant', projectId: outsideProjectId });
+      expect(textOf(res)).toMatch(/tenants cannot view reopen targets/i);
+    }, 60000);
+
+    it('returns the empty list for a freshly-planned in-scope project', async () => {
+      const adminSrv = serverFor('admin', adminUserId);
+
+      // A project still at `planned` has no previously-completed
+      // statuses — the list must come back empty.
+      const createRes = await getToolHandler(adminSrv, 'create_project')({
+        role: 'admin',
+        buildingId: buildingInScopeId,
+        title: `${TEST_TAG} reopen-empty`,
+      });
+      const project = parseJson<{ id: string; status: string }>(createRes);
+      created.projectIds.add(project.id);
+
+      const handler = getToolHandler(adminSrv, 'list_allowed_reopen_targets');
+      const res = await handler({ role: 'admin', projectId: project.id });
+      const parsed = parseJson<{
+        currentStatus: string;
+        allowedTargets: string[];
+      }>(res);
+      expect(parsed.currentStatus).toBe('planned');
+      expect(Array.isArray(parsed.allowedTargets)).toBe(true);
+      expect(parsed.allowedTargets).toEqual([]);
+    }, 60000);
+
+    it('returns the previously-completed statuses once the project has advanced', async () => {
+      const adminSrv = serverFor('admin', adminUserId);
+      const mgrSrv = serverFor('manager', managerUserId);
+
+      // Park a fresh project at `in_progress` directly so the
+      // workflow service has a deterministic history of completed
+      // statuses to surface (`planned`, `submission`, `pre_work`).
+      const createRes = await getToolHandler(adminSrv, 'create_project')({
+        role: 'admin',
+        buildingId: buildingInScopeId,
+        title: `${TEST_TAG} reopen-list`,
+      });
+      const project = parseJson<{ id: string }>(createRes);
+      created.projectIds.add(project.id);
+
+      await db
+        .update(schema.maintenanceProjects)
+        .set({ status: 'in_progress', updatedAt: new Date() })
+        .where(eq(schema.maintenanceProjects.id, project.id));
+
+      // Manager role drives the read — same parity check used for
+      // update_project elsewhere in this suite.
+      const handler = getToolHandler(mgrSrv, 'list_allowed_reopen_targets');
+      const res = await handler({ role: 'manager', projectId: project.id });
+      const parsed = parseJson<{
+        currentStatus: string;
+        allowedTargets: string[];
+      }>(res);
+      expect(parsed.currentStatus).toBe('in_progress');
+      // Statuses earlier in the progression than `in_progress` should
+      // each be eligible reopen targets. The tool must not include
+      // the current status nor anything ahead of it.
+      expect(parsed.allowedTargets).toEqual(
+        expect.arrayContaining(['planned', 'submission', 'pre_work']),
+      );
+      expect(parsed.allowedTargets).not.toContain('in_progress');
+      expect(parsed.allowedTargets).not.toContain('post_work');
+      expect(parsed.allowedTargets).not.toContain('completed');
+    }, 60000);
+  });
 });
