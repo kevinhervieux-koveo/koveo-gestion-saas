@@ -22,6 +22,7 @@ import {
   Trash2,
   Sparkles,
   ChevronRight,
+  ChevronDown,
   Loader2,
   Building2,
   FileText,
@@ -30,6 +31,9 @@ import {
   FileArchive,
   File as FileIcon,
   MapPin,
+  History,
+  AlertTriangle,
+  Play,
 } from 'lucide-react';
 import {
   bandForConfidence,
@@ -174,6 +178,306 @@ function FallbackReasonBadge({
   );
 }
 
+const HISTORY_STEP_FIELDS: ReadonlyArray<{
+  field: keyof BulkImportItem;
+  labelEn: string;
+  labelFr: string;
+}> = [
+  { field: 'screening', labelEn: 'Screening', labelFr: 'Filtrage' },
+  { field: 'sortingDecision', labelEn: 'Sorting', labelFr: 'Tri' },
+  { field: 'branchDecision', labelEn: 'Branching', labelFr: 'Aiguillage' },
+  { field: 'identification', labelEn: 'Identification', labelFr: 'Identification' },
+  { field: 'linkDecisions', labelEn: 'Linking', labelFr: 'Liaison' },
+];
+
+/**
+ * Pull every fallbackReason recorded against an item (one per AI step
+ * that ran). The history view surfaces these so admins can see *why*
+ * past sessions produced low-confidence results without having to open
+ * the item in the active wizard.
+ */
+function fallbackReasonsForItem(
+  item: BulkImportItem,
+): Array<{ step: string; reason: BulkImportFallbackReason }> {
+  const out: Array<{ step: string; reason: BulkImportFallbackReason }> = [];
+  for (const { field, labelEn } of HISTORY_STEP_FIELDS) {
+    const decision = item[field] as
+      | { fallbackReason?: BulkImportFallbackReason | null }
+      | null
+      | undefined;
+    if (decision?.fallbackReason) {
+      out.push({ step: labelEn, reason: decision.fallbackReason });
+    }
+  }
+  return out;
+}
+
+interface HistoryRowBuilding {
+  id: string;
+  name: string;
+}
+
+function HistorySessionRow({
+  session,
+  buildings,
+  expanded,
+  onToggle,
+  onResume,
+  isFr,
+  stepLabels,
+}: {
+  session: BulkImportSession;
+  buildings: HistoryRowBuilding[];
+  expanded: boolean;
+  onToggle: () => void;
+  onResume: () => void;
+  isFr: boolean;
+  stepLabels: Record<BulkImportStep, string>;
+}) {
+  const buildingName =
+    buildings.find((b) => b.id === session.buildingId)?.name ??
+    session.buildingId.slice(0, 8);
+  const created = new Date(session.createdAt as unknown as string);
+  const dateText = isNaN(created.getTime())
+    ? '—'
+    : created.toLocaleDateString(isFr ? 'fr-CA' : 'en-CA', {
+        year: 'numeric',
+        month: 'short',
+        day: '2-digit',
+      });
+  const statusLabelEn: Record<BulkImportSession['status'], string> = {
+    active: 'Active',
+    paused: 'Paused',
+    completed: 'Completed',
+    cleared: 'Cleared',
+  };
+  const statusLabelFr: Record<BulkImportSession['status'], string> = {
+    active: 'Active',
+    paused: 'En pause',
+    completed: 'Terminée',
+    cleared: 'Effacée',
+  };
+  const statusVariant: Record<BulkImportSession['status'], string> = {
+    active: 'bg-emerald-100 text-emerald-900',
+    paused: 'bg-amber-100 text-amber-900',
+    completed: 'bg-sky-100 text-sky-900',
+    cleared: 'bg-gray-100 text-gray-700',
+  };
+  const resumable = session.status === 'active' || session.status === 'paused';
+
+  // Lazy-fetch the items only when the row is expanded.
+  const { data: payload, isLoading } = useQuery<SessionPayload>({
+    queryKey: ['/api/admin/bulk-import/sessions', session.id],
+    enabled: expanded,
+  });
+  const items = payload?.items ?? [];
+  const itemsWithFallback = items.filter(
+    (item) => fallbackReasonsForItem(item).length > 0,
+  );
+
+  return (
+    <div
+      className="rounded-md border bg-card"
+      data-testid={`history-row-${session.id}`}
+    >
+      <div className="flex items-center justify-between gap-3 p-3">
+        <button
+          type="button"
+          onClick={onToggle}
+          className="flex min-w-0 flex-1 items-center gap-3 text-left"
+          aria-expanded={expanded}
+          data-testid={`history-toggle-${session.id}`}
+        >
+          {expanded ? (
+            <ChevronDown className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+          ) : (
+            <ChevronRight className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+          )}
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <span className="truncate font-medium">{buildingName}</span>
+              <span
+                className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${statusVariant[session.status]}`}
+                data-testid={`history-status-${session.id}`}
+              >
+                {(isFr ? statusLabelFr : statusLabelEn)[session.status]}
+              </span>
+            </div>
+            <div className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+              <span>{dateText}</span>
+              <span>·</span>
+              <span>
+                {isFr ? 'Étape' : 'Step'}: {stepLabels[session.currentStep]}
+              </span>
+            </div>
+          </div>
+        </button>
+        {resumable && (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={onResume}
+            data-testid={`history-resume-${session.id}`}
+          >
+            <Play className="mr-1 h-3 w-3" />
+            {isFr ? 'Reprendre' : 'Resume'}
+          </Button>
+        )}
+      </div>
+      {expanded && (
+        <div className="border-t p-3">
+          {isLoading ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              {isFr ? 'Chargement…' : 'Loading…'}
+            </div>
+          ) : items.length === 0 ? (
+            <p className="text-sm text-muted-foreground" data-testid={`history-empty-${session.id}`}>
+              {isFr ? 'Aucun fichier dans cette session.' : 'No files in this session.'}
+            </p>
+          ) : (
+            <>
+              <div className="mb-3 flex flex-wrap items-center gap-3 text-xs">
+                <span className="text-muted-foreground">
+                  {items.length}{' '}
+                  {isFr ? 'fichier(s)' : 'file(s)'}
+                </span>
+                <span
+                  className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 font-medium ${
+                    itemsWithFallback.length > 0
+                      ? 'bg-amber-50 text-amber-900 ring-1 ring-amber-200'
+                      : 'bg-emerald-50 text-emerald-900 ring-1 ring-emerald-200'
+                  }`}
+                  data-testid={`history-fallback-summary-${session.id}`}
+                >
+                  <AlertTriangle className="h-3 w-3" />
+                  {itemsWithFallback.length}{' '}
+                  {isFr
+                    ? 'fichier(s) avec repli IA'
+                    : 'file(s) with AI fallback'}
+                </span>
+              </div>
+              <ul className="space-y-2">
+                {items.map((item) => {
+                  const reasons = fallbackReasonsForItem(item);
+                  return (
+                    <li
+                      key={item.id}
+                      className="flex flex-wrap items-center justify-between gap-2 rounded-sm border bg-background px-3 py-2"
+                      data-testid={`history-item-${item.id}`}
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-sm font-medium">
+                          {item.originalName}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {item.status}
+                          {item.mimeType ? ` · ${item.mimeType}` : ''}
+                        </div>
+                      </div>
+                      {reasons.length === 0 ? (
+                        <span className="text-xs text-muted-foreground">
+                          {isFr ? 'Aucun repli' : 'No fallback'}
+                        </span>
+                      ) : (
+                        <div
+                          className="flex flex-wrap items-center gap-1"
+                          data-testid={`history-item-fallbacks-${item.id}`}
+                        >
+                          {reasons.map((r) => (
+                            <span
+                              key={`${item.id}-${r.step}`}
+                              className="inline-flex items-center gap-1 text-xs"
+                            >
+                              <span className="text-muted-foreground">
+                                {r.step}:
+                              </span>
+                              <FallbackReasonBadge reason={r.reason} isFr={isFr} />
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function HistoryCard({
+  buildings,
+  expandedId,
+  onToggle,
+  onResume,
+  isFr,
+  stepLabels,
+}: {
+  buildings: HistoryRowBuilding[];
+  expandedId: string | null;
+  onToggle: (id: string) => void;
+  onResume: (id: string) => void;
+  isFr: boolean;
+  stepLabels: Record<BulkImportStep, string>;
+}) {
+  const { data: sessions = [], isLoading } = useQuery<BulkImportSession[]>({
+    queryKey: ['/api/admin/bulk-import/sessions'],
+  });
+  const sorted = useMemo(
+    () =>
+      [...sessions].sort(
+        (a, b) =>
+          new Date(b.createdAt as unknown as string).getTime() -
+          new Date(a.createdAt as unknown as string).getTime(),
+      ),
+    [sessions],
+  );
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <History className="h-4 w-4" />
+          {isFr ? 'Sessions précédentes' : 'Past sessions'}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            {isFr ? 'Chargement…' : 'Loading…'}
+          </div>
+        ) : sorted.length === 0 ? (
+          <p className="text-sm text-muted-foreground" data-testid="history-empty">
+            {isFr
+              ? "Aucune session pour l'instant. Démarrez-en une ci-dessous."
+              : 'No sessions yet. Start one below.'}
+          </p>
+        ) : (
+          <div className="space-y-2" data-testid="history-list">
+            {sorted.map((s) => (
+              <HistorySessionRow
+                key={s.id}
+                session={s}
+                buildings={buildings}
+                expanded={expandedId === s.id}
+                onToggle={() => onToggle(s.id)}
+                onResume={() => onResume(s.id)}
+                isFr={isFr}
+                stepLabels={stepLabels}
+              />
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function BulkDocumentImportPage() {
   const { language } = useLanguage();
   const { toast } = useToast();
@@ -185,6 +489,7 @@ export default function BulkDocumentImportPage() {
   const [confirmText, setConfirmText] = useState('');
   const [showConfirm, setShowConfirm] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [expandedHistoryId, setExpandedHistoryId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Resume on reload via localStorage.
@@ -363,6 +668,20 @@ export default function BulkDocumentImportPage() {
               </CardContent>
             )}
           </Card>
+
+          {/* Past sessions history (Task #480) */}
+          {!sessionId && (
+            <HistoryCard
+              buildings={buildings}
+              expandedId={expandedHistoryId}
+              onToggle={(id) =>
+                setExpandedHistoryId((curr) => (curr === id ? null : id))
+              }
+              onResume={(id) => setSessionId(id)}
+              isFr={isFr}
+              stepLabels={stepLabels}
+            />
+          )}
 
           {/* Session selector */}
           {!sessionId && (
