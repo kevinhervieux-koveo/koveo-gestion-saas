@@ -1,0 +1,43 @@
+BUG (HIGH, systemic): At least 6 GET endpoints accept an `organizationId` query parameter but never apply it as a filter. They also lack any req.user-based org-scope enforcement, so any admin-session user (and likely every manager-session user — untested) receives the full cross-organization dataset. Confirmed across:
+
+  GET /api/buildings       → 13 buildings × 5 orgs         (W17)
+  GET /api/bills           → 1731 bills × 5 orgs           (W25)
+  GET /api/residences      → 63 residences × 5 orgs        (W26)
+  GET /api/demands         → 9 demands × 5 orgs            (W27)
+  GET /api/users           → 20 users × 5 orgs              (W28)
+  GET /api/common-spaces   → 8 spaces × 5 orgs             (W29, also ignores buildingId)
+
+REPRO (fetch from koveo-gestion.com, admin session):
+  for (const path of [
+    '/api/bills?organizationId=<any valid UUID>',
+    '/api/bills?organizationId=00000000-0000-0000-0000-000000000000',
+    '/api/bills?organizationId=not-a-uuid',
+  ]) {
+    const r = await fetch(path).then(r => r.json())
+    console.log(path, r.length)   // → 1731 for all three
+  }
+
+COMPARE the working sibling endpoints (these correctly scope):
+  /api/organizations/:orgId/buildings      → honors path
+  /api/users/me/organizations               → honors session
+  /api/users/me/buildings                   → honors session
+  /api/bills?buildingId=<real>              → honors building filter
+  /api/bills?buildingId=<zero UUID>         → returns 0 (building filter works)
+
+EXPECTED:
+- Every flat `/api/<resource>` endpoint must either:
+  (a) reject the request with 400 if no valid scope parameter is given, OR
+  (b) filter by req.user's effective org scope by default, AND apply any explicit `organizationId` query param within that scope (403 / empty if asked org outside scope).
+- Garbage `organizationId=not-a-uuid` should return 400, not 200.
+- Any call with `organizationId=<some other org>` that the caller cannot see must return 403 (or an empty array, but NOT the unfiltered set).
+
+ACCEPTANCE TESTS:
+- Integration: seed two orgs A and B, log in as manager of A.
+  GET /api/bills                             → only A's bills
+  GET /api/bills?organizationId=<A>          → only A's bills
+  GET /api/bills?organizationId=<B>          → 403 or []
+  GET /api/bills?organizationId=garbage      → 400
+  Repeat for /api/residences, /api/demands, /api/users, /api/common-spaces, /api/buildings.
+- Unit: a middleware `enforceOrgScope(resourceTable)` exists and is applied to every `router.get('/api/<resource>', …)` route.
+
+ROLLOUT NOTE: Fix ALL six endpoints in the same PR (they share the root cause). Add a lint rule that fails CI if a new `router.get('/api/…', …)` route is added without calling the org-scope middleware.

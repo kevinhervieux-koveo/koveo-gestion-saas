@@ -7,6 +7,13 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -35,6 +42,8 @@ import {
   AlertTriangle,
   Play,
   RotateCw,
+  ArrowLeft,
+  Search,
 } from 'lucide-react';
 import {
   bandForConfidence,
@@ -55,6 +64,11 @@ interface Building {
   province?: string | null;
   totalUnits?: number | null;
   buildingType?: string | null;
+}
+
+interface OrganizationLite {
+  id: string;
+  name: string;
 }
 
 function iconForMime(mime: string | null | undefined) {
@@ -498,8 +512,22 @@ export default function BulkDocumentImportPage() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [expandedHistoryId, setExpandedHistoryId] = useState<string | null>(null);
+  // Filters for the building picker on the "Start a session" card
+  // (Task #600). Local-only state; not persisted across reloads.
+  const [buildingSearch, setBuildingSearch] = useState('');
+  const [buildingTypeFilter, setBuildingTypeFilter] = useState<string>('all');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const folderInputRef = useRef<HTMLInputElement>(null);
+
+  // Return to the first page (building picker + history) without
+  // touching the session itself, so the user can resume it later from
+  // the history list (Task #591).
+  const goBackToStart = () => {
+    localStorage.removeItem(STORAGE_KEY);
+    setSessionId(null);
+    setBuildingId('');
+    setExpandedHistoryId(null);
+  };
 
   // Resume on reload via localStorage.
   useEffect(() => {
@@ -514,6 +542,66 @@ export default function BulkDocumentImportPage() {
   const { data: buildings = [] } = useQuery<Building[]>({
     queryKey: ['/api/buildings'],
   });
+
+  // Pull the org list so each building's organizationId can be
+  // resolved to a human-readable group header (Task #600). The picker
+  // still renders gracefully if this is loading or fails — buildings
+  // with no resolvable org just fall under an "Other" group.
+  const { data: organizations = [] } = useQuery<OrganizationLite[]>({
+    queryKey: ['/api/organizations'],
+  });
+
+  const organizationsById = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const o of organizations) map.set(o.id, o.name);
+    return map;
+  }, [organizations]);
+
+  // Distinct building types present in the loaded list, used to
+  // populate the type-filter dropdown. Sorted for stable display.
+  const buildingTypes = useMemo(() => {
+    const set = new Set<string>();
+    for (const b of buildings) {
+      if (b.buildingType && b.buildingType.trim().length > 0) {
+        set.add(b.buildingType);
+      }
+    }
+    return Array.from(set).sort();
+  }, [buildings]);
+
+  const filteredBuildings = useMemo(() => {
+    const q = buildingSearch.trim().toLowerCase();
+    return buildings.filter((b) => {
+      if (buildingTypeFilter !== 'all' && b.buildingType !== buildingTypeFilter) {
+        return false;
+      }
+      if (q.length === 0) return true;
+      const haystack = [b.name, b.address, b.city, b.province]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+      return haystack.includes(q);
+    });
+  }, [buildings, buildingSearch, buildingTypeFilter]);
+
+  const groupedBuildings = useMemo(() => {
+    const groups = new Map<string, { id: string; name: string; items: Building[] }>();
+    for (const b of filteredBuildings) {
+      const orgId = b.organizationId || '__none__';
+      const orgName =
+        organizationsById.get(b.organizationId) ??
+        (isFr ? 'Autre' : 'Other');
+      const existing = groups.get(orgId);
+      if (existing) {
+        existing.items.push(b);
+      } else {
+        groups.set(orgId, { id: orgId, name: orgName, items: [b] });
+      }
+    }
+    return Array.from(groups.values()).sort((a, b) =>
+      a.name.localeCompare(b.name, isFr ? 'fr-CA' : 'en-CA'),
+    );
+  }, [filteredBuildings, organizationsById, isFr]);
 
   const { data: payload, isLoading: loadingSession } = useQuery<SessionPayload>({
     queryKey: ['/api/admin/bulk-import/sessions', sessionId],
@@ -780,6 +868,23 @@ export default function BulkDocumentImportPage() {
 
       <main className="flex-1 overflow-auto p-6">
         <div className="mx-auto max-w-6xl space-y-6">
+          {/* Back-to-start button (Task #591) — only shown while a
+              session is active so admins can return to the picker +
+              history list without deleting the session. */}
+          {sessionId && (
+            <div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={goBackToStart}
+                data-testid="button-back-to-bulk-import"
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                {isFr ? "Retour à l'importation en lot" : 'Back to bulk import'}
+              </Button>
+            </div>
+          )}
+
           {/* Help banner */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
@@ -825,74 +930,157 @@ export default function BulkDocumentImportPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-2">
+                <div className="space-y-3">
                   <Label>{isFr ? 'Immeuble' : 'Building'}</Label>
                   {buildings.length === 0 ? (
                     <p className="text-sm text-muted-foreground" data-testid="text-no-buildings">
                       {isFr ? 'Aucun immeuble disponible.' : 'No buildings available.'}
                     </p>
                   ) : (
-                    <div
-                      className="grid gap-3 sm:grid-cols-2"
-                      data-testid="grid-building-picker"
-                    >
-                      {buildings.map((b) => {
-                        const selected = buildingId === b.id;
-                        const location = [b.city, b.province].filter(Boolean).join(', ');
-                        const isCreating = createSession.isPending && selected;
-                        return (
-                          <button
-                            key={b.id}
-                            type="button"
-                            disabled={createSession.isPending}
-                            onClick={() => {
-                              setBuildingId(b.id);
-                              createSession.mutate(b.id);
-                            }}
-                            aria-pressed={selected}
-                            className={`flex items-start gap-3 rounded-lg border p-3 text-left transition hover:border-primary hover:bg-muted/50 disabled:cursor-not-allowed disabled:opacity-60 ${
-                              selected
-                                ? 'border-primary bg-primary/5 ring-2 ring-primary'
-                                : 'border-border'
-                            }`}
-                            data-testid={`card-building-${b.id}`}
+                    <>
+                      {/* Filters (Task #600) */}
+                      <div className="flex flex-col gap-2 sm:flex-row">
+                        <div className="relative flex-1">
+                          <Search className="pointer-events-none absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                          <Input
+                            value={buildingSearch}
+                            onChange={(e) => setBuildingSearch(e.target.value)}
+                            placeholder={
+                              isFr
+                                ? 'Rechercher par nom, adresse, ville…'
+                                : 'Search by name, address, city…'
+                            }
+                            className="pl-8"
+                            data-testid="input-building-search"
+                          />
+                        </div>
+                        {buildingTypes.length > 0 && (
+                          <Select
+                            value={buildingTypeFilter}
+                            onValueChange={setBuildingTypeFilter}
                           >
-                            <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
-                              {isCreating ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                <Building2 className="h-4 w-4" />
-                              )}
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <div className="truncate font-medium">{b.name}</div>
-                              {b.address && (
-                                <div className="mt-0.5 flex items-start gap-1 text-xs text-muted-foreground">
-                                  <MapPin className="mt-0.5 h-3 w-3 flex-shrink-0" />
-                                  <span className="truncate">
-                                    {b.address}
-                                    {location ? `, ${location}` : ''}
-                                  </span>
-                                </div>
-                              )}
-                              <div className="mt-1 flex flex-wrap items-center gap-1">
-                                {typeof b.totalUnits === 'number' && (
-                                  <Badge variant="secondary" className="text-[10px]">
-                                    {b.totalUnits}{' '}
-                                    {isFr ? 'unités' : 'units'}
-                                  </Badge>
-                                )}
-                                {b.buildingType && (
-                                  <Badge variant="outline" className="text-[10px] capitalize">
-                                    {b.buildingType}
-                                  </Badge>
-                                )}
+                            <SelectTrigger
+                              className="sm:w-56"
+                              data-testid="select-building-type"
+                            >
+                              <SelectValue
+                                placeholder={isFr ? "Type d'immeuble" : 'Building type'}
+                              />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="all" data-testid="option-building-type-all">
+                                {isFr ? 'Tous les types' : 'All types'}
+                              </SelectItem>
+                              {buildingTypes.map((t) => (
+                                <SelectItem
+                                  key={t}
+                                  value={t}
+                                  className="capitalize"
+                                  data-testid={`option-building-type-${t}`}
+                                >
+                                  {t}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      </div>
+
+                      {groupedBuildings.length === 0 ? (
+                        <p
+                          className="text-sm text-muted-foreground"
+                          data-testid="text-no-buildings-match"
+                        >
+                          {isFr
+                            ? 'Aucun immeuble ne correspond à votre recherche.'
+                            : 'No buildings match your search.'}
+                        </p>
+                      ) : (
+                        <div
+                          className="space-y-5"
+                          data-testid="grid-building-picker"
+                        >
+                          {groupedBuildings.map((group) => (
+                            <div
+                              key={group.id}
+                              className="space-y-2"
+                              data-testid={`group-org-${group.id}`}
+                            >
+                              <div
+                                className="text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+                                data-testid={`group-org-header-${group.id}`}
+                              >
+                                {group.name}
+                              </div>
+                              <div className="grid gap-3 sm:grid-cols-2">
+                                {group.items.map((b) => {
+                                  const selected = buildingId === b.id;
+                                  const location = [b.city, b.province]
+                                    .filter(Boolean)
+                                    .join(', ');
+                                  const isCreating =
+                                    createSession.isPending && selected;
+                                  return (
+                                    <button
+                                      key={b.id}
+                                      type="button"
+                                      disabled={createSession.isPending}
+                                      onClick={() => {
+                                        setBuildingId(b.id);
+                                        createSession.mutate(b.id);
+                                      }}
+                                      aria-pressed={selected}
+                                      className={`flex items-start gap-3 rounded-lg border p-3 text-left transition hover:border-primary hover:bg-muted/50 disabled:cursor-not-allowed disabled:opacity-60 ${
+                                        selected
+                                          ? 'border-primary bg-primary/5 ring-2 ring-primary'
+                                          : 'border-border'
+                                      }`}
+                                      data-testid={`card-building-${b.id}`}
+                                    >
+                                      <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+                                        {isCreating ? (
+                                          <Loader2 className="h-4 w-4 animate-spin" />
+                                        ) : (
+                                          <Building2 className="h-4 w-4" />
+                                        )}
+                                      </div>
+                                      <div className="min-w-0 flex-1">
+                                        <div className="truncate font-medium">{b.name}</div>
+                                        {b.address && (
+                                          <div className="mt-0.5 flex items-start gap-1 text-xs text-muted-foreground">
+                                            <MapPin className="mt-0.5 h-3 w-3 flex-shrink-0" />
+                                            <span className="truncate">
+                                              {b.address}
+                                              {location ? `, ${location}` : ''}
+                                            </span>
+                                          </div>
+                                        )}
+                                        <div className="mt-1 flex flex-wrap items-center gap-1">
+                                          {typeof b.totalUnits === 'number' && (
+                                            <Badge variant="secondary" className="text-[10px]">
+                                              {b.totalUnits}{' '}
+                                              {isFr ? 'unités' : 'units'}
+                                            </Badge>
+                                          )}
+                                          {b.buildingType && (
+                                            <Badge
+                                              variant="outline"
+                                              className="text-[10px] capitalize"
+                                            >
+                                              {b.buildingType}
+                                            </Badge>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </button>
+                                  );
+                                })}
                               </div>
                             </div>
-                          </button>
-                        );
-                      })}
-                    </div>
+                          ))}
+                        </div>
+                      )}
+                    </>
                   )}
                 </div>
               </CardContent>
