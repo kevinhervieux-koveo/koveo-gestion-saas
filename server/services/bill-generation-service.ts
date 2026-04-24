@@ -241,16 +241,25 @@ export class BillAutoGenerationService {
       return this.generateCustomScheduleNextYearBill(sourceBill);
     }
     
-    // For recurring yearly bills with single payment structure, generate ONE bill per year
-    // For other schedules (monthly, quarterly, etc.), generate multiple occurrences
-    const isYearlySinglePayment = sourceBill.schedulePayment === 'yearly' && paymentStructure === 'single';
-    
+    // Recurring single-payment templates (yearly, monthly, weekly, quarterly)
+    // generate one child per cadence occurrence in the next year window. The
+    // schedule is propagated from the source — never overwritten.
+    const isSinglePaymentRecurrent = paymentStructure === 'single';
+
     // Generate for next year dynamically based on source bill's date
     const dueDates = this.calculateOccurrencesForNextYear(sourceBill);
-    
-    // For yearly single payment bills, we should only have ONE occurrence per year
-    if (isYearlySinglePayment && dueDates.length !== 1) {
-      console.warn(`[BILL-GEN] Yearly single payment bill generated ${dueDates.length} occurrences, expected 1. Using first occurrence only.`);
+
+    // Defensive guard: a yearly cadence should produce exactly one occurrence
+    // per year. If the calculator yields more, log it and fall through using
+    // only the first date so we don't create duplicates for a yearly template.
+    if (
+      isSinglePaymentRecurrent &&
+      sourceBill.schedulePayment === 'yearly' &&
+      dueDates.length !== 1
+    ) {
+      console.warn(
+        `[BILL-GEN] Yearly single payment bill generated ${dueDates.length} occurrences, expected 1. Using first occurrence only.`,
+      );
       const firstDate = dueDates[0];
       return [{
         id: '', // Will be generated on insert
@@ -261,12 +270,12 @@ export class BillAutoGenerationService {
         description: sourceBill.description,
         category: sourceBill.category,
         vendor: sourceBill.vendor,
-        billType: 'recurrent' as const, // Maintain recurrent type for yearly bills
+        billType: 'recurrent' as const, // Preserve recurrent type
         paymentStructure: 'single' as const, // Single payment structure
         paymentType: 'recurrent' as const, // Legacy field - maintain recurrent type
-        schedulePayment: 'yearly', // Yearly schedule
+        schedulePayment: sourceBill.schedulePayment, // Propagate, do not overwrite
         yearInterval: sourceBill.yearInterval || 1, // Inherit year interval
-        scheduleCustom: null, // No custom schedule for yearly
+        scheduleCustom: sourceBill.scheduleCustom, // Inherit custom dates if any
         costs: [...sourceBill.costs], // Clone exact same payment plan array
         totalAmount: sourceBill.totalAmount,
         startDate: firstDate.toISOString().split('T')[0],
@@ -285,8 +294,10 @@ export class BillAutoGenerationService {
         updatedAt: new Date(),
       }] as Bill[];
     }
-    
-    // For other bill types (monthly, quarterly, installments, etc.), generate as before
+
+    // For all other cadences (monthly/weekly/quarterly single-payment recurrent
+    // and installment recurrent), generate one bill per occurrence with the
+    // source schedule preserved.
     return dueDates.map((dueDate, index) => ({
       id: '', // Will be generated on insert
       source: null,
@@ -1967,141 +1978,184 @@ export class BillAutoGenerationService {
     // console.log('🗑️ Cleaned up existing auto-generated bills for regeneration');
   }
   /**
-   * Generate auto-bill for next year based on source bill's date
+   * Generate auto-bills for next year based on source bill's cadence.
+   * For single-payment recurrent templates this honors the source schedule
+   * (`weekly`, `monthly`, `quarterly`, `yearly`) and emits one child per
+   * occurrence in the next year window. Installment templates fall back to a
+   * single next-year clone.
    * @param sourceBill - The recurrent bill to use as template
-   * @returns Generated bill or null if generation fails
+   * @returns Array of generated bills (empty when nothing was generated)
    */
-  async generateNextYearBill(sourceBill: Bill): Promise<Bill | null> {
+  async generateNextYearBill(sourceBill: Bill): Promise<Bill[]> {
     try {
       if (sourceBill.paymentType !== 'recurrent') {
         // console.log(`⚠️ Bill ${sourceBill.id} is not recurrent, skipping auto-generation`);
-        return null;
-      }
-
-      // Calculate next year's date
-      const sourceDate = new Date(sourceBill.startDate);
-      const targetDate = new Date(sourceDate.getFullYear() + 1, sourceDate.getMonth(), sourceDate.getDate());
-
-      // Generate bill number — V2 when flag is on, otherwise legacy AUTO-* format.
-      // We mint here primarily to seed the existence check; the real insert below
-      // re-mints inside withBillNumberRetry so concurrent SEQ4 races resolve.
-      const v2On = isBillNumberV2Enabled();
-      const billNumber = v2On
-        ? await this.mintIndependentAutoNumber(sourceBill, targetDate)
-        : this.generateAdvancedBillNumber(sourceBill, targetDate, 0);
-
-      // Check if auto-bill already exists for this template and date (legacy path
-      // only — V2 numbers are unique-per-attempt so this check would always miss).
-      if (!v2On) {
-        const existingBill = await db
-          .select()
-          .from(bills)
-          .where(
-            and(
-              eq(bills.sourceTemplateId, sourceBill.id),
-              eq(bills.isAutoGenerated, true),
-              eq(bills.billNumber, billNumber)
-            )
-          )
-          .limit(1);
-
-        if (existingBill.length > 0) {
-          // console.log(`✅ Auto-bill already exists for ${billNumber}`);
-          return existingBill[0] as Bill;
-        }
+        return [];
       }
 
       // Determine payment structure from costs array
       const paymentStructure = sourceBill.costs && sourceBill.costs.length > 1 ? 'installment' as const : 'single' as const;
-      
-      // For recurring yearly bills with single payment structure:
-      // - Maintain billType='recurrent' to preserve recurring nature
-      // - Each bill instance represents ONE year with ONE payment
-      // - Set endDate=null for recurring bills
-      const isYearlySinglePayment = sourceBill.schedulePayment === 'yearly' && paymentStructure === 'single';
-      
-      // Create the auto-generated bill with exact payment plan inheritance
-      const autoGeneratedBill = {
-        buildingId: sourceBill.buildingId,
-        billNumber,
-        source: 'auto' as const,
-        title: `${sourceBill.title} (Auto-Generated)`,
-        description: sourceBill.description,
-        category: sourceBill.category,
-        vendor: sourceBill.vendor,
-        billType: isYearlySinglePayment ? 'recurrent' as const : 'unique' as const, // Maintain recurrent type for yearly bills
-        paymentStructure: paymentStructure, // Inherit payment structure (single or installment)
-        paymentType: isYearlySinglePayment ? 'recurrent' as const : 'unique' as const, // Legacy field - maintain recurrent type
-        schedulePayment: sourceBill.schedulePayment, // Inherit exact schedule
-        yearInterval: sourceBill.yearInterval || 1, // Inherit year interval
-        scheduleCustom: sourceBill.scheduleCustom,   // Inherit custom schedule if exists
-        costs: [...sourceBill.costs], // Clone exact same payment plan array
-        totalAmount: sourceBill.totalAmount,
-        startDate: targetDate.toISOString().split('T')[0], // Format as YYYY-MM-DD
-        endDate: isYearlySinglePayment ? null : (sourceBill.endDate ? new Date(new Date(sourceBill.endDate).getFullYear() + 1, new Date(sourceBill.endDate).getMonth(), new Date(sourceBill.endDate).getDate()).toISOString().split('T')[0] : undefined), // No end date for recurring bills
-        status: 'draft' as const,
-        filePath: sourceBill.filePath,
-        fileName: sourceBill.fileName,
-        fileSize: sourceBill.fileSize,
-        isAiAnalyzed: false,
-        aiAnalysisData: null,
-        isAutoGenerated: true,
-        sourceTemplateId: sourceBill.id,
-        autoGeneratedLabel: `Auto ${targetDate.getFullYear()}`,
-        createdBy: sourceBill.createdBy,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
+      const isSinglePaymentRecurrent = paymentStructure === 'single';
 
-      // Check for existing bill with same number to avoid duplicates (legacy only;
-      // V2 re-mints per attempt and relies on the UNIQUE-constraint retry).
-      if (!v2On) {
-        const existingByNumber = await db
-          .select()
-          .from(bills)
-          .where(eq(bills.billNumber, billNumber))
-          .limit(1);
-
-        if (existingByNumber.length > 0) {
-          return existingByNumber[0] as Bill;
-        }
-      }
-
-      const { billNumber: _omitNum, ...autoBillRest } = autoGeneratedBill as any;
-      const insertResult = await withBillNumberRetry(
-        async () => {
-          if (v2On) {
-            return this.mintIndependentAutoNumber(sourceBill, targetDate);
-          }
-          return billNumber;
-        },
-        async (mintedNumber) => {
-          const rows = await db.insert(bills).values({
-            ...autoBillRest,
-            billNumber: mintedNumber,
-            source: 'auto' as const,
-          } as any).returning();
-          return rows;
-        },
+      // Resolve the target dates for the next year window.
+      // - Single-payment recurrent templates use the cadence calculator so that
+      //   monthly/weekly/quarterly templates emit multiple children per year
+      //   (the schedule is propagated, not overwritten with 'yearly').
+      // - Installment templates and anything without a cadence keep the prior
+      //   "1 year ahead, same day" behavior.
+      const sourceDate = new Date(sourceBill.startDate);
+      const fallbackTargetDate = new Date(
+        sourceDate.getFullYear() + 1,
+        sourceDate.getMonth(),
+        sourceDate.getDate(),
       );
-      const newBill = (insertResult as any[])[0];
 
-      // Generate payments for the auto-generated bill to complete payment plan inheritance
-      try {
-        const { paymentGenerationService } = await import('./payment-generation-service');
-        await paymentGenerationService.generatePaymentsForBill(newBill.id);
-        // console.log(`✅ Generated payments for auto-bill ${billNumber}`);
-      } catch (paymentError) {
-        // console.warn('⚠️ Failed to generate payments for auto-generated bill:', paymentError);
-        // Don't fail the generation if payment creation fails
+      let targetDates: Date[];
+      if (
+        isSinglePaymentRecurrent &&
+        sourceBill.schedulePayment &&
+        sourceBill.schedulePayment !== 'custom'
+      ) {
+        targetDates = this.calculateOccurrencesForNextYear(sourceBill);
+        if (targetDates.length === 0) {
+          // Fall back so we never silently skip a recurring template.
+          targetDates = [fallbackTargetDate];
+        }
+      } else {
+        targetDates = [fallbackTargetDate];
       }
 
-      // console.log(`✅ Generated auto-bill ${billNumber} for ${targetDate.getFullYear()}`);
-      return newBill;
+      const v2On = isBillNumberV2Enabled();
+      const generated: Bill[] = [];
+
+      for (const targetDate of targetDates) {
+        // Generate bill number — V2 when flag is on, otherwise legacy AUTO-* format.
+        // We mint here primarily to seed the existence check; the real insert
+        // below re-mints inside withBillNumberRetry so concurrent SEQ4 races resolve.
+        const billNumber = v2On
+          ? await this.mintIndependentAutoNumber(sourceBill, targetDate)
+          : this.generateAdvancedBillNumber(sourceBill, targetDate, 0);
+
+        // Check if auto-bill already exists for this template and date (legacy
+        // path only — V2 numbers are unique-per-attempt so this check would
+        // always miss).
+        if (!v2On) {
+          const existingBill = await db
+            .select()
+            .from(bills)
+            .where(
+              and(
+                eq(bills.sourceTemplateId, sourceBill.id),
+                eq(bills.isAutoGenerated, true),
+                eq(bills.billNumber, billNumber),
+              ),
+            )
+            .limit(1);
+
+          if (existingBill.length > 0) {
+            // console.log(`✅ Auto-bill already exists for ${billNumber}`);
+            generated.push(existingBill[0] as Bill);
+            continue;
+          }
+        }
+
+        // For single-payment recurrent templates we keep billType='recurrent'
+        // and propagate the source schedule for every cadence (yearly, monthly,
+        // weekly, quarterly). Installment / unscheduled templates are still
+        // converted to a unique child as before.
+        const autoGeneratedBill = {
+          buildingId: sourceBill.buildingId,
+          billNumber,
+          source: 'auto' as const,
+          title: `${sourceBill.title} (Auto-Generated)`,
+          description: sourceBill.description,
+          category: sourceBill.category,
+          vendor: sourceBill.vendor,
+          billType: isSinglePaymentRecurrent ? 'recurrent' as const : 'unique' as const,
+          paymentStructure: paymentStructure,
+          paymentType: isSinglePaymentRecurrent ? 'recurrent' as const : 'unique' as const,
+          schedulePayment: sourceBill.schedulePayment, // Propagate, do not overwrite
+          yearInterval: sourceBill.yearInterval || 1,
+          scheduleCustom: sourceBill.scheduleCustom,
+          costs: [...sourceBill.costs],
+          totalAmount: sourceBill.totalAmount,
+          startDate: targetDate.toISOString().split('T')[0],
+          endDate: isSinglePaymentRecurrent
+            ? null
+            : (sourceBill.endDate
+              ? new Date(
+                  new Date(sourceBill.endDate).getFullYear() + 1,
+                  new Date(sourceBill.endDate).getMonth(),
+                  new Date(sourceBill.endDate).getDate(),
+                ).toISOString().split('T')[0]
+              : undefined),
+          status: 'draft' as const,
+          filePath: sourceBill.filePath,
+          fileName: sourceBill.fileName,
+          fileSize: sourceBill.fileSize,
+          isAiAnalyzed: false,
+          aiAnalysisData: null,
+          isAutoGenerated: true,
+          sourceTemplateId: sourceBill.id,
+          autoGeneratedLabel: this.createAdvancedAutoGeneratedLabel(sourceBill, targetDate, 0),
+          createdBy: sourceBill.createdBy,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+
+        // Check for existing bill with same number to avoid duplicates (legacy
+        // only; V2 re-mints per attempt and relies on the UNIQUE-constraint retry).
+        if (!v2On) {
+          const existingByNumber = await db
+            .select()
+            .from(bills)
+            .where(eq(bills.billNumber, billNumber))
+            .limit(1);
+
+          if (existingByNumber.length > 0) {
+            generated.push(existingByNumber[0] as Bill);
+            continue;
+          }
+        }
+
+        const { billNumber: _omitNum, ...autoBillRest } = autoGeneratedBill as any;
+        const insertResult = await withBillNumberRetry(
+          async () => {
+            if (v2On) {
+              return this.mintIndependentAutoNumber(sourceBill, targetDate);
+            }
+            return billNumber;
+          },
+          async (mintedNumber) => {
+            const rows = await db.insert(bills).values({
+              ...autoBillRest,
+              billNumber: mintedNumber,
+              source: 'auto' as const,
+            } as any).returning();
+            return rows;
+          },
+        );
+        const newBill = (insertResult as any[])[0];
+
+        // Generate payments for the auto-generated bill to complete payment
+        // plan inheritance.
+        try {
+          const { paymentGenerationService } = await import('./payment-generation-service');
+          await paymentGenerationService.generatePaymentsForBill(newBill.id);
+          // console.log(`✅ Generated payments for auto-bill ${newBill.billNumber}`);
+        } catch (paymentError) {
+          // console.warn('⚠️ Failed to generate payments for auto-generated bill:', paymentError);
+          // Don't fail the generation if payment creation fails
+        }
+
+        generated.push(newBill as Bill);
+      }
+
+      return generated;
 
     } catch (error: any) {
       // console.error(`❌ Failed to generate next year bill for ${sourceBill.id}:`, error);
-      return null;
+      return [];
     }
   }
 
@@ -2191,10 +2245,11 @@ export class BillAutoGenerationService {
 
       // console.log(`🗑️ Deleted existing auto-generated bills for template ${sourceBillId}`);
 
-      // Generate new auto-bill for next year
-      const newBill = await this.generateNextYearBill(sourceTemplate as Bill);
-      
-      return newBill ? [newBill] : [];
+      // Generate new auto-bills for next year (one per cadence occurrence for
+      // single-payment recurrent templates).
+      const newBills = await this.generateNextYearBill(sourceTemplate as Bill);
+
+      return newBills;
 
     } catch (error: any) {
       // console.error(`❌ Failed to regenerate auto-bills for ${sourceBillId}:`, error);
