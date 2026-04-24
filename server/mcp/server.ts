@@ -89,6 +89,11 @@ import { adjustResidenceCount } from "../api/buildings/operations";
 import { eq, and, inArray, desc, asc, isNull, or, sql, count, gte, lte, type SQL } from "drizzle-orm";
 import { DocumentService, type DocumentType } from "../services/document-service";
 import { ObjectStorageService } from "../objectStorage";
+import {
+  applyAttachmentAcl,
+  normalizeAttachmentInput,
+  verifyAttachmentOwnership,
+} from "../utils/demand-attachment-acl";
 import { aiService } from "../services/consolidated-ai-service";
 import { emailService } from "../services/email-service";
 import { workflowService } from "../services/workflow-service";
@@ -1983,7 +1988,9 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
   // Shared schema for the optional `attachment` parameter on the demand and
   // demand-comment creation tools. Mirrors the shape REST callers send to
   // POST /api/demands (`attachments[0]`): an object-storage URL, an optional
-  // original filename, and an optional byte size.
+  // original filename, and an optional byte size. The normalize/verify/apply
+  // helpers live in `server/utils/demand-attachment-acl` so the REST handlers
+  // and the MCP tools share a single ACL implementation.
   const demandAttachmentParam = z
     .object({
       url: z.string().min(1).describe("Object-storage URL or path (typically `/objects/...`) returned by an upload helper."),
@@ -1992,61 +1999,6 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     })
     .optional()
     .describe("Optional single-file attachment. ACL is verified for ownership and bound to the calling user.");
-
-  function normalizeAttachmentInput(
-    attachment: { url?: string; originalName?: string; size?: number } | undefined
-  ): { filePath?: string; fileName?: string; fileSize?: number } {
-    if (!attachment || !attachment.url) return {};
-    const filePath = attachment.url;
-    const fileName = attachment.originalName || filePath.split("/").pop() || "";
-    return {
-      filePath,
-      fileName: fileName || undefined,
-      fileSize: attachment.size,
-    };
-  }
-
-  // Mirror of the ACL ownership guard in POST /api/demands: when the supplied
-  // path is an object-storage entity, refuse to bind it if its ACL already
-  // names a different owner. Failures from the storage layer are logged and
-  // treated as "no existing ACL" — same as the REST handler does. Returns
-  // null when the binding is acceptable; otherwise an error message string.
-  async function verifyAttachmentOwnership(
-    filePath: string,
-    userId: string
-  ): Promise<string | null> {
-    if (!filePath.startsWith("/objects/")) return null;
-    try {
-      const svc = new ObjectStorageService();
-      const existingAcl = await svc.getExistingObjectAcl(filePath);
-      if (existingAcl && existingAcl.owner && existingAcl.owner !== userId) {
-        return "Access denied: object belongs to another user";
-      }
-    } catch (aclCheckError) {
-      if (process.env.NODE_ENV === "development") {
-        console.error("[mcp] Failed to check ACL on demand attachment:", aclCheckError);
-      }
-    }
-    return null;
-  }
-
-  // Mirror of the post-insert ACL set in POST /api/demands. Failures are
-  // logged but never bubble up — the row is already inserted and the REST
-  // handler treats this best-effort too.
-  async function applyAttachmentAcl(filePath: string, userId: string): Promise<void> {
-    if (!filePath.startsWith("/objects/")) return;
-    try {
-      const svc = new ObjectStorageService();
-      await svc.trySetObjectEntityAclPolicy(filePath, {
-        visibility: "private",
-        owner: userId,
-      });
-    } catch (aclError) {
-      if (process.env.NODE_ENV === "development") {
-        console.error("[mcp] Failed to set ACL on demand attachment:", aclError);
-      }
-    }
-  }
 
   server.tool(
     "list_demands",
@@ -2149,7 +2101,11 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
         return { content: [{ type: "text" as const, text: "MCP user not found" }] };
       }
       if (fileInfo.filePath && user) {
-        const aclError = await verifyAttachmentOwnership(fileInfo.filePath, user.id);
+        const aclError = await verifyAttachmentOwnership(
+          fileInfo.filePath,
+          user.id,
+          "[mcp:create_demand]"
+        );
         if (aclError) {
           return { content: [{ type: "text" as const, text: aclError }] };
         }
@@ -2167,7 +2123,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
           ...(fileInfo.fileSize !== undefined && { fileSize: fileInfo.fileSize }),
         }).returning());
         if (fileInfo.filePath && user) {
-          await applyAttachmentAcl(fileInfo.filePath, user.id);
+          await applyAttachmentAcl(fileInfo.filePath, user.id, "[mcp:create_demand]");
         }
         return { content: [{ type: "text" as const, text: JSON.stringify(demand, null, 2) }] };
       } catch (e) {
@@ -2308,7 +2264,11 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       }
       const fileInfo = normalizeAttachmentInput(attachment);
       if (fileInfo.filePath) {
-        const aclError = await verifyAttachmentOwnership(fileInfo.filePath, user.id);
+        const aclError = await verifyAttachmentOwnership(
+          fileInfo.filePath,
+          user.id,
+          "[mcp:create_demand_comment]"
+        );
         if (aclError) {
           return { content: [{ type: "text" as const, text: aclError }] };
         }
@@ -2344,7 +2304,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
           .values(insertValues)
           .returning());
         if (fileInfo.filePath) {
-          await applyAttachmentAcl(fileInfo.filePath, user.id);
+          await applyAttachmentAcl(fileInfo.filePath, user.id, "[mcp:create_demand_comment]");
         }
         if (demand.submitterId) {
           demandNotificationService

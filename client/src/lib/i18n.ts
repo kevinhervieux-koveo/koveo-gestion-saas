@@ -1523,6 +1523,8 @@ export interface Translations {
   comments: string;
   addAComment: string;
   addComment: string;
+  attachFile: string;
+  replaceFile: string;
   adding: string;
   noCommentsYet: string;
   commentsDisabledFor: string;
@@ -3815,6 +3817,8 @@ export const translations: Record<Language, Translations> = {
     comments: 'Comments',
     addAComment: 'Add a comment...',
     addComment: 'Add Comment',
+    attachFile: 'Attach file',
+    replaceFile: 'Replace file',
     adding: 'Adding...',
     noCommentsYet: 'No comments yet',
     commentsDisabledFor: 'Comments are disabled for {status} demands.',
@@ -6028,6 +6032,8 @@ export const translations: Record<Language, Translations> = {
     comments: 'Commentaires',
     addAComment: 'Ajouter un commentaire...',
     addComment: 'Ajouter un commentaire',
+    attachFile: 'Joindre un fichier',
+    replaceFile: 'Remplacer le fichier',
     adding: 'Ajout...',
     noCommentsYet: 'Aucun commentaire pour le moment',
     commentsDisabledFor: 'Les commentaires sont désactivés pour les demandes {status}.',

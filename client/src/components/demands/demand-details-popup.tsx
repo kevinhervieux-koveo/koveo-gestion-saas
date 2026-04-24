@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useCreateUpdateMutation } from '@/lib/common-hooks';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -159,6 +159,8 @@ export default function DemandDetailsPopup({
   const [, setLocation] = useLocation();
   const [isEditing, setIsEditing] = useState(false);
   const [newComment, setNewComment] = useState('');
+  const [commentFile, setCommentFile] = useState<File | null>(null);
+  const commentFileInputRef = useRef<HTMLInputElement | null>(null);
   const [viewingFile, setViewingFile] = useState<{ url: string; downloadUrl?: string; name?: string } | null>(null);
 
   // Form schemas - must be inside component to access t()
@@ -303,15 +305,48 @@ export default function DemandDetailsPopup({
     },
   });
 
+  // Upload a single file via the demands signed-URL endpoint and return the
+  // attachment payload accepted by POST /api/demands/:id/comments.
+  const uploadCommentFile = async (
+    file: File
+  ): Promise<{ url: string; originalName: string; size: number }> => {
+    const urlResponse = await fetch('/api/demands/upload-url', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filename: file.name }),
+      credentials: 'include',
+    });
+    if (!urlResponse.ok) {
+      throw new Error('Failed to get upload URL');
+    }
+    const { uploadUrl, objectPath } = await urlResponse.json();
+    const uploadResponse = await fetch(uploadUrl, {
+      method: 'PUT',
+      body: file,
+      headers: { 'Content-Type': file.type || 'application/octet-stream' },
+    });
+    if (!uploadResponse.ok) {
+      throw new Error('Failed to upload file');
+    }
+    return { url: objectPath, originalName: file.name, size: file.size };
+  };
+
   // Add comment mutation
-  const addCommentMutation = useCreateUpdateMutation<unknown, string>({
-    mutationFn: async (comment: string) => {
+  const addCommentMutation = useCreateUpdateMutation<
+    unknown,
+    { comment: string; file: File | null }
+  >({
+    mutationFn: async ({ comment, file }) => {
+      const attachment = file ? await uploadCommentFile(file) : undefined;
       const response = await fetch(`/api/demands/${demand?.id}/comments`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ commentText: comment }),
+        body: JSON.stringify({
+          commentText: comment,
+          ...(attachment && { attachment }),
+        }),
       });
       if (!response.ok) {
         throw new Error('Failed to add comment');
@@ -325,6 +360,10 @@ export default function DemandDetailsPopup({
     onSuccessCallback: () => {
       refetchComments();
       setNewComment('');
+      setCommentFile(null);
+      if (commentFileInputRef.current) {
+        commentFileInputRef.current.value = '';
+      }
     },
   });
 
@@ -362,7 +401,19 @@ export default function DemandDetailsPopup({
 
   const handleAddComment = () => {
     if (newComment.trim()) {
-      addCommentMutation.mutate(newComment);
+      addCommentMutation.mutate({ comment: newComment, file: commentFile });
+    }
+  };
+
+  const handleCommentFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0] ?? null;
+    setCommentFile(file);
+  };
+
+  const handleClearCommentFile = () => {
+    setCommentFile(null);
+    if (commentFileInputRef.current) {
+      commentFileInputRef.current.value = '';
     }
   };
 
@@ -749,15 +800,56 @@ export default function DemandDetailsPopup({
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
                   rows={3}
+                  data-testid='input-new-comment'
                 />
-                <Button
-                  onClick={handleAddComment}
-                  disabled={!newComment.trim() || addCommentMutation.isPending}
-                  size='sm'
-                >
-                  <Send className='h-4 w-4 mr-1' />
-                  {addCommentMutation.isPending ? t('adding') : t('addComment')}
-                </Button>
+                <input
+                  type='file'
+                  ref={commentFileInputRef}
+                  onChange={handleCommentFileChange}
+                  className='hidden'
+                  data-testid='input-comment-attachment'
+                />
+                {commentFile && (
+                  <div
+                    className='flex items-center gap-2 p-2 bg-gray-50 rounded-md text-sm'
+                    data-testid='comment-attachment-preview'
+                  >
+                    <Paperclip className='h-4 w-4 text-gray-500' />
+                    <span className='flex-1 truncate'>{commentFile.name}</span>
+                    <Button
+                      type='button'
+                      variant='ghost'
+                      size='sm'
+                      onClick={handleClearCommentFile}
+                      disabled={addCommentMutation.isPending}
+                      data-testid='button-clear-comment-attachment'
+                    >
+                      <X className='h-3 w-3' />
+                    </Button>
+                  </div>
+                )}
+                <div className='flex items-center gap-2'>
+                  <Button
+                    type='button'
+                    variant='outline'
+                    size='sm'
+                    onClick={() => commentFileInputRef.current?.click()}
+                    disabled={addCommentMutation.isPending}
+                    data-testid='button-attach-comment-file'
+                  >
+                    <Paperclip className='h-4 w-4 mr-1' />
+                    {commentFile ? t('replaceFile') : t('attachFile')}
+                  </Button>
+                  <Button
+                    onClick={handleAddComment}
+                    disabled={!newComment.trim() || addCommentMutation.isPending}
+                    size='sm'
+                    data-testid='button-add-comment'
+                  >
+                    <Send className='h-4 w-4 mr-1' />
+                    {addCommentMutation.isPending ? t('adding') : t('addComment')}
+                  </Button>
+                </div>
               </div>
             )}
             

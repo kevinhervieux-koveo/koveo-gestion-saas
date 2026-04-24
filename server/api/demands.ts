@@ -15,7 +15,12 @@ import { requireAuth } from '../auth/index';
 import { insertDemandSchema, insertDemandCommentSchema } from '../../shared/schemas/operations';
 import { z } from 'zod';
 import { demandNotificationService } from '../services/demand-notification-service';
-import { ObjectStorageService } from '../objectStorage';
+import {
+  applyAttachmentAcl,
+  normalizeAttachmentInput,
+  verifyAttachmentOwnership,
+  type DemandAttachmentInput,
+} from '../utils/demand-attachment-acl';
 import { canUserAccessOrganization, getUserAccessibleOrganizations } from '../rbac';
 
 import { asyncHandler } from '../utils/async-handler';
@@ -463,31 +468,22 @@ export function registerDemandRoutes(app: Express) {
       // Verify object ownership before binding a client-supplied /objects/ path.
       // If the object already has an ACL set by a different user, reject the
       // request to prevent path-rebinding / ACL-hijacking attacks.
-      if (fileInfo.filePath && fileInfo.filePath.startsWith('/objects/')) {
-        try {
-          const objectStorageService = new ObjectStorageService();
-          const existingAcl = await objectStorageService.getExistingObjectAcl(fileInfo.filePath);
-          if (existingAcl && existingAcl.owner && existingAcl.owner !== user.id) {
-            return res.status(403).json({ message: 'Access denied: object belongs to another user' });
-          }
-        } catch (aclCheckError) {
-          if (process.env.NODE_ENV === 'development') console.error('Failed to check ACL on demand file:', aclCheckError);
+      if (fileInfo.filePath) {
+        const aclError = await verifyAttachmentOwnership(
+          fileInfo.filePath,
+          user.id,
+          '[POST /api/demands]'
+        );
+        if (aclError) {
+          return res.status(403).json({ message: aclError });
         }
       }
 
       const newDemand = await db.insert(demands).values([demandInsertData]).returning();
 
       // Set ACL on object storage file if it's an object storage path
-      if (fileInfo.filePath && fileInfo.filePath.startsWith('/objects/')) {
-        try {
-          const objectStorageService = new ObjectStorageService();
-          await objectStorageService.trySetObjectEntityAclPolicy(fileInfo.filePath, {
-            visibility: 'private',
-            owner: user.id,
-          });
-        } catch (aclError) {
-          if (process.env.NODE_ENV === 'development') console.error('Failed to set ACL on demand file:', aclError);
-        }
+      if (fileInfo.filePath) {
+        await applyAttachmentAcl(fileInfo.filePath, user.id, '[POST /api/demands]');
       }
 
       res.status(201).json(newDemand[0]);
@@ -711,12 +707,34 @@ export function registerDemandRoutes(app: Express) {
       const user = req.user;
       const commentData = req.body;
 
-      // Validate input
-      const validatedData = insertDemandCommentSchema.parse({
+      // Resolve an optional single-file attachment payload up front. We accept
+      // either `attachment: { url, originalName, size }` (matches the MCP
+      // tool shape) or, for parity with POST /api/demands, the first entry of
+      // `attachments: [...]` when supplied.
+      let attachmentInput: DemandAttachmentInput | undefined;
+      if (commentData.attachment && typeof commentData.attachment === 'object') {
+        attachmentInput = commentData.attachment;
+      } else if (
+        Array.isArray(commentData.attachments) &&
+        commentData.attachments.length > 0 &&
+        typeof commentData.attachments[0] === 'object'
+      ) {
+        attachmentInput = commentData.attachments[0];
+      }
+      const fileInfo = normalizeAttachmentInput(attachmentInput);
+
+      // Validate input. Build the parser input explicitly so the optional
+      // attachment fields are only forwarded when present (and so TypeScript
+      // can infer the required `demandId` / `commenterId` properties below).
+      const parserInput: Record<string, unknown> = {
         ...commentData,
         demandId: id,
         commenterId: user.id,
-      });
+      };
+      if (fileInfo.filePath) parserInput.filePath = fileInfo.filePath;
+      if (fileInfo.fileName) parserInput.fileName = fileInfo.fileName;
+      if (fileInfo.fileSize !== undefined) parserInput.fileSize = fileInfo.fileSize;
+      const validatedData = insertDemandCommentSchema.parse(parserInput);
 
       // Check if user has access to the demand (same permission logic as GET comments)
       const demand = await db.select().from(demands).where(eq(demands.id, id)).limit(1);
@@ -753,7 +771,42 @@ export function registerDemandRoutes(app: Express) {
         return res.status(403).json({ message: 'Access denied' });
       }
 
-      const newComment = await db.insert(demandComments).values(validatedData).returning();
+      // Mirror the demand attachment ACL guard: refuse to bind a client-
+      // supplied /objects/ path that already has an ACL naming a different
+      // owner, preventing path-rebinding / ACL-hijacking on comments.
+      if (fileInfo.filePath) {
+        const aclError = await verifyAttachmentOwnership(
+          fileInfo.filePath,
+          user.id,
+          '[POST /api/demands/:id/comments]'
+        );
+        if (aclError) {
+          return res.status(403).json({ message: aclError });
+        }
+      }
+
+      // Explicit insert payload so the required Drizzle columns stay non-
+      // optional regardless of how Zod widens the parser output type.
+      const insertValues = {
+        demandId: id,
+        commenterId: user.id,
+        commentText: validatedData.commentText,
+        commentType: validatedData.commentType,
+        isInternal: validatedData.isInternal,
+        ...(fileInfo.filePath && { filePath: fileInfo.filePath }),
+        ...(fileInfo.fileName && { fileName: fileInfo.fileName }),
+        ...(fileInfo.fileSize !== undefined && { fileSize: fileInfo.fileSize }),
+      };
+      const newComment = await db.insert(demandComments).values(insertValues).returning();
+
+      // Bind the object-storage entity to the calling user (best-effort).
+      if (fileInfo.filePath) {
+        await applyAttachmentAcl(
+          fileInfo.filePath,
+          user.id,
+          '[POST /api/demands/:id/comments]'
+        );
+      }
 
       if (demandData.submitterId) {
         try {
