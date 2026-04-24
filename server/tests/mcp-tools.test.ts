@@ -1176,6 +1176,144 @@ describe('MCP Server', () => {
     });
   });
 
+  describe('delete_bill', () => {
+    type DeleteCall = { table: 'payments' | 'bills' | 'unknown' };
+    let deleteCalls: DeleteCall[];
+    let returningsByTable: Partial<Record<DeleteCall['table'], unknown[]>>;
+    let txError: Error | null;
+
+    const BILL_TABLE_MAP = new Map<unknown, DeleteCall['table']>([
+      [schema.payments, 'payments'],
+      [schema.bills, 'bills'],
+    ]);
+
+    function tableNameFor(t: unknown): DeleteCall['table'] {
+      return BILL_TABLE_MAP.get(t) ?? 'unknown';
+    }
+
+    function makeChain(rows: unknown[]) {
+      return {
+        where: jest.fn().mockReturnThis(),
+        returning: jest.fn().mockResolvedValue(rows),
+      };
+    }
+
+    beforeEach(() => {
+      deleteCalls = [];
+      returningsByTable = {};
+      txError = null;
+
+      const tx = {
+        delete: jest.fn((table: unknown) => {
+          const name = tableNameFor(table);
+          deleteCalls.push({ table: name });
+          const rows = returningsByTable[name] ?? [];
+          return makeChain(rows);
+        }),
+      };
+
+      (mockDb as unknown as { transaction: jest.Mock }).transaction = jest.fn(
+        async (fn: (t: typeof tx) => Promise<unknown>) => {
+          if (txError) throw txError;
+          return fn(tx);
+        },
+      );
+      (mockDb as unknown as { delete: jest.Mock }).delete = jest.fn(() => makeChain([]));
+    });
+
+    it('denies tenants', async () => {
+      // The handler reads the MCP-scoped orgs, the bill, and its building
+      // before calling `authorizeDeleteInMcpScope`, so we must seed those
+      // reads even for a tenant — the role check happens after them.
+      mockSelectChain.where
+        .mockImplementationOnce(() => createWhereResult([{ id: 'org-1' }]))
+        .mockImplementationOnce(() =>
+          createWhereResult([{ id: 'bill-1', buildingId: 'b-1' }]),
+        )
+        .mockImplementationOnce(() => createWhereResult([{ organizationId: 'org-1' }]));
+      const handler = getToolHandler(server, 'delete_bill');
+      const result = await handler({ role: 'tenant', billId: 'bill-1' }, {});
+      expect(parseToolResponse(result)).toBe(
+        'Access denied: tenants cannot delete bills',
+      );
+      // No transaction should have started for a tenant call.
+      expect(deleteCalls).toEqual([]);
+    });
+
+    it('returns "not found" when the bill does not exist', async () => {
+      mockSelectChain.where
+        .mockImplementationOnce(() => createWhereResult([{ id: 'org-1' }]))
+        .mockImplementationOnce(() => createWhereResult([])); // bill lookup → empty
+      const handler = getToolHandler(server, 'delete_bill');
+      const result = await handler({ role: 'admin', billId: 'missing' }, {});
+      expect(parseToolResponse(result)).toContain('Bill not found: missing');
+      expect(deleteCalls).toEqual([]);
+    });
+
+    it('denies access when the bill is attached to a building outside MCP scope', async () => {
+      mockSelectChain.where
+        .mockImplementationOnce(() => createWhereResult([{ id: 'org-1' }]))
+        .mockImplementationOnce(() =>
+          createWhereResult([{ id: 'bill-1', buildingId: 'b-x' }]),
+        )
+        .mockImplementationOnce(() =>
+          createWhereResult([{ organizationId: 'other-org' }]),
+        );
+      const handler = getToolHandler(server, 'delete_bill');
+      const result = await handler({ role: 'admin', billId: 'bill-1' }, {});
+      expect(parseToolResponse(result)).toBe(
+        'Access denied: bill is not attached to an MCP-scoped building',
+      );
+      expect(deleteCalls).toEqual([]);
+    });
+
+    it('deletes a bill inside MCP scope as admin and returns the deleted/cascaded shape', async () => {
+      mockSelectChain.where
+        .mockImplementationOnce(() => createWhereResult([{ id: 'org-1' }]))
+        .mockImplementationOnce(() =>
+          createWhereResult([{ id: 'bill-1', buildingId: 'b-1' }]),
+        )
+        .mockImplementationOnce(() => createWhereResult([{ organizationId: 'org-1' }]));
+      returningsByTable.payments = [{ id: 'pay-1' }, { id: 'pay-2' }, { id: 'pay-3' }];
+      returningsByTable.bills = [
+        { id: 'bill-1', billNumber: 'B-001', title: 'March Utilities' },
+      ];
+
+      const handler = getToolHandler(server, 'delete_bill');
+      const result = await handler({ role: 'admin', billId: 'bill-1' }, {});
+      const parsed = JSON.parse(parseToolResponse(result));
+
+      expect(parsed.deleted).toEqual({
+        id: 'bill-1',
+        billNumber: 'B-001',
+        title: 'March Utilities',
+      });
+      expect(parsed.cascaded).toEqual({ payments: 3 });
+      expect(parsed.message).toMatch(/cascade applied/i);
+
+      // Assert the cascade-table delete order: dependent payments are
+      // torn down before the parent `bills` row.
+      expect(deleteCalls.map((c) => c.table)).toEqual(['payments', 'bills']);
+    });
+
+    it('returns a readable failure message when the cascade transaction fails', async () => {
+      mockSelectChain.where
+        .mockImplementationOnce(() => createWhereResult([{ id: 'org-1' }]))
+        .mockImplementationOnce(() =>
+          createWhereResult([{ id: 'bill-1', buildingId: 'b-1' }]),
+        )
+        .mockImplementationOnce(() => createWhereResult([{ organizationId: 'org-1' }]));
+      txError = new Error(
+        'update or delete on table "bills" violates foreign key constraint',
+      );
+      const handler = getToolHandler(server, 'delete_bill');
+      const result = await handler({ role: 'admin', billId: 'bill-1' }, {});
+      const text = parseToolResponse(result);
+      expect(text).toContain('Failed to delete');
+      expect(text).toContain('bill');
+    });
+  });
+
   describe('delete_project', () => {
     type DeleteCall = {
       table:
