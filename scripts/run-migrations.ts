@@ -287,7 +287,21 @@ export async function runMigrations(opts: {
 
 const isMain = (() => {
   try {
-    return import.meta.url === `file://${process.argv[1]}`;
+    // Only treat this module as the entry point when the executed script
+    // path actually points at run-migrations(.ts|.js|.mjs). Without the
+    // filename guard, esbuild bundling this file into dist/index.js would
+    // make both `import.meta.url` and `process.argv[1]` resolve to the
+    // same dist entry and the migration runner would auto-execute on
+    // every production boot, calling process.exit(0) and tearing down
+    // the live server (causing a deploy loop / 503s).
+    const argv1 = process.argv[1];
+    if (typeof argv1 !== 'string' || argv1.length === 0) {
+      return false;
+    }
+    if (!/run-migrations(\.[cm]?[jt]s)?$/.test(argv1)) {
+      return false;
+    }
+    return import.meta.url === `file://${argv1}`;
   } catch {
     return false;
   }
