@@ -48,31 +48,19 @@ export const billFormSchema = z.object({
   yearInterval: z.coerce.number().int().min(1).max(99).optional().default(1),
   hasInitialPayment: z.boolean().optional(),
   recurringPaymentsEqual: z.boolean().optional(),
-  singlePaymentAmount: z.string().optional().refine((val) => {
-    if (!val) return true;
-    const num = parseFloat(val);
-    return !isNaN(num) && num > 0 && num <= 999999.99;
-  }, 'Payment amount must be between $0.01 and $999,999.99'),
-  initialPaymentAmount: z.string().optional().refine((val) => {
-    if (!val) return true;
-    const num = parseFloat(val);
-    return !isNaN(num) && num > 0 && num <= 999999.99;
-  }, 'Initial payment amount must be between $0.01 and $999,999.99'),
-  recurringPaymentAmount: z.string().optional().refine((val) => {
-    if (!val) return true;
-    const num = parseFloat(val);
-    return !isNaN(num) && num > 0 && num <= 999999.99;
-  }, 'Recurring payment amount must be between $0.01 and $999,999.99'),
+  // Per-structure payment-amount fields are intentionally validated only inside
+  // `superRefine` (not via field-level `.refine`s) so that a leftover value on
+  // an inactive field — e.g. a `0.00` `singlePaymentAmount` carried over from a
+  // draft bill that the user (or AI) later flips to installment — does not
+  // block save with an error message about a hidden field. Each structure
+  // branch below re-applies the same range checks for the fields it actually
+  // uses.
+  singlePaymentAmount: z.string().optional(),
+  initialPaymentAmount: z.string().optional(),
+  recurringPaymentAmount: z.string().optional(),
   customPayments: z.array(z.object({
-    amount: z.string().refine((val) => {
-      if (!val || val.trim() === '') return false;
-      const num = parseFloat(val);
-      return !isNaN(num) && num > 0 && num <= 999999.99;
-    }, 'Amount must be between $0.01 and $999,999.99'),
-    date: z.string().refine((val) => {
-      if (!val || val.trim() === '') return true;
-      return !isNaN(Date.parse(val));
-    }, 'Date must be a valid date'),
+    amount: z.string(),
+    date: z.string(),
     description: z.string().optional()
   })).optional(),
   totalAmount: z.string().optional().refine((val) => {
@@ -89,11 +77,25 @@ export const billFormSchema = z.object({
   }, 'End date must be a valid date'),
   status: z.enum(['draft', 'sent', 'overdue', 'paid', 'cancelled']),
 }).superRefine((data, ctx) => {
+  // Shared range check used by every payment-amount validation. Returns true
+  // when `val` is a parseable number in the inclusive range $0.01 – $999,999.99.
+  const isAmountInRange = (val: string | undefined | null): boolean => {
+    if (!val || val.trim() === '') return false;
+    const num = parseFloat(val);
+    return !isNaN(num) && num > 0 && num <= 999999.99;
+  };
+
   if (data.paymentStructure === 'single') {
     if (!data.singlePaymentAmount || data.singlePaymentAmount.trim() === '') {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: 'Payment amount is required for single payment bills',
+        path: ['singlePaymentAmount']
+      });
+    } else if (!isAmountInRange(data.singlePaymentAmount)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Payment amount must be between $0.01 and $999,999.99',
         path: ['singlePaymentAmount']
       });
     }
@@ -105,29 +107,68 @@ export const billFormSchema = z.object({
         path: ['schedulePayment']
       });
     }
-    
-    if (data.hasInitialPayment && (!data.initialPaymentAmount || data.initialPaymentAmount.trim() === '')) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Initial payment amount is required when initial payment is enabled',
-        path: ['initialPaymentAmount']
-      });
+
+    if (data.hasInitialPayment) {
+      if (!data.initialPaymentAmount || data.initialPaymentAmount.trim() === '') {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Initial payment amount is required when initial payment is enabled',
+          path: ['initialPaymentAmount']
+        });
+      } else if (!isAmountInRange(data.initialPaymentAmount)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Initial payment amount must be between $0.01 and $999,999.99',
+          path: ['initialPaymentAmount']
+        });
+      }
     }
-    if (data.recurringPaymentsEqual && data.schedulePayment !== 'custom' && (!data.recurringPaymentAmount || data.recurringPaymentAmount.trim() === '')) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Payment amount is required for equal installment payments',
-        path: ['recurringPaymentAmount']
-      });
+    if (data.recurringPaymentsEqual && data.schedulePayment !== 'custom') {
+      if (!data.recurringPaymentAmount || data.recurringPaymentAmount.trim() === '') {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Payment amount is required for equal installment payments',
+          path: ['recurringPaymentAmount']
+        });
+      } else if (!isAmountInRange(data.recurringPaymentAmount)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Recurring payment amount must be between $0.01 and $999,999.99',
+          path: ['recurringPaymentAmount']
+        });
+      }
     }
-    if ((data.schedulePayment === 'custom' || !data.recurringPaymentsEqual) && (!data.customPayments || data.customPayments.length === 0)) {
+    const usesCustomPayments = data.schedulePayment === 'custom' || !data.recurringPaymentsEqual;
+    if (usesCustomPayments && (!data.customPayments || data.customPayments.length === 0)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: 'At least one payment is required for custom payment schedule',
         path: ['customPayments']
       });
     }
-    
+    if (usesCustomPayments && data.customPayments && data.customPayments.length > 0) {
+      // Per-payment amount/date validation only fires when custom payments are
+      // actually used by the active structure (previously enforced via
+      // field-level refines that always ran, blocking save when an inactive
+      // installment row carried a stale empty/invalid value).
+      data.customPayments.forEach((payment, index) => {
+        if (!isAmountInRange(payment.amount)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Amount must be between $0.01 and $999,999.99',
+            path: ['customPayments', index, 'amount']
+          });
+        }
+        if (payment.date && payment.date.trim() !== '' && isNaN(Date.parse(payment.date))) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Date must be a valid date',
+            path: ['customPayments', index, 'date']
+          });
+        }
+      });
+    }
+
     if (data.schedulePayment === 'custom' && data.customPayments && data.customPayments.length > 0) {
       const missingDates = data.customPayments.filter((payment) => !payment.date || payment.date.trim() === '');
       
