@@ -3893,6 +3893,109 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     }
   );
 
+  // Post-work element project updates: per-element record of what was actually
+  // performed when a maintenance project wraps up (repair / minor_rehab /
+  // major_rehab / replace / nothing, optional actual cost and notes).
+  // Mirrors the REST handlers in server/api/maintenance.ts:
+  //   - GET  /api/maintenance/projects/:id/element-updates
+  //   - POST /api/maintenance/projects/:id/element-updates  (upsert)
+  // RBAC: tenants are blocked on both. The element must already be linked to
+  // the project via project_elements (same constraint the REST upsert enforces),
+  // and the project's building must be inside an MCP-scoped organization.
+
+  server.tool(
+    "list_element_project_updates",
+    "List the post-work element updates recorded against a maintenance project (admin/manager only). Each row is the per-element record of what was actually performed (repair / minor_rehab / major_rehab / replace / nothing) along with optional actualCost and notes, joined to the building element's name and UNIFORMAT code. Project's building must be inside an MCP-scoped organization.",
+    { role: roleParam, projectId: z.string().describe("Maintenance project ID") },
+    async ({ role, projectId }) => {
+      if (role === "tenant") {
+        return { content: [{ type: "text" as const, text: "Access denied: tenants cannot view post-work element updates" }] };
+      }
+      const scope = await loadMcpScopedProject(projectId);
+      if (!scope.ok) return scope.response;
+      const updates = await db
+        .select({
+          id: schema.elementProjectUpdates.id,
+          projectId: schema.elementProjectUpdates.projectId,
+          elementId: schema.elementProjectUpdates.elementId,
+          updateStatus: schema.elementProjectUpdates.updateStatus,
+          actualCost: schema.elementProjectUpdates.actualCost,
+          notes: schema.elementProjectUpdates.notes,
+          createdAt: schema.elementProjectUpdates.createdAt,
+          updatedAt: schema.elementProjectUpdates.updatedAt,
+          elementName: schema.buildingElements.name,
+          uniformatCode: schema.buildingElements.uniformatCode,
+          elementDescription: schema.buildingElements.description,
+        })
+        .from(schema.elementProjectUpdates)
+        .innerJoin(schema.buildingElements, eq(schema.elementProjectUpdates.elementId, schema.buildingElements.id))
+        .where(eq(schema.elementProjectUpdates.projectId, projectId))
+        .orderBy(asc(schema.buildingElements.name));
+      return { content: [{ type: "text" as const, text: JSON.stringify(updates, null, 2) }] };
+    }
+  );
+
+  server.tool(
+    "upsert_element_project_update",
+    "Record (or update) what was actually done to a single inventory element during a maintenance project's post-work phase (admin/manager only). Creates or updates the row in element_project_updates for the (projectId, elementId) pair. The element must already be linked to the project via project_elements; if it is not, the call is rejected with a hint to attach it first. Project's building must be inside an MCP-scoped organization.",
+    {
+      role: roleParam,
+      projectId: z.string().describe("Maintenance project ID"),
+      elementId: z.string().describe("Building element ID (must already be linked to the project)"),
+      updateStatus: z
+        .enum(["repair", "minor_rehab", "major_rehab", "replace", "nothing"])
+        .describe("What was actually done to this element"),
+      actualCost: z.number().nonnegative().optional().describe("Optional actual cost charged for this element's work"),
+      notes: z.string().optional().describe("Optional free-form notes about the work performed"),
+    },
+    async ({ role, projectId, elementId, updateStatus, actualCost, notes }) => {
+      if (role === "tenant") {
+        return { content: [{ type: "text" as const, text: "Access denied: tenants cannot record post-work element updates" }] };
+      }
+      const scope = await loadMcpScopedProject(projectId);
+      if (!scope.ok) return scope.response;
+      // The element must already be attached to the project via the
+      // project_elements junction. Mirrors the REST upsert handler so the
+      // tool cannot quietly create updates for elements that were never
+      // part of the project's scope of work.
+      const [link] = await db
+        .select({ id: schema.projectElements.id })
+        .from(schema.projectElements)
+        .where(and(
+          eq(schema.projectElements.projectId, projectId),
+          eq(schema.projectElements.elementId, elementId),
+        ));
+      if (!link) {
+        return { content: [{ type: "text" as const, text: `Element ${elementId} is not linked to project ${projectId}. Attach it to the project first before recording a post-work update.` }] };
+      }
+      try {
+        const [upserted] = await withRetryableDbCall(() => db
+          .insert(schema.elementProjectUpdates)
+          .values({
+            projectId,
+            elementId,
+            updateStatus,
+            ...(actualCost !== undefined && { actualCost: String(actualCost) }),
+            ...(notes !== undefined && { notes }),
+          })
+          .onConflictDoUpdate({
+            target: [schema.elementProjectUpdates.projectId, schema.elementProjectUpdates.elementId],
+            set: {
+              updateStatus,
+              ...(actualCost !== undefined && { actualCost: String(actualCost) }),
+              ...(notes !== undefined && { notes }),
+              updatedAt: new Date(),
+            },
+          })
+          .returning());
+        return { content: [{ type: "text" as const, text: JSON.stringify(upserted, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:upsert_element_project_update]", e);
+        return buildWriteErrorResponse(e, 'element project update', 'update');
+      }
+    }
+  );
+
   server.tool(
     "downgrade_acting_role",
     "Downgrade the MCP session's acting role to a less-privileged role within the OAuth-bound ceiling. " +
