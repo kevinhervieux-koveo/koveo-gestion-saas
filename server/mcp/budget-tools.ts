@@ -795,20 +795,26 @@ export function registerBudgetTools(server: McpServer, deps: BudgetToolDeps): vo
         }
 
         // Re-list to find the newly inserted row by content match (the PUT
-        // handler doesn't return rows, and all custom ids were regenerated).
+        // handler doesn't return rows; existing custom ids are preserved by
+        // Task #526's upsert, and the appended entry is the only fresh
+        // insert). Compare amount numerically — Postgres `numeric(10,2)`
+        // comes back as a zero-padded string like '25000.00' while JS
+        // `amount.toString()` is '25000', so a string compare would always
+        // miss on real Postgres and the response would fall back to the
+        // request payload (no `id`), which defeats the point of returning
+        // anything to the caller.
         const afterResp = await invokeRouteHandler(investmentsGetHandler, {
           params: { buildingId },
         });
         const afterRows = Array.isArray(afterResp.payload)
           ? (afterResp.payload as Array<Record<string, unknown>>)
           : [];
-        const expectedAmount = amount.toString();
         const created =
           afterRows.find(
             (r) =>
               r.type === "custom" &&
               r.title === title &&
-              String(r.amount) === expectedAmount &&
+              Number(r.amount) === amount &&
               r.targetDate === targetDate &&
               r.urgency === urgency &&
               r.ownershipType === ownershipType,

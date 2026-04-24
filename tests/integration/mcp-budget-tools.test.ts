@@ -495,12 +495,9 @@ describeIfDb('MCP budget tools — real Postgres (Task #599)', () => {
     expect(textOf(tCreate)).toMatch(/tenants cannot create capital investments/i);
 
     // admin creates a custom investment. The MCP tool's response body
-    // is `newEntry` (without `id`) when its content-match against the
-    // re-listed rows does not pin the new row down — for instance when
-    // the numeric column comes back as `'25000.00'` while the JS
-    // `amount.toString()` is `'25000'`. The persisted row IS in the DB
-    // either way, so we look the id up there before driving the rest
-    // of the CRUD flow.
+    // includes the database `id` of the newly-inserted row so callers
+    // can drive a follow-up update or delete without having to look it
+    // up themselves (Task #613).
     const cr = await getToolHandler(server, 'create_capital_investment')({
       role: 'admin',
       buildingId,
@@ -513,25 +510,28 @@ describeIfDb('MCP budget tools — real Postgres (Task #599)', () => {
       category: 'capital_works',
     });
     const createdResp = parseJson<{
-      type?: string;
+      id: string;
+      type: string;
       title: string;
+      amount: string | number;
       ownershipType: string;
     }>(cr);
+    expect(createdResp.id).toBeTruthy();
+    expect(createdResp.type).toBe('custom');
     expect(createdResp.title).toBe(`${TEST_TAG} roof`);
     expect(createdResp.ownershipType).toBe('residences');
+    expect(String(createdResp.amount)).toBe('25000.00');
 
+    const investmentId = createdResp.id;
+    // Sanity-check the row really landed in Postgres with the same id.
     const persistedRows = await db
       .select()
       .from(schema.capitalInvestments)
-      .where(eq(schema.capitalInvestments.buildingId, buildingId));
-    const persisted = persistedRows.find(
-      (r) => r.type === 'custom' && r.title === `${TEST_TAG} roof`,
-    );
-    expect(persisted).toBeTruthy();
-    const investmentId = persisted!.id;
-    expect(persisted!.type).toBe('custom');
-    expect(persisted!.ownershipType).toBe('residences');
-    expect(persisted!.amount).toBe('25000.00');
+      .where(eq(schema.capitalInvestments.id, investmentId));
+    expect(persistedRows).toHaveLength(1);
+    expect(persistedRows[0]!.type).toBe('custom');
+    expect(persistedRows[0]!.ownershipType).toBe('residences');
+    expect(persistedRows[0]!.amount).toBe('25000.00');
     created.capitalInvestmentIds.add(investmentId);
 
     // list_capital_investments returns the new row.
