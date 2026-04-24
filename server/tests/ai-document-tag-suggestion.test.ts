@@ -6,7 +6,7 @@
  *   - POST /api/ai/suggest-document-tags route handler (validation, fallback)
  *   - POST /api/ai/suggest-document-tags caching behavior
  */
-import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterAll, jest } from '@jest/globals';
 import express from 'express';
 import request from 'supertest';
 
@@ -231,12 +231,21 @@ const describeIfDb = REAL_DB_URL ? describe : describe.skip;
 describeIfDb('POST /api/ai/suggest-document-tags', () => {
   let app: express.Express;
 
-  beforeEach(() => {
-    // Route uses an in-memory TTL cache keyed by file bytes + tag list, so
-    // identical-payload tests would otherwise hit a previous test's result.
-    __clearTagSuggestionCacheForTests();
+  beforeEach(async () => {
+    // The shared cache is Postgres-backed and is mutated by every other AI
+    // test file too. Awaiting the clear is critical: a fire-and-forget
+    // `db.delete(aiSuggestionCache)` from a previous `beforeEach` would
+    // otherwise race into the next test file and silently wipe rows that
+    // those tests had just seeded (e.g. `ai-suggestion-cache-prune.test.ts`).
+    await __clearTagSuggestionCacheForTests();
     suggestMock.mockReset();
     app = buildApp();
+  });
+
+  afterAll(async () => {
+    // Don't leak suggestion rows produced by these route tests into other
+    // AI test files that share the same cache table.
+    await __clearTagSuggestionCacheForTests();
   });
 
   it('returns the AI-suggested tag IDs on success', async () => {
@@ -357,11 +366,22 @@ describeIfDb('POST /api/ai/suggest-document-tags caching', () => {
     { id: 'tag-3', name: 'Tax', description: 'Tax documents' },
   ];
 
-  beforeEach(() => {
-    __clearTagSuggestionCacheForTests();
+  beforeEach(async () => {
+    // Awaited so the cache row from the previous test (or test file) is
+    // actually gone before the next request runs. A non-awaited clear was
+    // racing with the suggestion lookup and made the first request of some
+    // tests below see a cached result instead of a miss.
+    await __clearTagSuggestionCacheForTests();
     suggestMock.mockReset();
     suggestMock.mockResolvedValue(['tag-1']);
     app = buildApp();
+  });
+
+  afterAll(async () => {
+    // Same cross-file isolation reason as the route describe above:
+    // leave the shared `ai_suggestion_cache` table empty for the next
+    // suite that runs in the same Jest process.
+    await __clearTagSuggestionCacheForTests();
   });
 
   async function postSuggestion(opts: {
