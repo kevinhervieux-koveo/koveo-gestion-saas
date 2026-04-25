@@ -128,7 +128,7 @@ export interface AnalyzerFileSource {
   mimeType?: string | null;
 }
 
-const MODEL = 'claude-3-5-sonnet-latest';
+const MODEL = 'claude-sonnet-4-6';
 
 /** Anthropic accepts ~32MB / call; we cap well below that to be safe. */
 const MAX_DOCUMENT_BYTES = 25 * 1024 * 1024;
