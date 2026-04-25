@@ -1417,4 +1417,63 @@ describe('BulkDocumentImportPage — sorting decision UI (Task #817 / #825)', ()
 
     expect(screen.getByTestId(`branching-merge-group-${ACCEPTED_LEAD}`)).toBeInTheDocument();
   });
+
+  // ---------------------------------------------------------------------------
+  // Task #1001 — Branching sort order + merge-group card header.
+  //
+  // Task #1001 added two visible behaviours on the sorting step that the
+  // earlier #927 / #956 tests don't cover:
+  //
+  //   1. Accepted rows (and merge groups whose lead + every non-excluded
+  //      sibling are accepted) sort to the bottom of the list. Pending
+  //      and rejected rows stay at the top so admins see unreviewed work
+  //      without scrolling.
+  //   2. Each merge-lead card now starts with a small header strip
+  //      (GitMerge icon + "Merge · N files" / "Fusion · N fichiers")
+  //      tagged `branching-merge-group-header-{leadId}` so the grouping
+  //      is obvious before the admin expands the nested sibling list.
+  //
+  // Both invariants live in dense list-building / JSX in
+  // bulk-document-import.tsx and would silently regress if the sort
+  // comparator or the lead-card layout is touched. These tests mount the
+  // real page (the same way the rest of this suite does) and assert
+  // each contract end-to-end.
+  // ---------------------------------------------------------------------------
+
+  it('sorts pending rows before accepted rows on the Branching list (Task #1001)', async () => {
+    renderPage();
+    await waitForRows();
+
+    const pendingRow = screen.getByTestId(`item-row-${ITEM_PENDING}`);
+    const acceptedRow = screen.getByTestId(`item-row-${ITEM_ACCEPTED}`);
+
+    // DOCUMENT_POSITION_FOLLOWING (bit 4) on
+    // pending.compareDocumentPosition(accepted) means the accepted row
+    // appears after the pending row in document order — i.e. pending
+    // sorts above accepted on the Branching step as #1001 specifies.
+    const positionBitmask = pendingRow.compareDocumentPosition(acceptedRow);
+    expect(positionBitmask & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('renders the merge-group card header (GitMerge + file count) at the top of the lead card (Task #1001)', async () => {
+    const { LEAD } = pushMergeGroupFixture();
+
+    renderPage();
+    await waitForMergeGroup(LEAD);
+
+    const header = screen.getByTestId(`branching-merge-group-header-${LEAD}`);
+    expect(header).toBeInTheDocument();
+
+    // The header must live inside the lead's card, not at the page root —
+    // it's the strip rendered above the nested sibling list, so it must
+    // be a descendant of item-row-{leadId} for the grouping to read
+    // correctly visually.
+    const leadRow = screen.getByTestId(`item-row-${LEAD}`);
+    expect(leadRow.contains(header)).toBe(true);
+
+    // The fixture is a 3-file merge group (lead + two siblings); the
+    // header surfaces that count in English so admins know the merge size
+    // before expanding.
+    expect(header).toHaveTextContent('Merge · 3 files');
+  });
 });
