@@ -736,6 +736,33 @@ function SplitPageManualInput({
   );
 }
 
+function SortingMergeGroupWrapper({
+  show,
+  testId,
+  isFr,
+  siblingRows,
+  children,
+}: {
+  show: boolean;
+  testId: string;
+  isFr: boolean;
+  siblingRows: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  if (!show) return <>{children}</>;
+  return (
+    <div data-testid={testId} className="border-t border-border">
+      <p className="px-3 pt-2 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        {isFr ? 'Dans cette fusion' : 'In this merge'}
+      </p>
+      <div className="ml-4 border-l-2 border-border">
+        {children}
+      </div>
+      {siblingRows}
+    </div>
+  );
+}
+
 function HistorySessionRow({
   session,
   buildings,
@@ -3572,7 +3599,26 @@ export default function BulkDocumentImportPage() {
                           }
                         }
                         const topLevelItems = currentStep === 'sorting'
-                          ? visibleItems.filter((item) => !siblingItemIds.has(item.id))
+                          ? (() => {
+                              const filtered = visibleItems.filter((item) => !siblingItemIds.has(item.id));
+                              // Sort: non-accepted (pending/rejected) first, fully-accepted
+                              // items (or merge groups) last so admins see unreviewed items
+                              // at the top without scrolling (Task #1001).
+                              const isGroupFullyAccepted = (it: (typeof filtered)[number]): boolean => {
+                                if (it.sortingDecisionState !== 'accepted') return false;
+                                if (!it.sortingMergeWithItemIds?.length) return true;
+                                return it.sortingMergeWithItemIds.every((sid) => {
+                                  const sib = items.find((i) => i.id === sid);
+                                  return !sib || sib.status === 'rejected' || sib.sortingDecisionState === 'accepted';
+                                });
+                              };
+                              return [...filtered].sort((a, b) => {
+                                const aAcc = isGroupFullyAccepted(a);
+                                const bAcc = isGroupFullyAccepted(b);
+                                if (aAcc === bAcc) return 0;
+                                return aAcc ? 1 : -1;
+                              });
+                            })()
                           : visibleItems;
                         return (
                           <>
@@ -3631,15 +3677,6 @@ export default function BulkDocumentImportPage() {
                           currentStep === 'sorting'
                             ? item.sortingDecision != null
                             : hasQuickAnalysisSignal(item);
-                        // Note: this else block only renders for non-branching
-                        // steps (branching has its own IIFE above), so the
-                        // collapsedBranchingItemIds branch below is a safety
-                        // fallback that TypeScript narrows away. Cast to keep
-                        // the explicit intent visible.
-                        const isExpanded =
-                          (currentStep as string) === 'branching'
-                            ? !collapsedBranchingItemIds.has(item.id)
-                            : expandedItemIds.has(item.id);
                         // For the sorting step: is the AI's answer
                         // waiting for human acceptance?
                         const sortingIsPending =
@@ -3651,6 +3688,37 @@ export default function BulkDocumentImportPage() {
                         const sortingIsAccepted =
                           currentStep === 'sorting' &&
                           item.sortingDecisionState === 'accepted';
+                        // Note: this else block only renders for non-branching
+                        // steps (branching has its own IIFE above), so the
+                        // collapsedBranchingItemIds branch below is a safety
+                        // fallback that TypeScript narrows away. Cast to keep
+                        // the explicit intent visible.
+                        // For merge leads: the group stays expanded if ANY
+                        // sibling is non-accepted, so the admin can see all
+                        // pending/rejected members without needing to expand
+                        // manually (Task #1001 group-level expand semantics).
+                        const _mergeGroupAnyNonAccepted =
+                          currentStep === 'sorting' &&
+                          !!item.sortingMergeWithItemIds?.length &&
+                          item.sortingMergeWithItemIds.some((sid) => {
+                            const sib = items.find((i) => i.id === sid);
+                            return (
+                              sib &&
+                              sib.status !== 'rejected' &&
+                              sib.sortingDecisionState !== 'accepted'
+                            );
+                          });
+                        // Sorting step: non-accepted rows are always expanded
+                        // (admins can't collapse them); accepted rows start
+                        // collapsed and can be toggled open (Task #1001).
+                        const isExpanded =
+                          currentStep === 'sorting'
+                            ? (sortingIsPending || sortingIsRejected || isDraftSplitLead || _mergeGroupAnyNonAccepted)
+                              ? true
+                              : expandedItemIds.has(item.id)
+                            : (currentStep as string) === 'branching'
+                              ? !collapsedBranchingItemIds.has(item.id)
+                              : expandedItemIds.has(item.id);
                         const _pickerEntry = sortingPickerStates.get(item.id) ?? {
                           decision: 'keep' as const,
                           mergeTargetId: '',
@@ -3712,8 +3780,785 @@ export default function BulkDocumentImportPage() {
                             data-testid={`item-row-${item.id}`}
                             data-excluded={isExcluded ? 'true' : 'false'}
                           >
-                            <div className="flex items-center justify-between gap-3 p-3">
-                            {hasAnalysis ? (
+                            {currentStep === 'sorting' && mergeGroupSiblingItems.length > 0 && (
+                              <div className="flex items-center gap-2 px-3 pt-3 pb-1 border-b border-border" data-testid={`branching-merge-group-header-${item.id}`}>
+                                <GitMerge className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+                                <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                  {isFr
+                                    ? `Fusion · ${mergeGroupTotalCount} fichiers`
+                                    : `Merge · ${mergeGroupTotalCount} files`}
+                                </span>
+                              </div>
+                            )}
+                            <SortingMergeGroupWrapper
+                              show={currentStep === 'sorting' && mergeGroupSiblingItems.length > 0}
+                              testId={`branching-merge-group-${item.id}`}
+                              isFr={isFr}
+                              siblingRows={mergeGroupSiblingItems.map((sibling) => {
+                                const SiblingIcon = iconForMime(sibling.mimeType);
+                                const sibSortingIsPending =
+                                  sibling.sortingDecisionState === 'pending';
+                                const sibSortingIsRejected =
+                                  sibling.sortingDecisionState === 'rejected';
+                                const sibSortingIsAccepted =
+                                  sibling.sortingDecisionState === 'accepted';
+                                const sibIsDraftSplitLead =
+                                  sibling.status === 'rejected' &&
+                                  !!sibling.sortingDecisionSplitIntoItemIds?.length &&
+                                  sibling.preExcludeStatus == null;
+                                const sibIsExcluded = sibling.status === 'rejected' && !sibIsDraftSplitLead;
+                                const sibDecision = getItemStepDecision(sibling, currentStep);
+                                const sibSortingMutationPending =
+                                  setSortingDecision.isPending &&
+                                  setSortingDecision.variables?.itemId === sibling.id;
+                                const sibTogglePending =
+                                  toggleExclude.isPending &&
+                                  toggleExclude.variables?.itemId === sibling.id;
+                                const sibCanToggleExclude =
+                                  sibling.status !== 'committed' &&
+                                  sibling.status !== 'duplicate';
+                                // Group-level rule: if any member of the merge
+                                // group is non-accepted (lead or any sibling),
+                                // ALL members stay force-expanded so admins can
+                                // see the full group state at once.
+                                const sibGroupForceExpand =
+                                  sortingIsPending ||
+                                  sortingIsRejected ||
+                                  isDraftSplitLead ||
+                                  _mergeGroupAnyNonAccepted;
+                                const sibIsExpanded =
+                                  expandedItemIds.has(sibling.id) ||
+                                  sibGroupForceExpand;
+                                return (
+                                  <div
+                                    key={sibling.id}
+                                    className="ml-4 border-l-2 border-border"
+                                    data-testid={`branching-merge-group-sibling-${item.id}-${sibling.id}`}
+                                  >
+                                    {/* Row 1: chevron + file icon + filename */}
+                                    <div className="flex items-center gap-3 p-3 flex-wrap">
+                                      {/* Chevron: spacer when group is force-expanded (any
+                                          member non-accepted), interactive toggle when the
+                                          whole group is accepted */}
+                                      {sibGroupForceExpand ? (
+                                        <span className="h-7 w-7 flex-shrink-0" aria-hidden="true" />
+                                      ) : (
+                                        <button
+                                          type="button"
+                                          className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded text-muted-foreground hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                          aria-expanded={sibIsExpanded}
+                                          aria-label={
+                                            sibIsExpanded
+                                              ? isFr ? 'Masquer les détails' : 'Hide details'
+                                              : isFr ? 'Afficher les détails' : 'Show details'
+                                          }
+                                          data-testid={`button-toggle-detail-${sibling.id}`}
+                                          onClick={() => toggleItemExpanded(sibling.id)}
+                                        >
+                                          {sibIsExpanded ? (
+                                            <ChevronDown className="h-4 w-4" />
+                                          ) : (
+                                            <ChevronRight className="h-4 w-4" />
+                                          )}
+                                        </button>
+                                      )}
+                                      <button
+                                        type="button"
+                                        className="flex min-w-0 flex-1 items-center gap-2 truncate text-sm text-left hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+                                        data-testid={`item-preview-trigger-${sibling.id}`}
+                                        onClick={() =>
+                                          setPreviewItem({
+                                            id: sibling.id,
+                                            originalName: sibling.originalName,
+                                            mimeType: sibling.mimeType,
+                                          })
+                                        }
+                                      >
+                                        <SiblingIcon className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" />
+                                        <span className="truncate">{sibling.originalName}</span>
+                                      </button>
+                                      {/* Row 2: chips + actions (wraps below on sorting step) */}
+                                      <div
+                                        className="flex items-center gap-2 flex-wrap w-full pl-10"
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
+                                        {sibSortingIsPending && !sibIsExcluded && (
+                                          <Badge
+                                            variant="outline"
+                                            className="shrink-0 border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200"
+                                            data-testid={`sorting-pending-badge-${sibling.id}`}
+                                          >
+                                            {isFr ? 'En attente' : 'Pending review'}
+                                          </Badge>
+                                        )}
+                                        {sibSortingIsRejected && !sibIsExcluded && (
+                                          <Badge
+                                            variant="outline"
+                                            className="shrink-0 border-red-300 bg-red-50 text-red-800 dark:border-red-700 dark:bg-red-950 dark:text-red-200"
+                                            data-testid={`sorting-rejected-badge-${sibling.id}`}
+                                          >
+                                            {isFr ? 'Rejeté – choix requis' : 'Rejected – choose manually'}
+                                          </Badge>
+                                        )}
+                                        {sibSortingIsPending && !sibIsExcluded && (
+                                          <>
+                                            <Button
+                                              size="sm"
+                                              variant="outline"
+                                              className="border-green-300 text-green-700 hover:bg-green-50 dark:border-green-700 dark:text-green-300"
+                                              disabled={sibSortingMutationPending}
+                                              data-testid={`button-sorting-accept-${sibling.id}`}
+                                              onClick={() =>
+                                                setSortingDecision.mutate({
+                                                  itemId: sibling.id,
+                                                  action: 'accept',
+                                                })
+                                              }
+                                            >
+                                              {sibSortingMutationPending ? (
+                                                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                                              ) : (
+                                                <Check className="mr-1.5 h-3.5 w-3.5" />
+                                              )}
+                                              {isFr ? 'Accepter' : 'Accept'}
+                                            </Button>
+                                            <Button
+                                              size="sm"
+                                              variant="outline"
+                                              className="border-red-300 text-red-700 hover:bg-red-50 dark:border-red-700 dark:text-red-300"
+                                              disabled={sibSortingMutationPending}
+                                              data-testid={`button-sorting-reject-${sibling.id}`}
+                                              onClick={() => {
+                                                const d = (sibling.sortingDecision ?? 'keep') as 'keep' | 'merge' | 'split';
+                                                setSortingPickerStates((prev) => {
+                                                  const next = new Map(prev);
+                                                  next.set(sibling.id, {
+                                                    decision: d,
+                                                    mergeTargetId: d === 'merge' ? (sibling.sortingMergeWithItemId ?? '') : '',
+                                                    splitPage: d === 'split' ? (sibling.sortingSplitAtPage ?? 1) : 1,
+                                                  });
+                                                  return next;
+                                                });
+                                                setSortingDecision.mutate({
+                                                  itemId: sibling.id,
+                                                  action: 'reject',
+                                                });
+                                              }}
+                                            >
+                                              <X className="mr-1.5 h-3.5 w-3.5" />
+                                              {isFr ? 'Rejeter' : 'Reject'}
+                                            </Button>
+                                          </>
+                                        )}
+                                        {sibCanToggleExclude && !sibIsExcluded && (
+                                          <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            className="h-7 w-7 p-0 flex-shrink-0"
+                                            onClick={() =>
+                                              toggleExclude.mutate({
+                                                itemId: sibling.id,
+                                                excluded: true,
+                                              })
+                                            }
+                                            disabled={sibTogglePending}
+                                            aria-label={isFr ? 'Exclure le fichier' : 'Exclude file'}
+                                            title={isFr ? 'Exclure' : 'Exclude'}
+                                            data-testid={`button-toggle-exclude-${sibling.id}`}
+                                          >
+                                            {sibTogglePending ? (
+                                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                            ) : (
+                                              <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />
+                                            )}
+                                          </Button>
+                                        )}
+                                        {sibIsExcluded && (
+                                          <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            className="h-7 w-7 p-0 flex-shrink-0"
+                                            onClick={() =>
+                                              toggleExclude.mutate({
+                                                itemId: sibling.id,
+                                                excluded: false,
+                                              })
+                                            }
+                                            disabled={sibTogglePending}
+                                            aria-label={isFr ? 'Réintégrer le fichier' : 'Restore file'}
+                                            title={isFr ? 'Réintégrer' : 'Restore'}
+                                            data-testid={`button-toggle-exclude-${sibling.id}`}
+                                          >
+                                            {sibTogglePending ? (
+                                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                            ) : (
+                                              <Eye className="h-3.5 w-3.5 text-muted-foreground" />
+                                            )}
+                                          </Button>
+                                        )}
+                                      </div>
+                                    </div>
+                                    {/* Detail panel: always visible when pending/rejected (force-expanded),
+                                        toggled by chevron when accepted */}
+                                    {sibIsExpanded && (
+                                      <div
+                                        className="border-t bg-muted/30 px-3 py-3"
+                                        data-testid={`item-detail-panel-${sibling.id}`}
+                                      >
+                                        <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                          {isFr ? 'Analyse de l\'IA' : 'AI analysis'}
+                                        </div>
+                                        {(() => {
+                                          const itemIsPdf = (sibling.mimeType ?? '').toLowerCase() === 'application/pdf';
+                                          const currentDecision = sibling.sortingDecision;
+                                          const currentSplitAtPage = sibling.sortingSplitAtPage;
+                                          const inlineSlice = inlineSlicePage.get(sibling.id);
+                                          const showSliceSection = (currentDecision === 'split' || inlineSlice !== undefined) && !sibSortingIsRejected;
+                                          const showMergeSection = (currentDecision === 'merge' || inlineMergeOrder.has(sibling.id));
+                                          const effectiveSlicePage = inlineSlice ?? currentSplitAtPage ?? 1;
+                                          const mergeGroupIds = inlineMergeOrder.get(sibling.id) ?? computeMergeGroup(items, sibling.id);
+                                          const mergeLeadId = currentDecision === 'merge' ? (mergeGroupIds[0] ?? sibling.id) : sibling.id;
+                                          const leadItem = currentDecision === 'merge'
+                                            ? (items.find((i) => i.id === mergeLeadId) ?? sibling)
+                                            : sibling;
+                                          const renameSourceItem = currentDecision === 'merge' ? leadItem : sibling;
+                                          const fileExt = renameSourceItem.originalName.replace(/^[^.]*(\..+)?$/, '$1') || '';
+                                          const renameStem = renameSourceItem.originalName.replace(/\.[^.]+$/, '');
+                                          const saveStatusVal = autoSaveStatus.get(mergeLeadId);
+                                          const renameTestId = currentDecision === 'merge'
+                                            ? `branching-rename-merge-${mergeLeadId}`
+                                            : `branching-rename-${sibling.id}`;
+                                          return (
+                                            <div className="space-y-4">
+                                              {/* --- SLICE sub-section --- */}
+                                              {showSliceSection && (
+                                                <div
+                                                  className="rounded-md border border-border bg-background/60 p-3 space-y-2"
+                                                  data-testid={`branching-slice-section-${sibling.id}`}
+                                                >
+                                                  <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                                    <Scissors className="h-3.5 w-3.5" />
+                                                    {isFr ? 'Découpage' : 'Slice'}
+                                                  </div>
+                                                  {sibSortingIsAccepted ? (
+                                                    <div className="flex flex-wrap items-center gap-2">
+                                                      <span className="text-xs text-muted-foreground">
+                                                        {isFr
+                                                          ? `Découpé après la page ${effectiveSlicePage}`
+                                                          : `Sliced after page ${effectiveSlicePage}`}
+                                                      </span>
+                                                      {itemIsPdf && (
+                                                        <SplitPagePreview
+                                                          itemId={sibling.id}
+                                                          splitPage={effectiveSlicePage}
+                                                          isFr={isFr}
+                                                        />
+                                                      )}
+                                                    </div>
+                                                  ) : (
+                                                    <>
+                                                      <p className="text-xs text-muted-foreground">
+                                                        {isFr
+                                                          ? 'La page choisie reste dans la première partie ; la page suivante commence la seconde partie.'
+                                                          : 'The chosen page stays in part 1; the next page starts part 2.'}
+                                                      </p>
+                                                      <div className="flex flex-wrap items-center gap-2">
+                                                        <label className="text-sm text-muted-foreground whitespace-nowrap">
+                                                          {isFr ? 'Scinder après la page :' : 'Split after page:'}
+                                                        </label>
+                                                        <SplitPageManualInput
+                                                          itemId={sibling.id}
+                                                          isPdf={itemIsPdf}
+                                                          splitPage={effectiveSlicePage}
+                                                          onChange={(next) => {
+                                                            setInlineSlicePage((prev) => new Map(prev).set(sibling.id, next));
+                                                            scheduleAutoSave(sibling);
+                                                          }}
+                                                          isFr={isFr}
+                                                        />
+                                                      </div>
+                                                      {(sibSortingIsPending || sibSortingIsRejected) && inlineSlice !== undefined && (
+                                                        <div className="mt-2 flex gap-2">
+                                                          <Button
+                                                            size="sm"
+                                                            disabled={sibSortingMutationPending}
+                                                            data-testid={`branching-slice-confirm-${sibling.id}`}
+                                                            onClick={() =>
+                                                              setSortingDecision.mutate({
+                                                                itemId: sibling.id,
+                                                                action: 'manual',
+                                                                decision: 'split',
+                                                                splitAtPage: inlineSlice,
+                                                              })
+                                                            }
+                                                          >
+                                                            {sibSortingMutationPending ? (
+                                                              <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                                                            ) : null}
+                                                            {isFr ? 'Confirmer' : 'Confirm'}
+                                                          </Button>
+                                                          <Button
+                                                            size="sm"
+                                                            variant="ghost"
+                                                            onClick={() => {
+                                                              setInlineSlicePage((prev) => {
+                                                                const next = new Map(prev);
+                                                                next.delete(sibling.id);
+                                                                return next;
+                                                              });
+                                                            }}
+                                                          >
+                                                            {isFr ? 'Annuler' : 'Cancel'}
+                                                          </Button>
+                                                        </div>
+                                                      )}
+                                                    </>
+                                                  )}
+                                                </div>
+                                              )}
+
+                                              {/* --- MERGE sub-section --- */}
+                                              {showMergeSection && (
+                                                <div
+                                                  className="rounded-md border border-border bg-background/60 p-3 space-y-2"
+                                                  data-testid={`branching-merge-section-${sibling.id}`}
+                                                >
+                                                  <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                                    <GitMerge className="h-3.5 w-3.5" />
+                                                    {isFr ? 'Fusion' : 'Merge'}
+                                                  </div>
+                                                  <p className="text-xs text-muted-foreground">
+                                                    {isFr
+                                                      ? 'Les fichiers seront combinés dans cet ordre en un seul PDF.'
+                                                      : 'Files will be combined in this order into a single PDF.'}
+                                                  </p>
+                                                  {(() => {
+                                                    const displayedMergeGroupIds = mergeGroupIds.filter((fileId) => {
+                                                      const fi = items.find((i) => i.id === fileId);
+                                                      return !fi || fi.status !== 'rejected';
+                                                    });
+                                                    return (
+                                                      <ol className="space-y-1">
+                                                        {displayedMergeGroupIds.map((fileId, idx) => {
+                                                          const fileItem = items.find((i) => i.id === fileId);
+                                                          const fileName = fileItem?.originalName ?? fileId;
+                                                          const FileIconComp = iconForMime(fileItem?.mimeType);
+                                                          const canMoveUp = !sibSortingIsAccepted && idx > 0;
+                                                          const canMoveDown = !sibSortingIsAccepted && idx < displayedMergeGroupIds.length - 1;
+                                                          return (
+                                                            <li
+                                                              key={fileId}
+                                                              className="flex items-center gap-2"
+                                                              data-testid={`branching-merge-row-${sibling.id}-${idx}`}
+                                                            >
+                                                              <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium text-muted-foreground">
+                                                                {idx + 1}
+                                                              </span>
+                                                              <FileIconComp className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" />
+                                                              <span className="min-w-0 flex-1 truncate text-sm">
+                                                                {fileName}
+                                                                {idx === 0 && (
+                                                                  <span className="ml-2 text-xs text-muted-foreground">
+                                                                    ({isFr ? 'principal' : 'lead'})
+                                                                  </span>
+                                                                )}
+                                                              </span>
+                                                              {!sibSortingIsAccepted && (
+                                                                <div className="flex gap-0.5">
+                                                                  <button
+                                                                    type="button"
+                                                                    disabled={!canMoveUp}
+                                                                    className="flex h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-muted/60 disabled:opacity-40"
+                                                                    aria-label={isFr ? 'Monter' : 'Move up'}
+                                                                    title={isFr ? 'Monter' : 'Move up'}
+                                                                    data-testid={`branching-merge-move-up-${sibling.id}-${idx}`}
+                                                                    onClick={() => {
+                                                                      if (!canMoveUp) return;
+                                                                      const next = [...displayedMergeGroupIds];
+                                                                      [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]];
+                                                                      setInlineMergeOrder((prev) => new Map(prev).set(sibling.id, next));
+                                                                      scheduleAutoSave(sibling);
+                                                                    }}
+                                                                  >
+                                                                    <ChevronUp className="h-3.5 w-3.5" />
+                                                                  </button>
+                                                                  <button
+                                                                    type="button"
+                                                                    disabled={!canMoveDown}
+                                                                    className="flex h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-muted/60 disabled:opacity-40"
+                                                                    aria-label={isFr ? 'Descendre' : 'Move down'}
+                                                                    title={isFr ? 'Descendre' : 'Move down'}
+                                                                    data-testid={`branching-merge-move-down-${sibling.id}-${idx}`}
+                                                                    onClick={() => {
+                                                                      if (!canMoveDown) return;
+                                                                      const next = [...displayedMergeGroupIds];
+                                                                      [next[idx], next[idx + 1]] = [next[idx + 1], next[idx]];
+                                                                      setInlineMergeOrder((prev) => new Map(prev).set(sibling.id, next));
+                                                                      scheduleAutoSave(sibling);
+                                                                    }}
+                                                                  >
+                                                                    <ChevronDown className="h-3.5 w-3.5" />
+                                                                  </button>
+                                                                </div>
+                                                              )}
+                                                            </li>
+                                                          );
+                                                        })}
+                                                      </ol>
+                                                    );
+                                                  })()}
+                                                  {!sibSortingIsAccepted && itemIsPdf && (() => {
+                                                    const candidates = items.filter(
+                                                      (i) =>
+                                                        !mergeGroupIds.includes(i.id) &&
+                                                        i.id !== sibling.id &&
+                                                        i.status !== 'rejected' &&
+                                                        (i.mimeType ?? '').toLowerCase() === 'application/pdf',
+                                                    );
+                                                    if (candidates.length === 0) return null;
+                                                    return (
+                                                      <div className="flex items-center gap-2">
+                                                        <label className="whitespace-nowrap text-xs text-muted-foreground">
+                                                          {isFr ? 'Ajouter un fichier :' : 'Add file:'}
+                                                        </label>
+                                                        <select
+                                                          className="flex-1 rounded-md border border-border bg-background px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                                                          value=""
+                                                          data-testid={`branching-merge-add-${sibling.id}`}
+                                                          onChange={(e) => {
+                                                            const newId = e.target.value;
+                                                            if (!newId) return;
+                                                            const next = [...mergeGroupIds, newId];
+                                                            setInlineMergeOrder((prev) => new Map(prev).set(sibling.id, next));
+                                                            scheduleAutoSave(sibling);
+                                                          }}
+                                                        >
+                                                          <option value="">
+                                                            {isFr ? '— Sélectionner un fichier —' : '— Select a file —'}
+                                                          </option>
+                                                          {candidates.map((c) => (
+                                                            <option key={c.id} value={c.id}>
+                                                              {c.originalName}
+                                                            </option>
+                                                          ))}
+                                                        </select>
+                                                      </div>
+                                                    );
+                                                  })()}
+                                                  {(sibSortingIsPending || sibSortingIsRejected) && inlineMergeOrder.has(sibling.id) && (
+                                                    <div className="mt-2 flex gap-2">
+                                                      <Button
+                                                        size="sm"
+                                                        disabled={sibSortingMutationPending}
+                                                        data-testid={`branching-merge-confirm-${sibling.id}`}
+                                                        onClick={() => {
+                                                          const order = inlineMergeOrder.get(sibling.id)!;
+                                                          setSortingDecision.mutate({
+                                                            itemId: order[0],
+                                                            action: 'manual',
+                                                            decision: 'merge',
+                                                            mergeWithItemIds: order.slice(1),
+                                                          });
+                                                        }}
+                                                      >
+                                                        {sibSortingMutationPending ? (
+                                                          <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                                                        ) : null}
+                                                        {isFr ? 'Confirmer l\'ordre' : 'Confirm order'}
+                                                      </Button>
+                                                      <Button
+                                                        size="sm"
+                                                        variant="ghost"
+                                                        onClick={() => {
+                                                          setInlineMergeOrder((prev) => {
+                                                            const next = new Map(prev);
+                                                            next.delete(sibling.id);
+                                                            return next;
+                                                          });
+                                                        }}
+                                                      >
+                                                        {isFr ? 'Annuler' : 'Cancel'}
+                                                      </Button>
+                                                    </div>
+                                                  )}
+                                                </div>
+                                              )}
+
+                                              {/* "Add slice" / "Add merge" buttons */}
+                                              {!sibIsExcluded && !showSliceSection && !showMergeSection && itemIsPdf && (currentDecision === 'keep' || !currentDecision) && !sibSortingIsAccepted && (
+                                                <div className="flex items-center gap-2">
+                                                  <Button
+                                                    size="sm"
+                                                    variant="outline"
+                                                    data-testid={`branching-slice-add-${sibling.id}`}
+                                                    onClick={() => {
+                                                      const seed = sibling.sortingSplitAtPage ?? 1;
+                                                      setInlineSlicePage((prev) => new Map(prev).set(sibling.id, seed));
+                                                    }}
+                                                  >
+                                                    <Scissors className="mr-1.5 h-3.5 w-3.5" />
+                                                    {isFr ? 'Ajouter un découpage' : 'Add slice'}
+                                                  </Button>
+                                                  {!inlineMergeOrder.has(sibling.id) && (
+                                                    <Button
+                                                      size="sm"
+                                                      variant="outline"
+                                                      data-testid={`branching-merge-add-trigger-${sibling.id}`}
+                                                      onClick={() => {
+                                                        setInlineMergeOrder((prev) => new Map(prev).set(sibling.id, [sibling.id]));
+                                                      }}
+                                                    >
+                                                      <GitMerge className="mr-1.5 h-3.5 w-3.5" />
+                                                      {isFr ? 'Ajouter une fusion' : 'Add merge'}
+                                                    </Button>
+                                                  )}
+                                                </div>
+                                              )}
+
+                                              {/* --- RENAME sub-section --- */}
+                                              {!sibIsExcluded && !sibSortingIsAccepted && !!currentDecision && (
+                                                <div
+                                                  className="rounded-md border border-border bg-background/60 p-3 space-y-2"
+                                                  data-testid={`branching-rename-section-${sibling.id}`}
+                                                >
+                                                  <div className="flex items-center justify-between gap-1.5">
+                                                    <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                                      <Pencil className="h-3.5 w-3.5" />
+                                                      {isFr ? 'Renommer' : 'Rename'}
+                                                    </div>
+                                                    {saveStatusVal === 'error' ? (
+                                                      <button
+                                                        type="button"
+                                                        data-testid={`branching-autosave-status-${mergeLeadId}`}
+                                                        className="text-xs text-destructive underline cursor-pointer"
+                                                        onClick={() => scheduleAutoSave(leadItem)}
+                                                      >
+                                                        {isFr ? 'Erreur — Réessayer' : 'Failed — Retry'}
+                                                      </button>
+                                                    ) : (
+                                                      <span
+                                                        data-testid={`branching-autosave-status-${mergeLeadId}`}
+                                                        className="text-xs text-muted-foreground"
+                                                      >
+                                                        {saveStatusVal === 'saving'
+                                                          ? (isFr ? 'Enregistrement…' : 'Saving…')
+                                                          : saveStatusVal === 'saved'
+                                                            ? (isFr ? 'Enregistré' : 'Saved')
+                                                            : null}
+                                                      </span>
+                                                    )}
+                                                  </div>
+                                                  {currentDecision === 'split' ? (
+                                                    <>
+                                                      <div className="flex flex-col gap-1">
+                                                        <label className="text-xs text-muted-foreground">
+                                                          {isFr ? 'Partie 1 :' : 'Part 1:'}
+                                                        </label>
+                                                        <div className="flex items-center gap-1">
+                                                          <input
+                                                            type="text"
+                                                            className="h-8 flex-1 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                                                            data-testid={`branching-rename-split-${sibling.id}-0`}
+                                                            value={inlineRenameSplit.get(sibling.id)?.[0] ?? sibling.sortingDecisionSplitFinalNames?.[0] ?? ''}
+                                                            placeholder={`${renameStem} (1)`}
+                                                            onChange={(e) => {
+                                                              const part2 = inlineRenameSplit.get(sibling.id)?.[1] ?? sibling.sortingDecisionSplitFinalNames?.[1] ?? '';
+                                                              setInlineRenameSplit((prev) => new Map(prev).set(sibling.id, [e.target.value, part2]));
+                                                              scheduleAutoSave(sibling);
+                                                            }}
+                                                          />
+                                                          {fileExt && <span className="text-sm text-muted-foreground shrink-0">{fileExt}</span>}
+                                                        </div>
+                                                      </div>
+                                                      <div className="flex flex-col gap-1">
+                                                        <label className="text-xs text-muted-foreground">
+                                                          {isFr ? 'Partie 2 :' : 'Part 2:'}
+                                                        </label>
+                                                        <div className="flex items-center gap-1">
+                                                          <input
+                                                            type="text"
+                                                            className="h-8 flex-1 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                                                            data-testid={`branching-rename-split-${sibling.id}-1`}
+                                                            value={inlineRenameSplit.get(sibling.id)?.[1] ?? sibling.sortingDecisionSplitFinalNames?.[1] ?? ''}
+                                                            placeholder={`${renameStem} (2)`}
+                                                            onChange={(e) => {
+                                                              const part1 = inlineRenameSplit.get(sibling.id)?.[0] ?? sibling.sortingDecisionSplitFinalNames?.[0] ?? '';
+                                                              setInlineRenameSplit((prev) => new Map(prev).set(sibling.id, [part1, e.target.value]));
+                                                              scheduleAutoSave(sibling);
+                                                            }}
+                                                          />
+                                                          {fileExt && <span className="text-sm text-muted-foreground shrink-0">{fileExt}</span>}
+                                                        </div>
+                                                      </div>
+                                                    </>
+                                                  ) : (
+                                                    <div className="flex flex-col gap-1">
+                                                      <label className="text-xs text-muted-foreground">
+                                                        {isFr ? 'Nouveau nom :' : 'New name:'}
+                                                      </label>
+                                                      <div className="flex items-center gap-1">
+                                                        <input
+                                                          type="text"
+                                                          className="h-8 flex-1 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                                                          data-testid={renameTestId}
+                                                          value={inlineRename.get(mergeLeadId) ?? leadItem.finalFileName ?? ''}
+                                                          placeholder={renameStem}
+                                                          onChange={(e) => {
+                                                            setInlineRename((prev) => new Map(prev).set(mergeLeadId, e.target.value));
+                                                            scheduleAutoSave(leadItem, sortingPickerStates.get(sibling.id)?.decision);
+                                                          }}
+                                                        />
+                                                        {fileExt && <span className="text-sm text-muted-foreground shrink-0">{fileExt}</span>}
+                                                      </div>
+                                                    </div>
+                                                  )}
+                                                </div>
+                                              )}
+
+                                              {/* --- PERIOD sub-section --- */}
+                                              {!sibIsExcluded && (() => {
+                                                const rawHint = sibling.screeningPeriodHint ?? null;
+                                                const parsedDate = rawHint
+                                                  ? (() => {
+                                                      try {
+                                                        const d = parseISO(rawHint);
+                                                        return isValid(d) ? d : null;
+                                                      } catch {
+                                                        return null;
+                                                      }
+                                                    })()
+                                                  : null;
+                                                const isNonDateHint = rawHint !== null && parsedDate === null;
+                                                const periodDisabled = sibSortingIsAccepted || setPeriodHint.isPending;
+                                                return (
+                                                  <div
+                                                    className="rounded-md border border-border bg-background/60 p-3 space-y-2"
+                                                    data-testid={`sorting-period-section-${sibling.id}`}
+                                                  >
+                                                    <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                                      <CalendarIcon className="h-3.5 w-3.5" />
+                                                      {isFr ? 'Période' : 'Period'}
+                                                      {sibling.screeningPeriodHintManualOverride && (
+                                                        <Badge
+                                                          variant="outline"
+                                                          className="ml-1 shrink-0 border-slate-300 bg-slate-50 text-slate-700 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-300 normal-case"
+                                                          title={
+                                                            isFr
+                                                              ? "Période corrigée manuellement par un administrateur (au lieu de la valeur détectée par l'IA)."
+                                                              : 'Period manually overridden by an admin (instead of the AI-detected value).'
+                                                          }
+                                                          data-testid={`sorting-period-hint-manual-${sibling.id}`}
+                                                        >
+                                                          {isFr ? 'Manuel' : 'Manual'}
+                                                        </Badge>
+                                                      )}
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                      <StandaloneDatePicker
+                                                        value={parsedDate}
+                                                        onChange={(date) => {
+                                                          const newHint = date ? format(date, 'yyyy-MM-dd') : null;
+                                                          setPeriodHint.mutate({
+                                                            itemId: sibling.id,
+                                                            periodHint: newHint,
+                                                          });
+                                                        }}
+                                                        placeholder={isFr ? 'Aucune date sélectionnée' : 'No date selected'}
+                                                        disabled={periodDisabled}
+                                                        className="flex-1"
+                                                        data-testid={`sorting-period-date-picker-${sibling.id}`}
+                                                      />
+                                                      {rawHint !== null && (
+                                                        <Button
+                                                          variant="ghost"
+                                                          size="sm"
+                                                          disabled={periodDisabled}
+                                                          className="shrink-0 text-xs text-muted-foreground"
+                                                          data-testid={`sorting-period-clear-${sibling.id}`}
+                                                          onClick={() => {
+                                                            if (periodDisabled) return;
+                                                            setPeriodHint.mutate({
+                                                              itemId: sibling.id,
+                                                              periodHint: null,
+                                                            });
+                                                          }}
+                                                        >
+                                                          <X className="mr-1 h-3 w-3" />
+                                                          {isFr ? 'Effacer' : 'Clear'}
+                                                        </Button>
+                                                      )}
+                                                    </div>
+                                                    {isNonDateHint && (
+                                                      <p className="text-xs text-muted-foreground">
+                                                        <span className="font-medium">
+                                                          {isFr ? "Indice de l'IA :" : 'AI hint:'}
+                                                        </span>{' '}
+                                                        {rawHint}
+                                                      </p>
+                                                    )}
+                                                    {sibSortingIsAccepted && (
+                                                      <p className="text-xs text-muted-foreground">
+                                                        {isFr
+                                                          ? 'La décision de tri est acceptée — réinitialisez-la avant de modifier la période.'
+                                                          : 'Sorting decision is accepted — reset it before changing the period.'}
+                                                      </p>
+                                                    )}
+                                                  </div>
+                                                );
+                                              })()}
+
+                                              {/* Confidence + reason row */}
+                                              <div className="space-y-2">
+                                                <div className="flex flex-wrap gap-2">
+                                                  {sibDecision?.confidence != null && (
+                                                    <span
+                                                      className="inline-flex items-center gap-1.5 rounded-md border bg-background px-3 py-1 text-sm font-medium"
+                                                      data-testid={`detail-confidence-${sibling.id}`}
+                                                    >
+                                                      <Sparkles className="h-3.5 w-3.5 text-muted-foreground" />
+                                                      <span className="text-xs uppercase tracking-wide text-muted-foreground">
+                                                        {isFr ? 'Confiance' : 'Confidence'}:
+                                                      </span>
+                                                      {Math.round(sibDecision.confidence * 100)}%
+                                                    </span>
+                                                  )}
+                                                </div>
+                                                {sibDecision?.reason && (
+                                                  <p
+                                                    className="whitespace-pre-wrap text-sm text-foreground/80"
+                                                    data-testid={`detail-reason-${sibling.id}`}
+                                                  >
+                                                    <span className="mr-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                                      {isFr ? 'Raison' : 'Reason'}:
+                                                    </span>
+                                                    {sibDecision.reason}
+                                                  </p>
+                                                )}
+                                                {sibDecision?.fallbackReason && (
+                                                  <div
+                                                    className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:bg-amber-950/40 dark:text-amber-300"
+                                                    data-testid={`detail-fallback-explanation-${sibling.id}`}
+                                                  >
+                                                    <p className="font-medium">
+                                                      {(isFr ? FALLBACK_REASON_LABELS.fr : FALLBACK_REASON_LABELS.en)[sibDecision.fallbackReason]}
+                                                    </p>
+                                                    <p className="mt-0.5 text-amber-700 dark:text-amber-400">
+                                                      {(isFr ? FALLBACK_REASON_EXPLANATIONS.fr : FALLBACK_REASON_EXPLANATIONS.en)[sibDecision.fallbackReason]}
+                                                    </p>
+                                                  </div>
+                                                )}
+                                              </div>
+                                            </div>
+                                          );
+                                        })()}
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            >
+                            <div className={`flex items-center gap-3 p-3${currentStep === 'sorting' ? ' flex-wrap' : ' justify-between'}`}>
+                            {hasAnalysis && !(currentStep === 'sorting' && (sortingIsPending || sortingIsRejected || isDraftSplitLead || _mergeGroupAnyNonAccepted)) ? (
                               <button
                                 type="button"
                                 onClick={() => toggleItemExpanded(item.id)}
@@ -3779,7 +4624,7 @@ export default function BulkDocumentImportPage() {
                                 </span>
                               </div>
                             </div>
-                            <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
+                            <div className={`flex items-center gap-3 flex-wrap${currentStep === 'sorting' ? ' w-full pl-10' : ''}`} onClick={(e) => e.stopPropagation()}>
                               {isExcluded && (
                                 <Badge
                                   variant="outline"
@@ -4195,76 +5040,6 @@ export default function BulkDocumentImportPage() {
                               )}
                             </div>
                             </div>
-                            {/* Nested merge siblings (Task #927): shown on the
-                                sorting step when this item is a merge lead with
-                                at least one non-excluded sibling. */}
-                            {mergeGroupSiblingItems.length > 0 && (
-                              <div
-                                className="border-t border-border"
-                                data-testid={`branching-merge-group-${item.id}`}
-                              >
-                                <p className="px-3 pt-2 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                                  {isFr ? 'Dans cette fusion' : 'In this merge'}
-                                </p>
-                                <ul className="pb-2">
-                                  {mergeGroupSiblingItems.map((sibling) => {
-                                    const SiblingIcon = iconForMime(sibling.mimeType);
-                                    const siblingTogglePending =
-                                      toggleExclude.isPending &&
-                                      toggleExclude.variables?.itemId === sibling.id;
-                                    const siblingCanToggleExclude =
-                                      sibling.status !== 'committed' &&
-                                      sibling.status !== 'duplicate';
-                                    return (
-                                      <li
-                                        key={sibling.id}
-                                        className="flex items-center gap-2 ml-4 pl-4 py-1.5 border-l-2 border-border"
-                                        data-testid={`branching-merge-group-sibling-${item.id}-${sibling.id}`}
-                                      >
-                                        <SiblingIcon className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" />
-                                        <button
-                                          type="button"
-                                          className="min-w-0 flex-1 truncate text-sm text-left hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
-                                          data-testid={`item-preview-trigger-${sibling.id}`}
-                                          onClick={() =>
-                                            setPreviewItem({
-                                              id: sibling.id,
-                                              originalName: sibling.originalName,
-                                              mimeType: sibling.mimeType,
-                                            })
-                                          }
-                                        >
-                                          {sibling.originalName}
-                                        </button>
-                                        {siblingCanToggleExclude && (
-                                          <Button
-                                            size="sm"
-                                            variant="ghost"
-                                            className="h-6 w-6 p-0 flex-shrink-0"
-                                            onClick={() =>
-                                              toggleExclude.mutate({
-                                                itemId: sibling.id,
-                                                excluded: true,
-                                              })
-                                            }
-                                            disabled={siblingTogglePending}
-                                            aria-label={isFr ? 'Exclure le fichier' : 'Exclude file'}
-                                            title={isFr ? 'Exclure' : 'Exclude'}
-                                            data-testid={`button-toggle-exclude-${sibling.id}`}
-                                          >
-                                            {siblingTogglePending ? (
-                                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                            ) : (
-                                              <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />
-                                            )}
-                                          </Button>
-                                        )}
-                                      </li>
-                                    );
-                                  })}
-                                </ul>
-                              </div>
-                            )}
                             {/* Manual picker – always visible when the row
                                 is in the 'rejected' state so the admin can
                                 immediately switch to Keep / Merge / Slice
@@ -4414,8 +5189,8 @@ export default function BulkDocumentImportPage() {
                                     const currentDecision = item.sortingDecision;
                                     const currentSplitAtPage = item.sortingSplitAtPage;
                                     const inlineSlice = inlineSlicePage.get(item.id);
-                                    const showSliceSection = currentDecision === 'split' || inlineSlice !== undefined;
-                                    const showMergeSection = currentDecision === 'merge' || inlineMergeOrder.has(item.id);
+                                    const showSliceSection = (currentDecision === 'split' || inlineSlice !== undefined) && !sortingIsRejected;
+                                    const showMergeSection = (currentDecision === 'merge' || inlineMergeOrder.has(item.id));
                                     const effectiveSlicePage = inlineSlice ?? currentSplitAtPage ?? 1;
                                     const mergeGroupIds = inlineMergeOrder.get(item.id) ?? computeMergeGroup(items, item.id);
                                     // For merge groups all rename state is keyed to the GROUP LEAD so
@@ -5038,6 +5813,7 @@ export default function BulkDocumentImportPage() {
                                 )}
                               </div>
                             )}
+                            </SortingMergeGroupWrapper>
                           </div>
                         );
                       })}

@@ -384,14 +384,9 @@ describe('BulkDocumentImportPage — Period date picker (Task #1038)', () => {
     renderPage();
     await waitForRows();
 
-    // Section is gated by hasAnalysis && isExpanded, so it should be
-    // absent before expansion.
-    expect(
-      screen.queryByTestId(`sorting-period-section-${ITEM_WITH_DATE}`),
-    ).not.toBeInTheDocument();
-
-    await expandRow(ITEM_WITH_DATE);
-
+    // Pending items are force-expanded in the Branching step (the collapse
+    // chevron is hidden), so the period section is always visible without
+    // needing to click an expand button.
     expect(
       screen.getByTestId(`sorting-period-section-${ITEM_WITH_DATE}`),
     ).toBeInTheDocument();
@@ -404,7 +399,7 @@ describe('BulkDocumentImportPage — Period date picker (Task #1038)', () => {
   it('pre-fills the date picker when screeningPeriodHint is a parseable date', async () => {
     renderPage();
     await waitForRows();
-    await expandRow(ITEM_WITH_DATE);
+    // ITEM_WITH_DATE is pending → force-expanded; no expandRow needed.
 
     const picker = screen.getByTestId(`sorting-period-date-picker-${ITEM_WITH_DATE}`);
     // The mocked picker exposes the current Date as YYYY-MM-DD on
@@ -416,7 +411,7 @@ describe('BulkDocumentImportPage — Period date picker (Task #1038)', () => {
   it('leaves the date picker empty when the AI did not detect a date', async () => {
     renderPage();
     await waitForRows();
-    await expandRow(ITEM_NO_DATE);
+    // ITEM_NO_DATE is pending → force-expanded; no expandRow needed.
 
     const picker = screen.getByTestId(`sorting-period-date-picker-${ITEM_NO_DATE}`);
     expect(picker.getAttribute('data-value')).toBe('');
@@ -449,14 +444,14 @@ describe('BulkDocumentImportPage — Period date picker (Task #1038)', () => {
   it('shows the Manual badge when screeningPeriodHintManualOverride is true', async () => {
     renderPage();
     await waitForRows();
-    await expandRow(ITEM_MANUAL);
+    // ITEM_MANUAL and ITEM_WITH_DATE are both pending → force-expanded;
+    // no expandRow needed for either.
 
     const badge = screen.getByTestId(`sorting-period-hint-manual-${ITEM_MANUAL}`);
     expect(badge).toBeInTheDocument();
     expect(badge).toHaveTextContent('Manual');
 
     // Items whose hint came straight from the AI must NOT show it.
-    await expandRow(ITEM_WITH_DATE);
     expect(
       screen.queryByTestId(`sorting-period-hint-manual-${ITEM_WITH_DATE}`),
     ).not.toBeInTheDocument();
@@ -465,7 +460,7 @@ describe('BulkDocumentImportPage — Period date picker (Task #1038)', () => {
   it('selecting a date fires POST /set-period-hint with the day formatted as YYYY-MM-DD', async () => {
     renderPage();
     await waitForRows();
-    await expandRow(ITEM_WITH_DATE);
+    // ITEM_WITH_DATE is pending → force-expanded; no expandRow needed.
 
     await act(async () => {
       fireEvent.click(
@@ -489,7 +484,7 @@ describe('BulkDocumentImportPage — Period date picker (Task #1038)', () => {
   it('clicking Clear fires POST /set-period-hint with periodHint: null', async () => {
     renderPage();
     await waitForRows();
-    await expandRow(ITEM_WITH_DATE);
+    // ITEM_WITH_DATE is pending → force-expanded; no expandRow needed.
 
     await act(async () => {
       fireEvent.click(

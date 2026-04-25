@@ -581,11 +581,7 @@ describe('BulkDocumentImportPage — sorting decision UI (Task #817 / #825)', ()
     renderPage();
     await screen.findByTestId(`item-preview-trigger-${ITEM_SPLIT}`, undefined, { timeout: 4000 });
 
-    // Expand the card so the detail panel renders.
-    await act(async () => {
-      fireEvent.click(screen.getByTestId(`button-toggle-detail-${ITEM_SPLIT}`));
-    });
-
+    // Pending items are force-expanded — detail panel is already visible.
     expect(
       screen.getByTestId(`branching-slice-section-${ITEM_SPLIT}`),
     ).toBeInTheDocument();
@@ -595,11 +591,7 @@ describe('BulkDocumentImportPage — sorting decision UI (Task #817 / #825)', ()
     renderPage();
     await waitForRows();
 
-    // ITEM_PENDING has decision 'keep', so "Add slice" should appear after expansion.
-    await act(async () => {
-      fireEvent.click(screen.getByTestId(`button-toggle-detail-${ITEM_PENDING}`));
-    });
-
+    // ITEM_PENDING has decision 'keep', so "Add slice" appears immediately (pending items are force-expanded).
     const addBtn = screen.getByTestId(`branching-slice-add-${ITEM_PENDING}`);
     expect(addBtn).toBeInTheDocument();
 
@@ -631,11 +623,7 @@ describe('BulkDocumentImportPage — sorting decision UI (Task #817 / #825)', ()
     renderPage();
     await screen.findByTestId(`item-preview-trigger-${ITEM_SPLIT}`, undefined, { timeout: 4000 });
 
-    // Expand to reveal the slice section and input.
-    await act(async () => {
-      fireEvent.click(screen.getByTestId(`button-toggle-detail-${ITEM_SPLIT}`));
-    });
-
+    // Pending items are force-expanded — slice section is already visible.
     // Locate and change the split-page input.
     const input = screen.getByTestId(`sorting-picker-split-page-${ITEM_SPLIT}`);
     await act(async () => {
@@ -697,10 +685,7 @@ describe('BulkDocumentImportPage — sorting decision UI (Task #817 / #825)', ()
     renderPage();
     await screen.findByTestId(`item-preview-trigger-${ITEM_MERGE_LEAD}`, undefined, { timeout: 4000 });
 
-    await act(async () => {
-      fireEvent.click(screen.getByTestId(`button-toggle-detail-${ITEM_MERGE_LEAD}`));
-    });
-
+    // Pending items are force-expanded — merge section is already visible.
     expect(
       screen.getByTestId(`branching-merge-section-${ITEM_MERGE_LEAD}`),
     ).toBeInTheDocument();
@@ -747,10 +732,7 @@ describe('BulkDocumentImportPage — sorting decision UI (Task #817 / #825)', ()
     renderPage();
     await screen.findByTestId(`item-preview-trigger-${ITEM_MERGE_LEAD}`, undefined, { timeout: 4000 });
 
-    await act(async () => {
-      fireEvent.click(screen.getByTestId(`button-toggle-detail-${ITEM_MERGE_LEAD}`));
-    });
-
+    // Pending items are force-expanded — merge section is already visible.
     // Move sibling (index 1) up — it should now become index 0.
     const moveUpBtn = screen.getByTestId(`branching-merge-move-up-${ITEM_MERGE_LEAD}-1`);
     await act(async () => {
@@ -787,11 +769,7 @@ describe('BulkDocumentImportPage — sorting decision UI (Task #817 / #825)', ()
     renderPage();
     await waitForRows();
 
-    await act(async () => {
-      fireEvent.click(screen.getByTestId(`button-toggle-detail-${ITEM_PENDING}`));
-    });
-
-    // The rename section must be present (pending keep decision).
+    // Pending items are force-expanded, so the rename section is already visible.
     await waitFor(() => {
       expect(screen.getByTestId(`branching-rename-section-${ITEM_PENDING}`)).toBeInTheDocument();
       expect(screen.getByTestId(`branching-rename-${ITEM_PENDING}`)).toBeInTheDocument();
@@ -816,10 +794,6 @@ describe('BulkDocumentImportPage — sorting decision UI (Task #817 / #825)', ()
   it('typing in the Rename input updates the controlled input value', async () => {
     renderPage();
     await waitForRows();
-
-    await act(async () => {
-      fireEvent.click(screen.getByTestId(`button-toggle-detail-${ITEM_PENDING}`));
-    });
 
     const renameInput = await screen.findByTestId(
       `branching-rename-${ITEM_PENDING}`,
@@ -852,10 +826,6 @@ describe('BulkDocumentImportPage — sorting decision UI (Task #817 / #825)', ()
 
     renderPage();
     await screen.findByTestId(`item-preview-trigger-${ITEM_SPLIT_PENDING}`, undefined, { timeout: 4000 });
-
-    await act(async () => {
-      fireEvent.click(screen.getByTestId(`button-toggle-detail-${ITEM_SPLIT_PENDING}`));
-    });
 
     await waitFor(() => {
       expect(screen.getByTestId(`branching-rename-section-${ITEM_SPLIT_PENDING}`)).toBeInTheDocument();
