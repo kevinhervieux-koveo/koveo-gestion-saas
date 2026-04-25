@@ -76,6 +76,7 @@ import {
   isAutoStep,
   type AutoStep,
 } from './bulk-import-next-step-block';
+import { DocumentInlineViewer } from '@/components/common/DocumentInlineViewer';
 
 interface Building {
   id: string;
@@ -753,6 +754,7 @@ export default function BulkDocumentImportPage() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [expandedHistoryId, setExpandedHistoryId] = useState<string | null>(null);
+  const [previewItem, setPreviewItem] = useState<{ id: string; originalName: string; mimeType: string | null } | null>(null);
   // Filters for the building picker on the "Start a session" card
   // (Task #600). Local-only state; not persisted across reloads.
   const [buildingSearch, setBuildingSearch] = useState('');
@@ -1583,6 +1585,37 @@ export default function BulkDocumentImportPage() {
                       {items.length}{' '}
                       {isFr ? 'fichier(s) en attente' : 'file(s) staged'}
                     </p>
+                    {items.length > 0 && (
+                      <div className="space-y-2">
+                        {items.map((item) => (
+                          <div
+                            key={item.id}
+                            className="flex items-center gap-3 rounded-md border p-3 cursor-pointer hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                            role="button"
+                            tabIndex={0}
+                            data-testid={`item-preview-trigger-${item.id}`}
+                            onClick={() => setPreviewItem({ id: item.id, originalName: item.originalName, mimeType: item.mimeType })}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                setPreviewItem({ id: item.id, originalName: item.originalName, mimeType: item.mimeType });
+                              }
+                            }}
+                          >
+                            <ItemThumbnail item={item} />
+                            <div className="min-w-0 flex flex-col">
+                              <span className="truncate font-medium" data-testid={`item-name-${item.id}`}>
+                                {item.originalName}
+                              </span>
+                              <span className="text-xs text-muted-foreground">
+                                {item.status}
+                                {item.mimeType ? ` · ${item.mimeType}` : ''}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                     <Button
                       variant="outline"
                       onClick={() => updateStep.mutate('screening')}
@@ -1707,7 +1740,19 @@ export default function BulkDocumentImportPage() {
                             data-testid={`item-row-${item.id}`}
                             data-excluded={isExcluded ? 'true' : 'false'}
                           >
-                            <div className="flex min-w-0 flex-1 items-center gap-3">
+                            <div
+                              className="flex min-w-0 flex-1 items-center gap-3 cursor-pointer rounded hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                              role="button"
+                              tabIndex={0}
+                              data-testid={`item-preview-trigger-${item.id}`}
+                              onClick={() => setPreviewItem({ id: item.id, originalName: item.originalName, mimeType: item.mimeType })}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault();
+                                  setPreviewItem({ id: item.id, originalName: item.originalName, mimeType: item.mimeType });
+                                }
+                              }}
+                            >
                               <ItemThumbnail item={item} />
                               <div className="min-w-0 flex flex-col">
                                 <span
@@ -1726,7 +1771,7 @@ export default function BulkDocumentImportPage() {
                                 </span>
                               </div>
                             </div>
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
                               {isExcluded && (
                                 <Badge
                                   variant="outline"
@@ -1858,12 +1903,45 @@ export default function BulkDocumentImportPage() {
                   <CardHeader>
                     <CardTitle>{isFr ? 'Terminé' : 'Complete'}</CardTitle>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="space-y-3">
                     <p className="text-sm text-muted-foreground">
                       {isFr
                         ? `${items.filter((i) => i.status === 'committed').length} document(s) sauvegardé(s).`
                         : `${items.filter((i) => i.status === 'committed').length} document(s) committed.`}
                     </p>
+                    {items.length > 0 && (
+                      <div className="space-y-2">
+                        {items.map((item) => (
+                          <div
+                            key={item.id}
+                            className={`flex items-center gap-3 rounded-md border p-3 cursor-pointer hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                              item.status !== 'committed' ? 'opacity-50' : ''
+                            }`}
+                            role="button"
+                            tabIndex={0}
+                            data-testid={`item-preview-trigger-${item.id}`}
+                            onClick={() => setPreviewItem({ id: item.id, originalName: item.originalName, mimeType: item.mimeType })}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                setPreviewItem({ id: item.id, originalName: item.originalName, mimeType: item.mimeType });
+                              }
+                            }}
+                          >
+                            <ItemThumbnail item={item} />
+                            <div className="min-w-0 flex flex-col">
+                              <span className="truncate font-medium" data-testid={`item-name-${item.id}`}>
+                                {item.originalName}
+                              </span>
+                              <span className="text-xs text-muted-foreground">
+                                {item.status}
+                                {item.mimeType ? ` · ${item.mimeType}` : ''}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               )}
@@ -1885,6 +1963,15 @@ export default function BulkDocumentImportPage() {
           )}
         </div>
       </main>
+
+      <DocumentInlineViewer
+        isOpen={!!previewItem}
+        onClose={() => setPreviewItem(null)}
+        fileUrl={previewItem ? `/api/admin/bulk-import/items/${previewItem.id}/file` : ''}
+        downloadUrl={previewItem ? `/api/admin/bulk-import/items/${previewItem.id}/file` : undefined}
+        fileName={previewItem?.originalName}
+        mimeType={previewItem?.mimeType}
+      />
 
       <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
         <DialogContent>
