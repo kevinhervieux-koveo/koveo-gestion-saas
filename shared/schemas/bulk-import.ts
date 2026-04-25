@@ -107,6 +107,15 @@ export const bulkImportItems = pgTable(
     mimeType: text('mime_type'),
     fileSize: integer('file_size'),
     status: bulkImportItemStatusEnum('status').notNull().default('pending'),
+    /**
+     * Set when the admin manually excludes an item from the bulk-import
+     * pipeline (Task #717). Holds the status the item was in just
+     * before exclusion so a subsequent un-exclude can restore the row
+     * to exactly where it was — for example, an item screened by the
+     * AI then excluded will come back as `screened`, not `pending`.
+     * Null whenever the item is not currently excluded.
+     */
+    preExcludeStatus: bulkImportItemStatusEnum('pre_exclude_status'),
     screening: jsonb('screening').$type<Record<string, unknown>>(),
     sortingDecision: jsonb('sorting_decision').$type<Record<string, unknown>>(),
     branchDecision: jsonb('branch_decision').$type<Record<string, unknown>>(),
@@ -190,6 +199,21 @@ export const insertBulkImportItemSchema = z.object({
       'duplicate',
     ])
     .optional(),
+  preExcludeStatus: z
+    .enum([
+      'pending',
+      'screening',
+      'screened',
+      'sorted',
+      'branched',
+      'identified',
+      'linked',
+      'committed',
+      'rejected',
+      'duplicate',
+    ])
+    .optional()
+    .nullable(),
   screening: z.record(z.unknown()).optional().nullable(),
   sortingDecision: z.record(z.unknown()).optional().nullable(),
   branchDecision: z.record(z.unknown()).optional().nullable(),

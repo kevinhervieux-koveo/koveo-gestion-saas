@@ -55,6 +55,8 @@ import {
   RotateCw,
   ArrowLeft,
   Search,
+  EyeOff,
+  Eye,
 } from 'lucide-react';
 import {
   bandForConfidence,
@@ -966,6 +968,72 @@ export default function BulkDocumentImportPage() {
     // mutation fires exactly once per (session, step) per visit.
   }, [sessionId, currentStep, !!session]);
 
+  /**
+   * Toggle the exclusion of a single staged item (Task #717).
+   * Optimistically flips the status in the cached payload so the row's
+   * visual state updates instantly, then invalidates so the real
+   * server response (with the restored `preExcludeStatus`) replaces
+   * the optimistic guess.
+   */
+  const toggleExclude = useMutation({
+    mutationFn: async ({
+      itemId,
+      excluded,
+    }: {
+      itemId: string;
+      excluded: boolean;
+    }) => {
+      const res = await apiRequest(
+        'PATCH',
+        `/api/admin/bulk-import/items/${itemId}/exclude`,
+        { excluded },
+      );
+      return res.json() as Promise<BulkImportItem>;
+    },
+    onMutate: async ({ itemId, excluded }) => {
+      const queryKey = ['/api/admin/bulk-import/sessions', sessionId];
+      await queryClient.cancelQueries({ queryKey });
+      const previous = queryClient.getQueryData<SessionPayload>(queryKey);
+      if (previous) {
+        queryClient.setQueryData<SessionPayload>(queryKey, {
+          ...previous,
+          items: previous.items.map((it) => {
+            if (it.id !== itemId) return it;
+            if (excluded) {
+              return {
+                ...it,
+                status: 'rejected',
+                preExcludeStatus: it.preExcludeStatus ?? it.status,
+              };
+            }
+            return {
+              ...it,
+              status: it.preExcludeStatus ?? 'pending',
+              preExcludeStatus: null,
+            };
+          }),
+        });
+      }
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(
+          ['/api/admin/bulk-import/sessions', sessionId],
+          context.previous,
+        );
+      }
+      toast({
+        variant: 'destructive',
+        title: isFr ? "Échec de l'exclusion" : 'Failed to update exclusion',
+      });
+    },
+    onSettled: () =>
+      queryClient.invalidateQueries({
+        queryKey: ['/api/admin/bulk-import/sessions', sessionId],
+      }),
+  });
+
   const clearAll = useMutation({
     mutationFn: async () => {
       await apiRequest('DELETE', `/api/admin/bulk-import/sessions/${sessionId}`, {});
@@ -1520,20 +1588,43 @@ export default function BulkDocumentImportPage() {
                         const stillEligible =
                           isAuto &&
                           item.status === STEP_PRE_STATUS[currentStep as AutoStep];
+                        const isExcluded = item.status === 'rejected';
                         const showRetry =
+                          !isExcluded &&
                           !!retryAction &&
                           ((!!decision?.fallbackReason) ||
                             (stillEligible && !!progress?.finishedAt));
+                        // Committed/duplicate items are terminal and
+                        // not eligible for the exclude toggle (matches
+                        // the server-side guard).
+                        const canToggleExclude =
+                          item.status !== 'committed' &&
+                          item.status !== 'duplicate';
+                        const togglePending =
+                          toggleExclude.isPending &&
+                          toggleExclude.variables?.itemId === item.id;
                         return (
                           <div
                             key={item.id}
-                            className="flex items-center justify-between gap-3 rounded-md border p-3"
+                            className={`flex items-center justify-between gap-3 rounded-md border p-3 transition ${
+                              isExcluded ? 'bg-muted/40 opacity-60' : ''
+                            }`}
                             data-testid={`item-row-${item.id}`}
+                            data-excluded={isExcluded ? 'true' : 'false'}
                           >
                             <div className="flex min-w-0 flex-1 items-center gap-3">
                               <ItemThumbnail item={item} />
                               <div className="min-w-0 flex flex-col">
-                                <span className="truncate font-medium">{item.originalName}</span>
+                                <span
+                                  className={`truncate font-medium ${
+                                    isExcluded
+                                      ? 'text-muted-foreground line-through'
+                                      : ''
+                                  }`}
+                                  data-testid={`item-name-${item.id}`}
+                                >
+                                  {item.originalName}
+                                </span>
                                 <span className="text-xs text-muted-foreground">
                                   {item.status}
                                   {item.mimeType ? ` · ${item.mimeType}` : ''}
@@ -1541,7 +1632,17 @@ export default function BulkDocumentImportPage() {
                               </div>
                             </div>
                             <div className="flex items-center gap-3">
-                              {currentStep === 'screening' &&
+                              {isExcluded && (
+                                <Badge
+                                  variant="outline"
+                                  className="border-amber-300 bg-amber-50 text-amber-900"
+                                  data-testid={`badge-excluded-${item.id}`}
+                                >
+                                  {isFr ? 'Exclu' : 'Excluded'}
+                                </Badge>
+                              )}
+                              {!isExcluded &&
+                                currentStep === 'screening' &&
                                 (item.status === 'pending' ||
                                   item.status === 'screening') && (
                                   <Loader2
@@ -1549,11 +1650,15 @@ export default function BulkDocumentImportPage() {
                                     data-testid={`screening-spinner-${item.id}`}
                                   />
                                 )}
-                              <FallbackReasonBadge
-                                reason={decision?.fallbackReason}
-                                isFr={isFr}
-                              />
-                              <ConfidenceBadge value={decision?.confidence} />
+                              {!isExcluded && (
+                                <>
+                                  <FallbackReasonBadge
+                                    reason={decision?.fallbackReason}
+                                    isFr={isFr}
+                                  />
+                                  <ConfidenceBadge value={decision?.confidence} />
+                                </>
+                              )}
                               {showRetry && retryAction && (
                                 <Button
                                   size="sm"
@@ -1575,16 +1680,62 @@ export default function BulkDocumentImportPage() {
                                   {isFr ? 'Réessayer' : 'Retry'}
                                 </Button>
                               )}
-                              {currentStep === 'linking' && item.status === 'linked' && (
+                              {!isExcluded &&
+                                currentStep === 'linking' &&
+                                item.status === 'linked' && (
+                                  <Button
+                                    size="sm"
+                                    variant="default"
+                                    onClick={() =>
+                                      runStep.mutate({
+                                        itemId: item.id,
+                                        action: 'commit',
+                                      })
+                                    }
+                                    data-testid={`button-commit-${item.id}`}
+                                  >
+                                    {isFr ? 'Sauvegarder' : 'Commit'}
+                                  </Button>
+                                )}
+                              {canToggleExclude && (
                                 <Button
                                   size="sm"
-                                  variant="default"
+                                  variant="ghost"
                                   onClick={() =>
-                                    runStep.mutate({ itemId: item.id, action: 'commit' })
+                                    toggleExclude.mutate({
+                                      itemId: item.id,
+                                      excluded: !isExcluded,
+                                    })
                                   }
-                                  data-testid={`button-commit-${item.id}`}
+                                  disabled={togglePending}
+                                  aria-pressed={isExcluded}
+                                  aria-label={
+                                    isExcluded
+                                      ? isFr
+                                        ? 'Réinclure le fichier'
+                                        : 'Re-include file'
+                                      : isFr
+                                        ? 'Exclure le fichier'
+                                        : 'Exclude file'
+                                  }
+                                  title={
+                                    isExcluded
+                                      ? isFr
+                                        ? 'Réinclure'
+                                        : 'Re-include'
+                                      : isFr
+                                        ? 'Exclure'
+                                        : 'Exclude'
+                                  }
+                                  data-testid={`button-toggle-exclude-${item.id}`}
                                 >
-                                  {isFr ? 'Sauvegarder' : 'Commit'}
+                                  {togglePending ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : isExcluded ? (
+                                    <Eye className="h-4 w-4" />
+                                  ) : (
+                                    <EyeOff className="h-4 w-4 text-muted-foreground" />
+                                  )}
                                 </Button>
                               )}
                             </div>

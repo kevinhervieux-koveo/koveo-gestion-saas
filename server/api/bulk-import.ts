@@ -15,6 +15,7 @@ import * as crypto from 'crypto';
 import { z } from 'zod';
 import { and, eq, inArray } from 'drizzle-orm';
 import { requireAuth, requireRole } from '../auth';
+import { canUserAccessOrganization } from '../rbac';
 
 type AuthenticatedRequest = Request & { user?: { id: string; role: string } };
 import { db } from '../db';
@@ -685,6 +686,98 @@ export function registerBulkImportRoutes(app: Express): void {
       } catch (err) {
         if (err instanceof z.ZodError) return res.status(400).json({ error: err.errors });
         return res.status(500).json({ error: 'Failed to update item' });
+      }
+    },
+  );
+
+  /**
+   * Exclude / un-exclude a single staged item from the AI pipeline
+   * (Task #717). Excluded items are flipped to the existing `rejected`
+   * status, which every run-all loop already filters out via
+   * `STEP_ELIGIBLE_STATUSES`, so no additional guard is needed in the
+   * step processors. The pre-exclusion status is remembered on the row
+   * so re-including the item drops it back exactly where it was — for
+   * example, an item the AI had already screened comes back as
+   * `screened`, not `pending`.
+   *
+   * Body: `{ excluded: boolean }`. Idempotent in both directions.
+   * Validates that the requesting admin actually belongs to (or has
+   * cross-org access to) the session's organization before mutating.
+   */
+  const excludeItemSchema = z.object({ excluded: z.boolean() });
+  app.patch(
+    '/api/admin/bulk-import/items/:itemId/exclude',
+    requireAuth,
+    requireRole(['admin']),
+    async (req: AuthenticatedRequest, res: Response) => {
+      try {
+        const { excluded } = excludeItemSchema.parse(req.body);
+        const [item] = await db
+          .select()
+          .from(schema.bulkImportItems)
+          .where(eq(schema.bulkImportItems.id, req.params.itemId));
+        if (!item) return res.status(404).json({ error: 'Item not found' });
+
+        const session = await loadSession(item.sessionId);
+        if (!session) return res.status(404).json({ error: 'Session not found' });
+
+        const allowed = await canUserAccessOrganization(
+          req.user!.id,
+          session.organizationId,
+        );
+        if (!allowed) {
+          return res
+            .status(403)
+            .json({ error: 'You do not have access to this session' });
+        }
+
+        // Refuse to flip terminal states. `committed` items are real
+        // documents now, and `duplicate` items were skipped by the
+        // dedup check on upload — neither needs (or should support) an
+        // exclusion toggle.
+        if (item.status === 'committed' || item.status === 'duplicate') {
+          return res.status(400).json({
+            error: `Cannot change exclusion of a ${item.status} item`,
+          });
+        }
+
+        if (excluded) {
+          // Already excluded — no-op so the toggle is idempotent.
+          if (item.status === 'rejected') return res.json(item);
+          const [updated] = await db
+            .update(schema.bulkImportItems)
+            .set({
+              status: 'rejected',
+              preExcludeStatus: item.status,
+              updatedAt: new Date(),
+            })
+            .where(eq(schema.bulkImportItems.id, item.id))
+            .returning();
+          return res.json(updated);
+        }
+
+        // Un-exclude: only meaningful if the item is currently rejected.
+        if (item.status !== 'rejected') return res.json(item);
+        // Fall back to `pending` if we don't have a recorded
+        // pre-exclusion status (e.g. items rejected by an older code
+        // path before this column existed).
+        const restored = item.preExcludeStatus ?? 'pending';
+        const [updated] = await db
+          .update(schema.bulkImportItems)
+          .set({
+            status: restored,
+            preExcludeStatus: null,
+            updatedAt: new Date(),
+          })
+          .where(eq(schema.bulkImportItems.id, item.id))
+          .returning();
+        return res.json(updated);
+      } catch (err) {
+        if (err instanceof z.ZodError) {
+          return res.status(400).json({ error: err.errors });
+        }
+        logError('[bulk-import] exclude/unexclude failed', err as Error);
+        return res.status(500).json({ error: 'Failed to update exclusion' });
       }
     },
   );
