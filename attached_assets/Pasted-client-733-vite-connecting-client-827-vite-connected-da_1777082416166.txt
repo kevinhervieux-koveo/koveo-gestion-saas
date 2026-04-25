@@ -1,0 +1,127 @@
+client:733 [vite] connecting...
+client:827 [vite] connected.
+dashboard/overview:1 Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner.
+logger.ts:7 [DEBUG] [FinancialOverview] Aggregated projects across buildings {buildingsCount: 33, totalProjects: 0}
+logger.ts:7 [DEBUG] [FinancialOverview] Aggregated projects across buildings {buildingsCount: 33, totalProjects: 0}
+logger.ts:7 [DEBUG] [FinancialOverview] Aggregated projects across buildings {buildingsCount: 33, totalProjects: 0}
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+logger.ts:7 [DEBUG] [FinancialOverview] Aggregated projects across buildings {buildingsCount: 33, totalProjects: 5}
+logger.ts:7 [DEBUG] [FinancialOverview] Aggregated projects across buildings {buildingsCount: 33, totalProjects: 9}
+logger.ts:7 [DEBUG] [FinancialOverview] Aggregated projects across buildings {buildingsCount: 33, totalProjects: 15}
+logger.ts:7 [DEBUG] [FinancialOverview] Aggregated projects across buildings {buildingsCount: 33, totalProjects: 18}
+logger.ts:7 [DEBUG] [FinancialOverview] Aggregated projects across buildings {buildingsCount: 33, totalProjects: 20}
+logger.ts:7 [DEBUG] [FinancialOverview] Aggregated projects across buildings {buildingsCount: 33, totalProjects: 31}
+logger.ts:7 [DEBUG] [FinancialOverview] Aggregated projects across buildings {buildingsCount: 33, totalProjects: 31}
+logger.ts:7 [DEBUG] [FinancialOverview] Aggregated projects across buildings {buildingsCount: 33, totalProjects: 31}
+logger.ts:7 [DEBUG] [FinancialOverview] Aggregated projects across buildings {buildingsCount: 33, totalProjects: 31}
+logger.ts:7 [DEBUG] [FinancialOverview] Aggregated projects across buildings {buildingsCount: 33, totalProjects: 31}
+logger.ts:7 [DEBUG] [FinancialOverview] Aggregated projects across buildings {buildingsCount: 33, totalProjects: 31}
+logger.ts:7 [DEBUG] [FinancialOverview] Aggregated projects across buildings {buildingsCount: 33, totalProjects: 31}
+logger.ts:7 [DEBUG] [FinancialOverview] Aggregated projects across buildings {buildingsCount: 33, totalProjects: 31}
+logger.ts:7 [DEBUG] [FinancialOverview] Aggregated projects across buildings {buildingsCount: 33, totalProjects: 31}
+logger.ts:7 [DEBUG] [FinancialOverview] Aggregated projects across buildings {buildingsCount: 33, totalProjects: 31}
+logger.ts:7 [DEBUG] [FinancialOverview] Aggregated projects across buildings {buildingsCount: 33, totalProjects: 31}
+logger.ts:7 [DEBUG] [FinancialOverview] Aggregated projects across buildings {buildingsCount: 33, totalProjects: 31}
+logger.ts:7 [DEBUG] [FinancialOverview] Aggregated projects across buildings {buildingsCount: 33, totalProjects: 31}
+logger.ts:7 [DEBUG] [FinancialOverview] Aggregated projects across buildings {buildingsCount: 33, totalProjects: 31}
+logger.ts:7 [DEBUG] [FinancialOverview] Aggregated projects across buildings {buildingsCount: 33, totalProjects: 31}
+logger.ts:7 [DEBUG] [FinancialOverview] Aggregated projects across buildings {buildingsCount: 33, totalProjects: 31}
+logger.ts:7 [DEBUG] [FinancialOverview] Aggregated projects across buildings {buildingsCount: 33, totalProjects: 31}
+logger.ts:7 [DEBUG] [FinancialOverview] Aggregated projects across buildings {buildingsCount: 33, totalProjects: 31}
+logger.ts:7 [DEBUG] [FinancialOverview] Aggregated projects across buildings {buildingsCount: 33, totalProjects: 31}
+logger.ts:7 [DEBUG] [FinancialOverview] Aggregated projects across buildings {buildingsCount: 33, totalProjects: 31}
+logger.ts:7 [DEBUG] [FinancialOverview] Bank account config loaded {buildingId: '2e06bb1b-5d1e-4046-95a9-6575b20766bc', hasConfig: true}
+logger.ts:7 [DEBUG] [FinancialOverview] Aggregated projects across buildings {buildingsCount: 33, totalProjects: 31}
+logger.ts:7 [DEBUG] [FinancialOverview] Starting fiscal year initialized {buildingId: '2e06bb1b-5d1e-4046-95a9-6575b20766bc', startYear: 2026, fiscalMonth: 2}
+logger.ts:7 [DEBUG] [FinancialOverview] Aggregated projects across buildings {buildingsCount: 33, totalProjects: 31}
+queryClient.ts:112  POST https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/budgets/2e06bb1b-5d1e-4046-95a9-6575b20766bc/forecast 400 (Bad Request)
+(anonymous) @ queryClient.ts:112
+(anonymous) @ overview.tsx:598
+fetchFn @ @tanstack_react-query.js?v=e211cefd:852
+run @ @tanstack_react-query.js?v=e211cefd:491
+start @ @tanstack_react-query.js?v=e211cefd:533
+fetch @ @tanstack_react-query.js?v=e211cefd:891
+#executeFetch @ @tanstack_react-query.js?v=e211cefd:2047
+setOptions @ @tanstack_react-query.js?v=e211cefd:1980
+(anonymous) @ @tanstack_react-query.js?v=e211cefd:3099
+react_stack_bottom_frame @ react-dom_client.js?v=e211cefd:17486
+runWithFiberInDEV @ react-dom_client.js?v=e211cefd:1485
+commitHookEffectListMount @ react-dom_client.js?v=e211cefd:8460
+commitHookPassiveMountEffects @ react-dom_client.js?v=e211cefd:8518
+commitPassiveMountOnFiber @ react-dom_client.js?v=e211cefd:9887
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=e211cefd:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=e211cefd:9984
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=e211cefd:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=e211cefd:9881
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=e211cefd:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=e211cefd:9881
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=e211cefd:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=e211cefd:9960
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=e211cefd:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=e211cefd:9940
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=e211cefd:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=e211cefd:9984
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=e211cefd:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=e211cefd:9984
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=e211cefd:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=e211cefd:9881
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=e211cefd:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=e211cefd:9881
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=e211cefd:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=e211cefd:9984
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=e211cefd:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=e211cefd:9881
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=e211cefd:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=e211cefd:9881
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=e211cefd:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=e211cefd:9984
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=e211cefd:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=e211cefd:9881
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=e211cefd:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=e211cefd:9984
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=e211cefd:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=e211cefd:9881
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=e211cefd:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=e211cefd:9984
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=e211cefd:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=e211cefd:9881
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=e211cefd:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=e211cefd:9984
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=e211cefd:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=e211cefd:9881
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=e211cefd:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=e211cefd:9890
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=e211cefd:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=e211cefd:9984
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=e211cefd:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=e211cefd:9881
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=e211cefd:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=e211cefd:9984
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=e211cefd:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=e211cefd:9881
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=e211cefd:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=e211cefd:9890
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=e211cefd:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=e211cefd:9881
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=e211cefd:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=e211cefd:9899
+flushPassiveEffects @ react-dom_client.js?v=e211cefd:11302
+flushPendingEffects @ react-dom_client.js?v=e211cefd:11276
+flushSpawnedWork @ react-dom_client.js?v=e211cefd:11250
+commitRoot @ react-dom_client.js?v=e211cefd:11081
+commitRootWhenReady @ react-dom_client.js?v=e211cefd:10512
+performWorkOnRoot @ react-dom_client.js?v=e211cefd:10457
+performSyncWorkOnRoot @ react-dom_client.js?v=e211cefd:11635
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=e211cefd:11536
+processRootScheduleInMicrotask @ react-dom_client.js?v=e211cefd:11558
+(anonymous) @ react-dom_client.js?v=e211cefd:11649
+logger.ts:7 [DEBUG] [FinancialOverview] Aggregated projects across buildings {buildingsCount: 33, totalProjects: 31}
