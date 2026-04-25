@@ -63,6 +63,11 @@ export default function register(app: Express): void {
         highestExpected: result.highestExpected,
         pendingCount: result.pendingCount,
         missing: result.missing,
+        // Task #948: surface ghost rows (filenames recorded in
+        // `schema_migrations` that the deployed bundle does not ship)
+        // so the operator can see exactly which leftover rows the live
+        // DB is carrying without having to grep the deploy log.
+        unknownApplied: result.unknownApplied,
         source: result.source,
         db: result.maskedDb,
         checkedAt: new Date().toISOString(),

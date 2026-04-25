@@ -386,14 +386,24 @@ export async function verifyMigrationsApplied(): Promise<MigrationVerification> 
   try {
     await ensureMigrationsTable(client);
     const files = listMigrationFiles();
+    const diskSet = new Set(files);
     const highestExpected = files.length > 0 ? files[files.length - 1] : null;
     const applied = await getAppliedFilenames(client);
     const highestApplied = await highestAppliedVersion(client);
     const missing = files.filter((f) => !applied.has(f));
+    // Task #948: any `schema_migrations` row whose filename is not in
+    // the bundle on disk is a ghost. We surface ALL of them (sorted for
+    // stable output) regardless of where they sort relative to
+    // `highestExpected` so the simple "highest matches highest" check
+    // can no longer hide a leftover row from a parallel branch.
+    const unknownApplied = Array.from(applied)
+      .filter((f) => !diskSet.has(f))
+      .sort();
     const { inSync, driftKind } = _classifyDrift({
       highestExpected,
       highestApplied,
       missing,
+      unknownApplied,
     });
     return {
       inSync,
@@ -401,6 +411,7 @@ export async function verifyMigrationsApplied(): Promise<MigrationVerification> 
       highestExpected,
       highestApplied,
       missing,
+      unknownApplied,
       pendingCount: missing.length,
       source: resolved.source,
       maskedDb,
