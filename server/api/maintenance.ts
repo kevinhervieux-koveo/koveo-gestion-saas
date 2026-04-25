@@ -1762,15 +1762,27 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         .values([historyData])
         .returning();
       
-      // Update element's last inspection date if this is a minor rehab or repair that included inspection
+      // Update element's last inspection date if this is a minor rehab or repair that included inspection.
+      // Only advance lastInspectionDate — never regress it. The WHERE clause ensures the update is
+      // skipped (atomically) when the stored date is already equal-to or newer than the new event's
+      // date, guarding against out-of-order event inserts clobbering a later inspection date.
       if (['repair', 'minor_rehab'].includes(validation.data.eventType)) {
+        const eventDateStr = validation.data.eventDate.toISOString().split('T')[0];
         await db
           .update(buildingElements)
           .set({
-            lastInspectionDate: validation.data.eventDate.toISOString().split('T')[0],
+            lastInspectionDate: eventDateStr,
             updatedAt: new Date(),
           })
-          .where(eq(buildingElements.id, elementId));
+          .where(
+            and(
+              eq(buildingElements.id, elementId),
+              or(
+                isNull(buildingElements.lastInspectionDate),
+                sql`${buildingElements.lastInspectionDate} < ${eventDateStr}::date`,
+              ),
+            ),
+          );
       }
       
       res.status(201).json({
