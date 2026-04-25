@@ -375,7 +375,11 @@ async function loadFileForClaude(
         const sheet = workbook.Sheets[sheetName];
         if (!sheet) continue;
         const csv = XLSX.utils.sheet_to_csv(sheet);
-        if (csv.trim()) lines.push(`# ${sheetName}\n${csv}`);
+        // Strip control characters (null bytes, etc.) that can corrupt
+        // the JSON payload sent to Anthropic and trigger api_error.
+        // Keep printable ASCII + common whitespace (tab, LF, CR).
+        const cleanCsv = csv.replace(/[^\x09\x0A\x0D\x20-\x7E\xA0-\uFFFF]/g, '').trim();
+        if (cleanCsv) lines.push(`# ${sheetName}\n${cleanCsv}`);
         if (lines.join('\n').length > MAX_EXTRACTED_TEXT) break;
       }
       const text = lines.join('\n').slice(0, MAX_EXTRACTED_TEXT);

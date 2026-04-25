@@ -93,9 +93,29 @@ function sha256(buffer: Buffer): string {
   return crypto.createHash('sha256').update(buffer).digest('hex');
 }
 
+const ZIP_MIMES = new Set([
+  'application/zip',
+  'application/x-zip-compressed',
+  'application/x-zip',
+  'multipart/x-zip',
+]);
+
+export function isZipFile(file: Pick<Express.Multer.File, 'mimetype' | 'originalname'>): boolean {
+  if (ZIP_MIMES.has(file.mimetype.toLowerCase())) return true;
+  if (file.originalname.toLowerCase().endsWith('.zip')) return true;
+  return false;
+}
+
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 100 * 1024 * 1024 }, // 100MB per file
+  fileFilter: (_req, file, cb) => {
+    if (isZipFile(file)) {
+      cb(null, false);
+    } else {
+      cb(null, true);
+    }
+  },
 });
 
 const createSessionSchema = z.object({
@@ -1115,7 +1135,7 @@ export function registerBulkImportRoutes(app: Express): void {
     },
   );
 
-  /** Upload a folder/zip's worth of files into a session. */
+  /** Upload a batch of individual files into a session (ZIP archives are filtered out by multer). */
   app.post(
     '/api/admin/bulk-import/sessions/:id/items',
     requireAuth,

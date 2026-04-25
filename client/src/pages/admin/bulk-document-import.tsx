@@ -1357,10 +1357,40 @@ export default function BulkDocumentImportPage() {
       }),
   });
 
+  const ZIP_MIMES_CLIENT = new Set([
+    'application/zip',
+    'application/x-zip-compressed',
+    'application/x-zip',
+    'multipart/x-zip',
+  ]);
+
+  function isZipFile(f: File): boolean {
+    if (ZIP_MIMES_CLIENT.has(f.type.toLowerCase())) return true;
+    if (f.name.toLowerCase().endsWith('.zip')) return true;
+    return false;
+  }
+
   const uploadFiles = useMutation({
     mutationFn: async (files: FileList) => {
+      const allFiles = Array.from(files);
+      const skipped = allFiles.filter(isZipFile);
+      const allowed = allFiles.filter((f) => !isZipFile(f));
+
+      if (skipped.length > 0) {
+        const names = skipped.map((f) => f.name).join(', ');
+        toast({
+          variant: 'destructive',
+          title: isFr ? 'Fichiers ZIP ignorés' : 'ZIP files skipped',
+          description: isFr
+            ? `Les archives ZIP ne sont pas acceptées : ${names}`
+            : `ZIP archives are not accepted: ${names}`,
+        });
+      }
+
+      if (allowed.length === 0) return [];
+
       const fd = new FormData();
-      Array.from(files).forEach((f) => fd.append('files', f));
+      allowed.forEach((f) => fd.append('files', f));
       const res = await fetch(
         `/api/admin/bulk-import/sessions/${sessionId}/items`,
         { method: 'POST', body: fd, credentials: 'include' },
@@ -1368,7 +1398,8 @@ export default function BulkDocumentImportPage() {
       if (!res.ok) throw new Error('Upload failed');
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      if (!data || data.length === 0) return;
       queryClient.invalidateQueries({
         queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
       });
@@ -1763,13 +1794,13 @@ export default function BulkDocumentImportPage() {
   const stepIndex = useMemo(() => STEP_ORDER.indexOf(currentStep), [currentStep]);
 
   const helpIntro = isFr
-    ? "Importez en lot des dossiers de documents (PDF, Word, Excel, images, zips) pour un immeuble. L'assistant vous guide à travers 7 étapes. Vous pouvez fermer la page à tout moment et reprendre — la session est sauvegardée."
-    : 'Bulk-import folders of mixed documents (PDF, Word, Excel, images, zips) for one building. The wizard walks you through 7 steps. You can close the page at any time and resume — the session is saved.';
+    ? "Importez en lot des dossiers de documents (PDF, Word, Excel, images) pour un immeuble. L'assistant vous guide à travers 7 étapes. Vous pouvez fermer la page à tout moment et reprendre — la session est sauvegardée."
+    : 'Bulk-import folders of mixed documents (PDF, Word, Excel, images) for one building. The wizard walks you through 7 steps. You can close the page at any time and resume — the session is saved.';
 
   const stepDescriptions: Record<BulkImportStep, string> = isFr
     ? {
         upload:
-          "Choisissez l'immeuble et déposez les documents (PDF, Word, Excel, images ou archives zip) à traiter.",
+          "Choisissez l'immeuble et déposez les documents (PDF, Word, Excel, images) à traiter.",
         screening:
           "L'IA lit chaque fichier et décide s'il s'agit d'un vrai document à conserver ou à écarter.",
         // Descriptions are keyed by internal step key, so they swap in
@@ -1789,7 +1820,7 @@ export default function BulkDocumentImportPage() {
       }
     : {
         upload:
-          'Choose the building and drop in the documents (PDF, Word, Excel, images, or zip archives) you want to process.',
+          'Choose the building and drop in the documents (PDF, Word, Excel, images) you want to process.',
         screening:
           'The AI reads each file and decides whether it looks like a real document worth keeping or should be discarded.',
         // Descriptions are keyed by internal step key, so they swap in

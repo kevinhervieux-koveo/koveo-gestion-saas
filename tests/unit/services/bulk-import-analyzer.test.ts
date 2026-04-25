@@ -1238,3 +1238,190 @@ describe('bulkImportAnalyzer per-file AI failure tagging (Task #801)', () => {
     expect(r.quickAnalysis.bucketGuess).toBe('unknown');
   });
 });
+
+// ── Task #842 — xlsx screening path ───────────────────────────────────────────
+describe('Task #842 — xlsx screening succeeds (no api_error)', () => {
+  let tmpDir: string;
+
+  beforeAll(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'bulk-import-xlsx-test-'));
+  });
+  afterAll(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+    bulkImportAnalyzer.__setClientForTests(null);
+    cacheMockStore.clear();
+  });
+  beforeEach(() => {
+    cacheMockStore.clear();
+    getCachedMock.mockClear();
+    setCachedMock.mockClear();
+  });
+
+  function makeFakeClient(jsonPayload: object) {
+    const create = jest.fn().mockResolvedValue({
+      content: [{ type: 'text', text: JSON.stringify(jsonPayload) }],
+    });
+    const fakeClient = {
+      messages: { create },
+    } as unknown as Parameters<typeof bulkImportAnalyzer.__setClientForTests>[0];
+    bulkImportAnalyzer.__setClientForTests(fakeClient);
+    return create;
+  }
+
+  it('screens an xlsx buffer without degrading to api_error', async () => {
+    // Build a real minimal xlsx buffer using the xlsx package so we
+    // exercise the full extraction path in loadFileForClaude.
+    const XLSX = await import('xlsx');
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet([
+      ['Date', 'Description', 'Amount'],
+      ['2024-01-15', 'Maintenance chauffage', '1250.00'],
+      ['2024-02-03', 'Nettoyage couloirs', '450.00'],
+    ]);
+    XLSX.utils.book_append_sheet(wb, ws, 'Carnet entretien');
+    const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' }) as Buffer;
+
+    const create = makeFakeClient({
+      isComplete: true,
+      isMultiDocument: false,
+      pageOrderHint: null,
+      rotationDegrees: 0,
+      suggestedFilename: 'carnet-entretien.xlsx',
+      description: 'Maintenance log spreadsheet',
+      confidence: 0.82,
+      quickAnalysis: {
+        typeGuess: 'maintenance_report',
+        bucketGuess: 'maintenance',
+        reason: 'Spreadsheet contains maintenance dates and costs',
+        confidence: 0.82,
+      },
+    });
+
+    const r = await bulkImportAnalyzer.screen({
+      originalName: 'carnet-entretien.xlsx',
+      mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      buffer,
+    });
+
+    // Must NOT degrade to api_error — the xlsx extraction path must
+    // yield a real confidence result.
+    expect(r.fallbackReason).toBeNull();
+    expect(r.confidence).toBeGreaterThan(0.5);
+    expect(r.suggestedFilename).toBe('carnet-entretien.xlsx');
+
+    // The prompt must include the spreadsheet contents so the Claude
+    // call has real data to work with.
+    const sentPrompt: string = create.mock.calls[0][0].messages[0].content
+      .filter((b: { type: string }) => b.type === 'text')
+      .map((b: { text: string }) => b.text)
+      .join('\n');
+    expect(sentPrompt).toContain('Spreadsheet contents:');
+    expect(sentPrompt).toContain('Carnet entretien');
+  });
+
+  it('screens an .xls (legacy) buffer without degrading to api_error', async () => {
+    const XLSX = await import('xlsx');
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet([
+      ['Item', 'Qty', 'Unit Price'],
+      ['Paint', '10', '32.50'],
+      ['Brush', '5', '8.00'],
+    ]);
+    XLSX.utils.book_append_sheet(wb, ws, 'Inventory');
+    const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xls' }) as Buffer;
+
+    const create = makeFakeClient({
+      isComplete: true,
+      isMultiDocument: false,
+      pageOrderHint: null,
+      rotationDegrees: 0,
+      suggestedFilename: 'inventory.xls',
+      description: 'Building inventory',
+      confidence: 0.75,
+      quickAnalysis: {
+        typeGuess: 'inventory',
+        bucketGuess: 'building_documents',
+        reason: 'Spreadsheet lists building inventory items',
+        confidence: 0.75,
+      },
+    });
+
+    const r = await bulkImportAnalyzer.screen({
+      originalName: 'inventory.xls',
+      mimeType: 'application/vnd.ms-excel',
+      buffer,
+    });
+
+    expect(r.fallbackReason).toBeNull();
+    expect(r.confidence).toBeGreaterThan(0.5);
+    expect(create).toHaveBeenCalledTimes(1);
+  });
+
+  it('emits fallbackReason null for xlsx so it does not show the api_error badge', async () => {
+    const XLSX = await import('xlsx');
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet([['A', 'B'], ['1', '2']]);
+    XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+    const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' }) as Buffer;
+
+    makeFakeClient({
+      isComplete: true,
+      isMultiDocument: false,
+      pageOrderHint: null,
+      rotationDegrees: 0,
+      suggestedFilename: 'data.xlsx',
+      description: 'Data sheet',
+      confidence: 0.7,
+      quickAnalysis: { typeGuess: 'unknown', bucketGuess: 'unknown', reason: 'ok', confidence: 0.7 },
+    });
+
+    const r = await bulkImportAnalyzer.screen({
+      originalName: 'data.xlsx',
+      mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      buffer,
+    });
+
+    expect(r.fallbackReason).toBeNull();
+  });
+
+  it('strips control characters from xlsx sheet content before sending to AI prompt', async () => {
+    const XLSX = await import('xlsx');
+    const wb = XLSX.utils.book_new();
+    // Place control characters that would trigger Anthropic api_error if not stripped.
+    // \x01 (SOH), \x03 (ETX), \x08 (BS) are all in the blocked range.
+    const ws = XLSX.utils.aoa_to_sheet([
+      ['Date', 'Notes'],
+      ['2024-01', `Repair\x01work\x03done\x08here`],
+      ['2024-02', `Cost\x00 = 450`],
+    ]);
+    XLSX.utils.book_append_sheet(wb, ws, 'Controls');
+    const buffer = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' }) as Buffer;
+
+    const create = makeFakeClient({
+      isComplete: true,
+      isMultiDocument: false,
+      pageOrderHint: null,
+      rotationDegrees: 0,
+      suggestedFilename: 'ctrl.xlsx',
+      description: 'Sheet with control chars',
+      confidence: 0.65,
+      quickAnalysis: { typeGuess: 'unknown', bucketGuess: 'unknown', reason: 'ok', confidence: 0.65 },
+    });
+
+    await bulkImportAnalyzer.screen({
+      originalName: 'ctrl.xlsx',
+      mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      buffer,
+    });
+
+    expect(create).toHaveBeenCalledTimes(1);
+    const sentPrompt: string = create.mock.calls[0][0].messages[0].content
+      .filter((b: { type: string }) => b.type === 'text')
+      .map((b: { text: string }) => b.text)
+      .join('\n');
+
+    // None of the blocked control characters must appear in what Claude receives.
+    // eslint-disable-next-line no-control-regex
+    expect(sentPrompt).not.toMatch(/[\x00-\x08\x0B\x0C\x0E-\x1F]/);
+  });
+});
