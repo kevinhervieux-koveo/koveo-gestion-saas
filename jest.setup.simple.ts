@@ -98,6 +98,13 @@ if (typeof window !== 'undefined') {
 // copy/paste the same shim (and risk drifting). The `PointerEvent` polyfill
 // subclasses `MouseEvent` so coordinate / button / pointerId propagate
 // correctly to listeners.
+//
+// Both blocks are guarded behind `typeof Element !== 'undefined'` /
+// `typeof MouseEvent !== 'undefined'` so they no-op cleanly under the Node
+// test environment (e.g. `tests/integration/**` and the `tests/unit/server/**`
+// suites that opt into `@jest-environment node`). Without those guards, the
+// shared setup file would crash with "ReferenceError: MouseEvent is not
+// defined" at load time and block every node-environment suite from running.
 if (typeof Element !== 'undefined') {
   if (typeof Element.prototype.setPointerCapture !== 'function') {
     (Element.prototype as Element & { setPointerCapture: (id: number) => void }).setPointerCapture = function () {};
