@@ -23,6 +23,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { useCreateUpdateMutation } from '@/lib/common-hooks';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/hooks/use-language';
 
 /**
  * Interface for AI interaction data.
@@ -81,6 +82,7 @@ interface AIInsight {
  * @returns Function result.
  */
 export function ReplitAIMonitoring() {
+  const { t } = useLanguage();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('overview');
 
@@ -177,7 +179,7 @@ export function ReplitAIMonitoring() {
           <div>
             <h2 className='text-2xl font-bold text-gray-900'>Replit AI Agent Monitoring</h2>
             <p className='text-sm text-gray-600'>
-              Track AI interactions and continuous improvement suggestions
+              {t('trackAiInteractionsAndContinuousImprovement')}
             </p>
           </div>
         </div>
@@ -274,7 +276,7 @@ export function ReplitAIMonitoring() {
             <CardHeader>
               <CardTitle>AI Performance Overview</CardTitle>
               <CardDescription>
-                Real-time monitoring of Replit AI agent effectiveness
+                {t('realTimeMonitoringOfReplitAi')}
               </CardDescription>
             </CardHeader>
             <CardContent className='space-y-4'>
@@ -329,7 +331,7 @@ export function ReplitAIMonitoring() {
             <CardHeader>
               <CardTitle>Recent AI Interactions</CardTitle>
               <CardDescription>
-                Real-time log of AI agent activities and improvements
+                {t('realTimeLogOfAiAgent')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -362,7 +364,7 @@ export function ReplitAIMonitoring() {
                   ))
                 ) : (
                   <div className='text-center py-8 text-gray-500'>
-                    No recent interactions recorded
+                    {t('noRecentInteractionsRecorded')}
                   </div>
                 )}
               </div>
@@ -376,7 +378,7 @@ export function ReplitAIMonitoring() {
             <CardHeader>
               <CardTitle>AI-Generated Insights</CardTitle>
               <CardDescription>
-                Continuous improvement recommendations from AI analysis
+                {t('continuousImprovementRecommendationsFromAiAnalysis')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -427,7 +429,7 @@ export function ReplitAIMonitoring() {
                   ))
                 ) : (
                   <div className='text-center py-8 text-gray-500'>
-                    No insights available. Run an AI analysis to generate recommendations.
+                    {t('noInsightsAvailableRunAnAi')}
                   </div>
                 )}
               </div>

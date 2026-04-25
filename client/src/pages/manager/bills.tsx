@@ -980,7 +980,7 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
                 <DialogHeader>
                   <DialogTitle>{t('createNewBill')}</DialogTitle>
                   <DialogDescription className="sr-only">
-                    Fill in the form below to create a new bill
+                    {t('fillInTheFormBelowTo2')}
                   </DialogDescription>
                 </DialogHeader>
                 <ModularBillForm
@@ -1008,7 +1008,7 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
               <CardContent className='p-8 text-center'>
                 <h3 className='text-lg font-semibold text-gray-600 mb-2'>{t('noBillsFound')}</h3>
                 <p className='text-gray-500 mb-4'>
-                  No bills found for the selected filters. Create your first bill to get started.
+                  {t('noBillsFoundForTheSelected')}
                 </p>
                 <Button onClick={() => setShowCreateDialog(true)} data-testid="button-create-first-bill">
                   {t('createFirstBill')}
@@ -1046,7 +1046,7 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
           <DialogHeader>
             <DialogTitle>{t('createNewBill')}</DialogTitle>
             <DialogDescription className="sr-only">
-              Fill in the form below to create a new bill for your building
+              {t('fillInTheFormBelowTo')}
             </DialogDescription>
           </DialogHeader>
           <ModularBillForm
@@ -1414,7 +1414,7 @@ function BillCard({
           <DialogHeader>
             <DialogTitle>Bill Details</DialogTitle>
             <DialogDescription className="sr-only">
-              View detailed information about this bill including payment schedule and status
+              {t('viewDetailedInformationAboutThisBill')}
             </DialogDescription>
           </DialogHeader>
           <BillDetail
@@ -1438,7 +1438,7 @@ function BillCard({
           <DialogHeader>
             <DialogTitle>{t('bills.editBill')}</DialogTitle>
             <DialogDescription className="sr-only">
-              Edit the details of this bill including amounts, dates, and payment information
+              {t('editTheDetailsOfThisBill')}
             </DialogDescription>
           </DialogHeader>
           <ModularBillForm

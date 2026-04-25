@@ -24,6 +24,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { useCreateUpdateMutation } from '@/lib/common-hooks';
 import { insertVendorSchema, Vendor } from '@shared/schemas/maintenance';
 import { User, Phone, Mail, Building2, FileText } from 'lucide-react';
+import { useLanguage } from '@/hooks/use-language';
 
 export interface VendorFormProps {
   isOpen: boolean;
@@ -76,6 +77,7 @@ export function VendorForm({
   organizationId,
   buildingId,
 }: VendorFormProps) {
+  const { t } = useLanguage();
   const [error, setError] = useState<string | null>(null);
 
   // Initialize form with default values
@@ -202,7 +204,7 @@ export function VendorForm({
                   </div>
                 </FormControl>
                 <FormDescription>
-                  The legal or business name of the vendor
+                  {t('theLegalOrBusinessNameOf')}
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -230,7 +232,7 @@ export function VendorForm({
                   </SelectContent>
                 </Select>
                 <FormDescription>
-                  Primary service category for this vendor
+                  {t('primaryServiceCategoryForThisVendor')}
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -258,7 +260,7 @@ export function VendorForm({
                   </div>
                 </FormControl>
                 <FormDescription>
-                  Primary contact person at the vendor
+                  {t('primaryContactPersonAtTheVendor')}
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -283,7 +285,7 @@ export function VendorForm({
                   </div>
                 </FormControl>
                 <FormDescription>
-                  Primary phone number for contact
+                  {t('primaryPhoneNumberForContact')}
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -310,7 +312,7 @@ export function VendorForm({
                 </div>
               </FormControl>
               <FormDescription>
-                Primary email address for communication
+                {t('primaryEmailAddressForCommunication')}
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -335,7 +337,7 @@ export function VendorForm({
                 </div>
               </FormControl>
               <FormDescription>
-                Additional information, service quality notes, specialties, etc.
+                {t('additionalInformationServiceQualityNotesSpecialties')}
               </FormDescription>
               <FormMessage />
             </FormItem>

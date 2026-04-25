@@ -41,6 +41,7 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { MaintenanceProject } from '@shared/schemas/maintenance';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/hooks/use-language';
 import {
   CalendarIcon,
   ChevronLeft,
@@ -102,6 +103,7 @@ export function ProjectTimeline({
   onDateRangeChange,
   dateRange,
 }: ProjectTimelineProps) {
+  const { t } = useLanguage();
   const { buildingId, hasPermission } = useBuildingContext();
   const { toast } = useToast();
   
@@ -348,7 +350,7 @@ export function ProjectTimeline({
           <AlertTriangle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
           <h3 className="text-lg font-semibold mb-2">Failed to Load Timeline</h3>
           <p className="text-muted-foreground">
-            There was an error loading the project timeline. Please try again.
+            {t('thereWasAnErrorLoadingThe4')}
           </p>
         </CardContent>
       </Card>
@@ -483,7 +485,7 @@ export function ProjectTimeline({
             {timelineProjects.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <CalendarDays className="h-12 w-12 mx-auto mb-4" />
-                <p>No projects found for the selected time period.</p>
+                <p>{t('noProjectsFoundForTheSelected')}</p>
               </div>
             ) : (
               timelineProjects.map((project, index) => (

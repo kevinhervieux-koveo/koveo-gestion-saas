@@ -2,6 +2,7 @@ import { useState, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Upload, Camera, File, X } from 'lucide-react';
+import { useLanguage } from '@/hooks/use-language';
 
 interface CustomFileUploaderProps {
   onFileSelect: (files: File[]) => void;
@@ -32,6 +33,7 @@ export function CustomFileUploader({
   className,
   'data-testid': testId,
 }: CustomFileUploaderProps) {
+  const { t } = useLanguage();
   const [isDragOver, setIsDragOver] = useState(false);
   const [selectedFile, setSelectedFile] = useState<FilePreview | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -234,7 +236,7 @@ export function CustomFileUploader({
               <Upload className="h-6 w-6 text-blue-600" />
             </div>
             <p className="text-sm font-medium text-blue-600">Uploading document...</p>
-            <p className="text-xs text-gray-500">Please wait while we process your file</p>
+            <p className="text-xs text-gray-500">{t('pleaseWaitWhileWeProcessYour')}</p>
           </div>
         ) : selectedFile ? (
           // File preview (before upload starts)
@@ -284,10 +286,10 @@ export function CustomFileUploader({
             </div>
             <div className="space-y-2">
               <p className="text-lg font-medium text-gray-900 dark:text-gray-100">
-                Drop files here or click to browse
+                {t('dropFilesHereOrClickTo')}
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                📱 On mobile: Tap to use camera or select from gallery
+                {t('onMobileTapToUseCamera')}
               </p>
               <p className="text-xs text-gray-400 dark:text-gray-500">
                 Maximum {maxFileSize}MB • {allowedFileTypes.map(type => {
@@ -316,7 +318,7 @@ export function CustomFileUploader({
                 Choose File Source
               </h3>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                Select how you'd like to add your file
+                {t('selectHowYouDLikeTo')}
               </p>
             </div>
             

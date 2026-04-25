@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 // import { useBuildingContext } from '@/hooks/use-building-context';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/hooks/use-language';
 import {
   Plus,
   Search,
@@ -66,6 +67,7 @@ export function InventoryHeader({
   showOverdueOnly = false,
   onShowOverdueChange,
 }: InventoryHeaderProps) {
+  const { t } = useLanguage();
   // Simplified placeholder - no context for now
   const building = null;
   const availableBuildings = [];
@@ -102,7 +104,7 @@ export function InventoryHeader({
             Inventory - Building Elements
           </h1>
           <p className="text-muted-foreground">
-            Manage building elements, track conditions, and schedule maintenance evaluations
+            {t('manageBuildingElementsTrackConditionsAnd')}
           </p>
         </div>
 

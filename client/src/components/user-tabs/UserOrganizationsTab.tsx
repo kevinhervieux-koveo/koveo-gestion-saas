@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { logDebug } from '@/lib/logger';
 import type { UserWithAssignments, Organization, User } from '@shared/schema';
+import { useLanguage } from '@/hooks/use-language';
 
 interface UserOrganizationsTabProps {
   user: UserWithAssignments | null;
@@ -24,6 +25,7 @@ export function UserOrganizationsTab({
   onSelectionChange,
   isLoading = false 
 }: UserOrganizationsTabProps) {
+  const { t } = useLanguage();
   const [selectedOrganizations, setSelectedOrganizations] = useState<string[]>([]);
   const initializedRef = useRef<string | null>(null);
 
@@ -101,7 +103,7 @@ export function UserOrganizationsTab({
             <p className="text-sm text-muted-foreground">Loading organizations...</p>
           ) : availableOrganizations.length === 0 ? (
             <p className="text-sm text-muted-foreground">
-              No organizations available to assign. 
+              {t('noOrganizationsAvailableToAssign')} 
               {currentUser?.role !== 'admin' && ' (Non-admin users can only assign organizations they have access to)'}
             </p>
           ) : (

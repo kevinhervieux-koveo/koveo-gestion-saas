@@ -43,6 +43,7 @@ import {
 } from 'lucide-react';
 import { insertEvaluationSuggestionSchema } from '@shared/schemas/maintenance';
 import { SuggestionFormProps, SuggestionWithElement } from './types';
+import { useLanguage } from '@/hooks/use-language';
 
 // Form validation schema based on maintenance schema
 const suggestionFormSchema = insertEvaluationSuggestionSchema.extend({
@@ -82,6 +83,7 @@ export function SuggestionForm({
   onSubmit,
   mode = 'create',
 }: SuggestionFormProps) {
+  const { t } = useLanguage();
   const { hasPermission } = useBuildingContext();
 
   // Fetch building elements for selection
@@ -273,7 +275,7 @@ export function SuggestionForm({
                   </SelectContent>
                 </Select>
                 <FormDescription>
-                  Select the building element for this suggestion
+                  {t('selectTheBuildingElementForThis')}
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -292,7 +294,7 @@ export function SuggestionForm({
                     Auto-Calculate Suggestion
                   </FormLabel>
                   <FormDescription>
-                    Automatically calculate suggestion type, priority, and dates based on element data
+                    {t('automaticallyCalculateSuggestionTypePriorityAnd')}
                   </FormDescription>
                 </div>
                 <FormControl>
@@ -409,7 +411,7 @@ export function SuggestionForm({
                   </PopoverContent>
                 </Popover>
                 <FormDescription>
-                  When this evaluation or work should be performed
+                  {t('whenThisEvaluationOrWorkShould')}
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -440,7 +442,7 @@ export function SuggestionForm({
                   </div>
                 </FormControl>
                 <FormDescription>
-                  Estimated cost for the suggested work (CAD)
+                  {t('estimatedCostForTheSuggestedWork')}
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -479,7 +481,7 @@ export function SuggestionForm({
                   />
                 </FormControl>
                 <FormDescription>
-                  Detailed explanation for the suggestion
+                  {t('detailedExplanationForTheSuggestion')}
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -498,7 +500,7 @@ export function SuggestionForm({
             <div className="p-3 bg-green-50 rounded-lg border border-green-200">
               <div className="flex items-center gap-2 mb-2">
                 <AlertCircle className="h-4 w-4 text-green-600" />
-                <span className="text-sm font-medium text-green-800">Auto-calculated Recommendations</span>
+                <span className="text-sm font-medium text-green-800">{t('autoCalculatedRecommendations')}</span>
               </div>
               <div className="text-xs text-green-700 space-y-1">
                 <div>Type: {calculationResponse.calculation.recommendedType}</div>

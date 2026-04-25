@@ -1372,11 +1372,11 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
                       <div className="flex items-center gap-2">
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
                         <span className="text-blue-700 dark:text-blue-300 font-medium">
-                          Extracting data from your document...
+                          {t('extractingDataFromYourDocument')}
                         </span>
                       </div>
                       <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
-                        This may take a few seconds depending on document complexity.
+                        {t('thisMayTakeAFewSeconds')}
                       </p>
                     </div>
                   )}
@@ -1987,7 +1987,7 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
                       <div className="text-center py-4 text-gray-500 dark:text-gray-400">
                         <Calendar className="w-8 h-8 mx-auto mb-2 opacity-50" />
                         <p className="text-sm">No payments added yet</p>
-                        <p className="text-xs">Click "Add Payment" to get started</p>
+                        <p className="text-xs">{t('clickAddPaymentToGetStarted')}</p>
                       </div>
                     )}
                   </CardContent>

@@ -64,6 +64,7 @@ import {
   Minus,
 } from 'lucide-react';
 import { SuggestionAnalyticsProps, AnalyticsInsight } from './types';
+import { useLanguage } from '@/hooks/use-language';
 
 const colors = chartColors;
 
@@ -86,6 +87,7 @@ export function SuggestionAnalytics({
   onInsightAction,
   className,
 }: SuggestionAnalyticsProps) {
+  const { t } = useLanguage();
   const { hasPermission } = useBuildingContext();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('predictive');
@@ -481,7 +483,7 @@ export function SuggestionAnalytics({
                   {/* Cost Comparison */}
                   <Card>
                     <CardHeader>
-                      <CardTitle className="text-lg">Maintenance Approach Comparison</CardTitle>
+                      <CardTitle className="text-lg">{t('maintenanceApproachComparison')}</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <ChartContainer config={buildChartConfig({

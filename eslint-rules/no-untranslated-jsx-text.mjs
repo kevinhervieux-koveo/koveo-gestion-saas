@@ -8,6 +8,12 @@
  * Skips:
  *   - Whitespace / numeric-only / punctuation-only content.
  *   - Text inside <code> or <pre> elements.
+ *   - Single tokens with no whitespace (emails, URLs, file paths, identifiers).
+ *     These are not natural-language sentences and would not be translated.
+ *   - Text that is clearly already French (contains French-specific diacritics
+ *     or repeated é). The rule is meant to catch English text that escaped
+ *     translation, not to flag French strings that are intentionally hardcoded
+ *     because the surrounding component is already French-only.
  */
 const noUntranslatedJsxText = {
   meta: {
@@ -37,11 +43,24 @@ const noUntranslatedJsxText = {
       return false;
     };
 
+    const FRENCH_ONLY_DIACRITICS = /[àâçèêëîïôùûüÿœæÀÂÇÈÊËÎÏÔÙÛÜŸŒÆ]/;
+
+    const looksLikeFrench = (text) => {
+      if (FRENCH_ONLY_DIACRITICS.test(text)) return true;
+      const eAcuteCount = (text.match(/[éÉ]/g) || []).length;
+      if (eAcuteCount >= 2) return true;
+      return false;
+    };
+
     const shouldFlag = (raw) => {
       if (typeof raw !== 'string') return false;
       const trimmed = raw.replace(/\s+/g, ' ').trim();
       if (trimmed.length <= 30) return false;
       if (!/[A-Za-zÀ-ÿ]/.test(trimmed)) return false;
+      // Single-token strings (no whitespace) are emails, URLs, file paths,
+      // or identifiers — not natural-language sentences worth translating.
+      if (!/\s/.test(trimmed)) return false;
+      if (looksLikeFrench(trimmed)) return false;
       return true;
     };
 

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { UnifiedDocumentViewer } from '@/components/document-management/UnifiedDocumentViewer';
 import { DocumentProvider } from '@/components/document-management/DocumentContext';
+import { useLanguage } from '@/hooks/use-language';
 
 /**
  * Examples demonstrating unified document management patterns
@@ -13,6 +14,7 @@ export function BuildingDocuments({ buildingId, buildingName, organizationId }: 
   buildingName?: string;
   organizationId?: string;
 }) {
+  const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
 
@@ -54,6 +56,7 @@ export function ResidenceDocuments({ residenceId, residenceName, buildingId }: {
   residenceName?: string;
   buildingId?: string;
 }) {
+  const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
 
   const user = { id: 'user-2', role: 'resident' as const };
@@ -92,6 +95,7 @@ export function ProjectDocuments({ projectId, projectName, organizationId }: {
   projectName?: string;
   organizationId?: string;
 }) {
+  const { t } = useLanguage();
   const user = { id: 'user-1', role: 'manager' as const };
 
   const config = {
@@ -126,6 +130,7 @@ export function BillDocuments({ billId, billName, buildingId }: {
   billName?: string;
   buildingId?: string;
 }) {
+  const { t } = useLanguage();
   const user = { id: 'user-3', role: 'tenant' as const };
 
   const config = {
@@ -155,6 +160,7 @@ export function OrganizationDocuments({ organizationId, organizationName }: {
   organizationId: string;
   organizationName?: string;
 }) {
+  const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
 
@@ -192,6 +198,7 @@ export function OrganizationDocuments({ organizationId, organizationName }: {
 
 // Example usage in a page component:
 export function ExampleUsage() {
+  const { t } = useLanguage();
   return (
     <div className="space-y-8 p-6">
       <div>
@@ -222,7 +229,7 @@ export function ExampleUsage() {
       </div>
 
       <div>
-        <h2 className="text-xl font-bold mb-4">Bill Documents (Tenant - Read Only)</h2>
+        <h2 className="text-xl font-bold mb-4">{t('billDocumentsTenantReadOnly')}</h2>
         <BillDocuments 
           billId="bill-123" 
           billName="January Utilities"

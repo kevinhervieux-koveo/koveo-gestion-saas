@@ -205,7 +205,7 @@ export default function Dashboard() {
             >
               <Home className='h-12 w-12 mx-auto text-muted-foreground mb-4' />
               <p className='text-muted-foreground'>
-                Your dashboard will be customized based on your role and permissions.
+                {t('yourDashboardWillBeCustomizedBased')}
               </p>
             </StandardCard>
           )}

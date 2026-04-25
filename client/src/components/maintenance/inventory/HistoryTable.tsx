@@ -29,6 +29,7 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { BuildingElement } from '@shared/schemas/maintenance';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/hooks/use-language';
 import {
   MoreHorizontal,
   Edit2,
@@ -88,6 +89,7 @@ export function HistoryTable({
   buildingId,
   organizationId,
 }: HistoryTableProps) {
+  const { t } = useLanguage();
   // Simplified placeholder - no context for now
   const hasPermission = () => true;
   const { toast } = useToast();
@@ -345,8 +347,7 @@ export function HistoryTable({
                   <AlertDialogHeader>
                     <AlertDialogTitle>Delete History Entry</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Are you sure you want to delete this history entry? This action cannot be undone 
-                      and may affect element lifespan calculations.
+                      {t('areYouSureYouWantTo3')}
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>

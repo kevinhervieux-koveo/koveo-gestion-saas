@@ -21,6 +21,7 @@ import { BuildingElement } from '@shared/schemas/maintenance';
 import { cn } from '@/lib/utils';
 import { BulkEditCostDialog } from './BulkEditCostDialog';
 import { BulkEditResidenceDialog } from './BulkEditResidenceDialog';
+import { useLanguage } from '@/hooks/use-language';
 import {
   Eye,
   Edit2,
@@ -71,6 +72,7 @@ export function ElementTable({
   uniformatFilter = '',
   showOverdueOnly = false,
 }: ElementTableProps) {
+  const { t } = useLanguage();
   // const { buildingId, hasPermission } = useBuildingContext();
   // Simple permission check - in real implementation this would use proper role-based permissions
   const hasPermission = (permission: string) => true;
@@ -607,7 +609,7 @@ export function ElementTable({
           <div>
             <h3 className="text-lg font-semibold mb-2">No Elements Found</h3>
             <p className="text-muted-foreground">
-              Start building your inventory by adding building elements.
+              {t('startBuildingYourInventoryByAdding')}
             </p>
           </div>
         </div>

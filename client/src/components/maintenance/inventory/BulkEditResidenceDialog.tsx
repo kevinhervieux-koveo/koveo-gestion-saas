@@ -15,6 +15,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { Building, Loader2 } from 'lucide-react';
+import { useLanguage } from '@/hooks/use-language';
 
 interface BulkEditResidenceDialogProps {
   isOpen: boolean;
@@ -37,6 +38,7 @@ export function BulkEditResidenceDialog({
   buildingId,
   onSuccess,
 }: BulkEditResidenceDialogProps) {
+  const { t } = useLanguage();
   const { toast } = useToast();
   const [formData, setFormData] = useState<FormData>({
     residenceId: null,
@@ -169,7 +171,7 @@ export function BulkEditResidenceDialog({
             Change Assignment & Properties
           </DialogTitle>
           <DialogDescription>
-            Update residence assignment, access type, and charge type for {selectedElementIds.length} selected element(s).
+            {t('updateResidenceAssignmentAccessTypeAnd')} {selectedElementIds.length} selected element(s).
           </DialogDescription>
         </DialogHeader>
 

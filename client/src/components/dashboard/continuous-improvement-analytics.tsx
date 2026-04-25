@@ -272,8 +272,7 @@ export function ContinuousImprovementAnalytics() {
                   </span>
                 </div>
                 <p className='text-xs text-blue-700 dark:text-blue-300'>
-                  Security suggestions show 92% completion rate - highest performing category this
-                  week.
+                  {t('securitySuggestionsShow92CompletionRate')}
                 </p>
               </div>
 
@@ -285,7 +284,7 @@ export function ContinuousImprovementAnalytics() {
                   </span>
                 </div>
                 <p className='text-xs text-amber-700 dark:text-amber-300'>
-                  Documentation category needs focus - only 45% completion rate detected.
+                  {t('documentationCategoryNeedsFocusOnly45')}
                 </p>
               </div>
 
@@ -297,8 +296,7 @@ export function ContinuousImprovementAnalytics() {
                   </span>
                 </div>
                 <p className='text-xs text-green-700 dark:text-green-300'>
-                  Based on current velocity, expect 15% improvement in overall effectiveness next
-                  week.
+                  {t('basedOnCurrentVelocityExpect15')}
                 </p>
               </div>
             </div>
@@ -321,7 +319,7 @@ export function ContinuousImprovementAnalytics() {
       {/* Priority Distribution */}
       <Card>
         <CardHeader>
-          <CardTitle>Priority Distribution & Recommendations</CardTitle>
+          <CardTitle>{t('priorityDistributionRecommendations')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>

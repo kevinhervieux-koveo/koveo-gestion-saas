@@ -5,6 +5,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import type { UserWithAssignments, Building, Organization, User } from '@shared/schema';
+import { useLanguage } from '@/hooks/use-language';
 
 interface UserBuildingsTabProps {
   user: UserWithAssignments | null;
@@ -33,6 +34,7 @@ export function UserBuildingsTab({
   onSelectionChange,
   isLoading = false 
 }: UserBuildingsTabProps) {
+  const { t } = useLanguage();
   // Remove internal state - component is now fully controlled by parent
   // const [selectedBuildings, setSelectedBuildings] = useState<string[]>([]);
   // const initializedRef = useRef<string | null>(null);
@@ -150,9 +152,9 @@ export function UserBuildingsTab({
       <CardContent className="space-y-4">
         <div className="grid gap-4 max-h-60 overflow-y-auto">
           {selectedOrganizationIds.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No organizations selected. Please select organizations first.</p>
+            <p className="text-sm text-muted-foreground">{t('noOrganizationsSelectedPleaseSelectOrganizations')}</p>
           ) : buildingsByOrganization.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No buildings available for the selected organizations.</p>
+            <p className="text-sm text-muted-foreground">{t('noBuildingsAvailableForTheSelected')}</p>
           ) : (
             buildingsByOrganization.map((group, groupIndex) => (
               <Collapsible key={group.organizationId || groupIndex} defaultOpen>

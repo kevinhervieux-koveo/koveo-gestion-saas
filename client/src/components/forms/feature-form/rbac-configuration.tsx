@@ -2,6 +2,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import type { FeatureFormData } from './use-feature-form-data';
+import { useLanguage } from '@/hooks/use-language';
 
 /**
  * Props for RBACConfiguration component.
@@ -33,13 +34,14 @@ export function RBACConfiguration({
   onUpdateFormData,
   onUpdateRBACRole,
 }: RBACConfigurationProps) {
+  const { t } = useLanguage();
   return (
     <div className='space-y-4'>
-      <h3 className='text-lg font-semibold'>Role-Based Access Control (RBAC)</h3>
+      <h3 className='text-lg font-semibold'>{t('roleBasedAccessControlRbac')}</h3>
 
       <div className='flex items-center gap-3'>
         <Label htmlFor='rbacRequired' className='text-sm font-medium'>
-          Does this feature require RBAC?
+          {t('doesThisFeatureRequireRbac')}
         </Label>
         <Switch
           id='rbacRequired'
@@ -47,7 +49,7 @@ export function RBACConfiguration({
           onCheckedChange={(checked: boolean) => onUpdateFormData('rbacRequired', checked)}
         />
         <span className='text-xs text-gray-500'>
-          Enable role-based access control for this feature
+          {t('enableRoleBasedAccessControlFor')}
         </span>
       </div>
 
@@ -55,7 +57,7 @@ export function RBACConfiguration({
         <div className='bg-yellow-50 p-4 rounded-lg space-y-4'>
           <h4 className='font-medium text-yellow-800'>Configure Role Permissions</h4>
           <p className='text-sm text-yellow-700'>
-            For each role, specify read/write permissions and organizational limitations.
+            {t('forEachRoleSpecifyReadWrite')}
           </p>
 
           {Object.entries(formData.rbacRoles).map(([role, permissions]) => (

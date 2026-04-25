@@ -4,6 +4,7 @@ import { ChevronDown, ChevronRight } from 'lucide-react';
 import { FeatureCard } from './feature-card';
 import type { Feature, ActionableItem } from '@shared/schema';
 import type { DuplicateInfo } from './feature-duplicate-analysis';
+import { useLanguage } from '@/hooks/use-language';
 
 /**
  * Section interface for roadmap organization.
@@ -69,6 +70,7 @@ export function RoadmapSection({
   onUpdateStatus,
   onToggleStrategic,
 }: RoadmapSectionProps) {
+  const { t } = useLanguage();
   // Filter features based on search term
   const filteredFeatures = section.features.filter(
     (feature) =>
@@ -106,7 +108,7 @@ export function RoadmapSection({
       {isExpanded && (
         <CardContent className='pt-0'>
           {filteredFeatures.length === 0 ? (
-            <p className='text-gray-500 italic'>No features in this category yet.</p>
+            <p className='text-gray-500 italic'>{t('noFeaturesInThisCategoryYet')}</p>
           ) : (
             <div className='space-y-3'>
               {filteredFeatures.map((feature) => (

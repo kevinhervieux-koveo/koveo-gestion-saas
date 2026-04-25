@@ -256,7 +256,7 @@ export function PrePopulatedBillForm({ bill, isOpen, onClose, buildingId }: PreP
             )}
             <div className="mt-3 p-2 bg-blue-100/50 dark:bg-blue-900/20 rounded-md">
               <p className="text-xs text-blue-700 dark:text-blue-300">
-                Form has been pre-populated with template data. You can edit all fields below. The bill will be created as a new one-time bill.
+                {t('formHasBeenPrePopulatedWith')}
               </p>
             </div>
           </CardContent>

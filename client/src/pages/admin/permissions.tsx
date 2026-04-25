@@ -393,7 +393,7 @@ export default function Permissions() {
                     <p className='text-sm font-medium text-gray-600'>Role Hierarchy</p>
                     <p className='text-2xl font-bold text-koveo-navy'>{roles.length}</p>
                     <p className='text-xs text-gray-500 mt-1'>
-                      Admin → Manager → Resident → Tenant
+                      {t('adminManagerResidentTenant')}
                     </p>
                   </div>
                   <Users className='h-8 w-8 text-koveo-navy' />
@@ -658,9 +658,9 @@ export default function Permissions() {
                               ) : (
                                 <div className='text-center py-4 text-gray-500'>
                                   <Shield className='w-8 h-8 mx-auto mb-2 text-gray-400' />
-                                  <p className='text-sm'>No user-specific permission overrides</p>
+                                  <p className='text-sm'>{t('noUserSpecificPermissionOverrides')}</p>
                                   <p className='text-xs text-gray-400'>
-                                    User inherits all permissions from {user.role} role
+                                    {t('userInheritsAllPermissionsFrom')} {user.role} role
                                   </p>
                                 </div>
                               )}
@@ -749,7 +749,7 @@ export default function Permissions() {
                         {filteredUsers.length === 0 && (
                           <div className='text-center py-8 text-gray-500'>
                             <Users className='w-12 h-12 mx-auto mb-4 text-gray-400' />
-                            <p>No users found matching your search criteria.</p>
+                            <p>{t('noUsersFoundMatchingYourSearch')}</p>
                           </div>
                         )}
                       </div>
@@ -822,8 +822,7 @@ export default function Permissions() {
                     All Permissions
                   </CardTitle>
                   <p className='text-sm text-gray-600'>
-                    Complete system permissions table with detailed information about each
-                    permission.
+                    {t('completeSystemPermissionsTableWithDetailed')}
                   </p>
                 </CardHeader>
                 <CardContent>
@@ -997,7 +996,7 @@ export default function Permissions() {
                       {sortedPermissions.length === 0 && (
                         <div className='text-center py-8 text-gray-500'>
                           <Shield className='w-12 h-12 mx-auto mb-4 text-gray-400' />
-                          <p>No permissions found matching your search criteria.</p>
+                          <p>{t('noPermissionsFoundMatchingYourSearch')}</p>
                         </div>
                       )}
                     </div>

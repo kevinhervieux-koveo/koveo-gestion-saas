@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Copy, Save } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Feature } from '@shared/schema';
+import { useLanguage } from '@/hooks/use-language';
 
 /**
  * Props for PromptDisplay component.
@@ -44,6 +45,7 @@ export function PromptDisplay({
   onCopyToClipboard,
   isSaving = false,
 }: PromptDisplayProps) {
+  const { t } = useLanguage();
   const { toast } = useToast();
   const [promptTitle, setPromptTitle] = useState('Implementation Prompt');
 
@@ -132,10 +134,10 @@ export function PromptDisplay({
           <strong>Usage Instructions:</strong>
         </p>
         <ul className='list-disc list-inside space-y-1 ml-2'>
-          <li>Copy this prompt and paste it into ChatGPT, Claude, or another AI assistant</li>
-          <li>The AI will have full context about Koveo Gestion's architecture and requirements</li>
-          <li>Request specific implementation details or ask follow-up questions</li>
-          <li>Save as an actionable item to track implementation progress</li>
+          <li>{t('copyThisPromptAndPasteIt')}</li>
+          <li>{t('theAiWillHaveFullContext')}</li>
+          <li>{t('requestSpecificImplementationDetailsOrAsk')}</li>
+          <li>{t('saveAsAnActionableItemTo')}</li>
         </ul>
       </div>
     </div>

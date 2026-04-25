@@ -74,6 +74,7 @@ export function ElementDetailsPanel({
   onDelete,
   className,
 }: ElementDetailsPanelProps) {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('overview');
   const { toast } = useToast();
   const { language } = useLanguage();
@@ -286,8 +287,7 @@ export function ElementDetailsPanel({
               <AlertDialogHeader>
                 <AlertDialogTitle>Delete Building Element</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Are you sure you want to delete "{element.name}"? This action cannot be undone 
-                  and will remove all associated maintenance history and documents.
+                  {t('areYouSureYouWantTo2')}{element.name}{t('thisActionCannotBeUndoneAnd')}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>

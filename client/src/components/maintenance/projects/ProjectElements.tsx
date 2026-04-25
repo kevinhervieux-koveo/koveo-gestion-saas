@@ -43,6 +43,7 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { MaintenanceProject, BuildingElement, ProjectElement } from '@shared/schemas/maintenance';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/hooks/use-language';
 import {
   Plus,
   MoreHorizontal,
@@ -93,6 +94,7 @@ export function ProjectElements({
   onElementClick,
   editable = true,
 }: ProjectElementsProps) {
+  const { t } = useLanguage();
   const { buildingId, hasPermission } = useBuildingContext();
   const { toast } = useToast();
   
@@ -513,7 +515,7 @@ export function ProjectElements({
                   <DialogHeader>
                     <DialogTitle>Add Building Element</DialogTitle>
                     <DialogDescription>
-                      Select building elements to include in this project.
+                      {t('selectBuildingElementsToIncludeIn2')}
                     </DialogDescription>
                   </DialogHeader>
                   
@@ -529,7 +531,7 @@ export function ProjectElements({
                             <div className="flex-1 min-w-0">
                               <p className="font-medium text-sm">Quick Project</p>
                               <p className="text-xs text-muted-foreground mt-1">
-                                Planning-only project that cannot advance beyond planning phase
+                                {t('planningOnlyProjectThatCannotAdvance')}
                               </p>
                             </div>
                           </div>
@@ -567,7 +569,7 @@ export function ProjectElements({
             {projectElements.length === 0 ? (
               <div className="col-span-full text-center py-8 text-muted-foreground">
                 <Building2 className="h-12 w-12 mx-auto mb-4" />
-                <p>No elements assigned to this project yet.</p>
+                <p>{t('noElementsAssignedToThisProject')}</p>
               </div>
             ) : (
               projectElements.map((element) => (
@@ -629,7 +631,7 @@ export function ProjectElements({
               <DialogHeader>
                 <DialogTitle>Add Building Elements</DialogTitle>
                 <DialogDescription>
-                  Select building elements to include in this project and optionally set cost allocation and work details.
+                  {t('selectBuildingElementsToIncludeIn')}
                 </DialogDescription>
               </DialogHeader>
               
@@ -703,7 +705,7 @@ export function ProjectElements({
                     ) : unassignedElements.length === 0 && (!isInPlanningPhase || isQuickProject) ? (
                       <div className="col-span-full text-center py-4 text-muted-foreground">
                         <Building2 className="h-8 w-8 mx-auto mb-2" />
-                        <p>All available elements are already assigned to this project.</p>
+                        <p>{t('allAvailableElementsAreAlreadyAssigned')}</p>
                       </div>
                     ) : (
                       unassignedElements.map((element) => (
@@ -739,7 +741,7 @@ export function ProjectElements({
           <DialogHeader>
             <DialogTitle>Edit Element Details</DialogTitle>
             <DialogDescription>
-              Update cost allocation and work details for this element.
+              {t('updateCostAllocationAndWorkDetails')}
             </DialogDescription>
           </DialogHeader>
           
@@ -804,7 +806,7 @@ export function ProjectElements({
           <AlertDialogHeader>
             <AlertDialogTitle>Remove Element</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to remove this element from the project? This action cannot be undone.
+              {t('areYouSureYouWantTo4')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

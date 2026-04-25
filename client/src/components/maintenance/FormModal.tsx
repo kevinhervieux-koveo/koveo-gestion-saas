@@ -25,6 +25,7 @@ import { X, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useForm, UseFormReturn, FieldValues, Path } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { useLanguage } from '@/hooks/use-language';
 
 interface FormModalProps<T extends FieldValues> {
   // Modal props
@@ -102,6 +103,7 @@ export function FormModal<T extends FieldValues>({
   className,
   footerClassName,
 }: FormModalProps<T>) {
+  const { t } = useLanguage();
   
   // Auto-determine submit label based on mode
   const finalSubmitLabel = submitLabel || (mode === 'create' ? 'Create' : 'Save Changes');
@@ -198,7 +200,7 @@ export function FormModal<T extends FieldValues>({
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
               <div className="space-y-1">
-                <p className="font-medium">Please fix the following errors:</p>
+                <p className="font-medium">{t('pleaseFixTheFollowingErrors')}</p>
                 <ul className="list-disc list-inside space-y-1 text-sm">
                   {Object.entries(validationErrors!).map(([field, message]) => (
                     <li key={field}>{message}</li>

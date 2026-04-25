@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Building as BuildingIcon } from 'lucide-react';
 import type { Building } from '@shared/schema';
+import { useLanguage } from '@/hooks/use-language';
 
 /**
  * Building selection grid component.
@@ -54,6 +55,7 @@ export function BuildingSelectionGrid({
   buildings: Building[];
   onBuildingSelect: (_buildingId: string) => void;
 }) {
+  const { t } = useLanguage();
   return (
     <div className='space-y-6'>
       <StandardCard 
@@ -61,7 +63,7 @@ export function BuildingSelectionGrid({
         headerClassName="flex items-center gap-2"
       >
         <BuildingIcon className='w-5 h-5 mr-2' />
-          <p className='text-gray-600 mb-6'>Choose a building to view and manage its bills</p>
+          <p className='text-gray-600 mb-6'>{t('chooseABuildingToViewAnd')}</p>
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
             {buildings.map((building) => (
               <BuildingCard

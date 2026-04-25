@@ -810,7 +810,7 @@ export default function ManagerDemandsPage() {
               <AlertDialogHeader>
                 <AlertDialogTitle>Update Status</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Are you sure you want to update the status of {selectedDemands.size} demand{selectedDemands.size !== 1 ? 's' : ''} to "{getStatusLabel(bulkStatus)}"?
+                  {t('areYouSureYouWantTo9')} {selectedDemands.size} demand{selectedDemands.size !== 1 ? 's' : ''} to "{getStatusLabel(bulkStatus)}"?
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
@@ -831,7 +831,7 @@ export default function ManagerDemandsPage() {
               <AlertDialogHeader>
                 <AlertDialogTitle>Delete Demands</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Are you sure you want to delete {selectedDemands.size} demand{selectedDemands.size !== 1 ? 's' : ''}? This action cannot be undone.
+                  {t('areYouSureYouWantTo8')} {selectedDemands.size} demand{selectedDemands.size !== 1 ? 's' : ''}{t('thisActionCannotBeUndone2')}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>

@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, X, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/hooks/use-language';
 
 export interface CustomPayment {
   amount: string;
@@ -54,6 +55,7 @@ export function CustomPaymentManager({
   className = '',
   'data-testid': testId = 'custom-payment-manager',
 }: CustomPaymentManagerProps) {
+  const { t } = useLanguage();
   // Auto-determine if dates should be shown based on schedule type
   const shouldShowDates = showDates || scheduleType === 'custom';
   
@@ -202,7 +204,7 @@ export function CustomPaymentManager({
           <div className="text-center py-4 text-gray-500 dark:text-gray-400">
             <Calendar className="w-8 h-8 mx-auto mb-2 opacity-50" />
             <p className="text-sm">No payments added yet</p>
-            <p className="text-xs">Click "Add Payment" to get started</p>
+            <p className="text-xs">{t('clickAddPaymentToGetStarted')}</p>
           </div>
         )}
       </CardContent>

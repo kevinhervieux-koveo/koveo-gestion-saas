@@ -15,6 +15,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { DollarSign, Loader2 } from 'lucide-react';
+import { useLanguage } from '@/hooks/use-language';
 
 interface BulkEditCostDialogProps {
   isOpen: boolean;
@@ -31,6 +32,7 @@ export function BulkEditCostDialog({
   buildingId,
   onSuccess,
 }: BulkEditCostDialogProps) {
+  const { t } = useLanguage();
   const { toast } = useToast();
   const [costType, setCostType] = useState<'per-element' | 'per-unit'>('per-element');
   const [costValue, setCostValue] = useState<string>('');
@@ -98,7 +100,7 @@ export function BulkEditCostDialog({
             Update Reconstruction Costs
           </DialogTitle>
           <DialogDescription>
-            Update reconstruction costs for {selectedElementIds.length} selected element(s).
+            {t('updateReconstructionCostsFor')} {selectedElementIds.length} selected element(s).
           </DialogDescription>
         </DialogHeader>
 
@@ -149,9 +151,9 @@ export function BulkEditCostDialog({
             </div>
             <p className="text-xs text-muted-foreground">
               {costType === 'per-element' ? (
-                <>Total reconstruction cost for each element (e.g., $5,000 per window)</>
+                <>{t('totalReconstructionCostForEachElement')}</>
               ) : (
-                <>Cost per unit (e.g., $50 per m² for flooring, $200 per m for railings)</>
+                <>{t('costPerUnitEG50')}</>
               )}
             </p>
           </div>
@@ -162,9 +164,9 @@ export function BulkEditCostDialog({
               <p className="text-sm font-medium mb-1">Preview:</p>
               <p className="text-sm text-muted-foreground">
                 {costType === 'per-element' ? (
-                  <>Each element will have a reconstruction cost of ${parseFloat(costValue).toFixed(2)}</>
+                  <>{t('eachElementWillHaveAReconstruction')}{parseFloat(costValue).toFixed(2)}</>
                 ) : (
-                  <>Each element will have a unit cost of ${parseFloat(costValue).toFixed(2)} per unit</>
+                  <>{t('eachElementWillHaveAUnit')}{parseFloat(costValue).toFixed(2)} per unit</>
                 )}
               </p>
             </div>

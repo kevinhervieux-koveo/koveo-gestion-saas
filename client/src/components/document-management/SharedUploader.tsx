@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { getUploadConfig, isAiAnalysisEnabled, type UploadContext } from '@shared/config/upload-config';
 import { sanitizeFileName } from '@/utils/sanitize';
+import { useLanguage } from '@/hooks/use-language';
 
 interface SharedUploaderProps {
   onDocumentChange: (file: File | null, text: string | null) => void;
@@ -111,6 +112,7 @@ export function SharedUploader({
   enableAutoSave = false,
   onAutoSave
 }: SharedUploaderProps) {
+  const { t } = useLanguage();
   // Get configuration from upload config
   const config = getUploadConfig(formType);
   const finalAllowedTypes = allowedFileTypes || config.allowedFileTypes;
@@ -574,20 +576,20 @@ export function SharedUploader({
                 </div>
                 <div className="space-y-2">
                   <p className="text-lg font-medium text-gray-900 dark:text-gray-100">
-                    Drop files here or click to browse
+                    {t('dropFilesHereOrClickTo')}
                   </p>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    📱 On mobile: Tap to use camera or select from gallery
+                    {t('onMobileTapToUseCamera')}
                   </p>
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    💻 On desktop: Drag & drop, click to browse, or paste screenshots (Ctrl+V)
+                    {t('onDesktopDragDropClickTo')}
                   </p>
                   <p className="text-xs text-gray-400 dark:text-gray-500">
                     Maximum {finalMaxFileSize}MB • {formatAcceptedFileTypes(finalAllowedTypes).join(', ')}
                   </p>
                   {aiEnabled && (
                     <p className="text-xs text-purple-500 dark:text-purple-400 mt-1">
-                      ✨ AI analysis will extract key information automatically
+                      {t('aiAnalysisWillExtractKeyInformation')}
                     </p>
                   )}
                 </div>
@@ -610,7 +612,7 @@ export function SharedUploader({
                     Choose File Source
                   </h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                    Select how you'd like to add your file
+                    {t('selectHowYouDLikeTo')}
                   </p>
                 </div>
                 
@@ -693,10 +695,10 @@ export function SharedUploader({
               data-testid="textarea-document-content"
             />
             <p className="text-xs text-gray-500 dark:text-gray-400">
-              Create a text-only document entry. You can add formatting and additional details later.
+              {t('createATextOnlyDocumentEntry')}
               {enableAutoSave && (
                 <span className="block mt-1 text-blue-600 dark:text-blue-400">
-                  ✨ Changes are automatically saved after you stop typing
+                  {t('changesAreAutomaticallySavedAfterYou')}
                 </span>
               )}
             </p>

@@ -47,6 +47,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { SuggestionCardProps, SuggestionWithElement } from './types';
+import { useLanguage } from '@/hooks/use-language';
 
 /**
  * SuggestionCard component for displaying individual evaluation suggestions
@@ -64,6 +65,7 @@ export function SuggestionCard({
   compact = false,
   className,
 }: SuggestionCardProps) {
+  const { t } = useLanguage();
   const { hasPermission } = useBuildingContext();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -434,7 +436,7 @@ export function SuggestionCard({
           <AlertDialogHeader>
             <AlertDialogTitle>Dismiss Suggestion</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to dismiss this suggestion? Please provide a reason for future reference.
+              {t('areYouSureYouWantTo7')}
             </AlertDialogDescription>
           </AlertDialogHeader>
 

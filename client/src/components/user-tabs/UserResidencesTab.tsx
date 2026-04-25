@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import type { UserWithAssignments, Residence, Building, Organization, User } from '@shared/schema';
+import { useLanguage } from '@/hooks/use-language';
 
 interface UserResidencesTabProps {
   user: UserWithAssignments | null;
@@ -36,6 +37,7 @@ export function UserResidencesTab({
   onSelectionChange,
   isLoading = false 
 }: UserResidencesTabProps) {
+  const { t } = useLanguage();
   // Remove internal state - component is now fully controlled by parent
   // const [selectedResidences, setSelectedResidences] = useState<{ 
   //   residenceId: string; 
@@ -220,9 +222,9 @@ export function UserResidencesTab({
       <CardContent className="space-y-4">
         <div className="grid gap-4 max-h-60 overflow-y-auto">
           {selectedBuildingIds.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No buildings selected. Please select buildings first.</p>
+            <p className="text-sm text-muted-foreground">{t('noBuildingsSelectedPleaseSelectBuildings')}</p>
           ) : residencesByBuildingAndOrg.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No residences available for the selected buildings.</p>
+            <p className="text-sm text-muted-foreground">{t('noResidencesAvailableForTheSelected')}</p>
           ) : (
             residencesByBuildingAndOrg.map((orgGroup, orgIndex) => (
               <Collapsible key={orgGroup.organizationId || orgIndex} defaultOpen>

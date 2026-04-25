@@ -58,6 +58,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { SuggestionDashboardProps, DashboardMetrics } from './types';
+import { useLanguage } from '@/hooks/use-language';
 
 // Chart color schemes
 const chartColors = {
@@ -84,6 +85,7 @@ export function SuggestionDashboard({
   onExport,
   className,
 }: SuggestionDashboardProps) {
+  const { t } = useLanguage();
   const { hasPermission } = useBuildingContext();
   const { toast } = useToast();
   const [chartType, setChartType] = useState<'bar' | 'pie' | 'line'>('bar');
@@ -372,7 +374,7 @@ export function SuggestionDashboard({
           <CardContent>
             <div className="text-xl font-bold">{derivedMetrics.urgencyScore.toFixed(1)}</div>
             <div className="text-xs text-muted-foreground mt-1">
-              Based on critical & overdue items
+              {t('basedOnCriticalOverdueItems')}
             </div>
           </CardContent>
         </Card>

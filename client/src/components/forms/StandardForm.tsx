@@ -6,6 +6,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle, CheckCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { StandardSubmitButton, FormSection } from './StandardFormField';
+import { useLanguage } from '@/hooks/use-language';
 
 /**
  * Props for the standardized form wrapper
@@ -60,6 +61,7 @@ export function StandardForm<T extends FieldValues>({
   resetOnSuccess = false,
   maxWidth = 'md',
 }: StandardFormProps<T>) {
+  const { t } = useLanguage();
   // Handle form submission with error boundary
   const handleSubmit = async (data: T) => {
     try {
@@ -257,6 +259,7 @@ export function FormValidationSummary({
   formName = 'form',
   className = '',
 }: FormValidationSummaryProps) {
+  const { t } = useLanguage();
   const errorEntries = Object.entries(errors).filter(([, error]) => error?.message);
 
   if (errorEntries.length === 0) {
@@ -268,7 +271,7 @@ export function FormValidationSummary({
       <AlertCircle className="h-4 w-4" />
       <AlertDescription>
         <div className="space-y-1">
-          <p className="font-medium">Please correct the following errors:</p>
+          <p className="font-medium">{t('pleaseCorrectTheFollowingErrors')}</p>
           <ul className="list-disc list-inside space-y-1 text-sm">
             {errorEntries.map(([field, error]) => (
               <li key={field}>

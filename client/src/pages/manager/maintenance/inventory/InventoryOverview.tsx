@@ -54,6 +54,7 @@ interface InventoryOverviewProps {
  * Shows element counts, condition breakdown, alerts, and cost information
  */
 export function InventoryOverview({ className, buildingId, organizationId, building }: InventoryOverviewProps) {
+  const { t } = useLanguage();
   // Collapsible state - collapsed by default
   const [isExpanded, setIsExpanded] = useState(false);
   
@@ -474,7 +475,7 @@ export function InventoryOverview({ className, buildingId, organizationId, build
             Condition Breakdown
           </CardTitle>
           <CardDescription>
-            Distribution of element conditions
+            {t('distributionOfElementConditions')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">

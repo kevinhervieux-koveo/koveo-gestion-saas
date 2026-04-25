@@ -53,6 +53,7 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { MaintenanceProject } from '@shared/schemas/maintenance';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/hooks/use-language';
 import {
   MessageSquare,
   Plus,
@@ -136,6 +137,7 @@ export function ProjectNotes({
   editable = true,
   onNoteClick,
 }: ProjectNotesProps) {
+  const { t } = useLanguage();
   const { hasPermission } = useBuildingContext();
   const { user } = useAuth();
   const { toast } = useToast();
@@ -354,7 +356,7 @@ export function ProjectNotes({
           <AlertTriangle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
           <h3 className="text-lg font-semibold mb-2">Failed to Load Notes</h3>
           <p className="text-muted-foreground">
-            There was an error loading the project notes. Please try again.
+            {t('thereWasAnErrorLoadingThe2')}
           </p>
         </CardContent>
       </Card>
@@ -537,9 +539,9 @@ export function ProjectNotes({
           {filteredNotes.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <MessageSquare className="h-12 w-12 mx-auto mb-4" />
-              <p>No notes found for this project.</p>
+              <p>{t('noNotesFoundForThisProject')}</p>
               {searchQuery || filterCategory !== 'all' ? (
-                <p className="text-sm">Try adjusting your filters or search query.</p>
+                <p className="text-sm">{t('tryAdjustingYourFiltersOrSearch')}</p>
               ) : null}
             </div>
           ) : (
@@ -712,7 +714,7 @@ export function ProjectNotes({
             <AlertDialogHeader>
               <AlertDialogTitle>Delete Note</AlertDialogTitle>
               <AlertDialogDescription>
-                Are you sure you want to delete this note? This action cannot be undone.
+                {t('areYouSureYouWantTo5')}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

@@ -58,6 +58,7 @@ import {
   Plus,
 } from 'lucide-react';
 import { SuggestionFiltersProps, type SuggestionFilters as SuggestionFiltersType, FilterPreset } from './types';
+import { useLanguage } from '@/hooks/use-language';
 
 // Filter options configuration
 const suggestionTypes = [
@@ -108,6 +109,7 @@ export function SuggestionFilters({
   buildingId,
   className,
 }: SuggestionFiltersProps) {
+  const { t } = useLanguage();
   const { hasPermission } = useBuildingContext();
   const { toast } = useToast();
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -591,7 +593,7 @@ export function SuggestionFilters({
           <AlertDialogHeader>
             <AlertDialogTitle>Save Filter Preset</AlertDialogTitle>
             <AlertDialogDescription>
-              Give your filter preset a name to save it for future use.
+              {t('giveYourFilterPresetAName')}
             </AlertDialogDescription>
           </AlertDialogHeader>
 

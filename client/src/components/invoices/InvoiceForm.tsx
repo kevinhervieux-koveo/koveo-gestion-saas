@@ -21,6 +21,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { useCreateUpdateMutation } from '@/lib/common-hooks';
 
 import { invoiceFormSchema, InvoiceFormData, Invoice } from '@shared/schema';
+import { useLanguage } from '@/hooks/use-language';
 
 const toIsoDateString = (date?: Date | string | null): string | undefined => {
   if (!date) return undefined;
@@ -101,6 +102,7 @@ export function InvoiceForm({
   invoice,
   mode = invoice ? 'edit' : 'create'
 }: InvoiceFormProps) {
+  const { t } = useLanguage();
   const { toast } = useToast();
   
   // State for uploaded file and AI extraction
@@ -252,7 +254,7 @@ export function InvoiceForm({
         <Alert>
           <Loader2 className="h-4 w-4 animate-spin" />
           <AlertDescription>
-            Extracting invoice data with AI... This may take a few seconds.
+            {t('extractingInvoiceDataWithAiThis')}
           </AlertDescription>
         </Alert>
       )}
@@ -493,7 +495,7 @@ export function InvoiceForm({
                         
                         {fields.length === 0 && (
                           <p className="text-sm text-muted-foreground">
-                            No custom dates added. Click "Add Date" to add payment dates.
+                            {t('noCustomDatesAddedClickAdd')}
                           </p>
                         )}
                         

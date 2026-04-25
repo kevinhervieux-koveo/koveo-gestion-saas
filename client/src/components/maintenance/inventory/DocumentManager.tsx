@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { BuildingElement } from '@shared/schemas/maintenance';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/hooks/use-language';
 import {
   FileText,
   Image,
@@ -69,6 +70,7 @@ export function DocumentManager({
   buildingId,
   organizationId,
 }: DocumentManagerProps) {
+  const { t } = useLanguage();
   // Simplified placeholder - no context for now
   const hasPermission = () => true;
   const { toast } = useToast();
@@ -291,7 +293,7 @@ export function DocumentManager({
                     <AlertDialogHeader>
                       <AlertDialogTitle>Delete Document</AlertDialogTitle>
                       <AlertDialogDescription>
-                        Are you sure you want to delete "{doc.name}"? This action cannot be undone.
+                        {t('areYouSureYouWantTo2')}{doc.name}{t('thisActionCannotBeUndone')}
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -385,7 +387,7 @@ export function DocumentManager({
                 <AlertDialogHeader>
                   <AlertDialogTitle>Delete Document</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Are you sure you want to delete "{doc.name}"? This action cannot be undone.
+                    {t('areYouSureYouWantTo2')}{doc.name}{t('thisActionCannotBeUndone')}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

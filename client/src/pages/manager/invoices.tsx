@@ -496,7 +496,7 @@ export default function Invoices() {
                 <Receipt className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
                 <h3 className="text-lg font-semibold text-gray-600 mb-2">No Invoices Found</h3>
                 <p className="text-gray-500 mb-4">
-                  No invoices found for the selected filters. Create your first invoice to get started.
+                  {t('noInvoicesFoundForTheSelected')}
                 </p>
                 <Button onClick={() => {
                   logDebug('🔍 [INVOICES] User action: Create first invoice clicked');

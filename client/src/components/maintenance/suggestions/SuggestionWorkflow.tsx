@@ -61,6 +61,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { SuggestionWorkflowProps, WorkflowStep, ApprovalGate } from './types';
+import { useLanguage } from '@/hooks/use-language';
 
 // Workflow step definitions
 const defaultWorkflowSteps: WorkflowStep[] = [
@@ -149,6 +150,7 @@ export function SuggestionWorkflow({
   showApprovalGates = true,
   className,
 }: SuggestionWorkflowProps) {
+  const { t } = useLanguage();
   const { hasPermission } = useBuildingContext();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -577,7 +579,7 @@ export function SuggestionWorkflow({
             <AlertDialogDescription>
               {pendingApproval?.description}
               <br /><br />
-              Please review the suggestion details and make an approval decision.
+              {t('pleaseReviewTheSuggestionDetailsAnd')}
             </AlertDialogDescription>
           </AlertDialogHeader>
 

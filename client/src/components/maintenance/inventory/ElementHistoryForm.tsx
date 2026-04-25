@@ -36,6 +36,7 @@ import { useBuildingContext } from '@/hooks/use-building-context';
 import { apiRequest } from '@/lib/queryClient';
 import { BuildingElement } from '@shared/schemas/maintenance';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/hooks/use-language';
 import {
   CalendarIcon,
   DollarSign,
@@ -108,6 +109,7 @@ export function ElementHistoryForm({
   onSuccess,
   mode = historyEntry ? 'edit' : 'create',
 }: ElementHistoryFormProps) {
+  const { t } = useLanguage();
   const { buildingId } = useBuildingContext();
   const [eventDate, setEventDate] = useState<Date | undefined>();
   const [autoCalculateLifespan, setAutoCalculateLifespan] = useState(true);
@@ -422,7 +424,7 @@ export function ElementHistoryForm({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Cost</FormLabel>
-                      <FormDescription>Total cost of the work (optional)</FormDescription>
+                      <FormDescription>{t('totalCostOfTheWorkOptional')}</FormDescription>
                       <FormControl>
                         <div className="relative">
                           <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
@@ -457,7 +459,7 @@ export function ElementHistoryForm({
                       Work Description
                       <span className="text-destructive">*</span>
                     </FormLabel>
-                    <FormDescription>Detailed description of the work performed</FormDescription>
+                    <FormDescription>{t('detailedDescriptionOfTheWorkPerformed')}</FormDescription>
                     <FormControl>
                       <Textarea
                         {...field}
@@ -487,7 +489,7 @@ export function ElementHistoryForm({
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Vendor</FormLabel>
-                        <FormDescription>Select from existing vendors or enter name below</FormDescription>
+                        <FormDescription>{t('selectFromExistingVendorsOrEnter')}</FormDescription>
                         <FormControl>
                           <Select onValueChange={(value) => {
                             field.onChange(value);
@@ -579,7 +581,7 @@ export function ElementHistoryForm({
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Warranty Terms</FormLabel>
-                        <FormDescription>Brief description of warranty coverage</FormDescription>
+                        <FormDescription>{t('briefDescriptionOfWarrantyCoverage')}</FormDescription>
                         <FormControl>
                           <Input
                             {...field}
@@ -629,7 +631,7 @@ export function ElementHistoryForm({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Lifespan Extension (years)</FormLabel>
-                      <FormDescription>Additional years added to element lifespan</FormDescription>
+                      <FormDescription>{t('additionalYearsAddedToElementLifespan')}</FormDescription>
                       <FormControl>
                         <Input
                           type="number"
@@ -653,7 +655,7 @@ export function ElementHistoryForm({
                 {autoCalculateLifespan && typeof currentLifespanImpact === 'number' && currentLifespanImpact > 0 && (
                   <div className="text-sm text-muted-foreground flex items-center gap-1">
                     <CheckCircle2 className="h-3 w-3 text-green-500" />
-                    Automatically calculated based on event type and cost
+                    {t('automaticallyCalculatedBasedOnEventType')}
                   </div>
                 )}
               </div>
@@ -665,7 +667,7 @@ export function ElementHistoryForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Additional Notes</FormLabel>
-                    <FormDescription>Any additional information or observations</FormDescription>
+                    <FormDescription>{t('anyAdditionalInformationOrObservations')}</FormDescription>
                     <FormControl>
                       <Textarea
                         {...field}

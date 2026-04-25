@@ -1,6 +1,7 @@
 import js from '@eslint/js';
 import typescript from '@typescript-eslint/eslint-plugin';
 import typescriptParser from '@typescript-eslint/parser';
+import reactHooks from 'eslint-plugin-react-hooks';
 import i18nJsxPlugin from './eslint-rules/no-untranslated-jsx-text.mjs';
 
 const STRING_LEAK_CHAR_THRESHOLD = 40;
@@ -139,10 +140,22 @@ export default [
     plugins: {
       '@typescript-eslint': typescript,
       i18n: i18nPlugin,
+      'react-hooks': reactHooks,
+    },
+    // Pre-existing `// eslint-disable-next-line react-hooks/exhaustive-deps`
+    // comments are scattered through the codebase. We register the plugin
+    // (so the rule name is recognised) and turn the rule off (so it does
+    // not introduce a new wave of failures), but we also stop ESLint from
+    // reporting those existing disables as "unused" — they document intent
+    // and are kept in case the rule is re-enabled later.
+    linterOptions: {
+      reportUnusedDisableDirectives: 'off',
     },
     rules: {
       // Only keep the most critical rules enabled
       'no-dupe-keys': 'error',
+      'react-hooks/exhaustive-deps': 'off',
+      'react-hooks/rules-of-hooks': 'off',
 
       // Disable everything else for now to allow validation to pass
       'no-redeclare': 'off',
@@ -244,15 +257,17 @@ export default [
       'no-misleading-character-class': 'off',
     },
   },
-  // i18n: enforce that JSX text literals over 30 chars on translated routes
-  // are wrapped in t(). Scoped to the routes/components covered by task 636
-  // so the rule can ship without a global codebase rewrite.
+  // i18n: enforce that JSX text literals over 30 chars are wrapped in t().
+  // Widened from the original four files (task 636) to cover all pages and
+  // components so French-speaking users do not run into hardcoded English
+  // on other pages. The rule itself skips obvious false positives:
+  //   - single tokens with no whitespace (emails, URLs, identifiers)
+  //   - text that looks French (French-specific diacritics)
+  // See eslint-rules/no-untranslated-jsx-text.mjs for details.
   {
     files: [
-      'client/src/pages/manager/buildings.tsx',
-      'client/src/pages/manager/budget/**/*.tsx',
-      'client/src/pages/admin/compliance.tsx',
-      'client/src/components/dashboard/law25-compliance.tsx',
+      'client/src/pages/**/*.tsx',
+      'client/src/components/**/*.tsx',
     ],
     languageOptions: {
       parser: typescriptParser,
@@ -268,6 +283,64 @@ export default [
     },
     rules: {
       'i18n-jsx/no-untranslated-jsx-text': 'error',
+    },
+  },
+  // Narrow allow-list: only the few large legacy clusters whose translations
+  // require dedicated, domain-aware passes. Each cluster is tracked by a
+  // follow-up task that will migrate the strings to t() and remove the
+  // corresponding entry from this list. The rule continues to apply to every
+  // other page/component, so any new untranslated text is caught immediately.
+  //
+  //   * `components/maintenance/projects/workflow/*` — the maintenance
+  //      workflow tabs (Submission, PostWork, PreWork, …) are large multi-tab
+  //      forms with vendor / payment / scheduling vocabulary. Tracked by
+  //      follow-up task #711.
+  //   * `pages/manager/maintenance/projects/*` — the project list / dashboard
+  //      / timeline / details panel cluster. Tracked by follow-up task #712.
+  //   * `components/auth/steps/*` and the auth pages — the password / consent
+  //      / invitation flows already mix EN and FR text and need a coordinated
+  //      pass to keep messaging consistent. Tracked by follow-up task #713.
+  {
+    files: [
+      'client/src/components/admin/send-invitation-dialog.tsx',
+      'client/src/components/auth/steps/password-creation-step.tsx',
+      'client/src/components/auth/steps/quebec-privacy-consent-step.tsx',
+      'client/src/components/auth/steps/token-validation-step.tsx',
+      'client/src/components/maintenance/projects/workflow/CompleteTab.tsx',
+      'client/src/components/maintenance/projects/workflow/ElementManagementTab.tsx',
+      'client/src/components/maintenance/projects/workflow/InProgressTab.tsx',
+      'client/src/components/maintenance/projects/workflow/PaymentPlanForm.tsx',
+      'client/src/components/maintenance/projects/workflow/PlannedTab.tsx',
+      'client/src/components/maintenance/projects/workflow/PostWorkTab.tsx',
+      'client/src/components/maintenance/projects/workflow/PreWorkTab.tsx',
+      'client/src/components/maintenance/projects/workflow/ProjectWorkflowModal.tsx',
+      'client/src/components/maintenance/projects/workflow/ReopenStepDialog.tsx',
+      'client/src/components/maintenance/projects/workflow/SubmissionTab.tsx',
+      'client/src/components/maintenance/projects/workflow/WorkflowSkipConfigDialog.tsx',
+      'client/src/pages/auth/forgot-password.tsx',
+      'client/src/pages/auth/invitation-acceptance.tsx',
+      'client/src/pages/auth/reset-password.tsx',
+      'client/src/pages/manager/maintenance/projects/ProjectDashboardView.tsx',
+      'client/src/pages/manager/maintenance/projects/ProjectDetailsPanel.tsx',
+      'client/src/pages/manager/maintenance/projects/ProjectTableView.tsx',
+      'client/src/pages/manager/maintenance/projects/ProjectTimelineView.tsx',
+      'client/src/pages/manager/maintenance/projects/ProjectsOverview.tsx',
+      'client/src/pages/manager/maintenance/projects/SuggestionsIntegration.tsx',
+    ],
+    languageOptions: {
+      parser: typescriptParser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+        ecmaFeatures: { jsx: true },
+        project: null,
+      },
+    },
+    plugins: {
+      'i18n-jsx': i18nJsxPlugin,
+    },
+    rules: {
+      'i18n-jsx/no-untranslated-jsx-text': 'off',
     },
   },
   // Test files configuration

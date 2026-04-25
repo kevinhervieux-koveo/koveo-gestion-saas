@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FileText, Sparkles } from 'lucide-react';
 import { SharedUploader } from '@/components/document-management';
 import type { UploadContext } from '@shared/config/upload-config';
+import { useLanguage } from '@/hooks/use-language';
 
 interface DocumentUploadTabsProps {
   /** Upload context for file organization */
@@ -60,6 +61,7 @@ export function DocumentUploadTabs({
   className = '',
   'data-testid': testId = 'document-upload-tabs',
 }: DocumentUploadTabsProps) {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState(showAiTab && aiAnalysisEnabled ? 'ai' : 'manual');
 
   return (
@@ -112,7 +114,7 @@ export function DocumentUploadTabs({
                       </span>
                     </div>
                     <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
-                      This may take a few seconds depending on document complexity.
+                      {t('thisMayTakeAFewSeconds')}
                     </p>
                   </div>
                 )}

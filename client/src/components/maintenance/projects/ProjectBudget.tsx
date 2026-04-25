@@ -54,6 +54,7 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { MaintenanceProject } from '@shared/schemas/maintenance';
 import { cn, parseDateOnly } from '@/lib/utils';
+import { useLanguage } from '@/hooks/use-language';
 import {
   DollarSign,
   Plus,
@@ -131,6 +132,7 @@ export function ProjectBudget({
   showElementAllocation = true,
   editable = true,
 }: ProjectBudgetProps) {
+  const { t } = useLanguage();
   const { hasPermission, buildingId } = useBuildingContext();
   const { toast } = useToast();
   
@@ -482,7 +484,7 @@ export function ProjectBudget({
           <AlertTriangle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
           <h3 className="text-lg font-semibold mb-2">Failed to Load Budget</h3>
           <p className="text-muted-foreground">
-            There was an error loading the project budget. Please try again.
+            {t('thereWasAnErrorLoadingThe')}
           </p>
         </CardContent>
       </Card>
@@ -663,7 +665,7 @@ export function ProjectBudget({
               {selectedBreakdown ? `${selectedBreakdown.category} Details` : 'Budget Breakdown Details'}
             </DialogTitle>
             <DialogDescription>
-              Detailed breakdown of costs and allocations for this budget category.
+              {t('detailedBreakdownOfCostsAndAllocations')}
             </DialogDescription>
           </DialogHeader>
           

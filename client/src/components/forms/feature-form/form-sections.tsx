@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import type { FeatureFormData } from './use-feature-form-data';
+import { useLanguage } from '@/hooks/use-language';
 
 /**
  * Props for form section components.
@@ -34,6 +35,7 @@ interface FormSectionProps {
  * @returns Function result.
  */
 export function BasicInformationSection({ formData, onUpdateFormData }: FormSectionProps) {
+  const { t } = useLanguage();
   return (
     <div className='space-y-4'>
       <h3 className='text-lg font-semibold'>Basic Information</h3>
@@ -103,7 +105,7 @@ export function BasicInformationSection({ formData, onUpdateFormData }: FormSect
           checked={formData.isStrategicPath}
           onCheckedChange={(checked: boolean) => onUpdateFormData('isStrategicPath', checked)}
         />
-        <span className='text-xs text-gray-500'>Mark as a strategic development priority</span>
+        <span className='text-xs text-gray-500'>{t('markAsAStrategicDevelopmentPriority')}</span>
       </div>
     </div>
   );

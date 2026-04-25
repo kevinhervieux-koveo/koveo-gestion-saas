@@ -18,6 +18,7 @@ import { useWebVitals, WebVitalsMetrics } from '@/utils/web-vitals-monitor';
 import { complexityAnalyzer } from '@/utils/component-complexity-analyzer';
 import { performanceMonitor } from '@/utils/performance-monitor';
 import { useQuery } from '@tanstack/react-query';
+import { useLanguage } from '@/hooks/use-language';
 
 interface PerformanceData {
   database: {
@@ -63,6 +64,7 @@ interface WebVitalsData {
 }
 
 export function PerformanceDashboard() {
+  const { t } = useLanguage();
   const [refreshInterval, setRefreshInterval] = useState(30000); // 30 seconds
   const [isAutoRefresh, setIsAutoRefresh] = useState(true);
   const [webVitalsHistory, setWebVitalsHistory] = useState<WebVitalsData[]>([]);
@@ -144,7 +146,7 @@ export function PerformanceDashboard() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Performance Dashboard</h1>
-          <p className="text-gray-600 dark:text-gray-400">Real-time monitoring and optimization insights</p>
+          <p className="text-gray-600 dark:text-gray-400">{t('realTimeMonitoringAndOptimizationInsights')}</p>
         </div>
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
@@ -264,7 +266,7 @@ export function PerformanceDashboard() {
             <Card data-testid="card-web-vitals-chart">
               <CardHeader>
                 <CardTitle>Performance Score Trend</CardTitle>
-                <CardDescription>Real-time Web Vitals performance tracking</CardDescription>
+                <CardDescription>{t('realTimeWebVitalsPerformanceTracking')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <ChartContainer config={buildChartConfig({ score: { label: 'Performance Score', color: chartColors.purple } })} className="h-[300px] w-full">
@@ -289,7 +291,7 @@ export function PerformanceDashboard() {
             <Card data-testid="card-web-vitals-details">
               <CardHeader>
                 <CardTitle>Core Web Vitals Details</CardTitle>
-                <CardDescription>Current performance metrics breakdown</CardDescription>
+                <CardDescription>{t('currentPerformanceMetricsBreakdown')}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {Object.entries(webVitalsMetrics).map(([key, value]) => {
@@ -326,7 +328,7 @@ export function PerformanceDashboard() {
                   <Database className="h-5 w-5" />
                   Database Performance
                 </CardTitle>
-                <CardDescription>Query execution metrics and optimization status</CardDescription>
+                <CardDescription>{t('queryExecutionMetricsAndOptimizationStatus')}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {performanceData?.database && (
@@ -365,7 +367,7 @@ export function PerformanceDashboard() {
                   <Cpu className="h-5 w-5" />
                   Server Performance
                 </CardTitle>
-                <CardDescription>Real-time server metrics and status</CardDescription>
+                <CardDescription>{t('realTimeServerMetricsAndStatus')}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {trendsData && (
@@ -406,7 +408,7 @@ export function PerformanceDashboard() {
             <Card data-testid="card-component-complexity">
               <CardHeader>
                 <CardTitle>Component Complexity Analysis</CardTitle>
-                <CardDescription>Identification of performance bottlenecks</CardDescription>
+                <CardDescription>{t('identificationOfPerformanceBottlenecks')}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
@@ -433,7 +435,7 @@ export function PerformanceDashboard() {
             <Card data-testid="card-top-issues">
               <CardHeader>
                 <CardTitle>Top Performance Issues</CardTitle>
-                <CardDescription>Most common optimization opportunities</CardDescription>
+                <CardDescription>{t('mostCommonOptimizationOpportunities')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
@@ -451,8 +453,8 @@ export function PerformanceDashboard() {
           {complexityData.recommendations.length > 0 && (
             <Card data-testid="card-component-recommendations">
               <CardHeader>
-                <CardTitle>Component Optimization Recommendations</CardTitle>
-                <CardDescription>Priority-ordered optimization suggestions</CardDescription>
+                <CardTitle>{t('componentOptimizationRecommendations')}</CardTitle>
+                <CardDescription>{t('priorityOrderedOptimizationSuggestions')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -494,7 +496,7 @@ export function PerformanceDashboard() {
           <Card data-testid="card-performance-trends">
             <CardHeader>
               <CardTitle>Performance Trends</CardTitle>
-              <CardDescription>Historical performance data and improvements</CardDescription>
+              <CardDescription>{t('historicalPerformanceDataAndImprovements')}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

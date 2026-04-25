@@ -13,6 +13,7 @@ import { SharedUploader } from '@/components/document-management';
 import { GeminiBillExtractor } from '@/components/bill-management/GeminiBillExtractor';
 import type { UploadContext } from '@shared/config/upload-config';
 import { sanitizeFileName } from '@/utils/sanitize';
+import { useLanguage } from '@/hooks/use-language';
 
 export interface AttachedFile {
   id: string;
@@ -92,6 +93,7 @@ export function StandardDocumentAttachments({
   showSection = true,
   onToggleSection,
 }: StandardDocumentAttachmentsProps) {
+  const { t } = useLanguage();
   
   const [activeUploadTab, setActiveUploadTab] = useState<'file' | 'text'>(defaultUploadTab);
   const [uploadedAiFile, setUploadedAiFile] = useState<File | null>(null);
@@ -185,7 +187,7 @@ export function StandardDocumentAttachments({
                       <div className="flex items-center gap-2">
                         <Sparkles className="h-4 w-4 animate-spin text-blue-500" />
                         <span className="text-sm text-blue-800 dark:text-blue-200">
-                          AI is analyzing your document...
+                          {t('aiIsAnalyzingYourDocument')}
                         </span>
                       </div>
                     </div>
@@ -203,7 +205,7 @@ export function StandardDocumentAttachments({
                         </Badge>
                       </div>
                       <p className="text-sm text-green-700 dark:text-green-300">
-                        Form fields have been automatically populated with extracted data.
+                        {t('formFieldsHaveBeenAutomaticallyPopulated')}
                       </p>
                     </div>
                   )}
@@ -358,7 +360,7 @@ export function StandardDocumentAttachments({
                   No documents attached yet
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-500">
-                  Use the upload section above to attach files
+                  {t('useTheUploadSectionAboveTo')}
                 </p>
               </div>
             )}

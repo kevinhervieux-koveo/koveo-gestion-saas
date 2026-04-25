@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { useLanguage } from '@/hooks/use-language';
 
 /**
  * Interface for deletion impact analysis data.
@@ -72,6 +73,7 @@ export function DeleteConfirmationDialog({
   onConfirm,
   isDeleting = false,
 }: DeleteConfirmationDialogProps) {
+  const { t } = useLanguage();
   const [impact, setImpact] = useState<DeletionImpact | null>(null);
   const [loadingImpact, setLoadingImpact] = useState(false);
   const { toast } = useToast();
@@ -131,15 +133,15 @@ export function DeleteConfirmationDialog({
             Confirm Deletion
           </DialogTitle>
           <DialogDescription>
-            This action cannot be undone. Please review the impact before proceeding.
+            {t('thisActionCannotBeUndonePlease')}
           </DialogDescription>
         </DialogHeader>
 
         <div className='space-y-4'>
           <div className='bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4'>
             <p className='text-sm text-red-800 dark:text-red-200'>
-              <strong>Warning:</strong> This action cannot be undone. Deleting this {entityType}{' '}
-              will cascade and remove all related data.
+              <strong>Warning:</strong> {t('thisActionCannotBeUndoneDeleting')} {entityType}{' '}
+              {t('willCascadeAndRemoveAllRelated')}
             </p>
           </div>
 
@@ -206,7 +208,7 @@ export function DeleteConfirmationDialog({
 
                   {getTotalItemsToDelete() === 1 && (
                     <p className='text-sm text-gray-600 dark:text-gray-400 italic'>
-                      No related entities will be affected.
+                      {t('noRelatedEntitiesWillBeAffected')}
                     </p>
                   )}
                 </div>
@@ -223,15 +225,14 @@ export function DeleteConfirmationDialog({
           ) : (
             <div className='text-center py-4'>
               <p className='text-sm text-gray-600 dark:text-gray-400'>
-                Unable to analyze deletion impact. Proceed with caution.
+                {t('unableToAnalyzeDeletionImpactProceed')}
               </p>
             </div>
           )}
 
           <div className='bg-gray-50 dark:bg-gray-800 rounded-lg p-3'>
             <p className='text-xs text-gray-600 dark:text-gray-400'>
-              <strong>Note:</strong> Deleted items are soft-deleted and may be recoverable by system
-              administrators.
+              <strong>Note:</strong> {t('deletedItemsAreSoftDeletedAnd')}
             </p>
           </div>
         </div>

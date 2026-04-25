@@ -19,6 +19,7 @@ import {
  * Residents Dashboard - Main dashboard for residents.
  */
 export default function ResidentsDashboard() {
+  const { t } = useLanguage();
   const { language } = useLanguage();
   // Modal state removed - using simple document opening instead
 
@@ -160,7 +161,7 @@ export default function ResidentsDashboard() {
             <Card>
               <CardHeader>
                 <CardTitle>Recent Activity</CardTitle>
-                <CardDescription>Latest updates from your building</CardDescription>
+                <CardDescription>{t('latestUpdatesFromYourBuilding')}</CardDescription>
               </CardHeader>
               <CardContent className='space-y-4'>
                 <div className='flex items-center space-x-4'>
@@ -168,7 +169,7 @@ export default function ResidentsDashboard() {
                   <div className='flex-1'>
                     <p className='text-sm font-medium'>Maintenance completed</p>
                     <p className='text-xs text-muted-foreground'>
-                      Elevator maintenance finished - Unit 4B
+                      {t('elevatorMaintenanceFinishedUnit4b')}
                     </p>
                   </div>
                   <p className='text-xs text-muted-foreground'>2 hours ago</p>
@@ -186,7 +187,7 @@ export default function ResidentsDashboard() {
                   <div className='flex-1'>
                     <p className='text-sm font-medium'>New building notice</p>
                     <p className='text-xs text-muted-foreground'>
-                      Pool maintenance scheduled for next week
+                      {t('poolMaintenanceScheduledForNextWeek')}
                     </p>
                   </div>
                   <p className='text-xs text-muted-foreground'>3 days ago</p>
@@ -197,7 +198,7 @@ export default function ResidentsDashboard() {
             <Card>
               <CardHeader>
                 <CardTitle>Upcoming Events</CardTitle>
-                <CardDescription>Building events and important dates</CardDescription>
+                <CardDescription>{t('buildingEventsAndImportantDates')}</CardDescription>
               </CardHeader>
               <CardContent className='space-y-4'>
                 <div className='flex items-center justify-between p-3 bg-blue-50 rounded-lg'>
@@ -217,7 +218,7 @@ export default function ResidentsDashboard() {
                 <div className='flex items-center justify-between p-3 bg-orange-50 rounded-lg'>
                   <div>
                     <p className='text-sm font-medium'>Fire Drill</p>
-                    <p className='text-xs text-muted-foreground'>Mandatory building safety drill</p>
+                    <p className='text-xs text-muted-foreground'>{t('mandatoryBuildingSafetyDrill')}</p>
                   </div>
                   <p className='text-sm text-orange-600'>Jan 25</p>
                 </div>

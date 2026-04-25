@@ -44,6 +44,7 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { Header } from '@/components/layout/header';
 import type { DocumentTag } from '@/components/document-tags/TagPicker';
+import { useLanguage } from '@/hooks/use-language';
 
 const tagFormSchema = z.object({
   name: z.string().min(1, 'Nom requis').max(150),
@@ -56,6 +57,7 @@ const tagFormSchema = z.object({
 type TagFormValues = z.infer<typeof tagFormSchema>;
 
 export default function ManagerDocumentTags() {
+  const { t } = useLanguage();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<DocumentTag | null>(null);
@@ -182,7 +184,7 @@ export default function ManagerDocumentTags() {
             <DialogHeader>
               <DialogTitle>{editing ? 'Modifier' : 'Nouvelle'} étiquette</DialogTitle>
               <DialogDescription>
-                Étiquettes pour classer vos documents (CCQ, Loi 16…)
+                {t('tiquettesPourClasserVosDocumentsCcq')}
               </DialogDescription>
             </DialogHeader>
             <Form {...form}>

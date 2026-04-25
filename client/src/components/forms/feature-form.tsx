@@ -24,6 +24,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useCreateUpdateMutation } from '@/lib/common-hooks';
 import type { Feature } from '@shared/schema';
 import { SharedUploader } from '@/components/document-management';
+import { useLanguage } from '@/hooks/use-language';
 
 /**
  * Props for the FeatureForm component.
@@ -53,6 +54,7 @@ interface FeatureFormProps {
  * @returns Function result.
  */
 export function FeatureForm({ feature, open, onOpenChange }: FeatureFormProps) {
+  const { t } = useLanguage();
   const { toast } = useToast();
 
   // Mutation to create feature in roadmap
@@ -737,7 +739,7 @@ ${formData.additionalNotes || 'No additional notes'}
                     className='scale-90'
                   />
                   <span className='text-xs text-gray-500'>
-                    Mark this feature as part of the strategic roadmap
+                    {t('markThisFeatureAsPartOf')}
                   </span>
                 </div>
               </div>
@@ -935,11 +937,11 @@ ${formData.additionalNotes || 'No additional notes'}
 
             {/* RBAC Requirements Section */}
             <div className='space-y-4'>
-              <h3 className='text-lg font-semibold'>Role-Based Access Control (RBAC)</h3>
+              <h3 className='text-lg font-semibold'>{t('roleBasedAccessControlRbac')}</h3>
 
               <div className='flex items-center gap-3'>
                 <Label htmlFor='rbacRequired' className='text-sm font-medium'>
-                  Does this feature require RBAC?
+                  {t('doesThisFeatureRequireRbac')}
                 </Label>
                 <Switch
                   id='rbacRequired'
@@ -947,7 +949,7 @@ ${formData.additionalNotes || 'No additional notes'}
                   onCheckedChange={(checked: boolean) => updateFormData('rbacRequired', checked)}
                 />
                 <span className='text-xs text-gray-500'>
-                  Enable role-based access control for this feature
+                  {t('enableRoleBasedAccessControlFor')}
                 </span>
               </div>
 
@@ -955,7 +957,7 @@ ${formData.additionalNotes || 'No additional notes'}
                 <div className='bg-yellow-50 p-4 rounded-lg space-y-4'>
                   <h4 className='font-medium text-yellow-800'>Configure Role Permissions</h4>
                   <p className='text-sm text-yellow-700'>
-                    For each role, specify read/write permissions and organizational limitations.
+                    {t('forEachRoleSpecifyReadWrite')}
                   </p>
 
                   {Object.entries(formData.rbacRoles).map(([role, permissions]) => (
@@ -1042,7 +1044,7 @@ ${formData.additionalNotes || 'No additional notes'}
                   <Paperclip className="w-4 h-4 text-gray-500" />
                   <Label className="text-sm font-medium">Supporting Documents</Label>
                   <span className="text-xs text-gray-500">
-                    (Optional - Mockups, wireframes, screenshots, requirements docs)
+                    {t('optionalMockupsWireframesScreenshotsRequirementsDocs')}
                   </span>
                 </div>
                 <SharedUploader
@@ -1086,7 +1088,7 @@ ${formData.additionalNotes || 'No additional notes'}
             <div className='bg-gray-50 p-4 rounded-lg'>
               <div className='flex items-center justify-between mb-2'>
                 <p className='text-sm text-gray-600'>
-                  Generated development prompt for{' '}
+                  {t('generatedDevelopmentPromptFor')}{' '}
                   <strong>{feature?.name || formData.featureName || 'New Feature'}</strong>
                 </p>
                 <div className='flex gap-2'>

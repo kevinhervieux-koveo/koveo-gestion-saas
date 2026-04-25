@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { BuildingElement } from '@shared/schemas/maintenance';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/hooks/use-language';
 import {
   FileText,
   Image,
@@ -59,6 +60,7 @@ export function DocumentAttachmentManager({
   onDocumentUploaded,
   onDocumentDeleted,
 }: DocumentAttachmentManagerProps) {
+  const { t } = useLanguage();
   const { toast } = useToast();
   const [showUploader, setShowUploader] = useState(false);
 
@@ -300,7 +302,7 @@ export function DocumentAttachmentManager({
                 <AlertDialogHeader>
                   <AlertDialogTitle>Delete Document</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Are you sure you want to delete "{doc.name}"? This action cannot be undone.
+                    {t('areYouSureYouWantTo2')}{doc.name}{t('thisActionCannotBeUndone')}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
@@ -428,7 +430,7 @@ export function DocumentAttachmentManager({
       {mode === 'view' && documents.length === 0 && (
         <div className="text-center py-8 text-muted-foreground">
           <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
-          <p className="text-sm">No documents attached to this asset</p>
+          <p className="text-sm">{t('noDocumentsAttachedToThisAsset')}</p>
         </div>
       )}
 
@@ -436,7 +438,7 @@ export function DocumentAttachmentManager({
       {mode === 'create' && (
         <div className="text-center py-8 text-muted-foreground">
           <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
-          <p className="text-sm">Save the element to enable document uploads</p>
+          <p className="text-sm">{t('saveTheElementToEnableDocument')}</p>
         </div>
       )}
 

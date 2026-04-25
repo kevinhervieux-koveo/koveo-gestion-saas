@@ -20,6 +20,7 @@ import {
 import { cn } from '@/lib/utils';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/hooks/use-language';
 
 // File types and validation
 const ACCEPTED_FILE_TYPES = {
@@ -83,6 +84,7 @@ export function UploadDropzone({
   allowDownload = true,
   showProgress = true,
 }: UploadDropzoneProps) {
+  const { t } = useLanguage();
   const [files, setFiles] = useState<UploadedFile[]>(existingFiles);
   const [isUploading, setIsUploading] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
@@ -409,7 +411,7 @@ export function UploadDropzone({
             </p>
             <div className="text-xs text-muted-foreground space-y-1">
               <p>Maximum {maxFiles} files, up to {Math.round(maxFileSize / 1024 / 1024)}MB each</p>
-              <p>Supported: Images, PDF, DOC, XLS, TXT</p>
+              <p>{t('supportedImagesPdfDocXlsTxt')}</p>
             </div>
           </div>
 

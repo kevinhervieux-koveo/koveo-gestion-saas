@@ -23,6 +23,7 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { insertBuildingElementSchema, BuildingElement } from '@shared/schemas/maintenance';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/hooks/use-language';
 import {
   Search,
   Building,
@@ -83,6 +84,7 @@ interface UniformatCodeSelectorProps {
 }
 
 function UniformatCodeSelector({ value, onChange, onCodeSelect, error, disabled = false, hasError = false }: UniformatCodeSelectorProps) {
+  const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [showBrowser, setShowBrowser] = useState(false);
   const [selectedLevel1, setSelectedLevel1] = useState<string | null>(null);
@@ -248,7 +250,7 @@ function UniformatCodeSelector({ value, onChange, onCodeSelect, error, disabled 
           <DialogHeader>
             <DialogTitle>Browse UNIFORMAT Codes</DialogTitle>
             <div className="text-sm text-muted-foreground">
-              Navigate: Level 1 → Level 2 → Level 3 (only Level 3 can be selected for elements)
+              {t('navigateLevel1Level2Level')}
             </div>
           </DialogHeader>
           <div className="space-y-4">
@@ -425,6 +427,7 @@ export function ElementForm({
   buildingId,
   organizationId,
 }: ElementFormProps) {
+  const { t } = useLanguage();
   // Simplified placeholder - no context for now
   const { toast } = useToast();
   const [isNameManuallyEdited, setIsNameManuallyEdited] = useState(false);
@@ -1224,7 +1227,7 @@ export function ElementForm({
               {autoCalculateEvaluation && field.value && (
                 <div className="text-xs text-muted-foreground flex items-center gap-1">
                   <Info className="h-3 w-3" />
-                  Automatically calculated based on condition and remaining years
+                  {t('automaticallyCalculatedBasedOnConditionAnd')}
                 </div>
               )}
             </div>
