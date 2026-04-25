@@ -91,7 +91,6 @@ jest.mock('@/lib/queryClient', () => {
 });
 
 import ModularDocumentPageWrapper from '@/components/common/ModularDocumentPageWrapper';
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const wouter = require('wouter');
 
 const BUILDING_ID = 'building-fixture-id';

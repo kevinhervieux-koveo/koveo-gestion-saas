@@ -52,7 +52,6 @@ import type { HeavyLazyMountSpec } from '../../server/routes';
 // requiring the real source via its absolute on-disk path — none of the
 // mapper's anchored patterns match an absolute `.ts` path.
 const ROUTES_ABS_PATH = path.resolve(__dirname, '../../server/routes.ts');
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const HEAVY_LAZY_MOUNTS: readonly HeavyLazyMountSpec[] = (
   require(ROUTES_ABS_PATH) as { HEAVY_LAZY_MOUNTS: readonly HeavyLazyMountSpec[] }
 ).HEAVY_LAZY_MOUNTS;

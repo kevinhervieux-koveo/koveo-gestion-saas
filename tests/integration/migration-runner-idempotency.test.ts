@@ -44,7 +44,6 @@ import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 // implementation here because the test spawns the migration runner.
 // Using the `node:` specifier sidesteps the moduleNameMapper entry that
 // matches the bare `child_process` import.
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 const { spawn } = require('node:child_process') as typeof import('child_process');
 import { randomBytes } from 'crypto';
 import { readdirSync } from 'fs';

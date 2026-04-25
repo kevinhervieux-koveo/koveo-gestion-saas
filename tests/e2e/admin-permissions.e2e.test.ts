@@ -198,7 +198,6 @@ describe('/admin/permissions (real browser, real app)', () => {
           }));
           return { tabs, panels };
         });
-        // eslint-disable-next-line no-console
         console.error('[diag] tabs/panels state', JSON.stringify(diag, null, 2));
         throw err;
       }

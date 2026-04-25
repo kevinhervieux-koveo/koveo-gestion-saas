@@ -134,7 +134,6 @@ function get(url: string): Promise<{ status: number }> {
  * absolute path with a `.ts` suffix.
  */
 async function buildAppWithRealRoutes(): Promise<Express> {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const realRoutes = require(ROUTES_ABS_PATH) as {
     registerRoutes: (app: Express) => Promise<unknown>;
   };

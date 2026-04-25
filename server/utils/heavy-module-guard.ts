@@ -79,7 +79,6 @@ export function findEagerlyLoadedHeavyModules(
   // ESM-only runtimes (or any context where the CJS require shim isn't
   // installed) can't be inspected this way; treat as "no violations" so
   // the guard never produces false positives there.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const req: any = typeof require !== 'undefined' ? require : undefined;
   if (!req || !req.cache) return [];
 

@@ -208,7 +208,6 @@ describe('Upload filename normalization (end-to-end)', () => {
         await db.delete(organizations).where(eq(organizations.id, testOrg.id));
       }
     } catch (err) {
-      // eslint-disable-next-line no-console
       console.error('[upload-filename-normalization] cleanup failed:', err);
     }
 

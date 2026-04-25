@@ -163,7 +163,6 @@ jest.mock('@shared/schema', () => {
   // the expected coerced types (number for amount, Date for targetDate). The
   // PUT handler then calls `validated.amount.toString()` and
   // `validated.targetDate.toISOString().split('T')[0]`, so coercion matters.
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const { z } = require('zod');
   const insertCapitalInvestmentSchema = z.object({
     buildingId: z.string().uuid(),

@@ -158,7 +158,6 @@ describe('POST /api/bills/:id/upload-document — AI analysis end-to-end', () =>
         await db.delete(organizations).where(eq(organizations.id, testOrg.id));
       }
     } catch (err) {
-      // eslint-disable-next-line no-console
       console.error('[bill-upload-ai-analysis] cleanup failed:', err);
     }
 

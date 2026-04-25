@@ -52,7 +52,6 @@ describe('heavy-module-guard', () => {
       // Force `server/utils/lazy-mount.ts` into require.cache by importing
       // it (it's already imported above, but `require()` here makes the
       // intent explicit and survives any future tree-shaking).
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
       require(REAL_FIXTURE);
 
       const violations = findEagerlyLoadedHeavyModules([
@@ -62,7 +61,6 @@ describe('heavy-module-guard', () => {
     });
 
     it('matches denylist entries written with an explicit extension', () => {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
       require(REAL_FIXTURE);
 
       expect(
@@ -71,7 +69,6 @@ describe('heavy-module-guard', () => {
     });
 
     it('does not flag a partial path match (substring guard)', () => {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
       require(REAL_FIXTURE);
 
       // `lazy-mou` is a strict substring of the cache key; it should NOT
@@ -82,7 +79,6 @@ describe('heavy-module-guard', () => {
     });
 
     it('deduplicates so each denylist entry is reported at most once', () => {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
       require(REAL_FIXTURE);
 
       expect(
@@ -104,7 +100,6 @@ describe('heavy-module-guard', () => {
     });
 
     it('throws with a helpful message when a denylisted module is loaded', () => {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
       require(REAL_FIXTURE);
 
       expect(() =>
@@ -115,7 +110,6 @@ describe('heavy-module-guard', () => {
     });
 
     it('skips the check when NODE_ENV=production', () => {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
       require(REAL_FIXTURE);
       process.env.NODE_ENV = 'production';
 
@@ -127,7 +121,6 @@ describe('heavy-module-guard', () => {
     });
 
     it('skips the check when SKIP_LAZY_MOUNT_GUARD=true', () => {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
       require(REAL_FIXTURE);
       process.env.SKIP_LAZY_MOUNT_GUARD = 'true';
 
@@ -139,7 +132,6 @@ describe('heavy-module-guard', () => {
     });
 
     it('runs at most once per process (subsequent calls are a no-op)', () => {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
       require(REAL_FIXTURE);
 
       // First call consumes the once-per-process budget.
@@ -160,7 +152,6 @@ describe('heavy-module-guard', () => {
     });
 
     it('logs instead of throwing when throwOnViolation is false', () => {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
       require(REAL_FIXTURE);
 
       // The guard funnels through `logError`, which writes to stderr via

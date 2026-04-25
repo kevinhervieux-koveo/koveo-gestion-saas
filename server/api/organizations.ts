@@ -325,7 +325,6 @@ export function registerOrganizationRoutes(app: Express): void {
         const base = candidate0.length >= 1 ? candidate0 : 'ORG';
         // Try base, then base+1, base+2... until unique, capped at 8 chars.
         let suffix = 0;
-        // eslint-disable-next-line no-constant-condition
         while (true) {
           const tail = suffix === 0 ? '' : String(suffix);
           const candidate = (base.slice(0, 8 - tail.length) + tail).slice(0, 8);
