@@ -1,7 +1,7 @@
 // @ts-nocheck — Pre-existing type errors tracked in TYPE_CHECK_DEBT.md (task #769)
 import { useMemo } from 'react';
 import { useCreateUpdateMutation } from '@/lib/common-hooks';
-import { format, differenceInDays, parseISO, isPast } from 'date-fns';
+import { format, differenceInDays, isPast } from 'date-fns';
 import { StandardCard } from '@/components/common/StandardCard';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -110,10 +110,12 @@ const calculateMetrics = (project: MaintenanceProject): ProjectMetrics => {
   let isOverdue = false;
   
   if (project.plannedEndDate) {
-    const endDate = parseISO(project.plannedEndDate);
-    const today = new Date();
-    daysRemaining = differenceInDays(endDate, today);
-    isOverdue = isPast(endDate) && project.status !== 'completed';
+    const endDate = parseDateOnly(project.plannedEndDate);
+    if (endDate) {
+      const today = new Date();
+      daysRemaining = differenceInDays(endDate, today);
+      isOverdue = isPast(endDate) && project.status !== 'completed';
+    }
   }
 
   const statusProgress = {

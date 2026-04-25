@@ -3,7 +3,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery } from '@tanstack/react-query';
 import { useCreateUpdateMutation } from '@/lib/common-hooks';
-import { format, addYears, parseISO } from 'date-fns';
+import { format, addYears } from 'date-fns';
 import { z } from 'zod';
 import {
   Dialog,
@@ -35,7 +35,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useBuildingContext } from '@/hooks/use-building-context';
 import { apiRequest } from '@/lib/queryClient';
 import { BuildingElement } from '@shared/schemas/maintenance';
-import { cn } from '@/lib/utils';
+import { cn, parseDateOnly } from '@/lib/utils';
 import { useLanguage } from '@/hooks/use-language';
 import {
   CalendarIcon,
@@ -205,7 +205,7 @@ export function ElementHistoryForm({
       };
       
       form.reset(formData);
-      setEventDate(new Date(historyEntry.eventDate));
+      setEventDate(parseDateOnly(historyEntry.eventDate) ?? undefined);
       setAutoCalculateLifespan(false);
     } else if (mode === 'create') {
       const today = new Date();

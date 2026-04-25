@@ -1,7 +1,7 @@
 import { useMemo, useState, useCallback } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { ColumnDef, Row } from '@tanstack/react-table';
-import { format, differenceInYears, isAfter, parseISO } from 'date-fns';
+import { format, differenceInYears, isAfter } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -18,7 +18,7 @@ import { useBuildingContext } from '@/hooks/use-building-context';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { BuildingElement } from '@shared/schemas/maintenance';
-import { cn } from '@/lib/utils';
+import { cn, parseDateOnly } from '@/lib/utils';
 import { BulkEditCostDialog } from './BulkEditCostDialog';
 import { BulkEditResidenceDialog } from './BulkEditResidenceDialog';
 import { useLanguage } from '@/hooks/use-language';
@@ -154,13 +154,16 @@ export function ElementTable({
   // Calculate element age and urgency
   const calculateElementAge = useCallback((constructionDate: string | null): number => {
     if (!constructionDate) return 0;
-    return differenceInYears(new Date(), parseISO(constructionDate));
+    const date = parseDateOnly(constructionDate);
+    if (!date) return 0;
+    return differenceInYears(new Date(), date);
   }, []);
 
   const getEvaluationUrgency = useCallback((nextEvaluationDate: string | null): 'overdue' | 'due-soon' | 'scheduled' | 'none' => {
     if (!nextEvaluationDate) return 'none';
     
-    const evaluationDate = parseISO(nextEvaluationDate);
+    const evaluationDate = parseDateOnly(nextEvaluationDate);
+    if (!evaluationDate) return 'none';
     const today = new Date();
     const in30Days = new Date();
     in30Days.setDate(today.getDate() + 30);
@@ -363,7 +366,14 @@ export function ElementTable({
             );
           }
           
-          const inspectionDate = parseISO(date);
+          const inspectionDate = parseDateOnly(date);
+          if (!inspectionDate) {
+            return (
+              <Badge variant="outline" className="text-muted-foreground">
+                {t('etNeverBadge')}
+              </Badge>
+            );
+          }
           const daysSince = differenceInYears(new Date(), inspectionDate) * 365 + 
                            (new Date().getTime() - inspectionDate.getTime()) / (1000 * 60 * 60 * 24);
           const isOld = daysSince > 365; // More than 1 year
@@ -399,7 +409,14 @@ export function ElementTable({
           }
           
           const urgency = getEvaluationUrgency(date);
-          const evaluationDate = parseISO(date);
+          const evaluationDate = parseDateOnly(date);
+          if (!evaluationDate) {
+            return (
+              <Badge variant="outline" className="text-muted-foreground">
+                {t('etNotScheduledBadge')}
+              </Badge>
+            );
+          }
           
           const urgencyConfig = {
             overdue: { variant: 'destructive' as const, icon: AlertTriangle, label: t('etOverdueBadge') },

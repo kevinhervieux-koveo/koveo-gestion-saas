@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { format, differenceInYears, parseISO } from 'date-fns';
+import { format, differenceInYears } from 'date-fns';
 import { StandardCard } from '@/components/common/StandardCard';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,7 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ConditionBadge } from '@/components/maintenance/StatusBadges';
 import { apiRequest } from '@/lib/queryClient';
 import { BuildingElement } from '@shared/schemas/maintenance';
-import { cn } from '@/lib/utils';
+import { cn, parseDateOnly } from '@/lib/utils';
 import { useLanguage } from '@/hooks/use-language';
 import {
   Edit2,
@@ -98,7 +98,9 @@ export function ElementCard({
   // Calculate derived metrics
   const elementAge = useMemo(() => {
     if (!element.originalConstructionDate) return 0;
-    return differenceInYears(new Date(), parseISO(element.originalConstructionDate));
+    const constructionDate = parseDateOnly(element.originalConstructionDate);
+    if (!constructionDate) return 0;
+    return differenceInYears(new Date(), constructionDate);
   }, [element.originalConstructionDate]);
 
   const lifespanProgress = useMemo(() => {
@@ -110,7 +112,8 @@ export function ElementCard({
   const evaluationUrgency = useMemo(() => {
     if (!element.nextEvaluationDate) return null;
     
-    const evaluationDate = parseISO(element.nextEvaluationDate);
+    const evaluationDate = parseDateOnly(element.nextEvaluationDate);
+    if (!evaluationDate) return null;
     const today = new Date();
     const daysDiff = Math.ceil((evaluationDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
     
@@ -172,15 +175,15 @@ export function ElementCard({
 
   // Build metadata array for StandardCard - only show in non-compact mode
   const metadata = !compact ? [
-    element.originalConstructionDate && {
+    element.originalConstructionDate && parseDateOnly(element.originalConstructionDate) && {
       icon: <Calendar className="w-3 h-3" />,
       label: t('emcBuiltLabel'),
-      value: format(parseISO(element.originalConstructionDate), 'MMM yyyy')
+      value: format(parseDateOnly(element.originalConstructionDate)!, 'MMM yyyy')
     },
-    element.lastInspectionDate && {
+    element.lastInspectionDate && parseDateOnly(element.lastInspectionDate) && {
       icon: <Clock className="w-3 h-3" />,
       label: t('emcLastInspectionLabel'),
-      value: format(parseISO(element.lastInspectionDate), 'MMM yyyy')
+      value: format(parseDateOnly(element.lastInspectionDate)!, 'MMM yyyy')
     }
   ].filter(Boolean) : [];
 
@@ -251,8 +254,8 @@ export function ElementCard({
         <div>
           <div className="text-muted-foreground mb-1">{t('emcConstructionLabel')}</div>
           <div className="font-medium">
-            {element.originalConstructionDate 
-              ? format(parseISO(element.originalConstructionDate), 'MMM yyyy')
+            {element.originalConstructionDate && parseDateOnly(element.originalConstructionDate)
+              ? format(parseDateOnly(element.originalConstructionDate)!, 'MMM yyyy')
               : t('emcUnknown')
             }
           </div>
@@ -261,8 +264,8 @@ export function ElementCard({
         <div>
           <div className="text-muted-foreground mb-1">{t('emcLastInspectionLabel')}</div>
           <div className="font-medium">
-            {element.lastInspectionDate 
-              ? format(parseISO(element.lastInspectionDate), 'MMM yyyy')
+            {element.lastInspectionDate && parseDateOnly(element.lastInspectionDate)
+              ? format(parseDateOnly(element.lastInspectionDate)!, 'MMM yyyy')
               : t('emcNever')
             }
           </div>
@@ -270,12 +273,12 @@ export function ElementCard({
       </div>
 
       {/* Next Evaluation */}
-      {element.nextEvaluationDate && (
+      {element.nextEvaluationDate && parseDateOnly(element.nextEvaluationDate) && (
         <div className="space-y-2">
           <div className="text-sm text-muted-foreground">{t('emcNextEvaluationLabel')}</div>
           <div className="flex items-center justify-between">
             <span className="font-medium">
-              {format(parseISO(element.nextEvaluationDate), 'MMM d, yyyy')}
+              {format(parseDateOnly(element.nextEvaluationDate)!, 'MMM d, yyyy')}
             </span>
             {evaluationUrgency && (
               <Badge variant={evaluationUrgency.variant} className="text-xs">

@@ -10,7 +10,6 @@ import {
   eachDayOfInterval,
   isSameDay,
   isWithinInterval,
-  parseISO,
 } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -40,7 +39,7 @@ import { useBuildingContext } from '@/hooks/use-building-context';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { MaintenanceProject } from '@shared/schemas/maintenance';
-import { cn } from '@/lib/utils';
+import { cn, parseDateOnly } from '@/lib/utils';
 import { useLanguage } from '@/hooks/use-language';
 import {
   CalendarIcon,
@@ -176,16 +175,17 @@ export function ProjectTimeline({
         
         if (!hasStartDate || !hasEndDate) return false;
         
-        const startDate = parseISO(hasStartDate);
-        const endDate = parseISO(hasEndDate);
+        const startDate = parseDateOnly(hasStartDate);
+        const endDate = parseDateOnly(hasEndDate);
+        if (!startDate || !endDate) return false;
         
         return isWithinInterval(startDate, timelineBounds) || 
                isWithinInterval(endDate, timelineBounds) ||
                (startDate < timelineBounds.start && endDate > timelineBounds.end);
       })
       .map(project => {
-        const startDate = parseISO(project.plannedStartDate || project.actualStartDate!);
-        const endDate = parseISO(project.plannedEndDate || project.actualEndDate!);
+        const startDate = parseDateOnly(project.plannedStartDate || project.actualStartDate!)!;
+        const endDate = parseDateOnly(project.plannedEndDate || project.actualEndDate!)!;
         
         const duration = differenceInDays(endDate, startDate) + 1;
         const startPosition = Math.max(0, differenceInDays(startDate, timelineBounds.start));
@@ -201,8 +201,9 @@ export function ProjectTimeline({
             other.plannedEndDate
           )
           .filter(other => {
-            const otherStart = parseISO(other.plannedStartDate!);
-            const otherEnd = parseISO(other.plannedEndDate!);
+            const otherStart = parseDateOnly(other.plannedStartDate!);
+            const otherEnd = parseDateOnly(other.plannedEndDate!);
+            if (!otherStart || !otherEnd) return false;
             
             return (startDate <= otherEnd && endDate >= otherStart);
           })
@@ -216,19 +217,25 @@ export function ProjectTimeline({
         const milestones = [];
         
         if (project.actualStartDate && project.status !== 'planned') {
-          milestones.push({
-            type: 'start',
-            date: parseISO(project.actualStartDate),
-            label: 'Started',
-          });
+          const actualStart = parseDateOnly(project.actualStartDate);
+          if (actualStart) {
+            milestones.push({
+              type: 'start',
+              date: actualStart,
+              label: 'Started',
+            });
+          }
         }
         
         if (project.status === 'completed' && project.actualEndDate) {
-          milestones.push({
-            type: 'completion',
-            date: parseISO(project.actualEndDate),
-            label: 'Completed',
-          });
+          const actualEnd = parseDateOnly(project.actualEndDate);
+          if (actualEnd) {
+            milestones.push({
+              type: 'completion',
+              date: actualEnd,
+              label: 'Completed',
+            });
+          }
         }
 
         return {
@@ -249,8 +256,9 @@ export function ProjectTimeline({
         
         if (aPriority !== bPriority) return aPriority - bPriority;
         
-        const aStart = parseISO(a.plannedStartDate || a.actualStartDate!);
-        const bStart = parseISO(b.plannedStartDate || b.actualStartDate!);
+        const aStart = parseDateOnly(a.plannedStartDate || a.actualStartDate!);
+        const bStart = parseDateOnly(b.plannedStartDate || b.actualStartDate!);
+        if (!aStart || !bStart) return 0;
         
         return aStart.getTime() - bStart.getTime();
       });
@@ -558,11 +566,11 @@ export function ProjectTimeline({
                           <div>Status: <StatusBadge status={project.status} size="sm" /></div>
                           <div>Priority: <PriorityBadge priority={project.priority} size="sm" /></div>
                           <div>Duration: {project.duration} days</div>
-                          {project.plannedStartDate && (
-                            <div>Start: {format(parseISO(project.plannedStartDate), 'MMM dd, yyyy')}</div>
+                          {project.plannedStartDate && parseDateOnly(project.plannedStartDate) && (
+                            <div>Start: {format(parseDateOnly(project.plannedStartDate)!, 'MMM dd, yyyy')}</div>
                           )}
-                          {project.plannedEndDate && (
-                            <div>End: {format(parseISO(project.plannedEndDate), 'MMM dd, yyyy')}</div>
+                          {project.plannedEndDate && parseDateOnly(project.plannedEndDate) && (
+                            <div>End: {format(parseDateOnly(project.plannedEndDate)!, 'MMM dd, yyyy')}</div>
                           )}
                           {project.isOverdue && (
                             <div className="text-red-600 font-medium">
