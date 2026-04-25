@@ -180,8 +180,9 @@ async function loadSession(sessionId: string) {
  *     for the same (session, step) inside one Node process.
  *   - `session.progress.runAll[step]` is the durable progress payload
  *     the wizard polls — `{ total, processed, failed, startedAt,
- *     finishedAt }` — so refreshing the page (or hopping to another
- *     admin tab) shows the same "X of Y processed…" line.
+ *     finishedAt, inFlight }` — so refreshing the page (or hopping to
+ *     another admin tab) shows the same "X of Y processed…" line plus
+ *     which files are currently being analyzed (Task #898).
  */
 type AutoStep = 'screening' | 'sorting' | 'branching' | 'identification' | 'linking';
 
@@ -201,7 +202,26 @@ const STEP_ELIGIBLE_STATUSES: Record<AutoStep, schema.BulkImportItem['status'][]
   linking: ['identified'],
 };
 
-const inFlightRunAll = new Set<string>();
+/**
+ * Maximum number of items processed concurrently per run-all loop
+ * (Task #898). Conservative to stay under Anthropic rate limits.
+ */
+const RUN_ALL_CONCURRENCY = 4;
+
+/**
+ * Per-item time budget for the AI analyzer call (Task #898).
+ * A single hung request no longer blocks the whole batch — after this
+ * deadline the item is recorded as a failure and the loop moves on.
+ */
+const RUN_ALL_ITEM_TIMEOUT_MS = 90_000; // 90 seconds
+
+/**
+ * Minimum interval between heartbeat DB writes when concurrency is
+ * high (Task #898). Prevents dozens of writes/second on large batches.
+ */
+const RUN_ALL_HEARTBEAT_THROTTLE_MS = 800;
+
+export const inFlightRunAll = new Set<string>();
 
 interface RunAllProgress {
   total: number;
@@ -209,6 +229,8 @@ interface RunAllProgress {
   failed: number;
   startedAt: string;
   finishedAt: string | null;
+  /** Items currently being analyzed (Task #898). Cleared when done. */
+  inFlight?: Array<{ itemId: string; originalName: string }>;
 }
 
 function runAllKey(sessionId: string, step: AutoStep): string {
@@ -253,6 +275,58 @@ async function patchRunAllProgress(
 }
 
 /**
+ * Wrap a promise with a per-item time budget (Task #898). On timeout
+ * rejects with a descriptive error so the caller can increment `failed`
+ * and continue the batch without blocking indefinitely.
+ * Exported for unit tests.
+ */
+export function withItemTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  let handle: ReturnType<typeof setTimeout>;
+  const timeout = new Promise<never>((_, reject) => {
+    handle = setTimeout(
+      () => reject(new Error(`[bulk-import] item timed out after ${ms}ms: ${label}`)),
+      ms,
+    );
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(handle));
+}
+
+/**
+ * Check the "trivially keep" pre-conditions for the sorting step
+ * (Task #898). Returns true when the item does not need an AI call:
+ *   1. Screening said isMultiDocument === false (explicit false, not null)
+ *   2. No sibling in the session shares the same typeGuess + bucketGuess
+ *
+ * Exported for unit tests.
+ */
+export function isTriviallyKeep(
+  myScreening: Record<string, unknown> | null | undefined,
+  allItems: Array<{ id: string; screening?: Record<string, unknown> | null | undefined }>,
+  itemId: string,
+): boolean {
+  const myIsMultiDocument = typeof myScreening?.isMultiDocument === 'boolean'
+    ? myScreening.isMultiDocument
+    : null;
+  if (myIsMultiDocument !== false) return false;
+
+  const myQa = myScreening?.quickAnalysis as QuickAnalysis | null | undefined;
+  if (!myQa?.typeGuess || !myQa?.bucketGuess) return false;
+
+  const hasMergeCandidate = allItems.some((s) => {
+    if (s.id === itemId) return false;
+    const sc = s.screening as Record<string, unknown> | null | undefined;
+    const qa = sc?.quickAnalysis as QuickAnalysis | null | undefined;
+    return (
+      qa !== null &&
+      qa !== undefined &&
+      qa.typeGuess === myQa!.typeGuess &&
+      qa.bucketGuess === myQa!.bucketGuess
+    );
+  });
+  return !hasMergeCandidate;
+}
+
+/**
  * Emit a structured warning at the API layer when an analyzer call returns
  * a per-call failure (`api_error` or `unreadable_response`) so admins can
  * trace the failed Bulk Import row back to its session and retry it from
@@ -290,6 +364,94 @@ export function logPerFileAiFailure(
       fallbackReason,
     },
   });
+}
+
+/**
+ * Persist a step-appropriate fallback decision when an item times out in
+ * the run-all worker pool (Task #898). This ensures the row advances to
+ * the terminal status for that step with `fallbackReason: 'api_error'` so
+ * the admin UI shows the error badge and the per-item Retry button.
+ *
+ * If the background promise later resolves successfully it will overwrite
+ * this fallback with the real AI result — that is intentional and
+ * preferable to leaving the item stuck in its pre-step status.
+ */
+async function persistTimeoutFallback(step: AutoStep, item: schema.BulkImportItem): Promise<void> {
+  const FR = 'api_error' as const;
+  if (step === 'screening') {
+    await db
+      .update(schema.bulkImportItems)
+      .set({
+        screening: {
+          suggestedFilename: item.originalName,
+          confidence: 0,
+          fallbackReason: FR,
+          isMultiDocument: false,
+          rotationDegrees: 0,
+          rotationApplied: false,
+        },
+        status: 'screened',
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.bulkImportItems.id, item.id));
+    return;
+  }
+  if (step === 'sorting') {
+    await db
+      .update(schema.bulkImportItems)
+      .set({
+        sortingDecision: {
+          decision: 'keep',
+          reason: 'AI timeout — defaulting to keep',
+          confidence: 0,
+          fallbackReason: FR,
+          decisionState: 'pending',
+        },
+        status: 'sorted',
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.bulkImportItems.id, item.id));
+    return;
+  }
+  if (step === 'branching') {
+    await db
+      .update(schema.bulkImportItems)
+      .set({
+        branchDecision: {
+          branch: 'building_documents',
+          subCategory: 'other_documents',
+          confidence: 0,
+          fallbackReason: FR,
+          residenceManualOverride: false,
+          residenceAiSuggestedId: null,
+          residenceAiConfirmed: false,
+        },
+        status: 'branched',
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.bulkImportItems.id, item.id));
+    return;
+  }
+  if (step === 'identification') {
+    await db
+      .update(schema.bulkImportItems)
+      .set({
+        identification: { typeGuess: null, confidence: 0, fallbackReason: FR },
+        status: 'identified',
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.bulkImportItems.id, item.id));
+    return;
+  }
+  // linking
+  await db
+    .update(schema.bulkImportItems)
+    .set({
+      linkDecisions: { links: [], confidence: 0, fallbackReason: FR },
+      status: 'linked',
+      updatedAt: new Date(),
+    })
+    .where(eq(schema.bulkImportItems.id, item.id));
 }
 
 /**
@@ -370,6 +532,30 @@ async function processItemForStep(
     const myIsMultiDocument = typeof myScreening?.isMultiDocument === 'boolean'
       ? myScreening.isMultiDocument
       : null;
+
+    // Trivially-keep short-circuit (Task #898): skip the AI call when
+    // Screening said isMultiDocument=false AND no sibling shares this
+    // file's typeGuess+bucketGuess. Both conditions must be true for the
+    // short-circuit to fire; either false falls through to the AI.
+    if (isTriviallyKeep(myScreening, sessionItems, item.id)) {
+      const trivialResult: Record<string, unknown> = {
+        decision: 'keep',
+        reason: 'No merge candidates and not multi-document',
+        confidence: 1,
+        fallbackReason: null,
+        decisionState: 'pending',
+      };
+      const [updated] = await db
+        .update(schema.bulkImportItems)
+        .set({
+          sortingDecision: trivialResult,
+          status: 'sorted',
+          updatedAt: new Date(),
+        })
+        .where(eq(schema.bulkImportItems.id, item.id))
+        .returning();
+      return updated;
+    }
 
     const result = await bulkImportAnalyzer.suggestMergeOrSplit({
       originalName: item.originalName,
@@ -543,41 +729,118 @@ async function runAllForStep(sessionId: string, step: AutoStep): Promise<void> {
       failed: 0,
       startedAt: new Date().toISOString(),
       finishedAt: null,
+      inFlight: [],
     });
 
     if (eligible.length === 0) {
       await patchRunAllProgress(sessionId, step, {
         finishedAt: new Date().toISOString(),
+        inFlight: [],
       });
       return;
     }
 
+    // Concurrent worker pool (Task #898). All state mutated below is
+    // done synchronously between await-points, so no mutex is needed.
     let processed = 0;
     let failed = 0;
-    for (const item of eligible) {
-      // Cooperative cancellation (Task #593): if the admin cleared the
-      // session via DELETE the key is removed from `inFlightRunAll`, so
-      // we bail out before doing any more work or burning AI tokens on
-      // a session whose rows are about to be wiped. Generalizes the
-      // screening-only cancellation from Task #593 to all five steps.
-      if (!inFlightRunAll.has(key)) break;
+    const currentInFlight = new Map<string, string>(); // itemId → originalName
+    const queue = [...eligible];
+    let lastFlushTime = 0;
 
-      try {
-        await processItemForStep(step, item, sessionItems, sessionResidences);
-      } catch (err) {
-        failed += 1;
-        logError(
-          `[bulk-import] run-all ${step} failed for item ${item.id}`,
-          err as Error,
-        );
-      }
-      processed += 1;
-      // Persist after every item so the polling client sees movement.
-      await patchRunAllProgress(sessionId, step, { processed, failed });
+    // rawInFlight counts the number of outstanding processItemForStep() promises,
+    // including ones whose logical worker slot has already moved on after a
+    // timeout. This is the key safety valve: workers must wait for a slot here
+    // before creating a new promise, so total concurrent AI calls never exceeds
+    // RUN_ALL_CONCURRENCY regardless of how many items have timed out.
+    let rawInFlight = 0;
+
+    // Throttled heartbeat: persist current counters + inFlight list.
+    // `force=true` bypasses the throttle for the final flush.
+    async function flushHeartbeat(force = false): Promise<void> {
+      const now = Date.now();
+      if (!force && now - lastFlushTime < RUN_ALL_HEARTBEAT_THROTTLE_MS) return;
+      lastFlushTime = now;
+      await patchRunAllProgress(sessionId, step, {
+        processed,
+        failed,
+        inFlight: Array.from(currentInFlight.entries()).map(
+          ([itemId, originalName]) => ({ itemId, originalName }),
+        ),
+      });
     }
 
+    // Each worker drains the shared queue until it is empty or the
+    // session is cancelled. Cooperative cancellation (Task #593):
+    // clearing the session removes the key from `inFlightRunAll`.
+    async function worker(): Promise<void> {
+      while (true) {
+        if (!inFlightRunAll.has(key)) break;
+
+        // Semaphore gate: ensure rawInFlight < RUN_ALL_CONCURRENCY before
+        // dequeuing. After a timeout the old promise is still counted, so a
+        // replacement item will wait here until that slot is freed. The 50 ms
+        // poll is fine because timeouts are already at 90 s granularity.
+        while (rawInFlight >= RUN_ALL_CONCURRENCY) {
+          await new Promise<void>((r) => setTimeout(r, 50));
+          if (!inFlightRunAll.has(key)) return; // cancelled while waiting
+        }
+
+        // queue.shift(), rawInFlight++ and currentInFlight.set() are all
+        // synchronous (no await between them) so they are mutually exclusive
+        // with other workers under JS's cooperative scheduler.
+        const item = queue.shift();
+        if (!item) break;
+        rawInFlight++;
+        currentInFlight.set(item.id, item.originalName);
+        await flushHeartbeat();
+
+        // workPromise runs the real AI call. Its .finally() decrements
+        // rawInFlight so the semaphore gate above will unblock when the
+        // underlying network call completes (even if we timed out).
+        const workPromise = processItemForStep(step, item, sessionItems, sessionResidences);
+        void workPromise
+          .finally(() => { rawInFlight--; })
+          .catch((e) =>
+            logError('[bulk-import] background work error after timeout', e as Error),
+          );
+
+        try {
+          await withItemTimeout(workPromise, RUN_ALL_ITEM_TIMEOUT_MS, item.originalName);
+        } catch (err) {
+          failed += 1;
+          const isTimeout = (err as Error).message?.includes('timed out');
+          logError(
+            `[bulk-import] run-all ${step} ${isTimeout ? 'timeout' : 'error'} for item ${item.id}`,
+            err as Error,
+          );
+          if (isTimeout) {
+            // Persist a step-appropriate fallback so the UI shows the
+            // error badge immediately; if the background promise later
+            // resolves it will overwrite with the real AI result.
+            void persistTimeoutFallback(step, item).catch((e) =>
+              logError('[bulk-import] persistTimeoutFallback failed', e as Error),
+            );
+          }
+        }
+        processed += 1;
+        currentInFlight.delete(item.id);
+        await flushHeartbeat();
+      }
+    }
+
+    // Launch up to RUN_ALL_CONCURRENCY workers in parallel.
+    const concurrency = Math.min(RUN_ALL_CONCURRENCY, eligible.length);
+    await Promise.all(Array.from({ length: concurrency }, worker));
+
+    // Force-flush final authoritative counters before marking done.
+    // Throttled heartbeats may have left processed/failed stale for fast
+    // batches (especially when trivially-keep short-circuits dominate).
     await patchRunAllProgress(sessionId, step, {
+      processed,
+      failed,
       finishedAt: new Date().toISOString(),
+      inFlight: [],
     });
     logInfo('[bulk-import] run-all finished', {
       metadata: { sessionId, step, processed, failed },

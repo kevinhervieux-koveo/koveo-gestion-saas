@@ -416,6 +416,8 @@ interface RunAllProgress {
   failed: number;
   startedAt: string;
   finishedAt: string | null;
+  /** Items currently being analyzed (Task #898). Populated by the worker pool. */
+  inFlight?: Array<{ itemId: string; originalName: string }>;
 }
 
 function readRunAllProgress(
@@ -1346,16 +1348,24 @@ export default function BulkDocumentImportPage() {
   const { data: payload, isLoading: loadingSession } = useQuery<SessionPayloadLite>({
     queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
     enabled: !!sessionId,
-    // Poll faster while auto-screening is in progress so the per-item
-    // status / confidence badges update in near real-time. Once every
-    // file has a final status we throttle back to 5s (Task #575).
+    // Poll faster while any AI step run-all loop is active so the
+    // counter and "Analyzing: name" heartbeat update quickly (Task #898).
+    // Once all steps are finished we throttle back to 5s.
     refetchInterval: (query) => {
       const data = query.state.data as SessionPayloadLite | undefined;
       if (!data) return 5000;
       const screeningActive =
         data.session.currentStep === 'screening' &&
         data.items.some((i) => i.status === 'pending' || i.status === 'screening');
-      return screeningActive ? 2000 : 5000;
+      if (screeningActive) return 2000;
+      const progress = data.session.progress as Record<string, unknown> | null | undefined;
+      const runAll = progress?.runAll as Record<string, RunAllProgress> | undefined;
+      const anyRunning =
+        runAll &&
+        Object.values(runAll).some(
+          (p) => p && typeof p === 'object' && !p.finishedAt,
+        );
+      return anyRunning ? 2000 : 5000;
     },
   });
 
@@ -1518,6 +1528,50 @@ export default function BulkDocumentImportPage() {
     // mutation fires exactly once per (session, step) per visit.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId, currentStep, !!session]);
+
+  /**
+   * Stall detection (Task #898): track when progress last moved so we
+   * can surface a "Run looks stalled — retry" button if the run
+   * appears hung. We compare a fingerprint of (processed + inFlight
+   * length) each poll and reset a timestamp whenever it changes.
+   */
+  const STALL_THRESHOLD_MS = 3 * 60 * 1000; // 3 minutes
+  const stallRef = useRef<{
+    step: string;
+    fingerprint: string;
+    since: number;
+  } | null>(null);
+
+  function computeStallFingerprint(progress: RunAllProgress | null): string {
+    if (!progress) return 'none';
+    return `${progress.processed}:${(progress.inFlight ?? []).length}`;
+  }
+
+  const currentProgress = isAutoStep(currentStep)
+    ? readRunAllProgress(session, currentStep)
+    : null;
+  const currentFingerprint = computeStallFingerprint(currentProgress);
+
+  if (isAutoStep(currentStep) && currentProgress && !currentProgress.finishedAt) {
+    if (
+      !stallRef.current ||
+      stallRef.current.step !== currentStep ||
+      stallRef.current.fingerprint !== currentFingerprint
+    ) {
+      stallRef.current = {
+        step: currentStep,
+        fingerprint: currentFingerprint,
+        since: Date.now(),
+      };
+    }
+  } else {
+    stallRef.current = null;
+  }
+
+  const isStalled =
+    !!stallRef.current &&
+    stallRef.current.step === currentStep &&
+    Date.now() - stallRef.current.since > STALL_THRESHOLD_MS;
 
   /**
    * Toggle the exclusion of a single staged item (Task #717).
@@ -2474,46 +2528,78 @@ export default function BulkDocumentImportPage() {
                         const total = progress?.total ?? 0;
                         const processed = progress?.processed ?? 0;
                         const failed = progress?.failed ?? 0;
+                        const inFlight = progress?.inFlight ?? [];
                         const isRunning =
                           (!!progress && !progress.finishedAt) ||
                           runAll.isPending;
                         const noWork = !progress && !runAll.isPending;
                         return (
                           <div
-                            className="mb-3 flex flex-wrap items-center gap-3 rounded-md border bg-muted/40 px-3 py-2 text-sm"
+                            className="mb-3 flex flex-col gap-1.5 rounded-md border bg-muted/40 px-3 py-2 text-sm"
                             data-testid={`auto-run-progress-${currentStep}`}
                           >
-                            {isRunning ? (
-                              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                            ) : (
-                              <Sparkles className="h-4 w-4 text-muted-foreground" />
-                            )}
-                            <span className="font-medium">
-                              {noWork
-                                ? isFr
-                                  ? 'Démarrage…'
-                                  : 'Starting…'
-                                : isFr
-                                ? `${processed} sur ${total} traité(s)…`
-                                : `${processed} of ${total} processed…`}
-                            </span>
-                            {failed > 0 && (
-                              <span
-                                className="text-xs text-amber-700"
-                                data-testid={`auto-run-failed-${currentStep}`}
-                              >
-                                {isFr
-                                  ? `${failed} échec(s)`
-                                  : `${failed} failed`}
+                            <div className="flex flex-wrap items-center gap-3">
+                              {isRunning ? (
+                                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                              ) : (
+                                <Sparkles className="h-4 w-4 text-muted-foreground" />
+                              )}
+                              <span className="font-medium">
+                                {noWork
+                                  ? isFr
+                                    ? 'Démarrage…'
+                                    : 'Starting…'
+                                  : isFr
+                                  ? `${processed} sur ${total} traité(s)…`
+                                  : `${processed} of ${total} processed…`}
                               </span>
-                            )}
-                            {progress?.finishedAt && (
-                              <span
-                                className="text-xs text-emerald-700"
-                                data-testid={`auto-run-done-${currentStep}`}
+                              {failed > 0 && (
+                                <span
+                                  className="text-xs text-amber-700"
+                                  data-testid={`auto-run-failed-${currentStep}`}
+                                >
+                                  {isFr
+                                    ? `${failed} échec(s)`
+                                    : `${failed} failed`}
+                                </span>
+                              )}
+                              {progress?.finishedAt && (
+                                <span
+                                  className="text-xs text-emerald-700"
+                                  data-testid={`auto-run-done-${currentStep}`}
+                                >
+                                  {isFr ? 'Terminé' : 'Done'}
+                                </span>
+                              )}
+                              {isStalled && (
+                                <button
+                                  className="ml-auto text-xs text-amber-700 underline hover:text-amber-900"
+                                  data-testid={`auto-run-stall-retry-${currentStep}`}
+                                  onClick={() => {
+                                    if (isAutoStep(currentStep)) {
+                                      runAll.mutate(currentStep);
+                                    }
+                                  }}
+                                >
+                                  {isFr
+                                    ? 'Analyse bloquée — réessayer'
+                                    : 'Run looks stalled — retry'}
+                                </button>
+                              )}
+                            </div>
+                            {isRunning && inFlight.length > 0 && (
+                              <p
+                                className="truncate text-xs text-muted-foreground"
+                                data-testid={`auto-run-in-flight-${currentStep}`}
                               >
-                                {isFr ? 'Terminé' : 'Done'}
-                              </span>
+                                {inFlight.length === 1
+                                  ? isFr
+                                    ? `Analyse : ${inFlight[0].originalName}`
+                                    : `Analyzing: ${inFlight[0].originalName}`
+                                  : isFr
+                                  ? `Analyse de ${inFlight.length} fichiers…`
+                                  : `Analyzing ${inFlight.length} files…`}
+                              </p>
                             )}
                           </div>
                         );
@@ -3264,6 +3350,11 @@ export default function BulkDocumentImportPage() {
                           currentStep === 'sorting'
                             ? item.sortingDecision != null
                             : hasQuickAnalysisSignal(item);
+                        // Note: this else block only renders for non-branching
+                        // steps (branching has its own IIFE above), so the
+                        // collapsedBranchingItemIds branch below is a safety
+                        // fallback that TypeScript narrows away. Cast to keep
+                        // the explicit intent visible.
                         const isExpanded =
                           (currentStep as string) === 'branching'
                             ? !collapsedBranchingItemIds.has(item.id)
