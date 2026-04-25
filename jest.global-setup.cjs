@@ -147,6 +147,7 @@ module.exports = async function globalSetup() {
   // idempotent (`CREATE OR REPLACE FUNCTION` + `DROP TRIGGER IF EXISTS`).
   await applyTriggerOnlyMigrations(databaseUrl, [
     '0010_demands_residence_building_check.sql',
+    '0011_residences_demand_building_check.sql',
   ]);
 };
 

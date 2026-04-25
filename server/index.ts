@@ -475,6 +475,7 @@ async function loadFullApplication(): Promise<void> {
         // (`CREATE OR REPLACE FUNCTION`, `DROP TRIGGER IF EXISTS`).
         await ensureTriggerOnlyMigrations([
           '0010_demands_residence_building_check.sql',
+          '0011_residences_demand_building_check.sql',
         ]);
       } catch (migrationErr: any) {
         log(`❌ Database migrations failed: ${migrationErr.message}`, 'error');

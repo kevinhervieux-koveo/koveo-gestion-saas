@@ -97,6 +97,20 @@ export const buildings = pgTable('buildings', {
 /**
  * Residences table storing individual housing units within buildings.
  * Represents apartments, condos, or units that can be occupied by tenants.
+ *
+ * Cross-organisation invariant (residence side)
+ * ---------------------------------------------
+ * Residences are linked to buildings via `building_id`. Demand rows
+ * reference both a residence and a building, and those two columns
+ * must agree (see the `demands` table comment in
+ * `shared/schemas/operations.ts`). To prevent the residence side from
+ * silently breaking that invariant, the BEFORE UPDATE trigger
+ * `residences_demand_building_check` (see
+ * `migrations/0011_residences_demand_building_check.sql`) rejects any
+ * UPDATE that changes `building_id` while at least one demand row
+ * still references the residence with a different `building_id`.
+ * Drizzle does not model that trigger, so `drizzle-kit push` will not
+ * drop or alter it.
  */
 export const residences = pgTable('residences', {
   id: text('id').primaryKey().default(sql`gen_random_uuid()`),

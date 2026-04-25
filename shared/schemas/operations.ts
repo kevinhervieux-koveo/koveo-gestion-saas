@@ -160,11 +160,16 @@ export const notifications = pgTable('notifications', {
  * When `residence_id` is non-NULL, the residence must belong to the
  * same `building_id` as the demand itself. This is enforced at the
  * application layer in `server/api/demands.ts` and at the database
- * layer by the BEFORE INSERT/UPDATE trigger
- * `demands_residence_building_check` (see migration
- * `migrations/0010_demands_residence_building_check.sql`). Drizzle
- * does not model that trigger, so `drizzle-kit push` will not drop
- * or alter it.
+ * layer by two complementary BEFORE triggers:
+ *   - `demands_residence_building_check` on `demands` (see
+ *     `migrations/0010_demands_residence_building_check.sql`),
+ *     which fires on INSERT/UPDATE of demand rows; and
+ *   - `residences_demand_building_check` on `residences` (see
+ *     `migrations/0011_residences_demand_building_check.sql`),
+ *     which fires on UPDATE of `residences.building_id` and rejects
+ *     the move if any existing demand row would become cross-org.
+ * Drizzle does not model these triggers, so `drizzle-kit push` will
+ * not drop or alter them.
  */
 export const demands = pgTable('demands', {
   id: uuid('id')
