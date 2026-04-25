@@ -83,7 +83,8 @@
     "build:complete": "npx tsx scripts/build.ts",
     "deploy:hooks": "npx tsx scripts/deployment-hooks.ts",
     "db:push:force": "npx drizzle-kit push --force",
-    "backfill:cross-residence-demands": "npx tsx server/scripts/backfill-cross-residence-demands.ts"
+    "backfill:cross-residence-demands": "npx tsx server/scripts/backfill-cross-residence-demands.ts",
+    "backfill:cross-assignation-demands": "npx tsx server/scripts/backfill-cross-assignation-demands.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.37.0",
