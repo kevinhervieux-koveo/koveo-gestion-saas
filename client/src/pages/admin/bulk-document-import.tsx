@@ -3912,174 +3912,198 @@ export default function BulkDocumentImportPage() {
                                 const sibIsExpanded =
                                   expandedItemIds.has(sibling.id) ||
                                   sibGroupForceExpand;
+                                // Whether the sibling's action row (Row 2) has
+                                // anything to show. When false the row is
+                                // skipped so the card doesn't reserve empty
+                                // vertical space below the filename. The lead
+                                // and sibling now share the same two-row
+                                // layout — filename on Row 1, chips/actions on
+                                // Row 2 indented by `pl-10` to align with the
+                                // filename text (Task #1033).
+                                const sibHasRow2Content =
+                                  sibIsExcluded ||
+                                  sibCanToggleExclude ||
+                                  sibSortingIsPending ||
+                                  sibSortingIsRejected;
                                 return (
                                   <div
                                     key={sibling.id}
                                     className="ml-4 border-l-2 border-border"
                                     data-testid={`branching-merge-group-sibling-${item.id}-${sibling.id}`}
                                   >
-                                    {/* Row 1: chevron + file icon + filename */}
-                                    <div className="flex items-center gap-3 p-3 flex-wrap">
-                                      {/* Chevron: spacer when group is force-expanded (any
-                                          member non-accepted), interactive toggle when the
-                                          whole group is accepted */}
-                                      {sibGroupForceExpand ? (
-                                        <span className="h-7 w-7 flex-shrink-0" aria-hidden="true" />
-                                      ) : (
+                                    {/* Two-row layout matching the lead: filename on Row 1,
+                                        chips/actions on Row 2 indented to align with the
+                                        filename (Task #1033). */}
+                                    <div className="flex flex-col gap-2 p-3">
+                                      {/* Row 1: chevron + file icon + filename */}
+                                      <div className="flex items-center gap-3">
+                                        {/* Chevron: spacer when group is force-expanded (any
+                                            member non-accepted), interactive toggle when the
+                                            whole group is accepted */}
+                                        {sibGroupForceExpand ? (
+                                          <span className="h-7 w-7 flex-shrink-0" aria-hidden="true" />
+                                        ) : (
+                                          <button
+                                            type="button"
+                                            className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded text-muted-foreground hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                            aria-expanded={sibIsExpanded}
+                                            aria-label={
+                                              sibIsExpanded
+                                                ? isFr ? 'Masquer les détails' : 'Hide details'
+                                                : isFr ? 'Afficher les détails' : 'Show details'
+                                            }
+                                            data-testid={`button-toggle-detail-${sibling.id}`}
+                                            onClick={() => toggleItemExpanded(sibling.id)}
+                                          >
+                                            {sibIsExpanded ? (
+                                              <ChevronDown className="h-4 w-4" />
+                                            ) : (
+                                              <ChevronRight className="h-4 w-4" />
+                                            )}
+                                          </button>
+                                        )}
                                         <button
                                           type="button"
-                                          className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded text-muted-foreground hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                                          aria-expanded={sibIsExpanded}
-                                          aria-label={
-                                            sibIsExpanded
-                                              ? isFr ? 'Masquer les détails' : 'Hide details'
-                                              : isFr ? 'Afficher les détails' : 'Show details'
+                                          className="flex min-w-0 flex-1 items-center gap-2 truncate text-sm text-left hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+                                          data-testid={`item-preview-trigger-${sibling.id}`}
+                                          onClick={() =>
+                                            setPreviewItem({
+                                              id: sibling.id,
+                                              originalName: sibling.originalName,
+                                              mimeType: sibling.mimeType,
+                                            })
                                           }
-                                          data-testid={`button-toggle-detail-${sibling.id}`}
-                                          onClick={() => toggleItemExpanded(sibling.id)}
                                         >
-                                          {sibIsExpanded ? (
-                                            <ChevronDown className="h-4 w-4" />
-                                          ) : (
-                                            <ChevronRight className="h-4 w-4" />
-                                          )}
+                                          <SiblingIcon className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" />
+                                          <span className="truncate">{sibling.originalName}</span>
                                         </button>
-                                      )}
-                                      <button
-                                        type="button"
-                                        className="flex min-w-0 flex-1 items-center gap-2 truncate text-sm text-left hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
-                                        data-testid={`item-preview-trigger-${sibling.id}`}
-                                        onClick={() =>
-                                          setPreviewItem({
-                                            id: sibling.id,
-                                            originalName: sibling.originalName,
-                                            mimeType: sibling.mimeType,
-                                          })
-                                        }
-                                      >
-                                        <SiblingIcon className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" />
-                                        <span className="truncate">{sibling.originalName}</span>
-                                      </button>
-                                      {/* Row 2: chips + actions (wraps below on sorting step) */}
-                                      <div
-                                        className="flex items-center gap-2 flex-wrap w-full pl-10"
-                                        onClick={(e) => e.stopPropagation()}
-                                      >
-                                        {sibSortingIsPending && !sibIsExcluded && (
-                                          <Badge
-                                            variant="outline"
-                                            className="shrink-0 border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200"
-                                            data-testid={`sorting-pending-badge-${sibling.id}`}
-                                          >
-                                            {isFr ? 'En attente' : 'Pending review'}
-                                          </Badge>
-                                        )}
-                                        {sibSortingIsRejected && !sibIsExcluded && (
-                                          <Badge
-                                            variant="outline"
-                                            className="shrink-0 border-red-300 bg-red-50 text-red-800 dark:border-red-700 dark:bg-red-950 dark:text-red-200"
-                                            data-testid={`sorting-rejected-badge-${sibling.id}`}
-                                          >
-                                            {isFr ? 'Rejeté – choix requis' : 'Rejected – choose manually'}
-                                          </Badge>
-                                        )}
-                                        {sibSortingIsPending && !sibIsExcluded && (
-                                          <>
+                                      </div>
+                                      {/* Row 2: chips + actions, indented (`pl-10`) so chips
+                                          line up under the filename — matches the lead's
+                                          two-row layout. Skipped when there are no chips or
+                                          buttons to render so the card doesn't add empty
+                                          vertical space. */}
+                                      {sibHasRow2Content && (
+                                        <div
+                                          className="flex items-center gap-2 flex-wrap pl-10"
+                                          onClick={(e) => e.stopPropagation()}
+                                        >
+                                          {sibSortingIsPending && !sibIsExcluded && (
+                                            <Badge
+                                              variant="outline"
+                                              className="shrink-0 border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200"
+                                              data-testid={`sorting-pending-badge-${sibling.id}`}
+                                            >
+                                              {isFr ? 'En attente' : 'Pending review'}
+                                            </Badge>
+                                          )}
+                                          {sibSortingIsRejected && !sibIsExcluded && (
+                                            <Badge
+                                              variant="outline"
+                                              className="shrink-0 border-red-300 bg-red-50 text-red-800 dark:border-red-700 dark:bg-red-950 dark:text-red-200"
+                                              data-testid={`sorting-rejected-badge-${sibling.id}`}
+                                            >
+                                              {isFr ? 'Rejeté – choix requis' : 'Rejected – choose manually'}
+                                            </Badge>
+                                          )}
+                                          {sibSortingIsPending && !sibIsExcluded && (
+                                            <>
+                                              <Button
+                                                size="sm"
+                                                variant="outline"
+                                                className="border-green-300 text-green-700 hover:bg-green-50 dark:border-green-700 dark:text-green-300"
+                                                disabled={sibSortingMutationPending}
+                                                data-testid={`button-sorting-accept-${sibling.id}`}
+                                                onClick={() =>
+                                                  setSortingDecision.mutate({
+                                                    itemId: sibling.id,
+                                                    action: 'accept',
+                                                  })
+                                                }
+                                              >
+                                                {sibSortingMutationPending ? (
+                                                  <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                                                ) : (
+                                                  <Check className="mr-1.5 h-3.5 w-3.5" />
+                                                )}
+                                                {isFr ? 'Accepter' : 'Accept'}
+                                              </Button>
+                                              <Button
+                                                size="sm"
+                                                variant="outline"
+                                                className="border-red-300 text-red-700 hover:bg-red-50 dark:border-red-700 dark:text-red-300"
+                                                disabled={sibSortingMutationPending}
+                                                data-testid={`button-sorting-reject-${sibling.id}`}
+                                                onClick={() => {
+                                                  const d = (sibling.sortingDecision ?? 'keep') as 'keep' | 'merge' | 'split';
+                                                  setSortingPickerStates((prev) => {
+                                                    const next = new Map(prev);
+                                                    next.set(sibling.id, {
+                                                      decision: d,
+                                                      mergeTargetId: d === 'merge' ? (sibling.sortingMergeWithItemId ?? '') : '',
+                                                      splitPage: d === 'split' ? (sibling.sortingSplitAtPage ?? 1) : 1,
+                                                    });
+                                                    return next;
+                                                  });
+                                                  setSortingDecision.mutate({
+                                                    itemId: sibling.id,
+                                                    action: 'reject',
+                                                  });
+                                                }}
+                                              >
+                                                <X className="mr-1.5 h-3.5 w-3.5" />
+                                                {isFr ? 'Rejeter' : 'Reject'}
+                                              </Button>
+                                            </>
+                                          )}
+                                          {sibCanToggleExclude && !sibIsExcluded && (
                                             <Button
                                               size="sm"
-                                              variant="outline"
-                                              className="border-green-300 text-green-700 hover:bg-green-50 dark:border-green-700 dark:text-green-300"
-                                              disabled={sibSortingMutationPending}
-                                              data-testid={`button-sorting-accept-${sibling.id}`}
+                                              variant="ghost"
+                                              className="h-7 w-7 p-0 flex-shrink-0"
                                               onClick={() =>
-                                                setSortingDecision.mutate({
+                                                toggleExclude.mutate({
                                                   itemId: sibling.id,
-                                                  action: 'accept',
+                                                  excluded: true,
                                                 })
                                               }
+                                              disabled={sibTogglePending}
+                                              aria-label={isFr ? 'Exclure le fichier' : 'Exclude file'}
+                                              title={isFr ? 'Exclure' : 'Exclude'}
+                                              data-testid={`button-toggle-exclude-${sibling.id}`}
                                             >
-                                              {sibSortingMutationPending ? (
-                                                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                                              {sibTogglePending ? (
+                                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
                                               ) : (
-                                                <Check className="mr-1.5 h-3.5 w-3.5" />
+                                                <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />
                                               )}
-                                              {isFr ? 'Accepter' : 'Accept'}
                                             </Button>
+                                          )}
+                                          {sibIsExcluded && (
                                             <Button
                                               size="sm"
-                                              variant="outline"
-                                              className="border-red-300 text-red-700 hover:bg-red-50 dark:border-red-700 dark:text-red-300"
-                                              disabled={sibSortingMutationPending}
-                                              data-testid={`button-sorting-reject-${sibling.id}`}
-                                              onClick={() => {
-                                                const d = (sibling.sortingDecision ?? 'keep') as 'keep' | 'merge' | 'split';
-                                                setSortingPickerStates((prev) => {
-                                                  const next = new Map(prev);
-                                                  next.set(sibling.id, {
-                                                    decision: d,
-                                                    mergeTargetId: d === 'merge' ? (sibling.sortingMergeWithItemId ?? '') : '',
-                                                    splitPage: d === 'split' ? (sibling.sortingSplitAtPage ?? 1) : 1,
-                                                  });
-                                                  return next;
-                                                });
-                                                setSortingDecision.mutate({
+                                              variant="ghost"
+                                              className="h-7 w-7 p-0 flex-shrink-0"
+                                              onClick={() =>
+                                                toggleExclude.mutate({
                                                   itemId: sibling.id,
-                                                  action: 'reject',
-                                                });
-                                              }}
+                                                  excluded: false,
+                                                })
+                                              }
+                                              disabled={sibTogglePending}
+                                              aria-label={isFr ? 'Réintégrer le fichier' : 'Restore file'}
+                                              title={isFr ? 'Réintégrer' : 'Restore'}
+                                              data-testid={`button-toggle-exclude-${sibling.id}`}
                                             >
-                                              <X className="mr-1.5 h-3.5 w-3.5" />
-                                              {isFr ? 'Rejeter' : 'Reject'}
+                                              {sibTogglePending ? (
+                                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                              ) : (
+                                                <Eye className="h-3.5 w-3.5 text-muted-foreground" />
+                                              )}
                                             </Button>
-                                          </>
-                                        )}
-                                        {sibCanToggleExclude && !sibIsExcluded && (
-                                          <Button
-                                            size="sm"
-                                            variant="ghost"
-                                            className="h-7 w-7 p-0 flex-shrink-0"
-                                            onClick={() =>
-                                              toggleExclude.mutate({
-                                                itemId: sibling.id,
-                                                excluded: true,
-                                              })
-                                            }
-                                            disabled={sibTogglePending}
-                                            aria-label={isFr ? 'Exclure le fichier' : 'Exclude file'}
-                                            title={isFr ? 'Exclure' : 'Exclude'}
-                                            data-testid={`button-toggle-exclude-${sibling.id}`}
-                                          >
-                                            {sibTogglePending ? (
-                                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                            ) : (
-                                              <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />
-                                            )}
-                                          </Button>
-                                        )}
-                                        {sibIsExcluded && (
-                                          <Button
-                                            size="sm"
-                                            variant="ghost"
-                                            className="h-7 w-7 p-0 flex-shrink-0"
-                                            onClick={() =>
-                                              toggleExclude.mutate({
-                                                itemId: sibling.id,
-                                                excluded: false,
-                                              })
-                                            }
-                                            disabled={sibTogglePending}
-                                            aria-label={isFr ? 'Réintégrer le fichier' : 'Restore file'}
-                                            title={isFr ? 'Réintégrer' : 'Restore'}
-                                            data-testid={`button-toggle-exclude-${sibling.id}`}
-                                          >
-                                            {sibTogglePending ? (
-                                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                            ) : (
-                                              <Eye className="h-3.5 w-3.5 text-muted-foreground" />
-                                            )}
-                                          </Button>
-                                        )}
-                                      </div>
+                                          )}
+                                        </div>
+                                      )}
                                     </div>
                                     {/* Detail panel: always visible when pending/rejected (force-expanded),
                                         toggled by chevron when accepted */}
