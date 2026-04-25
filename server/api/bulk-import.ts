@@ -702,7 +702,8 @@ export function registerBulkImportRoutes(app: Express): void {
    *
    * Body: `{ excluded: boolean }`. Idempotent in both directions.
    * Validates that the requesting admin actually belongs to (or has
-   * cross-org access to) the session's organization before mutating.
+   * cross-org access to) the session's organization before mutating
+   * (Task #720 covers this guard end-to-end against real Postgres).
    */
   const excludeItemSchema = z.object({ excluded: z.boolean() });
   app.patch(

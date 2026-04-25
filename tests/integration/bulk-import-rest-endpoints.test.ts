@@ -72,6 +72,10 @@ describeIfDb('bulk-import REST endpoints — Task #456', () => {
     building: crypto.randomUUID(),
     admin: crypto.randomUUID(),
     nonAdmin: crypto.randomUUID(),
+    // Second admin user with NO `userOrganizations` link to `ids.org`
+    // — used by the exclude-endpoint 403 test (Task #720) to prove the
+    // org-scope guard rejects cross-org admins.
+    foreignAdmin: crypto.randomUUID(),
   };
 
   // Sessions/items created during tests are tracked here for cleanup.
@@ -156,7 +160,28 @@ describeIfDb('bulk-import REST endpoints — Task #456', () => {
         role: 'manager',
         isActive: true,
       },
+      {
+        id: ids.foreignAdmin,
+        username: `${TEST_TAG}-other-${ids.foreignAdmin.slice(0, 8)}`,
+        email: `${ids.foreignAdmin}@${TEST_TAG}.test`,
+        password: 'unused-bcrypt-hash',
+        firstName: 'Bulk',
+        lastName: 'Outsider',
+        role: 'admin',
+        isActive: true,
+      },
     ]);
+
+    // Link the primary admin to the test organization so the
+    // `canUserAccessOrganization` guard on the exclude endpoint
+    // succeeds. The foreign admin is intentionally NOT linked so
+    // they exercise the 403 path.
+    await db.insert(schema.userOrganizations).values({
+      userId: ids.admin,
+      organizationId: ids.org,
+      organizationRole: 'admin',
+      isActive: true,
+    });
   }, 30_000);
 
   afterAll(async () => {
@@ -180,9 +205,22 @@ describeIfDb('bulk-import REST endpoints — Task #456', () => {
         }
       }
     }
+    // Drop the org link before the user/org rows so the FK cascade
+    // doesn't surprise us if the row was inserted manually.
+    await db
+      .delete(schema.userOrganizations)
+      .where(
+        inArray(schema.userOrganizations.userId, [
+          ids.admin,
+          ids.nonAdmin,
+          ids.foreignAdmin,
+        ]),
+      );
     await db
       .delete(schema.users)
-      .where(inArray(schema.users.id, [ids.admin, ids.nonAdmin]));
+      .where(
+        inArray(schema.users.id, [ids.admin, ids.nonAdmin, ids.foreignAdmin]),
+      );
     await db.delete(schema.buildings).where(eq(schema.buildings.id, ids.building));
     await db.delete(schema.organizations).where(eq(schema.organizations.id, ids.org));
   }, 30_000);
@@ -748,4 +786,144 @@ describeIfDb('bulk-import REST endpoints — Task #456', () => {
       screenAllInProgress.delete(sid);
     }
   }, 15_000);
+
+  /**
+   * Task #720: end-to-end coverage for the manual exclude toggle.
+   *
+   * The wizard's `Exclude` button hits
+   * `PATCH /api/admin/bulk-import/items/:itemId/exclude` with a
+   * `{ exclude: boolean }` body. The four scenarios below exercise:
+   *
+   *   1. Excluding flips `status` to `rejected` and parks the previous
+   *      status in `preExcludeStatus`.
+   *   2. Un-excluding restores the original status and clears
+   *      `preExcludeStatus`.
+   *   3. `committed` and `duplicate` items are 400 (terminal states).
+   *   4. An admin from a different org (no `userOrganizations` link)
+   *      gets 403 — proves the `canUserAccessOrganization` guard runs.
+   *
+   * All four hit the real Postgres so we know the schema column and
+   * route handler agree end-to-end, not just at the type-checker
+   * level.
+   */
+  describe('PATCH /items/:itemId/exclude (Task #720)', () => {
+    /**
+     * Helper: stage one PDF item in a fresh session and force its
+     * status to `screened` so the round-trip can prove that the
+     * pre-exclude status really is restored (not silently coerced
+     * back to `pending`).
+     */
+    async function seedScreenedItem(): Promise<{ sid: string; itemId: string }> {
+      const sid = await createSession();
+      const upload = await request(app)
+        .post(`/api/admin/bulk-import/sessions/${sid}/items`)
+        .set('x-test-user-id', ids.admin)
+        .attach('files', PDF_BODY, {
+          filename: 'exclude-me.pdf',
+          contentType: 'application/pdf',
+        });
+      expect(upload.status).toBe(201);
+      const item = upload.body[0];
+      trackedItems.add(item.id);
+      await db
+        .update(schema.bulkImportItems)
+        .set({ status: 'screened' })
+        .where(eq(schema.bulkImportItems.id, item.id));
+      return { sid, itemId: item.id };
+    }
+
+    it('flips status to rejected and stores preExcludeStatus when excluding', async () => {
+      const { itemId } = await seedScreenedItem();
+
+      const res = await request(app)
+        .patch(`/api/admin/bulk-import/items/${itemId}/exclude`)
+        .set('x-test-user-id', ids.admin)
+        .send({ excluded: true });
+      expect(res.status).toBe(200);
+      expect(res.body.status).toBe('rejected');
+      expect(res.body.preExcludeStatus).toBe('screened');
+
+      const [row] = await db
+        .select()
+        .from(schema.bulkImportItems)
+        .where(eq(schema.bulkImportItems.id, itemId));
+      expect(row.status).toBe('rejected');
+      expect(row.preExcludeStatus).toBe('screened');
+    });
+
+    it('restores the original status and clears preExcludeStatus when un-excluding', async () => {
+      const { itemId } = await seedScreenedItem();
+
+      const excl = await request(app)
+        .patch(`/api/admin/bulk-import/items/${itemId}/exclude`)
+        .set('x-test-user-id', ids.admin)
+        .send({ excluded: true });
+      expect(excl.status).toBe(200);
+      expect(excl.body.preExcludeStatus).toBe('screened');
+
+      const restore = await request(app)
+        .patch(`/api/admin/bulk-import/items/${itemId}/exclude`)
+        .set('x-test-user-id', ids.admin)
+        .send({ excluded: false });
+      expect(restore.status).toBe(200);
+      expect(restore.body.status).toBe('screened');
+      expect(restore.body.preExcludeStatus).toBeNull();
+
+      const [row] = await db
+        .select()
+        .from(schema.bulkImportItems)
+        .where(eq(schema.bulkImportItems.id, itemId));
+      expect(row.status).toBe('screened');
+      expect(row.preExcludeStatus).toBeNull();
+    });
+
+    it('returns 400 for committed and duplicate items', async () => {
+      // Committed item — force the terminal status straight on the row
+      // (the real commit path inserts a documents row which would
+      // require way more fixture setup than this guard test needs).
+      const { itemId: committedId } = await seedScreenedItem();
+      await db
+        .update(schema.bulkImportItems)
+        .set({ status: 'committed' })
+        .where(eq(schema.bulkImportItems.id, committedId));
+
+      const committed = await request(app)
+        .patch(`/api/admin/bulk-import/items/${committedId}/exclude`)
+        .set('x-test-user-id', ids.admin)
+        .send({ excluded: true });
+      expect(committed.status).toBe(400);
+
+      // Duplicate item — set the status directly so we don't have to
+      // actually re-upload an identical file.
+      const { itemId: dupeId } = await seedScreenedItem();
+      await db
+        .update(schema.bulkImportItems)
+        .set({ status: 'duplicate' })
+        .where(eq(schema.bulkImportItems.id, dupeId));
+
+      const dupe = await request(app)
+        .patch(`/api/admin/bulk-import/items/${dupeId}/exclude`)
+        .set('x-test-user-id', ids.admin)
+        .send({ excluded: true });
+      expect(dupe.status).toBe(400);
+    });
+
+    it("returns 403 for a cross-org admin (no userOrganizations link)", async () => {
+      const { itemId } = await seedScreenedItem();
+
+      const res = await request(app)
+        .patch(`/api/admin/bulk-import/items/${itemId}/exclude`)
+        .set('x-test-user-id', ids.foreignAdmin)
+        .send({ excluded: true });
+      expect(res.status).toBe(403);
+
+      // And the row must not have been touched.
+      const [row] = await db
+        .select()
+        .from(schema.bulkImportItems)
+        .where(eq(schema.bulkImportItems.id, itemId));
+      expect(row.status).toBe('screened');
+      expect(row.preExcludeStatus).toBeNull();
+    });
+  });
 });

@@ -109,11 +109,15 @@ export const bulkImportItems = pgTable(
     status: bulkImportItemStatusEnum('status').notNull().default('pending'),
     /**
      * Set when the admin manually excludes an item from the bulk-import
-     * pipeline (Task #717). Holds the status the item was in just
-     * before exclusion so a subsequent un-exclude can restore the row
-     * to exactly where it was — for example, an item screened by the
-     * AI then excluded will come back as `screened`, not `pending`.
-     * Null whenever the item is not currently excluded.
+     * pipeline via `PATCH /api/admin/bulk-import/items/:id/exclude`
+     * (Task #717). Holds the status the item was in just before
+     * exclusion so a subsequent un-exclude can restore the row to
+     * exactly where it was — for example, an item screened by the AI
+     * then excluded will come back as `screened`, not `pending`. Stays
+     * NULL whenever the item is not currently excluded, so the column
+     * doubles as the "is currently excluded" flag (rejected + non-null
+     * = manually excluded). Round-trip is covered by the integration
+     * tests in Task #720.
      */
     preExcludeStatus: bulkImportItemStatusEnum('pre_exclude_status'),
     screening: jsonb('screening').$type<Record<string, unknown>>(),
