@@ -12,7 +12,7 @@ import {
 import { Eye, EyeOff, Pencil, Save, X, Loader2 } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 import type { Translations } from '@/lib/i18n';
-import { parseDateOnly } from '@/lib/utils';
+import { parseDateOnly, snapToLocalDay } from '@/lib/utils';
 
 const STATUS_LABEL_KEYS: Record<string, keyof Translations> = {
   planned: 'planned',
@@ -292,9 +292,15 @@ export function GanttChart({
     let newStart = editingDates.startTs;
     let newEnd = editingDates.endTs;
     if (dragMode === 'move') {
-      newStart = editingDates.startTs + dragOffsetMs;
-      newEnd = editingDates.endTs + dragOffsetMs;
-      // Clamp to domain (preserve duration)
+      // Snap the slide by snapping the proposed start to local midnight and
+      // shifting the end by the same delta so duration is preserved exactly.
+      const tentativeStart = editingDates.startTs + dragOffsetMs;
+      const snappedStart = snapToLocalDay(tentativeStart);
+      const snapDelta = snappedStart - tentativeStart;
+      newStart = snappedStart;
+      newEnd = editingDates.endTs + dragOffsetMs + snapDelta;
+      // Clamp to domain (preserve duration). Domain edges are already
+      // padded to month boundaries (local midnight) in the memo above.
       if (newStart < domain[0]) {
         newStart = domain[0];
         newEnd = domain[0] + dur;
@@ -304,13 +310,13 @@ export function GanttChart({
         newStart = domain[1] - dur;
       }
     } else if (dragMode === 'resize-left') {
-      newStart = editingDates.startTs + dragOffsetMs;
+      newStart = snapToLocalDay(editingDates.startTs + dragOffsetMs);
       // Clamp: cannot go past domain start, must keep at least 1 day duration
       if (newStart < domain[0]) newStart = domain[0];
       const maxStart = editingDates.endTs - DAY_MS;
       if (newStart > maxStart) newStart = maxStart;
     } else if (dragMode === 'resize-right') {
-      newEnd = editingDates.endTs + dragOffsetMs;
+      newEnd = snapToLocalDay(editingDates.endTs + dragOffsetMs);
       // Clamp: cannot exceed domain end, must keep at least 1 day duration
       if (newEnd > domain[1]) newEnd = domain[1];
       const minEnd = editingDates.startTs + DAY_MS;

@@ -318,6 +318,142 @@ describe('GanttChart drag overlay gestures', () => {
     });
   });
 
+  describe('whole-day snapping (task #851)', () => {
+    // The component computes pixel-derived offsets in millisecond precision.
+    // Without snapping, sub-day deltas would produce committed timestamps
+    // that drift away from local midnight. These tests use a wider domain
+    // so 1px maps to many hours and the snapping behavior is observable.
+    const WIDE_DATE_RANGE = { start: '2024-01-01', end: '2026-12-31' };
+    const wideDomainStartMs = parseDateOnly('2024-01-01')!.getTime();
+    const wideDomainEndMs = parseDateOnly('2027-01-01')!.getTime();
+    const wideDomainSpanMs = wideDomainEndMs - wideDomainStartMs;
+    // Use a small plot width so a single pixel covers many hours.
+    const WIDE_PLOT_PX = 100;
+    const WIDE_TIMELINE_CLIENT_WIDTH = WIDE_PLOT_PX + RECHARTS_RIGHT_MARGIN;
+    const msPerPixel = wideDomainSpanMs / WIDE_PLOT_PX;
+
+    function renderWideChart(): RenderResult {
+      const onDragEnd = jest.fn();
+      render(
+        <GanttChart
+          projects={projects}
+          dateRange={WIDE_DATE_RANGE}
+          language="en"
+          editingProjectId={PROJECT_ID}
+          editingDates={initialEditing}
+          onStartEdit={jest.fn()}
+          onSave={jest.fn()}
+          onCancel={jest.fn()}
+          onDragEnd={onDragEnd}
+        />,
+      );
+      const overlay = screen.getByTestId(`gantt-drag-overlay-${PROJECT_ID}`);
+      const resizeLeft = screen.getByTestId(`gantt-resize-left-${PROJECT_ID}`);
+      const resizeRight = screen.getByTestId(`gantt-resize-right-${PROJECT_ID}`);
+      Object.defineProperty(overlay.parentElement!, 'clientWidth', {
+        configurable: true,
+        value: WIDE_TIMELINE_CLIENT_WIDTH,
+      });
+      return { onDragEnd, overlay, resizeLeft, resizeRight };
+    }
+
+    function expectMidnight(ts: number): void {
+      const d = new Date(ts);
+      expect(d.getHours()).toBe(0);
+      expect(d.getMinutes()).toBe(0);
+      expect(d.getSeconds()).toBe(0);
+      expect(d.getMilliseconds()).toBe(0);
+    }
+
+    it('commits a slide gesture aligned to local midnight on both ends', () => {
+      const { onDragEnd, overlay } = renderWideChart();
+      // 1 pixel maps to several hours (~10.95 days) — clearly sub-day.
+      // Confirm our setup actually produces a sub-day raw delta.
+      expect(msPerPixel).toBeGreaterThan(DAY_MS);
+      performGesture(overlay, 50, 51);
+
+      expect(onDragEnd).toHaveBeenCalledTimes(1);
+      const [, newStart, newEnd] = onDragEnd.mock.calls[0] as [
+        string,
+        number,
+        number,
+      ];
+      expectMidnight(newStart);
+      expectMidnight(newEnd);
+      // Duration is preserved exactly.
+      expect(newEnd - newStart).toBe(endMs - startMs);
+    });
+
+    it('commits a resize-left gesture with the new start aligned to local midnight', () => {
+      const { onDragEnd, resizeLeft } = renderWideChart();
+      performGesture(resizeLeft, 50, 51);
+
+      expect(onDragEnd).toHaveBeenCalledTimes(1);
+      const [, newStart, newEnd] = onDragEnd.mock.calls[0] as [
+        string,
+        number,
+        number,
+      ];
+      expectMidnight(newStart);
+      // End is unchanged for resize-left.
+      expect(newEnd).toBe(endMs);
+    });
+
+    it('commits a resize-right gesture with the new end aligned to local midnight', () => {
+      const { onDragEnd, resizeRight } = renderWideChart();
+      performGesture(resizeRight, 50, 51);
+
+      expect(onDragEnd).toHaveBeenCalledTimes(1);
+      const [, newStart, newEnd] = onDragEnd.mock.calls[0] as [
+        string,
+        number,
+        number,
+      ];
+      expect(newStart).toBe(startMs);
+      expectMidnight(newEnd);
+    });
+
+    it('updates the floating chips in whole-day increments while dragging', () => {
+      const { overlay } = renderWideChart();
+      // Each pixel covers ~10.95 days. Sub-day pixel moves on the same
+      // snapped day must show the SAME chip text (proving snapping). A
+      // bigger pixel move that crosses to the next snapped day must show
+      // DIFFERENT chip text (proving the chip is not frozen).
+      act(() => {
+        fireEvent.pointerDown(overlay, { clientX: 50, pointerId: 1, button: 0 });
+      });
+
+      act(() => {
+        fireEvent.pointerMove(overlay, { clientX: 50, pointerId: 1 });
+      });
+      const chipAtZero = screen.getByTestId(
+        `gantt-drag-chip-start-${PROJECT_ID}`,
+      ).textContent;
+      expect(chipAtZero).toBeTruthy();
+
+      // Move 0 px (no change) → chip stays the same.
+      act(() => {
+        fireEvent.pointerMove(overlay, { clientX: 50, pointerId: 1 });
+      });
+      expect(
+        screen.getByTestId(`gantt-drag-chip-start-${PROJECT_ID}`).textContent,
+      ).toBe(chipAtZero);
+
+      // Move +5 px (~+55 days, well past one day) → chip must change.
+      act(() => {
+        fireEvent.pointerMove(overlay, { clientX: 55, pointerId: 1 });
+      });
+      const chipAfterBigMove = screen.getByTestId(
+        `gantt-drag-chip-start-${PROJECT_ID}`,
+      ).textContent;
+      expect(chipAfterBigMove).not.toBe(chipAtZero);
+
+      act(() => {
+        fireEvent.pointerUp(overlay, { clientX: 55, pointerId: 1 });
+      });
+    });
+  });
+
   describe('resize-handle pointerdown isolation', () => {
     it('does not also trigger the slide/move gesture when a resize handle is used', () => {
       // If stopPropagation were missing, the parent overlay's onPointerDown

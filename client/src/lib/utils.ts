@@ -135,6 +135,44 @@ export function parseDateOnly(value: string | null | undefined): Date | null {
 }
 
 /**
+ * Snaps a millisecond timestamp to the nearest local-time midnight.
+ *
+ * Used by gestures that compute pixel-derived offsets (e.g. the Gantt chart
+ * drag/resize) so the resulting start/end timestamps land on whole calendar
+ * days rather than arbitrary sub-day timestamps. DST is handled correctly by
+ * relying on the local `Date` constructor instead of arithmetic on a fixed
+ * 24-hour millisecond constant.
+ *
+ * @param ts - A millisecond timestamp.
+ * @returns The timestamp of the nearest local midnight (either the start of
+ *          the same day or the start of the following day).
+ * @example
+ * ```typescript
+ * // 2026-06-15 10:00 local -> 2026-06-15 00:00 local
+ * snapToLocalDay(new Date(2026, 5, 15, 10).getTime());
+ * // 2026-06-15 18:00 local -> 2026-06-16 00:00 local
+ * snapToLocalDay(new Date(2026, 5, 15, 18).getTime());
+ * ```
+ */
+export function snapToLocalDay(ts: number): number {
+  if (!Number.isFinite(ts)) {
+    return ts;
+  }
+  const d = new Date(ts);
+  const startOfDay = new Date(
+    d.getFullYear(),
+    d.getMonth(),
+    d.getDate(),
+  ).getTime();
+  const startOfNextDay = new Date(
+    d.getFullYear(),
+    d.getMonth(),
+    d.getDate() + 1,
+  ).getTime();
+  return ts - startOfDay < startOfNextDay - ts ? startOfDay : startOfNextDay;
+}
+
+/**
  * Safely formats a date to ISO date string (YYYY-MM-DD) with comprehensive error handling.
  * Handles various date input formats and provides graceful fallbacks for invalid dates.
  * 
