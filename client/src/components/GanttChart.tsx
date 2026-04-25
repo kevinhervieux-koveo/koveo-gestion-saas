@@ -482,7 +482,7 @@ export function GanttChart({
                 position: 'sticky',
                 left: 0,
                 zIndex: 4,
-                background: 'hsl(var(--background))',
+                background: 'hsl(var(--card))',
                 borderRight: '1px solid hsl(var(--border))',
                 height: HEADER_HEIGHT,
               }}
@@ -551,13 +551,15 @@ export function GanttChart({
             height: chartHeight,
           }}
         >
-          {/* Sticky labels column */}
+          {/* Sticky labels column — solid card surface so the chart's
+              dashed gridlines and bars don't visually bleed through the
+              project names while the timeline scrolls horizontally. */}
           <div
             style={{
               position: 'sticky',
               left: 0,
               zIndex: 2,
-              background: 'hsl(var(--background))',
+              background: 'hsl(var(--card))',
               borderRight: '1px solid hsl(var(--border))',
               height: chartHeight,
               boxSizing: 'border-box',
