@@ -62,13 +62,19 @@ const SESSION_ID = 'session-test-804';
 const INCLUDED_ITEM_ID = 'item-included';
 const EXCLUDED_ITEM_ID = 'item-excluded';
 
-function buildItem(id: string, status: string, branch?: string) {
+function buildItem(
+  id: string,
+  status: string,
+  branch?: string,
+  excludeSource: string | null = null,
+) {
   return {
     id,
     originalName: `${id}.pdf`,
     mimeType: 'application/pdf',
     status,
     preExcludeStatus: null,
+    excludeSource,
     branch: branch ?? null,
     subCategory: null,
     branchManualOverride: false,
@@ -199,7 +205,38 @@ describe('BulkDocumentImportPage — excluded file visibility (Task #804)', () =
     await screen.findByTestId(`item-row-${EXCLUDED_ITEM_ID}`);
 
     expect(screen.getByTestId(`item-row-${EXCLUDED_ITEM_ID}`)).toBeInTheDocument();
-    expect(screen.getByTestId(`badge-excluded-${EXCLUDED_ITEM_ID}`)).toBeInTheDocument();
+    const badge = screen.getByTestId(`badge-excluded-${EXCLUDED_ITEM_ID}`);
+    expect(badge).toBeInTheDocument();
+    // No excludeSource → generic "Excluded" badge, not the "Previously
+    // excluded" one. Locks the default copy in place so the prior-
+    // session branch below cannot silently flip it.
+    expect(badge).toHaveTextContent('Excluded');
+    expect(badge).not.toHaveTextContent('Previously excluded');
+  });
+
+  /**
+   * Task #858: items that the upload handler auto-excluded because the
+   * file's content hash matched a fingerprint persisted from a previous
+   * session must render the "Previously excluded" badge instead of the
+   * generic "Excluded" one. The handler signals this by setting
+   * `excludeSource = 'prior_session'` on the item row.
+   */
+  it('renders "Previously excluded" badge when excludeSource === "prior_session"', async () => {
+    const items = [
+      buildItem(INCLUDED_ITEM_ID, 'screened'),
+      buildItem(EXCLUDED_ITEM_ID, 'rejected', undefined, 'prior_session'),
+    ];
+    setupTest('screening', items);
+
+    renderPage();
+
+    await screen.findByTestId(`item-row-${INCLUDED_ITEM_ID}`, undefined, { timeout: 4000 });
+    const badge = await screen.findByTestId(`badge-excluded-${EXCLUDED_ITEM_ID}`);
+    expect(badge).toHaveTextContent('Previously excluded');
+    // The plain "Excluded" badge text must not also appear inside the
+    // same node — guards against a regression that drops the
+    // excludeSource branch and falls back to the default label.
+    expect(badge.textContent).not.toMatch(/^Excluded$/);
   });
 
   // ---------------------------------------------------------------------------

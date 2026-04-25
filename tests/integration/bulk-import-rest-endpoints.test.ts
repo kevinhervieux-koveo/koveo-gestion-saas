@@ -48,7 +48,7 @@ import request from 'supertest';
 import crypto from 'crypto';
 import fs from 'fs';
 import nodePath from 'path';
-import { eq, inArray } from 'drizzle-orm';
+import { and, eq, inArray } from 'drizzle-orm';
 
 const REAL_DB_URL = process.env._INTEGRATION_DB_URL;
 const TEST_TAG = 'task456-bulk-import-rest';
@@ -926,6 +926,204 @@ describeIfDb('bulk-import REST endpoints — Task #456', () => {
         .where(eq(schema.bulkImportItems.id, itemId));
       expect(row.status).toBe('screened');
       expect(row.preExcludeStatus).toBeNull();
+    });
+  });
+
+  /**
+   * Task #858: end-to-end coverage for the persistent exclusion memory
+   * flow added in Task #847.
+   *
+   * The two scenarios below exercise the cross-session round-trip that
+   * the upload handler + exclude toggle keep in sync via the
+   * `client_excluded_fingerprints` cache:
+   *
+   *   1. Upload → exclude → re-upload (in a brand-new session): the
+   *      second upload must auto-exclude the file because its content
+   *      hash matches the persisted fingerprint. The new row is born
+   *      `rejected` with `excludeSource='prior_session'` so the wizard
+   *      can render the "Previously excluded" badge instead of the
+   *      generic one.
+   *   2. Un-excluding an auto-excluded item: deletes the fingerprint
+   *      row for the org+hash AND restores the item to its
+   *      preExcludeStatus, with `excludeSource` cleared so the row no
+   *      longer reads as auto-excluded.
+   *
+   * Both run against real Postgres so we know the schema column, route
+   * handler, and transactional upsert/delete agree end-to-end.
+   */
+  describe('persistent exclusion memory across sessions (Task #858)', () => {
+    /**
+     * Per-test cleanup tag for the fingerprint cache: we cannot rely on
+     * the org cascade until afterAll, but back-to-back tests in this
+     * block must not see each other's persisted fingerprints, so we
+     * delete every fingerprint scoped to the test org before each run.
+     */
+    beforeEach(async () => {
+      if (!REAL_DB_URL) return;
+      await db
+        .delete(schema.clientExcludedFingerprints)
+        .where(eq(schema.clientExcludedFingerprints.organizationId, ids.org));
+    });
+
+    afterAll(async () => {
+      if (!REAL_DB_URL || !db) return;
+      await db
+        .delete(schema.clientExcludedFingerprints)
+        .where(eq(schema.clientExcludedFingerprints.organizationId, ids.org));
+    });
+
+    /**
+     * Body bytes are unique-per-test so a stray fingerprint row left
+     * behind by a previous run would not silently make the assertion
+     * pass on the *first* upload. The hash is recomputed from these
+     * bytes for the assertions further down.
+     */
+    function fingerprintBody(tag: string): Buffer {
+      return Buffer.concat([PDF_BODY, Buffer.from(`task858:${tag}`)]);
+    }
+
+    it('re-uploading an excluded file in a new session auto-excludes it with excludeSource=prior_session', async () => {
+      const body = fingerprintBody('reupload');
+      const expectedHash = crypto.createHash('sha256').update(body).digest('hex');
+
+      // Session A: upload, then manually exclude. The exclude toggle
+      // is what writes the fingerprint into client_excluded_fingerprints.
+      const sidA = await createSession();
+      const uploadA = await request(app)
+        .post(`/api/admin/bulk-import/sessions/${sidA}/items`)
+        .set('x-test-user-id', ids.admin)
+        .attach('files', body, {
+          filename: 'memory.pdf',
+          contentType: 'application/pdf',
+        });
+      expect(uploadA.status).toBe(201);
+      const itemA = uploadA.body[0];
+      trackedItems.add(itemA.id);
+      // Born clean, never seen before in this org.
+      expect(itemA.status).toBe('pending');
+      expect(itemA.excludeSource).toBeNull();
+
+      const exclude = await request(app)
+        .patch(`/api/admin/bulk-import/items/${itemA.id}/exclude`)
+        .set('x-test-user-id', ids.admin)
+        .send({ excluded: true });
+      expect(exclude.status).toBe(200);
+      expect(exclude.body.status).toBe('rejected');
+
+      // The fingerprint must now be persisted for this org+hash.
+      const fp = await db
+        .select()
+        .from(schema.clientExcludedFingerprints)
+        .where(
+          and(
+            eq(schema.clientExcludedFingerprints.organizationId, ids.org),
+            eq(schema.clientExcludedFingerprints.contentHash, expectedHash),
+          ),
+        );
+      expect(fp).toHaveLength(1);
+      expect(fp[0].source).toBe('manual');
+
+      // Clear session A so the next createSession() does not return
+      // the same active session id (the upload endpoint is idempotent
+      // per admin+building).
+      const delA = await request(app)
+        .delete(`/api/admin/bulk-import/sessions/${sidA}`)
+        .set('x-test-user-id', ids.admin);
+      expect(delA.status).toBe(200);
+      // The cascade dropped itemA so beforeEach should not retry it.
+      trackedItems.delete(itemA.id);
+
+      // Session B: re-upload the same bytes. The handler must consult
+      // the persisted fingerprint and create the new row already in
+      // the excluded state with the prior-session marker.
+      const sidB = await createSession();
+      const uploadB = await request(app)
+        .post(`/api/admin/bulk-import/sessions/${sidB}/items`)
+        .set('x-test-user-id', ids.admin)
+        .attach('files', body, {
+          filename: 'memory.pdf',
+          contentType: 'application/pdf',
+        });
+      expect(uploadB.status).toBe(201);
+      const itemB = uploadB.body[0];
+      trackedItems.add(itemB.id);
+
+      expect(itemB.status).toBe('rejected');
+      expect(itemB.preExcludeStatus).toBe('pending');
+      expect(itemB.excludeSource).toBe('prior_session');
+      expect(itemB.contentHash).toBe(expectedHash);
+
+      // And the persisted row matches what the API returned.
+      const [rowB] = await db
+        .select()
+        .from(schema.bulkImportItems)
+        .where(eq(schema.bulkImportItems.id, itemB.id));
+      expect(rowB.status).toBe('rejected');
+      expect(rowB.preExcludeStatus).toBe('pending');
+      expect(rowB.excludeSource).toBe('prior_session');
+    });
+
+    it('un-excluding an auto-excluded item deletes the fingerprint and restores the row', async () => {
+      const body = fingerprintBody('unexclude');
+      const expectedHash = crypto.createHash('sha256').update(body).digest('hex');
+
+      // Seed the fingerprint cache directly so the very first upload
+      // for this org+hash is auto-excluded — there is no need to walk
+      // the full upload→exclude→re-upload path twice.
+      await db.insert(schema.clientExcludedFingerprints).values({
+        organizationId: ids.org,
+        contentHash: expectedHash,
+        source: 'manual',
+      });
+
+      const sid = await createSession();
+      const upload = await request(app)
+        .post(`/api/admin/bulk-import/sessions/${sid}/items`)
+        .set('x-test-user-id', ids.admin)
+        .attach('files', body, {
+          filename: 'auto-excluded.pdf',
+          contentType: 'application/pdf',
+        });
+      expect(upload.status).toBe(201);
+      const item = upload.body[0];
+      trackedItems.add(item.id);
+
+      // Sanity: the upload handler honored the persisted fingerprint.
+      expect(item.status).toBe('rejected');
+      expect(item.preExcludeStatus).toBe('pending');
+      expect(item.excludeSource).toBe('prior_session');
+
+      // Un-exclude — must remove the fingerprint row AND restore the
+      // item to its pre-exclusion status with excludeSource cleared.
+      const restore = await request(app)
+        .patch(`/api/admin/bulk-import/items/${item.id}/exclude`)
+        .set('x-test-user-id', ids.admin)
+        .send({ excluded: false });
+      expect(restore.status).toBe(200);
+      expect(restore.body.status).toBe('pending');
+      expect(restore.body.preExcludeStatus).toBeNull();
+      expect(restore.body.excludeSource).toBeNull();
+
+      // The fingerprint row for this org+hash is gone.
+      const fpAfter = await db
+        .select()
+        .from(schema.clientExcludedFingerprints)
+        .where(
+          and(
+            eq(schema.clientExcludedFingerprints.organizationId, ids.org),
+            eq(schema.clientExcludedFingerprints.contentHash, expectedHash),
+          ),
+        );
+      expect(fpAfter).toHaveLength(0);
+
+      // And the persisted item row matches what the API returned.
+      const [row] = await db
+        .select()
+        .from(schema.bulkImportItems)
+        .where(eq(schema.bulkImportItems.id, item.id));
+      expect(row.status).toBe('pending');
+      expect(row.preExcludeStatus).toBeNull();
+      expect(row.excludeSource).toBeNull();
     });
   });
 });
