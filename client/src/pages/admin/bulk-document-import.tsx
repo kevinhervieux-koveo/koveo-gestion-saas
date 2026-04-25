@@ -2129,8 +2129,11 @@ export default function BulkDocumentImportPage() {
                       // Group items by destination branch. Items without a
                       // branch (old sessions or not-yet-routed) go under
                       // "Unsorted" at the top (Task #768).
+                      // Excluded (rejected) files are hidden from step 3+
+                      // so they are filtered out before grouping (Task #804).
+                      const branchingItems = items.filter((item) => item.status !== 'rejected');
                       const grouped = new Map<string, BulkImportItemLite[]>();
-                      for (const item of items) {
+                      for (const item of branchingItems) {
                         const key = item.branch ?? 'unsorted';
                         if (!grouped.has(key)) grouped.set(key, []);
                         grouped.get(key)!.push(item);
@@ -2654,12 +2657,21 @@ export default function BulkDocumentImportPage() {
                       );
                     })() : (
                     <div className="space-y-2">
-                      {items.length === 0 && (
+                      {/* Excluded (rejected) files are hidden from step 3+.
+                          Screening keeps them visible so admins can re-include
+                          them; all later steps filter them out (Task #804). */}
+                      {(() => {
+                        const visibleItems = currentStep !== 'screening'
+                          ? items.filter((item) => item.status !== 'rejected')
+                          : items;
+                        return (
+                          <>
+                      {visibleItems.length === 0 && (
                         <p className="text-sm text-muted-foreground">
                           {isFr ? 'Aucun fichier' : 'No items'}
                         </p>
                       )}
-                      {items.map((item) => {
+                      {visibleItems.map((item) => {
                         const decision = getItemStepDecision(item, currentStep);
                         const isAuto = isAutoStep(currentStep);
                         const retryAction = isAuto
@@ -3314,6 +3326,9 @@ export default function BulkDocumentImportPage() {
                           </div>
                         );
                       })}
+                          </>
+                        );
+                      })()}
                     </div>
                     )}
                     <NextStepBlock
@@ -3358,9 +3373,12 @@ export default function BulkDocumentImportPage() {
                         ? `${items.filter((i) => i.status === 'committed').length} document(s) sauvegardé(s).`
                         : `${items.filter((i) => i.status === 'committed').length} document(s) committed.`}
                     </p>
-                    {items.length > 0 && (
+                    {/* Excluded (rejected) files are hidden from step 3+ (Task #804).
+                        The committed count above is unaffected — it already
+                        counts only committed items. */}
+                    {items.filter((i) => i.status !== 'rejected').length > 0 && (
                       <div className="space-y-2">
-                        {items.map((item) => (
+                        {items.filter((i) => i.status !== 'rejected').map((item) => (
                           <div
                             key={item.id}
                             className={`flex items-center gap-3 rounded-md border p-3 cursor-pointer hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
