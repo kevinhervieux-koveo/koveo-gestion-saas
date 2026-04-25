@@ -2,7 +2,6 @@ import js from '@eslint/js';
 import typescript from '@typescript-eslint/eslint-plugin';
 import typescriptParser from '@typescript-eslint/parser';
 import reactHooks from 'eslint-plugin-react-hooks';
-import i18nJsxPlugin from './eslint-rules/no-untranslated-jsx-text.mjs';
 
 const STRING_LEAK_CHAR_THRESHOLD = 40;
 const STRING_LEAK_WORD_THRESHOLD = 6;
@@ -24,17 +23,24 @@ function isLeakingString(text) {
   return false;
 }
 
-function isInsideTransElement(node) {
+// Skip text inside <Trans> (already i18n-aware) and inside <code>/<pre>
+// (code snippets, paths, identifiers — never natural-language sentences
+// to translate). The <code>/<pre> skip was carried over from the retired
+// `i18n-jsx/no-untranslated-jsx-text` rule (task #730) so we keep its one
+// piece of behaviour worth preserving.
+function isInsideSkippedElement(node) {
   let current = node.parent;
   while (current) {
     if (
       current.type === 'JSXElement' &&
       current.openingElement &&
       current.openingElement.name &&
-      current.openingElement.name.type === 'JSXIdentifier' &&
-      current.openingElement.name.name === 'Trans'
+      current.openingElement.name.type === 'JSXIdentifier'
     ) {
-      return true;
+      const name = current.openingElement.name.name;
+      if (name === 'Trans' || name === 'code' || name === 'pre') {
+        return true;
+      }
     }
     current = current.parent;
   }
@@ -60,7 +66,7 @@ const i18nPlugin = {
         return {
           JSXText(node) {
             if (!isLeakingString(node.value)) return;
-            if (isInsideTransElement(node)) return;
+            if (isInsideSkippedElement(node)) return;
             context.report({
               node,
               messageId: 'leak',
@@ -249,75 +255,6 @@ export default [
       'no-func-assign': 'off',
       'no-unreachable': 'off',
       'no-misleading-character-class': 'off',
-    },
-  },
-  // i18n: enforce that JSX text literals over 30 chars are wrapped in t().
-  // Widened from the original four files (task 636) to cover all pages and
-  // components so French-speaking users do not run into hardcoded English
-  // on other pages. The rule itself skips obvious false positives:
-  //   - single tokens with no whitespace (emails, URLs, identifiers)
-  //   - text that looks French (French-specific diacritics)
-  // See eslint-rules/no-untranslated-jsx-text.mjs for details.
-  {
-    files: [
-      'client/src/pages/**/*.tsx',
-      'client/src/components/**/*.tsx',
-    ],
-    languageOptions: {
-      parser: typescriptParser,
-      parserOptions: {
-        ecmaVersion: 'latest',
-        sourceType: 'module',
-        ecmaFeatures: { jsx: true },
-        project: null,
-      },
-    },
-    plugins: {
-      'i18n-jsx': i18nJsxPlugin,
-    },
-    rules: {
-      'i18n-jsx/no-untranslated-jsx-text': 'error',
-    },
-  },
-  // Narrow allow-list: only the few large legacy clusters whose translations
-  // require dedicated, domain-aware passes. Each cluster is tracked by a
-  // follow-up task that will migrate the strings to t() and remove the
-  // corresponding entry from this list. The rule continues to apply to every
-  // other page/component, so any new untranslated text is caught immediately.
-  //
-  //   * `components/maintenance/projects/workflow/*` — the maintenance
-  //      workflow tabs (Submission, PostWork, PreWork, …) are large multi-tab
-  //      forms with vendor / payment / scheduling vocabulary. Tracked by
-  //      follow-up task #711.
-  //   * `pages/manager/maintenance/projects/*` — the project list / dashboard
-  //      / timeline / details panel cluster. Tracked by follow-up task #712.
-  //   * `components/auth/steps/*` and the auth pages — the password / consent
-  //      / invitation flows already mix EN and FR text and need a coordinated
-  //      pass to keep messaging consistent. Tracked by follow-up task #713.
-  {
-    files: [
-      'client/src/components/admin/send-invitation-dialog.tsx',
-      'client/src/components/auth/steps/password-creation-step.tsx',
-      'client/src/components/auth/steps/quebec-privacy-consent-step.tsx',
-      'client/src/components/auth/steps/token-validation-step.tsx',
-      'client/src/pages/auth/forgot-password.tsx',
-      'client/src/pages/auth/invitation-acceptance.tsx',
-      'client/src/pages/auth/reset-password.tsx',
-    ],
-    languageOptions: {
-      parser: typescriptParser,
-      parserOptions: {
-        ecmaVersion: 'latest',
-        sourceType: 'module',
-        ecmaFeatures: { jsx: true },
-        project: null,
-      },
-    },
-    plugins: {
-      'i18n-jsx': i18nJsxPlugin,
-    },
-    rules: {
-      'i18n-jsx/no-untranslated-jsx-text': 'off',
     },
   },
   // Test files configuration
