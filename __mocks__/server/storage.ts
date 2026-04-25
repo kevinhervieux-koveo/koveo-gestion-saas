@@ -45,6 +45,17 @@ export class MemStorage implements IStorage {
   invitationAuditLogs = new Map<string, any>();
   invoices = new Map<string, any>();
 
+  getUsersWithAssignmentsPaginated = jest.fn(async () => ({
+    users: [] as any[],
+    total: 0,
+  }));
+
+  getUser = jest.fn(async (_id: string) => undefined as any);
+
+  getUserOrganizations = jest.fn(async (_userId: string) => [] as any[]);
+
+  getUserResidences = jest.fn(async (_userId: string) => [] as any[]);
+
   clear(): void {
     this.users.clear();
     this.organizations.clear();

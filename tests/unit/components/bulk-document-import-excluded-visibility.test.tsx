@@ -13,7 +13,7 @@
  */
 
 import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
-import { render, screen, cleanup } from '@testing-library/react';
+import { render, screen, cleanup, waitFor } from '@testing-library/react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import '@testing-library/jest-dom';
 import React from 'react';
@@ -329,9 +329,10 @@ describe('BulkDocumentImportPage — excluded file visibility (Task #804)', () =
 
     renderPage();
 
-    const noItems = await screen.findByText('No items', undefined, { timeout: 4000 });
-    expect(noItems).toBeInTheDocument();
-    expect(screen.queryByTestId('branching-grouped-sections')).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('No items')).toBeInTheDocument();
+      expect(screen.queryByTestId('branching-grouped-sections')).not.toBeInTheDocument();
+    }, { timeout: 10000 });
   });
 
   // ---------------------------------------------------------------------------

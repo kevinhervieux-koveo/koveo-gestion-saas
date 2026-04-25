@@ -44,21 +44,23 @@ import {
   type InsertDemandComment,
 } from '@shared/schemas/operations';
 import { randomUUID } from 'crypto';
+import { stripPassword } from './db/queries/user-queries';
+import type { SafeUser, SafeUserWithAssignments } from './db/queries/user-queries';
 
 export interface IStorage {
   // User operations
   getUsers(): Promise<User[]>;
-  getUsersWithAssignments(): Promise<Array<User & { organizations: Array<{ id: string; name: string; type: string }>; buildings: Array<{ id: string; name: string }>; residences: Array<{ id: string; unitNumber: string; buildingId: string; buildingName: string }> }>>;
+  getUsersWithAssignments(): Promise<Array<SafeUserWithAssignments>>;
   getUsersWithAssignmentsPaginated(
     offset?: number, 
     limit?: number, 
     filters?: { role?: string; status?: string; organization?: string; orphan?: string; demoOnly?: string; managerOrganizations?: string; search?: string }
   ): Promise<{
-    users: Array<User & { organizations: Array<{ id: string; name: string; type: string }>; buildings: Array<{ id: string; name: string }>; residences: Array<{ id: string; unitNumber: string; buildingId: string; buildingName: string }> }>;
+    users: Array<SafeUserWithAssignments>;
     total: number;
   }>;
   getUsersByOrganizations(_userId: string): Promise<User[]>;
-  getUser(_id: string): Promise<User | undefined>;
+  getUser(_id: string): Promise<SafeUser | undefined>;
   getUserOrganizations(_userId: string): Promise<Array<{ organizationId: string }>>;
   getUserResidences(_userId: string): Promise<Array<{ residenceId: string }>>;
   getUserByEmail(_email: string): Promise<User | undefined>;
@@ -282,11 +284,11 @@ export class MemStorage implements IStorage {
     return Array.from(this.users.values());
   }
 
-  async getUsersWithAssignments(): Promise<Array<User & { organizations: Array<{ id: string; name: string; type: string }>; buildings: Array<{ id: string; name: string }>; residences: Array<{ id: string; unitNumber: string; buildingId: string; buildingName: string }> }>> {
-    // For MemStorage, just return users with empty assignments arrays
+  async getUsersWithAssignments(): Promise<Array<SafeUserWithAssignments>> {
+    // For MemStorage, just return users with empty assignments arrays (password stripped)
     const users = Array.from(this.users.values());
     return users.map(user => ({
-      ...user,
+      ...stripPassword(user),
       organizations: [],
       buildings: [],
       residences: []
@@ -298,7 +300,7 @@ export class MemStorage implements IStorage {
     limit: number = 50,
     filters?: { role?: string; status?: string; organization?: string; orphan?: string; demoOnly?: string; managerOrganizations?: string; search?: string }
   ): Promise<{
-    users: Array<User & { organizations: Array<{ id: string; name: string; type: string }>; buildings: Array<{ id: string; name: string }>; residences: Array<{ id: string; unitNumber: string; buildingId: string; buildingName: string }> }>;
+    users: Array<SafeUserWithAssignments>;
     total: number;
   }> {
     // For MemStorage, return a paginated subset with empty assignments
@@ -327,12 +329,15 @@ export class MemStorage implements IStorage {
     const paginatedUsers = users.slice(offset, offset + limit);
     
     return {
-      users: paginatedUsers.map(user => ({
-        ...user,
-        organizations: [],
-        buildings: [],
-        residences: []
-      })),
+      users: paginatedUsers.map(user => {
+        const { password: _pw, ...safeUser } = user;
+        return {
+          ...safeUser,
+          organizations: [],
+          buildings: [],
+          residences: []
+        };
+      }),
       total
     };
   }
@@ -341,8 +346,9 @@ export class MemStorage implements IStorage {
     return [];
   }
 
-  async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+  async getUser(id: string): Promise<SafeUser | undefined> {
+    const user = this.users.get(id);
+    return user ? stripPassword(user) : undefined;
   }
 
   async getUserOrganizations(_userId: string): Promise<Array<{ organizationId: string }>> {
@@ -1242,7 +1248,7 @@ class ProductionFallbackStorage implements IStorage {
     return await this.safeDbOperation(() => this.dbStorage.getUsers());
   }
 
-  async getUsersWithAssignments(): Promise<Array<User & { organizations: Array<{ id: string; name: string; type: string }>; buildings: Array<{ id: string; name: string }>; residences: Array<{ id: string; unitNumber: string; buildingId: string; buildingName: string }> }>> {
+  async getUsersWithAssignments(): Promise<Array<SafeUserWithAssignments>> {
     return await this.safeDbOperation(() => this.dbStorage.getUsersWithAssignments());
   }
 
@@ -1251,7 +1257,7 @@ class ProductionFallbackStorage implements IStorage {
     limit?: number, 
     filters?: { role?: string; status?: string; organization?: string; orphan?: string; demoOnly?: string; managerOrganizations?: string; search?: string }
   ): Promise<{
-    users: Array<User & { organizations: Array<{ id: string; name: string; type: string }>; buildings: Array<{ id: string; name: string }>; residences: Array<{ id: string; unitNumber: string; buildingId: string; buildingName: string }> }>;
+    users: Array<SafeUserWithAssignments>;
     total: number;
   }> {
     try {
@@ -1269,7 +1275,7 @@ class ProductionFallbackStorage implements IStorage {
     }
   }
 
-  async getUser(id: string): Promise<User | undefined> {
+  async getUser(id: string): Promise<SafeUser | undefined> {
     return await this.safeDbOperation(() => this.dbStorage.getUser(id));
   }
 

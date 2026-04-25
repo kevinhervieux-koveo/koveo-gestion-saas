@@ -18,6 +18,7 @@ import {
   generateUsernameFromEmail,
 } from '../utils/input-sanitization';
 import { logUserCreation } from '../utils/user-creation-logger';
+import { stripPassword } from '../db/queries/user-queries';
 import { queryCache, CacheInvalidator } from '../query-cache';
 import { emailService } from '../services/email-service';
 import {
@@ -200,9 +201,10 @@ export function registerUserRoutes(app: Express): void {
 
       
 
-      // Role-based filtering is now handled at database level in roleBasedFilters
-      // No additional application-level filtering needed
-      const filteredUsers = result.users;
+      // Defence-in-depth: strip password from every user object before sending.
+      // The storage layer already excludes the field, but this guard ensures
+      // that any future storage regression cannot accidentally leak the hash.
+      const filteredUsers = result.users.map(({ password: _pw, ...safe }) => safe);
 
       // Return paginated response with metadata
       res.json({
@@ -368,9 +370,7 @@ export function registerUserRoutes(app: Express): void {
         });
       }
 
-      // Remove sensitive information before sending response
-      const { password, ...userWithoutPassword } = user;
-      res.json(userWithoutPassword);
+      res.json(stripPassword(user));
     }, { errorMessage: 'Failed to fetch user', errorLogPrefix: '❌ Error fetching user', extraErrorFields: { error: 'Internal server error' } }));
 
   /**
@@ -404,9 +404,7 @@ export function registerUserRoutes(app: Express): void {
         });
       }
 
-      // Remove sensitive information before sending response
-      const { password, ...userWithoutPassword } = user;
-      res.json(userWithoutPassword);
+      res.json(stripPassword(user));
     }, { errorMessage: 'Failed to fetch user', errorLogPrefix: '❌ Error fetching user by email', extraErrorFields: { error: 'Internal server error' } }));
 
   /**
@@ -513,9 +511,7 @@ export function registerUserRoutes(app: Express): void {
         userAgent: req.get('User-Agent'),
       });
 
-      // Remove sensitive information before sending response
-      const { password, ...userWithoutPassword } = user;
-      res.status(201).json(userWithoutPassword);
+      res.status(201).json(stripPassword(user));
     } catch (error: any) {
       // Log failed user creation attempt
       logUserCreation({
@@ -576,9 +572,7 @@ export function registerUserRoutes(app: Express): void {
         });
       }
 
-      // Remove sensitive information before sending response
-      const { password, ...userWithoutPassword } = user;
-      res.json(userWithoutPassword);
+      res.json(stripPassword(user));
     }, { errorMessage: 'Failed to update profile', errorLogPrefix: '❌ Error updating user profile', extraErrorFields: { error: 'Internal server error' } }));
 
   /**
@@ -729,9 +723,7 @@ export function registerUserRoutes(app: Express): void {
       queryCache.invalidate('users', 'all_users');
       queryCache.invalidate('users', `user:${id}`);
 
-      // Remove sensitive information before sending response
-      const { password, ...userWithoutPassword } = user;
-      res.json(userWithoutPassword);
+      res.json(stripPassword(user));
     } catch (error: any) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({

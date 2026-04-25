@@ -57,6 +57,8 @@ import { dbPerformanceMonitor } from './performance-monitoring';
 import { exists, sql as sqlOp } from 'drizzle-orm';
 import { ObjectStorageService } from './objectStorage';
 import { OptimizedFileStorageService } from './services/optimized-file-storage';
+import { safeUserColumns } from './db/queries/user-queries';
+import type { SafeUser, SafeUserWithAssignments } from './db/queries/user-queries';
 
 // Database connection imported from shared db.ts
 
@@ -490,7 +492,7 @@ export class OptimizedDatabaseStorage implements IStorage {
    * Retrieves all active users with their assignments (organizations, buildings, residences).
    * OPTIMIZED: Uses single query with JOINs and aggregation instead of N+1 queries.
    */
-  async getUsersWithAssignments(): Promise<Array<User & { organizations: Array<{ id: string; name: string; type: string }>; buildings: Array<{ id: string; name: string }>; residences: Array<{ id: string; unitNumber: string; buildingId: string; buildingName: string }> }>> {
+  async getUsersWithAssignments(): Promise<Array<SafeUserWithAssignments>> {
     return this.withOptimizations(
       'getUsersWithAssignments',
       'all_users_assignments_optimized_v4',
@@ -568,7 +570,10 @@ export class OptimizedDatabaseStorage implements IStorage {
               GROUP BY ur.user_id
             )
             SELECT 
-              u.*,
+              u.id, u.username, u.email, u.first_name, u.last_name,
+              u.phone, u.profile_image, u.language, u.role, u.is_active,
+              u.notifications_starting_date, u.last_login_at,
+              u.created_at, u.updated_at,
               COALESCE(uo.organizations, '[]'::json) as organizations,
               COALESCE(ub.buildings, '[]'::json) as buildings,
               COALESCE(ur.residences, '[]'::json) as residences
@@ -581,11 +586,12 @@ export class OptimizedDatabaseStorage implements IStorage {
             LIMIT 100
           `);
 
-          // Transform the raw SQL result to match the expected TypeScript types
+          // Transform the raw SQL result to match the expected TypeScript types.
+          // password is intentionally excluded from the SELECT, so it is not
+          // present in row and therefore not mapped here (SafeUserWithAssignments).
           return result.rows.map((row: any) => ({
             id: row.id,
             username: row.username,
-            password: row.password,
             email: row.email,
             firstName: row.first_name,
             lastName: row.last_name,
@@ -594,6 +600,7 @@ export class OptimizedDatabaseStorage implements IStorage {
             language: row.language,
             role: row.role,
             isActive: row.is_active,
+            notificationsStartingDate: row.notifications_starting_date,
             lastLoginAt: row.last_login_at,
             createdAt: row.created_at,
             updatedAt: row.updated_at,
@@ -627,7 +634,7 @@ export class OptimizedDatabaseStorage implements IStorage {
     limit: number = 10, 
     filters: { role?: string; status?: string; organization?: string; orphan?: string; demoOnly?: string; managerOrganizations?: string; search?: string } = {}
   ): Promise<{
-    users: Array<User & { organizations: Array<{ id: string; name: string; type: string }>; buildings: Array<{ id: string; name: string }>; residences: Array<{ id: string; unitNumber: string; buildingId: string; buildingName: string }> }>;
+    users: Array<SafeUserWithAssignments>;
     total: number;
   }> {
     return this.withOptimizations(
@@ -827,8 +834,21 @@ export class OptimizedDatabaseStorage implements IStorage {
               WHERE ur.is_active = true AND r.is_active = true
               GROUP BY ur.user_id
             )
-            SELECT 
-              u.*,
+            SELECT
+              u.id,
+              u.username,
+              u.email,
+              u.first_name,
+              u.last_name,
+              u.phone,
+              u.profile_image,
+              u.language,
+              u.role,
+              u.is_active,
+              u.notifications_starting_date,
+              u.last_login_at,
+              u.created_at,
+              u.updated_at,
               COALESCE(uo.organizations, '[]'::json) as organizations,
               COALESCE(ub.buildings, '[]'::json) as buildings,
               COALESCE(ur.residences, '[]'::json) as residences
@@ -849,7 +869,6 @@ export class OptimizedDatabaseStorage implements IStorage {
           const users = result.rows.map((row: any) => ({
             id: row.id,
             username: row.username,
-            password: row.password,
             email: row.email,
             firstName: row.first_name,
             lastName: row.last_name,
@@ -888,14 +907,13 @@ export class OptimizedDatabaseStorage implements IStorage {
   /**
    * OPTIMIZED Fallback implementation for getUsersWithAssignments using batch fetch to eliminate N+1 queries.
    */
-  private async getUsersWithAssignmentsFallback(): Promise<Array<User & { organizations: Array<{ id: string; name: string; type: string }>; buildings: Array<{ id: string; name: string }>; residences: Array<{ id: string; unitNumber: string; buildingId: string; buildingName: string }> }>> {
+  private async getUsersWithAssignmentsFallback(): Promise<Array<SafeUserWithAssignments>> {
     try {
-      // Get all users first with selected fields only
+      // Get all users first with selected fields only (password excluded for security)
       const users = await db
         .select({
           id: schema.users.id,
           username: schema.users.username,
-          password: schema.users.password,
           email: schema.users.email,
           firstName: schema.users.firstName,
           lastName: schema.users.lastName,
@@ -904,6 +922,7 @@ export class OptimizedDatabaseStorage implements IStorage {
           language: schema.users.language,
           role: schema.users.role,
           isActive: schema.users.isActive,
+          notificationsStartingDate: schema.users.notificationsStartingDate,
           lastLoginAt: schema.users.lastLoginAt,
           createdAt: schema.users.createdAt,
           updatedAt: schema.users.updatedAt
@@ -954,7 +973,7 @@ export class OptimizedDatabaseStorage implements IStorage {
     limit: number = 10, 
     filters: { role?: string; status?: string; organization?: string; orphan?: string; demoOnly?: string; managerOrganizations?: string; search?: string } = {}
   ): Promise<{
-    users: Array<User & { organizations: Array<{ id: string; name: string; type: string }>; buildings: Array<{ id: string; name: string }>; residences: Array<{ id: string; unitNumber: string; buildingId: string; buildingName: string }> }>;
+    users: Array<SafeUserWithAssignments>;
     total: number;
   }> {
     try {
@@ -1083,9 +1102,24 @@ export class OptimizedDatabaseStorage implements IStorage {
       
       const total = Number(totalResult[0]?.count || 0);
 
-      // Get paginated users with filters
+      // Get paginated users with filters (password excluded for security)
       const users = await db
-        .select()
+        .select({
+          id: schema.users.id,
+          username: schema.users.username,
+          email: schema.users.email,
+          firstName: schema.users.firstName,
+          lastName: schema.users.lastName,
+          phone: schema.users.phone,
+          profileImage: schema.users.profileImage,
+          language: schema.users.language,
+          role: schema.users.role,
+          isActive: schema.users.isActive,
+          notificationsStartingDate: schema.users.notificationsStartingDate,
+          lastLoginAt: schema.users.lastLoginAt,
+          createdAt: schema.users.createdAt,
+          updatedAt: schema.users.updatedAt,
+        })
         .from(schema.users)
         .where(and(...whereConditions))
         .orderBy(desc(schema.users.createdAt))
@@ -1384,12 +1418,9 @@ export class OptimizedDatabaseStorage implements IStorage {
    * Retrieves a specific user by ID with caching.
    * @param id
    */
-  async getUser(id: string): Promise<User | undefined> {
+  async getUser(id: string): Promise<SafeUser | undefined> {
     return this.withOptimizations('getUser', `user:${id}`, 'users', async () => {
-      
-      const result = await db.select().from(schema.users).where(eq(schema.users.id, id));
-      
-      // User lookup completed
+      const result = await db.select(safeUserColumns).from(schema.users).where(eq(schema.users.id, id));
       return result[0];
     });
   }

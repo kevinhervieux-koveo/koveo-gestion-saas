@@ -791,10 +791,8 @@ export function setupAuthRoutes(app: any) {
           }
         }
 
-        // Return user data without password
-        const { password: _, ...userData } = user;
-        // Successfully authenticated user
-        return res.json(userData);
+        // Return user data — password already excluded at storage level (SafeUser)
+        return res.json(user);
 
       } catch (userError) {
         // console.error('Database error getting user:', userError);

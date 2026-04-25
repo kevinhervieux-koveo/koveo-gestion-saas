@@ -110,7 +110,8 @@ if (typeof Element !== 'undefined') {
   }
 }
 
-if (typeof (globalThis as { PointerEvent?: unknown }).PointerEvent === 'undefined') {
+if (typeof (globalThis as { PointerEvent?: unknown }).PointerEvent === 'undefined' &&
+    typeof MouseEvent !== 'undefined') {
   class PointerEventPolyfill extends MouseEvent {
     pointerId: number;
     pointerType: string;

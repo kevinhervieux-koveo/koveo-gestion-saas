@@ -4,6 +4,70 @@ import { db } from '../../db';
 import { scopeQuery, type UserContext } from './scope-query';
 
 /**
+ * Safe column projection for the users table — every column except `password`.
+ *
+ * SECURITY NOTE: The users table has been audited and contains only `password`
+ * as a sensitive credential column. There are no 2FA secrets, SSO tokens, or
+ * other sensitive credential columns at this time. If any are added in future
+ * migrations they must also be excluded here.
+ *
+ * Use this constant in every Drizzle `.select({…})` call that returns user
+ * rows to API consumers so that the password hash is never included in
+ * responses.
+ */
+export const safeUserColumns = {
+  id: users.id,
+  username: users.username,
+  email: users.email,
+  firstName: users.firstName,
+  lastName: users.lastName,
+  phone: users.phone,
+  profileImage: users.profileImage,
+  language: users.language,
+  role: users.role,
+  isActive: users.isActive,
+  notificationsStartingDate: users.notificationsStartingDate,
+  lastLoginAt: users.lastLoginAt,
+  createdAt: users.createdAt,
+  updatedAt: users.updatedAt,
+} as const;
+
+/**
+ * A user object guaranteed not to contain the password hash.
+ * Inferred from `safeUserColumns` so TypeScript enforces the contract.
+ */
+export type SafeUser = {
+  [K in keyof typeof safeUserColumns]: (typeof safeUserColumns)[K]['_']['data'];
+};
+
+/**
+ * A safe user enriched with the joined assignment collections returned by
+ * `getUsersWithAssignmentsPaginated`.  Replaces the repeated inline
+ * `Omit<User,'password'> & { organizations: …; buildings: …; residences: … }`
+ * across the storage layer.
+ */
+export type SafeUserWithAssignments = SafeUser & {
+  organizations: Array<{ id: string; name: string; type: string }>;
+  buildings: Array<{ id: string; name: string }>;
+  residences: Array<{ id: string; unitNumber: string; buildingId: string; buildingName: string }>;
+};
+
+/**
+ * Runtime helper that strips `password` from any user-shaped object and types
+ * the result as `SafeUser`.  Use this wherever a `User` object retrieved for
+ * internal purposes (e.g. from a cache) must be returned to an API consumer.
+ *
+ * Prefer DB-level projection via `safeUserColumns` for new queries; this helper
+ * covers the remaining paths that retrieve a full `User` from in-memory storage
+ * or legacy call-sites.
+ */
+export function stripPassword<T extends { password?: string }>(user: T): Omit<T, 'password'> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { password: _pw, ...safe } = user;
+  return safe as Omit<T, 'password'>;
+}
+
+/**
  * Get users accessible to the current user based on their role and associations.
  * Admins see all users, managers see users in their organizations,
  * owners see users in their buildings, tenants typically see only themselves.
@@ -18,18 +82,7 @@ import { scopeQuery, type UserContext } from './scope-query';
  */
 export async function getUsersForUser(userContext: UserContext) {
   const baseQuery = db
-    .select({
-      id: users.id,
-      email: users.email,
-      firstName: users.firstName,
-      lastName: users.lastName,
-      phone: users.phone,
-      language: users.language,
-      role: users.role,
-      isActive: users.isActive,
-      lastLoginAt: users.lastLoginAt,
-      createdAt: users.createdAt,
-    })
+    .select(safeUserColumns)
     .from(users)
     .where(eq(users.isActive, true));
 
@@ -52,19 +105,7 @@ export async function getUsersForUser(userContext: UserContext) {
  */
 export async function getUserById(userId: string, userContext: UserContext) {
   const baseQuery = db
-    .select({
-      id: users.id,
-      email: users.email,
-      firstName: users.firstName,
-      lastName: users.lastName,
-      phone: users.phone,
-      language: users.language,
-      role: users.role,
-      isActive: users.isActive,
-      lastLoginAt: users.lastLoginAt,
-      createdAt: users.createdAt,
-      updatedAt: users.updatedAt,
-    })
+    .select(safeUserColumns)
     .from(users)
     .where(eq(users.id, userId));
 

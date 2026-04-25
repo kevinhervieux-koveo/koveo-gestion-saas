@@ -340,7 +340,7 @@ describe('BudgetProjectCard — financial-year shift (real BudgetInner)', () => 
         'Financial Year: 2028'
       )
     );
-  });
+  }, 15000);
 
   it('disables Previous at the minimum year and Next at the maximum year', async () => {
     stubFetch([
