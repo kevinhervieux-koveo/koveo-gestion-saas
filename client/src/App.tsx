@@ -361,6 +361,7 @@ function AuthenticatedLayout() {
             <Route path='/dashboard/communication' component={DashboardCommunicationPage} />
 
             {/* Admin routes */}
+            <Route path='/admin' component={AdminOverviewRedirect} />
             <Route path='/admin/organizations'>{() => <ProtectedRoute requiredRole="admin"><AdminOrganizations /></ProtectedRoute>}</Route>
             <Route path='/admin/quality'>{() => <ProtectedRoute requiredRole="admin"><AdminQuality /></ProtectedRoute>}</Route>
             <Route path='/admin/compliance'>{() => <ProtectedRoute requiredRole="admin"><AdminCompliance /></ProtectedRoute>}</Route>
@@ -369,6 +370,7 @@ function AuthenticatedLayout() {
             <Route path='/admin/performance'>{() => <ProtectedRoute requiredRole="admin"><PerformanceDashboardPage /></ProtectedRoute>}</Route>
 
             {/* Manager routes */}
+            <Route path='/manager' component={ManagerOverviewRedirect} />
             <Route path='/manager/buildings'>{() => <ProtectedRoute requiredRole="manager"><ManagerBuildings /></ProtectedRoute>}</Route>
             <Route path='/manager/buildings/documents'>{() => <ProtectedRoute requiredRole="manager"><BuildingDocuments /></ProtectedRoute>}</Route>
             <Route path='/manager/buildings/:buildingId/documents'>{() => <ProtectedRoute requiredRole="manager"><BuildingDocuments /></ProtectedRoute>}</Route>
@@ -387,6 +389,7 @@ function AuthenticatedLayout() {
 
 
             {/* Residents routes */}
+            <Route path='/residents' component={ResidentsOverviewRedirect} />
             <Route path='/residents/residence'>{() => <ResidentsResidence />}</Route>
             <Route
               path='/residents/residence/documents'
@@ -412,6 +415,7 @@ function AuthenticatedLayout() {
             <Route path='/resident/my-calendar' component={ResidentsMyCalendar} />
 
             {/* Settings routes */}
+            <Route path='/settings' component={SettingsOverviewRedirect} />
             <Route path='/settings/settings' component={SettingsSettings} />
 
             {/* Auto-discovered pages — drop new pages in
@@ -447,6 +451,46 @@ function DashboardOverviewRedirect() {
 
   useEffect(() => {
     setLocation('/dashboard/overview');
+  }, [setLocation]);
+
+  return <LoadingSpinner />;
+}
+
+function ResidentsOverviewRedirect() {
+  const [, setLocation] = useLocation();
+
+  useEffect(() => {
+    setLocation('/residents/residence');
+  }, [setLocation]);
+
+  return <LoadingSpinner />;
+}
+
+function ManagerOverviewRedirect() {
+  const [, setLocation] = useLocation();
+
+  useEffect(() => {
+    setLocation('/manager/buildings');
+  }, [setLocation]);
+
+  return <LoadingSpinner />;
+}
+
+function AdminOverviewRedirect() {
+  const [, setLocation] = useLocation();
+
+  useEffect(() => {
+    setLocation('/admin/organizations');
+  }, [setLocation]);
+
+  return <LoadingSpinner />;
+}
+
+function SettingsOverviewRedirect() {
+  const [, setLocation] = useLocation();
+
+  useEffect(() => {
+    setLocation('/settings/settings');
   }, [setLocation]);
 
   return <LoadingSpinner />;

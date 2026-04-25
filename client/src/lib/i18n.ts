@@ -39,6 +39,8 @@ export interface Translations {
   chainReorderErrorTitle: string;
   chainRemoveSuccessTitle: string;
   chainRemoveErrorTitle: string;
+  notFoundTitle: string;
+  notFoundMessage: string;
   dashboard: string;
   pillarFramework: string;
   qualityAssurance: string;
@@ -4447,6 +4449,8 @@ export const translations: Record<Language, Translations> = {
     chainReorderErrorTitle: 'Reorder failed',
     chainRemoveSuccessTitle: 'Removed from sequence',
     chainRemoveErrorTitle: 'Remove failed',
+    notFoundTitle: 'Page not found',
+    notFoundMessage: 'Page not found. Check the URL or return to the dashboard.',
   },
   fr: {
 
@@ -6663,5 +6667,7 @@ export const translations: Record<Language, Translations> = {
     chainReorderErrorTitle: 'Échec du réordonnancement',
     chainRemoveSuccessTitle: 'Retiré de la séquence',
     chainRemoveErrorTitle: 'Échec du retrait',
+    notFoundTitle: 'Page introuvable',
+    notFoundMessage: "Page introuvable. Vérifiez l'URL ou retournez au tableau de bord.",
   }
 };
