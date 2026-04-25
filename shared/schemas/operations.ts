@@ -418,8 +418,8 @@ export const generalCommunications = pgTable('general_communications', {
   createdBy: varchar('created_by')
     .notNull()
     .references(() => users.id),
-  title: text('title').notNull(),
-  content: text('content').notNull(),
+  title: varchar('title', { length: 200 }).notNull(),
+  content: varchar('content', { length: 5000 }).notNull(),
   isUrgent: boolean('is_urgent').notNull().default(false),
   scheduledFor: timestamp('scheduled_for'),
   sentAt: timestamp('sent_at'),
@@ -692,8 +692,14 @@ export const insertUserNotificationPreferenceSchema = z.object({
 export const insertGeneralCommunicationSchema = z.object({
   organizationId: z.string().uuid(),
   createdBy: z.string().uuid(),
-  title: z.string().min(1, 'Title is required'),
-  content: z.string().min(1, 'Content is required'),
+  title: z
+    .string()
+    .min(1, 'Title is required')
+    .max(200, 'Title must be 200 characters or fewer'),
+  content: z
+    .string()
+    .min(1, 'Content is required')
+    .max(5000, 'Content must be 5000 characters or fewer'),
   isUrgent: z.boolean().default(false),
   scheduledFor: z.date().optional(),
   recipientRoles: z.array(z.string()).optional(),
