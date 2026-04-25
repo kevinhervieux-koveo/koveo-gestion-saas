@@ -295,7 +295,7 @@ const BUCKET_GUESS_LABEL_FR: Record<string, string> = {
   unknown: 'Inconnu',
 };
 
-function ConfidenceBadge({
+export function ConfidenceBadge({
   value,
   fallbackReason,
   isFr,
