@@ -25,6 +25,15 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import '@testing-library/jest-dom';
 import React from 'react';
 
+// Mounting the real BulkDocumentImportPage (4k+ lines, with many lite
+// queries and effects) routinely takes 2–3s under jsdom. Several
+// findByTestId calls in this suite already use a 4000ms wait, which
+// would race against the global 3000ms test timeout configured in
+// jest.config.cjs. Give every test in this file a comfortable budget so
+// the suite is not flake-prone when run alongside the rest of the
+// fast-unit pool.
+jest.setTimeout(15000);
+
 // ---------------------------------------------------------------------------
 // Module mocks (must be declared before importing the page under test).
 // ---------------------------------------------------------------------------
@@ -33,9 +42,15 @@ jest.mock('@/hooks/use-toast', () => ({
   useToast: () => ({ toast: mockToast }),
 }));
 
+// Mutable language ref so individual tests can flip to French to assert
+// the localized "Dans cette fusion" / "In this merge" label rendering
+// added by Task #927.
+const languageRef = { current: 'en' as 'en' | 'fr' };
 jest.mock('@/hooks/use-language', () => ({
   useLanguage: () => ({
-    language: 'en',
+    get language() {
+      return languageRef.current;
+    },
     t: (key: string) => key,
     setLanguage: jest.fn(),
   }),
@@ -221,6 +236,19 @@ const fetchMock = jest.fn(
 
     if (method === 'POST') return jsonResponse({ ok: true });
 
+    // The exclude PATCH is wired to a per-item endpoint; echo back a
+    // minimal record so the optimistic update committed by the
+    // mutation's onMutate isn't reverted.
+    if (
+      method === 'PATCH' &&
+      pathname.startsWith('/api/admin/bulk-import/items/') &&
+      pathname.endsWith('/exclude')
+    ) {
+      const id = pathname.split('/')[5];
+      return jsonResponse({ id, status: 'rejected' });
+    }
+    if (method === 'PATCH') return jsonResponse({ ok: true });
+
     return jsonResponse({ unmocked: true, url, method }, 404);
   },
 ) as unknown as jest.MockedFunction<typeof fetch>;
@@ -276,6 +304,7 @@ beforeEach(() => {
 
   window.localStorage.setItem('bulkImportActiveSessionId', SESSION_ID);
   queryClient.clear();
+  languageRef.current = 'en';
 });
 
 afterEach(() => {
@@ -833,5 +862,236 @@ describe('BulkDocumentImportPage — sorting decision UI (Task #817 / #825)', ()
       expect(screen.getByTestId(`branching-rename-split-${ITEM_SPLIT_PENDING}-0`)).toBeInTheDocument();
       expect(screen.getByTestId(`branching-rename-split-${ITEM_SPLIT_PENDING}-1`)).toBeInTheDocument();
     });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Nested merge-group rendering on the sorting (Branching) step (Task #927).
+  //
+  // The lead's card is the only top-level row for a merge group; siblings
+  // are rendered as nested children inside `branching-merge-group-<leadId>`
+  // so admins see the grouping at a glance instead of a flat list of
+  // duplicate-looking rows. These tests guard that contract end-to-end:
+  // the sibling does not leak back to the top level, the container and
+  // each sibling row are present with the right testids and filenames,
+  // clicking a sibling opens its preview, the per-sibling exclude button
+  // hits the right per-item PATCH, and the localized header label
+  // matches the active language.
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Push a single merge-lead with two nested siblings. Returns the IDs
+   * so each test can refer to them without repeating the literals.
+   */
+  function pushMergeGroupFixture() {
+    const LEAD = 'item-merge-lead-927';
+    const SIB_A = 'item-merge-sib-927-a';
+    const SIB_B = 'item-merge-sib-927-b';
+    items.push(
+      {
+        id: LEAD,
+        originalName: 'lead-invoice.pdf',
+        status: 'sorted',
+        sortingDecisionState: 'pending',
+        sortingDecision: 'merge',
+        sortingMergeWithItemId: null,
+        sortingMergeWithItemIds: [SIB_A, SIB_B],
+        sortingSplitAtPage: null,
+        sortingManualOverride: false,
+        sortingReason: 'Three pages of the same invoice',
+        sortingConfidence: 0.93,
+      },
+      {
+        id: SIB_A,
+        originalName: 'sibling-page-2.pdf',
+        status: 'sorted',
+        sortingDecisionState: 'pending',
+        sortingDecision: 'merge',
+        sortingMergeWithItemId: LEAD,
+        sortingMergeWithItemIds: null,
+        sortingSplitAtPage: null,
+        sortingManualOverride: false,
+        sortingReason: null,
+        sortingConfidence: null,
+      },
+      {
+        id: SIB_B,
+        originalName: 'sibling-page-3.pdf',
+        status: 'sorted',
+        sortingDecisionState: 'pending',
+        sortingDecision: 'merge',
+        sortingMergeWithItemId: LEAD,
+        sortingMergeWithItemIds: null,
+        sortingSplitAtPage: null,
+        sortingManualOverride: false,
+        sortingReason: null,
+        sortingConfidence: null,
+      },
+    );
+    return { LEAD, SIB_A, SIB_B };
+  }
+
+  /**
+   * Wait until the page has finished its initial loading spinner and the
+   * sorting-step list has rendered the merge-lead card AND its nested
+   * merge-group container.
+   *
+   * We deliberately wait in two stages — first for the always-present
+   * pending item's row (proof that the lite query resolved and the
+   * sorting-step list mounted), then for the merge-group container
+   * itself. Under heavy parallel load the fast-unit pool was observed
+   * to fail a single straight findByTestId on the merge-group testid
+   * while the page was still showing its loading spinner; staging the
+   * wait this way mirrors the proven `waitForRows` pattern used by the
+   * pre-Task-#927 tests and keeps the suite stable in CI.
+   */
+  async function waitForMergeGroup(leadId: string) {
+    await screen.findByTestId(`item-preview-trigger-${ITEM_PENDING}`, undefined, {
+      timeout: 8000,
+    });
+    await screen.findByTestId(`branching-merge-group-${leadId}`, undefined, {
+      timeout: 8000,
+    });
+  }
+
+  it('siblings of a merge lead do NOT render as standalone item-row cards', async () => {
+    const { LEAD, SIB_A, SIB_B } = pushMergeGroupFixture();
+
+    renderPage();
+    await waitForMergeGroup(LEAD);
+
+    // The lead is a top-level row…
+    expect(screen.getByTestId(`item-row-${LEAD}`)).toBeInTheDocument();
+    // …but neither sibling appears as a top-level item-row-<sibId>.
+    expect(screen.queryByTestId(`item-row-${SIB_A}`)).not.toBeInTheDocument();
+    expect(screen.queryByTestId(`item-row-${SIB_B}`)).not.toBeInTheDocument();
+
+    // The other sorting-step rows (pending, rejected, accepted) are
+    // unaffected by the grouping logic.
+    expect(screen.getByTestId(`item-row-${ITEM_PENDING}`)).toBeInTheDocument();
+    expect(screen.getByTestId(`item-row-${ITEM_REJECTED}`)).toBeInTheDocument();
+    expect(screen.getByTestId(`item-row-${ITEM_ACCEPTED}`)).toBeInTheDocument();
+  });
+
+  it('renders the branching-merge-group container nested inside the lead card', async () => {
+    const { LEAD } = pushMergeGroupFixture();
+
+    renderPage();
+    await waitForMergeGroup(LEAD);
+
+    const group = screen.getByTestId(`branching-merge-group-${LEAD}`);
+    expect(group).toBeInTheDocument();
+    // The container must live inside the lead's card, not at the page root.
+    const leadRow = screen.getByTestId(`item-row-${LEAD}`);
+    expect(leadRow.contains(group)).toBe(true);
+  });
+
+  it('renders one branching-merge-group-sibling row per sibling, each with its filename', async () => {
+    const { LEAD, SIB_A, SIB_B } = pushMergeGroupFixture();
+
+    renderPage();
+    await waitForMergeGroup(LEAD);
+
+    const sibARow = screen.getByTestId(
+      `branching-merge-group-sibling-${LEAD}-${SIB_A}`,
+    );
+    const sibBRow = screen.getByTestId(
+      `branching-merge-group-sibling-${LEAD}-${SIB_B}`,
+    );
+    expect(sibARow).toHaveTextContent('sibling-page-2.pdf');
+    expect(sibBRow).toHaveTextContent('sibling-page-3.pdf');
+  });
+
+  it("clicking a nested sibling's filename opens the preview for that sibling", async () => {
+    const { LEAD, SIB_A } = pushMergeGroupFixture();
+
+    renderPage();
+    await waitForMergeGroup(LEAD);
+
+    // The viewer is closed initially.
+    expect(screen.queryByTestId('mock-inline-viewer')).not.toBeInTheDocument();
+
+    // The sibling's filename is a button with the standard
+    // item-preview-trigger testid scoped to the sibling id.
+    const sibTrigger = screen.getByTestId(`item-preview-trigger-${SIB_A}`);
+    // Sanity: the trigger lives inside the nested merge-group row, not at
+    // the top level — so clicking it can only be the sibling's preview.
+    const nestedRow = screen.getByTestId(
+      `branching-merge-group-sibling-${LEAD}-${SIB_A}`,
+    );
+    expect(nestedRow.contains(sibTrigger)).toBe(true);
+
+    await act(async () => {
+      fireEvent.click(sibTrigger);
+    });
+
+    // The (mocked) inline viewer becomes visible — the page only renders
+    // it when previewItem is set, so this is proof setPreviewItem fired.
+    await waitFor(() => {
+      expect(screen.getByTestId('mock-inline-viewer')).toBeInTheDocument();
+    });
+  });
+
+  it("clicking the nested sibling's exclude button PATCHes /exclude for that sibling id", async () => {
+    const { LEAD, SIB_A } = pushMergeGroupFixture();
+
+    renderPage();
+    await waitForMergeGroup(LEAD);
+
+    const excludeBtn = screen.getByTestId(`button-toggle-exclude-${SIB_A}`);
+    // Belt-and-braces: the button must be the one nested in the merge
+    // group, otherwise we'd be re-asserting an unrelated top-level row.
+    const nestedRow = screen.getByTestId(
+      `branching-merge-group-sibling-${LEAD}-${SIB_A}`,
+    );
+    expect(nestedRow.contains(excludeBtn)).toBe(true);
+
+    await act(async () => {
+      fireEvent.click(excludeBtn);
+    });
+
+    await waitFor(() => {
+      const calls = fetchMock.mock.calls.filter((call) => {
+        const url =
+          typeof call[0] === 'string' ? call[0] : (call[0] as URL).toString();
+        return url.endsWith(`/items/${SIB_A}/exclude`);
+      });
+      expect(calls).toHaveLength(1);
+      const init = calls[0][1] as RequestInit;
+      expect((init.method || 'GET').toUpperCase()).toBe('PATCH');
+      const body = JSON.parse(init.body as string);
+      expect(body.excluded).toBe(true);
+
+      // The lead's exclude endpoint must NOT have been hit — clicking a
+      // sibling's exclude must only affect that sibling.
+      const leadCalls = fetchMock.mock.calls.filter((call) => {
+        const url =
+          typeof call[0] === 'string' ? call[0] : (call[0] as URL).toString();
+        return url.endsWith(`/items/${LEAD}/exclude`);
+      });
+      expect(leadCalls).toHaveLength(0);
+    });
+  });
+
+  it('renders the English "In this merge" header above the nested sibling list', async () => {
+    const { LEAD } = pushMergeGroupFixture();
+
+    renderPage();
+    await waitForMergeGroup(LEAD);
+
+    const group = screen.getByTestId(`branching-merge-group-${LEAD}`);
+    expect(group).toHaveTextContent('In this merge');
+    expect(group).not.toHaveTextContent('Dans cette fusion');
+  });
+
+  it('renders the French "Dans cette fusion" header when the language is fr', async () => {
+    languageRef.current = 'fr';
+    const { LEAD } = pushMergeGroupFixture();
+
+    renderPage();
+    await waitForMergeGroup(LEAD);
+
+    const group = screen.getByTestId(`branching-merge-group-${LEAD}`);
+    expect(group).toHaveTextContent('Dans cette fusion');
+    expect(group).not.toHaveTextContent('In this merge');
   });
 });
