@@ -222,6 +222,7 @@ describe('withHierarchicalSelection — title resolution', () => {
     ['inventory', 'inventoryManagement'],
     ['projects', 'projectsMaintenanceManagement'],
     ['common-spaces-stats', 'manageCommonSpaces'],
+    ['buildings', 'buildingsManagement'],
   ])(
     'route %s renders its own section title (%s) during building selection',
     async (_route, titleKey) => {
