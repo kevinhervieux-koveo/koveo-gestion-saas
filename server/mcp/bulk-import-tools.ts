@@ -186,7 +186,7 @@ export function registerBulkImportTools(
                 const qa = (sc?.quickAnalysis as import('../services/bulk-import-analyzer').QuickAnalysis | null | undefined) ?? null;
                 return { id: s.id, name: s.name, quickAnalysis: qa };
               });
-            payload = (await bulkImportAnalyzer.suggestMergeOrSplit({
+            const mergeOrSplitResult = (await bulkImportAnalyzer.suggestMergeOrSplit({
               originalName: item.originalName,
               siblings,
               quickAnalysis: myQa,
@@ -194,6 +194,7 @@ export function registerBulkImportTools(
               stagedPath: item.stagedPath,
               mimeType: item.mimeType,
             })) as unknown as Record<string, unknown>;
+            payload = { ...mergeOrSplitResult, decisionState: 'pending' };
             await withRetryableDbCall(() =>
               db
                 .update(schema.bulkImportItems)

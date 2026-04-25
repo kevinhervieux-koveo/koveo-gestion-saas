@@ -68,6 +68,12 @@ export interface NextStepBlockProps {
   onNext: () => void;
   /** Number of residence_documents items still missing a residence (Task #780). */
   residenceIncompleteCount?: number;
+  /**
+   * Number of sorting-step items that still have an unresolved decision
+   * (decisionState === 'pending' or 'rejected'). When > 0 the Next Step
+   * button is blocked (Task #817).
+   */
+  sortingPendingCount?: number;
 }
 
 export function NextStepBlock({
@@ -77,12 +83,14 @@ export function NextStepBlock({
   isFr,
   onNext,
   residenceIncompleteCount = 0,
+  sortingPendingCount = 0,
 }: NextStepBlockProps) {
   const stillAnalyzingCount = computeStillAnalyzingCount(items, currentStep);
   const isNextBlocked =
     stepIndex >= STEP_ORDER.length - 1 ||
     stillAnalyzingCount > 0 ||
-    residenceIncompleteCount > 0;
+    residenceIncompleteCount > 0 ||
+    sortingPendingCount > 0;
   return (
     <div className="mt-4 flex flex-col items-end gap-2">
       {stillAnalyzingCount > 0 && (
@@ -97,6 +105,13 @@ export function NextStepBlock({
           {isFr
             ? `${residenceIncompleteCount} document(s) de résidence nécessitent une résidence avant de continuer.`
             : `${residenceIncompleteCount} residence document(s) need a residence selected before you can continue.`}
+        </p>
+      )}
+      {sortingPendingCount > 0 && (
+        <p className="text-sm text-amber-700" data-testid="sorting-pending-warning">
+          {isFr
+            ? `${sortingPendingCount} décision(s) de branchement en attente. Acceptez ou choisissez manuellement pour continuer.`
+            : `${sortingPendingCount} branching decision(s) need your review. Accept or choose manually to continue.`}
         </p>
       )}
       <Button

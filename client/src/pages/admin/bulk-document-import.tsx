@@ -57,6 +57,11 @@ import {
   Search,
   EyeOff,
   Eye,
+  Check,
+  X,
+  GitMerge,
+  Scissors,
+  Copy,
 } from 'lucide-react';
 import {
   type BulkImportFallbackReason,
@@ -211,6 +216,12 @@ interface BulkImportItemLite {
   sortingReason: string | null;
   /** id of the sibling item this one should merge with (Task #767). */
   sortingMergeWithItemId: string | null;
+  /** Page number at which to split this PDF (1-indexed, from AI or manual). */
+  sortingSplitAtPage: number | null;
+  /** Decision state for the sorting step: pending/accepted/rejected. Null = legacy (no gate). */
+  sortingDecisionState: 'pending' | 'accepted' | 'rejected' | null;
+  /** True when the admin manually set the sorting decision instead of accepting AI. */
+  sortingManualOverride: boolean;
   branchingConfidence: number | null;
   branchingFallback: BulkImportFallbackReason | null;
   branch: BranchDestination | null;
@@ -225,8 +236,15 @@ interface BulkImportItemLite {
   residenceManualOverride: boolean;
   identificationConfidence: number | null;
   identificationFallback: BulkImportFallbackReason | null;
+  identificationName: string | null;
+  identificationDescription: string | null;
+  identificationTags: string[] | null;
+  identificationEffectiveDate: string | null;
   linkingConfidence: number | null;
   linkingFallback: BulkImportFallbackReason | null;
+  linkingReason: string | null;
+  linkingBeforeItemId: string | null;
+  linkingAfterItemId: string | null;
 }
 
 interface SessionPayloadLite {
@@ -251,6 +269,7 @@ function getItemStepDecision(
   decision?: 'keep' | 'merge' | 'split' | null;
   reason?: string | null;
   mergeWithItemId?: string | null;
+  splitAtPage?: number | null;
 } | null {
   switch (step) {
     case 'screening':
@@ -262,6 +281,7 @@ function getItemStepDecision(
         decision: item.sortingDecision,
         reason: item.sortingReason,
         mergeWithItemId: item.sortingMergeWithItemId,
+        splitAtPage: item.sortingSplitAtPage,
       };
     case 'branching':
       return { confidence: item.branchingConfidence, fallbackReason: item.branchingFallback };
@@ -1027,6 +1047,13 @@ export default function BulkDocumentImportPage() {
   const [reassignPickerItemId, setReassignPickerItemId] = useState<string | null>(null);
   const [reassignBranch, setReassignBranch] = useState<BranchDestination>('building_documents');
   const [reassignSubCategory, setReassignSubCategory] = useState<string>('other');
+
+  // Sorting-step manual decision picker state. `sortingPickerItemId` is the
+  // item currently showing the manual picker (at most one at a time).
+  const [sortingPickerItemId, setSortingPickerItemId] = useState<string | null>(null);
+  const [sortingPickerDecision, setSortingPickerDecision] = useState<'keep' | 'merge' | 'split'>('keep');
+  const [sortingPickerMergeTargetId, setSortingPickerMergeTargetId] = useState<string>('');
+  const [sortingPickerSplitPage, setSortingPickerSplitPage] = useState<number>(1);
   // Group-level reassign picker (Task #776). At most one section's
   // picker is open at a time; opening a per-file picker closes it and
   // vice-versa so the wizard never shows two competing pickers.
@@ -1500,6 +1527,45 @@ export default function BulkDocumentImportPage() {
       toast({
         variant: 'destructive',
         title: isFr ? 'Échec de l\'attribution de résidence' : 'Failed to set residence',
+      });
+    },
+  });
+
+  /**
+   * Accept / reject the AI's sorting-step suggestion, or commit a
+   * manual keep/merge/split decision.
+   */
+  const setSortingDecision = useMutation({
+    mutationFn: async ({
+      itemId,
+      action,
+      decision,
+      mergeWithItemId,
+      splitAtPage,
+    }: {
+      itemId: string;
+      action: 'accept' | 'reject' | 'manual';
+      decision?: 'keep' | 'merge' | 'split';
+      mergeWithItemId?: string;
+      splitAtPage?: number;
+    }) => {
+      const res = await apiRequest(
+        'POST',
+        `/api/admin/bulk-import/items/${itemId}/set-sorting-decision`,
+        { action, decision, mergeWithItemId, splitAtPage },
+      );
+      return res.json();
+    },
+    onSuccess: () => {
+      setSortingPickerItemId(null);
+      queryClient.invalidateQueries({
+        queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
+      });
+    },
+    onError: () => {
+      toast({
+        variant: 'destructive',
+        title: isFr ? 'Échec de la décision' : 'Failed to save decision',
       });
     },
   });
@@ -2627,12 +2693,31 @@ export default function BulkDocumentImportPage() {
                         const togglePending =
                           toggleExclude.isPending &&
                           toggleExclude.variables?.itemId === item.id;
-                        // Only offer an expansion control when there's
-                        // actually quickAnalysis signal worth showing.
-                        // Items with no AI guesses (or all-unknown) keep
-                        // the compact row layout (Task #771).
-                        const hasAnalysis = hasQuickAnalysisSignal(item);
+                        // Offer expansion when there is step-specific
+                        // analysis to display.  For the sorting step we
+                        // show analysis when a decision exists; for all
+                        // other steps we rely on the quickAnalysis signal.
+                        const hasAnalysis =
+                          currentStep === 'sorting'
+                            ? item.sortingDecision != null
+                            : hasQuickAnalysisSignal(item);
                         const isExpanded = expandedItemIds.has(item.id);
+                        // For the sorting step: is the AI's answer
+                        // waiting for human acceptance?
+                        const sortingIsPending =
+                          currentStep === 'sorting' &&
+                          item.sortingDecisionState === 'pending';
+                        const sortingIsRejected =
+                          currentStep === 'sorting' &&
+                          item.sortingDecisionState === 'rejected';
+                        const sortingIsAccepted =
+                          currentStep === 'sorting' &&
+                          item.sortingDecisionState === 'accepted';
+                        const sortingPickerOpen =
+                          sortingPickerItemId === item.id;
+                        const sortingMutationPending =
+                          setSortingDecision.isPending &&
+                          (setSortingDecision.variables as { itemId: string } | undefined)?.itemId === item.id;
                         return (
                           <div
                             key={item.id}
@@ -2730,10 +2815,14 @@ export default function BulkDocumentImportPage() {
                                 )}
                               {!isExcluded && (
                                 <>
-                                  {currentStep === 'sorting' && decision?.decision && (
+                                  {currentStep === 'sorting' && decision?.decision && !sortingIsPending && !sortingIsRejected && (
                                     <Badge
                                       variant="outline"
-                                      className="shrink-0 border-blue-300 bg-blue-50 text-blue-900 dark:border-blue-700 dark:bg-blue-950 dark:text-blue-200"
+                                      className={`shrink-0 ${
+                                        sortingIsAccepted
+                                          ? 'border-green-300 bg-green-50 text-green-900 dark:border-green-700 dark:bg-green-950 dark:text-green-200'
+                                          : 'border-blue-300 bg-blue-50 text-blue-900 dark:border-blue-700 dark:bg-blue-950 dark:text-blue-200'
+                                      }`}
                                       title={(() => {
                                         const base = decision.reason ?? '';
                                         if (decision.decision === 'merge' && decision.mergeWithItemId) {
@@ -2742,6 +2831,11 @@ export default function BulkDocumentImportPage() {
                                           return isFr
                                             ? `${base}${base ? ' · ' : ''}Fusionner avec : ${siblingName}`
                                             : `${base}${base ? ' · ' : ''}Merge with: ${siblingName}`;
+                                        }
+                                        if (decision.decision === 'split' && decision.splitAtPage) {
+                                          return isFr
+                                            ? `${base}${base ? ' · ' : ''}Scinder à la page ${decision.splitAtPage}`
+                                            : `${base}${base ? ' · ' : ''}Split at page ${decision.splitAtPage}`;
                                         }
                                         return base || undefined;
                                       })()}
@@ -2752,6 +2846,33 @@ export default function BulkDocumentImportPage() {
                                         : decision.decision === 'merge'
                                         ? isFr ? 'Fusionner' : 'Merge'
                                         : isFr ? 'Scinder' : 'Split'}
+                                    </Badge>
+                                  )}
+                                  {currentStep === 'sorting' && item.sortingManualOverride && sortingIsAccepted && (
+                                    <Badge
+                                      variant="outline"
+                                      className="shrink-0 border-slate-300 bg-slate-50 text-slate-700 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-300"
+                                      data-testid={`sorting-manual-tag-${item.id}`}
+                                    >
+                                      {isFr ? 'Manuel' : 'Manual'}
+                                    </Badge>
+                                  )}
+                                  {currentStep === 'sorting' && sortingIsPending && (
+                                    <Badge
+                                      variant="outline"
+                                      className="shrink-0 border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200"
+                                      data-testid={`sorting-pending-badge-${item.id}`}
+                                    >
+                                      {isFr ? 'En attente' : 'Pending review'}
+                                    </Badge>
+                                  )}
+                                  {currentStep === 'sorting' && sortingIsRejected && (
+                                    <Badge
+                                      variant="outline"
+                                      className="shrink-0 border-red-300 bg-red-50 text-red-800 dark:border-red-700 dark:bg-red-950 dark:text-red-200"
+                                      data-testid={`sorting-rejected-badge-${item.id}`}
+                                    >
+                                      {isFr ? 'Rejeté – choix requis' : 'Rejected – choose manually'}
                                     </Badge>
                                   )}
                                   {currentStep === 'screening' && item.screeningTypeGuess && item.screeningTypeGuess !== 'unknown' && (
@@ -2793,22 +2914,75 @@ export default function BulkDocumentImportPage() {
                                       {(isFr ? BUCKET_GUESS_LABEL_FR : BUCKET_GUESS_LABEL_EN)[item.screeningBucketGuess] ?? item.screeningBucketGuess}
                                     </Badge>
                                   )}
-                                  <FallbackReasonBadge
-                                    reason={decision?.fallbackReason}
-                                    isFr={isFr}
-                                  />
-                                  <ConfidenceBadge
-                                    value={decision?.confidence}
-                                    fallbackReason={decision?.fallbackReason}
-                                    isFr={isFr}
-                                  />
-                                  {decision?.fallbackReason && (
-                                    <span
-                                      className="text-xs text-muted-foreground italic"
-                                      data-testid={`hint-review-or-exclude-${item.id}`}
+                                  {currentStep !== 'sorting' && (
+                                    <>
+                                      <FallbackReasonBadge
+                                        reason={decision?.fallbackReason}
+                                        isFr={isFr}
+                                      />
+                                      <ConfidenceBadge
+                                        value={decision?.confidence}
+                                        fallbackReason={decision?.fallbackReason}
+                                        isFr={isFr}
+                                      />
+                                      {decision?.fallbackReason && (
+                                        <span
+                                          className="text-xs text-muted-foreground italic"
+                                          data-testid={`hint-review-or-exclude-${item.id}`}
+                                        >
+                                          {isFr ? 'Vérifiez ce fichier ou excluez-le' : 'Review or exclude this file'}
+                                        </span>
+                                      )}
+                                    </>
+                                  )}
+                                  {currentStep === 'sorting' && !isExcluded && sortingIsPending && (
+                                    <>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="border-green-300 text-green-700 hover:bg-green-50 dark:border-green-700 dark:text-green-300"
+                                        disabled={sortingMutationPending}
+                                        data-testid={`button-sorting-accept-${item.id}`}
+                                        onClick={() =>
+                                          setSortingDecision.mutate({ itemId: item.id, action: 'accept' })
+                                        }
+                                      >
+                                        {sortingMutationPending ? (
+                                          <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                                        ) : (
+                                          <Check className="mr-1.5 h-3.5 w-3.5" />
+                                        )}
+                                        {isFr ? 'Accepter' : 'Accept'}
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="border-red-300 text-red-700 hover:bg-red-50 dark:border-red-700 dark:text-red-300"
+                                        disabled={sortingMutationPending}
+                                        data-testid={`button-sorting-reject-${item.id}`}
+                                        onClick={() =>
+                                          setSortingDecision.mutate({ itemId: item.id, action: 'reject' })
+                                        }
+                                      >
+                                        <X className="mr-1.5 h-3.5 w-3.5" />
+                                        {isFr ? 'Rejeter' : 'Reject'}
+                                      </Button>
+                                    </>
+                                  )}
+                                  {currentStep === 'sorting' && !isExcluded && sortingIsRejected && !sortingPickerOpen && (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      data-testid={`button-sorting-manual-open-${item.id}`}
+                                      onClick={() => {
+                                        setSortingPickerItemId(item.id);
+                                        setSortingPickerDecision('keep');
+                                        setSortingPickerMergeTargetId('');
+                                        setSortingPickerSplitPage(1);
+                                      }}
                                     >
-                                      {isFr ? 'Vérifiez ce fichier ou excluez-le' : 'Review or exclude this file'}
-                                    </span>
+                                      {isFr ? 'Choisir manuellement' : 'Choose manually'}
+                                    </Button>
                                   )}
                                 </>
                               )}
@@ -2893,6 +3067,124 @@ export default function BulkDocumentImportPage() {
                               )}
                             </div>
                             </div>
+                            {/* Manual picker – rendered when the user
+                                rejects the AI suggestion and picks
+                                their own keep/merge/split. */}
+                            {currentStep === 'sorting' && sortingPickerOpen && !isExcluded && (
+                              <div
+                                className="border-t bg-muted/30 px-3 py-3"
+                                data-testid={`sorting-manual-picker-${item.id}`}
+                              >
+                                <p className="mb-3 text-sm font-medium">
+                                  {isFr ? 'Décision manuelle' : 'Manual decision'}
+                                </p>
+                                <div className="flex flex-wrap gap-2">
+                                  {(['keep', 'merge', 'split'] as const).map((opt) => (
+                                    <button
+                                      key={opt}
+                                      type="button"
+                                      className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                                        sortingPickerDecision === opt
+                                          ? 'border-primary bg-primary text-primary-foreground'
+                                          : 'border-border bg-background hover:bg-muted/50'
+                                      }`}
+                                      onClick={() => setSortingPickerDecision(opt)}
+                                      data-testid={`sorting-picker-option-${opt}-${item.id}`}
+                                    >
+                                      {opt === 'keep' && <Copy className="h-3.5 w-3.5" />}
+                                      {opt === 'merge' && <GitMerge className="h-3.5 w-3.5" />}
+                                      {opt === 'split' && <Scissors className="h-3.5 w-3.5" />}
+                                      {opt === 'keep'
+                                        ? isFr ? 'Conserver' : 'Keep'
+                                        : opt === 'merge'
+                                        ? isFr ? 'Fusionner' : 'Merge'
+                                        : isFr ? 'Scinder' : 'Split'}
+                                    </button>
+                                  ))}
+                                </div>
+                                {sortingPickerDecision === 'merge' && (
+                                  <div className="mt-3 flex items-center gap-2">
+                                    <label className="text-sm text-muted-foreground whitespace-nowrap">
+                                      {isFr ? 'Fusionner avec :' : 'Merge with:'}
+                                    </label>
+                                    <select
+                                      className="flex-1 rounded-md border border-border bg-background px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                                      value={sortingPickerMergeTargetId}
+                                      onChange={(e) => setSortingPickerMergeTargetId(e.target.value)}
+                                      data-testid={`sorting-picker-merge-target-${item.id}`}
+                                    >
+                                      <option value="">
+                                        {isFr ? '— Sélectionner un fichier —' : '— Select a file —'}
+                                      </option>
+                                      {items
+                                        .filter((i) => i.id !== item.id && i.status !== 'rejected')
+                                        .map((i) => (
+                                          <option key={i.id} value={i.id}>
+                                            {i.originalName}
+                                          </option>
+                                        ))}
+                                    </select>
+                                  </div>
+                                )}
+                                {sortingPickerDecision === 'split' && (
+                                  <div className="mt-3 flex items-center gap-2">
+                                    <label className="text-sm text-muted-foreground whitespace-nowrap">
+                                      {isFr ? 'Scinder après la page :' : 'Split after page:'}
+                                    </label>
+                                    <input
+                                      type="number"
+                                      min={1}
+                                      className="w-20 rounded-md border border-border bg-background px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                                      value={sortingPickerSplitPage}
+                                      onChange={(e) =>
+                                        setSortingPickerSplitPage(
+                                          Math.max(1, parseInt(e.target.value, 10) || 1),
+                                        )
+                                      }
+                                      data-testid={`sorting-picker-split-page-${item.id}`}
+                                    />
+                                  </div>
+                                )}
+                                <div className="mt-4 flex gap-2">
+                                  <Button
+                                    size="sm"
+                                    disabled={
+                                      sortingMutationPending ||
+                                      (sortingPickerDecision === 'merge' && !sortingPickerMergeTargetId)
+                                    }
+                                    data-testid={`button-sorting-confirm-${item.id}`}
+                                    onClick={() =>
+                                      setSortingDecision.mutate({
+                                        itemId: item.id,
+                                        action: 'manual',
+                                        decision: sortingPickerDecision,
+                                        mergeWithItemId:
+                                          sortingPickerDecision === 'merge'
+                                            ? sortingPickerMergeTargetId
+                                            : undefined,
+                                        splitAtPage:
+                                          sortingPickerDecision === 'split'
+                                            ? sortingPickerSplitPage
+                                            : undefined,
+                                      })
+                                    }
+                                  >
+                                    {sortingMutationPending ? (
+                                      <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                                    ) : null}
+                                    {isFr ? 'Confirmer' : 'Confirm'}
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => setSortingPickerItemId(null)}
+                                    data-testid={`button-sorting-cancel-picker-${item.id}`}
+                                  >
+                                    {isFr ? 'Annuler' : 'Cancel'}
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
                             {hasAnalysis && isExpanded && (
                               <div
                                 className="border-t bg-muted/30 px-3 py-3"
@@ -2901,62 +3193,121 @@ export default function BulkDocumentImportPage() {
                                 <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                                   {isFr ? 'Analyse de l’IA' : 'AI analysis'}
                                 </div>
-                                <div className="flex flex-wrap items-center gap-2">
-                                  {item.screeningTypeGuess &&
-                                    item.screeningTypeGuess !== 'unknown' && (
-                                      <span
-                                        className="inline-flex items-center rounded-md border border-purple-300 bg-purple-50 px-3 py-1 text-sm font-medium text-purple-900 dark:border-purple-700 dark:bg-purple-950 dark:text-purple-200"
-                                        data-testid={`detail-type-guess-${item.id}`}
-                                      >
-                                        <span className="mr-1.5 text-xs uppercase tracking-wide opacity-75">
-                                          {isFr ? 'Type' : 'Type'}:
+                                {currentStep === 'sorting' ? (
+                                  <div className="space-y-2">
+                                    <div className="flex flex-wrap gap-2">
+                                      {decision?.confidence != null && (
+                                        <span
+                                          className="inline-flex items-center gap-1.5 rounded-md border bg-background px-3 py-1 text-sm font-medium"
+                                          data-testid={`detail-confidence-${item.id}`}
+                                        >
+                                          <Sparkles className="h-3.5 w-3.5 text-muted-foreground" />
+                                          <span className="text-xs uppercase tracking-wide text-muted-foreground">
+                                            {isFr ? 'Confiance' : 'Confidence'}:
+                                          </span>
+                                          {Math.round(decision.confidence * 100)}%
                                         </span>
-                                        {(isFr ? TYPE_GUESS_LABEL_FR : TYPE_GUESS_LABEL_EN)[
-                                          item.screeningTypeGuess
-                                        ] ?? item.screeningTypeGuess}
-                                      </span>
-                                    )}
-                                  {item.screeningBucketGuess &&
-                                    item.screeningBucketGuess !== 'unknown' && (
-                                      <span
-                                        className="inline-flex items-center rounded-md border border-teal-300 bg-teal-50 px-3 py-1 text-sm font-medium text-teal-900 dark:border-teal-700 dark:bg-teal-950 dark:text-teal-200"
-                                        data-testid={`detail-bucket-guess-${item.id}`}
-                                      >
-                                        <span className="mr-1.5 text-xs uppercase tracking-wide opacity-75">
-                                          {isFr ? 'Destination' : 'Bucket'}:
+                                      )}
+                                      {decision?.mergeWithItemId && (
+                                        <span className="inline-flex items-center gap-1.5 rounded-md border bg-background px-3 py-1 text-sm font-medium"
+                                          data-testid={`detail-merge-target-${item.id}`}
+                                        >
+                                          <GitMerge className="h-3.5 w-3.5 text-muted-foreground" />
+                                          <span className="text-xs uppercase tracking-wide text-muted-foreground">
+                                            {isFr ? 'Fusionner avec' : 'Merge with'}:
+                                          </span>
+                                          {items.find((i) => i.id === decision.mergeWithItemId)?.originalName ?? decision.mergeWithItemId}
                                         </span>
-                                        {(isFr ? BUCKET_GUESS_LABEL_FR : BUCKET_GUESS_LABEL_EN)[
-                                          item.screeningBucketGuess
-                                        ] ?? item.screeningBucketGuess}
-                                      </span>
+                                      )}
+                                      {decision?.splitAtPage != null && (
+                                        <span className="inline-flex items-center gap-1.5 rounded-md border bg-background px-3 py-1 text-sm font-medium"
+                                          data-testid={`detail-split-page-${item.id}`}
+                                        >
+                                          <Scissors className="h-3.5 w-3.5 text-muted-foreground" />
+                                          <span className="text-xs uppercase tracking-wide text-muted-foreground">
+                                            {isFr ? 'Scinder à la page' : 'Split at page'}:
+                                          </span>
+                                          {decision.splitAtPage}
+                                        </span>
+                                      )}
+                                    </div>
+                                    {decision?.reason && (
+                                      <p
+                                        className="whitespace-pre-wrap text-sm text-foreground/80"
+                                        data-testid={`detail-reason-${item.id}`}
+                                      >
+                                        <span className="mr-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                          {isFr ? 'Raison' : 'Reason'}:
+                                        </span>
+                                        {decision.reason}
+                                      </p>
                                     )}
-                                  {item.screeningConfidence != null && (
-                                    <span
-                                      className="inline-flex items-center gap-1.5 rounded-md border bg-background px-3 py-1 text-sm font-medium"
-                                      data-testid={`detail-confidence-${item.id}`}
-                                    >
-                                      <Sparkles className="h-3.5 w-3.5 text-muted-foreground" />
-                                      <span className="text-xs uppercase tracking-wide text-muted-foreground">
-                                        {isFr ? 'Confiance' : 'Confidence'}:
-                                      </span>
-                                      <span>
-                                        {Math.round(item.screeningConfidence * 100)}%
-                                      </span>
-                                    </span>
-                                  )}
-                                </div>
-                                {item.screeningQaReason && (
-                                  <p
-                                    className="mt-3 whitespace-pre-wrap text-sm text-foreground/80"
-                                    data-testid={`detail-reason-${item.id}`}
-                                  >
-                                    <span className="mr-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                                      {isFr ? 'Raison' : 'Reason'}:
-                                    </span>
-                                    {item.screeningFallback
-                                      ? (isFr ? "L\u2019IA n\u2019a pas analys\u00e9 ce fichier." : 'AI did not analyze this file.')
-                                      : item.screeningQaReason}
-                                  </p>
+                                    {decision?.fallbackReason && (
+                                      <p className="text-sm text-amber-700 dark:text-amber-400">
+                                        {isFr ? 'Raison de repli' : 'Fallback reason'}: {decision.fallbackReason}
+                                      </p>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <>
+                                    <div className="flex flex-wrap items-center gap-2">
+                                      {item.screeningTypeGuess &&
+                                        item.screeningTypeGuess !== 'unknown' && (
+                                          <span
+                                            className="inline-flex items-center rounded-md border border-purple-300 bg-purple-50 px-3 py-1 text-sm font-medium text-purple-900 dark:border-purple-700 dark:bg-purple-950 dark:text-purple-200"
+                                            data-testid={`detail-type-guess-${item.id}`}
+                                          >
+                                            <span className="mr-1.5 text-xs uppercase tracking-wide opacity-75">
+                                              {isFr ? 'Type' : 'Type'}:
+                                            </span>
+                                            {(isFr ? TYPE_GUESS_LABEL_FR : TYPE_GUESS_LABEL_EN)[
+                                              item.screeningTypeGuess
+                                            ] ?? item.screeningTypeGuess}
+                                          </span>
+                                        )}
+                                      {item.screeningBucketGuess &&
+                                        item.screeningBucketGuess !== 'unknown' && (
+                                          <span
+                                            className="inline-flex items-center rounded-md border border-teal-300 bg-teal-50 px-3 py-1 text-sm font-medium text-teal-900 dark:border-teal-700 dark:bg-teal-950 dark:text-teal-200"
+                                            data-testid={`detail-bucket-guess-${item.id}`}
+                                          >
+                                            <span className="mr-1.5 text-xs uppercase tracking-wide opacity-75">
+                                              {isFr ? 'Destination' : 'Bucket'}:
+                                            </span>
+                                            {(isFr ? BUCKET_GUESS_LABEL_FR : BUCKET_GUESS_LABEL_EN)[
+                                              item.screeningBucketGuess
+                                            ] ?? item.screeningBucketGuess}
+                                          </span>
+                                        )}
+                                      {item.screeningConfidence != null && (
+                                        <span
+                                          className="inline-flex items-center gap-1.5 rounded-md border bg-background px-3 py-1 text-sm font-medium"
+                                          data-testid={`detail-confidence-${item.id}`}
+                                        >
+                                          <Sparkles className="h-3.5 w-3.5 text-muted-foreground" />
+                                          <span className="text-xs uppercase tracking-wide text-muted-foreground">
+                                            {isFr ? 'Confiance' : 'Confidence'}:
+                                          </span>
+                                          <span>
+                                            {Math.round(item.screeningConfidence * 100)}%
+                                          </span>
+                                        </span>
+                                      )}
+                                    </div>
+                                    {item.screeningQaReason && (
+                                      <p
+                                        className="mt-3 whitespace-pre-wrap text-sm text-foreground/80"
+                                        data-testid={`detail-reason-${item.id}`}
+                                      >
+                                        <span className="mr-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                          {isFr ? 'Raison' : 'Reason'}:
+                                        </span>
+                                        {item.screeningFallback
+                                          ? (isFr ? "L’IA n’a pas analysé ce fichier." : 'AI did not analyze this file.')
+                                          : item.screeningQaReason}
+                                      </p>
+                                    )}
+                                  </>
                                 )}
                               </div>
                             )}
@@ -2978,6 +3329,16 @@ export default function BulkDocumentImportPage() {
                                 i.branch === 'residence_documents' &&
                                 !i.residenceId &&
                                 i.status !== 'rejected',
+                            ).length
+                          : 0
+                      }
+                      sortingPendingCount={
+                        currentStep === 'sorting'
+                          ? items.filter(
+                              (i) =>
+                                i.status !== 'rejected' &&
+                                (i.sortingDecisionState === 'pending' ||
+                                  i.sortingDecisionState === 'rejected'),
                             ).length
                           : 0
                       }

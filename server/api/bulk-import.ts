@@ -317,10 +317,14 @@ async function processItemForStep(
       itemId: item.id,
       sessionId: item.sessionId,
     });
+    const sortingDecisionWithState: Record<string, unknown> = {
+      ...(result as unknown as Record<string, unknown>),
+      decisionState: 'pending',
+    };
     const [updated] = await db
       .update(schema.bulkImportItems)
       .set({
-        sortingDecision: result as unknown as Record<string, unknown>,
+        sortingDecision: sortingDecisionWithState,
         status: 'sorted',
         updatedAt: new Date(),
       })
@@ -692,13 +696,51 @@ export function registerBulkImportRoutes(app: Express): void {
 
       function extractSortingStep(json: Record<string, unknown> | null | undefined) {
         const base = extractStep(json);
-        if (!json) return { ...base, decision: null, reason: null, mergeWithItemId: null };
+        if (!json) return {
+          ...base,
+          decision: null,
+          reason: null,
+          mergeWithItemId: null,
+          splitAtPage: null,
+          decisionState: null,
+          manualOverride: false,
+        };
         const raw = json.decision as string | null | undefined;
         const decision =
           raw === 'keep' || raw === 'merge' || raw === 'split' ? raw : null;
         const reason = (json.reason as string | null | undefined) ?? null;
         const mergeWithItemId = (json.mergeWithItemId as string | null | undefined) ?? null;
-        return { ...base, decision, reason, mergeWithItemId };
+        const splitAtPage = (json.splitAtPage as number | null | undefined) ?? null;
+        const rawState = json.decisionState as string | null | undefined;
+        const decisionState =
+          rawState === 'pending' || rawState === 'accepted' || rawState === 'rejected'
+            ? rawState
+            : null;
+        const manualOverride = (json.manualOverride as boolean | null | undefined) ?? false;
+        return { ...base, decision, reason, mergeWithItemId, splitAtPage, decisionState, manualOverride };
+      }
+
+      function extractIdentificationStep(json: Record<string, unknown> | null | undefined) {
+        const base = extractStep(json);
+        if (!json) return { ...base, name: null, description: null, tags: null, effectiveDate: null };
+        return {
+          ...base,
+          name: (json.name as string | null | undefined) ?? null,
+          description: (json.description as string | null | undefined) ?? null,
+          tags: Array.isArray(json.tags) ? (json.tags as string[]) : null,
+          effectiveDate: (json.effectiveDate as string | null | undefined) ?? null,
+        };
+      }
+
+      function extractLinkingStep(json: Record<string, unknown> | null | undefined) {
+        const base = extractStep(json);
+        if (!json) return { ...base, linkingReason: null, beforeItemId: null, afterItemId: null };
+        return {
+          ...base,
+          linkingReason: (json.reason as string | null | undefined) ?? null,
+          beforeItemId: (json.beforeItemId as string | null | undefined) ?? null,
+          afterItemId: (json.afterItemId as string | null | undefined) ?? null,
+        };
       }
 
       // Surface rotation outcome so the Screening row can render a
@@ -770,8 +812,8 @@ export function registerBulkImportRoutes(app: Express): void {
           const srot = extractScreeningRotation(r.screening);
           const so = extractSortingStep(r.sortingDecision);
           const br = extractBranchStep(r.branchDecision);
-          const id = extractStep(r.identification);
-          const lk = extractStep(r.linkDecisions);
+          const id = extractIdentificationStep(r.identification);
+          const lk = extractLinkingStep(r.linkDecisions);
           return {
             screeningConfidence: sc.confidence,
             screeningFallback: sc.fallbackReason,
@@ -783,6 +825,9 @@ export function registerBulkImportRoutes(app: Express): void {
             sortingDecision: so.decision,
             sortingReason: so.reason,
             sortingMergeWithItemId: so.mergeWithItemId,
+            sortingSplitAtPage: so.splitAtPage,
+            sortingDecisionState: so.decisionState,
+            sortingManualOverride: so.manualOverride,
             branchingConfidence: br.confidence,
             branchingFallback: br.fallbackReason,
             branch: br.branch,
@@ -796,8 +841,15 @@ export function registerBulkImportRoutes(app: Express): void {
             residenceManualOverride: br.residenceManualOverride,
             identificationConfidence: id.confidence,
             identificationFallback: id.fallbackReason,
+            identificationName: id.name,
+            identificationDescription: id.description,
+            identificationTags: id.tags,
+            identificationEffectiveDate: id.effectiveDate,
             linkingConfidence: lk.confidence,
             linkingFallback: lk.fallbackReason,
+            linkingReason: lk.linkingReason,
+            linkingBeforeItemId: lk.beforeItemId,
+            linkingAfterItemId: lk.afterItemId,
           };
         })(),
       }));
@@ -1465,6 +1517,247 @@ export function registerBulkImportRoutes(app: Express): void {
         if (err instanceof z.ZodError) return res.status(400).json({ error: err.errors });
         logError('[bulk-import] set-residence failed', err as Error);
         return res.status(500).json({ error: 'Failed to set residence' });
+      }
+    },
+  );
+
+  /**
+   * Set (or update) the sorting-step decision for a single item —
+   * accept the AI's suggestion, reject it, or commit a manual choice.
+   *
+   * Actions:
+   *   - 'accept'  → marks decisionState='accepted', triggers PDF
+   *                 merge/split file operation when the AI chose
+   *                 merge or split.
+   *   - 'reject'  → clears decisionState to 'rejected' so the UI
+   *                 shows the manual picker.
+   *   - 'manual'  → saves the caller's own decision with
+   *                 manualOverride=true and decisionState='accepted',
+   *                 then triggers the same file operation as accept.
+   *
+   * For merge the two staged PDFs are combined into one using pdf-lib;
+   * the surviving item's stagedPath is updated, the merged-away item
+   * is excluded (status='rejected').
+   * For split the PDF is cut at `splitAtPage`; the original item is
+   * updated to pages 1..N and a new sibling item is inserted for
+   * pages N+1..end.
+   * For keep (or non-PDF) the file is left untouched.
+   */
+  const setSortingDecisionSchema = z.object({
+    action: z.enum(['accept', 'reject', 'manual']),
+    decision: z.enum(['keep', 'merge', 'split']).optional(),
+    mergeWithItemId: z.string().min(1).optional(),
+    splitAtPage: z.number().int().min(1).optional(),
+  });
+  app.post(
+    '/api/admin/bulk-import/items/:id/set-sorting-decision',
+    requireAuth,
+    requireRole(['admin']),
+    async (req: AuthenticatedRequest, res: Response) => {
+      try {
+        const { action, decision: manualDecision, mergeWithItemId: manualMergeId, splitAtPage: manualSplitAt } =
+          setSortingDecisionSchema.parse(req.body);
+
+        const [item] = await db
+          .select()
+          .from(schema.bulkImportItems)
+          .where(eq(schema.bulkImportItems.id, req.params.id));
+        if (!item) return res.status(404).json({ error: 'Item not found' });
+
+        const existing = (item.sortingDecision ?? {}) as Record<string, unknown>;
+
+        if (action === 'reject') {
+          const updated_decision: Record<string, unknown> = {
+            ...existing,
+            decisionState: 'rejected',
+          };
+          const [updated] = await db
+            .update(schema.bulkImportItems)
+            .set({ sortingDecision: updated_decision, updatedAt: new Date() })
+            .where(eq(schema.bulkImportItems.id, item.id))
+            .returning();
+          return res.json(updated);
+        }
+
+        // Determine the effective decision (AI suggestion or caller override)
+        const isManual = action === 'manual';
+        const effectiveDecision = isManual
+          ? (manualDecision ?? 'keep')
+          : ((existing.decision as string | null | undefined) ?? 'keep');
+        const effectiveMergeId = isManual
+          ? manualMergeId
+          : (existing.mergeWithItemId as string | null | undefined);
+        const effectiveSplitAt = isManual
+          ? manualSplitAt
+          : (existing.splitAtPage as number | null | undefined);
+
+        const updated_decision: Record<string, unknown> = {
+          ...existing,
+          decisionState: 'accepted',
+          ...(isManual && {
+            decision: effectiveDecision,
+            mergeWithItemId: effectiveMergeId ?? null,
+            splitAtPage: effectiveSplitAt ?? null,
+            manualOverride: true,
+          }),
+        };
+
+        const isPdf = (item.mimeType ?? '').toLowerCase() === 'application/pdf';
+
+        // --- MERGE ---
+        if (effectiveDecision === 'merge' && effectiveMergeId && isPdf) {
+          const [siblingItem] = await db
+            .select()
+            .from(schema.bulkImportItems)
+            .where(eq(schema.bulkImportItems.id, effectiveMergeId));
+          if (!siblingItem) {
+            return res.status(404).json({ error: 'Merge target item not found' });
+          }
+          const siblingIsPdf = (siblingItem.mimeType ?? '').toLowerCase() === 'application/pdf';
+          if (!siblingIsPdf) {
+            return res.status(400).json({ error: 'Can only merge PDF files together' });
+          }
+          if (!item.stagedPath || !fs.existsSync(item.stagedPath)) {
+            return res.status(400).json({ error: 'Staged file missing for this item' });
+          }
+          if (!siblingItem.stagedPath || !fs.existsSync(siblingItem.stagedPath)) {
+            return res.status(400).json({ error: 'Staged file missing for merge target' });
+          }
+
+          const { PDFDocument } = await import('pdf-lib');
+          const bytesA = fs.readFileSync(item.stagedPath);
+          const bytesB = fs.readFileSync(siblingItem.stagedPath);
+          const pdfA = await PDFDocument.load(new Uint8Array(bytesA), { ignoreEncryption: true });
+          const pdfB = await PDFDocument.load(new Uint8Array(bytesB), { ignoreEncryption: true });
+          const indices = Array.from({ length: pdfB.getPageCount() }, (_, i) => i);
+          const copiedPages = await pdfA.copyPages(pdfB, indices);
+          for (const page of copiedPages) pdfA.addPage(page);
+          const mergedBytes = Buffer.from(await pdfA.save());
+          const mergedHash = crypto.createHash('sha256').update(mergedBytes).digest('hex');
+          const dir = stagingDirFor(item.sessionId);
+          const newPath = path.join(dir, `merged_${mergedHash}_${item.originalName}`);
+          fs.writeFileSync(newPath, mergedBytes);
+
+          updated_decision.mergedFromItemId = siblingItem.id;
+          const [updatedItem] = await db
+            .update(schema.bulkImportItems)
+            .set({
+              stagedPath: newPath,
+              contentHash: mergedHash,
+              sortingDecision: updated_decision,
+              updatedAt: new Date(),
+            })
+            .where(eq(schema.bulkImportItems.id, item.id))
+            .returning();
+
+          // Exclude the merged-away item with a back-pointer
+          const siblingDecision: Record<string, unknown> = {
+            ...((siblingItem.sortingDecision ?? {}) as Record<string, unknown>),
+            decisionState: 'accepted',
+            decision: 'merge',
+            mergedIntoItemId: item.id,
+          };
+          await db
+            .update(schema.bulkImportItems)
+            .set({
+              status: 'rejected',
+              preExcludeStatus: siblingItem.status,
+              sortingDecision: siblingDecision,
+              updatedAt: new Date(),
+            })
+            .where(eq(schema.bulkImportItems.id, siblingItem.id));
+
+          return res.json(updatedItem);
+        }
+
+        // --- SPLIT ---
+        if (effectiveDecision === 'split' && effectiveSplitAt != null && isPdf) {
+          if (!item.stagedPath || !fs.existsSync(item.stagedPath)) {
+            return res.status(400).json({ error: 'Staged file missing for this item' });
+          }
+
+          const { PDFDocument } = await import('pdf-lib');
+          const srcBytes = fs.readFileSync(item.stagedPath);
+          const srcDoc = await PDFDocument.load(new Uint8Array(srcBytes), { ignoreEncryption: true });
+          const totalPages = srcDoc.getPageCount();
+          const splitPage = Math.max(1, Math.min(effectiveSplitAt, totalPages - 1));
+
+          // First part: pages 0..splitPage-1
+          const docFirst = await PDFDocument.create();
+          const firstIndices = Array.from({ length: splitPage }, (_, i) => i);
+          const firstPages = await docFirst.copyPages(srcDoc, firstIndices);
+          for (const p of firstPages) docFirst.addPage(p);
+          const firstBytes = Buffer.from(await docFirst.save());
+          const firstHash = crypto.createHash('sha256').update(firstBytes).digest('hex');
+
+          // Second part: pages splitPage..totalPages-1
+          const docSecond = await PDFDocument.create();
+          const secondIndices = Array.from({ length: totalPages - splitPage }, (_, i) => i + splitPage);
+          const secondPages = await docSecond.copyPages(srcDoc, secondIndices);
+          for (const p of secondPages) docSecond.addPage(p);
+          const secondBytes = Buffer.from(await docSecond.save());
+          const secondHash = crypto.createHash('sha256').update(secondBytes).digest('hex');
+
+          const dir = stagingDirFor(item.sessionId);
+          const firstPath = path.join(dir, `split1_${firstHash}_${item.originalName}`);
+          const secondName = `split2_${item.originalName}`;
+          const secondPath = path.join(dir, `split2_${secondHash}_${item.originalName}`);
+          fs.writeFileSync(firstPath, firstBytes);
+          fs.writeFileSync(secondPath, secondBytes);
+
+          // Update original item with first part
+          updated_decision.splitTotalPages = totalPages;
+          updated_decision.splitAtPage = splitPage;
+          const [updatedItem] = await db
+            .update(schema.bulkImportItems)
+            .set({
+              stagedPath: firstPath,
+              contentHash: firstHash,
+              sortingDecision: updated_decision,
+              updatedAt: new Date(),
+            })
+            .where(eq(schema.bulkImportItems.id, item.id))
+            .returning();
+
+          // Insert new sibling item for second part
+          const siblingDecision: Record<string, unknown> = {
+            decision: 'keep',
+            reason: 'Created from split',
+            confidence: 1,
+            decisionState: 'accepted',
+            splitFromItemId: item.id,
+            splitAtPage: splitPage,
+            manualOverride: isManual,
+          };
+          await db
+            .insert(schema.bulkImportItems)
+            .values({
+              sessionId: item.sessionId,
+              originalPath: secondName,
+              originalName: secondName,
+              stagedPath: secondPath,
+              contentHash: secondHash,
+              mimeType: item.mimeType,
+              fileSize: secondBytes.length,
+              status: 'sorted',
+              sortingDecision: siblingDecision,
+            });
+
+          return res.json(updatedItem);
+        }
+
+        // --- KEEP (or no file operation needed) ---
+        const [updated] = await db
+          .update(schema.bulkImportItems)
+          .set({ sortingDecision: updated_decision, updatedAt: new Date() })
+          .where(eq(schema.bulkImportItems.id, item.id))
+          .returning();
+        return res.json(updated);
+
+      } catch (err) {
+        if (err instanceof z.ZodError) return res.status(400).json({ error: err.errors });
+        logError('[bulk-import] set-sorting-decision failed', err as Error);
+        return res.status(500).json({ error: 'Failed to set sorting decision' });
       }
     },
   );
