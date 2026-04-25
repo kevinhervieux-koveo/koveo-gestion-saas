@@ -1958,6 +1958,259 @@ export function registerBulkImportRoutes(app: Express): void {
   );
 
   /**
+   * Bulk-accept every pending sorting decision in a session (Task #900).
+   *
+   * Iterates all items in the session and, for each one where
+   * `sortingDecision.decisionState === 'pending'` and that is not
+   * excluded (status !== 'rejected' / 'committed' / 'duplicate'), applies
+   * exactly the same accept logic as the single-item `set-sorting-decision`
+   * route for `action: 'accept'` — i.e. it commits the AI's suggested
+   * Keep / Merge / Split decision, running the corresponding PDF file
+   * operation when needed.
+   *
+   * Returns `{ accepted: number }`.
+   */
+  const acceptAllPendingSortingSchema = z.object({
+    /** Item IDs the client wants the server to skip (inline edits in progress). */
+    skipItemIds: z.string().array().optional(),
+  });
+
+  app.post(
+    '/api/admin/bulk-import/sessions/:id/items/accept-all-pending-sorting',
+    requireAuth,
+    requireRole(['admin']),
+    async (req: AuthenticatedRequest, res: Response) => {
+      try {
+        const { skipItemIds } = acceptAllPendingSortingSchema.parse(req.body);
+        const skipSet = new Set(skipItemIds ?? []);
+
+        const session = await loadSession(req.params.id);
+        if (!session) return res.status(404).json({ error: 'Session not found' });
+        const canAccess = await canUserAccessOrganization(req.user!.id, session.organizationId);
+        if (!canAccess) return res.status(403).json({ error: 'Forbidden' });
+
+        const rows = await db
+          .select()
+          .from(schema.bulkImportItems)
+          .where(eq(schema.bulkImportItems.sessionId, session.id));
+
+        const now = new Date();
+        let accepted = 0;
+        // Track IDs that have been modified mid-loop (e.g. siblings marked
+        // rejected during a merge) so stale prefetched snapshots are not
+        // re-processed in subsequent iterations.
+        const modifiedIds = new Set<string>();
+
+        for (const item of rows) {
+          // Skip items the client flagged as having in-progress inline edits.
+          if (skipSet.has(item.id)) continue;
+          // Skip items whose DB row was mutated by an earlier iteration of this loop.
+          if (modifiedIds.has(item.id)) continue;
+          if (
+            item.status === 'rejected' ||
+            item.status === 'committed' ||
+            item.status === 'duplicate'
+          ) {
+            continue;
+          }
+          const existing = (item.sortingDecision ?? {}) as Record<string, unknown>;
+          if ((existing.decisionState as string | undefined) !== 'pending') continue;
+
+          const effectiveDecision =
+            (existing.decision as string | null | undefined) ?? 'keep';
+          const effectiveMergeIds: string[] | undefined = Array.isArray(existing.mergeWithItemIds)
+            ? (existing.mergeWithItemIds as string[])
+            : (existing.mergeWithItemId as string | null | undefined)
+              ? [(existing.mergeWithItemId as string)]
+              : undefined;
+          const effectiveSplitAt = existing.splitAtPage as number | null | undefined;
+          const isPdf = (item.mimeType ?? '').toLowerCase() === 'application/pdf';
+
+          const updated_decision: Record<string, unknown> = {
+            ...existing,
+            decisionState: 'accepted',
+            draft: false,
+          };
+
+          // --- MERGE ---
+          if (effectiveDecision === 'merge' && effectiveMergeIds && effectiveMergeIds.length > 0 && isPdf) {
+            if (!item.stagedPath || !fs.existsSync(item.stagedPath)) {
+              logWarn(`[bulk-import] accept-all-pending-sorting: staged file missing for item ${item.id}, skipping`);
+              continue;
+            }
+
+            try {
+              const { PDFDocument } = await import('pdf-lib');
+              const leadBytes = fs.readFileSync(item.stagedPath);
+              const leadPdf = await PDFDocument.load(new Uint8Array(leadBytes), { ignoreEncryption: true });
+
+              const siblingItems: (typeof item)[] = [];
+              let mergeError = false;
+              for (const siblingId of effectiveMergeIds) {
+                const [siblingItem] = await db
+                  .select()
+                  .from(schema.bulkImportItems)
+                  .where(eq(schema.bulkImportItems.id, siblingId));
+                if (!siblingItem || (siblingItem.sessionId as string) !== item.sessionId) {
+                  mergeError = true;
+                  break;
+                }
+                if (!siblingItem.stagedPath || !fs.existsSync(siblingItem.stagedPath)) {
+                  mergeError = true;
+                  break;
+                }
+                const sibBytes = fs.readFileSync(siblingItem.stagedPath);
+                const sibPdf = await PDFDocument.load(new Uint8Array(sibBytes), { ignoreEncryption: true });
+                const indices = Array.from({ length: sibPdf.getPageCount() }, (_, i) => i);
+                const copiedPages = await leadPdf.copyPages(sibPdf, indices);
+                for (const page of copiedPages) leadPdf.addPage(page);
+                siblingItems.push(siblingItem);
+              }
+              if (mergeError) {
+                logWarn(`[bulk-import] accept-all-pending-sorting: merge prerequisite missing for item ${item.id}, skipping`);
+                continue;
+              }
+
+              const mergedBytes = Buffer.from(await leadPdf.save());
+              const mergedHash = crypto.createHash('sha256').update(mergedBytes).digest('hex');
+              const dir = stagingDirFor(item.sessionId);
+              const newPath = path.join(dir, `merged_${mergedHash}_${item.originalName}`);
+              fs.writeFileSync(newPath, mergedBytes);
+
+              updated_decision.mergeWithItemIds = effectiveMergeIds;
+              updated_decision.mergedFromItemIds = effectiveMergeIds;
+              if (siblingItems.length === 1) {
+                updated_decision.mergedFromItemId = siblingItems[0].id;
+              }
+
+              await db
+                .update(schema.bulkImportItems)
+                .set({ stagedPath: newPath, contentHash: mergedHash, sortingDecision: updated_decision, updatedAt: now })
+                .where(eq(schema.bulkImportItems.id, item.id));
+
+              for (const siblingItem of siblingItems) {
+                const siblingDecision: Record<string, unknown> = {
+                  ...((siblingItem.sortingDecision ?? {}) as Record<string, unknown>),
+                  decisionState: 'accepted',
+                  decision: 'merge',
+                  mergedIntoItemId: item.id,
+                };
+                await db
+                  .update(schema.bulkImportItems)
+                  .set({ status: 'rejected', preExcludeStatus: siblingItem.status, sortingDecision: siblingDecision, updatedAt: now })
+                  .where(eq(schema.bulkImportItems.id, siblingItem.id));
+                // Mark sibling as modified so the loop doesn't re-process
+                // the stale prefetched snapshot.
+                modifiedIds.add(siblingItem.id);
+              }
+              modifiedIds.add(item.id);
+              accepted++;
+            } catch (mergeErr) {
+              logError(`[bulk-import] accept-all-pending-sorting: merge failed for item ${item.id}`, mergeErr as Error);
+            }
+            continue;
+          }
+
+          // --- SPLIT ---
+          if (effectiveDecision === 'split' && effectiveSplitAt != null && isPdf) {
+            if (!item.stagedPath || !fs.existsSync(item.stagedPath)) {
+              logWarn(`[bulk-import] accept-all-pending-sorting: staged file missing for split item ${item.id}, skipping`);
+              continue;
+            }
+            try {
+              const {
+                firstBytes, firstHash, firstPath,
+                secondBytes, secondHash, secondPath,
+                splitPage, totalPages, originalName: splitOriginalName,
+              } = await slicePdf(item.stagedPath, effectiveSplitAt);
+
+              const part2OriginalName = `split2_${splitOriginalName}`;
+              updated_decision.splitTotalPages = totalPages;
+              updated_decision.splitAtPage = splitPage;
+
+              // Preserve split part final names stored from a prior draft,
+              // mirroring the per-row accept handler's behavior (no new
+              // overrides in bulk mode).
+              const existingSplitFinalNames = existing.splitFinalNames as [string, string] | undefined;
+              const part1FinalFileName = existingSplitFinalNames?.[0] ?? null;
+              const part2FinalFileName = existingSplitFinalNames?.[1] ?? null;
+              if (existingSplitFinalNames) {
+                updated_decision.splitFinalNames = existingSplitFinalNames;
+              }
+
+              const prevSplitIds = Array.isArray(existing.splitIntoItemIds)
+                ? (existing.splitIntoItemIds as string[])
+                : null;
+
+              const partDecisionBase: Record<string, unknown> = {
+                decision: 'keep',
+                reason: 'Created from split',
+                confidence: 1,
+                decisionState: 'accepted',
+                splitFromItemId: item.id,
+                splitAtPage: splitPage,
+                manualOverride: false,
+                splitFromOriginalName: item.originalName,
+              };
+
+              if (prevSplitIds && prevSplitIds.length >= 2) {
+                const [part1Id, part2Id] = prevSplitIds;
+                await db
+                  .update(schema.bulkImportItems)
+                  .set({ stagedPath: firstPath, contentHash: firstHash, fileSize: firstBytes.length, finalFileName: part1FinalFileName || null, sortingDecision: { ...partDecisionBase }, updatedAt: now })
+                  .where(eq(schema.bulkImportItems.id, part1Id));
+                await db
+                  .update(schema.bulkImportItems)
+                  .set({ stagedPath: secondPath, contentHash: secondHash, fileSize: secondBytes.length, finalFileName: part2FinalFileName || null, sortingDecision: { ...partDecisionBase }, updatedAt: now })
+                  .where(eq(schema.bulkImportItems.id, part2Id));
+                await db
+                  .update(schema.bulkImportItems)
+                  .set({ sortingDecision: updated_decision, updatedAt: now })
+                  .where(eq(schema.bulkImportItems.id, item.id));
+              } else {
+                await db
+                  .update(schema.bulkImportItems)
+                  .set({ stagedPath: firstPath, contentHash: firstHash, finalFileName: part1FinalFileName || null, sortingDecision: updated_decision, updatedAt: now })
+                  .where(eq(schema.bulkImportItems.id, item.id));
+                await db
+                  .insert(schema.bulkImportItems)
+                  .values({
+                    sessionId: item.sessionId,
+                    originalPath: part2OriginalName,
+                    originalName: part2OriginalName,
+                    stagedPath: secondPath,
+                    contentHash: secondHash,
+                    mimeType: item.mimeType,
+                    fileSize: secondBytes.length,
+                    status: 'sorted',
+                    finalFileName: part2FinalFileName || null,
+                    sortingDecision: { ...partDecisionBase },
+                  });
+              }
+              accepted++;
+            } catch (splitErr) {
+              logError(`[bulk-import] accept-all-pending-sorting: split failed for item ${item.id}`, splitErr as Error);
+            }
+            continue;
+          }
+
+          // --- KEEP (or no file operation needed) ---
+          await db
+            .update(schema.bulkImportItems)
+            .set({ sortingDecision: updated_decision, updatedAt: now })
+            .where(eq(schema.bulkImportItems.id, item.id));
+          accepted++;
+        }
+
+        return res.json({ accepted });
+      } catch (err) {
+        logError('[bulk-import] accept-all-pending-sorting failed', err as Error);
+        return res.status(500).json({ error: 'Failed to accept all pending sorting decisions' });
+      }
+    },
+  );
+
+  /**
    * Set (or update) the sorting-step decision for a single item —
    * accept the AI's suggestion, reject it, or commit a manual choice.
    *

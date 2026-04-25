@@ -1746,6 +1746,50 @@ export default function BulkDocumentImportPage() {
   });
 
   /**
+   * Bulk-accept every pending sorting decision in the session (Task #900).
+   * Mirrors the per-row Accept button but fires a single request for all
+   * eligible items. Rows that the admin is mid-editing (inline split page
+   * or inline merge order set) are excluded from the count and the
+   * server skips anything not in 'pending' state.
+   */
+  const acceptAllPendingSorting = useMutation({
+    mutationFn: async ({ skipItemIds, skippedCount }: { skipItemIds: string[]; skippedCount: number }) => {
+      const res = await apiRequest(
+        'POST',
+        `/api/admin/bulk-import/sessions/${sessionId}/items/accept-all-pending-sorting`,
+        { skipItemIds },
+      );
+      const data = await res.json() as { accepted: number };
+      return { accepted: data.accepted, skippedCount };
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({
+        queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
+      });
+      const acceptedMsg = isFr
+        ? `${data.accepted} décision${data.accepted === 1 ? '' : 's'} acceptée${data.accepted === 1 ? '' : 's'}`
+        : `Accepted ${data.accepted} decision${data.accepted === 1 ? '' : 's'}`;
+      const skippedMsg = data.skippedCount > 0
+        ? isFr
+          ? ` (${data.skippedCount} ignoré${data.skippedCount === 1 ? '' : 's'} — modifications en cours)`
+          : ` (${data.skippedCount} skipped — edits in progress)`
+        : '';
+      toast({ title: acceptedMsg + skippedMsg });
+    },
+    onError: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
+      });
+      toast({
+        variant: 'destructive',
+        title: isFr
+          ? 'Échec de l\'acceptation groupée'
+          : 'Failed to accept all pending decisions',
+      });
+    },
+  });
+
+  /**
    * Accept / reject the AI's sorting-step suggestion, or commit a
    * manual keep/merge/split decision.
    */
@@ -2518,8 +2562,67 @@ export default function BulkDocumentImportPage() {
                       const pendingAiResidences = branchingItems.filter(
                         (it) => it.residenceAiSuggested,
                       ).length;
+                      // Compute items eligible for the "Accept all" bulk action
+                      // (Task #900): pending sorting decision, not a terminal
+                      // status (committed/duplicate), and no unsaved inline
+                      // split/merge edits in progress. Mirrors the server-side
+                      // eligibility guard in accept-all-pending-sorting.
+                      const pendingInlineEditItems = branchingItems.filter(
+                        (it) =>
+                          it.sortingDecisionState === 'pending' &&
+                          it.status !== 'committed' &&
+                          it.status !== 'duplicate' &&
+                          (inlineSlicePage.has(it.id) || inlineMergeOrder.has(it.id)),
+                      );
+                      const pendingInlineEditIds = pendingInlineEditItems.map((it) => it.id);
+                      const pendingInlineEditCount = pendingInlineEditItems.length;
+                      const pendingEligibleSortingCount = branchingItems.filter(
+                        (it) =>
+                          it.sortingDecisionState === 'pending' &&
+                          it.status !== 'committed' &&
+                          it.status !== 'duplicate' &&
+                          !inlineSlicePage.has(it.id) &&
+                          !inlineMergeOrder.has(it.id),
+                      ).length;
                       return (
                         <div className="space-y-4" data-testid="branching-grouped-sections">
+                          {pendingEligibleSortingCount > 0 && (
+                            <div
+                              className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-green-200 bg-green-50 px-3 py-2 dark:border-green-800 dark:bg-green-950"
+                              data-testid="accept-all-pending-sorting-summary"
+                            >
+                              <div className="flex items-center gap-2 text-sm text-green-900 dark:text-green-100">
+                                <Check className="h-4 w-4" />
+                                <span data-testid="accept-all-pending-sorting-count">
+                                  {isFr
+                                    ? `${pendingEligibleSortingCount} décision${pendingEligibleSortingCount === 1 ? '' : 's'} de tri en attente d'acceptation`
+                                    : `${pendingEligibleSortingCount} pending sorting decision${pendingEligibleSortingCount === 1 ? '' : 's'} awaiting acceptance`}
+                                </span>
+                              </div>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-8 text-xs border-green-300 text-green-700 hover:bg-green-100 dark:border-green-700 dark:text-green-300"
+                                onClick={() =>
+                                  acceptAllPendingSorting.mutate({
+                                    skipItemIds: pendingInlineEditIds,
+                                    skippedCount: pendingInlineEditCount,
+                                  })
+                                }
+                                disabled={acceptAllPendingSorting.isPending || setSortingDecision.isPending}
+                                data-testid="button-accept-all-pending-sorting"
+                              >
+                                {acceptAllPendingSorting.isPending ? (
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                ) : (
+                                  <Check className="mr-2 h-4 w-4" />
+                                )}
+                                {isFr
+                                  ? `Tout accepter (${pendingEligibleSortingCount})`
+                                  : `Accept all (${pendingEligibleSortingCount})`}
+                              </Button>
+                            </div>
+                          )}
                           {pendingAiResidences > 0 && (
                             <div
                               className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-violet-200 bg-violet-50 px-3 py-2 dark:border-violet-800 dark:bg-violet-950"
@@ -3161,7 +3264,10 @@ export default function BulkDocumentImportPage() {
                           currentStep === 'sorting'
                             ? item.sortingDecision != null
                             : hasQuickAnalysisSignal(item);
-                        const isExpanded = expandedItemIds.has(item.id);
+                        const isExpanded =
+                          (currentStep as string) === 'branching'
+                            ? !collapsedBranchingItemIds.has(item.id)
+                            : expandedItemIds.has(item.id);
                         // For the sorting step: is the AI's answer
                         // waiting for human acceptance?
                         const sortingIsPending =
@@ -3182,8 +3288,9 @@ export default function BulkDocumentImportPage() {
                         const pickerMergeTargetId = _pickerEntry.mergeTargetId;
                         const pickerSplitPage = _pickerEntry.splitPage;
                         const sortingMutationPending =
-                          setSortingDecision.isPending &&
-                          (setSortingDecision.variables as { itemId: string } | undefined)?.itemId === item.id;
+                          acceptAllPendingSorting.isPending ||
+                          (setSortingDecision.isPending &&
+                          (setSortingDecision.variables as { itemId: string } | undefined)?.itemId === item.id);
                         return (
                           <div
                             key={item.id}
