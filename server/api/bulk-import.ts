@@ -1212,13 +1212,24 @@ export function registerBulkImportRoutes(app: Express): void {
 
       function extractIdentificationStep(json: Record<string, unknown> | null | undefined) {
         const base = extractStep(json);
-        if (!json) return { ...base, name: null, description: null, tags: null, effectiveDate: null };
+        if (!json) return {
+          ...base,
+          name: null,
+          description: null,
+          tags: null,
+          effectiveDate: null,
+          effectiveDateManualOverride: false,
+        };
         return {
           ...base,
           name: (json.name as string | null | undefined) ?? null,
           description: (json.description as string | null | undefined) ?? null,
           tags: Array.isArray(json.tags) ? (json.tags as string[]) : null,
           effectiveDate: (json.effectiveDate as string | null | undefined) ?? null,
+          // Task #1031: surface the manual-override marker so the UI can
+          // hide the "from screening" annotation once the admin has
+          // typed a date of their own.
+          effectiveDateManualOverride: json.effectiveDateManualOverride === true,
         };
       }
 
@@ -1385,6 +1396,7 @@ export function registerBulkImportRoutes(app: Express): void {
               identificationDescription: id.description,
               identificationTags: id.tags,
               identificationEffectiveDate: id.effectiveDate,
+              identificationEffectiveDateManualOverride: id.effectiveDateManualOverride,
               linkingConfidence: lk.confidence,
               linkingFallback: lk.fallbackReason,
               linkingReason: lk.linkingReason,
@@ -3581,6 +3593,120 @@ export function registerBulkImportRoutes(app: Express): void {
         if (err instanceof z.ZodError) return res.status(400).json({ error: err.errors });
         logError(`[bulk-import] set-period-hint failed for item ${req.params.id}`, err as Error);
         return res.status(500).json({ error: 'Failed to update period hint' });
+      }
+    },
+  );
+
+  /**
+   * Override the AI-detected `identification.effectiveDate` for a single
+   * staged item (Task #1031). Lets admins type a real date into the
+   * identification wizard step instead of leaving the field empty when
+   * the screening AI's `periodHint` is the only source we have. The
+   * date is JSON-merged into the existing `identification` blob so we
+   * never clobber sibling fields the AI also writes (`name`,
+   * `description`, `tags`, `confidence`, etc.).
+   *
+   * Body: `{ effectiveDate: string | null }`
+   *   - Non-empty `YYYY-MM-DD` string → set
+   *     `identification.effectiveDate` to the trimmed value and stamp
+   *     `identification.effectiveDateManualOverride = true`. The
+   *     override flag is what the wizard uses to hide the
+   *     "from screening" annotation once the admin has typed a value
+   *     of their own.
+   *   - `null` (or empty string) → drop the override so the commit
+   *     loop falls back to the parsed `periodHint` again. Both
+   *     `effectiveDate` and `effectiveDateManualOverride` are removed
+   *     from the blob so a later AI re-identify is free to repopulate
+   *     them.
+   *
+   * The endpoint is intentionally permissive about `item.status`: the
+   * wizard surfaces this control any time the admin is viewing the
+   * identification step (which can be the case for items in
+   * `branched`, `identified`, or `linked` states), and the merge is
+   * harmless for any state because it only writes to the
+   * identification JSONB column. The commit-loop guard (the only
+   * caller that actually consumes `effectiveDate`) re-resolves the
+   * value at commit time, so a stale override on a later-rejected
+   * item never reaches a real Document row.
+   */
+  const setEffectiveDateSchema = z.object({
+    effectiveDate: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, 'effectiveDate must be a YYYY-MM-DD string')
+      .nullable(),
+  });
+  app.post(
+    '/api/admin/bulk-import/items/:id/set-effective-date',
+    requireAuth,
+    requireRole(['admin']),
+    async (req: AuthenticatedRequest, res: Response) => {
+      try {
+        const { effectiveDate: rawEffectiveDate } = setEffectiveDateSchema.parse(req.body);
+        const trimmed = typeof rawEffectiveDate === 'string' ? rawEffectiveDate.trim() : null;
+        const nextEffectiveDate: string | null = trimmed && trimmed.length > 0 ? trimmed : null;
+
+        // Sanity-check the date — z.regex above already enforces the
+        // YYYY-MM-DD shape, but we also require it to be a real
+        // calendar date so "2024-02-31" doesn't sneak through.
+        if (nextEffectiveDate !== null) {
+          const [yStr, mStr, dStr] = nextEffectiveDate.split('-');
+          const y = parseInt(yStr, 10);
+          const m = parseInt(mStr, 10);
+          const d = parseInt(dStr, 10);
+          const probe = new Date(Date.UTC(y, m - 1, d));
+          if (
+            probe.getUTCFullYear() !== y
+            || probe.getUTCMonth() !== m - 1
+            || probe.getUTCDate() !== d
+          ) {
+            return res.status(400).json({ error: 'effectiveDate is not a valid calendar date' });
+          }
+        }
+
+        const [item] = await db
+          .select()
+          .from(schema.bulkImportItems)
+          .where(eq(schema.bulkImportItems.id, req.params.id));
+        if (!item) return res.status(404).json({ error: 'Item not found' });
+
+        const session = await loadSession(item.sessionId);
+        if (!session) return res.status(404).json({ error: 'Session not found' });
+
+        const allowed = await canUserAccessOrganization(
+          req.user!.id,
+          session.organizationId,
+        );
+        if (!allowed) {
+          return res
+            .status(403)
+            .json({ error: 'You do not have access to this session' });
+        }
+
+        // JSON-merge into the existing identification blob (or seed a
+        // fresh one). When the override is cleared we strip both the
+        // value and the override marker so a later AI re-identify can
+        // repopulate the field cleanly.
+        const existingIdentification = (item.identification ?? {}) as Record<string, unknown>;
+        const nextIdentification: Record<string, unknown> = { ...existingIdentification };
+        if (nextEffectiveDate === null) {
+          delete nextIdentification.effectiveDate;
+          delete nextIdentification.effectiveDateManualOverride;
+        } else {
+          nextIdentification.effectiveDate = nextEffectiveDate;
+          nextIdentification.effectiveDateManualOverride = true;
+        }
+
+        const [updated] = await db
+          .update(schema.bulkImportItems)
+          .set({ identification: nextIdentification, updatedAt: new Date() })
+          .where(eq(schema.bulkImportItems.id, item.id))
+          .returning();
+        if (!updated) return res.status(404).json({ error: 'Item not found' });
+        return res.json(updated);
+      } catch (err) {
+        if (err instanceof z.ZodError) return res.status(400).json({ error: err.errors });
+        logError(`[bulk-import] set-effective-date failed for item ${req.params.id}`, err as Error);
+        return res.status(500).json({ error: 'Failed to update effective date' });
       }
     },
   );

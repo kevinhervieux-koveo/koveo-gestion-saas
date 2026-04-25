@@ -324,6 +324,15 @@ interface BulkImportItemLite {
   identificationDescription: string | null;
   identificationTags: string[] | null;
   identificationEffectiveDate: string | null;
+  /**
+   * True when the admin manually typed a date into the identification
+   * step (Task #1031). Drives the wizard's decision to hide the
+   * "from screening" annotation once an override is in place — even
+   * when the override happens to match the parsed periodHint date,
+   * the chip should disappear because the value is no longer "from
+   * the AI".
+   */
+  identificationEffectiveDateManualOverride: boolean;
   linkingConfidence: number | null;
   linkingFallback: BulkImportFallbackReason | null;
   linkingReason: string | null;
@@ -1352,6 +1361,14 @@ export default function BulkDocumentImportPage() {
   // presence of a key = the row's chip is in edit mode. The string
   // value mirrors the input field as the admin types.
   const [editingPeriodHint, setEditingPeriodHint] = useState<Map<string, string>>(new Map());
+  // Inline effective-date editor state (Task #1031). Keyed by item
+  // id, the string value mirrors the date input as the admin types.
+  // Unlike the period-hint editor this is a "live" field — a date
+  // input is always visible on the identification row, pre-filled
+  // with `identificationEffectiveDate || screeningParsedPeriodHintDate`,
+  // and a Save button commits it to the server. We keep the map so a
+  // pending edit isn't lost when the lite payload re-fetches.
+  const [editingEffectiveDate, setEditingEffectiveDate] = useState<Map<string, string>>(new Map());
   const [autoSaveStatus, setAutoSaveStatus] = useState<Map<string, 'idle' | 'saving' | 'saved' | 'error'>>(new Map());
   // Group-level reassign picker (Task #776). At most one section's
   // picker is open at a time; opening a per-file picker closes it and
@@ -2035,6 +2052,54 @@ export default function BulkDocumentImportPage() {
       toast({
         variant: 'destructive',
         title: isFr ? 'Échec de la mise à jour de la période' : 'Failed to update period',
+        ...(serverMessage ? { description: serverMessage } : {}),
+      });
+    },
+  });
+
+  /**
+   * Override `identification.effectiveDate` on a single staged item
+   * (Task #1031). Sends `null` when the admin clears the field so the
+   * commit loop falls back to the parsed periodHint date again.
+   * On success we drop the row's pending edit so the input snaps back
+   * to whatever the server now reports.
+   */
+  const setEffectiveDate = useMutation({
+    mutationFn: async ({
+      itemId,
+      effectiveDate,
+    }: {
+      itemId: string;
+      effectiveDate: string | null;
+    }) => {
+      const res = await apiRequest(
+        'POST',
+        `/api/admin/bulk-import/items/${itemId}/set-effective-date`,
+        { effectiveDate },
+      );
+      return res.json();
+    },
+    onSuccess: (_data, variables) => {
+      setEditingEffectiveDate((prev) => {
+        const next = new Map(prev);
+        next.delete(variables.itemId);
+        return next;
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
+      });
+    },
+    onError: (error) => {
+      let serverMessage: string | undefined;
+      if (error instanceof ApiError && error.body && typeof error.body === 'object') {
+        const body = error.body as Record<string, unknown>;
+        serverMessage = typeof body.error === 'string' ? body.error
+          : typeof body.message === 'string' ? body.message
+          : undefined;
+      }
+      toast({
+        variant: 'destructive',
+        title: isFr ? 'Échec de la mise à jour de la date' : 'Failed to update date',
         ...(serverMessage ? { description: serverMessage } : {}),
       });
     },
@@ -4040,32 +4105,128 @@ export default function BulkDocumentImportPage() {
                                       )}
                                     </>
                                   )}
-                                  {currentStep === 'identification' && !item.identificationEffectiveDate && item.screeningParsedPeriodHintDate && (
-                                    <Badge
-                                      variant="outline"
-                                      className="shrink-0 border-blue-300 bg-blue-50 text-blue-900 dark:border-blue-700 dark:bg-blue-950 dark:text-blue-200"
-                                      title={
-                                        isFr
-                                          ? `Date issue du filtrage IA (${item.screeningPeriodHint}). L'identification peut affiner cette valeur.`
-                                          : `Date from screening AI (${item.screeningPeriodHint}). Identification may refine this value.`
-                                      }
-                                      data-testid={`identification-period-hint-date-${item.id}`}
-                                    >
-                                      {item.screeningParsedPeriodHintDate}
-                                      <span className="ml-1 text-xs opacity-70">
-                                        {isFr ? '(filtrage)' : '(from screening)'}
-                                      </span>
-                                    </Badge>
-                                  )}
-                                  {currentStep === 'identification' && item.identificationEffectiveDate && (
-                                    <Badge
-                                      variant="outline"
-                                      className="shrink-0 border-emerald-300 bg-emerald-50 text-emerald-900 dark:border-emerald-700 dark:bg-emerald-950 dark:text-emerald-200"
-                                      data-testid={`identification-effective-date-${item.id}`}
-                                    >
-                                      {item.identificationEffectiveDate}
-                                    </Badge>
-                                  )}
+                                  {currentStep === 'identification' && (() => {
+                                    // Inline effective-date editor (Task #1031). The
+                                    // input is always visible on the identification row
+                                    // so admins can tell at a glance which date is
+                                    // queued for commit. It pre-fills with
+                                    //   1. the admin's pending edit (if any), then
+                                    //   2. identification.effectiveDate (AI or admin), then
+                                    //   3. the parsed periodHint date from screening.
+                                    // The "from screening" annotation only shows when
+                                    // the field is empty AND the parsed periodHint is
+                                    // the actual fallback — it's hidden once an admin
+                                    // has typed a value of their own (manual override)
+                                    // so the chip doesn't lie about the source.
+                                    const pending = editingEffectiveDate.get(item.id);
+                                    const fallback =
+                                      item.identificationEffectiveDate
+                                      ?? item.screeningParsedPeriodHintDate
+                                      ?? '';
+                                    const value = pending !== undefined ? pending : fallback;
+                                    const trimmed = value.trim();
+                                    // What the server currently has — used to drive
+                                    // the Save button's enabled/disabled state.
+                                    const serverValue = item.identificationEffectiveDate ?? '';
+                                    const dirty = trimmed !== serverValue;
+                                    // The "from screening" chip only makes sense when
+                                    // the periodHint is actually the source of truth:
+                                    // identification has no AI/admin date, the parsed
+                                    // hint exists, the admin hasn't overridden, and
+                                    // the input still mirrors the hint (i.e. the
+                                    // admin hasn't started typing something else).
+                                    const showFromScreening =
+                                      !item.identificationEffectiveDate
+                                      && !item.identificationEffectiveDateManualOverride
+                                      && !!item.screeningParsedPeriodHintDate
+                                      && trimmed === (item.screeningParsedPeriodHintDate ?? '');
+                                    return (
+                                      <div
+                                        className="flex items-center gap-1"
+                                        data-testid={`identification-effective-date-editor-${item.id}`}
+                                      >
+                                        <Input
+                                          type="date"
+                                          value={value}
+                                          onChange={(e) => {
+                                            const v = e.target.value;
+                                            setEditingEffectiveDate((prev) => {
+                                              const next = new Map(prev);
+                                              next.set(item.id, v);
+                                              return next;
+                                            });
+                                          }}
+                                          onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                              e.preventDefault();
+                                              if (!dirty || setEffectiveDate.isPending) return;
+                                              setEffectiveDate.mutate({
+                                                itemId: item.id,
+                                                effectiveDate: trimmed.length > 0 ? trimmed : null,
+                                              });
+                                            }
+                                          }}
+                                          disabled={setEffectiveDate.isPending}
+                                          className="h-7 w-40 text-xs"
+                                          aria-label={
+                                            isFr ? 'Date d’effet' : 'Effective date'
+                                          }
+                                          data-testid={`identification-effective-date-input-${item.id}`}
+                                        />
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
+                                          className="h-7 px-2"
+                                          onClick={() => {
+                                            setEffectiveDate.mutate({
+                                              itemId: item.id,
+                                              effectiveDate: trimmed.length > 0 ? trimmed : null,
+                                            });
+                                          }}
+                                          disabled={!dirty || setEffectiveDate.isPending}
+                                          data-testid={`identification-effective-date-save-${item.id}`}
+                                          aria-label={isFr ? 'Enregistrer la date' : 'Save date'}
+                                          title={
+                                            isFr
+                                              ? 'Enregistrer la date d’effet'
+                                              : 'Save effective date'
+                                          }
+                                        >
+                                          {setEffectiveDate.isPending
+                                            ? <Loader2 className="h-3 w-3 animate-spin" />
+                                            : <Check className="h-3 w-3" />}
+                                        </Button>
+                                        {showFromScreening && (
+                                          <Badge
+                                            variant="outline"
+                                            className="shrink-0 border-blue-300 bg-blue-50 text-blue-900 dark:border-blue-700 dark:bg-blue-950 dark:text-blue-200"
+                                            title={
+                                              isFr
+                                                ? `Date issue du filtrage IA (${item.screeningPeriodHint}). Modifiez le champ pour la remplacer.`
+                                                : `Date from screening AI (${item.screeningPeriodHint}). Edit the field to override it.`
+                                            }
+                                            data-testid={`identification-period-hint-date-${item.id}`}
+                                          >
+                                            {isFr ? '(filtrage)' : '(from screening)'}
+                                          </Badge>
+                                        )}
+                                        {item.identificationEffectiveDateManualOverride && (
+                                          <Badge
+                                            variant="outline"
+                                            className="shrink-0 border-slate-300 bg-slate-50 text-slate-700 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-300"
+                                            title={
+                                              isFr
+                                                ? "Date saisie manuellement par un administrateur (au lieu de la valeur détectée par l'IA)."
+                                                : 'Date manually entered by an admin (instead of the AI-detected value).'
+                                            }
+                                            data-testid={`identification-effective-date-manual-${item.id}`}
+                                          >
+                                            {isFr ? 'Manuel' : 'Manual'}
+                                          </Badge>
+                                        )}
+                                      </div>
+                                    );
+                                  })()}
                                   {currentStep === 'sorting' && !isExcluded && sortingIsPending && (
                                     <>
                                       <Button
