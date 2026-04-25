@@ -1227,7 +1227,6 @@ export function ElementForm({
               
               {autoCalculateEvaluation && field.value && (
                 <div className="text-xs text-muted-foreground flex items-center gap-1">
-                  {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                   <Info className="h-3 w-3" />
                   {t('efAutoCalcHelper')}
                 </div>

@@ -809,7 +809,6 @@ export default function ManagerDemandsPage() {
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle>Update Status</AlertDialogTitle>
-                {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                 <AlertDialogDescription>
                   {t('areYouSureYouWantTo9')} {selectedDemands.size} demand{selectedDemands.size !== 1 ? 's' : ''} to "{getStatusLabel(bulkStatus)}"?
                 </AlertDialogDescription>
@@ -831,7 +830,6 @@ export default function ManagerDemandsPage() {
             <AlertDialogContent>
               <AlertDialogHeader>
                 <AlertDialogTitle>Delete Demands</AlertDialogTitle>
-                {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                 <AlertDialogDescription>
                   {t('areYouSureYouWantTo8')} {selectedDemands.size} demand{selectedDemands.size !== 1 ? 's' : ''}{t('thisActionCannotBeUndone2')}
                 </AlertDialogDescription>

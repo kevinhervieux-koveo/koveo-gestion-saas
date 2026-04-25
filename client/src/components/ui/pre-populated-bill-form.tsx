@@ -255,7 +255,6 @@ export function PrePopulatedBillForm({ bill, isOpen, onClose, buildingId }: PreP
               </div>
             )}
             <div className="mt-3 p-2 bg-blue-100/50 dark:bg-blue-900/20 rounded-md">
-              {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
               <p className="text-xs text-blue-700 dark:text-blue-300">
                 {t('formHasBeenPrePopulatedWith')}
               </p>

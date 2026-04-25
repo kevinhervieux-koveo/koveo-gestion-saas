@@ -183,7 +183,6 @@ export default function ManagerDocumentTags() {
           <DialogContent className="max-w-lg">
             <DialogHeader>
               <DialogTitle>{editing ? 'Modifier' : 'Nouvelle'} étiquette</DialogTitle>
-              {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
               <DialogDescription>
                 {t('tiquettesPourClasserVosDocumentsCcq')}
               </DialogDescription>
@@ -265,8 +264,7 @@ export default function ManagerDocumentTags() {
                   name="suggestedProfessionals"
                   render={({ field }) => (
                     <FormItem>
-                      {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
-                      <FormLabel>Professionnels suggérés (séparés par des virgules)</FormLabel>
+                      <FormLabel>{t('dtSuggestedProsLabel')}</FormLabel>
                       <FormControl>
                         <Input {...field} value={field.value ?? ''} placeholder="Notaire, Avocat" data-testid="input-tag-pros" />
                       </FormControl>

@@ -271,7 +271,6 @@ export function ContinuousImprovementAnalytics() {
                     Performance Boost
                   </span>
                 </div>
-                {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                 <p className='text-xs text-blue-700 dark:text-blue-300'>
                   {t('securitySuggestionsShow92CompletionRate')}
                 </p>
@@ -284,7 +283,6 @@ export function ContinuousImprovementAnalytics() {
                     Attention Needed
                   </span>
                 </div>
-                {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                 <p className='text-xs text-amber-700 dark:text-amber-300'>
                   {t('documentationCategoryNeedsFocusOnly45')}
                 </p>
@@ -297,7 +295,6 @@ export function ContinuousImprovementAnalytics() {
                     Trend Prediction
                   </span>
                 </div>
-                {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                 <p className='text-xs text-green-700 dark:text-green-300'>
                   {t('basedOnCurrentVelocityExpect15')}
                 </p>

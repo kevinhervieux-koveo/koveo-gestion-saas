@@ -440,7 +440,6 @@ export function ElementManagementTab({ project, workflowState, onUpdate, onNavig
                   <Building2 className="h-5 w-5" />
                   {t('wfElementsProjectTitle')} ({projectElements.length})
                 </CardTitle>
-                {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                 <CardDescription>
                   {t('wfElementsIncludedDescription')}
                 </CardDescription>

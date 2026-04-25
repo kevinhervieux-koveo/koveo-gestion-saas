@@ -3814,6 +3814,118 @@ export interface Translations {
   iovConditionFair: string;
   iovConditionPoor: string;
   iovConditionCritical: string;
+  // i18n migration (task 729): keys generated for previously-untranslated
+  // JSX strings flagged by i18n/no-untranslated-jsx-strings after the
+  // task-708 allow-list comments were removed.
+  pwdDoesNotMeetRequirements: string;
+  pwdSecTipUseUniqueCombination: string;
+  pwdSecTipAvoidPersonalInfo: string;
+  pwdSecTipDoNotReuse: string;
+  pwdSecTipUsePasswordManager: string;
+  pcsCompleteToFinalizeRegistration: string;
+  qpcLaw25Heading: string;
+  qpcConsentRequiredText: string;
+  qpcMasterAcceptAllText: string;
+  qpcEssentialDataLabel: string;
+  qpcEssentialDataDesc: string;
+  qpcMarketingDesc: string;
+  qpcAnalyticsDesc: string;
+  qpcThirdPartyDesc: string;
+  qpcAcknowledgeRightsLabel: string;
+  qpcAcknowledgeRightsDesc: string;
+  qpcCheckboxRequiredWarning: string;
+  qpcRightsHeading: string;
+  qpcPortabilityDesc: string;
+  qpcContactPara: string;
+  qpcSecurityDesc: string;
+  qpcRetentionDesc: string;
+  qpcTransparencyDesc: string;
+  tvsValidatingInvitationDesc: string;
+  tvsNoTokenFoundDesc: string;
+  tvsCannotValidateInvitation: string;
+  tvsLinkExpiredOrInvalid: string;
+  tvsCheckUseFullLink: string;
+  tvsCheckNotExpired: string;
+  tvsContactAdminIfPersists: string;
+  tvsInvitationValidProceed: string;
+  ffBusinessObjectivePlaceholder: string;
+  ffSuccessMetricsPlaceholder: string;
+  ffTimelinePlaceholder: string;
+  ffDependenciesPlaceholder: string;
+  ffDataReqPlaceholder: string;
+  ffIntegrationNeedsPlaceholder: string;
+  ffSecurityConsidPlaceholder: string;
+  ffUserFlowPlaceholder: string;
+  ffUiReqPlaceholder: string;
+  ffAccessibilityPlaceholder: string;
+  ffPerfReqPlaceholder: string;
+  ffTestingStrategyPlaceholder: string;
+  ffAdditionalNotesPlaceholder: string;
+  ffsFeatureNamePlaceholder: string;
+  ffsFeatureDescPlaceholder: string;
+  ffsBusinessObjectivePlaceholder: string;
+  ffsTargetUsersPlaceholder: string;
+  ffsSuccessMetricsPlaceholder: string;
+  ffsTimelinePlaceholder: string;
+  ffsDependenciesPlaceholder: string;
+  ffsDataReqPlaceholder: string;
+  ffsIntegrationNeedsPlaceholder: string;
+  ffsSecurityConsidPlaceholder: string;
+  ffsUserFlowPlaceholder: string;
+  ffsUiReqPlaceholder: string;
+  ffsAccessibilityPlaceholder: string;
+  ffsPerfReqPlaceholder: string;
+  ffsTestingStrategyPlaceholder: string;
+  ffsAdditionalNotesPlaceholder: string;
+  apcDismissReasonPlaceholder: string;
+  apdPlanningDescPlaceholder: string;
+  ehfWorkDescPlaceholder: string;
+  vfNotesPlaceholder: string;
+  permSearchPlaceholder: string;
+  fpEmailSentTitle: string;
+  fpEmailSentDesc: string;
+  fpCheckSpamFolder: string;
+  fpEnterEmailToReceiveLink: string;
+  fpSendSecureResetLinkDesc: string;
+  iaWelcomeAccountCreated: string;
+  iaCanLoginWithEmailPassword: string;
+  iaConsentsRecordedLaw25: string;
+  iaCompleteRegistrationToJoin: string;
+  iaTermsAcceptanceFooter: string;
+  rpResetCompleteDesc: string;
+  rpInvalidLinkDesc: string;
+  budgetReserveFundExamplePlaceholder: string;
+  dtSuggestedProsLabel: string;
+  ihGlobalSearchPlaceholder: string;
+  pdvFailedToLoadDashboard: string;
+  pdvSelectBuildingForDashboard: string;
+  pdvAnalyticsInsightsSubtitle: string;
+  pdvProjectTrendsDesc: string;
+  pdvBudgetTrendsDesc: string;
+  pdvOverdueProjectsAlert: string;
+  pdvExecSummaryDesc: string;
+  pdpComprehensiveDetails: string;
+  pdpFailedToLoadDetails: string;
+  pdpElementsAssociatedDesc: string;
+  pdpElementMgmtFullView: string;
+  ptvFailedToLoadProjects: string;
+  ptvSelectBuildingForProjects: string;
+  ptvNoProjectsCreated: string;
+  ptvGetStartedSuggestion: string;
+  ptvNoProjectsMatchFilters: string;
+  ptvAdjustFiltersHint: string;
+  ptvRealTimeBulkActionsHint: string;
+  ptlvFailedToLoadTimeline: string;
+  ptlvSelectBuildingForTimeline: string;
+  ptlvScheduleOverviewSubtitle: string;
+  ptlvClickDateForEvents: string;
+  ptlvOverdueEventsAlertSingular: string;
+  ptlvOverdueEventsAlertPlural: string;
+  povFailedToLoadMetrics: string;
+  povConsiderReviewingPortfolio: string;
+  siReviewAndSelectDesc: string;
+  siFailedToLoadSuggestions: string;
+  siProjectDefaultsDesc: string;
 }
 
 /**
@@ -7642,6 +7754,116 @@ export const translations: Record<Language, Translations> = {
     iovConditionFair: 'Fair',
     iovConditionPoor: 'Poor',
     iovConditionCritical: 'Critical',
+    // i18n migration (task 729): EN strings for previously-untranslated JSX text.
+    pwdDoesNotMeetRequirements: 'Password does not meet security requirements.',
+    pwdSecTipUseUniqueCombination: 'Use a unique combination of letters, numbers, and symbols',
+    pwdSecTipAvoidPersonalInfo: 'Avoid personal information (name, date of birth)',
+    pwdSecTipDoNotReuse: 'Do not reuse a password from another account',
+    pwdSecTipUsePasswordManager: 'Consider using a password manager',
+    pcsCompleteToFinalizeRegistration: 'Complete your profile to finalize your registration and access the property management services.',
+    qpcLaw25Heading: 'Personal information protection (Law 25 - Quebec):',
+    qpcConsentRequiredText: ' Your consent is required for the collection and use of your personal data.',
+    qpcMasterAcceptAllText: 'I accept all types of data collection and processing (essential and optional).',
+    qpcEssentialDataLabel: 'Essential data collection (Required) *',
+    qpcEssentialDataDesc: 'Authentication, communication, account management, property management services.',
+    qpcMarketingDesc: 'Promotional communications, new features, special offers.',
+    qpcAnalyticsDesc: 'Anonymized usage data to improve our services.',
+    qpcThirdPartyDesc: 'Mapping, notifications, storage to enhance the experience.',
+    qpcAcknowledgeRightsLabel: 'Acknowledgement of my rights (Required) *',
+    qpcAcknowledgeRightsDesc: 'I have been informed of my rights regarding my personal information and I understand that I can exercise these rights at any time.',
+    qpcCheckboxRequiredWarning: '⚠️ This box must be checked to continue.',
+    qpcRightsHeading: '📋 Your rights under Quebec Law 25',
+    qpcPortabilityDesc: ' Retrieve your data in a readable format',
+    qpcContactPara: 'To exercise your rights or for any question regarding your personal data, contact our data protection officer:',
+    qpcSecurityDesc: ' Your data is encrypted and stored on secure servers in Canada',
+    qpcRetentionDesc: ' Your data is retained according to Quebec legal requirements',
+    qpcTransparencyDesc: ' Consult our full privacy policy at any time',
+    tvsValidatingInvitationDesc: 'Verifying the invitation token and associated details...',
+    tvsNoTokenFoundDesc: 'No valid invitation token was found. Please use the invitation link received by email.',
+    tvsCannotValidateInvitation: 'Unable to validate the invitation',
+    tvsLinkExpiredOrInvalid: 'The invitation link may be expired, invalid, or already used.',
+    tvsCheckUseFullLink: 'Check that you are using the complete link received by email',
+    tvsCheckNotExpired: "Make sure the invitation has not expired",
+    tvsContactAdminIfPersists: 'Contact the administrator if the issue persists',
+    tvsInvitationValidProceed: 'Invitation valid! You can proceed to create your account.',
+    ffBusinessObjectivePlaceholder: 'What problem does this feature solve? What business value does it provide?',
+    ffSuccessMetricsPlaceholder: 'How will we measure success? What are the KPIs?',
+    ffTimelinePlaceholder: 'e.g., 2 weeks, 1 month, Next sprint',
+    ffDependenciesPlaceholder: 'What other features, APIs, or systems does this depend on?',
+    ffDataReqPlaceholder: 'What data needs to be stored, modified, or accessed?',
+    ffIntegrationNeedsPlaceholder: 'External APIs, services, or third-party integrations needed',
+    ffSecurityConsidPlaceholder: 'Authentication, authorization, data privacy concerns',
+    ffUserFlowPlaceholder: 'Describe the step-by-step user interaction with this feature',
+    ffUiReqPlaceholder: 'Specific UI components, layouts, or visual requirements',
+    ffAccessibilityPlaceholder: 'Screen reader support, keyboard navigation, color contrast',
+    ffPerfReqPlaceholder: 'Load times, data processing speed, scalability needs',
+    ffTestingStrategyPlaceholder: 'Unit tests, integration tests, user acceptance criteria',
+    ffAdditionalNotesPlaceholder: 'Any other requirements, constraints, or considerations',
+    ffsFeatureNamePlaceholder: 'What is this feature called?',
+    ffsFeatureDescPlaceholder: "Describe what this feature does and why it's needed",
+    ffsBusinessObjectivePlaceholder: 'What business problem does this solve? What value does it provide?',
+    ffsTargetUsersPlaceholder: 'Who will use this feature? (Admins, Managers, Tenants, Residents)',
+    ffsSuccessMetricsPlaceholder: 'How will we measure the success of this feature?',
+    ffsTimelinePlaceholder: 'When does this need to be completed?',
+    ffsDependenciesPlaceholder: 'What other features, APIs, or systems does this depend on?',
+    ffsDataReqPlaceholder: 'What data needs to be stored, modified, or accessed?',
+    ffsIntegrationNeedsPlaceholder: 'External APIs, services, or third-party integrations needed',
+    ffsSecurityConsidPlaceholder: 'Authentication, authorization, data privacy concerns',
+    ffsUserFlowPlaceholder: 'Describe the step-by-step user interaction with this feature',
+    ffsUiReqPlaceholder: 'Specific UI components, layouts, or visual requirements',
+    ffsAccessibilityPlaceholder: 'Screen reader support, keyboard navigation, color contrast',
+    ffsPerfReqPlaceholder: 'Load times, data processing speed, scalability needs',
+    ffsTestingStrategyPlaceholder: 'Unit tests, integration tests, user acceptance criteria',
+    ffsAdditionalNotesPlaceholder: 'Any other important information, constraints, or context',
+    apcDismissReasonPlaceholder: 'Provide a reason for dismissing this project...',
+    apdPlanningDescPlaceholder: 'Detailed planning description for the project...',
+    ehfWorkDescPlaceholder: 'Describe the maintenance work performed, materials used, and any specific details...',
+    vfNotesPlaceholder: 'Additional notes about this vendor, specialties, service quality, etc.',
+    permSearchPlaceholder: 'Search permissions by name, description, or resource type...',
+    fpEmailSentTitle: 'Email sent',
+    fpEmailSentDesc: 'If your email address is in our system, you will receive a password reset link within a few minutes.',
+    fpCheckSpamFolder: "Don't forget to check your spam folder.",
+    fpEnterEmailToReceiveLink: 'Enter your email address to receive a password reset link',
+    fpSendSecureResetLinkDesc: 'We will send you a secure link to reset your password',
+    iaWelcomeAccountCreated: 'Welcome {firstName} {lastName}! Your account has been created successfully.',
+    iaCanLoginWithEmailPassword: 'You can now log in with your email and password',
+    iaConsentsRecordedLaw25: 'Your consents have been recorded in accordance with Quebec Law 25. You can exercise your rights at any time by contacting our team.',
+    iaCompleteRegistrationToJoin: 'Complete your registration to join the Koveo Gestion platform',
+    iaTermsAcceptanceFooter: 'By signing up, you accept our terms of use and our privacy policy compliant with Quebec Law 25.',
+    rpResetCompleteDesc: 'Your password has been updated successfully. You can now log in with your new password.',
+    rpInvalidLinkDesc: 'The reset link is invalid or missing.',
+    budgetReserveFundExamplePlaceholder: 'e.g., Reserve Fund, Maintenance Buffer, Capital Reserve',
+    dtSuggestedProsLabel: 'Suggested professionals (comma-separated)',
+    ihGlobalSearchPlaceholder: 'Search elements by name, UNIFORMAT code, or description...',
+    pdvFailedToLoadDashboard: 'Failed to load dashboard analytics. Please try again.',
+    pdvSelectBuildingForDashboard: 'Please select a building to view its project dashboard.',
+    pdvAnalyticsInsightsSubtitle: 'Analytics, insights, and performance metrics for maintenance project management',
+    pdvProjectTrendsDesc: 'Monthly project creation and completion trends',
+    pdvBudgetTrendsDesc: 'Planned vs actual budget utilization over time',
+    pdvOverdueProjectsAlert: '{count} project(s) are overdue and require immediate attention.',
+    pdvExecSummaryDesc: 'Key insights and recommendations for project portfolio management',
+    pdpComprehensiveDetails: 'Comprehensive project details, timeline, budget, and management tools',
+    pdpFailedToLoadDetails: 'Failed to load project details. Please try again.',
+    pdpElementsAssociatedDesc: 'Building elements associated with this project',
+    pdpElementMgmtFullView: 'Element management available in full view',
+    ptvFailedToLoadProjects: 'Failed to load projects. Please try refreshing the page.',
+    ptvSelectBuildingForProjects: 'Please select a building to view its maintenance projects.',
+    ptvNoProjectsCreated: 'No maintenance projects have been created for this building yet.',
+    ptvGetStartedSuggestion: 'Get started by creating your first project or generating projects from evaluation suggestions.',
+    ptvNoProjectsMatchFilters: 'No projects match your current search and filter criteria.',
+    ptvAdjustFiltersHint: 'Try adjusting your filters or search terms.',
+    ptvRealTimeBulkActionsHint: 'Project data is updated in real-time. Use bulk actions to manage multiple projects at once.',
+    ptlvFailedToLoadTimeline: 'Failed to load timeline data. Please try refreshing the page.',
+    ptlvSelectBuildingForTimeline: 'Please select a building to view its project timeline.',
+    ptlvScheduleOverviewSubtitle: 'Schedule overview and milestone tracking for all projects',
+    ptlvClickDateForEvents: 'Click on any date to view scheduled events',
+    ptlvOverdueEventsAlertSingular: '{count} project event is overdue. Review project schedules and consider adjusting timelines or reallocating resources.',
+    ptlvOverdueEventsAlertPlural: '{count} project events are overdue. Review project schedules and consider adjusting timelines or reallocating resources.',
+    povFailedToLoadMetrics: 'Failed to load project metrics. Please try refreshing the page.',
+    povConsiderReviewingPortfolio: 'Consider reviewing project portfolio and resource allocation.',
+    siReviewAndSelectDesc: 'Review and select evaluation suggestions to automatically create maintenance projects. Projects will be generated with standard workflows and can be customized after creation.',
+    siFailedToLoadSuggestions: 'Failed to load suggestions. Please try again.',
+    siProjectDefaultsDesc: 'Set default values for all generated projects',
   },
   fr: {
 
@@ -11475,5 +11697,115 @@ export const translations: Record<Language, Translations> = {
     iovConditionFair: 'Passable',
     iovConditionPoor: 'Mauvais',
     iovConditionCritical: 'Critique',
+    // i18n migration (task 729): FR strings for previously-untranslated JSX text.
+    pwdDoesNotMeetRequirements: 'Le mot de passe ne respecte pas les exigences de sécurité.',
+    pwdSecTipUseUniqueCombination: 'Utilisez une combinaison unique de lettres, chiffres et symboles',
+    pwdSecTipAvoidPersonalInfo: 'Évitez les informations personnelles (nom, date de naissance)',
+    pwdSecTipDoNotReuse: 'Ne réutilisez pas un mot de passe d\'un autre compte',
+    pwdSecTipUsePasswordManager: 'Considérez l\'utilisation d\'un gestionnaire de mots de passe',
+    pcsCompleteToFinalizeRegistration: 'Complétez votre profil pour finaliser votre inscription et accéder aux services de gestion immobilière.',
+    qpcLaw25Heading: 'Protection des renseignements personnels (Loi 25 - Québec) :',
+    qpcConsentRequiredText: ' Votre consentement est requis pour la collecte et l\'utilisation de vos données personnelles.',
+    qpcMasterAcceptAllText: 'J\'accepte tous les types de collecte et traitement de données (essentielles et optionnelles).',
+    qpcEssentialDataLabel: 'Collecte des données essentielles (Requis) *',
+    qpcEssentialDataDesc: 'Authentification, communication, gestion de compte, services de gestion immobilière.',
+    qpcMarketingDesc: 'Communications promotionnelles, nouvelles fonctionnalités, offres spéciales.',
+    qpcAnalyticsDesc: 'Données d\'utilisation anonymisées pour améliorer les services.',
+    qpcThirdPartyDesc: 'Cartographie, notifications, stockage pour améliorer l\'expérience.',
+    qpcAcknowledgeRightsLabel: 'Reconnaissance de mes droits (Requis) *',
+    qpcAcknowledgeRightsDesc: 'J\'ai été informé(e) de mes droits concernant mes renseignements personnels et je comprends que je peux exercer ces droits à tout moment.',
+    qpcCheckboxRequiredWarning: '⚠️ Cette case doit être cochée pour continuer.',
+    qpcRightsHeading: '📋 Vos droits selon la Loi 25 du Québec',
+    qpcPortabilityDesc: ' Récupérer vos données dans un format lisible',
+    qpcContactPara: 'Pour exercer vos droits ou pour toute question concernant vos données personnelles, contactez notre responsable de la protection des données :',
+    qpcSecurityDesc: ' Vos données sont chiffrées et stockées sur des serveurs sécurisés au Canada',
+    qpcRetentionDesc: ' Vos données sont conservées selon les exigences légales québécoises',
+    qpcTransparencyDesc: ' Consultez notre politique de confidentialité complète à tout moment',
+    tvsValidatingInvitationDesc: 'Vérification du token d\'invitation et des détails associés...',
+    tvsNoTokenFoundDesc: 'Aucun token d\'invitation valide n\'a été trouvé. Veuillez utiliser le lien d\'invitation reçu par email.',
+    tvsCannotValidateInvitation: 'Impossible de valider l\'invitation',
+    tvsLinkExpiredOrInvalid: 'Le lien d\'invitation peut être expiré, invalide ou déjà utilisé.',
+    tvsCheckUseFullLink: 'Vérifiez que vous utilisez le lien complet reçu par email',
+    tvsCheckNotExpired: 'Assurez-vous que l\'invitation n\'est pas expirée',
+    tvsContactAdminIfPersists: 'Contactez l\'administrateur si le problème persiste',
+    tvsInvitationValidProceed: 'Invitation valide ! Vous pouvez procéder à la création de votre compte.',
+    ffBusinessObjectivePlaceholder: 'Quel problème cette fonctionnalité résout-elle ? Quelle valeur d\'affaires apporte-t-elle ?',
+    ffSuccessMetricsPlaceholder: 'Comment mesurerons-nous le succès ? Quels sont les indicateurs clés ?',
+    ffTimelinePlaceholder: 'p. ex., 2 semaines, 1 mois, prochain sprint',
+    ffDependenciesPlaceholder: 'De quelles autres fonctionnalités, API ou systèmes cela dépend-il ?',
+    ffDataReqPlaceholder: 'Quelles données doivent être stockées, modifiées ou consultées ?',
+    ffIntegrationNeedsPlaceholder: 'API externes, services ou intégrations tierces nécessaires',
+    ffSecurityConsidPlaceholder: 'Authentification, autorisation, préoccupations de confidentialité des données',
+    ffUserFlowPlaceholder: 'Décrivez l\'interaction utilisateur étape par étape avec cette fonctionnalité',
+    ffUiReqPlaceholder: 'Composants UI spécifiques, mises en page ou exigences visuelles',
+    ffAccessibilityPlaceholder: 'Support du lecteur d\'écran, navigation clavier, contraste des couleurs',
+    ffPerfReqPlaceholder: 'Temps de chargement, vitesse de traitement, besoins en évolutivité',
+    ffTestingStrategyPlaceholder: 'Tests unitaires, tests d\'intégration, critères d\'acceptation utilisateur',
+    ffAdditionalNotesPlaceholder: 'Autres exigences, contraintes ou considérations',
+    ffsFeatureNamePlaceholder: 'Comment cette fonctionnalité s\'appelle-t-elle ?',
+    ffsFeatureDescPlaceholder: 'Décrivez ce que fait cette fonctionnalité et pourquoi elle est nécessaire',
+    ffsBusinessObjectivePlaceholder: 'Quel problème d\'affaires cela résout-il ? Quelle valeur cela apporte-t-il ?',
+    ffsTargetUsersPlaceholder: 'Qui utilisera cette fonctionnalité ? (Admins, Gestionnaires, Locataires, Résidents)',
+    ffsSuccessMetricsPlaceholder: 'Comment mesurerons-nous le succès de cette fonctionnalité ?',
+    ffsTimelinePlaceholder: 'Quand cela doit-il être terminé ?',
+    ffsDependenciesPlaceholder: 'De quelles autres fonctionnalités, API ou systèmes cela dépend-il ?',
+    ffsDataReqPlaceholder: 'Quelles données doivent être stockées, modifiées ou consultées ?',
+    ffsIntegrationNeedsPlaceholder: 'API externes, services ou intégrations tierces nécessaires',
+    ffsSecurityConsidPlaceholder: 'Authentification, autorisation, préoccupations de confidentialité des données',
+    ffsUserFlowPlaceholder: 'Décrivez l\'interaction utilisateur étape par étape avec cette fonctionnalité',
+    ffsUiReqPlaceholder: 'Composants UI spécifiques, mises en page ou exigences visuelles',
+    ffsAccessibilityPlaceholder: 'Support du lecteur d\'écran, navigation clavier, contraste des couleurs',
+    ffsPerfReqPlaceholder: 'Temps de chargement, vitesse de traitement, besoins en évolutivité',
+    ffsTestingStrategyPlaceholder: 'Tests unitaires, tests d\'intégration, critères d\'acceptation utilisateur',
+    ffsAdditionalNotesPlaceholder: 'Toute autre information importante, contraintes ou contexte',
+    apcDismissReasonPlaceholder: 'Indiquez la raison du rejet de ce projet...',
+    apdPlanningDescPlaceholder: 'Description détaillée de la planification du projet...',
+    ehfWorkDescPlaceholder: 'Décrivez le travail de maintenance effectué, les matériaux utilisés et tout détail spécifique...',
+    vfNotesPlaceholder: 'Notes additionnelles sur ce fournisseur, ses spécialités, la qualité du service, etc.',
+    permSearchPlaceholder: 'Rechercher des permissions par nom, description ou type de ressource...',
+    fpEmailSentTitle: 'E-mail envoyé',
+    fpEmailSentDesc: 'Si votre adresse e-mail est dans notre système, vous recevrez un lien de réinitialisation du mot de passe dans quelques minutes.',
+    fpCheckSpamFolder: 'N\'oubliez pas de vérifier votre dossier de courrier indésirable.',
+    fpEnterEmailToReceiveLink: 'Entrez votre adresse e-mail pour recevoir un lien de réinitialisation du mot de passe',
+    fpSendSecureResetLinkDesc: 'Nous vous enverrons un lien sécurisé pour réinitialiser votre mot de passe',
+    iaWelcomeAccountCreated: 'Bienvenue {firstName} {lastName} ! Votre compte a été créé avec succès.',
+    iaCanLoginWithEmailPassword: 'Vous pouvez maintenant vous connecter avec votre e-mail et votre mot de passe',
+    iaConsentsRecordedLaw25: 'Vos consentements ont été enregistrés conformément à la Loi 25 du Québec. Vous pouvez exercer vos droits à tout moment en contactant notre équipe.',
+    iaCompleteRegistrationToJoin: 'Complétez votre inscription pour rejoindre la plateforme Koveo Gestion',
+    iaTermsAcceptanceFooter: 'En vous inscrivant, vous acceptez nos conditions d\'utilisation et notre politique de confidentialité conforme à la Loi 25 du Québec.',
+    rpResetCompleteDesc: 'Votre mot de passe a été mis à jour avec succès. Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.',
+    rpInvalidLinkDesc: 'Le lien de réinitialisation est invalide ou manquant.',
+    budgetReserveFundExamplePlaceholder: 'p. ex., Fonds de réserve, Tampon de maintenance, Réserve d\'investissement',
+    dtSuggestedProsLabel: 'Professionnels suggérés (séparés par des virgules)',
+    ihGlobalSearchPlaceholder: 'Rechercher des éléments par nom, code UNIFORMAT ou description...',
+    pdvFailedToLoadDashboard: 'Échec du chargement des analyses du tableau de bord. Veuillez réessayer.',
+    pdvSelectBuildingForDashboard: 'Veuillez sélectionner un immeuble pour consulter son tableau de bord de projets.',
+    pdvAnalyticsInsightsSubtitle: 'Analyses, perspectives et indicateurs de performance pour la gestion des projets de maintenance',
+    pdvProjectTrendsDesc: 'Tendances mensuelles de création et de complétion des projets',
+    pdvBudgetTrendsDesc: 'Utilisation budgétaire planifiée par rapport au réel dans le temps',
+    pdvOverdueProjectsAlert: '{count} projet(s) sont en retard et nécessitent une attention immédiate.',
+    pdvExecSummaryDesc: 'Principales perspectives et recommandations pour la gestion du portefeuille de projets',
+    pdpComprehensiveDetails: 'Détails complets du projet, calendrier, budget et outils de gestion',
+    pdpFailedToLoadDetails: 'Échec du chargement des détails du projet. Veuillez réessayer.',
+    pdpElementsAssociatedDesc: 'Éléments du bâtiment associés à ce projet',
+    pdpElementMgmtFullView: 'Gestion des éléments disponible en vue complète',
+    ptvFailedToLoadProjects: 'Échec du chargement des projets. Veuillez actualiser la page.',
+    ptvSelectBuildingForProjects: 'Veuillez sélectionner un immeuble pour consulter ses projets de maintenance.',
+    ptvNoProjectsCreated: 'Aucun projet de maintenance n\'a encore été créé pour cet immeuble.',
+    ptvGetStartedSuggestion: 'Commencez en créant votre premier projet ou en générant des projets à partir des suggestions d\'évaluation.',
+    ptvNoProjectsMatchFilters: 'Aucun projet ne correspond à vos critères de recherche et de filtre actuels.',
+    ptvAdjustFiltersHint: 'Essayez d\'ajuster vos filtres ou termes de recherche.',
+    ptvRealTimeBulkActionsHint: 'Les données des projets sont mises à jour en temps réel. Utilisez les actions groupées pour gérer plusieurs projets à la fois.',
+    ptlvFailedToLoadTimeline: 'Échec du chargement des données du calendrier. Veuillez actualiser la page.',
+    ptlvSelectBuildingForTimeline: 'Veuillez sélectionner un immeuble pour consulter son calendrier de projets.',
+    ptlvScheduleOverviewSubtitle: 'Aperçu de l\'horaire et suivi des jalons pour tous les projets',
+    ptlvClickDateForEvents: 'Cliquez sur une date pour voir les événements planifiés',
+    ptlvOverdueEventsAlertSingular: '{count} événement de projet est en retard. Examinez les calendriers de projets et envisagez d\'ajuster les délais ou de réallouer des ressources.',
+    ptlvOverdueEventsAlertPlural: '{count} événements de projets sont en retard. Examinez les calendriers de projets et envisagez d\'ajuster les délais ou de réallouer des ressources.',
+    povFailedToLoadMetrics: 'Échec du chargement des indicateurs de projets. Veuillez actualiser la page.',
+    povConsiderReviewingPortfolio: 'Envisagez de revoir le portefeuille de projets et l\'allocation des ressources.',
+    siReviewAndSelectDesc: 'Examinez et sélectionnez les suggestions d\'évaluation pour créer automatiquement des projets de maintenance. Les projets seront générés avec des workflows standards et pourront être personnalisés après leur création.',
+    siFailedToLoadSuggestions: 'Échec du chargement des suggestions. Veuillez réessayer.',
+    siProjectDefaultsDesc: 'Définir les valeurs par défaut pour tous les projets générés',
   }
 };

@@ -392,7 +392,6 @@ export default function Permissions() {
                   <div>
                     <p className='text-sm font-medium text-gray-600'>Role Hierarchy</p>
                     <p className='text-2xl font-bold text-koveo-navy'>{roles.length}</p>
-                    {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                     <p className='text-xs text-gray-500 mt-1'>
                       {t('adminManagerResidentTenant')}
                     </p>
@@ -822,7 +821,6 @@ export default function Permissions() {
                     <Shield className='h-5 w-5' />
                     All Permissions
                   </CardTitle>
-                  {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                   <p className='text-sm text-gray-600'>
                     {t('completeSystemPermissionsTableWithDetailed')}
                   </p>
@@ -836,8 +834,7 @@ export default function Permissions() {
                         <div className='relative'>
                           <Search className='absolute left-3 top-3 h-4 w-4 text-gray-400' />
                           <Input
-                            // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
-                            placeholder='Search permissions by name, description, or resource type...'
+                            placeholder={t('permSearchPlaceholder')}
                             value={permissionSearchQuery}
                             onChange={(e) => setPermissionSearchQuery(e.target.value)}
                             className='pl-10'

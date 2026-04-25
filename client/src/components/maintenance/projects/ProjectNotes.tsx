@@ -355,7 +355,6 @@ export function ProjectNotes({
         <CardContent className="text-center py-8">
           <AlertTriangle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
           <h3 className="text-lg font-semibold mb-2">Failed to Load Notes</h3>
-          {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
           <p className="text-muted-foreground">
             {t('thereWasAnErrorLoadingThe2')}
           </p>
@@ -714,7 +713,6 @@ export function ProjectNotes({
           <AlertDialogContent data-testid="delete-note-confirmation">
             <AlertDialogHeader>
               <AlertDialogTitle>Delete Note</AlertDialogTitle>
-              {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
               <AlertDialogDescription>
                 {t('areYouSureYouWantTo5')}
               </AlertDialogDescription>

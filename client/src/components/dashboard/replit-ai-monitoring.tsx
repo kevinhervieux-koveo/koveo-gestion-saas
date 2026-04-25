@@ -178,7 +178,6 @@ export function ReplitAIMonitoring() {
           <Bot className='h-8 w-8 text-blue-600' />
           <div>
             <h2 className='text-2xl font-bold text-gray-900'>Replit AI Agent Monitoring</h2>
-            {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
             <p className='text-sm text-gray-600'>
               {t('trackAiInteractionsAndContinuousImprovement')}
             </p>
@@ -276,7 +275,6 @@ export function ReplitAIMonitoring() {
           <Card>
             <CardHeader>
               <CardTitle>AI Performance Overview</CardTitle>
-              {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
               <CardDescription>
                 {t('realTimeMonitoringOfReplitAi')}
               </CardDescription>
@@ -332,7 +330,6 @@ export function ReplitAIMonitoring() {
           <Card>
             <CardHeader>
               <CardTitle>Recent AI Interactions</CardTitle>
-              {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
               <CardDescription>
                 {t('realTimeLogOfAiAgent')}
               </CardDescription>
@@ -380,7 +377,6 @@ export function ReplitAIMonitoring() {
           <Card>
             <CardHeader>
               <CardTitle>AI-Generated Insights</CardTitle>
-              {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
               <CardDescription>
                 {t('continuousImprovementRecommendationsFromAiAnalysis')}
               </CardDescription>
@@ -432,7 +428,6 @@ export function ReplitAIMonitoring() {
                     </div>
                   ))
                 ) : (
-                  // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
                   <div className='text-center py-8 text-gray-500'>
                     {t('noInsightsAvailableRunAnAi')}
                   </div>

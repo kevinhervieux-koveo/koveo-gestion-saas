@@ -88,8 +88,7 @@ export function BasicInformationSection({ formData, onUpdateFormData }: FormSect
         <Label htmlFor='featureDescription'>Description *</Label>
         <Textarea
           id='featureDescription'
-          // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
-          placeholder="Describe what this feature does and why it's needed"
+          placeholder={t('ffsFeatureDescPlaceholder')}
           value={formData.featureDescription}
           onChange={(e) => onUpdateFormData('featureDescription', e.target.value)}
           rows={3}
@@ -127,6 +126,7 @@ export function BasicInformationSection({ formData, onUpdateFormData }: FormSect
  * @returns Function result.
  */
 export function BusinessRequirementsSection({ formData, onUpdateFormData }: FormSectionProps) {
+  const { t } = useLanguage();
   return (
     <div className='space-y-4'>
       <h3 className='text-lg font-semibold'>Business Requirements</h3>
@@ -136,8 +136,7 @@ export function BusinessRequirementsSection({ formData, onUpdateFormData }: Form
           <Label htmlFor='businessObjective'>Business Objective *</Label>
           <Textarea
             id='businessObjective'
-            // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
-            placeholder='What business problem does this solve? What value does it provide?'
+            placeholder={t('ffsBusinessObjectivePlaceholder')}
             value={formData.businessObjective}
             onChange={(e) => onUpdateFormData('businessObjective', e.target.value)}
           />
@@ -147,8 +146,7 @@ export function BusinessRequirementsSection({ formData, onUpdateFormData }: Form
           <Label htmlFor='targetUsers'>Target Users *</Label>
           <Textarea
             id='targetUsers'
-            // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
-            placeholder='Who will use this feature? (Admins, Managers, Tenants, Residents)'
+            placeholder={t('ffsTargetUsersPlaceholder')}
             value={formData.targetUsers}
             onChange={(e) => onUpdateFormData('targetUsers', e.target.value)}
           />
@@ -160,8 +158,7 @@ export function BusinessRequirementsSection({ formData, onUpdateFormData }: Form
           <Label htmlFor='successMetrics'>Success Metrics</Label>
           <Textarea
             id='successMetrics'
-            // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
-            placeholder='How will we measure the success of this feature?'
+            placeholder={t('ffsSuccessMetricsPlaceholder')}
             value={formData.successMetrics}
             onChange={(e) => onUpdateFormData('successMetrics', e.target.value)}
           />
@@ -171,8 +168,7 @@ export function BusinessRequirementsSection({ formData, onUpdateFormData }: Form
           <Label htmlFor='timeline'>Timeline</Label>
           <Input
             id='timeline'
-            // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
-            placeholder='When does this need to be completed?'
+            placeholder={t('ffsTimelinePlaceholder')}
             value={formData.timeline}
             onChange={(e) => onUpdateFormData('timeline', e.target.value)}
           />
@@ -215,6 +211,7 @@ export function BusinessRequirementsSection({ formData, onUpdateFormData }: Form
  * @returns Function result.
  */
 export function TechnicalRequirementsSection({ formData, onUpdateFormData }: FormSectionProps) {
+  const { t } = useLanguage();
   return (
     <div className='space-y-4'>
       <h3 className='text-lg font-semibold'>Technical Requirements</h3>
@@ -242,8 +239,7 @@ export function TechnicalRequirementsSection({ formData, onUpdateFormData }: For
           <Label htmlFor='dependencies'>Dependencies</Label>
           <Textarea
             id='dependencies'
-            // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
-            placeholder='What other features, APIs, or systems does this depend on?'
+            placeholder={t('ffsDependenciesPlaceholder')}
             value={formData.dependencies}
             onChange={(e) => onUpdateFormData('dependencies', e.target.value)}
           />
@@ -255,8 +251,7 @@ export function TechnicalRequirementsSection({ formData, onUpdateFormData }: For
           <Label htmlFor='dataRequirements'>Data Requirements</Label>
           <Textarea
             id='dataRequirements'
-            // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
-            placeholder='What data needs to be stored, modified, or accessed?'
+            placeholder={t('ffsDataReqPlaceholder')}
             value={formData.dataRequirements}
             onChange={(e) => onUpdateFormData('dataRequirements', e.target.value)}
           />
@@ -266,8 +261,7 @@ export function TechnicalRequirementsSection({ formData, onUpdateFormData }: For
           <Label htmlFor='integrationNeeds'>Integration Needs</Label>
           <Textarea
             id='integrationNeeds'
-            // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
-            placeholder='External APIs, services, or third-party integrations needed'
+            placeholder={t('ffsIntegrationNeedsPlaceholder')}
             value={formData.integrationNeeds}
             onChange={(e) => onUpdateFormData('integrationNeeds', e.target.value)}
           />
@@ -278,8 +272,7 @@ export function TechnicalRequirementsSection({ formData, onUpdateFormData }: For
         <Label htmlFor='securityConsiderations'>Security Considerations</Label>
         <Textarea
           id='securityConsiderations'
-          // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
-          placeholder='Authentication, authorization, data privacy concerns'
+          placeholder={t('ffsSecurityConsidPlaceholder')}
           value={formData.securityConsiderations}
           onChange={(e) => onUpdateFormData('securityConsiderations', e.target.value)}
         />
@@ -303,6 +296,7 @@ export function TechnicalRequirementsSection({ formData, onUpdateFormData }: For
  * @returns Function result.
  */
 export function UserExperienceSection({ formData, onUpdateFormData }: FormSectionProps) {
+  const { t } = useLanguage();
   return (
     <div className='space-y-4'>
       <h3 className='text-lg font-semibold'>User Experience</h3>
@@ -312,8 +306,7 @@ export function UserExperienceSection({ formData, onUpdateFormData }: FormSectio
           <Label htmlFor='userFlow'>User Flow *</Label>
           <Textarea
             id='userFlow'
-            // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
-            placeholder='Describe the step-by-step user interaction with this feature'
+            placeholder={t('ffsUserFlowPlaceholder')}
             value={formData.userFlow}
             onChange={(e) => onUpdateFormData('userFlow', e.target.value)}
           />
@@ -323,8 +316,7 @@ export function UserExperienceSection({ formData, onUpdateFormData }: FormSectio
           <Label htmlFor='uiRequirements'>UI Requirements</Label>
           <Textarea
             id='uiRequirements'
-            // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
-            placeholder='Specific UI components, layouts, or visual requirements'
+            placeholder={t('ffsUiReqPlaceholder')}
             value={formData.uiRequirements}
             onChange={(e) => onUpdateFormData('uiRequirements', e.target.value)}
           />
@@ -335,8 +327,7 @@ export function UserExperienceSection({ formData, onUpdateFormData }: FormSectio
         <Label htmlFor='accessibilityNeeds'>Accessibility Needs</Label>
         <Input
           id='accessibilityNeeds'
-          // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
-          placeholder='Screen reader support, keyboard navigation, color contrast'
+          placeholder={t('ffsAccessibilityPlaceholder')}
           value={formData.accessibilityNeeds}
           onChange={(e) => onUpdateFormData('accessibilityNeeds', e.target.value)}
         />
@@ -360,6 +351,7 @@ export function UserExperienceSection({ formData, onUpdateFormData }: FormSectio
  * @returns Function result.
  */
 export function QualityPerformanceSection({ formData, onUpdateFormData }: FormSectionProps) {
+  const { t } = useLanguage();
   return (
     <div className='space-y-4'>
       <h3 className='text-lg font-semibold'>Quality & Performance</h3>
@@ -369,8 +361,7 @@ export function QualityPerformanceSection({ formData, onUpdateFormData }: FormSe
           <Label htmlFor='performanceRequirements'>Performance Requirements</Label>
           <Textarea
             id='performanceRequirements'
-            // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
-            placeholder='Load times, data processing speed, scalability needs'
+            placeholder={t('ffsPerfReqPlaceholder')}
             value={formData.performanceRequirements}
             onChange={(e) => onUpdateFormData('performanceRequirements', e.target.value)}
           />
@@ -380,8 +371,7 @@ export function QualityPerformanceSection({ formData, onUpdateFormData }: FormSe
           <Label htmlFor='testingStrategy'>Testing Strategy</Label>
           <Textarea
             id='testingStrategy'
-            // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
-            placeholder='Unit tests, integration tests, user acceptance criteria'
+            placeholder={t('ffsTestingStrategyPlaceholder')}
             value={formData.testingStrategy}
             onChange={(e) => onUpdateFormData('testingStrategy', e.target.value)}
           />
@@ -392,8 +382,7 @@ export function QualityPerformanceSection({ formData, onUpdateFormData }: FormSe
         <Label htmlFor='additionalNotes'>Additional Notes</Label>
         <Textarea
           id='additionalNotes'
-          // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
-          placeholder='Any other important information, constraints, or context'
+          placeholder={t('ffsAdditionalNotesPlaceholder')}
           value={formData.additionalNotes}
           onChange={(e) => onUpdateFormData('additionalNotes', e.target.value)}
           rows={3}

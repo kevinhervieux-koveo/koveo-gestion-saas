@@ -4056,8 +4056,7 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
                                   fieldName: e.target.value,
                                 }))
                               }
-                              // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
-                              placeholder="e.g., Reserve Fund, Maintenance Buffer, Capital Reserve"
+                              placeholder={t('budgetReserveFundExamplePlaceholder')}
                               data-testid="input-new-bank-field-name"
                             />
                           </div>

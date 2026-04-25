@@ -663,12 +663,10 @@ export function AutoProjectDialog({
                             <Textarea 
                               {...field} 
                               rows={3} 
-                              // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
-                              placeholder="Detailed planning description for the project..."
+                              placeholder={t('apdPlanningDescPlaceholder')}
                               data-testid={`accept-planning-description-${autoProject.id}`} 
                             />
                           </FormControl>
-                          {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                           <FormDescription>
                             {t('thisWillBeUsedAsThe')}
                           </FormDescription>
@@ -714,7 +712,6 @@ export function AutoProjectDialog({
                               />
                             </PopoverContent>
                           </Popover>
-                          {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                           <FormDescription>
                             {t('whenDidOrWillTheActual')}
                           </FormDescription>
@@ -729,7 +726,6 @@ export function AutoProjectDialog({
                         <Zap className="h-4 w-4" />
                         Workflow Configuration
                       </h4>
-                      {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                       <p className="text-sm text-muted-foreground">
                         {t('configureWhichWorkflowStepsShouldBe')}
                       </p>
@@ -753,7 +749,6 @@ export function AutoProjectDialog({
                                 <FormLabel className="text-sm font-normal">
                                   Skip Submission Phase
                                 </FormLabel>
-                                {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                                 <FormDescription className="text-xs">
                                   {t('skipVendorSubmissionsDefaultForAuto')}
                                 </FormDescription>

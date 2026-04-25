@@ -310,7 +310,6 @@ export function AutoProjectCard({
         <AlertDialogContent data-testid={`auto-project-dismiss-dialog-${autoProject.id}`}>
           <AlertDialogHeader>
             <AlertDialogTitle>Dismiss Auto-Generated Project</AlertDialogTitle>
-            {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
             <AlertDialogDescription>
               {t('areYouSureYouWantTo')}
             </AlertDialogDescription>
@@ -324,8 +323,7 @@ export function AutoProjectCard({
               id="dismiss-reason"
               value={dismissReason}
               onChange={(e) => setDismissReason(e.target.value)}
-              // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
-              placeholder="Provide a reason for dismissing this project..."
+              placeholder={t('apcDismissReasonPlaceholder')}
               className="mt-2"
               data-testid={`auto-project-dismiss-reason-${autoProject.id}`}
             />

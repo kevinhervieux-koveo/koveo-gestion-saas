@@ -67,7 +67,6 @@ export function CompleteTab({ project, workflowState, onUpdate }: CompleteTabPro
       <div className="p-6">
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
-          {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
           <AlertDescription>
             {t('wfCompleteProjectMissing')}
           </AlertDescription>
@@ -163,7 +162,6 @@ export function CompleteTab({ project, workflowState, onUpdate }: CompleteTabPro
               </Badge>
             )}
           </div>
-          {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
           <p className="text-sm text-muted-foreground">
             {t('wfCompleteSummaryDescription')}
           </p>
@@ -191,7 +189,6 @@ export function CompleteTab({ project, workflowState, onUpdate }: CompleteTabPro
                 <FileText className="h-5 w-5" />
                 {t('wfCompleteSummaryCardTitle')}
               </CardTitle>
-              {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
               <CardDescription>
                 {t('wfCompleteSummaryCardDesc')}
               </CardDescription>
@@ -212,7 +209,6 @@ export function CompleteTab({ project, workflowState, onUpdate }: CompleteTabPro
                             data-testid="textarea-completion-summary"
                           />
                         </FormControl>
-                        {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                         <FormDescription>
                           {t('wfCompleteSummaryFieldDesc')}
                         </FormDescription>

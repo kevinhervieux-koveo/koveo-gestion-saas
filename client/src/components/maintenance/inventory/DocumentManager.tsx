@@ -292,7 +292,6 @@ export function DocumentManager({
                   <AlertDialogContent>
                     <AlertDialogHeader>
                       <AlertDialogTitle>Delete Document</AlertDialogTitle>
-                      {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                       <AlertDialogDescription>
                         {t('areYouSureYouWantTo2')}{doc.name}{t('thisActionCannotBeUndone')}
                       </AlertDialogDescription>
@@ -387,7 +386,6 @@ export function DocumentManager({
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>Delete Document</AlertDialogTitle>
-                  {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                   <AlertDialogDescription>
                     {t('areYouSureYouWantTo2')}{doc.name}{t('thisActionCannotBeUndone')}
                   </AlertDialogDescription>

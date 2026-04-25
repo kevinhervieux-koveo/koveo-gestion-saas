@@ -204,7 +204,6 @@ export default function Dashboard() {
               className='text-center py-12'
             >
               <Home className='h-12 w-12 mx-auto text-muted-foreground mb-4' />
-              {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
               <p className='text-muted-foreground'>
                 {t('yourDashboardWillBeCustomizedBased')}
               </p>

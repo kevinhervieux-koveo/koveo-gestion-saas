@@ -349,7 +349,6 @@ export function ProjectTimeline({
         <CardContent className="text-center py-8">
           <AlertTriangle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
           <h3 className="text-lg font-semibold mb-2">Failed to Load Timeline</h3>
-          {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
           <p className="text-muted-foreground">
             {t('thereWasAnErrorLoadingThe4')}
           </p>

@@ -578,7 +578,6 @@ export function SuggestionWorkflow({
             </AlertDialogTitle>
             <AlertDialogDescription>
               {pendingApproval?.description}
-              {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
               <br /><br />
               {t('pleaseReviewTheSuggestionDetailsAnd')}
             </AlertDialogDescription>
