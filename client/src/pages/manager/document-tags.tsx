@@ -46,21 +46,25 @@ import { Header } from '@/components/layout/header';
 import type { DocumentTag } from '@/components/document-tags/TagPicker';
 import { useLanguage } from '@/hooks/use-language';
 
-const tagFormSchema = z.object({
-  name: z.string().min(1, 'Nom requis').max(150),
+const baseTagFormSchema = z.object({
+  name: z.string().min(1).max(150),
   description: z.string().max(2000).optional().nullable(),
   scope: z.enum(['building', 'residence', 'any']),
   importance: z.enum(['obligatoire', 'nice_to_have', 'extra']),
   suggestedProfessionals: z.string().optional(),
 });
 
-type TagFormValues = z.infer<typeof tagFormSchema>;
+type TagFormValues = z.infer<typeof baseTagFormSchema>;
 
 export default function ManagerDocumentTags() {
   const { t } = useLanguage();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<DocumentTag | null>(null);
+
+  const tagFormSchema = baseTagFormSchema.extend({
+    name: z.string().min(1, t('dtNameRequired')).max(150),
+  });
 
   const { data, isLoading } = useQuery<{ tags: DocumentTag[] }>({
     queryKey: ['/api/document-tags'],
@@ -115,59 +119,87 @@ export default function ManagerDocumentTags() {
     try {
       if (editing) {
         await apiRequest('PATCH', `/api/document-tags/${editing.id}`, payload);
-        toast({ title: 'Étiquette mise à jour' });
+        toast({ title: t('dtToastUpdatedTitle') });
       } else {
         await apiRequest('POST', '/api/document-tags', payload);
-        toast({ title: 'Étiquette créée' });
+        toast({ title: t('dtToastCreatedTitle') });
       }
       queryClient.invalidateQueries({ queryKey: ['/api/document-tags'] });
       setOpen(false);
     } catch (e: any) {
-      toast({ title: 'Erreur', description: e?.message, variant: 'destructive' });
+      toast({ title: t('dtToastErrorTitle'), description: e?.message, variant: 'destructive' });
     }
   };
 
   const remove = async (tag: DocumentTag) => {
-    if (!window.confirm(`Supprimer l'étiquette « ${tag.name} » ?`)) return;
+    if (!window.confirm(t('dtDeleteConfirm', { name: tag.name }))) return;
     try {
       await apiRequest('DELETE', `/api/document-tags/${tag.id}`);
-      toast({ title: 'Étiquette supprimée' });
+      toast({ title: t('dtToastDeletedTitle') });
       queryClient.invalidateQueries({ queryKey: ['/api/document-tags'] });
     } catch (e: any) {
-      toast({ title: 'Erreur', description: e?.message, variant: 'destructive' });
+      toast({ title: t('dtToastErrorTitle'), description: e?.message, variant: 'destructive' });
     }
   };
 
   const tags = data?.tags ?? [];
-  const systemTags = tags.filter((t) => t.isSystem);
-  const customTags = tags.filter((t) => !t.isSystem);
+  const systemTags = tags.filter((tag) => tag.isSystem);
+  const customTags = tags.filter((tag) => !tag.isSystem);
+
+  const scopeLabel = (scope: string) => {
+    if (scope === 'any') return t('dtScopeAny');
+    if (scope === 'building') return t('dtScopeBuilding');
+    if (scope === 'residence') return t('dtScopeResidence');
+    return scope;
+  };
+
+  const importanceLabel = (importance: string) => {
+    if (importance === 'obligatoire') return t('dtImportanceObligatoire');
+    if (importance === 'nice_to_have') return t('dtImportanceNiceToHave');
+    if (importance === 'extra') return t('dtImportanceExtra');
+    return importance;
+  };
 
   return (
     <div className="flex-1">
-      <Header title="Étiquettes de documents" subtitle="Gestion des étiquettes Koveo et personnalisées" />
+      <Header title={t('dtPageTitle')} subtitle={t('dtPageSubtitle')} />
       <div className="container mx-auto px-4 py-6 space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <TagIcon className="w-5 h-5" />
-            <h2 className="text-xl font-semibold">Étiquettes</h2>
+            <h2 className="text-xl font-semibold">{t('dtSectionHeading')}</h2>
           </div>
           <Button onClick={openCreate} data-testid="button-create-tag">
-            <Plus className="w-4 h-4 mr-2" /> Nouvelle étiquette
+            <Plus className="w-4 h-4 mr-2" /> {t('dtCreateButton')}
           </Button>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>Étiquettes Koveo (système)</CardTitle>
+            <CardTitle>{t('dtSystemCardTitle')}</CardTitle>
           </CardHeader>
           <CardContent>
-            <TagsTable tags={systemTags} isLoading={isLoading} readOnly />
+            <TagsTable
+              tags={systemTags}
+              isLoading={isLoading}
+              readOnly
+              scopeLabel={scopeLabel}
+              importanceLabel={importanceLabel}
+              loadingText={t('dtLoading')}
+              emptyText={t('dtEmpty')}
+              colName={t('dtColName')}
+              colScope={t('dtColScope')}
+              colImportance={t('dtColImportance')}
+              colProfessionals={t('dtColProfessionals')}
+              colActions={t('dtColActions')}
+              readOnlyText={t('dtReadOnly')}
+            />
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Étiquettes personnalisées</CardTitle>
+            <CardTitle>{t('dtCustomCardTitle')}</CardTitle>
           </CardHeader>
           <CardContent>
             <TagsTable
@@ -175,6 +207,16 @@ export default function ManagerDocumentTags() {
               isLoading={isLoading}
               onEdit={openEdit}
               onDelete={remove}
+              scopeLabel={scopeLabel}
+              importanceLabel={importanceLabel}
+              loadingText={t('dtLoading')}
+              emptyText={t('dtEmpty')}
+              colName={t('dtColName')}
+              colScope={t('dtColScope')}
+              colImportance={t('dtColImportance')}
+              colProfessionals={t('dtColProfessionals')}
+              colActions={t('dtColActions')}
+              readOnlyText={t('dtReadOnly')}
             />
           </CardContent>
         </Card>
@@ -182,7 +224,7 @@ export default function ManagerDocumentTags() {
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogContent className="max-w-lg">
             <DialogHeader>
-              <DialogTitle>{editing ? 'Modifier' : 'Nouvelle'} étiquette</DialogTitle>
+              <DialogTitle>{editing ? t('dtDialogEditTitle') : t('dtDialogNewTitle')}</DialogTitle>
               <DialogDescription>
                 {t('tiquettesPourClasserVosDocumentsCcq')}
               </DialogDescription>
@@ -194,7 +236,7 @@ export default function ManagerDocumentTags() {
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Nom *</FormLabel>
+                      <FormLabel>{t('dtNameLabel')}</FormLabel>
                       <FormControl>
                         <Input {...field} data-testid="input-tag-name" />
                       </FormControl>
@@ -207,7 +249,7 @@ export default function ManagerDocumentTags() {
                   name="description"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Description</FormLabel>
+                      <FormLabel>{t('dtDescriptionLabel')}</FormLabel>
                       <FormControl>
                         <Textarea {...field} value={field.value ?? ''} rows={4} data-testid="input-tag-description" />
                       </FormControl>
@@ -221,7 +263,7 @@ export default function ManagerDocumentTags() {
                     name="scope"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Portée</FormLabel>
+                        <FormLabel>{t('dtScopeLabel')}</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger data-testid="select-tag-scope">
@@ -229,9 +271,9 @@ export default function ManagerDocumentTags() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="any">Toute</SelectItem>
-                            <SelectItem value="building">Bâtiment</SelectItem>
-                            <SelectItem value="residence">Résidence</SelectItem>
+                            <SelectItem value="any">{t('dtScopeAny')}</SelectItem>
+                            <SelectItem value="building">{t('dtScopeBuilding')}</SelectItem>
+                            <SelectItem value="residence">{t('dtScopeResidence')}</SelectItem>
                           </SelectContent>
                         </Select>
                       </FormItem>
@@ -242,7 +284,7 @@ export default function ManagerDocumentTags() {
                     name="importance"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Importance</FormLabel>
+                        <FormLabel>{t('dtImportanceLabel')}</FormLabel>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger data-testid="select-tag-importance">
@@ -250,9 +292,9 @@ export default function ManagerDocumentTags() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="obligatoire">Obligatoire</SelectItem>
-                            <SelectItem value="nice_to_have">Recommandée</SelectItem>
-                            <SelectItem value="extra">Extra</SelectItem>
+                            <SelectItem value="obligatoire">{t('dtImportanceObligatoire')}</SelectItem>
+                            <SelectItem value="nice_to_have">{t('dtImportanceNiceToHave')}</SelectItem>
+                            <SelectItem value="extra">{t('dtImportanceExtra')}</SelectItem>
                           </SelectContent>
                         </Select>
                       </FormItem>
@@ -266,17 +308,17 @@ export default function ManagerDocumentTags() {
                     <FormItem>
                       <FormLabel>{t('dtSuggestedProsLabel')}</FormLabel>
                       <FormControl>
-                        <Input {...field} value={field.value ?? ''} placeholder="Notaire, Avocat" data-testid="input-tag-pros" />
+                        <Input {...field} value={field.value ?? ''} placeholder={t('dtSuggestedProsPlaceholder')} data-testid="input-tag-pros" />
                       </FormControl>
                     </FormItem>
                   )}
                 />
                 <DialogFooter>
                   <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-                    Annuler
+                    {t('dtCancelButton')}
                   </Button>
                   <Button type="submit" data-testid="button-submit-tag">
-                    {editing ? 'Enregistrer' : 'Créer'}
+                    {editing ? t('dtSaveButton') : t('dtCreateSubmitButton')}
                   </Button>
                 </DialogFooter>
               </form>
@@ -294,24 +336,44 @@ function TagsTable({
   readOnly,
   onEdit,
   onDelete,
+  scopeLabel,
+  importanceLabel,
+  loadingText,
+  emptyText,
+  colName,
+  colScope,
+  colImportance,
+  colProfessionals,
+  colActions,
+  readOnlyText,
 }: {
   tags: DocumentTag[];
   isLoading: boolean;
   readOnly?: boolean;
   onEdit?: (t: DocumentTag) => void;
   onDelete?: (t: DocumentTag) => void;
+  scopeLabel: (scope: string) => string;
+  importanceLabel: (importance: string) => string;
+  loadingText: string;
+  emptyText: string;
+  colName: string;
+  colScope: string;
+  colImportance: string;
+  colProfessionals: string;
+  colActions: string;
+  readOnlyText: string;
 }) {
-  if (isLoading) return <p className="text-muted-foreground">Chargement…</p>;
-  if (tags.length === 0) return <p className="text-muted-foreground">Aucune étiquette.</p>;
+  if (isLoading) return <p className="text-muted-foreground">{loadingText}</p>;
+  if (tags.length === 0) return <p className="text-muted-foreground">{emptyText}</p>;
   return (
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Nom</TableHead>
-          <TableHead>Portée</TableHead>
-          <TableHead>Importance</TableHead>
-          <TableHead>Professionnels</TableHead>
-          <TableHead className="text-right">Actions</TableHead>
+          <TableHead>{colName}</TableHead>
+          <TableHead>{colScope}</TableHead>
+          <TableHead>{colImportance}</TableHead>
+          <TableHead>{colProfessionals}</TableHead>
+          <TableHead className="text-right">{colActions}</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -326,8 +388,8 @@ function TagsTable({
                 <p className="text-xs text-muted-foreground line-clamp-2 mt-1">{tag.description}</p>
               )}
             </TableCell>
-            <TableCell><Badge variant="outline">{tag.scope}</Badge></TableCell>
-            <TableCell><Badge variant={tag.importance === 'obligatoire' ? 'default' : 'secondary'}>{tag.importance}</Badge></TableCell>
+            <TableCell><Badge variant="outline">{scopeLabel(tag.scope)}</Badge></TableCell>
+            <TableCell><Badge variant={tag.importance === 'obligatoire' ? 'default' : 'secondary'}>{importanceLabel(tag.importance)}</Badge></TableCell>
             <TableCell className="text-xs text-muted-foreground">
               {(tag.suggestedProfessionals || []).join(', ') || '—'}
             </TableCell>
@@ -342,7 +404,7 @@ function TagsTable({
                   </Button>
                 </div>
               ) : (
-                <span className="text-xs text-muted-foreground">Lecture seule</span>
+                <span className="text-xs text-muted-foreground">{readOnlyText}</span>
               )}
             </TableCell>
           </TableRow>

@@ -4079,6 +4079,42 @@ export interface Translations {
   rpInvalidLinkDesc: string;
   budgetReserveFundExamplePlaceholder: string;
   dtSuggestedProsLabel: string;
+  dtSuggestedProsPlaceholder: string;
+  dtPageTitle: string;
+  dtPageSubtitle: string;
+  dtSectionHeading: string;
+  dtCreateButton: string;
+  dtSystemCardTitle: string;
+  dtCustomCardTitle: string;
+  dtColName: string;
+  dtColScope: string;
+  dtColImportance: string;
+  dtColProfessionals: string;
+  dtColActions: string;
+  dtReadOnly: string;
+  dtLoading: string;
+  dtEmpty: string;
+  dtDialogEditTitle: string;
+  dtDialogNewTitle: string;
+  dtNameLabel: string;
+  dtDescriptionLabel: string;
+  dtScopeLabel: string;
+  dtImportanceLabel: string;
+  dtScopeAny: string;
+  dtScopeBuilding: string;
+  dtScopeResidence: string;
+  dtImportanceObligatoire: string;
+  dtImportanceNiceToHave: string;
+  dtImportanceExtra: string;
+  dtCancelButton: string;
+  dtSaveButton: string;
+  dtCreateSubmitButton: string;
+  dtToastUpdatedTitle: string;
+  dtToastCreatedTitle: string;
+  dtToastDeletedTitle: string;
+  dtToastErrorTitle: string;
+  dtDeleteConfirm: string;
+  dtNameRequired: string;
   ihGlobalSearchPlaceholder: string;
   pdvFailedToLoadDashboard: string;
   pdvSelectBuildingForDashboard: string;
@@ -8199,6 +8235,42 @@ export const translations: Record<Language, Translations> = {
     rpInvalidLinkDesc: 'The reset link is invalid or missing.',
     budgetReserveFundExamplePlaceholder: 'e.g., Reserve Fund, Maintenance Buffer, Capital Reserve',
     dtSuggestedProsLabel: 'Suggested professionals (comma-separated)',
+    dtSuggestedProsPlaceholder: 'Notary, Lawyer',
+    dtPageTitle: 'Document Tags',
+    dtPageSubtitle: 'Manage Koveo and custom tags',
+    dtSectionHeading: 'Tags',
+    dtCreateButton: 'New tag',
+    dtSystemCardTitle: 'Koveo Tags (system)',
+    dtCustomCardTitle: 'Custom Tags',
+    dtColName: 'Name',
+    dtColScope: 'Scope',
+    dtColImportance: 'Importance',
+    dtColProfessionals: 'Professionals',
+    dtColActions: 'Actions',
+    dtReadOnly: 'Read only',
+    dtLoading: 'Loading…',
+    dtEmpty: 'No tags.',
+    dtDialogEditTitle: 'Edit tag',
+    dtDialogNewTitle: 'New tag',
+    dtNameLabel: 'Name *',
+    dtDescriptionLabel: 'Description',
+    dtScopeLabel: 'Scope',
+    dtImportanceLabel: 'Importance',
+    dtScopeAny: 'Any',
+    dtScopeBuilding: 'Building',
+    dtScopeResidence: 'Residence',
+    dtImportanceObligatoire: 'Mandatory',
+    dtImportanceNiceToHave: 'Recommended',
+    dtImportanceExtra: 'Extra',
+    dtCancelButton: 'Cancel',
+    dtSaveButton: 'Save',
+    dtCreateSubmitButton: 'Create',
+    dtToastUpdatedTitle: 'Tag updated',
+    dtToastCreatedTitle: 'Tag created',
+    dtToastDeletedTitle: 'Tag deleted',
+    dtToastErrorTitle: 'Error',
+    dtDeleteConfirm: 'Delete tag "{name}"?',
+    dtNameRequired: 'Name required',
     ihGlobalSearchPlaceholder: 'Search elements by name, UNIFORMAT code, or description...',
     pdvFailedToLoadDashboard: 'Failed to load dashboard analytics. Please try again.',
     pdvSelectBuildingForDashboard: 'Please select a building to view its project dashboard.',
@@ -12324,6 +12396,42 @@ export const translations: Record<Language, Translations> = {
     rpInvalidLinkDesc: 'Le lien de réinitialisation est invalide ou manquant.',
     budgetReserveFundExamplePlaceholder: 'p. ex., Fonds de réserve, Tampon de maintenance, Réserve d\'investissement',
     dtSuggestedProsLabel: 'Professionnels suggérés (séparés par des virgules)',
+    dtSuggestedProsPlaceholder: 'Notaire, Avocat',
+    dtPageTitle: 'Étiquettes de documents',
+    dtPageSubtitle: 'Gestion des étiquettes Koveo et personnalisées',
+    dtSectionHeading: 'Étiquettes',
+    dtCreateButton: 'Nouvelle étiquette',
+    dtSystemCardTitle: 'Étiquettes Koveo (système)',
+    dtCustomCardTitle: 'Étiquettes personnalisées',
+    dtColName: 'Nom',
+    dtColScope: 'Portée',
+    dtColImportance: 'Importance',
+    dtColProfessionals: 'Professionnels',
+    dtColActions: 'Actions',
+    dtReadOnly: 'Lecture seule',
+    dtLoading: 'Chargement…',
+    dtEmpty: 'Aucune étiquette.',
+    dtDialogEditTitle: 'Modifier l\'étiquette',
+    dtDialogNewTitle: 'Nouvelle étiquette',
+    dtNameLabel: 'Nom *',
+    dtDescriptionLabel: 'Description',
+    dtScopeLabel: 'Portée',
+    dtImportanceLabel: 'Importance',
+    dtScopeAny: 'Toute',
+    dtScopeBuilding: 'Bâtiment',
+    dtScopeResidence: 'Résidence',
+    dtImportanceObligatoire: 'Obligatoire',
+    dtImportanceNiceToHave: 'Recommandée',
+    dtImportanceExtra: 'Extra',
+    dtCancelButton: 'Annuler',
+    dtSaveButton: 'Enregistrer',
+    dtCreateSubmitButton: 'Créer',
+    dtToastUpdatedTitle: 'Étiquette mise à jour',
+    dtToastCreatedTitle: 'Étiquette créée',
+    dtToastDeletedTitle: 'Étiquette supprimée',
+    dtToastErrorTitle: 'Erreur',
+    dtDeleteConfirm: 'Supprimer l\'étiquette « {name} » ?',
+    dtNameRequired: 'Nom requis',
     ihGlobalSearchPlaceholder: 'Rechercher des éléments par nom, code UNIFORMAT ou description...',
     pdvFailedToLoadDashboard: 'Échec du chargement des analyses du tableau de bord. Veuillez réessayer.',
     pdvSelectBuildingForDashboard: 'Veuillez sélectionner un immeuble pour consulter son tableau de bord de projets.',
