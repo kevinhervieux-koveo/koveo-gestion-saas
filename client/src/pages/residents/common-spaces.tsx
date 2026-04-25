@@ -1281,9 +1281,18 @@ function CommonSpacesPageInner({ buildingId, showBackButton, backButtonLabel, on
   );
 }
 
-// Wrap with hierarchical selection HOC using organization and building hierarchy (residents only see buildings they have residences in)
+// Wrap with hierarchical selection HOC using organization and building hierarchy.
+// - Managers/admins: org → building picker, both steps now showing the
+//   "Espaces Communs / Réservez vos espaces communs" header instead of the
+//   generic "Gestion de bâtiments / Sélectionnez l'organisation" leak.
+// - Residents/tenants (residentScope): the org → building flow is bypassed
+//   in favour of a flat residence chooser fed by /api/users/me/residences.
+//   Single-link residents are auto-forwarded straight to the spaces list.
 const CommonSpacesPage = withHierarchicalSelection(CommonSpacesPageInner, {
-  hierarchy: ['organization', 'building']
+  hierarchy: ['organization', 'building'],
+  residentScope: true,
+  title: { en: 'Common Spaces', fr: 'Espaces Communs' },
+  subtitle: { en: 'Book your common spaces', fr: 'Réservez vos espaces communs' },
 });
 
 export default CommonSpacesPage;

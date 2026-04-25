@@ -22,15 +22,30 @@ interface UserResidenceSummary {
 }
 
 /**
+ * Localizable header text. Either a static string used as-is, or a
+ * { en, fr } object resolved against the active language.
+ */
+type LocalizedText = string | { en: string; fr: string };
+
+/**
  * Configuration for the hierarchical selection flow
  */
 interface HierarchyConfig {
   hierarchy: ('organization' | 'building' | 'residence')[];
   checkResidenceAccess?: boolean;
-  title?: string; // Custom title for the page (literal, non-translated)
-  titleKey?: string; // i18n key resolved via t() — preferred over `title`
-  subtitle?: string; // Custom subtitle for the page
+  title?: LocalizedText; // Custom title for the page (overrides default per-step header). String or { en, fr }.
+  titleKey?: string; // Optional i18n key resolved via t() — when set, takes precedence over `title`.
+  subtitle?: LocalizedText; // Custom subtitle for the page (overrides default per-step subtitle). String or { en, fr }.
   onResidenceSelect?: (residenceId: string, buildingId?: string, organizationId?: string) => string; // Custom navigation when residence is selected
+  /**
+   * When true and the authenticated user is a resident/tenant, the HOC
+   * switches to a flat residence-first flow: it fetches all residences
+   * the user is linked to and either auto-forwards (single link) or
+   * shows a flat residence chooser (multiple links). Org/building
+   * picker steps are skipped entirely for those users. Other roles
+   * (manager/admin) keep the existing org → building hierarchy.
+   */
+  residentScope?: boolean;
 }
 
 /**
@@ -119,8 +134,25 @@ function AdminManagerHierarchyFlow<T extends object>({
 }) {
     const [location, setLocation] = useLocation();
     const search = useSearch();
-    const { t } = useLanguage();
+    const { t, language } = useLanguage();
     const { user } = useAuth();
+
+    // Resolve a LocalizedText (string or { en, fr }) against the active language.
+    const resolveText = useCallback(
+      (text: LocalizedText | undefined, fallback: string): string => {
+        if (text === undefined || text === null) return fallback;
+        if (typeof text === 'string') return text;
+        return text[language] ?? text.en ?? fallback;
+      },
+      [language]
+    );
+
+    // Resident-scope detection: flat residence-first flow for resident/tenant
+    // roles. Other roles fall through to the existing org → building hierarchy.
+    const isResidentOrTenant = ['resident', 'tenant', 'demo_resident', 'demo_tenant'].includes(
+      user?.role || ''
+    );
+    const useResidentFlatFlow = !!config.residentScope && isResidentOrTenant;
 
     // Force re-render when location changes
     React.useEffect(() => {
@@ -136,7 +168,9 @@ function AdminManagerHierarchyFlow<T extends object>({
     const buildingId = urlParams.get('building');
     const residenceId = urlParams.get('residence');
 
-    // Determine current selection level
+    // Determine current selection level (org/building/residence flow). In
+    // resident-flat mode the value is intentionally ignored — that flow is
+    // driven entirely by `useResidentFlatFlow` + `userResidences` below.
     const currentLevel = getCurrentLevel(config.hierarchy, { organizationId, buildingId, residenceId });
     
     // Navigate to update URL parameters - wrapped in useCallback to prevent stale closures
@@ -172,7 +206,8 @@ function AdminManagerHierarchyFlow<T extends object>({
       queryKey: ['/api/users/me/organizations'],
       // Fetch whenever organization is part of the hierarchy so back-button
       // labels can resolve to the actual organization name on deep-links.
-      enabled: Boolean(config.hierarchy.includes('organization')),
+      // In resident-flat mode we skip the org/building hierarchy entirely.
+      enabled: Boolean(config.hierarchy.includes('organization') && !useResidentFlatFlow),
       staleTime: 5 * 60 * 1000, // 5 minutes cache
       gcTime: 15 * 60 * 1000, // 15 minutes garbage collection
       refetchOnWindowFocus: false,
@@ -188,7 +223,7 @@ function AdminManagerHierarchyFlow<T extends object>({
       error: buildingCountsError
     } = useQuery<Record<string, number>>({
       queryKey: ['/api/organizations/accessible-building-counts', user?.role, config.checkResidenceAccess || false],
-      enabled: Boolean(currentLevel === 'organization' && organizations.length > 0),
+      enabled: Boolean(currentLevel === 'organization' && organizations.length > 0 && !useResidentFlatFlow),
       staleTime: 5 * 60 * 1000, // 5 minutes cache
       gcTime: 15 * 60 * 1000, // 15 minutes garbage collection
       refetchOnWindowFocus: false,
@@ -269,6 +304,7 @@ function AdminManagerHierarchyFlow<T extends object>({
         return allBuildings;
       },
       enabled: Boolean(
+        !useResidentFlatFlow &&
         (currentLevel === 'building' || currentLevel === 'complete' || (buildingId && config.hierarchy.includes('building'))) && 
         (!!organizationId || config.hierarchy.length === 1)
       ),
@@ -316,7 +352,7 @@ function AdminManagerHierarchyFlow<T extends object>({
         logDebug(`🏠 [HOC] Received ${data.length} residences:`, data);
         return data;
       },
-      enabled: Boolean(currentLevel === 'residence' && !!buildingId),
+      enabled: Boolean(currentLevel === 'residence' && !!buildingId && !useResidentFlatFlow),
       staleTime: 5 * 60 * 1000, // 5 minutes cache
       gcTime: 15 * 60 * 1000, // 15 minutes garbage collection
       refetchOnWindowFocus: false,
@@ -330,6 +366,25 @@ function AdminManagerHierarchyFlow<T extends object>({
         logDebug(`🏠 [HOC DEBUG] currentLevel: ${currentLevel}, buildingId: ${buildingId}, enabled: ${Boolean(currentLevel === 'residence' && !!buildingId)}, isLoading: ${isLoadingResidences}, residences count: ${residences.length}, error:`, residencesError);
       }
     }, [currentLevel, buildingId, isLoadingResidences, residences.length, residencesError]);
+
+    // Resident-flat flow: fetch every residence the resident/tenant is linked
+    // to (across all their buildings) so we can either auto-forward (single
+    // link) or render a flat residence chooser (multiple links). The endpoint
+    // already restricts results to the authenticated user, so no additional
+    // filtering is required.
+    const {
+      data: userResidences = [],
+      isLoading: isLoadingUserResidences,
+      isFetching: isFetchingUserResidences,
+    } = useQuery<{ id: string; unitNumber: string; buildingId: string; buildingName: string }[]>({
+      queryKey: ['/api/users/me/residences'],
+      enabled: useResidentFlatFlow,
+      staleTime: 5 * 60 * 1000,
+      gcTime: 15 * 60 * 1000,
+      refetchOnWindowFocus: false,
+      retry: 2,
+      retryDelay: 1000,
+    });
 
     // Create memoized stable counts to prevent unnecessary re-renders
     const organizationsCount = useMemo(() => organizations.length, [organizations]);
@@ -346,8 +401,30 @@ function AdminManagerHierarchyFlow<T extends object>({
     const firstBuildingId = buildings[0]?.id ?? null;
     const firstResidenceId = residences[0]?.id ?? null;
 
+    const userResidencesCount = userResidences.length;
+    const firstUserResidenceBuildingId = userResidences[0]?.buildingId ?? null;
+
     // Auto-forwarding logic with navigation guards
     React.useEffect(() => {
+      // Resident-flat auto-forward: single residence link → set building
+      // param so the wrapped component renders immediately. This takes
+      // precedence over the org/building hierarchy when active.
+      if (
+        useResidentFlatFlow &&
+        !buildingId &&
+        userResidencesCount === 1 &&
+        firstUserResidenceBuildingId &&
+        !isLoadingUserResidences &&
+        !isFetchingUserResidences
+      ) {
+        const autoForwardKey = `resident-scope-${firstUserResidenceBuildingId}`;
+        if (lastAutoForwardRef.current === autoForwardKey) return;
+
+        lastAutoForwardRef.current = autoForwardKey;
+        navigate({ building: firstUserResidenceBuildingId });
+        return;
+      }
+
       // Organization level auto-forward
       if (currentLevel === 'organization' && organizationsCount === 1 && !organizationId && !isLoadingOrganizations && !isFetchingOrganizations && firstOrganizationId) {
         const autoForwardKey = `organization-${firstOrganizationId}`;
@@ -399,6 +476,12 @@ function AdminManagerHierarchyFlow<T extends object>({
       firstOrganizationId,
       firstBuildingId,
       firstResidenceId,
+      // Resident-flat flow inputs
+      useResidentFlatFlow,
+      userResidencesCount,
+      firstUserResidenceBuildingId,
+      isLoadingUserResidences,
+      isFetchingUserResidences,
     ]);
 
     // Handle selection
@@ -429,6 +512,46 @@ function AdminManagerHierarchyFlow<T extends object>({
       }
     };
 
+    // Resident-flat selection screen — replaces the org/building picker
+    // for resident/tenant users when `residentScope` is enabled. Items are
+    // labelled "<buildingName> · Unité <unitNumber>" so multi-residence
+    // residents can pick a specific link without navigating an org/building
+    // tree they don't have access to. Auto-forward (above) handles the
+    // single-link case before this renders.
+    if (useResidentFlatFlow && !buildingId) {
+      const items: SelectionGridItem[] = userResidences.map((residence) => ({
+        id: residence.id,
+        name: `${residence.buildingName} · ${t('unit' as any)} ${residence.unitNumber}`,
+        details: '',
+        type: 'residence' as const,
+      }));
+
+      const handleResidentScopeSelection = (residenceId: string) => {
+        const picked = userResidences.find((r) => r.id === residenceId);
+        if (picked) {
+          navigate({ building: picked.buildingId });
+        }
+      };
+
+      return (
+        <div className='flex-1 flex flex-col overflow-hidden'>
+          <Header
+            title={resolveText(config.title, t('buildingManagement' as any))}
+            subtitle={resolveText(config.subtitle, t('selectResidence' as any))}
+          />
+          <div className='flex-1 overflow-auto p-6'>
+            <SelectionGrid
+              title=""
+              items={items}
+              onSelectItem={handleResidentScopeSelection}
+              onBack={null}
+              isLoading={isLoadingUserResidences || isFetchingUserResidences}
+            />
+          </div>
+        </div>
+      );
+    }
+
     // Render selection screens
     if (currentLevel === 'organization') {
       // Filter out organizations with no accessible buildings (bottom up logic)
@@ -456,7 +579,10 @@ function AdminManagerHierarchyFlow<T extends object>({
 
       return (
         <div className='flex-1 flex flex-col overflow-hidden'>
-          <Header title={config.titleKey ? t(config.titleKey as any) : (config.title || t('buildingManagement' as any))} subtitle={t('selectOrganization' as any)} />
+          <Header
+            title={config.titleKey ? t(config.titleKey as any) : resolveText(config.title, t('buildingManagement' as any))}
+            subtitle={resolveText(config.subtitle, t('selectOrganization' as any))}
+          />
           <div className='flex-1 overflow-auto p-6'>
             <SelectionGrid
               title=""
@@ -482,7 +608,10 @@ function AdminManagerHierarchyFlow<T extends object>({
 
       return (
         <div className='flex-1 flex flex-col overflow-hidden'>
-          <Header title={config.titleKey ? t(config.titleKey as any) : (config.title || t('buildingManagement' as any))} subtitle={t('selectBuilding' as any)} />
+          <Header
+            title={config.titleKey ? t(config.titleKey as any) : resolveText(config.title, t('buildingManagement' as any))}
+            subtitle={resolveText(config.subtitle, t('selectBuilding' as any))}
+          />
           
           {/* Back to Organization Navigation - only show if user has multiple organizations */}
           {config.hierarchy.includes('organization') && organizations.length > 1 && (
@@ -537,7 +666,10 @@ function AdminManagerHierarchyFlow<T extends object>({
 
       return (
         <div className='flex-1 flex flex-col overflow-hidden'>
-          <Header title={config.titleKey ? t(config.titleKey as any) : (config.title || t('buildingManagement' as any))} subtitle={t('selectResidence' as any)} />
+          <Header
+            title={config.titleKey ? t(config.titleKey as any) : resolveText(config.title, t('buildingManagement' as any))}
+            subtitle={resolveText(config.subtitle, t('selectResidence' as any))}
+          />
           
           {/* Back to Building Navigation - only show if user has multiple buildings */}
           {showBackToBuilding && (
@@ -577,10 +709,15 @@ function AdminManagerHierarchyFlow<T extends object>({
       );
     }
 
-    // All required selections are complete - render the wrapped component
-    // Find building name from buildings data
+    // All required selections are complete - render the wrapped component.
+    // Find building name from buildings data, falling back to the
+    // resident-scope query when in flat-flow mode (where the org/building
+    // queries are intentionally skipped).
     const currentBuilding = buildings.find(b => b.id === buildingId);
-    const buildingName = currentBuilding?.name;
+    const residentScopeBuildingName = useResidentFlatFlow
+      ? userResidences.find((r) => r.buildingId === buildingId)?.buildingName
+      : undefined;
+    const buildingName = currentBuilding?.name ?? residentScopeBuildingName;
 
     // Helper to render a name with a skeleton placeholder while the
     // underlying parent query is loading. Prevents the visible flicker of a
@@ -607,6 +744,24 @@ function AdminManagerHierarchyFlow<T extends object>({
     // so we keep labelling with the current building's name as a hint
     // that pressing back will deselect it.
     const getBackNavigationProps = () => {
+      // Resident-flat flow: when the user has multiple residence links and
+      // landed on a building via the flat picker, expose a back button that
+      // returns to the picker (clears the building param). When they only
+      // have a single link the picker is never shown, so no back button is
+      // needed either.
+      if (useResidentFlatFlow && buildingId && userResidencesCount > 1) {
+        return {
+          showBackButton: true,
+          backButtonLabel: renderLabel(
+            buildingName,
+            isLoadingUserResidences || isFetchingUserResidences,
+            t('building' as any),
+            'skeleton-back-building'
+          ),
+          onBack: () => navigate({ organization: null, building: null, residence: null }),
+        };
+      }
+
       // Building-only hierarchy (e.g. resident with multiple buildings):
       // there is no organization parent, so label with the current
       // building name (which the user is deselecting) and navigate to
@@ -734,9 +889,22 @@ function ResidentBypassFlow<T extends object>({
   WrappedComponent: React.ComponentType<T & HierarchyProps>;
   wrappedProps: T;
 }) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [location, setLocation] = useLocation();
   const search = useSearch();
+
+  // Resolve a LocalizedText (string or { en, fr }) against the active
+  // language. Mirrors the helper in `AdminManagerHierarchyFlow` so the
+  // resident bypass picker can honor the same `title`/`subtitle` config
+  // and never renders a `{ en, fr }` object directly into the DOM.
+  const resolveText = useCallback(
+    (text: LocalizedText | undefined, fallback: string): string => {
+      if (text === undefined || text === null) return fallback;
+      if (typeof text === 'string') return text;
+      return text[language] ?? text.en ?? fallback;
+    },
+    [language],
+  );
 
   const urlParams = new URLSearchParams(search);
   const selectedBuildingId = urlParams.get('building');
@@ -858,8 +1026,8 @@ function ResidentBypassFlow<T extends object>({
     return (
       <div className='flex-1 flex flex-col overflow-hidden'>
         <Header
-          title={config.titleKey ? t(config.titleKey as any) : (config.title || t('selectYourBuilding' as any))}
-          subtitle={config.subtitle}
+          title={config.titleKey ? t(config.titleKey as any) : resolveText(config.title, t('selectYourBuilding' as any))}
+          subtitle={resolveText(config.subtitle, '')}
         />
         <div className='flex-1 overflow-auto p-6'>
           <SelectionGrid
