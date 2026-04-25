@@ -2526,6 +2526,8 @@ export function registerBulkImportRoutes(app: Express): void {
     requireAuth,
     requireRole(['admin']),
     async (req: AuthenticatedRequest, res: Response) => {
+      // Capture for structured error logging in the catch block (item is in scope only inside try).
+      let _capturedSessionId: string | undefined;
       try {
         const {
           action,
@@ -2543,6 +2545,7 @@ export function registerBulkImportRoutes(app: Express): void {
           .from(schema.bulkImportItems)
           .where(eq(schema.bulkImportItems.id, req.params.id));
         if (!item) return res.status(404).json({ error: 'Item not found' });
+        _capturedSessionId = item.sessionId ?? undefined;
 
         const existing = (item.sortingDecision ?? {}) as Record<string, unknown>;
 
@@ -2645,18 +2648,28 @@ export function registerBulkImportRoutes(app: Express): void {
           if (draftDecision === 'split' && isPdfDraft) {
             const srcPath = item.stagedPath;
             if (!srcPath || !fs.existsSync(srcPath)) {
-              return res.status(400).json({ error: 'Staged file missing for this item' });
+              logWarn('[bulk-import] accept failed', { action, metadata: { code: 'DRAFT_SPLIT_FILE_MISSING', itemId: req.params.id, sessionId: _capturedSessionId, decision: manualDecision } });
+              return res.status(400).json({ error: 'Staged file missing for this item', code: 'DRAFT_SPLIT_FILE_MISSING' });
             }
             if (!draftSplitAt) {
-              return res.status(400).json({ error: 'splitAtPage is required for split decisions' });
+              logWarn('[bulk-import] accept failed', { action, metadata: { code: 'DRAFT_SPLIT_PAGE_REQUIRED', itemId: req.params.id, sessionId: _capturedSessionId, decision: manualDecision } });
+              return res.status(400).json({ error: 'splitAtPage is required for split decisions', code: 'DRAFT_SPLIT_PAGE_REQUIRED' });
             }
 
+            let draftSliceResult: Awaited<ReturnType<typeof slicePdf>>;
+            try {
+              draftSliceResult = await slicePdf(srcPath, draftSplitAt);
+            } catch (splitErr) {
+              const errMsg = splitErr instanceof Error ? splitErr.message : String(splitErr);
+              logWarn('[bulk-import] accept failed', { action, metadata: { code: 'DRAFT_SPLIT_OPERATION_FAILED', itemId: req.params.id, sessionId: _capturedSessionId, decision: manualDecision, underlyingError: errMsg } });
+              return res.status(400).json({ error: `Failed to split PDF: ${errMsg}`, code: 'DRAFT_SPLIT_OPERATION_FAILED' });
+            }
             const {
               firstBytes, firstHash, firstPath,
               secondBytes, secondHash, secondPath,
               splitPage, totalPages,
               originalName,
-            } = await slicePdf(srcPath, draftSplitAt);
+            } = draftSliceResult;
 
             draftBlob.splitAtPage = splitPage;
             draftBlob.splitTotalPages = totalPages;
@@ -2870,17 +2883,39 @@ export function registerBulkImportRoutes(app: Express): void {
 
         const isPdf = (item.mimeType ?? '').toLowerCase() === 'application/pdf';
 
+        // Helper: emit one structured warning log and return a classified 400.
+        // Must be defined after effectiveDecision/Ids/SplitAt are assigned (above).
+        const logAndReturn400 = (code: string, error: string, extra?: Record<string, unknown>) => {
+          logWarn('[bulk-import] accept failed', {
+            action,
+            metadata: {
+              code,
+              itemId: req.params.id,
+              sessionId: _capturedSessionId,
+              decision: effectiveDecision,
+              mergeWithItemIds: effectiveMergeIds,
+              splitAtPage: effectiveSplitAt,
+              error,
+              ...extra,
+            },
+          });
+          return res.status(400).json({ error, code });
+        };
+
         // --- MERGE ---
         if (effectiveDecision === 'merge' && effectiveMergeIds && effectiveMergeIds.length > 0 && isPdf) {
           if (!item.stagedPath || !fs.existsSync(item.stagedPath)) {
-            return res.status(400).json({ error: 'Staged file missing for this item' });
+            return logAndReturn400('MERGE_LEAD_FILE_MISSING', 'Staged file missing for this item');
           }
 
           const { PDFDocument } = await import('pdf-lib');
 
           // Load the lead PDF.
           const leadBytes = fs.readFileSync(item.stagedPath);
-          const leadPdf = await PDFDocument.load(new Uint8Array(leadBytes), { ignoreEncryption: true });
+          const leadPdf = await PDFDocument.load(new Uint8Array(leadBytes), { ignoreEncryption: true }).catch(() => null);
+          if (!leadPdf) {
+            return logAndReturn400('MERGE_LEAD_PDF_CORRUPT', 'Failed to load lead PDF: the file may be corrupt or use unsupported encryption');
+          }
 
           // Load and validate each sibling in order, then append.
           const siblingItems: (typeof item)[] = [];
@@ -2890,19 +2925,27 @@ export function registerBulkImportRoutes(app: Express): void {
               .from(schema.bulkImportItems)
               .where(eq(schema.bulkImportItems.id, siblingId));
             if (!siblingItem) {
-              return res.status(404).json({ error: `Merge target item not found: ${siblingId}` });
+              return logAndReturn400('MERGE_TARGET_NOT_FOUND', `Merge target item not found: ${siblingId}`);
             }
             if ((siblingItem.sessionId as string) !== item.sessionId) {
-              return res.status(400).json({ error: `Merge target belongs to a different session: ${siblingId}` });
+              return logAndReturn400('MERGE_TARGET_WRONG_SESSION', `Merge target belongs to a different session: ${siblingId}`);
             }
             if ((siblingItem.mimeType ?? '').toLowerCase() !== 'application/pdf') {
-              return res.status(400).json({ error: 'Can only merge PDF files together' });
+              return logAndReturn400('MERGE_TARGET_NOT_PDF', 'Can only merge PDF files together');
+            }
+            // Reject siblings that have already been merged into another lead.
+            const sibDec = (siblingItem.sortingDecision ?? {}) as Record<string, unknown>;
+            if (sibDec.mergedIntoItemId && sibDec.mergedIntoItemId !== item.id) {
+              return logAndReturn400('MERGE_TARGET_ALREADY_MERGED', `Merge target has already been merged into another document: ${siblingId}`);
             }
             if (!siblingItem.stagedPath || !fs.existsSync(siblingItem.stagedPath)) {
-              return res.status(400).json({ error: `Staged file missing for merge target: ${siblingId}` });
+              return logAndReturn400('MERGE_TARGET_FILE_MISSING', `Staged file missing for merge target: ${siblingId}`);
             }
             const sibBytes = fs.readFileSync(siblingItem.stagedPath);
-            const sibPdf = await PDFDocument.load(new Uint8Array(sibBytes), { ignoreEncryption: true });
+            const sibPdf = await PDFDocument.load(new Uint8Array(sibBytes), { ignoreEncryption: true }).catch(() => null);
+            if (!sibPdf) {
+              return logAndReturn400('MERGE_TARGET_PDF_CORRUPT', `Failed to load merge target PDF (may be corrupt): ${siblingItem.originalName}`);
+            }
             const indices = Array.from({ length: sibPdf.getPageCount() }, (_, i) => i);
             const copiedPages = await leadPdf.copyPages(sibPdf, indices);
             for (const page of copiedPages) leadPdf.addPage(page);
@@ -2913,7 +2956,13 @@ export function registerBulkImportRoutes(app: Express): void {
           const mergedHash = crypto.createHash('sha256').update(mergedBytes).digest('hex');
           const dir = stagingDirFor(item.sessionId);
           const newPath = path.join(dir, `merged_${mergedHash}_${item.originalName}`);
-          fs.writeFileSync(newPath, mergedBytes);
+          try {
+            fs.writeFileSync(newPath, mergedBytes);
+          } catch (writeErr) {
+            return logAndReturn400('MERGE_WRITE_FAILED', 'Failed to write merged PDF to disk', {
+              underlyingError: writeErr instanceof Error ? writeErr.message : String(writeErr),
+            });
+          }
 
           updated_decision.mergeWithItemIds = effectiveMergeIds;
           updated_decision.mergedFromItemIds = effectiveMergeIds;
@@ -2959,14 +3008,25 @@ export function registerBulkImportRoutes(app: Express): void {
         // --- SPLIT ---
         if (effectiveDecision === 'split' && effectiveSplitAt != null && isPdf) {
           if (!item.stagedPath || !fs.existsSync(item.stagedPath)) {
-            return res.status(400).json({ error: 'Staged file missing for this item' });
+            return logAndReturn400('SPLIT_FILE_MISSING', 'Staged file missing for this item');
           }
 
+          let sliceResult: Awaited<ReturnType<typeof slicePdf>>;
+          try {
+            sliceResult = await slicePdf(item.stagedPath, effectiveSplitAt);
+          } catch (splitErr) {
+            const splitErrMsg = splitErr instanceof Error ? splitErr.message : String(splitErr);
+            return logAndReturn400(
+              'SPLIT_OPERATION_FAILED',
+              `Failed to split PDF: ${splitErrMsg}`,
+              { underlyingError: splitErrMsg },
+            );
+          }
           const {
             firstBytes, firstHash, firstPath,
             secondBytes, secondHash, secondPath,
             splitPage, totalPages, originalName: splitOriginalName,
-          } = await slicePdf(item.stagedPath, effectiveSplitAt);
+          } = sliceResult;
 
           const splitStem = splitOriginalName.replace(/\.[^.]+$/, '');
           const splitExt = splitOriginalName.replace(/^[^.]*(\..+)?$/, '$1') || '';
@@ -3082,8 +3142,24 @@ export function registerBulkImportRoutes(app: Express): void {
 
       } catch (err) {
         if (err instanceof z.ZodError) return res.status(400).json({ error: err.errors });
-        logError('[bulk-import] set-sorting-decision failed', err as Error);
-        return res.status(500).json({ error: 'Failed to set sorting decision' });
+        const errMsg = err instanceof Error ? err.message : String(err);
+        const errCtx: Record<string, unknown> = {
+          itemId: req.params.id,
+          sessionId: _capturedSessionId,
+          action: req.body?.action,
+          decision: req.body?.decision,
+          mergeWithItemIds: req.body?.mergeWithItemIds ?? (req.body?.mergeWithItemId ? [req.body.mergeWithItemId] : undefined),
+          splitAtPage: req.body?.splitAtPage,
+          originalError: errMsg,
+          code: 'SORTING_DECISION_INTERNAL_ERROR',
+        };
+        logError('[bulk-import] accept failed', err as Error, errCtx);
+        const userMessage = 'Internal error while processing sorting decision';
+        return res.status(500).json({
+          error: userMessage,
+          message: userMessage,
+          code: 'SORTING_DECISION_INTERNAL_ERROR',
+        });
       }
     },
   );

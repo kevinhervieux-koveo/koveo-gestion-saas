@@ -1094,4 +1094,51 @@ describe('BulkDocumentImportPage — sorting decision UI (Task #817 / #825)', ()
     expect(group).toHaveTextContent('Dans cette fusion');
     expect(group).not.toHaveTextContent('In this merge');
   });
+
+  it('surfaces the server error message as toast description when set-sorting-decision returns 400 (Task #924)', async () => {
+    const SERVER_ERROR = 'Staged file missing for this item';
+
+    // Temporarily override fetch: set-sorting-decision POST returns 400 with
+    // a classified error body; all other calls pass through to fetchMock.
+    const savedFetch = global.fetch;
+    global.fetch = jest.fn(async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+      const url =
+        typeof input === 'string'
+          ? input
+          : input instanceof URL
+            ? input.toString()
+            : (input as Request).url;
+      const method = (init?.method || 'GET').toUpperCase();
+      const [pathname] = url.split('?');
+      if (
+        method === 'POST' &&
+        pathname.startsWith('/api/admin/bulk-import/items/') &&
+        pathname.endsWith('/set-sorting-decision')
+      ) {
+        return jsonResponse({ error: SERVER_ERROR, code: 'MERGE_LEAD_FILE_MISSING' }, 400);
+      }
+      return (fetchMock as unknown as (i: RequestInfo | URL, init?: RequestInit) => Promise<Response>)(input, init);
+    }) as unknown as typeof fetch;
+
+    renderPage();
+    await waitForRows();
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId(`button-sorting-accept-${ITEM_PENDING}`));
+    });
+
+    await waitFor(
+      () => {
+        expect(mockToast).toHaveBeenCalledWith(
+          expect.objectContaining({
+            variant: 'destructive',
+            description: SERVER_ERROR,
+          }),
+        );
+      },
+      { timeout: 4000 },
+    );
+
+    global.fetch = savedFetch;
+  });
 });

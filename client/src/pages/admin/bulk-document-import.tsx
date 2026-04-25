@@ -33,7 +33,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest, queryClient } from '@/lib/queryClient';
+import { apiRequest, queryClient, ApiError } from '@/lib/queryClient';
 import { useLanguage } from '@/hooks/use-language';
 import {
   Upload,
@@ -1830,15 +1830,23 @@ export default function BulkDocumentImportPage() {
         : '';
       toast({ title: acceptedMsg + skippedMsg });
     },
-    onError: () => {
+    onError: (error) => {
       queryClient.invalidateQueries({
         queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
       });
+      let serverMessage: string | undefined;
+      if (error instanceof ApiError && error.body && typeof error.body === 'object') {
+        const body = error.body as Record<string, unknown>;
+        serverMessage = typeof body.error === 'string' ? body.error
+          : typeof body.message === 'string' ? body.message
+          : undefined;
+      }
       toast({
         variant: 'destructive',
         title: isFr
           ? 'Échec de l\'acceptation groupée'
           : 'Failed to accept all pending decisions',
+        ...(serverMessage ? { description: serverMessage } : {}),
       });
     },
   });
@@ -1890,10 +1898,18 @@ export default function BulkDocumentImportPage() {
         queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
       });
     },
-    onError: () => {
+    onError: (error) => {
+      let serverMessage: string | undefined;
+      if (error instanceof ApiError && error.body && typeof error.body === 'object') {
+        const body = error.body as Record<string, unknown>;
+        serverMessage = typeof body.error === 'string' ? body.error
+          : typeof body.message === 'string' ? body.message
+          : undefined;
+      }
       toast({
         variant: 'destructive',
         title: isFr ? 'Échec de la décision' : 'Failed to save decision',
+        ...(serverMessage ? { description: serverMessage } : {}),
       });
     },
   });

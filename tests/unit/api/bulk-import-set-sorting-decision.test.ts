@@ -425,7 +425,7 @@ describe('POST /api/admin/bulk-import/items/:id/set-sorting-decision (Task #817)
     expect((sibling.sortingDecision as any).decision).toBe('merge');
   });
 
-  it('accept on a "merge" suggestion 404s when the merge target is missing', async () => {
+  it('accept on a "merge" suggestion returns 400 when the merge target is missing', async () => {
     seed('it-A', {
       stagedPath: '/staging/A.pdf',
       sortingDecision: {
@@ -439,7 +439,7 @@ describe('POST /api/admin/bulk-import/items/:id/set-sorting-decision (Task #817)
     const res = await request(buildApp())
       .post(ROUTE('it-A'))
       .send({ action: 'accept' })
-      .expect(404);
+      .expect(400);
 
     expect(res.body.error).toMatch(/Merge target/);
     // Original row must NOT be flipped to accepted on the failure path.
@@ -569,7 +569,7 @@ describe('POST /api/admin/bulk-import/items/:id/set-sorting-decision (Task #817)
     expect(insertedItems).toHaveLength(0);
   });
 
-  it('N-way merge returns 404 when one sibling ID does not exist', async () => {
+  it('N-way merge returns 400 when one sibling ID does not exist', async () => {
     seed('it-merge-lead', {
       stagedPath: '/staging/ml.pdf',
       sortingDecision: { decision: 'merge', decisionState: 'pending' },
@@ -581,7 +581,7 @@ describe('POST /api/admin/bulk-import/items/:id/set-sorting-decision (Task #817)
     const res = await request(buildApp())
       .post(ROUTE('it-merge-lead'))
       .send({ action: 'manual', decision: 'merge', mergeWithItemIds: ['it-merge-ok', 'does-not-exist'] })
-      .expect(404);
+      .expect(400);
 
     expect(res.body.error).toMatch(/Merge target item not found/);
   });
@@ -767,5 +767,265 @@ describe('POST /api/admin/bulk-import/items/:id/set-sorting-decision (Task #817)
       .expect(400);
 
     expect(res.body.error).toMatch(/splitAtPage is required/);
+  });
+
+  // -----------------------------------------------------------------
+  // 8. Explicit error classification — Task #924
+  // -----------------------------------------------------------------
+
+  it('returns 400 when lead PDF is corrupt and pdf-lib load throws', async () => {
+    seed('it-corrupt-lead', {
+      stagedPath: '/staging/corrupt-lead.pdf',
+      contentHash: 'hash-corrupt-lead',
+      sortingDecision: {
+        decision: 'merge',
+        mergeWithItemId: 'it-sib-ok',
+        mergeWithItemIds: ['it-sib-ok'],
+        decisionState: 'pending',
+      },
+    });
+    seed('it-sib-ok', { stagedPath: '/staging/sib-ok.pdf', status: 'sorted' });
+    stagePdf('/staging/corrupt-lead.pdf', 2);
+    stagePdf('/staging/sib-ok.pdf', 3);
+
+    // Make PDFDocument.load throw on the first call (the lead PDF).
+    const pdfLib = require('pdf-lib');
+    (pdfLib.PDFDocument.load as jest.Mock).mockRejectedValueOnce(new Error('Invalid PDF structure'));
+
+    const res = await request(buildApp())
+      .post(ROUTE('it-corrupt-lead'))
+      .send({ action: 'accept' })
+      .expect(400);
+
+    expect(res.body.error).toMatch(/Failed to load lead PDF/);
+    // Lead row must NOT be mutated to accepted.
+    expect((itemStore.get('it-corrupt-lead')!.sortingDecision as any).decisionState).toBe('pending');
+  });
+
+  it('returns 400 when a sibling PDF is corrupt and pdf-lib load throws', async () => {
+    seed('it-lead-ok', {
+      stagedPath: '/staging/lead-ok.pdf',
+      contentHash: 'hash-lead-ok',
+      sortingDecision: {
+        decision: 'merge',
+        mergeWithItemId: 'it-corrupt-sib',
+        mergeWithItemIds: ['it-corrupt-sib'],
+        decisionState: 'pending',
+      },
+    });
+    seed('it-corrupt-sib', {
+      stagedPath: '/staging/corrupt-sib.pdf',
+      contentHash: 'hash-corrupt-sib',
+      originalName: 'états financiers 30 septembre 2023.pdf',
+      status: 'sorted',
+    });
+    stagePdf('/staging/lead-ok.pdf', 2);
+    stagePdf('/staging/corrupt-sib.pdf', 3);
+
+    // First load (lead) succeeds, second load (sibling) throws.
+    // Use a counter-based implementation to avoid re-entering the mock.
+    const pdfLib = require('pdf-lib');
+    const previousImpl = (pdfLib.PDFDocument.load as jest.Mock).getMockImplementation();
+    let pdfLoadCalls = 0;
+    (pdfLib.PDFDocument.load as jest.Mock).mockImplementation(async (bytes: Uint8Array) => {
+      pdfLoadCalls++;
+      if (pdfLoadCalls >= 2) throw new Error('Invalid PDF structure');
+      // Replicate the MockDoc shape for the first call.
+      const count = bytes[0] || 0;
+      const pages = Array.from({ length: count }, (_, i) => `p${i}`);
+      return {
+        getPageCount: () => pages.length,
+        copyPages: async (_src: any, indices: number[]) => indices.map((i) => `p${i}`),
+        addPage: (p: string) => pages.push(p),
+        save: async () => { const out = new Uint8Array(8); out[0] = pages.length; return out; },
+      };
+    });
+
+    try {
+      const res = await request(buildApp())
+        .post(ROUTE('it-lead-ok'))
+        .send({ action: 'accept' })
+        .expect(400);
+
+      expect(res.body.error).toMatch(/Failed to load merge target PDF/);
+      expect(res.body.error).toMatch(/états financiers/);
+      // Lead must remain unchanged.
+      expect((itemStore.get('it-lead-ok')!.sortingDecision as any).decisionState).toBe('pending');
+    } finally {
+      // Restore the original mock implementation for subsequent tests.
+      if (previousImpl) {
+        (pdfLib.PDFDocument.load as jest.Mock).mockImplementation(previousImpl);
+      }
+    }
+  });
+
+  it('returns 400 when merge target is already merged into another lead', async () => {
+    seed('it-lead-b', {
+      stagedPath: '/staging/lead-b.pdf',
+      contentHash: 'hash-lead-b',
+      sortingDecision: {
+        decision: 'merge',
+        mergeWithItemId: 'it-already-merged',
+        mergeWithItemIds: ['it-already-merged'],
+        decisionState: 'pending',
+      },
+    });
+    // This sibling was already merged into a different lead (it-other-lead).
+    seed('it-already-merged', {
+      stagedPath: '/staging/already-merged.pdf',
+      status: 'rejected',
+      sortingDecision: {
+        decision: 'merge',
+        decisionState: 'accepted',
+        mergedIntoItemId: 'it-other-lead',
+      },
+    });
+    stagePdf('/staging/lead-b.pdf', 2);
+    stagePdf('/staging/already-merged.pdf', 3);
+
+    const res = await request(buildApp())
+      .post(ROUTE('it-lead-b'))
+      .send({ action: 'accept' })
+      .expect(400);
+
+    expect(res.body.error).toMatch(/already been merged into another document/);
+    expect((itemStore.get('it-lead-b')!.sortingDecision as any).decisionState).toBe('pending');
+  });
+
+  it('returns 400 (MERGE_TARGET_WRONG_SESSION) when merge target belongs to a different session', async () => {
+    seed('it-lead-sess', {
+      stagedPath: '/staging/lead-sess.pdf',
+      contentHash: 'hash-lead-sess',
+      sortingDecision: {
+        decision: 'merge',
+        mergeWithItemId: 'it-sib-other-sess',
+        mergeWithItemIds: ['it-sib-other-sess'],
+        decisionState: 'pending',
+      },
+    });
+    // Sibling belongs to a different session.
+    seed('it-sib-other-sess', {
+      stagedPath: '/staging/sib-other-sess.pdf',
+      sessionId: 'different-session-id',
+      status: 'sorted',
+    });
+    stagePdf('/staging/lead-sess.pdf', 2);
+    stagePdf('/staging/sib-other-sess.pdf', 2);
+
+    const res = await request(buildApp())
+      .post(ROUTE('it-lead-sess'))
+      .send({ action: 'accept' })
+      .expect(400);
+
+    expect(res.body.error).toMatch(/Merge target belongs to a different session/);
+    expect(res.body.code).toBe('MERGE_TARGET_WRONG_SESSION');
+  });
+
+  it('returns 400 (MERGE_TARGET_NOT_PDF) when merge target is not a PDF', async () => {
+    seed('it-lead-notpdf', {
+      stagedPath: '/staging/lead-notpdf.pdf',
+      contentHash: 'hash-lead-notpdf',
+      sortingDecision: {
+        decision: 'merge',
+        mergeWithItemId: 'it-sib-docx',
+        mergeWithItemIds: ['it-sib-docx'],
+        decisionState: 'pending',
+      },
+    });
+    seed('it-sib-docx', {
+      stagedPath: '/staging/sib-docx.docx',
+      mimeType: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      status: 'sorted',
+    });
+    stagePdf('/staging/lead-notpdf.pdf', 2);
+    // The staged file isn't a real PDF but existsSync just checks presence.
+    stagedFiles.set('/staging/sib-docx.docx', Buffer.alloc(4));
+
+    const res = await request(buildApp())
+      .post(ROUTE('it-lead-notpdf'))
+      .send({ action: 'accept' })
+      .expect(400);
+
+    expect(res.body.error).toMatch(/Can only merge PDF files together/);
+    expect(res.body.code).toBe('MERGE_TARGET_NOT_PDF');
+  });
+
+  it('returns 400 (SPLIT_OPERATION_FAILED) when slicePdf throws during a non-draft split', async () => {
+    seed('it-split-fail', {
+      stagedPath: '/staging/split-fail.pdf',
+      contentHash: 'hash-split-fail',
+      sortingDecision: {
+        decision: 'split',
+        splitAtPage: 2,
+        decisionState: 'pending',
+      },
+    });
+    stagePdf('/staging/split-fail.pdf', 4);
+
+    // Make PDFDocument.load throw (slicePdf uses it internally).
+    const pdfLib = require('pdf-lib');
+    (pdfLib.PDFDocument.load as jest.Mock).mockRejectedValueOnce(new Error('split PDF corrupt'));
+
+    const res = await request(buildApp())
+      .post(ROUTE('it-split-fail'))
+      .send({ action: 'accept' })
+      .expect(400);
+
+    expect(res.body.error).toMatch(/Failed to split PDF/);
+    expect(res.body.code).toBe('SPLIT_OPERATION_FAILED');
+  });
+
+  it('returns 400 when disk write fails during merge', async () => {
+    seed('it-lead-diskfail', {
+      stagedPath: '/staging/diskfail-lead.pdf',
+      contentHash: 'hash-diskfail-lead',
+      sortingDecision: {
+        decision: 'merge',
+        mergeWithItemId: 'it-diskfail-sib',
+        mergeWithItemIds: ['it-diskfail-sib'],
+        decisionState: 'pending',
+      },
+    });
+    seed('it-diskfail-sib', { stagedPath: '/staging/diskfail-sib.pdf', status: 'sorted' });
+    stagePdf('/staging/diskfail-lead.pdf', 2);
+    stagePdf('/staging/diskfail-sib.pdf', 3);
+
+    // Make writeFileSync throw only for the merged-output write.
+    const fsModule = require('fs');
+    (fsModule.writeFileSync as jest.Mock).mockImplementationOnce((p: string) => {
+      if ((p as string).includes('merged_')) throw new Error('ENOSPC: no space left on device');
+      // fall through for other writes
+      stagedFiles.set(p, Buffer.alloc(1));
+    });
+
+    const res = await request(buildApp())
+      .post(ROUTE('it-lead-diskfail'))
+      .send({ action: 'accept' })
+      .expect(400);
+
+    expect(res.body.error).toMatch(/Failed to write merged PDF/);
+  });
+
+  it('improved 500 response body contains error and code when an unexpected error escapes', async () => {
+    // Force an unexpected error by making the db.update throw after item load.
+    seed('it-keep-throw', {
+      sortingDecision: { decision: 'keep', decisionState: 'pending' },
+    });
+    const originalUpdate = mockDb.update;
+    (mockDb.update as jest.Mock).mockImplementationOnce(() => {
+      throw new Error('DB connection dropped');
+    });
+
+    const res = await request(buildApp())
+      .post(ROUTE('it-keep-throw'))
+      .send({ action: 'accept' })
+      .expect(500);
+
+    expect(res.body.error).toMatch(/Internal error/);
+    expect(res.body.code).toBe('SORTING_DECISION_INTERNAL_ERROR');
+    expect(res.body.message).toMatch(/Internal error/);
+
+    // Restore
+    mockDb.update = originalUpdate;
   });
 });
