@@ -8,6 +8,7 @@
 import type { Express } from 'express';
 import { requireAuth, requireRole } from '../auth';
 import { fileMigrationService } from '../services/file-migration-service';
+import { logError } from '../utils/logger';
 
 export function registerMigrationRoutes(app: Express): void {
   if (process.env.NODE_ENV === 'development') {
@@ -34,10 +35,10 @@ export function registerMigrationRoutes(app: Express): void {
       });
 
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') console.error('Migration error:', error);
+      logError('[MIGRATION] Migration failed', error);
       res.status(500).json({
         message: 'Migration failed',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: 'internal_error'
       });
     }
   });
@@ -56,10 +57,10 @@ export function registerMigrationRoutes(app: Express): void {
       });
 
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') console.error('Error getting migration progress:', error);
+      logError('[MIGRATION] Failed to get migration progress', error);
       res.status(500).json({
         message: 'Failed to get migration progress',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: 'internal_error'
       });
     }
   });
@@ -82,10 +83,10 @@ export function registerMigrationRoutes(app: Express): void {
       });
 
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') console.error('Rollback error:', error);
+      logError('[MIGRATION] Rollback failed', error);
       res.status(500).json({
         message: 'Rollback failed',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: 'internal_error'
       });
     }
   });
@@ -108,10 +109,10 @@ export function registerMigrationRoutes(app: Express): void {
       });
 
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') console.error('Verification error:', error);
+      logError('[MIGRATION] Verification failed', error);
       res.status(500).json({
         message: 'Verification failed',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: 'internal_error'
       });
     }
   });

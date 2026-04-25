@@ -91,6 +91,119 @@ describe('No raw DB errors in REST API 500 responses', () => {
     expect(violations).toHaveLength(0);
   });
 
+  it('migration-endpoints.ts must not expose error.message in 500 HTTP responses', () => {
+    const src = read('migration-endpoints.ts');
+    const lines = src.split('\n');
+    const violations: string[] = [];
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (!/error\.message/.test(line)) continue;
+      if (/logWarn|logError|logSecurity|console\.|\/\/|\.includes|===/.test(line)) continue;
+      const isIn500Block = lines.slice(Math.max(0, i - 6), i).some((l) => /res\.status\(5/.test(l));
+      if (isIn500Block) {
+        violations.push(`  Line ${i + 1}: ${line.trim()}`);
+      }
+    }
+
+    expect(violations).toHaveLength(0);
+  });
+
+  it('feature-management.ts must not expose error.message in 500 HTTP responses', () => {
+    const src = read('feature-management.ts');
+    const lines = src.split('\n');
+    const violations: string[] = [];
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (!/error\.message/.test(line)) continue;
+      if (/logWarn|logError|logSecurity|console\.|\/\/|\.includes|===/.test(line)) continue;
+      const isIn500Block = lines.slice(Math.max(0, i - 6), i).some((l) => /res\.status\(5/.test(l));
+      if (isIn500Block) {
+        violations.push(`  Line ${i + 1}: ${line.trim()}`);
+      }
+    }
+
+    expect(violations).toHaveLength(0);
+  });
+
+  it('delayed-updates.ts must not expose _error.message in 500 HTTP responses', () => {
+    const src = read('delayed-updates.ts');
+    const lines = src.split('\n');
+    const violations: string[] = [];
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (!/_error\.message|error\.message/.test(line)) continue;
+      if (/logWarn|logError|logSecurity|console\.|\/\/|\.includes|===/.test(line)) continue;
+      const isIn500Block = lines.slice(Math.max(0, i - 6), i).some((l) => /res\.status\(5/.test(l));
+      if (isIn500Block) {
+        violations.push(`  Line ${i + 1}: ${line.trim()}`);
+      }
+    }
+
+    expect(violations).toHaveLength(0);
+  });
+
+  it('communication.ts must not expose error.message in 500 HTTP response bodies', () => {
+    const src = read('communication.ts');
+    const lines = src.split('\n');
+    const violations: string[] = [];
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (!/error\.message/.test(line)) continue;
+      if (/logWarn|logError|logSecurity|console\.|\/\/|\.includes|===/.test(line)) continue;
+      const isIn500Block = lines.slice(Math.max(0, i - 6), i).some((l) => /res\.status\(5/.test(l));
+      if (isIn500Block) {
+        violations.push(`  Line ${i + 1}: ${line.trim()}`);
+      }
+    }
+
+    expect(violations).toHaveLength(0);
+  });
+
+  it('communication.ts must not expose error.message via details: in any HTTP response', () => {
+    const src = read('communication.ts');
+    expect(src).not.toMatch(/details:\s*error\.message/);
+  });
+
+  it('demo-management.ts must not expose error.message in 500 HTTP response bodies', () => {
+    const src = read('demo-management.ts');
+    const lines = src.split('\n');
+    const violations: string[] = [];
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (!/error\.message/.test(line)) continue;
+      if (/logWarn|logError|logSecurity|console\.|\/\/|\.includes|===/.test(line)) continue;
+      const isIn500Block = lines.slice(Math.max(0, i - 6), i).some((l) => /res\.status\(5/.test(l));
+      if (isIn500Block) {
+        violations.push(`  Line ${i + 1}: ${line.trim()}`);
+      }
+    }
+
+    expect(violations).toHaveLength(0);
+  });
+
+  it('common-spaces.ts must not expose error.message in 500 HTTP response bodies', () => {
+    const src = read('common-spaces.ts');
+    const lines = src.split('\n');
+    const violations: string[] = [];
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (!/error\.message/.test(line)) continue;
+      if (/logWarn|logError|logSecurity|console\.|\/\/|\.includes|===/.test(line)) continue;
+      const isIn500Block = lines.slice(Math.max(0, i - 6), i).some((l) => /res\.status\(5/.test(l));
+      if (isIn500Block) {
+        violations.push(`  Line ${i + 1}: ${line.trim()}`);
+      }
+    }
+
+    expect(violations).toHaveLength(0);
+  });
+
   it('secureErrorHandler must contain the SQL-leak scrub backstop', () => {
     const src = fs.readFileSync(
       path.resolve(__dirname, '../../server/middleware/error-security.ts'),

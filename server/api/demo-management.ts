@@ -29,10 +29,11 @@ export function registerDemoManagementRoutes(app: import('../utils/lazy-mount').
         data: health,
       });
     } catch (error) {
+      console.error('❌ Demo health check failed:', error);
       res.status(500).json({
         success: false,
         message: 'Demo health check failed',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: 'internal_error',
       });
     }
   });
@@ -67,10 +68,11 @@ export function registerDemoManagementRoutes(app: import('../utils/lazy-mount').
           data: report,
         });
       } catch (error) {
+        console.error('❌ Document integrity check failed:', error);
         res.status(500).json({
           success: false,
           message: 'Document integrity check failed',
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: 'internal_error',
         });
       }
     },
@@ -131,7 +133,7 @@ export function registerDemoManagementRoutes(app: import('../utils/lazy-mount').
       res.status(500).json({
         success: false,
         message: 'Failed to fetch demo users',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: 'internal_error',
       });
     }
   });
@@ -150,10 +152,11 @@ export function registerDemoManagementRoutes(app: import('../utils/lazy-mount').
         data: info,
       });
     } catch (error) {
+      console.error('❌ Failed to get demo status:', error);
       res.status(500).json({
         success: false,
         message: 'Failed to get demo status',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: 'internal_error',
       });
     }
   });
@@ -180,10 +183,11 @@ export function registerDemoManagementRoutes(app: import('../utils/lazy-mount').
           },
         });
       } catch (error) {
+        console.error('❌ Failed to ensure demo organizations:', error);
         res.status(500).json({
           success: false,
           message: 'Failed to ensure demo organizations',
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: 'internal_error',
         });
       }
     }
@@ -211,10 +215,11 @@ export function registerDemoManagementRoutes(app: import('../utils/lazy-mount').
           },
         });
       } catch (error) {
+        console.error('❌ Failed to recreate demo organizations:', error);
         res.status(500).json({
           success: false,
           message: 'Failed to recreate demo organizations',
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: 'internal_error',
         });
       }
     }
@@ -241,10 +246,11 @@ export function registerDemoManagementRoutes(app: import('../utils/lazy-mount').
           },
         });
       } catch (error) {
+        console.error('❌ Failed to run demo maintenance:', error);
         res.status(500).json({
           success: false,
           message: 'Failed to run demo maintenance',
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: 'internal_error',
         });
       }
     }

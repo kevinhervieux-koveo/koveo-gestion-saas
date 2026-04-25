@@ -1,6 +1,7 @@
 import type { Express } from 'express';
 import { requireAuth } from '../auth';
 import { delayedUpdateService } from '../services/delayed-update-service';
+import { logError } from '../utils/logger';
 
 /**
  * Register delayed update monitoring routes.
@@ -42,9 +43,10 @@ export function registerDelayedUpdateRoutes(app: Express) {
         },
       });
     } catch (_error) {
+      logError('[DELAYED UPDATES] Failed to get status', _error);
       res.status(500).json({
         message: 'Failed to get delayed update status',
-        _error: _error instanceof Error ? _error.message : 'Unknown error',
+        error: 'internal_error',
       });
     }
   });
@@ -80,9 +82,10 @@ export function registerDelayedUpdateRoutes(app: Express) {
         timestamp: new Date().toISOString(),
       });
     } catch (_error) {
+      logError('[DELAYED UPDATES] Failed to force immediate bill update', _error);
       res.status(500).json({
         message: 'Failed to force immediate bill update',
-        _error: _error instanceof Error ? _error.message : 'Unknown error',
+        error: 'internal_error',
       });
     }
   });
@@ -116,9 +119,10 @@ export function registerDelayedUpdateRoutes(app: Express) {
         timestamp: new Date().toISOString(),
       });
     } catch (_error) {
+      logError('[DELAYED UPDATES] Failed to force immediate residence update', _error);
       res.status(500).json({
         message: 'Failed to force immediate residence update',
-        _error: _error instanceof Error ? _error.message : 'Unknown error',
+        error: 'internal_error',
       });
     }
   });
@@ -157,9 +161,10 @@ export function registerDelayedUpdateRoutes(app: Express) {
         message: 'Delayed update system is operational',
       });
     } catch (_error) {
+      logError('[DELAYED UPDATES] Health check failed', _error);
       res.status(500).json({
         status: 'unhealthy',
-        _error: _error instanceof Error ? _error.message : 'Unknown error',
+        error: 'internal_error',
         message: 'Delayed update system encountered an error',
       });
     }

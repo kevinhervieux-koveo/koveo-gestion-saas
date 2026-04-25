@@ -145,7 +145,7 @@ export function registerFeatureManagementRoutes(app: Express): void {
       res.status(500).json({
         message: 'Failed to synchronize features to production',
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: 'internal_error',
       });
     }
   });

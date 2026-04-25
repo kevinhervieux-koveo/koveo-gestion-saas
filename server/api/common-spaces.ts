@@ -265,9 +265,10 @@ export function registerCommonSpacesRoutes(app: Express): void {
 
       res.json(spaces);
     } catch (error: any) {
+      console.error('❌ Error fetching common spaces:', error);
       res.status(500).json({
         message: 'Failed to fetch common spaces',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: 'internal_error',
       });
     }
   });
@@ -364,7 +365,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
       console.error('❌ Error fetching bookings:', error);
       res.status(500).json({
         message: 'Failed to fetch bookings',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: 'internal_error',
       });
     }
   });
@@ -537,7 +538,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
       console.error('❌ Error creating booking:', error);
       res.status(500).json({
         message: 'Failed to create booking',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: 'internal_error',
       });
     }
   });
@@ -689,7 +690,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
       console.error('❌ Error fetching calendar data:', error);
       res.status(500).json({
         message: 'Failed to fetch calendar data',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: 'internal_error',
       });
     }
   });
@@ -725,7 +726,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
       console.error('❌ Error fetching user bookings:', error);
       res.status(500).json({
         message: 'Failed to fetch user bookings',
-        details: error instanceof Error ? error.message : 'Unknown error',
+        error: 'internal_error',
       });
     }
   });
@@ -814,7 +815,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
         console.error('❌ Error cancelling booking:', error);
         res.status(500).json({
           message: 'Failed to cancel booking',
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: 'internal_error',
         });
       }
     }
@@ -955,7 +956,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
         console.error('❌ Error fetching space statistics:', error);
         res.status(500).json({
           message: 'Failed to fetch space statistics',
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: 'internal_error',
         });
       }
     }
@@ -1082,7 +1083,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
         console.error('❌ Error managing user restriction:', error);
         res.status(500).json({
           message: 'Failed to manage user restriction',
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: 'internal_error',
         });
       }
     }
@@ -1198,7 +1199,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
         console.error('❌ Error creating common space:', error);
         res.status(500).json({
           message: 'Failed to create common space',
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: 'internal_error',
         });
       }
     }
@@ -1315,7 +1316,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
         console.error('❌ Error updating common space:', error);
         res.status(500).json({
           message: 'Failed to update common space',
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: 'internal_error',
         });
       }
     }
@@ -1415,7 +1416,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
         console.error('❌ Error deleting common space:', error);
         res.status(500).json({
           message: 'Failed to delete common space',
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: 'internal_error',
         });
       }
     }
@@ -1557,7 +1558,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
         console.error('❌ Error setting time limit:', error);
         res.status(500).json({
           message: 'Failed to set time limit',
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: 'internal_error',
         });
       }
     }
@@ -1623,7 +1624,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
         console.error('❌ Error fetching time limits:', error);
         res.status(500).json({
           message: 'Failed to fetch time limits',
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: 'internal_error',
         });
       }
     }
@@ -1707,7 +1708,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
       console.error('❌ Error fetching user calendar:', error);
       res.status(500).json({
         message: 'Failed to fetch user calendar',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: 'internal_error',
       });
     }
   });
@@ -1859,7 +1860,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
         console.error('❌ Error fetching building calendar:', error);
         res.status(500).json({
           message: 'Failed to fetch building calendar',
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: 'internal_error',
         });
       }
     }

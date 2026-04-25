@@ -338,11 +338,10 @@ export function registerCommunicationRoutes(app: import('../utils/lazy-mount').R
         userRole: currentUser.role,
       });
     } catch (error: any) {
-      // console.error('❌ [DEBUG] Error in organization-context endpoint:', error);
+      logError('[COMMUNICATION] Error in organization-context endpoint', error);
       res.status(500).json({
-        _error: 'Internal server error',
+        error: 'internal_error',
         message: 'Failed to fetch organization context',
-        details: error.message,
       });
     }
   });
@@ -396,11 +395,10 @@ export function registerCommunicationRoutes(app: import('../utils/lazy-mount').R
         startingDate,
       });
     } catch (error: any) {
-      // console.error('❌ [DEBUG] Error in settings endpoint:', error);
+      logError('[COMMUNICATION] Error in settings endpoint', error);
       res.status(500).json({
-        _error: 'Internal server error',
+        error: 'internal_error',
         message: 'Failed to fetch notification settings',
-        details: error.message,
       });
     }
   });
@@ -471,9 +469,8 @@ export function registerCommunicationRoutes(app: import('../utils/lazy-mount').R
       }
 
       res.status(500).json({
-        _error: 'Internal server error',
+        error: 'internal_error',
         message: 'Failed to update notification settings',
-        details: error.message,
       });
     }
   });
