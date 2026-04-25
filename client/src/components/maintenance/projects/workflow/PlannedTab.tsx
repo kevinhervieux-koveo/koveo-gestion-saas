@@ -24,6 +24,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { BuildingElementsMultiSelect } from '@/components/ui/building-elements-multi-select';
+import { ElementForm } from '@/components/maintenance/inventory/lazy-components';
 import { useUpdateProjectDetails, useMarkStatusComplete, type ProjectWorkflowState } from '@/hooks/useProjectWorkflow';
 import { ReopenStepDialog } from './ReopenStepDialog';
 import { MaintenanceProject, BuildingElement } from '@shared/schemas/maintenance';
@@ -66,9 +67,10 @@ type PlannedTabData = z.infer<typeof plannedTabSchema>;
 export function PlannedTab({ project, workflowState, onUpdate, onAdvanceToNext }: PlannedTabProps) {
   const { toast } = useToast();
   const { t } = useLanguage();
-  const { buildingId } = useBuildingContext();
+  const { buildingId, organizationId } = useBuildingContext();
   const [hasChanges, setHasChanges] = useState(false);
   const [initialDataLoaded, setInitialDataLoaded] = useState(false);
+  const [showCreateElementForm, setShowCreateElementForm] = useState(false);
   
   // Defensive null check for project data
   if (!project) {
@@ -424,6 +426,8 @@ export function PlannedTab({ project, workflowState, onUpdate, onAdvanceToNext }
                     searchPlaceholder={t('plannedTabBuildingElementsSearchPlaceholder')}
                     emptyMessage={isLoadingElements ? t('plannedTabBuildingElementsLoading') : t('plannedTabBuildingElementsNotFound')}
                     data-testid="select-building-elements"
+                    onCreateNew={buildingId ? () => setShowCreateElementForm(true) : undefined}
+                    createNewLabel={t('plannedTabCreateNewElement')}
                   />
                 </FormControl>
                 <FormDescription>
@@ -440,6 +444,32 @@ export function PlannedTab({ project, workflowState, onUpdate, onAdvanceToNext }
           />
         </Form>
       </div>
+
+      {/* Element Creation Dialog */}
+      {buildingId && (
+        <ElementForm
+          isOpen={showCreateElementForm}
+          onOpenChange={setShowCreateElementForm}
+          buildingId={buildingId}
+          organizationId={organizationId ?? undefined}
+          mode="create"
+          onSuccess={(newElement) => {
+            setShowCreateElementForm(false);
+            // Refresh the building elements list so the new element appears
+            queryClient.invalidateQueries({
+              queryKey: ['/api/maintenance/buildings', buildingId, 'elements'],
+            });
+            // Auto-add the new element to the project's selected elements
+            const currentSelected = form.getValues('selectedElements') || [];
+            if (!currentSelected.includes(newElement.id)) {
+              form.setValue('selectedElements', [...currentSelected, newElement.id], {
+                shouldDirty: true,
+              });
+              setHasChanges(true);
+            }
+          }}
+        />
+      )}
 
       {/* Action Buttons */}
       <div className="flex items-center justify-between pt-6 border-t">

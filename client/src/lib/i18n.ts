@@ -125,6 +125,9 @@ export interface Translations {
   plannedTabNoBuildingElementsAvailable: string;
   plannedTabBuildingElementsLoading: string;
   plannedTabBuildingElementsNotFound: string;
+  plannedTabCreateNewElement: string;
+  plannedTabElementCreatedSuccessTitle: string;
+  plannedTabElementCreatedSuccessDesc: string;
   reopenStepTrigger: string;
   reopenStepDialogTitle: string;
   reopenStepDialogDescription: string;
@@ -6442,6 +6445,9 @@ export const translations: Record<Language, Translations> = {
     plannedTabNoBuildingElementsAvailable: 'No building elements available. You may need to add elements to this building first.',
     plannedTabBuildingElementsLoading: 'Loading...',
     plannedTabBuildingElementsNotFound: 'No building elements found',
+    plannedTabCreateNewElement: '+ Create new element',
+    plannedTabElementCreatedSuccessTitle: 'Element created',
+    plannedTabElementCreatedSuccessDesc: 'The new element has been added and selected for this project.',
     reopenStepTrigger: 'Reopen Step',
     reopenStepDialogTitle: 'Reopen Workflow Step',
     reopenStepDialogDescription: "Select which previous phase you'd like to reopen to. Your progress in future phases will be preserved.",
@@ -10555,6 +10561,9 @@ export const translations: Record<Language, Translations> = {
     plannedTabNoBuildingElementsAvailable: 'Aucun élément du bâtiment disponible. Vous devrez peut-être ajouter d\'abord des éléments à ce bâtiment.',
     plannedTabBuildingElementsLoading: 'Chargement…',
     plannedTabBuildingElementsNotFound: 'Aucun élément du bâtiment trouvé',
+    plannedTabCreateNewElement: '+ Créer un nouvel élément',
+    plannedTabElementCreatedSuccessTitle: 'Élément créé',
+    plannedTabElementCreatedSuccessDesc: 'Le nouvel élément a été ajouté et sélectionné pour ce projet.',
     reopenStepTrigger: 'Rouvrir l\'étape',
     reopenStepDialogTitle: 'Rouvrir une étape du flux',
     reopenStepDialogDescription: 'Sélectionnez la phase précédente à rouvrir. Votre progression dans les phases ultérieures sera préservée.',

@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Check, ChevronsUpDown, X, Building2, CheckSquare } from "lucide-react";
+import { Check, ChevronsUpDown, X, Building2, CheckSquare, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +13,7 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
+  CommandSeparator,
 } from "@/components/ui/command";
 import {
   Popover,
@@ -33,6 +34,8 @@ export interface BuildingElementsMultiSelectProps {
   className?: string;
   maxHeight?: string;
   "data-testid"?: string;
+  onCreateNew?: () => void;
+  createNewLabel?: string;
 }
 
 export function BuildingElementsMultiSelect({
@@ -46,6 +49,8 @@ export function BuildingElementsMultiSelect({
   className,
   maxHeight = "max-h-96",
   "data-testid": testId,
+  onCreateNew,
+  createNewLabel = "+ Create new element",
 }: BuildingElementsMultiSelectProps) {
   const [open, setOpen] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
@@ -89,6 +94,12 @@ export function BuildingElementsMultiSelect({
     const filteredIds = filteredElements.map(element => element.id);
     const newValue = [...new Set([...value, ...filteredIds])];
     onValueChange?.(newValue);
+  };
+
+  const handleCreateNew = () => {
+    if (disabled || !onCreateNew) return;
+    setOpen(false);
+    onCreateNew();
   };
 
   return (
@@ -226,6 +237,23 @@ export function BuildingElementsMultiSelect({
                     </CommandItem>
                   );
                 })}
+                  </CommandGroup>
+                </>
+              )}
+
+              {onCreateNew && !disabled && (
+                <>
+                  <CommandSeparator />
+                  <CommandGroup>
+                    <CommandItem
+                      value="__create_new__"
+                      onSelect={handleCreateNew}
+                      className="flex items-center gap-2 py-2 text-primary font-medium cursor-pointer"
+                      data-testid="create-new-element"
+                    >
+                      <Plus className="h-4 w-4 shrink-0" />
+                      {createNewLabel}
+                    </CommandItem>
                   </CommandGroup>
                 </>
               )}
