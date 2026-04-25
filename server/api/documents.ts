@@ -19,7 +19,7 @@ import crypto from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
 import { sql, eq } from 'drizzle-orm';
 import { db } from '../db';
-import { normalizeFilename } from '../utils/filenameNormalization';
+import { fixLatin1MisdecodeFilename, normalizeFilename } from '../utils/filenameNormalization';
 import { documentService, type DocumentType } from '../services/document-service';
 import { logDebug, logInfo, logWarn, logError } from '../utils/logger';
 
@@ -2382,7 +2382,12 @@ export function registerDocumentRoutes(app: import('../utils/lazy-mount').RouteR
           fileName: validatedData.fileName,
           // Capture the user-supplied UTF-8 filename so downloads can serve
           // it via RFC 5987 even though `fileName` is normalized (Task #420).
-          originalFileName: req.file?.originalname,
+          // Apply the defensive Latin-1 mis-decode fix so French/accented
+          // names sent as mojibake bytes by some clients still round-trip
+          // correctly (Task #855).
+          originalFileName: req.file
+            ? fixLatin1MisdecodeFilename(req.file.originalname)
+            : undefined,
           fileSize: validatedData.fileSize,
           mimeType: validatedData.mimeType,
           isVisibleToTenants: validatedData.isVisibleToTenants || false,
@@ -2610,7 +2615,12 @@ export function registerDocumentRoutes(app: import('../utils/lazy-mount').RouteR
           filePath: validatedData.filePath || `temp-path-${Date.now()}`,
           fileName: validatedData.fileName,
           // Preserve the uploader's original UTF-8 filename (Task #420).
-          originalFileName: req.file?.originalname,
+          // Apply the defensive Latin-1 mis-decode fix so French/accented
+          // names sent as mojibake bytes by some clients still round-trip
+          // correctly (Task #855).
+          originalFileName: req.file
+            ? fixLatin1MisdecodeFilename(req.file.originalname)
+            : undefined,
           fileSize: validatedData.fileSize,
           mimeType: validatedData.mimeType,
           isVisibleToTenants: validatedData.isVisibleToTenants || false,
@@ -2818,8 +2828,10 @@ export function registerDocumentRoutes(app: import('../utils/lazy-mount').RouteR
         updateData.filePath = relativePath;
         updateData.fileName = uniqueFileName;
         // Refresh the original UTF-8 filename when the file is replaced
-        // (Task #420).
-        updateData.originalFileName = req.file.originalname;
+        // (Task #420). Apply the defensive Latin-1 mis-decode fix so French
+        // accents survive when the client sends mojibake bytes through
+        // multer (Task #855).
+        updateData.originalFileName = fixLatin1MisdecodeFilename(req.file.originalname);
         updateData.fileSize = req.file.size;
         updateData.mimeType = req.file.mimetype;
 
@@ -3902,7 +3914,10 @@ export function registerDocumentRoutes(app: import('../utils/lazy-mount').RouteR
         fileName: normalizeFilename(req.file!.originalname),
         // Preserve the original UTF-8 filename for download headers and UI
         // surfaces; `fileName` is the ASCII-safe slug used on disk (Task #420).
-        originalFileName: req.file!.originalname,
+        // Apply the defensive Latin-1 mis-decode fix so French accents
+        // survive when the client sends mojibake bytes through multer
+        // (Task #855).
+        originalFileName: fixLatin1MisdecodeFilename(req.file!.originalname),
         fileSize: req.file!.size,
         mimeType: req.file!.mimetype,
         isVisibleToTenants: validatedData.isVisibleToTenants,

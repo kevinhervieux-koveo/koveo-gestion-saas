@@ -61,7 +61,7 @@ import crypto from 'crypto';
 import fs from 'fs';
 import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
 import { secureFileStorage } from '../services/secure-file-storage';
-import { normalizeFilename } from '../utils/filenameNormalization';
+import { fixLatin1MisdecodeFilename, normalizeFilename } from '../utils/filenameNormalization';
 import { getUploadConfig, type UploadContext } from '@shared/config/upload-config';
 import { maintenanceSuggestionService } from '../services/maintenanceSuggestionService';
 import { maintenanceJobsScheduler } from '../jobs/maintenanceJobs';
@@ -2029,6 +2029,13 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         }
       }
       
+      // Defensive Latin-1 mis-decode fix: even with multer's
+      // defParamCharset='utf8', some clients still send filenames whose
+      // bytes round-trip through Latin-1, producing mojibake like "Ã©" for
+      // "é". Re-interpret as UTF-8 before persisting the user-facing
+      // filename so French/accented uploads round-trip correctly (Task #855).
+      const correctedOriginalName = fixLatin1MisdecodeFilename(file.originalname);
+
       // Store document metadata (only use properties that exist in schema)
       const [document] = await db
         .insert(elementDocuments)
@@ -2039,7 +2046,7 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
           fileName: normalizeFilename(file.originalname),
           // Preserve the user's original UTF-8 filename so downloads can serve
           // it via RFC 5987 even though `fileName` is normalized (Task #420).
-          originalFileName: file.originalname,
+          originalFileName: correctedOriginalName,
           fileSize: file.size,
           mimeType: file.mimetype,
           uploadedBy: user.id,

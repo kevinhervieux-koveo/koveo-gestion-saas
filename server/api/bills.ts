@@ -20,7 +20,7 @@ import * as schema from '@shared/schema';
 import { secureFileStorage } from '../services/secure-file-storage';
 import crypto from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
-import { normalizeFilename } from '../utils/filenameNormalization';
+import { fixLatin1MisdecodeFilename, normalizeFilename } from '../utils/filenameNormalization';
 import { documentService } from '../services/document-service';
 import { logDebug, logInfo, logWarn, logError } from '../utils/logger';
 import { getBillById, getBillWithPayments, getBillsWithPayments, getEffectiveBillType } from '../db/queries/bills-queries';
@@ -491,7 +491,13 @@ export function registerBillRoutes(app: import('../utils/lazy-mount').RouteRegis
 
         const { buffer, mimetype, originalname, size } = req.file;
         const language = req.body.language || 'en'; // Get language from request, default to 'en'
-        
+
+        // Defensive Latin-1 mis-decode fix: even with multer's
+        // defParamCharset='utf8', some clients still send filenames whose
+        // bytes round-trip through Latin-1, producing mojibake like "Ã©"
+        // for "é". Re-interpret as UTF-8 before returning the name to the
+        // browser so French/accented filenames stay intact (Task #855).
+        const correctedOriginalName = fixLatin1MisdecodeFilename(originalname);
 
         // Call AI service for bill extraction
         const extractedData = await aiService.extractBillData(buffer, mimetype, language);
@@ -504,7 +510,7 @@ export function registerBillRoutes(app: import('../utils/lazy-mount').RouteRegis
           metadata: {
             confidence: extractedData.overallConfidence || 0.9,
             processingTime: Date.now() - startTime,
-            filename: originalname,
+            filename: correctedOriginalName,
             fileSize: size
           }
         });
@@ -1836,8 +1842,15 @@ export function registerBillRoutes(app: import('../utils/lazy-mount').RouteRegis
           return res.status(400).json({ message: 'No file uploaded' });
         }
 
+        // Defensive Latin-1 mis-decode fix: even with multer's
+        // defParamCharset='utf8', some clients still send filenames whose
+        // bytes round-trip through Latin-1, producing mojibake like "Ã©"
+        // for "é". Re-interpret as UTF-8 before persisting the user-facing
+        // filename so French/accented uploads round-trip correctly (Task #855).
+        const correctedOriginalName = fixLatin1MisdecodeFilename(req.file.originalname);
+
         // console.log(`📄 [BILLS UPLOAD] File received:`, {
-        //   originalName: req.file.originalname,
+        //   originalName: correctedOriginalName,
         //   mimeType: req.file.mimetype,
         //   size: req.file.size,
         //   tempPath: req.file.path
@@ -2106,8 +2119,9 @@ export function registerBillRoutes(app: import('../utils/lazy-mount').RouteRegis
           fileName,
           // Preserve the user's original UTF-8 filename so download endpoints
           // can serve it via RFC 5987 even though `fileName` is normalized
-          // (Task #420).
-          originalFileName: req.file.originalname,
+          // (Task #420). Use the Latin-1-mis-decode-corrected name so French
+          // accents survive (Task #855).
+          originalFileName: correctedOriginalName,
           fileSize: req.file.size,
           isAiAnalyzed: !!analysisResult,
           aiAnalysisData: analysisResult,
@@ -2145,7 +2159,7 @@ export function registerBillRoutes(app: import('../utils/lazy-mount').RouteRegis
               documentType: 'attachment',
               filePath,
               fileName,
-              originalFileName: req.file.originalname,
+              originalFileName: correctedOriginalName,
               fileSize: req.file.size,
               mimeType: req.file.mimetype,
               isVisibleToTenants: false,
@@ -2178,7 +2192,7 @@ export function registerBillRoutes(app: import('../utils/lazy-mount').RouteRegis
             documentType: 'attachment',
             filePath,
             fileName,
-            originalFileName: req.file.originalname,
+            originalFileName: correctedOriginalName,
             fileSize: req.file.size,
             mimeType: req.file.mimetype,
             isVisibleToTenants: false,
@@ -3601,11 +3615,15 @@ export function registerBillRoutes(app: import('../utils/lazy-mount').RouteRegis
               throw new Error(uploadResult.error || 'File upload failed');
             }
 
-            // Create document record using upload result
+            // Create document record using upload result. Apply the
+            // defensive Latin-1 mis-decode fix so French/accented
+            // filenames survive even when the client sends mojibake
+            // bytes through multer (Task #855).
+            const correctedFileOriginalName = fixLatin1MisdecodeFilename(file.originalname);
             const documentData = {
-              name: file.originalname,
+              name: correctedFileOriginalName,
               fileName: normalizeFilename(file.originalname),
-              originalFileName: file.originalname,
+              originalFileName: correctedFileOriginalName,
               filePath: uploadResult.filePath!,
               fileSize: file.size,
               mimeType: file.mimetype,
