@@ -12,6 +12,7 @@ import {
   varchar,
   unique,
   index,
+  check,
 } from 'drizzle-orm/pg-core';
 import { z } from 'zod';
 import { relations } from 'drizzle-orm';
@@ -463,6 +464,11 @@ export const meetings = pgTable('meetings', {
   scheduledDateIdx: index('meetings_scheduled_date_idx').on(table.scheduledDate),
   sentAtIdx: index('meetings_sent_at_idx').on(table.sentAt),
   createdAtIdx: index('meetings_created_at_idx').on(table.createdAt),
+  // Task #633: meetings must have a strictly positive duration. The MCP
+  // tool `create_meeting` previously skipped the `.positive()` guard
+  // present in `insertMeetingSchema`, so this is the DB-level safety net
+  // for any caller (raw SQL, future tool, etc.) that bypasses the API.
+  durationPositive: check('meetings_duration_positive_check', sql`duration > 0`),
 }));
 
 /**

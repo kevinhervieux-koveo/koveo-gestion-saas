@@ -3713,7 +3713,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       description: z.string().optional().describe("Meeting description"),
       location: z.string().describe("Meeting location"),
       scheduledDate: z.string().describe("Scheduled date/time (ISO 8601)"),
-      duration: z.number().int().describe("Duration in minutes"),
+      duration: z.number().int().min(1, "Duration must be at least 1 minute").describe("Duration in minutes"),
     },
     async ({ role, organizationId, title, description, location, scheduledDate, duration }) => {
       if (role === "tenant") {
