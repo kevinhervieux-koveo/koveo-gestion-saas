@@ -247,6 +247,20 @@ export const vendors = pgTable('vendors', {
 /**
  * Building elements inventory table for tracking physical components.
  * Links to UNIFORMAT codes for standardized classification.
+ *
+ * Cross-organisation invariant (Task #811)
+ * ----------------------------------------
+ * When `residence_id` is non-NULL, the residence's `building_id` must
+ * equal the element's own `building_id`, otherwise the element leaks
+ * across organisations the moment a reader filters by `building_id`.
+ * This is enforced at the database layer by the BEFORE INSERT/UPDATE
+ * trigger `building_elements_residence_building_check` (see migration
+ * `migrations/0013_building_elements_residence_building_check.sql`).
+ * Note: `residence_id` here is plain `text` with no FK to
+ * `residences`, so the trigger silently allows orphan residence ids
+ * (the application is expected to validate them upstream). Drizzle
+ * does not model that trigger, so `drizzle-kit push` will not drop
+ * or alter it.
  */
 export const buildingElements = pgTable('building_elements', {
   id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),

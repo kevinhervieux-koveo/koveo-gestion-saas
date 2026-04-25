@@ -170,6 +170,30 @@ export const notifications = pgTable('notifications', {
  *     the move if any existing demand row would become cross-org.
  * Drizzle does not model these triggers, so `drizzle-kit push` will
  * not drop or alter them.
+ *
+ * Sibling guards (Task #811)
+ * --------------------------
+ * The same demand-side trigger pattern is applied to every other table
+ * surfaced by the `shared/schemas/` audit that carries both
+ * `building_id` and `residence_id` columns:
+ *   - `documents`         → `migrations/0011_documents_residence_building_check.sql`
+ *   - `invoices`          → `migrations/0012_invoices_residence_building_check.sql`
+ *   - `building_elements` → `migrations/0013_building_elements_residence_building_check.sql`
+ *   - `invitations`       → `migrations/0014_invitations_residence_building_check.sql`
+ *
+ * Note: this task's migration numbering pre-dated the Task #810
+ * residence-side trigger above (which also took slot `0011_…`); the
+ * two `0011_*` migrations were authored independently and only meet
+ * here at rebase. They are functionally distinct (different table,
+ * different trigger function) and coexist as separate files.
+ *
+ * The secondary `assignation_residence_id` / `assignation_building_id`
+ * pair on this same table is intentionally NOT covered by a trigger:
+ * `assignation_building_id` is nullable and the assignation pointers
+ * are advisory routing fields rather than ownership/scope columns.
+ * The cross-assignation backfill in
+ * `server/scripts/backfill-cross-assignation-demands-lib.ts` cleans up
+ * legacy mismatches; future hardening could install a trigger here too.
  */
 export const demands = pgTable('demands', {
   id: uuid('id')

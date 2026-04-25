@@ -10,6 +10,18 @@ import { organizations } from './core';
  * Unified documents table for all document types across the system.
  * Stores documents that can be associated with either residences, buildings, or neither.
  * Enhanced with file metadata, content type, and attachment relationships.
+ *
+ * Cross-organisation invariant (Task #811)
+ * ----------------------------------------
+ * When BOTH `residence_id` and `building_id` are non-NULL, the
+ * residence's `building_id` must equal the document's `building_id`,
+ * otherwise the document leaks across organisations the moment a
+ * reader filters by `building_id`. This is enforced at the database
+ * layer by the BEFORE INSERT/UPDATE trigger
+ * `documents_residence_building_check` (see migration
+ * `migrations/0011_documents_residence_building_check.sql`). Drizzle
+ * does not model that trigger, so `drizzle-kit push` will not drop
+ * or alter it.
  */
 export const documents = pgTable('documents', {
   id: text('id')

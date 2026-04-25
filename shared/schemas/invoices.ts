@@ -33,6 +33,18 @@ export const invoiceFrequencyEnum = pgEnum('invoice_frequency', [
  * Invoices table for AI-powered invoice management.
  * Integrates with document management system and supports recurring payments
  * with standard frequencies (monthly, quarterly, annually) and custom scheduling.
+ *
+ * Cross-organisation invariant (Task #811)
+ * ----------------------------------------
+ * When BOTH `residence_id` and `building_id` are non-NULL, the
+ * residence's `building_id` must equal the invoice's `building_id`,
+ * otherwise the invoice leaks across organisations the moment a
+ * reader filters by `building_id`. This is enforced at the database
+ * layer by the BEFORE INSERT/UPDATE trigger
+ * `invoices_residence_building_check` (see migration
+ * `migrations/0012_invoices_residence_building_check.sql`). Drizzle
+ * does not model that trigger, so `drizzle-kit push` will not drop
+ * or alter it.
  */
 export const invoices = pgTable('invoices', {
   id: text('id')
