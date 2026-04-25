@@ -16,7 +16,7 @@ import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
 import { LanguageSwitcher } from '@/components/ui/language-switcher';
 import { StandardFormField } from '@/components/forms/StandardFormField';
-import koveoLogo from '@/assets/koveo-logo.jpg';
+import koveoLogo from '@assets/koveo-logo-nav.jpg';
 
 /**
  * Login form validation schema with Quebec-specific requirements.

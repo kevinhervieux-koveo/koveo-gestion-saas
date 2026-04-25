@@ -6,7 +6,7 @@ import { useLocation } from 'wouter';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
 import { useSmoothLocationSetter } from '@/hooks/use-smooth-navigation';
-import koveoLogo from '@/assets/koveo-logo.jpg';
+import koveoLogo from '@assets/koveo-logo-nav.jpg';
 
 /**
  * Common top navigation bar component used across all pages

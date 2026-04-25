@@ -3,7 +3,7 @@ import { Link } from 'wouter';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
 import { useSmoothLocationSetter } from '@/hooks/use-smooth-navigation';
-import koveoLogo from '@/assets/koveo-logo.jpg';
+import koveoLogo from '@assets/koveo-logo-nav.jpg';
 
 /**
  * Standardized footer component used across all public pages
