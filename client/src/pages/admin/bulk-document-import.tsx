@@ -4135,8 +4135,61 @@ export default function BulkDocumentImportPage() {
                                           const renameTestId = currentDecision === 'merge'
                                             ? `branching-rename-merge-${mergeLeadId}`
                                             : `branching-rename-${sibling.id}`;
+                                          // Read-only AI suggestion summary for rejected items
+                                          // (Task #1034). When the row is rejected, the
+                                          // interactive slice/merge sub-sections are
+                                          // suppressed (showSliceSection / showMergeSection
+                                          // both gate on !sibSortingIsRejected for slice or
+                                          // are owned by the manual picker), so admins lose
+                                          // sight of what the AI originally proposed. This
+                                          // card surfaces that context without duplicating
+                                          // any interactive controls.
+                                          //
+                                          // We gate on !sortingDecisionDraft so the card
+                                          // only renders while item.sortingDecision still
+                                          // reflects the AI's original suggestion. Once the
+                                          // admin has auto-saved a manual override via the
+                                          // picker (scheduleAutoSave -> draft=true), the
+                                          // saved decision is the admin's draft, not the
+                                          // AI's, so the card hides itself rather than
+                                          // mislabel the draft as an "AI suggestion".
+                                          const aiSuggestedDecision = sibling.sortingDecision;
+                                          const showAiSuggestion =
+                                            sibSortingIsRejected &&
+                                            !sibling.sortingDecisionDraft &&
+                                            (aiSuggestedDecision === 'split' || aiSuggestedDecision === 'merge');
+                                          const aiSuggestedSplitPage = sibling.sortingSplitAtPage ?? 1;
+                                          const aiSuggestedMergePartnerNames =
+                                            aiSuggestedDecision === 'merge'
+                                              ? computeMergeGroup(items, sibling.id)
+                                                  .filter((id) => id !== sibling.id)
+                                                  .map((id) => items.find((i) => i.id === id)?.originalName ?? id)
+                                              : [];
                                           return (
                                             <div className="space-y-4">
+                                              {/* --- AI SUGGESTION read-only summary (rejected items only) --- */}
+                                              {showAiSuggestion && (
+                                                <div
+                                                  className="rounded-md border border-border bg-background/60 p-3 space-y-1"
+                                                  data-testid={`branching-ai-suggestion-${sibling.id}`}
+                                                >
+                                                  <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                                    <Sparkles className="h-3.5 w-3.5" />
+                                                    {isFr ? 'Suggestion de l\'IA' : 'AI suggestion'}
+                                                  </div>
+                                                  <p className="text-sm text-muted-foreground">
+                                                    {aiSuggestedDecision === 'split'
+                                                      ? (isFr
+                                                          ? `Découpage après la page ${aiSuggestedSplitPage}`
+                                                          : `Split after page ${aiSuggestedSplitPage}`)
+                                                      : aiSuggestedMergePartnerNames.length > 0
+                                                        ? (isFr
+                                                            ? `Fusion avec : ${aiSuggestedMergePartnerNames.join(', ')}`
+                                                            : `Merge with: ${aiSuggestedMergePartnerNames.join(', ')}`)
+                                                        : (isFr ? 'Fusion suggérée' : 'Merge suggested')}
+                                                  </p>
+                                                </div>
+                                              )}
                                               {/* --- SLICE sub-section --- */}
                                               {showSliceSection && (
                                                 <div
@@ -5361,8 +5414,56 @@ export default function BulkDocumentImportPage() {
                                     const renameTestId = currentDecision === 'merge'
                                       ? `branching-rename-merge-${mergeLeadId}`
                                       : `branching-rename-${item.id}`;
+                                    // Read-only AI suggestion summary for rejected items
+                                    // (Task #1034). Mirrors the merge-group sibling
+                                    // version above so solo (non-merge-group) rejected
+                                    // rows also show what the AI originally proposed
+                                    // even though the interactive slice/merge sections
+                                    // are owned by the manual picker.
+                                    //
+                                    // Gated on !sortingDecisionDraft so the card only
+                                    // renders while item.sortingDecision still reflects
+                                    // the AI's original guess (auto-saved manual drafts
+                                    // overwrite that field, in which case we hide the
+                                    // card rather than mislabel the draft as an "AI
+                                    // suggestion").
+                                    const aiSuggestedDecision = item.sortingDecision;
+                                    const showAiSuggestion =
+                                      sortingIsRejected &&
+                                      !item.sortingDecisionDraft &&
+                                      (aiSuggestedDecision === 'split' || aiSuggestedDecision === 'merge');
+                                    const aiSuggestedSplitPage = item.sortingSplitAtPage ?? 1;
+                                    const aiSuggestedMergePartnerNames =
+                                      aiSuggestedDecision === 'merge'
+                                        ? computeMergeGroup(items, item.id)
+                                            .filter((id) => id !== item.id)
+                                            .map((id) => items.find((i) => i.id === id)?.originalName ?? id)
+                                        : [];
                                     return (
                                       <div className="space-y-4">
+                                        {/* --- AI SUGGESTION read-only summary (rejected items only) --- */}
+                                        {showAiSuggestion && (
+                                          <div
+                                            className="rounded-md border border-border bg-background/60 p-3 space-y-1"
+                                            data-testid={`branching-ai-suggestion-${item.id}`}
+                                          >
+                                            <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                              <Sparkles className="h-3.5 w-3.5" />
+                                              {isFr ? 'Suggestion de l\'IA' : 'AI suggestion'}
+                                            </div>
+                                            <p className="text-sm text-muted-foreground">
+                                              {aiSuggestedDecision === 'split'
+                                                ? (isFr
+                                                    ? `Découpage après la page ${aiSuggestedSplitPage}`
+                                                    : `Split after page ${aiSuggestedSplitPage}`)
+                                                : aiSuggestedMergePartnerNames.length > 0
+                                                  ? (isFr
+                                                      ? `Fusion avec : ${aiSuggestedMergePartnerNames.join(', ')}`
+                                                      : `Merge with: ${aiSuggestedMergePartnerNames.join(', ')}`)
+                                                  : (isFr ? 'Fusion suggérée' : 'Merge suggested')}
+                                            </p>
+                                          </div>
+                                        )}
                                         {/* --- SLICE sub-section --- */}
                                         {showSliceSection && (
                                           <div
