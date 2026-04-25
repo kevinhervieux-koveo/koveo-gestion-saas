@@ -1687,6 +1687,7 @@ export interface Translations {
   clearAll: string;
   results: string;
   searchPlaceholder: string;
+  noResidencesMatchSearch: string;
   
   // Bills Payment Schedule translations (unique non-duplicate keys only)
   markPaid: string;
@@ -3893,6 +3894,7 @@ export const translations: Record<Language, Translations> = {
     clearAll: 'Clear All',
     results: 'results',
     searchPlaceholder: 'Search...',
+    noResidencesMatchSearch: 'No residences match your search.',
     
     // Bills Payment Schedule translations
     markPaid: 'Mark Paid',
@@ -6130,6 +6132,7 @@ export const translations: Record<Language, Translations> = {
     clearAll: 'Tout effacer',
     results: 'résultats',
     searchPlaceholder: 'Rechercher...',
+    noResidencesMatchSearch: 'Aucune résidence ne correspond à votre recherche.',
     
     // Bills Payment Schedule translations
     markPaid: 'Marquer comme payé',

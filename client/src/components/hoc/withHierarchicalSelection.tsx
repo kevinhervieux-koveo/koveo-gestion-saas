@@ -3,6 +3,7 @@ import { logDebug, logError } from '@/lib/logger';
 import { useLocation, useSearch } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { SelectionGrid, SelectionGridItem } from '@/components/common/SelectionGrid';
+import { SearchableSelectionGrid } from '@/components/common/SearchableSelectionGrid';
 import { Header } from '@/components/layout/header';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -540,12 +541,14 @@ function AdminManagerHierarchyFlow<T extends object>({
             subtitle={resolveText(config.subtitle, t('selectResidence' as any))}
           />
           <div className='flex-1 overflow-auto p-6'>
-            <SelectionGrid
-              title=""
+            <SearchableSelectionGrid
               items={items}
               onSelectItem={handleResidentScopeSelection}
-              onBack={null}
               isLoading={isLoadingUserResidences || isFetchingUserResidences}
+              searchPlaceholder={t('searchResidencesPlaceholder' as any)}
+              noResultsMessage={t('noResidencesMatchSearch' as any)}
+              searchTestId='input-search-resident-residences'
+              paginationTestId='resident-residence-chooser-pagination'
             />
           </div>
         </div>
