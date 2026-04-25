@@ -33,6 +33,8 @@ import { rotateAndRewriteStagedFile } from '../services/bulk-import-rotation';
 import { documentService } from '../services/document-service';
 import { logError, logInfo, logWarn } from '../utils/logger';
 import type { BulkImportFallbackReason } from '@shared/schemas/bulk-import';
+import { fixLatin1MisdecodeFilename } from '../utils/filenameNormalization';
+import { buildContentDisposition } from '../utils/content-disposition';
 
 const STAGING_ROOT = path.join(process.cwd(), '.staging', 'bulk-import');
 
@@ -1127,6 +1129,11 @@ export function registerBulkImportRoutes(app: Express): void {
           const stagedPath = path.join(dir, `${hash}_${file.originalname}`);
           fs.writeFileSync(stagedPath, file.buffer);
 
+          // Fix Latin-1 mis-decode: multer may decode UTF-8 filename bytes as
+          // Latin-1, turning é (0xC3 0xA9) into the two-char sequence "Ã©".
+          // Re-interpret as UTF-8 so accented names round-trip correctly.
+          const correctedName = fixLatin1MisdecodeFilename(file.originalname);
+
           // Dedup against this organization's fingerprint cache.
           const [dupe] = await db
             .select()
@@ -1143,8 +1150,8 @@ export function registerBulkImportRoutes(app: Express): void {
             .insert(schema.bulkImportItems)
             .values({
               sessionId: session.id,
-              originalPath: file.originalname,
-              originalName: file.originalname,
+              originalPath: correctedName,
+              originalName: correctedName,
               stagedPath,
               contentHash: hash,
               mimeType: file.mimetype,
@@ -1192,7 +1199,7 @@ export function registerBulkImportRoutes(app: Express): void {
       res.setHeader('Cache-Control', 'private, max-age=300');
       res.setHeader(
         'Content-Disposition',
-        `inline; filename="${encodeURIComponent(item.originalName)}"`,
+        buildContentDisposition(item.originalName, { type: 'inline' }),
       );
       fs.createReadStream(resolved).pipe(res);
     },

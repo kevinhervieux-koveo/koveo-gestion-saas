@@ -1,6 +1,33 @@
 import { v4 as uuidv4 } from 'uuid';
 
 /**
+ * Detect and fix a Latin-1 mis-decoded filename.
+ *
+ * Modern browsers send multipart filenames as UTF-8, but some middleware
+ * (including older multer defaults) decodes the bytes as Latin-1. The result
+ * is mojibake: `é` (UTF-8: 0xC3 0xA9) becomes the two-character sequence `Ã©`.
+ *
+ * This helper re-interprets the string's bytes as UTF-8. If the result is
+ * valid UTF-8 (no replacement character U+FFFD) and differs from the input,
+ * the corrected value is returned. ASCII-only names and already-correct UTF-8
+ * names are returned unchanged.
+ *
+ * @example
+ * fixLatin1MisdecodeFilename('Budget prÃ©visionnel 2023-2024.pdf')
+ * // => 'Budget prévisionnel 2023-2024.pdf'
+ *
+ * fixLatin1MisdecodeFilename('report.pdf')
+ * // => 'report.pdf'  (unchanged)
+ */
+export function fixLatin1MisdecodeFilename(filename: string): string {
+  const reinterpreted = Buffer.from(filename, 'latin1').toString('utf8');
+  if (reinterpreted !== filename && !reinterpreted.includes('\uFFFD')) {
+    return reinterpreted;
+  }
+  return filename;
+}
+
+/**
  * Normalize an uploaded filename so it is safe to use as both a database
  * `fileName` value and as part of an Object Storage / filesystem path.
  *
