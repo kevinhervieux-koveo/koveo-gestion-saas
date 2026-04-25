@@ -337,7 +337,8 @@ export interface Translations {
   submissionMarkAsPreferredButton: string;
   submissionAvailableForWorkLabel: string;
   submissionExtendsLifespanTemplate: string;
-  submissionDocumentsSubmittedTemplate: string;
+  submissionDocumentsSubmittedTemplate_one: string;
+  submissionDocumentsSubmittedTemplate_other: string;
   submissionPaymentScheduleSummaryTemplate: string;
   submissionPaymentStartsTemplate: string;
   submissionPaymentItemTemplate: string;
@@ -822,7 +823,8 @@ export interface Translations {
   documentsDeleted: string;
   successfullyDeleted: string;
   failedToDelete: string;
-  failedToDeleteDocumentsCount: string;
+  failedToDeleteDocumentsCount_one: string;
+  failedToDeleteDocumentsCount_other: string;
   deselectAll: string;
   buildingIdRequired: string;
   residenceIdRequired: string;
@@ -2824,7 +2826,8 @@ export interface Translations {
   wfElementsAdjustSearchHint: string;
   wfElementsNoneAddedYet: string;
   wfElementsAddFromAvailable: string;
-  wfElementsBulkRemoveWarning: string;
+  wfElementsBulkRemoveWarning_one: string;
+  wfElementsBulkRemoveWarning_other: string;
   wfInProgressProjectMissing: string;
   wfPlannedProjectMissing: string;
   wfPreWorkProjectMissing: string;
@@ -4613,7 +4616,8 @@ export const translations: Record<Language, Translations> = {
     documentsDeleted: 'Documents deleted',
     successfullyDeleted: 'Successfully deleted',
     failedToDelete: 'Failed to delete',
-    failedToDeleteDocumentsCount: 'Failed to delete {count} document(s). Please try again.',
+    failedToDeleteDocumentsCount_one: 'Failed to delete {count} document. Please try again.',
+    failedToDeleteDocumentsCount_other: 'Failed to delete {count} documents. Please try again.',
     deselectAll: 'Deselect all',
     buildingIdRequired: 'Building ID is required to view documents',
     residenceIdRequired: 'Residence ID is required to view documents',
@@ -6638,7 +6642,8 @@ export const translations: Record<Language, Translations> = {
     submissionMarkAsPreferredButton: 'Mark as Preferred',
     submissionAvailableForWorkLabel: 'Available for work',
     submissionExtendsLifespanTemplate: 'Extends lifespan: {years} years',
-    submissionDocumentsSubmittedTemplate: '{count} document(s) submitted',
+    submissionDocumentsSubmittedTemplate_one: '{count} document submitted',
+    submissionDocumentsSubmittedTemplate_other: '{count} documents submitted',
     submissionPaymentScheduleSummaryTemplate: 'Schedule: {schedule}',
     submissionPaymentStartsTemplate: 'Starts: {date}',
     submissionPaymentItemTemplate: 'Payment {index}: {amount}',
@@ -6925,7 +6930,8 @@ export const translations: Record<Language, Translations> = {
     wfElementsAdjustSearchHint: 'Try adjusting your search terms.',
     wfElementsNoneAddedYet: 'No elements added to this project yet.',
     wfElementsAddFromAvailable: 'Add elements from the available elements below.',
-    wfElementsBulkRemoveWarning: 'This will remove {count} selected elements from the project. This action cannot be undone.',
+    wfElementsBulkRemoveWarning_one: 'This will remove {count} selected element from the project. This action cannot be undone.',
+    wfElementsBulkRemoveWarning_other: 'This will remove {count} selected elements from the project. This action cannot be undone.',
     wfInProgressProjectMissing: 'Project data is missing. Unable to load the in-progress tab.',
     wfPlannedProjectMissing: 'Project data is missing. Unable to load the planning tab.',
     wfPreWorkProjectMissing: 'Project data is missing. Unable to load the pre-work tab.',
@@ -8681,7 +8687,8 @@ export const translations: Record<Language, Translations> = {
     documentsDeleted: 'Documents supprimés',
     successfullyDeleted: 'Supprimé avec succès',
     failedToDelete: 'Échec de la suppression',
-    failedToDeleteDocumentsCount: 'Échec de la suppression de {count} document(s). Veuillez réessayer.',
+    failedToDeleteDocumentsCount_one: 'Échec de la suppression de {count} document. Veuillez réessayer.',
+    failedToDeleteDocumentsCount_other: 'Échec de la suppression de {count} documents. Veuillez réessayer.',
     deselectAll: 'Tout désélectionner',
     buildingIdRequired: 'L\'ID du bâtiment est requis pour voir les documents',
     residenceIdRequired: 'L\'ID de la résidence est requis pour voir les documents',
@@ -10742,7 +10749,8 @@ export const translations: Record<Language, Translations> = {
     submissionMarkAsPreferredButton: 'Marquer comme privilégié',
     submissionAvailableForWorkLabel: 'Disponible pour les travaux',
     submissionExtendsLifespanTemplate: 'Prolonge la durée de vie : {years} ans',
-    submissionDocumentsSubmittedTemplate: '{count} document(s) soumis',
+    submissionDocumentsSubmittedTemplate_one: '{count} document soumis',
+    submissionDocumentsSubmittedTemplate_other: '{count} documents soumis',
     submissionPaymentScheduleSummaryTemplate: 'Calendrier : {schedule}',
     submissionPaymentStartsTemplate: 'Début : {date}',
     submissionPaymentItemTemplate: 'Paiement {index} : {amount}',
@@ -11029,7 +11037,8 @@ export const translations: Record<Language, Translations> = {
     wfElementsAdjustSearchHint: 'Essayez d\'ajuster vos termes de recherche.',
     wfElementsNoneAddedYet: 'Aucun élément ajouté à ce projet pour le moment.',
     wfElementsAddFromAvailable: 'Ajoutez des éléments à partir des éléments disponibles ci-dessous.',
-    wfElementsBulkRemoveWarning: 'Ceci retirera {count} éléments sélectionnés du projet. Cette action est irréversible.',
+    wfElementsBulkRemoveWarning_one: 'Ceci retirera {count} élément sélectionné du projet. Cette action est irréversible.',
+    wfElementsBulkRemoveWarning_other: 'Ceci retirera {count} éléments sélectionnés du projet. Cette action est irréversible.',
     wfInProgressProjectMissing: 'Données du projet manquantes. Impossible de charger l\'onglet en cours.',
     wfPlannedProjectMissing: 'Données du projet manquantes. Impossible de charger l\'onglet de planification.',
     wfPreWorkProjectMissing: 'Données du projet manquantes. Impossible de charger l\'onglet de pré-travaux.',

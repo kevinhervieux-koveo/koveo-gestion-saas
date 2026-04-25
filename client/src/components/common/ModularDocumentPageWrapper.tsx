@@ -387,7 +387,7 @@ export default function ModularDocumentPageWrapper({
 }: ModularDocumentPageWrapperProps) {
   const [, navigate] = useLocation();
   const params = useParams();
-  const { t, language } = useLanguage();
+  const { t, tp, language } = useLanguage();
   const { toast } = useToast();
 
   // Get translated document categories
@@ -806,7 +806,7 @@ export default function ModularDocumentPageWrapper({
       handleApiError(
         firstError,
         language,
-        t('failedToDeleteDocumentsCount').replace('{count}', String(failedDeletions.length))
+        tp('failedToDeleteDocumentsCount', failedDeletions.length)
       );
     }
 

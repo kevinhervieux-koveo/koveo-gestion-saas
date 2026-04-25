@@ -51,7 +51,7 @@ const PROJECT_TYPES = [
 ] as const;
 
 export function ElementManagementTab({ project, workflowState, onUpdate, onNavigateToTab }: ElementManagementTabProps) {
-  const { t } = useLanguage();
+  const { t, tp } = useLanguage();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedElements, setSelectedElements] = useState<string[]>([]);
@@ -650,7 +650,7 @@ export function ElementManagementTab({ project, workflowState, onUpdate, onNavig
                     <span className="text-sm font-medium">{t('wfElementsWarningLabel')}</span>
                   </div>
                   <p className="text-sm text-red-700 dark:text-red-300 mt-1">
-                    {t('wfElementsBulkRemoveWarning', { count: selectedElements.length })}
+                    {tp('wfElementsBulkRemoveWarning', selectedElements.length)}
                   </p>
                 </div>
               )}

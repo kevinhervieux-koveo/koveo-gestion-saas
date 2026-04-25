@@ -243,7 +243,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
   };
 
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { t, tp } = useLanguage();
 
   // Defensive null check for project data
   if (!project) {
@@ -1622,7 +1622,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                       {vendor.documents && Array.isArray(vendor.documents) && vendor.documents.length > 0 && (
                         <div className="flex items-center gap-1">
                           <FileText className="h-3 w-3" />
-                          <span>{t('submissionDocumentsSubmittedTemplate').replace('{count}', String(vendor.documents.length))}</span>
+                          <span>{tp('submissionDocumentsSubmittedTemplate', vendor.documents.length)}</span>
                         </div>
                       )}
                     </div>
