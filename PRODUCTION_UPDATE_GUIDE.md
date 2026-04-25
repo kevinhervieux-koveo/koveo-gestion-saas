@@ -17,6 +17,100 @@ Behaviour when `NODE_ENV=production`:
 - If **both** are set: `DATABASE_URL_KOVEO` wins deterministically. If the two point at different databases, a loud warning is logged and the `PRODUCTION_DATABASE_URL` value is ignored. Set both to the same value or unset one.
 - If **neither** is set: the runner refuses to fall back to the dev `DATABASE_URL` and exits non-zero. This is intentional — silently migrating the dev database from a production deploy is exactly the failure this guard prevents. Set one of the two prod aliases before retrying the deploy.
 
+## Post-deploy verification (task #939)
+
+A loud, after-the-fact "did the migration runner actually land on production?" check
+is wired into every deploy. It exists because task #936 made the runner refuse to
+silently fall back to dev — but a deploy hook that swallows the runner's exit code,
+or a `SKIP_DB_MIGRATIONS=true` left on by accident, can still leave prod behind the
+deployed code without anyone noticing until the schema mismatch causes a runtime
+error.
+
+There are three surfaces; they all use the same `verifyMigrationsApplied()` helper
+in `scripts/run-migrations.ts` and so report identical results:
+
+### 1. Boot-time banner (automatic)
+
+After `runMigrations` returns successfully at boot, the server re-reads
+`schema_migrations` and compares the highest applied filename to the highest
+`migrations/NNNN_*.sql` shipped with the bundle. The result is logged with the
+`[migrate]` prefix the runner already uses, so the same grep / log alert that
+catches a runner failure also catches a verifier mismatch:
+
+```text
+✅ migration verifier OK — db=… (via DATABASE_URL_KOVEO), highest=0013_…sql
+```
+
+or, on drift:
+
+```text
+❌ migration verifier DRIFT [behind] — db=… (via DATABASE_URL_KOVEO), expected=0013_…, applied=0010_…, pending=3, missing=[…]
+❌ POST-DEPLOY VERIFIER (behind): Deployed bundle expects a higher migration than the live database has applied. Re-run `npm run migrate` against the production database. /api/admin/migration-status will return 503 until this is resolved.
+```
+
+The bracketed `driftKind` distinguishes the directions of drift the verifier
+recognizes:
+
+- **`behind`** — bundle ships migrations the live DB has not applied. Canonical
+  "deploy hook silently failed" case; rerun `npm run migrate`.
+- **`ahead`** — live DB has applied a migration that doesn't exist in the
+  bundle. Usually a rollback that didn't roll back the schema, or a
+  hand-applied migration that was never committed. Rerunning the migrator
+  won't help — redeploy the matching bundle (or commit the missing file).
+- **`verifier-empty`** — bundle ships zero `migrations/NNNN_*.sql` files.
+  Almost always a packaging bug: verify the build is including the
+  `migrations/` directory.
+
+The verifier never crashes the boot — the runner already throws when it actually
+fails. This is purely a tripwire.
+
+### 2. HTTP probe — `GET /api/admin/migration-status` (callable from CI / monitors)
+
+A fresh, public probe endpoint that returns:
+
+- **`200 OK`** with `{ inSync: true, highestApplied, highestExpected, source, db, checkedAt }`
+  when the live database matches the deployed bundle.
+- **`503 Service Unavailable`** with `{ inSync: false, highestApplied, highestExpected, pendingCount, missing, ... }`
+  when the deployed bundle expects a migration the database has not applied. The 503
+  intentionally trips synthetic monitors on the same day rather than a week later.
+- **`500`** with `{ error: 'verifier_failed', message }` when the verifier itself
+  could not run (e.g. database unreachable) — also logged loudly server-side.
+
+Example from a deploy smoke test:
+
+```bash
+curl -fsS https://your-prod-host/api/admin/migration-status \
+  || (echo "Migration verifier failed, deploy is misconfigured" && exit 1)
+```
+
+The response body only contains migration filenames (already in the public repo)
+and a masked `host:port/db` (no credentials), so the endpoint does not require
+authentication and can be hit from any external uptime check.
+
+### 3. CLI verifier — `npx tsx scripts/run-migrations.ts --verify`
+
+Same check, runnable as a one-shot post-deploy step from CI/CD without going
+through the server boot:
+
+```bash
+DATABASE_URL_KOVEO="postgres://…" \
+  NODE_ENV=production \
+  npx tsx scripts/run-migrations.ts --verify
+```
+
+Exit codes:
+
+- `0` — in sync.
+- `2` — drift detected (live database is behind bundle). Prints the same
+  `migration verifier DRIFT — …` line as the boot banner so the failure is
+  greppable in pipeline logs.
+- `1` — the verifier itself crashed (unable to connect, etc.).
+
+Wire this into the deploy pipeline so a misconfigured hook fails the deploy
+instead of silently shipping ahead of the schema.
+
+---
+
 ## ⚠️ IMPORTANT SAFETY NOTES
 
 - **BACKUP REQUIRED**: Create a full database backup before proceeding

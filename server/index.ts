@@ -492,6 +492,45 @@ async function loadFullApplication(): Promise<void> {
           '0012_demands_assignation_check.sql',
           '0013_residences_demand_assignation_check.sql',
         ]);
+
+        // Task #939: belt-and-braces post-migration verifier. Even
+        // though `runMigrations` just ran successfully, an out-of-band
+        // failure mode (the runner crashed silently between writing
+        // schema_migrations and returning, the bundle ships a NEW
+        // migration whose write got rolled back, etc.) could still leave
+        // the live DB behind the deployed bundle. Re-read the live
+        // `schema_migrations` table and compare it to the disk listing.
+        // A mismatch is logged with the same `[migrate]` prefix the
+        // runner uses, so log scrapers/alerts catch it the same boot.
+        // We do NOT abort startup on drift here — the runner already
+        // throws on its own failures; this is purely an extra trip-wire
+        // visible alongside the runner's own banner.
+        try {
+          const { verifyMigrationsApplied, formatVerification, describeDrift } =
+            await import('../scripts/run-migrations');
+          const v = await verifyMigrationsApplied();
+          const line = formatVerification(v);
+          if (v.inSync) {
+            log(`✅ ${line}`);
+          } else {
+            log(`❌ ${line}`, 'error');
+            const detail = describeDrift(v);
+            if (detail) {
+              log(
+                `❌ POST-DEPLOY VERIFIER (${v.driftKind}): ${detail} ` +
+                  '/api/admin/migration-status will return 503 until this is resolved.',
+                'error',
+              );
+            }
+          }
+        } catch (verifyErr: any) {
+          // Verifier failure is non-fatal: the runner already returned
+          // OK, and the endpoint will retry on demand. Just log it.
+          log(
+            `⚠️  Post-deploy migration verifier could not run: ${verifyErr?.message ?? verifyErr}`,
+            'error',
+          );
+        }
       } catch (migrationErr: any) {
         log(`❌ Database migrations failed: ${migrationErr.message}`, 'error');
         log(`❌ Stack: ${migrationErr.stack}`, 'error');

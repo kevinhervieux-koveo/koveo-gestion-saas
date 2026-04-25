@@ -70,6 +70,35 @@ export interface MigrationResult {
   pending: string[];
 }
 
+/**
+ * Result of {@link verifyMigrationsApplied}. Used by the post-deploy
+ * verifier endpoint and the one-shot CLI verifier (task #939) to assert
+ * that the migration the deployed bundle expects is actually present in
+ * the live database.
+ */
+// Re-export the pure verifier types and formatters from their dedicated
+// helper module. Keeping them out of this file lets the unit tests and
+// any other Jest CJS consumer load them without touching this file's
+// `import.meta.url` usage (which the Jest CJS loader cannot parse).
+export {
+  classifyDrift,
+  describeDrift,
+  formatVerification,
+  type MigrationDriftKind,
+  type MigrationVerification,
+} from './run-migrations-verifier-format';
+// Aliased imports are intentional: these symbols are re-exported above
+// for external callers, and we still need them in scope inside this
+// module (the verifier impl uses `_classifyDrift`, the CLI block calls
+// `formatVerification`, and the verifier signature references
+// `MigrationVerification`).
+import {
+  classifyDrift as _classifyDrift,
+  describeDrift,
+  formatVerification,
+  type MigrationVerification,
+} from './run-migrations-verifier-format';
+
 function log(msg: string): void {
   console.log(`[migrate] ${msg}`);
 }
@@ -104,6 +133,7 @@ export {
 import {
   resolveDatabaseUrl,
   maskDatabaseUrl,
+  type DatabaseUrlSource,
   type ResolvedDatabaseUrl,
 } from './run-migrations-url';
 
@@ -329,6 +359,58 @@ export async function runMigrations(opts: {
   }
 }
 
+/**
+ * Post-deploy verifier (task #939).
+ *
+ * Connects to the same production database the runner targets, reads
+ * the `schema_migrations` table, lists the numbered SQL files shipped
+ * with the deployed bundle on disk, and reports whether the highest
+ * applied migration matches the highest expected one.
+ *
+ * This exists because the runner already runs at boot, but a deploy
+ * pipeline can still drift — e.g. the runner exited non-zero and the
+ * platform swallowed it, or `SKIP_DB_MIGRATIONS=true` was left on, or
+ * the previous container crashed mid-apply. Calling this from the new
+ * `/api/admin/migration-status` endpoint (or the
+ * `verify-migration-deployed.ts` CLI) catches that the same day rather
+ * than weeks later when a runtime error trips on a missing column.
+ *
+ * NOTE: this is a read-only probe. It does NOT acquire the migration
+ * advisory lock and never applies anything.
+ */
+export async function verifyMigrationsApplied(): Promise<MigrationVerification> {
+  const resolved = resolveDatabaseUrl();
+  const maskedDb = maskDatabaseUrl(resolved.url);
+  const pool = new Pool({ connectionString: resolved.url });
+  const client = await pool.connect();
+  try {
+    await ensureMigrationsTable(client);
+    const files = listMigrationFiles();
+    const highestExpected = files.length > 0 ? files[files.length - 1] : null;
+    const applied = await getAppliedFilenames(client);
+    const highestApplied = await highestAppliedVersion(client);
+    const missing = files.filter((f) => !applied.has(f));
+    const { inSync, driftKind } = _classifyDrift({
+      highestExpected,
+      highestApplied,
+      missing,
+    });
+    return {
+      inSync,
+      driftKind,
+      highestExpected,
+      highestApplied,
+      missing,
+      pendingCount: missing.length,
+      source: resolved.source,
+      maskedDb,
+    };
+  } finally {
+    client.release();
+    await pool.end().catch(() => undefined);
+  }
+}
+
 const isMain = (() => {
   try {
     // Only treat this module as the entry point when the executed script
@@ -353,13 +435,42 @@ const isMain = (() => {
 
 if (isMain) {
   const args = new Set(process.argv.slice(2));
-  runMigrations({
-    baseline: args.has('--baseline'),
-    statusOnly: args.has('--status'),
-  })
-    .then(() => process.exit(0))
-    .catch((e) => {
-      err(`Migration run failed: ${(e as Error).stack || (e as Error).message}`);
-      process.exit(1);
-    });
+  if (args.has('--verify')) {
+    // Read-only post-deploy verifier (task #939). Exits 0 if the live DB
+    // matches the bundle on disk, exits non-zero with a loud line if it
+    // does not. Safe to run any number of times — never writes anything.
+    verifyMigrationsApplied()
+      .then((v) => {
+        if (v.inSync) {
+          log(formatVerification(v));
+          process.exit(0);
+        } else {
+          err(formatVerification(v));
+          const remediation = describeDrift(v);
+          if (remediation) {
+            err(`POST-DEPLOY VERIFIER FAILED — ${remediation}`);
+          } else {
+            err(
+              'POST-DEPLOY VERIFIER FAILED — production schema does not ' +
+                'match deployed bundle.',
+            );
+          }
+          process.exit(2);
+        }
+      })
+      .catch((e) => {
+        err(`Verifier crashed: ${(e as Error).stack || (e as Error).message}`);
+        process.exit(1);
+      });
+  } else {
+    runMigrations({
+      baseline: args.has('--baseline'),
+      statusOnly: args.has('--status'),
+    })
+      .then(() => process.exit(0))
+      .catch((e) => {
+        err(`Migration run failed: ${(e as Error).stack || (e as Error).message}`);
+        process.exit(1);
+      });
+  }
 }

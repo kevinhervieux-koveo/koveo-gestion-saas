@@ -49,4 +49,9 @@ export const AUTO_ROUTE_MODULES: Record<string, AutoRouteEntry> = {
   //     load: () => import('./bulk-import'),
   //     lazy: { matcher: '/api/admin/bulk-import' },
   //   },
+
+  // Post-deploy migration verifier (task #939). Eager so a curl against
+  // /api/admin/migration-status responds the moment the server is up,
+  // without waiting for a first lazy-mount hit.
+  migrationStatus: { load: () => import('./migration-status') },
 };
