@@ -204,6 +204,51 @@ describe('No raw DB errors in REST API 500 responses', () => {
     expect(violations).toHaveLength(0);
   });
 
+  it('optimized-documents.ts must not expose error.message in 500 HTTP response bodies', () => {
+    const src = read('optimized-documents.ts');
+    const lines = src.split('\n');
+    const violations: string[] = [];
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (!/error\.message/.test(line)) continue;
+      if (/logWarn|logError|logSecurity|console\.|\/\/|\.includes|===/.test(line)) continue;
+      const isIn500Block = lines.slice(Math.max(0, i - 6), i).some((l) => /res\.status\(5/.test(l));
+      if (isIn500Block) {
+        violations.push(`  Line ${i + 1}: ${line.trim()}`);
+      }
+    }
+
+    expect(violations).toHaveLength(0);
+  });
+
+  it('company-history.ts must not expose _error.message or error.message in 500 HTTP responses', () => {
+    const src = read('company-history.ts');
+    const lines = src.split('\n');
+    const violations: string[] = [];
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (!/_error\.message|error\.message/.test(line)) continue;
+      if (/logWarn|logError|logSecurity|console\.|\/\/|\.includes|===/.test(line)) continue;
+      const isIn500Block = lines.slice(Math.max(0, i - 6), i).some((l) => /res\.status\(5/.test(l));
+      if (isIn500Block) {
+        violations.push(`  Line ${i + 1}: ${line.trim()}`);
+      }
+    }
+
+    expect(violations).toHaveLength(0);
+  });
+
+  it('dynamic-budgets.ts must not expose error.message via the per-building _error field', () => {
+    const src = read('dynamic-budgets.ts');
+    // The per-building error result inside the .map() catch block is returned
+    // straight through to the client in the `failed` array, so the raw DB
+    // text must never be assigned to its _error field.
+    expect(src).not.toMatch(/_error:\s*error\s+instanceof\s+Error\s*\?\s*error\.message/);
+    expect(src).not.toMatch(/_error:\s*_error\s+instanceof\s+Error\s*\?\s*_error\.message/);
+  });
+
   it('secureErrorHandler must contain the SQL-leak scrub backstop', () => {
     const src = fs.readFileSync(
       path.resolve(__dirname, '../../server/middleware/error-security.ts'),

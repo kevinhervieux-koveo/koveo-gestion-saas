@@ -127,10 +127,11 @@ router.get('/summary', requireAuth, async (req, res) => {
           ...data.summary,
         };
       } catch (error) {
+        console.error(`Error fetching financial summary for building ${buildingId.trim()}:`, error);
         return {
           buildingId: buildingId.trim(),
           success: false,
-          _error: error instanceof Error ? error.message : 'Unknown error',
+          _error: 'internal_error',
         };
       }
     });

@@ -215,7 +215,7 @@ export function registerOptimizedDocumentRoutes(app: Express): void {
       console.error('Error in optimized upload:', error);
       res.status(500).json({
         message: 'Upload failed',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: 'internal_error'
       });
     }
   });
@@ -322,7 +322,7 @@ export function registerOptimizedDocumentRoutes(app: Express): void {
       if (!res.headersSent) {
         res.status(500).json({
           message: 'Failed to retrieve file',
-          error: error instanceof Error ? error.message : 'Unknown error'
+          error: 'internal_error'
         });
       }
     }
@@ -383,7 +383,7 @@ export function registerOptimizedDocumentRoutes(app: Express): void {
       console.error('Error in optimized file listing:', error);
       res.status(500).json({
         message: 'Failed to list files',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: 'internal_error'
       });
     }
   });
@@ -427,7 +427,7 @@ export function registerOptimizedDocumentRoutes(app: Express): void {
       console.error('Error getting performance metrics:', error);
       res.status(500).json({
         message: 'Failed to get performance metrics',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: 'internal_error'
       });
     }
   });
@@ -467,7 +467,7 @@ export function registerOptimizedDocumentRoutes(app: Express): void {
       console.error('Error clearing cache:', error);
       res.status(500).json({
         message: 'Failed to clear cache',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: 'internal_error'
       });
     }
   });

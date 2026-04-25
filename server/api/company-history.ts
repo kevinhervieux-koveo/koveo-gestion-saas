@@ -161,9 +161,10 @@ export function registerCompanyHistoryRoutes(app: Express): void {
         message: 'Document storage has been disabled',
       });
     } catch (_error) {
+      console.error("Erreur lors de la recherche des documents d'entreprise:", _error);
       res.status(500).json({
         message: "Erreur lors de la recherche des documents d'entreprise",
-        _error: _error instanceof Error ? _error.message : 'Unknown error',
+        _error: 'internal_error',
       });
     }
   });
