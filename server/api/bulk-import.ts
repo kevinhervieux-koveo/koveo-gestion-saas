@@ -413,9 +413,20 @@ async function processItemForStep(
     // Preserve any existing residenceManualOverride the admin may have
     // set on a prior attempt; only overwrite the AI-generated fields.
     const existingDecision = (item.branchDecision ?? {}) as Record<string, unknown>;
+    // Track the AI's original residence pick (Task #803) so the picker
+    // UI can surface a small "AI suggestion" chip even after the admin
+    // saves it. `residenceAiSuggestedId` survives admin overrides so we
+    // can still tell that the AI did make a guess; `residenceAiConfirmed`
+    // is flipped to true once the admin explicitly accepts the AI pick
+    // (per-row Save with the AI value, or the bulk-confirm endpoint).
     const nextDecision: Record<string, unknown> = {
       ...result,
       residenceManualOverride: existingDecision.residenceManualOverride ?? false,
+      residenceAiSuggestedId:
+        result.branch === 'residence_documents' && result.residenceId
+          ? result.residenceId
+          : null,
+      residenceAiConfirmed: false,
     };
     // Gate: don't promote to `branched` if destination is residence_documents
     // but no residenceId was resolved. The admin must pick one via the
@@ -853,6 +864,9 @@ export function registerBulkImportRoutes(app: Express): void {
           residenceReason: null,
           residenceFallbackReason: null,
           residenceManualOverride: false,
+          residenceAiSuggestedId: null,
+          residenceAiSuggested: false,
+          residenceAiConfirmed: false,
         };
         const validBranches: BranchDestination[] = [
           'building_documents', 'residence_documents', 'demand', 'bill', 'maintenance', 'other',
@@ -870,6 +884,21 @@ export function registerBulkImportRoutes(app: Express): void {
         const residenceReason = (json.residenceReason as string | null | undefined) ?? null;
         const residenceFallbackReason = (json.residenceFallbackReason as string | null | undefined) ?? null;
         const residenceManualOverride = (json.residenceManualOverride as boolean | null | undefined) ?? false;
+        // Task #803: surface the AI's original residence pick so the
+        // picker UI can render a "AI suggestion" chip while the admin
+        // hasn't yet confirmed it. `residenceAiSuggested` is true when
+        // the current pick still matches the AI's guess and the admin
+        // hasn't explicitly confirmed it (per-row Save with the AI
+        // value, or bulk-confirm) and hasn't manually overridden it.
+        const residenceAiSuggestedId =
+          (json.residenceAiSuggestedId as string | null | undefined) ?? null;
+        const residenceAiConfirmed =
+          (json.residenceAiConfirmed as boolean | null | undefined) ?? false;
+        const residenceAiSuggested =
+          residenceAiSuggestedId !== null
+          && residenceAiSuggestedId === residenceId
+          && !residenceAiConfirmed
+          && !residenceManualOverride;
         return {
           ...base,
           branch,
@@ -881,6 +910,9 @@ export function registerBulkImportRoutes(app: Express): void {
           residenceReason,
           residenceFallbackReason,
           residenceManualOverride,
+          residenceAiSuggestedId,
+          residenceAiSuggested,
+          residenceAiConfirmed,
         };
       }
 
@@ -929,6 +961,9 @@ export function registerBulkImportRoutes(app: Express): void {
             residenceReason: br.residenceReason,
             residenceFallbackReason: br.residenceFallbackReason,
             residenceManualOverride: br.residenceManualOverride,
+            residenceAiSuggestedId: br.residenceAiSuggestedId,
+            residenceAiSuggested: br.residenceAiSuggested,
+            residenceAiConfirmed: br.residenceAiConfirmed,
             identificationConfidence: id.confidence,
             identificationFallback: id.fallbackReason,
             identificationName: id.name,
@@ -1547,6 +1582,8 @@ export function registerBulkImportRoutes(app: Express): void {
           delete updated_decision.residenceReason;
           delete updated_decision.residenceFallbackReason;
           delete updated_decision.residenceManualOverride;
+          delete updated_decision.residenceAiSuggestedId;
+          delete updated_decision.residenceAiConfirmed;
         }
         // When reassigning into residence_documents, leave residence
         // fields unset — the admin must pick one via the picker.
@@ -1645,12 +1682,26 @@ export function registerBulkImportRoutes(app: Express): void {
         const updated: schema.BulkImportItem[] = [];
         for (const row of updatable) {
           const existing = (row.branchDecision ?? {}) as Record<string, unknown>;
+          const oldBranch = existing.branch as string | null | undefined;
           const updated_decision: Record<string, unknown> = {
             ...existing,
             branch,
             subCategory,
             manualOverride: true,
           };
+          // Mirror the per-file reassign cleanup (Task #803): when an
+          // item leaves residence_documents, drop every residence
+          // field — including the AI-suggestion bookkeeping — so we
+          // never render a stale chip on its new destination.
+          if (oldBranch === 'residence_documents' && branch !== 'residence_documents') {
+            delete updated_decision.residenceId;
+            delete updated_decision.residenceConfidence;
+            delete updated_decision.residenceReason;
+            delete updated_decision.residenceFallbackReason;
+            delete updated_decision.residenceManualOverride;
+            delete updated_decision.residenceAiSuggestedId;
+            delete updated_decision.residenceAiConfirmed;
+          }
           const [u] = await db
             .update(schema.bulkImportItems)
             .set({
@@ -1719,12 +1770,29 @@ export function registerBulkImportRoutes(app: Express): void {
           }
         }
 
-        const aiResidenceId = (existing.residenceId as string | null | undefined) ?? null;
+        // The AI's original residence pick is stored separately in
+        // `residenceAiSuggestedId` (Task #803) so we can correctly
+        // detect manual overrides even after the admin has saved a
+        // value once. Falling back to the current residenceId keeps
+        // legacy items (created before the field existed) working.
+        const aiResidenceId =
+          (existing.residenceAiSuggestedId as string | null | undefined)
+          ?? (existing.residenceId as string | null | undefined)
+          ?? null;
         const isManualOverride = residenceId !== aiResidenceId;
+        // When the admin saves the AI's suggestion as-is, treat it as
+        // an explicit confirmation so the "AI suggestion" chip is
+        // dismissed in the UI (Task #803). Clearing the residence
+        // resets confirmation since there's no AI pick to confirm.
+        const residenceAiConfirmed =
+          residenceId !== null
+          && aiResidenceId !== null
+          && residenceId === aiResidenceId;
         const updated_decision: Record<string, unknown> = {
           ...existing,
           residenceId,
           residenceManualOverride: residenceId !== null ? isManualOverride : false,
+          residenceAiConfirmed,
         };
         const newStatus = residenceId !== null
           ? 'branched'
@@ -1812,6 +1880,82 @@ export function registerBulkImportRoutes(app: Express): void {
 
     return { firstBytes, firstHash, firstPath, secondBytes, secondHash, secondPath, splitPage, totalPages, dir, originalName };
   }
+
+  /**
+   * Bulk-confirm every AI-suggested residence in a session (Task #803).
+   *
+   * The Sorting/branching step shows an "AI suggestion" chip on
+   * residence_documents items where the picker's current value is
+   * still the AI's original guess. Admins reviewing many files can
+   * click "Review all AI suggestions" at the top of the step to flip
+   * `residenceAiConfirmed: true` on every qualifying item in one
+   * round-trip — the chip then disappears from each row and the
+   * value itself is left unchanged.
+   *
+   * An item qualifies when:
+   *   - it belongs to the URL session;
+   *   - branchDecision.branch === 'residence_documents';
+   *   - residenceAiSuggestedId is non-null;
+   *   - residenceId === residenceAiSuggestedId (still the AI pick);
+   *   - residenceAiConfirmed is not already true;
+   *   - residenceManualOverride is not true (admin hasn't overridden).
+   *
+   * Items not yet promoted to `branched` (no residenceId resolved)
+   * are skipped because there is nothing to confirm. The response
+   * reports `{ updated, items }` so the client can report exactly
+   * how many rows it just confirmed.
+   */
+  app.post(
+    '/api/admin/bulk-import/sessions/:id/items/confirm-ai-residences',
+    requireAuth,
+    requireRole(['admin']),
+    async (req: AuthenticatedRequest, res: Response) => {
+      try {
+        const session = await loadSession(req.params.id);
+        if (!session) return res.status(404).json({ error: 'Session not found' });
+        const canAccess = await canUserAccessOrganization(req.user!.id, session.organizationId);
+        if (!canAccess) return res.status(403).json({ error: 'Forbidden' });
+
+        const rows = await db
+          .select()
+          .from(schema.bulkImportItems)
+          .where(eq(schema.bulkImportItems.sessionId, session.id));
+
+        const now = new Date();
+        const updated: schema.BulkImportItem[] = [];
+        for (const row of rows) {
+          if (row.status === 'rejected' || row.status === 'committed' || row.status === 'duplicate') {
+            continue;
+          }
+          const existing = (row.branchDecision ?? {}) as Record<string, unknown>;
+          if (existing.branch !== 'residence_documents') continue;
+          const aiId = (existing.residenceAiSuggestedId as string | null | undefined) ?? null;
+          const currentId = (existing.residenceId as string | null | undefined) ?? null;
+          const manualOverride = (existing.residenceManualOverride as boolean | null | undefined) ?? false;
+          const alreadyConfirmed = (existing.residenceAiConfirmed as boolean | null | undefined) ?? false;
+          if (!aiId || aiId !== currentId || manualOverride || alreadyConfirmed) continue;
+
+          const updated_decision: Record<string, unknown> = {
+            ...existing,
+            residenceAiConfirmed: true,
+          };
+          const [u] = await db
+            .update(schema.bulkImportItems)
+            .set({
+              branchDecision: updated_decision,
+              updatedAt: now,
+            })
+            .where(eq(schema.bulkImportItems.id, row.id))
+            .returning();
+          if (u) updated.push(u);
+        }
+        return res.json({ updated: updated.length, items: updated });
+      } catch (err) {
+        logError('[bulk-import] confirm-ai-residences failed', err as Error);
+        return res.status(500).json({ error: 'Failed to confirm AI residences' });
+      }
+    },
+  );
 
   /**
    * Set (or update) the sorting-step decision for a single item —

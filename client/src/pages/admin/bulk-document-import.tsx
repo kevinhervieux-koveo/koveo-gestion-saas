@@ -279,6 +279,21 @@ interface BulkImportItemLite {
   residenceReason: string | null;
   residenceFallbackReason: string | null;
   residenceManualOverride: boolean;
+  /**
+   * AI-suggestion bookkeeping for the residence picker (Task #803).
+   * - `residenceAiSuggestedId`: the residence the AI originally picked.
+   *   Survives admin overrides so the UI can compare current pick vs. AI.
+   * - `residenceAiSuggested`: derived flag — true when the current
+   *   `residenceId` is still the AI's pick AND the admin hasn't yet
+   *   confirmed it (per-row Save with the AI value, or bulk-confirm).
+   *   Drives the small "AI suggestion" chip rendered next to the
+   *   residence badge so admins can spot AI picks at a glance.
+   * - `residenceAiConfirmed`: true once the admin has explicitly
+   *   accepted the AI pick (used to dismiss the chip).
+   */
+  residenceAiSuggestedId: string | null;
+  residenceAiSuggested: boolean;
+  residenceAiConfirmed: boolean;
   identificationConfidence: number | null;
   identificationFallback: BulkImportFallbackReason | null;
   identificationName: string | null;
@@ -1754,6 +1769,41 @@ export default function BulkDocumentImportPage() {
   });
 
   /**
+   * Bulk-confirm every AI-suggested residence in the current session
+   * (Task #803). The handler dismisses the "AI suggestion" chip on
+   * each qualifying row by flipping `residenceAiConfirmed: true`
+   * server-side; the underlying residence selection is left
+   * unchanged. Useful when an admin has skimmed the picks and wants
+   * to clear the chips in one click.
+   */
+  const confirmAllAiResidences = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest(
+        'POST',
+        `/api/admin/bulk-import/sessions/${sessionId}/items/confirm-ai-residences`,
+        {},
+      );
+      return res.json() as Promise<{ updated: number }>;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({
+        queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
+      });
+      toast({
+        title: isFr
+          ? `${data.updated} suggestion${data.updated === 1 ? '' : 's'} confirmée${data.updated === 1 ? '' : 's'}`
+          : `Confirmed ${data.updated} AI suggestion${data.updated === 1 ? '' : 's'}`,
+      });
+    },
+    onError: () => {
+      toast({
+        variant: 'destructive',
+        title: isFr ? 'Échec de la confirmation' : 'Failed to confirm AI suggestions',
+      });
+    },
+  });
+
+  /**
    * Accept / reject the AI's sorting-step suggestion, or commit a
    * manual keep/merge/split decision.
    */
@@ -2488,8 +2538,47 @@ export default function BulkDocumentImportPage() {
                       }
                       const destLabelsHeader = isFr ? BRANCH_DESTINATION_LABEL_FR : BRANCH_DESTINATION_LABEL_EN;
                       const subCatLabelsHeader = isFr ? SUB_CATEGORY_LABEL_FR : SUB_CATEGORY_LABEL_EN;
+                      // Count residence_documents rows whose current
+                      // pick is still the AI's guess and hasn't been
+                      // confirmed yet (Task #803). When >0, the step
+                      // shows a one-click "Review all AI suggestions"
+                      // button so the admin can dismiss every chip at
+                      // once after a quick visual scan.
+                      const pendingAiResidences = branchingItems.filter(
+                        (it) => it.residenceAiSuggested,
+                      ).length;
                       return (
                         <div className="space-y-4" data-testid="branching-grouped-sections">
+                          {pendingAiResidences > 0 && (
+                            <div
+                              className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-violet-200 bg-violet-50 px-3 py-2 dark:border-violet-800 dark:bg-violet-950"
+                              data-testid="ai-residence-suggestions-summary"
+                            >
+                              <div className="flex items-center gap-2 text-sm text-violet-900 dark:text-violet-100">
+                                <Sparkles className="h-4 w-4" />
+                                <span data-testid="ai-residence-suggestions-count">
+                                  {isFr
+                                    ? `L'IA a suggéré ${pendingAiResidences} résidence${pendingAiResidences === 1 ? '' : 's'} en attente de confirmation`
+                                    : `AI suggested ${pendingAiResidences} residence${pendingAiResidences === 1 ? '' : 's'} awaiting confirmation`}
+                                </span>
+                              </div>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-8 text-xs"
+                                onClick={() => confirmAllAiResidences.mutate()}
+                                disabled={confirmAllAiResidences.isPending}
+                                data-testid="button-confirm-all-ai-residences"
+                              >
+                                {confirmAllAiResidences.isPending ? (
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                ) : (
+                                  <Sparkles className="mr-2 h-4 w-4" />
+                                )}
+                                {isFr ? 'Confirmer toutes les suggestions IA' : 'Review all AI suggestions'}
+                              </Button>
+                            </div>
+                          )}
                           {sections.map((section) => {
                             // The "Reassign all in group" action only
                             // makes sense on real branch groups, not on
@@ -2728,21 +2817,39 @@ export default function BulkDocumentImportPage() {
                                           )}
                                           {!isExcluded && item.branch === 'residence_documents' && (
                                             item.residenceId ? (
-                                              <Badge
-                                                variant="outline"
-                                                className="shrink-0 border-blue-300 bg-blue-50 text-blue-900 dark:border-blue-700 dark:bg-blue-950 dark:text-blue-200 text-xs cursor-pointer"
-                                                onClick={(e) => {
-                                                  e.stopPropagation();
-                                                  setResidencePickerItemId(isResidencePickerOpen ? null : item.id);
-                                                  setResidencePickerValue(item.residenceId ?? '');
-                                                }}
-                                                data-testid={`badge-residence-${item.id}`}
-                                                title={item.residenceReason ?? undefined}
-                                              >
-                                                <MapPin className="mr-1 h-3 w-3" />
-                                                {residencesById.get(item.residenceId) ?? item.residenceId.slice(0, 8)}
-                                                {item.residenceManualOverride && ` (${isFr ? 'manuel' : 'manual'})`}
-                                              </Badge>
+                                              <>
+                                                <Badge
+                                                  variant="outline"
+                                                  className="shrink-0 border-blue-300 bg-blue-50 text-blue-900 dark:border-blue-700 dark:bg-blue-950 dark:text-blue-200 text-xs cursor-pointer"
+                                                  onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setResidencePickerItemId(isResidencePickerOpen ? null : item.id);
+                                                    setResidencePickerValue(item.residenceId ?? '');
+                                                  }}
+                                                  data-testid={`badge-residence-${item.id}`}
+                                                  title={item.residenceReason ?? undefined}
+                                                >
+                                                  <MapPin className="mr-1 h-3 w-3" />
+                                                  {residencesById.get(item.residenceId) ?? item.residenceId.slice(0, 8)}
+                                                  {item.residenceManualOverride && ` (${isFr ? 'manuel' : 'manual'})`}
+                                                </Badge>
+                                                {item.residenceAiSuggested && (
+                                                  <Badge
+                                                    variant="outline"
+                                                    className="shrink-0 border-violet-300 bg-violet-50 text-violet-900 dark:border-violet-700 dark:bg-violet-950 dark:text-violet-200 text-xs"
+                                                    title={
+                                                      item.residenceReason
+                                                      ?? (isFr
+                                                        ? 'Choisi par l\'IA — vérifiez puis confirmez'
+                                                        : 'Picked by AI — review and confirm')
+                                                    }
+                                                    data-testid={`badge-residence-ai-${item.id}`}
+                                                  >
+                                                    <Sparkles className="mr-1 h-3 w-3" />
+                                                    {isFr ? 'Suggestion IA' : 'AI'}
+                                                  </Badge>
+                                                )}
+                                              </>
                                             ) : (
                                               <Badge
                                                 variant="outline"
@@ -2750,7 +2857,13 @@ export default function BulkDocumentImportPage() {
                                                 onClick={(e) => {
                                                   e.stopPropagation();
                                                   setResidencePickerItemId(isResidencePickerOpen ? null : item.id);
-                                                  setResidencePickerValue('');
+                                                  // If the AI suggested a residence but
+                                                  // it was rejected (e.g. invalid id), the
+                                                  // current pick is null but we still
+                                                  // pre-seed the picker with the AI's
+                                                  // suggestion so the admin can confirm or
+                                                  // override (Task #803).
+                                                  setResidencePickerValue(item.residenceAiSuggestedId ?? '');
                                                 }}
                                                 data-testid={`badge-residence-needed-${item.id}`}
                                               >
@@ -2906,6 +3019,19 @@ export default function BulkDocumentImportPage() {
                                             <Label className="text-xs">
                                               {isFr ? 'Résidence' : 'Residence'}
                                             </Label>
+                                            {item.residenceAiSuggestedId
+                                              && residencePickerValue === item.residenceAiSuggestedId
+                                              && !item.residenceAiConfirmed && (
+                                              <span
+                                                className="flex items-center gap-1 text-[11px] text-violet-700 dark:text-violet-300"
+                                                data-testid={`residence-picker-ai-hint-${item.id}`}
+                                              >
+                                                <Sparkles className="h-3 w-3" />
+                                                {isFr
+                                                  ? `Suggestion de l'IA : ${residencesById.get(item.residenceAiSuggestedId) ?? item.residenceAiSuggestedId.slice(0, 8)}`
+                                                  : `AI suggestion: ${residencesById.get(item.residenceAiSuggestedId) ?? item.residenceAiSuggestedId.slice(0, 8)}`}
+                                              </span>
+                                            )}
                                             <Select
                                               value={residencePickerValue}
                                               onValueChange={setResidencePickerValue}
