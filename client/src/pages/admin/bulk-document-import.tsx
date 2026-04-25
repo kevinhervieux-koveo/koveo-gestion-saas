@@ -1192,13 +1192,27 @@ export default function BulkDocumentImportPage() {
   // rows can be opened simultaneously without forcing the user to
   // collapse one before opening the next.
   const [expandedItemIds, setExpandedItemIds] = useState<Set<string>>(new Set());
-  const toggleItemExpanded = (id: string) =>
-    setExpandedItemIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
+  // For the Branching step rows are expanded by default (Task #903).
+  // We track which rows the user has explicitly collapsed so that
+  // newly arriving rows also appear expanded without any extra state.
+  const [collapsedBranchingItemIds, setCollapsedBranchingItemIds] = useState<Set<string>>(new Set());
+  const toggleItemExpanded = (id: string) => {
+    if (currentStep === 'branching') {
+      setCollapsedBranchingItemIds((prev) => {
+        const next = new Set(prev);
+        if (next.has(id)) next.delete(id);
+        else next.add(id);
+        return next;
+      });
+    } else {
+      setExpandedItemIds((prev) => {
+        const next = new Set(prev);
+        if (next.has(id)) next.delete(id);
+        else next.add(id);
+        return next;
+      });
+    }
+  };
   // Filters for the building picker on the "Start a session" card
   // (Task #600). Local-only state; not persisted across reloads.
   const [buildingSearch, setBuildingSearch] = useState('');
@@ -3110,7 +3124,10 @@ export default function BulkDocumentImportPage() {
                           currentStep === 'sorting'
                             ? item.sortingDecision != null
                             : hasQuickAnalysisSignal(item);
-                        const isExpanded = expandedItemIds.has(item.id);
+                        const isExpanded =
+                          currentStep === 'branching'
+                            ? !collapsedBranchingItemIds.has(item.id)
+                            : expandedItemIds.has(item.id);
                         // For the sorting step: is the AI's answer
                         // waiting for human acceptance?
                         const sortingIsPending =
