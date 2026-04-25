@@ -18,7 +18,7 @@ import { StatusBadge, PriorityBadge } from '@/components/maintenance/StatusBadge
 // import { useBuildingContext } from '@/hooks/use-building-context';
 import { apiRequest } from '@/lib/queryClient';
 import { MaintenanceProject } from '@shared/schemas/maintenance';
-import { cn } from '@/lib/utils';
+import { cn, parseDateOnly } from '@/lib/utils';
 import {
   Calendar as CalendarIcon,
   Clock,
@@ -141,7 +141,7 @@ export function ProjectTimelineView({
       // Overdue filter
       if (showOverdueOnly) {
         const now = new Date();
-        const endDate = project.plannedEndDate ? new Date(project.plannedEndDate) : null;
+        const endDate = parseDateOnly(project.plannedEndDate);
         const isOverdue = endDate && endDate < now && project.status !== 'completed';
         
         if (!isOverdue) return false;
@@ -158,8 +158,8 @@ export function ProjectTimelineView({
 
     filteredProjects.forEach(project => {
       // Add start date event
-      if (project.plannedStartDate) {
-        const startDate = new Date(project.plannedStartDate);
+      const startDate = parseDateOnly(project.plannedStartDate);
+      if (startDate) {
         events.push({
           project,
           date: startDate,
@@ -170,8 +170,8 @@ export function ProjectTimelineView({
       }
 
       // Add end date event
-      if (project.plannedEndDate) {
-        const endDate = new Date(project.plannedEndDate);
+      const endDate = parseDateOnly(project.plannedEndDate);
+      if (endDate) {
         events.push({
           project,
           date: endDate,
@@ -183,9 +183,7 @@ export function ProjectTimelineView({
 
       // Add milestone events (implementation would depend on project milestones)
       // For now, we'll add mid-point milestones for longer projects
-      if (project.plannedStartDate && project.plannedEndDate) {
-        const startDate = new Date(project.plannedStartDate);
-        const endDate = new Date(project.plannedEndDate);
+      if (startDate && endDate) {
         const duration = (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24);
         
         if (duration > 30) { // Add milestone for projects longer than 30 days

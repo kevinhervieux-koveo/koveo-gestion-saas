@@ -31,7 +31,7 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 import { handleApiError } from '@/lib/demo-error-handler';
 import { EvaluationSuggestion, MaintenanceProject } from '@shared/schemas/maintenance';
 import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
+import { cn, parseDateOnly } from '@/lib/utils';
 import {
   Lightbulb,
   AlertTriangle,
@@ -400,7 +400,7 @@ export function SuggestionsIntegration({
                               <div className="flex items-center gap-4 text-xs text-muted-foreground">
                                 <span className="flex items-center gap-1">
                                   <Calendar className="h-3 w-3" />
-                                  {format(new Date(suggestion.suggestedDate), 'MMM dd, yyyy')}
+                                  {format(parseDateOnly(suggestion.suggestedDate) ?? new Date(suggestion.suggestedDate), 'MMM dd, yyyy')}
                                 </span>
                                 <span className="flex items-center gap-1">
                                   <Building2 className="h-3 w-3" />

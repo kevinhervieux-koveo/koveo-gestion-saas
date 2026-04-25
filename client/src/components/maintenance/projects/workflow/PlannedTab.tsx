@@ -29,7 +29,7 @@ import { MaintenanceProject, BuildingElement } from '@shared/schemas/maintenance
 import { useToast } from '@/hooks/use-toast';
 import { useBuildingContext } from '@/hooks/use-building-context';
 import { apiRequest, queryClient } from '@/lib/queryClient';
-import { cn, formatStatus } from '@/lib/utils';
+import { cn, formatStatus, parseDateOnly } from '@/lib/utils';
 import { format } from 'date-fns';
 import {
   CalendarIcon,
@@ -119,7 +119,7 @@ export function PlannedTab({ project, workflowState, onUpdate, onAdvanceToNext }
     resolver: zodResolver(plannedTabSchema),
     defaultValues: {
       planningDescription: project.planningDescription || '',
-      planningStartDate: project.planningStartDate ? new Date(project.planningStartDate) : undefined,
+      planningStartDate: project.planningStartDate ? (parseDateOnly(project.planningStartDate) ?? undefined) : undefined,
       estimatedCost: project.estimatedCost ? parseFloat(project.estimatedCost) : undefined,
       financialYear: project.financialYear || new Date().getFullYear(),
       selectedElements: currentElementIds,

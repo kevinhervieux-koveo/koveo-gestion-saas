@@ -24,7 +24,7 @@ import {
 import { MaintenanceProject } from '@shared/schemas/maintenance';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import { formatStatus } from '@/lib/utils';
+import { formatStatus, parseDateOnly } from '@/lib/utils';
 import { ReopenStepDialog } from './ReopenStepDialog';
 import {
   CheckCircle2,
@@ -82,7 +82,9 @@ export function CompleteTab({ project, workflowState, onUpdate }: CompleteTabPro
     resolver: zodResolver(completeTabSchema),
     defaultValues: {
       completionSummary: project.completionSummary || '',
-      actualEndDate: project.actualEndDate ? format(new Date(project.actualEndDate), 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
+      actualEndDate: project.actualEndDate
+        ? format(parseDateOnly(project.actualEndDate) ?? new Date(project.actualEndDate), 'yyyy-MM-dd')
+        : format(new Date(), 'yyyy-MM-dd'),
     },
   });
 
@@ -118,9 +120,11 @@ export function CompleteTab({ project, workflowState, onUpdate }: CompleteTabPro
 
 
   // Calculate project metrics
+  const actualStartDate = parseDateOnly(project.actualStartDate);
+  const actualEndDate = parseDateOnly(project.actualEndDate);
   const projectMetrics = {
-    duration: project.actualStartDate && project.actualEndDate 
-      ? Math.ceil((new Date(project.actualEndDate).getTime() - new Date(project.actualStartDate).getTime()) / (1000 * 60 * 60 * 24))
+    duration: actualStartDate && actualEndDate
+      ? Math.ceil((actualEndDate.getTime() - actualStartDate.getTime()) / (1000 * 60 * 60 * 24))
       : null,
     budgetUsed: project.actualCost ? parseFloat(project.actualCost) : 0,
     budgetTotal: project.totalBudget ? parseFloat(project.totalBudget) : 0,
@@ -237,7 +241,7 @@ export function CompleteTab({ project, workflowState, onUpdate }: CompleteTabPro
                       <div className="text-sm font-medium text-muted-foreground">Planned Start</div>
                       <div className="text-base">
                         {project.planningStartDate 
-                          ? format(new Date(project.planningStartDate), 'MMM d, yyyy')
+                          ? format(parseDateOnly(project.planningStartDate)!, 'MMM d, yyyy')
                           : 'Not specified'
                         }
                       </div>

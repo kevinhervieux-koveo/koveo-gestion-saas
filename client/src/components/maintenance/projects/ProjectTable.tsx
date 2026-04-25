@@ -16,7 +16,7 @@ import { StatusBadge, PriorityBadge } from '@/components/maintenance/StatusBadge
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { MaintenanceProject } from '@shared/schemas/maintenance';
-import { cn } from '@/lib/utils';
+import { cn, parseDateOnly } from '@/lib/utils';
 import {
   Eye,
   Edit2,
@@ -149,7 +149,7 @@ export function ProjectTable({
       // Overdue filter
       if (showOverdueOnly) {
         const now = new Date();
-        const endDate = project.plannedEndDate ? new Date(project.plannedEndDate) : null;
+        const endDate = parseDateOnly(project.plannedEndDate);
         const isOverdue = endDate && endDate < now && project.status !== 'completed';
         
         if (!isOverdue) return false;
@@ -283,11 +283,12 @@ export function ProjectTable({
         header: 'Start Date',
         cell: ({ row }) => {
           const date = row.getValue('plannedStartDate') as string;
-          if (!date) return <span className="text-muted-foreground text-sm">Not set</span>;
+          const parsed = parseDateOnly(date);
+          if (!parsed) return <span className="text-muted-foreground text-sm">Not set</span>;
           
           return (
             <div className="text-sm" data-testid={`project-start-date-${row.original.id}`}>
-              {format(new Date(date), 'MMM dd, yyyy')}
+              {format(parsed, 'MMM dd, yyyy')}
             </div>
           );
         },

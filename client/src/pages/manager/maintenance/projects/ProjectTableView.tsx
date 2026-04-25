@@ -6,7 +6,7 @@ import { useBuildingContext } from '@/hooks/use-building-context';
 import { apiRequest } from '@/lib/queryClient';
 import { MaintenanceProject } from '@shared/schemas/maintenance';
 import { ProjectTable } from '@/components/maintenance/projects/ProjectTable';
-import { cn } from '@/lib/utils';
+import { cn, parseDateOnly } from '@/lib/utils';
 import {
   AlertTriangle,
   Building2,
@@ -122,7 +122,7 @@ export function ProjectTableView({
       // Overdue filter
       if (showOverdueOnly) {
         const now = new Date();
-        const endDate = project.plannedEndDate ? new Date(project.plannedEndDate) : null;
+        const endDate = parseDateOnly(project.plannedEndDate);
         const isOverdue = endDate && endDate < now && project.status !== 'completed';
         
         if (!isOverdue) return false;

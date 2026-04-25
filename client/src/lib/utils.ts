@@ -74,6 +74,67 @@ export function safeCapitalize(str: string | null | undefined, fallback: string 
 }
 
 /**
+ * Parses a date-only string (`YYYY-MM-DD`) into a local-time `Date` without
+ * any UTC shift. The native `new Date("2026-05-01")` interprets the value as
+ * UTC midnight, which renders as the previous day in any timezone west of UTC.
+ * This helper splits the string into its components and constructs the date in
+ * local time so the displayed calendar day matches the stored value regardless
+ * of the host timezone.
+ *
+ * Strict parser: the input must match `YYYY-MM-DD` exactly. ISO timestamps
+ * and other formats return `null` so callers cannot accidentally smuggle a
+ * datetime through this helper.
+ *
+ * @param value - A date-only string in `YYYY-MM-DD` format (or null/undefined).
+ * @returns A local-time `Date` for the same calendar day, or `null` if the
+ *          input is missing or not a valid `YYYY-MM-DD` value.
+ * @example
+ * ```typescript
+ * parseDateOnly('2026-05-01'); // May 1, 2026 in local time, regardless of TZ
+ * parseDateOnly(null); // null
+ * parseDateOnly('not a date'); // null
+ * parseDateOnly('2026-05-01T12:00:00Z'); // null (use new Date for timestamps)
+ * ```
+ */
+export function parseDateOnly(value: string | null | undefined): Date | null {
+  if (!value || typeof value !== 'string') {
+    return null;
+  }
+
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) {
+    return null;
+  }
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+
+  if (
+    !Number.isFinite(year) ||
+    !Number.isFinite(month) ||
+    !Number.isFinite(day) ||
+    month < 1 ||
+    month > 12 ||
+    day < 1 ||
+    day > 31
+  ) {
+    return null;
+  }
+
+  const date = new Date(year, month - 1, day);
+  if (
+    date.getFullYear() !== year ||
+    date.getMonth() !== month - 1 ||
+    date.getDate() !== day
+  ) {
+    return null;
+  }
+
+  return date;
+}
+
+/**
  * Safely formats a date to ISO date string (YYYY-MM-DD) with comprehensive error handling.
  * Handles various date input formats and provides graceful fallbacks for invalid dates.
  * 

@@ -21,7 +21,7 @@ import { useToast } from '@/hooks/use-toast';
 import { MaintenanceProject, type SubmissionVendor } from '@shared/schemas/maintenance';
 import { PaymentPlanForm } from './PaymentPlanForm';
 import { ElementManagementTab } from './ElementManagementTab';
-import { cn, formatStatus, safeCapitalize } from '@/lib/utils';
+import { cn, formatStatus, parseDateOnly, safeCapitalize } from '@/lib/utils';
 import {
   CheckCircle2,
   Users,
@@ -1532,7 +1532,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                         {vendor.availableDate && (
                           <span className="flex items-center gap-1">
                             <Calendar className="h-3 w-3" />
-                            Available: {new Date(vendor.availableDate).toLocaleDateString()}
+                            Available: {(parseDateOnly(vendor.availableDate) ?? new Date(vendor.availableDate)).toLocaleDateString()}
                           </span>
                         )}
                         {vendor.contactInfo && (
@@ -1608,7 +1608,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                       {vendor.availableDate && (
                         <div className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
-                          <span>Available for work: {new Date(vendor.availableDate).toLocaleDateString()}</span>
+                          <span>Available for work: {(parseDateOnly(vendor.availableDate) ?? new Date(vendor.availableDate)).toLocaleDateString()}</span>
                         </div>
                       )}
                       {vendor.addedLifespan && (
@@ -1639,7 +1639,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                       {vendor.paymentPlanStartDate && (
                         <div className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
-                          <span>Starts: {new Date(vendor.paymentPlanStartDate).toLocaleDateString()}</span>
+                          <span>Starts: {(parseDateOnly(vendor.paymentPlanStartDate) ?? new Date(vendor.paymentPlanStartDate)).toLocaleDateString()}</span>
                         </div>
                       )}
                       {vendor.paymentPlanCosts && vendor.paymentPlanCosts.length > 0 && (

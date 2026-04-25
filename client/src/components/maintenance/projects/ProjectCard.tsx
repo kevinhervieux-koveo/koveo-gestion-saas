@@ -18,7 +18,7 @@ import { useBuildingContext } from '@/hooks/use-building-context';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { MaintenanceProject } from '@shared/schemas/maintenance';
-import { cn } from '@/lib/utils';
+import { cn, parseDateOnly } from '@/lib/utils';
 import {
   MoreHorizontal,
   Edit2,
@@ -388,7 +388,7 @@ export function ProjectCard({
                     Start Date
                   </div>
                   <div className="text-sm font-medium">
-                    {format(new Date(project.plannedStartDate), 'MMM dd, yyyy')}
+                    {format(parseDateOnly(project.plannedStartDate)!, 'MMM dd, yyyy')}
                   </div>
                 </div>
               )}
@@ -400,7 +400,7 @@ export function ProjectCard({
                     End Date
                   </div>
                   <div className="text-sm font-medium">
-                    {format(new Date(project.plannedEndDate), 'MMM dd, yyyy')}
+                    {format(parseDateOnly(project.plannedEndDate)!, 'MMM dd, yyyy')}
                   </div>
                   {metrics.daysRemaining !== undefined && (
                     <div className={cn(

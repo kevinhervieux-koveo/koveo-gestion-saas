@@ -53,7 +53,7 @@ import { useBuildingContext } from '@/hooks/use-building-context';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { MaintenanceProject } from '@shared/schemas/maintenance';
-import { cn } from '@/lib/utils';
+import { cn, parseDateOnly } from '@/lib/utils';
 import {
   DollarSign,
   Plus,
@@ -725,7 +725,7 @@ export function ProjectBudget({
                           <div>
                             <div className="font-medium">{entry.vendorName || 'Unknown Vendor'}</div>
                             <div className="text-sm text-muted-foreground">
-                              {entry.eventType} - {new Date(entry.eventDate).toLocaleDateString()}
+                              {entry.eventType} - {(parseDateOnly(entry.eventDate) ?? new Date(entry.eventDate)).toLocaleDateString()}
                             </div>
                           </div>
                           <div className="font-medium">

@@ -12,6 +12,7 @@ import {
 import { Eye, EyeOff } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 import type { Translations } from '@/lib/i18n';
+import { parseDateOnly } from '@/lib/utils';
 
 const STATUS_LABEL_KEYS: Record<string, keyof Translations> = {
   planned: 'planned',
@@ -77,7 +78,16 @@ const HEADER_HEIGHT = 28;
 
 function parseDate(value?: string | null | Date): Date | null {
   if (!value) return null;
-  const d = value instanceof Date ? value : new Date(value);
+  if (value instanceof Date) {
+    return isNaN(value.getTime()) ? null : value;
+  }
+  // Treat date-only strings (YYYY-MM-DD) as local-time to avoid the UTC
+  // shift that causes timezones west of UTC to display the previous day.
+  if (typeof value === 'string' && value.length === 10 && !value.includes('T')) {
+    const dateOnly = parseDateOnly(value);
+    return dateOnly;
+  }
+  const d = new Date(value);
   return isNaN(d.getTime()) ? null : d;
 }
 

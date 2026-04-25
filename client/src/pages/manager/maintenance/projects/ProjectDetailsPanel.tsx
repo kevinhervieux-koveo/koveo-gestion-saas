@@ -19,7 +19,7 @@ import { StatusBadge, PriorityBadge } from '@/components/maintenance/StatusBadge
 // import { useBuildingContext } from '@/hooks/use-building-context';
 import { apiRequest } from '@/lib/queryClient';
 import { MaintenanceProject } from '@shared/schemas/maintenance';
-import { cn } from '@/lib/utils';
+import { cn, parseDateOnly } from '@/lib/utils';
 import {
   Calendar,
   Clock,
@@ -99,10 +99,10 @@ export function ProjectDetailsPanel({
   const metrics = useMemo(() => {
     if (!projectDetails) return null;
 
-    const startDate = projectDetails.plannedStartDate ? new Date(projectDetails.plannedStartDate) : null;
-    const endDate = projectDetails.plannedEndDate ? new Date(projectDetails.plannedEndDate) : null;
-    const actualStart = projectDetails.actualStartDate ? new Date(projectDetails.actualStartDate) : null;
-    const actualEnd = projectDetails.actualEndDate ? new Date(projectDetails.actualEndDate) : null;
+    const startDate = parseDateOnly(projectDetails.plannedStartDate);
+    const endDate = parseDateOnly(projectDetails.plannedEndDate);
+    const actualStart = parseDateOnly(projectDetails.actualStartDate);
+    const actualEnd = parseDateOnly(projectDetails.actualEndDate);
     const now = new Date();
 
     const totalBudget = projectDetails.totalBudget ? parseFloat(projectDetails.totalBudget) : 0;
@@ -440,7 +440,7 @@ export function ProjectDetailsPanel({
                         <span className="text-muted-foreground">Planned Start:</span>
                         <span className="font-medium">
                           {projectDetails.plannedStartDate 
-                            ? format(new Date(projectDetails.plannedStartDate), 'MMM dd, yyyy')
+                            ? format(parseDateOnly(projectDetails.plannedStartDate)!, 'MMM dd, yyyy')
                             : 'Not set'
                           }
                         </span>
@@ -450,7 +450,7 @@ export function ProjectDetailsPanel({
                         <span className="text-muted-foreground">Planned End:</span>
                         <span className="font-medium">
                           {projectDetails.plannedEndDate 
-                            ? format(new Date(projectDetails.plannedEndDate), 'MMM dd, yyyy')
+                            ? format(parseDateOnly(projectDetails.plannedEndDate)!, 'MMM dd, yyyy')
                             : 'Not set'
                           }
                         </span>
@@ -460,7 +460,7 @@ export function ProjectDetailsPanel({
                         <div className="flex justify-between items-center">
                           <span className="text-muted-foreground">Actual Start:</span>
                           <span className="font-medium">
-                            {format(new Date(projectDetails.actualStartDate), 'MMM dd, yyyy')}
+                            {format(parseDateOnly(projectDetails.actualStartDate)!, 'MMM dd, yyyy')}
                           </span>
                         </div>
                       )}
@@ -469,7 +469,7 @@ export function ProjectDetailsPanel({
                         <div className="flex justify-between items-center">
                           <span className="text-muted-foreground">Actual End:</span>
                           <span className="font-medium">
-                            {format(new Date(projectDetails.actualEndDate), 'MMM dd, yyyy')}
+                            {format(parseDateOnly(projectDetails.actualEndDate)!, 'MMM dd, yyyy')}
                           </span>
                         </div>
                       )}
