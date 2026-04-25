@@ -34,6 +34,12 @@ import { BuildingElement } from '@shared/schemas/maintenance';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/hooks/use-language';
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import {
   MoreHorizontal,
   Edit2,
   Trash2,
@@ -46,25 +52,29 @@ import {
   AlertTriangle,
   Clock,
   User,
+  Pencil,
 } from 'lucide-react';
 
 interface ElementHistoryEntry {
   id: string;
-  elementId: string;
+  elementId?: string;
   eventType: 'construction' | 'repair' | 'minor_rehab' | 'major_rehab' | 'replacement';
   eventDate: string;
   vendorId?: string;
   vendorName?: string;
-  cost?: number;
+  cost?: number | string | null;
   warranty?: {
     duration?: number;
     terms?: string;
     expiryDate?: string;
-  };
-  lifespanImpact?: number;
+    endDate?: string;
+  } | null;
+  lifespanImpact?: number | null;
   workDescription: string;
-  createdBy: string;
-  createdAt: string;
+  createdBy?: string;
+  createdAt?: string;
+  updatedAt?: string | null;
+  editedBy?: string | null;
 }
 
 interface HistoryTableProps {
@@ -196,10 +206,35 @@ export function HistoryTable({
           );
         }
         const datePattern = language === 'fr' ? 'd MMMM yyyy' : 'MMM d, yyyy';
+        const updatedAt = row.original.updatedAt;
+        const editedBy = row.original.editedBy;
+        const editedLabel = updatedAt
+          ? editedBy
+            ? `Edited ${format(parseISO(updatedAt), datePattern, { locale: dateFnsLocale })} by ${editedBy}`
+            : `Edited ${format(parseISO(updatedAt), datePattern, { locale: dateFnsLocale })}`
+          : null;
         return (
           <div className="space-y-1" data-testid={`history-date-${row.original.id}`}>
             <div className="font-medium">{format(date, datePattern, { locale: dateFnsLocale })}</div>
             <div className="text-xs text-muted-foreground">{format(date, 'EEEE', { locale: dateFnsLocale })}</div>
+            {editedLabel && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div
+                      className="flex items-center gap-1 text-xs text-muted-foreground cursor-default"
+                      data-testid={`history-edited-${row.original.id}`}
+                    >
+                      <Pencil className="h-2.5 w-2.5" />
+                      <span>edited</span>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">
+                    <p>{editedLabel}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
           </div>
         );
       },

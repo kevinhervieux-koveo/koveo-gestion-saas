@@ -336,6 +336,9 @@ export const elementHistory = pgTable('element_history', {
     .notNull()
     .references(() => users.id),
   createdAt: timestamp('created_at').defaultNow(),
+  // Edit-tracking columns (null for rows that have never been edited)
+  updatedAt: timestamp('updated_at'),
+  updatedBy: text('updated_by').references(() => users.id, { onDelete: 'set null' }),
 }, (table) => ({
   // Performance indexes for history lookups
   elementIdIdx: index('element_history_element_id_idx').on(table.elementId),
@@ -346,6 +349,27 @@ export const elementHistory = pgTable('element_history', {
   createdAtIdx: index('element_history_created_at_idx').on(table.createdAt),
   // Validation constraints
   costCheck: check('element_history_cost_check', sql`cost >= 0`),
+}));
+
+/**
+ * Audit log for edits to element history events.
+ * Every successful update to an element_history row writes one row here
+ * with a structured before/after diff. Inserts and deletes are out of scope.
+ */
+export const elementHistoryAuditLog = pgTable('element_history_audit_log', {
+  id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+  historyId: uuid('history_id')
+    .notNull()
+    .references(() => elementHistory.id, { onDelete: 'cascade' }),
+  // Nullable so legacy MCP_API_KEY sessions (no bound user) can still be audited.
+  performedBy: text('performed_by').references(() => users.id, { onDelete: 'set null' }),
+  // Structured diff: { field: { before, after } } for each changed field.
+  // May also contain a `meta` key for non-field audit metadata.
+  changes: jsonb('changes').notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+}, (table) => ({
+  historyIdIdx: index('element_history_audit_log_history_id_idx').on(table.historyId),
+  performedByIdx: index('element_history_audit_log_performed_by_idx').on(table.performedBy),
 }));
 
 /**
@@ -863,6 +887,14 @@ export type InsertBuildingElement = z.infer<typeof insertBuildingElementSchema>;
 export type ElementHistory = typeof elementHistory.$inferSelect;
 export type InsertElementHistory = z.infer<typeof insertElementHistorySchema>;
 
+export const insertElementHistoryAuditLogSchema = z.object({
+  historyId: z.string().uuid(),
+  performedBy: z.string().nullable().optional(),
+  changes: z.record(z.any()),
+});
+export type ElementHistoryAuditLog = typeof elementHistoryAuditLog.$inferSelect;
+export type InsertElementHistoryAuditLog = z.infer<typeof insertElementHistoryAuditLogSchema>;
+
 export type EvaluationSuggestion = typeof evaluationSuggestions.$inferSelect;
 export type InsertEvaluationSuggestion = z.infer<typeof insertEvaluationSuggestionSchema>;
 
@@ -941,7 +973,24 @@ export const elementHistoryRelations = relations(elementHistory, ({ one, many })
     fields: [elementHistory.createdBy],
     references: [users.id],
   }),
+  updatedByUser: one(users, {
+    fields: [elementHistory.updatedBy],
+    references: [users.id],
+    relationName: 'elementHistoryUpdatedBy',
+  }),
   documents: many(elementDocuments),
+  auditLog: many(elementHistoryAuditLog),
+}));
+
+export const elementHistoryAuditLogRelations = relations(elementHistoryAuditLog, ({ one }) => ({
+  history: one(elementHistory, {
+    fields: [elementHistoryAuditLog.historyId],
+    references: [elementHistory.id],
+  }),
+  performedByUser: one(users, {
+    fields: [elementHistoryAuditLog.performedBy],
+    references: [users.id],
+  }),
 }));
 
 export const evaluationSuggestionsRelations = relations(evaluationSuggestions, ({ one, many }) => ({

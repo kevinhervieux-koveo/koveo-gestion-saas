@@ -4389,18 +4389,57 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
           return { content: [{ type: "text" as const, text: `Vendor ${vendorId} does not belong to the element's organization` }] };
         }
       }
+      // Resolve the acting user for attribution (null for legacy MCP_API_KEY sessions).
+      const mcpUser = await getMcpUser(role).catch(() => null);
+      const actingUserId: string | null = mcpUser?.id ?? null;
+
       // Build the partial update payload. Each field is only included when
       // the caller explicitly passed it (undefined => no change). `null`
       // explicitly clears the column for nullable fields.
-      const eventUpdate: Record<string, unknown> = {};
-      if (eventType !== undefined) eventUpdate.eventType = eventType;
-      if (eventDate !== undefined) eventUpdate.eventDate = eventDate;
-      if (workDescription !== undefined) eventUpdate.workDescription = workDescription;
-      if (cost !== undefined) eventUpdate.cost = cost === null ? null : String(cost);
-      if (vendorId !== undefined) eventUpdate.vendorId = vendorId;
-      if (vendorName !== undefined) eventUpdate.vendorName = vendorName;
-      if (lifespanImpact !== undefined) eventUpdate.lifespanImpact = lifespanImpact;
-      if (warranty !== undefined) eventUpdate.warranty = warranty;
+      const fieldUpdate: Record<string, unknown> = {};
+      if (eventType !== undefined) fieldUpdate.eventType = eventType;
+      if (eventDate !== undefined) fieldUpdate.eventDate = eventDate;
+      if (workDescription !== undefined) fieldUpdate.workDescription = workDescription;
+      if (cost !== undefined) fieldUpdate.cost = cost === null ? null : String(cost);
+      if (vendorId !== undefined) fieldUpdate.vendorId = vendorId;
+      if (vendorName !== undefined) fieldUpdate.vendorName = vendorName;
+      if (lifespanImpact !== undefined) fieldUpdate.lifespanImpact = lifespanImpact;
+      if (warranty !== undefined) fieldUpdate.warranty = warranty;
+
+      // Build structured before/after diff for the audit log.
+      const normalizeCost = (v: unknown): string | null =>
+        v == null ? null : parseFloat(String(v)).toString();
+      const diffFields: Record<string, { before: unknown; after: unknown }> = {};
+
+      if ('eventType' in fieldUpdate && fieldUpdate.eventType !== existing.eventType) {
+        diffFields.eventType = { before: existing.eventType, after: fieldUpdate.eventType };
+      }
+      if ('eventDate' in fieldUpdate && fieldUpdate.eventDate !== existing.eventDate) {
+        diffFields.eventDate = { before: existing.eventDate, after: fieldUpdate.eventDate };
+      }
+      if ('workDescription' in fieldUpdate && fieldUpdate.workDescription !== existing.workDescription) {
+        diffFields.workDescription = { before: existing.workDescription, after: fieldUpdate.workDescription };
+      }
+      if ('cost' in fieldUpdate && normalizeCost(fieldUpdate.cost) !== normalizeCost(existing.cost)) {
+        diffFields.cost = { before: existing.cost, after: fieldUpdate.cost };
+      }
+      if ('vendorId' in fieldUpdate && fieldUpdate.vendorId !== existing.vendorId) {
+        diffFields.vendorId = { before: existing.vendorId, after: fieldUpdate.vendorId };
+      }
+      if ('vendorName' in fieldUpdate && fieldUpdate.vendorName !== existing.vendorName) {
+        diffFields.vendorName = { before: existing.vendorName, after: fieldUpdate.vendorName };
+      }
+      if ('lifespanImpact' in fieldUpdate && fieldUpdate.lifespanImpact !== existing.lifespanImpact) {
+        diffFields.lifespanImpact = { before: existing.lifespanImpact, after: fieldUpdate.lifespanImpact };
+      }
+      if ('warranty' in fieldUpdate) {
+        const beforeJson = JSON.stringify(existing.warranty ?? null);
+        const afterJson = JSON.stringify(fieldUpdate.warranty ?? null);
+        if (beforeJson !== afterJson) {
+          diffFields.warranty = { before: existing.warranty, after: fieldUpdate.warranty };
+        }
+      }
+
       // Detect a change to lifespanImpact so we can adjust currentLifespan in
       // the same transaction. We treat omitted (undefined) as "no change",
       // and treat both `null` and `undefined` storage as 0 when computing
@@ -4411,6 +4450,19 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
         ? oldImpact
         : (lifespanImpact ?? 0);
       const lifespanDelta = lifespanProvided ? newImpact - oldImpact : 0;
+
+      // No-op: nothing actually changed — return the existing row and skip the transaction.
+      if (Object.keys(diffFields).length === 0 && !lifespanProvided) {
+        return { content: [{ type: "text" as const, text: JSON.stringify({ event: existing, updatedElement: null }, null, 2) }] };
+      }
+
+      // Stamp edit attribution only when there are field changes.
+      const eventUpdate: Record<string, unknown> = { ...fieldUpdate };
+      if (Object.keys(diffFields).length > 0) {
+        eventUpdate.updatedAt = new Date();
+        eventUpdate.updatedBy = actingUserId;
+      }
+
       try {
         const result = await withRetryableDbCall(() => db.transaction(async (tx) => {
           let updatedEvent = existing;
@@ -4421,6 +4473,19 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
               .where(eq(schema.elementHistory.id, historyId))
               .returning();
             if (row) updatedEvent = row;
+          }
+          // Write audit log row when there are field-level changes.
+          if (Object.keys(diffFields).length > 0) {
+            const auditChanges: Record<string, unknown> = { ...diffFields };
+            // Mark legacy MCP_API_KEY sessions (no bound user) in metadata.
+            if (!actingUserId) {
+              auditChanges.meta = { system: true, source: 'mcp_api_key' };
+            }
+            await tx.insert(schema.elementHistoryAuditLog).values({
+              historyId,
+              performedBy: actingUserId,
+              changes: auditChanges,
+            });
           }
           let updatedElement: { id: string; currentLifespan: number | null } | null = null;
           if (lifespanProvided && lifespanDelta !== 0) {

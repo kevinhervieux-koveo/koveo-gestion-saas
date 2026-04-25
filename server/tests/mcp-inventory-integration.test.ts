@@ -1594,6 +1594,88 @@ describeIfDb('MCP inventory tools — real Postgres', () => {
       expect(row!.currentLifespan).toBe(initialLifespan);
       expect(row!.lifespanImpact).toBeNull();
     }, 30000);
+
+    // Audit log tests (Task #987)
+    it('writes an audit log row with the correct before/after diff on a field-changing update', async () => {
+      const { historyId } = await seedElementWithHistory({
+        initialLifespan: 10,
+        historyImpact: 0,
+        eventType: 'repair',
+        cost: '500.00',
+      });
+
+      const handler = getToolHandler(server, 'update_element_history_event');
+      await handler(
+        {
+          role: 'admin',
+          historyId,
+          workDescription: 'updated description for audit test',
+          cost: 750,
+        },
+        {},
+      );
+
+      // The history row should have updatedAt stamped.
+      const [histRow] = await db
+        .select({
+          updatedAt: schema.elementHistory.updatedAt,
+          updatedBy: schema.elementHistory.updatedBy,
+        })
+        .from(schema.elementHistory)
+        .where(eq(schema.elementHistory.id, historyId));
+      expect(histRow!.updatedAt).not.toBeNull();
+
+      // An audit log row must have been written.
+      const auditRows = await db
+        .select()
+        .from(schema.elementHistoryAuditLog)
+        .where(eq(schema.elementHistoryAuditLog.historyId, historyId));
+      expect(auditRows).toHaveLength(1);
+
+      const changes = auditRows[0]!.changes as Record<string, { before: unknown; after: unknown }>;
+      // workDescription field changed.
+      expect(changes.workDescription).toBeDefined();
+      expect(changes.workDescription.before).toBe('edit-test seed event');
+      expect(changes.workDescription.after).toBe('updated description for audit test');
+      // cost field changed (stored as string, incoming as number → normalized).
+      expect(changes.cost).toBeDefined();
+    }, 30000);
+
+    it('does NOT write an audit log row when the update carries no actual changes (no-op)', async () => {
+      const { historyId } = await seedElementWithHistory({
+        initialLifespan: 10,
+        historyImpact: 0,
+        eventType: 'repair',
+        cost: '200.00',
+      });
+
+      // First read to get the stored workDescription.
+      const [before] = await db
+        .select({ workDescription: schema.elementHistory.workDescription })
+        .from(schema.elementHistory)
+        .where(eq(schema.elementHistory.id, historyId));
+
+      const handler = getToolHandler(server, 'update_element_history_event');
+      // Pass the exact same workDescription — this is a no-op.
+      await handler(
+        { role: 'admin', historyId, workDescription: before!.workDescription },
+        {},
+      );
+
+      // updatedAt must remain null (row never edited).
+      const [after] = await db
+        .select({ updatedAt: schema.elementHistory.updatedAt })
+        .from(schema.elementHistory)
+        .where(eq(schema.elementHistory.id, historyId));
+      expect(after!.updatedAt).toBeNull();
+
+      // No audit log row.
+      const auditRows = await db
+        .select({ id: schema.elementHistoryAuditLog.id })
+        .from(schema.elementHistoryAuditLog)
+        .where(eq(schema.elementHistoryAuditLog.historyId, historyId));
+      expect(auditRows).toHaveLength(0);
+    }, 30000);
   });
 
   describe('delete_element_history_event', () => {
