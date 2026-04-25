@@ -20,7 +20,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { createHash } from 'crypto';
 import * as fs from 'fs';
-import { logError, logInfo } from '../utils/logger';
+import { logError, logInfo, logWarn } from '../utils/logger';
 import type { BulkImportFallbackReason } from '../../shared/schemas/bulk-import';
 import {
   getCachedSuggestion,
@@ -407,6 +407,7 @@ async function callClaudeJson<T>(
   prompt: string,
   source?: AnalyzerFileSource,
   step?: AnalyzerStep,
+  logContext?: { originalName?: string; itemId?: string; sessionId?: string },
 ): Promise<{ data: T | null; fallbackReason: BulkImportFallbackReason | null }> {
   const c = getClient();
   // No Anthropic client = no AI run at all. Tag the result with
@@ -460,7 +461,22 @@ async function callClaudeJson<T>(
       .join('\n')
       .trim();
     const match = text.match(/\{[\s\S]*\}/);
-    if (!match) return { data: null, fallbackReason };
+    if (!match) {
+      // Anthropic replied but the response contained no JSON object.
+      // Tag with a distinct per-file reason so the UI shows "AI response
+      // unreadable" rather than a generic low-confidence badge, and
+      // preserve any earlier per-file reason set during file loading.
+      const noMatchReason = fallbackReason ?? 'unreadable_response';
+      logWarn('[bulkImportAnalyzer] per-file AI response contained no JSON', {
+        metadata: {
+          step,
+          originalName: logContext?.originalName,
+          itemId: logContext?.itemId,
+          sessionId: logContext?.sessionId,
+        },
+      });
+      return { data: null, fallbackReason: noMatchReason };
+    }
     const parsed = JSON.parse(match[0]) as T;
     const result = { data: parsed, fallbackReason };
     if (cacheKey) {
@@ -474,8 +490,21 @@ async function callClaudeJson<T>(
     }
     return result;
   } catch (err) {
-    logError('[bulkImportAnalyzer] anthropic call failed', err as Error);
-    return { data: null, fallbackReason };
+    // The Anthropic call threw (network, timeout, rate-limit, non-2xx).
+    // Tag with a distinct per-file reason and preserve any earlier
+    // per-file reason set during file loading (e.g. oversize, missing_file).
+    const apiErrReason = fallbackReason ?? 'api_error';
+    const e = err as Error & { status?: number };
+    logError('[bulkImportAnalyzer] per-file AI call failed', e, {
+      metadata: {
+        step,
+        originalName: logContext?.originalName,
+        itemId: logContext?.itemId,
+        sessionId: logContext?.sessionId,
+        errorStatus: e.status ?? null,
+      },
+    });
+    return { data: null, fallbackReason: apiErrReason };
   }
 }
 
@@ -490,8 +519,8 @@ function fallbackQuickAnalysis(
 ): QuickAnalysis {
   return {
     typeGuess: 'unknown',
-    bucketGuess: 'building_documents',
-    reason: 'Deterministic stub — AI unavailable.',
+    bucketGuess: 'unknown',
+    reason: 'AI did not analyze this file.',
     confidence: 0.2,
     fallbackReason,
   };
@@ -553,6 +582,8 @@ export const bulkImportAnalyzer = {
     fileSize?: number | null;
     stagedPath?: string | null;
     buffer?: Buffer | null;
+    itemId?: string;
+    sessionId?: string;
   }): Promise<ScreeningResult> {
     const prompt = `Analyze this uploaded document for a property-management bulk import.
 Filename: ${input.originalName}
@@ -579,6 +610,7 @@ Return JSON with keys:
         mimeType: input.mimeType,
       },
       'screen',
+      { originalName: input.originalName, itemId: input.itemId, sessionId: input.sessionId },
     );
     if (!raw) return fallbackScreening(input.originalName, fallbackReason);
     return {
@@ -606,6 +638,8 @@ Return JSON with keys:
     stagedPath?: string | null;
     buffer?: Buffer | null;
     mimeType?: string | null;
+    itemId?: string;
+    sessionId?: string;
   }): Promise<MergeOrSplitResult> {
     const siblingLines = input.siblings
       .map((s) => {
@@ -648,6 +682,7 @@ Return JSON: { decision: 'keep'|'merge'|'split', reason: string, mergeWithItemId
         mimeType: input.mimeType,
       },
       'merge-or-split',
+      { originalName: input.originalName, itemId: input.itemId, sessionId: input.sessionId },
     );
     if (!raw) {
       return { decision: 'keep', reason: 'fallback', confidence: 0.2, fallbackReason };
@@ -672,6 +707,8 @@ Return JSON: { decision: 'keep'|'merge'|'split', reason: string, mergeWithItemId
     buffer?: Buffer | null;
     mimeType?: string | null;
     residences?: Array<{ id: string; unitNumber: string }>;
+    itemId?: string;
+    sessionId?: string;
   }): Promise<BranchResult> {
     const residenceLines = (input.residences ?? [])
       .map((r) => `  - id="${r.id}" unit="${r.unitNumber}"`)
@@ -704,6 +741,7 @@ Return JSON: { branch: string, subCategory: string, residenceHint?: string, reas
         mimeType: input.mimeType,
       },
       'branch',
+      { originalName: input.originalName, itemId: input.itemId, sessionId: input.sessionId },
     );
     const allowed: BranchDestination[] = [
       'building_documents',
@@ -774,6 +812,8 @@ Return JSON: { branch: string, subCategory: string, residenceHint?: string, reas
     stagedPath?: string | null;
     buffer?: Buffer | null;
     mimeType?: string | null;
+    itemId?: string;
+    sessionId?: string;
   }): Promise<IdentificationResult> {
     const prompt = `Extract metadata for a document being filed under "${input.branch ?? 'building_documents'}".
 Filename: ${input.originalName}
@@ -788,6 +828,7 @@ effectiveDate?: 'YYYY-MM-DD', metadata: object, confidence: number }.`;
         mimeType: input.mimeType,
       },
       'identify',
+      { originalName: input.originalName, itemId: input.itemId, sessionId: input.sessionId },
     );
     if (!raw) {
       return {
@@ -820,6 +861,8 @@ effectiveDate?: 'YYYY-MM-DD', metadata: object, confidence: number }.`;
     stagedPath?: string | null;
     buffer?: Buffer | null;
     mimeType?: string | null;
+    itemId?: string;
+    sessionId?: string;
   }): Promise<LinkSuggestion> {
     const prompt = `Find related documents for "${input.originalName}" from the candidates: ${JSON.stringify(
       input.candidates,
@@ -833,6 +876,7 @@ relatedItemIds: string[], reason: string, confidence: number }.`;
         mimeType: input.mimeType,
       },
       'links',
+      { originalName: input.originalName, itemId: input.itemId, sessionId: input.sessionId },
     );
     if (!raw) {
       return { relatedItemIds: [], reason: 'fallback', confidence: 0.2, fallbackReason };

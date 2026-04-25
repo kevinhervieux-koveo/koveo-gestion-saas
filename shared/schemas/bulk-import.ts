@@ -278,21 +278,28 @@ export type ConfidenceBand = 'low' | 'medium' | 'high';
  * explain *why* a result came back with low confidence instead of
  * showing a generic low-confidence badge.
  *
- * - `oversize`           — the file is larger than the analyzer's cap.
- * - `unsupported_mime`   — the MIME type isn't one we know how to send.
- * - `extraction_failed`  — mammoth/xlsx extraction threw an error.
- * - `missing_file`       — the staged path could not be read.
- * - `no_api_key`         — Anthropic is not configured, so the analyzer
+ * - `oversize`            — the file is larger than the analyzer's cap.
+ * - `unsupported_mime`    — the MIME type isn't one we know how to send.
+ * - `extraction_failed`   — mammoth/xlsx extraction threw an error.
+ * - `missing_file`        — the staged path could not be read.
+ * - `no_api_key`          — Anthropic is not configured, so the analyzer
  *   never ran and every result is a deterministic stub. Distinct from
  *   the per-file reasons above because the cause is environmental, not
  *   per-document, and admins should fix the deployment, not the file.
+ * - `api_error`           — the Anthropic call threw (network, timeout,
+ *   rate limit, or non-2xx HTTP). The API was reachable for other files
+ *   in the batch; this failure is per-file.
+ * - `unreadable_response` — the Anthropic call returned but no JSON
+ *   object could be extracted from the response text.
  */
 export type BulkImportFallbackReason =
   | 'oversize'
   | 'unsupported_mime'
   | 'extraction_failed'
   | 'missing_file'
-  | 'no_api_key';
+  | 'no_api_key'
+  | 'api_error'
+  | 'unreadable_response';
 
 export function bandForConfidence(confidence: number | null | undefined): ConfidenceBand {
   if (confidence == null || Number.isNaN(confidence)) return 'low';

@@ -247,6 +247,8 @@ async function processItemForStep(
       mimeType: item.mimeType,
       fileSize: item.fileSize,
       stagedPath: item.stagedPath,
+      itemId: item.id,
+      sessionId: item.sessionId,
     });
 
     // Apply rotation in place so Branching and all later steps read
@@ -312,6 +314,8 @@ async function processItemForStep(
       isMultiDocument: myIsMultiDocument,
       stagedPath: item.stagedPath,
       mimeType: item.mimeType,
+      itemId: item.id,
+      sessionId: item.sessionId,
     });
     const [updated] = await db
       .update(schema.bulkImportItems)
@@ -333,6 +337,8 @@ async function processItemForStep(
       stagedPath: item.stagedPath,
       mimeType: item.mimeType,
       residences,
+      itemId: item.id,
+      sessionId: item.sessionId,
     });
     // Preserve any existing residenceManualOverride the admin may have
     // set on a prior attempt; only overwrite the AI-generated fields.
@@ -368,6 +374,8 @@ async function processItemForStep(
       branch,
       stagedPath: item.stagedPath,
       mimeType: item.mimeType,
+      itemId: item.id,
+      sessionId: item.sessionId,
     });
     const [updated] = await db
       .update(schema.bulkImportItems)
@@ -386,6 +394,8 @@ async function processItemForStep(
     candidates: sessionItems.filter((c) => c.id !== item.id),
     stagedPath: item.stagedPath,
     mimeType: item.mimeType,
+    itemId: item.id,
+    sessionId: item.sessionId,
   });
   const [updated] = await db
     .update(schema.bulkImportItems)

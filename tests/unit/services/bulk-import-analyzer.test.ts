@@ -874,14 +874,16 @@ describe('Task #767 — quickAnalysis in Screening + Branching prompt', () => {
       // reset to fake client for subsequent suites
     });
 
-    it('fallback stub has quickAnalysis with typeGuess=unknown and bucketGuess=building_documents', async () => {
+    it('fallback stub has quickAnalysis with typeGuess=unknown and bucketGuess=unknown (Task #801)', async () => {
       const r = await bulkImportAnalyzer.screen({
         originalName: 'stub.pdf',
         mimeType: 'application/pdf',
       });
       expect(r.quickAnalysis).toBeDefined();
       expect(r.quickAnalysis.typeGuess).toBe('unknown');
-      expect(r.quickAnalysis.bucketGuess).toBe('building_documents');
+      // Task #801: stub no longer claims 'building_documents' — it uses 'unknown'
+      // so the AI ANALYSIS panel does not show a fake bucket when the AI never ran.
+      expect(r.quickAnalysis.bucketGuess).toBe('unknown');
       expect(r.quickAnalysis.confidence).toBe(0.2);
       expect(r.quickAnalysis.fallbackReason).toBe('no_api_key');
     });
@@ -1072,5 +1074,167 @@ describe('Task #767 — quickAnalysis in Screening + Branching prompt', () => {
         .join('\n');
       expect(sentPrompt).toContain('legacy.pdf');
     });
+  });
+});
+
+describe('bulkImportAnalyzer per-file AI failure tagging (Task #801)', () => {
+  // Covers the two new BulkImportFallbackReason values:
+  //   api_error         — Anthropic call threw (network / timeout / rate-limit)
+  //   unreadable_response — call returned but no JSON could be extracted
+  // and the corrected deterministic stub (bucketGuess 'unknown', user-friendly
+  // reason text) that was previously using 'building_documents' + developer text.
+  let tmpDir: string;
+
+  beforeAll(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'bulk-import-ai-failure-test-'));
+  });
+  afterAll(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+    bulkImportAnalyzer.__setClientForTests(null);
+  });
+  beforeEach(() => {
+    cacheMockStore.clear();
+    getCachedMock.mockClear();
+    setCachedMock.mockClear();
+  });
+
+  function makeThrowingClient(error: Error) {
+    const create = jest.fn().mockRejectedValue(error);
+    const fakeClient = {
+      messages: { create },
+    } as unknown as Parameters<typeof bulkImportAnalyzer.__setClientForTests>[0];
+    bulkImportAnalyzer.__setClientForTests(fakeClient);
+    return create;
+  }
+
+  function makeUnparsableClient(responseText: string) {
+    const create = jest.fn().mockResolvedValue({
+      content: [{ type: 'text', text: responseText }],
+    });
+    const fakeClient = {
+      messages: { create },
+    } as unknown as Parameters<typeof bulkImportAnalyzer.__setClientForTests>[0];
+    bulkImportAnalyzer.__setClientForTests(fakeClient);
+    return create;
+  }
+
+  it("catch path tags screen() result with 'api_error' when Anthropic throws", async () => {
+    const pdfPath = path.join(tmpDir, 'throw-screen.pdf');
+    fs.writeFileSync(pdfPath, Buffer.from('%PDF-1.4 body'));
+    makeThrowingClient(new Error('network timeout'));
+
+    const r = await bulkImportAnalyzer.screen({
+      originalName: 'throw.pdf',
+      mimeType: 'application/pdf',
+      stagedPath: pdfPath,
+    });
+
+    expect(r.fallbackReason).toBe('api_error');
+    // Should still return a usable result (the stub)
+    expect(r.confidence).toBe(0.2);
+  });
+
+  it("catch path preserves earlier per-file reason ('oversize') and does not overwrite with 'api_error'", async () => {
+    makeThrowingClient(new Error('some upstream error'));
+
+    // Oversize buffer forces the oversize branch *before* the call is made.
+    // Even though the client would throw, oversize is the root cause.
+    const OVERSIZE = 25 * 1024 * 1024 + 1;
+    const r = await bulkImportAnalyzer.screen({
+      originalName: 'big.pdf',
+      mimeType: 'application/pdf',
+      buffer: Buffer.alloc(OVERSIZE, 0),
+    });
+
+    // The Anthropic client never ran (oversize short-circuits before the call),
+    // so fallbackReason should be 'oversize', not 'api_error'.
+    expect(r.fallbackReason).toBe('oversize');
+  });
+
+  it("no-JSON response tags screen() result with 'unreadable_response'", async () => {
+    const pdfPath = path.join(tmpDir, 'no-json-screen.pdf');
+    fs.writeFileSync(pdfPath, Buffer.from('%PDF-1.4 body'));
+    makeUnparsableClient('Sorry, I cannot analyze this file. It appears to be encrypted.');
+
+    const r = await bulkImportAnalyzer.screen({
+      originalName: 'no-json.pdf',
+      mimeType: 'application/pdf',
+      stagedPath: pdfPath,
+    });
+
+    expect(r.fallbackReason).toBe('unreadable_response');
+    expect(r.confidence).toBe(0.2);
+  });
+
+  it("no-JSON response tags suggestMergeOrSplit() result with 'unreadable_response'", async () => {
+    const pdfPath = path.join(tmpDir, 'no-json-sort.pdf');
+    fs.writeFileSync(pdfPath, Buffer.from('%PDF-1.4 body'));
+    makeUnparsableClient('No parseable response here');
+
+    const r = await bulkImportAnalyzer.suggestMergeOrSplit({
+      originalName: 'no-json-sort.pdf',
+      siblings: [],
+      mimeType: 'application/pdf',
+      stagedPath: pdfPath,
+    });
+
+    expect(r.fallbackReason).toBe('unreadable_response');
+    expect(r.decision).toBe('keep');
+  });
+
+  it("catch path tags suggestLinks() result with 'api_error'", async () => {
+    const pdfPath = path.join(tmpDir, 'throw-links.pdf');
+    fs.writeFileSync(pdfPath, Buffer.from('%PDF-1.4 body'));
+    makeThrowingClient(new Error('rate limit exceeded'));
+
+    const r = await bulkImportAnalyzer.suggestLinks({
+      originalName: 'throw-links.pdf',
+      candidates: [{ id: '1', name: 'other.pdf' }],
+      mimeType: 'application/pdf',
+      stagedPath: pdfPath,
+    });
+
+    expect(r.fallbackReason).toBe('api_error');
+    expect(r.relatedItemIds).toEqual([]);
+  });
+
+  it("screening fallback stub now uses bucketGuess 'unknown' (not 'building_documents')", async () => {
+    // The no-client path returns the deterministic stub directly.
+    bulkImportAnalyzer.__setClientForTests(null);
+
+    const r = await bulkImportAnalyzer.screen({
+      originalName: 'stub.pdf',
+      mimeType: 'application/pdf',
+    });
+
+    expect(r.quickAnalysis.bucketGuess).toBe('unknown');
+    expect(r.fallbackReason).toBe('no_api_key');
+  });
+
+  it("screening fallback stub reason text is user-facing (not 'Deterministic stub — AI unavailable.')", async () => {
+    bulkImportAnalyzer.__setClientForTests(null);
+
+    const r = await bulkImportAnalyzer.screen({
+      originalName: 'stub2.pdf',
+      mimeType: 'application/pdf',
+    });
+
+    expect(r.quickAnalysis.reason).not.toContain('Deterministic stub');
+    expect(r.quickAnalysis.reason).toContain('AI did not analyze');
+  });
+
+  it("'api_error' stub from screen() also carries bucketGuess 'unknown'", async () => {
+    const pdfPath = path.join(tmpDir, 'throw-bucket.pdf');
+    fs.writeFileSync(pdfPath, Buffer.from('%PDF-1.4 body'));
+    makeThrowingClient(new Error('timeout'));
+
+    const r = await bulkImportAnalyzer.screen({
+      originalName: 'api-err.pdf',
+      mimeType: 'application/pdf',
+      stagedPath: pdfPath,
+    });
+
+    expect(r.fallbackReason).toBe('api_error');
+    expect(r.quickAnalysis.bucketGuess).toBe('unknown');
   });
 });

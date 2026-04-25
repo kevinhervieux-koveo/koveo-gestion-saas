@@ -317,6 +317,7 @@ function ItemThumbnail({ item }: { item: { id: string; mimeType?: string | null;
  * reason without re-parsing the `screening` JSON blob (Task #782).
  */
 type HistoryBulkImportItem = BulkImportItem & {
+  screeningFallback: BulkImportFallbackReason | null;
   screeningTypeGuess: string | null;
   screeningBucketGuess: string | null;
   screeningQaReason: string | null;
@@ -719,7 +720,9 @@ function HistorySessionRow({
                               <span className="mr-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                                 {isFr ? 'Raison' : 'Reason'}:
                               </span>
-                              {item.screeningQaReason}
+                              {item.screeningFallback
+                                ? (isFr ? "L\u2019IA n\u2019a pas analys\u00e9 ce fichier." : 'AI did not analyze this file.')
+                                : item.screeningQaReason}
                             </p>
                           )}
                         </div>
@@ -2361,6 +2364,14 @@ export default function BulkDocumentImportPage() {
                                             <>
                                               <FallbackReasonBadge reason={decision?.fallbackReason} isFr={isFr} />
                                               <ConfidenceBadge value={decision?.confidence} fallbackReason={decision?.fallbackReason} isFr={isFr} />
+                                              {decision?.fallbackReason && (
+                                                <span
+                                                  className="text-xs text-muted-foreground italic"
+                                                  data-testid={`hint-review-or-exclude-${item.id}`}
+                                                >
+                                                  {isFr ? 'Vérifiez ce fichier ou excluez-le' : 'Review or exclude this file'}
+                                                </span>
+                                              )}
                                             </>
                                           )}
                                           <Button
@@ -2791,6 +2802,14 @@ export default function BulkDocumentImportPage() {
                                     fallbackReason={decision?.fallbackReason}
                                     isFr={isFr}
                                   />
+                                  {decision?.fallbackReason && (
+                                    <span
+                                      className="text-xs text-muted-foreground italic"
+                                      data-testid={`hint-review-or-exclude-${item.id}`}
+                                    >
+                                      {isFr ? 'Vérifiez ce fichier ou excluez-le' : 'Review or exclude this file'}
+                                    </span>
+                                  )}
                                 </>
                               )}
                               {showRetry && retryAction && (
@@ -2934,7 +2953,9 @@ export default function BulkDocumentImportPage() {
                                     <span className="mr-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                                       {isFr ? 'Raison' : 'Reason'}:
                                     </span>
-                                    {item.screeningQaReason}
+                                    {item.screeningFallback
+                                      ? (isFr ? "L\u2019IA n\u2019a pas analys\u00e9 ce fichier." : 'AI did not analyze this file.')
+                                      : item.screeningQaReason}
                                   </p>
                                 )}
                               </div>

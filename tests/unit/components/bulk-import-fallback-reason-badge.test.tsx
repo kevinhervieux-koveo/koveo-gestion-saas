@@ -11,6 +11,7 @@ import type { BulkImportFallbackReason } from '../../../shared/schemas/bulk-impo
  * If a copy refactor or a missed branch in the badge mapping silently
  * changes what admins see during a bulk import, this suite fails — closing
  * the gap that the analyzer-side regression tests cannot cover (Task #523).
+ * Task #801 adds api_error and unreadable_response.
  */
 
 const REASONS: ReadonlyArray<{
@@ -21,7 +22,7 @@ const REASONS: ReadonlyArray<{
   {
     reason: 'oversize',
     en: 'File too large to analyze',
-    fr: 'Fichier trop volumineux pour l’analyse',
+    fr: 'Fichier trop volumineux pour l\u2019analyse',
   },
   {
     reason: 'unsupported_mime',
@@ -42,6 +43,16 @@ const REASONS: ReadonlyArray<{
     reason: 'no_api_key',
     en: 'AI unavailable',
     fr: 'IA indisponible',
+  },
+  {
+    reason: 'api_error',
+    en: 'AI service error',
+    fr: 'Erreur du service IA',
+  },
+  {
+    reason: 'unreadable_response',
+    en: 'AI response unreadable',
+    fr: 'R\u00e9ponse de l\u2019IA illisible',
   },
 ];
 
@@ -88,6 +99,8 @@ describe('FallbackReasonBadge (bulk-document-import)', () => {
       extraction_failed: true,
       missing_file: true,
       no_api_key: true,
+      api_error: true,
+      unreadable_response: true,
     };
     const covered = new Set(REASONS.map((r) => r.reason));
     for (const key of Object.keys(exhaustive) as BulkImportFallbackReason[]) {

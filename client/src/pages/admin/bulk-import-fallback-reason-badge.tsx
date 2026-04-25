@@ -6,14 +6,18 @@ const FALLBACK_REASON_LABEL_EN: Record<BulkImportFallbackReason, string> = {
   extraction_failed: 'Could not extract document text',
   missing_file: 'Staged file unreadable',
   no_api_key: 'AI unavailable',
+  api_error: 'AI service error',
+  unreadable_response: 'AI response unreadable',
 };
 
 const FALLBACK_REASON_LABEL_FR: Record<BulkImportFallbackReason, string> = {
-  oversize: 'Fichier trop volumineux pour l’analyse',
+  oversize: "Fichier trop volumineux pour l\u2019analyse",
   unsupported_mime: 'Type de fichier non pris en charge',
   extraction_failed: 'Extraction du texte impossible',
   missing_file: 'Fichier en attente illisible',
   no_api_key: 'IA indisponible',
+  api_error: 'Erreur du service IA',
+  unreadable_response: "R\u00e9ponse de l\u2019IA illisible",
 };
 
 export const FALLBACK_REASON_LABELS = {
