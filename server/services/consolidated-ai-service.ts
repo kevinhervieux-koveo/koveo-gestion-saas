@@ -127,6 +127,27 @@ export class ConsolidatedAIService extends BaseService {
     return apiKey;
   }
 
+  /**
+   * Whether the Gemini-backed AI features (bill extraction, document
+   * analysis, payment-schedule suggestion, etc.) can currently make
+   * real API calls. Returns false when `GEMINI_API_KEY` is missing or
+   * the SDK fails to initialise — in which case the affected admin
+   * pages render a single page-level "AI unavailable" banner instead
+   * of letting users believe the heuristic fallbacks are real AI
+   * output (Task #715).
+   *
+   * This intentionally does not throw and does not perform any network
+   * I/O so it is safe to call from a lightweight `/api/ai/status`
+   * health probe on every page load.
+   */
+  isAiAvailable(): boolean {
+    if (!process.env.GEMINI_API_KEY) return false;
+    if (!this.apiKeyChecked) {
+      this.initializeAI();
+    }
+    return this.genAI !== null;
+  }
+
   // ====================
   // FEATURE ANALYSIS
   // ====================

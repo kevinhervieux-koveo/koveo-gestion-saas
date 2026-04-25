@@ -246,6 +246,30 @@ function generateContextPrompt(formType: string, uploadContext?: UploadContext):
  */
 export function registerAiAnalysisRoutes(app: import('../utils/lazy-mount').RouteRegistry) {
   /**
+   * GET /api/ai/status
+   *
+   * Lightweight health probe for the Gemini-backed AI features powering
+   * the bill extractor, the document analyzer, and the payment-schedule
+   * suggester. Returns `{ available: false }` when `GEMINI_API_KEY` is
+   * missing or the SDK fails to initialise so each affected page can
+   * render the same single page-level "AI unavailable" banner instead
+   * of letting users believe the heuristic fallbacks are real AI
+   * output (Task #715).
+   *
+   * No payload validation; no DB hits; auth-gated only so we don't
+   * leak deployment configuration to anonymous traffic. Mirrors the
+   * shape used by `/api/admin/bulk-import/ai-status` from Task #710 so
+   * the frontend banner component can consume both endpoints
+   * interchangeably.
+   */
+  app.get('/api/ai/status',
+    requireAuth,
+    async (_req: any, res: any) => {
+      return res.json({ available: aiService.isAiAvailable() });
+    }
+  );
+
+  /**
    * POST /api/ai/analyze-document
    * Analyze uploaded document using AI
    */

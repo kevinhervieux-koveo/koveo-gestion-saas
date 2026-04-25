@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { format as formatDate } from 'date-fns';
 import { Header } from '@/components/layout/header';
+import { AiUnavailableBanner } from '@/components/common/AiUnavailableBanner';
 import { DocumentInlineViewer } from '@/components/common/DocumentInlineViewer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -561,6 +562,15 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
 
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-7xl mx-auto space-y-6'>
+          {/* AI unavailability banner (Task #715). The bill page hosts
+              both the Gemini bill extractor and the apply-AI-analysis
+              flow that calls suggestPaymentSchedule, so when the
+              analyzer is offline both surfaces silently fall back to
+              filename-only / heuristic results. Surface that once at
+              the top of the page using the same pattern as the Bulk
+              Document Import banner from Task #710. */}
+          <AiUnavailableBanner testId="alert-ai-unavailable-bills" />
+
           {/* Collapsible Filters Section */}
           <CollapsibleFilters
             title={t('filters')}

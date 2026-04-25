@@ -26,6 +26,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { Header } from '@/components/layout/header';
+import { AiUnavailableBanner } from '@/components/common/AiUnavailableBanner';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useLanguage } from '@/hooks/use-language';
 import { useToast } from '@/hooks/use-toast';
@@ -899,6 +900,16 @@ export default function ModularDocumentPageWrapper({
 
       <div className="flex-1 overflow-auto p-6">
         <div className="max-w-7xl mx-auto space-y-6">
+
+          {/* AI unavailability banner (Task #715). The document upload
+              dialogs on this page call /api/ai/analyze-document for
+              automatic tag / category suggestions. When Gemini is not
+              configured those calls silently degrade to filename-only
+              heuristics, so admins should see a single page-level
+              warning instead of being misled by confident-looking
+              suggestions. Mirrors the Bulk Document Import banner
+              from Task #710. */}
+          <AiUnavailableBanner testId="alert-ai-unavailable-documents" />
 
           {/* Filters and Search Section */}
           <Card>
