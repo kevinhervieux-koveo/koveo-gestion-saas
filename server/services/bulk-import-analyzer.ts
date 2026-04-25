@@ -126,14 +126,26 @@ export interface SiblingContext {
   quickAnalysis?: QuickAnalysis | null;
 }
 
+export type BranchDestination =
+  | 'building_documents'
+  | 'residence_documents'
+  | 'demand'
+  | 'bill'
+  | 'maintenance'
+  | 'other';
+
+export const BRANCH_SUB_CATEGORIES: Record<BranchDestination, readonly string[]> = {
+  building_documents: ['bylaws', 'minutes', 'insurance', 'financial_statement', 'contract', 'correspondence', 'other'],
+  residence_documents: ['lease', 'inspection', 'correspondence', 'key_handover', 'other'],
+  bill: ['utility', 'insurance', 'tax', 'maintenance_invoice', 'condo_fee', 'other'],
+  demand: ['complaint', 'request', 'legal_notice', 'other'],
+  maintenance: ['work_order', 'quote', 'inspection_report', 'inventory', 'other'],
+  other: ['other'],
+} as const;
+
 export interface BranchResult extends AnalyzerConfidence {
-  branch:
-    | 'building_documents'
-    | 'residence_documents'
-    | 'demand'
-    | 'bill'
-    | 'maintenance'
-    | 'other';
+  branch: BranchDestination;
+  subCategory: string;
   residenceHint?: string;
   reason: string;
 }
@@ -659,9 +671,18 @@ Return JSON: { decision: 'keep'|'merge'|'split', reason: string, mergeWithItemId
     const prompt = `Choose the best destination for this document inside a property-management app.
 Filename: ${input.originalName}
 Description: ${input.description ?? ''}
-Return JSON: { branch: 'building_documents'|'residence_documents'|'demand'|'bill'|'maintenance'|'other',
-residenceHint?: string, reason: string, confidence: number }.`;
-    const { data: raw, fallbackReason } = await callClaudeJson<Partial<BranchResult>>(
+
+Destinations: building_documents | residence_documents | demand | bill | maintenance | other
+Sub-categories per destination:
+  building_documents: bylaws | minutes | insurance | financial_statement | contract | correspondence | other
+  residence_documents: lease | inspection | correspondence | key_handover | other
+  bill: utility | insurance | tax | maintenance_invoice | condo_fee | other
+  demand: complaint | request | legal_notice | other
+  maintenance: work_order | quote | inspection_report | inventory | other
+  other: other
+
+Return JSON: { branch: string, subCategory: string, residenceHint?: string, reason: string, confidence: number }.`;
+    const { data: raw, fallbackReason } = await callClaudeJson<Partial<BranchResult & { subCategory: string }>>(
       prompt,
       {
         stagedPath: input.stagedPath,
@@ -670,7 +691,7 @@ residenceHint?: string, reason: string, confidence: number }.`;
       },
       'branch',
     );
-    const allowed: BranchResult['branch'][] = [
+    const allowed: BranchDestination[] = [
       'building_documents',
       'residence_documents',
       'demand',
@@ -679,12 +700,19 @@ residenceHint?: string, reason: string, confidence: number }.`;
       'other',
     ];
     if (!raw) {
-      return { branch: 'building_documents', reason: 'fallback', confidence: 0.2, fallbackReason };
+      return { branch: 'building_documents', subCategory: 'other', reason: 'fallback', confidence: 0.2, fallbackReason };
     }
+    const branch: BranchDestination = allowed.includes(raw.branch as BranchDestination)
+      ? (raw.branch as BranchDestination)
+      : 'building_documents';
+    const allowedSubCats = BRANCH_SUB_CATEGORIES[branch] as readonly string[];
+    const subCategory: string =
+      typeof raw.subCategory === 'string' && allowedSubCats.includes(raw.subCategory)
+        ? raw.subCategory
+        : 'other';
     return {
-      branch: allowed.includes(raw.branch as BranchResult['branch'])
-        ? (raw.branch as BranchResult['branch'])
-        : 'building_documents',
+      branch,
+      subCategory,
       residenceHint:
         typeof raw.residenceHint === 'string' ? raw.residenceHint : undefined,
       reason: typeof raw.reason === 'string' ? raw.reason : '',

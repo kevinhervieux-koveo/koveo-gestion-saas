@@ -92,6 +92,96 @@ interface OrganizationLite {
   name: string;
 }
 
+type BranchDestination =
+  | 'building_documents'
+  | 'residence_documents'
+  | 'demand'
+  | 'bill'
+  | 'maintenance'
+  | 'other';
+
+const BRANCH_DESTINATION_ORDER: readonly BranchDestination[] = [
+  'building_documents',
+  'residence_documents',
+  'bill',
+  'demand',
+  'maintenance',
+  'other',
+] as const;
+
+const BRANCH_DESTINATION_LABEL_EN: Record<BranchDestination, string> = {
+  building_documents: 'Building documents',
+  residence_documents: 'Residences',
+  bill: 'Bills',
+  demand: 'Demands',
+  maintenance: 'Maintenance',
+  other: 'Other',
+};
+const BRANCH_DESTINATION_LABEL_FR: Record<BranchDestination, string> = {
+  building_documents: "Documents d'immeuble",
+  residence_documents: 'Résidences',
+  bill: 'Factures',
+  demand: 'Demandes',
+  maintenance: 'Maintenance',
+  other: 'Autre',
+};
+
+const BRANCH_SUB_CATEGORIES: Record<BranchDestination, readonly string[]> = {
+  building_documents: ['bylaws', 'minutes', 'insurance', 'financial_statement', 'contract', 'correspondence', 'other'],
+  residence_documents: ['lease', 'inspection', 'correspondence', 'key_handover', 'other'],
+  bill: ['utility', 'insurance', 'tax', 'maintenance_invoice', 'condo_fee', 'other'],
+  demand: ['complaint', 'request', 'legal_notice', 'other'],
+  maintenance: ['work_order', 'quote', 'inspection_report', 'inventory', 'other'],
+  other: ['other'],
+};
+
+const SUB_CATEGORY_LABEL_EN: Record<string, string> = {
+  bylaws: 'Bylaws',
+  minutes: 'Minutes',
+  insurance: 'Insurance',
+  financial_statement: 'Financial statement',
+  contract: 'Contract',
+  correspondence: 'Correspondence',
+  lease: 'Lease',
+  inspection: 'Inspection',
+  key_handover: 'Key handover',
+  utility: 'Utility',
+  tax: 'Tax',
+  maintenance_invoice: 'Maintenance invoice',
+  condo_fee: 'Condo fee',
+  complaint: 'Complaint',
+  request: 'Request',
+  legal_notice: 'Legal notice',
+  work_order: 'Work order',
+  quote: 'Quote',
+  inspection_report: 'Inspection report',
+  inventory: 'Inventory',
+  other: 'Other',
+};
+const SUB_CATEGORY_LABEL_FR: Record<string, string> = {
+  bylaws: 'Règlements',
+  minutes: 'Procès-verbaux',
+  insurance: 'Assurance',
+  financial_statement: 'États financiers',
+  contract: 'Contrat',
+  correspondence: 'Correspondance',
+  lease: 'Bail',
+  inspection: 'Inspection',
+  key_handover: 'Remise de clés',
+  utility: 'Services publics',
+  tax: 'Taxe',
+  maintenance_invoice: "Facture d'entretien",
+  condo_fee: 'Charges de copropriété',
+  complaint: 'Plainte',
+  request: 'Demande',
+  legal_notice: 'Avis légal',
+  work_order: 'Bon de travail',
+  quote: 'Devis',
+  inspection_report: "Rapport d'inspection",
+  inventory: 'Inventaire',
+  other: 'Autre',
+};
+
 /** Lean item shape returned by the /lite polling endpoint (Task #727). */
 interface BulkImportItemLite {
   id: string;
@@ -123,6 +213,10 @@ interface BulkImportItemLite {
   sortingMergeWithItemId: string | null;
   branchingConfidence: number | null;
   branchingFallback: BulkImportFallbackReason | null;
+  branch: BranchDestination | null;
+  subCategory: string | null;
+  branchReason: string | null;
+  branchManualOverride: boolean;
   identificationConfidence: number | null;
   identificationFallback: BulkImportFallbackReason | null;
   linkingConfidence: number | null;
@@ -921,6 +1015,9 @@ export default function BulkDocumentImportPage() {
   });
   const aiAvailable = aiStatus?.available ?? true;
   const [aiBannerDismissed, setAiBannerDismissed] = useState(false);
+  const [reassignPickerItemId, setReassignPickerItemId] = useState<string | null>(null);
+  const [reassignBranch, setReassignBranch] = useState<BranchDestination>('building_documents');
+  const [reassignSubCategory, setReassignSubCategory] = useState<string>('other');
 
   // Pull the org list so each building's organizationId can be
   // resolved to a human-readable group header (Task #600). The picker
@@ -1263,6 +1360,37 @@ export default function BulkDocumentImportPage() {
       queryClient.invalidateQueries({
         queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
       }),
+  });
+
+  const reassignItem = useMutation({
+    mutationFn: async ({
+      itemId,
+      branch,
+      subCategory,
+    }: {
+      itemId: string;
+      branch: BranchDestination;
+      subCategory: string;
+    }) => {
+      const res = await apiRequest(
+        'POST',
+        `/api/admin/bulk-import/items/${itemId}/reassign`,
+        { branch, subCategory },
+      );
+      return res.json() as Promise<BulkImportItem>;
+    },
+    onSuccess: () => {
+      setReassignPickerItemId(null);
+      queryClient.invalidateQueries({
+        queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
+      });
+    },
+    onError: () => {
+      toast({
+        variant: 'destructive',
+        title: isFr ? 'Échec de la réaffectation' : 'Failed to reassign item',
+      });
+    },
   });
 
   const clearAll = useMutation({
@@ -1820,6 +1948,259 @@ export default function BulkDocumentImportPage() {
                           </div>
                         );
                       })()}
+                    {currentStep === 'branching' ? (() => {
+                      // Group items by destination branch. Items without a
+                      // branch (old sessions or not-yet-routed) go under
+                      // "Unsorted" at the top (Task #768).
+                      const grouped = new Map<string, BulkImportItemLite[]>();
+                      for (const item of items) {
+                        const key = item.branch ?? 'unsorted';
+                        if (!grouped.has(key)) grouped.set(key, []);
+                        grouped.get(key)!.push(item);
+                      }
+                      const sections: Array<{ key: string; label: string; items: BulkImportItemLite[] }> = [];
+                      if (grouped.has('unsorted')) {
+                        sections.push({ key: 'unsorted', label: isFr ? 'Non triés' : 'Unsorted', items: grouped.get('unsorted')! });
+                      }
+                      for (const dest of BRANCH_DESTINATION_ORDER) {
+                        if (grouped.has(dest)) {
+                          sections.push({
+                            key: dest,
+                            label: (isFr ? BRANCH_DESTINATION_LABEL_FR : BRANCH_DESTINATION_LABEL_EN)[dest],
+                            items: grouped.get(dest)!,
+                          });
+                        }
+                      }
+                      if (sections.length === 0) {
+                        return (
+                          <p className="text-sm text-muted-foreground">
+                            {isFr ? 'Aucun fichier' : 'No items'}
+                          </p>
+                        );
+                      }
+                      return (
+                        <div className="space-y-4" data-testid="branching-grouped-sections">
+                          {sections.map((section) => (
+                            <div key={section.key} data-testid={`branching-section-${section.key}`}>
+                              <div className="mb-2 flex items-center gap-2">
+                                <span className="text-sm font-semibold text-foreground">
+                                  {section.label}
+                                </span>
+                                <Badge variant="secondary" className="text-xs" data-testid={`branching-section-count-${section.key}`}>
+                                  {section.items.length}
+                                </Badge>
+                              </div>
+                              <div className="space-y-2">
+                                {section.items.map((item) => {
+                                  const decision = getItemStepDecision(item, currentStep);
+                                  const isAuto = isAutoStep(currentStep);
+                                  const retryAction = isAuto ? stepRetryAction[currentStep as AutoStep] : null;
+                                  const branchProgress = isAuto ? readRunAllProgress(session, currentStep as AutoStep) : null;
+                                  const stillEligible = isAuto && item.status === STEP_PRE_STATUS[currentStep as AutoStep];
+                                  const isExcluded = item.status === 'rejected';
+                                  const showRetry = !isExcluded && !!retryAction && ((!!decision?.fallbackReason) || (stillEligible && !!branchProgress?.finishedAt));
+                                  const canToggleExclude = item.status !== 'committed' && item.status !== 'duplicate';
+                                  const togglePending = toggleExclude.isPending && toggleExclude.variables?.itemId === item.id;
+                                  const isPickerOpen = reassignPickerItemId === item.id;
+                                  const subCatLabels = isFr ? SUB_CATEGORY_LABEL_FR : SUB_CATEGORY_LABEL_EN;
+                                  const destLabels = isFr ? BRANCH_DESTINATION_LABEL_FR : BRANCH_DESTINATION_LABEL_EN;
+                                  return (
+                                    <div key={item.id} className="rounded-md border">
+                                      <div
+                                        className={`flex items-center justify-between gap-3 p-3 transition ${isExcluded ? 'bg-muted/40 opacity-60' : ''}`}
+                                        data-testid={`item-row-${item.id}`}
+                                        data-excluded={isExcluded ? 'true' : 'false'}
+                                      >
+                                        <div
+                                          className="flex min-w-0 flex-1 items-center gap-3 cursor-pointer rounded hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                          role="button"
+                                          tabIndex={0}
+                                          data-testid={`item-preview-trigger-${item.id}`}
+                                          onClick={() => setPreviewItem({ id: item.id, originalName: item.originalName, mimeType: item.mimeType })}
+                                          onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                              e.preventDefault();
+                                              setPreviewItem({ id: item.id, originalName: item.originalName, mimeType: item.mimeType });
+                                            }
+                                          }}
+                                        >
+                                          <ItemThumbnail item={item} />
+                                          <div className="min-w-0 flex flex-col">
+                                            <span
+                                              className={`truncate font-medium ${isExcluded ? 'text-muted-foreground line-through' : ''}`}
+                                              data-testid={`item-name-${item.id}`}
+                                            >
+                                              {item.originalName}
+                                            </span>
+                                            <span className="text-xs text-muted-foreground">
+                                              {item.status}
+                                              {item.mimeType ? ` · ${item.mimeType}` : ''}
+                                            </span>
+                                          </div>
+                                        </div>
+                                        <div className="flex items-center gap-2 flex-wrap justify-end" onClick={(e) => e.stopPropagation()}>
+                                          {isExcluded && (
+                                            <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-900" data-testid={`badge-excluded-${item.id}`}>
+                                              {isFr ? 'Exclu' : 'Excluded'}
+                                            </Badge>
+                                          )}
+                                          {!isExcluded && item.subCategory && (
+                                            <Badge
+                                              variant="outline"
+                                              className="shrink-0 border-purple-300 bg-purple-50 text-purple-900 dark:border-purple-700 dark:bg-purple-950 dark:text-purple-200"
+                                              title={item.branchReason ?? undefined}
+                                              data-testid={`badge-subcategory-${item.id}`}
+                                            >
+                                              {subCatLabels[item.subCategory] ?? item.subCategory}
+                                            </Badge>
+                                          )}
+                                          {!isExcluded && item.branchManualOverride && (
+                                            <Badge
+                                              variant="outline"
+                                              className="shrink-0 border-orange-300 bg-orange-50 text-orange-900 dark:border-orange-700 dark:bg-orange-950 dark:text-orange-200 text-xs"
+                                              data-testid={`badge-manual-override-${item.id}`}
+                                            >
+                                              {isFr ? 'Manuel' : 'Manual'}
+                                            </Badge>
+                                          )}
+                                          {!isExcluded && (
+                                            <>
+                                              <FallbackReasonBadge reason={decision?.fallbackReason} isFr={isFr} />
+                                              <ConfidenceBadge value={decision?.confidence} fallbackReason={decision?.fallbackReason} isFr={isFr} />
+                                            </>
+                                          )}
+                                          <Button
+                                            size="sm"
+                                            variant="outline"
+                                            className="text-xs h-7 px-2"
+                                            onClick={() => {
+                                              if (isPickerOpen) {
+                                                setReassignPickerItemId(null);
+                                              } else {
+                                                setReassignPickerItemId(item.id);
+                                                setReassignBranch((item.branch as BranchDestination) ?? 'building_documents');
+                                                setReassignSubCategory(item.subCategory ?? 'other');
+                                              }
+                                            }}
+                                            data-testid={`button-reassign-${item.id}`}
+                                          >
+                                            {isFr ? 'Réaffecter' : 'Reassign'}
+                                          </Button>
+                                          {showRetry && retryAction && (
+                                            <Button
+                                              size="sm"
+                                              variant="outline"
+                                              onClick={() => runStep.mutate({ itemId: item.id, action: retryAction })}
+                                              disabled={runStep.isPending}
+                                              data-testid={`button-retry-${currentStep}-${item.id}`}
+                                            >
+                                              {runStep.isPending ? (
+                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                              ) : (
+                                                <RotateCw className="mr-2 h-4 w-4" />
+                                              )}
+                                              {isFr ? 'Réessayer' : 'Retry'}
+                                            </Button>
+                                          )}
+                                          {canToggleExclude && (
+                                            <Button
+                                              size="sm"
+                                              variant="ghost"
+                                              onClick={() => toggleExclude.mutate({ itemId: item.id, excluded: !isExcluded })}
+                                              disabled={togglePending}
+                                              aria-pressed={isExcluded}
+                                              aria-label={isExcluded ? (isFr ? 'Réinclure le fichier' : 'Re-include file') : (isFr ? 'Exclure le fichier' : 'Exclude file')}
+                                              title={isExcluded ? (isFr ? 'Réinclure' : 'Re-include') : (isFr ? 'Exclure' : 'Exclude')}
+                                              data-testid={`button-toggle-exclude-${item.id}`}
+                                            >
+                                              {togglePending ? (
+                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                              ) : isExcluded ? (
+                                                <Eye className="h-4 w-4" />
+                                              ) : (
+                                                <EyeOff className="h-4 w-4 text-muted-foreground" />
+                                              )}
+                                            </Button>
+                                          )}
+                                        </div>
+                                      </div>
+                                      {isPickerOpen && (
+                                        <div
+                                          className="border-t bg-muted/30 px-3 py-3 flex flex-wrap items-end gap-3"
+                                          data-testid={`reassign-picker-${item.id}`}
+                                        >
+                                          <div className="flex flex-col gap-1">
+                                            <Label className="text-xs">{isFr ? 'Destination' : 'Destination'}</Label>
+                                            <Select
+                                              value={reassignBranch}
+                                              onValueChange={(v) => {
+                                                const dest = v as BranchDestination;
+                                                setReassignBranch(dest);
+                                                const allowed = BRANCH_SUB_CATEGORIES[dest];
+                                                setReassignSubCategory(allowed.includes(reassignSubCategory) ? reassignSubCategory : 'other');
+                                              }}
+                                            >
+                                              <SelectTrigger className="h-8 w-[200px] text-xs" data-testid={`reassign-branch-select-${item.id}`}>
+                                                <SelectValue />
+                                              </SelectTrigger>
+                                              <SelectContent>
+                                                {BRANCH_DESTINATION_ORDER.map((d) => (
+                                                  <SelectItem key={d} value={d} className="text-xs">
+                                                    {destLabels[d]}
+                                                  </SelectItem>
+                                                ))}
+                                              </SelectContent>
+                                            </Select>
+                                          </div>
+                                          <div className="flex flex-col gap-1">
+                                            <Label className="text-xs">{isFr ? 'Sous-catégorie' : 'Sub-category'}</Label>
+                                            <Select
+                                              value={reassignSubCategory}
+                                              onValueChange={setReassignSubCategory}
+                                            >
+                                              <SelectTrigger className="h-8 w-[200px] text-xs" data-testid={`reassign-subcategory-select-${item.id}`}>
+                                                <SelectValue />
+                                              </SelectTrigger>
+                                              <SelectContent>
+                                                {BRANCH_SUB_CATEGORIES[reassignBranch].map((sc) => (
+                                                  <SelectItem key={sc} value={sc} className="text-xs">
+                                                    {subCatLabels[sc] ?? sc}
+                                                  </SelectItem>
+                                                ))}
+                                              </SelectContent>
+                                            </Select>
+                                          </div>
+                                          <div className="flex gap-2">
+                                            <Button
+                                              size="sm"
+                                              className="h-8 text-xs"
+                                              onClick={() => reassignItem.mutate({ itemId: item.id, branch: reassignBranch, subCategory: reassignSubCategory })}
+                                              disabled={reassignItem.isPending}
+                                              data-testid={`button-reassign-save-${item.id}`}
+                                            >
+                                              {reassignItem.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : (isFr ? 'Enregistrer' : 'Save')}
+                                            </Button>
+                                            <Button
+                                              size="sm"
+                                              variant="ghost"
+                                              className="h-8 text-xs"
+                                              onClick={() => setReassignPickerItemId(null)}
+                                              data-testid={`button-reassign-cancel-${item.id}`}
+                                            >
+                                              {isFr ? 'Annuler' : 'Cancel'}
+                                            </Button>
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })() : (
                     <div className="space-y-2">
                       {items.length === 0 && (
                         <p className="text-sm text-muted-foreground">
@@ -2187,6 +2568,7 @@ export default function BulkDocumentImportPage() {
                         );
                       })}
                     </div>
+                    )}
                     <NextStepBlock
                       items={items}
                       currentStep={currentStep}

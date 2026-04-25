@@ -26,6 +26,8 @@ import {
   isBulkImportAiAvailable,
   type QuickAnalysis,
   type SiblingContext,
+  BRANCH_SUB_CATEGORIES,
+  type BranchDestination,
 } from '../services/bulk-import-analyzer';
 import { rotateAndRewriteStagedFile } from '../services/bulk-import-rotation';
 import { documentService } from '../services/document-service';
@@ -669,6 +671,23 @@ export function registerBulkImportRoutes(app: Express): void {
         return { rotationDegrees, rotationApplied };
       }
 
+      function extractBranchStep(json: Record<string, unknown> | null | undefined) {
+        const base = extractStep(json);
+        if (!json) return { ...base, branch: null, subCategory: null, branchReason: null, manualOverride: false };
+        const validBranches: BranchDestination[] = [
+          'building_documents', 'residence_documents', 'demand', 'bill', 'maintenance', 'other',
+        ];
+        const rawBranch = json.branch as string | null | undefined;
+        const branch: BranchDestination | null =
+          rawBranch && validBranches.includes(rawBranch as BranchDestination)
+            ? (rawBranch as BranchDestination)
+            : null;
+        const subCategory = (json.subCategory as string | null | undefined) ?? null;
+        const branchReason = (json.reason as string | null | undefined) ?? null;
+        const manualOverride = (json.manualOverride as boolean | null | undefined) ?? false;
+        return { ...base, branch, subCategory, branchReason, manualOverride };
+      }
+
       const items = rows.map((r) => ({
         id: r.id,
         originalName: r.originalName,
@@ -680,7 +699,7 @@ export function registerBulkImportRoutes(app: Express): void {
           const sqaFields = extractScreeningQuickAnalysisFields(r.screening);
           const srot = extractScreeningRotation(r.screening);
           const so = extractSortingStep(r.sortingDecision);
-          const br = extractStep(r.branchDecision);
+          const br = extractBranchStep(r.branchDecision);
           const id = extractStep(r.identification);
           const lk = extractStep(r.linkDecisions);
           return {
@@ -696,6 +715,10 @@ export function registerBulkImportRoutes(app: Express): void {
             sortingMergeWithItemId: so.mergeWithItemId,
             branchingConfidence: br.confidence,
             branchingFallback: br.fallbackReason,
+            branch: br.branch,
+            subCategory: br.subCategory,
+            branchReason: br.branchReason,
+            branchManualOverride: br.manualOverride,
             identificationConfidence: id.confidence,
             identificationFallback: id.fallbackReason,
             linkingConfidence: lk.confidence,
@@ -1113,6 +1136,68 @@ export function registerBulkImportRoutes(app: Express): void {
         }
         logError('[bulk-import] exclude/unexclude failed', err as Error);
         return res.status(500).json({ error: 'Failed to update exclusion' });
+      }
+    },
+  );
+
+  /**
+   * Reassign a single item's branch destination and sub-category
+   * without re-running the AI (Task #768). The existing `branchDecision`
+   * blob is preserved except for `branch`, `subCategory`, and a new
+   * `manualOverride: true` flag so the UI can indicate the admin
+   * overrode the AI. The `{ branch, subCategory }` pair is validated
+   * against the per-branch vocabulary; mismatched pairs are rejected
+   * with 400.
+   */
+  const reassignSchema = z.object({
+    branch: z.enum([
+      'building_documents',
+      'residence_documents',
+      'demand',
+      'bill',
+      'maintenance',
+      'other',
+    ]),
+    subCategory: z.string().min(1),
+  });
+  app.post(
+    '/api/admin/bulk-import/items/:id/reassign',
+    requireAuth,
+    requireRole(['admin']),
+    async (req: AuthenticatedRequest, res: Response) => {
+      try {
+        const { branch, subCategory } = reassignSchema.parse(req.body);
+        const allowedSubCats = BRANCH_SUB_CATEGORIES[branch as BranchDestination] as readonly string[];
+        if (!allowedSubCats.includes(subCategory)) {
+          return res.status(400).json({
+            error: `subCategory "${subCategory}" is not valid for branch "${branch}". Allowed: ${allowedSubCats.join(', ')}`,
+          });
+        }
+        const [item] = await db
+          .select()
+          .from(schema.bulkImportItems)
+          .where(eq(schema.bulkImportItems.id, req.params.id));
+        if (!item) return res.status(404).json({ error: 'Item not found' });
+        const existing = (item.branchDecision ?? {}) as Record<string, unknown>;
+        const updated_decision: Record<string, unknown> = {
+          ...existing,
+          branch,
+          subCategory,
+          manualOverride: true,
+        };
+        const [updated] = await db
+          .update(schema.bulkImportItems)
+          .set({
+            branchDecision: updated_decision,
+            updatedAt: new Date(),
+          })
+          .where(eq(schema.bulkImportItems.id, item.id))
+          .returning();
+        return res.json(updated);
+      } catch (err) {
+        if (err instanceof z.ZodError) return res.status(400).json({ error: err.errors });
+        logError('[bulk-import] reassign failed', err as Error);
+        return res.status(500).json({ error: 'Failed to reassign item' });
       }
     },
   );
