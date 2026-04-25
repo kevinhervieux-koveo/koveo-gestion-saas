@@ -19,6 +19,10 @@ import { useLocation } from 'wouter';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { buildForecastRequestBody } from '@/lib/forecast-request';
+import {
+  getFiscalYearEnd,
+  getMonthsRemainingToFiscalYearEnd,
+} from '@/lib/budget/year-end-projection';
 import { useToast } from '@/hooks/use-toast';
 import { handleApiError } from '@/lib/demo-error-handler';
 import { Residence } from '@shared/schema';
@@ -2234,27 +2238,12 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
     // Year-end projection: balance at the end of the CURRENT fiscal year, looked
     // up in the full forecast array (not the sliced window) so it does not
     // change when the user switches between 12-month / 24-month views.
-    // Explicit fallback: if no financialYearStart is configured, treat the
-    // fiscal year as the calendar year (FY-end = December of current year).
-    const today = new Date();
-    const todayYear = today.getFullYear();
-    const todayMonth = today.getMonth() + 1;
-    const fyStartRaw = localSettings.financialYearStart;
-    const hasValidFyStart = !!fyStartRaw && /^\d{4}-\d{2}-\d{2}$/.test(fyStartRaw);
-    let fyEndMonth: number;
-    let fyEndYear: number;
-    if (!hasValidFyStart) {
-      fyEndMonth = 12;
-      fyEndYear = todayYear;
-    } else {
-      const fyStart = parseFinancialYearStart(fyStartRaw);
-      fyEndMonth = fyStart.month === 1 ? 12 : fyStart.month - 1;
-      // Current fiscal year = calendar year in which the FY containing today started.
-      const currentFyStartYear = getFinancialYear(todayYear, todayMonth, fyStartRaw);
-      // If FY starts in January, FY-end is December of same year; otherwise
-      // FY-end is fyEndMonth of (start year + 1).
-      fyEndYear = fyStart.month === 1 ? currentFyStartYear : currentFyStartYear + 1;
-    }
+    // The fiscal-year-end derivation lives in `@/lib/budget/year-end-projection`
+    // so it can be unit-tested without rendering this component.
+    const { fyEndMonth, fyEndYear } = getFiscalYearEnd(
+      new Date(),
+      localSettings.financialYearStart,
+    );
     const fyEndPeriod = forecastData.forecast.find(
       (p) => p.year === fyEndYear && p.month === fyEndMonth
     );
@@ -3171,7 +3160,31 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
                 
                 {/* Period Length */}
                 <div className="space-y-3">
-                  <Label className="text-xs text-muted-foreground">Length</Label>
+                  <div className="flex items-center gap-1.5">
+                    <Label className="text-xs text-muted-foreground">Length</Label>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            type='button'
+                            className='inline-flex h-3.5 w-3.5 items-center justify-center text-muted-foreground hover:text-foreground'
+                            aria-label={t('budgetLengthTooltip')}
+                            aria-describedby='budget-length-help'
+                            data-testid='button-length-help'
+                          >
+                            <HelpCircle className='h-3 w-3' />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent
+                          id='budget-length-help'
+                          className='max-w-xs text-xs'
+                          data-testid='tooltip-length-help'
+                        >
+                          {t('budgetLengthTooltip')}
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
                   <div className="flex items-center gap-2">
                     <Select 
                       value={filters.periodLength.toString()} 
@@ -3467,7 +3480,65 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
 
                     <Card data-testid="card-year-end-projection">
                       <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                        <CardTitle className='text-sm font-medium'>{t('budgetYearEndProjection')}</CardTitle>
+                        <div className='flex items-center gap-1.5'>
+                          <CardTitle className='text-sm font-medium'>{t('budgetYearEndProjection')}</CardTitle>
+                          {(() => {
+                            const { fyEndMonth, fyEndYear } = getFiscalYearEnd(
+                              new Date(),
+                              localSettings.financialYearStart,
+                            );
+                            const monthsRemaining = getMonthsRemainingToFiscalYearEnd(
+                              new Date(),
+                              localSettings.financialYearStart,
+                            );
+                            const fyEndDate = new Date(fyEndYear, fyEndMonth - 1, 1);
+                            const fyEndLabel = fyEndDate.toLocaleDateString(
+                              language === 'fr' ? 'fr-CA' : 'en-CA',
+                              { month: 'long', year: 'numeric' },
+                            );
+                            return (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <button
+                                      type='button'
+                                      className='inline-flex h-4 w-4 items-center justify-center text-muted-foreground hover:text-foreground'
+                                      aria-label={t('budgetYearEndProjectionTooltip')}
+                                      aria-describedby='budget-year-end-projection-help'
+                                      data-testid='button-year-end-projection-help'
+                                    >
+                                      <HelpCircle className='h-3.5 w-3.5' />
+                                    </button>
+                                  </TooltipTrigger>
+                                  <TooltipContent
+                                    id='budget-year-end-projection-help'
+                                    className='max-w-xs text-xs'
+                                    data-testid='tooltip-year-end-projection-help'
+                                  >
+                                    <div className='space-y-1'>
+                                      <div data-testid='tooltip-year-end-projection-fy-end'>
+                                        <span className='font-medium'>
+                                          {t('budgetYearEndProjectionFiscalYearEndLabel')}:
+                                        </span>{' '}
+                                        {fyEndLabel}
+                                      </div>
+                                      <div data-testid='tooltip-year-end-projection-months-remaining'>
+                                        <span className='font-medium'>
+                                          {t('budgetYearEndProjectionMonthsRemainingLabel')}:
+                                        </span>{' '}
+                                        {monthsRemaining}{' '}
+                                        {t('budgetYearEndProjectionMonthsRemainingUnit')}
+                                      </div>
+                                      <div data-testid='tooltip-year-end-projection-explanation'>
+                                        {t('budgetYearEndProjectionTooltip')}
+                                      </div>
+                                    </div>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            );
+                          })()}
+                        </div>
                         <TrendingDown className='h-4 w-4 text-muted-foreground' />
                       </CardHeader>
                       <CardContent className='card-content-safe'>

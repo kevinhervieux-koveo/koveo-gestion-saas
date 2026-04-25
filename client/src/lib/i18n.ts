@@ -1982,6 +1982,11 @@ export interface Translations {
   budgetMonthlyRevenue: string;
   budgetMonthlySpending: string;
   budgetYearEndProjection: string;
+  budgetYearEndProjectionTooltip: string;
+  budgetYearEndProjectionFiscalYearEndLabel: string;
+  budgetYearEndProjectionMonthsRemainingLabel: string;
+  budgetYearEndProjectionMonthsRemainingUnit: string;
+  budgetLengthTooltip: string;
   budgetTotalInvestment: string;
   budgetNoDataForPeriod: string;
   budgetConfigureAction: string;
@@ -4087,6 +4092,13 @@ export const translations: Record<Language, Translations> = {
     budgetMonthlyRevenue: 'Monthly Revenue',
     budgetMonthlySpending: 'Monthly Spending',
     budgetYearEndProjection: 'Year End Projection',
+    budgetYearEndProjectionTooltip:
+      'Balance projected at the end of the fiscal year. This value is independent of the chart window length.',
+    budgetYearEndProjectionFiscalYearEndLabel: 'Fiscal year-end',
+    budgetYearEndProjectionMonthsRemainingLabel: 'Months remaining',
+    budgetYearEndProjectionMonthsRemainingUnit: 'months',
+    budgetLengthTooltip:
+      'Controls the chart display horizon only. Does not affect the year-end projection.',
     budgetTotalInvestment: 'Total Investment',
     budgetNoDataForPeriod: 'No budget data for this period',
     budgetConfigureAction: 'Configure budget',
@@ -6307,6 +6319,13 @@ export const translations: Record<Language, Translations> = {
     budgetMonthlyRevenue: 'Revenus mensuels',
     budgetMonthlySpending: 'Dépenses mensuelles',
     budgetYearEndProjection: 'Projection de fin d\'exercice',
+    budgetYearEndProjectionTooltip:
+      'Solde projeté à la fin de l\'exercice financier. Cette valeur est indépendante de la durée affichée dans le graphique.',
+    budgetYearEndProjectionFiscalYearEndLabel: 'Fin de l\'exercice',
+    budgetYearEndProjectionMonthsRemainingLabel: 'Mois restants',
+    budgetYearEndProjectionMonthsRemainingUnit: 'mois',
+    budgetLengthTooltip:
+      'Contrôle uniquement la fenêtre d\'affichage du graphique. N\'affecte pas la projection de fin d\'exercice.',
     budgetTotalInvestment: 'Investissement total',
     budgetNoDataForPeriod: 'Aucune donnée budgétaire pour cette période',
     budgetConfigureAction: 'Configurer le budget',
