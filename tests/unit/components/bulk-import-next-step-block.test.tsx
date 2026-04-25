@@ -40,7 +40,11 @@ function indexOfStep(step: BulkImportStep): number {
 function renderBlock(
   items: ReadonlyArray<{ status: Status }>,
   step: BulkImportStep,
-  opts: { isFr?: boolean; onNext?: () => void } = {},
+  opts: {
+    isFr?: boolean;
+    onNext?: () => void;
+    sortingPendingCount?: number;
+  } = {},
 ) {
   const onNext = opts.onNext ?? jest.fn();
   render(
@@ -50,6 +54,7 @@ function renderBlock(
       stepIndex={indexOfStep(step)}
       isFr={opts.isFr ?? false}
       onNext={onNext}
+      sortingPendingCount={opts.sortingPendingCount}
     />,
   );
   return { onNext };
@@ -197,5 +202,80 @@ describe('computeStillAnalyzingCount', () => {
     for (const step of AUTO_STEPS) {
       expect(STEP_PRE_STATUS[step]).toBe(exhaustive[step]);
     }
+  });
+});
+
+/**
+ * Task #825 — coverage for the sorting-step block (Task #817).
+ *
+ * On the sorting step the wizard waits for the admin to accept (or
+ * manually override) every AI suggestion before the Next-step button
+ * becomes available. The block is driven entirely by
+ * `sortingPendingCount`: any value > 0 must
+ *   1. disable the Next-step button, and
+ *   2. render the `sorting-pending-warning` paragraph telling the
+ *      admin how many decisions still need their review.
+ *
+ * `sortingPendingCount` is computed by the parent page from
+ * `sortingDecisionState in {pending, rejected}` for non-excluded items;
+ * here we only verify that the block reacts to the prop.
+ */
+describe('NextStepBlock — sorting decision guard (Task #817)', () => {
+  it('blocks Next step and shows the amber warning when sortingPendingCount > 0', () => {
+    const { onNext } = renderBlock([makeItem('sorted')], 'sorting', {
+      sortingPendingCount: 2,
+    });
+
+    const button = screen.getByTestId('button-next-step');
+    expect(button).toBeDisabled();
+
+    const warning = screen.getByTestId('sorting-pending-warning');
+    expect(warning).toBeInTheDocument();
+    expect(warning).toHaveClass('text-amber-700');
+    expect(warning).toHaveTextContent(
+      '2 branching decision(s) need your review',
+    );
+
+    // Clicking the disabled button must NOT invoke onNext.
+    fireEvent.click(button);
+    expect(onNext).not.toHaveBeenCalled();
+  });
+
+  it('renders the warning even with a single pending decision', () => {
+    renderBlock([makeItem('sorted')], 'sorting', { sortingPendingCount: 1 });
+    expect(screen.getByTestId('sorting-pending-warning')).toHaveTextContent(
+      '1 branching decision(s) need your review',
+    );
+    expect(screen.getByTestId('button-next-step')).toBeDisabled();
+  });
+
+  it('renders the French copy when isFr is true', () => {
+    renderBlock([makeItem('sorted')], 'sorting', {
+      sortingPendingCount: 3,
+      isFr: true,
+    });
+    expect(screen.getByTestId('sorting-pending-warning')).toHaveTextContent(
+      '3 décision(s) de branchement en attente',
+    );
+  });
+
+  it('hides the warning and re-enables Next step when sortingPendingCount drops to zero', () => {
+    const { onNext } = renderBlock([makeItem('sorted')], 'sorting', {
+      sortingPendingCount: 0,
+    });
+    expect(screen.queryByTestId('sorting-pending-warning')).toBeNull();
+    const button = screen.getByTestId('button-next-step');
+    expect(button).toBeEnabled();
+    fireEvent.click(button);
+    expect(onNext).toHaveBeenCalledTimes(1);
+  });
+
+  it('treats an omitted sortingPendingCount prop as zero (no block)', () => {
+    // When the sorting prop is not provided at all the block must
+    // behave exactly as on every other step — Next is enabled and no
+    // sorting warning is rendered.
+    renderBlock([makeItem('sorted')], 'sorting');
+    expect(screen.queryByTestId('sorting-pending-warning')).toBeNull();
+    expect(screen.getByTestId('button-next-step')).toBeEnabled();
   });
 });
