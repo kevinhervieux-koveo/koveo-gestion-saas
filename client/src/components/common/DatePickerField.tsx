@@ -7,6 +7,60 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 
+interface StandaloneDatePickerProps {
+  value: Date | null | undefined;
+  onChange: (date: Date | null) => void;
+  placeholder?: string;
+  disabled?: boolean;
+  className?: string;
+  'data-testid'?: string;
+}
+
+export function StandaloneDatePicker({
+  value,
+  onChange,
+  placeholder = 'Pick a date',
+  disabled = false,
+  className = '',
+  'data-testid': testId,
+}: StandaloneDatePickerProps) {
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          type="button"
+          variant="outline"
+          disabled={disabled}
+          className={cn(
+            'w-full pl-3 text-left font-normal',
+            !value && 'text-muted-foreground',
+            className,
+          )}
+          data-testid={testId}
+        >
+          {value ? (
+            format(value, 'PPP')
+          ) : (
+            <span>{placeholder}</span>
+          )}
+          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="start">
+        <Calendar
+          mode="single"
+          selected={value ?? undefined}
+          onSelect={(date) => {
+            if (!disabled) onChange(date ?? null);
+          }}
+          disabled={disabled}
+          initialFocus
+        />
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 interface DatePickerFieldProps<T extends FieldValues> {
   control: Control<T>;
   name: FieldPath<T>;

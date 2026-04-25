@@ -65,7 +65,10 @@ import {
   Copy,
   Pencil,
   ExternalLink,
+  CalendarIcon,
 } from 'lucide-react';
+import { format, parseISO, isValid } from 'date-fns';
+import { StandaloneDatePicker } from '@/components/common/DatePickerField';
 import {
   type BulkImportFallbackReason,
   type BulkImportItem,
@@ -1357,10 +1360,6 @@ export default function BulkDocumentImportPage() {
   const [inlineMergeOrder, setInlineMergeOrder] = useState<Map<string, string[]>>(new Map());
   const [inlineRename, setInlineRename] = useState<Map<string, string>>(new Map());
   const [inlineRenameSplit, setInlineRenameSplit] = useState<Map<string, [string, string]>>(new Map());
-  // Inline period-hint editor state (Task #997). Keyed by item id;
-  // presence of a key = the row's chip is in edit mode. The string
-  // value mirrors the input field as the admin types.
-  const [editingPeriodHint, setEditingPeriodHint] = useState<Map<string, string>>(new Map());
   // Inline effective-date editor state (Task #1031). Keyed by item
   // id, the string value mirrors the date input as the admin types.
   // Unlike the period-hint editor this is a "live" field — a date
@@ -2031,12 +2030,7 @@ export default function BulkDocumentImportPage() {
       );
       return res.json();
     },
-    onSuccess: (_data, variables) => {
-      setEditingPeriodHint((prev) => {
-        const next = new Map(prev);
-        next.delete(variables.itemId);
-        return next;
-      });
+    onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
       });
@@ -3868,169 +3862,6 @@ export default function BulkDocumentImportPage() {
                                       {isFr ? 'Rejeté – choix requis' : 'Rejected – choose manually'}
                                     </Badge>
                                   )}
-                                  {currentStep === 'sorting' && !isExcluded && (() => {
-                                    // Inline period-hint editor (Task #997). Admins can fix
-                                    // a wrong AI-detected period directly on the row instead
-                                    // of re-uploading the file. Editing is disabled once the
-                                    // sorting decision is accepted (the server enforces this
-                                    // too) so we never silently undo a committed merge/split.
-                                    const editingValue = editingPeriodHint.get(item.id);
-                                    const isEditing = editingValue !== undefined;
-                                    const periodHintEditingDisabled =
-                                      item.sortingDecisionState === 'accepted';
-                                    const openEditor = () => {
-                                      if (periodHintEditingDisabled) return;
-                                      setEditingPeriodHint((prev) => {
-                                        const next = new Map(prev);
-                                        next.set(item.id, item.screeningPeriodHint ?? '');
-                                        return next;
-                                      });
-                                    };
-                                    const closeEditor = () => {
-                                      setEditingPeriodHint((prev) => {
-                                        const next = new Map(prev);
-                                        next.delete(item.id);
-                                        return next;
-                                      });
-                                    };
-                                    const saveEditor = () => {
-                                      const trimmed = (editingValue ?? '').trim();
-                                      const original = item.screeningPeriodHint ?? '';
-                                      if (trimmed === original) {
-                                        closeEditor();
-                                        return;
-                                      }
-                                      setPeriodHint.mutate({
-                                        itemId: item.id,
-                                        periodHint: trimmed.length > 0 ? trimmed : null,
-                                      });
-                                    };
-
-                                    if (isEditing) {
-                                      return (
-                                        <div
-                                          className="flex items-center gap-1"
-                                          data-testid={`sorting-period-hint-editor-${item.id}`}
-                                        >
-                                          <Input
-                                            value={editingValue}
-                                            onChange={(e) => {
-                                              const v = e.target.value;
-                                              setEditingPeriodHint((prev) => {
-                                                const next = new Map(prev);
-                                                next.set(item.id, v);
-                                                return next;
-                                              });
-                                            }}
-                                            onKeyDown={(e) => {
-                                              if (e.key === 'Enter') {
-                                                e.preventDefault();
-                                                saveEditor();
-                                              } else if (e.key === 'Escape') {
-                                                e.preventDefault();
-                                                closeEditor();
-                                              }
-                                            }}
-                                            placeholder={isFr ? 'p. ex. 2024-2025' : 'e.g. 2024-2025'}
-                                            maxLength={120}
-                                            autoFocus
-                                            disabled={setPeriodHint.isPending}
-                                            className="h-7 w-40 text-xs"
-                                            data-testid={`sorting-period-hint-input-${item.id}`}
-                                          />
-                                          <Button
-                                            size="sm"
-                                            variant="outline"
-                                            className="h-7 px-2"
-                                            onClick={saveEditor}
-                                            disabled={setPeriodHint.isPending}
-                                            data-testid={`sorting-period-hint-save-${item.id}`}
-                                            aria-label={isFr ? 'Enregistrer la période' : 'Save period'}
-                                          >
-                                            {setPeriodHint.isPending
-                                              ? <Loader2 className="h-3 w-3 animate-spin" />
-                                              : <Check className="h-3 w-3" />}
-                                          </Button>
-                                          <Button
-                                            size="sm"
-                                            variant="ghost"
-                                            className="h-7 px-2"
-                                            onClick={closeEditor}
-                                            disabled={setPeriodHint.isPending}
-                                            data-testid={`sorting-period-hint-cancel-${item.id}`}
-                                            aria-label={isFr ? 'Annuler' : 'Cancel'}
-                                          >
-                                            <X className="h-3 w-3" />
-                                          </Button>
-                                        </div>
-                                      );
-                                    }
-
-                                    return (
-                                      <div className="flex items-center gap-1">
-                                        <Badge
-                                          variant="outline"
-                                          className={`shrink-0 border-indigo-300 bg-indigo-50 text-indigo-900 dark:border-indigo-700 dark:bg-indigo-950 dark:text-indigo-200 ${
-                                            periodHintEditingDisabled
-                                              ? 'cursor-default'
-                                              : 'cursor-pointer hover:bg-indigo-100 dark:hover:bg-indigo-900'
-                                          }`}
-                                          title={
-                                            periodHintEditingDisabled
-                                              ? isFr
-                                                ? 'La décision de tri est acceptée — réinitialisez-la avant de modifier la période.'
-                                                : 'Sorting decision is accepted — reset it before changing the period.'
-                                              : item.screeningPeriodHint
-                                              ? isFr
-                                                ? "Cliquer pour corriger la période détectée par l'IA."
-                                                : 'Click to fix the AI-detected period.'
-                                              : isFr
-                                              ? "L'IA n'a pas détecté de période. Cliquer pour l'ajouter."
-                                              : 'The AI did not detect a period. Click to add one.'
-                                          }
-                                          onClick={openEditor}
-                                          onKeyDown={(e) => {
-                                            if (e.key === 'Enter' || e.key === ' ') {
-                                              e.preventDefault();
-                                              openEditor();
-                                            }
-                                          }}
-                                          role={periodHintEditingDisabled ? undefined : 'button'}
-                                          tabIndex={periodHintEditingDisabled ? -1 : 0}
-                                          aria-disabled={periodHintEditingDisabled || undefined}
-                                          data-testid={`sorting-period-hint-${item.id}`}
-                                        >
-                                          {item.screeningPeriodHint ? (
-                                            <>
-                                              {item.screeningPeriodHint}
-                                              {!periodHintEditingDisabled && (
-                                                <Pencil className="ml-1 h-3 w-3 opacity-60" />
-                                              )}
-                                            </>
-                                          ) : (
-                                            <>
-                                              <Pencil className="mr-1 h-3 w-3 opacity-60" />
-                                              {isFr ? 'Ajouter une période' : 'Add period'}
-                                            </>
-                                          )}
-                                        </Badge>
-                                        {item.screeningPeriodHintManualOverride && (
-                                          <Badge
-                                            variant="outline"
-                                            className="shrink-0 border-slate-300 bg-slate-50 text-slate-700 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-300"
-                                            title={
-                                              isFr
-                                                ? "Période corrigée manuellement par un administrateur (au lieu de la valeur détectée par l'IA)."
-                                                : 'Period manually overridden by an admin (instead of the AI-detected value).'
-                                            }
-                                            data-testid={`sorting-period-hint-manual-${item.id}`}
-                                          >
-                                            {isFr ? 'Manuel' : 'Manual'}
-                                          </Badge>
-                                        )}
-                                      </div>
-                                    );
-                                  })()}
                                   {currentStep === 'screening' && item.screeningTypeGuess && item.screeningTypeGuess !== 'unknown' && (
                                     <Badge
                                       variant="outline"
@@ -4994,6 +4825,101 @@ export default function BulkDocumentImportPage() {
                                             )}
                                           </div>
                                         )}
+
+                                        {/* --- PERIOD sub-section (sorting step only) --- */}
+                                        {!isExcluded && (() => {
+                                          const rawHint = item.screeningPeriodHint ?? null;
+                                          const parsedDate = rawHint
+                                            ? (() => {
+                                                try {
+                                                  const d = parseISO(rawHint);
+                                                  return isValid(d) ? d : null;
+                                                } catch {
+                                                  return null;
+                                                }
+                                              })()
+                                            : null;
+                                          const isNonDateHint = rawHint !== null && parsedDate === null;
+                                          const periodDisabled =
+                                            sortingIsAccepted || setPeriodHint.isPending;
+                                          return (
+                                            <div
+                                              className="rounded-md border border-border bg-background/60 p-3 space-y-2"
+                                              data-testid={`sorting-period-section-${item.id}`}
+                                            >
+                                              <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                                <CalendarIcon className="h-3.5 w-3.5" />
+                                                {isFr ? 'Période' : 'Period'}
+                                                {item.screeningPeriodHintManualOverride && (
+                                                  <Badge
+                                                    variant="outline"
+                                                    className="ml-1 shrink-0 border-slate-300 bg-slate-50 text-slate-700 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-300 normal-case"
+                                                    title={
+                                                      isFr
+                                                        ? "Période corrigée manuellement par un administrateur (au lieu de la valeur détectée par l'IA)."
+                                                        : 'Period manually overridden by an admin (instead of the AI-detected value).'
+                                                    }
+                                                    data-testid={`sorting-period-hint-manual-${item.id}`}
+                                                  >
+                                                    {isFr ? 'Manuel' : 'Manual'}
+                                                  </Badge>
+                                                )}
+                                              </div>
+                                              <div className="flex items-center gap-2">
+                                                <StandaloneDatePicker
+                                                  value={parsedDate}
+                                                  onChange={(date) => {
+                                                    const newHint = date
+                                                      ? format(date, 'yyyy-MM-dd')
+                                                      : null;
+                                                    setPeriodHint.mutate({
+                                                      itemId: item.id,
+                                                      periodHint: newHint,
+                                                    });
+                                                  }}
+                                                  placeholder={isFr ? 'Aucune date sélectionnée' : 'No date selected'}
+                                                  disabled={periodDisabled}
+                                                  className="flex-1"
+                                                  data-testid={`sorting-period-date-picker-${item.id}`}
+                                                />
+                                                {rawHint !== null && (
+                                                  <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    disabled={periodDisabled}
+                                                    className="shrink-0 text-xs text-muted-foreground"
+                                                    data-testid={`sorting-period-clear-${item.id}`}
+                                                    onClick={() => {
+                                                      if (periodDisabled) return;
+                                                      setPeriodHint.mutate({
+                                                        itemId: item.id,
+                                                        periodHint: null,
+                                                      });
+                                                    }}
+                                                  >
+                                                    <X className="mr-1 h-3 w-3" />
+                                                    {isFr ? 'Effacer' : 'Clear'}
+                                                  </Button>
+                                                )}
+                                              </div>
+                                              {isNonDateHint && (
+                                                <p className="text-xs text-muted-foreground">
+                                                  <span className="font-medium">
+                                                    {isFr ? "Indice de l'IA :" : 'AI hint:'}
+                                                  </span>{' '}
+                                                  {rawHint}
+                                                </p>
+                                              )}
+                                              {sortingIsAccepted && (
+                                                <p className="text-xs text-muted-foreground">
+                                                  {isFr
+                                                    ? 'La décision de tri est acceptée — réinitialisez-la avant de modifier la période.'
+                                                    : 'Sorting decision is accepted — reset it before changing the period.'}
+                                                </p>
+                                              )}
+                                            </div>
+                                          );
+                                        })()}
 
                                         {/* Confidence + reason row */}
                                         <div className="space-y-2">
