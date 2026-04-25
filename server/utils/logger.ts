@@ -239,18 +239,49 @@ export function logWarn(message: string, context?: LogContext): void {
  */
 export function logError(message: string, error?: Error, context?: LogContext): void {
   if (currentLogLevel < LogLevel.ERROR) return;
-  
+
+  // Surface the underlying cause (e.g. node-postgres error fields like
+  // `code`, `detail`, `hint`, `position`) so production log lines don't
+  // get truncated under a giant Drizzle-formatted "Failed query: ..."
+  // message that hides the actual SQLSTATE reason.
+  const cause = (error as any)?.cause;
+  const causeInfo = cause
+    ? {
+        message: typeof cause?.message === 'string' ? cause.message : undefined,
+        code: typeof cause?.code === 'string' ? cause.code : undefined,
+        detail: typeof cause?.detail === 'string' ? cause.detail : undefined,
+        hint: typeof cause?.hint === 'string' ? cause.hint : undefined,
+        position: typeof cause?.position === 'string' ? cause.position : undefined,
+        routine: typeof cause?.routine === 'string' ? cause.routine : undefined,
+        schema: typeof cause?.schema === 'string' ? cause.schema : undefined,
+        table: typeof cause?.table === 'string' ? cause.table : undefined,
+        column: typeof cause?.column === 'string' ? cause.column : undefined,
+        constraint: typeof cause?.constraint === 'string' ? cause.constraint : undefined,
+      }
+    : undefined;
+
   const errorContext = {
     ...context,
     error: {
       message: error?.message,
       stack: process.env.NODE_ENV === 'development' ? error?.stack : '[REDACTED]',
       name: error?.name,
+      ...(causeInfo ? { cause: causeInfo } : {}),
     }
   };
-  
+
   const formatted = formatLogMessage('ERROR', message, errorContext);
   console.error(formatted);
+
+  // Also emit a compact, query-free second line so the cause survives even
+  // when the verbose first line is clipped by a downstream log viewer.
+  if (causeInfo && (causeInfo.code || causeInfo.message || causeInfo.detail)) {
+    const compact = formatLogMessage('ERROR', `${message} [cause]`, {
+      ...context,
+      metadata: causeInfo,
+    });
+    console.error(compact);
+  }
 }
 
 /**
