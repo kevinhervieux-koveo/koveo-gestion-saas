@@ -476,6 +476,11 @@ async function loadFullApplication(): Promise<void> {
         await ensureTriggerOnlyMigrations([
           '0010_demands_residence_building_check.sql',
           '0011_residences_demand_building_check.sql',
+          // Task #849: cleans up orphan building_elements.residence_id
+          // pointers and adds the missing FK to residences(id). The
+          // SQL guards itself with NOT EXISTS / IF NOT EXISTS so it
+          // is safe to re-run on every boot.
+          '0012_building_elements_residence_id_fk.sql',
         ]);
       } catch (migrationErr: any) {
         log(`❌ Database migrations failed: ${migrationErr.message}`, 'error');
@@ -628,13 +633,16 @@ async function loadFullApplication(): Promise<void> {
 
 /**
  * Idempotently re-apply migrations that create DB objects Drizzle does
- * not model (currently: PL/pgSQL functions and triggers). Called after
- * the numbered migration runner so we still apply these even if the
- * runner auto-baselined them on a freshly-pushed DB.
+ * not model robustly (PL/pgSQL functions, triggers, and one-shot
+ * cleanup-then-add-FK migrations like Task #849's
+ * `0012_building_elements_residence_id_fk.sql`). Called after the
+ * numbered migration runner so we still apply these even if the runner
+ * auto-baselined them on a freshly-pushed DB.
  *
  * The referenced SQL files MUST be safe to execute repeatedly:
  *   - `CREATE OR REPLACE FUNCTION ...`
  *   - `DROP TRIGGER IF EXISTS ... ; CREATE TRIGGER ...`
+ *   - `IF NOT EXISTS (SELECT 1 FROM pg_constraint ...) THEN ALTER TABLE ... ADD CONSTRAINT ...`
  */
 async function ensureTriggerOnlyMigrations(filenames: string[]): Promise<void> {
   const { readFileSync } = await import('fs');

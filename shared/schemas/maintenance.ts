@@ -256,18 +256,30 @@ export const vendors = pgTable('vendors', {
  * This is enforced at the database layer by the BEFORE INSERT/UPDATE
  * trigger `building_elements_residence_building_check` (see migration
  * `migrations/0013_building_elements_residence_building_check.sql`).
- * Note: `residence_id` here is plain `text` with no FK to
- * `residences`, so the trigger silently allows orphan residence ids
- * (the application is expected to validate them upstream). Drizzle
- * does not model that trigger, so `drizzle-kit push` will not drop
- * or alter it.
+ * Drizzle does not model that trigger, so `drizzle-kit push` will not
+ * drop or alter it.
+ *
+ * Residence FK (Task #849)
+ * ------------------------
+ * `residence_id` is a real foreign key to `residences(id)` with
+ * `ON DELETE SET NULL`. Migration
+ * `migrations/0012_building_elements_residence_id_fk.sql` adds the
+ * constraint after NULLing any pre-existing orphan pointers, so the
+ * cross-residence trigger can no longer be bypassed by a typo or a
+ * since-deleted residence: an unknown `residence_id` is now rejected
+ * by the FK with `foreign_key_violation` (SQLSTATE 23503) before the
+ * trigger ever runs. Deleting a residence demotes its elements to
+ * building-wide rather than cascading them away — they retain a valid
+ * `building_id`, just no residence link.
  */
 export const buildingElements = pgTable('building_elements', {
   id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
   buildingId: text('building_id')
     .notNull()
     .references(() => buildings.id, { onDelete: 'cascade' }),
-  residenceId: text('residence_id'), // Single residence ID, null for building-wide elements
+  // Single residence ID, null for building-wide elements. FK to
+  // residences(id) ON DELETE SET NULL — see Task #849 docstring above.
+  residenceId: text('residence_id').references(() => residences.id, { onDelete: 'set null' }),
   uniformatCode: varchar('uniformat_code', { length: 10 })
     .notNull()
     .references(() => uniformatCodes.code),
