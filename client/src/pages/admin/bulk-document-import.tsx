@@ -103,10 +103,16 @@ interface BulkImportItemLite {
   preExcludeStatus: BulkImportItem['status'] | null;
   screeningConfidence: number | null;
   screeningFallback: BulkImportFallbackReason | null;
+  /** quickAnalysis fields from Screening (Task #767). Null for old sessions. */
+  screeningTypeGuess: string | null;
+  screeningBucketGuess: string | null;
+  screeningQaReason: string | null;
   sortingConfidence: number | null;
   sortingFallback: BulkImportFallbackReason | null;
   sortingDecision: 'keep' | 'merge' | 'split' | null;
   sortingReason: string | null;
+  /** id of the sibling item this one should merge with (Task #767). */
+  sortingMergeWithItemId: string | null;
   branchingConfidence: number | null;
   branchingFallback: BulkImportFallbackReason | null;
   identificationConfidence: number | null;
@@ -136,6 +142,7 @@ function getItemStepDecision(
   fallbackReason: BulkImportFallbackReason | null;
   decision?: 'keep' | 'merge' | 'split' | null;
   reason?: string | null;
+  mergeWithItemId?: string | null;
 } | null {
   switch (step) {
     case 'screening':
@@ -146,6 +153,7 @@ function getItemStepDecision(
         fallbackReason: item.sortingFallback,
         decision: item.sortingDecision,
         reason: item.sortingReason,
+        mergeWithItemId: item.sortingMergeWithItemId,
       };
     case 'branching':
       return { confidence: item.branchingConfidence, fallbackReason: item.branchingFallback };
@@ -247,6 +255,45 @@ const STEP_LABEL_FR: Record<BulkImportStep, string> = {
 };
 
 const STORAGE_KEY = 'bulkImportActiveSessionId';
+
+const TYPE_GUESS_LABEL_EN: Record<string, string> = {
+  invoice: 'Invoice',
+  contract: 'Contract',
+  minutes: 'Minutes',
+  statement: 'Statement',
+  letter: 'Letter',
+  report: 'Report',
+  other: 'Other',
+  unknown: 'Unknown',
+};
+const TYPE_GUESS_LABEL_FR: Record<string, string> = {
+  invoice: 'Facture',
+  contract: 'Contrat',
+  minutes: 'Procès-verbal',
+  statement: 'Relevé',
+  letter: 'Lettre',
+  report: 'Rapport',
+  other: 'Autre',
+  unknown: 'Inconnu',
+};
+const BUCKET_GUESS_LABEL_EN: Record<string, string> = {
+  building_documents: 'Building',
+  residence_documents: 'Residence',
+  demand: 'Demand',
+  bill: 'Bill',
+  maintenance: 'Maintenance',
+  other: 'Other',
+  unknown: 'Unknown',
+};
+const BUCKET_GUESS_LABEL_FR: Record<string, string> = {
+  building_documents: 'Immeuble',
+  residence_documents: 'Résidence',
+  demand: 'Demande',
+  bill: 'Facture reçue',
+  maintenance: 'Entretien',
+  other: 'Autre',
+  unknown: 'Inconnu',
+};
 
 function ConfidenceBadge({
   value,
@@ -1827,7 +1874,17 @@ export default function BulkDocumentImportPage() {
                                     <Badge
                                       variant="outline"
                                       className="shrink-0 border-blue-300 bg-blue-50 text-blue-900 dark:border-blue-700 dark:bg-blue-950 dark:text-blue-200"
-                                      title={decision.reason ?? undefined}
+                                      title={(() => {
+                                        const base = decision.reason ?? '';
+                                        if (decision.decision === 'merge' && decision.mergeWithItemId) {
+                                          const sibling = items.find((i) => i.id === decision.mergeWithItemId);
+                                          const siblingName = sibling?.originalName ?? decision.mergeWithItemId;
+                                          return isFr
+                                            ? `${base}${base ? ' · ' : ''}Fusionner avec : ${siblingName}`
+                                            : `${base}${base ? ' · ' : ''}Merge with: ${siblingName}`;
+                                        }
+                                        return base || undefined;
+                                      })()}
                                       data-testid={`sorting-decision-${item.id}`}
                                     >
                                       {decision.decision === 'keep'
@@ -1835,6 +1892,26 @@ export default function BulkDocumentImportPage() {
                                         : decision.decision === 'merge'
                                         ? isFr ? 'Fusionner' : 'Merge'
                                         : isFr ? 'Scinder' : 'Split'}
+                                    </Badge>
+                                  )}
+                                  {currentStep === 'screening' && item.screeningTypeGuess && item.screeningTypeGuess !== 'unknown' && (
+                                    <Badge
+                                      variant="outline"
+                                      className="shrink-0 border-purple-300 bg-purple-50 text-purple-900 dark:border-purple-700 dark:bg-purple-950 dark:text-purple-200"
+                                      title={item.screeningQaReason ?? undefined}
+                                      data-testid={`screening-type-guess-${item.id}`}
+                                    >
+                                      {(isFr ? TYPE_GUESS_LABEL_FR : TYPE_GUESS_LABEL_EN)[item.screeningTypeGuess] ?? item.screeningTypeGuess}
+                                    </Badge>
+                                  )}
+                                  {currentStep === 'screening' && item.screeningBucketGuess && item.screeningBucketGuess !== 'unknown' && (
+                                    <Badge
+                                      variant="outline"
+                                      className="shrink-0 border-teal-300 bg-teal-50 text-teal-900 dark:border-teal-700 dark:bg-teal-950 dark:text-teal-200"
+                                      title={item.screeningQaReason ?? undefined}
+                                      data-testid={`screening-bucket-guess-${item.id}`}
+                                    >
+                                      {(isFr ? BUCKET_GUESS_LABEL_FR : BUCKET_GUESS_LABEL_EN)[item.screeningBucketGuess] ?? item.screeningBucketGuess}
                                     </Badge>
                                   )}
                                   <FallbackReasonBadge

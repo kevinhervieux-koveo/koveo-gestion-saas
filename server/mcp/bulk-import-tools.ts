@@ -166,16 +166,31 @@ export function registerBulkImportTools(
             break;
           }
           case 'sort': {
-            const siblings = await db
+            const allItems = await db
               .select({
                 id: schema.bulkImportItems.id,
                 name: schema.bulkImportItems.originalName,
+                screening: schema.bulkImportItems.screening,
               })
               .from(schema.bulkImportItems)
               .where(eq(schema.bulkImportItems.sessionId, item.sessionId));
+            const myScreening = item.screening as Record<string, unknown> | null | undefined;
+            const myQa = (myScreening?.quickAnalysis as import('../services/bulk-import-analyzer').QuickAnalysis | null | undefined) ?? null;
+            const myIsMultiDocument = typeof myScreening?.isMultiDocument === 'boolean'
+              ? myScreening.isMultiDocument
+              : null;
+            const siblings = allItems
+              .filter((s) => s.id !== itemId)
+              .map((s) => {
+                const sc = s.screening as Record<string, unknown> | null | undefined;
+                const qa = (sc?.quickAnalysis as import('../services/bulk-import-analyzer').QuickAnalysis | null | undefined) ?? null;
+                return { id: s.id, name: s.name, quickAnalysis: qa };
+              });
             payload = (await bulkImportAnalyzer.suggestMergeOrSplit({
               originalName: item.originalName,
-              siblingNames: siblings.filter((s) => s.id !== itemId).map((s) => s.name),
+              siblings,
+              quickAnalysis: myQa,
+              isMultiDocument: myIsMultiDocument,
               stagedPath: item.stagedPath,
               mimeType: item.mimeType,
             })) as unknown as Record<string, unknown>;

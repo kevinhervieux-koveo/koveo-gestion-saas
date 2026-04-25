@@ -74,6 +74,34 @@ export interface AnalyzerConfidence {
   fallbackReason?: BulkImportFallbackReason | null;
 }
 
+export type QuickAnalysisTypeGuess =
+  | 'invoice'
+  | 'contract'
+  | 'minutes'
+  | 'statement'
+  | 'letter'
+  | 'report'
+  | 'other'
+  | 'unknown';
+
+export type QuickAnalysisBucketGuess =
+  | 'building_documents'
+  | 'residence_documents'
+  | 'demand'
+  | 'bill'
+  | 'maintenance'
+  | 'other'
+  | 'unknown';
+
+export interface QuickAnalysis {
+  typeGuess: QuickAnalysisTypeGuess;
+  bucketGuess: QuickAnalysisBucketGuess;
+  reason: string;
+  confidence: number;
+  /** Set when this is a deterministic stub because AI was unavailable. */
+  fallbackReason?: BulkImportFallbackReason | null;
+}
+
 export interface ScreeningResult extends AnalyzerConfidence {
   isComplete: boolean;
   isMultiDocument: boolean;
@@ -81,6 +109,7 @@ export interface ScreeningResult extends AnalyzerConfidence {
   rotationDegrees: 0 | 90 | 180 | 270;
   suggestedFilename: string;
   description: string;
+  quickAnalysis: QuickAnalysis;
 }
 
 export interface MergeOrSplitResult extends AnalyzerConfidence {
@@ -88,6 +117,13 @@ export interface MergeOrSplitResult extends AnalyzerConfidence {
   reason: string;
   mergeWithItemId?: string;
   splitAtPage?: number;
+}
+
+/** Sibling item context passed to the Branching (suggestMergeOrSplit) analyzer. */
+export interface SiblingContext {
+  id: string;
+  name: string;
+  quickAnalysis?: QuickAnalysis | null;
 }
 
 export interface BranchResult extends AnalyzerConfidence {
@@ -433,6 +469,18 @@ function clampConfidence(value: unknown): number {
   return Math.max(0, Math.min(1, n));
 }
 
+function fallbackQuickAnalysis(
+  fallbackReason: BulkImportFallbackReason | null = null,
+): QuickAnalysis {
+  return {
+    typeGuess: 'unknown',
+    bucketGuess: 'building_documents',
+    reason: 'Deterministic stub — AI unavailable.',
+    confidence: 0.2,
+    fallbackReason,
+  };
+}
+
 function fallbackScreening(
   originalName: string,
   fallbackReason: BulkImportFallbackReason | null = null,
@@ -446,6 +494,39 @@ function fallbackScreening(
     description: 'Auto-stub description (Anthropic unavailable).',
     confidence: 0.2,
     fallbackReason,
+    quickAnalysis: fallbackQuickAnalysis(fallbackReason),
+  };
+}
+
+const TYPE_GUESSES: QuickAnalysisTypeGuess[] = [
+  'invoice', 'contract', 'minutes', 'statement', 'letter', 'report', 'other', 'unknown',
+];
+const BUCKET_GUESSES: QuickAnalysisBucketGuess[] = [
+  'building_documents', 'residence_documents', 'demand', 'bill', 'maintenance', 'other', 'unknown',
+];
+
+function parseQuickAnalysis(raw: unknown, fallbackReason: BulkImportFallbackReason | null): QuickAnalysis {
+  if (!raw || typeof raw !== 'object') {
+    // When the API was unavailable, return the deterministic stub (includes fallbackReason).
+    // When the API responded but omitted quickAnalysis, return all-unknown so callers
+    // know the field was genuinely not provided (distinct from the stub bucket guess).
+    if (fallbackReason) return fallbackQuickAnalysis(fallbackReason);
+    return { typeGuess: 'unknown', bucketGuess: 'unknown', reason: '', confidence: 0 };
+  }
+  const r = raw as Record<string, unknown>;
+  const typeGuess: QuickAnalysisTypeGuess =
+    TYPE_GUESSES.includes(r.typeGuess as QuickAnalysisTypeGuess)
+      ? (r.typeGuess as QuickAnalysisTypeGuess)
+      : 'unknown';
+  const bucketGuess: QuickAnalysisBucketGuess =
+    BUCKET_GUESSES.includes(r.bucketGuess as QuickAnalysisBucketGuess)
+      ? (r.bucketGuess as QuickAnalysisBucketGuess)
+      : 'unknown';
+  return {
+    typeGuess,
+    bucketGuess,
+    reason: typeof r.reason === 'string' ? r.reason : '',
+    confidence: clampConfidence(r.confidence),
   };
 }
 
@@ -461,10 +542,20 @@ export const bulkImportAnalyzer = {
 Filename: ${input.originalName}
 MIME: ${input.mimeType ?? 'unknown'}
 Size: ${input.fileSize ?? 'unknown'} bytes
-Return JSON with keys: isComplete (bool), isMultiDocument (bool), pageOrderHint (number[] or null),
-rotationDegrees (0|90|180|270), suggestedFilename (string), description (short string),
-confidence (0..1).`;
-    const { data: raw, fallbackReason } = await callClaudeJson<Partial<ScreeningResult>>(
+Return JSON with keys:
+- isComplete (bool): whether the document appears complete (not cut off)
+- isMultiDocument (bool): whether multiple separate documents are stitched together
+- pageOrderHint (number[] or null): reordering hint if pages seem shuffled, else null
+- rotationDegrees (0|90|180|270): clockwise rotation needed to make pages upright
+- suggestedFilename (string): a cleaner filename suggestion
+- description (short string): one-sentence description of the document
+- confidence (0..1): your overall confidence in this analysis
+- quickAnalysis (object): { typeGuess, bucketGuess, reason, confidence }
+  where typeGuess is one of: invoice|contract|minutes|statement|letter|report|other|unknown
+  and bucketGuess is one of: building_documents|residence_documents|demand|bill|maintenance|other|unknown
+  and reason is a one-sentence explanation of your guess
+  and confidence is 0..1 for this quick-analysis guess specifically`;
+    const { data: raw, fallbackReason } = await callClaudeJson<Record<string, unknown>>(
       prompt,
       {
         stagedPath: input.stagedPath,
@@ -487,20 +578,52 @@ confidence (0..1).`;
       description: typeof raw.description === 'string' ? raw.description : '',
       confidence: clampConfidence(raw.confidence),
       fallbackReason,
+      quickAnalysis: parseQuickAnalysis(raw.quickAnalysis, fallbackReason),
     };
   },
 
   async suggestMergeOrSplit(input: {
     originalName: string;
-    siblingNames: string[];
+    siblings: SiblingContext[];
+    quickAnalysis?: QuickAnalysis | null;
+    isMultiDocument?: boolean | null;
     stagedPath?: string | null;
     buffer?: Buffer | null;
     mimeType?: string | null;
   }): Promise<MergeOrSplitResult> {
-    const prompt = `You are sorting scanned documents. The current document is "${input.originalName}".
-Other staged docs in this session: ${JSON.stringify(input.siblingNames)}.
-Decide whether to keep, merge, or split. Return JSON: { decision: 'keep'|'merge'|'split',
-reason: string, mergeWithItemId?: string, splitAtPage?: number, confidence: number }.`;
+    const siblingLines = input.siblings
+      .map((s) => {
+        const qa = s.quickAnalysis;
+        if (qa) {
+          return `  - id=${s.id} name="${s.name}" typeGuess=${qa.typeGuess} bucketGuess=${qa.bucketGuess}`;
+        }
+        return `  - id=${s.id} name="${s.name}"`;
+      })
+      .join('\n');
+
+    const myQa = input.quickAnalysis;
+    const myQaLine = myQa
+      ? `Screening tagged this file as: typeGuess=${myQa.typeGuess}, bucketGuess=${myQa.bucketGuess} (${myQa.reason})`
+      : '';
+    const multiDocLine = input.isMultiDocument
+      ? 'Screening flagged this file as isMultiDocument=true (it appears to contain multiple separate documents stitched together).'
+      : '';
+
+    const prompt = `You are branching scanned documents into keep/merge/split decisions.
+
+Current document: "${input.originalName}"
+${myQaLine}
+${multiDocLine}
+
+Other staged docs in this session:
+${siblingLines || '  (none)'}
+
+Decision rules:
+- If Screening flagged isMultiDocument=true for this file, it is a strong split candidate. Set decision='split' and splitAtPage to the page number where the second document starts.
+- If two documents share the same typeGuess AND bucketGuess, they are strong merge candidates. Set decision='merge' and mergeWithItemId to the sibling's id.
+- Otherwise decide 'keep'.
+
+Return JSON: { decision: 'keep'|'merge'|'split', reason: string, mergeWithItemId?: string, splitAtPage?: number, confidence: number }.`;
     const { data: raw, fallbackReason } = await callClaudeJson<Partial<MergeOrSplitResult>>(
       prompt,
       {

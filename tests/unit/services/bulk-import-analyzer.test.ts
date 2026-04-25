@@ -57,7 +57,7 @@ describe('bulkImportAnalyzer fallback mode', () => {
   it('returns a keep decision with low confidence in fallback', async () => {
     const r = await bulkImportAnalyzer.suggestMergeOrSplit({
       originalName: 'a.pdf',
-      siblingNames: ['b.pdf'],
+      siblings: [{ id: 'b1', name: 'b.pdf' }],
     });
     expect(r.decision).toBe('keep');
     expect(r.confidence).toBeLessThan(0.5);
@@ -95,7 +95,7 @@ describe('bulkImportAnalyzer fallback mode', () => {
     });
     const merge = await bulkImportAnalyzer.suggestMergeOrSplit({
       originalName: 'a.pdf',
-      siblingNames: [],
+      siblings: [],
     });
     const branch = await bulkImportAnalyzer.suggestBranch({
       originalName: 'a.pdf',
@@ -280,7 +280,7 @@ describe('bulkImportAnalyzer file attachments (Task #455)', () => {
 
     await bulkImportAnalyzer.suggestMergeOrSplit({
       originalName: 'archive.zip',
-      siblingNames: [],
+      siblings: [],
       mimeType: 'application/zip',
       stagedPath: binPath,
     });
@@ -581,7 +581,7 @@ describe('bulkImportAnalyzer fallbackReason propagation (Task #493)', () => {
       makeFakeClient(mergeOrSplitPayload);
       const r = await bulkImportAnalyzer.suggestMergeOrSplit({
         originalName: 'huge.pdf',
-        siblingNames: [],
+        siblings: [],
         mimeType: 'application/pdf',
         buffer: Buffer.alloc(OVERSIZE_BYTES, 0),
       });
@@ -594,7 +594,7 @@ describe('bulkImportAnalyzer fallbackReason propagation (Task #493)', () => {
       fs.writeFileSync(zipPath, Buffer.from('PK\u0003\u0004 fake'));
       const r = await bulkImportAnalyzer.suggestMergeOrSplit({
         originalName: 'archive.zip',
-        siblingNames: [],
+        siblings: [],
         mimeType: 'application/zip',
         stagedPath: zipPath,
       });
@@ -605,7 +605,7 @@ describe('bulkImportAnalyzer fallbackReason propagation (Task #493)', () => {
       makeFakeClient(mergeOrSplitPayload);
       const r = await bulkImportAnalyzer.suggestMergeOrSplit({
         originalName: 'gone.pdf',
-        siblingNames: [],
+        siblings: [],
         mimeType: 'application/pdf',
         stagedPath: path.join(tmpDir, 'does-not-exist-merge.pdf'),
       });
@@ -618,7 +618,7 @@ describe('bulkImportAnalyzer fallbackReason propagation (Task #493)', () => {
       fs.writeFileSync(pdfPath, Buffer.from('%PDF-1.4 normal pdf body'));
       const r = await bulkImportAnalyzer.suggestMergeOrSplit({
         originalName: 'ok.pdf',
-        siblingNames: [],
+        siblings: [],
         mimeType: 'application/pdf',
         stagedPath: pdfPath,
       });
@@ -749,5 +749,328 @@ describe('bandForConfidence helper', () => {
     expect(bandForConfidence(null)).toBe('low');
     expect(bandForConfidence(undefined)).toBe('low');
     expect(bandForConfidence(Number.NaN)).toBe('low');
+  });
+});
+
+// ── Task #767 ─────────────────────────────────────────────────────────────────
+describe('Task #767 — quickAnalysis in Screening + Branching prompt', () => {
+  let tmpDir: string;
+
+  beforeAll(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'bulk-import-767-test-'));
+  });
+  afterAll(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+    bulkImportAnalyzer.__setClientForTests(null);
+    cacheMockStore.clear();
+  });
+  beforeEach(() => {
+    cacheMockStore.clear();
+    getCachedMock.mockClear();
+    setCachedMock.mockClear();
+  });
+
+  function makeFakeClient(jsonPayload: object) {
+    const create = jest.fn().mockResolvedValue({
+      content: [{ type: 'text', text: JSON.stringify(jsonPayload) }],
+    });
+    const fakeClient = {
+      messages: { create },
+    } as unknown as Parameters<typeof bulkImportAnalyzer.__setClientForTests>[0];
+    bulkImportAnalyzer.__setClientForTests(fakeClient);
+    return create;
+  }
+
+  describe('screen() quickAnalysis parsing', () => {
+    it('parses quickAnalysis from a real-shape Anthropic response', async () => {
+      makeFakeClient({
+        isComplete: true,
+        isMultiDocument: false,
+        pageOrderHint: null,
+        rotationDegrees: 0,
+        suggestedFilename: 'invoice-2024.pdf',
+        description: 'Monthly invoice',
+        confidence: 0.88,
+        quickAnalysis: {
+          typeGuess: 'invoice',
+          bucketGuess: 'bill',
+          reason: 'Layout and totals column suggest this is an invoice.',
+          confidence: 0.85,
+        },
+      });
+
+      const r = await bulkImportAnalyzer.screen({
+        originalName: 'invoice-2024.pdf',
+        mimeType: 'application/pdf',
+      });
+
+      expect(r.quickAnalysis).toBeDefined();
+      expect(r.quickAnalysis.typeGuess).toBe('invoice');
+      expect(r.quickAnalysis.bucketGuess).toBe('bill');
+      expect(r.quickAnalysis.reason).toBe('Layout and totals column suggest this is an invoice.');
+      expect(r.quickAnalysis.confidence).toBeCloseTo(0.85);
+    });
+
+    it('falls back to unknown when quickAnalysis is missing from the response', async () => {
+      const pdfPath = path.join(tmpDir, 'no-qa.pdf');
+      fs.writeFileSync(pdfPath, Buffer.from('%PDF-1.4 no-quickanalysis test'));
+      makeFakeClient({
+        isComplete: true,
+        isMultiDocument: false,
+        pageOrderHint: null,
+        rotationDegrees: 0,
+        suggestedFilename: 'doc.pdf',
+        description: '',
+        confidence: 0.5,
+        // no quickAnalysis field
+      });
+
+      const r = await bulkImportAnalyzer.screen({
+        originalName: 'doc.pdf',
+        mimeType: 'application/pdf',
+        stagedPath: pdfPath,
+      });
+
+      expect(r.quickAnalysis.typeGuess).toBe('unknown');
+      expect(r.quickAnalysis.bucketGuess).toBe('unknown');
+    });
+
+    it('clamps an out-of-vocabulary typeGuess to unknown', async () => {
+      const pdfPath = path.join(tmpDir, 'clamped.pdf');
+      fs.writeFileSync(pdfPath, Buffer.from('%PDF-1.4 clamped type guess test'));
+      makeFakeClient({
+        isComplete: true,
+        isMultiDocument: false,
+        pageOrderHint: null,
+        rotationDegrees: 0,
+        suggestedFilename: 'doc.pdf',
+        description: '',
+        confidence: 0.7,
+        quickAnalysis: {
+          typeGuess: 'spreadsheet', // not in vocabulary
+          bucketGuess: 'bill',
+          reason: 'Test',
+          confidence: 0.6,
+        },
+      });
+
+      const r = await bulkImportAnalyzer.screen({
+        originalName: 'doc.pdf',
+        mimeType: 'application/pdf',
+        stagedPath: pdfPath,
+      });
+
+      expect(r.quickAnalysis.typeGuess).toBe('unknown');
+      expect(r.quickAnalysis.bucketGuess).toBe('bill');
+    });
+  });
+
+  describe('screen() deterministic stub includes quickAnalysis', () => {
+    beforeAll(() => {
+      delete process.env.ANTHROPIC_API_KEY;
+      bulkImportAnalyzer.__setClientForTests(null);
+    });
+    afterAll(() => {
+      // reset to fake client for subsequent suites
+    });
+
+    it('fallback stub has quickAnalysis with typeGuess=unknown and bucketGuess=building_documents', async () => {
+      const r = await bulkImportAnalyzer.screen({
+        originalName: 'stub.pdf',
+        mimeType: 'application/pdf',
+      });
+      expect(r.quickAnalysis).toBeDefined();
+      expect(r.quickAnalysis.typeGuess).toBe('unknown');
+      expect(r.quickAnalysis.bucketGuess).toBe('building_documents');
+      expect(r.quickAnalysis.confidence).toBe(0.2);
+      expect(r.quickAnalysis.fallbackReason).toBe('no_api_key');
+    });
+  });
+
+  describe('suggestMergeOrSplit() prompt includes quickAnalysis context', () => {
+    it('includes the current item quickAnalysis in the prompt text', async () => {
+      const create = makeFakeClient({
+        decision: 'keep',
+        reason: 'no match',
+        confidence: 0.7,
+      });
+
+      await bulkImportAnalyzer.suggestMergeOrSplit({
+        originalName: 'invoice.pdf',
+        siblings: [{ id: 's1', name: 'contract.pdf', quickAnalysis: null }],
+        quickAnalysis: {
+          typeGuess: 'invoice',
+          bucketGuess: 'bill',
+          reason: 'Has a totals section',
+          confidence: 0.8,
+        },
+      });
+
+      const sentPrompt: string = create.mock.calls[0][0].messages[0].content
+        .filter((b: { type: string }) => b.type === 'text')
+        .map((b: { text: string }) => b.text)
+        .join('\n');
+
+      expect(sentPrompt).toContain('invoice');
+      expect(sentPrompt).toContain('bill');
+      expect(sentPrompt).toContain('Has a totals section');
+    });
+
+    it('includes sibling quickAnalysis ids and type/bucket guesses in prompt', async () => {
+      const create = makeFakeClient({
+        decision: 'merge',
+        reason: 'same type and bucket',
+        mergeWithItemId: 'sib-42',
+        confidence: 0.9,
+      });
+
+      await bulkImportAnalyzer.suggestMergeOrSplit({
+        originalName: 'invoice-a.pdf',
+        siblings: [
+          {
+            id: 'sib-42',
+            name: 'invoice-b.pdf',
+            quickAnalysis: {
+              typeGuess: 'invoice',
+              bucketGuess: 'bill',
+              reason: 'Looks like an invoice',
+              confidence: 0.82,
+            },
+          },
+        ],
+        quickAnalysis: {
+          typeGuess: 'invoice',
+          bucketGuess: 'bill',
+          reason: 'Invoice header present',
+          confidence: 0.85,
+        },
+      });
+
+      const sentPrompt: string = create.mock.calls[0][0].messages[0].content
+        .filter((b: { type: string }) => b.type === 'text')
+        .map((b: { text: string }) => b.text)
+        .join('\n');
+
+      expect(sentPrompt).toContain('sib-42');
+      expect(sentPrompt).toContain('invoice-b.pdf');
+      expect(sentPrompt).toContain('typeGuess=invoice');
+      expect(sentPrompt).toContain('bucketGuess=bill');
+    });
+
+    it('still accepts siblings with no quickAnalysis (old sessions)', async () => {
+      const create = makeFakeClient({
+        decision: 'keep',
+        reason: 'fallback names only',
+        confidence: 0.5,
+      });
+
+      const r = await bulkImportAnalyzer.suggestMergeOrSplit({
+        originalName: 'old-doc.pdf',
+        siblings: [{ id: 'old-sib', name: 'old-sibling.pdf' }], // no quickAnalysis
+      });
+
+      expect(r.decision).toBe('keep');
+      const sentPrompt: string = create.mock.calls[0][0].messages[0].content
+        .filter((b: { type: string }) => b.type === 'text')
+        .map((b: { text: string }) => b.text)
+        .join('\n');
+      // Sibling name appears even without quickAnalysis
+      expect(sentPrompt).toContain('old-sibling.pdf');
+    });
+
+    it('returns mergeWithItemId from the model when same typeGuess+bucketGuess → merge', async () => {
+      makeFakeClient({
+        decision: 'merge',
+        reason: 'Same invoice/bill type and bucket as sibling',
+        mergeWithItemId: 'sibling-id-99',
+        confidence: 0.92,
+      });
+
+      const r = await bulkImportAnalyzer.suggestMergeOrSplit({
+        originalName: 'invoice-jan.pdf',
+        siblings: [
+          {
+            id: 'sibling-id-99',
+            name: 'invoice-feb.pdf',
+            quickAnalysis: { typeGuess: 'invoice', bucketGuess: 'bill', reason: 'Feb invoice', confidence: 0.8 },
+          },
+        ],
+        quickAnalysis: { typeGuess: 'invoice', bucketGuess: 'bill', reason: 'Jan invoice', confidence: 0.85 },
+      });
+
+      expect(r.decision).toBe('merge');
+      expect(r.mergeWithItemId).toBe('sibling-id-99');
+      expect(r.fallbackReason).toBeNull();
+    });
+
+    it('includes isMultiDocument=true signal in the prompt', async () => {
+      const create = makeFakeClient({
+        decision: 'split',
+        reason: 'multi-document file',
+        splitAtPage: 3,
+        confidence: 0.88,
+      });
+
+      const r = await bulkImportAnalyzer.suggestMergeOrSplit({
+        originalName: 'combined.pdf',
+        siblings: [],
+        isMultiDocument: true,
+        quickAnalysis: { typeGuess: 'contract', bucketGuess: 'building_documents', reason: 'Multi', confidence: 0.7 },
+      });
+
+      expect(r.decision).toBe('split');
+      const sentPrompt: string = create.mock.calls[0][0].messages[0].content
+        .filter((b: { type: string }) => b.type === 'text')
+        .map((b: { text: string }) => b.text)
+        .join('\n');
+      expect(sentPrompt).toContain('isMultiDocument=true');
+      expect(r.splitAtPage).toBe(3);
+    });
+
+    it('omits isMultiDocument signal from prompt when not provided (backwards compat)', async () => {
+      const create = makeFakeClient({
+        decision: 'keep',
+        reason: 'no split needed',
+        confidence: 0.7,
+      });
+
+      await bulkImportAnalyzer.suggestMergeOrSplit({
+        originalName: 'normal.pdf',
+        siblings: [],
+        // no isMultiDocument field — old-session callers do not pass it
+      });
+
+      const sentPrompt: string = create.mock.calls[0][0].messages[0].content
+        .filter((b: { type: string }) => b.type === 'text')
+        .map((b: { text: string }) => b.text)
+        .join('\n');
+      // The DYNAMIC per-item multi-doc contextual line must not appear when isMultiDocument is absent.
+      // (The static decision-rule text is always included and is not the signal we're checking.)
+      expect(sentPrompt).not.toContain('it appears to contain multiple separate documents');
+    });
+
+    it('works when current item screening blob has no quickAnalysis (old session item)', async () => {
+      const create = makeFakeClient({
+        decision: 'keep',
+        reason: 'no context from screening',
+        confidence: 0.4,
+      });
+
+      // Simulates an old item whose screening blob predates Task #767
+      const r = await bulkImportAnalyzer.suggestMergeOrSplit({
+        originalName: 'legacy.pdf',
+        siblings: [],
+        quickAnalysis: null,   // no quickAnalysis — old session
+        isMultiDocument: null, // no isMultiDocument — old session
+      });
+
+      expect(r.decision).toBe('keep');
+      // Neither quickAnalysis nor isMultiDocument lines should crash the prompt
+      const sentPrompt: string = create.mock.calls[0][0].messages[0].content
+        .filter((b: { type: string }) => b.type === 'text')
+        .map((b: { text: string }) => b.text)
+        .join('\n');
+      expect(sentPrompt).toContain('legacy.pdf');
+    });
   });
 });

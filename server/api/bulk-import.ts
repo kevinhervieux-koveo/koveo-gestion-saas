@@ -24,7 +24,10 @@ import { storage } from '../storage';
 import {
   bulkImportAnalyzer,
   isBulkImportAiAvailable,
+  type QuickAnalysis,
+  type SiblingContext,
 } from '../services/bulk-import-analyzer';
+import { rotateAndRewriteStagedFile } from '../services/bulk-import-rotation';
 import { documentService } from '../services/document-service';
 import { logError, logInfo } from '../utils/logger';
 
@@ -209,7 +212,7 @@ async function patchRunAllProgress(
 async function processItemForStep(
   step: AutoStep,
   item: schema.BulkImportItem,
-  sessionItems: { id: string; name: string }[],
+  sessionItems: { id: string; name: string; screening?: Record<string, unknown> | null }[],
 ): Promise<schema.BulkImportItem> {
   if (step === 'screening') {
     const result = await bulkImportAnalyzer.screen({
@@ -218,10 +221,28 @@ async function processItemForStep(
       fileSize: item.fileSize,
       stagedPath: item.stagedPath,
     });
+
+    // Apply rotation in place so Branching and all later steps read
+    // the upright version of the document. Failures are silent — the
+    // original file stays, rotation is logged, and the UI still shows
+    // the rotationDegrees from Screening.
+    let contentHash = item.contentHash;
+    if (result.rotationDegrees !== 0 && item.stagedPath) {
+      const newHash = await rotateAndRewriteStagedFile({
+        stagedPath: item.stagedPath,
+        mimeType: item.mimeType,
+        rotationDegrees: result.rotationDegrees,
+      });
+      if (newHash) {
+        contentHash = newHash;
+      }
+    }
+
     const [updated] = await db
       .update(schema.bulkImportItems)
       .set({
         screening: result as unknown as Record<string, unknown>,
+        contentHash,
         status: 'screened',
         updatedAt: new Date(),
       })
@@ -230,9 +251,27 @@ async function processItemForStep(
     return updated;
   }
   if (step === 'sorting') {
+    // Build sibling context including each sibling's quickAnalysis from
+    // their stored screening blob so the Branching analyzer can use it.
+    const siblings: SiblingContext[] = sessionItems
+      .filter((s) => s.id !== item.id)
+      .map((s) => {
+        const sc = s.screening as Record<string, unknown> | null | undefined;
+        const qa = sc?.quickAnalysis as QuickAnalysis | null | undefined;
+        return { id: s.id, name: s.name, quickAnalysis: qa ?? null };
+      });
+
+    const myScreening = item.screening as Record<string, unknown> | null | undefined;
+    const myQa = myScreening?.quickAnalysis as QuickAnalysis | null | undefined;
+    const myIsMultiDocument = typeof myScreening?.isMultiDocument === 'boolean'
+      ? myScreening.isMultiDocument
+      : null;
+
     const result = await bulkImportAnalyzer.suggestMergeOrSplit({
       originalName: item.originalName,
-      siblingNames: sessionItems.filter((s) => s.id !== item.id).map((s) => s.name),
+      siblings,
+      quickAnalysis: myQa ?? null,
+      isMultiDocument: myIsMultiDocument,
       stagedPath: item.stagedPath,
       mimeType: item.mimeType,
     });
@@ -329,7 +368,11 @@ async function runAllForStep(sessionId: string, step: AutoStep): Promise<void> {
 
     const eligibleStatuses = STEP_ELIGIBLE_STATUSES[step];
     const eligible = items.filter((i) => eligibleStatuses.includes(i.status));
-    const sessionItems = items.map((i) => ({ id: i.id, name: i.originalName }));
+    const sessionItems = items.map((i) => ({
+      id: i.id,
+      name: i.originalName,
+      screening: i.screening as Record<string, unknown> | null,
+    }));
 
     await patchRunAllProgress(sessionId, step, {
       total: eligible.length,
@@ -569,12 +612,24 @@ export function registerBulkImportRoutes(app: Express): void {
 
       function extractSortingStep(json: Record<string, unknown> | null | undefined) {
         const base = extractStep(json);
-        if (!json) return { ...base, decision: null, reason: null };
+        if (!json) return { ...base, decision: null, reason: null, mergeWithItemId: null };
         const raw = json.decision as string | null | undefined;
         const decision =
           raw === 'keep' || raw === 'merge' || raw === 'split' ? raw : null;
         const reason = (json.reason as string | null | undefined) ?? null;
-        return { ...base, decision, reason };
+        const mergeWithItemId = (json.mergeWithItemId as string | null | undefined) ?? null;
+        return { ...base, decision, reason, mergeWithItemId };
+      }
+
+      function extractScreeningQuickAnalysis(json: Record<string, unknown> | null | undefined) {
+        if (!json) return { screeningTypeGuess: null, screeningBucketGuess: null, screeningQaReason: null };
+        const qa = json.quickAnalysis as Record<string, unknown> | null | undefined;
+        if (!qa) return { screeningTypeGuess: null, screeningBucketGuess: null, screeningQaReason: null };
+        return {
+          screeningTypeGuess: (qa.typeGuess as string | null | undefined) ?? null,
+          screeningBucketGuess: (qa.bucketGuess as string | null | undefined) ?? null,
+          screeningQaReason: (qa.reason as string | null | undefined) ?? null,
+        };
       }
 
       const items = rows.map((r) => ({
@@ -585,6 +640,7 @@ export function registerBulkImportRoutes(app: Express): void {
         preExcludeStatus: r.preExcludeStatus,
         ...(() => {
           const sc = extractStep(r.screening);
+          const sqaFields = extractScreeningQuickAnalysis(r.screening);
           const so = extractSortingStep(r.sortingDecision);
           const br = extractStep(r.branchDecision);
           const id = extractStep(r.identification);
@@ -592,10 +648,12 @@ export function registerBulkImportRoutes(app: Express): void {
           return {
             screeningConfidence: sc.confidence,
             screeningFallback: sc.fallbackReason,
+            ...sqaFields,
             sortingConfidence: so.confidence,
             sortingFallback: so.fallbackReason,
             sortingDecision: so.decision,
             sortingReason: so.reason,
+            sortingMergeWithItemId: so.mergeWithItemId,
             branchingConfidence: br.confidence,
             branchingFallback: br.fallbackReason,
             identificationConfidence: id.confidence,
@@ -1031,10 +1089,19 @@ export function registerBulkImportRoutes(app: Express): void {
             .select({
               id: schema.bulkImportItems.id,
               name: schema.bulkImportItems.originalName,
+              screening: schema.bulkImportItems.screening,
             })
             .from(schema.bulkImportItems)
             .where(eq(schema.bulkImportItems.sessionId, item.sessionId));
-          const updated = await processItemForStep(step, item, sessionItems);
+          const updated = await processItemForStep(
+            step,
+            item,
+            sessionItems.map((s) => ({
+              id: s.id,
+              name: s.name,
+              screening: s.screening as Record<string, unknown> | null,
+            })),
+          );
           return res.json(updated);
         } catch (err) {
           logError(`[bulk-import] per-item ${step} failed`, err as Error);
