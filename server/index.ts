@@ -183,7 +183,26 @@ app.get('/ping', healthCheckErrorHandler((req: any, res: any) => {
 app.get('/status', healthCheckErrorHandler(createStatusCheck()));
 
 // API health endpoint with error protection
-app.get('/api/health', healthCheckErrorHandler((req: any, res: any) => {
+app.get('/api/health', healthCheckErrorHandler(async (req: any, res: any) => {
+  // Drift healthcheck: count demand rows whose residence belongs to a
+  // different building (cross-org leak). Should always be 0 after
+  // migration 0015 runs on boot. Non-zero means a new row slipped past
+  // the trigger guard and warrants investigation.
+  let crossOrgDemands: number | null = null;
+  try {
+    const { db } = await import('./db');
+    const { sql } = await import('drizzle-orm');
+    const result = await db.execute(sql`
+      SELECT count(*)::int AS cross_org_demands
+      FROM demands d
+      JOIN residences r ON r.id = d.residence_id
+      WHERE r.building_id <> d.building_id
+    `);
+    crossOrgDemands = (result.rows[0] as { cross_org_demands: number }).cross_org_demands;
+  } catch {
+    // DB not yet reachable during early boot — omit the field rather
+    // than failing the health check entirely.
+  }
   res.json({
     status: 'healthy',
     timestamp: new Date().toISOString(),
@@ -191,6 +210,7 @@ app.get('/api/health', healthCheckErrorHandler((req: any, res: any) => {
     environment: process.env.NODE_ENV || 'development',
     port: port,
     host: host,
+    ...(crossOrgDemands !== null ? { crossOrgDemands } : {}),
   });
 }));
 
@@ -496,6 +516,14 @@ async function loadFullApplication(): Promise<void> {
           // guard. CREATE OR REPLACE FUNCTION + DROP TRIGGER IF EXISTS
           // so it is safe to re-apply on every boot.
           '0014_invitations_residence_building_check.sql',
+          // Task #972: auto-fix legacy cross-org demand rows by NULLing
+          // `residence_id` on demands whose linked residence belongs to a
+          // different building than the demand's own `building_id`. The
+          // UPDATE is a no-op when the table is already clean, and the
+          // post-condition DO block raises check_violation if any
+          // cross-org rows remain — making this safe to re-run on every
+          // boot as a continuous drift guard.
+          '0015_fix_cross_org_demand_residence_ids.sql',
         ]);
 
         // Task #939: belt-and-braces post-migration verifier. Even
