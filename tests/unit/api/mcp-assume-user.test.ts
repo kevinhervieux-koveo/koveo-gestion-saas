@@ -26,12 +26,20 @@ const registeredTools = new Map<string, ToolHandler>();
 const registeredSchemas = new Map<string, Record<string, unknown>>();
 
 jest.mock('@modelcontextprotocol/sdk/server/mcp.js', () => ({
-  McpServer: jest.fn().mockImplementation(() => ({
-    tool: (name: string, _desc: string, schema: Record<string, unknown>, handler: ToolHandler) => {
-      registeredTools.set(name, handler);
-      registeredSchemas.set(name, schema);
-    },
-  })),
+  McpServer: jest.fn().mockImplementation(() => {
+    // Expose `_registeredTools` so that get_mcp_info can enumerate the tools
+    // registered on this server instance (Task #789). Each instance gets its
+    // own map so session-isolation is preserved across createMcpServer() calls.
+    const _registeredTools: Record<string, { description: string }> = {};
+    return {
+      _registeredTools,
+      tool: (name: string, desc: string, schema: Record<string, unknown>, handler: ToolHandler) => {
+        registeredTools.set(name, handler);
+        registeredSchemas.set(name, schema);
+        _registeredTools[name] = { description: desc };
+      },
+    };
+  }),
 }));
 
 const selectQueue: unknown[][] = [];
@@ -617,6 +625,132 @@ describe('assume_user / restore_acting_user tools (Task #642)', () => {
       const row = insertCalls[0]!.values;
       expect(row.ipAddress).toBeNull();
       expect(row.userAgent).toBeNull();
+    });
+  });
+
+  // Task #789 acceptance tests — get_mcp_info tool visibility rules for the
+  // impersonation tools (assume_user / restore_acting_user).
+  describe('get_mcp_info tool visibility (Task #789)', () => {
+    const WARN_PREFIX =
+      'Requires the MCP_ASSUME_USER feature flag to be enabled on the server; ' +
+      'without it, every call returns an explicit error.';
+
+    // Acceptance test 1a: admin session with flag OFF — both tools listed, both with warning prefix.
+    it('admin session + MCP_ASSUME_USER unset: both tools listed with warning prefix in description', async () => {
+      assumeUserEnabled = false;
+      createMcpServer({ role: 'admin', userId: 'admin-1' });
+      const getInfo = registeredTools.get('get_mcp_info')!;
+      primeGetMcpInfoSelects();
+      const info = parse((await getInfo({ role: 'admin' })).content[0].text) as {
+        tools: Array<{ name: string; description: string }>;
+      };
+
+      const assumeTool = info.tools.find((t) => t.name === 'assume_user');
+      const restoreTool = info.tools.find((t) => t.name === 'restore_acting_user');
+
+      expect(assumeTool).toBeDefined();
+      expect(restoreTool).toBeDefined();
+
+      // Descriptions must start with the exact warning prefix (prefix + single space).
+      expect(assumeTool!.description.startsWith(WARN_PREFIX + ' ')).toBe(true);
+      expect(restoreTool!.description.startsWith(WARN_PREFIX + ' ')).toBe(true);
+
+      // The original description content should still follow the prefix.
+      expect(assumeTool!.description).toContain('Admin-only QA tool');
+      expect(restoreTool!.description).toContain('Clear any impersonation override');
+    });
+
+    // Acceptance test 1b: manager session — impersonation tools must be absent entirely.
+    it('manager session: assume_user and restore_acting_user are absent from tools list, flag value is irrelevant', async () => {
+      // Verify with flag ON (flag should not affect visibility for non-admins).
+      assumeUserEnabled = true;
+      createMcpServer({ role: 'manager', userId: 'mgr-1' });
+      const getInfo = registeredTools.get('get_mcp_info')!;
+      primeGetMcpInfoSelects();
+      const infoFlagOn = parse((await getInfo({ role: 'manager' })).content[0].text) as {
+        tools: Array<{ name: string }>;
+      };
+      expect(infoFlagOn.tools.find((t) => t.name === 'assume_user')).toBeUndefined();
+      expect(infoFlagOn.tools.find((t) => t.name === 'restore_acting_user')).toBeUndefined();
+      // All other tools (at least one) should still be listed.
+      expect(infoFlagOn.tools.length).toBeGreaterThan(0);
+
+      // Verify with flag OFF as well.
+      assumeUserEnabled = false;
+      registeredTools.clear();
+      registeredSchemas.clear();
+      createMcpServer({ role: 'manager', userId: 'mgr-1' });
+      const getInfo2 = registeredTools.get('get_mcp_info')!;
+      primeGetMcpInfoSelects();
+      const infoFlagOff = parse((await getInfo2({ role: 'manager' })).content[0].text) as {
+        tools: Array<{ name: string }>;
+      };
+      expect(infoFlagOff.tools.find((t) => t.name === 'assume_user')).toBeUndefined();
+      expect(infoFlagOff.tools.find((t) => t.name === 'restore_acting_user')).toBeUndefined();
+    });
+
+    // Acceptance test 1c: admin session with flag ON — tools listed without warning.
+    it('admin session + MCP_ASSUME_USER=1: both tools listed with original descriptions (no warning prefix)', async () => {
+      assumeUserEnabled = true;
+      createMcpServer({ role: 'admin', userId: 'admin-1' });
+      const getInfo = registeredTools.get('get_mcp_info')!;
+      primeGetMcpInfoSelects();
+      const info = parse((await getInfo({ role: 'admin' })).content[0].text) as {
+        tools: Array<{ name: string; description: string }>;
+      };
+
+      const assumeTool = info.tools.find((t) => t.name === 'assume_user');
+      const restoreTool = info.tools.find((t) => t.name === 'restore_acting_user');
+
+      expect(assumeTool).toBeDefined();
+      expect(restoreTool).toBeDefined();
+
+      // Must NOT have the warning prefix when the flag is enabled.
+      expect(assumeTool!.description).not.toContain(WARN_PREFIX);
+      expect(restoreTool!.description).not.toContain(WARN_PREFIX);
+
+      // Original description content should be intact.
+      expect(assumeTool!.description).toContain('Admin-only QA tool');
+      expect(restoreTool!.description).toContain('Clear any impersonation override');
+    });
+
+    // Acceptance test 2 (already covered by 'successful assume_user updates...' above).
+    // Verify it explicitly with the flag enabled for completeness of the spec.
+    it('MCP_ASSUME_USER=1 + admin: assume_user succeeds and writes action=assume, outcome=success audit row', async () => {
+      assumeUserEnabled = true;
+      createMcpServer({ role: 'admin', userId: 'admin-1' });
+      const assume = registeredTools.get('assume_user')!;
+      selectQueue.push([{ id: 'tenant-id', role: 'tenant' }]);
+      const res = await assume({ userId: 'tenant-id' });
+      const body = parse(res.content[0].text);
+      expect(body.ok).toBe(true);
+      expect(insertCalls).toHaveLength(1);
+      const row = insertCalls[0]!.values;
+      expect(row.action).toBe('assume');
+      const details = row.details as Record<string, unknown>;
+      expect(details.outcome).toBe('success');
+    });
+
+    // Acceptance test 3: flag enabled + manager OAuth → role-permission error, not flag error.
+    // This verifies that the error-precedence order inside assume_user was NOT changed by Task #789:
+    // the feature-flag check fires first, the role check fires second — so when the flag IS on,
+    // a manager caller hits the role-rejection path (not_admin) rather than feature_disabled.
+    it('MCP_ASSUME_USER=1 + manager: assume_user returns role-permission error (not flag error), audit row outcome=not_admin', async () => {
+      assumeUserEnabled = true;
+      createMcpServer({ role: 'manager', userId: 'mgr-1' });
+      const assume = registeredTools.get('assume_user')!;
+      const res = await assume({ userId: 'some-user' });
+
+      // Must be the role-rejection message, not the feature-flag message.
+      expect(res.content[0].text).toContain('Permission denied');
+      expect(res.content[0].text).not.toContain('MCP_ASSUME_USER');
+      expect(res.content[0].text).not.toContain('not enabled');
+
+      expectSingleAuditRow({
+        action: 'assume',
+        outcome: 'not_admin',
+        performedBy: 'mgr-1',
+      });
     });
   });
 });

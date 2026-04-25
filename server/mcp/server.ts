@@ -4926,13 +4926,43 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       const registeredToolsMap = (server as unknown as {
         _registeredTools?: Record<string, { description?: string }>;
       })._registeredTools;
+
+      // Task #789 — impersonation tools visibility rules:
+      // - Non-admin OAuth sessions never see assume_user / restore_acting_user,
+      //   regardless of the feature-flag state (the role enforcement already
+      //   prevents them from being called, so advertising them is noise).
+      // - Admin OAuth sessions always see both tools, but when MCP_ASSUME_USER
+      //   is unset we prepend a warning to their descriptions so the admin
+      //   knows every call will return an explicit error until the flag is set.
+      //   We build the warning into the response copy only — we never mutate
+      //   the registered description on the McpServer instance so other
+      //   sessions, or the same session once the flag flips on, see the
+      //   correct description without a server restart.
+      const { isMcpAssumeUserEnabled: isMcpAssumeUserEnabledForInfo } = await import("../utils/feature-flags");
+      const isAdminSession = oauthBoundRole === "admin";
+      const assumeUserFlagOn = isMcpAssumeUserEnabledForInfo();
+      const IMPERSONATION_WARN_PREFIX =
+        "Requires the MCP_ASSUME_USER feature flag to be enabled on the server; " +
+        "without it, every call returns an explicit error. ";
+
       const registeredTools = registeredToolsMap
         ? Object.keys(registeredToolsMap)
             .sort()
-            .map((name) => ({
-              name,
-              description: registeredToolsMap[name]?.description ?? "",
-            }))
+            .filter((name) => {
+              // Drop impersonation tools entirely for non-admin sessions.
+              if (IMPERSONATION_TOOL_NAMES.has(name) && !isAdminSession) return false;
+              return true;
+            })
+            .map((name) => {
+              const baseDescription = registeredToolsMap[name]?.description ?? "";
+              // For admin sessions where the feature flag is off, prepend the
+              // warning to the impersonation tools' descriptions in the response.
+              const description =
+                IMPERSONATION_TOOL_NAMES.has(name) && isAdminSession && !assumeUserFlagOn
+                  ? IMPERSONATION_WARN_PREFIX + baseDescription
+                  : baseDescription;
+              return { name, description };
+            })
         : [];
 
       const info = {

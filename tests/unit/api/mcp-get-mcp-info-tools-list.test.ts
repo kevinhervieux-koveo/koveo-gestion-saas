@@ -56,6 +56,14 @@ jest.mock('../../../server/services/email-service', () => ({
   emailService: { sendInvitationEmail: jest.fn() },
 }));
 
+// Task #789: Pin the feature flag to a known-off state so the description
+// assertion for impersonation tools is deterministic regardless of what
+// MCP_ASSUME_USER is set to in any given test environment.
+jest.mock('../../../server/utils/feature-flags', () => ({
+  isMcpAssumeUserEnabled: () => false,
+  isBillNumberV2Enabled: () => false,
+}));
+
 import { createMcpServer } from '../../../server/mcp/server';
 
 type ToolHandler = (args: Record<string, unknown>) => Promise<{
@@ -127,11 +135,25 @@ describe('get_mcp_info dynamic tool enumeration (task #298)', () => {
 
     // Every entry must be a {name, description} pair pulled from the
     // SDK's registered map — no hand-curated drift allowed.
+    // Exception (Task #789): for admin sessions where MCP_ASSUME_USER is unset
+    // (default in the test environment), impersonation tool descriptions are
+    // prepended with a warning — so we accept either the base description or
+    // the prefixed form for those two tools.
+    const IMPERSONATION_NAMES = new Set(['assume_user', 'restore_acting_user']);
+    const WARN_PREFIX =
+      'Requires the MCP_ASSUME_USER feature flag to be enabled on the server; ' +
+      'without it, every call returns an explicit error. ';
     for (const entry of tools) {
       expect(typeof entry.name).toBe('string');
       expect(typeof entry.description).toBe('string');
       expect(registered[entry.name]).toBeDefined();
-      expect(entry.description).toBe(registered[entry.name]?.description ?? '');
+      const baseDesc = registered[entry.name]?.description ?? '';
+      if (IMPERSONATION_NAMES.has(entry.name)) {
+        // Admin session + flag off: description is prepended with the warning.
+        expect(entry.description).toBe(WARN_PREFIX + baseDesc);
+      } else {
+        expect(entry.description).toBe(baseDesc);
+      }
     }
 
     // Sorted by name so client-side diffs across versions stay stable.
