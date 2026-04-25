@@ -649,7 +649,7 @@ export function ElementManagementTab({ project, workflowState, onUpdate, onNavig
                     <span className="text-sm font-medium">Warning</span>
                   </div>
                   <p className="text-sm text-red-700 dark:text-red-300 mt-1">
-                    {t('wfElementsBulkRemovePrefix')} {selectedElements.length} {t('wfElementsBulkRemoveSuffix')}
+                    {t('wfElementsBulkRemoveWarning', { count: selectedElements.length })}
                   </p>
                 </div>
               )}

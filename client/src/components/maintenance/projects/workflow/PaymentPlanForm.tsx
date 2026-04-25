@@ -617,7 +617,10 @@ export function PaymentPlanForm({
               <Alert>
                 <Info className="h-4 w-4" />
                 <AlertDescription>
-                  {t('wfPaymentMismatchPrefix')} (${total.toFixed(2)}) {t('wfPaymentMismatchSuffix')} (${totalAmount.toFixed(2)})
+                  {t('wfPaymentMismatchWarning', {
+                    planTotal: `$${total.toFixed(2)}`,
+                    vendorPrice: `$${totalAmount.toFixed(2)}`,
+                  })}
                 </AlertDescription>
               </Alert>
             )}

@@ -5,11 +5,17 @@ import { Language, translations } from '@/lib/i18n';
  * Context type definition for the language provider.
  * Provides language state management and translation function.
  */
+/**
+ * Map of placeholder names to substitution values used by the `t()` helper.
+ * Values are coerced to strings before being injected into the translation.
+ */
+type TranslationValues = Record<string, string | number>;
+
 interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
   toggleLanguage: () => void;
-  t: (_key: keyof typeof translations.en) => string;
+  t: (_key: keyof typeof translations.en, _values?: TranslationValues) => string;
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -57,8 +63,28 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
     setLanguage((current) => (current === 'en' ? 'fr' : 'en'));
   };
 
-  const t = (_key: keyof typeof translations.en): string => {
-    return translations[language][_key] || _key;
+  /**
+   * Look up a translated string by key and optionally substitute named
+   * placeholders. Placeholders use the `{name}` syntax and are replaced with
+   * the matching entry in `_values`.
+   *
+   * Example:
+   *   t('wfElementsBulkRemoveWarning', { count: 3 })
+   *   // 'This will remove 3 selected elements from the project. ...'
+   *
+   * Use named placeholders rather than splitting a sentence into prefix/suffix
+   * keys: word order differs between languages and placeholders let translators
+   * keep a single, natural-reading string per language.
+   */
+  const t = (_key: keyof typeof translations.en, _values?: TranslationValues): string => {
+    const template = translations[language][_key] || _key;
+    if (!_values) {
+      return template;
+    }
+    return template.replace(/\{(\w+)\}/g, (match, name: string) => {
+      const value = _values[name];
+      return value === undefined || value === null ? match : String(value);
+    });
   };
 
   return (

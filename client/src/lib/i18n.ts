@@ -2824,8 +2824,7 @@ export interface Translations {
   wfElementsAdjustSearchHint: string;
   wfElementsNoneAddedYet: string;
   wfElementsAddFromAvailable: string;
-  wfElementsBulkRemovePrefix: string;
-  wfElementsBulkRemoveSuffix: string;
+  wfElementsBulkRemoveWarning: string;
   wfInProgressProjectMissing: string;
   wfPlannedProjectMissing: string;
   wfPreWorkProjectMissing: string;
@@ -2834,8 +2833,7 @@ export interface Translations {
   wfPaymentEndRecurringLabel: string;
   wfPaymentInitialDescription: string;
   wfPaymentEqualRecurringDesc: string;
-  wfPaymentMismatchPrefix: string;
-  wfPaymentMismatchSuffix: string;
+  wfPaymentMismatchWarning: string;
   wfModalNoProjectDescription: string;
   wfModalProjectMissingMessage: string;
   wfModalProjectStillLoading: string;
@@ -5956,8 +5954,7 @@ export const translations: Record<Language, Translations> = {
     wfElementsAdjustSearchHint: 'Try adjusting your search terms.',
     wfElementsNoneAddedYet: 'No elements added to this project yet.',
     wfElementsAddFromAvailable: 'Add elements from the available elements below.',
-    wfElementsBulkRemovePrefix: 'This will remove',
-    wfElementsBulkRemoveSuffix: 'selected elements from the project. This action cannot be undone.',
+    wfElementsBulkRemoveWarning: 'This will remove {count} selected elements from the project. This action cannot be undone.',
     wfInProgressProjectMissing: 'Project data is missing. Unable to load the in-progress tab.',
     wfPlannedProjectMissing: 'Project data is missing. Unable to load the planning tab.',
     wfPreWorkProjectMissing: 'Project data is missing. Unable to load the pre-work tab.',
@@ -5966,8 +5963,7 @@ export const translations: Record<Language, Translations> = {
     wfPaymentEndRecurringLabel: 'Date End Recurring Payment (Optional)',
     wfPaymentInitialDescription: 'Check if there\'s a different initial payment amount',
     wfPaymentEqualRecurringDesc: 'Check if all recurring payments are the same amount',
-    wfPaymentMismatchPrefix: 'Payment plan total',
-    wfPaymentMismatchSuffix: 'does not match the vendor price',
+    wfPaymentMismatchWarning: 'Payment plan total ({planTotal}) does not match the vendor price ({vendorPrice})',
     wfModalNoProjectDescription: 'No project data provided to the workflow modal',
     wfModalProjectMissingMessage: 'Project information is missing. Please close this modal and try again.',
     wfModalProjectStillLoading: 'Project data is missing or still loading. Please wait a moment and try again.',
@@ -9084,8 +9080,7 @@ export const translations: Record<Language, Translations> = {
     wfElementsAdjustSearchHint: 'Essayez d\'ajuster vos termes de recherche.',
     wfElementsNoneAddedYet: 'Aucun élément ajouté à ce projet pour le moment.',
     wfElementsAddFromAvailable: 'Ajoutez des éléments à partir des éléments disponibles ci-dessous.',
-    wfElementsBulkRemovePrefix: 'Ceci retirera',
-    wfElementsBulkRemoveSuffix: 'éléments sélectionnés du projet. Cette action est irréversible.',
+    wfElementsBulkRemoveWarning: 'Ceci retirera {count} éléments sélectionnés du projet. Cette action est irréversible.',
     wfInProgressProjectMissing: 'Données du projet manquantes. Impossible de charger l\'onglet en cours.',
     wfPlannedProjectMissing: 'Données du projet manquantes. Impossible de charger l\'onglet de planification.',
     wfPreWorkProjectMissing: 'Données du projet manquantes. Impossible de charger l\'onglet de pré-travaux.',
@@ -9094,8 +9089,7 @@ export const translations: Record<Language, Translations> = {
     wfPaymentEndRecurringLabel: 'Date de fin du paiement récurrent (facultatif)',
     wfPaymentInitialDescription: 'Cocher s\'il y a un montant de paiement initial différent',
     wfPaymentEqualRecurringDesc: 'Cocher si tous les paiements récurrents sont du même montant',
-    wfPaymentMismatchPrefix: 'Le total du plan de paiement',
-    wfPaymentMismatchSuffix: 'ne correspond pas au prix du fournisseur',
+    wfPaymentMismatchWarning: 'Le total du plan de paiement ({planTotal}) ne correspond pas au prix du fournisseur ({vendorPrice})',
     wfModalNoProjectDescription: 'Aucune donnée de projet fournie au modal de flux de travail',
     wfModalProjectMissingMessage: 'Les informations du projet sont manquantes. Veuillez fermer ce modal et réessayer.',
     wfModalProjectStillLoading: 'Les données du projet sont manquantes ou en cours de chargement. Veuillez patienter un instant et réessayer.',
