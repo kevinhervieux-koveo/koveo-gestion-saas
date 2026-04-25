@@ -75,6 +75,7 @@ export async function createBuilding(buildingData: BuildingCreateData) {
         amenities: buildingData.amenities,
         managementCompany: buildingData.managementCompany,
         organizationId: buildingData.organizationId,
+        financialYearStart: `${new Date().getFullYear()}-01-01`,
         isActive: true,
       })
       .returning();

@@ -406,6 +406,16 @@ export const bankAccountPutHandler: express.RequestHandler = async (req, res) =>
       return res.status(404).json({ _error: 'Building not found' });
     }
 
+    // Validate financialYearStart: if provided, it must be a real YYYY-MM-DD string.
+    // An explicit null or empty string is rejected — the column is NOT NULL in the DB.
+    if ('financialYearStart' in req.body) {
+      if (!financialYearStart || !/^\d{4}-\d{2}-\d{2}$/.test(financialYearStart)) {
+        return res.status(400).json({
+          _error: 'financialYearStart must be a valid date in YYYY-MM-DD format and cannot be null or empty',
+        });
+      }
+    }
+
     // Prepare extended configuration object including custom bank fields and revenue lines
     const extendedConfig = {
       emergencyFundMinimum,
@@ -444,7 +454,9 @@ export const bankAccountPutHandler: express.RequestHandler = async (req, res) =>
         revenueInflationRate,
         unplannedBillsAmount: unplannedBillsAmount?.toString(), // Save unplanned bills amount
         unplannedBillsStartDate: unplannedBillsStartDate || null, // Save unplanned bills start date
-        financialYearStart: financialYearStart || null, // Save financial year start
+        // Only write financialYearStart when the caller explicitly provided it
+        // (already validated above to be a valid YYYY-MM-DD string).
+        ...('financialYearStart' in req.body ? { financialYearStart } : {}),
         amenities: extendedConfig, // Using amenities jsonb field for extended config
         bankAccountUpdatedAt: new Date(),
       })

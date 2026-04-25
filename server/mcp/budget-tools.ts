@@ -242,7 +242,6 @@ const settingsUpdateSchema = z.object({
   financialYearStart: z
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD")
-    .nullable()
     .optional(),
   unplannedBillsAmount: z.number().min(0).optional(),
   unplannedBillsStartDate: z

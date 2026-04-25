@@ -75,7 +75,7 @@ export const buildings = pgTable('buildings', {
   unplannedBillsAmount: decimal('unplanned_bills_amount', { precision: 10, scale: 2 }).default('0'), // Monthly unplanned bills budget
   unplannedBillsStartDate: date('unplanned_bills_start_date'), // Date when unplanned bills budgeting should start
   inflationSettings: text('inflation_settings'), // JSON string of inflation configuration by category
-  financialYearStart: date('financial_year_start'), // Financial year start date (when inflation is applied)
+  financialYearStart: date('financial_year_start').notNull().default('2026-01-01'), // Financial year start date (when inflation is applied)
   generalInflationRate: decimal('general_inflation_rate', { precision: 5, scale: 2 }).notNull().default('2.0'),
   revenueInflationRate: decimal('revenue_inflation_rate', { precision: 5, scale: 2 }).notNull().default('2.0'),
   isActive: boolean('is_active').notNull().default(true),
