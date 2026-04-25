@@ -744,6 +744,7 @@ export function registerBulkImportRoutes(app: Express): void {
           status: schema.bulkImportItems.status,
           preExcludeStatus: schema.bulkImportItems.preExcludeStatus,
           excludeSource: schema.bulkImportItems.excludeSource,
+          finalFileName: schema.bulkImportItems.finalFileName,
           screening: schema.bulkImportItems.screening,
           sortingDecision: schema.bulkImportItems.sortingDecision,
           branchDecision: schema.bulkImportItems.branchDecision,
@@ -774,6 +775,9 @@ export function registerBulkImportRoutes(app: Express): void {
           splitAtPage: null,
           decisionState: null,
           manualOverride: false,
+          splitIntoItemIds: null,
+          draft: false,
+          splitFinalNames: null,
         };
         const raw = json.decision as string | null | undefined;
         const decision =
@@ -790,7 +794,14 @@ export function registerBulkImportRoutes(app: Express): void {
             ? rawState
             : null;
         const manualOverride = (json.manualOverride as boolean | null | undefined) ?? false;
-        return { ...base, decision, reason, mergeWithItemId, mergeWithItemIds, splitAtPage, decisionState, manualOverride };
+        const splitIntoItemIds = Array.isArray(json.splitIntoItemIds)
+          ? (json.splitIntoItemIds as string[])
+          : null;
+        const draft = (json.draft as boolean | null | undefined) ?? false;
+        const splitFinalNames = Array.isArray(json.splitFinalNames) && json.splitFinalNames.length === 2
+          ? (json.splitFinalNames as [string, string])
+          : null;
+        return { ...base, decision, reason, mergeWithItemId, mergeWithItemIds, splitAtPage, decisionState, manualOverride, splitIntoItemIds, draft, splitFinalNames };
       }
 
       function extractIdentificationStep(json: Record<string, unknown> | null | undefined) {
@@ -880,6 +891,7 @@ export function registerBulkImportRoutes(app: Express): void {
         status: r.status,
         preExcludeStatus: r.preExcludeStatus,
         excludeSource: r.excludeSource,
+        finalFileName: r.finalFileName ?? null,
         ...(() => {
           const sc = extractStep(r.screening);
           const sqaFields = extractScreeningQuickAnalysisFields(r.screening);
@@ -903,6 +915,9 @@ export function registerBulkImportRoutes(app: Express): void {
             sortingSplitAtPage: so.splitAtPage,
             sortingDecisionState: so.decisionState,
             sortingManualOverride: so.manualOverride,
+            sortingDecisionSplitIntoItemIds: so.splitIntoItemIds,
+            sortingDecisionDraft: so.draft,
+            sortingDecisionSplitFinalNames: so.splitFinalNames,
             branchingConfidence: br.confidence,
             branchingFallback: br.fallbackReason,
             branch: br.branch,
@@ -1733,6 +1748,72 @@ export function registerBulkImportRoutes(app: Express): void {
   );
 
   /**
+   * Validate and sanitise a user-supplied filename stem (no extension).
+   * Returns the cleaned stem, or `null` when the input cannot be made safe.
+   * Rules (per task spec): strip path separators, forbid leading dots, cap at
+   * 200 chars after trimming.  An empty string after trimming is allowed — it
+   * means "clear the override".
+   */
+  function sanitizeFileNameStem(raw: string): string | null {
+    let s = raw.trim();
+    // Strip any path separator characters.
+    s = s.replace(/[/\\]/g, '');
+    // Forbid leading dots (hidden-file trap on Unix).
+    if (s.startsWith('.')) return null;
+    // Cap to 200 chars.
+    s = s.slice(0, 200);
+    return s;
+  }
+
+  /**
+   * Helper: physically slice a PDF staged file into two parts and write them
+   * to the session staging directory.  Returns both byte Buffers, their SHA-256
+   * hashes, and the effective split page (server-clamped to 1…totalPages-1).
+   */
+  async function slicePdf(
+    srcPath: string,
+    splitAtPage: number,
+  ): Promise<{
+    firstBytes: Buffer; firstHash: string; firstPath: string;
+    secondBytes: Buffer; secondHash: string; secondPath: string;
+    splitPage: number; totalPages: number;
+    dir: string;
+    originalName: string;
+  }> {
+    const { PDFDocument } = await import('pdf-lib');
+    const srcBytes = fs.readFileSync(srcPath);
+    const srcDoc = await PDFDocument.load(new Uint8Array(srcBytes), { ignoreEncryption: true });
+    const totalPages = srcDoc.getPageCount();
+    const splitPage = Math.max(1, Math.min(splitAtPage, totalPages - 1));
+
+    const docFirst = await PDFDocument.create();
+    const firstIndices = Array.from({ length: splitPage }, (_, i) => i);
+    const firstPages = await docFirst.copyPages(srcDoc, firstIndices);
+    for (const p of firstPages) docFirst.addPage(p);
+    const firstBytes = Buffer.from(await docFirst.save());
+    const firstHash = crypto.createHash('sha256').update(firstBytes).digest('hex');
+
+    const docSecond = await PDFDocument.create();
+    const secondIndices = Array.from({ length: totalPages - splitPage }, (_, i) => i + splitPage);
+    const secondPages = await docSecond.copyPages(srcDoc, secondIndices);
+    for (const p of secondPages) docSecond.addPage(p);
+    const secondBytes = Buffer.from(await docSecond.save());
+    const secondHash = crypto.createHash('sha256').update(secondBytes).digest('hex');
+
+    // Derive original name from the source path (strip any split prefix).
+    const basename = path.basename(srcPath);
+    const originalName = basename.replace(/^split\d+_[0-9a-f]+_/, '');
+    const dir = path.dirname(srcPath);
+
+    const firstPath = path.join(dir, `split1_${firstHash}_${originalName}`);
+    const secondPath = path.join(dir, `split2_${secondHash}_${originalName}`);
+    fs.writeFileSync(firstPath, firstBytes);
+    fs.writeFileSync(secondPath, secondBytes);
+
+    return { firstBytes, firstHash, firstPath, secondBytes, secondHash, secondPath, splitPage, totalPages, dir, originalName };
+  }
+
+  /**
    * Set (or update) the sorting-step decision for a single item —
    * accept the AI's suggestion, reject it, or commit a manual choice.
    *
@@ -1745,6 +1826,12 @@ export function registerBulkImportRoutes(app: Express): void {
    *   - 'manual'  → saves the caller's own decision with
    *                 manualOverride=true and decisionState='accepted',
    *                 then triggers the same file operation as accept.
+   *
+   * When `draft: true` the decision, slice page, merge order, and
+   * rename values are persisted WITHOUT running the merge/keep file
+   * operation and WITHOUT flipping decisionState to 'accepted'.  For
+   * split decisions the two part items are still physically sliced and
+   * materialised so they appear as Merge candidates in sibling cards.
    *
    * For merge the two staged PDFs are combined into one using pdf-lib;
    * the surviving item's stagedPath is updated, the merged-away item
@@ -1760,6 +1847,19 @@ export function registerBulkImportRoutes(app: Express): void {
     mergeWithItemId: z.string().min(1).optional(),
     mergeWithItemIds: z.string().min(1).array().min(1).optional(),
     splitAtPage: z.number().int().min(1).optional(),
+    /** When true, persist the decision as a draft without running file ops. */
+    draft: z.boolean().optional(),
+    /**
+     * Optional rename stem for keep / merge decisions (no extension —
+     * extension comes from the file's mimeType).  An empty string clears
+     * the override and falls back to the original filename at commit.
+     */
+    finalFileName: z.string().max(210).optional(),
+    /**
+     * Two rename stems for split decisions, one per part, in slice order.
+     * Index 0 = pages 1..splitAtPage, index 1 = pages splitAtPage+1..end.
+     */
+    splitFinalNames: z.tuple([z.string().max(210), z.string().max(210)]).optional(),
   });
   app.post(
     '/api/admin/bulk-import/items/:id/set-sorting-decision',
@@ -1767,8 +1867,16 @@ export function registerBulkImportRoutes(app: Express): void {
     requireRole(['admin']),
     async (req: AuthenticatedRequest, res: Response) => {
       try {
-        const { action, decision: manualDecision, mergeWithItemId: manualMergeId, mergeWithItemIds: manualMergeIds, splitAtPage: manualSplitAt } =
-          setSortingDecisionSchema.parse(req.body);
+        const {
+          action,
+          decision: manualDecision,
+          mergeWithItemId: manualMergeId,
+          mergeWithItemIds: manualMergeIds,
+          splitAtPage: manualSplitAt,
+          draft: isDraft,
+          finalFileName: rawFinalFileName,
+          splitFinalNames: rawSplitFinalNames,
+        } = setSortingDecisionSchema.parse(req.body);
 
         const [item] = await db
           .select()
@@ -1778,10 +1886,281 @@ export function registerBulkImportRoutes(app: Express): void {
 
         const existing = (item.sortingDecision ?? {}) as Record<string, unknown>;
 
+        // -----------------------------------------------------------------
+        // Filename validation — applies to both draft and non-draft saves.
+        // -----------------------------------------------------------------
+        let sanitizedFinalFileName: string | null | undefined = undefined;
+        if (rawFinalFileName !== undefined) {
+          const cleaned = sanitizeFileNameStem(rawFinalFileName);
+          if (cleaned === null) {
+            return res.status(400).json({ error: 'Invalid filename: remove leading dots or path separators' });
+          }
+          sanitizedFinalFileName = cleaned || null; // empty string → null (clear override)
+        }
+        let sanitizedSplitFinalNames: [string, string] | undefined = undefined;
+        if (rawSplitFinalNames !== undefined) {
+          const c0 = sanitizeFileNameStem(rawSplitFinalNames[0]);
+          const c1 = sanitizeFileNameStem(rawSplitFinalNames[1]);
+          if (c0 === null || c1 === null) {
+            return res.status(400).json({ error: 'Invalid split filename: remove leading dots or path separators' });
+          }
+          sanitizedSplitFinalNames = [c0 || '', c1 || ''];
+        }
+
+        // -----------------------------------------------------------------
+        // DRAFT MODE — persist edits without running file ops.
+        // Split decisions still materialise the two part items so they appear
+        // as Merge candidates in sibling cards.
+        // -----------------------------------------------------------------
+        if (isDraft) {
+          const draftDecision = manualDecision ?? (existing.decision as string | undefined) ?? 'keep';
+          const draftSplitAt = manualSplitAt ?? (existing.splitAtPage as number | null | undefined) ?? null;
+          const draftMergeIds: string[] | undefined = manualMergeIds
+            ?? (manualMergeId ? [manualMergeId] : undefined)
+            ?? (Array.isArray(existing.mergeWithItemIds) ? (existing.mergeWithItemIds as string[]) : undefined)
+            ?? (existing.mergeWithItemId ? [(existing.mergeWithItemId as string)] : undefined);
+
+          const isPdfDraft = (item.mimeType ?? '').toLowerCase() === 'application/pdf';
+
+          // Build the draft sortingDecision blob.
+          const draftBlob: Record<string, unknown> = {
+            ...existing,
+            decision: draftDecision,
+            draft: true,
+            ...(draftSplitAt != null && { splitAtPage: draftSplitAt }),
+            ...(draftMergeIds && {
+              mergeWithItemIds: draftMergeIds,
+              mergeWithItemId: draftMergeIds[0] ?? null,
+            }),
+            ...(sanitizedSplitFinalNames && { splitFinalNames: sanitizedSplitFinalNames }),
+          };
+
+          // --- If the previous decision was split, check whether the new
+          //     decision reverts away from split.  If so, delete the draft parts.
+          const previousSplitIds = Array.isArray(existing.splitIntoItemIds)
+            ? (existing.splitIntoItemIds as string[])
+            : null;
+
+          let revertedDraftSplit = false;
+          if (previousSplitIds && draftDecision !== 'split') {
+            // Revert: restore lead status (was marked rejected during draft split),
+            // delete the two part items, and scrub them from sibling merge groups.
+            revertedDraftSplit = true;
+            for (const partId of previousSplitIds) {
+              // Remove this part ID from any sibling's mergeWithItemIds.
+              const sessionItems = await db
+                .select({ id: schema.bulkImportItems.id, sortingDecision: schema.bulkImportItems.sortingDecision })
+                .from(schema.bulkImportItems)
+                .where(eq(schema.bulkImportItems.sessionId, item.sessionId));
+              for (const sib of sessionItems) {
+                if (sib.id === item.id || sib.id === partId) continue;
+                const sibDec = (sib.sortingDecision ?? {}) as Record<string, unknown>;
+                const sibMergeIds = Array.isArray(sibDec.mergeWithItemIds)
+                  ? (sibDec.mergeWithItemIds as string[])
+                  : null;
+                if (sibMergeIds && sibMergeIds.includes(partId)) {
+                  const newIds = sibMergeIds.filter((id) => id !== partId);
+                  const updatedSibDec: Record<string, unknown> = {
+                    ...sibDec,
+                    mergeWithItemIds: newIds,
+                    mergeWithItemId: newIds[0] ?? null,
+                  };
+                  await db
+                    .update(schema.bulkImportItems)
+                    .set({ sortingDecision: updatedSibDec, updatedAt: new Date() })
+                    .where(eq(schema.bulkImportItems.id, sib.id));
+                }
+              }
+              // Delete the part row.
+              await db
+                .delete(schema.bulkImportItems)
+                .where(eq(schema.bulkImportItems.id, partId));
+            }
+            // Clear split back-pointer from the lead's blob.
+            delete draftBlob.splitIntoItemIds;
+          }
+
+          // --- Materialise split parts when the decision is 'split'.
+          let splitPartIds: string[] = [];
+          if (draftDecision === 'split' && isPdfDraft) {
+            const srcPath = item.stagedPath;
+            if (!srcPath || !fs.existsSync(srcPath)) {
+              return res.status(400).json({ error: 'Staged file missing for this item' });
+            }
+            if (!draftSplitAt) {
+              return res.status(400).json({ error: 'splitAtPage is required for split decisions' });
+            }
+
+            const {
+              firstBytes, firstHash, firstPath,
+              secondBytes, secondHash, secondPath,
+              splitPage, totalPages,
+              originalName,
+            } = await slicePdf(srcPath, draftSplitAt);
+
+            draftBlob.splitAtPage = splitPage;
+            draftBlob.splitTotalPages = totalPages;
+
+            // Names for the two parts.
+            const stem = originalName.replace(/\.[^.]+$/, '');
+            const ext = originalName.replace(/^[^.]*(\..+)?$/, '$1') || '';
+            const defaultName0 = sanitizedSplitFinalNames?.[0] ?? `${stem} (1)${ext}`;
+            const defaultName1 = sanitizedSplitFinalNames?.[1] ?? `${stem} (2)${ext}`;
+
+            if (previousSplitIds && previousSplitIds.length === 2) {
+              // Re-slice in place — update existing part items, keep their IDs.
+              const [part1Id, part2Id] = previousSplitIds;
+              const part1Dec: Record<string, unknown> = {
+                decision: 'keep', reason: 'Created from split', confidence: 1,
+                splitFromItemId: item.id, splitAtPage: splitPage, manualOverride: true,
+                splitFromOriginalName: item.originalName,
+                ...(sanitizedSplitFinalNames && { splitFinalNames: sanitizedSplitFinalNames }),
+              };
+              const part2Dec: Record<string, unknown> = { ...part1Dec };
+
+              await db
+                .update(schema.bulkImportItems)
+                .set({
+                  stagedPath: firstPath, contentHash: firstHash,
+                  fileSize: firstBytes.length,
+                  finalFileName: defaultName0 || null,
+                  sortingDecision: part1Dec,
+                  updatedAt: new Date(),
+                })
+                .where(eq(schema.bulkImportItems.id, part1Id));
+              await db
+                .update(schema.bulkImportItems)
+                .set({
+                  stagedPath: secondPath, contentHash: secondHash,
+                  fileSize: secondBytes.length,
+                  finalFileName: defaultName1 || null,
+                  sortingDecision: part2Dec,
+                  updatedAt: new Date(),
+                })
+                .where(eq(schema.bulkImportItems.id, part2Id));
+              splitPartIds = [part1Id, part2Id];
+            } else {
+              // First-time split materialisation — create two new items.
+              // Derive names from item.originalName (the uploaded document's original name),
+              // not from the staged file path. Use "stem (N).ext" so extension stays at the end.
+              const itemStem = item.originalName.replace(/\.[^.]+$/, '');
+              const itemExt = item.originalName.replace(/^[^.]*(\..+)?$/, '$1') || ext;
+              const part1OriginalName = `${itemStem} (1)${itemExt}`;
+              const part2OriginalName = `${itemStem} (2)${itemExt}`;
+              const part1Dec: Record<string, unknown> = {
+                decision: 'keep', reason: 'Created from split', confidence: 1,
+                splitFromItemId: item.id, splitAtPage: splitPage, manualOverride: true,
+                splitFromOriginalName: item.originalName,
+                ...(sanitizedSplitFinalNames && { splitFinalNames: sanitizedSplitFinalNames }),
+              };
+              const part2Dec: Record<string, unknown> = { ...part1Dec };
+
+              const [part1Row] = await db
+                .insert(schema.bulkImportItems)
+                .values({
+                  sessionId: item.sessionId,
+                  originalPath: firstPath,
+                  originalName: part1OriginalName,
+                  stagedPath: firstPath,
+                  contentHash: firstHash,
+                  mimeType: item.mimeType,
+                  fileSize: firstBytes.length,
+                  status: 'sorted',
+                  finalFileName: defaultName0 || null,
+                  sortingDecision: part1Dec,
+                })
+                .returning();
+              const [part2Row] = await db
+                .insert(schema.bulkImportItems)
+                .values({
+                  sessionId: item.sessionId,
+                  originalPath: secondPath,
+                  originalName: part2OriginalName,
+                  stagedPath: secondPath,
+                  contentHash: secondHash,
+                  mimeType: item.mimeType,
+                  fileSize: secondBytes.length,
+                  status: 'sorted',
+                  finalFileName: defaultName1 || null,
+                  sortingDecision: part2Dec,
+                })
+                .returning();
+              splitPartIds = [part1Row.id, part2Row.id];
+            }
+            draftBlob.splitIntoItemIds = splitPartIds;
+          }
+
+          // Persist the draft state on the lead item.
+          // - Draft split: mark lead as rejected (split parts take its place).
+          // - Revert draft split: restore lead to sorted.
+          // - All other drafts: leave status unchanged.
+          const draftStatusUpdate =
+            draftDecision === 'split' && splitPartIds.length > 0
+              ? { status: 'rejected' as const }
+              : revertedDraftSplit
+                ? { status: 'sorted' as const }
+                : {};
+          const [draftUpdated] = await db
+            .update(schema.bulkImportItems)
+            .set({
+              sortingDecision: draftBlob,
+              updatedAt: new Date(),
+              ...draftStatusUpdate,
+              ...(sanitizedFinalFileName !== undefined && { finalFileName: sanitizedFinalFileName }),
+            })
+            .where(eq(schema.bulkImportItems.id, item.id))
+            .returning();
+          return res.json({ item: draftUpdated, splitPartIds });
+        }
+
+        // -----------------------------------------------------------------
+        // NON-DRAFT MODE — existing accept / reject / manual flow.
+        // -----------------------------------------------------------------
+
         if (action === 'reject') {
+          // When rejecting a previously-drafted split, clean up the parts.
+          const prevSplitIds = Array.isArray(existing.splitIntoItemIds)
+            ? (existing.splitIntoItemIds as string[])
+            : null;
+          if (prevSplitIds && prevSplitIds.length > 0) {
+            for (const partId of prevSplitIds) {
+              await db.delete(schema.bulkImportItems).where(eq(schema.bulkImportItems.id, partId));
+            }
+            // Scrub deleted part IDs from any sibling's mergeWithItemIds to avoid stale refs.
+            const sessionItems = await db
+              .select()
+              .from(schema.bulkImportItems)
+              .where(eq(schema.bulkImportItems.sessionId, item.sessionId as string));
+            for (const sibling of sessionItems) {
+              if (sibling.id === item.id) continue;
+              const sibDec = (sibling.sortingDecision ?? {}) as Record<string, unknown>;
+              const mergeIds = Array.isArray(sibDec.mergeWithItemIds)
+                ? (sibDec.mergeWithItemIds as string[])
+                : null;
+              const legacySingleId = sibDec.mergeWithItemId as string | null | undefined;
+              const legacyMatch = legacySingleId && prevSplitIds.includes(legacySingleId);
+              if (!mergeIds && !legacyMatch) continue;
+              const filtered = mergeIds ? mergeIds.filter((id) => !prevSplitIds.includes(id)) : null;
+              const changed = (filtered && filtered.length !== mergeIds!.length) || legacyMatch;
+              if (changed) {
+                await db
+                  .update(schema.bulkImportItems)
+                  .set({
+                    sortingDecision: {
+                      ...sibDec,
+                      ...(filtered !== null && { mergeWithItemIds: filtered.length ? filtered : null }),
+                      ...(legacyMatch && { mergeWithItemId: null }),
+                    },
+                    updatedAt: new Date(),
+                  })
+                  .where(eq(schema.bulkImportItems.id, sibling.id));
+              }
+            }
+          }
           const updated_decision: Record<string, unknown> = {
             ...existing,
             decisionState: 'rejected',
+            splitIntoItemIds: null,
           };
           const [updated] = await db
             .update(schema.bulkImportItems)
@@ -1814,6 +2193,7 @@ export function registerBulkImportRoutes(app: Express): void {
         const updated_decision: Record<string, unknown> = {
           ...existing,
           decisionState: 'accepted',
+          draft: false,
           ...(isManual && {
             decision: effectiveDecision,
             mergeWithItemId: effectiveMergeId ?? null,
@@ -1822,6 +2202,11 @@ export function registerBulkImportRoutes(app: Express): void {
             manualOverride: true,
           }),
         };
+
+        // Apply rename if provided on the non-draft accept/manual path.
+        if (sanitizedFinalFileName !== undefined) {
+          updated_decision.finalFileNameOverride = sanitizedFinalFileName;
+        }
 
         const isPdf = (item.mimeType ?? '').toLowerCase() === 'application/pdf';
 
@@ -1884,6 +2269,7 @@ export function registerBulkImportRoutes(app: Express): void {
               contentHash: mergedHash,
               sortingDecision: updated_decision,
               updatedAt: new Date(),
+              ...(sanitizedFinalFileName !== undefined && { finalFileName: sanitizedFinalFileName }),
             })
             .where(eq(schema.bulkImportItems.id, item.id))
             .returning();
@@ -1916,51 +2302,35 @@ export function registerBulkImportRoutes(app: Express): void {
             return res.status(400).json({ error: 'Staged file missing for this item' });
           }
 
-          const { PDFDocument } = await import('pdf-lib');
-          const srcBytes = fs.readFileSync(item.stagedPath);
-          const srcDoc = await PDFDocument.load(new Uint8Array(srcBytes), { ignoreEncryption: true });
-          const totalPages = srcDoc.getPageCount();
-          const splitPage = Math.max(1, Math.min(effectiveSplitAt, totalPages - 1));
+          const {
+            firstBytes, firstHash, firstPath,
+            secondBytes, secondHash, secondPath,
+            splitPage, totalPages, originalName: splitOriginalName,
+          } = await slicePdf(item.stagedPath, effectiveSplitAt);
 
-          // First part: pages 0..splitPage-1
-          const docFirst = await PDFDocument.create();
-          const firstIndices = Array.from({ length: splitPage }, (_, i) => i);
-          const firstPages = await docFirst.copyPages(srcDoc, firstIndices);
-          for (const p of firstPages) docFirst.addPage(p);
-          const firstBytes = Buffer.from(await docFirst.save());
-          const firstHash = crypto.createHash('sha256').update(firstBytes).digest('hex');
+          const splitStem = splitOriginalName.replace(/\.[^.]+$/, '');
+          const splitExt = splitOriginalName.replace(/^[^.]*(\..+)?$/, '$1') || '';
+          const part1FinalFileName = sanitizedSplitFinalNames?.[0]
+            ?? (existing.splitFinalNames as [string, string] | undefined)?.[0]
+            ?? null;
+          const part2FinalFileName = sanitizedSplitFinalNames?.[1]
+            ?? (existing.splitFinalNames as [string, string] | undefined)?.[1]
+            ?? null;
+          const part2OriginalName = `split2_${splitOriginalName}`;
 
-          // Second part: pages splitPage..totalPages-1
-          const docSecond = await PDFDocument.create();
-          const secondIndices = Array.from({ length: totalPages - splitPage }, (_, i) => i + splitPage);
-          const secondPages = await docSecond.copyPages(srcDoc, secondIndices);
-          for (const p of secondPages) docSecond.addPage(p);
-          const secondBytes = Buffer.from(await docSecond.save());
-          const secondHash = crypto.createHash('sha256').update(secondBytes).digest('hex');
-
-          const dir = stagingDirFor(item.sessionId);
-          const firstPath = path.join(dir, `split1_${firstHash}_${item.originalName}`);
-          const secondName = `split2_${item.originalName}`;
-          const secondPath = path.join(dir, `split2_${secondHash}_${item.originalName}`);
-          fs.writeFileSync(firstPath, firstBytes);
-          fs.writeFileSync(secondPath, secondBytes);
-
-          // Update original item with first part
           updated_decision.splitTotalPages = totalPages;
           updated_decision.splitAtPage = splitPage;
-          const [updatedItem] = await db
-            .update(schema.bulkImportItems)
-            .set({
-              stagedPath: firstPath,
-              contentHash: firstHash,
-              sortingDecision: updated_decision,
-              updatedAt: new Date(),
-            })
-            .where(eq(schema.bulkImportItems.id, item.id))
-            .returning();
+          if (sanitizedSplitFinalNames) {
+            updated_decision.splitFinalNames = sanitizedSplitFinalNames;
+          }
 
-          // Insert new sibling item for second part
-          const siblingDecision: Record<string, unknown> = {
+          // If parts were already materialised by a prior draft, re-use their IDs.
+          // Lead remains a container/back-pointer — only its sortingDecision is updated.
+          const prevSplitIds = Array.isArray(existing.splitIntoItemIds)
+            ? (existing.splitIntoItemIds as string[])
+            : null;
+
+          const partDecisionBase: Record<string, unknown> = {
             decision: 'keep',
             reason: 'Created from split',
             confidence: 1,
@@ -1968,28 +2338,84 @@ export function registerBulkImportRoutes(app: Express): void {
             splitFromItemId: item.id,
             splitAtPage: splitPage,
             manualOverride: isManual,
+            splitFromOriginalName: item.originalName,
           };
-          await db
-            .insert(schema.bulkImportItems)
-            .values({
-              sessionId: item.sessionId,
-              originalPath: secondName,
-              originalName: secondName,
-              stagedPath: secondPath,
-              contentHash: secondHash,
-              mimeType: item.mimeType,
-              fileSize: secondBytes.length,
-              status: 'sorted',
-              sortingDecision: siblingDecision,
-            });
 
-          return res.json(updatedItem);
+          if (prevSplitIds && prevSplitIds.length >= 2) {
+            const [part1Id, part2Id] = prevSplitIds;
+            // Update both draft part rows with new slice bytes.
+            await db
+              .update(schema.bulkImportItems)
+              .set({
+                stagedPath: firstPath,
+                contentHash: firstHash,
+                fileSize: firstBytes.length,
+                finalFileName: part1FinalFileName || null,
+                sortingDecision: { ...partDecisionBase },
+                updatedAt: new Date(),
+              })
+              .where(eq(schema.bulkImportItems.id, part1Id));
+            await db
+              .update(schema.bulkImportItems)
+              .set({
+                stagedPath: secondPath,
+                contentHash: secondHash,
+                fileSize: secondBytes.length,
+                finalFileName: part2FinalFileName || null,
+                sortingDecision: { ...partDecisionBase },
+                updatedAt: new Date(),
+              })
+              .where(eq(schema.bulkImportItems.id, part2Id));
+            // Lead: update decision only, no file changes.
+            const [updatedItem] = await db
+              .update(schema.bulkImportItems)
+              .set({
+                sortingDecision: updated_decision,
+                updatedAt: new Date(),
+                ...(sanitizedFinalFileName !== undefined && { finalFileName: sanitizedFinalFileName }),
+              })
+              .where(eq(schema.bulkImportItems.id, item.id))
+              .returning();
+            return res.json(updatedItem);
+          } else {
+            // No prior draft parts: lead becomes part1, create new sibling for part2.
+            const [updatedItem] = await db
+              .update(schema.bulkImportItems)
+              .set({
+                stagedPath: firstPath,
+                contentHash: firstHash,
+                finalFileName: part1FinalFileName || sanitizedFinalFileName || null,
+                sortingDecision: updated_decision,
+                updatedAt: new Date(),
+              })
+              .where(eq(schema.bulkImportItems.id, item.id))
+              .returning();
+            await db
+              .insert(schema.bulkImportItems)
+              .values({
+                sessionId: item.sessionId,
+                originalPath: part2OriginalName,
+                originalName: part2OriginalName,
+                stagedPath: secondPath,
+                contentHash: secondHash,
+                mimeType: item.mimeType,
+                fileSize: secondBytes.length,
+                status: 'sorted',
+                finalFileName: part2FinalFileName || null,
+                sortingDecision: { ...partDecisionBase },
+              });
+            return res.json(updatedItem);
+          }
         }
 
         // --- KEEP (or no file operation needed) ---
         const [updated] = await db
           .update(schema.bulkImportItems)
-          .set({ sortingDecision: updated_decision, updatedAt: new Date() })
+          .set({
+            sortingDecision: updated_decision,
+            updatedAt: new Date(),
+            ...(sanitizedFinalFileName !== undefined && { finalFileName: sanitizedFinalFileName }),
+          })
           .where(eq(schema.bulkImportItems.id, item.id))
           .returning();
         return res.json(updated);
@@ -2162,22 +2588,41 @@ export function registerBulkImportRoutes(app: Express): void {
           ? (branchDecision.residenceId ?? null)
           : null;
 
+        // finalFileName takes precedence over the AI identification name
+        // for the display name and the on-disk filename.  If neither is set,
+        // fall back to the original upload name.
+        // finalFileName may be stored as a stem (no extension); append the
+        // original file extension when the stem has none, so committed
+        // documents always retain their file extension.
+        const itemSortingDecision = (item.sortingDecision ?? {}) as Record<string, unknown>;
+        // For split-part items the `originalName` follows "stem (N).ext" and is fine,
+        // but if an older row has "stem.ext (N)" format we derive ext from the source
+        // original stored in the decision blob to guarantee a clean file extension.
+        const extSourceName = (itemSortingDecision.splitFromOriginalName as string | null)
+          ?? item.originalName;
+        const origExt = extSourceName.replace(/^[^.]*(\..+)?$/, '$1') || '';
+        const effectiveFinalFileName = item.finalFileName
+          ? (item.finalFileName.includes('.') ? item.finalFileName : `${item.finalFileName}${origExt}`)
+          : null;
+        const displayName = effectiveFinalFileName ?? ident.name ?? item.originalName;
+        const diskName = effectiveFinalFileName ?? item.originalName;
+
         const filePath = documentService.normalizePath(
           documentService.buildHierarchicalPath(
             { type: 'documents', buildingId: session.buildingId },
-            item.originalName,
+            diskName,
           ),
         );
 
         const [doc] = await db
           .insert(schema.documents)
           .values({
-            name: ident.name ?? item.originalName,
+            name: displayName,
             description: ident.description ?? null,
             documentType: branch,
             filePath,
-            fileName: item.originalName,
-            originalFileName: item.originalName,
+            fileName: diskName,
+            originalFileName: (itemSortingDecision.splitFromOriginalName as string | null) ?? item.originalName,
             fileSize: item.fileSize ?? null,
             mimeType: item.mimeType ?? null,
             buildingId: session.buildingId,

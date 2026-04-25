@@ -83,11 +83,22 @@ function makeWhereThenable(updated: Item | null) {
   return p;
 }
 
+// Track items deleted during draft revert.
+let deletedItemIds: string[] = [];
+
 const mockDb: any = {
-  select: jest.fn(() => ({
+  // `cols` is undefined for a plain `select()`, and an object for a
+  // `select({ id, sortingDecision })` projection query (session lookup).
+  select: jest.fn((cols?: unknown) => ({
     from: jest.fn(() => ({
       where: jest.fn((cond: any) => {
         const id = whereId(cond);
+        // Session-query: `select({ id, sortingDecision }).from(...).where(eq(sessionId, x))`
+        // returns all items in the store (they all belong to the same session).
+        if (cols !== undefined) {
+          return Promise.resolve([...itemStore.values()]);
+        }
+        // Item-ID lookup: `select().from(...).where(eq(items.id, x))`.
         const row = id ? itemStore.get(id) : undefined;
         return Promise.resolve(row ? [row] : []);
       }),
@@ -110,6 +121,20 @@ const mockDb: any = {
       const row: Item = { id, ...vals };
       itemStore.set(id, row);
       insertedItems.push(row);
+      // Support both `.values()` (no chaining) and `.values().returning()`
+      // (used in the draft split materialisation path).
+      const p: any = Promise.resolve([row]);
+      p.returning = () => Promise.resolve([row]);
+      return p;
+    }),
+  })),
+  delete: jest.fn(() => ({
+    where: jest.fn((cond: any) => {
+      const id = whereId(cond);
+      if (id && itemStore.has(id)) {
+        deletedItemIds.push(id);
+        itemStore.delete(id);
+      }
       return Promise.resolve();
     }),
   })),
@@ -243,6 +268,7 @@ beforeEach(() => {
   itemStore.clear();
   stagedFiles.clear();
   insertedItems = [];
+  deletedItemIds = [];
   jest.clearAllMocks();
 });
 
@@ -576,5 +602,170 @@ describe('POST /api/admin/bulk-import/items/:id/set-sorting-decision (Task #817)
       .post(ROUTE('nope'))
       .send({ action: 'accept' })
       .expect(404);
+  });
+
+  // -----------------------------------------------------------------
+  // 7. DRAFT MODE — auto-save without finalising the decision (Task #860).
+  // -----------------------------------------------------------------
+
+  it('draft split materialises two part items and marks lead as rejected', async () => {
+    seed('dr-lead', {
+      stagedPath: '/staging/dr-lead.pdf',
+      contentHash: 'hash-dr-lead',
+      sortingDecision: {
+        decision: 'keep',
+        decisionState: 'pending',
+      },
+    });
+    stagePdf('/staging/dr-lead.pdf', 4);
+
+    const res = await request(buildApp())
+      .post(ROUTE('dr-lead'))
+      .send({ action: 'manual', draft: true, decision: 'split', splitAtPage: 2 })
+      .expect(200);
+
+    // Lead: decision recorded as draft split; status set to 'rejected' so split
+    // parts take precedence in the sorting step list.
+    expect(res.body.item.sortingDecision.decision).toBe('split');
+    expect(res.body.item.sortingDecision.draft).toBe(true);
+    expect(res.body.item.sortingDecision.decisionState).not.toBe('accepted');
+    expect(itemStore.get('dr-lead')!.status).toBe('rejected');
+
+    // Two part items must be inserted.
+    expect(insertedItems).toHaveLength(2);
+    const [part1, part2] = insertedItems;
+    expect(part1.status).toBe('sorted');
+    expect(part2.status).toBe('sorted');
+
+    // Lead's splitIntoItemIds must reference both parts.
+    const leadDec = (itemStore.get('dr-lead')!.sortingDecision ?? {}) as Record<string, unknown>;
+    const splitIds = leadDec.splitIntoItemIds as string[];
+    expect(splitIds).toHaveLength(2);
+    expect(splitIds).toContain(part1.id);
+    expect(splitIds).toContain(part2.id);
+
+    // Part files must be written to disk (stagedFiles).
+    expect(stagedFiles.has(part1.stagedPath as string)).toBe(true);
+    expect(stagedFiles.has(part2.stagedPath as string)).toBe(true);
+  });
+
+  it('draft split with splitFinalNames persists the name overrides on part items', async () => {
+    seed('dr-named', {
+      stagedPath: '/staging/dr-named.pdf',
+      contentHash: 'hash-dr-named',
+      originalName: 'contract.pdf',
+      sortingDecision: {
+        decision: 'keep',
+        decisionState: 'pending',
+      },
+    });
+    stagePdf('/staging/dr-named.pdf', 3);
+
+    await request(buildApp())
+      .post(ROUTE('dr-named'))
+      .send({
+        action: 'manual',
+        draft: true,
+        decision: 'split',
+        splitAtPage: 1,
+        splitFinalNames: ['Part A', 'Part B'],
+      })
+      .expect(200);
+
+    const leadDec = (itemStore.get('dr-named')!.sortingDecision ?? {}) as Record<string, unknown>;
+    expect(leadDec.splitFinalNames).toEqual(['Part A', 'Part B']);
+
+    // The part items should carry finalFileName derived from splitFinalNames.
+    const [part1, part2] = insertedItems;
+    expect(part1.finalFileName).toBe('Part A');
+    expect(part2.finalFileName).toBe('Part B');
+
+    // originalName must put the extension at the end ("stem (N).ext"), so the
+    // commit path produces "Part A.pdf" not "Part A.pdf (1)".
+    expect(part1.originalName).toBe('contract (1).pdf');
+    expect(part2.originalName).toBe('contract (2).pdf');
+
+    // splitFromOriginalName in the decision blob must match the source original,
+    // giving the commit path a clean extension source for any row format.
+    const p1Dec = (part1.sortingDecision ?? {}) as Record<string, unknown>;
+    const p2Dec = (part2.sortingDecision ?? {}) as Record<string, unknown>;
+    expect(p1Dec.splitFromOriginalName).toBe('contract.pdf');
+    expect(p2Dec.splitFromOriginalName).toBe('contract.pdf');
+  });
+
+  it('draft keep stores finalFileName without creating part items', async () => {
+    seed('dr-keep', {
+      stagedPath: '/staging/dr-keep.pdf',
+      contentHash: 'hash-dr-keep',
+      sortingDecision: {
+        decision: 'keep',
+        decisionState: 'pending',
+      },
+    });
+
+    const res = await request(buildApp())
+      .post(ROUTE('dr-keep'))
+      .send({ action: 'manual', draft: true, decision: 'keep', finalFileName: 'My Renamed Doc' })
+      .expect(200);
+
+    expect(res.body.item.finalFileName).toBe('My Renamed Doc');
+    expect(itemStore.get('dr-keep')!.finalFileName).toBe('My Renamed Doc');
+    expect(insertedItems).toHaveLength(0);
+  });
+
+  it('reverting split draft (draft keep) deletes both part items', async () => {
+    // First request: draft split → creates 2 part items.
+    seed('dr-rev', {
+      stagedPath: '/staging/dr-rev.pdf',
+      contentHash: 'hash-dr-rev',
+      sortingDecision: {
+        decision: 'keep',
+        decisionState: 'pending',
+      },
+    });
+    stagePdf('/staging/dr-rev.pdf', 4);
+
+    await request(buildApp())
+      .post(ROUTE('dr-rev'))
+      .send({ action: 'manual', draft: true, decision: 'split', splitAtPage: 2 })
+      .expect(200);
+
+    expect(insertedItems).toHaveLength(2);
+    const [p1, p2] = insertedItems;
+    expect(itemStore.has(p1.id)).toBe(true);
+    expect(itemStore.has(p2.id)).toBe(true);
+
+    // Second request: draft keep → reverts the split.
+    await request(buildApp())
+      .post(ROUTE('dr-rev'))
+      .send({ action: 'manual', draft: true, decision: 'keep' })
+      .expect(200);
+
+    // Part items must be deleted from the store.
+    expect(itemStore.has(p1.id)).toBe(false);
+    expect(itemStore.has(p2.id)).toBe(false);
+    expect(deletedItemIds).toContain(p1.id);
+    expect(deletedItemIds).toContain(p2.id);
+
+    // Lead's splitIntoItemIds must be cleared and status restored to 'sorted'.
+    const leadDec = (itemStore.get('dr-rev')!.sortingDecision ?? {}) as Record<string, unknown>;
+    expect(leadDec.splitIntoItemIds).toBeUndefined();
+    expect(itemStore.get('dr-rev')!.status).toBe('sorted');
+  });
+
+  it('draft split rejects a request missing splitAtPage with HTTP 400', async () => {
+    seed('dr-nopage', {
+      stagedPath: '/staging/dr-nopage.pdf',
+      contentHash: 'hash-dr-nopage',
+      sortingDecision: { decision: 'keep', decisionState: 'pending' },
+    });
+    stagePdf('/staging/dr-nopage.pdf', 3);
+
+    const res = await request(buildApp())
+      .post(ROUTE('dr-nopage'))
+      .send({ action: 'manual', draft: true, decision: 'split' })
+      .expect(400);
+
+    expect(res.body.error).toMatch(/splitAtPage is required/);
   });
 });

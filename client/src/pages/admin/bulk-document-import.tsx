@@ -63,6 +63,7 @@ import {
   GitMerge,
   Scissors,
   Copy,
+  Pencil,
 } from 'lucide-react';
 import {
   type BulkImportFallbackReason,
@@ -254,6 +255,18 @@ interface BulkImportItemLite {
   sortingDecisionState: 'pending' | 'accepted' | 'rejected' | null;
   /** True when the admin manually set the sorting decision instead of accepting AI. */
   sortingManualOverride: boolean;
+  /**
+   * When a split was auto-saved in draft mode, this holds the two part item IDs.
+   * The lead item is marked `rejected` but kept visible in the sorting step UI
+   * so the admin can adjust the slice page or revert.
+   */
+  sortingDecisionSplitIntoItemIds: string[] | null;
+  /** True when the current sorting decision is only a draft (auto-saved, not yet confirmed). */
+  sortingDecisionDraft: boolean;
+  /** Rename stems for the two split parts when a draft split has been saved. */
+  sortingDecisionSplitFinalNames: [string, string] | null;
+  /** Admin-supplied rename stem for keep/merge items (no extension). */
+  finalFileName: string | null;
   branchingConfidence: number | null;
   branchingFallback: BulkImportFallbackReason | null;
   branch: BranchDestination | null;
@@ -1229,6 +1242,9 @@ export default function BulkDocumentImportPage() {
   // Inline slice/merge editing state (Task #856). Keyed by item id.
   const [inlineSlicePage, setInlineSlicePage] = useState<Map<string, number>>(new Map());
   const [inlineMergeOrder, setInlineMergeOrder] = useState<Map<string, string[]>>(new Map());
+  const [inlineRename, setInlineRename] = useState<Map<string, string>>(new Map());
+  const [inlineRenameSplit, setInlineRenameSplit] = useState<Map<string, [string, string]>>(new Map());
+  const [autoSaveStatus, setAutoSaveStatus] = useState<Map<string, 'idle' | 'saving' | 'saved' | 'error'>>(new Map());
   // Group-level reassign picker (Task #776). At most one section's
   // picker is open at a time; opening a per-file picker closes it and
   // vice-versa so the wizard never shows two competing pickers.
@@ -1787,6 +1803,100 @@ export default function BulkDocumentImportPage() {
       });
     },
   });
+
+  /**
+   * Auto-save (draft) mutation — fires every 500 ms via debounce whenever an
+   * inline sorting value changes.  Unlike setSortingDecision, this uses
+   * `draft: true` so no file-operation is committed until the admin presses
+   * Accept / Confirm.  For split decisions the backend materialises the two
+   * part items server-side so they appear as Merge candidates.
+   */
+  const saveDraftDecision = useMutation({
+    mutationFn: async ({
+      itemId,
+      decision,
+      mergeWithItemIds,
+      splitAtPage,
+      finalFileName: ffn,
+      splitFinalNames,
+    }: {
+      itemId: string;
+      decision?: 'keep' | 'merge' | 'split';
+      mergeWithItemIds?: string[];
+      splitAtPage?: number;
+      finalFileName?: string;
+      splitFinalNames?: [string, string];
+    }) => {
+      const res = await apiRequest(
+        'POST',
+        `/api/admin/bulk-import/items/${itemId}/set-sorting-decision`,
+        { action: 'manual', draft: true, decision, mergeWithItemIds, splitAtPage, finalFileName: ffn, splitFinalNames },
+      );
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
+      });
+    },
+  });
+
+  // ---------------------------------------------------------------
+  // Auto-save (draft) debounce machinery.  Triggered from inline-
+  // field onChange handlers; fires 500 ms after the last change.
+  // ---------------------------------------------------------------
+  const autoSaveTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+  const inlineSlicePageRef = useRef(inlineSlicePage);
+  const inlineMergeOrderRef = useRef(inlineMergeOrder);
+  const inlineRenameRef = useRef(inlineRename);
+  const inlineRenameSplitRef = useRef(inlineRenameSplit);
+  useEffect(() => { inlineSlicePageRef.current = inlineSlicePage; }, [inlineSlicePage]);
+  useEffect(() => { inlineMergeOrderRef.current = inlineMergeOrder; }, [inlineMergeOrder]);
+  useEffect(() => { inlineRenameRef.current = inlineRename; }, [inlineRename]);
+  useEffect(() => { inlineRenameSplitRef.current = inlineRenameSplit; }, [inlineRenameSplit]);
+
+  function scheduleAutoSave(
+    item: BulkImportItemLite,
+    decisionOverride?: 'keep' | 'merge' | 'split',
+    mergeWithItemIdsOverride?: string[],
+    splitAtPageOverride?: number,
+  ) {
+    if (currentStep !== 'sorting') return;
+    const existing = autoSaveTimers.current.get(item.id);
+    if (existing) clearTimeout(existing);
+    const timer = setTimeout(() => {
+      autoSaveTimers.current.delete(item.id);
+      setAutoSaveStatus((prev) => new Map(prev).set(item.id, 'saving'));
+      const effectiveDecision = decisionOverride ?? ((item.sortingDecision ?? 'keep') as 'keep' | 'merge' | 'split');
+      const slicePage = splitAtPageOverride ?? inlineSlicePageRef.current.get(item.id);
+      const mergeOrder = mergeWithItemIdsOverride
+        ? [item.id, ...mergeWithItemIdsOverride]
+        : inlineMergeOrderRef.current.get(item.id);
+      const rename = inlineRenameRef.current.get(item.id);
+      const renameSplit = inlineRenameSplitRef.current.get(item.id);
+      saveDraftDecision.mutate(
+        {
+          itemId: item.id,
+          decision: effectiveDecision,
+          ...(effectiveDecision === 'split' && {
+            splitAtPage: slicePage ?? item.sortingSplitAtPage ?? 1,
+            splitFinalNames: renameSplit ?? (item.sortingDecisionSplitFinalNames ?? undefined),
+          }),
+          ...(effectiveDecision === 'merge' && {
+            mergeWithItemIds: mergeOrder ? mergeOrder.slice(1) : (item.sortingMergeWithItemIds ?? undefined),
+          }),
+          ...(effectiveDecision !== 'split' && {
+            finalFileName: rename ?? undefined,
+          }),
+        },
+        {
+          onSuccess: () => setAutoSaveStatus((prev) => new Map(prev).set(item.id, 'saved')),
+          onError: () => setAutoSaveStatus((prev) => new Map(prev).set(item.id, 'error')),
+        },
+      );
+    }, 500);
+    autoSaveTimers.current.set(item.id, timer);
+  }
 
   const clearAll = useMutation({
     mutationFn: async () => {
@@ -2879,10 +2989,16 @@ export default function BulkDocumentImportPage() {
                     <div className="space-y-2">
                       {/* Excluded (rejected) files are hidden from step 3+.
                           Screening keeps them visible so admins can re-include
-                          them; all later steps filter them out (Task #804). */}
+                          them; all later steps filter them out (Task #804).
+                          Exception: in the sorting step, draft-split leads are
+                          kept visible so the admin can still adjust or revert. */}
                       {(() => {
                         const visibleItems = currentStep !== 'screening'
-                          ? items.filter((item) => item.status !== 'rejected')
+                          ? items.filter((item) =>
+                              item.status !== 'rejected' ||
+                              // Split-draft leads: keep visible in sorting step.
+                              (currentStep === 'sorting' && !!item.sortingDecisionSplitIntoItemIds?.length),
+                            )
                           : items;
                         return (
                           <>
@@ -2910,9 +3026,16 @@ export default function BulkDocumentImportPage() {
                         const stillEligible =
                           isAuto &&
                           item.status === STEP_PRE_STATUS[currentStep as AutoStep];
-                        const isExcluded = item.status === 'rejected';
+                        // Draft-split leads have status='rejected' but are kept
+                        // visible so the admin can adjust or revert the split.
+                        const isDraftSplitLead =
+                          currentStep === 'sorting' &&
+                          item.status === 'rejected' &&
+                          !!item.sortingDecisionSplitIntoItemIds?.length;
+                        const isExcluded = item.status === 'rejected' && !isDraftSplitLead;
                         const showRetry =
                           !isExcluded &&
+                          !isDraftSplitLead &&
                           !!retryAction &&
                           ((!!decision?.fallbackReason) ||
                             (stillEligible && !!progress?.finishedAt));
@@ -3330,7 +3453,16 @@ export default function BulkDocumentImportPage() {
                                           ? 'border-primary bg-primary text-primary-foreground'
                                           : 'border-border bg-background hover:bg-muted/50'
                                       }`}
-                                      onClick={() => setSortingPickerDecision(opt)}
+                                      onClick={() => {
+                                        setSortingPickerDecision(opt);
+                                        if (opt === 'keep') {
+                                          scheduleAutoSave(item, 'keep');
+                                        } else if (opt === 'split') {
+                                          scheduleAutoSave(item, 'split', undefined, sortingPickerSplitPage);
+                                        } else if (opt === 'merge') {
+                                          scheduleAutoSave(item, 'merge', sortingPickerMergeTargetId ? [sortingPickerMergeTargetId] : undefined);
+                                        }
+                                      }}
                                       data-testid={`sorting-picker-option-${opt}-${item.id}`}
                                     >
                                       {opt === 'keep' && <Copy className="h-3.5 w-3.5" />}
@@ -3352,7 +3484,12 @@ export default function BulkDocumentImportPage() {
                                     <select
                                       className="flex-1 rounded-md border border-border bg-background px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                                       value={sortingPickerMergeTargetId}
-                                      onChange={(e) => setSortingPickerMergeTargetId(e.target.value)}
+                                      onChange={(e) => {
+                                        setSortingPickerMergeTargetId(e.target.value);
+                                        if (e.target.value) {
+                                          scheduleAutoSave(item, 'merge', [e.target.value]);
+                                        }
+                                      }}
                                       data-testid={`sorting-picker-merge-target-${item.id}`}
                                     >
                                       <option value="">
@@ -3379,7 +3516,10 @@ export default function BulkDocumentImportPage() {
                                         (item.mimeType ?? '').toLowerCase() === 'application/pdf'
                                       }
                                       splitPage={sortingPickerSplitPage}
-                                      onChange={setSortingPickerSplitPage}
+                                      onChange={(page) => {
+                                        setSortingPickerSplitPage(page);
+                                        scheduleAutoSave(item, 'split', undefined, page);
+                                      }}
                                       isFr={isFr}
                                     />
                                   </div>
@@ -3442,6 +3582,22 @@ export default function BulkDocumentImportPage() {
                                     const showMergeSection = currentDecision === 'merge';
                                     const effectiveSlicePage = inlineSlice ?? currentSplitAtPage ?? 1;
                                     const mergeGroupIds = inlineMergeOrder.get(item.id) ?? computeMergeGroup(items, item.id);
+                                    // For merge groups all rename state is keyed to the GROUP LEAD so
+                                    // siblings and the lead share a single controlled value.
+                                    const mergeLeadId = currentDecision === 'merge' ? (mergeGroupIds[0] ?? item.id) : item.id;
+                                    const leadItem = currentDecision === 'merge'
+                                      ? (items.find((i) => i.id === mergeLeadId) ?? item)
+                                      : item;
+                                    // Rename sub-section computed values.
+                                    // For merge groups, derive stem/ext from the LEAD item so all
+                                    // sibling cards show the same shared filename defaults.
+                                    const renameSourceItem = currentDecision === 'merge' ? leadItem : item;
+                                    const fileExt = renameSourceItem.originalName.replace(/^[^.]*(\..+)?$/, '$1') || '';
+                                    const renameStem = renameSourceItem.originalName.replace(/\.[^.]+$/, '');
+                                    const saveStatusVal = autoSaveStatus.get(mergeLeadId);
+                                    const renameTestId = currentDecision === 'merge'
+                                      ? `branching-rename-merge-${mergeLeadId}`
+                                      : `branching-rename-${item.id}`;
                                     return (
                                       <div className="space-y-4">
                                         {/* --- SLICE sub-section --- */}
@@ -3486,6 +3642,7 @@ export default function BulkDocumentImportPage() {
                                                     splitPage={effectiveSlicePage}
                                                     onChange={(next) => {
                                                       setInlineSlicePage((prev) => new Map(prev).set(item.id, next));
+                                                      scheduleAutoSave(item);
                                                     }}
                                                     isFr={isFr}
                                                   />
@@ -3584,6 +3741,7 @@ export default function BulkDocumentImportPage() {
                                                             const next = [...mergeGroupIds];
                                                             [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]];
                                                             setInlineMergeOrder((prev) => new Map(prev).set(item.id, next));
+                                                            scheduleAutoSave(item);
                                                           }}
                                                         >
                                                           <ChevronUp className="h-3.5 w-3.5" />
@@ -3600,6 +3758,7 @@ export default function BulkDocumentImportPage() {
                                                             const next = [...mergeGroupIds];
                                                             [next[idx], next[idx + 1]] = [next[idx + 1], next[idx]];
                                                             setInlineMergeOrder((prev) => new Map(prev).set(item.id, next));
+                                                            scheduleAutoSave(item);
                                                           }}
                                                         >
                                                           <ChevronDown className="h-3.5 w-3.5" />
@@ -3633,6 +3792,7 @@ export default function BulkDocumentImportPage() {
                                                       if (!newId) return;
                                                       const next = [...mergeGroupIds, newId];
                                                       setInlineMergeOrder((prev) => new Map(prev).set(item.id, next));
+                                                      scheduleAutoSave(item);
                                                     }}
                                                   >
                                                     <option value="">
@@ -3701,6 +3861,107 @@ export default function BulkDocumentImportPage() {
                                               <Scissors className="mr-1.5 h-3.5 w-3.5" />
                                               {isFr ? 'Ajouter un découpage' : 'Add slice'}
                                             </Button>
+                                          </div>
+                                        )}
+
+                                        {/* --- RENAME sub-section --- */}
+                                        {!isExcluded && !sortingIsAccepted && !!currentDecision && (
+                                          <div
+                                            className="rounded-md border border-border bg-background/60 p-3 space-y-2"
+                                            data-testid={`branching-rename-section-${item.id}`}
+                                          >
+                                            <div className="flex items-center justify-between gap-1.5">
+                                              <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                                <Pencil className="h-3.5 w-3.5" />
+                                                {isFr ? 'Renommer' : 'Rename'}
+                                              </div>
+                                              {saveStatusVal === 'error' ? (
+                                                <button
+                                                  type="button"
+                                                  data-testid={`branching-autosave-status-${mergeLeadId}`}
+                                                  className="text-xs text-destructive underline cursor-pointer"
+                                                  onClick={() => scheduleAutoSave(leadItem)}
+                                                >
+                                                  {isFr ? 'Erreur — Réessayer' : 'Failed — Retry'}
+                                                </button>
+                                              ) : (
+                                                <span
+                                                  data-testid={`branching-autosave-status-${mergeLeadId}`}
+                                                  className="text-xs text-muted-foreground"
+                                                >
+                                                  {saveStatusVal === 'saving'
+                                                    ? (isFr ? 'Enregistrement…' : 'Saving…')
+                                                    : saveStatusVal === 'saved'
+                                                      ? (isFr ? 'Enregistré' : 'Saved')
+                                                      : null}
+                                                </span>
+                                              )}
+                                            </div>
+                                            {currentDecision === 'split' ? (
+                                              <>
+                                                <div className="flex flex-col gap-1">
+                                                  <label className="text-xs text-muted-foreground">
+                                                    {isFr ? 'Partie 1 :' : 'Part 1:'}
+                                                  </label>
+                                                  <div className="flex items-center gap-1">
+                                                    <input
+                                                      type="text"
+                                                      className="h-8 flex-1 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                                                      data-testid={`branching-rename-split-${item.id}-0`}
+                                                      value={inlineRenameSplit.get(item.id)?.[0] ?? item.sortingDecisionSplitFinalNames?.[0] ?? ''}
+                                                      placeholder={`${renameStem} (1)`}
+                                                      onChange={(e) => {
+                                                        const part2 = inlineRenameSplit.get(item.id)?.[1] ?? item.sortingDecisionSplitFinalNames?.[1] ?? '';
+                                                        setInlineRenameSplit((prev) => new Map(prev).set(item.id, [e.target.value, part2]));
+                                                        scheduleAutoSave(item);
+                                                      }}
+                                                    />
+                                                    {fileExt && <span className="text-sm text-muted-foreground shrink-0">{fileExt}</span>}
+                                                  </div>
+                                                </div>
+                                                <div className="flex flex-col gap-1">
+                                                  <label className="text-xs text-muted-foreground">
+                                                    {isFr ? 'Partie 2 :' : 'Part 2:'}
+                                                  </label>
+                                                  <div className="flex items-center gap-1">
+                                                    <input
+                                                      type="text"
+                                                      className="h-8 flex-1 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                                                      data-testid={`branching-rename-split-${item.id}-1`}
+                                                      value={inlineRenameSplit.get(item.id)?.[1] ?? item.sortingDecisionSplitFinalNames?.[1] ?? ''}
+                                                      placeholder={`${renameStem} (2)`}
+                                                      onChange={(e) => {
+                                                        const part1 = inlineRenameSplit.get(item.id)?.[0] ?? item.sortingDecisionSplitFinalNames?.[0] ?? '';
+                                                        setInlineRenameSplit((prev) => new Map(prev).set(item.id, [part1, e.target.value]));
+                                                        scheduleAutoSave(item);
+                                                      }}
+                                                    />
+                                                    {fileExt && <span className="text-sm text-muted-foreground shrink-0">{fileExt}</span>}
+                                                  </div>
+                                                </div>
+                                              </>
+                                            ) : (
+                                              <div className="flex flex-col gap-1">
+                                                <label className="text-xs text-muted-foreground">
+                                                  {isFr ? 'Nouveau nom :' : 'New name:'}
+                                                </label>
+                                                <div className="flex items-center gap-1">
+                                                  <input
+                                                    type="text"
+                                                    className="h-8 flex-1 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                                                    data-testid={renameTestId}
+                                                    value={inlineRename.get(mergeLeadId) ?? leadItem.finalFileName ?? ''}
+                                                    placeholder={renameStem}
+                                                    onChange={(e) => {
+                                                      setInlineRename((prev) => new Map(prev).set(mergeLeadId, e.target.value));
+                                                      const pickerOverride = sortingPickerItemId === item.id ? sortingPickerDecision : undefined;
+                                                      scheduleAutoSave(leadItem, pickerOverride);
+                                                    }}
+                                                  />
+                                                  {fileExt && <span className="text-sm text-muted-foreground shrink-0">{fileExt}</span>}
+                                                </div>
+                                              </div>
+                                            )}
                                           </div>
                                         )}
 

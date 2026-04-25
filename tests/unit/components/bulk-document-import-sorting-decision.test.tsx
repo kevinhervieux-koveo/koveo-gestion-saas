@@ -158,6 +158,11 @@ function buildSessionPayload() {
       linkingReason: null,
       linkingBeforeItemId: null,
       linkingAfterItemId: null,
+      sortingDecisionSplitIntoItemIds: null,
+      sortingDecisionDraft: false,
+      sortingDecisionSplitFinalNames: null,
+      finalFileName: null,
+      excludeSource: null,
     })),
   };
 }
@@ -672,6 +677,91 @@ describe('BulkDocumentImportPage — sorting decision UI (Task #817 / #825)', ()
       expect(body.action).toBe('manual');
       expect(body.decision).toBe('merge');
       expect(Array.isArray(body.mergeWithItemIds)).toBe(true);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Rename UI sub-section (Task #860).
+  // ---------------------------------------------------------------------------
+
+  it('shows the Rename section for a pending keep item when detail is expanded', async () => {
+    renderPage();
+    await waitForRows();
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId(`button-toggle-detail-${ITEM_PENDING}`));
+    });
+
+    // The rename section must be present (pending keep decision).
+    await waitFor(() => {
+      expect(screen.getByTestId(`branching-rename-section-${ITEM_PENDING}`)).toBeInTheDocument();
+      expect(screen.getByTestId(`branching-rename-${ITEM_PENDING}`)).toBeInTheDocument();
+    });
+  });
+
+  it('does NOT show the Rename section for an accepted item', async () => {
+    renderPage();
+    await waitForRows();
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId(`button-toggle-detail-${ITEM_ACCEPTED}`));
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.queryByTestId(`branching-rename-section-${ITEM_ACCEPTED}`),
+      ).not.toBeInTheDocument();
+    });
+  });
+
+  it('typing in the Rename input updates the controlled input value', async () => {
+    renderPage();
+    await waitForRows();
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId(`button-toggle-detail-${ITEM_PENDING}`));
+    });
+
+    const renameInput = await screen.findByTestId(
+      `branching-rename-${ITEM_PENDING}`,
+    ) as HTMLInputElement;
+
+    await act(async () => {
+      fireEvent.change(renameInput, { target: { value: 'My New Name' } });
+    });
+
+    await waitFor(() => {
+      expect(renameInput.value).toBe('My New Name');
+    });
+  });
+
+  it('split decision shows Part 1 and Part 2 rename inputs', async () => {
+    const ITEM_SPLIT_PENDING = 'item-split-pending';
+    items.push({
+      id: ITEM_SPLIT_PENDING,
+      originalName: 'split-doc.pdf',
+      status: 'sorted',
+      sortingDecisionState: 'pending',
+      sortingDecision: 'split',
+      sortingMergeWithItemId: null,
+      sortingMergeWithItemIds: null,
+      sortingSplitAtPage: 2,
+      sortingManualOverride: false,
+      sortingReason: 'Two parts detected',
+      sortingConfidence: 0.85,
+    });
+
+    renderPage();
+    await screen.findByTestId(`item-preview-trigger-${ITEM_SPLIT_PENDING}`, undefined, { timeout: 4000 });
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId(`button-toggle-detail-${ITEM_SPLIT_PENDING}`));
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId(`branching-rename-section-${ITEM_SPLIT_PENDING}`)).toBeInTheDocument();
+      expect(screen.getByTestId(`branching-rename-split-${ITEM_SPLIT_PENDING}-0`)).toBeInTheDocument();
+      expect(screen.getByTestId(`branching-rename-split-${ITEM_SPLIT_PENDING}-1`)).toBeInTheDocument();
     });
   });
 });
