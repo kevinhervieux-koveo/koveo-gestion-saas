@@ -3733,6 +3733,53 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
                               pp.id === id ? { ...pp, includeInBudget: value } : pp
                             ));
                           }}
+                          onEdit={async (id) => {
+                            if (ganttEditingId) {
+                              if (!confirmGanttDiscard()) return;
+                              setGanttEditingId(null);
+                              setGanttEditingDates(null);
+                              ganttOriginalDates.current = null;
+                            }
+                            const p = projects.find(proj => proj.id === id);
+                            if (!p) return;
+                            if (p.isQuickProject) {
+                              const plannedDate = p.plannedStartDate ? new Date(p.plannedStartDate) : null;
+                              setEditingProject({
+                                id: p.id,
+                                title: p.title,
+                                totalBudget: p.totalBudget.toString(),
+                                financialYear: p.financialYear.toString(),
+                                plannedMonth: plannedDate ? (plannedDate.getMonth() + 1).toString() : '1',
+                                plannedDay: plannedDate ? plannedDate.getDate().toString() : '1',
+                                description: '',
+                                isQuickProject: true,
+                              });
+                              setEditProjectDialogOpen(true);
+                            } else {
+                              try {
+                                const response = await apiRequest('GET', `/api/maintenance/projects/${p.id}`);
+                                if (response.ok) {
+                                  const result = await response.json();
+                                  const fullProject = result.data || result;
+                                  setSelectedProjectForWorkflow(fullProject);
+                                  setShowProjectWorkflowModal(true);
+                                } else {
+                                  toast({
+                                    title: t('error'),
+                                    description: language === 'fr' ? 'Impossible de charger le projet' : 'Failed to load project',
+                                    variant: 'destructive',
+                                  });
+                                }
+                              } catch (error) {
+                                logError('Failed to fetch project:', error);
+                                toast({
+                                  title: t('error'),
+                                  description: language === 'fr' ? 'Impossible de charger le projet' : 'Failed to load project',
+                                  variant: 'destructive',
+                                });
+                              }
+                            }
+                          }}
                           editingProjectId={ganttEditingId}
                           editingDates={ganttEditingDates}
                           onStartEdit={(id) => {

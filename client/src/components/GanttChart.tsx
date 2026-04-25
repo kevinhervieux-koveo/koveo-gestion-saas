@@ -61,8 +61,15 @@ interface GanttChartProps {
    */
   onToggleInclude?: (projectId: string, includeInBudget: boolean) => void;
   /**
-   * Edit mode props — when provided, each row with dates gets an Edit
-   * button and the active editing row becomes draggable.
+   * When provided, a pencil icon is shown on every project row. Clicking it
+   * opens the project edit dialog (quick-project form or full workflow modal).
+   * This is separate from the inline date-drag editing triggered by clicking
+   * the bar on the timeline.
+   */
+  onEdit?: (projectId: string) => void;
+  /**
+   * Inline date-drag edit mode props — when provided, clicking a project's bar
+   * in the timeline starts the drag/resize edit mode for that row.
    */
   editingProjectId?: string | null;
   editingDates?: GanttEditingDates | null;
@@ -141,6 +148,7 @@ export function GanttChart({
   height,
   dateRange,
   onToggleInclude,
+  onEdit,
   editingProjectId,
   editingDates,
   onStartEdit,
@@ -400,7 +408,7 @@ export function GanttChart({
     return displayRows.findIndex(r => r.id === editingProjectId);
   }, [displayRows, editingProjectId]);
 
-  const hasEditSupport = !!(onStartEdit || onSave || onCancel);
+  const hasEditSupport = !!(onEdit || onStartEdit || onSave || onCancel);
 
   const labelWidth = (onToggleInclude || hasEditSupport) ? 220 : 180;
   const chartHeight =
@@ -607,13 +615,13 @@ export function GanttChart({
                       {row.includeInBudget ? <Eye size={14} /> : <EyeOff size={14} />}
                     </button>
                   )}
-                  {/* Edit button — only for rows with dates; remains clickable
-                      even while another row is editing so the user can switch
-                      rows (the parent's onStartEdit handles the discard prompt) */}
-                  {onStartEdit && row.hasDates && !isEditing && (
+                  {/* Edit button — opens the project edit dialog for all rows
+                      (including those without dates). Clicking the bar itself
+                      is the entry point for inline date drag-editing. */}
+                  {onEdit && !isEditing && (
                     <button
                       type="button"
-                      onClick={() => onStartEdit(row.id)}
+                      onClick={() => onEdit(row.id)}
                       title={editLabel}
                       data-testid={`gantt-edit-${row.id}`}
                       disabled={isSaving}
@@ -717,6 +725,31 @@ export function GanttChart({
                 }}
               />
             )}
+
+            {/* Per-row clickable overlays — clicking a project's bar starts the
+                inline date-drag editing mode for that row. Only rendered for
+                rows that have dates and are not currently being edited. */}
+            {onStartEdit && displayRows.map((row, idx) => {
+              if (!row.hasDates || row.id === editingProjectId || isSaving) return null;
+              const topPx = TOP_MARGIN + idx * ROW_HEIGHT;
+              return (
+                <div
+                  key={`bar-click-${row.id}`}
+                  data-testid={`gantt-bar-click-${row.id}`}
+                  onClick={() => onStartEdit(row.id)}
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    right: 0,
+                    top: topPx,
+                    height: ROW_HEIGHT,
+                    cursor: 'grab',
+                    zIndex: 2,
+                    background: 'transparent',
+                  }}
+                />
+              );
+            })}
 
             {/* Floating date chips during a drag/resize gesture.
                 - resize-left → start chip anchored to the left edge
