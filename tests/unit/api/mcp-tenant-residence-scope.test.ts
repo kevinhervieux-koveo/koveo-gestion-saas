@@ -198,9 +198,13 @@ describe('create_demand (tenant) — task #141', () => {
     selectQueue.push([{ id: ORG_ID }]);
     // 2. building lookup
     selectQueue.push([{ id: BUILDING_ID, organizationId: ORG_ID }]);
-    // 3. tenant user lookup
+    // 3. residence pre-flight (Task #622) — residence DOES exist and belongs
+    //    to this building, so the access-denied check that follows is what
+    //    rejects the call.
+    selectQueue.push([{ id: UNLINKED_RESIDENCE_ID, buildingId: BUILDING_ID }]);
+    // 4. tenant user lookup
     selectQueue.push([{ id: TENANT_USER_ID, role: 'tenant' }]);
-    // 4. userResidences membership lookup — empty
+    // 5. userResidences membership lookup — empty
     selectQueue.push([]);
 
     const handler = registeredTools.get('create_demand');
@@ -240,6 +244,8 @@ describe('create_demand (tenant) — task #141', () => {
   it('allows a residence-scoped demand when the tenant IS linked', async () => {
     selectQueue.push([{ id: ORG_ID }]);
     selectQueue.push([{ id: BUILDING_ID, organizationId: ORG_ID }]);
+    // Residence pre-flight (Task #622) — residence belongs to the building.
+    selectQueue.push([{ id: LINKED_RESIDENCE_ID, buildingId: BUILDING_ID }]);
     selectQueue.push([{ id: TENANT_USER_ID, role: 'tenant' }]);
     selectQueue.push([{ id: 'link-1' }]);
 

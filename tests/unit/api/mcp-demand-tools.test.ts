@@ -106,6 +106,8 @@ const SEED_ADMIN_ID = '44444444-4444-4444-8444-444444444444';
 const SEED_MANAGER_ID = '55555555-5555-4555-8555-555555555555';
 const SEED_TENANT_ID = '66666666-6666-4666-8666-666666666666';
 const OTHER_USER_ID = '77777777-7777-4777-8777-777777777777';
+const RESIDENCE_ID = '88888888-8888-4888-8888-888888888888';
+const OTHER_BUILDING_ID = '99999999-9999-4999-8999-999999999999';
 
 function demandRow(overrides: Record<string, unknown> = {}) {
   return {
@@ -601,6 +603,139 @@ describe('MCP demand attachment handling', () => {
       fileName: 'spec.pdf',
       fileSize: 999,
     });
+  });
+
+  it('create_demand residence pre-flight: returns 404-style message when residenceId does not exist (Task #622)', async () => {
+    selectQueue.push([{ id: ORG_ID }]); // getMcpOrgIds
+    selectQueue.push([buildingRow()]); // building lookup
+    selectQueue.push([]); // residence lookup -> not found
+
+    const handler = registeredTools.get('create_demand');
+    expect(handler).toBeDefined();
+
+    const result = await handler!({
+      role: 'manager',
+      buildingId: BUILDING_ID,
+      type: 'complaint',
+      description: 'Should be rejected before INSERT.',
+      residenceId: '00000000-0000-4000-8000-000000000000',
+    });
+
+    expect(result.content[0].text).toBe(
+      'Residence not found or does not belong to the specified building',
+    );
+    // No insert should have run because we short-circuited before the DB write.
+    expect(insertCalls).toHaveLength(0);
+  });
+
+  it('create_demand residence pre-flight: rejects a residence that belongs to another building (Task #622)', async () => {
+    selectQueue.push([{ id: ORG_ID }]); // getMcpOrgIds
+    selectQueue.push([buildingRow()]); // building lookup
+    selectQueue.push([{ id: RESIDENCE_ID, buildingId: OTHER_BUILDING_ID }]); // residence belongs elsewhere
+
+    const handler = registeredTools.get('create_demand');
+    const result = await handler!({
+      role: 'manager',
+      buildingId: BUILDING_ID,
+      type: 'complaint',
+      description: 'Cross-building residence id should be rejected.',
+      residenceId: RESIDENCE_ID,
+    });
+
+    expect(result.content[0].text).toBe(
+      'Residence not found or does not belong to the specified building',
+    );
+    expect(insertCalls).toHaveLength(0);
+  });
+
+  it('create_demand surfaces raw DB error in [dev] block when NODE_ENV !== production (Task #622)', async () => {
+    const original = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'development';
+
+    selectQueue.push([{ id: ORG_ID }]); // getMcpOrgIds
+    selectQueue.push([buildingRow()]); // building lookup
+    selectQueue.push([{ id: SEED_MANAGER_ID, role: 'manager' }]); // getMcpUser
+
+    // Force the INSERT to throw so we exercise the catch block. The mock
+    // factory above stores the rejecting promise on `returning()`.
+    const { db } = await import('../../../server/db');
+    (db.insert as jest.Mock).mockImplementationOnce(() => ({
+      values: () => ({
+        returning: () => Promise.reject(Object.assign(new Error('insert blew up'), { code: '99999' })),
+      }),
+    }));
+
+    try {
+      const handler = registeredTools.get('create_demand');
+      const result = await handler!({
+        role: 'manager',
+        buildingId: BUILDING_ID,
+        type: 'complaint',
+        description: 'This call is expected to fail at the INSERT.',
+      });
+      // Two content items: the friendly envelope + the [dev] raw message.
+      expect(result.content).toHaveLength(2);
+      expect(result.content[0].text).toContain('Failed to create demand');
+      expect(result.content[1].text).toBe('[dev] insert blew up');
+    } finally {
+      process.env.NODE_ENV = original;
+    }
+  });
+
+  it('create_demand omits the [dev] block when NODE_ENV === production (Task #622)', async () => {
+    const original = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'production';
+
+    selectQueue.push([{ id: ORG_ID }]);
+    selectQueue.push([buildingRow()]);
+    selectQueue.push([{ id: SEED_MANAGER_ID, role: 'manager' }]);
+
+    const { db } = await import('../../../server/db');
+    (db.insert as jest.Mock).mockImplementationOnce(() => ({
+      values: () => ({
+        returning: () => Promise.reject(Object.assign(new Error('insert blew up'), { code: '99999' })),
+      }),
+    }));
+
+    try {
+      const handler = registeredTools.get('create_demand');
+      const result = await handler!({
+        role: 'manager',
+        buildingId: BUILDING_ID,
+        type: 'complaint',
+        description: 'This call is expected to fail at the INSERT.',
+      });
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0].text).toContain('Failed to create demand');
+    } finally {
+      process.env.NODE_ENV = original;
+    }
+  });
+
+  it('create_demand residence happy path: a valid residence in the same building inserts the row (Task #622)', async () => {
+    selectQueue.push([{ id: ORG_ID }]); // getMcpOrgIds
+    selectQueue.push([buildingRow()]); // building lookup
+    selectQueue.push([{ id: RESIDENCE_ID, buildingId: BUILDING_ID }]); // residence lookup -> matches building
+    selectQueue.push([{ id: SEED_MANAGER_ID, role: 'manager' }]); // getMcpUser
+
+    const handler = registeredTools.get('create_demand');
+    const result = await handler!({
+      role: 'manager',
+      buildingId: BUILDING_ID,
+      type: 'maintenance',
+      description: 'Faucet leaking in unit 4B.',
+      residenceId: RESIDENCE_ID,
+    });
+
+    expect(insertCalls).toHaveLength(1);
+    expect(insertCalls[0].values).toMatchObject({
+      buildingId: BUILDING_ID,
+      type: 'maintenance',
+      residenceId: RESIDENCE_ID,
+    });
+    // The response is the inserted row JSON, not an error message.
+    const payload = JSON.parse(result.content[0].text);
+    expect(payload.residenceId).toBe(RESIDENCE_ID);
   });
 
   it('create_demand_comment without an attachment leaves the file fields unset and the ACL helpers untouched', async () => {

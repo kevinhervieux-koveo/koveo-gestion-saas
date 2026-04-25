@@ -2085,6 +2085,17 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       if (!building || !orgIds.includes(building.organizationId)) {
         return { content: [{ type: "text" as const, text: "Building not found or access denied" }] };
       }
+      // Residence pre-flight check (Task #622): mirrors the building check above.
+      // Without this, a bad `residenceId` falls through to the INSERT and trips
+      // an FK violation that gets swallowed by the generic catch-block message
+      // ("Failed to create demand — please retry"). Catching it up-front lets
+      // us return a precise 404-style message to the caller.
+      if (residenceId) {
+        const [residence] = await db.select().from(schema.residences).where(eq(schema.residences.id, residenceId));
+        if (!residence || residence.buildingId !== buildingId) {
+          return { content: [{ type: "text" as const, text: "Residence not found or does not belong to the specified building" }] };
+        }
+      }
       const user = await getMcpUser(role);
       // Tenant scope guard: when a tenant supplies a residenceId, they must be
       // linked to that residence. Demands without a residenceId remain allowed
@@ -2145,7 +2156,17 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
         return { content: [{ type: "text" as const, text: JSON.stringify(demand, null, 2) }] };
       } catch (e) {
         console.error("[mcp:create_demand]", e);
-        return buildWriteErrorResponse(e, 'demand', 'create');
+        const response = buildWriteErrorResponse(e, 'demand', 'create');
+        // Task #622: surface raw driver error in non-production so developers
+        // can see the actual DB failure (FK violation detail, etc.) instead of
+        // only the friendly wrapper. Production responses are unchanged.
+        if (process.env.NODE_ENV !== 'production') {
+          const rawMessage = (e as { message?: unknown } | null)?.message;
+          if (typeof rawMessage === 'string' && rawMessage.length > 0) {
+            response.content.push({ type: "text" as const, text: `[dev] ${rawMessage}` });
+          }
+        }
+        return response;
       }
     }
   );
