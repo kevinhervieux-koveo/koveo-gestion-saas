@@ -3794,8 +3794,11 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
                               return isNaN(d.getTime()) ? null : d.getTime();
                             };
                             const startTs = parseTs(proj.plannedStartDate) ?? parseTs(proj.actualStartDate);
-                            const endTs = parseTs(proj.plannedEndDate) ?? parseTs(proj.actualEndDate);
-                            if (!startTs || !endTs) return;
+                            const rawEndTs = parseTs(proj.plannedEndDate) ?? parseTs(proj.actualEndDate);
+                            if (!startTs) return;
+                            // Quick projects have only a start date — derive the same 30-day
+                            // placeholder span the Gantt chart already uses to draw their bar.
+                            const endTs = rawEndTs ?? (startTs + 30 * 24 * 60 * 60 * 1000);
                             const dates = { startTs, endTs };
                             ganttOriginalDates.current = dates;
                             setGanttEditingId(id);
