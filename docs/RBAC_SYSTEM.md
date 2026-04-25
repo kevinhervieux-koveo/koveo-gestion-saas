@@ -275,6 +275,12 @@ The RBAC system supports Quebec Law 25 compliance by:
 - Supporting data minimization requirements
 - Enabling user consent management
 
+## MCP Impersonation (Admin-Only, Staging Only)
+
+Admins can temporarily adopt a tenant's identity within an MCP session using the `assume_user` tool. This is a QA-only feature, enabled exclusively on the staging deployment via the `MCP_ASSUME_USER` environment variable. It is hard-locked off in production at the code level.
+
+See [MCP Staging QA Harness](./MCP_STAGING_QA_HARNESS.md) for the full end-to-end guide, including how to call `assume_user`, verify the audit log entry in `mcp_assume_user_log`, and restore the original identity with `restore_acting_user`.
+
 ## Future Enhancements
 
 Planned improvements to the RBAC system:

@@ -633,3 +633,9 @@ async function calculateMaintenanceCosts(
 - Consider Quebec cultural context
 
 This development workflow guide ensures consistent, high-quality development while maintaining Quebec compliance throughout the entire development lifecycle.
+
+## MCP Staging QA Harness
+
+When QA needs to test MCP tools from a tenant's perspective without re-authenticating, the `assume_user` / `restore_acting_user` tools are available on the **staging deployment only**. They are hard-locked off in production.
+
+See [MCP Staging QA Harness](../MCP_STAGING_QA_HARNESS.md) for prerequisites, OAuth setup, exact call shapes, audit log verification, and how to confirm the production lock holds.

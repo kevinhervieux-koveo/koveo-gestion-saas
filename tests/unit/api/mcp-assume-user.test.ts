@@ -628,6 +628,63 @@ describe('assume_user / restore_acting_user tools (Task #642)', () => {
     });
   });
 
+  // Task #980 — production-lock regression tests.
+  // These exercise the handler responses under the conditions produced by the
+  // production lock: isMcpAssumeUserEnabled() returns false (as it always does
+  // when NODE_ENV=production, regardless of the env var). The mock is already
+  // wired to `assumeUserEnabled`, so setting it to false faithfully reproduces
+  // what happens in production.
+  describe('production lock — handler responses when flag is forced off (Task #980)', () => {
+    beforeEach(() => {
+      assumeUserEnabled = false;
+    });
+
+    it('assume_user returns "not enabled" error and mentions the prod lock when flag is off', async () => {
+      createMcpServer({ role: 'admin', userId: 'admin-prod-lock' });
+      const assume = registeredTools.get('assume_user')!;
+      const res = await assume({ userId: 'some-tenant' });
+      const text = res.content[0].text;
+      expect(text).toContain('not enabled');
+      expect(text).toContain('NODE_ENV=production');
+      expect(text).toContain('MCP_STAGING_QA_HARNESS');
+      expect(res.content[0].type).toBe('text');
+    });
+
+    it('restore_acting_user returns "not enabled" error and mentions the prod lock when flag is off', async () => {
+      createMcpServer({ role: 'admin', userId: 'admin-prod-lock' });
+      const restore = registeredTools.get('restore_acting_user')!;
+      const res = await restore({});
+      const text = res.content[0].text;
+      expect(text).toContain('not enabled');
+      expect(text).toContain('NODE_ENV=production');
+      expect(text).toContain('MCP_STAGING_QA_HARNESS');
+      expect(res.content[0].type).toBe('text');
+    });
+
+    it('prod-lock path still writes a feature_disabled audit row for assume_user', async () => {
+      createMcpServer({ role: 'admin', userId: 'admin-prod-lock' });
+      const assume = registeredTools.get('assume_user')!;
+      await assume({ userId: 'some-tenant' });
+      expectSingleAuditRow({
+        action: 'assume',
+        outcome: 'feature_disabled',
+        performedBy: 'admin-prod-lock',
+        assumedUserId: null,
+      });
+    });
+
+    it('prod-lock path still writes a feature_disabled audit row for restore_acting_user', async () => {
+      createMcpServer({ role: 'admin', userId: 'admin-prod-lock' });
+      const restore = registeredTools.get('restore_acting_user')!;
+      await restore({});
+      expectSingleAuditRow({
+        action: 'restore',
+        outcome: 'feature_disabled',
+        performedBy: 'admin-prod-lock',
+      });
+    });
+  });
+
   // Task #789 acceptance tests — get_mcp_info tool visibility rules for the
   // impersonation tools (assume_user / restore_acting_user).
   describe('get_mcp_info tool visibility (Task #789)', () => {

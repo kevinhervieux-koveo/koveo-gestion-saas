@@ -27,14 +27,23 @@ export function isBillNumberV2Enabled(): boolean {
 }
 
 /**
- * MCP_ASSUME_USER — when on, the admin-only `assume_user` and
- * `restore_acting_user` MCP tools are registered. When off, both tools
- * are unavailable: `assume_user` is registered but returns a clear
- * "feature not enabled" error if invoked, and `restore_acting_user`
- * does the same. Gating the tools behind a flag lets us ship the
- * impersonation surface dark and only flip it on in QA / staging where
- * tenant-perspective testing is needed. See Task #642.
+ * MCP_ASSUME_USER — when on (staging / dev only), the admin-only `assume_user`
+ * and `restore_acting_user` MCP tools are active. When off, both tools are
+ * unavailable: `assume_user` is registered but returns a clear "feature not
+ * enabled" error if invoked, and `restore_acting_user` does the same.
+ *
+ * **Production lock**: this function ALWAYS returns `false` when
+ * `NODE_ENV === "production"`, regardless of the env var value. This is a
+ * hard code-level guard so that no stray env var or operator mistake can
+ * expose the impersonation surface on live tenant data. If the var is set
+ * in a production environment, `registerMcpRoutes` emits a one-shot startup
+ * warning so the operator knows the override was ignored.
+ *
+ * Gating the tools behind a flag lets us ship the impersonation surface dark
+ * and only flip it on in QA / staging where tenant-perspective testing is
+ * needed. See Task #642 (original tool) and Task #980 (prod lock + docs).
  */
 export function isMcpAssumeUserEnabled(): boolean {
+  if (process.env.NODE_ENV === 'production') return false;
   return readBoolEnv('MCP_ASSUME_USER');
 }

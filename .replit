@@ -119,3 +119,6 @@ MCP_OAUTH_ISSUER = "https://koveo-gestion.com"
 
 [userenv.production]
 ENABLE_MCP_SERVER = "true"
+
+[userenv.development]
+MCP_ASSUME_USER = "1"

@@ -92,6 +92,26 @@ function hashClientSecretForSdk(req: Request, _res: Response, next: NextFunction
 }
 
 export async function registerMcpRoutes(app: Express) {
+  // Task #980 — hard-lock warning: if MCP_ASSUME_USER is set to a truthy value
+  // in a production environment the flag is silently ignored by
+  // isMcpAssumeUserEnabled() (see server/utils/feature-flags.ts). Emit one
+  // clear startup log so the operator knows exactly why their override had no
+  // effect, without throwing or crashing.
+  //
+  // We use the same truthy-value set as readBoolEnv() (1/true/on/yes) so an
+  // empty or falsy value (MCP_ASSUME_USER=0, MCP_ASSUME_USER=false) does not
+  // produce a spurious warning.
+  const _assumeUserRaw = (process.env.MCP_ASSUME_USER ?? '').trim().toLowerCase();
+  const _assumeUserTruthy = _assumeUserRaw === '1' || _assumeUserRaw === 'true' || _assumeUserRaw === 'on' || _assumeUserRaw === 'yes';
+  if (process.env.NODE_ENV === 'production' && _assumeUserTruthy) {
+    console.warn(
+      '[MCP] WARNING: MCP_ASSUME_USER is set but is being IGNORED because NODE_ENV=production. ' +
+        'The assume_user / restore_acting_user impersonation tools are hard-locked off in ' +
+        'production regardless of this env var. To use impersonation, target the staging ' +
+        'deployment instead. See docs/MCP_STAGING_QA_HARNESS.md for details.',
+    );
+  }
+
   // In non-production, always run the (idempotent) seed so dev environments
   // get the MCP-1/MCP-2 sandbox automatically.
   if (process.env.NODE_ENV !== "production") {

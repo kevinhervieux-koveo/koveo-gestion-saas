@@ -4625,9 +4625,13 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
           content: [{
             type: "text" as const,
             text:
-              "assume_user is not enabled on this server. Set the MCP_ASSUME_USER " +
-              "environment variable to a truthy value (e.g. \"1\", \"true\") to enable " +
-              "the impersonation surface, then restart the server.",
+              "assume_user is not enabled on this server. " +
+              "Note: MCP_ASSUME_USER is hard-locked OFF in production (NODE_ENV=production) " +
+              "regardless of the env var — this is a code-level safety guard. " +
+              "To use impersonation, target the staging deployment where MCP_ASSUME_USER=1 " +
+              "is set. See docs/MCP_STAGING_QA_HARNESS.md for the full QA harness guide. " +
+              "On non-production servers, set MCP_ASSUME_USER to a truthy value " +
+              "(e.g. \"1\", \"true\") and restart the server.",
           }],
         };
       }
@@ -4771,9 +4775,13 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
           content: [{
             type: "text" as const,
             text:
-              "restore_acting_user is not enabled on this server. Set the " +
-              "MCP_ASSUME_USER environment variable to a truthy value to enable " +
-              "the impersonation surface, then restart the server.",
+              "restore_acting_user is not enabled on this server. " +
+              "Note: MCP_ASSUME_USER is hard-locked OFF in production (NODE_ENV=production) " +
+              "regardless of the env var — this is a code-level safety guard. " +
+              "To use impersonation, target the staging deployment where MCP_ASSUME_USER=1 " +
+              "is set. See docs/MCP_STAGING_QA_HARNESS.md for the full QA harness guide. " +
+              "On non-production servers, set MCP_ASSUME_USER to a truthy value " +
+              "(e.g. \"1\", \"true\") and restart the server.",
           }],
         };
       }
