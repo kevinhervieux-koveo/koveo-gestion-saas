@@ -43,6 +43,13 @@
       "when": 1808956800000,
       "tag": "0008_invitations_pending_unique_index",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1809043200000,
+      "tag": "0009_bills_file_columns",
+      "breakpoints": true
     }
   ]
 }

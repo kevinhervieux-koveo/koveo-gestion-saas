@@ -1709,19 +1709,30 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       if (role === "tenant") {
         return { content: [{ type: "text" as const, text: "Access denied: tenants cannot view bills" }] };
       }
-      const orgIds = await getMcpOrgIds();
-      const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, buildingId));
-      if (!building || !orgIds.includes(building.organizationId)) {
-        return { content: [{ type: "text" as const, text: "Building not found or access denied" }] };
+      try {
+        const orgIds = await getMcpOrgIds();
+        const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, buildingId));
+        if (!building || !orgIds.includes(building.organizationId)) {
+          return { content: [{ type: "text" as const, text: "Building not found or access denied" }] };
+        }
+        const conditions = [eq(schema.bills.buildingId, buildingId)];
+        if (status) conditions.push(eq(schema.bills.status, status));
+        const bills = await db
+          .select()
+          .from(schema.bills)
+          .where(and(...conditions))
+          .orderBy(desc(schema.bills.createdAt));
+        return { content: [{ type: "text" as const, text: JSON.stringify(bills, null, 2) }] };
+      } catch (e) {
+        // Never leak the underlying SQL or driver error message to the
+        // MCP caller — it can include the full query text. Log the
+        // detail server-side and return a generic body instead.
+        // The whole DB-interaction block (org lookup, building lookup,
+        // and the bills query itself) is wrapped so that *any* Drizzle
+        // failure ends up here, not just the bills query.
+        console.error("[mcp:list_bills]", e);
+        return { content: [{ type: "text" as const, text: JSON.stringify({ error: "Internal server error" }) }] };
       }
-      const conditions = [eq(schema.bills.buildingId, buildingId)];
-      if (status) conditions.push(eq(schema.bills.status, status));
-      const bills = await db
-        .select()
-        .from(schema.bills)
-        .where(and(...conditions))
-        .orderBy(desc(schema.bills.createdAt));
-      return { content: [{ type: "text" as const, text: JSON.stringify(bills, null, 2) }] };
     }
   );
 
@@ -1733,14 +1744,21 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       if (role === "tenant") {
         return { content: [{ type: "text" as const, text: "Access denied: tenants cannot view bills" }] };
       }
-      const orgIds = await getMcpOrgIds();
-      const [bill] = await db.select().from(schema.bills).where(eq(schema.bills.id, billId));
-      if (!bill) return { content: [{ type: "text" as const, text: "Bill not found" }] };
-      const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, bill.buildingId));
-      if (!building || !orgIds.includes(building.organizationId)) {
-        return { content: [{ type: "text" as const, text: "Access denied" }] };
+      try {
+        const orgIds = await getMcpOrgIds();
+        const [bill] = await db.select().from(schema.bills).where(eq(schema.bills.id, billId));
+        if (!bill) return { content: [{ type: "text" as const, text: "Bill not found" }] };
+        const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, bill.buildingId));
+        if (!building || !orgIds.includes(building.organizationId)) {
+          return { content: [{ type: "text" as const, text: "Access denied" }] };
+        }
+        return { content: [{ type: "text" as const, text: JSON.stringify(bill, null, 2) }] };
+      } catch (e) {
+        // See list_bills above — every DB call in this handler is wrapped
+        // so no Drizzle/SQL error reaches the MCP caller.
+        console.error("[mcp:get_bill]", e);
+        return { content: [{ type: "text" as const, text: JSON.stringify({ error: "Internal server error" }) }] };
       }
-      return { content: [{ type: "text" as const, text: JSON.stringify(bill, null, 2) }] };
     }
   );
 
