@@ -14,6 +14,7 @@ import { delayedUpdateService } from '../services/delayed-update-service';
 import { cacheInvalidationService, createInvalidationMiddleware } from '../services/cache-invalidation-service';
 
 import { asyncHandler } from '../utils/async-handler';
+import { resolveOrgScope } from '../utils/org-scope';
 
 /**
  * Resolves the organization ID that owns a given building.
@@ -212,6 +213,12 @@ export function registerResidenceRoutes(app: Express) {
       const user = req.user;
       const { search, buildingId, floor } = req.query;
 
+      // Validate and resolve the organization scope. Admins are no longer
+      // exempt from scoping — when no organizationId is supplied, results are
+      // restricted to the caller's accessible org set. When supplied, the
+      // helper validates the UUID and the caller's access.
+      const scope = await resolveOrgScope(req, res);
+      if (!scope) return;
 
       // Start with base conditions
       const conditions = [eq(residences.isActive, true)];
@@ -225,84 +232,48 @@ export function registerResidenceRoutes(app: Express) {
         conditions.push(eq(residences.floor, parseInt(floor)));
       }
 
-      // Use the same access control logic as /api/manager/buildings
+      // Role-aware building access:
+      // - Admin/manager (and demo-equivalents) can see every residence in the
+      //   buildings owned by the resolved org scope.
+      // - Tenants and residents are limited to buildings reached through their
+      //   own residence assignments, intersected with the resolved org scope.
+      // The `inArray(...)` constraint added below keeps results within the
+      // resolved organization set for every role, matching the strict scoping
+      // applied by the other flat list endpoints.
       const accessibleBuildingIds = new Set<string>();
+      const isManagerLikeRole = ['admin', 'manager', 'demo_manager'].includes(user.role);
 
-      // Check if user belongs to Koveo organization (special global access)
-      const userOrgs = await db
-        .select({
-          organizationId: organizations.id,
-          organizationName: organizations.name,
-          canAccessAllOrganizations: userOrganizations.canAccessAllOrganizations,
-        })
-        .from(organizations)
-        .innerJoin(userOrganizations, eq(userOrganizations.organizationId, organizations.id))
-        .where(and(eq(userOrganizations.userId, user.id), eq(userOrganizations.isActive, true)));
-
-      const hasGlobalAccess =
-        user.role === 'admin' ||
-        userOrgs.some((org) => org.canAccessAllOrganizations);
-
-      if (hasGlobalAccess) {
-        if (process.env.NODE_ENV === 'development') {
-          console.log(`🌟 Admin user or user with global access detected - granting access to ALL residences`);
-        }
-
-        // Koveo users can see ALL residences from ALL buildings
-        const allBuildings = await db
+      if (isManagerLikeRole && scope.orgIds.length > 0) {
+        const orgBuildings = await db
           .select({ id: buildings.id })
           .from(buildings)
-          .where(eq(buildings.isActive, true));
+          .where(
+            and(inArray(buildings.organizationId, scope.orgIds), eq(buildings.isActive, true))
+          );
+        orgBuildings.forEach((building) => accessibleBuildingIds.add(building.id));
+      }
 
-        allBuildings.forEach((building) => {
-          accessibleBuildingIds.add(building.id);
-        });
-      } else {
-        // Regular users: Get buildings from their organizations
-        if (user.role === 'admin' || user.role === 'manager' || user.role === 'demo_manager') {
-          if (userOrgs.length > 0) {
-            const orgIds = userOrgs.map((uo) => uo.organizationId);
-
-            // Get all buildings from these organizations
-            const orgBuildings = await db
-              .select({ id: buildings.id })
-              .from(buildings)
-              .where(and(inArray(buildings.organizationId, orgIds), eq(buildings.isActive, true)));
-
-            orgBuildings.forEach((building) => {
-              accessibleBuildingIds.add(building.id);
-            });
-          }
-        }
-
-        // For ALL roles (Admin, Manager, Resident, Tenant): Get buildings from their residences
-        if (process.env.NODE_ENV === 'development') {
-          console.log(`🔍 [ACCESS DEBUG] Checking residence access for user ${user.id} with role ${user.role}`);
-        }
+      if (!isManagerLikeRole && scope.orgIds.length > 0) {
         const userResidenceRecords = await db
-          .select({
-            residenceId: userResidences.residenceId,
-          })
+          .select({ residenceId: userResidences.residenceId })
           .from(userResidences)
           .where(and(eq(userResidences.userId, user.id), eq(userResidences.isActive, true)));
 
-        if (process.env.NODE_ENV === 'development') {
-          console.log(`🔍 [ACCESS DEBUG] Found ${userResidenceRecords.length} residence records for user ${user.id}`);
-        }
-
         if (userResidenceRecords.length > 0) {
           const residenceIds = userResidenceRecords.map((ur) => ur.residenceId);
-
-          // Get buildings through residences
           const residenceBuildings = await db
             .select({ id: buildings.id })
             .from(residences)
             .innerJoin(buildings, eq(residences.buildingId, buildings.id))
-            .where(and(inArray(residences.id, residenceIds), eq(buildings.isActive, true)));
+            .where(
+              and(
+                inArray(residences.id, residenceIds),
+                eq(buildings.isActive, true),
+                inArray(buildings.organizationId, scope.orgIds)
+              )
+            );
 
-          residenceBuildings.forEach((building) => {
-            accessibleBuildingIds.add(building.id);
-          });
+          residenceBuildings.forEach((building) => accessibleBuildingIds.add(building.id));
         }
       }
 

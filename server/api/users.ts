@@ -30,6 +30,7 @@ import { logDebug, logInfo, logWarn, logError } from '../utils/logger';
 import { asyncHandler } from '../utils/async-handler';
 import { buildContentDisposition } from '../utils/content-disposition';
 import { sendDbWriteError } from '../utils/rest-db-error';
+import { resolveOrgScope } from '../utils/org-scope';
 /**
  * Helper function to get the correct base URL from REPLIT_DOMAINS.
  * REPLIT_DOMAINS can contain multiple domains separated by commas.
@@ -74,6 +75,12 @@ export function registerUserRoutes(app: Express): void {
         });
       }
 
+      // Validate and resolve the organization scope. Admins are no longer
+      // exempt from scoping — when no organizationId is supplied, results are
+      // restricted to the caller's accessible org set.
+      const scope = await resolveOrgScope(req, res);
+      if (!scope) return;
+
       // Parse pagination parameters
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
@@ -105,8 +112,24 @@ export function registerUserRoutes(app: Express): void {
       logDebug('[USER FILTER] Applying role-based filters', { metadata: { role: currentUser.role } });
       
       if (currentUser.role === 'admin') {
-        // Only admin can see all users - no additional filtering
-        logDebug('[ADMIN] No role-based filtering applied - admin can see all users');
+        // Admins are no longer exempt: scope to the resolved org set.
+        if (scope.orgIds.length > 0) {
+          roleBasedFilters.managerOrganizations = scope.orgIds.join(',');
+          logDebug('[ADMIN] Restricting to users from resolved org scope', { metadata: { organizationIds: scope.orgIds } });
+        } else {
+          // Admin with no accessible orgs - return empty result
+          return res.json({
+            users: [],
+            pagination: {
+              page,
+              limit,
+              total: 0,
+              totalPages: 0,
+              hasNext: false,
+              hasPrev: false,
+            },
+          });
+        }
       } else if (['demo_manager', 'demo_tenant', 'demo_resident'].includes(currentUser.role)) {
         // All demo users (including demo_manager) can only see other demo users in their organizations
         // SECURITY: Validate role parameter against whitelist for demo users
@@ -129,13 +152,11 @@ export function registerUserRoutes(app: Express): void {
           roleBasedFilters.demoOnly = 'true';
         }
         
-        // Also restrict to users from their organizations
-        logDebug('[DEMO] Restricting to users from demo user organizations');
-        const userOrgIds = (await storage.getUserOrganizations(currentUser.id)).map(org => org.organizationId);
-        logDebug('[DEMO] Demo user organizations', { metadata: { organizationIds: userOrgIds } });
-        if (userOrgIds.length > 0) {
-          roleBasedFilters.managerOrganizations = userOrgIds.join(',');
-          logDebug('[DEMO] Added organization filter for demo user');
+        // Restrict to users from the resolved org scope (already validates
+        // explicit organizationId param against the caller's accessible orgs).
+        logDebug('[DEMO] Restricting to users from demo user resolved org scope', { metadata: { organizationIds: scope.orgIds } });
+        if (scope.orgIds.length > 0) {
+          roleBasedFilters.managerOrganizations = scope.orgIds.join(',');
         } else {
           // Demo user has no organizations, return empty result
           return res.json({
@@ -151,13 +172,10 @@ export function registerUserRoutes(app: Express): void {
           });
         }
       } else {
-        // Regular managers can only see users from their organizations
-        logDebug('[MANAGER] Restricting to users from manager organizations');
-        const userOrgIds = (await storage.getUserOrganizations(currentUser.id)).map(org => org.organizationId);
-        logDebug('[MANAGER] Manager organizations', { metadata: { organizationIds: userOrgIds } });
-        if (userOrgIds.length > 0) {
-          roleBasedFilters.managerOrganizations = userOrgIds.join(',');
-          logDebug('[MANAGER] Added managerOrganizations filter');
+        // Regular managers: scope to the resolved org set.
+        logDebug('[MANAGER] Restricting to users from resolved org scope', { metadata: { organizationIds: scope.orgIds } });
+        if (scope.orgIds.length > 0) {
+          roleBasedFilters.managerOrganizations = scope.orgIds.join(',');
         } else {
           // Manager has no organizations, return empty result
           return res.json({

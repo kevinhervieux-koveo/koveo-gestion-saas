@@ -24,6 +24,7 @@ import {
 import { canUserAccessOrganization, getUserAccessibleOrganizations } from '../rbac';
 
 import { asyncHandler } from '../utils/async-handler';
+import { resolveOrgScope } from '../utils/org-scope';
 /**
  * Register demand routes for managing resident demands and complaints.
  *
@@ -39,6 +40,31 @@ export function registerDemandRoutes(app: Express) {
   app.get('/api/demands', requireAuth, asyncHandler(async (req: any, res: any) => {
       const user = req.user;
       const { buildingId, residenceId, type, status, search, submitterId } = req.query;
+
+      // Validate and resolve the organization scope. Admins are no longer
+      // exempt from scoping — when no organizationId is supplied, results are
+      // restricted to the caller's accessible org set.
+      const scope = await resolveOrgScope(req, res);
+      if (!scope) return;
+
+      // Resolve the set of building IDs that belong to the scoped organizations.
+      // This is applied as a top-level constraint across every role/branch so
+      // residents, tenants, admins, and `submitterId`-filtered queries cannot
+      // return demands attached to buildings outside the resolved scope.
+      let scopedBuildingIds: string[] = [];
+      if (scope.orgIds.length > 0) {
+        const scopedBuildings = await db
+          .select({ id: buildings.id })
+          .from(buildings)
+          .where(inArray(buildings.organizationId, scope.orgIds));
+        scopedBuildingIds = scopedBuildings.map((b) => b.id);
+      }
+
+      // Without any in-scope buildings the answer is always an empty list,
+      // regardless of role. Short-circuit before issuing the join query.
+      if (scopedBuildingIds.length === 0) {
+        return res.json([]);
+      }
 
       // Base query with joins - use left joins to handle optional residence relationships
       let query = db
@@ -82,9 +108,12 @@ export function registerDemandRoutes(app: Express) {
         .leftJoin(residences, eq(demands.residenceId, residences.id))
         .innerJoin(buildings, eq(demands.buildingId, buildings.id));
 
-      // Apply role-based access control
-      const conditions = [];
-      
+      // Apply role-based access control. The org-scope constraint
+      // (`demands.buildingId IN scopedBuildingIds`) is applied unconditionally
+      // so that every branch — `submitterId`, admin/manager, and
+      // resident/tenant — is restricted to the resolved organization set.
+      const conditions: any[] = [inArray(demands.buildingId, scopedBuildingIds)];
+
       // If submitterId is provided, use it to filter (allows "my demands only" view for all roles)
       if (submitterId) {
         // Security: users can only request their own demands via submitterId
@@ -92,37 +121,24 @@ export function registerDemandRoutes(app: Express) {
           return res.status(403).json({ message: 'Access denied: cannot view other users\' demands' });
         }
         conditions.push(eq(demands.submitterId, user.id));
-      } else if (user.role === 'admin') {
-        // Admins can see all demands - no additional conditions needed
-      } else if (user.role === 'manager' || user.role === 'demo_manager') {
-        // Managers can see demands from all their accessible organizations' buildings
-        const accessibleOrgIds = await getUserAccessibleOrganizations(user.id);
-          
-        if (accessibleOrgIds.length > 0) {
-          // Get buildings belonging to all accessible organizations
-          const organizationBuildings = await db
-            .select({ buildingId: buildings.id })
-            .from(buildings)
-            .where(inArray(buildings.organizationId, accessibleOrgIds));
-            
-          if (organizationBuildings.length > 0) {
-            const buildingIds = organizationBuildings.map(b => b.buildingId);
-            conditions.push(inArray(demands.buildingId, buildingIds));
-          } else {
-            // Manager has no buildings - return empty results
-            conditions.push(eq(demands.id, 'never-match'));
-          }
-        } else {
-          // Manager not assigned to any organization - return empty results
-          conditions.push(eq(demands.id, 'never-match'));
-        }
+      } else if (user.role === 'admin' || user.role === 'manager' || user.role === 'demo_manager') {
+        // Admins and managers see all demands within the scoped buildings —
+        // already covered by the top-level `inArray(demands.buildingId, ...)`.
       } else {
         // Residents and tenants can only see demands they personally created
+        // (and only within their accessible org scope).
         conditions.push(eq(demands.submitterId, user.id));
       }
 
-      // Add filter conditions
+      // Add filter conditions. Honor the `buildingId` query param only when it
+      // points at a building the caller can actually reach in scope.
       if (buildingId) {
+        if (!scopedBuildingIds.includes(buildingId)) {
+          return res.status(403).json({
+            message: 'Access denied to this building',
+            code: 'INSUFFICIENT_PERMISSIONS',
+          });
+        }
         conditions.push(eq(demands.buildingId, buildingId));
       }
       if (residenceId) {

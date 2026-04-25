@@ -4,6 +4,7 @@ import { db } from '../db';
 import { requireAuth, requireRole } from '../auth';
 import { z } from 'zod';
 import * as schema from '@shared/schema';
+import { resolveOrgScope } from '../utils/org-scope';
 import {
   getUserBookingHours,
   checkUserTimeLimit,
@@ -26,6 +27,10 @@ const {
 // Validation schemas
 const commonSpaceFilterSchema = z.object({
   building_id: z.string().uuid().optional(),
+  // Camel-case alias accepted by all flat list endpoints. The `organizationId`
+  // param is validated and enforced by `resolveOrgScope` before this schema
+  // runs, so it is intentionally omitted here.
+  buildingId: z.string().uuid().optional(),
 });
 
 const bookingFilterSchema = z.object({
@@ -180,7 +185,13 @@ export function registerCommonSpacesRoutes(app: Express): void {
         });
       }
 
-      // Validate query parameters
+      // Validate and resolve the organization scope. Admins are no longer
+      // exempt from scoping — when no organizationId is supplied, results are
+      // restricted to the caller's accessible org set.
+      const scope = await resolveOrgScope(req, res);
+      if (!scope) return;
+
+      // Validate query parameters (accepts both `building_id` and `buildingId`).
       const queryValidation = commonSpaceFilterSchema.safeParse(req.query);
       if (!queryValidation.success) {
         return res.status(400).json({
@@ -189,10 +200,27 @@ export function registerCommonSpacesRoutes(app: Express): void {
         });
       }
 
-      const { building_id } = queryValidation.data;
-      
-      // Get accessible building IDs
-      const accessibleBuildingIds = await getAccessibleBuildingIds(user);
+      // Honor either the snake_case or camelCase building filter.
+      const requestedBuildingId =
+        queryValidation.data.building_id ?? queryValidation.data.buildingId;
+
+      // Buildings the user can reach AND that belong to the resolved org scope.
+      const userBuildingIds = await getAccessibleBuildingIds(user);
+      let accessibleBuildingIds = userBuildingIds;
+      if (scope.orgIds.length > 0 && userBuildingIds.length > 0) {
+        const orgScopedRows = await db
+          .select({ id: buildings.id })
+          .from(buildings)
+          .where(
+            and(
+              inArray(buildings.id, userBuildingIds),
+              inArray(buildings.organizationId, scope.orgIds)
+            )
+          );
+        accessibleBuildingIds = orgScopedRows.map((r) => r.id);
+      } else if (scope.orgIds.length === 0) {
+        accessibleBuildingIds = [];
+      }
 
       if (accessibleBuildingIds.length === 0) {
         return res.json([]);
@@ -201,14 +229,14 @@ export function registerCommonSpacesRoutes(app: Express): void {
       // Build conditions
       const conditions = [eq(buildings.isActive, true)];
 
-      if (building_id) {
-        if (!accessibleBuildingIds.includes(building_id)) {
+      if (requestedBuildingId) {
+        if (!accessibleBuildingIds.includes(requestedBuildingId)) {
           return res.status(403).json({
             message: 'Access denied to this building',
             code: 'INSUFFICIENT_PERMISSIONS',
           });
         }
-        conditions.push(eq(commonSpaces.buildingId, building_id));
+        conditions.push(eq(commonSpaces.buildingId, requestedBuildingId));
       } else {
         conditions.push(inArray(commonSpaces.buildingId, accessibleBuildingIds));
       }

@@ -20,6 +20,7 @@ import {
   getBuildingIdsForResident,
 } from '../db/queries/buildings-queries';
 import { asyncHandler } from '../utils/async-handler';
+import { resolveOrgScope } from '../utils/org-scope';
 
 // Note: an earlier `handleResidenceChanges` helper used to live here
 // and silently swallowed any failure it hit while writing residence
@@ -80,23 +81,31 @@ export function registerBuildingRoutes(app: Express): void {
         });
       }
 
+      // Validate and resolve the organization scope. Admins are no longer
+      // exempt from scoping — when no organizationId is supplied, results are
+      // restricted to the caller's accessible org set.
+      const scope = await resolveOrgScope(req, res);
+      if (!scope) return;
 
-      let result;
+      // All branches restrict results to buildings whose org is in the
+      // resolved scope. For tenant/resident roles we additionally narrow that
+      // org-scoped set to buildings the caller can actually reach via their
+      // residence assignments — never widening past the resolved org scope,
+      // which keeps default behavior consistent with /api/bills, /api/demands,
+      // /api/users, and /api/common-spaces.
+      let result: any[];
 
-      if (user.role === 'admin') {
-        result = await getAllBuildings();
-      } else if (!user.organizations || user.organizations.length === 0) {
-        if (['tenant', 'resident', 'demo_tenant', 'demo_resident'].includes(user.role)) {
-          const accessibleBuildingIds = await getBuildingIdsForResident(user.id);
-          if (accessibleBuildingIds.length === 0) {
-            return res.json([]);
-          }
-          result = await getBuildingsByIds(accessibleBuildingIds);
-        } else {
-          return res.json([]);
-        }
+      if (scope.orgIds.length === 0) {
+        return res.json([]);
+      }
+
+      const orgScoped = await getBuildingsByOrganizationIds(scope.orgIds);
+
+      if (['tenant', 'resident', 'demo_tenant', 'demo_resident'].includes(user.role)) {
+        const residenceBuildingIds = new Set(await getBuildingIdsForResident(user.id));
+        result = orgScoped.filter((b) => residenceBuildingIds.has(b.id));
       } else {
-        result = await getBuildingsByOrganizationIds(user.organizations);
+        result = orgScoped;
       }
 
       res.json(result);
