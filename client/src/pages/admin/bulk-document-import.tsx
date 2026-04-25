@@ -1262,12 +1262,12 @@ export default function BulkDocumentImportPage() {
   const [reassignBranch, setReassignBranch] = useState<BranchDestination>('building_documents');
   const [reassignSubCategory, setReassignSubCategory] = useState<string>('other');
 
-  // Sorting-step manual decision picker state. `sortingPickerItemId` is the
-  // item currently showing the manual picker (at most one at a time).
-  const [sortingPickerItemId, setSortingPickerItemId] = useState<string | null>(null);
-  const [sortingPickerDecision, setSortingPickerDecision] = useState<'keep' | 'merge' | 'split'>('keep');
-  const [sortingPickerMergeTargetId, setSortingPickerMergeTargetId] = useState<string>('');
-  const [sortingPickerSplitPage, setSortingPickerSplitPage] = useState<number>(1);
+  // Sorting-step manual decision picker state. Keyed by item ID so every
+  // rejected row can show its own picker simultaneously. Entries are
+  // pre-populated from the AI suggestion when a row enters 'rejected' state.
+  const [sortingPickerStates, setSortingPickerStates] = useState<
+    Map<string, { decision: 'keep' | 'merge' | 'split'; mergeTargetId: string; splitPage: number }>
+  >(new Map());
   // Inline slice/merge editing state (Task #856). Keyed by item id.
   const [inlineSlicePage, setInlineSlicePage] = useState<Map<string, number>>(new Map());
   const [inlineMergeOrder, setInlineMergeOrder] = useState<Map<string, string[]>>(new Map());
@@ -1773,7 +1773,11 @@ export default function BulkDocumentImportPage() {
       return res.json();
     },
     onSuccess: (_data, variables) => {
-      setSortingPickerItemId(null);
+      setSortingPickerStates((prev) => {
+        const next = new Map(prev);
+        next.delete(variables.itemId);
+        return next;
+      });
       setInlineSlicePage((prev) => {
         const next = new Map(prev);
         next.delete(variables.itemId);
@@ -1846,6 +1850,31 @@ export default function BulkDocumentImportPage() {
   useEffect(() => { inlineMergeOrderRef.current = inlineMergeOrder; }, [inlineMergeOrder]);
   useEffect(() => { inlineRenameRef.current = inlineRename; }, [inlineRename]);
   useEffect(() => { inlineRenameSplitRef.current = inlineRenameSplit; }, [inlineRenameSplit]);
+
+  // When items load (or reload after a re-analysis), initialise picker state
+  // for any row that is already in the 'rejected' state so the override picker
+  // is visible immediately without requiring an extra click.  We never
+  // overwrite an entry that the admin has already interacted with (the Map
+  // check keeps existing state intact).
+  useEffect(() => {
+    if (!items.length) return;
+    setSortingPickerStates((prev) => {
+      let changed = false;
+      const next = new Map(prev);
+      for (const item of items) {
+        if (item.sortingDecisionState === 'rejected' && !next.has(item.id)) {
+          const d = (item.sortingDecision ?? 'keep') as 'keep' | 'merge' | 'split';
+          next.set(item.id, {
+            decision: d,
+            mergeTargetId: d === 'merge' ? (item.sortingMergeWithItemId ?? '') : '',
+            splitPage: d === 'split' ? (item.sortingSplitAtPage ?? 1) : 1,
+          });
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [items]);
 
   function scheduleAutoSave(
     item: BulkImportItemLite,
@@ -3139,8 +3168,14 @@ export default function BulkDocumentImportPage() {
                         const sortingIsAccepted =
                           currentStep === 'sorting' &&
                           item.sortingDecisionState === 'accepted';
-                        const sortingPickerOpen =
-                          sortingPickerItemId === item.id;
+                        const _pickerEntry = sortingPickerStates.get(item.id) ?? {
+                          decision: 'keep' as const,
+                          mergeTargetId: '',
+                          splitPage: 1,
+                        };
+                        const pickerDecision = _pickerEntry.decision;
+                        const pickerMergeTargetId = _pickerEntry.mergeTargetId;
+                        const pickerSplitPage = _pickerEntry.splitPage;
                         const sortingMutationPending =
                           setSortingDecision.isPending &&
                           (setSortingDecision.variables as { itemId: string } | undefined)?.itemId === item.id;
@@ -3396,29 +3431,26 @@ export default function BulkDocumentImportPage() {
                                         className="border-red-300 text-red-700 hover:bg-red-50 dark:border-red-700 dark:text-red-300"
                                         disabled={sortingMutationPending}
                                         data-testid={`button-sorting-reject-${item.id}`}
-                                        onClick={() =>
-                                          setSortingDecision.mutate({ itemId: item.id, action: 'reject' })
-                                        }
+                                        onClick={() => {
+                                          // Pre-initialise the picker from the AI suggestion so it
+                                          // appears immediately when the row transitions to 'rejected'.
+                                          const d = (item.sortingDecision ?? 'keep') as 'keep' | 'merge' | 'split';
+                                          setSortingPickerStates((prev) => {
+                                            const next = new Map(prev);
+                                            next.set(item.id, {
+                                              decision: d,
+                                              mergeTargetId: d === 'merge' ? (item.sortingMergeWithItemId ?? '') : '',
+                                              splitPage: d === 'split' ? (item.sortingSplitAtPage ?? 1) : 1,
+                                            });
+                                            return next;
+                                          });
+                                          setSortingDecision.mutate({ itemId: item.id, action: 'reject' });
+                                        }}
                                       >
                                         <X className="mr-1.5 h-3.5 w-3.5" />
                                         {isFr ? 'Rejeter' : 'Reject'}
                                       </Button>
                                     </>
-                                  )}
-                                  {currentStep === 'sorting' && !isExcluded && sortingIsRejected && !sortingPickerOpen && (
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      data-testid={`button-sorting-manual-open-${item.id}`}
-                                      onClick={() => {
-                                        setSortingPickerItemId(item.id);
-                                        setSortingPickerDecision('keep');
-                                        setSortingPickerMergeTargetId('');
-                                        setSortingPickerSplitPage(1);
-                                      }}
-                                    >
-                                      {isFr ? 'Choisir manuellement' : 'Choose manually'}
-                                    </Button>
                                   )}
                                 </>
                               )}
@@ -3503,10 +3535,11 @@ export default function BulkDocumentImportPage() {
                               )}
                             </div>
                             </div>
-                            {/* Manual picker – rendered when the user
-                                rejects the AI suggestion and picks
-                                their own keep/merge/split. */}
-                            {currentStep === 'sorting' && sortingPickerOpen && !isExcluded && (
+                            {/* Manual picker – always visible when the row
+                                is in the 'rejected' state so the admin can
+                                immediately switch to Keep / Merge / Slice
+                                without a separate "Choose manually" click. */}
+                            {currentStep === 'sorting' && sortingIsRejected && !isExcluded && (
                               <div
                                 className="border-t bg-muted/30 px-3 py-3"
                                 data-testid={`sorting-manual-picker-${item.id}`}
@@ -3520,18 +3553,21 @@ export default function BulkDocumentImportPage() {
                                       key={opt}
                                       type="button"
                                       className={`inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-                                        sortingPickerDecision === opt
+                                        pickerDecision === opt
                                           ? 'border-primary bg-primary text-primary-foreground'
                                           : 'border-border bg-background hover:bg-muted/50'
                                       }`}
                                       onClick={() => {
-                                        setSortingPickerDecision(opt);
+                                        setSortingPickerStates((prev) => {
+                                          const cur = prev.get(item.id) ?? { decision: 'keep' as const, mergeTargetId: '', splitPage: 1 };
+                                          return new Map(prev).set(item.id, { ...cur, decision: opt });
+                                        });
                                         if (opt === 'keep') {
                                           scheduleAutoSave(item, 'keep');
                                         } else if (opt === 'split') {
-                                          scheduleAutoSave(item, 'split', undefined, sortingPickerSplitPage);
+                                          scheduleAutoSave(item, 'split', undefined, pickerSplitPage);
                                         } else if (opt === 'merge') {
-                                          scheduleAutoSave(item, 'merge', sortingPickerMergeTargetId ? [sortingPickerMergeTargetId] : undefined);
+                                          scheduleAutoSave(item, 'merge', pickerMergeTargetId ? [pickerMergeTargetId] : undefined);
                                         }
                                       }}
                                       data-testid={`sorting-picker-option-${opt}-${item.id}`}
@@ -3547,18 +3583,22 @@ export default function BulkDocumentImportPage() {
                                     </button>
                                   ))}
                                 </div>
-                                {sortingPickerDecision === 'merge' && (
+                                {pickerDecision === 'merge' && (
                                   <div className="mt-3 flex items-center gap-2">
                                     <label className="text-sm text-muted-foreground whitespace-nowrap">
                                       {isFr ? 'Fusionner avec :' : 'Merge with:'}
                                     </label>
                                     <select
                                       className="flex-1 rounded-md border border-border bg-background px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                                      value={sortingPickerMergeTargetId}
+                                      value={pickerMergeTargetId}
                                       onChange={(e) => {
-                                        setSortingPickerMergeTargetId(e.target.value);
-                                        if (e.target.value) {
-                                          scheduleAutoSave(item, 'merge', [e.target.value]);
+                                        const val = e.target.value;
+                                        setSortingPickerStates((prev) => {
+                                          const cur = prev.get(item.id) ?? { decision: 'merge' as const, mergeTargetId: '', splitPage: 1 };
+                                          return new Map(prev).set(item.id, { ...cur, mergeTargetId: val });
+                                        });
+                                        if (val) {
+                                          scheduleAutoSave(item, 'merge', [val]);
                                         }
                                       }}
                                       data-testid={`sorting-picker-merge-target-${item.id}`}
@@ -3576,7 +3616,7 @@ export default function BulkDocumentImportPage() {
                                     </select>
                                   </div>
                                 )}
-                                {sortingPickerDecision === 'split' && (
+                                {pickerDecision === 'split' && (
                                   <div className="mt-3 flex flex-wrap items-center gap-2">
                                     <label className="text-sm text-muted-foreground whitespace-nowrap">
                                       {isFr ? 'Scinder après la page :' : 'Split after page:'}
@@ -3586,9 +3626,12 @@ export default function BulkDocumentImportPage() {
                                       isPdf={
                                         (item.mimeType ?? '').toLowerCase() === 'application/pdf'
                                       }
-                                      splitPage={sortingPickerSplitPage}
+                                      splitPage={pickerSplitPage}
                                       onChange={(page) => {
-                                        setSortingPickerSplitPage(page);
+                                        setSortingPickerStates((prev) => {
+                                          const cur = prev.get(item.id) ?? { decision: 'split' as const, mergeTargetId: '', splitPage: 1 };
+                                          return new Map(prev).set(item.id, { ...cur, splitPage: page });
+                                        });
                                         scheduleAutoSave(item, 'split', undefined, page);
                                       }}
                                       isFr={isFr}
@@ -3600,21 +3643,21 @@ export default function BulkDocumentImportPage() {
                                     size="sm"
                                     disabled={
                                       sortingMutationPending ||
-                                      (sortingPickerDecision === 'merge' && !sortingPickerMergeTargetId)
+                                      (pickerDecision === 'merge' && !pickerMergeTargetId)
                                     }
                                     data-testid={`button-sorting-confirm-${item.id}`}
                                     onClick={() =>
                                       setSortingDecision.mutate({
                                         itemId: item.id,
                                         action: 'manual',
-                                        decision: sortingPickerDecision,
+                                        decision: pickerDecision,
                                         mergeWithItemId:
-                                          sortingPickerDecision === 'merge'
-                                            ? sortingPickerMergeTargetId
+                                          pickerDecision === 'merge'
+                                            ? pickerMergeTargetId
                                             : undefined,
                                         splitAtPage:
-                                          sortingPickerDecision === 'split'
-                                            ? sortingPickerSplitPage
+                                          pickerDecision === 'split'
+                                            ? pickerSplitPage
                                             : undefined,
                                       })
                                     }
@@ -3623,14 +3666,6 @@ export default function BulkDocumentImportPage() {
                                       <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
                                     ) : null}
                                     {isFr ? 'Confirmer' : 'Confirm'}
-                                  </Button>
-                                  <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => setSortingPickerItemId(null)}
-                                    data-testid={`button-sorting-cancel-picker-${item.id}`}
-                                  >
-                                    {isFr ? 'Annuler' : 'Cancel'}
                                   </Button>
                                 </div>
                               </div>
@@ -4025,8 +4060,7 @@ export default function BulkDocumentImportPage() {
                                                     placeholder={renameStem}
                                                     onChange={(e) => {
                                                       setInlineRename((prev) => new Map(prev).set(mergeLeadId, e.target.value));
-                                                      const pickerOverride = sortingPickerItemId === item.id ? sortingPickerDecision : undefined;
-                                                      scheduleAutoSave(leadItem, pickerOverride);
+                                                      scheduleAutoSave(leadItem, sortingPickerStates.get(item.id)?.decision);
                                                     }}
                                                   />
                                                   {fileExt && <span className="text-sm text-muted-foreground shrink-0">{fileExt}</span>}

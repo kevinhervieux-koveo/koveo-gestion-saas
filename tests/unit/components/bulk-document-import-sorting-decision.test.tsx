@@ -5,8 +5,9 @@
  * The wizard shows three distinct shapes per row on the sorting step,
  * driven entirely by `item.sortingDecisionState`:
  *   - 'pending'  → Accept and Reject buttons are visible.
- *   - 'rejected' → "Choose manually" button replaces them; clicking it
- *                  opens the keep/merge/split picker.
+ *   - 'rejected' → The keep/merge/split picker is shown immediately,
+ *                  pre-filled from the AI suggestion (Task #905).
+ *                  No separate "Choose manually" button is needed.
  *   - 'accepted' → No action buttons; only the decision badge remains.
  *
  * The buttons feed `POST /set-sorting-decision`, which Task #817 wired
@@ -342,35 +343,36 @@ describe('BulkDocumentImportPage — sorting decision UI (Task #817 / #825)', ()
     ).toBeInTheDocument();
   });
 
-  it('shows the "Choose manually" entrypoint and rejected badge on rejected rows', async () => {
+  it('shows the picker immediately and the rejected badge for already-rejected rows (Task #905)', async () => {
     renderPage();
     await waitForRows();
 
+    // The rejected badge is still shown so admins can see at a glance.
     expect(
       screen.getByTestId(`sorting-rejected-badge-${ITEM_REJECTED}`),
     ).toBeInTheDocument();
+
+    // The picker is now visible immediately — no extra click required.
     expect(
-      screen.getByTestId(`button-sorting-manual-open-${ITEM_REJECTED}`),
+      screen.getByTestId(`sorting-manual-picker-${ITEM_REJECTED}`),
     ).toBeInTheDocument();
-    // Picker stays closed until the entrypoint is clicked.
+
+    // No separate "Choose manually" button should exist.
     expect(
-      screen.queryByTestId(`sorting-manual-picker-${ITEM_REJECTED}`),
+      screen.queryByTestId(`button-sorting-manual-open-${ITEM_REJECTED}`),
     ).not.toBeInTheDocument();
   });
 
-  it('opens the manual keep/merge/split picker when "Choose manually" is clicked on a rejected row', async () => {
+  it('picker for a rejected row is pre-filled from the AI suggestion (Task #905)', async () => {
+    // ITEM_REJECTED has AI decision 'merge' with target ITEM_ACCEPTED.
+    // The picker should pre-select merge and show the merge target dropdown.
     renderPage();
     await waitForRows();
 
-    await act(async () => {
-      fireEvent.click(
-        screen.getByTestId(`button-sorting-manual-open-${ITEM_REJECTED}`),
-      );
-    });
-
-    // Picker is now mounted with all three options + Confirm/Cancel buttons.
     const picker = screen.getByTestId(`sorting-manual-picker-${ITEM_REJECTED}`);
     expect(picker).toBeInTheDocument();
+
+    // All three option buttons are present.
     expect(
       screen.getByTestId(`sorting-picker-option-keep-${ITEM_REJECTED}`),
     ).toBeInTheDocument();
@@ -380,28 +382,13 @@ describe('BulkDocumentImportPage — sorting decision UI (Task #817 / #825)', ()
     expect(
       screen.getByTestId(`sorting-picker-option-split-${ITEM_REJECTED}`),
     ).toBeInTheDocument();
-    expect(
-      screen.getByTestId(`button-sorting-confirm-${ITEM_REJECTED}`),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByTestId(`button-sorting-cancel-picker-${ITEM_REJECTED}`),
-    ).toBeInTheDocument();
 
-    // Choosing "merge" reveals the sibling-selector dropdown — the
-    // confirm button stays disabled until a sibling is picked.
-    await act(async () => {
-      fireEvent.click(
-        screen.getByTestId(`sorting-picker-option-merge-${ITEM_REJECTED}`),
-      );
-    });
+    // Merge is pre-selected (AI said merge) so the merge-target dropdown appears.
     expect(
       screen.getByTestId(`sorting-picker-merge-target-${ITEM_REJECTED}`),
     ).toBeInTheDocument();
-    expect(
-      screen.getByTestId(`button-sorting-confirm-${ITEM_REJECTED}`),
-    ).toBeDisabled();
 
-    // Choosing "split" replaces the dropdown with the split-page input.
+    // Choosing "split" replaces the merge dropdown with the split-page input.
     await act(async () => {
       fireEvent.click(
         screen.getByTestId(`sorting-picker-option-split-${ITEM_REJECTED}`),
@@ -412,6 +399,89 @@ describe('BulkDocumentImportPage — sorting decision UI (Task #817 / #825)', ()
     ).toBeInTheDocument();
     expect(
       screen.queryByTestId(`sorting-picker-merge-target-${ITEM_REJECTED}`),
+    ).not.toBeInTheDocument();
+
+    // Choosing "keep" hides all sub-forms.
+    await act(async () => {
+      fireEvent.click(
+        screen.getByTestId(`sorting-picker-option-keep-${ITEM_REJECTED}`),
+      );
+    });
+    expect(
+      screen.queryByTestId(`sorting-picker-split-page-${ITEM_REJECTED}`),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId(`sorting-picker-merge-target-${ITEM_REJECTED}`),
+    ).not.toBeInTheDocument();
+
+    // Confirm button is present (and enabled for keep).
+    expect(
+      screen.getByTestId(`button-sorting-confirm-${ITEM_REJECTED}`),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByTestId(`button-sorting-confirm-${ITEM_REJECTED}`),
+    ).not.toBeDisabled();
+  });
+
+  it('pre-fill: AI split decision → Slice option pre-selected with the AI page (Task #905)', async () => {
+    const ITEM_REJECTED_SPLIT = 'item-rejected-split';
+    items.push({
+      id: ITEM_REJECTED_SPLIT,
+      originalName: 'rejected-split.pdf',
+      status: 'sorted',
+      sortingDecisionState: 'rejected',
+      sortingDecision: 'split',
+      sortingMergeWithItemId: null,
+      sortingMergeWithItemIds: null,
+      sortingSplitAtPage: 4,
+      sortingManualOverride: false,
+      sortingReason: 'AI thought it was two docs',
+      sortingConfidence: 0.6,
+    });
+
+    renderPage();
+    await screen.findByTestId(`item-preview-trigger-${ITEM_REJECTED_SPLIT}`, undefined, { timeout: 4000 });
+
+    // Picker should show immediately with split pre-selected.
+    expect(
+      screen.getByTestId(`sorting-manual-picker-${ITEM_REJECTED_SPLIT}`),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByTestId(`sorting-picker-split-page-${ITEM_REJECTED_SPLIT}`),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByTestId(`sorting-picker-merge-target-${ITEM_REJECTED_SPLIT}`),
+    ).not.toBeInTheDocument();
+  });
+
+  it('pre-fill: AI keep decision → Keep option pre-selected (Task #905)', async () => {
+    const ITEM_REJECTED_KEEP = 'item-rejected-keep';
+    items.push({
+      id: ITEM_REJECTED_KEEP,
+      originalName: 'rejected-keep.pdf',
+      status: 'sorted',
+      sortingDecisionState: 'rejected',
+      sortingDecision: 'keep',
+      sortingMergeWithItemId: null,
+      sortingMergeWithItemIds: null,
+      sortingSplitAtPage: null,
+      sortingManualOverride: false,
+      sortingReason: 'AI thought it was standalone',
+      sortingConfidence: 0.7,
+    });
+
+    renderPage();
+    await screen.findByTestId(`item-preview-trigger-${ITEM_REJECTED_KEEP}`, undefined, { timeout: 4000 });
+
+    // Picker should show immediately with keep pre-selected — no sub-forms.
+    expect(
+      screen.getByTestId(`sorting-manual-picker-${ITEM_REJECTED_KEEP}`),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByTestId(`sorting-picker-merge-target-${ITEM_REJECTED_KEEP}`),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId(`sorting-picker-split-page-${ITEM_REJECTED_KEEP}`),
     ).not.toBeInTheDocument();
   });
 
