@@ -274,6 +274,7 @@ const maintenanceProjectCreateSchema = z.object({
   skipPreWork: z.boolean().optional(),
   skipInProgress: z.boolean().optional(),
   skipPostWork: z.boolean().optional(),
+  financialYear: z.number().int().min(2000).max(2100).optional(),
 });
 
 const maintenanceProjectUpdateSchema = maintenanceProjectCreateSchema.partial().extend({
@@ -2996,6 +2997,7 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         skipPreWork: validation.data.skipPreWork || false,
         skipInProgress: validation.data.skipInProgress || false,
         skipPostWork: validation.data.skipPostWork || false,
+        financialYear: validation.data.financialYear ?? new Date().getFullYear(),
         createdBy: user.id, // Set the creator
       };
       

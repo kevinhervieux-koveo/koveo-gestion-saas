@@ -267,6 +267,7 @@ export function ProjectForm({
         skipPreWork: projectData.skipPreWork,
         skipInProgress: projectData.skipInProgress,
         skipPostWork: projectData.skipPostWork,
+        financialYear: projectData.financialYear,
       };
       
       // Remove undefined/null values to keep payload clean
