@@ -16,8 +16,13 @@ import fs from 'fs/promises';
 import { existsSync } from 'fs';
 import { createReadStream } from 'fs';
 import { createHash } from 'crypto';
+import { resolveDatabaseUrl } from './run-migrations-url';
 
-const sql = neon(process.env.DATABASE_URL!);
+// Route through the same alias-aware helper the runtime uses (Task #940)
+// so this reconciliation script accepts DATABASE_URL_KOVEO or
+// PRODUCTION_DATABASE_URL in production rather than silently falling
+// back to the dev DATABASE_URL.
+const sql = neon(resolveDatabaseUrl().url);
 const db = drizzle(sql, { schema });
 
 interface DatabaseDocument {

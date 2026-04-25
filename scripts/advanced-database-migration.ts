@@ -33,6 +33,10 @@ import * as os from 'os';
 
 // Import all schemas
 import * as schema from '../shared/schema.js';
+import {
+  assertProdUrlInProduction,
+  resolveProdDatabaseUrl,
+} from './run-migrations-url';
 
 interface DatabaseConfig {
   name: string;
@@ -134,11 +138,28 @@ class AdvancedDatabaseMigrator {
         db: devDb
       });
 
-      // Production database (if not dev-only)
+      // Production database (if not dev-only).
+      // Route through the same alias-aware helper the runtime uses
+      // (Task #940) so the prod side accepts either DATABASE_URL_KOVEO
+      // or PRODUCTION_DATABASE_URL.
       if (!this.devOnly) {
-        const prodUrl = process.env.DATABASE_URL_KOVEO;
+        const prodResolved = resolveProdDatabaseUrl();
+        const prodUrl = prodResolved?.url;
         if (!prodUrl) {
-          spinner.warn('Production database URL (DATABASE_URL_KOVEO) not found. Operating in dev-only mode.');
+          // Fail fast in production rather than silently switching to
+          // dev-only mode — running this migration tool on a prod
+          // deploy with no prod URL configured almost certainly means
+          // the operator forgot to set DATABASE_URL_KOVEO or
+          // PRODUCTION_DATABASE_URL, and we must not corrupt dev DB
+          // data by quietly proceeding against it (Task #940).
+          assertProdUrlInProduction(
+            prodResolved,
+            process.env,
+            'advanced-database-migration',
+          );
+          spinner.warn(
+            'Production database URL (DATABASE_URL_KOVEO or PRODUCTION_DATABASE_URL) not found. Operating in dev-only mode.',
+          );
           this.devOnly = true;
         } else {
           const prodConnection = neon(prodUrl);

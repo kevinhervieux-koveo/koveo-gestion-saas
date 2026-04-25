@@ -29,6 +29,7 @@ import { neon } from '@neondatabase/serverless';
 import { and, eq, isNotNull, isNull, or, sql as dsql } from 'drizzle-orm';
 import { bills } from '../shared/schemas/financial';
 import { buildings } from '../shared/schemas/property';
+import { resolveDatabaseUrl } from './run-migrations-url';
 
 const DRY_RUN = process.argv.includes('--dry-run');
 const IS_MAIN_MODULE =
@@ -118,12 +119,20 @@ interface OrgStats {
 }
 
 async function main(): Promise<void> {
-  if (!process.env.DATABASE_URL) {
-    console.error('[backfill-bill-ai-fields] DATABASE_URL is not set. Aborting.');
+  // Route through the same alias-aware helper the runtime uses (Task #940)
+  // so the script accepts DATABASE_URL_KOVEO or PRODUCTION_DATABASE_URL in
+  // production rather than silently falling back to the dev DATABASE_URL.
+  let resolved;
+  try {
+    resolved = resolveDatabaseUrl();
+  } catch (err) {
+    console.error(
+      `[backfill-bill-ai-fields] ${err instanceof Error ? err.message : String(err)}`,
+    );
     process.exit(2);
   }
 
-  const sql = neon(process.env.DATABASE_URL);
+  const sql = neon(resolved.url);
   const db = drizzle(sql);
 
   console.log(

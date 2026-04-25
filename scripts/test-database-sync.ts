@@ -8,9 +8,15 @@
 
 import { Pool } from '@neondatabase/serverless';
 import chalk from 'chalk';
+import { resolveProdDatabaseUrl } from './run-migrations-url';
 
+// Sync-test scripts compare dev side-by-side with prod, so we read the
+// dev URL straight from DATABASE_URL but route the prod URL through the
+// same alias-aware helper the runtime uses (Task #940) so the prod side
+// works whether the operator stored the URL under DATABASE_URL_KOVEO or
+// PRODUCTION_DATABASE_URL.
 const DEV_DB = process.env.DATABASE_URL;
-const PROD_DB = process.env.DATABASE_URL_KOVEO;
+const PROD_DB = resolveProdDatabaseUrl()?.url;
 
 // Security note: This script has been updated to eliminate shell command execution
 // that could trigger antivirus warnings. All database operations now use secure
@@ -29,7 +35,9 @@ class DatabaseSyncTester {
   constructor() {
     if (!DEV_DB || !PROD_DB) {
       console.error(chalk.red('❌ Missing database environment variables'));
-      console.error('Required: DATABASE_URL and DATABASE_URL_KOVEO');
+      console.error(
+        'Required: DATABASE_URL (dev) and DATABASE_URL_KOVEO or PRODUCTION_DATABASE_URL (prod)',
+      );
       process.exit(1);
     }
   }

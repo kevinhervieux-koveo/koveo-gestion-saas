@@ -11,9 +11,13 @@ import fs from 'fs/promises';
 import path from 'path';
 import { neon } from '@neondatabase/serverless';
 import { generateStorageDirectory, mapLegacyDocumentType, type UploadContext } from '../shared/config/upload-config.js';
+import { resolveDatabaseUrl } from './run-migrations-url';
 
-// Database connection
-const sql = neon(process.env.DATABASE_URL!);
+// Database connection — route through the same alias-aware helper the
+// runtime uses (Task #940) so the script accepts DATABASE_URL_KOVEO or
+// PRODUCTION_DATABASE_URL in production rather than silently falling
+// back to the dev DATABASE_URL.
+const sql = neon(resolveDatabaseUrl().url);
 
 interface LegacyDocument {
   id: string;

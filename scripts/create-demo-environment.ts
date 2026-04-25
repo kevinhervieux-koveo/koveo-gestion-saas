@@ -39,27 +39,36 @@ let closeConnection: () => Promise<void>;
 
 async function initializeDatabase(targetDatabase: 'dev' | 'prod') {
   if (targetDatabase === 'prod') {
-    console.log('⚠️ WARNING: Targeting PRODUCTION database (DATABASE_URL_KOVEO)');
+    console.log(
+      '⚠️ WARNING: Targeting PRODUCTION database (DATABASE_URL_KOVEO or PRODUCTION_DATABASE_URL)',
+    );
     console.log('⚠️ This will create demo data in the production environment!');
     console.log('');
-    
-    // Use production database
-    const DATABASE_URL_KOVEO = process.env.DATABASE_URL_KOVEO;
-    if (!DATABASE_URL_KOVEO) {
-      console.error('❌ DATABASE_URL_KOVEO environment variable is required for production database');
+
+    // Use production database — route through the same alias-aware
+    // helper the runtime uses (Task #940) so the prod branch accepts
+    // either DATABASE_URL_KOVEO or PRODUCTION_DATABASE_URL.
+    const { resolveProdDatabaseUrl } = await import('./run-migrations-url');
+    const prodResolved = resolveProdDatabaseUrl();
+    if (!prodResolved) {
+      console.error(
+        '❌ DATABASE_URL_KOVEO or PRODUCTION_DATABASE_URL environment variable is required for production database',
+      );
       process.exit(1);
     }
-    
+
     const { Pool } = await import('@neondatabase/serverless');
     const { drizzle } = await import('drizzle-orm/neon-serverless');
-    
-    const pool = new Pool({ connectionString: DATABASE_URL_KOVEO });
+
+    const pool = new Pool({ connectionString: prodResolved.url });
     db = drizzle({ client: pool, schema });
     closeConnection = async () => {
       await pool.end();
     };
-    
-    console.log('🔗 Connected to PRODUCTION database (DATABASE_URL_KOVEO)');
+
+    console.log(
+      `🔗 Connected to PRODUCTION database (${prodResolved.source})`,
+    );
   } else {
     // Use development database (default)
     const { db: sharedDb } = await import('../server/db');
@@ -1804,7 +1813,7 @@ async function main() {
     console.log(`📋 Configuration:`);
     console.log(`   Organization Type: ${args.type}`);
     console.log(`   Organization Name: "${args.name}"`);
-    console.log(`   Target Database: ${args.database === 'prod' ? 'PRODUCTION (DATABASE_URL_KOVEO)' : 'DEVELOPMENT (DATABASE_URL)'}`);
+    console.log(`   Target Database: ${args.database === 'prod' ? 'PRODUCTION (DATABASE_URL_KOVEO or PRODUCTION_DATABASE_URL)' : 'DEVELOPMENT (DATABASE_URL)'}`);
     console.log('');
     
     // Step 1: Upsert Organization

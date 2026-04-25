@@ -14,6 +14,7 @@ import { drizzle } from 'drizzle-orm/neon-http';
 import { neon } from '@neondatabase/serverless';
 import { eq } from 'drizzle-orm';
 import * as schema from '@shared/schema';
+import { resolveDatabaseUrl } from './run-migrations-url';
 
 // Types for the migration
 /**
@@ -30,7 +31,10 @@ type LegacyDocument = {
   tenant: string; // boolean stored as string
 };
 
-const sql = neon(process.env.DATABASE_URL!);
+// Route through the same alias-aware helper the runtime uses (Task #940)
+// so the script works whether the operator stored the prod URL under
+// DATABASE_URL_KOVEO or PRODUCTION_DATABASE_URL.
+const sql = neon(resolveDatabaseUrl().url);
 const db = drizzle(sql, { schema });
 
 /**

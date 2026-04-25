@@ -12,11 +12,14 @@ if (typeof neonConfig !== 'undefined' && neonConfig) {
   neonConfig.webSocketConstructor = ws;
 }
 
-if (!process.env.DATABASE_URL) {
-  throw new Error('DATABASE_URL must be set. Did you forget to provision a database?');
-}
-
-// Use shared database connection to avoid multiple pools
+// Use shared database connection to avoid multiple pools.
+// The previous top-level `process.env.DATABASE_URL` check was misleading
+// because this module does not connect on its own — it consumes `db` from
+// `../db`, which already validates the URL via the alias-aware
+// `resolveDatabaseUrl()` helper in `server/config` (Tasks #936/#938/#940).
+// Keeping the old check here would have caused a false-negative crash on
+// production deploys that only set `DATABASE_URL_KOVEO` /
+// `PRODUCTION_DATABASE_URL`.
 import { db } from '../db';
 
 /**

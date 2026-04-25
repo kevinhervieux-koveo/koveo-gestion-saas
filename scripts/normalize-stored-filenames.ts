@@ -27,6 +27,7 @@ import { eq, isNotNull } from 'drizzle-orm';
 import { documents } from '../shared/schemas/documents';
 import { elementDocuments } from '../shared/schemas/maintenance';
 import { normalizeFilename } from '../server/utils/filenameNormalization';
+import { resolveDatabaseUrl } from './run-migrations-url';
 
 const DRY_RUN = process.argv.includes('--dry-run');
 const IS_MAIN_MODULE =
@@ -157,11 +158,11 @@ async function normalizeElementDocumentsTable(
 }
 
 export async function main(): Promise<void> {
-  if (!process.env.DATABASE_URL) {
-    throw new Error('DATABASE_URL is required');
-  }
-
-  const sql = neon(process.env.DATABASE_URL);
+  // Route through the same alias-aware helper the runtime uses (Task #940)
+  // so the script accepts DATABASE_URL_KOVEO or PRODUCTION_DATABASE_URL in
+  // production rather than silently falling back to the dev DATABASE_URL.
+  const resolved = resolveDatabaseUrl();
+  const sql = neon(resolved.url);
   const db = drizzle(sql);
 
   console.log(

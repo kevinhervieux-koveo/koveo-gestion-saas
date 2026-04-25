@@ -9,10 +9,15 @@ import { uploadSeededDocumentPlaceholder, getSeededPlaceholderPdfSize, writeSeed
 import { ObjectAccessGroupType, ObjectPermission } from '../server/objectAcl';
 import * as path from 'path';
 import { randomUUID } from 'crypto';
+import { resolveDatabaseUrl } from './run-migrations-url';
 
 neonConfig.webSocketConstructor = ws;
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+// Route through the same alias-aware helper the runtime uses (Task #940)
+// so that operators who only set PRODUCTION_DATABASE_URL still target the
+// right database, and prod deploys without any prod var set fail fast
+// instead of silently writing to the dev DB.
+const pool = new Pool({ connectionString: resolveDatabaseUrl().url });
 const db = drizzle(pool, { schema });
 
 const ORGS_TO_KEEP = ['e9bb7862-4ba5-4822-848f-f3692e826e73', 'f0e34e59-0d81-4c1a-b95f-e23dd1667a19'];

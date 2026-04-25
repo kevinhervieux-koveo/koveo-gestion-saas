@@ -109,6 +109,87 @@ export function resolveDatabaseUrl(
 }
 
 /**
+ * Result of `resolveProdDatabaseUrl()`. Mirrors the prod-relevant
+ * subset of `ResolvedDatabaseUrl` for callers (sync/check scripts)
+ * that explicitly need the prod URL alongside the dev URL.
+ */
+export interface ResolvedProdDatabaseUrl {
+  url: string;
+  source: ProdUrlSource;
+  ignoredSource?: ProdUrlSource;
+  ignoredSourceDiffers?: boolean;
+}
+
+/**
+ * Resolve the production database URL using the same alias rules as
+ * `resolveDatabaseUrl()` in production mode, but without consulting
+ * `NODE_ENV` and without throwing when no prod var is set. Returns
+ * `null` instead so the caller (e.g. dev-vs-prod comparison scripts)
+ * can decide how to handle a missing prod URL — typically by exiting
+ * with a script-specific error message.
+ *
+ * Use this from one-off scripts that need the prod URL specifically
+ * (e.g. database sync checks, demo-data targeting `--database prod`)
+ * so they accept either `DATABASE_URL_KOVEO` or
+ * `PRODUCTION_DATABASE_URL`, matching the runtime contract.
+ */
+export function resolveProdDatabaseUrl(
+  env: NodeJS.ProcessEnv = process.env,
+): ResolvedProdDatabaseUrl | null {
+  const koveo = env.DATABASE_URL_KOVEO;
+  const prodAlias = env.PRODUCTION_DATABASE_URL;
+
+  if (koveo && prodAlias) {
+    return {
+      url: koveo,
+      source: 'DATABASE_URL_KOVEO',
+      ignoredSource: 'PRODUCTION_DATABASE_URL',
+      ignoredSourceDiffers: koveo !== prodAlias,
+    };
+  }
+  if (koveo) {
+    return { url: koveo, source: 'DATABASE_URL_KOVEO' };
+  }
+  if (prodAlias) {
+    return { url: prodAlias, source: 'PRODUCTION_DATABASE_URL' };
+  }
+  return null;
+}
+
+/**
+ * Assert that a prod URL was actually resolved when running under
+ * `NODE_ENV=production`. Used by dual-DB scripts (sync checks,
+ * advanced migrations) that have a "dev-only mode" fallback for
+ * development convenience but must NOT silently fall back to it on
+ * a production deploy — that would either corrupt the dev DB from
+ * a prod shell or produce misleading "everything looks fine" output
+ * because the script never touched the real prod data.
+ *
+ * Returns silently when the prod URL was resolved or when the
+ * caller is not in production. Throws a descriptive Error otherwise.
+ *
+ * @param prodResolved Result of `resolveProdDatabaseUrl()`.
+ * @param env Process env (overridable for tests). Defaults to `process.env`.
+ * @param scriptName Short name used in the error message ("advanced
+ *        migration", "dev-db-check", etc.) so operators know which
+ *        script to re-invoke.
+ */
+export function assertProdUrlInProduction(
+  prodResolved: ResolvedProdDatabaseUrl | null,
+  env: NodeJS.ProcessEnv = process.env,
+  scriptName = 'this script',
+): void {
+  if (prodResolved) return;
+  if (env.NODE_ENV !== 'production') return;
+  throw new Error(
+    `NODE_ENV=production but neither DATABASE_URL_KOVEO nor ` +
+      `PRODUCTION_DATABASE_URL is set. Refusing to fall back to ` +
+      `dev-only mode for ${scriptName} in production. Set one of ` +
+      `the prod URL env vars, or unset NODE_ENV=production.`,
+  );
+}
+
+/**
  * Render `host[:port]/dbname` for a connection string, stripping
  * username/password so we can safely log it. Returns a placeholder
  * when the URL cannot be parsed rather than echoing the raw value

@@ -19,8 +19,10 @@
  */
 import { describe, expect, it } from '@jest/globals';
 import {
+  assertProdUrlInProduction,
   maskDatabaseUrl,
   resolveDatabaseUrl,
+  resolveProdDatabaseUrl,
 } from '../../scripts/run-migrations-url';
 
 const PROD_KOVEO = 'postgres://u:p@prod-koveo.example.com:5432/koveo';
@@ -145,6 +147,131 @@ describe('resolveDatabaseUrl', () => {
         }),
       ).toThrow(/No database URL configured/);
     });
+  });
+});
+
+/**
+ * Task #940 — `resolveProdDatabaseUrl()` is the prod-only sibling used
+ * by dual-DB scripts (dev-vs-prod sync checks, `--database prod` demo
+ * targeting). It must accept either prod alias and return `null` when
+ * the operator has not configured one, so the caller can emit a
+ * script-specific error instead of throwing through the resolver.
+ */
+describe('resolveProdDatabaseUrl', () => {
+  it('uses DATABASE_URL_KOVEO when only it is set', () => {
+    expect(
+      resolveProdDatabaseUrl({ DATABASE_URL_KOVEO: PROD_KOVEO }),
+    ).toEqual({ url: PROD_KOVEO, source: 'DATABASE_URL_KOVEO' });
+  });
+
+  it('uses PRODUCTION_DATABASE_URL when only it is set', () => {
+    expect(
+      resolveProdDatabaseUrl({ PRODUCTION_DATABASE_URL: PROD_ALIAS }),
+    ).toEqual({ url: PROD_ALIAS, source: 'PRODUCTION_DATABASE_URL' });
+  });
+
+  it('prefers DATABASE_URL_KOVEO when both prod vars are set to the same value', () => {
+    expect(
+      resolveProdDatabaseUrl({
+        DATABASE_URL_KOVEO: PROD_KOVEO,
+        PRODUCTION_DATABASE_URL: PROD_KOVEO,
+      }),
+    ).toEqual({
+      url: PROD_KOVEO,
+      source: 'DATABASE_URL_KOVEO',
+      ignoredSource: 'PRODUCTION_DATABASE_URL',
+      ignoredSourceDiffers: false,
+    });
+  });
+
+  it('prefers DATABASE_URL_KOVEO and flags the divergence when both prod vars disagree', () => {
+    expect(
+      resolveProdDatabaseUrl({
+        DATABASE_URL_KOVEO: PROD_KOVEO,
+        PRODUCTION_DATABASE_URL: PROD_ALIAS,
+      }),
+    ).toEqual({
+      url: PROD_KOVEO,
+      source: 'DATABASE_URL_KOVEO',
+      ignoredSource: 'PRODUCTION_DATABASE_URL',
+      ignoredSourceDiffers: true,
+    });
+  });
+
+  it('returns null instead of throwing when neither prod var is set', () => {
+    expect(resolveProdDatabaseUrl({})).toBeNull();
+  });
+
+  it('returns null even when DATABASE_URL is set — refuses to silently use the dev URL', () => {
+    expect(resolveProdDatabaseUrl({ DATABASE_URL: DEV })).toBeNull();
+  });
+
+  it('ignores NODE_ENV — prod-only callers do not gate on NODE_ENV', () => {
+    expect(
+      resolveProdDatabaseUrl({
+        NODE_ENV: 'development',
+        DATABASE_URL_KOVEO: PROD_KOVEO,
+      }),
+    ).toEqual({ url: PROD_KOVEO, source: 'DATABASE_URL_KOVEO' });
+  });
+});
+
+/**
+ * Task #940 — `assertProdUrlInProduction()` is the explicit fail-fast
+ * guard used by dual-DB scripts that have a "dev-only mode" fallback
+ * for developer convenience (e.g. `scripts/advanced-database-migration.ts`).
+ * The guard exists so the script does NOT silently switch to dev-only
+ * mode on a production deploy where the operator forgot to set the
+ * prod URL — that would either corrupt the dev DB from a prod shell
+ * or hide a real misconfiguration behind a benign-looking warning.
+ */
+describe('assertProdUrlInProduction', () => {
+  it('throws in production when no prod URL was resolved', () => {
+    expect(() =>
+      assertProdUrlInProduction(
+        null,
+        { NODE_ENV: 'production' },
+        'advanced-database-migration',
+      ),
+    ).toThrow(
+      /NODE_ENV=production but neither DATABASE_URL_KOVEO nor PRODUCTION_DATABASE_URL is set/,
+    );
+  });
+
+  it('includes the script name in the thrown error so operators know what to re-run', () => {
+    expect(() =>
+      assertProdUrlInProduction(
+        null,
+        { NODE_ENV: 'production' },
+        'advanced-database-migration',
+      ),
+    ).toThrow(/advanced-database-migration/);
+  });
+
+  it('does not throw in production when a prod URL was resolved', () => {
+    expect(() =>
+      assertProdUrlInProduction(
+        { url: PROD_KOVEO, source: 'DATABASE_URL_KOVEO' },
+        { NODE_ENV: 'production' },
+        'advanced-database-migration',
+      ),
+    ).not.toThrow();
+  });
+
+  it('does not throw in non-production even when no prod URL is set (preserves dev-only fallback)', () => {
+    expect(() =>
+      assertProdUrlInProduction(
+        null,
+        { NODE_ENV: 'development' },
+        'advanced-database-migration',
+      ),
+    ).not.toThrow();
+  });
+
+  it('does not throw when NODE_ENV is undefined and no prod URL is set (default dev behaviour)', () => {
+    expect(() =>
+      assertProdUrlInProduction(null, {}, 'advanced-database-migration'),
+    ).not.toThrow();
   });
 });
 

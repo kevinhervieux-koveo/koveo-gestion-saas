@@ -22,11 +22,17 @@ import {
   notifications,
 } from '../../shared/schema';
 import { and, eq, isNull } from 'drizzle-orm';
+import { resolveDatabaseUrl } from '../../scripts/run-migrations-url';
 
-const DATABASE_URL = process.env.DATABASE_URL;
-
-if (!DATABASE_URL) {
-  console.error('❌ DATABASE_URL environment variable is required');
+// Route through the same alias-aware helper the runtime uses (Task #940)
+// so this pre-deployment cleanup accepts DATABASE_URL_KOVEO or
+// PRODUCTION_DATABASE_URL in production and fails fast (instead of
+// silently cleaning the dev DB) when neither prod var is set.
+let DATABASE_URL: string;
+try {
+  DATABASE_URL = resolveDatabaseUrl().url;
+} catch (err) {
+  console.error(`❌ ${err instanceof Error ? err.message : String(err)}`);
   process.exit(1);
 }
 

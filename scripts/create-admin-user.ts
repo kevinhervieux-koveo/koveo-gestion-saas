@@ -13,14 +13,15 @@ import { drizzle } from 'drizzle-orm/neon-serverless';
 import * as schema from '../shared/schema';
 import { eq } from 'drizzle-orm';
 import ws from 'ws';
+import { resolveDatabaseUrl } from './run-migrations-url';
 
 neonConfig.webSocketConstructor = ws;
 
-if (!process.env.DATABASE_URL) {
-  throw new Error('DATABASE_URL must be set. Did you forget to provision a database?');
-}
-
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+// Route through the same alias-aware helper the runtime uses (Task #940)
+// so the script accepts DATABASE_URL_KOVEO or PRODUCTION_DATABASE_URL in
+// production and fails fast (instead of silently writing the dev DB)
+// when neither prod var is set on a production deploy.
+const pool = new Pool({ connectionString: resolveDatabaseUrl().url });
 const db = drizzle({ client: pool, schema });
 
 /**
