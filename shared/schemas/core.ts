@@ -207,18 +207,27 @@ export const invitationAuditLog = pgTable('invitation_audit_log', {
 /**
  * MCP assume_user / restore_acting_user audit log (Task #642).
  *
- * Tracks every admin-initiated impersonation event performed via the MCP
- * `assume_user` and `restore_acting_user` tools. The row is written by
- * `server/mcp/server.ts`'s `writeAssumeUserAudit` helper. FK references to
- * `users.id` use `ON DELETE SET NULL` so historical audit rows survive user
- * deletion without violating referential integrity.
+ * Every invocation of the admin-only `assume_user` and `restore_acting_user`
+ * MCP tools writes one row here so operators can attribute downstream
+ * actions performed under an assumed identity. The row is written by
+ * `server/mcp/server.ts`'s `writeAssumeUserAudit` helper. The audit insert
+ * is "audit-first": the session-state mutation is only applied after this
+ * row is persisted, so a row exists even for refused or failed attempts
+ * (with `details.outcome` describing why). FK references to `users.id` use
+ * `ON DELETE SET NULL` so historical audit rows survive user deletion
+ * without violating referential integrity.
  */
 export const mcpAssumeUserLog = pgTable('mcp_assume_user_log', {
   id: varchar('id')
     .primaryKey()
     .default(sql`gen_random_uuid()`),
+  // Nullable because legacy MCP_API_KEY sessions have no OAuth-bound user
+  // and must still be auditable (the row is written with NULL performedBy).
   performedBy: varchar('performed_by').references(() => users.id, { onDelete: 'set null' }),
+  // Nullable because failed attempts (e.g. unknown target user, feature flag
+  // disabled, restore-no-op) have no resolved assumed-user id.
   assumedUserId: varchar('assumed_user_id').references(() => users.id, { onDelete: 'set null' }),
+  // 'assume' | 'restore'
   action: text('action').notNull(),
   ipAddress: text('ip_address'),
   userAgent: text('user_agent'),
@@ -227,6 +236,7 @@ export const mcpAssumeUserLog = pgTable('mcp_assume_user_log', {
 }, (table) => ({
   performedByIdx: index('mcp_assume_user_log_performed_by_idx').on(table.performedBy),
   assumedUserIdIdx: index('mcp_assume_user_log_assumed_user_id_idx').on(table.assumedUserId),
+  createdAtIdx: index('mcp_assume_user_log_created_at_idx').on(table.createdAt),
 }));
 
 // Permissions enums
@@ -561,11 +571,16 @@ export type InsertInvitationAuditLog = z.infer<typeof insertInvitationAuditLogSc
 export type InvitationAuditLog = typeof invitationAuditLog.$inferSelect;
 
 /**
- * Insert type for the MCP assume_user / restore_acting_user audit log.
+ * Insert payload for an `mcp_assume_user_log` row (Task #642).
+ * Auto-generated columns (`id`, `createdAt`) are produced by Postgres so
+ * we omit them from the insert type.
  */
-export type InsertMcpAssumeUserLog = typeof mcpAssumeUserLog.$inferInsert;
+export type InsertMcpAssumeUserLog = Omit<
+  typeof mcpAssumeUserLog.$inferInsert,
+  'id' | 'createdAt'
+>;
 /**
- * Select type for the MCP assume_user / restore_acting_user audit log.
+ * Select shape of an `mcp_assume_user_log` row (Task #642).
  */
 export type McpAssumeUserLog = typeof mcpAssumeUserLog.$inferSelect;
 

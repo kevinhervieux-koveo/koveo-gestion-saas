@@ -7,7 +7,7 @@
 
 const { TextDecoder, TextEncoder } = require('node:util');
 const { ReadableStream, TransformStream } = require('node:stream/web');
-const { clearImmediate } = require('node:timers');
+const { setImmediate, clearImmediate } = require('node:timers');
 const { PerformanceObserver, performance } = require('node:perf_hooks');
 
 // Mock MessagePort and MessageChannel to avoid open handles
@@ -26,16 +26,27 @@ class MockMessageChannel {
   }
 }
 
+// Use writable/configurable property descriptors so libraries that legitimately
+// reassign these globals (e.g. jszip, used transitively by mammoth, sets
+// `clearImmediate`/`setImmediate` on `window` during initialization) do not
+// hit "Cannot assign to read only property" errors in jsdom.
+const polyfillDescriptor = (value) => ({
+  value,
+  writable: true,
+  configurable: true,
+});
+
 Object.defineProperties(globalThis, {
-  TextDecoder: { value: TextDecoder },
-  TextEncoder: { value: TextEncoder },
-  ReadableStream: { value: ReadableStream },
-  TransformStream: { value: TransformStream },
-  clearImmediate: { value: clearImmediate },
-  performance: { value: performance },
-  PerformanceObserver: { value: PerformanceObserver },
-  MessageChannel: { value: MockMessageChannel },
-  MessagePort: { value: MockMessagePort },
+  TextDecoder: polyfillDescriptor(TextDecoder),
+  TextEncoder: polyfillDescriptor(TextEncoder),
+  ReadableStream: polyfillDescriptor(ReadableStream),
+  TransformStream: polyfillDescriptor(TransformStream),
+  setImmediate: polyfillDescriptor(setImmediate),
+  clearImmediate: polyfillDescriptor(clearImmediate),
+  performance: polyfillDescriptor(performance),
+  PerformanceObserver: polyfillDescriptor(PerformanceObserver),
+  MessageChannel: polyfillDescriptor(MockMessageChannel),
+  MessagePort: polyfillDescriptor(MockMessagePort),
 });
 
 // Capture the real DATABASE_URL before jest.setup.simple.ts overwrites it with
