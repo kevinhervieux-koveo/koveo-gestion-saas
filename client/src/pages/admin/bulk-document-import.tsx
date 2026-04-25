@@ -84,6 +84,58 @@ interface OrganizationLite {
   name: string;
 }
 
+/** Lean item shape returned by the /lite polling endpoint (Task #727). */
+interface BulkImportItemLite {
+  id: string;
+  originalName: string;
+  mimeType: string | null;
+  status: BulkImportItem['status'];
+  preExcludeStatus: BulkImportItem['status'] | null;
+  screeningConfidence: number | null;
+  screeningFallback: BulkImportFallbackReason | null;
+  sortingConfidence: number | null;
+  sortingFallback: BulkImportFallbackReason | null;
+  branchingConfidence: number | null;
+  branchingFallback: BulkImportFallbackReason | null;
+  identificationConfidence: number | null;
+  identificationFallback: BulkImportFallbackReason | null;
+  linkingConfidence: number | null;
+  linkingFallback: BulkImportFallbackReason | null;
+}
+
+interface SessionPayloadLite {
+  session: BulkImportSession;
+  items: BulkImportItemLite[];
+}
+
+/** Paginated sessions response (Task #727). */
+interface SessionsPage {
+  sessions: BulkImportSession[];
+  limit: number;
+  offset: number;
+  hasMore: boolean;
+}
+
+function getItemStepDecision(
+  item: BulkImportItemLite,
+  step: BulkImportStep,
+): { confidence: number | null; fallbackReason: BulkImportFallbackReason | null } | null {
+  switch (step) {
+    case 'screening':
+      return { confidence: item.screeningConfidence, fallbackReason: item.screeningFallback };
+    case 'sorting':
+      return { confidence: item.sortingConfidence, fallbackReason: item.sortingFallback };
+    case 'branching':
+      return { confidence: item.branchingConfidence, fallbackReason: item.branchingFallback };
+    case 'identification':
+      return { confidence: item.identificationConfidence, fallbackReason: item.identificationFallback };
+    case 'linking':
+      return { confidence: item.linkingConfidence, fallbackReason: item.linkingFallback };
+    default:
+      return null;
+  }
+}
+
 function iconForMime(mime: string | null | undefined) {
   const m = (mime ?? '').toLowerCase();
   if (m.startsWith('image/')) return FileImage;
@@ -94,7 +146,7 @@ function iconForMime(mime: string | null | undefined) {
   return FileIcon;
 }
 
-function ItemThumbnail({ item }: { item: BulkImportItem }) {
+function ItemThumbnail({ item }: { item: { id: string; mimeType?: string | null; originalName: string } }) {
   const isImage = (item.mimeType ?? '').toLowerCase().startsWith('image/');
   const [broken, setBroken] = useState(false);
   const Icon = iconForMime(item.mimeType);
@@ -124,6 +176,8 @@ interface SessionPayload {
   session: BulkImportSession;
   items: BulkImportItem[];
 }
+
+const HISTORY_PAGE_SIZE = 20;
 
 const STEP_ORDER: BulkImportStep[] = [
   'upload',
@@ -479,18 +533,36 @@ function HistoryCard({
   stepLabels: Record<BulkImportStep, string>;
 }) {
   const { toast } = useToast();
-  const { data: sessions = [], isLoading } = useQuery<BulkImportSession[]>({
-    queryKey: ['/api/admin/bulk-import/sessions'],
+
+  const [allSessions, setAllSessions] = useState<BulkImportSession[]>([]);
+  const [nextOffset, setNextOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+  const [fetchOffset, setFetchOffset] = useState(0);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+  const { isLoading } = useQuery<SessionsPage>({
+    queryKey: ['/api/admin/bulk-import/sessions', fetchOffset],
+    queryFn: async () => {
+      const res = await fetch(
+        `/api/admin/bulk-import/sessions?limit=${HISTORY_PAGE_SIZE}&offset=${fetchOffset}`,
+        { credentials: 'include' },
+      );
+      if (!res.ok) throw new Error('Failed to fetch sessions');
+      const page: SessionsPage = await res.json();
+      if (fetchOffset === 0) {
+        setAllSessions(page.sessions);
+      } else {
+        setAllSessions((prev) => [...prev, ...page.sessions]);
+      }
+      setHasMore(page.hasMore);
+      setNextOffset(fetchOffset + HISTORY_PAGE_SIZE);
+      setIsLoadingMore(false);
+      return page;
+    },
+    staleTime: 0,
   });
-  const sorted = useMemo(
-    () =>
-      [...sessions].sort(
-        (a, b) =>
-          new Date(b.createdAt as unknown as string).getTime() -
-          new Date(a.createdAt as unknown as string).getTime(),
-      ),
-    [sessions],
-  );
+
+  const sorted = allSessions;
 
   // Confirmation dialog state for hard-deleting a past session
   // (Task #696). Tracks the candidate session id so the dialog can
@@ -507,6 +579,10 @@ function HistoryCard({
       return id;
     },
     onSuccess: () => {
+      setAllSessions([]);
+      setFetchOffset(0);
+      setNextOffset(0);
+      setHasMore(false);
       queryClient.invalidateQueries({
         queryKey: ['/api/admin/bulk-import/sessions'],
       });
@@ -529,7 +605,7 @@ function HistoryCard({
   });
 
   const pendingSession = pendingDeleteId
-    ? sorted.find((s) => s.id === pendingDeleteId) ?? null
+    ? sorted.find((s: BulkImportSession) => s.id === pendingDeleteId) ?? null
     : null;
   const pendingBuildingName = pendingSession
     ? buildings.find((b) => b.id === pendingSession.buildingId)?.name ??
@@ -558,7 +634,7 @@ function HistoryCard({
           </p>
         ) : (
           <div className="space-y-2" data-testid="history-list">
-            {sorted.map((s) => (
+            {sorted.map((s: BulkImportSession) => (
               <HistorySessionRow
                 key={s.id}
                 session={s}
@@ -575,6 +651,25 @@ function HistoryCard({
                 stepLabels={stepLabels}
               />
             ))}
+            {hasMore && (
+              <div className="pt-1">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={isLoadingMore}
+                  onClick={() => {
+                    setIsLoadingMore(true);
+                    setFetchOffset(nextOffset);
+                  }}
+                  data-testid="button-history-load-more"
+                >
+                  {isLoadingMore ? (
+                    <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                  ) : null}
+                  {isFr ? 'Charger plus' : 'Load more'}
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </CardContent>
@@ -676,7 +771,7 @@ export default function BulkDocumentImportPage() {
   }, [sessionId]);
 
   const { data: buildings = [] } = useQuery<Building[]>({
-    queryKey: ['/api/buildings'],
+    queryKey: ['/api/admin/bulk-import/buildings-lite'],
   });
 
   /**
@@ -754,14 +849,14 @@ export default function BulkDocumentImportPage() {
     );
   }, [filteredBuildings, organizationsById, isFr]);
 
-  const { data: payload, isLoading: loadingSession } = useQuery<SessionPayload>({
-    queryKey: ['/api/admin/bulk-import/sessions', sessionId],
+  const { data: payload, isLoading: loadingSession } = useQuery<SessionPayloadLite>({
+    queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
     enabled: !!sessionId,
     // Poll faster while auto-screening is in progress so the per-item
     // status / confidence badges update in near real-time. Once every
     // file has a final status we throttle back to 5s (Task #575).
     refetchInterval: (query) => {
-      const data = query.state.data as SessionPayload | undefined;
+      const data = query.state.data as SessionPayloadLite | undefined;
       if (!data) return 5000;
       const screeningActive =
         data.session.currentStep === 'screening' &&
@@ -783,6 +878,7 @@ export default function BulkDocumentImportPage() {
     },
     onSuccess: (s) => {
       setSessionId(s.id);
+      // Invalidate the history list (all paginated variants).
       queryClient.invalidateQueries({ queryKey: ['/api/admin/bulk-import/sessions'] });
       toast({
         title: isFr ? 'Session créée' : 'Session created',
@@ -819,7 +915,7 @@ export default function BulkDocumentImportPage() {
     },
     onSuccess: () =>
       queryClient.invalidateQueries({
-        queryKey: ['/api/admin/bulk-import/sessions', sessionId],
+        queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
       }),
   });
 
@@ -836,7 +932,7 @@ export default function BulkDocumentImportPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ['/api/admin/bulk-import/sessions', sessionId],
+        queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
       });
       toast({ title: isFr ? 'Téléversement réussi' : 'Files uploaded' });
     },
@@ -859,7 +955,7 @@ export default function BulkDocumentImportPage() {
     },
     onSuccess: () =>
       queryClient.invalidateQueries({
-        queryKey: ['/api/admin/bulk-import/sessions', sessionId],
+        queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
       }),
   });
 
@@ -931,7 +1027,7 @@ export default function BulkDocumentImportPage() {
     },
     onSuccess: () =>
       queryClient.invalidateQueries({
-        queryKey: ['/api/admin/bulk-import/sessions', sessionId],
+        queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
       }),
   });
 
@@ -953,7 +1049,7 @@ export default function BulkDocumentImportPage() {
     },
     onSuccess: () =>
       queryClient.invalidateQueries({
-        queryKey: ['/api/admin/bulk-import/sessions', sessionId],
+        queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
       }),
   });
 
@@ -993,24 +1089,24 @@ export default function BulkDocumentImportPage() {
       return res.json() as Promise<BulkImportItem>;
     },
     onMutate: async ({ itemId, excluded }) => {
-      const queryKey = ['/api/admin/bulk-import/sessions', sessionId];
+      const queryKey = ['/api/admin/bulk-import/sessions', sessionId, 'lite'];
       await queryClient.cancelQueries({ queryKey });
-      const previous = queryClient.getQueryData<SessionPayload>(queryKey);
+      const previous = queryClient.getQueryData<SessionPayloadLite>(queryKey);
       if (previous) {
-        queryClient.setQueryData<SessionPayload>(queryKey, {
+        queryClient.setQueryData<SessionPayloadLite>(queryKey, {
           ...previous,
           items: previous.items.map((it) => {
             if (it.id !== itemId) return it;
             if (excluded) {
               return {
                 ...it,
-                status: 'rejected',
+                status: 'rejected' as const,
                 preExcludeStatus: it.preExcludeStatus ?? it.status,
               };
             }
             return {
               ...it,
-              status: it.preExcludeStatus ?? 'pending',
+              status: (it.preExcludeStatus ?? 'pending') as BulkImportItem['status'],
               preExcludeStatus: null,
             };
           }),
@@ -1021,7 +1117,7 @@ export default function BulkDocumentImportPage() {
     onError: (_err, _vars, context) => {
       if (context?.previous) {
         queryClient.setQueryData(
-          ['/api/admin/bulk-import/sessions', sessionId],
+          ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
           context.previous,
         );
       }
@@ -1032,7 +1128,7 @@ export default function BulkDocumentImportPage() {
     },
     onSettled: () =>
       queryClient.invalidateQueries({
-        queryKey: ['/api/admin/bulk-import/sessions', sessionId],
+        queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
       }),
   });
 
@@ -1098,13 +1194,6 @@ export default function BulkDocumentImportPage() {
     linking: 'link',
   };
 
-  const stepConfidenceField: Record<string, keyof BulkImportItem> = {
-    screening: 'screening',
-    sorting: 'sortingDecision',
-    branching: 'branchDecision',
-    identification: 'identification',
-    linking: 'linkDecisions',
-  };
 
   return (
     <div className="flex h-screen flex-col bg-gray-50 dark:bg-gray-900">
@@ -1566,13 +1655,7 @@ export default function BulkDocumentImportPage() {
                         </p>
                       )}
                       {items.map((item) => {
-                        const field = stepConfidenceField[currentStep];
-                        const decision = field
-                          ? (item[field] as {
-                              confidence?: number;
-                              fallbackReason?: BulkImportFallbackReason | null;
-                            } | null)
-                          : null;
+                        const decision = getItemStepDecision(item, currentStep);
                         const isAuto = isAutoStep(currentStep);
                         const retryAction = isAuto
                           ? stepRetryAction[currentStep as AutoStep]

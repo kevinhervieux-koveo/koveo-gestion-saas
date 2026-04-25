@@ -13,7 +13,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as crypto from 'crypto';
 import { z } from 'zod';
-import { and, eq, inArray } from 'drizzle-orm';
+import { and, desc, eq, inArray } from 'drizzle-orm';
 import { requireAuth, requireRole } from '../auth';
 import { canUserAccessOrganization } from '../rbac';
 
@@ -457,18 +457,230 @@ export function registerBulkImportRoutes(app: Express): void {
     },
   );
 
-  /** List sessions visible to the caller (admin can see them all). */
+  /**
+   * List sessions visible to the caller with server-side pagination
+   * (Task #727). Returns the most recent sessions first (createdAt DESC)
+   * and applies org-scoping so admins without global access only see
+   * sessions belonging to their own organisations.
+   *
+   * Query params:
+   *   limit  — max rows to return (default 20, cap 100)
+   *   offset — number of rows to skip (default 0)
+   */
   app.get(
     '/api/admin/bulk-import/sessions',
     requireAuth,
     requireRole(['admin']),
-    async (_req: AuthenticatedRequest, res: Response) => {
-      const rows = await db.select().from(schema.bulkImportSessions);
-      return res.json(rows);
+    async (req: AuthenticatedRequest, res: Response) => {
+      try {
+        const limit = Math.min(Math.max(Number(req.query.limit) || 20, 1), 100);
+        const offset = Math.max(Number(req.query.offset) || 0, 0);
+
+        // Org-scoping: check whether this admin has cross-org access.
+        const userOrgs = await db
+          .select({
+            organizationId: schema.userOrganizations.organizationId,
+            canAccessAllOrganizations: schema.userOrganizations.canAccessAllOrganizations,
+          })
+          .from(schema.userOrganizations)
+          .where(
+            and(
+              eq(schema.userOrganizations.userId, req.user!.id),
+              eq(schema.userOrganizations.isActive, true),
+            ),
+          );
+
+        const hasGlobalAccess = userOrgs.some((o) => o.canAccessAllOrganizations);
+
+        // Use limit+1 to detect whether there is a next page without a
+        // separate COUNT(*) query.
+        let rows: typeof schema.bulkImportSessions.$inferSelect[];
+        if (hasGlobalAccess) {
+          rows = await db
+            .select()
+            .from(schema.bulkImportSessions)
+            .orderBy(desc(schema.bulkImportSessions.createdAt))
+            .limit(limit + 1)
+            .offset(offset);
+        } else if (userOrgs.length === 0) {
+          rows = [];
+        } else {
+          const orgIds = userOrgs.map((o) => o.organizationId);
+          rows = await db
+            .select()
+            .from(schema.bulkImportSessions)
+            .where(inArray(schema.bulkImportSessions.organizationId, orgIds))
+            .orderBy(desc(schema.bulkImportSessions.createdAt))
+            .limit(limit + 1)
+            .offset(offset);
+        }
+
+        const hasMore = rows.length > limit;
+        const sessions = hasMore ? rows.slice(0, limit) : rows;
+        return res.json({ sessions, limit, offset, hasMore });
+      } catch (err) {
+        logError('[bulk-import] list sessions failed', err as Error);
+        return res.status(500).json({ error: 'Failed to list sessions' });
+      }
     },
   );
 
-  /** Fetch a single session WITH its items (resume payload). */
+  /**
+   * Lightweight polling endpoint for the active-session wizard
+   * (Task #727). Returns the session row plus a lean item shape that
+   * omits the heavy AI decision JSON blobs — just the scalar fields
+   * the status badges, confidence badges, and progress bars need.
+   * The full item payload (including AI JSON) is still available via
+   * GET /sessions/:id (used by the history detail view on expand).
+   */
+  app.get(
+    '/api/admin/bulk-import/sessions/:id/lite',
+    requireAuth,
+    requireRole(['admin']),
+    async (req: AuthenticatedRequest, res: Response) => {
+      const session = await loadSession(req.params.id);
+      if (!session) return res.status(404).json({ error: 'Session not found' });
+
+      const rows = await db
+        .select({
+          id: schema.bulkImportItems.id,
+          originalName: schema.bulkImportItems.originalName,
+          mimeType: schema.bulkImportItems.mimeType,
+          status: schema.bulkImportItems.status,
+          preExcludeStatus: schema.bulkImportItems.preExcludeStatus,
+          screening: schema.bulkImportItems.screening,
+          sortingDecision: schema.bulkImportItems.sortingDecision,
+          branchDecision: schema.bulkImportItems.branchDecision,
+          identification: schema.bulkImportItems.identification,
+          linkDecisions: schema.bulkImportItems.linkDecisions,
+        })
+        .from(schema.bulkImportItems)
+        .where(eq(schema.bulkImportItems.sessionId, session.id));
+
+      // Pre-extract confidence + fallbackReason from each step's JSON so
+      // the client never has to download or parse the full AI decision blob.
+      function extractStep(json: Record<string, unknown> | null | undefined) {
+        if (!json) return { confidence: null, fallbackReason: null };
+        return {
+          confidence: (json.confidence as number | null | undefined) ?? null,
+          fallbackReason: (json.fallbackReason as string | null | undefined) ?? null,
+        };
+      }
+
+      const items = rows.map((r) => ({
+        id: r.id,
+        originalName: r.originalName,
+        mimeType: r.mimeType,
+        status: r.status,
+        preExcludeStatus: r.preExcludeStatus,
+        ...(() => {
+          const sc = extractStep(r.screening);
+          const so = extractStep(r.sortingDecision);
+          const br = extractStep(r.branchDecision);
+          const id = extractStep(r.identification);
+          const lk = extractStep(r.linkDecisions);
+          return {
+            screeningConfidence: sc.confidence,
+            screeningFallback: sc.fallbackReason,
+            sortingConfidence: so.confidence,
+            sortingFallback: so.fallbackReason,
+            branchingConfidence: br.confidence,
+            branchingFallback: br.fallbackReason,
+            identificationConfidence: id.confidence,
+            identificationFallback: id.fallbackReason,
+            linkingConfidence: lk.confidence,
+            linkingFallback: lk.fallbackReason,
+          };
+        })(),
+      }));
+
+      return res.json({ session, items });
+    },
+  );
+
+  /**
+   * Lightweight buildings list for the bulk-import building picker
+   * (Task #727). Returns only the scalar fields the picker card needs
+   * (id, name, organizationId, address, city, province, buildingType,
+   * totalUnits) — no commonSpaces counts, no statistics, no residence
+   * joins. Applies the same org/global-access scoping as the standard
+   * /api/buildings endpoint so the results never exceed what the caller
+   * is allowed to see.
+   */
+  app.get(
+    '/api/admin/bulk-import/buildings-lite',
+    requireAuth,
+    requireRole(['admin']),
+    async (req: AuthenticatedRequest, res: Response) => {
+      try {
+        const userOrgs = await db
+          .select({
+            organizationId: schema.userOrganizations.organizationId,
+            canAccessAllOrganizations: schema.userOrganizations.canAccessAllOrganizations,
+          })
+          .from(schema.userOrganizations)
+          .where(
+            and(
+              eq(schema.userOrganizations.userId, req.user!.id),
+              eq(schema.userOrganizations.isActive, true),
+            ),
+          );
+
+        const hasGlobalAccess = userOrgs.some((o) => o.canAccessAllOrganizations);
+
+        const fields = {
+          id: schema.buildings.id,
+          name: schema.buildings.name,
+          organizationId: schema.buildings.organizationId,
+          address: schema.buildings.address,
+          city: schema.buildings.city,
+          province: schema.buildings.province,
+          buildingType: schema.buildings.buildingType,
+          totalUnits: schema.buildings.totalUnits,
+        } as const;
+
+        let rows: {
+          id: string;
+          name: string;
+          organizationId: string;
+          address: string | null;
+          city: string | null;
+          province: string | null;
+          buildingType: string | null;
+          totalUnits: number | null;
+        }[];
+
+        if (hasGlobalAccess) {
+          rows = await db
+            .select(fields)
+            .from(schema.buildings)
+            .where(eq(schema.buildings.isActive, true))
+            .orderBy(schema.buildings.name);
+        } else if (userOrgs.length === 0) {
+          rows = [];
+        } else {
+          const orgIds = userOrgs.map((o) => o.organizationId);
+          rows = await db
+            .select(fields)
+            .from(schema.buildings)
+            .where(
+              and(
+                eq(schema.buildings.isActive, true),
+                inArray(schema.buildings.organizationId, orgIds),
+              ),
+            )
+            .orderBy(schema.buildings.name);
+        }
+
+        return res.json(rows);
+      } catch (err) {
+        logError('[bulk-import] buildings-lite failed', err as Error);
+        return res.status(500).json({ error: 'Failed to fetch buildings' });
+      }
+    },
+  );
+
+  /** Fetch a single session WITH its items (full resume payload). */
   app.get(
     '/api/admin/bulk-import/sessions/:id',
     requireAuth,

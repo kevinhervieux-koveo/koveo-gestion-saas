@@ -326,7 +326,9 @@ describeIfDb('bulk-import REST endpoints — Task #456', () => {
       .get('/api/admin/bulk-import/sessions')
       .set('x-test-user-id', ids.admin);
     expect(list.status).toBe(200);
-    expect(list.body.find((s: any) => s.id === sid)).toBeDefined();
+    // Response is now paginated: { sessions, limit, offset, hasMore }
+    expect(Array.isArray(list.body.sessions)).toBe(true);
+    expect(list.body.sessions.find((s: any) => s.id === sid)).toBeDefined();
 
     const get = await request(app)
       .get(`/api/admin/bulk-import/sessions/${sid}`)
