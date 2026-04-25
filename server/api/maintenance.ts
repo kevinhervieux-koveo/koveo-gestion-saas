@@ -3176,8 +3176,8 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         planningStartDate: z.string().optional(),
         estimatedCost: z.number().optional(),
         totalBudget: z.string().optional(),
-        plannedStartDate: z.string().optional(),
-        plannedEndDate: z.string().optional(),
+        plannedStartDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be a YYYY-MM-DD date string').optional(),
+        plannedEndDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be a YYYY-MM-DD date string').optional(),
         title: z.string().optional(),
         description: z.string().optional(),
         priority: z.enum(['low', 'medium', 'high', 'critical']).optional(),
@@ -3229,10 +3229,10 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         updateData.totalBudget = patchValidation.data.totalBudget;
       }
       if (patchValidation.data.plannedStartDate !== undefined) {
-        updateData.plannedStartDate = new Date(patchValidation.data.plannedStartDate);
+        updateData.plannedStartDate = patchValidation.data.plannedStartDate;
       }
       if (patchValidation.data.plannedEndDate !== undefined) {
-        updateData.plannedEndDate = new Date(patchValidation.data.plannedEndDate);
+        updateData.plannedEndDate = patchValidation.data.plannedEndDate;
       }
       if (patchValidation.data.title !== undefined) {
         updateData.title = patchValidation.data.title;

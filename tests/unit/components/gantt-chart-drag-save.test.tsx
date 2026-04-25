@@ -153,6 +153,26 @@ function BudgetGanttHarness({
     return true;
   }, [editingId]);
 
+  const startEdit = useCallback((id: string) => {
+    if (editingId && editingId !== id) {
+      if (!confirmDiscard()) return;
+    }
+    const proj = projects.find((p) => p.id === id);
+    if (!proj) return;
+    const parseTs = (s: string | null | undefined) => {
+      if (!s) return null;
+      const d = new Date(s.length === 10 ? s + 'T00:00:00' : s);
+      return isNaN(d.getTime()) ? null : d.getTime();
+    };
+    const startTs = parseTs(proj.plannedStartDate) ?? parseTs(proj.actualStartDate);
+    const endTs = parseTs(proj.plannedEndDate) ?? parseTs(proj.actualEndDate);
+    if (!startTs || !endTs) return;
+    const dates = { startTs, endTs };
+    originalDates.current = dates;
+    setEditingId(id);
+    setEditingDates(dates);
+  }, [editingId, projects, confirmDiscard]);
+
   const saveMutation = useMutation({
     mutationFn: async ({ id, startTs, endTs }: { id: string; startTs: number; endTs: number }) => {
       const { apiRequest } = require('@/lib/queryClient');
@@ -195,25 +215,8 @@ function BudgetGanttHarness({
       language="en"
       editingProjectId={editingId}
       editingDates={editingDates}
-      onStartEdit={(id) => {
-        if (editingId && editingId !== id) {
-          if (!confirmDiscard()) return;
-        }
-        const proj = projects.find((p) => p.id === id);
-        if (!proj) return;
-        const parseTs = (s: string | null | undefined) => {
-          if (!s) return null;
-          const d = new Date(s.length === 10 ? s + 'T00:00:00' : s);
-          return isNaN(d.getTime()) ? null : d.getTime();
-        };
-        const startTs = parseTs(proj.plannedStartDate) ?? parseTs(proj.actualStartDate);
-        const endTs = parseTs(proj.plannedEndDate) ?? parseTs(proj.actualEndDate);
-        if (!startTs || !endTs) return;
-        const dates = { startTs, endTs };
-        originalDates.current = dates;
-        setEditingId(id);
-        setEditingDates(dates);
-      }}
+      onEdit={startEdit}
+      onStartEdit={startEdit}
       onDragEnd={(_id, startTs, endTs) => {
         setEditingDates({ startTs, endTs });
       }}
