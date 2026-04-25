@@ -2445,13 +2445,15 @@ export function registerBulkImportRoutes(app: Express): void {
    * "Expected instance of PDFDict, but got instance of undefined" family of
    * errors (triggered by broken xref / object references in PDFs exported by
    * some Quebec condo management systems — "NoCentris-style" PDFs), a
-   * re-encode pass (save → reload) is attempted before giving up.
+   * re-encode pass (save → reload) is attempted, and if that fails, a
+   * per-page rebuild pass is attempted before giving up.
    *
    * Recovery strategy (lightest → heaviest):
    *   1. Lenient load  (throwOnInvalidObject:false, ignoreEncryption:true)
-   *   2. save → reload re-encode pass  [implemented below]
-   *   3. qpdf --linearize external repair  [not yet available on this runtime;
-   *      add here if `which qpdf` ever returns a valid path]
+   *   2. save → reload re-encode pass
+   *   3. Per-page rebuild — copy each page index individually into a fresh
+   *      PDFDocument, skipping any index whose copyPages() throws.  Returns
+   *      the rebuilt doc if at least one page was rescued.
    *
    * Callers receive the working PDFDocument, or a typed Error with code
    * PDF_PAGE_TREE_UNRECOVERABLE so they can surface a classified 400 instead
@@ -2485,11 +2487,56 @@ export function registerBulkImportRoutes(app: Express): void {
         logInfo('[bulk-import] pdf page-tree recovered via re-encode', { metadata: { filePath } });
         return doc2;
       } catch (secondErr) {
-        const msg = firstErr instanceof Error ? firstErr.message : String(firstErr);
-        const typed = Object.assign(new Error(`PDF page tree unrecoverable: ${msg}`), {
-          code: 'PDF_PAGE_TREE_UNRECOVERABLE',
+        // Stage 3: per-page rebuild — probe individual page indices and copy
+        // each into a fresh document, skipping any that throw.  This rescues
+        // PDFs where the full page-tree walk fails but individual pages are
+        // still reachable (e.g. partially corrupt NoCentris-style xref tables).
+        logWarn('[bulk-import] re-encode pass failed, attempting per-page rebuild', {
+          metadata: {
+            filePath,
+            error: secondErr instanceof Error ? secondErr.message : String(secondErr),
+          },
         });
-        throw typed;
+        try {
+          const freshDoc = await PDFDocument.create();
+          let pageIndex = 0;
+          let skippedCount = 0;
+          let consecutiveFailures = 0;
+          // Probe up to MAX_PAGES indices; stop early after MAX_CONSECUTIVE_FAILURES
+          // consecutive misses so we don't spin forever on fully corrupt files.
+          const MAX_PAGES = 5000;
+          const MAX_CONSECUTIVE_FAILURES = 5;
+          while (pageIndex < MAX_PAGES && consecutiveFailures < MAX_CONSECUTIVE_FAILURES) {
+            try {
+              const copied = await freshDoc.copyPages(doc, [pageIndex]);
+              if (copied.length > 0 && copied[0] !== undefined) {
+                freshDoc.addPage(copied[0]);
+                consecutiveFailures = 0;
+              } else {
+                skippedCount++;
+                consecutiveFailures++;
+              }
+            } catch {
+              skippedCount++;
+              consecutiveFailures++;
+            }
+            pageIndex++;
+          }
+          const rescuedCount = freshDoc.getPageCount();
+          if (rescuedCount === 0) {
+            throw new Error('No pages could be rescued via per-page rebuild');
+          }
+          logInfo('[bulk-import] pdf rescued via per-page rebuild', {
+            metadata: { filePath, rescuedPages: rescuedCount, skippedPages: skippedCount },
+          });
+          return freshDoc;
+        } catch {
+          const msg = firstErr instanceof Error ? firstErr.message : String(firstErr);
+          const typed = Object.assign(new Error(`PDF page tree unrecoverable: ${msg}`), {
+            code: 'PDF_PAGE_TREE_UNRECOVERABLE',
+          });
+          throw typed;
+        }
       }
     }
   }
@@ -3128,7 +3175,7 @@ export function registerBulkImportRoutes(app: Express): void {
             } catch (splitErr) {
               const errMsg = splitErr instanceof Error ? splitErr.message : String(splitErr);
               logWarn('[bulk-import] accept failed', { action, metadata: { code: 'DRAFT_SPLIT_OPERATION_FAILED', itemId: req.params.id, sessionId: _capturedSessionId, decision: manualDecision, underlyingError: errMsg } });
-              return res.status(400).json({ error: `Failed to split PDF: ${errMsg}`, code: 'DRAFT_SPLIT_OPERATION_FAILED' });
+              return res.status(400).json({ error: 'Failed to split PDF — the file is corrupt and cannot be repaired automatically. Re-export the document from its source application and re-upload.', code: 'DRAFT_SPLIT_OPERATION_FAILED' });
             }
             const {
               firstBytes, firstHash, firstPath,
@@ -3381,7 +3428,7 @@ export function registerBulkImportRoutes(app: Express): void {
           try {
             leadPdf = await loadPdfForBulkImport(item.stagedPath);
           } catch (leadLoadErr) {
-            return logAndReturn400('MERGE_LEAD_PDF_CORRUPT', 'Failed to load lead PDF: the file may be corrupt or use unsupported encryption', {
+            return logAndReturn400('MERGE_LEAD_PDF_CORRUPT', 'PDF is corrupt and cannot be repaired automatically — re-export the document from its source application and re-upload.', {
               underlyingError: leadLoadErr instanceof Error ? leadLoadErr.message : String(leadLoadErr),
             });
           }
@@ -3418,7 +3465,7 @@ export function registerBulkImportRoutes(app: Express): void {
               const copiedPages = await copyPagesFromFileWithRecovery(leadPdf, siblingItem.stagedPath);
               for (const page of copiedPages) leadPdf.addPage(page);
             } catch (copyErr) {
-              return logAndReturn400('MERGE_PDF_COPY_FAILED', `Failed to copy pages from merge target: ${siblingItem.originalName}`, {
+              return logAndReturn400('MERGE_PDF_COPY_FAILED', `Failed to copy pages from merge target: ${siblingItem.originalName} — PDF is corrupt and cannot be repaired automatically. Re-export the document from its source application and re-upload.`, {
                 underlyingError: copyErr instanceof Error ? copyErr.message : String(copyErr),
               });
             }
@@ -3512,7 +3559,7 @@ export function registerBulkImportRoutes(app: Express): void {
             const splitErrMsg = splitErr instanceof Error ? splitErr.message : String(splitErr);
             return logAndReturn400(
               'SPLIT_OPERATION_FAILED',
-              `Failed to split PDF: ${splitErrMsg}`,
+              `Failed to split PDF — the file is corrupt and cannot be repaired automatically. Re-export the document from its source application and re-upload.`,
               { underlyingError: splitErrMsg },
             );
           }
