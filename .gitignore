@@ -21,17 +21,34 @@ __pycache__/
 backups/
 *backup*/
 *.sql
-# A surgical un-ignore for the one numbered migration tracked in this
-# repo (Task #794). The historical Drizzle-generated SQL files
-# (0000–0009, plus the ad-hoc `fix_submission_vendors_schema.sql`) are
-# intentionally NOT tracked: production has historically been kept in
-# sync via `drizzle-kit push`, and re-introducing them as executable
-# numbered files would make them "pending" on environments whose
-# `schema_migrations` was baselined without them, where they would fail
-# (they are not idempotent — raw `CREATE TYPE` / `CREATE TABLE`).
-# The negation is placed AFTER the `*.sql` rule so gitignore precedence
-# (last matching rule wins) keeps this single file trackable.
-!migrations/0010_demands_residence_building_check.sql
+# Track every numbered Drizzle migration from 0010 onwards. The
+# historical Drizzle-generated SQL files (0000–0009, plus the ad-hoc
+# `fix_submission_vendors_schema.sql`) are intentionally NOT tracked:
+# production has historically been kept in sync via `drizzle-kit push`,
+# and re-introducing them as executable numbered files would make them
+# "pending" on environments whose `schema_migrations` was baselined
+# without them, where they would fail (they are not idempotent — raw
+# `CREATE TYPE` / `CREATE TABLE`).
+#
+# The wildcard negation is placed AFTER the `*.sql` rule so gitignore
+# precedence (last matching rule wins) keeps numbered migrations
+# trackable. The five `migrations/000N_*.sql` re-ignores below claw
+# back the historical 0000–0009 files so only 0010+ are tracked.
+# IMPORTANT: when adding a new numbered migration (e.g. 0015_*.sql),
+# nothing else needs to change here — the wildcard already tracks it.
+# This wildcard fix landed after a deploy outage caused by the prior
+# rule ignoring every migration except 0010.
+!migrations/[0-9][0-9][0-9][0-9]_*.sql
+migrations/0000_*.sql
+migrations/0001_*.sql
+migrations/0002_*.sql
+migrations/0003_*.sql
+migrations/0004_*.sql
+migrations/0005_*.sql
+migrations/0006_*.sql
+migrations/0007_*.sql
+migrations/0008_*.sql
+migrations/0009_*.sql
 *.dump
 *.bak
 *_backup_*
