@@ -575,6 +575,7 @@ export const insertDemandSchema = z.object({
   assignationBuildingId: z.preprocess((val) => val === '' ? undefined : val, z.string().uuid().optional()),
   description: z
     .string()
+    .trim()
     .min(10, 'Description must be at least 10 characters')
     .max(2000, 'Description must not exceed 2000 characters'),
   filePath: z.string().optional(), // Path to uploaded file
@@ -694,10 +695,12 @@ export const insertGeneralCommunicationSchema = z.object({
   createdBy: z.string().uuid(),
   title: z
     .string()
+    .trim()
     .min(1, 'Title is required')
     .max(200, 'Title must be 200 characters or fewer'),
   content: z
     .string()
+    .trim()
     .min(1, 'Content is required')
     .max(5000, 'Content must be 5000 characters or fewer'),
   isUrgent: z.boolean().default(false),
@@ -708,9 +711,9 @@ export const insertGeneralCommunicationSchema = z.object({
 export const insertMeetingSchema = z.object({
   organizationId: z.string().uuid(),
   createdBy: z.string().uuid(),
-  title: z.string().min(1, 'Title is required'),
+  title: z.string().trim().min(1, 'Title is required'),
   description: z.string().optional(),
-  location: z.string().min(1, 'Location is required'),
+  location: z.string().trim().min(1, 'Location is required'),
   scheduledDate: z.date(),
   duration: z.number().int().positive('Duration must be a positive number'),
   invitedRoles: z.array(z.string()).optional(),

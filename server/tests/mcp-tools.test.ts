@@ -1973,4 +1973,168 @@ describe('MCP Server', () => {
       expect(parsed.message).toMatch(/garbage-id/);
     });
   });
+
+  // Task #620 — empty/whitespace-only mandatory free-text fields must be
+  // rejected by the MCP tool input schema before the handler ever runs, and
+  // a valid non-empty value should be normalized via .trim() so it persists
+  // without surrounding whitespace.
+  describe('Reject empty/whitespace-only text fields (Task #620)', () => {
+    function getToolInputSchema(toolName: string) {
+      const tools = (server as ReturnType<typeof createMcpServer> & {
+        _registeredTools: Record<string, { inputSchema?: unknown }>;
+      })._registeredTools;
+      const tool = tools?.[toolName];
+      if (!tool || !tool.inputSchema) {
+        throw new Error(`Tool "${toolName}" or its inputSchema not found`);
+      }
+      return tool.inputSchema as { safeParse: (input: unknown) => { success: boolean; data?: Record<string, unknown>; error?: { issues: Array<{ path: (string | number)[] }> } } };
+    }
+
+    describe('create_communication MCP input', () => {
+      const baseArgs = {
+        role: 'admin' as const,
+        organizationId: '11111111-1111-1111-1111-111111111111',
+        content: 'Some valid content body.',
+      };
+
+      it('rejects an empty title with a validation error (no DB write)', () => {
+        const schema = getToolInputSchema('create_communication');
+        const parsed = schema.safeParse({ ...baseArgs, title: '' });
+        expect(parsed.success).toBe(false);
+        if (!parsed.success) {
+          expect(parsed.error?.issues.some((i) => i.path[0] === 'title')).toBe(true);
+        }
+      });
+
+      it('rejects a whitespace-only title with a validation error (no DB write)', () => {
+        const schema = getToolInputSchema('create_communication');
+        const parsed = schema.safeParse({ ...baseArgs, title: '   ' });
+        expect(parsed.success).toBe(false);
+        if (!parsed.success) {
+          expect(parsed.error?.issues.some((i) => i.path[0] === 'title')).toBe(true);
+        }
+      });
+
+      it('rejects a whitespace-only content with a validation error (no DB write)', () => {
+        const schema = getToolInputSchema('create_communication');
+        const parsed = schema.safeParse({ ...baseArgs, title: 'Hello', content: '   ' });
+        expect(parsed.success).toBe(false);
+        if (!parsed.success) {
+          expect(parsed.error?.issues.some((i) => i.path[0] === 'content')).toBe(true);
+        }
+      });
+
+      it('accepts a valid non-empty title and trims it', () => {
+        const schema = getToolInputSchema('create_communication');
+        const parsed = schema.safeParse({ ...baseArgs, title: 'x  ' });
+        expect(parsed.success).toBe(true);
+        if (parsed.success) {
+          expect(parsed.data?.title).toBe('x');
+        }
+      });
+    });
+
+    describe('insertGeneralCommunicationSchema (Zod schema)', () => {
+      const ORG_ID = '11111111-1111-1111-1111-111111111111';
+      const USER_ID = '22222222-2222-2222-2222-222222222222';
+      const basePayload = (overrides: Record<string, unknown> = {}) => ({
+        organizationId: ORG_ID,
+        createdBy: USER_ID,
+        title: 'A valid title',
+        content: 'Some valid content body.',
+        ...overrides,
+      });
+
+      it('rejects empty title', () => {
+        const { insertGeneralCommunicationSchema } = require('@shared/schemas/operations');
+        const r = insertGeneralCommunicationSchema.safeParse(basePayload({ title: '' }));
+        expect(r.success).toBe(false);
+      });
+
+      it('rejects whitespace-only title', () => {
+        const { insertGeneralCommunicationSchema } = require('@shared/schemas/operations');
+        const r = insertGeneralCommunicationSchema.safeParse(basePayload({ title: '   ' }));
+        expect(r.success).toBe(false);
+      });
+
+      it('rejects whitespace-only content', () => {
+        const { insertGeneralCommunicationSchema } = require('@shared/schemas/operations');
+        const r = insertGeneralCommunicationSchema.safeParse(basePayload({ content: '   ' }));
+        expect(r.success).toBe(false);
+      });
+
+      it('trims a valid title before persistence', () => {
+        const { insertGeneralCommunicationSchema } = require('@shared/schemas/operations');
+        const r = insertGeneralCommunicationSchema.safeParse(basePayload({ title: 'x  ' }));
+        expect(r.success).toBe(true);
+        if (r.success) {
+          expect(r.data.title).toBe('x');
+        }
+      });
+    });
+
+    describe('create_demand MCP input', () => {
+      const baseArgs = {
+        role: 'tenant' as const,
+        buildingId: '33333333-3333-3333-3333-333333333333',
+        type: 'maintenance' as const,
+      };
+
+      it('rejects an empty description with a validation error (no DB write)', () => {
+        const schema = getToolInputSchema('create_demand');
+        const parsed = schema.safeParse({ ...baseArgs, description: '' });
+        expect(parsed.success).toBe(false);
+        if (!parsed.success) {
+          expect(parsed.error?.issues.some((i) => i.path[0] === 'description')).toBe(true);
+        }
+      });
+
+      it('rejects a whitespace-only description with a validation error (no DB write)', () => {
+        const schema = getToolInputSchema('create_demand');
+        const parsed = schema.safeParse({ ...baseArgs, description: '   ' });
+        expect(parsed.success).toBe(false);
+        if (!parsed.success) {
+          expect(parsed.error?.issues.some((i) => i.path[0] === 'description')).toBe(true);
+        }
+      });
+
+      it('accepts a non-empty description and trims it', () => {
+        const schema = getToolInputSchema('create_demand');
+        const parsed = schema.safeParse({ ...baseArgs, description: 'Broken window in unit 101  ' });
+        expect(parsed.success).toBe(true);
+        if (parsed.success) {
+          expect(parsed.data?.description).toBe('Broken window in unit 101');
+        }
+      });
+    });
+
+    describe('insertDemandSchema (Zod schema)', () => {
+      const baseDemand = (overrides: Record<string, unknown> = {}) => ({
+        type: 'maintenance' as const,
+        description: 'Broken window in unit 101',
+        ...overrides,
+      });
+
+      it('rejects empty description', () => {
+        const { insertDemandSchema } = require('@shared/schemas/operations');
+        const r = insertDemandSchema.safeParse(baseDemand({ description: '' }));
+        expect(r.success).toBe(false);
+      });
+
+      it('rejects whitespace-only description (trims to empty before min check)', () => {
+        const { insertDemandSchema } = require('@shared/schemas/operations');
+        const r = insertDemandSchema.safeParse(baseDemand({ description: '          ' }));
+        expect(r.success).toBe(false);
+      });
+
+      it('trims a valid description before persistence', () => {
+        const { insertDemandSchema } = require('@shared/schemas/operations');
+        const r = insertDemandSchema.safeParse(baseDemand({ description: '  Broken window in unit 101  ' }));
+        expect(r.success).toBe(true);
+        if (r.success) {
+          expect(r.data.description).toBe('Broken window in unit 101');
+        }
+      });
+    });
+  });
 });

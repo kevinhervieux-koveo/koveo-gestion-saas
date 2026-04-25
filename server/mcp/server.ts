@@ -2205,7 +2205,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       role: roleParam,
       buildingId: z.string().describe("Building ID"),
       type: z.enum(["complaint", "information", "maintenance", "other"]).describe("Demand type"),
-      description: z.string().describe("Detailed description"),
+      description: z.string().trim().min(1, 'Description is required').describe("Detailed description"),
       residenceId: z.string().optional().describe("Optional residence ID"),
       attachment: demandAttachmentParam,
     },
@@ -3541,8 +3541,8 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     {
       role: roleParam,
       organizationId: z.string().describe("Organization ID"),
-      title: z.string().describe("Communication title"),
-      content: z.string().describe("Communication content"),
+      title: z.string().trim().min(1, 'Title is required').describe("Communication title"),
+      content: z.string().trim().min(1, 'Content is required').describe("Communication content"),
       isUrgent: z.boolean().default(false).describe("Whether this is urgent"),
     },
     async ({ role, organizationId, title, content, isUrgent }) => {
