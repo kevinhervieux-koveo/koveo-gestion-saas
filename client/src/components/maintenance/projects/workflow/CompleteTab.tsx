@@ -23,6 +23,7 @@ import {
 } from '@/hooks/useProjectWorkflow';
 import { MaintenanceProject } from '@shared/schemas/maintenance';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/hooks/use-language';
 import { format } from 'date-fns';
 import { formatStatus, parseDateOnly } from '@/lib/utils';
 import { ReopenStepDialog } from './ReopenStepDialog';
@@ -58,6 +59,7 @@ type CompleteTabData = z.infer<typeof completeTabSchema>;
  * Displays project summary, final comments, and completion status
  */
 export function CompleteTab({ project, workflowState, onUpdate }: CompleteTabProps) {
+  const { t } = useLanguage();
   // Defensive null check for project data — must come BEFORE any hook calls
   // to comply with the Rules of Hooks.
   if (!project) {
@@ -66,7 +68,7 @@ export function CompleteTab({ project, workflowState, onUpdate }: CompleteTabPro
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
-            Project data is missing. Unable to load the completion tab.
+            {t('wfCompleteProjectMissing')}
           </AlertDescription>
         </Alert>
       </div>
@@ -161,7 +163,7 @@ export function CompleteTab({ project, workflowState, onUpdate }: CompleteTabPro
             )}
           </div>
           <p className="text-sm text-muted-foreground">
-            Final project summary and completion details
+            {t('wfCompleteSummaryDescription')}
           </p>
         </div>
         
@@ -188,7 +190,7 @@ export function CompleteTab({ project, workflowState, onUpdate }: CompleteTabPro
                 Completion Summary
               </CardTitle>
               <CardDescription>
-                Document the final outcome, lessons learned, and key accomplishments
+                {t('wfCompleteSummaryCardDesc')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -201,20 +203,14 @@ export function CompleteTab({ project, workflowState, onUpdate }: CompleteTabPro
                       <FormItem>
                         <FormControl>
                           <Textarea
-                            placeholder="Provide a comprehensive summary of the completed work, including:
-• What was accomplished
-• Any challenges overcome
-• Quality of work delivered
-• Impact on the building/residents
-• Lessons learned for future projects
-• Recommendations for maintenance"
+                            placeholder={t('wfCompleteSummaryPlaceholder')}
                             className="min-h-[200px]"
                             {...field}
                             data-testid="textarea-completion-summary"
                           />
                         </FormControl>
                         <FormDescription>
-                          This summary will be part of the permanent project record
+                          {t('wfCompleteSummaryFieldDesc')}
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -423,7 +419,7 @@ export function CompleteTab({ project, workflowState, onUpdate }: CompleteTabPro
       {/* Action Buttons */}
       <div className="flex items-center justify-between pt-6 border-t">
         <div className="text-sm text-muted-foreground">
-          Project has been completed successfully
+          {t('wfCompleteFooterStatus')}
         </div>
         
         <ReopenStepDialog

@@ -32,6 +32,7 @@ import {
   Users,
 } from 'lucide-react';
 import { WorkflowSkipConfigDialog } from './WorkflowSkipConfigDialog';
+import { useLanguage } from '@/hooks/use-language';
 
 export interface ProjectWorkflowModalProps {
   isOpen: boolean;
@@ -91,6 +92,7 @@ export function ProjectWorkflowModal({
   initialTab,
   onProjectUpdate,
 }: ProjectWorkflowModalProps) {
+  const { t } = useLanguage();
   // Defensive null check for project prop
   if (!project) {
     return (
@@ -102,14 +104,14 @@ export function ProjectWorkflowModal({
               Project Missing
             </DialogTitle>
             <DialogDescription>
-              No project data provided to the workflow modal
+              {t('wfModalNoProjectDescription')}
             </DialogDescription>
           </DialogHeader>
           
           <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
-              Project information is missing. Please close this modal and try again.
+              {t('wfModalProjectMissingMessage')}
             </AlertDescription>
           </Alert>
         </DialogContent>
@@ -263,7 +265,7 @@ export function ProjectWorkflowModal({
         <Alert className="m-4">
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
-            Project data is missing or still loading. Please wait a moment and try again.
+            {t('wfModalProjectStillLoading')}
           </AlertDescription>
         </Alert>
       );
@@ -302,7 +304,7 @@ export function ProjectWorkflowModal({
           <Alert className="m-4">
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
-              Unknown tab: {activeTab}. Please select a valid workflow tab.
+              Unknown tab: {activeTab}. {t('wfModalUnknownTabSuffix')}
             </AlertDescription>
           </Alert>
         );
@@ -322,7 +324,7 @@ export function ProjectWorkflowModal({
               </div>
             </DialogTitle>
             <DialogDescription>
-              Loading project workflow information...
+              {t('wfModalLoadingDescription')}
             </DialogDescription>
           </DialogHeader>
           
@@ -361,7 +363,7 @@ export function ProjectWorkflowModal({
               Workflow Error
             </DialogTitle>
             <DialogDescription>
-              Unable to load project workflow information
+              {t('wfModalUnableToLoad')}
             </DialogDescription>
           </DialogHeader>
           

@@ -2810,6 +2810,46 @@ export interface Translations {
   permanentlyDeleteYourAccountAndAll: string;
   exportAllYourPersonalDataIncluding: string;
 
+  // i18n migration (task 711): keys generated for the maintenance project
+  // workflow tabs (PlannedTab, PreWorkTab, SubmissionTab, InProgressTab,
+  // PostWorkTab, CompleteTab, ElementManagementTab, PaymentPlanForm,
+  // ProjectWorkflowModal, ReopenStepDialog, WorkflowSkipConfigDialog).
+  wfCompleteProjectMissing: string;
+  wfCompleteSummaryDescription: string;
+  wfCompleteSummaryCardDesc: string;
+  wfCompleteSummaryFieldDesc: string;
+  wfCompleteFooterStatus: string;
+  wfElementsAddDescription: string;
+  wfElementsIncludedDescription: string;
+  wfElementsAdjustSearchHint: string;
+  wfElementsNoneAddedYet: string;
+  wfElementsAddFromAvailable: string;
+  wfElementsBulkRemovePrefix: string;
+  wfElementsBulkRemoveSuffix: string;
+  wfInProgressProjectMissing: string;
+  wfPlannedProjectMissing: string;
+  wfPreWorkProjectMissing: string;
+  wfPaymentConfigDescription: string;
+  wfPaymentTypeDescription: string;
+  wfPaymentEndRecurringLabel: string;
+  wfPaymentInitialDescription: string;
+  wfPaymentEqualRecurringDesc: string;
+  wfPaymentMismatchPrefix: string;
+  wfPaymentMismatchSuffix: string;
+  wfModalNoProjectDescription: string;
+  wfModalProjectMissingMessage: string;
+  wfModalProjectStillLoading: string;
+  wfModalUnknownTabSuffix: string;
+  wfModalLoadingDescription: string;
+  wfModalUnableToLoad: string;
+  wfSubmissionAvailableDateDesc: string;
+  wfSubmissionAdditionalDetailsDesc: string;
+  wfSkipConfigDescription: string;
+  wfSkipConfigCompletedNote: string;
+  wfSkipConfigChangesImmediate: string;
+  wfSkipConfigDeleteConfirmation: string;
+  wfCompleteSummaryPlaceholder: string;
+  wfElementsSearchPlaceholder: string;
 }
 
 /**
@@ -5627,6 +5667,43 @@ export const translations: Record<Language, Translations> = {
     permanentlyDeleteYourAccountAndAll: 'Permanently delete your account and all associated data. This action cannot be undone.',
     exportAllYourPersonalDataIncluding: 'Export all your personal data including profile information, bills, documents, and activity history.',
 
+    // Workflow tabs (task 711)
+    wfCompleteProjectMissing: 'Project data is missing. Unable to load the completion tab.',
+    wfCompleteSummaryDescription: 'Final project summary and completion details',
+    wfCompleteSummaryCardDesc: 'Document the final outcome, lessons learned, and key accomplishments',
+    wfCompleteSummaryFieldDesc: 'This summary will be part of the permanent project record',
+    wfCompleteFooterStatus: 'Project has been completed successfully',
+    wfElementsAddDescription: 'Add elements to this maintenance project',
+    wfElementsIncludedDescription: 'Elements included in this maintenance project',
+    wfElementsAdjustSearchHint: 'Try adjusting your search terms.',
+    wfElementsNoneAddedYet: 'No elements added to this project yet.',
+    wfElementsAddFromAvailable: 'Add elements from the available elements below.',
+    wfElementsBulkRemovePrefix: 'This will remove',
+    wfElementsBulkRemoveSuffix: 'selected elements from the project. This action cannot be undone.',
+    wfInProgressProjectMissing: 'Project data is missing. Unable to load the in-progress tab.',
+    wfPlannedProjectMissing: 'Project data is missing. Unable to load the planning tab.',
+    wfPreWorkProjectMissing: 'Project data is missing. Unable to load the pre-work tab.',
+    wfPaymentConfigDescription: 'Configure payment schedule and amounts for this vendor submission',
+    wfPaymentTypeDescription: 'Choose whether this is a single payment or multiple payments over time',
+    wfPaymentEndRecurringLabel: 'Date End Recurring Payment (Optional)',
+    wfPaymentInitialDescription: 'Check if there\'s a different initial payment amount',
+    wfPaymentEqualRecurringDesc: 'Check if all recurring payments are the same amount',
+    wfPaymentMismatchPrefix: 'Payment plan total',
+    wfPaymentMismatchSuffix: 'does not match the vendor price',
+    wfModalNoProjectDescription: 'No project data provided to the workflow modal',
+    wfModalProjectMissingMessage: 'Project information is missing. Please close this modal and try again.',
+    wfModalProjectStillLoading: 'Project data is missing or still loading. Please wait a moment and try again.',
+    wfModalUnknownTabSuffix: 'Please select a valid workflow tab.',
+    wfModalLoadingDescription: 'Loading project workflow information...',
+    wfModalUnableToLoad: 'Unable to load project workflow information',
+    wfSubmissionAvailableDateDesc: 'When can the vendor start the work?',
+    wfSubmissionAdditionalDetailsDesc: 'Additional details about the vendor\'s submission',
+    wfSkipConfigDescription: 'Configure which workflow steps to skip for this project. Skipped steps will be automatically bypassed during progression.',
+    wfSkipConfigCompletedNote: 'This step has already been completed and cannot be modified.',
+    wfSkipConfigChangesImmediate: 'Changes are applied immediately',
+    wfSkipConfigDeleteConfirmation: 'Are you sure you want to permanently delete this project? This action cannot be undone. All project data, tasks, vendor submissions, and workflow history will be permanently removed.',
+    wfCompleteSummaryPlaceholder: 'Provide a comprehensive summary of the completed work, including:\n• What was accomplished\n• Any challenges overcome\n• Quality of work delivered\n• Impact on the building/residents\n• Lessons learned for future projects\n• Recommendations for maintenance',
+    wfElementsSearchPlaceholder: 'Search elements by name, description, or UNIFORMAT code...',
   },
   fr: {
 
@@ -8440,5 +8517,42 @@ export const translations: Record<Language, Translations> = {
     permanentlyDeleteYourAccountAndAll: 'Supprimer définitivement votre compte et toutes les données associées. Cette action est irréversible.',
     exportAllYourPersonalDataIncluding: 'Exporter toutes vos données personnelles, y compris les informations de profil, les factures, les documents et l\'historique d\'activité.',
 
+    // Workflow tabs (task 711)
+    wfCompleteProjectMissing: 'Données du projet manquantes. Impossible de charger l\'onglet de complétion.',
+    wfCompleteSummaryDescription: 'Résumé final du projet et détails de complétion',
+    wfCompleteSummaryCardDesc: 'Documenter le résultat final, les leçons apprises et les principales réalisations',
+    wfCompleteSummaryFieldDesc: 'Ce résumé fera partie du dossier permanent du projet',
+    wfCompleteFooterStatus: 'Le projet a été complété avec succès',
+    wfElementsAddDescription: 'Ajouter des éléments à ce projet de maintenance',
+    wfElementsIncludedDescription: 'Éléments inclus dans ce projet de maintenance',
+    wfElementsAdjustSearchHint: 'Essayez d\'ajuster vos termes de recherche.',
+    wfElementsNoneAddedYet: 'Aucun élément ajouté à ce projet pour le moment.',
+    wfElementsAddFromAvailable: 'Ajoutez des éléments à partir des éléments disponibles ci-dessous.',
+    wfElementsBulkRemovePrefix: 'Ceci retirera',
+    wfElementsBulkRemoveSuffix: 'éléments sélectionnés du projet. Cette action est irréversible.',
+    wfInProgressProjectMissing: 'Données du projet manquantes. Impossible de charger l\'onglet en cours.',
+    wfPlannedProjectMissing: 'Données du projet manquantes. Impossible de charger l\'onglet de planification.',
+    wfPreWorkProjectMissing: 'Données du projet manquantes. Impossible de charger l\'onglet de pré-travaux.',
+    wfPaymentConfigDescription: 'Configurer le calendrier et les montants de paiement pour cette soumission du fournisseur',
+    wfPaymentTypeDescription: 'Choisir s\'il s\'agit d\'un paiement unique ou de plusieurs paiements échelonnés',
+    wfPaymentEndRecurringLabel: 'Date de fin du paiement récurrent (facultatif)',
+    wfPaymentInitialDescription: 'Cocher s\'il y a un montant de paiement initial différent',
+    wfPaymentEqualRecurringDesc: 'Cocher si tous les paiements récurrents sont du même montant',
+    wfPaymentMismatchPrefix: 'Le total du plan de paiement',
+    wfPaymentMismatchSuffix: 'ne correspond pas au prix du fournisseur',
+    wfModalNoProjectDescription: 'Aucune donnée de projet fournie au modal de flux de travail',
+    wfModalProjectMissingMessage: 'Les informations du projet sont manquantes. Veuillez fermer ce modal et réessayer.',
+    wfModalProjectStillLoading: 'Les données du projet sont manquantes ou en cours de chargement. Veuillez patienter un instant et réessayer.',
+    wfModalUnknownTabSuffix: 'Veuillez sélectionner un onglet de flux de travail valide.',
+    wfModalLoadingDescription: 'Chargement des informations du flux de travail du projet...',
+    wfModalUnableToLoad: 'Impossible de charger les informations du flux de travail du projet',
+    wfSubmissionAvailableDateDesc: 'Quand le fournisseur peut-il commencer le travail ?',
+    wfSubmissionAdditionalDetailsDesc: 'Détails supplémentaires concernant la soumission du fournisseur',
+    wfSkipConfigDescription: 'Configurer les étapes du flux de travail à ignorer pour ce projet. Les étapes ignorées seront automatiquement contournées lors de la progression.',
+    wfSkipConfigCompletedNote: 'Cette étape a déjà été complétée et ne peut être modifiée.',
+    wfSkipConfigChangesImmediate: 'Les modifications sont appliquées immédiatement',
+    wfSkipConfigDeleteConfirmation: 'Êtes-vous certain de vouloir supprimer définitivement ce projet ? Cette action est irréversible. Toutes les données du projet, les tâches, les soumissions des fournisseurs et l\'historique du flux de travail seront définitivement supprimés.',
+    wfCompleteSummaryPlaceholder: 'Fournissez un résumé complet des travaux réalisés, incluant :\n• Ce qui a été accompli\n• Les défis surmontés\n• La qualité des travaux livrés\n• L\'impact sur l\'immeuble et les résidents\n• Les leçons apprises pour les projets futurs\n• Les recommandations d\'entretien',
+    wfElementsSearchPlaceholder: 'Rechercher des éléments par nom, description ou code UNIFORMAT...',
   }
 };

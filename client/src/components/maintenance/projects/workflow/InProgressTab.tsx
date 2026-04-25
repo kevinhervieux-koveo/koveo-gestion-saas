@@ -56,7 +56,7 @@ export function InProgressTab({ project, workflowState, onUpdate, onMarkComplete
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
-            Project data is missing. Unable to load the in-progress tab.
+            {t('wfInProgressProjectMissing')}
           </AlertDescription>
         </Alert>
       </div>

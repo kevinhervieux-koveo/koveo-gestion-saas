@@ -23,6 +23,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useUpdateSkipFlags, useDeleteProject, type ProjectWorkflowState } from '@/hooks/useProjectWorkflow';
 import { Settings, CheckCircle2, Clock, Users, Building2, Wrench, Trash2 } from 'lucide-react';
+import { useLanguage } from '@/hooks/use-language';
 import { cn } from '@/lib/utils';
 
 export interface WorkflowSkipConfigDialogProps {
@@ -70,6 +71,7 @@ export function WorkflowSkipConfigDialog({
   onDelete,
   isQuickProject = false
 }: WorkflowSkipConfigDialogProps) {
+  const { t } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const { mutate: updateSkipFlags, isPending } = useUpdateSkipFlags();
@@ -144,7 +146,7 @@ export function WorkflowSkipConfigDialog({
             Workflow Configuration
           </DialogTitle>
           <DialogDescription>
-            Configure which workflow steps to skip for this project. Skipped steps will be automatically bypassed during progression.
+            {t('wfSkipConfigDescription')}
           </DialogDescription>
         </DialogHeader>
 
@@ -227,7 +229,7 @@ export function WorkflowSkipConfigDialog({
                   
                   {!canToggle && (
                     <p className="text-xs text-gray-500 mt-2">
-                      This step has already been completed and cannot be modified.
+                      {t('wfSkipConfigCompletedNote')}
                     </p>
                   )}
                 </CardContent>
@@ -250,7 +252,7 @@ export function WorkflowSkipConfigDialog({
             </Button>
 
             <div className="text-sm text-muted-foreground">
-              Changes are applied immediately
+              {t('wfSkipConfigChangesImmediate')}
             </div>
           </div>
           
@@ -268,8 +270,7 @@ export function WorkflowSkipConfigDialog({
         <AlertDialogHeader>
           <AlertDialogTitle>Delete Project</AlertDialogTitle>
           <AlertDialogDescription>
-            Are you sure you want to permanently delete this project? This action cannot be undone.
-            All project data, tasks, vendor submissions, and workflow history will be permanently removed.
+            {t('wfSkipConfigDeleteConfirmation')}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

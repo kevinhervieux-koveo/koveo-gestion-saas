@@ -1003,7 +1003,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                           />
                         </FormControl>
                         <FormDescription>
-                          When can the vendor start the work?
+                          {t('wfSubmissionAvailableDateDesc')}
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -1027,7 +1027,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                           />
                         </FormControl>
                         <FormDescription>
-                          Additional details about the vendor's submission
+                          {t('wfSubmissionAdditionalDetailsDesc')}
                         </FormDescription>
                         <FormMessage />
                       </FormItem>

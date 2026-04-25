@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Checkbox } from '@/components/ui/checkbox';
+import { useLanguage } from '@/hooks/use-language';
 import { cn } from '@/lib/utils';
 import {
   CalendarIcon,
@@ -103,6 +104,7 @@ export function PaymentPlanForm({
   onCancel,
   isLoading = false,
 }: PaymentPlanFormProps) {
+  const { t } = useLanguage();
   const [customDates, setCustomDates] = useState<string[]>(
     initialData?.paymentPlanCustomDates || []
   );
@@ -272,7 +274,7 @@ export function PaymentPlanForm({
           Payment Plan Setup
         </CardTitle>
         <CardDescription>
-          Configure payment schedule and amounts for this vendor submission
+          {t('wfPaymentConfigDescription')}
         </CardDescription>
       </CardHeader>
 
@@ -298,7 +300,7 @@ export function PaymentPlanForm({
                     </SelectContent>
                   </Select>
                   <FormDescription>
-                    Choose whether this is a single payment or multiple payments over time
+                    {t('wfPaymentTypeDescription')}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -359,7 +361,7 @@ export function PaymentPlanForm({
                 name="dateEndRecurring"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Date End Recurring Payment (Optional)</FormLabel>
+                    <FormLabel>{t('wfPaymentEndRecurringLabel')}</FormLabel>
                     <FormControl>
                       <Input
                         type="date"
@@ -429,7 +431,7 @@ export function PaymentPlanForm({
                       Has initial payment
                     </FormLabel>
                     <FormDescription>
-                      Check if there's a different initial payment amount
+                      {t('wfPaymentInitialDescription')}
                     </FormDescription>
                   </div>
                 </FormItem>
@@ -485,7 +487,7 @@ export function PaymentPlanForm({
                           Equal recurring payments
                         </FormLabel>
                         <FormDescription>
-                          Check if all recurring payments are the same amount
+                          {t('wfPaymentEqualRecurringDesc')}
                         </FormDescription>
                       </div>
                     </FormItem>
@@ -615,7 +617,7 @@ export function PaymentPlanForm({
               <Alert>
                 <Info className="h-4 w-4" />
                 <AlertDescription>
-                  Payment plan total (${total.toFixed(2)}) does not match the vendor price (${totalAmount.toFixed(2)})
+                  {t('wfPaymentMismatchPrefix')} (${total.toFixed(2)}) {t('wfPaymentMismatchSuffix')} (${totalAmount.toFixed(2)})
                 </AlertDescription>
               </Alert>
             )}

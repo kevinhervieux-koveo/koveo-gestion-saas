@@ -86,7 +86,7 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
-            Project data is missing. Unable to load the pre-work tab.
+            {t('wfPreWorkProjectMissing')}
           </AlertDescription>
         </Alert>
       </div>

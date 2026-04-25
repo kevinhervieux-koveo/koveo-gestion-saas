@@ -76,7 +76,7 @@ export function PlannedTab({ project, workflowState, onUpdate, onAdvanceToNext }
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
-            Project data is missing. Unable to load the planning tab.
+            {t('wfPlannedProjectMissing')}
           </AlertDescription>
         </Alert>
       </div>

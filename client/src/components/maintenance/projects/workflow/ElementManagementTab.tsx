@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/hooks/use-language';
 import { apiRequest } from '@/lib/queryClient';
 import { BuildingElement, ProjectElement, ProjectWorkflowState } from '@shared/schemas/maintenance';
 import { MaintenanceProject } from '@shared/schemas/maintenance';
@@ -49,6 +50,7 @@ const PROJECT_TYPES = [
 ];
 
 export function ElementManagementTab({ project, workflowState, onUpdate, onNavigateToTab }: ElementManagementTabProps) {
+  const { t } = useLanguage();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedElements, setSelectedElements] = useState<string[]>([]);
@@ -311,7 +313,7 @@ export function ElementManagementTab({ project, workflowState, onUpdate, onNavig
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
-              placeholder="Search elements by name, description, or UNIFORMAT code..."
+              placeholder={t('wfElementsSearchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10 pr-10"
@@ -357,7 +359,7 @@ export function ElementManagementTab({ project, workflowState, onUpdate, onNavig
                     Available Building Elements ({searchTerm ? filteredAvailableElements.length : availableElements.length})
                   </CardTitle>
                   <CardDescription>
-                    Add elements to this maintenance project
+                    {t('wfElementsAddDescription')}
                     {searchTerm && ` • Filtered by "${searchTerm}"`}
                   </CardDescription>
                 </div>
@@ -438,7 +440,7 @@ export function ElementManagementTab({ project, workflowState, onUpdate, onNavig
                   Project Elements ({projectElements.length})
                 </CardTitle>
                 <CardDescription>
-                  Elements included in this maintenance project
+                  {t('wfElementsIncludedDescription')}
                 </CardDescription>
               </div>
             </div>
@@ -476,12 +478,12 @@ export function ElementManagementTab({ project, workflowState, onUpdate, onNavig
               {searchTerm ? (
                 <div>
                   <p>No elements found matching "{searchTerm}"</p>
-                  <p className="text-sm">Try adjusting your search terms.</p>
+                  <p className="text-sm">{t('wfElementsAdjustSearchHint')}</p>
                 </div>
               ) : projectElements.length === 0 ? (
                 <div>
-                  <p>No elements added to this project yet.</p>
-                  <p className="text-sm">Add elements from the available elements below.</p>
+                  <p>{t('wfElementsNoneAddedYet')}</p>
+                  <p className="text-sm">{t('wfElementsAddFromAvailable')}</p>
                 </div>
               ) : (
                 <div>
@@ -647,7 +649,7 @@ export function ElementManagementTab({ project, workflowState, onUpdate, onNavig
                     <span className="text-sm font-medium">Warning</span>
                   </div>
                   <p className="text-sm text-red-700 dark:text-red-300 mt-1">
-                    This will remove {selectedElements.length} selected elements from the project. This action cannot be undone.
+                    {t('wfElementsBulkRemovePrefix')} {selectedElements.length} {t('wfElementsBulkRemoveSuffix')}
                   </p>
                 </div>
               )}
