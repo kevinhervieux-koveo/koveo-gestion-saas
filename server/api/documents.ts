@@ -2821,8 +2821,20 @@ export function registerDocumentRoutes(app: import('../utils/lazy-mount').RouteR
           fs.mkdirSync(documentsDir, { recursive: true });
         }
 
-        // Move file from temp to final location
-        fs.renameSync(req.file.path, finalPath);
+        // Move file from temp to final location. Use copy+unlink instead of
+        // renameSync because multer's temp dir (/tmp) and the project's
+        // uploads/ directory may live on different filesystems, in which
+        // case rename(2) fails with EXDEV.
+        try {
+          fs.renameSync(req.file.path, finalPath);
+        } catch (renameErr: any) {
+          if (renameErr && renameErr.code === 'EXDEV') {
+            fs.copyFileSync(req.file.path, finalPath);
+            fs.unlinkSync(req.file.path);
+          } else {
+            throw renameErr;
+          }
+        }
         
         // Update file-related fields
         updateData.filePath = relativePath;

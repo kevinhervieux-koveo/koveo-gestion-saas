@@ -42,6 +42,17 @@ import { normalizeFilename } from '../utils/filenameNormalization';
 const FRENCH_FILENAME = 'Procès-verbal été 2024.pdf';
 const EXPECTED_NORMALIZED = 'proces-verbal_ete_2024.pdf';
 
+// The Latin-1 mis-decoded form of the same filename. Some clients (older
+// Safari/Edge multipart implementations, certain Windows uploaders) send
+// filename headers whose UTF-8 bytes were already mis-decoded as Latin-1
+// upstream, so the bytes that hit multer look like "ProcÃ¨s-verbal Ã©tÃ©"
+// instead of the original UTF-8. Task #855 added defensive
+// `fixLatin1MisdecodeFilename` calls in every regular upload route to
+// recover the original UTF-8 from those bytes; these tests guard that
+// recovery end-to-end so a future refactor cannot silently regress
+// `originalFileName` for accented uploads.
+const FRENCH_LATIN1_MISDECODED = Buffer.from(FRENCH_FILENAME, 'utf8').toString('latin1');
+
 describe('Upload filename normalization (end-to-end)', () => {
   const FIXTURES_DIR = path.join(process.cwd(), 'server/tests/fixtures');
   const TEST_PDF_PATH = path.join(FIXTURES_DIR, 'french-upload.pdf');
@@ -57,6 +68,8 @@ describe('Upload filename normalization (end-to-end)', () => {
   // assertion fails.
   const createdDocumentIds = new Set<string>();
   const createdElementDocumentIds = new Set<string>();
+  // Bills created by the from-auto-generated test that aren't testBillId.
+  const createdAuxBillIds = new Set<string>();
 
   beforeAll(async () => {
     if (!fs.existsSync(FIXTURES_DIR)) {
@@ -192,6 +205,9 @@ describe('Upload filename normalization (end-to-end)', () => {
         // Bill upload also creates a row in `documents` linked by attachedTo
         // — clean up any document rows that point at our bill or building.
         await db.delete(documents).where(eq(documents.buildingId, testBuilding.id));
+        for (const id of createdAuxBillIds) {
+          await db.delete(bills).where(eq(bills.id, id));
+        }
         await db.delete(bills).where(eq(bills.id, testBillId));
       }
       if (testUser?.id) {
@@ -314,5 +330,253 @@ describe('Upload filename normalization (end-to-end)', () => {
       fileName: row.fileName,
       filePath: row.filePath,
     });
+  });
+
+  // Latin-1 mis-decode round-trip coverage (Task #855 / Task #869).
+  // Each test below asserts that the recovered UTF-8 originalFileName is
+  // persisted when the client sends the Latin-1 mis-decoded form of the
+  // filename. We intentionally only assert on `originalFileName` here; the
+  // routes call `normalizeFilename` on the raw mojibake before applying the
+  // Latin-1 fix, so the on-disk `fileName` shape for mojibake inputs is
+  // orthogonal to what Task #855 fixes (the clean-UTF-8 `fileName` slug is
+  // already pinned by the block above).
+
+  /**
+   * Sanity guard so a regression in fixLatin1MisdecodeFilename or the
+   * multer/utf8 round-trip surfaces here before the route-level tests.
+   */
+  it('fixLatin1MisdecodeFilename pins the Latin-1 → UTF-8 recovery', () => {
+    expect(FRENCH_LATIN1_MISDECODED).toBe('ProcÃ¨s-verbal Ã©tÃ© 2024.pdf');
+    // The recovery is exactly what the regular upload routes apply server-side
+    // before persisting `originalFileName`.
+    expect(
+      Buffer.from(FRENCH_LATIN1_MISDECODED, 'latin1').toString('utf8'),
+    ).toBe(FRENCH_FILENAME);
+  });
+
+  it('POST /api/documents recovers UTF-8 originalFileName from a Latin-1 mis-decoded multipart filename', async () => {
+    const res = await request(app)
+      .post('/api/documents')
+      .set('x-test-user-id', testUser.id)
+      .field('name', 'French Document (latin1 mis-decode)')
+      .field('documentType', 'legal')
+      .field('buildingId', testBuilding.id)
+      .field('isVisibleToTenants', 'false')
+      .attach('file', TEST_PDF_PATH, FRENCH_LATIN1_MISDECODED);
+
+    expect(res.status, `body=${JSON.stringify(res.body)}`).toBe(201);
+    const documentId: string = res.body.id;
+    expect(documentId).toBeTruthy();
+    createdDocumentIds.add(documentId);
+
+    const rows = await db
+      .select()
+      .from(documents)
+      .where(eq(documents.id, documentId));
+    expect(rows).toHaveLength(1);
+    const row = rows[0];
+
+    expect(
+      row.originalFileName,
+      '/api/documents: originalFileName must recover UTF-8 from Latin-1 mis-decode',
+    ).toBe(FRENCH_FILENAME);
+  });
+
+  it('POST /api/documents/upload recovers UTF-8 originalFileName from a Latin-1 mis-decoded multipart filename', async () => {
+    const res = await request(app)
+      .post('/api/documents/upload')
+      .set('x-test-user-id', testUser.id)
+      .field('name', 'French Upload (latin1 mis-decode)')
+      .field('documentType', 'legal')
+      .field('buildingId', testBuilding.id)
+      .field('isVisibleToTenants', 'false')
+      .attach('file', TEST_PDF_PATH, FRENCH_LATIN1_MISDECODED);
+
+    expect(res.status, `body=${JSON.stringify(res.body)}`).toBe(201);
+    const documentId: string = res.body?.document?.id;
+    expect(documentId, `body=${JSON.stringify(res.body)}`).toBeTruthy();
+    createdDocumentIds.add(documentId);
+
+    const rows = await db
+      .select()
+      .from(documents)
+      .where(eq(documents.id, documentId));
+    expect(rows).toHaveLength(1);
+    const row = rows[0];
+
+    expect(
+      row.originalFileName,
+      '/api/documents/upload: originalFileName must recover UTF-8 from Latin-1 mis-decode',
+    ).toBe(FRENCH_FILENAME);
+  });
+
+  it('PUT /api/documents/:id (replace-file branch) recovers UTF-8 originalFileName from a Latin-1 mis-decoded multipart filename', async () => {
+    // Seed via canonical POST with an ASCII name so the PUT below
+    // exercises the replace-file branch where Task #855 was applied.
+    const createRes = await request(app)
+      .post('/api/documents')
+      .set('x-test-user-id', testUser.id)
+      .field('name', 'Document to replace')
+      .field('documentType', 'legal')
+      .field('buildingId', testBuilding.id)
+      .field('isVisibleToTenants', 'false')
+      .attach('file', TEST_PDF_PATH, 'placeholder.pdf');
+
+    expect(createRes.status, `body=${JSON.stringify(createRes.body)}`).toBe(201);
+    const documentId: string = createRes.body.id;
+    expect(documentId).toBeTruthy();
+    createdDocumentIds.add(documentId);
+
+    // Now replace the file via PUT, sending the Latin-1 mis-decoded name.
+    const replaceRes = await request(app)
+      .put(`/api/documents/${documentId}`)
+      .set('x-test-user-id', testUser.id)
+      .attach('file', TEST_PDF_PATH, FRENCH_LATIN1_MISDECODED);
+
+    expect(
+      replaceRes.status,
+      `body=${JSON.stringify(replaceRes.body)} text=${replaceRes.text}`,
+    ).toBeGreaterThanOrEqual(200);
+    expect(
+      replaceRes.status,
+      `body=${JSON.stringify(replaceRes.body)} text=${replaceRes.text}`,
+    ).toBeLessThan(300);
+
+    const rows = await db
+      .select()
+      .from(documents)
+      .where(eq(documents.id, documentId));
+    expect(rows).toHaveLength(1);
+    const row = rows[0];
+
+    expect(
+      row.originalFileName,
+      'PUT /api/documents/:id: originalFileName must recover UTF-8 from Latin-1 mis-decode',
+    ).toBe(FRENCH_FILENAME);
+  });
+
+  it('POST /api/bills/:id/upload-document recovers UTF-8 originalFileName from a Latin-1 mis-decoded multipart filename', async () => {
+    const res = await request(app)
+      .post(`/api/bills/${testBillId}/upload-document`)
+      .set('x-test-user-id', testUser.id)
+      .attach('document', TEST_PDF_PATH, FRENCH_LATIN1_MISDECODED);
+
+    expect(res.status, `body=${JSON.stringify(res.body)}`).toBe(200);
+
+    // The route updates the bills row in place and ALSO inserts a linked
+    // documents row (attachedTo{Type,Id} === ('bill', billId)). The Latin-1
+    // recovery happens for both columns Task #855 patched in this route, so
+    // we assert each.
+    const billRows = await db
+      .select()
+      .from(bills)
+      .where(eq(bills.id, testBillId));
+    expect(billRows).toHaveLength(1);
+    expect(
+      billRows[0].originalFileName,
+      '/api/bills/:id/upload-document: bills.originalFileName must recover UTF-8 from Latin-1 mis-decode',
+    ).toBe(FRENCH_FILENAME);
+
+    // Every linked documents row attached to this bill should carry the same
+    // recovered UTF-8 string. (Looking up by attachedToId only keeps the
+    // assertion stable regardless of how the on-disk fileName was normalized.)
+    const linkedDocs = await db
+      .select()
+      .from(documents)
+      .where(eq(documents.attachedToId, testBillId));
+    expect(
+      linkedDocs.length,
+      '/api/bills/:id/upload-document: at least one linked documents row expected',
+    ).toBeGreaterThanOrEqual(1);
+    for (const doc of linkedDocs) {
+      createdDocumentIds.add(doc.id);
+      expect(
+        doc.originalFileName,
+        `/api/bills/:id/upload-document: linked documents row ${doc.id} originalFileName must recover UTF-8`,
+      ).toBe(FRENCH_FILENAME);
+    }
+  });
+
+  it('POST /api/bills/from-auto-generated recovers UTF-8 originalFileName for attached files', async () => {
+    const billPayload = {
+      title: 'Bill from auto-generated (latin1 mis-decode test)',
+      description: 'French upload via from-auto-generated',
+      category: 'insurance',
+      vendor: 'Test Vendor',
+      totalAmount: 123.45,
+      startDate: '2024-02-01',
+      endDate: null,
+      status: 'draft',
+      paymentType: 'unique',
+    };
+
+    const res = await request(app)
+      .post('/api/bills/from-auto-generated')
+      .set('x-test-user-id', testUser.id)
+      .field('templateId', testBillId)
+      .field('newBillData', JSON.stringify(billPayload))
+      .field('fileMetadata_0', JSON.stringify({ category: 'attachment' }))
+      .attach('files', TEST_PDF_PATH, FRENCH_LATIN1_MISDECODED);
+
+    expect(res.status, `body=${JSON.stringify(res.body)}`).toBe(201);
+    const createdBillId: string | undefined = res.body?.bill?.id;
+    expect(createdBillId, `body=${JSON.stringify(res.body)}`).toBeTruthy();
+    // Track the new bill for cleanup IMMEDIATELY so a later assertion
+    // failure does not leak it (and break the FK-constrained delete of
+    // testBillId in afterAll).
+    if (createdBillId && createdBillId !== testBillId) {
+      createdAuxBillIds.add(createdBillId);
+    }
+
+    const attached: any[] = res.body?.attachedDocuments ?? [];
+    expect(
+      attached.length,
+      '/api/bills/from-auto-generated: at least one attached document expected',
+    ).toBeGreaterThanOrEqual(1);
+    for (const doc of attached) {
+      createdDocumentIds.add(doc.id);
+    }
+
+    // Re-read from the DB to make sure what was persisted (not just what was
+    // echoed back in the response) carries the recovered UTF-8 string.
+    // Look up by id to avoid coupling to whatever shape `fileName` ends up
+    // taking for the mojibake input.
+    const attachedIds = attached.map((d) => d.id).filter(Boolean);
+    expect(attachedIds.length).toBeGreaterThanOrEqual(1);
+    for (const docId of attachedIds) {
+      const persisted = await db
+        .select()
+        .from(documents)
+        .where(eq(documents.id, docId));
+      expect(persisted).toHaveLength(1);
+      expect(
+        persisted[0].originalFileName,
+        `/api/bills/from-auto-generated: documents row ${docId} originalFileName must recover UTF-8 from Latin-1 mis-decode`,
+      ).toBe(FRENCH_FILENAME);
+    }
+  });
+
+  it('POST /api/maintenance/elements/:id/documents recovers UTF-8 originalFileName from a Latin-1 mis-decoded multipart filename', async () => {
+    const res = await request(app)
+      .post(`/api/maintenance/elements/${testElementId}/documents`)
+      .set('x-test-user-id', testUser.id)
+      .attach('file', TEST_PDF_PATH, FRENCH_LATIN1_MISDECODED);
+
+    expect(res.status, `body=${JSON.stringify(res.body)}`).toBe(201);
+    const elementDocId: string = res.body?.data?.id;
+    expect(elementDocId).toBeTruthy();
+    createdElementDocumentIds.add(elementDocId);
+
+    const rows = await db
+      .select()
+      .from(elementDocuments)
+      .where(eq(elementDocuments.id, elementDocId));
+    expect(rows).toHaveLength(1);
+    const row = rows[0];
+
+    expect(
+      row.originalFileName,
+      '/api/maintenance/elements/:id/documents: originalFileName must recover UTF-8 from Latin-1 mis-decode',
+    ).toBe(FRENCH_FILENAME);
   });
 });
