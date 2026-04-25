@@ -31,7 +31,8 @@ import {
 } from '../services/bulk-import-analyzer';
 import { rotateAndRewriteStagedFile } from '../services/bulk-import-rotation';
 import { documentService } from '../services/document-service';
-import { logError, logInfo } from '../utils/logger';
+import { logError, logInfo, logWarn } from '../utils/logger';
+import type { BulkImportFallbackReason } from '@shared/schemas/bulk-import';
 
 const STAGING_ROOT = path.join(process.cwd(), '.staging', 'bulk-import');
 
@@ -230,6 +231,46 @@ async function patchRunAllProgress(
 }
 
 /**
+ * Emit a structured warning at the API layer when an analyzer call returns
+ * a per-call failure (`api_error` or `unreadable_response`) so admins can
+ * trace the failed Bulk Import row back to its session and retry it from
+ * the admin panel. The analyzer-level log (Task #801) only knows the
+ * filename and step; this log adds itemId + bulkImportSession (the session
+ * UUID), which only the API layer has cheaply on hand.
+ *
+ * Other fallbackReason values (`oversize`, `unsupported_mime`,
+ * `extraction_failed`, `missing_file`, `no_api_key`) are deterministic
+ * pre-call decisions, not failed AI calls, so they are deliberately not
+ * logged here — they would just be noise for ops.
+ *
+ * Note on the `bulkImportSession` field name: the shared logger
+ * (server/utils/logger.ts) auto-redacts any metadata key whose lowercased
+ * name contains `sessionid` / `session_id` because those normally hold
+ * HTTP cookie session IDs. Our value is a non-secret bulk-import session
+ * UUID, but the sanitizer can't tell the difference, so we deliberately
+ * pick a key name that does not match the sensitive-field substrings —
+ * otherwise the value ops actually need would print as `[REDACTED]`.
+ */
+export function logPerFileAiFailure(
+  step: AutoStep,
+  item: Pick<schema.BulkImportItem, 'id' | 'sessionId' | 'originalName'>,
+  fallbackReason: BulkImportFallbackReason | null | undefined,
+): void {
+  if (fallbackReason !== 'api_error' && fallbackReason !== 'unreadable_response') {
+    return;
+  }
+  logWarn('[bulk-import] per-file AI failure', {
+    metadata: {
+      step,
+      itemId: item.id,
+      bulkImportSession: item.sessionId,
+      originalName: item.originalName,
+      fallbackReason,
+    },
+  });
+}
+
+/**
  * Run a single AI step against one staged item and persist the result.
  * Centralised so per-item endpoints and the run-all loop share the
  * exact same behaviour (and therefore the per-item "Retry" button is
@@ -250,6 +291,7 @@ async function processItemForStep(
       itemId: item.id,
       sessionId: item.sessionId,
     });
+    logPerFileAiFailure(step, item, result.fallbackReason);
 
     // Apply rotation in place so Branching and all later steps read
     // the upright version of the document. Failures are silent — the
@@ -317,6 +359,7 @@ async function processItemForStep(
       itemId: item.id,
       sessionId: item.sessionId,
     });
+    logPerFileAiFailure(step, item, result.fallbackReason);
     const sortingDecisionWithState: Record<string, unknown> = {
       ...(result as unknown as Record<string, unknown>),
       decisionState: 'pending',
@@ -344,6 +387,7 @@ async function processItemForStep(
       itemId: item.id,
       sessionId: item.sessionId,
     });
+    logPerFileAiFailure(step, item, result.fallbackReason);
     // Preserve any existing residenceManualOverride the admin may have
     // set on a prior attempt; only overwrite the AI-generated fields.
     const existingDecision = (item.branchDecision ?? {}) as Record<string, unknown>;
@@ -381,6 +425,7 @@ async function processItemForStep(
       itemId: item.id,
       sessionId: item.sessionId,
     });
+    logPerFileAiFailure(step, item, result.fallbackReason);
     const [updated] = await db
       .update(schema.bulkImportItems)
       .set({
@@ -401,6 +446,7 @@ async function processItemForStep(
     itemId: item.id,
     sessionId: item.sessionId,
   });
+  logPerFileAiFailure(step, item, result.fallbackReason);
   const [updated] = await db
     .update(schema.bulkImportItems)
     .set({
