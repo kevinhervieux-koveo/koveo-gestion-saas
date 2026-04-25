@@ -6693,12 +6693,31 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
 
   server.tool(
     "get_analysis_status",
-    "Check the status of a document analysis. Currently all analyses are synchronous so this always returns 'completed'. Provided for forward compatibility with future async analysis.",
+    "Check the status of a document analysis. The analysisId must match a registered document's storage path (filePath in the documents table). Returns a not-found error if no document matches. Currently all analyses are synchronous, so a valid analysisId always returns 'completed'. Provided for forward compatibility with future async analysis.",
     {
       role: roleParam,
-      analysisId: z.string().describe("Analysis ID or document storage path"),
+      analysisId: z.string().describe("Analysis ID — must match the storage path (filePath) of a document registered in the documents table"),
     },
     async ({ role, analysisId }) => {
+      const [doc] = await db
+        .select({ filePath: schema.documents.filePath })
+        .from(schema.documents)
+        .where(eq(schema.documents.filePath, analysisId))
+        .limit(1);
+
+      if (!doc) {
+        return {
+          content: [{
+            type: "text" as const,
+            text: JSON.stringify({
+              error: "not_found",
+              message: `No document found for analysisId '${analysisId}'. The analysisId must match a registered document's storage path.`,
+              analysisId,
+            }, null, 2),
+          }],
+        };
+      }
+
       return {
         content: [{
           type: "text" as const,

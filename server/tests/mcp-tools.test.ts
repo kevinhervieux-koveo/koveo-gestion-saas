@@ -1940,13 +1940,37 @@ describe('MCP Server', () => {
   });
 
   describe('Get Analysis Status', () => {
-    it('should return completed status for synchronous analysis', async () => {
+    it('should return completed status for a registered document', async () => {
+      const limitMock = jest.fn().mockResolvedValue([{ filePath: 'doc-path' }]);
+      mockSelectChain.where.mockImplementationOnce(() => {
+        const r = Promise.resolve([]);
+        (r as Record<string, unknown>).limit = limitMock;
+        return r;
+      });
       const handler = getToolHandler(server, 'get_analysis_status');
       const result = await handler({ role: 'admin', analysisId: 'doc-path' }, {});
       const text = parseToolResponse(result);
       const parsed = JSON.parse(text);
       expect(parsed.status).toBe('completed');
       expect(parsed.analysisId).toBe('doc-path');
+      expect(parsed.error).toBeUndefined();
+    });
+
+    it('should return a not-found error for an unknown analysisId', async () => {
+      const limitMock = jest.fn().mockResolvedValue([]);
+      mockSelectChain.where.mockImplementationOnce(() => {
+        const r = Promise.resolve([]);
+        (r as Record<string, unknown>).limit = limitMock;
+        return r;
+      });
+      const handler = getToolHandler(server, 'get_analysis_status');
+      const result = await handler({ role: 'admin', analysisId: 'garbage-id' }, {});
+      const text = parseToolResponse(result);
+      const parsed = JSON.parse(text);
+      expect(parsed.status).toBeUndefined();
+      expect(parsed.error).toBe('not_found');
+      expect(parsed.analysisId).toBe('garbage-id');
+      expect(parsed.message).toMatch(/garbage-id/);
     });
   });
 });
