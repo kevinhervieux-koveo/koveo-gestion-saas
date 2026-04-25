@@ -70,7 +70,7 @@ import {
   type BulkImportStep,
 } from '@shared/schemas/bulk-import';
 import { ConfidenceBadge } from './bulk-import-confidence-badge';
-import { FallbackReasonBadge } from './bulk-import-fallback-reason-badge';
+import { FallbackReasonBadge, FALLBACK_REASON_LABELS, FALLBACK_REASON_EXPLANATIONS } from './bulk-import-fallback-reason-badge';
 import {
   AUTO_STEPS,
   NextStepBlock,
@@ -3369,7 +3369,19 @@ export default function BulkDocumentImportPage() {
                                         </span>
                                       )}
                                     </div>
-                                    {decision?.reason && (
+                                    {decision?.fallbackReason ? (
+                                      <div
+                                        className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:bg-amber-950/40 dark:text-amber-300"
+                                        data-testid={`detail-fallback-explanation-${item.id}`}
+                                      >
+                                        <p className="font-medium">
+                                          {(isFr ? FALLBACK_REASON_LABELS.fr : FALLBACK_REASON_LABELS.en)[decision.fallbackReason]}
+                                        </p>
+                                        <p className="mt-0.5 text-amber-700 dark:text-amber-400">
+                                          {(isFr ? FALLBACK_REASON_EXPLANATIONS.fr : FALLBACK_REASON_EXPLANATIONS.en)[decision.fallbackReason]}
+                                        </p>
+                                      </div>
+                                    ) : decision?.reason && (
                                       <p
                                         className="whitespace-pre-wrap text-sm text-foreground/80"
                                         data-testid={`detail-reason-${item.id}`}
@@ -3378,11 +3390,6 @@ export default function BulkDocumentImportPage() {
                                           {isFr ? 'Raison' : 'Reason'}:
                                         </span>
                                         {decision.reason}
-                                      </p>
-                                    )}
-                                    {decision?.fallbackReason && (
-                                      <p className="text-sm text-amber-700 dark:text-amber-400">
-                                        {isFr ? 'Raison de repli' : 'Fallback reason'}: {decision.fallbackReason}
                                       </p>
                                     )}
                                   </div>
@@ -3432,7 +3439,19 @@ export default function BulkDocumentImportPage() {
                                         </span>
                                       )}
                                     </div>
-                                    {item.screeningQaReason && (
+                                    {decision?.fallbackReason ? (
+                                      <div
+                                        className="mt-3 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:bg-amber-950/40 dark:text-amber-300"
+                                        data-testid={`detail-fallback-explanation-${item.id}`}
+                                      >
+                                        <p className="font-medium">
+                                          {(isFr ? FALLBACK_REASON_LABELS.fr : FALLBACK_REASON_LABELS.en)[decision.fallbackReason]}
+                                        </p>
+                                        <p className="mt-0.5 text-amber-700 dark:text-amber-400">
+                                          {(isFr ? FALLBACK_REASON_EXPLANATIONS.fr : FALLBACK_REASON_EXPLANATIONS.en)[decision.fallbackReason]}
+                                        </p>
+                                      </div>
+                                    ) : item.screeningQaReason && (
                                       <p
                                         className="mt-3 whitespace-pre-wrap text-sm text-foreground/80"
                                         data-testid={`detail-reason-${item.id}`}
@@ -3440,9 +3459,7 @@ export default function BulkDocumentImportPage() {
                                         <span className="mr-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                                           {isFr ? 'Raison' : 'Reason'}:
                                         </span>
-                                        {item.screeningFallback
-                                          ? (isFr ? "L’IA n’a pas analysé ce fichier." : 'AI did not analyze this file.')
-                                          : item.screeningQaReason}
+                                        {item.screeningQaReason}
                                       </p>
                                     )}
                                   </>
