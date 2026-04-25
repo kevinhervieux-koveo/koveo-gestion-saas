@@ -3610,6 +3610,43 @@ export default function BulkDocumentImportPage() {
                                                 );
                                               })}
                                             </ol>
+                                            {!sortingIsAccepted && itemIsPdf && (() => {
+                                              const candidates = items.filter(
+                                                (i) =>
+                                                  !mergeGroupIds.includes(i.id) &&
+                                                  i.id !== item.id &&
+                                                  i.status !== 'rejected' &&
+                                                  (i.mimeType ?? '').toLowerCase() === 'application/pdf',
+                                              );
+                                              if (candidates.length === 0) return null;
+                                              return (
+                                                <div className="flex items-center gap-2">
+                                                  <label className="whitespace-nowrap text-xs text-muted-foreground">
+                                                    {isFr ? 'Ajouter un fichier :' : 'Add file:'}
+                                                  </label>
+                                                  <select
+                                                    className="flex-1 rounded-md border border-border bg-background px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                                                    value=""
+                                                    data-testid={`branching-merge-add-${item.id}`}
+                                                    onChange={(e) => {
+                                                      const newId = e.target.value;
+                                                      if (!newId) return;
+                                                      const next = [...mergeGroupIds, newId];
+                                                      setInlineMergeOrder((prev) => new Map(prev).set(item.id, next));
+                                                    }}
+                                                  >
+                                                    <option value="">
+                                                      {isFr ? '— Sélectionner un fichier —' : '— Select a file —'}
+                                                    </option>
+                                                    {candidates.map((c) => (
+                                                      <option key={c.id} value={c.id}>
+                                                        {c.originalName}
+                                                      </option>
+                                                    ))}
+                                                  </select>
+                                                </div>
+                                              );
+                                            })()}
                                             {(sortingIsPending || sortingIsRejected) && inlineMergeOrder.has(item.id) && (
                                               <div className="mt-2 flex gap-2">
                                                 <Button
