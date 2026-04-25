@@ -85,6 +85,100 @@ describe('parsePeriodHint', () => {
     expect(parsePeriodHint('2020-2024')).toBeNull();
   });
 
+  // ── Fiscal-year range with custom fiscal-year-start month (Task #1030) ────
+  it('honours April fiscal start for "FY 2022-2023" → 2022-04-01', () => {
+    const result = parsePeriodHint('FY 2022-2023', 4);
+    expect(result).not.toBeNull();
+    expect(result!.getUTCFullYear()).toBe(2022);
+    expect(result!.getUTCMonth() + 1).toBe(4);
+    expect(result!.getUTCDate()).toBe(1);
+  });
+
+  it('honours July fiscal start on dash range "2022-2023" → 2022-07-01', () => {
+    const result = parsePeriodHint('2022-2023', 7);
+    expect(result).not.toBeNull();
+    expect(result!.getUTCFullYear()).toBe(2022);
+    expect(result!.getUTCMonth() + 1).toBe(7);
+    expect(result!.getUTCDate()).toBe(1);
+  });
+
+  it('honours December fiscal start on slash range "2022/2023" → 2022-12-01', () => {
+    const result = parsePeriodHint('2022/2023', 12);
+    expect(result).not.toBeNull();
+    expect(result!.getUTCFullYear()).toBe(2022);
+    expect(result!.getUTCMonth() + 1).toBe(12);
+    expect(result!.getUTCDate()).toBe(1);
+  });
+
+  it('treats fiscal-year-start month 1 the same as the default (Jan 1)', () => {
+    expectDate('FY 2022-2023', 2022, 1, 1);
+    const result = parsePeriodHint('FY 2022-2023', 1);
+    expect(result).not.toBeNull();
+    expect(result!.getUTCFullYear()).toBe(2022);
+    expect(result!.getUTCMonth() + 1).toBe(1);
+    expect(result!.getUTCDate()).toBe(1);
+  });
+
+  it('falls back to Jan 1 when fiscal-year-start month is out of range (0)', () => {
+    const result = parsePeriodHint('FY 2022-2023', 0);
+    expect(result).not.toBeNull();
+    expect(result!.getUTCMonth() + 1).toBe(1);
+  });
+
+  it('falls back to Jan 1 when fiscal-year-start month is out of range (13)', () => {
+    const result = parsePeriodHint('FY 2022-2023', 13);
+    expect(result).not.toBeNull();
+    expect(result!.getUTCMonth() + 1).toBe(1);
+  });
+
+  it('falls back to Jan 1 when fiscal-year-start month is non-integer', () => {
+    const result = parsePeriodHint('FY 2022-2023', 4.5);
+    expect(result).not.toBeNull();
+    expect(result!.getUTCMonth() + 1).toBe(1);
+  });
+
+  it('falls back to Jan 1 when fiscal-year-start month is null', () => {
+    const result = parsePeriodHint('FY 2022-2023', null);
+    expect(result).not.toBeNull();
+    expect(result!.getUTCMonth() + 1).toBe(1);
+  });
+
+  it('does not apply fiscal-year-start month to ISO dates', () => {
+    // ISO dates are already specific; the fiscal month must not shift them.
+    const result = parsePeriodHint('2021-10-15', 4);
+    expect(result).not.toBeNull();
+    expect(result!.getUTCFullYear()).toBe(2021);
+    expect(result!.getUTCMonth() + 1).toBe(10);
+    expect(result!.getUTCDate()).toBe(15);
+  });
+
+  it('does not apply fiscal-year-start month to calendar years', () => {
+    // Calendar year hints are deliberately ambiguous; we keep Jan 1 so the
+    // behaviour is stable regardless of the building's fiscal calendar.
+    const result = parsePeriodHint('2022', 4);
+    expect(result).not.toBeNull();
+    expect(result!.getUTCFullYear()).toBe(2022);
+    expect(result!.getUTCMonth() + 1).toBe(1);
+  });
+
+  it('does not apply fiscal-year-start month to quarter hints', () => {
+    const result = parsePeriodHint('2023 Q3', 4);
+    expect(result).not.toBeNull();
+    expect(result!.getUTCMonth() + 1).toBe(7);
+  });
+
+  it('does not apply fiscal-year-start month to ISO month hints', () => {
+    const result = parsePeriodHint('2023-07', 4);
+    expect(result).not.toBeNull();
+    expect(result!.getUTCMonth() + 1).toBe(7);
+  });
+
+  it('does not apply fiscal-year-start month to month-year hints', () => {
+    const result = parsePeriodHint('July 2023', 4);
+    expect(result).not.toBeNull();
+    expect(result!.getUTCMonth() + 1).toBe(7);
+  });
+
   // ── Quarter ────────────────────────────────────────────────────────────────
   it('parses "2023 Q3" → July 1', () => {
     expectDate('2023 Q3', 2023, 7, 1);

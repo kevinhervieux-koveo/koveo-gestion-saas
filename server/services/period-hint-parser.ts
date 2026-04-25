@@ -19,19 +19,24 @@
  * | Month-year (short name)          | "Jul 2023"         | 2023-07-01           |
  * | Anything else                    | "INV-2024-042"     | null                 |
  *
- * Fiscal-year ranges use Jan 1 of the **first** year as the effective date.
- * The rationale: the first year in the label is the start of the fiscal period,
- * and Jan 1 is a safe, deterministic default when the building's fiscal-year-
- * start month is not readily available at the call site. If the caller has the
- * fiscal-year-start month it can derive the correct date itself by adjusting the
- * month on the returned Date.
+ * Fiscal-year ranges use the **first** year combined with the building's
+ * fiscal-year-start month (Task #1030). When `fiscalYearStartMonth` is omitted
+ * (or invalid) the parser falls back to January, which is the documented
+ * historical default. Many Canadian condos start their fiscal year in April,
+ * so passing `4` for "FY 2022-2023" yields 2022-04-01 instead of 2022-01-01.
  *
  * All `Date` values are constructed with UTC semantics (no local-timezone drift).
  *
  * @param hint - The raw `periodHint` string from screening, or null/undefined.
+ * @param fiscalYearStartMonth - Optional 1-indexed month (1-12) marking the
+ *   start of the building's fiscal year. Only affects the fiscal-year-range
+ *   patterns; ignored for ISO dates, quarters, calendar years, etc.
  * @returns A `Date` at midnight UTC, or `null` when the hint is not a date.
  */
-export function parsePeriodHint(hint: string | null | undefined): Date | null {
+export function parsePeriodHint(
+  hint: string | null | undefined,
+  fiscalYearStartMonth?: number | null,
+): Date | null {
   if (!hint || typeof hint !== 'string') return null;
   const trimmed = hint.trim();
   if (!trimmed) return null;
@@ -68,7 +73,17 @@ export function parsePeriodHint(hint: string | null | undefined): Date | null {
     // Require year2 to be year1+1 to avoid matching arbitrary year ranges that
     // look like other identifiers (e.g. "2020-2024").
     if (y2 === y1 + 1) {
-      return new Date(Date.UTC(y1, 0, 1));
+      // Task #1030: honour the building's fiscal-year-start month when the
+      // caller knows it. Anything outside 1-12 falls back to January so a
+      // bad value can never throw or shift dates wildly.
+      const startMonthIndex =
+        typeof fiscalYearStartMonth === 'number'
+          && Number.isInteger(fiscalYearStartMonth)
+          && fiscalYearStartMonth >= 1
+          && fiscalYearStartMonth <= 12
+          ? fiscalYearStartMonth - 1
+          : 0;
+      return new Date(Date.UTC(y1, startMonthIndex, 1));
     }
     // If years aren't consecutive, fall through to null (not a fiscal-year range).
   }

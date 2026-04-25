@@ -201,6 +201,35 @@ async function loadSession(sessionId: string) {
 }
 
 /**
+ * Resolve the building's fiscal-year-start month (1-indexed) from a session's
+ * `buildingId`, for feeding into `parsePeriodHint` (Task #1030). Returns
+ * `undefined` when the building cannot be loaded, has no `financialYearStart`,
+ * or the stored value isn't a parseable `YYYY-MM-DD` string — in which case
+ * the parser falls back to its January default.
+ *
+ * `buildings.financialYearStart` is a Drizzle `date` column whose JS
+ * representation is a `YYYY-MM-DD` string, so we extract the month with a
+ * lightweight regex instead of constructing a Date (avoids local-timezone
+ * shifts on dates like `2024-01-01`).
+ */
+async function getFiscalYearStartMonthForBuilding(
+  buildingId: string | null | undefined,
+): Promise<number | undefined> {
+  if (!buildingId) return undefined;
+  const [row] = await db
+    .select({ financialYearStart: schema.buildings.financialYearStart })
+    .from(schema.buildings)
+    .where(eq(schema.buildings.id, buildingId));
+  const raw = row?.financialYearStart;
+  if (!raw) return undefined;
+  const match = /^\d{4}-(\d{2})-\d{2}/.exec(String(raw));
+  if (!match) return undefined;
+  const month = parseInt(match[1], 10);
+  if (!Number.isInteger(month) || month < 1 || month > 12) return undefined;
+  return month;
+}
+
+/**
  * Per-step "run-all" support (Task #592).
  *
  * Each AI step has an idempotent server-side loop that walks every
@@ -520,6 +549,13 @@ async function processItemForStep(
   item: schema.BulkImportItem,
   sessionItems: { id: string; name: string; screening?: Record<string, unknown> | null }[],
   residences?: Array<{ id: string; unitNumber: string }>,
+  /**
+   * Building's fiscal-year-start month (1-indexed), used by the identification
+   * step to interpret fiscal-year periodHint ranges correctly (Task #1030).
+   * Caller is responsible for resolving it once per session and passing it
+   * here to avoid redundant DB lookups in the run-all loop.
+   */
+  fiscalYearStartMonth?: number,
 ): Promise<schema.BulkImportItem> {
   if (step === 'screening') {
     const result = await bulkImportAnalyzer.screen({
@@ -695,7 +731,10 @@ async function processItemForStep(
       (item.screening as { description?: string } | null)?.description ?? '';
     const rawPeriodHint =
       (item.screening as { periodHint?: string | null } | null)?.periodHint ?? null;
-    const periodHintDate = parsePeriodHint(rawPeriodHint);
+    // Task #1030: pass the building's fiscal-year-start month so a
+    // periodHint like "FY 2022-2023" on a building with an April fiscal
+    // year resolves to 2022-04-01 instead of 2022-01-01.
+    const periodHintDate = parsePeriodHint(rawPeriodHint, fiscalYearStartMonth);
     const result = await bulkImportAnalyzer.identify({
       originalName: item.originalName,
       description,
@@ -785,6 +824,17 @@ async function runAllForStep(sessionId: string, step: AutoStep): Promise<void> {
       }
     }
 
+    // Task #1030: resolve the building's fiscal-year-start month once for
+    // the identification loop, so every periodHint that names a fiscal-year
+    // range is parsed against the building's actual fiscal calendar.
+    let sessionFiscalYearStartMonth: number | undefined;
+    if (step === 'identification') {
+      const session = await loadSession(sessionId);
+      sessionFiscalYearStartMonth = await getFiscalYearStartMonthForBuilding(
+        session?.buildingId ?? null,
+      );
+    }
+
     await patchRunAllProgress(sessionId, step, {
       total: eligible.length,
       processed: 0,
@@ -860,7 +910,13 @@ async function runAllForStep(sessionId: string, step: AutoStep): Promise<void> {
         // workPromise runs the real AI call. Its .finally() decrements
         // rawInFlight so the semaphore gate above will unblock when the
         // underlying network call completes (even if we timed out).
-        const workPromise = processItemForStep(step, item, sessionItems, sessionResidences);
+        const workPromise = processItemForStep(
+          step,
+          item,
+          sessionItems,
+          sessionResidences,
+          sessionFiscalYearStartMonth,
+        );
         void workPromise
           .finally(() => { rawInFlight--; })
           .catch((e) =>
@@ -3758,6 +3814,17 @@ export function registerBulkImportRoutes(app: Express): void {
             }
           }
 
+          // Task #1030: identification retries also need the building's
+          // fiscal-year-start month so periodHint fiscal ranges line up
+          // with the bulk run-all path.
+          let fiscalYearStartMonth: number | undefined;
+          if (step === 'identification') {
+            const session = await loadSession(item.sessionId);
+            fiscalYearStartMonth = await getFiscalYearStartMonthForBuilding(
+              session?.buildingId ?? null,
+            );
+          }
+
           const updated = await processItemForStep(
             step,
             item,
@@ -3767,6 +3834,7 @@ export function registerBulkImportRoutes(app: Express): void {
               screening: s.screening as Record<string, unknown> | null,
             })),
             residences,
+            fiscalYearStartMonth,
           );
           return res.json(updated);
         } catch (err) {
@@ -3869,9 +3937,19 @@ export function registerBulkImportRoutes(app: Express): void {
         //   3. null — when neither source produced a usable date
         // We parse the periodHint with parsePeriodHint() so non-date hints
         // like invoice numbers are never coerced into garbage dates.
+        // Task #1030: pass the building's fiscal-year-start month so a
+        // fiscal-year hint like "FY 2022-2023" on a building with an April
+        // fiscal year writes 2022-04-01 to documents.effective_date instead
+        // of the old Jan 1 default.
         const rawPeriodHintForCommit =
           (item.screening as { periodHint?: string | null } | null)?.periodHint ?? null;
-        const periodHintDateForCommit = parsePeriodHint(rawPeriodHintForCommit);
+        const fiscalYearStartMonthForCommit = await getFiscalYearStartMonthForBuilding(
+          session.buildingId,
+        );
+        const periodHintDateForCommit = parsePeriodHint(
+          rawPeriodHintForCommit,
+          fiscalYearStartMonthForCommit,
+        );
         const branchDecision = (item.branchDecision as {
           branch?: string;
           residenceId?: string | null;
