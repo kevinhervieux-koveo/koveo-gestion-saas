@@ -1,0 +1,81 @@
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+shared.rollup.js:9 [Violation] Added non-passive event listener to a scroll-blocking 'wheel' event. Consider marking event handler as 'passive' to make the page more responsive. See https://www.chromestatus.com/feature/5745543795965952
+Viewport @ chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/shared.rollup.js:9
+initInternal @ chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/shared.rollup.js:495
+init @ chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/pdf_viewer_wrapper.js:872
+initViewer @ chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/main.js:24
+Promise.then
+main @ chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/main.js:57
+(anonymous) @ chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/main.js:59
+dff98eaa-b05b-4b47-a4a9-2238f1695224:29 [Violation] Added non-passive event listener to a scroll-blocking 'wheel' event. Consider marking event handler as 'passive' to make the page more responsive. See https://www.chromestatus.com/feature/5745543795965952
+(anonymous) @ dff98eaa-b05b-4b47-a4a9-2238f1695224:29
+shared.rollup.js:9 [Violation] Added non-passive event listener to a scroll-blocking 'wheel' event. Consider marking event handler as 'passive' to make the page more responsive. See https://www.chromestatus.com/feature/5745543795965952
+Viewport @ chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/shared.rollup.js:9
+initInternal @ chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/shared.rollup.js:495
+init @ chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/pdf_viewer_wrapper.js:872
+initViewer @ chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/main.js:24
+Promise.then
+main @ chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/main.js:57
+(anonymous) @ chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/main.js:59
+bf45cf54-6817-4fd9-be95-93c664aa23ff:29 [Violation] Added non-passive event listener to a scroll-blocking 'wheel' event. Consider marking event handler as 'passive' to make the page more responsive. See https://www.chromestatus.com/feature/5745543795965952
+(anonymous) @ bf45cf54-6817-4fd9-be95-93c664aa23ff:29
+queryClient.ts:112  POST https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/admin/bulk-import/items/475dde14-9165-42bd-b157-44b467cc5ed0/set-sorting-decision 500 (Internal Server Error)
+(anonymous) @ queryClient.ts:112
+(anonymous) @ bulk-document-import.tsx:1874
+fn @ @tanstack_react-query.js?v=1625281e:1200
+run @ @tanstack_react-query.js?v=1625281e:491
+start @ @tanstack_react-query.js?v=1625281e:533
+execute @ @tanstack_react-query.js?v=1625281e:1235
+await in execute
+mutate @ @tanstack_react-query.js?v=1625281e:2642
+(anonymous) @ @tanstack_react-query.js?v=1625281e:3356
+(anonymous) @ bulk-document-import.tsx:3686
+executeDispatch @ react-dom_client.js?v=1625281e:11736
+runWithFiberInDEV @ react-dom_client.js?v=1625281e:1485
+processDispatchQueue @ react-dom_client.js?v=1625281e:11772
+(anonymous) @ react-dom_client.js?v=1625281e:12182
+batchedUpdates$1 @ react-dom_client.js?v=1625281e:2628
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1625281e:11877
+dispatchEvent @ react-dom_client.js?v=1625281e:14792
+dispatchDiscreteEvent @ react-dom_client.js?v=1625281e:14773
+queryClient.ts:112  POST https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/admin/bulk-import/items/475dde14-9165-42bd-b157-44b467cc5ed0/set-sorting-decision 500 (Internal Server Error)
+(anonymous) @ queryClient.ts:112
+(anonymous) @ bulk-document-import.tsx:1874
+fn @ @tanstack_react-query.js?v=1625281e:1200
+run @ @tanstack_react-query.js?v=1625281e:491
+start @ @tanstack_react-query.js?v=1625281e:533
+execute @ @tanstack_react-query.js?v=1625281e:1235
+await in execute
+mutate @ @tanstack_react-query.js?v=1625281e:2642
+(anonymous) @ @tanstack_react-query.js?v=1625281e:3356
+(anonymous) @ bulk-document-import.tsx:3686
+executeDispatch @ react-dom_client.js?v=1625281e:11736
+runWithFiberInDEV @ react-dom_client.js?v=1625281e:1485
+processDispatchQueue @ react-dom_client.js?v=1625281e:11772
+(anonymous) @ react-dom_client.js?v=1625281e:12182
+batchedUpdates$1 @ react-dom_client.js?v=1625281e:2628
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1625281e:11877
+dispatchEvent @ react-dom_client.js?v=1625281e:14792
+dispatchDiscreteEvent @ react-dom_client.js?v=1625281e:14773
