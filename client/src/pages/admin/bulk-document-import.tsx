@@ -982,9 +982,43 @@ export default function BulkDocumentImportPage() {
 
   const stepIndex = useMemo(() => STEP_ORDER.indexOf(currentStep), [currentStep]);
 
-  const helpText = isFr
-    ? "Importez en lot des dossiers de documents (PDF, Word, Excel, images, zips) pour un immeuble. L'assistant IA vous guide à travers cinq étapes : filtrage, tri, aiguillage, identification et liaison. Vous pouvez fermer la page à tout moment et reprendre — la session est sauvegardée."
-    : 'Bulk-import folders of mixed documents (PDF, Word, Excel, images, zips) for one building. The AI assistant walks you through five steps: screening, sorting, branching, identification, and linking. You can close the page at any time and resume — the session is saved.';
+  const helpIntro = isFr
+    ? "Importez en lot des dossiers de documents (PDF, Word, Excel, images, zips) pour un immeuble. L'assistant vous guide à travers 7 étapes. Vous pouvez fermer la page à tout moment et reprendre — la session est sauvegardée."
+    : 'Bulk-import folders of mixed documents (PDF, Word, Excel, images, zips) for one building. The wizard walks you through 7 steps. You can close the page at any time and resume — the session is saved.';
+
+  const stepDescriptions: Record<BulkImportStep, string> = isFr
+    ? {
+        upload:
+          "Choisissez l'immeuble et déposez les documents (PDF, Word, Excel, images ou archives zip) à traiter.",
+        screening:
+          "L'IA lit chaque fichier et décide s'il s'agit d'un vrai document à conserver ou à écarter.",
+        sorting:
+          'Chaque document conservé est automatiquement classé dans une catégorie (facture, contrat, procès-verbal, etc.).',
+        branching:
+          'Les fichiers contenant plusieurs documents sont scindés au besoin en documents distincts.',
+        identification:
+          "L'IA extrait les informations clés (titre, date, montants, parties) de chaque document.",
+        linking:
+          'Chaque document est associé à la fiche correspondante dans le système (fournisseur, contrat, résidence, etc.).',
+        complete:
+          "Vérifiez les résultats finaux, corrigez ce qui doit l'être, puis enregistrez les documents dans l'immeuble.",
+      }
+    : {
+        upload:
+          'Choose the building and drop in the documents (PDF, Word, Excel, images, or zip archives) you want to process.',
+        screening:
+          'The AI reads each file and decides whether it looks like a real document worth keeping or should be discarded.',
+        sorting:
+          'Each kept document is automatically classified into a category (e.g. invoice, contract, minutes).',
+        branching:
+          'Files that contain several documents are split into the right number of separate documents when needed.',
+        identification:
+          'The AI extracts the key fields (title, date, amounts, parties) from each document.',
+        linking:
+          'Each document is matched to the related record in the system (vendor, contract, residence, etc.).',
+        complete:
+          'Review the final results, fix anything that needs adjusting, and commit the documents to the building.',
+      };
 
   const stepRetryAction: Record<AutoStep, 'screen' | 'sort' | 'branch' | 'identify' | 'link'> = {
     screening: 'screen',
@@ -1085,8 +1119,19 @@ export default function BulkDocumentImportPage() {
               </Button>
             </CardHeader>
             {showHelp && (
-              <CardContent>
-                <p className="text-sm text-muted-foreground">{helpText}</p>
+              <CardContent className="space-y-3">
+                <p className="text-sm text-muted-foreground">{helpIntro}</p>
+                <ol className="list-decimal space-y-1.5 pl-5 text-sm text-muted-foreground">
+                  {STEP_ORDER.map((s) => (
+                    <li key={s} data-testid={`help-step-${s}`}>
+                      <span className="font-medium text-foreground">
+                        {stepLabels[s]}
+                      </span>
+                      {' — '}
+                      {stepDescriptions[s]}
+                    </li>
+                  ))}
+                </ol>
               </CardContent>
             )}
           </Card>
