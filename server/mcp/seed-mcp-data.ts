@@ -180,6 +180,22 @@ export async function seedMcpData() {
 
   log(`[MCP SEED] Created buildings: ${building1.id}, ${building2.id}, ${building3.id}`);
 
+  // Grant the MCP manager building-level access to every building in their orgs.
+  // Without these rows, manager-scoped endpoints that consult `user_buildings`
+  // (e.g. `/api/users/me/buildings`, `checkBuildingAccess` in maintenance) treat
+  // this user as having access to no buildings, which makes manager-only flows
+  // impossible to exercise end-to-end. We mirror the demo seed's behaviour for
+  // `demo_manager` users by inserting active rows with a `manager` relationship.
+  for (const building of [building1, building2, building3]) {
+    await tx.insert(schema.userBuildings).values({
+      userId: managerUser.id,
+      buildingId: building.id,
+      relationshipType: "manager",
+      isActive: true,
+    }).onConflictDoNothing();
+  }
+  log(`[MCP SEED] Granted manager building access for 3 buildings`);
+
   const residenceValues = [];
   for (let i = 1; i <= 4; i++) {
     residenceValues.push({
