@@ -6,8 +6,8 @@ import express from 'express';
 import path from 'path';
 import { createFastHealthCheck, createStatusCheck, createRootHandler, setFrontendReady, createStartupMiddleware } from './health-check';
 import { log } from './vite';
-import { registerRoutes } from './routes';
-import { sanitizeInputMiddleware, buildLegacyBypassFromApp } from './middleware/input-sanitization';
+import { registerRoutes, HEAVY_LAZY_MOUNTS } from './routes';
+import { sanitizeInputMiddleware, buildLegacyBypassFromApp, LEGACY_BYPASS_RESOURCE_ROOTS } from './middleware/input-sanitization';
 import { ssrfProtectionMiddleware } from './middleware/ssrf-protection';
 import { secureErrorHandler, notFoundHandler } from './middleware/error-security';
 import { configureSecurityMiddleware } from './middleware/security-middleware';
@@ -482,8 +482,19 @@ async function loadFullApplication(): Promise<void> {
     try {
       await registerRoutes(app);
       // Build the legacy sanitization bypass map from the now-registered
-      // route table. See server/middleware/input-sanitization.ts.
-      buildLegacyBypassFromApp(app);
+      // route table. We also pass the lazy-mounted prefixes so that routes
+      // under those prefixes (e.g. /api/budgets, /api/maintenance) are
+      // bypassed even before the lazy loader fires on the first request.
+      // See server/middleware/input-sanitization.ts.
+      const lazyBypassPrefixes = HEAVY_LAZY_MOUNTS
+        .flatMap((spec) => {
+          const m = spec.matcher;
+          if (typeof m === 'string') return [m];
+          if (Array.isArray(m)) return m as string[];
+          return [];
+        })
+        .filter((prefix) => (LEGACY_BYPASS_RESOURCE_ROOTS as readonly string[]).includes(prefix));
+      buildLegacyBypassFromApp(app, lazyBypassPrefixes);
       log('✅ Full application routes loaded including authentication');
     } catch (routesError: any) {
       log(`❌ Failed to load full routes: ${routesError.message}`, 'error');

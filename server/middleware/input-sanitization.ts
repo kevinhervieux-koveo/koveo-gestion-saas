@@ -112,7 +112,7 @@ const mcpOAuthBypass: ReadonlyMap<string, ReadonlySet<string>> = new Map([
  * `skipRoutes` list used. Anything Express registers under one of these
  * roots is auto-added; anything outside them sanitizes normally.
  */
-const LEGACY_BYPASS_RESOURCE_ROOTS: readonly string[] = [
+export const LEGACY_BYPASS_RESOURCE_ROOTS: readonly string[] = [
   '/api/upload',
   '/api/documents/upload',
   '/api/bills',
@@ -127,6 +127,10 @@ interface LegacyBypassRule {
   pattern: RegExp;
   methods: Set<string>;
   source: string; // original Express path, for debugging
+  /** When true the rule bypasses regardless of the HTTP method. Used for
+   * lazy-mounted route groups where we don't know the exact verb set at
+   * bypass-map build time. */
+  allMethods?: boolean;
 }
 
 let legacyBypassRules: LegacyBypassRule[] = [];
@@ -219,8 +223,20 @@ function extractMountPath(layer: any): string {
 /**
  * Build the legacy bypass map by introspecting an Express app's
  * route table. Call this AFTER all routes are registered.
+ *
+ * @param lazyPrefixes - Optional list of URL prefixes (e.g. '/api/budgets')
+ *   whose route modules are loaded lazily (via the lazyMount trampoline)
+ *   and therefore have NOT yet registered their sub-routes into the Express
+ *   route table when this function runs. For each prefix that is already in
+ *   LEGACY_BYPASS_RESOURCE_ROOTS, an all-methods, prefix-based bypass rule
+ *   is added so those routes are not blocked before the lazy loader fires.
+ *   Eagerly-mounted routes keep their existing exact-path / method-pinned
+ *   rules and are unaffected.
  */
-export function buildLegacyBypassFromApp(app: any): void {
+export function buildLegacyBypassFromApp(
+  app: any,
+  lazyPrefixes: readonly string[] = [],
+): void {
   const collected: CollectedRoute[] = [];
   collectRoutes(app?._router, '', collected);
 
@@ -235,16 +251,38 @@ export function buildLegacyBypassFromApp(app: any): void {
     methods.add(method);
   }
 
-  legacyBypassRules = Array.from(byPath.entries()).map(([path, methods]) => ({
-    pattern: expressPathToRegex(path),
-    methods,
-    source: path,
-  }));
+  const exactRules: LegacyBypassRule[] = Array.from(byPath.entries()).map(
+    ([path, methods]) => ({
+      pattern: expressPathToRegex(path),
+      methods,
+      source: path,
+    }),
+  );
+
+  // For each lazy-mounted prefix that opts into the legacy bypass scope,
+  // add an all-methods prefix-based rule. This covers requests that arrive
+  // before the lazy loader has registered its sub-routes (and therefore
+  // before those routes appear in the Express route table).
+  const lazyRules: LegacyBypassRule[] = lazyPrefixes
+    .filter(isInLegacyScope)
+    .map((prefix) => {
+      // Escape any regex metacharacters in the literal prefix, then match
+      // the prefix itself or anything under it (prefix + '/').
+      const escaped = prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      return {
+        pattern: new RegExp('^' + escaped + '(?:/|$)'),
+        methods: new Set<string>(),
+        source: `[lazy] ${prefix}`,
+        allMethods: true,
+      };
+    });
+
+  legacyBypassRules = [...exactRules, ...lazyRules];
 }
 
 function matchesLegacyBypass(path: string, method: string): boolean {
   for (const rule of legacyBypassRules) {
-    if (rule.methods.has(method) && rule.pattern.test(path)) {
+    if ((rule.allMethods || rule.methods.has(method)) && rule.pattern.test(path)) {
       return true;
     }
   }
@@ -318,6 +356,67 @@ function containsDangerousPatterns(input: string): boolean {
 }
 
 /**
+ * Body field names whose entries are user-typed display-label maps.
+ *
+ * These fields hold `Record<label, number>` values where the keys are free-
+ * form labels entered by building managers (e.g. "Franchise Assurance (loi
+ * 141)", "TPS/TVQ (taxes)"). Parentheses, slashes and accented characters
+ * are routine in Quebec accounting labels and must not be blocked.
+ *
+ * The LDAP-injection probe (`[\(\)\*\\\x00]`) is deliberately skipped for
+ * keys inside these maps only; all other object keys continue to be probed
+ * with the full `containsDangerousPatterns` (see `findDangerousFieldPath`).
+ */
+const LABEL_MAP_FIELD_NAMES = new Set([
+  'customBankFields',
+  'categoryInflationRates',
+]);
+
+/**
+ * Return true when `currentPath` refers to a field whose entries are user-
+ * typed display-label maps. At that point the object's keys are the label
+ * strings, not structural field names, so we relax key scanning to the
+ * NoSQL-only probe.
+ *
+ * Examples that return true:
+ *   'customBankFields'        (top-level)
+ *   'config.customBankFields' (nested)
+ *
+ * Examples that return false:
+ *   ''                        (top-level object itself)
+ *   'bankAccountStartAmount'
+ *   'customBankFields.myKey'  (we're inside the map, not at the map)
+ */
+function isInsideLabelMap(currentPath: string): boolean {
+  if (LABEL_MAP_FIELD_NAMES.has(currentPath)) return true;
+  const dotIdx = currentPath.lastIndexOf('.');
+  if (dotIdx !== -1) {
+    const lastSegment = currentPath.slice(dotIdx + 1);
+    return LABEL_MAP_FIELD_NAMES.has(lastSegment);
+  }
+  return false;
+}
+
+/**
+ * Check if an object KEY inside a known user-label map contains dangerous
+ * patterns. This is intentionally narrower than `containsDangerousPatterns`:
+ * it runs ONLY the NoSQL-operator probe (`$ne`, `$where`, etc.) and skips
+ * LDAP/SQL/command probes that would produce false positives on French
+ * accounting labels like "Franchise Assurance (loi 141)".
+ *
+ * Only called by `findDangerousFieldPath` when `isInsideLabelMap` is true
+ * for the current path. All other keys use the full `containsDangerousPatterns`.
+ */
+function containsDangerousLabelMapKeyPatterns(key: string): boolean {
+  DANGEROUS_PATTERNS.NOSQL_INJECTION.lastIndex = 0;
+  if (DANGEROUS_PATTERNS.NOSQL_INJECTION.test(key)) {
+    DANGEROUS_PATTERNS.NOSQL_INJECTION.lastIndex = 0;
+    return true;
+  }
+  return false;
+}
+
+/**
  * Walk a request body and return the dotted path of the first string
  * value — OR object key — whose contents trip the dangerous-pattern
  * probes. Credential field values are skipped for the same reason
@@ -351,10 +450,19 @@ function findDangerousFieldPath(
     for (const [key, child] of Object.entries(value as Record<string, unknown>)) {
       if (PASSWORD_FIELD_KEYS.has(key)) continue;
       const nextPath = currentPath ? `${currentPath}.${key}` : key;
-      // Check the KEY itself (catches NoSQL operator injection like
-      // `$ne`, `$where`, command-injection chars in a key name, etc.)
-      // before descending into the value.
-      if (containsDangerousPatterns(key)) {
+      // Check the KEY itself (catches NoSQL operator injection like `$ne`,
+      // `$where`, command-injection chars, etc.) before descending into the
+      // value. For keys inside known user-label maps (`customBankFields`,
+      // `categoryInflationRates`) we use the narrower probe that skips the
+      // LDAP-injection check — parentheses in French accounting labels like
+      // "Franchise Assurance (loi 141)" are legitimate and must not be
+      // blocked. For all other keys we run the full `containsDangerousPatterns`
+      // so the prior security coverage (LDAP/SQL/command on structural keys)
+      // is preserved.
+      const keyIsDangerous = isInsideLabelMap(currentPath)
+        ? containsDangerousLabelMapKeyPatterns(key)
+        : containsDangerousPatterns(key);
+      if (keyIsDangerous) {
         return nextPath;
       }
       const hit = findDangerousFieldPath(child, nextPath);
