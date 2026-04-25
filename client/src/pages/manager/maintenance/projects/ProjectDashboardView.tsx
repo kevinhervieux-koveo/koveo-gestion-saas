@@ -29,6 +29,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { MaintenanceProject } from '@shared/schemas/maintenance';
 import { format, subMonths, startOfMonth } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { translateBreakdownName, translateHealthStatus } from './projectEnumLabels';
 import {
   BarChart3,
   TrendingUp,
@@ -270,7 +271,7 @@ export function ProjectDashboardView({
           <span>{t('pvFailedToLoadDashboard')}</span>
           <Button variant="outline" size="sm" onClick={() => refetch()}>
             <RefreshCw className="h-4 w-4 mr-2" />
-            Retry
+            {t('retry')}
           </Button>
         </AlertDescription>
       </Alert>
@@ -282,8 +283,7 @@ export function ProjectDashboardView({
     return (
       <div className={cn('flex flex-col items-center justify-center p-8', className)} data-testid="no-building-selected">
         <Building2 className="h-16 w-16 text-muted-foreground mb-4" />
-        <h3 className="text-lg font-semibold mb-2">No Building Selected</h3>
-        {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
+        <h3 className="text-lg font-semibold mb-2">{t('pvNoBuildingSelected')}</h3>
         <p className="text-muted-foreground text-center">
           {t('pvNoBuildingDashboard')}
         </p>
@@ -296,8 +296,7 @@ export function ProjectDashboardView({
       {/* Dashboard Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="space-y-1">
-          <h3 className="text-lg font-semibold">Project Portfolio Dashboard</h3>
-          {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
+          <h3 className="text-lg font-semibold">{t('pvProjectPortfolioDashboard')}</h3>
           <p className="text-sm text-muted-foreground">
             {t('pvDashboardSubtitle')}
           </p>
@@ -307,12 +306,12 @@ export function ProjectDashboardView({
           {canViewReports && (
             <Button variant="outline" size="sm">
               <Download className="h-4 w-4 mr-2" />
-              Export Report
+              {t('pvExportReport')}
             </Button>
           )}
           <Button variant="outline" size="sm" onClick={() => refetch()}>
             <RefreshCw className="h-4 w-4 mr-2" />
-            Refresh
+            {t('refresh')}
           </Button>
         </div>
       </div>
@@ -323,7 +322,7 @@ export function ProjectDashboardView({
           <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">Completion Rate</p>
+                <p className="text-sm text-muted-foreground">{t('pvCompletionRateLabel')}</p>
                 <p className="text-2xl font-bold">{kpiTrends.completionRate.current}%</p>
                 <div className="flex items-center gap-1">
                   {kpiTrends.completionRate.trend === 'up' ? (
@@ -349,7 +348,7 @@ export function ProjectDashboardView({
           <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">Budget Utilization</p>
+                <p className="text-sm text-muted-foreground">{t('pvBudgetUtilizationLabel')}</p>
                 <p className="text-2xl font-bold">{kpiTrends.budgetUtilization.current}%</p>
                 <div className="flex items-center gap-1">
                   {kpiTrends.budgetUtilization.trend === 'up' ? (
@@ -375,7 +374,7 @@ export function ProjectDashboardView({
           <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">On-Time Completion</p>
+                <p className="text-sm text-muted-foreground">{t('pvOnTimeCompletionLabel')}</p>
                 <p className="text-2xl font-bold">{kpiTrends.onTimeCompletion.current}%</p>
                 <div className="flex items-center gap-1">
                   {kpiTrends.onTimeCompletion.trend === 'up' ? (
@@ -401,7 +400,7 @@ export function ProjectDashboardView({
           <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div className="space-y-1">
-                <p className="text-sm text-muted-foreground">Cost Efficiency</p>
+                <p className="text-sm text-muted-foreground">{t('pvCostEfficiencyLabel')}</p>
                 <p className="text-2xl font-bold">{kpiTrends.costEfficiency.current}%</p>
                 <div className="flex items-center gap-1">
                   {kpiTrends.costEfficiency.trend === 'up' ? (
@@ -429,8 +428,7 @@ export function ProjectDashboardView({
         {/* Project Trends */}
         <Card data-testid="project-trends-chart">
           <CardHeader>
-            <CardTitle className="text-base">Project Trends</CardTitle>
-            {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
+            <CardTitle className="text-base">{t('pvProjectTrendsTitle')}</CardTitle>
             <CardDescription>
               {t('pvProjectTrendsDesc')}
             </CardDescription>
@@ -450,7 +448,7 @@ export function ProjectDashboardView({
                   stroke="#3b82f6"
                   fill="#3b82f6"
                   fillOpacity={0.6}
-                  name="Created"
+                  name={t('pvChartCreated')}
                 />
                 <Area
                   type="monotone"
@@ -459,7 +457,7 @@ export function ProjectDashboardView({
                   stroke="#22c55e"
                   fill="#22c55e"
                   fillOpacity={0.6}
-                  name="Completed"
+                  name={t('pvChartCompleted')}
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -469,8 +467,7 @@ export function ProjectDashboardView({
         {/* Budget Analysis */}
         <Card data-testid="budget-analysis-chart">
           <CardHeader>
-            <CardTitle className="text-base">Budget Analysis</CardTitle>
-            {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
+            <CardTitle className="text-base">{t('pvBudgetAnalysisTitle')}</CardTitle>
             <CardDescription>
               {t('pvBudgetAnalysisDesc')}
             </CardDescription>
@@ -490,13 +487,13 @@ export function ProjectDashboardView({
                   dataKey="planned"
                   stroke="#6b7280"
                   strokeDasharray="5 5"
-                  name="Planned Budget"
+                  name={t('pvChartPlannedBudget')}
                 />
                 <Line
                   type="monotone"
                   dataKey="actual"
                   stroke="#3b82f6"
-                  name="Actual Spend"
+                  name={t('pvChartActualSpend')}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -506,7 +503,7 @@ export function ProjectDashboardView({
         {/* Status Distribution */}
         <Card data-testid="status-distribution-chart">
           <CardHeader>
-            <CardTitle className="text-base">Project Status Distribution</CardTitle>
+            <CardTitle className="text-base">{t('pvProjectStatusDistributionTitle')}</CardTitle>
             <CardDescription>
               {t('pvStatusBreakdownDesc')}
             </CardDescription>
@@ -515,7 +512,10 @@ export function ProjectDashboardView({
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
-                  data={dashboardMetrics.statusBreakdown}
+                  data={dashboardMetrics.statusBreakdown.map(entry => ({
+                    ...entry,
+                    name: translateBreakdownName(entry.name, t),
+                  }))}
                   cx="50%"
                   cy="50%"
                   labelLine={false}
@@ -537,14 +537,17 @@ export function ProjectDashboardView({
         {/* Priority Breakdown */}
         <Card data-testid="priority-breakdown-chart">
           <CardHeader>
-            <CardTitle className="text-base">Priority Distribution</CardTitle>
+            <CardTitle className="text-base">{t('pvPriorityDistributionTitle')}</CardTitle>
             <CardDescription>
               {t('pvPriorityBreakdownDesc')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={dashboardMetrics.priorityBreakdown}>
+              <BarChart data={dashboardMetrics.priorityBreakdown.map(entry => ({
+                ...entry,
+                name: translateBreakdownName(entry.name, t),
+              }))}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis />
@@ -566,17 +569,17 @@ export function ProjectDashboardView({
           <CardHeader className="pb-3">
             <CardTitle className="text-sm flex items-center gap-2">
               <DollarSign className="h-4 w-4" />
-              Budget Health
+              {t('pvBudgetHealth')}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm">Overall Status</span>
+              <span className="text-sm">{t('pvOverallStatus')}</span>
               <Badge 
                 variant={dashboardMetrics.performanceIndicators.budgetHealth === 'healthy' ? 'default' : 
                         dashboardMetrics.performanceIndicators.budgetHealth === 'warning' ? 'secondary' : 'destructive'}
               >
-                {dashboardMetrics.performanceIndicators.budgetHealth}
+                {translateHealthStatus(dashboardMetrics.performanceIndicators.budgetHealth, t)}
               </Badge>
             </div>
             <Progress 
@@ -584,7 +587,7 @@ export function ProjectDashboardView({
               className="h-2"
             />
             <p className="text-xs text-muted-foreground mt-2">
-              {dashboardMetrics.budgetUtilization}% of total budget utilized
+              {t('pvBudgetUtilizedPct').replace('{percent}', String(dashboardMetrics.budgetUtilization))}
             </p>
           </CardContent>
         </Card>
@@ -593,17 +596,17 @@ export function ProjectDashboardView({
           <CardHeader className="pb-3">
             <CardTitle className="text-sm flex items-center gap-2">
               <Clock className="h-4 w-4" />
-              Schedule Health
+              {t('pvScheduleHealth')}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm">Overall Status</span>
+              <span className="text-sm">{t('pvOverallStatus')}</span>
               <Badge 
                 variant={dashboardMetrics.performanceIndicators.scheduleHealth === 'healthy' ? 'default' : 
                         dashboardMetrics.performanceIndicators.scheduleHealth === 'warning' ? 'secondary' : 'destructive'}
               >
-                {dashboardMetrics.performanceIndicators.scheduleHealth}
+                {translateHealthStatus(dashboardMetrics.performanceIndicators.scheduleHealth, t)}
               </Badge>
             </div>
             <Progress 
@@ -611,7 +614,7 @@ export function ProjectDashboardView({
               className="h-2"
             />
             <p className="text-xs text-muted-foreground mt-2">
-              {dashboardMetrics.onTimeCompletion}% on-time completion rate
+              {t('pvOnTimeDeliveryRate').replace('{percent}', String(dashboardMetrics.onTimeCompletion))}
             </p>
           </CardContent>
         </Card>
@@ -620,17 +623,17 @@ export function ProjectDashboardView({
           <CardHeader className="pb-3">
             <CardTitle className="text-sm flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4" />
-              Quality Health
+              {t('pvQualityHealth')}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm">Overall Status</span>
+              <span className="text-sm">{t('pvOverallStatus')}</span>
               <Badge 
                 variant={dashboardMetrics.performanceIndicators.qualityHealth === 'healthy' ? 'default' : 
                         dashboardMetrics.performanceIndicators.qualityHealth === 'warning' ? 'secondary' : 'destructive'}
               >
-                {dashboardMetrics.performanceIndicators.qualityHealth}
+                {translateHealthStatus(dashboardMetrics.performanceIndicators.qualityHealth, t)}
               </Badge>
             </div>
             <Progress 
@@ -638,7 +641,7 @@ export function ProjectDashboardView({
               className="h-2"
             />
             <p className="text-xs text-muted-foreground mt-2">
-              {dashboardMetrics.completionRate}% successful completion rate
+              {t('pvSuccessfulCompletionRate').replace('{percent}', String(dashboardMetrics.completionRate))}
             </p>
           </CardContent>
         </Card>
@@ -664,8 +667,7 @@ export function ProjectDashboardView({
       {/* Executive Summary */}
       <Card data-testid="executive-summary">
         <CardHeader>
-          <CardTitle className="text-base">Executive Summary</CardTitle>
-          {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
+          <CardTitle className="text-base">{t('pvExecutiveSummaryTitle')}</CardTitle>
           <CardDescription>
             {t('pvExecutiveSummaryDesc')}
           </CardDescription>
@@ -673,21 +675,21 @@ export function ProjectDashboardView({
         <CardContent className="space-y-3">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <div>
-              <h4 className="font-medium mb-2">Portfolio Health</h4>
+              <h4 className="font-medium mb-2">{t('pvPortfolioHealth')}</h4>
               <ul className="space-y-1 text-muted-foreground">
-                <li>• {dashboardMetrics.totalProjects} total projects in portfolio</li>
-                <li>• {dashboardMetrics.activeProjects} currently active projects</li>
-                <li>• {dashboardMetrics.completionRate}% completion rate this period</li>
-                <li>• Average project duration: {dashboardMetrics.averageDuration} days</li>
+                <li>• {t('pvTotalProjectsInPortfolio').replace('{count}', String(dashboardMetrics.totalProjects))}</li>
+                <li>• {t('pvCurrentlyActiveProjects').replace('{count}', String(dashboardMetrics.activeProjects))}</li>
+                <li>• {t('pvCompletionRateThisPeriod').replace('{percent}', String(dashboardMetrics.completionRate))}</li>
+                <li>• {t('pvAverageProjectDuration').replace('{days}', String(dashboardMetrics.averageDuration))}</li>
               </ul>
             </div>
             <div>
-              <h4 className="font-medium mb-2">Performance Insights</h4>
+              <h4 className="font-medium mb-2">{t('pvPerformanceInsights')}</h4>
               <ul className="space-y-1 text-muted-foreground">
-                <li>• Cost efficiency at {dashboardMetrics.costEfficiency}%</li>
-                <li>• {dashboardMetrics.onTimeCompletion}% projects delivered on time</li>
-                <li>{t('pvBudgetWithinTarget')}</li>
-                <li>{t('pvQualityMeetingExpectations')}</li>
+                <li>• {t('pvCostEfficiencyAt').replace('{percent}', String(dashboardMetrics.costEfficiency))}</li>
+                <li>• {t('pvProjectsDeliveredOnTime').replace('{percent}', String(dashboardMetrics.onTimeCompletion))}</li>
+                <li>• {t('pvBudgetWithinTarget')}</li>
+                <li>• {t('pvQualityMeetingExpectations')}</li>
               </ul>
             </div>
           </div>

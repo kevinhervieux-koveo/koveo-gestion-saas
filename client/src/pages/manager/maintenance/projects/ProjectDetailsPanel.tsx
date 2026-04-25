@@ -22,6 +22,11 @@ import { apiRequest } from '@/lib/queryClient';
 import { MaintenanceProject } from '@shared/schemas/maintenance';
 import { cn, parseDateOnly } from '@/lib/utils';
 import {
+  translateProjectStatus,
+  translateProjectPriority,
+  translateProjectType,
+} from './projectEnumLabels';
+import {
   Calendar,
   Clock,
   DollarSign,
@@ -168,7 +173,6 @@ export function ProjectDetailsPanel({
             </div>
           </div>
           
-          {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
           <SheetDescription className="text-sm">
             {t('pvDetailsPanelDesc')}
           </SheetDescription>
@@ -183,7 +187,7 @@ export function ProjectDetailsPanel({
                 data-testid="edit-project-action"
               >
                 <Edit2 className="h-4 w-4 mr-2" />
-                Edit Project
+                {t('pvEditProjectAction')}
               </Button>
             )}
             
@@ -195,7 +199,7 @@ export function ProjectDetailsPanel({
                 data-testid="update-status-action"
               >
                 <Play className="h-4 w-4 mr-2" />
-                Update Status
+                {t('pvUpdateStatusAction')}
               </Button>
             )}
             
@@ -207,7 +211,7 @@ export function ProjectDetailsPanel({
                 data-testid="manage-timeline-action"
               >
                 <Calendar className="h-4 w-4 mr-2" />
-                Timeline
+                {t('pvTimelineAction')}
               </Button>
             )}
           </div>
@@ -225,7 +229,6 @@ export function ProjectDetailsPanel({
         {error && (
           <Alert variant="destructive" className="mt-6">
             <AlertTriangle className="h-4 w-4" />
-            {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
             <AlertDescription>
               {t('pvFailedToLoadDetails')}
             </AlertDescription>
@@ -240,13 +243,13 @@ export function ProjectDetailsPanel({
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
                   <Target className="h-4 w-4" />
-                  Project Progress
+                  {t('pvProjectProgressTitle')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
-                    <span>Overall Progress</span>
+                    <span>{t('pvOverallProgressLabel')}</span>
                     <span className="font-medium">{metrics.progress}%</span>
                   </div>
                   <Progress value={metrics.progress} className="h-2" />
@@ -254,34 +257,34 @@ export function ProjectDetailsPanel({
 
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div className="space-y-1">
-                    <span className="text-muted-foreground">Status</span>
-                    <div className="font-medium capitalize">
-                      {projectDetails.status.replace('_', ' ')}
+                    <span className="text-muted-foreground">{t('status')}</span>
+                    <div className="font-medium">
+                      {translateProjectStatus(projectDetails.status, t)}
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <span className="text-muted-foreground">Priority</span>
-                    <div className="font-medium capitalize">
-                      {projectDetails.priority}
+                    <span className="text-muted-foreground">{t('priority')}</span>
+                    <div className="font-medium">
+                      {translateProjectPriority(projectDetails.priority, t)}
                     </div>
                   </div>
                   {metrics.daysRemaining !== null && (
                     <div className="space-y-1">
-                      <span className="text-muted-foreground">Time Remaining</span>
+                      <span className="text-muted-foreground">{t('pvTimeRemaining')}</span>
                       <div className={cn(
                         "font-medium",
                         metrics.isOverdue ? "text-red-600" : 
                         metrics.daysRemaining <= 7 ? "text-yellow-600" : "text-green-600"
                       )}>
                         {metrics.isOverdue 
-                          ? `${Math.abs(metrics.daysRemaining)} days overdue`
-                          : `${metrics.daysRemaining} days left`
+                          ? t('pvDaysOverdue').replace('{days}', String(Math.abs(metrics.daysRemaining)))
+                          : t('pvDaysLeft').replace('{days}', String(metrics.daysRemaining))
                         }
                       </div>
                     </div>
                   )}
                   <div className="space-y-1">
-                    <span className="text-muted-foreground">Budget Usage</span>
+                    <span className="text-muted-foreground">{t('pvBudgetUsage')}</span>
                     <div className={cn(
                       "font-medium",
                       metrics.isOverBudget ? "text-red-600" : "text-green-600"
@@ -295,8 +298,8 @@ export function ProjectDetailsPanel({
                   <Alert variant="destructive">
                     <AlertTriangle className="h-4 w-4" />
                     <AlertDescription>
-                      {metrics.isOverdue && "This project is overdue. "}
-                      {metrics.isOverBudget && "This project is over budget. "}
+                      {metrics.isOverdue && `${t('pvProjectIsOverdue')} `}
+                      {metrics.isOverBudget && `${t('pvProjectIsOverBudget')} `}
                       {t('pvImmediateAttention')}
                     </AlertDescription>
                   </Alert>
@@ -307,46 +310,46 @@ export function ProjectDetailsPanel({
             {/* Tabbed Content */}
             <Tabs value={activeTab} onValueChange={setActiveTab} data-testid="project-details-tabs">
               <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="overview" className="text-xs">Overview</TabsTrigger>
-                <TabsTrigger value="timeline" className="text-xs">Timeline</TabsTrigger>
-                <TabsTrigger value="budget" className="text-xs">Budget</TabsTrigger>
-                <TabsTrigger value="elements" className="text-xs">Elements</TabsTrigger>
+                <TabsTrigger value="overview" className="text-xs">{t('pvOverviewTab')}</TabsTrigger>
+                <TabsTrigger value="timeline" className="text-xs">{t('pvTimelineTab')}</TabsTrigger>
+                <TabsTrigger value="budget" className="text-xs">{t('pvBudgetTab')}</TabsTrigger>
+                <TabsTrigger value="elements" className="text-xs">{t('pvElementsTab')}</TabsTrigger>
               </TabsList>
 
               {/* Overview Tab */}
               <TabsContent value="overview" className="space-y-4">
                 <Card>
                   <CardHeader className="pb-3">
-                    <CardTitle className="text-sm">Project Information</CardTitle>
+                    <CardTitle className="text-sm">{t('pvProjectInformation')}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3 text-sm">
                     <div className="grid grid-cols-1 gap-3">
                       <div>
-                        <span className="text-muted-foreground">Type:</span>
-                        <span className="ml-2 font-medium capitalize">
-                          {projectDetails.type?.replace('_', ' ')}
+                        <span className="text-muted-foreground">{t('pvTypeColon')}</span>
+                        <span className="ml-2 font-medium">
+                          {translateProjectType(projectDetails.type, t)}
                         </span>
                       </div>
                       
                       {projectDetails.suggestionId && (
                         <div>
-                          <span className="text-muted-foreground">Created from suggestion:</span>
+                          <span className="text-muted-foreground">{t('pvCreatedFromSuggestion')}</span>
                           <Badge variant="outline" className="ml-2 text-xs">
                             <Zap className="h-3 w-3 mr-1" />
-                            Auto-generated
+                            {t('pvAutoGenerated')}
                           </Badge>
                         </div>
                       )}
 
                       <div>
-                        <span className="text-muted-foreground">Created:</span>
+                        <span className="text-muted-foreground">{t('pvCreatedColon')}</span>
                         <span className="ml-2 font-medium">
                           {format(new Date(projectDetails.createdAt), 'MMM dd, yyyy')}
                         </span>
                       </div>
 
                       <div>
-                        <span className="text-muted-foreground">Last updated:</span>
+                        <span className="text-muted-foreground">{t('pvLastUpdatedColon')}</span>
                         <span className="ml-2 font-medium">
                           {format(new Date(projectDetails.updatedAt), 'MMM dd, yyyy')}
                         </span>
@@ -359,15 +362,15 @@ export function ProjectDetailsPanel({
                 <div className="grid grid-cols-2 gap-4">
                   <Card>
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-xs text-muted-foreground">DURATION</CardTitle>
+                      <CardTitle className="text-xs text-muted-foreground">{t('pvDurationCaps')}</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="text-lg font-bold">
-                        {metrics.plannedDuration ? `${metrics.plannedDuration} days` : 'Not set'}
+                        {metrics.plannedDuration ? t('pvNDays').replace('{count}', String(metrics.plannedDuration)) : t('notSet')}
                       </div>
                       {metrics.actualDuration && (
                         <div className="text-xs text-muted-foreground">
-                          Actual: {metrics.actualDuration} days
+                          {t('pvActualNDays').replace('{count}', String(metrics.actualDuration))}
                         </div>
                       )}
                     </CardContent>
@@ -375,14 +378,14 @@ export function ProjectDetailsPanel({
 
                   <Card>
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-xs text-muted-foreground">BUDGET</CardTitle>
+                      <CardTitle className="text-xs text-muted-foreground">{t('pvBudgetCaps')}</CardTitle>
                     </CardHeader>
                     <CardContent>
                       <div className="text-lg font-bold">
-                        ${projectDetails.totalBudget ? parseFloat(projectDetails.totalBudget).toLocaleString() : 'Not set'}
+                        {projectDetails.totalBudget ? `$${parseFloat(projectDetails.totalBudget).toLocaleString()}` : t('notSet')}
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        ${projectDetails.actualCost ? parseFloat(projectDetails.actualCost).toLocaleString() : '0'} spent
+                        {t('pvAmountSpentSuffix').replace('{amount}', `$${projectDetails.actualCost ? parseFloat(projectDetails.actualCost).toLocaleString() : '0'}`)}
                       </div>
                     </CardContent>
                   </Card>
@@ -398,7 +401,7 @@ export function ProjectDetailsPanel({
                       data-testid="manage-elements-button"
                     >
                       <Building2 className="h-4 w-4 mr-2" />
-                      Manage Project Elements
+                      {t('pvManageProjectElements')}
                       <ChevronRight className="h-4 w-4 ml-auto" />
                     </Button>
                   )}
@@ -411,7 +414,7 @@ export function ProjectDetailsPanel({
                       data-testid="manage-notes-button"
                     >
                       <MessageSquare className="h-4 w-4 mr-2" />
-                      Project Notes & Communication
+                      {t('pvProjectNotesAndComm')}
                       <ChevronRight className="h-4 w-4 ml-auto" />
                     </Button>
                   )}
@@ -424,7 +427,7 @@ export function ProjectDetailsPanel({
                       data-testid="manage-budget-button"
                     >
                       <DollarSign className="h-4 w-4 mr-2" />
-                      Budget & Cost Tracking
+                      {t('pvBudgetCostTracking')}
                       <ChevronRight className="h-4 w-4 ml-auto" />
                     </Button>
                   )}
@@ -435,34 +438,34 @@ export function ProjectDetailsPanel({
               <TabsContent value="timeline" className="space-y-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-sm">Project Timeline</CardTitle>
-                    <CardDescription>Key dates and milestones</CardDescription>
+                    <CardTitle className="text-sm">{t('pvProjectTimelineTitle')}</CardTitle>
+                    <CardDescription>{t('pvKeyDatesAndMilestones')}</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="space-y-3 text-sm">
                       <div className="flex justify-between items-center">
-                        <span className="text-muted-foreground">Planned Start:</span>
+                        <span className="text-muted-foreground">{t('pvPlannedStartColon')}</span>
                         <span className="font-medium">
                           {projectDetails.plannedStartDate 
                             ? format(parseDateOnly(projectDetails.plannedStartDate)!, 'MMM dd, yyyy')
-                            : 'Not set'
+                            : t('notSet')
                           }
                         </span>
                       </div>
                       
                       <div className="flex justify-between items-center">
-                        <span className="text-muted-foreground">Planned End:</span>
+                        <span className="text-muted-foreground">{t('pvPlannedEndColon')}</span>
                         <span className="font-medium">
                           {projectDetails.plannedEndDate 
                             ? format(parseDateOnly(projectDetails.plannedEndDate)!, 'MMM dd, yyyy')
-                            : 'Not set'
+                            : t('notSet')
                           }
                         </span>
                       </div>
 
                       {projectDetails.actualStartDate && (
                         <div className="flex justify-between items-center">
-                          <span className="text-muted-foreground">Actual Start:</span>
+                          <span className="text-muted-foreground">{t('pvActualStartColon')}</span>
                           <span className="font-medium">
                             {format(parseDateOnly(projectDetails.actualStartDate)!, 'MMM dd, yyyy')}
                           </span>
@@ -471,7 +474,7 @@ export function ProjectDetailsPanel({
 
                       {projectDetails.actualEndDate && (
                         <div className="flex justify-between items-center">
-                          <span className="text-muted-foreground">Actual End:</span>
+                          <span className="text-muted-foreground">{t('pvActualEndColon')}</span>
                           <span className="font-medium">
                             {format(parseDateOnly(projectDetails.actualEndDate)!, 'MMM dd, yyyy')}
                           </span>
@@ -486,7 +489,7 @@ export function ProjectDetailsPanel({
                         data-testid="open-timeline-button"
                       >
                         <Calendar className="h-4 w-4 mr-2" />
-                        Open Full Timeline View
+                        {t('pvOpenFullTimelineView')}
                       </Button>
                     )}
                   </CardContent>
@@ -497,13 +500,13 @@ export function ProjectDetailsPanel({
               <TabsContent value="budget" className="space-y-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-sm">Budget Analysis</CardTitle>
+                    <CardTitle className="text-sm">{t('pvBudgetAnalysisCardTitle')}</CardTitle>
                     <CardDescription>{t('pvFinancialTrackingDesc')}</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
-                        <span>Budget Utilization</span>
+                        <span>{t('pvBudgetUtilizationCardLabel')}</span>
                         <span className="font-medium">{metrics.budgetUtilization.toFixed(1)}%</span>
                       </div>
                       <Progress value={Math.min(metrics.budgetUtilization, 100)} className="h-2" />
@@ -511,19 +514,19 @@ export function ProjectDetailsPanel({
 
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div className="space-y-1">
-                        <span className="text-muted-foreground">Total Budget</span>
+                        <span className="text-muted-foreground">{t('pvTotalBudgetLabel')}</span>
                         <div className="font-bold text-lg">
                           ${projectDetails.totalBudget ? parseFloat(projectDetails.totalBudget).toLocaleString() : '—'}
                         </div>
                       </div>
                       <div className="space-y-1">
-                        <span className="text-muted-foreground">Amount Spent</span>
+                        <span className="text-muted-foreground">{t('pvAmountSpentLabel')}</span>
                         <div className="font-bold text-lg">
                           ${projectDetails.actualCost ? parseFloat(projectDetails.actualCost).toLocaleString() : '0'}
                         </div>
                       </div>
                       <div className="space-y-1">
-                        <span className="text-muted-foreground">Remaining</span>
+                        <span className="text-muted-foreground">{t('pvRemainingLabel')}</span>
                         <div className={cn(
                           "font-bold text-lg",
                           metrics.isOverBudget ? "text-red-600" : "text-green-600"
@@ -535,7 +538,7 @@ export function ProjectDetailsPanel({
                         </div>
                       </div>
                       <div className="space-y-1">
-                        <span className="text-muted-foreground">Variance</span>
+                        <span className="text-muted-foreground">{t('pvVarianceLabel')}</span>
                         <div className={cn(
                           "font-bold text-lg",
                           metrics.isOverBudget ? "text-red-600" : "text-green-600"
@@ -552,7 +555,7 @@ export function ProjectDetailsPanel({
                         data-testid="open-budget-button"
                       >
                         <DollarSign className="h-4 w-4 mr-2" />
-                        Open Budget Management
+                        {t('pvOpenBudgetManagement')}
                       </Button>
                     )}
                   </CardContent>
@@ -563,7 +566,7 @@ export function ProjectDetailsPanel({
               <TabsContent value="elements" className="space-y-4">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-sm">Project Elements</CardTitle>
+                    <CardTitle className="text-sm">{t('pvProjectElementsTitle')}</CardTitle>
                     <CardDescription>{t('pvElementsAssociatedDesc')}</CardDescription>
                   </CardHeader>
                   <CardContent>
@@ -579,7 +582,7 @@ export function ProjectDetailsPanel({
                         data-testid="open-elements-button"
                       >
                         <Building2 className="h-4 w-4 mr-2" />
-                        Manage Project Elements
+                        {t('pvManageProjectElements')}
                       </Button>
                     )}
                   </CardContent>

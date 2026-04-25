@@ -140,7 +140,6 @@ export function ProjectsOverview({ className, buildingId, organizationId }: Proj
     return (
       <Alert variant="destructive" className={className}>
         <AlertTriangle className="h-4 w-4" />
-        {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
         <AlertDescription>
           {t('pvFailedToLoadMetrics')}
         </AlertDescription>
@@ -155,7 +154,7 @@ export function ProjectsOverview({ className, buildingId, organizationId }: Proj
         {/* Total Projects */}
         <Card data-testid="total-projects-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Projects</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('pvTotalProjectsTitle')}</CardTitle>
             <Folder className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -165,12 +164,12 @@ export function ProjectsOverview({ className, buildingId, organizationId }: Proj
             <div className="flex items-center text-xs text-muted-foreground">
               <span className="flex items-center">
                 <Play className="h-3 w-3 mr-1 text-blue-500" />
-                {metrics.activeProjects} active
+                {t('pvNActive').replace('{count}', String(metrics.activeProjects))}
               </span>
               <span className="mx-2">•</span>
               <span className="flex items-center">
                 <CheckCircle2 className="h-3 w-3 mr-1 text-green-500" />
-                {metrics.completedProjects} completed
+                {t('pvNCompleted').replace('{count}', String(metrics.completedProjects))}
               </span>
             </div>
           </CardContent>
@@ -179,7 +178,7 @@ export function ProjectsOverview({ className, buildingId, organizationId }: Proj
         {/* Budget Overview */}
         <Card data-testid="budget-overview-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Budget Overview</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('pvBudgetOverviewTitle')}</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -189,7 +188,7 @@ export function ProjectsOverview({ className, buildingId, organizationId }: Proj
             <div className="space-y-2">
               <Progress value={metrics.budgetUtilization} className="h-2" />
               <div className="flex justify-between text-xs text-muted-foreground">
-                <span>${metrics.spentBudget.toLocaleString()} spent</span>
+                <span>{t('pvAmountSpentText').replace('{amount}', `$${metrics.spentBudget.toLocaleString()}`)}</span>
                 <span className={cn(
                   "font-medium",
                   performanceMetrics.budgetHealth === 'healthy' ? 'text-green-600' :
@@ -205,7 +204,7 @@ export function ProjectsOverview({ className, buildingId, organizationId }: Proj
         {/* Schedule Status */}
         <Card data-testid="schedule-status-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Schedule Status</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('pvScheduleStatusTitle')}</CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -216,12 +215,12 @@ export function ProjectsOverview({ className, buildingId, organizationId }: Proj
               {metrics.overdueProjects > 0 ? (
                 <span className="flex items-center text-red-600">
                   <AlertTriangle className="h-3 w-3 mr-1" />
-                  Overdue projects
+                  {t('pvOverdueProjectsText')}
                 </span>
               ) : (
                 <span className="flex items-center text-green-600">
                   <CheckCircle2 className="h-3 w-3 mr-1" />
-                  No overdue projects
+                  {t('pvNoOverdueProjects')}
                 </span>
               )}
               {metrics.upcomingDeadlines > 0 && (
@@ -229,7 +228,7 @@ export function ProjectsOverview({ className, buildingId, organizationId }: Proj
                   <span className="mx-2">•</span>
                   <span className="flex items-center">
                     <Clock className="h-3 w-3 mr-1" />
-                    {metrics.upcomingDeadlines} due soon
+                    {t('pvNDueSoon').replace('{count}', String(metrics.upcomingDeadlines))}
                   </span>
                 </>
               )}
@@ -240,7 +239,7 @@ export function ProjectsOverview({ className, buildingId, organizationId }: Proj
         {/* Performance Metrics */}
         <Card data-testid="performance-metrics-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Performance</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('pvPerformanceTitle')}</CardTitle>
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -254,10 +253,10 @@ export function ProjectsOverview({ className, buildingId, organizationId }: Proj
                 ) : (
                   <TrendingDown className="h-3 w-3 mr-1 text-red-500" />
                 )}
-                Completion rate
+                {t('pvCompletionRateText')}
               </span>
               <span className="mx-2">•</span>
-              <span>{metrics.onTimeCompletion}% on time</span>
+              <span>{t('pvNPercentOnTime').replace('{percent}', String(metrics.onTimeCompletion))}</span>
             </div>
           </CardContent>
         </Card>
@@ -268,7 +267,7 @@ export function ProjectsOverview({ className, buildingId, organizationId }: Proj
         {/* Suggestions Integration */}
         <Card data-testid="suggestions-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Suggestions</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('pvSuggestionsTitle')}</CardTitle>
             <Lightbulb className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -277,9 +276,9 @@ export function ProjectsOverview({ className, buildingId, organizationId }: Proj
             </div>
             <p className="text-xs text-muted-foreground">
               {metrics.pendingSuggestions > 0 ? (
-                <span className="text-orange-600">Pending evaluation suggestions</span>
+                <span className="text-orange-600">{t('pvPendingEvaluationSuggestions')}</span>
               ) : (
-                <span className="text-green-600">All suggestions reviewed</span>
+                <span className="text-green-600">{t('pvAllSuggestionsReviewed')}</span>
               )}
             </p>
           </CardContent>
@@ -288,21 +287,21 @@ export function ProjectsOverview({ className, buildingId, organizationId }: Proj
         {/* Average Duration */}
         <Card data-testid="duration-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg Duration</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('pvAvgDuration')}</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold" data-testid="average-duration">
               {metrics.averageDuration}
             </div>
-            <p className="text-xs text-muted-foreground">Days per project</p>
+            <p className="text-xs text-muted-foreground">{t('pvDaysPerProject')}</p>
           </CardContent>
         </Card>
 
         {/* Cost Efficiency */}
         <Card data-testid="cost-efficiency-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Cost Efficiency</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('pvCostEfficiencyTitle')}</CardTitle>
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -311,11 +310,11 @@ export function ProjectsOverview({ className, buildingId, organizationId }: Proj
             </div>
             <p className="text-xs text-muted-foreground">
               {metrics.costEfficiency >= 90 ? (
-                <span className="text-green-600">Excellent efficiency</span>
+                <span className="text-green-600">{t('pvExcellentEfficiency')}</span>
               ) : metrics.costEfficiency >= 75 ? (
-                <span className="text-yellow-600">Good efficiency</span>
+                <span className="text-yellow-600">{t('pvGoodEfficiency')}</span>
               ) : (
-                <span className="text-red-600">Needs improvement</span>
+                <span className="text-red-600">{t('pvNeedsImprovement')}</span>
               )}
             </p>
           </CardContent>
@@ -324,7 +323,7 @@ export function ProjectsOverview({ className, buildingId, organizationId }: Proj
         {/* Resource Utilization */}
         <Card data-testid="resource-utilization-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Resources</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('pvResourcesTitle')}</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -333,7 +332,7 @@ export function ProjectsOverview({ className, buildingId, organizationId }: Proj
             </div>
             <div className="space-y-1">
               <Progress value={metrics.resourceUtilization} className="h-2" />
-              <p className="text-xs text-muted-foreground">Team utilization</p>
+              <p className="text-xs text-muted-foreground">{t('pvTeamUtilization')}</p>
             </div>
           </CardContent>
         </Card>
@@ -345,7 +344,7 @@ export function ProjectsOverview({ className, buildingId, organizationId }: Proj
           {/* Projects by Status */}
           <Card data-testid="status-breakdown-card">
             <CardHeader>
-              <CardTitle className="text-base">Projects by Status</CardTitle>
+              <CardTitle className="text-base">{t('pvProjectsByStatus')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
@@ -353,13 +352,13 @@ export function ProjectsOverview({ className, buildingId, organizationId }: Proj
                   const percentage = metrics.totalProjects > 0 ? (count / metrics.totalProjects) * 100 : 0;
                   
                   const statusConfig = {
-                    planned: { label: 'Planned', color: 'bg-gray-500', icon: Archive },
-                    evaluation: { label: 'Evaluation', color: 'bg-purple-500', icon: Zap },
-                    submission: { label: 'Submission', color: 'bg-orange-500', icon: Target },
-                    pre_work: { label: 'Pre-Work', color: 'bg-yellow-500', icon: Clock },
-                    work: { label: 'Active Work', color: 'bg-blue-500', icon: Play },
-                    post_work: { label: 'Post-Work', color: 'bg-indigo-500', icon: CheckCircle2 },
-                    completed: { label: 'Completed', color: 'bg-green-500', icon: CheckCircle2 },
+                    planned: { label: t('pvStatusPlanned'), color: 'bg-gray-500', icon: Archive },
+                    evaluation: { label: t('pvStatusEvaluation'), color: 'bg-purple-500', icon: Zap },
+                    submission: { label: t('pvStatusSubmission'), color: 'bg-orange-500', icon: Target },
+                    pre_work: { label: t('pvStatusPreWork'), color: 'bg-yellow-500', icon: Clock },
+                    work: { label: t('pvStatusActiveWork'), color: 'bg-blue-500', icon: Play },
+                    post_work: { label: t('pvStatusPostWork'), color: 'bg-indigo-500', icon: CheckCircle2 },
+                    completed: { label: t('pvStatusCompleted'), color: 'bg-green-500', icon: CheckCircle2 },
                   };
                   
                   const config = statusConfig[status as keyof typeof statusConfig];
@@ -390,7 +389,7 @@ export function ProjectsOverview({ className, buildingId, organizationId }: Proj
           {/* Projects by Priority */}
           <Card data-testid="priority-breakdown-card">
             <CardHeader>
-              <CardTitle className="text-base">Projects by Priority</CardTitle>
+              <CardTitle className="text-base">{t('pvProjectsByPriority')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
@@ -398,10 +397,10 @@ export function ProjectsOverview({ className, buildingId, organizationId }: Proj
                   const percentage = metrics.totalProjects > 0 ? (count / metrics.totalProjects) * 100 : 0;
                   
                   const priorityConfig = {
-                    low: { label: 'Low Priority', color: 'bg-green-500' },
-                    medium: { label: 'Medium Priority', color: 'bg-yellow-500' },
-                    high: { label: 'High Priority', color: 'bg-orange-500' },
-                    critical: { label: 'Critical Priority', color: 'bg-red-500' },
+                    low: { label: t('pvPriorityLowLabel'), color: 'bg-green-500' },
+                    medium: { label: t('pvPriorityMediumLabel'), color: 'bg-yellow-500' },
+                    high: { label: t('pvPriorityHighLabel'), color: 'bg-orange-500' },
+                    critical: { label: t('pvPriorityCriticalLabel'), color: 'bg-red-500' },
                   };
                   
                   const config = priorityConfig[priority as keyof typeof priorityConfig];

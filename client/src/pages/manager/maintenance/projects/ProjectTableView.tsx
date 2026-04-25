@@ -166,7 +166,6 @@ export function ProjectTableView({
     return (
       <Alert variant="destructive" className={className} data-testid="project-table-view-error">
         <AlertTriangle className="h-4 w-4" />
-        {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
         <AlertDescription>
           {t('pvFailedToLoadProjects')}
         </AlertDescription>
@@ -179,8 +178,7 @@ export function ProjectTableView({
     return (
       <div className={cn('flex flex-col items-center justify-center p-8', className)} data-testid="no-building-selected">
         <Building2 className="h-16 w-16 text-muted-foreground mb-4" />
-        <h3 className="text-lg font-semibold mb-2">No Building Selected</h3>
-        {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
+        <h3 className="text-lg font-semibold mb-2">{t('pvNoBuildingSelected')}</h3>
         <p className="text-muted-foreground text-center">
           {t('pvNoBuildingProjectsTable')}
         </p>
@@ -193,13 +191,11 @@ export function ProjectTableView({
     return (
       <div className={cn('flex flex-col items-center justify-center p-8', className)} data-testid="no-projects-empty-state">
         <Folder className="h-16 w-16 text-muted-foreground mb-4" />
-        <h3 className="text-lg font-semibold mb-2">No Projects Found</h3>
-        {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
+        <h3 className="text-lg font-semibold mb-2">{t('pvNoProjectsFound')}</h3>
         <p className="text-muted-foreground text-center mb-4">
           {t('pvNoProjectsCreatedYet')}
         </p>
         {canCreateProjects && (
-          // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
           <p className="text-sm text-muted-foreground text-center">
             {t('pvGetStartedHint')}
           </p>
@@ -213,12 +209,10 @@ export function ProjectTableView({
     return (
       <div className={cn('flex flex-col items-center justify-center p-8', className)} data-testid="no-projects-filtered-state">
         <Folder className="h-16 w-16 text-muted-foreground mb-4" />
-        <h3 className="text-lg font-semibold mb-2">No Projects Match Filters</h3>
-        {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
+        <h3 className="text-lg font-semibold mb-2">{t('pvNoProjectsMatchFiltersTitle')}</h3>
         <p className="text-muted-foreground text-center">
           {t('pvNoProjectsMatchFilters')}
         </p>
-        {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
         <p className="text-sm text-muted-foreground text-center mt-2">
           {t('pvAdjustFiltersHint')}
         </p>
@@ -234,11 +228,13 @@ export function ProjectTableView({
           <div className="text-sm">
             <span className="font-medium">{filteredProjects.length}</span>
             <span className="text-muted-foreground">
-              {' '}of {projects.length} project{projects.length !== 1 ? 's' : ''} shown
+              {' '}{t('pvProjectsShownOf')
+                .replace('{total}', String(projects.length))
+                .replace('{plural}', projects.length !== 1 ? 's' : '')}
             </span>
             {searchTerm && (
               <span className="text-muted-foreground">
-                {' '}matching "{searchTerm}"
+                {' '}{t('pvMatchingSearch').replace('{search}', searchTerm)}
               </span>
             )}
           </div>
@@ -247,17 +243,17 @@ export function ProjectTableView({
           <div className="flex items-center gap-2 text-xs">
             {statusFilter && (
               <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                Status: {statusFilter}
+                {t('pvStatusFilterChip').replace('{value}', statusFilter)}
               </span>
             )}
             {priorityFilter && (
               <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded">
-                Priority: {priorityFilter}
+                {t('pvPriorityFilterChip').replace('{value}', priorityFilter)}
               </span>
             )}
             {showOverdueOnly && (
               <span className="bg-red-100 text-red-800 px-2 py-1 rounded">
-                Overdue Only
+                {t('pvOverdueOnlyChip')}
               </span>
             )}
           </div>
@@ -290,7 +286,6 @@ export function ProjectTableView({
       {/* Additional Information */}
       {canEditMaintenance && filteredProjects.length > 0 && (
         <div className="text-xs text-muted-foreground text-center p-4 border-t">
-          {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
           <p>
             {t('pvRealtimeBulkHint')}
           </p>

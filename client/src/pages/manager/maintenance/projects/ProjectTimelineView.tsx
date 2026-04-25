@@ -166,7 +166,7 @@ export function ProjectTimelineView({
           project,
           date: startDate,
           type: 'start',
-          label: 'Start',
+          label: t('pvEventStart'),
           isOverdue: project.actualStartDate ? false : isBefore(startDate, now) && project.status === 'planned',
         });
       }
@@ -178,7 +178,7 @@ export function ProjectTimelineView({
           project,
           date: endDate,
           type: 'end',
-          label: 'End',
+          label: t('pvEventEnd'),
           isOverdue: !project.actualEndDate && isBefore(endDate, now) && project.status !== 'completed',
         });
       }
@@ -194,7 +194,7 @@ export function ProjectTimelineView({
             project,
             date: midDate,
             type: 'milestone',
-            label: 'Milestone',
+            label: t('pvEventMilestone'),
             isOverdue: isBefore(midDate, now) && project.status === 'planned',
           });
         }
@@ -202,7 +202,7 @@ export function ProjectTimelineView({
     });
 
     return events.sort((a, b) => a.date.getTime() - b.date.getTime());
-  }, [filteredProjects]);
+  }, [filteredProjects, t]);
 
   // Get events for selected date
   const selectedDateEvents = useMemo(() => {
@@ -274,7 +274,6 @@ export function ProjectTimelineView({
     return (
       <Alert variant="destructive" className={className} data-testid="timeline-view-error">
         <AlertTriangle className="h-4 w-4" />
-        {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
         <AlertDescription>
           {t('pvFailedToLoadTimeline')}
         </AlertDescription>
@@ -287,8 +286,7 @@ export function ProjectTimelineView({
     return (
       <div className={cn('flex flex-col items-center justify-center p-8', className)}>
         <Building2 className="h-16 w-16 text-muted-foreground mb-4" />
-        <h3 className="text-lg font-semibold mb-2">No Building Selected</h3>
-        {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
+        <h3 className="text-lg font-semibold mb-2">{t('pvNoBuildingSelected')}</h3>
         <p className="text-muted-foreground text-center">
           {t('pvNoBuildingTimeline')}
         </p>
@@ -301,8 +299,7 @@ export function ProjectTimelineView({
       {/* Timeline Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="space-y-1">
-          <h3 className="text-lg font-semibold">Project Timeline</h3>
-          {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
+          <h3 className="text-lg font-semibold">{t('pvProjectTimelineHeader')}</h3>
           <p className="text-sm text-muted-foreground">
             {t('pvTimelineSubtitle')}
           </p>
@@ -314,9 +311,9 @@ export function ProjectTimelineView({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="month">Month</SelectItem>
-              <SelectItem value="quarter">Quarter</SelectItem>
-              <SelectItem value="year">Year</SelectItem>
+              <SelectItem value="month">{t('pvViewMonth')}</SelectItem>
+              <SelectItem value="quarter">{t('pvViewQuarter')}</SelectItem>
+              <SelectItem value="year">{t('pvViewYear')}</SelectItem>
             </SelectContent>
           </Select>
 
@@ -327,7 +324,7 @@ export function ProjectTimelineView({
               if (firstProject) onManageTimeline(firstProject);
             }}>
               <ExternalLink className="h-4 w-4 mr-2" />
-              Full Timeline
+              {t('pvFullTimeline')}
             </Button>
           )}
         </div>
@@ -339,7 +336,7 @@ export function ProjectTimelineView({
           <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Total Events</p>
+                <p className="text-sm text-muted-foreground">{t('pvTotalEvents')}</p>
                 <p className="text-xl font-bold">{timelineStats.totalEvents}</p>
               </div>
               <CalendarIcon className="h-8 w-8 text-muted-foreground" />
@@ -351,7 +348,7 @@ export function ProjectTimelineView({
           <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Overdue</p>
+                <p className="text-sm text-muted-foreground">{t('pvOverdueLabel')}</p>
                 <p className="text-xl font-bold text-red-600">{timelineStats.overdueEvents}</p>
               </div>
               <AlertTriangle className="h-8 w-8 text-red-500" />
@@ -363,7 +360,7 @@ export function ProjectTimelineView({
           <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Due This Week</p>
+                <p className="text-sm text-muted-foreground">{t('pvDueThisWeek')}</p>
                 <p className="text-xl font-bold text-yellow-600">{timelineStats.upcomingEvents}</p>
               </div>
               <Clock className="h-8 w-8 text-yellow-500" />
@@ -375,7 +372,7 @@ export function ProjectTimelineView({
           <CardContent className="pt-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Active Projects</p>
+                <p className="text-sm text-muted-foreground">{t('pvActiveProjects')}</p>
                 <p className="text-xl font-bold text-blue-600">{timelineStats.activeProjects}</p>
               </div>
               <Target className="h-8 w-8 text-blue-500" />
@@ -403,7 +400,6 @@ export function ProjectTimelineView({
                   </Button>
                 </div>
               </div>
-              {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
               <CardDescription>
                 {t('pvClickDateToView')}
               </CardDescription>
@@ -437,7 +433,7 @@ export function ProjectTimelineView({
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-base">
-                  Events This Month ({monthEvents.length})
+                  {t('pvEventsThisMonth').replace('{count}', String(monthEvents.length))}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -469,7 +465,7 @@ export function ProjectTimelineView({
                         <StatusBadge status={event.project.status} size="sm" />
                         {event.isOverdue && (
                           <Badge variant="destructive" className="text-xs">
-                            Overdue
+                            {t('pvOverdueLabel')}
                           </Badge>
                         )}
                       </div>
@@ -486,10 +482,10 @@ export function ProjectTimelineView({
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base">
-                {selectedDate ? format(selectedDate, 'EEEE, MMM dd') : 'Select a Date'}
+                {selectedDate ? format(selectedDate, 'EEEE, MMM dd') : t('pvSelectADate')}
               </CardTitle>
               <CardDescription>
-                {selectedDateEvents.length} event(s) scheduled
+                {t('pvEventsScheduledOnDate').replace('{count}', String(selectedDateEvents.length))}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -527,13 +523,13 @@ export function ProjectTimelineView({
                           <PriorityBadge priority={event.project.priority} size="sm" />
                           {event.isOverdue && (
                             <Badge variant="destructive" className="text-xs">
-                              Overdue
+                              {t('pvOverdueLabel')}
                             </Badge>
                           )}
                         </div>
 
                         <p className="text-xs text-muted-foreground">
-                          Project #{event.project.projectNumber}
+                          {t('pvProjectNumber').replace('{number}', String(event.project.projectNumber))}
                         </p>
                       </div>
                     </div>
@@ -547,7 +543,7 @@ export function ProjectTimelineView({
           {hasPermission('canEditMaintenance') && filteredProjects.length > 0 && (
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-base">Timeline Actions</CardTitle>
+                <CardTitle className="text-base">{t('pvTimelineActions')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
                 <Button 
@@ -560,7 +556,7 @@ export function ProjectTimelineView({
                   }}
                 >
                   <Target className="h-4 w-4 mr-2" />
-                  Bulk Status Update
+                  {t('pvBulkStatusUpdate')}
                 </Button>
                 
                 <Button 
@@ -573,7 +569,7 @@ export function ProjectTimelineView({
                   }}
                 >
                   <Users className="h-4 w-4 mr-2" />
-                  Resource Planning
+                  {t('pvResourcePlanning')}
                 </Button>
                 
                 <Button 
@@ -586,7 +582,7 @@ export function ProjectTimelineView({
                   }}
                 >
                   <BarChart3 className="h-4 w-4 mr-2" />
-                  Export Timeline
+                  {t('pvExportTimeline')}
                 </Button>
               </CardContent>
             </Card>

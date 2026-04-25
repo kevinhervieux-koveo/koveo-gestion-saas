@@ -27,6 +27,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 // import { useBuildingContext } from '@/hooks/use-building-context';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/use-language';
+import { translateProjectPriority, translateProjectType } from './projectEnumLabels';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { handleApiError } from '@/lib/demo-error-handler';
 import { EvaluationSuggestion, MaintenanceProject } from '@shared/schemas/maintenance';
@@ -176,18 +177,12 @@ export function SuggestionsIntegration({
       onClose();
       
       toast({
-        title: "Projects Created",
-        description: `Successfully created ${createdProjects.length} project(s) from evaluation suggestions.`,
+        title: t('pvProjectsCreatedTitle'),
+        description: t('pvProjectsCreatedDesc').replace('{count}', String(createdProjects.length)),
       });
     },
     onError: (error) => {
-      handleApiError(
-        error,
-        language,
-        language === 'fr'
-          ? 'Échec de la création des projets. Veuillez réessayer.'
-          : 'Failed to create projects. Please try again.'
-      );
+      handleApiError(error, language, t('pvFailedToCreateProjects'));
       console.error('Project creation failed:', error);
     },
   });
@@ -211,8 +206,8 @@ export function SuggestionsIntegration({
   const handleCreateProjects = useCallback(() => {
     if (selectedSuggestions.length === 0) {
       toast({
-        title: "No Suggestions Selected",
-        description: "Please select at least one suggestion to create projects.",
+        title: t('pvNoSuggestionsSelectedTitle'),
+        description: t('pvNoSuggestionsSelectedDesc'),
         variant: "destructive",
       });
       return;
@@ -220,7 +215,7 @@ export function SuggestionsIntegration({
 
     const selectedIds = selectedSuggestions.map(s => s.id);
     createProjectsMutation.mutate(selectedIds);
-  }, [selectedSuggestions, createProjectsMutation, toast]);
+  }, [selectedSuggestions, createProjectsMutation, toast, t]);
 
   // Calculate estimated total cost
   const estimatedTotalCost = useMemo(() => {
@@ -240,7 +235,6 @@ export function SuggestionsIntegration({
             <Lightbulb className="h-5 w-5 text-yellow-500" />
             {t('pvCreateProjectsFromSuggestions')}
           </DialogTitle>
-          {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
           <DialogDescription>
             {t('pvSuggestionsDialogDesc')}
           </DialogDescription>
@@ -261,7 +255,6 @@ export function SuggestionsIntegration({
         {error && (
           <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
-            {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
             <AlertDescription>
               {t('pvFailedToLoadSuggestions')}
             </AlertDescription>
@@ -276,7 +269,7 @@ export function SuggestionsIntegration({
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                 <Input
-                  placeholder="Search suggestions..."
+                  placeholder={t('pvSearchSuggestionsPlaceholder')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -286,27 +279,27 @@ export function SuggestionsIntegration({
               
               <Select value={priorityFilter} onValueChange={setPriorityFilter}>
                 <SelectTrigger className="w-40">
-                  <SelectValue placeholder="All priorities" />
+                  <SelectValue placeholder={t('pvAllPrioritiesPlaceholder')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Priorities</SelectItem>
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="critical">Critical</SelectItem>
+                  <SelectItem value="">{t('pvAllPrioritiesItem')}</SelectItem>
+                  <SelectItem value="low">{t('low')}</SelectItem>
+                  <SelectItem value="medium">{t('medium')}</SelectItem>
+                  <SelectItem value="high">{t('high')}</SelectItem>
+                  <SelectItem value="critical">{t('critical')}</SelectItem>
                 </SelectContent>
               </Select>
 
               <Select value={typeFilter} onValueChange={setTypeFilter}>
                 <SelectTrigger className="w-40">
-                  <SelectValue placeholder="All types" />
+                  <SelectValue placeholder={t('pvAllTypesPlaceholder')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Types</SelectItem>
-                  <SelectItem value="inspection">Inspection</SelectItem>
-                  <SelectItem value="minor_rehab">Minor Rehab</SelectItem>
-                  <SelectItem value="major_rehab">Major Rehab</SelectItem>
-                  <SelectItem value="replacement">Replacement</SelectItem>
+                  <SelectItem value="">{t('pvAllTypesItem')}</SelectItem>
+                  <SelectItem value="inspection">{t('pvTypeInspection')}</SelectItem>
+                  <SelectItem value="minor_rehab">{t('pvTypeMinorRehab')}</SelectItem>
+                  <SelectItem value="major_rehab">{t('pvTypeMajorRehab')}</SelectItem>
+                  <SelectItem value="replacement">{t('pvTypeReplacement')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -324,12 +317,12 @@ export function SuggestionsIntegration({
                         data-testid="select-all-suggestions"
                       />
                       <Label htmlFor="select-all" className="text-sm font-medium">
-                        Select All ({filteredSuggestions.length} suggestions)
+                        {t('pvSelectAllSuggestions').replace('{count}', String(filteredSuggestions.length))}
                       </Label>
                     </div>
                     
                     <div className="text-sm text-muted-foreground">
-                      {selectedSuggestions.length} selected
+                      {t('pvNSelected').replace('{count}', String(selectedSuggestions.length))}
                     </div>
                   </div>
                 </CardContent>
@@ -341,7 +334,7 @@ export function SuggestionsIntegration({
               {filteredSuggestions.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12">
                   <Lightbulb className="h-16 w-16 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">No Suggestions Found</h3>
+                  <h3 className="text-lg font-semibold mb-2">{t('pvNoSuggestionsFound')}</h3>
                   <p className="text-muted-foreground text-center">
                     {suggestions.length === 0 
                       ? t('pvNoPendingSuggestions')
@@ -377,7 +370,7 @@ export function SuggestionsIntegration({
                               <div className="flex items-start justify-between">
                                 <div className="space-y-1">
                                   <h4 className="text-sm font-medium leading-tight">
-                                    {suggestion.suggestedType.replace('_', ' ').toUpperCase()} - Element Evaluation
+                                    {t('pvSuggestionTypeElementEvaluation').replace('{type}', translateProjectType(suggestion.suggestedType, t))}
                                   </h4>
                                   <p className="text-xs text-muted-foreground line-clamp-2">
                                     {suggestion.reason}
@@ -390,10 +383,10 @@ export function SuggestionsIntegration({
                                             suggestion.priority === 'high' ? 'default' : 'secondary'}
                                     className="text-xs"
                                   >
-                                    {suggestion.priority}
+                                    {translateProjectPriority(suggestion.priority, t)}
                                   </Badge>
                                   <Badge variant="outline" className="text-xs">
-                                    {suggestion.suggestedType}
+                                    {translateProjectType(suggestion.suggestedType, t)}
                                   </Badge>
                                 </div>
                               </div>
@@ -405,7 +398,7 @@ export function SuggestionsIntegration({
                                 </span>
                                 <span className="flex items-center gap-1">
                                   <Building2 className="h-3 w-3" />
-                                  Element #{suggestion.elementId?.slice(-8)}
+                                  {t('pvElementHash').replace('{id}', suggestion.elementId?.slice(-8) ?? '')}
                                 </span>
                               </div>
                             </div>
@@ -422,8 +415,7 @@ export function SuggestionsIntegration({
             {selectedSuggestions.length > 0 && (
               <Card>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-sm">Project Defaults</CardTitle>
-                  {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
+                  <CardTitle className="text-sm">{t('pvProjectDefaultsTitle')}</CardTitle>
                   <CardDescription>
                     {t('pvProjectDefaultsDesc')}
                   </CardDescription>
@@ -431,7 +423,7 @@ export function SuggestionsIntegration({
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="default-budget" className="text-xs">Default Budget</Label>
+                      <Label htmlFor="default-budget" className="text-xs">{t('pvDefaultBudgetLabel')}</Label>
                       <Input
                         id="default-budget"
                         type="number"
@@ -443,7 +435,7 @@ export function SuggestionsIntegration({
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="default-duration" className="text-xs">Duration (days)</Label>
+                      <Label htmlFor="default-duration" className="text-xs">{t('pvDurationDaysLabel')}</Label>
                       <Input
                         id="default-duration"
                         type="number"
@@ -454,7 +446,7 @@ export function SuggestionsIntegration({
                     </div>
                     
                     <div className="space-y-2">
-                      <Label htmlFor="default-priority" className="text-xs">Default Priority</Label>
+                      <Label htmlFor="default-priority" className="text-xs">{t('pvDefaultPriorityLabel')}</Label>
                       <Select 
                         value={projectDefaults.defaultPriority} 
                         onValueChange={(value: any) => setProjectDefaults(prev => ({ ...prev, defaultPriority: value }))}
@@ -463,10 +455,10 @@ export function SuggestionsIntegration({
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="low">Low</SelectItem>
-                          <SelectItem value="medium">Medium</SelectItem>
-                          <SelectItem value="high">High</SelectItem>
-                          <SelectItem value="critical">Critical</SelectItem>
+                          <SelectItem value="low">{t('low')}</SelectItem>
+                          <SelectItem value="medium">{t('medium')}</SelectItem>
+                          <SelectItem value="high">{t('high')}</SelectItem>
+                          <SelectItem value="critical">{t('critical')}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -476,7 +468,7 @@ export function SuggestionsIntegration({
                     <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
                       <DollarSign className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm">
-                        Estimated total budget: <span className="font-medium">${estimatedTotalCost.toLocaleString()}</span>
+                        {t('pvEstimatedTotalBudget')} <span className="font-medium">${estimatedTotalCost.toLocaleString()}</span>
                       </span>
                     </div>
                   )}
@@ -490,13 +482,13 @@ export function SuggestionsIntegration({
         <div className="flex items-center justify-between pt-4 border-t">
           <div className="text-sm text-muted-foreground">
             {selectedSuggestions.length > 0 && (
-              <span>{selectedSuggestions.length} suggestion(s) selected</span>
+              <span>{t('pvSuggestionsSelectedFooter').replace('{count}', String(selectedSuggestions.length))}</span>
             )}
           </div>
           
           <div className="flex items-center gap-2">
             <Button variant="outline" onClick={onClose} data-testid="cancel-button">
-              Cancel
+              {t('cancel')}
             </Button>
             <Button 
               onClick={handleCreateProjects}
@@ -506,12 +498,14 @@ export function SuggestionsIntegration({
               {createProjectsMutation.isPending ? (
                 <>
                   <Clock className="h-4 w-4 mr-2 animate-spin" />
-                  Creating...
+                  {t('pvCreatingButton')}
                 </>
               ) : (
                 <>
                   <Plus className="h-4 w-4 mr-2" />
-                  Create {selectedSuggestions.length} Project{selectedSuggestions.length !== 1 ? 's' : ''}
+                  {t('pvCreateNProjects')
+                    .replace('{count}', String(selectedSuggestions.length))
+                    .replace('{plural}', selectedSuggestions.length !== 1 ? 's' : '')}
                 </>
               )}
             </Button>
