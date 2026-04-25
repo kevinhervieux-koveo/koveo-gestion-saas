@@ -227,6 +227,7 @@ async function processItemForStep(
     // original file stays, rotation is logged, and the UI still shows
     // the rotationDegrees from Screening.
     let contentHash = item.contentHash;
+    let rotationApplied = false;
     if (result.rotationDegrees !== 0 && item.stagedPath) {
       const newHash = await rotateAndRewriteStagedFile({
         stagedPath: item.stagedPath,
@@ -235,13 +236,23 @@ async function processItemForStep(
       });
       if (newHash) {
         contentHash = newHash;
+        rotationApplied = true;
       }
     }
+
+    // Persist `rotationApplied` alongside the screening result so the
+    // admin UI can distinguish "AI suggested rotation AND we corrected
+    // the file in place" from "AI suggested rotation but rewrite failed
+    // / format unsupported, file untouched" (Task #772).
+    const screeningWithRotation = {
+      ...(result as unknown as Record<string, unknown>),
+      rotationApplied,
+    };
 
     const [updated] = await db
       .update(schema.bulkImportItems)
       .set({
-        screening: result as unknown as Record<string, unknown>,
+        screening: screeningWithRotation,
         contentHash,
         status: 'screened',
         updatedAt: new Date(),
@@ -632,6 +643,19 @@ export function registerBulkImportRoutes(app: Express): void {
         };
       }
 
+      // Surface rotation outcome so the Screening row can render a
+      // "Rotated Xdeg" badge (Task #772). `rotationApplied` is only true
+      // when the staged file was actually rewritten in place — failed or
+      // unsupported rotations leave it false so no badge is shown.
+      function extractScreeningRotation(json: Record<string, unknown> | null | undefined) {
+        if (!json) return { rotationDegrees: 0, rotationApplied: false };
+        const raw = json.rotationDegrees;
+        const rotationDegrees =
+          raw === 90 || raw === 180 || raw === 270 ? (raw as 90 | 180 | 270) : 0;
+        const rotationApplied = json.rotationApplied === true;
+        return { rotationDegrees, rotationApplied };
+      }
+
       const items = rows.map((r) => ({
         id: r.id,
         originalName: r.originalName,
@@ -641,6 +665,7 @@ export function registerBulkImportRoutes(app: Express): void {
         ...(() => {
           const sc = extractStep(r.screening);
           const sqaFields = extractScreeningQuickAnalysis(r.screening);
+          const srot = extractScreeningRotation(r.screening);
           const so = extractSortingStep(r.sortingDecision);
           const br = extractStep(r.branchDecision);
           const id = extractStep(r.identification);
@@ -649,6 +674,8 @@ export function registerBulkImportRoutes(app: Express): void {
             screeningConfidence: sc.confidence,
             screeningFallback: sc.fallbackReason,
             ...sqaFields,
+            screeningRotationDegrees: srot.rotationDegrees,
+            screeningRotationApplied: srot.rotationApplied,
             sortingConfidence: so.confidence,
             sortingFallback: so.fallbackReason,
             sortingDecision: so.decision,

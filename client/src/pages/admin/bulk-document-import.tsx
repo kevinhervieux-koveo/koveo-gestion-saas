@@ -107,6 +107,16 @@ interface BulkImportItemLite {
   screeningTypeGuess: string | null;
   screeningBucketGuess: string | null;
   screeningQaReason: string | null;
+  /**
+   * Rotation outcome for the Screening step (Task #772).
+   * `screeningRotationDegrees` is the clockwise rotation Screening
+   * detected (0/90/180/270). `screeningRotationApplied` is true only when
+   * the staged file was actually rewritten in place — failed or
+   * unsupported rotations leave it false so no badge is shown.
+   * Defaults to 0/false for legacy sessions where rotation was not tracked.
+   */
+  screeningRotationDegrees: 0 | 90 | 180 | 270;
+  screeningRotationApplied: boolean;
   sortingConfidence: number | null;
   sortingFallback: BulkImportFallbackReason | null;
   sortingDecision: 'keep' | 'merge' | 'split' | null;
@@ -1971,6 +1981,25 @@ export default function BulkDocumentImportPage() {
                                       {(isFr ? TYPE_GUESS_LABEL_FR : TYPE_GUESS_LABEL_EN)[item.screeningTypeGuess] ?? item.screeningTypeGuess}
                                     </Badge>
                                   )}
+                                  {currentStep === 'screening' &&
+                                    item.screeningRotationApplied &&
+                                    item.screeningRotationDegrees !== 0 && (
+                                      <Badge
+                                        variant="outline"
+                                        className="shrink-0 border-orange-300 bg-orange-50 text-orange-900 dark:border-orange-700 dark:bg-orange-950 dark:text-orange-200"
+                                        title={
+                                          isFr
+                                            ? `Le fichier était orienté de côté. Il a été corrigé sur place de ${item.screeningRotationDegrees}° dans le sens horaire pour que les étapes suivantes le lisent à l'endroit.`
+                                            : `The file was sideways. It was corrected in place by rotating ${item.screeningRotationDegrees}° clockwise so later steps read it upright.`
+                                        }
+                                        data-testid={`screening-rotation-${item.id}`}
+                                      >
+                                        <RotateCw className="mr-1 h-3 w-3" />
+                                        {isFr
+                                          ? `Pivoté ${item.screeningRotationDegrees}°`
+                                          : `Rotated ${item.screeningRotationDegrees}°`}
+                                      </Badge>
+                                    )}
                                   {currentStep === 'screening' && item.screeningBucketGuess && item.screeningBucketGuess !== 'unknown' && (
                                     <Badge
                                       variant="outline"
