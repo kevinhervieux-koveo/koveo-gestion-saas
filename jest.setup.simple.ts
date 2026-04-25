@@ -81,4 +81,51 @@ if (typeof window !== 'undefined') {
   });
 }
 
+// =============================================================================
+// POINTER EVENT POLYFILLS
+// =============================================================================
+//
+// jsdom (as of v26, the runtime used by these tests) does not implement
+// `PointerEvent` nor the `setPointerCapture` / `releasePointerCapture` /
+// `hasPointerCapture` methods on `Element`. Any component that uses pointer
+// gestures (Radix UI primitives, the Gantt chart drag overlay, etc.) needs
+// these to exist, and `fireEvent.pointerDown/Move/Up` from React Testing
+// Library silently falls back to a plain `Event` when `PointerEvent` is
+// missing — which drops `clientX` / `clientY` / `button`, so components see
+// NaN deltas.
+//
+// Centralising the polyfills here means individual test files do not have to
+// copy/paste the same shim (and risk drifting). The `PointerEvent` polyfill
+// subclasses `MouseEvent` so coordinate / button / pointerId propagate
+// correctly to listeners.
+if (typeof Element !== 'undefined') {
+  if (typeof Element.prototype.setPointerCapture !== 'function') {
+    (Element.prototype as Element & { setPointerCapture: (id: number) => void }).setPointerCapture = function () {};
+  }
+  if (typeof Element.prototype.releasePointerCapture !== 'function') {
+    (Element.prototype as Element & { releasePointerCapture: (id: number) => void }).releasePointerCapture = function () {};
+  }
+  if (typeof Element.prototype.hasPointerCapture !== 'function') {
+    (Element.prototype as Element & { hasPointerCapture: (id: number) => boolean }).hasPointerCapture = function () { return false; };
+  }
+}
+
+if (typeof (globalThis as { PointerEvent?: unknown }).PointerEvent === 'undefined') {
+  class PointerEventPolyfill extends MouseEvent {
+    pointerId: number;
+    pointerType: string;
+    isPrimary: boolean;
+    constructor(type: string, init: PointerEventInit = {}) {
+      super(type, init);
+      this.pointerId = init.pointerId ?? 0;
+      this.pointerType = init.pointerType ?? 'mouse';
+      this.isPrimary = init.isPrimary ?? true;
+    }
+  }
+  (globalThis as { PointerEvent: typeof PointerEventPolyfill }).PointerEvent = PointerEventPolyfill;
+  if (typeof window !== 'undefined') {
+    (window as unknown as { PointerEvent: typeof PointerEventPolyfill }).PointerEvent = PointerEventPolyfill;
+  }
+}
+
 console.log('✅ Simplified Jest setup completed');

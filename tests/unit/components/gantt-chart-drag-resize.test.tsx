@@ -15,7 +15,7 @@
  *     start + 1 day)
  */
 
-import { describe, it, expect, jest, beforeAll } from '@jest/globals';
+import { describe, it, expect, jest } from '@jest/globals';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import React from 'react';
@@ -58,36 +58,9 @@ jest.mock('lucide-react', () => ({
   Loader2: () => <span data-testid="loader-icon" />,
 }));
 
-beforeAll(() => {
-  if (typeof Element.prototype.setPointerCapture !== 'function') {
-    (Element.prototype as Element & { setPointerCapture: (id: number) => void }).setPointerCapture = function () {};
-  }
-  if (typeof Element.prototype.releasePointerCapture !== 'function') {
-    (Element.prototype as Element & { releasePointerCapture: (id: number) => void }).releasePointerCapture = function () {};
-  }
-  if (typeof Element.prototype.hasPointerCapture !== 'function') {
-    (Element.prototype as Element & { hasPointerCapture: (id: number) => boolean }).hasPointerCapture = function () { return false; };
-  }
-  // jsdom (as of v26) does not implement PointerEvent. Without this shim
-  // `fireEvent.pointerMove` falls back to a plain Event and the clientX we
-  // pass to it is dropped, so the component sees NaN deltas. Subclass
-  // MouseEvent so clientX/clientY/button propagate correctly.
-  if (typeof (globalThis as { PointerEvent?: unknown }).PointerEvent === 'undefined') {
-    class PointerEventPolyfill extends MouseEvent {
-      pointerId: number;
-      pointerType: string;
-      isPrimary: boolean;
-      constructor(type: string, init: PointerEventInit = {}) {
-        super(type, init);
-        this.pointerId = init.pointerId ?? 0;
-        this.pointerType = init.pointerType ?? 'mouse';
-        this.isPrimary = init.isPrimary ?? true;
-      }
-    }
-    (globalThis as { PointerEvent: typeof PointerEventPolyfill }).PointerEvent = PointerEventPolyfill;
-    (window as unknown as { PointerEvent: typeof PointerEventPolyfill }).PointerEvent = PointerEventPolyfill;
-  }
-});
+// PointerEvent + setPointerCapture / releasePointerCapture / hasPointerCapture
+// polyfills for jsdom live in `jest.setup.simple.ts` so every test that
+// exercises pointer gestures gets the same shim.
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const RECHARTS_RIGHT_MARGIN = 20;

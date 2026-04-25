@@ -51,15 +51,8 @@ jest.mock('../../client/src/components/bill-management/ConfidenceIndicator', () 
   ConfidenceIndicator: () => null,
 }));
 
-if (typeof Element.prototype.hasPointerCapture !== 'function') {
-  (Element.prototype as Element & { hasPointerCapture: (id: number) => boolean }).hasPointerCapture = function () { return false; };
-}
-if (typeof Element.prototype.setPointerCapture !== 'function') {
-  (Element.prototype as Element & { setPointerCapture: (id: number) => void }).setPointerCapture = function () {};
-}
-if (typeof Element.prototype.releasePointerCapture !== 'function') {
-  (Element.prototype as Element & { releasePointerCapture: (id: number) => void }).releasePointerCapture = function () {};
-}
+// PointerEvent + *PointerCapture polyfills for jsdom live in
+// `jest.setup.simple.ts` so every pointer-driven test gets the same shim.
 if (typeof Element.prototype.scrollIntoView !== 'function') {
   Element.prototype.scrollIntoView = function () {};
 }
