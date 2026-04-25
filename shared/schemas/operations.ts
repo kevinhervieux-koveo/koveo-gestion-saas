@@ -529,13 +529,40 @@ export const notificationDispatchLog = pgTable('notification_dispatch_log', {
 }));
 
 // Insert schemas
+/**
+ * Canonical list of maintenance request categories — Task #619.
+ *
+ * This tuple is the single source of truth shared by:
+ *   - the Drizzle insert schema below (`insertMaintenanceRequestSchema.category`)
+ *   - the MCP `create_maintenance_request` tool's Zod parameter schema
+ *   - the database CHECK constraint (`maintenance_requests_category_check`)
+ *     applied via migration `0009_maintenance_category_check.sql`
+ *
+ * If you add a value here, you MUST also widen the DB CHECK constraint via a
+ * new migration. Removing a value requires a backfill migration first.
+ */
+export const MAINTENANCE_CATEGORY_VALUES = [
+  'plumbing',
+  'electrical',
+  'hvac',
+  'general',
+  'elevator',
+  'landscaping',
+  'cleaning',
+  'security',
+  'other',
+] as const;
+
+export const maintenanceCategorySchema = z.enum(MAINTENANCE_CATEGORY_VALUES);
+export type MaintenanceCategory = z.infer<typeof maintenanceCategorySchema>;
+
 export const insertMaintenanceRequestSchema = z.object({
   residenceId: z.string().uuid(),
   submittedBy: z.string().uuid().optional(),
   assignedTo: z.string().uuid().optional(),
   title: z.string(),
   description: z.string(),
-  category: z.string(),
+  category: maintenanceCategorySchema,
   priority: z.string().default('medium'),
   estimatedCost: z.number().optional(),
   scheduledDate: z.date().optional(),

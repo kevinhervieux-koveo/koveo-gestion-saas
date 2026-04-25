@@ -102,7 +102,7 @@ import {
   InvitationAlreadyPendingError,
 } from "../services/invitation-soft-replace";
 import { demandNotificationService } from "../services/demand-notification-service";
-import { insertDemandCommentSchema } from "@shared/schemas/operations";
+import { insertDemandCommentSchema, MAINTENANCE_CATEGORY_VALUES } from "@shared/schemas/operations";
 
 const MCP_ORG_NAMES = ["MCP-1", "MCP-2"];
 
@@ -2045,7 +2045,16 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       residenceId: z.string().describe("Residence ID"),
       title: z.string().describe("Request title"),
       description: z.string().describe("Detailed description"),
-      category: z.string().describe("Category (plumbing, electrical, hvac, general, etc.)"),
+      // Task #619: lock category to the canonical enum at the MCP layer so
+      // invalid values are rejected by the SDK's Zod parser before they reach
+      // the handler. Keep this list in sync with MAINTENANCE_CATEGORY_VALUES
+      // (single source of truth) and the DB CHECK constraint added in
+      // migration 0009_maintenance_category_check.sql.
+      category: z
+        .enum(MAINTENANCE_CATEGORY_VALUES)
+        .describe(
+          "Category — one of: plumbing, electrical, hvac, general, elevator, landscaping, cleaning, security, other"
+        ),
       priority: z.enum(["low", "medium", "high", "urgent", "emergency"]).default("medium").describe("Priority level"),
     },
     async ({ role, residenceId, title, description, category, priority }) => {

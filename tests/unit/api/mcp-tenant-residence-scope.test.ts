@@ -12,14 +12,48 @@
  * runs without touching the database.
  */
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
+import { z } from 'zod';
+import { MAINTENANCE_CATEGORY_VALUES } from '../../../shared/schemas/operations';
 
 type ToolHandler = (args: Record<string, unknown>) => Promise<{ content: Array<{ text: string }> }>;
 const registeredTools = new Map<string, ToolHandler>();
+// Captured raw schema shapes (the ZodRawShape passed to `server.tool(...)`)
+// keyed by tool name. Tests can use this to assert schema-level guards
+// (e.g. Task #619 — `create_maintenance_request.category` enum) the same
+// way the MCP SDK would: by parsing inputs through `z.object(shape)`.
+const registeredSchemas = new Map<string, z.ZodRawShape>();
 
 jest.mock('@modelcontextprotocol/sdk/server/mcp.js', () => ({
   McpServer: jest.fn().mockImplementation(() => ({
-    tool: (name: string, _desc: string, _schema: unknown, handler: ToolHandler) => {
-      registeredTools.set(name, handler);
+    // Mirror the MCP SDK contract: validate args against the declared raw
+    // shape BEFORE invoking the handler so schema-level rejections (Task
+    // #619) are observable in tests. On a Zod parse failure we return the
+    // same `content[0].text` shape the SDK surfaces, prefixed so callers
+    // can recognise it.
+    tool: (
+      name: string,
+      _desc: string,
+      schema: z.ZodRawShape,
+      handler: ToolHandler
+    ) => {
+      registeredSchemas.set(name, schema);
+      const wrapped: ToolHandler = async (args) => {
+        const parsed = z.object(schema).safeParse(args);
+        if (!parsed.success) {
+          return {
+            content: [
+              {
+                type: 'text' as const,
+                text: `Validation error: ${parsed.error.issues
+                  .map((i) => `${i.path.join('.')}: ${i.message}`)
+                  .join('; ')}`,
+              },
+            ],
+          };
+        }
+        return handler(parsed.data as Record<string, unknown>);
+      };
+      registeredTools.set(name, wrapped);
     },
   })),
 }));
@@ -74,6 +108,7 @@ const TENANT_USER_ID = 'mcp-tenant-id';
 
 beforeEach(() => {
   registeredTools.clear();
+  registeredSchemas.clear();
   selectQueue.length = 0;
   insertCalls.length = 0;
   createMcpServer({ userId: TENANT_USER_ID, role: 'tenant' });
@@ -189,6 +224,109 @@ describe('create_maintenance_request (tenant) — task #141', () => {
     expect(insertCalls.length).toBe(1);
     expect(insertCalls[0].values.residenceId).toBe(LINKED_RESIDENCE_ID);
     expect(insertCalls[0].values.submittedBy).toBe(TENANT_USER_ID);
+  });
+});
+
+/**
+ * Task #619 — `create_maintenance_request.category` enum enforcement.
+ *
+ * The MCP tool must reject any `category` value that is not in the
+ * canonical list (defined in `shared/schemas/operations.ts` as
+ * `MAINTENANCE_CATEGORY_VALUES`). Rejection is enforced by the SDK at
+ * Zod-parse time (before the handler runs), so these tests rely on the
+ * mock above wrapping the handler with `z.object(schema).safeParse(...)`
+ * to mirror the SDK's behaviour.
+ *
+ * The DB-level CHECK constraint (`maintenance_requests_category_check`,
+ * added in migration `0009_maintenance_category_check.sql`) is the
+ * defence-in-depth guard for direct inserts that bypass this layer.
+ */
+describe('create_maintenance_request — category enum (task #619)', () => {
+  it('rejects an invalid category at the Zod schema layer (no DB writes)', async () => {
+    const handler = registeredTools.get('create_maintenance_request');
+    expect(handler).toBeDefined();
+
+    const result = await handler!({
+      role: 'tenant',
+      residenceId: LINKED_RESIDENCE_ID,
+      title: 'leak',
+      description: 'leaky pipe',
+      category: 'invalid-category-not-in-any-enum-xyz',
+      priority: 'medium',
+    });
+
+    // Schema-level rejection -> the wrapped handler returns a "Validation
+    // error: ..." string and the real handler is never invoked, so no
+    // residence/building lookups are consumed and no insert is attempted.
+    expect(result.content[0].text).toContain('Validation error');
+    expect(result.content[0].text).toContain('category');
+    expect(insertCalls.length).toBe(0);
+    // No DB lookups should have been pulled from the queue either.
+    expect(selectQueue.length).toBe(0);
+  });
+
+  it('accepts every value in the canonical enum at the schema layer', async () => {
+    const schema = registeredSchemas.get('create_maintenance_request');
+    expect(schema).toBeDefined();
+    const objectSchema = z.object(schema!);
+
+    // Iterate the canonical tuple directly so this test cannot drift from
+    // the source of truth when categories are added/removed in the future.
+    for (const category of MAINTENANCE_CATEGORY_VALUES) {
+      const parsed = objectSchema.safeParse({
+        role: 'tenant',
+        residenceId: LINKED_RESIDENCE_ID,
+        title: 't',
+        description: 'd',
+        category,
+        priority: 'medium',
+      });
+      expect(parsed.success).toBe(true);
+    }
+  });
+
+  it('accepts category="plumbing" end-to-end and inserts the row (200/created path)', async () => {
+    selectQueue.push([{ id: ORG_ID }]);
+    selectQueue.push([{ id: LINKED_RESIDENCE_ID, buildingId: BUILDING_ID }]);
+    selectQueue.push([{ id: BUILDING_ID, organizationId: ORG_ID }]);
+    selectQueue.push([{ id: TENANT_USER_ID, role: 'tenant' }]);
+    selectQueue.push([{ id: 'link-1' }]);
+
+    const handler = registeredTools.get('create_maintenance_request');
+    const result = await handler!({
+      role: 'tenant',
+      residenceId: LINKED_RESIDENCE_ID,
+      title: 'leak',
+      description: 'leaky pipe',
+      category: 'plumbing',
+      priority: 'medium',
+    });
+
+    expect(result.content[0].text).not.toContain('Validation error');
+    expect(result.content[0].text).not.toContain('Access denied');
+    expect(insertCalls.length).toBe(1);
+    expect(insertCalls[0].values.category).toBe('plumbing');
+  });
+
+  it("tool description lists the exact accepted categories (no 'etc.')", () => {
+    const schema = registeredSchemas.get('create_maintenance_request');
+    expect(schema).toBeDefined();
+    const categoryField = schema!.category as z.ZodType<unknown>;
+    // The field is built as `z.enum([...]).describe("...")`; the description
+    // is exposed via the parent ZodType's `_def.description`.
+    const description =
+      (categoryField as unknown as { _def: { description?: string } })._def
+        .description ?? '';
+    expect(description).toContain('plumbing');
+    expect(description).toContain('electrical');
+    expect(description).toContain('hvac');
+    expect(description).toContain('general');
+    expect(description).toContain('elevator');
+    expect(description).toContain('landscaping');
+    expect(description).toContain('cleaning');
+    expect(description).toContain('security');
+    expect(description).toContain('other');
+    expect(description.toLowerCase()).not.toContain('etc');
   });
 });
 
