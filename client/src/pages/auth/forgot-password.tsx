@@ -16,7 +16,7 @@ import { ValidationTemplates } from '@/utils/form-validation-helpers';
 
 const forgotPasswordSchema = z.object({
   email: ValidationTemplates.email()
-    .refine(val => val.length > 0, 'Adresse e-mail requise pour la réinitialisation'),
+    .refine(val => val.length > 0, 'authEmailRequiredForReset'),
 });
 
 /**
@@ -30,7 +30,7 @@ type ForgotPasswordForm = z.infer<typeof forgotPasswordSchema>;
 export default function ForgotPasswordPage() {
   const [emailSent, setEmailSent] = useState(false);
   const { toast } = useToast();
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const { isLoading, errorMessage, handleSubmit } = useStandardForm({
     showSuccessMessage: false
   });
@@ -53,8 +53,8 @@ export default function ForgotPasswordPage() {
       await apiRequest('POST', '/api/auth/forgot-password', data);
       setEmailSent(true);
       toast({
-        title: 'E-mail envoyé',
-        description: 'Si cette adresse e-mail existe, un lien de réinitialisation a été envoyé.',
+        title: t('authEmailSent'),
+        description: t('authResetEmailSentIfExists'),
       });
     } catch (err) {
       if (applyDangerousInputFieldError(err, form)) {
@@ -66,7 +66,7 @@ export default function ForgotPasswordPage() {
           throw err;
         },
         form,
-        'E-mail de réinitialisation envoyé avec succès',
+        t('authResetEmailSentSuccess'),
       )(data);
     }
   };
@@ -79,23 +79,20 @@ export default function ForgotPasswordPage() {
             <div className='mx-auto w-12 h-12 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mb-4'>
               <Mail className='w-6 h-6 text-green-600 dark:text-green-400' />
             </div>
-            <CardTitle className='text-2xl font-bold'>E-mail envoyé</CardTitle>
-            {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
+            <CardTitle className='text-2xl font-bold'>{t('authEmailSent')}</CardTitle>
             <CardDescription>
-              Si votre adresse e-mail est dans notre système, vous recevrez un lien de
-              réinitialisation du mot de passe dans quelques minutes.
+              {t('authResetEmailFollowUp')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className='space-y-4'>
-              {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
               <p className='text-sm text-muted-foreground text-center'>
-                N'oubliez pas de vérifier votre dossier de courrier indésirable.
+                {t('authCheckSpamFolder')}
               </p>
               <Button asChild className='w-full'>
                 <Link href='/login'>
                   <ArrowLeft className='w-4 h-4 mr-2' />
-                  Retour à la connexion
+                  {t('authBackToLogin')}
                 </Link>
               </Button>
             </div>
@@ -123,10 +120,9 @@ export default function ForgotPasswordPage() {
     <div className='min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800'>
       <Card className='w-full max-w-md'>
         <CardHeader className='text-center'>
-          <CardTitle className='text-2xl font-bold'>Mot de passe oublié</CardTitle>
-          {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
+          <CardTitle className='text-2xl font-bold'>{t('authForgotPasswordTitle')}</CardTitle>
           <CardDescription>
-            Entrez votre adresse e-mail pour recevoir un lien de réinitialisation du mot de passe
+            {t('authForgotPasswordDesc')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -135,21 +131,20 @@ export default function ForgotPasswordPage() {
             onSubmit={onSubmit}
             isLoading={isLoading}
             errorMessage={errorMessage}
-            submitText="Envoyer le lien de réinitialisation"
-            loadingText="Envoi en cours..."
+            submitText={t('authSendResetLink')}
+            loadingText={t('authSendingInProgress')}
             formName="forgot-password"
             showCard={false}
           >
             <StandardFormField
               control={form.control}
               name="email"
-              label="Adresse e-mail"
+              label={t('authEmailAddressLabel')}
               type="email"
               placeholder="votre@email.com"
               required
               formName="forgot-password"
-              // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
-              description="Nous vous enverrons un lien sécurisé pour réinitialiser votre mot de passe"
+              description={t('authEmailAddressDesc')}
             />
           </StandardForm>
 
@@ -157,7 +152,7 @@ export default function ForgotPasswordPage() {
             <Button variant='ghost' asChild>
               <Link href='/login'>
                 <ArrowLeft className='w-4 h-4 mr-2' />
-                Retour à la connexion
+                {t('authBackToLogin')}
               </Link>
             </Button>
           </div>

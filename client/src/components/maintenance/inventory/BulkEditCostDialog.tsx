@@ -16,7 +16,6 @@ import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/use-language';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { DollarSign, Loader2 } from 'lucide-react';
-import { useLanguage } from '@/hooks/use-language';
 
 interface BulkEditCostDialogProps {
   isOpen: boolean;
@@ -35,7 +34,6 @@ export function BulkEditCostDialog({
 }: BulkEditCostDialogProps) {
   const { t } = useLanguage();
   const { toast } = useToast();
-  const { t } = useLanguage();
   const [costType, setCostType] = useState<'per-element' | 'per-unit'>('per-element');
   const [costValue, setCostValue] = useState<string>('');
 

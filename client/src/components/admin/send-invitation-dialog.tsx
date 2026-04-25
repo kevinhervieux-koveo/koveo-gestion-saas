@@ -72,7 +72,7 @@ const invitationSchema = z
       return !!data.email;
     },
     {
-      message: 'Email address is required for regular invitations (example: user@domain.com). For demo users, provide first and last name instead.',
+      message: 'authEmailRequiredForRegular',
       path: ['email'],
     }
   )
@@ -90,7 +90,7 @@ const invitationSchema = z
       return true;
     },
     {
-      message: 'Please select a specific residence unit for tenants and residents when a building is selected',
+      message: 'authResidenceRequiredForBuilding',
       path: ['residenceId'],
     }
   );
@@ -381,15 +381,15 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
     },
     successTitle: (_, variables) => {
       const isDemoRole = ['demo_manager', 'demo_tenant', 'demo_resident'].includes(variables.role);
-      return isDemoRole ? 'Demo User Created' : t('invitationSent');
+      return isDemoRole ? t('authDemoUserCreated') : t('invitationSent');
     },
     successMessage: (_, variables) => {
       const isDemoRole = ['demo_manager', 'demo_tenant', 'demo_resident'].includes(variables.role);
       return isDemoRole
-        ? 'Demo user has been created successfully'
+        ? t('authDemoUserCreatedSuccess')
         : t('invitationSentSuccessfully');
     },
-    errorTitle: 'Error',
+    errorTitle: t('authErrorTitle'),
     errorMessage: (error: any) => {
       // Task #261 — translate the duplicate-invite conflict from Task #250.
       // The server returns a stable `code: 'INVITATION_ALREADY_PENDING'` on
@@ -515,8 +515,8 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                     </FormControl>
                     <FormDescription>
                       {currentUser?.role === 'manager' && organizations && organizations.length === 1
-                        ? 'Managers can only invite to their organization'
-                        : 'Select target organization'}
+                        ? t('authManagersOnlyOwnOrg')
+                        : t('authSelectTargetOrg')}
                     </FormDescription>
 
                     <FormMessage />
@@ -555,15 +555,15 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                                     : role === 'tenant'
                                       ? t('tenant')
                                       : role === 'demo_manager'
-                                        ? 'Demo Manager'
+                                        ? t('authDemoManager')
                                         : role === 'demo_tenant'
-                                          ? 'Demo Tenant'
-                                          : 'Demo Resident'}
+                                          ? t('authDemoTenant')
+                                          : t('authDemoResident')}
                             </div>
                           </SelectItem>
                         )) : (
                           <SelectItem value="no-organization" disabled>
-                            Please select an organization first
+                            {t('authSelectOrgFirst')}
                           </SelectItem>
                         )}
                       </SelectContent>
@@ -581,9 +581,9 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                     name='firstName'
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>First Name *</FormLabel>
+                        <FormLabel>{t('authFirstNameLabel')}</FormLabel>
                         <FormControl>
-                          <Input placeholder='Enter first name' {...field} />
+                          <Input placeholder={t('authEnterFirstName')} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -595,9 +595,9 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                     name='lastName'
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Last Name *</FormLabel>
+                        <FormLabel>{t('authLastNameLabel')}</FormLabel>
                         <FormControl>
-                          <Input placeholder='Enter last name' {...field} />
+                          <Input placeholder={t('authEnterLastName')} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -627,7 +627,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
-                        {'Building'}
+                        {t('authBuildingLabel')}
                       </FormLabel>
                       <FormControl>
                         <select
@@ -639,9 +639,9 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                           }}
                           className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
                         >
-                          <option value=''>{'Select building'}</option>
+                          <option value=''>{t('authSelectBuilding')}</option>
                           {['manager', 'demo_manager'].includes(form.watch('role')) && (
-                            <option value='all'>{'All buildings'}</option>
+                            <option value='all'>{t('authAllBuildingsOption')}</option>
                           )}
                           {getFilteredBuildings(form.watch('organizationId')).map((building) => (
                             <option key={building.id} value={building.id}>
@@ -666,25 +666,25 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                     name='residenceId'
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{'Residence'} *</FormLabel>
+                        <FormLabel>{t('authResidenceLabelRequired')}</FormLabel>
                         <FormControl>
                           <select
                             {...field}
                             onChange={field.onChange}
                             className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
                           >
-                            <option value=''>{'Select residence'}</option>
-                            <option value='none'>{'No specific residence'}</option>
+                            <option value=''>{t('authSelectResidence')}</option>
+                            <option value='none'>{t('authNoSpecificResidence')}</option>
                             {getFilteredResidences(form.watch('buildingId'), form.watch('organizationId')).map((residence) => (
                               <option key={residence.id} value={residence.id}>
-                                {'Unit'} {residence.unitNumber}
-                                {residence.floor && ` - ${'Floor'} ${residence.floor}`}
+                                {t('unit')} {residence.unitNumber}
+                                {residence.floor && ` - ${t('floor')} ${residence.floor}`}
                               </option>
                             ))}
                           </select>
                         </FormControl>
                         <FormDescription>
-                          {'Residence required for tenants and residents'}
+                          {t('authResidenceRequired')}
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -754,10 +754,10 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                 >
                   {invitationMutation.isPending
                     ? selectedOrgType === 'Demo'
-                      ? 'Creating User...'
+                      ? t('authCreatingUser')
                       : t('sending')
                     : selectedOrgType === 'Demo'
-                      ? 'Create Demo User'
+                      ? t('authCreateDemoUser')
                       : t('sendInvitation')}
                 </Button>
               </DialogFooter>

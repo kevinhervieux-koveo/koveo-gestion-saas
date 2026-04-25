@@ -96,7 +96,7 @@ describe('ProfileCompletionStep submissionError', () => {
 
     // The matching Input gains the red-500 border class so the user
     // sees a visual cue even before reading the message.
-    const firstNameInput = screen.getByPlaceholderText('Votre prénom');
+    const firstNameInput = screen.getByPlaceholderText('authYourFirstName');
     expect(firstNameInput.className).toMatch(/border-red-500/);
   });
 
@@ -116,7 +116,7 @@ describe('ProfileCompletionStep submissionError', () => {
       />,
     );
 
-    const lastNameInput = screen.getByPlaceholderText('Votre nom de famille');
+    const lastNameInput = screen.getByPlaceholderText('authYourLastName');
     expect(lastNameInput.className).not.toMatch(/border-red-500/);
   });
 });

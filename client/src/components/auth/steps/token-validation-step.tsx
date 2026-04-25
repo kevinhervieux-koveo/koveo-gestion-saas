@@ -42,7 +42,7 @@ interface TokenValidationData {
  * @returns Function result.
  */
 export function TokenValidationStep({ _data, onDataChange, onValidationChange }: WizardStepProps) {
-  const { t: _t } = useLanguage();
+  const { t } = useLanguage();
   const [isValidating, setIsValidating] = useState(false);
   const [validationResult, setValidationResult] = useState<TokenValidationData | null>(
     (_data as unknown as TokenValidationData) || null
@@ -96,7 +96,7 @@ export function TokenValidationStep({ _data, onDataChange, onValidationChange }:
           email: result.invitation.email,
           role: result.invitation.role,
           organizationName: result.organizationName || 'Koveo Gestion',
-          inviterName: result.inviterName || 'Administrateur',
+          inviterName: result.inviterName || t('admin'),
           expiresAt: result.invitation.expiresAt,
           isValid: true,
         };
@@ -117,7 +117,7 @@ export function TokenValidationStep({ _data, onDataChange, onValidationChange }:
           inviterName: '',
           expiresAt: '',
           isValid: false,
-          error: result.message || 'Token invalide',
+          error: result.message || t('authInvalidToken'),
         };
 
         setValidationResult(errorData);
@@ -134,7 +134,7 @@ export function TokenValidationStep({ _data, onDataChange, onValidationChange }:
         inviterName: '',
         expiresAt: '',
         isValid: false,
-        error: 'Erreur de connexion au serveur',
+        error: t('authServerConnectionError'),
       };
 
       setValidationResult(errorData);
@@ -169,18 +169,18 @@ export function TokenValidationStep({ _data, onDataChange, onValidationChange }:
     const diff = expires.getTime() - now.getTime();
 
     if (diff <= 0) {
-      return 'Expiré';
+      return t('authExpired');
     }
 
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
     const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
 
     if (days > 0) {
-      return `${days} jour${days > 1 ? 's' : ''} restant${days > 1 ? 's' : ''}`;
+      return `${days} ${days > 1 ? t('authDaysRemaining') : t('authDayRemaining')}`;
     } else if (hours > 0) {
-      return `${hours} heure${hours > 1 ? 's' : ''} restante${hours > 1 ? 's' : ''}`;
+      return `${hours} ${hours > 1 ? t('authHoursRemaining') : t('authHourRemaining')}`;
     } else {
-      return 'Expire bientôt';
+      return t('authExpiringSoon');
     }
   };
 
@@ -201,10 +201,9 @@ export function TokenValidationStep({ _data, onDataChange, onValidationChange }:
     return (
       <div className='flex flex-col items-center justify-center py-12'>
         <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4' />
-        <h3 className='text-lg font-medium text-gray-900 mb-2'>Validation de l'invitation</h3>
-        {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
+        <h3 className='text-lg font-medium text-gray-900 mb-2'>{t('authValidatingInvitation')}</h3>
         <p className='text-gray-600 text-center max-w-md'>
-          Vérification du token d'invitation et des détails associés...
+          {t('authValidatingInvitationDesc')}
         </p>
       </div>
     );
@@ -214,11 +213,11 @@ export function TokenValidationStep({ _data, onDataChange, onValidationChange }:
     return (
       <div className='flex flex-col items-center justify-center py-12'>
         <AlertTriangle className='h-12 w-12 text-yellow-500 mb-4' />
-        <h3 className='text-lg font-medium text-gray-900 mb-2'>Token d'invitation requis</h3>
-        {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
+        <h3 className='text-lg font-medium text-gray-900 mb-2'>
+          {t('authInvitationTokenRequired')}
+        </h3>
         <p className='text-gray-600 text-center max-w-md'>
-          Aucun token d'invitation valide n'a été trouvé. Veuillez utiliser le lien d'invitation
-          reçu par email.
+          {t('authInvitationTokenRequiredDesc')}
         </p>
       </div>
     );
@@ -230,7 +229,7 @@ export function TokenValidationStep({ _data, onDataChange, onValidationChange }:
         <Alert variant='destructive'>
           <XCircle className='h-4 w-4' />
           <AlertDescription>
-            <strong>Invitation invalide:</strong> {validationResult.error}
+            <strong>{t('authInvitationInvalid')}</strong> {validationResult.error}
           </AlertDescription>
         </Alert>
 
@@ -239,19 +238,13 @@ export function TokenValidationStep({ _data, onDataChange, onValidationChange }:
             <div className='text-center'>
               <XCircle className='h-12 w-12 text-red-500 mx-auto mb-4' />
               <h3 className='text-lg font-medium text-red-900 mb-2'>
-                Impossible de valider l'invitation
+                {t('authUnableToValidate')}
               </h3>
-              {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
-              <p className='text-red-700 mb-4'>
-                Le lien d'invitation peut être expiré, invalide ou déjà utilisé.
-              </p>
+              <p className='text-red-700 mb-4'>{t('authInvitationLinkExpired')}</p>
               <div className='text-sm text-red-600 space-y-1'>
-                {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
-                <p>• Vérifiez que vous utilisez le lien complet reçu par email</p>
-                {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
-                <p>• Assurez-vous que l'invitation n'est pas expirée</p>
-                {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
-                <p>• Contactez l'administrateur si le problème persiste</p>
+                <p>• {t('authInvitationCheckLink')}</p>
+                <p>• {t('authInvitationNotExpired')}</p>
+                <p>• {t('authInvitationContactAdmin')}</p>
               </div>
             </div>
           </CardContent>
@@ -265,8 +258,7 @@ export function TokenValidationStep({ _data, onDataChange, onValidationChange }:
       <Alert className='border-green-200 bg-green-50'>
         <CheckCircle className='h-4 w-4 text-green-600' />
         <AlertDescription className='text-green-800'>
-          {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
-          <strong>Invitation valide!</strong> Vous pouvez procéder à la création de votre compte.
+          <strong>{t('authInvitationValid')}</strong> {t('authInvitationValidDesc')}
         </AlertDescription>
       </Alert>
 
@@ -274,9 +266,11 @@ export function TokenValidationStep({ _data, onDataChange, onValidationChange }:
         <CardContent className='pt-6'>
           <div className='text-center mb-6'>
             <CheckCircle className='h-12 w-12 text-green-500 mx-auto mb-4' />
-            <h3 className='text-lg font-medium text-green-900 mb-2'>Invitation confirmée</h3>
+            <h3 className='text-lg font-medium text-green-900 mb-2'>
+              {t('authInvitationConfirmed')}
+            </h3>
             <p className='text-green-700'>
-              Vous avez été invité(e) à rejoindre {validationResult.organizationName}
+              {t('authInvitedToJoin')} {validationResult.organizationName}
             </p>
           </div>
 
@@ -285,7 +279,7 @@ export function TokenValidationStep({ _data, onDataChange, onValidationChange }:
             <div className='bg-white p-4 rounded-lg border border-green-200'>
               <div className='flex items-center mb-2'>
                 <Mail className='h-5 w-5 text-gray-500 mr-2' />
-                <span className='text-sm font-medium text-gray-600'>Email</span>
+                <span className='text-sm font-medium text-gray-600'>{t('email')}</span>
               </div>
               <p className='text-gray-900 font-medium'>{validationResult.email}</p>
             </div>
@@ -294,13 +288,13 @@ export function TokenValidationStep({ _data, onDataChange, onValidationChange }:
             <div className='bg-white p-4 rounded-lg border border-green-200'>
               <div className='flex items-center mb-2'>
                 <Shield className='h-5 w-5 text-gray-500 mr-2' />
-                <span className='text-sm font-medium text-gray-600'>Rôle</span>
+                <span className='text-sm font-medium text-gray-600'>{t('role')}</span>
               </div>
               <Badge className={getRoleBadgeColor(validationResult.role)}>
-                {validationResult.role === 'admin' && 'Administrateur'}
-                {validationResult.role === 'manager' && 'Gestionnaire'}
-                {validationResult.role === 'tenant' && 'Locataire'}
-                {validationResult.role === 'resident' && 'Résident'}
+                {validationResult.role === 'admin' && t('admin')}
+                {validationResult.role === 'manager' && t('manager')}
+                {validationResult.role === 'tenant' && t('tenant')}
+                {validationResult.role === 'resident' && t('resident')}
               </Badge>
             </div>
 
@@ -308,7 +302,7 @@ export function TokenValidationStep({ _data, onDataChange, onValidationChange }:
             <div className='bg-white p-4 rounded-lg border border-green-200'>
               <div className='flex items-center mb-2'>
                 <Shield className='h-5 w-5 text-gray-500 mr-2' />
-                <span className='text-sm font-medium text-gray-600'>Invité par</span>
+                <span className='text-sm font-medium text-gray-600'>{t('authInvitedBy')}</span>
               </div>
               <p className='text-gray-900'>{validationResult.inviterName}</p>
             </div>
@@ -317,7 +311,7 @@ export function TokenValidationStep({ _data, onDataChange, onValidationChange }:
             <div className='bg-white p-4 rounded-lg border border-green-200'>
               <div className='flex items-center mb-2'>
                 <Clock className='h-5 w-5 text-gray-500 mr-2' />
-                <span className='text-sm font-medium text-gray-600'>Validité</span>
+                <span className='text-sm font-medium text-gray-600'>{t('authValidity')}</span>
               </div>
               <p className='text-gray-900'>{getTimeRemaining(validationResult.expiresAt)}</p>
             </div>

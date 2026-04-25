@@ -3172,6 +3172,181 @@ export interface Translations {
   pvProjectDefaultsDesc: string;
   pvNoPendingSuggestions: string;
   pvNoSuggestionsMatchFilters: string;
+  // Auth flow translations (task #713) — invitation, consent, password steps
+  authPrivacyAlertTitle: string;
+  authPrivacyAlertText: string;
+  authDataCollectionTitle: string;
+  authDataCollectionMasterText: string;
+  authEssentialDataLabel: string;
+  authEssentialDataDesc: string;
+  authMarketingLabel: string;
+  authMarketingDesc: string;
+  authAnalyticsLabel: string;
+  authAnalyticsDesc: string;
+  authThirdPartyLabel: string;
+  authThirdPartyDesc: string;
+  authRightsAndControl: string;
+  authAcknowledgeRightsLabel: string;
+  authAcknowledgeRightsDesc: string;
+  authAcknowledgeRightsWarning: string;
+  authYourRightsTitle: string;
+  authRightAccess: string;
+  authRightAccessDesc: string;
+  authRightRectification: string;
+  authRightRectificationDesc: string;
+  authRightDeletion: string;
+  authRightDeletionDesc: string;
+  authRightPortability: string;
+  authRightPortabilityDesc: string;
+  authContactRightsTitle: string;
+  authContactRightsDesc: string;
+  authSecurityRetentionTitle: string;
+  authSecurityLabel: string;
+  authSecurityDesc: string;
+  authRetentionLabel: string;
+  authRetentionDesc: string;
+  authTransparencyLabel: string;
+  authTransparencyDesc: string;
+  authInvalidToken: string;
+  authServerConnectionError: string;
+  authValidatingInvitation: string;
+  authValidatingInvitationDesc: string;
+  authInvitationTokenRequired: string;
+  authInvitationTokenRequiredDesc: string;
+  authInvitationInvalid: string;
+  authUnableToValidate: string;
+  authInvitationLinkExpired: string;
+  authInvitationCheckLink: string;
+  authInvitationNotExpired: string;
+  authInvitationContactAdmin: string;
+  authInvitationValid: string;
+  authInvitationValidDesc: string;
+  authInvitationConfirmed: string;
+  authInvitedToJoin: string;
+  authInvitedBy: string;
+  authValidity: string;
+  authExpired: string;
+  authDayRemaining: string;
+  authDaysRemaining: string;
+  authHourRemaining: string;
+  authHoursRemaining: string;
+  authExpiringSoon: string;
+  authPasswordRequiredLabel: string;
+  authEnterYourPassword: string;
+  authHidePassword: string;
+  authShowPassword: string;
+  authPasswordDoesNotMeetRequirements: string;
+  authConfirmPasswordRequired: string;
+  authConfirmYourPassword: string;
+  authPasswordsMatch: string;
+  authPasswordsDoNotMatch: string;
+  authSecurityTipsTitle: string;
+  authSecurityTip1: string;
+  authSecurityTip2: string;
+  authSecurityTip3: string;
+  authSecurityTip4: string;
+  authUserProfileLabel: string;
+  authUserProfileDesc: string;
+  authPersonalInformation: string;
+  authFirstNameRequired: string;
+  authYourFirstName: string;
+  authLastNameRequired: string;
+  authYourLastName: string;
+  authPhoneOptional: string;
+  authPreferredLanguage: string;
+  authChooseLanguage: string;
+  authInvalidPhoneFormat: string;
+  authFieldIsRequired: string;
+  authDemoUserCreated: string;
+  authDemoUserCreatedSuccess: string;
+  authErrorTitle: string;
+  authEmailRequiredForRegular: string;
+  authResidenceRequiredForBuilding: string;
+  authDemoManager: string;
+  authDemoTenant: string;
+  authDemoResident: string;
+  authFirstNameLabel: string;
+  authEnterFirstName: string;
+  authLastNameLabel: string;
+  authEnterLastName: string;
+  authBuildingLabel: string;
+  authSelectBuilding: string;
+  authAllBuildingsOption: string;
+  authResidenceLabelRequired: string;
+  authSelectResidence: string;
+  authNoSpecificResidence: string;
+  authResidenceRequired: string;
+  authSelectOrgFirst: string;
+  authManagersOnlyOwnOrg: string;
+  authSelectTargetOrg: string;
+  authCreatingUser: string;
+  authCreateDemoUser: string;
+  authEmailRequiredForReset: string;
+  authEmailSent: string;
+  authResetEmailSentIfExists: string;
+  authResetEmailSentSuccess: string;
+  authResetEmailFollowUp: string;
+  authCheckSpamFolder: string;
+  authBackToLogin: string;
+  authForgotPasswordTitle: string;
+  authForgotPasswordDesc: string;
+  authSendResetLink: string;
+  authSendingInProgress: string;
+  authEmailAddressLabel: string;
+  authEmailAddressDesc: string;
+  authNewPasswordRequired: string;
+  authPasswordMin8: string;
+  authPasswordMax100: string;
+  authPasswordComplexity: string;
+  authConfirmPasswordRequiredZ: string;
+  authPasswordsDoNotMatchHelp: string;
+  authTokenMissing: string;
+  authResetLinkInvalid: string;
+  authResetTokenMissing: string;
+  authPasswordResetTitle: string;
+  authPasswordUpdatedSuccess: string;
+  authResetGeneralError: string;
+  authResetLinkInvalidExpired: string;
+  authResetLinkAlreadyUsed: string;
+  authPasswordTooShort: string;
+  authPasswordTooWeak: string;
+  authPasswordResetCompleteDesc: string;
+  authSignIn: string;
+  authInvalidLink: string;
+  authRequestNewLink: string;
+  authResetPasswordTitle: string;
+  authEnterNewPassword: string;
+  authNewPasswordLabel: string;
+  authConfirmPasswordLabel: string;
+  authConfirmNewPassword: string;
+  authResettingInProgress: string;
+  authValidationStepTitle: string;
+  authValidationStepDesc: string;
+  authPasswordStepTitle: string;
+  authPasswordStepDesc: string;
+  authProfileStepTitle: string;
+  authProfileStepDesc: string;
+  authConsentStepTitle: string;
+  authConsentStepDesc: string;
+  authPasswordRequiredError: string;
+  authNamesRequiredError: string;
+  authConsentsRequiredError: string;
+  authAccountCreationError: string;
+  authAccountCreationGenericError: string;
+  authRegistrationCompleteTitle: string;
+  authWelcomeUser: string;
+  authAccountCreatedMessage: string;
+  authAccountCreatedTitle: string;
+  authQuebecComplianceTitle: string;
+  authQuebecComplianceDesc: string;
+  authAccessMyAccount: string;
+  authLoginWithEmailPassword: string;
+  authBackToHome: string;
+  authInvitationAcceptanceTitle: string;
+  authInvitationAcceptanceDesc: string;
+  authErrorPrefix: string;
+  authCreatingYourAccount: string;
+  authRegistrationFooter: string;
 }
 
 /**
@@ -6346,6 +6521,198 @@ export const translations: Record<Language, Translations> = {
     pvProjectDefaultsDesc: 'Set default values for all generated projects',
     pvNoPendingSuggestions: 'No pending evaluation suggestions are available for this building.',
     pvNoSuggestionsMatchFilters: 'No suggestions match your current search and filter criteria.',
+    // Auth flow translations (task #713)
+    authPrivacyAlertTitle: 'Personal Information Protection (Law 25 - Quebec):',
+    authPrivacyAlertText:
+      'Your consent is required for the collection and use of your personal data.',
+    authDataCollectionTitle: 'Data collection and processing',
+    authDataCollectionMasterText:
+      'I accept all types of data collection and processing (essential and optional).',
+    authEssentialDataLabel: 'Essential data collection (Required) *',
+    authEssentialDataDesc:
+      'Authentication, communication, account management, property management services.',
+    authMarketingLabel: 'Marketing communications (Optional)',
+    authMarketingDesc: 'Promotional communications, new features, special offers.',
+    authAnalyticsLabel: 'Analysis and improvement (Optional)',
+    authAnalyticsDesc: 'Anonymized usage data to improve services.',
+    authThirdPartyLabel: 'Integrated third-party services (Optional)',
+    authThirdPartyDesc: 'Mapping, notifications, storage to enhance the experience.',
+    authRightsAndControl: 'Rights and control',
+    authAcknowledgeRightsLabel: 'Acknowledgment of my rights (Required) *',
+    authAcknowledgeRightsDesc:
+      'I have been informed of my rights regarding my personal information and I understand that I can exercise these rights at any time.',
+    authAcknowledgeRightsWarning: '⚠️ This box must be checked to continue.',
+    authYourRightsTitle: '📋 Your rights under Quebec\'s Law 25',
+    authRightAccess: 'Right of access:',
+    authRightAccessDesc: 'View your personal data',
+    authRightRectification: 'Right of rectification:',
+    authRightRectificationDesc: 'Correct inaccurate information',
+    authRightDeletion: 'Right of deletion:',
+    authRightDeletionDesc: 'Request deletion of your data',
+    authRightPortability: 'Right of portability:',
+    authRightPortabilityDesc: 'Retrieve your data in a readable format',
+    authContactRightsTitle: '📞 Contact for your rights',
+    authContactRightsDesc:
+      'To exercise your rights or for any question regarding your personal data, contact our data protection officer:',
+    authSecurityRetentionTitle: 'Security and retention',
+    authSecurityLabel: 'Security:',
+    authSecurityDesc: 'Your data is encrypted and stored on secure servers in Canada',
+    authRetentionLabel: 'Retention:',
+    authRetentionDesc: 'Your data is kept according to Quebec legal requirements',
+    authTransparencyLabel: 'Transparency:',
+    authTransparencyDesc: 'Consult our complete privacy policy at any time',
+    authInvalidToken: 'Invalid token',
+    authServerConnectionError: 'Server connection error',
+    authValidatingInvitation: 'Validating invitation',
+    authValidatingInvitationDesc: 'Verifying the invitation token and associated details...',
+    authInvitationTokenRequired: 'Invitation token required',
+    authInvitationTokenRequiredDesc:
+      'No valid invitation token was found. Please use the invitation link received by email.',
+    authInvitationInvalid: 'Invalid invitation:',
+    authUnableToValidate: 'Unable to validate the invitation',
+    authInvitationLinkExpired: 'The invitation link may be expired, invalid, or already used.',
+    authInvitationCheckLink: 'Check that you are using the complete link received by email',
+    authInvitationNotExpired: 'Make sure the invitation has not expired',
+    authInvitationContactAdmin: 'Contact the administrator if the problem persists',
+    authInvitationValid: 'Valid invitation!',
+    authInvitationValidDesc: 'You can proceed to create your account.',
+    authInvitationConfirmed: 'Invitation confirmed',
+    authInvitedToJoin: 'You have been invited to join',
+    authInvitedBy: 'Invited by',
+    authValidity: 'Validity',
+    authExpired: 'Expired',
+    authDayRemaining: 'day remaining',
+    authDaysRemaining: 'days remaining',
+    authHourRemaining: 'hour remaining',
+    authHoursRemaining: 'hours remaining',
+    authExpiringSoon: 'Expiring soon',
+    authPasswordRequiredLabel: 'Password *',
+    authEnterYourPassword: 'Enter your password',
+    authHidePassword: 'Hide password',
+    authShowPassword: 'Show password',
+    authPasswordDoesNotMeetRequirements: 'The password does not meet the security requirements.',
+    authConfirmPasswordRequired: 'Confirm password *',
+    authConfirmYourPassword: 'Confirm your password',
+    authPasswordsMatch: 'Passwords match',
+    authPasswordsDoNotMatch: 'Passwords do not match',
+    authSecurityTipsTitle: '💡 Security tips',
+    authSecurityTip1: 'Use a unique combination of letters, numbers, and symbols',
+    authSecurityTip2: 'Avoid personal information (name, date of birth)',
+    authSecurityTip3: 'Do not reuse a password from another account',
+    authSecurityTip4: 'Consider using a password manager',
+    authUserProfileLabel: 'User profile:',
+    authUserProfileDesc:
+      'Complete your profile to finalize your registration and access property management services.',
+    authPersonalInformation: 'Personal information',
+    authFirstNameRequired: 'First name *',
+    authYourFirstName: 'Your first name',
+    authLastNameRequired: 'Last name *',
+    authYourLastName: 'Your last name',
+    authPhoneOptional: 'Phone (optional)',
+    authPreferredLanguage: 'Preferred language *',
+    authChooseLanguage: 'Choose a language',
+    authInvalidPhoneFormat: 'Invalid phone format (e.g., 514-123-4567)',
+    authFieldIsRequired: 'is required',
+    authDemoUserCreated: 'Demo User Created',
+    authDemoUserCreatedSuccess: 'Demo user has been created successfully',
+    authErrorTitle: 'Error',
+    authEmailRequiredForRegular:
+      'Email address is required for regular invitations (example: user@domain.com). For demo users, provide first and last name instead.',
+    authResidenceRequiredForBuilding:
+      'Please select a specific residence unit for tenants and residents when a building is selected',
+    authDemoManager: 'Demo Manager',
+    authDemoTenant: 'Demo Tenant',
+    authDemoResident: 'Demo Resident',
+    authFirstNameLabel: 'First Name *',
+    authEnterFirstName: 'Enter first name',
+    authLastNameLabel: 'Last Name *',
+    authEnterLastName: 'Enter last name',
+    authBuildingLabel: 'Building',
+    authSelectBuilding: 'Select building',
+    authAllBuildingsOption: 'All buildings',
+    authResidenceLabelRequired: 'Residence *',
+    authSelectResidence: 'Select residence',
+    authNoSpecificResidence: 'No specific residence',
+    authResidenceRequired: 'Residence required for tenants and residents',
+    authSelectOrgFirst: 'Please select an organization first',
+    authManagersOnlyOwnOrg: 'Managers can only invite to their organization',
+    authSelectTargetOrg: 'Select target organization',
+    authCreatingUser: 'Creating User...',
+    authCreateDemoUser: 'Create Demo User',
+    authEmailRequiredForReset: 'Email address required for password reset',
+    authEmailSent: 'Email sent',
+    authResetEmailSentIfExists: 'If this email address exists, a reset link has been sent.',
+    authResetEmailSentSuccess: 'Reset email sent successfully',
+    authResetEmailFollowUp:
+      'If your email address is in our system, you will receive a password reset link in a few minutes.',
+    authCheckSpamFolder: 'Don\'t forget to check your spam folder.',
+    authBackToLogin: 'Back to login',
+    authForgotPasswordTitle: 'Forgot password',
+    authForgotPasswordDesc: 'Enter your email address to receive a password reset link',
+    authSendResetLink: 'Send reset link',
+    authSendingInProgress: 'Sending...',
+    authEmailAddressLabel: 'Email address',
+    authEmailAddressDesc: 'We will send you a secure link to reset your password',
+    authNewPasswordRequired: 'The new password is required',
+    authPasswordMin8: 'The password must contain at least 8 characters (example: MyPassword123!)',
+    authPasswordMax100: 'The password cannot exceed 100 characters',
+    authPasswordComplexity:
+      'The password must contain at least one lowercase letter, one uppercase letter and one digit (example: MyPassword123!)',
+    authConfirmPasswordRequiredZ: 'Password confirmation is required',
+    authPasswordsDoNotMatchHelp:
+      'Passwords do not match - please enter the same password in both fields',
+    authTokenMissing: 'Token missing',
+    authResetLinkInvalid: 'The reset link is invalid or missing.',
+    authResetTokenMissing: 'Reset token is missing.',
+    authPasswordResetTitle: 'Password reset',
+    authPasswordUpdatedSuccess: 'Your password has been updated successfully.',
+    authResetGeneralError: 'An error occurred while resetting the password.',
+    authResetLinkInvalidExpired:
+      'The reset link is invalid or expired. Please request a new link.',
+    authResetLinkAlreadyUsed: 'This reset link has already been used.',
+    authPasswordTooShort: 'The password must contain at least 8 characters.',
+    authPasswordTooWeak:
+      'The password must contain at least one uppercase letter, one lowercase letter and one digit.',
+    authPasswordResetCompleteDesc:
+      'Your password has been updated successfully. You can now log in with your new password.',
+    authSignIn: 'Sign in',
+    authInvalidLink: 'Invalid link',
+    authRequestNewLink: 'Request a new link',
+    authResetPasswordTitle: 'Reset password',
+    authEnterNewPassword: 'Enter your new password',
+    authNewPasswordLabel: 'New password',
+    authConfirmPasswordLabel: 'Confirm password',
+    authConfirmNewPassword: 'Confirm your new password',
+    authResettingInProgress: 'Resetting...',
+    authValidationStepTitle: 'Invitation validation',
+    authValidationStepDesc: 'Verifying your invitation link and associated details',
+    authPasswordStepTitle: 'Password creation',
+    authPasswordStepDesc: 'Set a secure password for your account',
+    authProfileStepTitle: 'Personal information',
+    authProfileStepDesc: 'Complete your user profile',
+    authConsentStepTitle: 'Consent and privacy',
+    authConsentStepDesc: 'Consents required under Quebec\'s Law 25',
+    authPasswordRequiredError: 'Password required',
+    authNamesRequiredError: 'First and last name required',
+    authConsentsRequiredError: 'Required consents are missing',
+    authAccountCreationError: 'Error creating account',
+    authAccountCreationGenericError: 'An error occurred while creating your account',
+    authRegistrationCompleteTitle: '🎉 Registration completed successfully!',
+    authWelcomeUser: 'Welcome',
+    authAccountCreatedMessage: 'Your account has been created successfully.',
+    authAccountCreatedTitle: '✅ Account created successfully',
+    authQuebecComplianceTitle: '🛡️ Quebec compliance',
+    authQuebecComplianceDesc:
+      'Your consents have been recorded in compliance with Quebec\'s Law 25. You can exercise your rights at any time by contacting our team.',
+    authAccessMyAccount: 'Access my account',
+    authLoginWithEmailPassword: 'You can now log in with your email and password',
+    authBackToHome: 'Back to home',
+    authInvitationAcceptanceTitle: 'Invitation acceptance',
+    authInvitationAcceptanceDesc: 'Complete your registration to join the Koveo Gestion platform',
+    authErrorPrefix: 'Error:',
+    authCreatingYourAccount: 'Creating your account',
+    authRegistrationFooter:
+      'By registering, you accept our terms of use and our privacy policy compliant with Quebec\'s Law 25.',
   },
   fr: {
 
@@ -9516,5 +9883,206 @@ export const translations: Record<Language, Translations> = {
     pvProjectDefaultsDesc: 'Définissez les valeurs par défaut pour tous les projets générés',
     pvNoPendingSuggestions: 'Aucune suggestion d\'évaluation en attente n\'est disponible pour cet immeuble.',
     pvNoSuggestionsMatchFilters: 'Aucune suggestion ne correspond à vos critères de recherche et de filtrage actuels.',
+    // Auth flow translations (task #713)
+    authPrivacyAlertTitle: 'Protection des renseignements personnels (Loi 25 - Québec):',
+    authPrivacyAlertText:
+      'Votre consentement est requis pour la collecte et l\'utilisation de vos données personnelles.',
+    authDataCollectionTitle: 'Collecte et traitement des données',
+    authDataCollectionMasterText:
+      'J\'accepte tous les types de collecte et traitement de données (essentielles et optionnelles).',
+    authEssentialDataLabel: 'Collecte des données essentielles (Requis) *',
+    authEssentialDataDesc:
+      'Authentification, communication, gestion de compte, services de gestion immobilière.',
+    authMarketingLabel: 'Communications marketing (Optionnel)',
+    authMarketingDesc:
+      'Communications promotionnelles, nouvelles fonctionnalités, offres spéciales.',
+    authAnalyticsLabel: 'Analyse et amélioration (Optionnel)',
+    authAnalyticsDesc: 'Données d\'utilisation anonymisées pour améliorer les services.',
+    authThirdPartyLabel: 'Services tiers intégrés (Optionnel)',
+    authThirdPartyDesc: 'Cartographie, notifications, stockage pour améliorer l\'expérience.',
+    authRightsAndControl: 'Droits et contrôle',
+    authAcknowledgeRightsLabel: 'Reconnaissance de mes droits (Requis) *',
+    authAcknowledgeRightsDesc:
+      'J\'ai été informé(e) de mes droits concernant mes renseignements personnels et je comprends que je peux exercer ces droits à tout moment.',
+    authAcknowledgeRightsWarning: '⚠️ Cette case doit être cochée pour continuer.',
+    authYourRightsTitle: '📋 Vos droits selon la Loi 25 du Québec',
+    authRightAccess: 'Droit d\'accès:',
+    authRightAccessDesc: 'Consulter vos données personnelles',
+    authRightRectification: 'Droit de rectification:',
+    authRightRectificationDesc: 'Corriger des informations inexactes',
+    authRightDeletion: 'Droit de suppression:',
+    authRightDeletionDesc: 'Demander l\'effacement de vos données',
+    authRightPortability: 'Droit de portabilité:',
+    authRightPortabilityDesc: 'Récupérer vos données dans un format lisible',
+    authContactRightsTitle: '📞 Contact pour vos droits',
+    authContactRightsDesc:
+      'Pour exercer vos droits ou pour toute question concernant vos données personnelles, contactez notre responsable de la protection des données:',
+    authSecurityRetentionTitle: 'Sécurité et conservation',
+    authSecurityLabel: 'Sécurité:',
+    authSecurityDesc:
+      'Vos données sont chiffrées et stockées sur des serveurs sécurisés au Canada',
+    authRetentionLabel: 'Conservation:',
+    authRetentionDesc: 'Vos données sont conservées selon les exigences légales québécoises',
+    authTransparencyLabel: 'Transparence:',
+    authTransparencyDesc: 'Consultez notre politique de confidentialité complète à tout moment',
+    authInvalidToken: 'Token invalide',
+    authServerConnectionError: 'Erreur de connexion au serveur',
+    authValidatingInvitation: 'Validation de l\'invitation',
+    authValidatingInvitationDesc: 'Vérification du token d\'invitation et des détails associés...',
+    authInvitationTokenRequired: 'Token d\'invitation requis',
+    authInvitationTokenRequiredDesc:
+      'Aucun token d\'invitation valide n\'a été trouvé. Veuillez utiliser le lien d\'invitation reçu par email.',
+    authInvitationInvalid: 'Invitation invalide:',
+    authUnableToValidate: 'Impossible de valider l\'invitation',
+    authInvitationLinkExpired: 'Le lien d\'invitation peut être expiré, invalide ou déjà utilisé.',
+    authInvitationCheckLink: 'Vérifiez que vous utilisez le lien complet reçu par email',
+    authInvitationNotExpired: 'Assurez-vous que l\'invitation n\'est pas expirée',
+    authInvitationContactAdmin: 'Contactez l\'administrateur si le problème persiste',
+    authInvitationValid: 'Invitation valide!',
+    authInvitationValidDesc: 'Vous pouvez procéder à la création de votre compte.',
+    authInvitationConfirmed: 'Invitation confirmée',
+    authInvitedToJoin: 'Vous avez été invité(e) à rejoindre',
+    authInvitedBy: 'Invité par',
+    authValidity: 'Validité',
+    authExpired: 'Expiré',
+    authDayRemaining: 'jour restant',
+    authDaysRemaining: 'jours restants',
+    authHourRemaining: 'heure restante',
+    authHoursRemaining: 'heures restantes',
+    authExpiringSoon: 'Expire bientôt',
+    authPasswordRequiredLabel: 'Mot de passe *',
+    authEnterYourPassword: 'Entrez votre mot de passe',
+    authHidePassword: 'Masquer le mot de passe',
+    authShowPassword: 'Afficher le mot de passe',
+    authPasswordDoesNotMeetRequirements:
+      'Le mot de passe ne respecte pas les exigences de sécurité.',
+    authConfirmPasswordRequired: 'Confirmer le mot de passe *',
+    authConfirmYourPassword: 'Confirmez votre mot de passe',
+    authPasswordsMatch: 'Les mots de passe correspondent',
+    authPasswordsDoNotMatch: 'Les mots de passe ne correspondent pas',
+    authSecurityTipsTitle: '💡 Conseils de sécurité',
+    authSecurityTip1: 'Utilisez une combinaison unique de lettres, chiffres et symboles',
+    authSecurityTip2: 'Évitez les informations personnelles (nom, date de naissance)',
+    authSecurityTip3: 'Ne réutilisez pas un mot de passe d\'un autre compte',
+    authSecurityTip4: 'Considérez l\'utilisation d\'un gestionnaire de mots de passe',
+    authUserProfileLabel: 'Profil utilisateur:',
+    authUserProfileDesc:
+      'Complétez votre profil pour finaliser votre inscription et accéder aux services de gestion immobilière.',
+    authPersonalInformation: 'Informations personnelles',
+    authFirstNameRequired: 'Prénom *',
+    authYourFirstName: 'Votre prénom',
+    authLastNameRequired: 'Nom de famille *',
+    authYourLastName: 'Votre nom de famille',
+    authPhoneOptional: 'Téléphone (optionnel)',
+    authPreferredLanguage: 'Langue préférée *',
+    authChooseLanguage: 'Choisir une langue',
+    authInvalidPhoneFormat: 'Format de téléphone invalide (ex: 514-123-4567)',
+    authFieldIsRequired: 'est requis',
+    authDemoUserCreated: 'Utilisateur démo créé',
+    authDemoUserCreatedSuccess: 'L\'utilisateur démo a été créé avec succès',
+    authErrorTitle: 'Erreur',
+    authEmailRequiredForRegular:
+      'Une adresse courriel est requise pour les invitations régulières (exemple: utilisateur@domaine.com). Pour les utilisateurs démo, fournissez le prénom et le nom de famille à la place.',
+    authResidenceRequiredForBuilding:
+      'Veuillez sélectionner une unité de résidence spécifique pour les locataires et résidents lorsqu\'un immeuble est sélectionné',
+    authDemoManager: 'Gestionnaire démo',
+    authDemoTenant: 'Locataire démo',
+    authDemoResident: 'Résident démo',
+    authFirstNameLabel: 'Prénom *',
+    authEnterFirstName: 'Entrez le prénom',
+    authLastNameLabel: 'Nom de famille *',
+    authEnterLastName: 'Entrez le nom de famille',
+    authBuildingLabel: 'Immeuble',
+    authSelectBuilding: 'Sélectionner un immeuble',
+    authAllBuildingsOption: 'Tous les immeubles',
+    authResidenceLabelRequired: 'Résidence *',
+    authSelectResidence: 'Sélectionner une résidence',
+    authNoSpecificResidence: 'Aucune résidence spécifique',
+    authResidenceRequired: 'Résidence requise pour les locataires et résidents',
+    authSelectOrgFirst: 'Veuillez d\'abord sélectionner une organisation',
+    authManagersOnlyOwnOrg: 'Les gestionnaires peuvent uniquement inviter à leur organisation',
+    authSelectTargetOrg: 'Sélectionner l\'organisation cible',
+    authCreatingUser: 'Création de l\'utilisateur...',
+    authCreateDemoUser: 'Créer l\'utilisateur démo',
+    authEmailRequiredForReset: 'Adresse courriel requise pour la réinitialisation',
+    authEmailSent: 'Courriel envoyé',
+    authResetEmailSentIfExists:
+      'Si cette adresse courriel existe, un lien de réinitialisation a été envoyé.',
+    authResetEmailSentSuccess: 'Courriel de réinitialisation envoyé avec succès',
+    authResetEmailFollowUp:
+      'Si votre adresse courriel est dans notre système, vous recevrez un lien de réinitialisation du mot de passe dans quelques minutes.',
+    authCheckSpamFolder: 'N\'oubliez pas de vérifier votre dossier de courrier indésirable.',
+    authBackToLogin: 'Retour à la connexion',
+    authForgotPasswordTitle: 'Mot de passe oublié',
+    authForgotPasswordDesc:
+      'Entrez votre adresse courriel pour recevoir un lien de réinitialisation du mot de passe',
+    authSendResetLink: 'Envoyer le lien de réinitialisation',
+    authSendingInProgress: 'Envoi en cours...',
+    authEmailAddressLabel: 'Adresse courriel',
+    authEmailAddressDesc: 'Nous vous enverrons un lien sécurisé pour réinitialiser votre mot de passe',
+    authNewPasswordRequired: 'Le nouveau mot de passe est requis',
+    authPasswordMin8:
+      'Le mot de passe doit contenir au moins 8 caractères (exemple: MonMotDePasse123!)',
+    authPasswordMax100: 'Le mot de passe ne peut pas dépasser 100 caractères',
+    authPasswordComplexity:
+      'Le mot de passe doit contenir au moins une minuscule, une majuscule et un chiffre (exemple: MonMotDePasse123!)',
+    authConfirmPasswordRequiredZ: 'La confirmation du mot de passe est requise',
+    authPasswordsDoNotMatchHelp:
+      'Les mots de passe ne correspondent pas - veuillez saisir le même mot de passe dans les deux champs',
+    authTokenMissing: 'Token manquant',
+    authResetLinkInvalid: 'Le lien de réinitialisation est invalide ou manquant.',
+    authResetTokenMissing: 'Token de réinitialisation manquant.',
+    authPasswordResetTitle: 'Mot de passe réinitialisé',
+    authPasswordUpdatedSuccess: 'Votre mot de passe a été mis à jour avec succès.',
+    authResetGeneralError: 'Une erreur est survenue lors de la réinitialisation du mot de passe.',
+    authResetLinkInvalidExpired:
+      'Le lien de réinitialisation est invalide ou expiré. Veuillez demander un nouveau lien.',
+    authResetLinkAlreadyUsed: 'Ce lien de réinitialisation a déjà été utilisé.',
+    authPasswordTooShort: 'Le mot de passe doit contenir au moins 8 caractères.',
+    authPasswordTooWeak:
+      'Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre.',
+    authPasswordResetCompleteDesc:
+      'Votre mot de passe a été mis à jour avec succès. Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.',
+    authSignIn: 'Se connecter',
+    authInvalidLink: 'Lien invalide',
+    authRequestNewLink: 'Demander un nouveau lien',
+    authResetPasswordTitle: 'Réinitialiser le mot de passe',
+    authEnterNewPassword: 'Entrez votre nouveau mot de passe',
+    authNewPasswordLabel: 'Nouveau mot de passe',
+    authConfirmPasswordLabel: 'Confirmer le mot de passe',
+    authConfirmNewPassword: 'Confirmez votre nouveau mot de passe',
+    authResettingInProgress: 'Réinitialisation...',
+    authValidationStepTitle: 'Validation de l\'invitation',
+    authValidationStepDesc: 'Vérification de votre lien d\'invitation et des détails associés',
+    authPasswordStepTitle: 'Création du mot de passe',
+    authPasswordStepDesc: 'Définissez un mot de passe sécurisé pour votre compte',
+    authProfileStepTitle: 'Informations personnelles',
+    authProfileStepDesc: 'Complétez votre profil utilisateur',
+    authConsentStepTitle: 'Consentements et confidentialité',
+    authConsentStepDesc: 'Consentements requis selon la Loi 25 du Québec',
+    authPasswordRequiredError: 'Mot de passe requis',
+    authNamesRequiredError: 'Nom et prénom requis',
+    authConsentsRequiredError: 'Consentements obligatoires requis',
+    authAccountCreationError: 'Erreur lors de la création du compte',
+    authAccountCreationGenericError:
+      'Une erreur est survenue lors de la création de votre compte',
+    authRegistrationCompleteTitle: '🎉 Inscription terminée avec succès!',
+    authWelcomeUser: 'Bienvenue',
+    authAccountCreatedMessage: 'Votre compte a été créé avec succès.',
+    authAccountCreatedTitle: '✅ Compte créé avec succès',
+    authQuebecComplianceTitle: '🛡️ Conformité Québécoise',
+    authQuebecComplianceDesc:
+      'Vos consentements ont été enregistrés conformément à la Loi 25 du Québec. Vous pouvez exercer vos droits à tout moment en contactant notre équipe.',
+    authAccessMyAccount: 'Accéder à mon compte',
+    authLoginWithEmailPassword:
+      'Vous pouvez maintenant vous connecter avec votre email et mot de passe',
+    authBackToHome: 'Retour à l\'accueil',
+    authInvitationAcceptanceTitle: 'Acceptation d\'invitation',
+    authInvitationAcceptanceDesc:
+      'Complétez votre inscription pour rejoindre la plateforme Koveo Gestion',
+    authErrorPrefix: 'Erreur:',
+    authCreatingYourAccount: 'Création de votre compte',
+    authRegistrationFooter:
+      'En vous inscrivant, vous acceptez nos conditions d\'utilisation et notre politique de confidentialité conforme à la Loi 25 du Québec.',
   }
 };

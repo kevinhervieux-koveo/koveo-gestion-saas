@@ -55,7 +55,7 @@ export function ProfileCompletionStep({
   onValidationChange,
   submissionError,
 }: WizardStepProps) {
-  const { t: _t } = useLanguage();
+  const { t } = useLanguage();
   const [formData, setFormData] = useState<ProfileCompletionData>({
     firstName: '',
     lastName: '',
@@ -129,12 +129,12 @@ export function ProfileCompletionStep({
 
     if (['firstName', 'lastName', 'language'].includes(field)) {
       if (!value || String(value).trim().length === 0) {
-        return `${label} est requis`;
+        return `${label} ${t('authFieldIsRequired')}`;
       }
     }
 
     if (field === 'phone' && value && !validatePhone(String(value))) {
-      return 'Format de téléphone invalide (ex: 514-123-4567)';
+      return t('authInvalidPhoneFormat');
     }
 
     return null;
@@ -145,9 +145,7 @@ export function ProfileCompletionStep({
       <Alert className='border-blue-200 bg-blue-50'>
         <User className='h-4 w-4 text-blue-600' />
         <AlertDescription className='text-blue-800'>
-          {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
-          <strong>Profil utilisateur:</strong> Complétez votre profil pour finaliser votre
-          inscription et accéder aux services de gestion immobilière.
+          <strong>{t('authUserProfileLabel')}</strong> {t('authUserProfileDesc')}
         </AlertDescription>
       </Alert>
 
@@ -157,14 +155,14 @@ export function ProfileCompletionStep({
           <div className='space-y-4'>
             <h3 className='text-lg font-medium text-gray-900 flex items-center'>
               <User className='h-5 w-5 mr-2' />
-              Informations personnelles
+              {t('authPersonalInformation')}
             </h3>
 
             <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
               {/* First Name */}
               <div className='space-y-2'>
                 <Label htmlFor='firstName' className='text-sm font-medium text-gray-700'>
-                  Prénom *
+                  {t('authFirstNameRequired')}
                 </Label>
                 <Input
                   id='firstName'
@@ -172,18 +170,20 @@ export function ProfileCompletionStep({
                   value={formData.firstName}
                   onChange={(e) => handleInputChange('firstName', e.target.value)}
                   onBlur={() => handleBlur('firstName')}
-                  placeholder='Votre prénom'
-                  className={getFieldError('firstName', 'Prénom') ? 'border-red-500' : ''}
+                  placeholder={t('authYourFirstName')}
+                  className={getFieldError('firstName', t('firstName')) ? 'border-red-500' : ''}
                 />
-                {getFieldError('firstName', 'Prénom') && (
-                  <p className='text-sm text-red-600'>{getFieldError('firstName', 'Prénom')}</p>
+                {getFieldError('firstName', t('firstName')) && (
+                  <p className='text-sm text-red-600'>
+                    {getFieldError('firstName', t('firstName'))}
+                  </p>
                 )}
               </div>
 
               {/* Last Name */}
               <div className='space-y-2'>
                 <Label htmlFor='lastName' className='text-sm font-medium text-gray-700'>
-                  Nom de famille *
+                  {t('authLastNameRequired')}
                 </Label>
                 <Input
                   id='lastName'
@@ -191,12 +191,12 @@ export function ProfileCompletionStep({
                   value={formData.lastName}
                   onChange={(e) => handleInputChange('lastName', e.target.value)}
                   onBlur={() => handleBlur('lastName')}
-                  placeholder='Votre nom de famille'
-                  className={getFieldError('lastName', 'Nom de famille') ? 'border-red-500' : ''}
+                  placeholder={t('authYourLastName')}
+                  className={getFieldError('lastName', t('lastName')) ? 'border-red-500' : ''}
                 />
-                {getFieldError('lastName', 'Nom de famille') && (
+                {getFieldError('lastName', t('lastName')) && (
                   <p className='text-sm text-red-600'>
-                    {getFieldError('lastName', 'Nom de famille')}
+                    {getFieldError('lastName', t('lastName'))}
                   </p>
                 )}
               </div>
@@ -206,7 +206,7 @@ export function ProfileCompletionStep({
               {/* Phone */}
               <div className='space-y-2'>
                 <Label htmlFor='phone' className='text-sm font-medium text-gray-700'>
-                  Téléphone (optionnel)
+                  {t('authPhoneOptional')}
                 </Label>
                 <div className='relative'>
                   <Phone className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4' />
@@ -217,18 +217,18 @@ export function ProfileCompletionStep({
                     onChange={(e) => handleInputChange('phone', e.target.value)}
                     onBlur={() => handleBlur('phone')}
                     placeholder='514-123-4567'
-                    className={`pl-10 ${getFieldError('phone', 'Téléphone') ? 'border-red-500' : ''}`}
+                    className={`pl-10 ${getFieldError('phone', t('phone')) ? 'border-red-500' : ''}`}
                   />
                 </div>
-                {getFieldError('phone', 'Téléphone') && (
-                  <p className='text-sm text-red-600'>{getFieldError('phone', 'Téléphone')}</p>
+                {getFieldError('phone', t('phone')) && (
+                  <p className='text-sm text-red-600'>{getFieldError('phone', t('phone'))}</p>
                 )}
               </div>
 
               {/* Language */}
               <div className='space-y-2'>
                 <Label htmlFor='language' className='text-sm font-medium text-gray-700'>
-                  Langue préférée *
+                  {t('authPreferredLanguage')}
                 </Label>
                 <Select
                   value={formData.language}
@@ -236,7 +236,7 @@ export function ProfileCompletionStep({
                 >
                   <SelectTrigger className='w-full'>
                     <Globe className='h-4 w-4 mr-2 text-gray-400' />
-                    <SelectValue placeholder='Choisir une langue' />
+                    <SelectValue placeholder={t('authChooseLanguage')} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value='fr'>Français</SelectItem>

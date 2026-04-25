@@ -16,7 +16,6 @@ import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/use-language';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { Building, Loader2 } from 'lucide-react';
-import { useLanguage } from '@/hooks/use-language';
 
 interface BulkEditResidenceDialogProps {
   isOpen: boolean;
@@ -41,7 +40,6 @@ export function BulkEditResidenceDialog({
 }: BulkEditResidenceDialogProps) {
   const { t } = useLanguage();
   const { toast } = useToast();
-  const { t } = useLanguage();
   const [formData, setFormData] = useState<FormData>({
     residenceId: null,
     accessType: '',

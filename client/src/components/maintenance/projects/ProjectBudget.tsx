@@ -56,7 +56,6 @@ import type { Translations } from '@/lib/i18n';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { MaintenanceProject } from '@shared/schemas/maintenance';
 import { cn, parseDateOnly } from '@/lib/utils';
-import { useLanguage } from '@/hooks/use-language';
 import {
   DollarSign,
   Plus,
@@ -137,7 +136,6 @@ export function ProjectBudget({
   const { t } = useLanguage();
   const { hasPermission, buildingId } = useBuildingContext();
   const { toast } = useToast();
-  const { t } = useLanguage();
 
   // State management - simplified for aggregate-only view
   const [selectedBreakdown, setSelectedBreakdown] = useState<BudgetBreakdown | null>(null);

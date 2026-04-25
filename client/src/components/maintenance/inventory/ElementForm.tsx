@@ -25,7 +25,6 @@ import type { Translations } from '@/lib/i18n';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { insertBuildingElementSchema, BuildingElement } from '@shared/schemas/maintenance';
 import { cn } from '@/lib/utils';
-import { useLanguage } from '@/hooks/use-language';
 import {
   Search,
   Building,
@@ -432,7 +431,6 @@ export function ElementForm({
   const { t } = useLanguage();
   // Simplified placeholder - no context for now
   const { toast } = useToast();
-  const { t } = useLanguage();
   const [isNameManuallyEdited, setIsNameManuallyEdited] = useState(false);
   const [isBuildingWideExplicit, setIsBuildingWideExplicit] = useState(true); // Track explicit building-wide choice
   

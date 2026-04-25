@@ -42,7 +42,7 @@ interface PasswordCreationData {
  * @returns Function result.
  */
 export function PasswordCreationStep({ _data, onDataChange, onValidationChange }: WizardStepProps) {
-  const { t: _t } = useLanguage();
+  const { t } = useLanguage();
   const [formData, setFormData] = useState<PasswordCreationData>({
     password: '',
     confirmPassword: '',
@@ -98,7 +98,7 @@ export function PasswordCreationStep({ _data, onDataChange, onValidationChange }
     }
 
     if (formData.password !== formData.confirmPassword) {
-      return 'Les mots de passe ne correspondent pas';
+      return t('authPasswordsDoNotMatch');
     }
     return null;
   };
@@ -115,7 +115,7 @@ export function PasswordCreationStep({ _data, onDataChange, onValidationChange }
           {/* Password Field */}
           <div className='space-y-2'>
             <Label htmlFor='password' className='text-sm font-medium text-gray-700'>
-              Mot de passe *
+              {t('authPasswordRequiredLabel')}
             </Label>
             <div className='relative'>
               <Lock className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4' />
@@ -125,7 +125,7 @@ export function PasswordCreationStep({ _data, onDataChange, onValidationChange }
                 value={formData.password}
                 onChange={(e) => handlePasswordChange(e.target.value)}
                 onBlur={() => handleBlur('password')}
-                placeholder='Entrez votre mot de passe'
+                placeholder={t('authEnterYourPassword')}
                 className={`pl-10 pr-10 ${hasPasswordError ? 'border-red-500 focus:border-red-500' : ''}`}
                 aria-describedby='password-requirements'
                 data-testid='input-password'
@@ -144,7 +144,7 @@ export function PasswordCreationStep({ _data, onDataChange, onValidationChange }
                   <Eye className='h-4 w-4 text-gray-400' />
                 )}
                 <span className='sr-only'>
-                  {showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                  {showPassword ? t('authHidePassword') : t('authShowPassword')}
                 </span>
               </Button>
             </div>
@@ -160,10 +160,7 @@ export function PasswordCreationStep({ _data, onDataChange, onValidationChange }
             {hasPasswordError && (
               <Alert variant='destructive'>
                 <AlertTriangle className='h-4 w-4' />
-                {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
-                <AlertDescription>
-                  Le mot de passe ne respecte pas les exigences de sécurité.
-                </AlertDescription>
+                <AlertDescription>{t('authPasswordDoesNotMeetRequirements')}</AlertDescription>
               </Alert>
             )}
           </div>
@@ -171,7 +168,7 @@ export function PasswordCreationStep({ _data, onDataChange, onValidationChange }
           {/* Confirm Password Field */}
           <div className='space-y-2'>
             <Label htmlFor='confirmPassword' className='text-sm font-medium text-gray-700'>
-              Confirmer le mot de passe *
+              {t('authConfirmPasswordRequired')}
             </Label>
             <div className='relative'>
               <Lock className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4' />
@@ -181,7 +178,7 @@ export function PasswordCreationStep({ _data, onDataChange, onValidationChange }
                 value={formData.confirmPassword}
                 onChange={(e) => handleConfirmPasswordChange(e.target.value)}
                 onBlur={() => handleBlur('confirmPassword')}
-                placeholder='Confirmez votre mot de passe'
+                placeholder={t('authConfirmYourPassword')}
                 className={`pl-10 pr-10 ${passwordMatchError ? 'border-red-500 focus:border-red-500' : ''}`}
                 data-testid='input-confirm-password'
               />
@@ -199,7 +196,7 @@ export function PasswordCreationStep({ _data, onDataChange, onValidationChange }
                   <Eye className='h-4 w-4 text-gray-400' />
                 )}
                 <span className='sr-only'>
-                  {showConfirmPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+                  {showConfirmPassword ? t('authHidePassword') : t('authShowPassword')}
                 </span>
               </Button>
             </div>
@@ -207,7 +204,7 @@ export function PasswordCreationStep({ _data, onDataChange, onValidationChange }
             {formData.confirmPassword && formData.password === formData.confirmPassword && (
               <div className='flex items-center text-sm text-green-600'>
                 <Shield className='h-4 w-4 mr-1' />
-                Les mots de passe correspondent
+                {t('authPasswordsMatch')}
               </div>
             )}
 
@@ -221,16 +218,12 @@ export function PasswordCreationStep({ _data, onDataChange, onValidationChange }
 
           {/* Security Guidelines */}
           <div className='bg-gray-50 p-4 rounded-lg'>
-            <h4 className='text-sm font-medium text-gray-900 mb-2'>💡 Conseils de sécurité</h4>
+            <h4 className='text-sm font-medium text-gray-900 mb-2'>{t('authSecurityTipsTitle')}</h4>
             <ul className='text-xs text-gray-600 space-y-1'>
-              {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
-              <li>• Utilisez une combinaison unique de lettres, chiffres et symboles</li>
-              {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
-              <li>• Évitez les informations personnelles (nom, date de naissance)</li>
-              {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
-              <li>• Ne réutilisez pas un mot de passe d'un autre compte</li>
-              {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
-              <li>• Considérez l'utilisation d'un gestionnaire de mots de passe</li>
+              <li>• {t('authSecurityTip1')}</li>
+              <li>• {t('authSecurityTip2')}</li>
+              <li>• {t('authSecurityTip3')}</li>
+              <li>• {t('authSecurityTip4')}</li>
             </ul>
           </div>
         </CardContent>

@@ -57,7 +57,7 @@ export function QuebecPrivacyConsentStep({
   onDataChange,
   onValidationChange,
 }: WizardStepProps) {
-  const { t: _t } = useLanguage();
+  const { t } = useLanguage();
   const [formData, setFormData] = useState<QuebecPrivacyConsentData>({
     dataCollectionConsent: false,
     marketingConsent: false,
@@ -112,9 +112,7 @@ export function QuebecPrivacyConsentStep({
       <Alert className='border-blue-200 bg-blue-50'>
         <Shield className='h-4 w-4 text-blue-600' />
         <AlertDescription className='text-blue-800'>
-          {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
-          <strong>Protection des renseignements personnels (Loi 25 - Québec):</strong> Votre
-          consentement est requis pour la collecte et l'utilisation de vos données personnelles.
+          <strong>{t('authPrivacyAlertTitle')}</strong> {t('authPrivacyAlertText')}
         </AlertDescription>
       </Alert>
 
@@ -147,13 +145,11 @@ export function QuebecPrivacyConsentStep({
                           htmlFor='masterDataCollectionConsent'
                           className='text-lg font-medium text-green-900 cursor-pointer'
                         >
-                          Collecte et traitement des données
+                          {t('authDataCollectionTitle')}
                         </Label>
                       </div>
-                      {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                       <p className='text-xs text-green-800 mt-1'>
-                        J'accepte tous les types de collecte et traitement de données (essentielles
-                        et optionnelles).
+                        {t('authDataCollectionMasterText')}
                       </p>
                     </div>
                   </div>
@@ -189,14 +185,11 @@ export function QuebecPrivacyConsentStep({
                         <Label
                           htmlFor='dataCollectionConsent'
                           className='text-sm font-medium text-blue-900 cursor-pointer'
-                          // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
                         >
-                          Collecte des données essentielles (Requis) *
+                          {t('authEssentialDataLabel')}
                         </Label>
-                        {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                         <p className='text-xs text-blue-800 mt-1'>
-                          Authentification, communication, gestion de compte, services de gestion
-                          immobilière.
+                          {t('authEssentialDataDesc')}
                         </p>
                       </div>
                     </div>
@@ -218,12 +211,10 @@ export function QuebecPrivacyConsentStep({
                           htmlFor='marketingConsent'
                           className='text-sm font-medium text-gray-900 cursor-pointer'
                         >
-                          Communications marketing (Optionnel)
+                          {t('authMarketingLabel')}
                         </Label>
-                        {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                         <p className='text-xs text-gray-600 mt-1'>
-                          Communications promotionnelles, nouvelles fonctionnalités, offres
-                          spéciales.
+                          {t('authMarketingDesc')}
                         </p>
                       </div>
                     </div>
@@ -245,11 +236,10 @@ export function QuebecPrivacyConsentStep({
                           htmlFor='analyticsConsent'
                           className='text-sm font-medium text-gray-900 cursor-pointer'
                         >
-                          Analyse et amélioration (Optionnel)
+                          {t('authAnalyticsLabel')}
                         </Label>
-                        {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                         <p className='text-xs text-gray-600 mt-1'>
-                          Données d'utilisation anonymisées pour améliorer les services.
+                          {t('authAnalyticsDesc')}
                         </p>
                       </div>
                     </div>
@@ -271,11 +261,10 @@ export function QuebecPrivacyConsentStep({
                           htmlFor='thirdPartyConsent'
                           className='text-sm font-medium text-gray-900 cursor-pointer'
                         >
-                          Services tiers intégrés (Optionnel)
+                          {t('authThirdPartyLabel')}
                         </Label>
-                        {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                         <p className='text-xs text-gray-600 mt-1'>
-                          Cartographie, notifications, stockage pour améliorer l'expérience.
+                          {t('authThirdPartyDesc')}
                         </p>
                       </div>
                     </div>
@@ -291,7 +280,7 @@ export function QuebecPrivacyConsentStep({
           <CardContent className='pt-6'>
             <h3 className='text-lg font-medium text-gray-900 flex items-center mb-4'>
               <Eye className='h-5 w-5 mr-2 text-blue-600' />
-              Droits et contrôle
+              {t('authRightsAndControl')}
             </h3>
 
             <div className='space-y-4'>
@@ -313,19 +302,16 @@ export function QuebecPrivacyConsentStep({
                       htmlFor='acknowledgedRights'
                       className={`text-sm font-medium cursor-pointer ${!formData.acknowledgedRights ? 'text-yellow-900' : 'text-blue-900'}`}
                     >
-                      Reconnaissance de mes droits (Requis) *
+                      {t('authAcknowledgeRightsLabel')}
                     </Label>
                     <p
                       className={`text-xs mt-1 ${!formData.acknowledgedRights ? 'text-yellow-800' : 'text-blue-800'}`}
-                      // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
                     >
-                      J'ai été informé(e) de mes droits concernant mes renseignements personnels et
-                      je comprends que je peux exercer ces droits à tout moment.
+                      {t('authAcknowledgeRightsDesc')}
                     </p>
                     {!formData.acknowledgedRights && (
-                      // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
                       <p className='text-xs text-yellow-700 font-medium mt-2'>
-                        ⚠️ Cette case doit être cochée pour continuer.
+                        {t('authAcknowledgeRightsWarning')}
                       </p>
                     )}
                   </div>
@@ -334,35 +320,34 @@ export function QuebecPrivacyConsentStep({
 
               {/* User Rights Information */}
               <div className='bg-white border border-gray-200 p-4 rounded-lg'>
-                {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                 <h4 className='text-sm font-medium text-gray-900 mb-3'>
-                  📋 Vos droits selon la Loi 25 du Québec
+                  {t('authYourRightsTitle')}
                 </h4>
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-3 text-xs text-gray-600'>
                   <div className='flex items-start space-x-2'>
                     <Eye className='h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0' />
                     <span>
-                      <strong>Droit d'accès:</strong> Consulter vos données personnelles
+                      <strong>{t('authRightAccess')}</strong> {t('authRightAccessDesc')}
                     </span>
                   </div>
                   <div className='flex items-start space-x-2'>
                     <FileText className='h-4 w-4 text-green-500 mt-0.5 flex-shrink-0' />
                     <span>
-                      <strong>Droit de rectification:</strong> Corriger des informations inexactes
+                      <strong>{t('authRightRectification')}</strong>{' '}
+                      {t('authRightRectificationDesc')}
                     </span>
                   </div>
                   <div className='flex items-start space-x-2'>
                     <Lock className='h-4 w-4 text-red-500 mt-0.5 flex-shrink-0' />
                     <span>
-                      <strong>Droit de suppression:</strong> Demander l'effacement de vos données
+                      <strong>{t('authRightDeletion')}</strong> {t('authRightDeletionDesc')}
                     </span>
                   </div>
                   <div className='flex items-start space-x-2'>
                     <Download className='h-4 w-4 text-purple-500 mt-0.5 flex-shrink-0' />
                     <span>
-                      {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
-                      <strong>Droit de portabilité:</strong> Récupérer vos données dans un format
-                      lisible
+                      <strong>{t('authRightPortability')}</strong>{' '}
+                      {t('authRightPortabilityDesc')}
                     </span>
                   </div>
                 </div>
@@ -371,13 +356,9 @@ export function QuebecPrivacyConsentStep({
               {/* Contact Information */}
               <div className='bg-gray-50 border border-gray-200 p-4 rounded-lg'>
                 <h4 className='text-sm font-medium text-gray-900 mb-2'>
-                  📞 Contact pour vos droits
+                  {t('authContactRightsTitle')}
                 </h4>
-                {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
-                <p className='text-xs text-gray-600'>
-                  Pour exercer vos droits ou pour toute question concernant vos données
-                  personnelles, contactez notre responsable de la protection des données:
-                </p>
+                <p className='text-xs text-gray-600'>{t('authContactRightsDesc')}</p>
                 <div className='mt-2 space-y-1 text-xs text-gray-700'>
                   <div className='flex items-center space-x-2'>
                     <Mail className='h-3 w-3' />
@@ -398,32 +379,26 @@ export function QuebecPrivacyConsentStep({
           <CardContent className='pt-6'>
             <h3 className='text-lg font-medium text-green-900 flex items-center mb-4'>
               <Lock className='h-5 w-5 mr-2' />
-              Sécurité et conservation
+              {t('authSecurityRetentionTitle')}
             </h3>
 
             <div className='space-y-3 text-sm text-green-800'>
               <div className='flex items-start space-x-2'>
                 <Shield className='h-4 w-4 mt-0.5 flex-shrink-0' />
                 <span>
-                  {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
-                  <strong>Sécurité:</strong> Vos données sont chiffrées et stockées sur des serveurs
-                  sécurisés au Canada
+                  <strong>{t('authSecurityLabel')}</strong> {t('authSecurityDesc')}
                 </span>
               </div>
               <div className='flex items-start space-x-2'>
                 <Database className='h-4 w-4 mt-0.5 flex-shrink-0' />
                 <span>
-                  {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
-                  <strong>Conservation:</strong> Vos données sont conservées selon les exigences
-                  légales québécoises
+                  <strong>{t('authRetentionLabel')}</strong> {t('authRetentionDesc')}
                 </span>
               </div>
               <div className='flex items-start space-x-2'>
                 <FileText className='h-4 w-4 mt-0.5 flex-shrink-0' />
                 <span>
-                  {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
-                  <strong>Transparence:</strong> Consultez notre politique de confidentialité
-                  complète à tout moment
+                  <strong>{t('authTransparencyLabel')}</strong> {t('authTransparencyDesc')}
                 </span>
               </div>
             </div>

@@ -44,7 +44,6 @@ import { useLanguage } from '@/hooks/use-language';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { MaintenanceProject, BuildingElement, ProjectElement } from '@shared/schemas/maintenance';
 import { cn } from '@/lib/utils';
-import { useLanguage } from '@/hooks/use-language';
 import {
   Plus,
   MoreHorizontal,
@@ -98,7 +97,6 @@ export function ProjectElements({
   const { t } = useLanguage();
   const { buildingId, hasPermission } = useBuildingContext();
   const { toast } = useToast();
-  const { t } = useLanguage();
 
   // State management
   const [isAddElementOpen, setIsAddElementOpen] = useState(false);

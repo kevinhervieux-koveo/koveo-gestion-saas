@@ -50,32 +50,32 @@ export default function InvitationAcceptancePage() {
   const wizardSteps: WizardStep[] = [
     {
       id: 'token-validation',
-      title: "Validation de l'invitation",
-      description: "Vérification de votre lien d'invitation et des détails associés",
+      title: t('authValidationStepTitle'),
+      description: t('authValidationStepDesc'),
       component: TokenValidationStep,
       isComplete: false,
       isValid: false,
     },
     {
       id: 'password-creation',
-      title: 'Création du mot de passe',
-      description: 'Définissez un mot de passe sécurisé pour votre compte',
+      title: t('authPasswordStepTitle'),
+      description: t('authPasswordStepDesc'),
       component: PasswordCreationStep,
       isComplete: false,
       isValid: false,
     },
     {
       id: 'profile-completion',
-      title: 'Informations personnelles',
-      description: 'Complétez votre profil utilisateur',
+      title: t('authProfileStepTitle'),
+      description: t('authProfileStepDesc'),
       component: ProfileCompletionStep,
       isComplete: false,
       isValid: false,
     },
     {
       id: 'quebec-privacy-consent',
-      title: 'Consentements et confidentialité',
-      description: 'Consentements requis selon la Loi 25 du Québec',
+      title: t('authConsentStepTitle'),
+      description: t('authConsentStepDesc'),
       component: QuebecPrivacyConsentStep,
       isComplete: false,
       isValid: false,
@@ -95,19 +95,19 @@ export default function InvitationAcceptancePage() {
       const privacyData = wizardData['quebec-privacy-consent'] || {};
 
       if (!tokenData.token) {
-        throw new Error('Token manquant');
+        throw new Error(t('authTokenMissing'));
       }
 
       if (!passwordData.password) {
-        throw new Error('Mot de passe requis');
+        throw new Error(t('authPasswordRequiredError'));
       }
 
       if (!profileData.firstName || !profileData.lastName) {
-        throw new Error('Nom et prénom requis');
+        throw new Error(t('authNamesRequiredError'));
       }
 
       if (!privacyData.dataCollectionConsent || !privacyData.acknowledgedRights) {
-        throw new Error('Consentements obligatoires requis');
+        throw new Error(t('authConsentsRequiredError'));
       }
 
       // Starting token validation
@@ -161,7 +161,7 @@ export default function InvitationAcceptancePage() {
         const message =
           errorData.code === 'DANGEROUS_INPUT' && errorData.message
             ? errorData.message
-            : errorData.message || 'Erreur lors de la création du compte';
+            : errorData.message || t('authAccountCreationError');
         throw new Error(message);
       }
 
@@ -171,12 +171,12 @@ export default function InvitationAcceptancePage() {
       setIsCompleted(true);
     } catch (_error: unknown) {
       setError(
-        (_error as Error).message || 'Une erreur est survenue lors de la création de votre compte'
+        (_error as Error).message || t('authAccountCreationGenericError')
       );
       // Re-throw the error so the wizard can handle it properly
       throw _error;
     }
-  }, []);
+  }, [t]);
 
   // Handle wizard cancellation
   const handleCancel = useCallback(() => {
@@ -197,32 +197,28 @@ export default function InvitationAcceptancePage() {
             <CheckCircle className='h-16 w-16 text-green-500 mx-auto mb-6' />
 
             <h1 className='text-3xl font-bold text-gray-900 mb-4'>
-              🎉 Inscription terminée avec succès!
+              {t('authRegistrationCompleteTitle')}
             </h1>
 
             <p className='text-lg text-gray-600 mb-6'>
-              {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
-              Bienvenue {completedUser.firstName} {completedUser.lastName}! Votre compte a été créé
-              avec succès.
+              {t('authWelcomeUser')} {completedUser.firstName} {completedUser.lastName}! {t('authAccountCreatedMessage')}
             </p>
 
             <div className='bg-green-50 border border-green-200 p-4 rounded-lg mb-6'>
               <h3 className='text-sm font-medium text-green-900 mb-2'>
-                ✅ Compte créé avec succès
+                {t('authAccountCreatedTitle')}
               </h3>
               <div className='text-sm text-green-800 space-y-1'>
                 <p>• Email: {completedUser.email}</p>
-                <p>• Rôle: {completedUser.role}</p>
-                <p>• Langue: {completedUser.language === 'fr' ? 'Français' : 'English'}</p>
+                <p>• {t('role')}: {completedUser.role}</p>
+                <p>• {t('language')}: {completedUser.language === 'fr' ? 'Français' : 'English'}</p>
               </div>
             </div>
 
             <div className='bg-blue-50 border border-blue-200 p-4 rounded-lg mb-6'>
-              <h4 className='text-sm font-medium text-blue-900 mb-2'>🛡️ Conformité Québécoise</h4>
-              {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
+              <h4 className='text-sm font-medium text-blue-900 mb-2'>{t('authQuebecComplianceTitle')}</h4>
               <p className='text-xs text-blue-800'>
-                Vos consentements ont été enregistrés conformément à la Loi 25 du Québec. Vous
-                pouvez exercer vos droits à tout moment en contactant notre équipe.
+                {t('authQuebecComplianceDesc')}
               </p>
             </div>
 
@@ -233,12 +229,11 @@ export default function InvitationAcceptancePage() {
                 className='w-full sm:w-auto min-w-[200px]'
               >
                 <Home className='w-4 h-4 mr-2' />
-                Accéder à mon compte
+                {t('authAccessMyAccount')}
               </Button>
 
-              {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
               <p className='text-sm text-gray-500'>
-                Vous pouvez maintenant vous connecter avec votre email et mot de passe
+                {t('authLoginWithEmailPassword')}
               </p>
             </div>
           </CardContent>
@@ -259,13 +254,12 @@ export default function InvitationAcceptancePage() {
             className='absolute top-4 left-4 text-gray-600'
           >
             <ArrowLeft className='w-4 h-4 mr-2' />
-            Retour à l'accueil
+            {t('authBackToHome')}
           </Button>
 
-          <h1 className='text-4xl font-bold text-gray-900 mb-4'>Acceptation d'invitation</h1>
-          {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
+          <h1 className='text-4xl font-bold text-gray-900 mb-4'>{t('authInvitationAcceptanceTitle')}</h1>
           <p className='text-lg text-gray-600 max-w-2xl mx-auto'>
-            Complétez votre inscription pour rejoindre la plateforme Koveo Gestion
+            {t('authInvitationAcceptanceDesc')}
           </p>
         </div>
 
@@ -274,7 +268,7 @@ export default function InvitationAcceptancePage() {
           <div className='mb-6 max-w-4xl mx-auto'>
             <Alert variant='destructive'>
               <AlertDescription>
-                <strong>Erreur:</strong> {error}
+                <strong>{t('authErrorPrefix')}</strong> {error}
               </AlertDescription>
             </Alert>
           </div>
@@ -285,7 +279,7 @@ export default function InvitationAcceptancePage() {
           steps={wizardSteps}
           onComplete={handleWizardComplete}
           onCancel={handleCancel}
-          title='Création de votre compte'
+          title={t('authCreatingYourAccount')}
           className='bg-transparent'
           submissionError={submissionError}
         />
@@ -308,10 +302,8 @@ export default function InvitationAcceptancePage() {
 
         {/* Footer */}
         <div className='text-center mt-4 text-sm text-gray-500'>
-          {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
           <p>
-            En vous inscrivant, vous acceptez nos conditions d'utilisation et notre politique de
-            confidentialité conforme à la Loi 25 du Québec.
+            {t('authRegistrationFooter')}
           </p>
         </div>
       </div>
