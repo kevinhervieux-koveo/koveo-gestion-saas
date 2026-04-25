@@ -1018,6 +1018,12 @@ export default function BulkDocumentImportPage() {
   const [reassignPickerItemId, setReassignPickerItemId] = useState<string | null>(null);
   const [reassignBranch, setReassignBranch] = useState<BranchDestination>('building_documents');
   const [reassignSubCategory, setReassignSubCategory] = useState<string>('other');
+  // Group-level reassign picker (Task #776). At most one section's
+  // picker is open at a time; opening a per-file picker closes it and
+  // vice-versa so the wizard never shows two competing pickers.
+  const [groupReassignKey, setGroupReassignKey] = useState<string | null>(null);
+  const [groupReassignBranch, setGroupReassignBranch] = useState<BranchDestination>('building_documents');
+  const [groupReassignSubCategory, setGroupReassignSubCategory] = useState<string>('other');
 
   // Pull the org list so each building's organizationId can be
   // resolved to a human-readable group header (Task #600). The picker
@@ -1389,6 +1395,52 @@ export default function BulkDocumentImportPage() {
       toast({
         variant: 'destructive',
         title: isFr ? 'Échec de la réaffectation' : 'Failed to reassign item',
+      });
+    },
+  });
+
+  /**
+   * Bulk reassignment for an entire destination group (Task #776).
+   * Hits the dedicated `/sessions/:id/items/reassign-bulk` endpoint
+   * once per group action so the lite session cache is invalidated a
+   * single time instead of once per file. Excluded / committed items
+   * are filtered out client-side before the request goes out (and
+   * rejected again server-side as a safety net).
+   */
+  const reassignGroup = useMutation({
+    mutationFn: async ({
+      itemIds,
+      branch,
+      subCategory,
+    }: {
+      itemIds: string[];
+      branch: BranchDestination;
+      subCategory: string;
+    }) => {
+      const res = await apiRequest(
+        'POST',
+        `/api/admin/bulk-import/sessions/${sessionId}/items/reassign-bulk`,
+        { branch, subCategory, itemIds },
+      );
+      return res.json() as Promise<{ updated: number; items: BulkImportItem[] }>;
+    },
+    onSuccess: (data) => {
+      setGroupReassignKey(null);
+      queryClient.invalidateQueries({
+        queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
+      });
+      toast({
+        title: isFr
+          ? `${data.updated} fichier${data.updated > 1 ? 's' : ''} réaffecté${data.updated > 1 ? 's' : ''}`
+          : `Reassigned ${data.updated} file${data.updated === 1 ? '' : 's'}`,
+      });
+    },
+    onError: () => {
+      toast({
+        variant: 'destructive',
+        title: isFr
+          ? 'Échec de la réaffectation du groupe'
+          : 'Failed to reassign group',
       });
     },
   });
@@ -1978,18 +2030,169 @@ export default function BulkDocumentImportPage() {
                           </p>
                         );
                       }
+                      const destLabelsHeader = isFr ? BRANCH_DESTINATION_LABEL_FR : BRANCH_DESTINATION_LABEL_EN;
+                      const subCatLabelsHeader = isFr ? SUB_CATEGORY_LABEL_FR : SUB_CATEGORY_LABEL_EN;
                       return (
                         <div className="space-y-4" data-testid="branching-grouped-sections">
-                          {sections.map((section) => (
+                          {sections.map((section) => {
+                            // The "Reassign all in group" action only
+                            // makes sense on real branch groups, not on
+                            // the synthetic "Unsorted" pile (those have
+                            // no current destination to pre-fill).
+                            const groupBranch =
+                              section.key !== 'unsorted'
+                                ? (section.key as BranchDestination)
+                                : null;
+                            const eligibleIds = section.items
+                              .filter((it) => it.status !== 'rejected' && it.status !== 'committed' && it.status !== 'duplicate')
+                              .map((it) => it.id);
+                            const isGroupPickerOpen = groupReassignKey === section.key;
+                            const groupAllowedSubCats = BRANCH_SUB_CATEGORIES[groupReassignBranch];
+                            return (
                             <div key={section.key} data-testid={`branching-section-${section.key}`}>
-                              <div className="mb-2 flex items-center gap-2">
+                              <div className="mb-2 flex flex-wrap items-center gap-2">
                                 <span className="text-sm font-semibold text-foreground">
                                   {section.label}
                                 </span>
                                 <Badge variant="secondary" className="text-xs" data-testid={`branching-section-count-${section.key}`}>
                                   {section.items.length}
                                 </Badge>
+                                {groupBranch && eligibleIds.length > 0 && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="ml-auto h-7 px-2 text-xs"
+                                    onClick={() => {
+                                      if (isGroupPickerOpen) {
+                                        setGroupReassignKey(null);
+                                      } else {
+                                        // Opening the group picker
+                                        // closes any per-file picker so
+                                        // the wizard never shows two
+                                        // competing pickers at once.
+                                        setReassignPickerItemId(null);
+                                        setGroupReassignKey(section.key);
+                                        setGroupReassignBranch(groupBranch);
+                                        // Pre-fill with the most common
+                                        // sub-category in the group so
+                                        // "Save" without changes is a
+                                        // no-op-friendly default. Falls
+                                        // back to 'other' if no sub-cat
+                                        // is set on any file.
+                                        const counts = new Map<string, number>();
+                                        for (const it of section.items) {
+                                          const sc = it.subCategory ?? null;
+                                          if (sc) counts.set(sc, (counts.get(sc) ?? 0) + 1);
+                                        }
+                                        let topSc = 'other';
+                                        let topN = 0;
+                                        for (const [sc, n] of counts) {
+                                          if (n > topN) {
+                                            topN = n;
+                                            topSc = sc;
+                                          }
+                                        }
+                                        const allowed = BRANCH_SUB_CATEGORIES[groupBranch];
+                                        setGroupReassignSubCategory(allowed.includes(topSc) ? topSc : 'other');
+                                      }
+                                    }}
+                                    aria-expanded={isGroupPickerOpen}
+                                    aria-controls={`group-reassign-picker-${section.key}`}
+                                    data-testid={`button-reassign-group-${section.key}`}
+                                  >
+                                    {isFr ? 'Tout réaffecter dans ce groupe' : 'Reassign all in group'}
+                                  </Button>
+                                )}
                               </div>
+                              {isGroupPickerOpen && groupBranch && (
+                                <div
+                                  id={`group-reassign-picker-${section.key}`}
+                                  className="mb-2 rounded-md border bg-muted/30 px-3 py-3 flex flex-wrap items-end gap-3"
+                                  data-testid={`group-reassign-picker-${section.key}`}
+                                >
+                                  <div className="flex flex-col gap-1">
+                                    <Label className="text-xs">{isFr ? 'Destination' : 'Destination'}</Label>
+                                    <Select
+                                      value={groupReassignBranch}
+                                      onValueChange={(v) => {
+                                        const dest = v as BranchDestination;
+                                        setGroupReassignBranch(dest);
+                                        const allowed = BRANCH_SUB_CATEGORIES[dest];
+                                        setGroupReassignSubCategory(
+                                          allowed.includes(groupReassignSubCategory) ? groupReassignSubCategory : 'other',
+                                        );
+                                      }}
+                                    >
+                                      <SelectTrigger
+                                        className="h-8 w-[200px] text-xs"
+                                        data-testid={`group-reassign-branch-select-${section.key}`}
+                                      >
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {BRANCH_DESTINATION_ORDER.map((d) => (
+                                          <SelectItem key={d} value={d} className="text-xs">
+                                            {destLabelsHeader[d]}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                  <div className="flex flex-col gap-1">
+                                    <Label className="text-xs">{isFr ? 'Sous-catégorie' : 'Sub-category'}</Label>
+                                    <Select
+                                      value={groupReassignSubCategory}
+                                      onValueChange={setGroupReassignSubCategory}
+                                    >
+                                      <SelectTrigger
+                                        className="h-8 w-[200px] text-xs"
+                                        data-testid={`group-reassign-subcategory-select-${section.key}`}
+                                      >
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {groupAllowedSubCats.map((sc) => (
+                                          <SelectItem key={sc} value={sc} className="text-xs">
+                                            {subCatLabelsHeader[sc] ?? sc}
+                                          </SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                  <div className="flex gap-2">
+                                    <Button
+                                      size="sm"
+                                      className="h-8 text-xs"
+                                      onClick={() =>
+                                        reassignGroup.mutate({
+                                          itemIds: eligibleIds,
+                                          branch: groupReassignBranch,
+                                          subCategory: groupReassignSubCategory,
+                                        })
+                                      }
+                                      disabled={reassignGroup.isPending || eligibleIds.length === 0}
+                                      data-testid={`button-reassign-group-save-${section.key}`}
+                                    >
+                                      {reassignGroup.isPending ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                      ) : (
+                                        isFr
+                                          ? `Appliquer (${eligibleIds.length})`
+                                          : `Apply to ${eligibleIds.length}`
+                                      )}
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      className="h-8 text-xs"
+                                      onClick={() => setGroupReassignKey(null)}
+                                      data-testid={`button-reassign-group-cancel-${section.key}`}
+                                    >
+                                      {isFr ? 'Annuler' : 'Cancel'}
+                                    </Button>
+                                  </div>
+                                </div>
+                              )}
                               <div className="space-y-2">
                                 {section.items.map((item) => {
                                   const decision = getItemStepDecision(item, currentStep);
@@ -2077,6 +2280,7 @@ export default function BulkDocumentImportPage() {
                                               if (isPickerOpen) {
                                                 setReassignPickerItemId(null);
                                               } else {
+                                                setGroupReassignKey(null);
                                                 setReassignPickerItemId(item.id);
                                                 setReassignBranch((item.branch as BranchDestination) ?? 'building_documents');
                                                 setReassignSubCategory(item.subCategory ?? 'other');
@@ -2197,7 +2401,8 @@ export default function BulkDocumentImportPage() {
                                 })}
                               </div>
                             </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       );
                     })() : (

@@ -1203,6 +1203,109 @@ export function registerBulkImportRoutes(app: Express): void {
   );
 
   /**
+   * Reassign every item in a destination group at once (Task #776).
+   * The Sorting step shows files grouped by their current branch; this
+   * endpoint backs the per-group "Reassign all in group" button so the
+   * admin doesn't need to click the per-file picker N times. The body
+   * carries the explicit `itemIds` the client wants moved (already
+   * filtered to non-excluded items belonging to the visible group), the
+   * new `branch`, and the new `subCategory`. The handler resolves all
+   * matching rows in a single SELECT scoped to the URL session id and
+   * then issues one UPDATE per eligible row inside a single request —
+   * the client only invalidates the session cache once afterwards
+   * instead of after every per-file mutation, which is what the task
+   * cares about.
+   *
+   * Validation:
+   *   - `branch` / `subCategory` must be a valid pair from the same
+   *     vocabulary as the per-file reassign endpoint.
+   *   - `itemIds` must be non-empty. Ids that don't belong to the URL
+   *     session are simply not returned by the in-session SELECT, so
+   *     they are never updated (cross-session leakage is prevented at
+   *     the SELECT level rather than by a strict 400). The response
+   *     reports `{ updated, items }` so the client can detect a
+   *     partial match if it ever sends stale ids.
+   *   - Items that are excluded (status === 'rejected') or already
+   *     committed/duplicate are skipped server-side as a safety net
+   *     even if the client accidentally includes them, mirroring the
+   *     per-file reassign behavior.
+   */
+  const bulkReassignSchema = z.object({
+    branch: z.enum([
+      'building_documents',
+      'residence_documents',
+      'demand',
+      'bill',
+      'maintenance',
+      'other',
+    ]),
+    subCategory: z.string().min(1),
+    itemIds: z.array(z.string().min(1)).min(1),
+  });
+  app.post(
+    '/api/admin/bulk-import/sessions/:id/items/reassign-bulk',
+    requireAuth,
+    requireRole(['admin']),
+    async (req: AuthenticatedRequest, res: Response) => {
+      try {
+        const { branch, subCategory, itemIds } = bulkReassignSchema.parse(req.body);
+        const allowedSubCats = BRANCH_SUB_CATEGORIES[branch as BranchDestination] as readonly string[];
+        if (!allowedSubCats.includes(subCategory)) {
+          return res.status(400).json({
+            error: `subCategory "${subCategory}" is not valid for branch "${branch}". Allowed: ${allowedSubCats.join(', ')}`,
+          });
+        }
+        const session = await loadSession(req.params.id);
+        if (!session) return res.status(404).json({ error: 'Session not found' });
+
+        const uniqueIds = Array.from(new Set(itemIds));
+        const rows = await db
+          .select()
+          .from(schema.bulkImportItems)
+          .where(
+            and(
+              eq(schema.bulkImportItems.sessionId, session.id),
+              inArray(schema.bulkImportItems.id, uniqueIds),
+            ),
+          );
+
+        const updatable = rows.filter(
+          (r) => r.status !== 'rejected' && r.status !== 'committed' && r.status !== 'duplicate',
+        );
+        if (updatable.length === 0) {
+          return res.json({ updated: 0, items: [] });
+        }
+
+        const now = new Date();
+        const updated: schema.BulkImportItem[] = [];
+        for (const row of updatable) {
+          const existing = (row.branchDecision ?? {}) as Record<string, unknown>;
+          const updated_decision: Record<string, unknown> = {
+            ...existing,
+            branch,
+            subCategory,
+            manualOverride: true,
+          };
+          const [u] = await db
+            .update(schema.bulkImportItems)
+            .set({
+              branchDecision: updated_decision,
+              updatedAt: now,
+            })
+            .where(eq(schema.bulkImportItems.id, row.id))
+            .returning();
+          if (u) updated.push(u);
+        }
+        return res.json({ updated: updated.length, items: updated });
+      } catch (err) {
+        if (err instanceof z.ZodError) return res.status(400).json({ error: err.errors });
+        logError('[bulk-import] bulk reassign failed', err as Error);
+        return res.status(500).json({ error: 'Failed to bulk reassign items' });
+      }
+    },
+  );
+
+  /**
    * Per-item AI step endpoints. The wizard auto-runs every step in
    * bulk via `/sessions/:id/run-all` (Task #592), so these handlers
    * are now reserved for the per-row "Retry" button shown when a
