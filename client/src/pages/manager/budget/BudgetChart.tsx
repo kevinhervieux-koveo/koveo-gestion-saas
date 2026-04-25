@@ -256,8 +256,8 @@ export function BudgetChart({ chartData, filters, minimumFund, budgetChartRef, o
             <div className='h-80 flex items-center justify-center text-gray-500'>
               <div className='text-center'>
                 <LineChart className='w-12 h-12 mx-auto mb-4 text-gray-300' />
-                <p>No data available for selected filters</p>
-                <p className='text-sm'>Try adjusting your filter settings</p>
+                <p>{t('budgetChartNoData')}</p>
+                <p className='text-sm'>{t('budgetChartAdjustFilters')}</p>
               </div>
             </div>
           )}

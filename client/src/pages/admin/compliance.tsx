@@ -1,17 +1,19 @@
 import { Header } from '@/components/layout/header';
 import { Law25Compliance } from '@/components/dashboard/law25-compliance';
 import { Terminal, Shield } from 'lucide-react';
+import { useLanguage } from '@/hooks/use-language';
 
 /**
  * Quebec Law 25 compliance dashboard page for administrators.
  * Provides comprehensive overview of privacy compliance status and violations.
  */
 export default function Compliance() {
+  const { t } = useLanguage();
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
       <Header
-        title='Quebec Law 25 Compliance'
-        subtitle='Privacy compliance monitoring and violation tracking'
+        title={t('compliancePageTitle')}
+        subtitle={t('compliancePageSubtitle')}
       />
 
       {/* Refresh Command */}

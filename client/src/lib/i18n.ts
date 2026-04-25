@@ -2235,6 +2235,69 @@ export interface Translations {
   enterpriseRequestQuote: string;
   enterprisePerDoor: string;
   enterprisePerMonth: string;
+
+  // Budget filter labels & section helpers
+  budgetViewType: string;
+  budgetPeriodWindow: string;
+  budgetStartDate: string;
+  budgetLength: string;
+  budgetDataVisibility: string;
+  budgetCapitalInvestmentsLabel: string;
+  budgetProjects: string;
+  budgetMonthsSuffix: string;
+  budgetYearsSuffix: string;
+  budgetDataSummary: string;
+  budgetLoadingData: string;
+
+  // Law 25 compliance dashboard component
+  law25ComplianceStatusTitle: string;
+  complianceStatusExcellent: string;
+  complianceStatusGood: string;
+  complianceStatusFair: string;
+  complianceStatusPoor: string;
+  totalViolations: string;
+  criticalViolationsLabel: string;
+  lastScan: string;
+  categoryDataCollection: string;
+  categoryConsentManagement: string;
+  categoryDataRetention: string;
+  categorySecurityEncryption: string;
+  categoryCrossBorderTransfer: string;
+  categoryDataSubjectRights: string;
+  compliantStatusLabel: string;
+  issuesFoundSingular: string;
+  issuesFoundPlural: string;
+  complianceViolations: string;
+  moreViolationsLabel: string;
+  law25ComplianceGuide: string;
+  requiredComplianceAreas: string;
+  requiredAreaExplicitConsent: string;
+  requiredAreaDataRetention: string;
+  requiredAreaEncryption: string;
+  requiredAreaDataSubjectRights: string;
+  propertyManagementFocus: string;
+  propMgmtTenantInfoProtection: string;
+  propMgmtFinancialDataSecurity: string;
+  propMgmtBuildingAccessProtection: string;
+  propMgmtMaintenancePrivacy: string;
+
+  // Compliance page header
+  compliancePageTitle: string;
+  compliancePageSubtitle: string;
+
+  // HOC titles
+  buildingsManagementTitle: string;
+  projectsManagementTitle: string;
+  inventoryManagementTitle: string;
+
+  // Buildings page extras
+  buildingsLoadDataError: string;
+  deleteBuildingDialogTitle: string;
+  deleteBuildingDialogConfirmation: string;
+
+  // Budget chart empty state
+  budgetChartNoData: string;
+  budgetChartAdjustFilters: string;
 }
 
 /**
@@ -4467,6 +4530,70 @@ export const translations: Record<Language, Translations> = {
     chainRemoveErrorTitle: 'Remove failed',
     notFoundTitle: 'Page not found',
     notFoundMessage: 'Page not found. Check the URL or return to the dashboard.',
+
+    // Budget filter labels & section helpers
+    budgetViewType: 'View Type',
+    budgetPeriodWindow: 'Period Window',
+    budgetStartDate: 'Start Date',
+    budgetLength: 'Length',
+    budgetDataVisibility: 'Data Visibility',
+    budgetCapitalInvestmentsLabel: 'Capital Investments',
+    budgetProjects: 'Projects',
+    budgetMonthsSuffix: 'months',
+    budgetYearsSuffix: 'years',
+    budgetDataSummary: 'Data: {visible} of {total} categories visible',
+    budgetLoadingData: 'Loading budget data...',
+
+    // Law 25 compliance dashboard component
+    law25ComplianceStatusTitle: 'Quebec Law 25 Compliance Status',
+    complianceStatusExcellent: 'Excellent',
+    complianceStatusGood: 'Good',
+    complianceStatusFair: 'Fair',
+    complianceStatusPoor: 'Poor',
+    totalViolations: 'Total Violations',
+    criticalViolationsLabel: 'Critical',
+    lastScan: 'Last Scan',
+    categoryDataCollection: 'Data Collection',
+    categoryConsentManagement: 'Consent Management',
+    categoryDataRetention: 'Data Retention',
+    categorySecurityEncryption: 'Security & Encryption',
+    categoryCrossBorderTransfer: 'Cross-Border Transfer',
+    categoryDataSubjectRights: 'Data Subject Rights',
+    compliantStatusLabel: 'Compliant',
+    issuesFoundSingular: '{count} issue found',
+    issuesFoundPlural: '{count} issues found',
+    complianceViolations: 'Compliance Violations',
+    moreViolationsLabel: '+{count} more violations',
+    law25ComplianceGuide: 'Quebec Law 25 Compliance Guide',
+    requiredComplianceAreas: 'Required Compliance Areas',
+    requiredAreaExplicitConsent: 'Explicit consent for data collection',
+    requiredAreaDataRetention: 'Data retention policies',
+    requiredAreaEncryption: 'Encryption of personal data',
+    requiredAreaDataSubjectRights: 'Data subject rights implementation',
+    propertyManagementFocus: 'Property Management Focus',
+    propMgmtTenantInfoProtection: 'Tenant personal information protection',
+    propMgmtFinancialDataSecurity: 'Financial data security',
+    propMgmtBuildingAccessProtection: 'Building access code protection',
+    propMgmtMaintenancePrivacy: 'Maintenance request privacy',
+
+    // Compliance page header
+    compliancePageTitle: 'Quebec Law 25 Compliance',
+    compliancePageSubtitle: 'Privacy compliance monitoring and violation tracking',
+
+    // HOC titles
+    buildingsManagementTitle: 'Buildings Management',
+    projectsManagementTitle: 'Projects Management',
+    inventoryManagementTitle: 'Inventory Management',
+
+    // Buildings page extras
+    buildingsLoadDataError: 'Failed to load buildings data. Please try again later.',
+    deleteBuildingDialogTitle: 'Delete Building',
+    deleteBuildingDialogConfirmation:
+      'Are you sure you want to delete "{name}"? This action cannot be undone.',
+
+    // Budget chart empty state
+    budgetChartNoData: 'No data available for selected filters',
+    budgetChartAdjustFilters: 'Try adjusting your filter settings',
   },
   fr: {
 
@@ -6694,5 +6821,70 @@ export const translations: Record<Language, Translations> = {
     chainRemoveErrorTitle: 'Échec du retrait',
     notFoundTitle: 'Page introuvable',
     notFoundMessage: "Page introuvable. Vérifiez l'URL ou retournez au tableau de bord.",
+
+    // Budget filter labels & section helpers
+    budgetViewType: 'Type de vue',
+    budgetPeriodWindow: 'Fenêtre de période',
+    budgetStartDate: 'Date de début',
+    budgetLength: 'Durée',
+    budgetDataVisibility: 'Visibilité des données',
+    budgetCapitalInvestmentsLabel: 'Investissements en capital',
+    budgetProjects: 'Projets',
+    budgetMonthsSuffix: 'mois',
+    budgetYearsSuffix: 'ans',
+    budgetDataSummary: 'Données : {visible} sur {total} catégories visibles',
+    budgetLoadingData: 'Chargement des données budgétaires…',
+
+    // Law 25 compliance dashboard component
+    law25ComplianceStatusTitle: 'Statut de conformité à la Loi 25 du Québec',
+    complianceStatusExcellent: 'Excellent',
+    complianceStatusGood: 'Bon',
+    complianceStatusFair: 'Acceptable',
+    complianceStatusPoor: 'Faible',
+    totalViolations: 'Violations totales',
+    criticalViolationsLabel: 'Critique',
+    lastScan: 'Dernière analyse',
+    categoryDataCollection: 'Collecte de données',
+    categoryConsentManagement: 'Gestion du consentement',
+    categoryDataRetention: 'Conservation des données',
+    categorySecurityEncryption: 'Sécurité et chiffrement',
+    categoryCrossBorderTransfer: 'Transfert transfrontalier',
+    categoryDataSubjectRights: 'Droits des personnes concernées',
+    compliantStatusLabel: 'Conforme',
+    issuesFoundSingular: '{count} problème trouvé',
+    issuesFoundPlural: '{count} problèmes trouvés',
+    complianceViolations: 'Violations de conformité',
+    moreViolationsLabel: '+{count} violations supplémentaires',
+    law25ComplianceGuide: 'Guide de conformité à la Loi 25 du Québec',
+    requiredComplianceAreas: 'Exigences de conformité',
+    requiredAreaExplicitConsent: 'Consentement explicite pour la collecte de données',
+    requiredAreaDataRetention: 'Politiques de conservation des données',
+    requiredAreaEncryption: 'Chiffrement des renseignements personnels',
+    requiredAreaDataSubjectRights: 'Mise en œuvre des droits des personnes concernées',
+    propertyManagementFocus: 'Axes propres à la gestion immobilière',
+    propMgmtTenantInfoProtection: 'Protection des renseignements personnels des locataires',
+    propMgmtFinancialDataSecurity: 'Sécurité des données financières',
+    propMgmtBuildingAccessProtection: "Protection des codes d'accès aux immeubles",
+    propMgmtMaintenancePrivacy: "Confidentialité des demandes d'entretien",
+
+    // Compliance page header
+    compliancePageTitle: 'Conformité à la Loi 25 du Québec',
+    compliancePageSubtitle: 'Surveillance de la conformité en matière de confidentialité et suivi des violations',
+
+    // HOC titles
+    buildingsManagementTitle: 'Gestion des immeubles',
+    projectsManagementTitle: 'Gestion des projets',
+    inventoryManagementTitle: 'Gestion de l\'inventaire',
+
+    // Buildings page extras
+    buildingsLoadDataError:
+      'Échec du chargement des données des immeubles. Veuillez réessayer plus tard.',
+    deleteBuildingDialogTitle: 'Supprimer l\'immeuble',
+    deleteBuildingDialogConfirmation:
+      'Êtes-vous sûr de vouloir supprimer « {name} » ? Cette action est irréversible.',
+
+    // Budget chart empty state
+    budgetChartNoData: 'Aucune donnée disponible pour les filtres sélectionnés',
+    budgetChartAdjustFilters: 'Essayez d\'ajuster vos paramètres de filtre',
   }
 };

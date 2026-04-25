@@ -560,9 +560,7 @@ function BuildingsInner({ organizationId }: { organizationId?: string }) {
               <CardContent className='p-8 text-center'>
                 <Building className='w-16 h-16 mx-auto text-red-400 mb-4' />
                 <h3 className='text-lg font-semibold text-red-600 mb-2'>Error Loading Buildings</h3>
-                <p className='text-red-500 mb-4'>
-                  Failed to load buildings data. Please try again later.
-                </p>
+                <p className='text-red-500 mb-4'>{t('buildingsLoadDataError')}</p>
                 <Badge variant='destructive'>Error</Badge>
               </CardContent>
             </Card>
@@ -679,10 +677,12 @@ function BuildingsInner({ organizationId }: { organizationId?: string }) {
           <Dialog open={!!deletingBuilding} onOpenChange={() => setDeletingBuilding(null)}>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Delete Building</DialogTitle>
+                <DialogTitle>{t('deleteBuildingDialogTitle')}</DialogTitle>
                 <DialogDescription>
-                  Are you sure you want to delete "{deletingBuilding?.name}"? This action cannot be
-                  undone.
+                  {t('deleteBuildingDialogConfirmation').replace(
+                    '{name}',
+                    deletingBuilding?.name ?? '',
+                  )}
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter>

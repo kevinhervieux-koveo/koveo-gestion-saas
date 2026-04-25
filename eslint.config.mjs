@@ -1,6 +1,7 @@
 import js from '@eslint/js';
 import typescript from '@typescript-eslint/eslint-plugin';
 import typescriptParser from '@typescript-eslint/parser';
+import i18nJsxPlugin from './eslint-rules/no-untranslated-jsx-text.mjs';
 
 export default [
   js.configs.recommended,
@@ -134,6 +135,32 @@ export default [
       'no-func-assign': 'off',
       'no-unreachable': 'off',
       'no-misleading-character-class': 'off',
+    },
+  },
+  // i18n: enforce that JSX text literals over 30 chars on translated routes
+  // are wrapped in t(). Scoped to the routes/components covered by task 636
+  // so the rule can ship without a global codebase rewrite.
+  {
+    files: [
+      'client/src/pages/manager/buildings.tsx',
+      'client/src/pages/manager/budget/**/*.tsx',
+      'client/src/pages/admin/compliance.tsx',
+      'client/src/components/dashboard/law25-compliance.tsx',
+    ],
+    languageOptions: {
+      parser: typescriptParser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+        ecmaFeatures: { jsx: true },
+        project: null,
+      },
+    },
+    plugins: {
+      'i18n-jsx': i18nJsxPlugin,
+    },
+    rules: {
+      'i18n-jsx/no-untranslated-jsx-text': 'error',
     },
   },
   // Test files configuration

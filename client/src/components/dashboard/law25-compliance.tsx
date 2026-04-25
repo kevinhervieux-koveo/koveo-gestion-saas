@@ -55,7 +55,7 @@ interface Law25ComplianceData {
  * @returns Function result.
  */
 export function Law25Compliance() {
-  const { t: _t } = useLanguage();
+  const { t } = useLanguage();
 
   const { data: complianceData, isLoading } = useQuery<Law25ComplianceData>({
     queryKey: ['/api/law25-compliance'],
@@ -65,15 +65,15 @@ export function Law25Compliance() {
 
   const getComplianceStatus = (score: number) => {
     if (score >= 90) {
-      return { level: 'Excellent', color: 'text-green-600', bg: 'bg-green-50' };
+      return { level: t('complianceStatusExcellent'), color: 'text-green-600', bg: 'bg-green-50' };
     }
     if (score >= 80) {
-      return { level: 'Good', color: 'text-blue-600', bg: 'bg-blue-50' };
+      return { level: t('complianceStatusGood'), color: 'text-blue-600', bg: 'bg-blue-50' };
     }
     if (score >= 60) {
-      return { level: 'Fair', color: 'text-yellow-600', bg: 'bg-yellow-50' };
+      return { level: t('complianceStatusFair'), color: 'text-yellow-600', bg: 'bg-yellow-50' };
     }
-    return { level: 'Poor', color: 'text-red-600', bg: 'bg-red-50' };
+    return { level: t('complianceStatusPoor'), color: 'text-red-600', bg: 'bg-red-50' };
   };
 
   const getCategoryIcon = (category: string) => {
@@ -96,15 +96,15 @@ export function Law25Compliance() {
   };
 
   const getCategoryLabel = (category: string) => {
-    const labels = {
-      dataCollection: 'Data Collection',
-      consent: 'Consent Management',
-      dataRetention: 'Data Retention',
-      security: 'Security & Encryption',
-      crossBorderTransfer: 'Cross-Border Transfer',
-      dataSubjectRights: 'Data Subject Rights',
+    const labels: Record<string, string> = {
+      dataCollection: t('categoryDataCollection'),
+      consent: t('categoryConsentManagement'),
+      dataRetention: t('categoryDataRetention'),
+      security: t('categorySecurityEncryption'),
+      crossBorderTransfer: t('categoryCrossBorderTransfer'),
+      dataSubjectRights: t('categoryDataSubjectRights'),
     };
-    return labels[category as keyof typeof labels] || category;
+    return labels[category] || category;
   };
 
   const getSeverityColor = (severity: string) => {
@@ -157,7 +157,7 @@ export function Law25Compliance() {
         <CardHeader>
           <CardTitle className='flex items-center gap-2'>
             <Shield className='w-6 h-6' />
-            Quebec Law 25 Compliance Status
+            {t('law25ComplianceStatusTitle')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -189,12 +189,12 @@ export function Law25Compliance() {
               <div className='text-2xl font-semibold text-gray-700 mb-2'>
                 {complianceData.totalViolations}
               </div>
-              <div className='text-sm text-gray-500 mb-1'>Total Violations</div>
+              <div className='text-sm text-gray-500 mb-1'>{t('totalViolations')}</div>
               {complianceData.criticalViolations > 0 && (
                 <div className='flex items-center justify-center gap-1 text-red-600'>
                   <AlertTriangle className='w-4 h-4' />
                   <span className='text-sm font-medium'>
-                    {complianceData.criticalViolations} Critical
+                    {`${complianceData.criticalViolations} ${t('criticalViolationsLabel')}`}
                   </span>
                 </div>
               )}
@@ -202,7 +202,7 @@ export function Law25Compliance() {
 
             {/* Last Scan */}
             <div className='text-center'>
-              <div className='text-sm text-gray-500 mb-1'>Last Scan</div>
+              <div className='text-sm text-gray-500 mb-1'>{t('lastScan')}</div>
               <div className='text-sm font-medium text-gray-700'>
                 {new Date(complianceData.lastScanDate).toLocaleDateString()}
               </div>
@@ -231,7 +231,9 @@ export function Law25Compliance() {
                   <Badge variant={isClean ? 'default' : 'destructive'}>{count}</Badge>
                 </div>
                 <div className={`text-xs ${isClean ? 'text-green-600' : 'text-red-600'}`}>
-                  {isClean ? 'Compliant' : `${count} issue${count > 1 ? 's' : ''} found`}
+                  {isClean
+                    ? t('compliantStatusLabel')
+                    : (count > 1 ? t('issuesFoundPlural') : t('issuesFoundSingular')).replace('{count}', String(count))}
                 </div>
               </CardContent>
             </Card>
@@ -245,7 +247,7 @@ export function Law25Compliance() {
           <CardHeader>
             <CardTitle className='flex items-center gap-2'>
               <AlertTriangle className='w-5 h-5 text-orange-500' />
-              Compliance Violations
+              {t('complianceViolations')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -279,7 +281,7 @@ export function Law25Compliance() {
               {complianceData.violations.length > 10 && (
                 <div className='text-center py-2'>
                   <Badge variant='outline'>
-                    +{complianceData.violations.length - 10} more violations
+                    {t('moreViolationsLabel').replace('{count}', String(complianceData.violations.length - 10))}
                   </Badge>
                 </div>
               )}
@@ -293,50 +295,50 @@ export function Law25Compliance() {
         <CardHeader>
           <CardTitle className='flex items-center gap-2'>
             <Scale className='w-5 h-5 text-blue-500' />
-            Quebec Law 25 Compliance Guide
+            {t('law25ComplianceGuide')}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
             <div>
-              <h4 className='font-medium mb-3'>Required Compliance Areas</h4>
+              <h4 className='font-medium mb-3'>{t('requiredComplianceAreas')}</h4>
               <ul className='space-y-2 text-sm'>
                 <li className='flex items-center gap-2'>
                   <CheckCircle className='w-4 h-4 text-green-500' />
-                  Explicit consent for data collection
+                  {t('requiredAreaExplicitConsent')}
                 </li>
                 <li className='flex items-center gap-2'>
                   <CheckCircle className='w-4 h-4 text-green-500' />
-                  Data retention policies
+                  {t('requiredAreaDataRetention')}
                 </li>
                 <li className='flex items-center gap-2'>
                   <CheckCircle className='w-4 h-4 text-green-500' />
-                  Encryption of personal data
+                  {t('requiredAreaEncryption')}
                 </li>
                 <li className='flex items-center gap-2'>
                   <CheckCircle className='w-4 h-4 text-green-500' />
-                  Data subject rights implementation
+                  {t('requiredAreaDataSubjectRights')}
                 </li>
               </ul>
             </div>
             <div>
-              <h4 className='font-medium mb-3'>Property Management Focus</h4>
+              <h4 className='font-medium mb-3'>{t('propertyManagementFocus')}</h4>
               <ul className='space-y-2 text-sm'>
                 <li className='flex items-center gap-2'>
                   <Users className='w-4 h-4 text-blue-500' />
-                  Tenant personal information protection
+                  {t('propMgmtTenantInfoProtection')}
                 </li>
                 <li className='flex items-center gap-2'>
                   <Lock className='w-4 h-4 text-blue-500' />
-                  Financial data security
+                  {t('propMgmtFinancialDataSecurity')}
                 </li>
                 <li className='flex items-center gap-2'>
                   <FileText className='w-4 h-4 text-blue-500' />
-                  Building access code protection
+                  {t('propMgmtBuildingAccessProtection')}
                 </li>
                 <li className='flex items-center gap-2'>
                   <Eye className='w-4 h-4 text-blue-500' />
-                  Maintenance request privacy
+                  {t('propMgmtMaintenancePrivacy')}
                 </li>
               </ul>
             </div>

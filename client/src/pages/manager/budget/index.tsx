@@ -3016,7 +3016,7 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
               <div className="space-y-3">
                 <Label className="text-sm font-medium flex items-center gap-2">
                   <Calendar className="w-4 h-4" />
-                  View Type
+                  {t('budgetViewType')}
                 </Label>
                 <Select 
                   value={filters.viewType} 
@@ -3057,12 +3057,12 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
               <div className="space-y-4">
                 <Label className="text-sm font-medium flex items-center gap-2">
                   <ChevronDown className="w-4 h-4" />
-                  Period Window
+                  {t('budgetPeriodWindow')}
                 </Label>
                 
                 {/* Start Date Selection */}
                 <div className="space-y-3">
-                  <Label className="text-xs text-muted-foreground">Start Date</Label>
+                  <Label className="text-xs text-muted-foreground">{t('budgetStartDate')}</Label>
                   <div className="grid grid-cols-2 gap-2">
                     {filters.viewType === 'month' && (
                       <Select 
@@ -3161,7 +3161,7 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
                 {/* Period Length */}
                 <div className="space-y-3">
                   <div className="flex items-center gap-1.5">
-                    <Label className="text-xs text-muted-foreground">Length</Label>
+                    <Label className="text-xs text-muted-foreground">{t('budgetLength')}</Label>
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -3214,22 +3214,22 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
                       <SelectContent>
                         {filters.viewType === 'month' ? (
                           <>
-                            <SelectItem value="6">6 months</SelectItem>
-                            <SelectItem value="12">12 months</SelectItem>
-                            <SelectItem value="18">18 months</SelectItem>
-                            <SelectItem value="24">24 months</SelectItem>
-                            <SelectItem value="36">36 months</SelectItem>
+                            <SelectItem value="6">{`6 ${t('budgetMonthsSuffix')}`}</SelectItem>
+                            <SelectItem value="12">{`12 ${t('budgetMonthsSuffix')}`}</SelectItem>
+                            <SelectItem value="18">{`18 ${t('budgetMonthsSuffix')}`}</SelectItem>
+                            <SelectItem value="24">{`24 ${t('budgetMonthsSuffix')}`}</SelectItem>
+                            <SelectItem value="36">{`36 ${t('budgetMonthsSuffix')}`}</SelectItem>
                           </>
                         ) : (
                           <>
-                            <SelectItem value="1">1 year</SelectItem>
-                            <SelectItem value="2">2 years</SelectItem>
-                            <SelectItem value="3">3 years</SelectItem>
-                            <SelectItem value="5">5 years</SelectItem>
-                            <SelectItem value="10">10 years</SelectItem>
-                            <SelectItem value="15">15 years</SelectItem>
-                            <SelectItem value="20">20 years</SelectItem>
-                            <SelectItem value="25">25 years</SelectItem>
+                            <SelectItem value="1">{`1 ${t('budgetYearsSuffix')}`}</SelectItem>
+                            <SelectItem value="2">{`2 ${t('budgetYearsSuffix')}`}</SelectItem>
+                            <SelectItem value="3">{`3 ${t('budgetYearsSuffix')}`}</SelectItem>
+                            <SelectItem value="5">{`5 ${t('budgetYearsSuffix')}`}</SelectItem>
+                            <SelectItem value="10">{`10 ${t('budgetYearsSuffix')}`}</SelectItem>
+                            <SelectItem value="15">{`15 ${t('budgetYearsSuffix')}`}</SelectItem>
+                            <SelectItem value="20">{`20 ${t('budgetYearsSuffix')}`}</SelectItem>
+                            <SelectItem value="25">{`25 ${t('budgetYearsSuffix')}`}</SelectItem>
                           </>
                         )}
                       </SelectContent>
@@ -3247,7 +3247,7 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
               <div className="space-y-4">
                 <Label className="text-sm font-medium flex items-center gap-2">
                   <Eye className="w-4 h-4" />
-                  Data Visibility
+                  {t('budgetDataVisibility')}
                 </Label>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="flex items-center justify-between">
@@ -3338,7 +3338,7 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
                   <div className="flex items-center justify-between">
                     <Label htmlFor="toggle-capital-investments" className="text-sm cursor-pointer flex items-center gap-2">
                       <PiggyBank className="w-4 h-4 text-orange-500" />
-                      Capital Investments ({capitalInvestmentMode})
+                      {`${t('budgetCapitalInvestmentsLabel')} (${capitalInvestmentMode})`}
                     </Label>
                     <Switch 
                       id="toggle-capital-investments"
@@ -3372,7 +3372,7 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
                   <div className="flex items-center justify-between">
                     <Label htmlFor="toggle-project" className="text-sm flex items-center gap-2">
                       <div className="w-3 h-3 rounded-full bg-teal-500"></div>
-                      Projects
+                      {t('budgetProjects')}
                     </Label>
                     <Switch 
                       id="toggle-project"
@@ -3398,7 +3398,9 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
                 </span>
                 <Separator orientation="vertical" className="h-4" />
                 <span>
-                  Data: {Object.entries(filters.dataVisibility).filter(([_, visible]) => visible).length} of 7 categories visible
+                  {t('budgetDataSummary')
+                    .replace('{visible}', String(Object.entries(filters.dataVisibility).filter(([_, visible]) => visible).length))
+                    .replace('{total}', '7')}
                 </span>
               </div>
             </>
