@@ -188,12 +188,26 @@ export const notifications = pgTable('notifications', {
  * different trigger function) and coexist as separate files.
  *
  * The secondary `assignation_residence_id` / `assignation_building_id`
- * pair on this same table is intentionally NOT covered by a trigger:
- * `assignation_building_id` is nullable and the assignation pointers
- * are advisory routing fields rather than ownership/scope columns.
+ * pair on this same table is now covered by a parallel pair of
+ * triggers (Task #844), mirroring the residence_id/building_id
+ * pattern above:
+ *   - `demands_assignation_check` on `demands` (see
+ *     `migrations/0012_demands_assignation_check.sql`) rejects any
+ *     INSERT/UPDATE that lets `assignation_residence_id` and
+ *     `assignation_building_id` disagree, or that crosses
+ *     organisations relative to the demand's own `building_id`.
+ *   - `residences_demand_assignation_check` on `residences` (see
+ *     `migrations/0013_residences_demand_assignation_check.sql`)
+ *     fires on UPDATE of `residences.building_id` and rejects the
+ *     move when any demand still references the residence via
+ *     `assignation_residence_id` and the move would either (a)
+ *     leave its explicit `assignation_building_id` stale or (b)
+ *     for demands with NULL `assignation_building_id`, push the
+ *     inferred assignation building into a different organisation
+ *     than the demand's own `building_id`.
  * The cross-assignation backfill in
- * `server/scripts/backfill-cross-assignation-demands-lib.ts` cleans up
- * legacy mismatches; future hardening could install a trigger here too.
+ * `server/scripts/backfill-cross-assignation-demands-lib.ts` cleans
+ * up legacy mismatches before the triggers can be installed.
  */
 export const demands = pgTable('demands', {
   id: uuid('id')

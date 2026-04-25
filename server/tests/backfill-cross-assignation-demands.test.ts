@@ -102,18 +102,28 @@ describeOrSkip('backfillCrossAssignationDemands (integration)', () => {
     // The primary building_id is set to building1 (required NOT NULL) and we
     // intentionally leave the primary residence_id NULL so this fixture is
     // *only* exercised by the assignation backfill, never the residence one.
-    const [demand] = await db
-      .insert(demands)
-      .values({
-        buildingId: building1Id,
-        assignationBuildingId: building1Id,
-        assignationResidenceId: residence2Id,
-        type: 'other',
-        status: 'draft',
-        description: 'Cross-org test demand for assignation backfill script',
-      })
-      .returning();
-    demandId = demand.id;
+    //
+    // The DB-level trigger added in migration 0012 (Task #844) normally
+    // rejects this exact shape, so we disable it for the duration of
+    // the seed insert to reproduce the legacy data the backfill script
+    // is designed to fix.
+    await db.execute(sql`ALTER TABLE demands DISABLE TRIGGER demands_assignation_check`);
+    try {
+      const [demand] = await db
+        .insert(demands)
+        .values({
+          buildingId: building1Id,
+          assignationBuildingId: building1Id,
+          assignationResidenceId: residence2Id,
+          type: 'other',
+          status: 'draft',
+          description: 'Cross-org test demand for assignation backfill script',
+        })
+        .returning();
+      demandId = demand.id;
+    } finally {
+      await db.execute(sql`ALTER TABLE demands ENABLE TRIGGER demands_assignation_check`);
+    }
   }, 30_000);
 
   afterAll(async () => {

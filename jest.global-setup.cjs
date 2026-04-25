@@ -148,6 +148,8 @@ module.exports = async function globalSetup() {
   await applyTriggerOnlyMigrations(databaseUrl, [
     '0010_demands_residence_building_check.sql',
     '0011_residences_demand_building_check.sql',
+    '0012_demands_assignation_check.sql',
+    '0013_residences_demand_assignation_check.sql',
   ]);
 };
 

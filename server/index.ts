@@ -481,6 +481,13 @@ async function loadFullApplication(): Promise<void> {
           // SQL guards itself with NOT EXISTS / IF NOT EXISTS so it
           // is safe to re-run on every boot.
           '0012_building_elements_residence_id_fk.sql',
+          // Task #844: cross-org guards on the secondary
+          // assignation_residence_id / assignation_building_id pair
+          // on `demands` (mirror of 0010/0011). Both files use
+          // CREATE OR REPLACE FUNCTION + DROP TRIGGER IF EXISTS so
+          // they are safe to re-apply on every boot.
+          '0012_demands_assignation_check.sql',
+          '0013_residences_demand_assignation_check.sql',
         ]);
       } catch (migrationErr: any) {
         log(`❌ Database migrations failed: ${migrationErr.message}`, 'error');
