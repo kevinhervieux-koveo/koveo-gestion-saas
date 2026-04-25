@@ -218,11 +218,20 @@ function readRunAllProgress(
   return runAll?.[step] ?? null;
 }
 
+// NOTE: The internal step keys `sorting` and `branching` are deliberately
+// labelled with the *opposite* user-facing names. Today the step keyed
+// `sorting` runs the keep/merge/split analyzer (which is conceptually
+// "branching" the document stream into split/merge outcomes), and the
+// step keyed `branching` runs the destination-bucket router (which is
+// conceptually "sorting" each kept document into a bucket). The internal
+// keys, status enum, analyzer wiring, and step order are unchanged —
+// only the labels swap so the wizard surfaces the correct word for what
+// each step actually does.
 const STEP_LABEL_EN: Record<BulkImportStep, string> = {
   upload: 'Upload',
   screening: 'Screening',
-  sorting: 'Sorting',
-  branching: 'Branching',
+  sorting: 'Branching',
+  branching: 'Sorting',
   identification: 'Identification',
   linking: 'Linking',
   complete: 'Complete',
@@ -230,8 +239,8 @@ const STEP_LABEL_EN: Record<BulkImportStep, string> = {
 const STEP_LABEL_FR: Record<BulkImportStep, string> = {
   upload: 'Téléversement',
   screening: 'Filtrage',
-  sorting: 'Tri',
-  branching: 'Aiguillage',
+  sorting: 'Aiguillage',
+  branching: 'Tri',
   identification: 'Identification',
   linking: 'Liaison',
   complete: 'Terminé',
@@ -296,8 +305,10 @@ const HISTORY_STEP_FIELDS: ReadonlyArray<{
   labelFr: string;
 }> = [
   { field: 'screening', labelEn: 'Screening', labelFr: 'Filtrage' },
-  { field: 'sortingDecision', labelEn: 'Sorting', labelFr: 'Tri' },
-  { field: 'branchDecision', labelEn: 'Branching', labelFr: 'Aiguillage' },
+  // Internal keys keep their old names; user-facing labels swap to match
+  // what each step actually does (see STEP_LABEL_* note above).
+  { field: 'sortingDecision', labelEn: 'Branching', labelFr: 'Aiguillage' },
+  { field: 'branchDecision', labelEn: 'Sorting', labelFr: 'Tri' },
   { field: 'identification', labelEn: 'Identification', labelFr: 'Identification' },
   { field: 'linkDecisions', labelEn: 'Linking', labelFr: 'Liaison' },
 ];
@@ -1182,10 +1193,14 @@ export default function BulkDocumentImportPage() {
           "Choisissez l'immeuble et déposez les documents (PDF, Word, Excel, images ou archives zip) à traiter.",
         screening:
           "L'IA lit chaque fichier et décide s'il s'agit d'un vrai document à conserver ou à écarter.",
+        // Descriptions are keyed by internal step key, so they swap in
+        // lockstep with the labels above to remain coherent: step
+        // `sorting` (keep/merge/split) gets the "Aiguillage" copy, and
+        // step `branching` (destination bucket) gets the "Tri" copy.
         sorting:
-          'Chaque document conservé est automatiquement classé dans une catégorie (facture, contrat, procès-verbal, etc.).',
-        branching:
           'Les fichiers contenant plusieurs documents sont scindés au besoin en documents distincts.',
+        branching:
+          'Chaque document conservé est automatiquement classé dans une catégorie (facture, contrat, procès-verbal, etc.).',
         identification:
           "L'IA extrait les informations clés (titre, date, montants, parties) de chaque document.",
         linking:
@@ -1198,10 +1213,14 @@ export default function BulkDocumentImportPage() {
           'Choose the building and drop in the documents (PDF, Word, Excel, images, or zip archives) you want to process.',
         screening:
           'The AI reads each file and decides whether it looks like a real document worth keeping or should be discarded.',
+        // Descriptions are keyed by internal step key, so they swap in
+        // lockstep with the labels above to remain coherent: step
+        // `sorting` (keep/merge/split) gets the "Branching" copy, and
+        // step `branching` (destination bucket) gets the "Sorting" copy.
         sorting:
-          'Each kept document is automatically classified into a category (e.g. invoice, contract, minutes).',
-        branching:
           'Files that contain several documents are split into the right number of separate documents when needed.',
+        branching:
+          'Each kept document is automatically classified into a category (e.g. invoice, contract, minutes).',
         identification:
           'The AI extracts the key fields (title, date, amounts, parties) from each document.',
         linking:
