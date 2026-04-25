@@ -143,7 +143,9 @@ interface GanttRow {
 }
 
 interface BarLayout {
+  x: number;
   y: number;
+  width: number;
   height: number;
 }
 
@@ -155,13 +157,15 @@ interface MeasuredBarShapeProps {
   fill?: string;
   fillOpacity?: number;
   payload?: GanttRow;
-  onMeasure: (id: string, y: number, height: number) => void;
+  onMeasure: (id: string, x: number, y: number, width: number, height: number) => void;
 }
 
-// Custom Bar shape that captures the actual y/height Recharts uses to
-// render the grey bar. This becomes the single source of truth for the
-// vertical position of the drag overlay and date chips so they cannot
-// drift from the bar (e.g. due to band-scale padding).
+// Custom Bar shape that captures the actual x/y/width/height Recharts uses
+// to render the grey bar. This becomes the single source of truth for both
+// the vertical AND horizontal position of the drag overlay, today line,
+// period-header ticks, and date chips so they cannot drift from the bars
+// (e.g. due to band-scale padding or the chart's left/right margins
+// reducing the plot area below the timeline div's full width).
 function MeasuredBarShape({
   x = 0,
   y = 0,
@@ -174,8 +178,8 @@ function MeasuredBarShape({
 }: MeasuredBarShapeProps) {
   const id = payload?.id;
   useEffect(() => {
-    if (id) onMeasure(id, y, height);
-  }, [id, y, height, onMeasure]);
+    if (id) onMeasure(id, x, y, width, height);
+  }, [id, x, y, width, height, onMeasure]);
   return (
     <rect
       x={x}
@@ -246,13 +250,24 @@ export function GanttChart({
   // vertical position as the grey bar, so the two can never drift apart.
   const [barLayouts, setBarLayouts] = useState<Record<string, BarLayout>>({});
 
-  const handleBarMeasure = useCallback((id: string, y: number, height: number) => {
-    setBarLayouts(prev => {
-      const existing = prev[id];
-      if (existing && existing.y === y && existing.height === height) return prev;
-      return { ...prev, [id]: { y, height } };
-    });
-  }, []);
+  const handleBarMeasure = useCallback(
+    (id: string, x: number, y: number, width: number, height: number) => {
+      setBarLayouts(prev => {
+        const existing = prev[id];
+        if (
+          existing &&
+          existing.x === x &&
+          existing.y === y &&
+          existing.width === width &&
+          existing.height === height
+        ) {
+          return prev;
+        }
+        return { ...prev, [id]: { x, y, width, height } };
+      });
+    },
+    [],
+  );
 
   const { rows, domain, ticks, monthSpan } = useMemo(() => {
     const dated: GanttRow[] = [];
@@ -411,6 +426,40 @@ export function GanttChart({
     });
   }, [rows, editingProjectId, effectiveEditingDates]);
 
+  // Derive the Recharts plot area (in pixels, relative to the timeline div)
+  // from any measured bar. Recharts reduces the plot area by axis space and
+  // by the right margin, so the timeline div's full width is NOT the same
+  // coordinate space as the bars. By recovering the plot area's pixel
+  // offset+width from a bar whose start/end timestamps we know, every other
+  // overlay (drag rectangle, today line, period header ticks, drag chips)
+  // can be positioned in the exact same coordinate space as the bars, and
+  // the drag pixel→time conversion can use the same plot width that drives
+  // the bar positions. Falls back to `null` until the first MeasuredBarShape
+  // effect commits; call sites then use container-percentage math, which is
+  // slightly off but is good enough for the very first frame.
+  const plotMetrics = useMemo(() => {
+    if (domainSpan <= 0) return null;
+    for (const row of displayRows) {
+      const layout = barLayouts[row.id];
+      if (
+        !layout ||
+        !row.hasDates ||
+        row.startTs == null ||
+        row.endTs == null
+      ) {
+        continue;
+      }
+      const span = row.endTs - row.startTs;
+      if (span <= 0 || layout.width <= 0) continue;
+      const pxPerMs = layout.width / span;
+      const plotLeftPx = layout.x - (row.startTs - domain[0]) * pxPerMs;
+      const plotWidthPx = pxPerMs * domainSpan;
+      if (plotWidthPx <= 0) continue;
+      return { plotLeftPx, plotWidthPx };
+    }
+    return null;
+  }, [barLayouts, displayRows, domain, domainSpan]);
+
   // Drag pointer handlers — `mode` distinguishes whole-bar slide from edge resize
   const startDrag = useCallback((mode: DragMode) => (e: React.PointerEvent<HTMLDivElement>) => {
     if (!editingProjectId || !editingDates || isSaving) return;
@@ -428,7 +477,12 @@ export function GanttChart({
     if (!isDragging.current || dragStartX.current === null || !editingDates) return;
     const timelineEl = timelineRef.current;
     if (!timelineEl) return;
-    const plotWidth = timelineEl.clientWidth - RECHARTS_RIGHT_MARGIN;
+    // Prefer the actual measured plot-area width so a drag of N pixels
+    // moves the overlay by exactly the same number of pixels as the
+    // underlying grey bar. The container-minus-right-margin fallback is
+    // only used until the first MeasuredBarShape effect commits.
+    const plotWidth =
+      plotMetrics?.plotWidthPx ?? (timelineEl.clientWidth - RECHARTS_RIGHT_MARGIN);
     if (plotWidth <= 0) return;
     const deltaX = e.clientX - dragStartX.current;
     const rawDeltaMs = (deltaX / plotWidth) * domainSpan;
@@ -449,7 +503,7 @@ export function GanttChart({
       clampedDelta = Math.max(minDelta, Math.min(maxDelta, rawDeltaMs));
     }
     setDragOffsetMs(clampedDelta);
-  }, [editingDates, domainSpan, domain, dragMode]);
+  }, [editingDates, domainSpan, domain, dragMode, plotMetrics]);
 
   const handlePointerUp = useCallback((_e: React.PointerEvent<HTMLDivElement>) => {
     if (!isDragging.current || !editingProjectId || !editingDates) return;
@@ -489,15 +543,34 @@ export function GanttChart({
   const todayTs = Date.now();
   const todayInRange =
     domainSpan > 0 && todayTs >= domain[0] && todayTs <= domain[1];
-  const todayPct = todayInRange ? ((todayTs - domain[0]) / domainSpan) * 100 : 0;
   const todayLabel = t('today');
 
-  // Compute the editing row's drag overlay position (in percentage of timeline div).
-  // Vertical placement is taken from the actual rendered Recharts bar
-  // (`barLayouts[editingProjectId]`) so the blue overlay sits exactly on top
-  // of the grey bar. The constant-based math is kept only as a fallback for
-  // the very first frame (or environments where Recharts is mocked) where
-  // the bar hasn't been measured yet.
+  // Convert a timestamp to a `left` CSS value in the timeline's coordinate
+  // space. Prefers measured-plot pixels (so it matches the bars exactly);
+  // falls back to container-percentage math when no bar has been measured
+  // yet (first render).
+  const tsToLeft = (ts: number): string | number => {
+    if (plotMetrics) {
+      return plotMetrics.plotLeftPx + ((ts - domain[0]) / domainSpan) * plotMetrics.plotWidthPx;
+    }
+    const pct = domainSpan > 0 ? ((ts - domain[0]) / domainSpan) * 100 : 0;
+    return `${pct}%`;
+  };
+
+  // Convert a duration in ms to a CSS `width` in the timeline's coordinate
+  // space, mirroring `tsToLeft` (pixels when measured, % as fallback).
+  const tsSpanToWidth = (spanMs: number): string | number => {
+    if (plotMetrics) {
+      return (spanMs / domainSpan) * plotMetrics.plotWidthPx;
+    }
+    const pct = domainSpan > 0 ? (spanMs / domainSpan) * 100 : 0;
+    return `${pct}%`;
+  };
+
+  // Compute the editing row's drag overlay position. Vertical placement is
+  // taken from the actual rendered Recharts bar (`barLayouts[editingProjectId]`),
+  // and horizontal placement uses the same plot-area pixel coordinates the
+  // bars use, so the blue overlay sits exactly on top of the grey bar.
   let dragOverlayStyle: React.CSSProperties | null = null;
   const editingBarLayout = editingProjectId ? barLayouts[editingProjectId] : undefined;
   const editingBarTop =
@@ -507,12 +580,10 @@ export function GanttChart({
       : 0);
   const editingBarHeight = editingBarLayout?.height ?? BAR_SIZE;
   if (editingRowIndex >= 0 && effectiveEditingDates && domainSpan > 0) {
-    const leftPct = ((effectiveEditingDates.startTs - domain[0]) / domainSpan) * 100;
-    const widthPct = ((effectiveEditingDates.endTs - effectiveEditingDates.startTs) / domainSpan) * 100;
     dragOverlayStyle = {
       position: 'absolute',
-      left: `${leftPct}%`,
-      width: `${widthPct}%`,
+      left: tsToLeft(effectiveEditingDates.startTs),
+      width: tsSpanToWidth(effectiveEditingDates.endTs - effectiveEditingDates.startTs),
       top: editingBarTop,
       height: editingBarHeight,
       cursor: isSaving ? 'default' : (isDragging.current ? 'grabbing' : 'grab'),
@@ -567,35 +638,32 @@ export function GanttChart({
                 height: HEADER_HEIGHT,
               }}
             >
-              {ticks.map((t, idx) => {
-                const pct = domainSpan > 0 ? ((t - domain[0]) / domainSpan) * 100 : 0;
-                return (
-                  <div
-                    key={t}
-                    data-testid={`gantt-period-label-${idx}`}
-                    style={{
-                      position: 'absolute',
-                      left: `${pct}%`,
-                      top: 0,
-                      transform: 'translateX(-50%)',
-                      fontSize: 11,
-                      lineHeight: `${HEADER_HEIGHT}px`,
-                      color: 'hsl(var(--muted-foreground))',
-                      whiteSpace: 'nowrap',
-                      paddingLeft: idx === 0 ? 4 : 0,
-                    }}
-                  >
-                    {formatMonth(t, locale)}
-                  </div>
-                );
-              })}
+              {ticks.map((t, idx) => (
+                <div
+                  key={t}
+                  data-testid={`gantt-period-label-${idx}`}
+                  style={{
+                    position: 'absolute',
+                    left: tsToLeft(t),
+                    top: 0,
+                    transform: 'translateX(-50%)',
+                    fontSize: 11,
+                    lineHeight: `${HEADER_HEIGHT}px`,
+                    color: 'hsl(var(--muted-foreground))',
+                    whiteSpace: 'nowrap',
+                    paddingLeft: idx === 0 ? 4 : 0,
+                  }}
+                >
+                  {formatMonth(t, locale)}
+                </div>
+              ))}
               {todayInRange && (
                 <div
                   data-testid="gantt-today-pill"
                   title={formatDate(todayTs, locale)}
                   style={{
                     position: 'absolute',
-                    left: `${todayPct}%`,
+                    left: tsToLeft(todayTs),
                     top: 4,
                     transform: 'translateX(-50%)',
                     fontSize: 10,
@@ -790,7 +858,7 @@ export function GanttChart({
                 title={`${todayLabel} — ${formatDate(todayTs, locale)}`}
                 style={{
                   position: 'absolute',
-                  left: `${todayPct}%`,
+                  left: tsToLeft(todayTs),
                   top: TOP_MARGIN,
                   bottom: X_AXIS_HEIGHT + BOTTOM_MARGIN,
                   width: 0,
@@ -832,8 +900,8 @@ export function GanttChart({
                 - resize-right → end chip anchored to the right edge
                 - move → both chips so the user can see both proposed dates */}
             {dragActive && effectiveEditingDates && editingRowIndex >= 0 && domainSpan > 0 && (() => {
-              const leftPct = ((effectiveEditingDates.startTs - domain[0]) / domainSpan) * 100;
-              const rightPct = ((effectiveEditingDates.endTs - domain[0]) / domainSpan) * 100;
+              const leftStyle = tsToLeft(effectiveEditingDates.startTs);
+              const rightStyle = tsToLeft(effectiveEditingDates.endTs);
               // Anchor the chips above the same row as the drag overlay by
               // using the measured bar top (with the constant-based fallback).
               const chipTop = editingBarTop - 20;
@@ -862,7 +930,7 @@ export function GanttChart({
                       data-testid={`gantt-drag-chip-start-${editingProjectId}`}
                       style={{
                         ...chipBaseStyle,
-                        left: `${leftPct}%`,
+                        left: leftStyle,
                         transform: 'translateX(-50%)',
                       }}
                     >
@@ -874,7 +942,7 @@ export function GanttChart({
                       data-testid={`gantt-drag-chip-end-${editingProjectId}`}
                       style={{
                         ...chipBaseStyle,
-                        left: `${rightPct}%`,
+                        left: rightStyle,
                         transform: 'translateX(-50%)',
                       }}
                     >
