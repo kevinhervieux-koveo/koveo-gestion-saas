@@ -105,6 +105,8 @@ interface BulkImportItemLite {
   screeningFallback: BulkImportFallbackReason | null;
   sortingConfidence: number | null;
   sortingFallback: BulkImportFallbackReason | null;
+  sortingDecision: 'keep' | 'merge' | 'split' | null;
+  sortingReason: string | null;
   branchingConfidence: number | null;
   branchingFallback: BulkImportFallbackReason | null;
   identificationConfidence: number | null;
@@ -129,12 +131,22 @@ interface SessionsPage {
 function getItemStepDecision(
   item: BulkImportItemLite,
   step: BulkImportStep,
-): { confidence: number | null; fallbackReason: BulkImportFallbackReason | null } | null {
+): {
+  confidence: number | null;
+  fallbackReason: BulkImportFallbackReason | null;
+  decision?: 'keep' | 'merge' | 'split' | null;
+  reason?: string | null;
+} | null {
   switch (step) {
     case 'screening':
       return { confidence: item.screeningConfidence, fallbackReason: item.screeningFallback };
     case 'sorting':
-      return { confidence: item.sortingConfidence, fallbackReason: item.sortingFallback };
+      return {
+        confidence: item.sortingConfidence,
+        fallbackReason: item.sortingFallback,
+        decision: item.sortingDecision,
+        reason: item.sortingReason,
+      };
     case 'branching':
       return { confidence: item.branchingConfidence, fallbackReason: item.branchingFallback };
     case 'identification':
@@ -1792,6 +1804,20 @@ export default function BulkDocumentImportPage() {
                                 )}
                               {!isExcluded && (
                                 <>
+                                  {currentStep === 'sorting' && decision?.decision && (
+                                    <Badge
+                                      variant="outline"
+                                      className="shrink-0 border-blue-300 bg-blue-50 text-blue-900 dark:border-blue-700 dark:bg-blue-950 dark:text-blue-200"
+                                      title={decision.reason ?? undefined}
+                                      data-testid={`sorting-decision-${item.id}`}
+                                    >
+                                      {decision.decision === 'keep'
+                                        ? isFr ? 'Conserver' : 'Keep'
+                                        : decision.decision === 'merge'
+                                        ? isFr ? 'Fusionner' : 'Merge'
+                                        : isFr ? 'Scinder' : 'Split'}
+                                    </Badge>
+                                  )}
                                   <FallbackReasonBadge
                                     reason={decision?.fallbackReason}
                                     isFr={isFr}

@@ -567,6 +567,16 @@ export function registerBulkImportRoutes(app: Express): void {
         };
       }
 
+      function extractSortingStep(json: Record<string, unknown> | null | undefined) {
+        const base = extractStep(json);
+        if (!json) return { ...base, decision: null, reason: null };
+        const raw = json.decision as string | null | undefined;
+        const decision =
+          raw === 'keep' || raw === 'merge' || raw === 'split' ? raw : null;
+        const reason = (json.reason as string | null | undefined) ?? null;
+        return { ...base, decision, reason };
+      }
+
       const items = rows.map((r) => ({
         id: r.id,
         originalName: r.originalName,
@@ -575,7 +585,7 @@ export function registerBulkImportRoutes(app: Express): void {
         preExcludeStatus: r.preExcludeStatus,
         ...(() => {
           const sc = extractStep(r.screening);
-          const so = extractStep(r.sortingDecision);
+          const so = extractSortingStep(r.sortingDecision);
           const br = extractStep(r.branchDecision);
           const id = extractStep(r.identification);
           const lk = extractStep(r.linkDecisions);
@@ -584,6 +594,8 @@ export function registerBulkImportRoutes(app: Express): void {
             screeningFallback: sc.fallbackReason,
             sortingConfidence: so.confidence,
             sortingFallback: so.fallbackReason,
+            sortingDecision: so.decision,
+            sortingReason: so.reason,
             branchingConfidence: br.confidence,
             branchingFallback: br.fallbackReason,
             identificationConfidence: id.confidence,
