@@ -11,6 +11,11 @@
  *   2. `git rev-parse --short HEAD` and the current ISO timestamp
  *   3. The literal "unknown" / current ISO timestamp (last-resort fallback
  *      for environments where git is unavailable, e.g. a shallow container)
+ *
+ * Fail-fast: when running in a production build (NODE_ENV=production) or when
+ * `--fail-on-unknown` is passed, exit non-zero if the resolver could only
+ * produce `"unknown"`. This converts a silent bad value into a visible build
+ * failure so a deploy can never ship without a real build SHA.
  */
 
 import { execSync } from 'child_process';
@@ -39,10 +44,26 @@ function resolveTime(): string {
   return new Date().toISOString();
 }
 
+const buildSha = resolveSha();
+const buildTime = resolveTime();
+
+const failOnUnknown =
+  process.argv.includes('--fail-on-unknown') ||
+  process.env.NODE_ENV === 'production';
+
+if ((!buildSha || buildSha === 'unknown') && failOnUnknown) {
+  console.error(
+    '❌ write-build-info: refusing to stamp build-info.json with buildSha="unknown".\n' +
+      '   Set BUILD_SHA in the build environment, or run the build from a checkout\n' +
+      '   where `git rev-parse --short HEAD` succeeds. Aborting build.',
+  );
+  process.exit(1);
+}
+
 const outFile = resolve(process.cwd(), 'dist', 'build-info.json');
 const payload = {
-  buildSha: resolveSha(),
-  buildTime: resolveTime(),
+  buildSha,
+  buildTime,
 };
 
 mkdirSync(dirname(outFile), { recursive: true });

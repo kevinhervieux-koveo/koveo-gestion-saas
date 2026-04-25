@@ -1937,6 +1937,13 @@ describe('MCP Server', () => {
       const parsed = new Date(info.buildTime as string);
       expect(Number.isNaN(parsed.getTime())).toBe(false);
     });
+
+    it('never returns buildSha="unknown" when a valid build-info.json is present (nominal production path)', async () => {
+      stampFile = { buildSha: 'a1b2c3d', buildTime: '2026-04-25T00:00:00.000Z' };
+      const info = await loadAndCallInfo();
+      expect(info.buildSha).toBe('a1b2c3d');
+      expect(info.buildSha).not.toBe('unknown');
+    });
   });
 
   describe('Get Analysis Status', () => {

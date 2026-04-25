@@ -32,8 +32,8 @@
   "scripts": {
     "dev": "NODE_ENV=development npx tsx server/index.ts",
     "dev:force": "kill 1 && npm run dev",
-    "build": "vite build && node scripts/check-assets.mjs && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
-    "build:production": "vite build && node scripts/check-assets.mjs && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
+    "build": "vite build && node scripts/check-assets.mjs && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist && npx tsx scripts/write-build-info.ts",
+    "build:production": "vite build && node scripts/check-assets.mjs && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist && npx tsx scripts/write-build-info.ts",
     "build:client": "vite build && node scripts/check-assets.mjs",
     "build:server": "npx tsx scripts/build-server.ts",
     "db:push": "npx drizzle-kit push",
