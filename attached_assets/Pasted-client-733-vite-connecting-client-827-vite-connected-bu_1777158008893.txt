@@ -1,0 +1,205 @@
+client:733 [vite] connecting...
+client:827 [vite] connected.
+bulk-document-import:1 Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner.
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] Forced reflow while executing JavaScript took 34ms
+nr-ext-text-processor.js:1 Uncaught TypeError: Cannot read properties of null (reading 'nodeName')
+    at nr-ext-text-processor.js:1:9844
+    at Array.filter (<anonymous>)
+    at getSelectedNodes (nr-ext-text-processor.js:1:9825)
+    at nr-ext-dom-detector.js:1:4341
+    at r (nr-ext-dom-detector.js:1:4612)
+    at nr-ext-dom-detector.js:1:2055
+(anonymous) @ nr-ext-text-processor.js:1
+getSelectedNodes @ nr-ext-text-processor.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+r @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+setTimeout
+(anonymous) @ nr-ext-dom-detector.js:1
+nr-ext-text-processor.js:1 Uncaught TypeError: Cannot read properties of null (reading 'nodeName')
+    at nr-ext-text-processor.js:1:9844
+    at Array.filter (<anonymous>)
+    at getSelectedNodes (nr-ext-text-processor.js:1:9825)
+    at nr-ext-dom-detector.js:1:4341
+    at r (nr-ext-dom-detector.js:1:4612)
+    at nr-ext-dom-detector.js:1:2055
+(anonymous) @ nr-ext-text-processor.js:1
+getSelectedNodes @ nr-ext-text-processor.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+r @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+setTimeout
+(anonymous) @ nr-ext-dom-detector.js:1
+nr-ext-text-processor.js:1 Uncaught TypeError: Cannot read properties of null (reading 'nodeName')
+    at nr-ext-text-processor.js:1:9844
+    at Array.filter (<anonymous>)
+    at getSelectedNodes (nr-ext-text-processor.js:1:9825)
+    at nr-ext-dom-detector.js:1:4341
+    at r (nr-ext-dom-detector.js:1:4612)
+    at nr-ext-dom-detector.js:1:2055
+(anonymous) @ nr-ext-text-processor.js:1
+getSelectedNodes @ nr-ext-text-processor.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+r @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+setTimeout
+(anonymous) @ nr-ext-dom-detector.js:1
+nr-ext-text-processor.js:1 Uncaught TypeError: Cannot read properties of null (reading 'nodeName')
+    at nr-ext-text-processor.js:1:9844
+    at Array.filter (<anonymous>)
+    at getSelectedNodes (nr-ext-text-processor.js:1:9825)
+    at nr-ext-dom-detector.js:1:4341
+    at r (nr-ext-dom-detector.js:1:4612)
+    at nr-ext-dom-detector.js:1:2055
+(anonymous) @ nr-ext-text-processor.js:1
+getSelectedNodes @ nr-ext-text-processor.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+r @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+setTimeout
+(anonymous) @ nr-ext-dom-detector.js:1
+nr-ext-text-processor.js:1 Uncaught TypeError: Cannot read properties of null (reading 'nodeName')
+    at nr-ext-text-processor.js:1:9844
+    at Array.filter (<anonymous>)
+    at getSelectedNodes (nr-ext-text-processor.js:1:9825)
+    at nr-ext-dom-detector.js:1:4341
+    at r (nr-ext-dom-detector.js:1:4612)
+    at nr-ext-dom-detector.js:1:2055
+(anonymous) @ nr-ext-text-processor.js:1
+getSelectedNodes @ nr-ext-text-processor.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+r @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+setTimeout
+(anonymous) @ nr-ext-dom-detector.js:1
+nr-ext-text-processor.js:1 Uncaught TypeError: Cannot read properties of null (reading 'nodeName')
+    at nr-ext-text-processor.js:1:9844
+    at Array.filter (<anonymous>)
+    at getSelectedNodes (nr-ext-text-processor.js:1:9825)
+    at nr-ext-dom-detector.js:1:4341
+    at r (nr-ext-dom-detector.js:1:4612)
+    at nr-ext-dom-detector.js:1:2055
+(anonymous) @ nr-ext-text-processor.js:1
+getSelectedNodes @ nr-ext-text-processor.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+r @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+setTimeout
+(anonymous) @ nr-ext-dom-detector.js:1
+nr-ext-text-processor.js:1 Uncaught TypeError: Cannot read properties of null (reading 'nodeName')
+    at nr-ext-text-processor.js:1:9844
+    at Array.filter (<anonymous>)
+    at getSelectedNodes (nr-ext-text-processor.js:1:9825)
+    at nr-ext-dom-detector.js:1:4341
+    at r (nr-ext-dom-detector.js:1:4612)
+    at nr-ext-dom-detector.js:1:2055
+(anonymous) @ nr-ext-text-processor.js:1
+getSelectedNodes @ nr-ext-text-processor.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+r @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+setTimeout
+(anonymous) @ nr-ext-dom-detector.js:1
+nr-ext-text-processor.js:1 Uncaught TypeError: Cannot read properties of null (reading 'nodeName')
+    at nr-ext-text-processor.js:1:9844
+    at Array.filter (<anonymous>)
+    at getSelectedNodes (nr-ext-text-processor.js:1:9825)
+    at nr-ext-dom-detector.js:1:4341
+    at r (nr-ext-dom-detector.js:1:4612)
+    at nr-ext-dom-detector.js:1:2055
+(anonymous) @ nr-ext-text-processor.js:1
+getSelectedNodes @ nr-ext-text-processor.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+r @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+setTimeout
+(anonymous) @ nr-ext-dom-detector.js:1
+nr-ext-text-processor.js:1 Uncaught TypeError: Cannot read properties of null (reading 'nodeName')
+    at nr-ext-text-processor.js:1:9844
+    at Array.filter (<anonymous>)
+    at getSelectedNodes (nr-ext-text-processor.js:1:9825)
+    at nr-ext-dom-detector.js:1:4341
+    at r (nr-ext-dom-detector.js:1:4612)
+    at nr-ext-dom-detector.js:1:2055
+(anonymous) @ nr-ext-text-processor.js:1
+getSelectedNodes @ nr-ext-text-processor.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+r @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+setTimeout
+(anonymous) @ nr-ext-dom-detector.js:1
+nr-ext-text-processor.js:1 Uncaught TypeError: Cannot read properties of null (reading 'nodeName')
+    at nr-ext-text-processor.js:1:9844
+    at Array.filter (<anonymous>)
+    at getSelectedNodes (nr-ext-text-processor.js:1:9825)
+    at nr-ext-dom-detector.js:1:4341
+    at r (nr-ext-dom-detector.js:1:4612)
+    at nr-ext-dom-detector.js:1:2055
+(anonymous) @ nr-ext-text-processor.js:1
+getSelectedNodes @ nr-ext-text-processor.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+r @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+setTimeout
+(anonymous) @ nr-ext-dom-detector.js:1
+nr-ext-text-processor.js:1 Uncaught TypeError: Cannot read properties of null (reading 'nodeName')
+    at nr-ext-text-processor.js:1:9844
+    at Array.filter (<anonymous>)
+    at getSelectedNodes (nr-ext-text-processor.js:1:9825)
+    at nr-ext-dom-detector.js:1:4341
+    at r (nr-ext-dom-detector.js:1:4612)
+    at nr-ext-dom-detector.js:1:2055
+(anonymous) @ nr-ext-text-processor.js:1
+getSelectedNodes @ nr-ext-text-processor.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+r @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+setTimeout
+(anonymous) @ nr-ext-dom-detector.js:1
+nr-ext-text-processor.js:1 Uncaught TypeError: Cannot read properties of null (reading 'nodeName')
+    at nr-ext-text-processor.js:1:9844
+    at Array.filter (<anonymous>)
+    at getSelectedNodes (nr-ext-text-processor.js:1:9825)
+    at nr-ext-dom-detector.js:1:4341
+    at r (nr-ext-dom-detector.js:1:4612)
+    at nr-ext-dom-detector.js:1:2055
+(anonymous) @ nr-ext-text-processor.js:1
+getSelectedNodes @ nr-ext-text-processor.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+r @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+setTimeout
+(anonymous) @ nr-ext-dom-detector.js:1
+nr-ext-text-processor.js:1 Uncaught TypeError: Cannot read properties of null (reading 'nodeName')
+    at nr-ext-text-processor.js:1:9844
+    at Array.filter (<anonymous>)
+    at getSelectedNodes (nr-ext-text-processor.js:1:9825)
+    at nr-ext-dom-detector.js:1:4341
+    at r (nr-ext-dom-detector.js:1:4612)
+    at nr-ext-dom-detector.js:1:2055
+(anonymous) @ nr-ext-text-processor.js:1
+getSelectedNodes @ nr-ext-text-processor.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+r @ nr-ext-dom-detector.js:1
+(anonymous) @ nr-ext-dom-detector.js:1
+setTimeout
+(anonymous) @ nr-ext-dom-detector.js:1
