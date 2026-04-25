@@ -67,6 +67,9 @@ const SESSION_ID = 'session-task-825';
 const ITEM_PENDING = 'item-pending';
 const ITEM_REJECTED = 'item-rejected';
 const ITEM_ACCEPTED = 'item-accepted';
+const ITEM_SPLIT = 'item-split';
+const ITEM_MERGE_LEAD = 'item-merge-lead';
+const ITEM_MERGE_SIB = 'item-merge-sib';
 
 interface ItemRow {
   id: string;
@@ -75,6 +78,7 @@ interface ItemRow {
   sortingDecisionState: 'pending' | 'accepted' | 'rejected' | null;
   sortingDecision: 'keep' | 'merge' | 'split' | null;
   sortingMergeWithItemId: string | null;
+  sortingMergeWithItemIds: string[] | null;
   sortingSplitAtPage: number | null;
   sortingManualOverride: boolean;
   sortingReason: string | null;
@@ -128,6 +132,7 @@ function buildSessionPayload() {
       sortingDecision: it.sortingDecision,
       sortingReason: it.sortingReason,
       sortingMergeWithItemId: it.sortingMergeWithItemId,
+      sortingMergeWithItemIds: it.sortingMergeWithItemIds,
       sortingSplitAtPage: it.sortingSplitAtPage,
       sortingDecisionState: it.sortingDecisionState,
       sortingManualOverride: it.sortingManualOverride,
@@ -225,6 +230,7 @@ beforeEach(() => {
       sortingDecisionState: 'pending',
       sortingDecision: 'keep',
       sortingMergeWithItemId: null,
+      sortingMergeWithItemIds: null,
       sortingSplitAtPage: null,
       sortingManualOverride: false,
       sortingReason: 'Standalone invoice',
@@ -237,6 +243,7 @@ beforeEach(() => {
       sortingDecisionState: 'rejected',
       sortingDecision: 'merge',
       sortingMergeWithItemId: ITEM_ACCEPTED,
+      sortingMergeWithItemIds: null,
       sortingSplitAtPage: null,
       sortingManualOverride: false,
       sortingReason: 'AI thought this was part 2',
@@ -249,6 +256,7 @@ beforeEach(() => {
       sortingDecisionState: 'accepted',
       sortingDecision: 'keep',
       sortingMergeWithItemId: null,
+      sortingMergeWithItemIds: null,
       sortingSplitAtPage: null,
       sortingManualOverride: false,
       sortingReason: 'Already-confirmed keep',
@@ -444,6 +452,226 @@ describe('BulkDocumentImportPage — sorting decision UI (Task #817 / #825)', ()
       const init = calls[0][1] as RequestInit;
       const body = JSON.parse(init.body as string);
       expect(body.action).toBe('reject');
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Inline Slice sub-section (Task #856)
+  // ---------------------------------------------------------------------------
+
+  it('shows the Slice sub-section in the detail panel when sortingDecision is "split"', async () => {
+    items.push({
+      id: ITEM_SPLIT,
+      originalName: 'split.pdf',
+      status: 'sorted',
+      sortingDecisionState: 'pending',
+      sortingDecision: 'split',
+      sortingMergeWithItemId: null,
+      sortingMergeWithItemIds: null,
+      sortingSplitAtPage: 3,
+      sortingManualOverride: false,
+      sortingReason: 'Two separate subjects',
+      sortingConfidence: 0.88,
+    });
+
+    renderPage();
+    await screen.findByTestId(`item-preview-trigger-${ITEM_SPLIT}`, undefined, { timeout: 4000 });
+
+    // Expand the card so the detail panel renders.
+    await act(async () => {
+      fireEvent.click(screen.getByTestId(`button-toggle-detail-${ITEM_SPLIT}`));
+    });
+
+    expect(
+      screen.getByTestId(`branching-slice-section-${ITEM_SPLIT}`),
+    ).toBeInTheDocument();
+  });
+
+  it('"Add slice" button appears for a pending PDF item with decision "keep" and opens the Slice sub-section', async () => {
+    renderPage();
+    await waitForRows();
+
+    // ITEM_PENDING has decision 'keep', so "Add slice" should appear after expansion.
+    await act(async () => {
+      fireEvent.click(screen.getByTestId(`button-toggle-detail-${ITEM_PENDING}`));
+    });
+
+    const addBtn = screen.getByTestId(`branching-slice-add-${ITEM_PENDING}`);
+    expect(addBtn).toBeInTheDocument();
+
+    // Clicking it should reveal the Slice sub-section.
+    await act(async () => {
+      fireEvent.click(addBtn);
+    });
+
+    expect(
+      screen.getByTestId(`branching-slice-section-${ITEM_PENDING}`),
+    ).toBeInTheDocument();
+  });
+
+  it('clicking Accept after changing the inline slice page fires action=manual with decision=split', async () => {
+    items.push({
+      id: ITEM_SPLIT,
+      originalName: 'split.pdf',
+      status: 'sorted',
+      sortingDecisionState: 'pending',
+      sortingDecision: 'split',
+      sortingMergeWithItemId: null,
+      sortingMergeWithItemIds: null,
+      sortingSplitAtPage: 2,
+      sortingManualOverride: false,
+      sortingReason: 'Split reason',
+      sortingConfidence: 0.85,
+    });
+
+    renderPage();
+    await screen.findByTestId(`item-preview-trigger-${ITEM_SPLIT}`, undefined, { timeout: 4000 });
+
+    // Expand to reveal the slice section and input.
+    await act(async () => {
+      fireEvent.click(screen.getByTestId(`button-toggle-detail-${ITEM_SPLIT}`));
+    });
+
+    // Locate and change the split-page input.
+    const input = screen.getByTestId(`sorting-picker-split-page-${ITEM_SPLIT}`);
+    await act(async () => {
+      fireEvent.change(input, { target: { value: '5' } });
+    });
+
+    // Accept button should now send the inline slice value.
+    await act(async () => {
+      fireEvent.click(screen.getByTestId(`button-sorting-accept-${ITEM_SPLIT}`));
+    });
+
+    await waitFor(() => {
+      const calls = fetchMock.mock.calls.filter((call) => {
+        const url = typeof call[0] === 'string' ? call[0] : (call[0] as URL).toString();
+        return url.endsWith(`/items/${ITEM_SPLIT}/set-sorting-decision`);
+      });
+      expect(calls).toHaveLength(1);
+      const body = JSON.parse((calls[0][1] as RequestInit).body as string);
+      expect(body.action).toBe('manual');
+      expect(body.decision).toBe('split');
+      expect(body.splitAtPage).toBe(5);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Inline Merge sub-section (Task #856)
+  // ---------------------------------------------------------------------------
+
+  it('shows the Merge sub-section in the detail panel when sortingDecision is "merge"', async () => {
+    items.push(
+      {
+        id: ITEM_MERGE_LEAD,
+        originalName: 'merge-lead.pdf',
+        status: 'sorted',
+        sortingDecisionState: 'pending',
+        sortingDecision: 'merge',
+        sortingMergeWithItemId: ITEM_MERGE_SIB,
+        sortingMergeWithItemIds: [ITEM_MERGE_SIB],
+        sortingSplitAtPage: null,
+        sortingManualOverride: false,
+        sortingReason: 'Belongs together',
+        sortingConfidence: 0.91,
+      },
+      {
+        id: ITEM_MERGE_SIB,
+        originalName: 'merge-sib.pdf',
+        status: 'sorted',
+        sortingDecisionState: 'pending',
+        sortingDecision: 'merge',
+        sortingMergeWithItemId: ITEM_MERGE_LEAD,
+        sortingMergeWithItemIds: null,
+        sortingSplitAtPage: null,
+        sortingManualOverride: false,
+        sortingReason: null,
+        sortingConfidence: null,
+      },
+    );
+
+    renderPage();
+    await screen.findByTestId(`item-preview-trigger-${ITEM_MERGE_LEAD}`, undefined, { timeout: 4000 });
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId(`button-toggle-detail-${ITEM_MERGE_LEAD}`));
+    });
+
+    expect(
+      screen.getByTestId(`branching-merge-section-${ITEM_MERGE_LEAD}`),
+    ).toBeInTheDocument();
+
+    // Both files should appear as rows.
+    expect(
+      screen.getByTestId(`branching-merge-row-${ITEM_MERGE_LEAD}-0`),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByTestId(`branching-merge-row-${ITEM_MERGE_LEAD}-1`),
+    ).toBeInTheDocument();
+  });
+
+  it('up/down buttons in the Merge sub-section reorder files; Confirm fires manual merge with updated order', async () => {
+    items.push(
+      {
+        id: ITEM_MERGE_LEAD,
+        originalName: 'part1.pdf',
+        status: 'sorted',
+        sortingDecisionState: 'pending',
+        sortingDecision: 'merge',
+        sortingMergeWithItemId: ITEM_MERGE_SIB,
+        sortingMergeWithItemIds: [ITEM_MERGE_SIB],
+        sortingSplitAtPage: null,
+        sortingManualOverride: false,
+        sortingReason: 'Need to merge',
+        sortingConfidence: 0.9,
+      },
+      {
+        id: ITEM_MERGE_SIB,
+        originalName: 'part2.pdf',
+        status: 'sorted',
+        sortingDecisionState: 'pending',
+        sortingDecision: 'merge',
+        sortingMergeWithItemId: ITEM_MERGE_LEAD,
+        sortingMergeWithItemIds: null,
+        sortingSplitAtPage: null,
+        sortingManualOverride: false,
+        sortingReason: null,
+        sortingConfidence: null,
+      },
+    );
+
+    renderPage();
+    await screen.findByTestId(`item-preview-trigger-${ITEM_MERGE_LEAD}`, undefined, { timeout: 4000 });
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId(`button-toggle-detail-${ITEM_MERGE_LEAD}`));
+    });
+
+    // Move sibling (index 1) up — it should now become index 0.
+    const moveUpBtn = screen.getByTestId(`branching-merge-move-up-${ITEM_MERGE_LEAD}-1`);
+    await act(async () => {
+      fireEvent.click(moveUpBtn);
+    });
+
+    // The confirm button should now be visible (inline state changed).
+    const confirmBtn = screen.getByTestId(`branching-merge-confirm-${ITEM_MERGE_LEAD}`);
+    expect(confirmBtn).toBeInTheDocument();
+
+    await act(async () => {
+      fireEvent.click(confirmBtn);
+    });
+
+    await waitFor(() => {
+      const calls = fetchMock.mock.calls.filter((call) => {
+        const url = typeof call[0] === 'string' ? call[0] : (call[0] as URL).toString();
+        return url.endsWith('/set-sorting-decision');
+      });
+      expect(calls.length).toBeGreaterThanOrEqual(1);
+      const last = calls[calls.length - 1];
+      const body = JSON.parse((last[1] as RequestInit).body as string);
+      expect(body.action).toBe('manual');
+      expect(body.decision).toBe('merge');
+      expect(Array.isArray(body.mergeWithItemIds)).toBe(true);
     });
   });
 });

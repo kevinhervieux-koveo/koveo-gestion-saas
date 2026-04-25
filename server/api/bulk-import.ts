@@ -750,6 +750,7 @@ export function registerBulkImportRoutes(app: Express): void {
           decision: null,
           reason: null,
           mergeWithItemId: null,
+          mergeWithItemIds: null,
           splitAtPage: null,
           decisionState: null,
           manualOverride: false,
@@ -759,6 +760,9 @@ export function registerBulkImportRoutes(app: Express): void {
           raw === 'keep' || raw === 'merge' || raw === 'split' ? raw : null;
         const reason = (json.reason as string | null | undefined) ?? null;
         const mergeWithItemId = (json.mergeWithItemId as string | null | undefined) ?? null;
+        const mergeWithItemIds = Array.isArray(json.mergeWithItemIds)
+          ? (json.mergeWithItemIds as string[])
+          : null;
         const splitAtPage = (json.splitAtPage as number | null | undefined) ?? null;
         const rawState = json.decisionState as string | null | undefined;
         const decisionState =
@@ -766,7 +770,7 @@ export function registerBulkImportRoutes(app: Express): void {
             ? rawState
             : null;
         const manualOverride = (json.manualOverride as boolean | null | undefined) ?? false;
-        return { ...base, decision, reason, mergeWithItemId, splitAtPage, decisionState, manualOverride };
+        return { ...base, decision, reason, mergeWithItemId, mergeWithItemIds, splitAtPage, decisionState, manualOverride };
       }
 
       function extractIdentificationStep(json: Record<string, unknown> | null | undefined) {
@@ -875,6 +879,7 @@ export function registerBulkImportRoutes(app: Express): void {
             sortingDecision: so.decision,
             sortingReason: so.reason,
             sortingMergeWithItemId: so.mergeWithItemId,
+            sortingMergeWithItemIds: so.mergeWithItemIds,
             sortingSplitAtPage: so.splitAtPage,
             sortingDecisionState: so.decisionState,
             sortingManualOverride: so.manualOverride,
@@ -1733,6 +1738,7 @@ export function registerBulkImportRoutes(app: Express): void {
     action: z.enum(['accept', 'reject', 'manual']),
     decision: z.enum(['keep', 'merge', 'split']).optional(),
     mergeWithItemId: z.string().min(1).optional(),
+    mergeWithItemIds: z.string().min(1).array().min(1).optional(),
     splitAtPage: z.number().int().min(1).optional(),
   });
   app.post(
@@ -1741,7 +1747,7 @@ export function registerBulkImportRoutes(app: Express): void {
     requireRole(['admin']),
     async (req: AuthenticatedRequest, res: Response) => {
       try {
-        const { action, decision: manualDecision, mergeWithItemId: manualMergeId, splitAtPage: manualSplitAt } =
+        const { action, decision: manualDecision, mergeWithItemId: manualMergeId, mergeWithItemIds: manualMergeIds, splitAtPage: manualSplitAt } =
           setSortingDecisionSchema.parse(req.body);
 
         const [item] = await db
@@ -1770,9 +1776,17 @@ export function registerBulkImportRoutes(app: Express): void {
         const effectiveDecision = isManual
           ? (manualDecision ?? 'keep')
           : ((existing.decision as string | null | undefined) ?? 'keep');
-        const effectiveMergeId = isManual
-          ? manualMergeId
-          : (existing.mergeWithItemId as string | null | undefined);
+        // Ordered list of sibling IDs for N-way merge. Prefer the explicit
+        // ordered list; fall back to the single-id field; fall back to whatever
+        // the existing decision stored.
+        const effectiveMergeIds: string[] | undefined = isManual
+          ? (manualMergeIds ?? (manualMergeId ? [manualMergeId] : undefined))
+          : (Array.isArray(existing.mergeWithItemIds)
+              ? (existing.mergeWithItemIds as string[])
+              : (existing.mergeWithItemId as string | null | undefined)
+                ? [(existing.mergeWithItemId as string)]
+                : undefined);
+        const effectiveMergeId = effectiveMergeIds?.[0];
         const effectiveSplitAt = isManual
           ? manualSplitAt
           : (existing.splitAtPage as number | null | undefined);
@@ -1783,6 +1797,7 @@ export function registerBulkImportRoutes(app: Express): void {
           ...(isManual && {
             decision: effectiveDecision,
             mergeWithItemId: effectiveMergeId ?? null,
+            mergeWithItemIds: effectiveMergeIds ?? null,
             splitAtPage: effectiveSplitAt ?? null,
             manualOverride: true,
           }),
@@ -1791,40 +1806,57 @@ export function registerBulkImportRoutes(app: Express): void {
         const isPdf = (item.mimeType ?? '').toLowerCase() === 'application/pdf';
 
         // --- MERGE ---
-        if (effectiveDecision === 'merge' && effectiveMergeId && isPdf) {
-          const [siblingItem] = await db
-            .select()
-            .from(schema.bulkImportItems)
-            .where(eq(schema.bulkImportItems.id, effectiveMergeId));
-          if (!siblingItem) {
-            return res.status(404).json({ error: 'Merge target item not found' });
-          }
-          const siblingIsPdf = (siblingItem.mimeType ?? '').toLowerCase() === 'application/pdf';
-          if (!siblingIsPdf) {
-            return res.status(400).json({ error: 'Can only merge PDF files together' });
-          }
+        if (effectiveDecision === 'merge' && effectiveMergeIds && effectiveMergeIds.length > 0 && isPdf) {
           if (!item.stagedPath || !fs.existsSync(item.stagedPath)) {
             return res.status(400).json({ error: 'Staged file missing for this item' });
           }
-          if (!siblingItem.stagedPath || !fs.existsSync(siblingItem.stagedPath)) {
-            return res.status(400).json({ error: 'Staged file missing for merge target' });
-          }
 
           const { PDFDocument } = await import('pdf-lib');
-          const bytesA = fs.readFileSync(item.stagedPath);
-          const bytesB = fs.readFileSync(siblingItem.stagedPath);
-          const pdfA = await PDFDocument.load(new Uint8Array(bytesA), { ignoreEncryption: true });
-          const pdfB = await PDFDocument.load(new Uint8Array(bytesB), { ignoreEncryption: true });
-          const indices = Array.from({ length: pdfB.getPageCount() }, (_, i) => i);
-          const copiedPages = await pdfA.copyPages(pdfB, indices);
-          for (const page of copiedPages) pdfA.addPage(page);
-          const mergedBytes = Buffer.from(await pdfA.save());
+
+          // Load the lead PDF.
+          const leadBytes = fs.readFileSync(item.stagedPath);
+          const leadPdf = await PDFDocument.load(new Uint8Array(leadBytes), { ignoreEncryption: true });
+
+          // Load and validate each sibling in order, then append.
+          const siblingItems: (typeof item)[] = [];
+          for (const siblingId of effectiveMergeIds) {
+            const [siblingItem] = await db
+              .select()
+              .from(schema.bulkImportItems)
+              .where(eq(schema.bulkImportItems.id, siblingId));
+            if (!siblingItem) {
+              return res.status(404).json({ error: `Merge target item not found: ${siblingId}` });
+            }
+            if ((siblingItem.sessionId as string) !== item.sessionId) {
+              return res.status(400).json({ error: `Merge target belongs to a different session: ${siblingId}` });
+            }
+            if ((siblingItem.mimeType ?? '').toLowerCase() !== 'application/pdf') {
+              return res.status(400).json({ error: 'Can only merge PDF files together' });
+            }
+            if (!siblingItem.stagedPath || !fs.existsSync(siblingItem.stagedPath)) {
+              return res.status(400).json({ error: `Staged file missing for merge target: ${siblingId}` });
+            }
+            const sibBytes = fs.readFileSync(siblingItem.stagedPath);
+            const sibPdf = await PDFDocument.load(new Uint8Array(sibBytes), { ignoreEncryption: true });
+            const indices = Array.from({ length: sibPdf.getPageCount() }, (_, i) => i);
+            const copiedPages = await leadPdf.copyPages(sibPdf, indices);
+            for (const page of copiedPages) leadPdf.addPage(page);
+            siblingItems.push(siblingItem);
+          }
+
+          const mergedBytes = Buffer.from(await leadPdf.save());
           const mergedHash = crypto.createHash('sha256').update(mergedBytes).digest('hex');
           const dir = stagingDirFor(item.sessionId);
           const newPath = path.join(dir, `merged_${mergedHash}_${item.originalName}`);
           fs.writeFileSync(newPath, mergedBytes);
 
-          updated_decision.mergedFromItemId = siblingItem.id;
+          updated_decision.mergeWithItemIds = effectiveMergeIds;
+          updated_decision.mergedFromItemIds = effectiveMergeIds;
+          // Keep single-id field for backward compat
+          if (siblingItems.length === 1) {
+            updated_decision.mergedFromItemId = siblingItems[0].id;
+          }
+
           const [updatedItem] = await db
             .update(schema.bulkImportItems)
             .set({
@@ -1836,22 +1868,24 @@ export function registerBulkImportRoutes(app: Express): void {
             .where(eq(schema.bulkImportItems.id, item.id))
             .returning();
 
-          // Exclude the merged-away item with a back-pointer
-          const siblingDecision: Record<string, unknown> = {
-            ...((siblingItem.sortingDecision ?? {}) as Record<string, unknown>),
-            decisionState: 'accepted',
-            decision: 'merge',
-            mergedIntoItemId: item.id,
-          };
-          await db
-            .update(schema.bulkImportItems)
-            .set({
-              status: 'rejected',
-              preExcludeStatus: siblingItem.status,
-              sortingDecision: siblingDecision,
-              updatedAt: new Date(),
-            })
-            .where(eq(schema.bulkImportItems.id, siblingItem.id));
+          // Exclude every merged-away sibling with a back-pointer to the lead.
+          for (const siblingItem of siblingItems) {
+            const siblingDecision: Record<string, unknown> = {
+              ...((siblingItem.sortingDecision ?? {}) as Record<string, unknown>),
+              decisionState: 'accepted',
+              decision: 'merge',
+              mergedIntoItemId: item.id,
+            };
+            await db
+              .update(schema.bulkImportItems)
+              .set({
+                status: 'rejected',
+                preExcludeStatus: siblingItem.status,
+                sortingDecision: siblingDecision,
+                updatedAt: new Date(),
+              })
+              .where(eq(schema.bulkImportItems.id, siblingItem.id));
+          }
 
           return res.json(updatedItem);
         }

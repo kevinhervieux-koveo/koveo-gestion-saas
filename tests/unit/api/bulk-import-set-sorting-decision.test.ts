@@ -481,6 +481,86 @@ describe('POST /api/admin/bulk-import/items/:id/set-sorting-decision (Task #817)
   });
 
   // -----------------------------------------------------------------
+  // 6. N-way ordered merge — three PDFs merged in given order (Task #856).
+  // -----------------------------------------------------------------
+  it('manual merge with mergeWithItemIds concatenates 3 PDFs in order and excludes both siblings', async () => {
+    seed('it-lead', {
+      stagedPath: '/staging/lead.pdf',
+      contentHash: 'hash-lead',
+      sortingDecision: {
+        decision: 'keep',
+        decisionState: 'pending',
+      },
+    });
+    seed('it-sib1', {
+      stagedPath: '/staging/sib1.pdf',
+      contentHash: 'hash-sib1',
+      status: 'sorted',
+    });
+    seed('it-sib2', {
+      stagedPath: '/staging/sib2.pdf',
+      contentHash: 'hash-sib2',
+      status: 'sorted',
+    });
+    stagePdf('/staging/lead.pdf', 2);
+    stagePdf('/staging/sib1.pdf', 3);
+    stagePdf('/staging/sib2.pdf', 1);
+
+    const res = await request(buildApp())
+      .post(ROUTE('it-lead'))
+      .send({ action: 'manual', decision: 'merge', mergeWithItemIds: ['it-sib1', 'it-sib2'] })
+      .expect(200);
+
+    // Lead item gets a new merged path and updated hash.
+    expect(res.body.id).toBe('it-lead');
+    expect(res.body.stagedPath).toMatch(/merged_/);
+    expect(res.body.contentHash).not.toBe('hash-lead');
+    expect(res.body.contentHash).toHaveLength(64);
+    expect(res.body.sortingDecision).toMatchObject({
+      decision: 'merge',
+      decisionState: 'accepted',
+      manualOverride: true,
+      mergeWithItemIds: ['it-sib1', 'it-sib2'],
+    });
+
+    // Combined page count = 2 + 3 + 1 = 6.
+    const mergedBuf = stagedFiles.get(res.body.stagedPath as string)!;
+    expect(mergedBuf).toBeDefined();
+    expect(mergedBuf[0]).toBe(6);
+
+    // Both siblings must be excluded with mergedIntoItemId back-pointer.
+    const sib1 = itemStore.get('it-sib1')!;
+    expect(sib1.status).toBe('rejected');
+    expect((sib1.sortingDecision as any).mergedIntoItemId).toBe('it-lead');
+    expect((sib1.sortingDecision as any).decisionState).toBe('accepted');
+
+    const sib2 = itemStore.get('it-sib2')!;
+    expect(sib2.status).toBe('rejected');
+    expect((sib2.sortingDecision as any).mergedIntoItemId).toBe('it-lead');
+    expect((sib2.sortingDecision as any).decisionState).toBe('accepted');
+
+    // No extra inserted rows — all 3 items were pre-existing.
+    expect(insertedItems).toHaveLength(0);
+  });
+
+  it('N-way merge returns 404 when one sibling ID does not exist', async () => {
+    seed('it-merge-lead', {
+      stagedPath: '/staging/ml.pdf',
+      sortingDecision: { decision: 'merge', decisionState: 'pending' },
+    });
+    seed('it-merge-ok', { stagedPath: '/staging/mok.pdf', status: 'sorted' });
+    stagePdf('/staging/ml.pdf', 2);
+    stagePdf('/staging/mok.pdf', 2);
+
+    const res = await request(buildApp())
+      .post(ROUTE('it-merge-lead'))
+      .send({ action: 'manual', decision: 'merge', mergeWithItemIds: ['it-merge-ok', 'does-not-exist'] })
+      .expect(404);
+
+    expect(res.body.error).toMatch(/Merge target item not found/);
+  });
+
+  // -----------------------------------------------------------------
   // Validation — Zod rejects unknown actions.
   // -----------------------------------------------------------------
   it('rejects an unknown action with HTTP 400', async () => {
