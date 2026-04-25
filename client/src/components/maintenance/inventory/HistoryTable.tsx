@@ -3,6 +3,8 @@ import { useMemo, useCallback } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { ColumnDef, Row } from '@tanstack/react-table';
 import { format, parseISO } from 'date-fns';
+import { fr as frLocale, enUS } from 'date-fns/locale';
+import { parseDateOnly } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -90,7 +92,8 @@ export function HistoryTable({
   buildingId,
   organizationId,
 }: HistoryTableProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const dateFnsLocale = language === 'fr' ? frLocale : enUS;
   // Simplified placeholder - no context for now
   const hasPermission = () => true;
   const { toast } = useToast();
@@ -109,7 +112,7 @@ export function HistoryTable({
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  const history: ElementHistoryEntry[] = historyResponse?.history || [];
+  const history: ElementHistoryEntry[] = historyResponse?.data || historyResponse?.history || [];
 
   // Delete history entry mutation
   const deleteHistoryMutation = useMutation({
@@ -184,11 +187,19 @@ export function HistoryTable({
       accessorKey: 'eventDate',
       header: t('htDateColumn'),
       cell: ({ row }) => {
-        const date = parseISO(row.original.eventDate);
+        const date = parseDateOnly(row.original.eventDate);
+        if (!date) {
+          return (
+            <div className="space-y-1" data-testid={`history-date-${row.original.id}`}>
+              <div className="font-medium">—</div>
+            </div>
+          );
+        }
+        const datePattern = language === 'fr' ? 'd MMMM yyyy' : 'MMM d, yyyy';
         return (
           <div className="space-y-1" data-testid={`history-date-${row.original.id}`}>
-            <div className="font-medium">{format(date, 'MMM d, yyyy')}</div>
-            <div className="text-xs text-muted-foreground">{format(date, 'EEEE')}</div>
+            <div className="font-medium">{format(date, datePattern, { locale: dateFnsLocale })}</div>
+            <div className="text-xs text-muted-foreground">{format(date, 'EEEE', { locale: dateFnsLocale })}</div>
           </div>
         );
       },
@@ -292,7 +303,7 @@ export function HistoryTable({
       },
       enableSorting: false,
     },
-  ], [getEventTypeBadge, t]);
+  ], [getEventTypeBadge, t, language, dateFnsLocale]);
 
   // Row actions
   const renderRowActions = useCallback((row: Row<ElementHistoryEntry>) => {
@@ -425,9 +436,14 @@ export function HistoryTable({
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground">{t('htLastMaintenanceLabel')}</p>
-                  <p className="text-2xl font-bold">
+                  <p className="text-2xl font-bold" data-testid="latest-entry-date-summary">
                     {summaryMetrics.latestEntry 
-                      ? format(parseISO(summaryMetrics.latestEntry.eventDate), 'MMM yyyy')
+                      ? (() => {
+                          const d = parseDateOnly(summaryMetrics.latestEntry.eventDate);
+                          return d
+                            ? format(d, 'MMM yyyy', { locale: dateFnsLocale })
+                            : summaryMetrics.latestEntry.eventDate;
+                        })()
                       : t('htLastMaintenanceNever')
                     }
                   </p>

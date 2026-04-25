@@ -3917,6 +3917,7 @@ export interface Translations {
   htSearchPlaceholder: string;
   htNoHistoryTitle: string;
   htNoHistoryDesc: string;
+  htReturnToInventory: string;
   htHistoryEntryDeletedTitle: string;
   htHistoryEntryDeletedDesc: string;
   htDeleteFailedTitle: string;
@@ -8075,6 +8076,7 @@ export const translations: Record<Language, Translations> = {
     htSearchPlaceholder: 'Search history...',
     htNoHistoryTitle: 'No maintenance history',
     htNoHistoryDesc: 'No maintenance work has been recorded for this element yet.',
+    htReturnToInventory: 'Return to inventory',
     htHistoryEntryDeletedTitle: 'History entry deleted',
     htHistoryEntryDeletedDesc: 'The maintenance history entry has been removed.',
     htDeleteFailedTitle: 'Delete failed',
@@ -12236,6 +12238,7 @@ export const translations: Record<Language, Translations> = {
     htSearchPlaceholder: 'Rechercher dans l\'historique...',
     htNoHistoryTitle: 'Aucun historique d\'entretien',
     htNoHistoryDesc: 'Aucun travail d\'entretien n\'a encore été enregistré pour cet élément.',
+    htReturnToInventory: 'Retour à l\'inventaire',
     htHistoryEntryDeletedTitle: 'Entrée d\'historique supprimée',
     htHistoryEntryDeletedDesc: 'L\'entrée d\'historique d\'entretien a été retirée.',
     htDeleteFailedTitle: 'Échec de la suppression',

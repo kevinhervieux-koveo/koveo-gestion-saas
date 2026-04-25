@@ -130,6 +130,12 @@ const ManagerMaintenanceProjects = createOptimizedLoader(
   { enableMemoryCleanup: true }
 );
 
+const ManagerElementHistoryPage = createOptimizedLoader(
+  () => import('@/pages/manager/maintenance/inventory/ElementHistoryPage'),
+  'manager-element-history-page',
+  { enableMemoryCleanup: true }
+);
+
 // Optimized lazy-loaded Residents pages
 const ResidentsResidence = createOptimizedLoader(
   () => import('@/pages/residents/residence'),
@@ -386,6 +392,7 @@ function AuthenticatedLayout() {
             <Route path='/manager/document-tags'>{() => <ProtectedRoute requiredRole="manager"><ManagerDocumentTags /></ProtectedRoute>}</Route>
             <Route path='/manager/common-spaces-stats'>{() => <ProtectedRoute requiredRole="manager"><ManagerCommonSpacesStats /></ProtectedRoute>}</Route>
             <Route path='/manager/maintenance/inventory'>{() => <ProtectedRoute requiredRole="manager"><ManagerMaintenanceInventory /></ProtectedRoute>}</Route>
+            <Route path='/manager/maintenance/elements/:elementId/history'>{() => <ProtectedRoute requiredRole="manager"><ManagerElementHistoryPage /></ProtectedRoute>}</Route>
             <Route path='/manager/maintenance/projects'>{() => <ProtectedRoute requiredRole="manager"><ManagerMaintenanceProjects /></ProtectedRoute>}</Route>
 
 
