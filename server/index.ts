@@ -4,7 +4,7 @@
  */
 import express from 'express';
 import path from 'path';
-import { createFastHealthCheck, createStatusCheck, createRootHandler, setFrontendReady, createStartupMiddleware } from './health-check';
+import { createFastHealthCheck, createStatusCheck, createRootHandler, setFrontendReady, createStartupMiddleware, renderMaintenancePage, createMaintenanceEventsHandler } from './health-check';
 import { log } from './vite';
 import { registerRoutes, HEAVY_LAZY_MOUNTS } from './routes';
 import { sanitizeInputMiddleware, buildLegacyBypassFromApp, LEGACY_BYPASS_RESOURCE_ROOTS } from './middleware/input-sanitization';
@@ -213,6 +213,22 @@ app.get('/api/health', healthCheckErrorHandler(async (req: any, res: any) => {
     ...(crossOrgDemands !== null ? { crossOrgDemands } : {}),
   });
 }));
+
+// Branded maintenance page — served during deploys while the app is not yet ready.
+// Also accessible after startup as a permanent URL (useful for linking from docs).
+app.get('/maintenance', (req, res) => {
+  res.set({
+    'Content-Type': 'text/html',
+    'Cache-Control': 'no-store, no-cache, must-revalidate',
+    'Pragma': 'no-cache',
+    'Expires': '0',
+  });
+  res.status(200).send(renderMaintenancePage(req.get('Accept-Language')));
+});
+
+// SSE readiness stream — the maintenance page subscribes here so it can
+// auto-navigate to "/" without a polling reload loop once the app is ready.
+app.get('/maintenance/events', createMaintenanceEventsHandler());
 
 // Basic API status endpoint
 app.get('/api', (req, res) => {
