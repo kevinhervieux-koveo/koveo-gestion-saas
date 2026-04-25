@@ -491,6 +491,11 @@ async function loadFullApplication(): Promise<void> {
           // they are safe to re-apply on every boot.
           '0012_demands_assignation_check.sql',
           '0013_residences_demand_assignation_check.sql',
+          // Task #945: cross-org guard on `invitations.residence_id` /
+          // `invitations.building_id`. Same shape as the 0010 demands
+          // guard. CREATE OR REPLACE FUNCTION + DROP TRIGGER IF EXISTS
+          // so it is safe to re-apply on every boot.
+          '0014_invitations_residence_building_check.sql',
         ]);
 
         // Task #939: belt-and-braces post-migration verifier. Even
