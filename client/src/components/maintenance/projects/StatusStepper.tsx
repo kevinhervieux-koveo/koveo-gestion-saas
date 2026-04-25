@@ -25,7 +25,9 @@ import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 // import { useBuildingContext } from '@/hooks/use-building-context';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/hooks/use-language';
 import { apiRequest, queryClient } from '@/lib/queryClient';
+import type { Translations } from '@/lib/i18n';
 import { MaintenanceProject, ProjectStep } from '@shared/schemas/maintenance';
 import { cn } from '@/lib/utils';
 import {
@@ -59,8 +61,8 @@ export interface StatusStepperProps {
 
 interface StatusConfig {
   key: string;
-  label: string;
-  description: string;
+  labelKey: keyof Translations;
+  descriptionKey: keyof Translations;
   icon: React.ComponentType<{ className?: string }>;
   color: string;
   bgColor: string;
@@ -73,8 +75,8 @@ interface StatusConfig {
 const statusConfigs: Record<string, StatusConfig> = {
   planned: {
     key: 'planned',
-    label: 'Planning',
-    description: 'Project is in planning phase',
+    labelKey: 'projectStatusPlanned',
+    descriptionKey: 'projectStatusPlannedDesc',
     icon: Calendar,
     color: 'text-blue-600',
     bgColor: 'bg-blue-50 border-blue-200',
@@ -82,8 +84,8 @@ const statusConfigs: Record<string, StatusConfig> = {
   },
   evaluation: {
     key: 'evaluation',
-    label: 'Evaluation',
-    description: 'Under technical evaluation',
+    labelKey: 'projectStatusEvaluation',
+    descriptionKey: 'projectStatusEvaluationDesc',
     icon: Settings,
     color: 'text-purple-600',
     bgColor: 'bg-purple-50 border-purple-200',
@@ -92,8 +94,8 @@ const statusConfigs: Record<string, StatusConfig> = {
   },
   submission: {
     key: 'submission',
-    label: 'Submission',
-    description: 'Submitted for approval',
+    labelKey: 'projectStatusSubmissionStage',
+    descriptionKey: 'projectStatusSubmissionDesc',
     icon: Clock,
     color: 'text-orange-600',
     bgColor: 'bg-orange-50 border-orange-200',
@@ -101,8 +103,8 @@ const statusConfigs: Record<string, StatusConfig> = {
   },
   pre_work: {
     key: 'pre_work',
-    label: 'Pre-Work',
-    description: 'Preparing for work execution',
+    labelKey: 'projectStatusPreWorkStage',
+    descriptionKey: 'projectStatusPreWorkDesc',
     icon: Pause,
     color: 'text-yellow-600',
     bgColor: 'bg-yellow-50 border-yellow-200',
@@ -110,8 +112,8 @@ const statusConfigs: Record<string, StatusConfig> = {
   },
   work: {
     key: 'work',
-    label: 'In Progress',
-    description: 'Work is being executed',
+    labelKey: 'projectStatusInProgressStage',
+    descriptionKey: 'projectStatusInProgressDesc',
     icon: Wrench,
     color: 'text-green-600',
     bgColor: 'bg-green-50 border-green-200',
@@ -120,8 +122,8 @@ const statusConfigs: Record<string, StatusConfig> = {
   },
   post_work: {
     key: 'post_work',
-    label: 'Post-Work',
-    description: 'Work completed, cleanup phase',
+    labelKey: 'projectStatusPostWorkStage',
+    descriptionKey: 'projectStatusPostWorkDesc',
     icon: CheckSquare,
     color: 'text-indigo-600',
     bgColor: 'bg-indigo-50 border-indigo-200',
@@ -129,8 +131,8 @@ const statusConfigs: Record<string, StatusConfig> = {
   },
   completed: {
     key: 'completed',
-    label: 'Completed',
-    description: 'Project fully completed',
+    labelKey: 'projectStatusCompletedStage',
+    descriptionKey: 'projectStatusCompletedDesc',
     icon: CheckCircle2,
     color: 'text-emerald-600',
     bgColor: 'bg-emerald-50 border-emerald-200',
@@ -160,6 +162,7 @@ export function StatusStepper({
   const hasPermission = () => true;
   const buildingId = 'placeholder-building-id';
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [pendingStatus, setPendingStatus] = useState<string | null>(null);
 
   // Status update mutation
@@ -175,18 +178,20 @@ export function StatusStepper({
         queryKey: ['/api/maintenance/buildings', buildingId, 'projects'] 
       });
       
+      const updatedConfig = statusConfigs[response.project.status];
+      const statusLabel = updatedConfig ? t(updatedConfig.labelKey) : response.project.status;
       toast({
-        title: "Status Updated",
-        description: `Project status has been updated to ${statusConfigs[response.project.status]?.label}.`,
+        title: t('statusStepperToastUpdatedTitle'),
+        description: t('statusStepperToastUpdatedDesc').replace('{status}', statusLabel),
       });
       
       onStatusChange?.(response.project.status);
       setPendingStatus(null);
     },
     onError: (error: any) => {
-      const message = error.response?.data?.message || 'Failed to update status';
+      const message = error.response?.data?.message || t('statusStepperToastUpdateFailedDesc');
       toast({
-        title: "Update Failed",
+        title: t('statusStepperToastUpdateFailed'),
         description: message,
         variant: "destructive",
       });
@@ -197,8 +202,8 @@ export function StatusStepper({
   const handleStatusChange = (newStatus: string) => {
     if (!hasPermission('canEditMaintenance')) {
       toast({
-        title: "Permission Denied",
-        description: "You don't have permission to update project status.",
+        title: t('projectFormToastPermissionDenied'),
+        description: t('statusStepperToastPermissionDenied'),
         variant: "destructive",
       });
       return;
@@ -279,9 +284,9 @@ export function StatusStepper({
     return (
       <div className={cn("space-y-2", className)} data-testid={`status-stepper-${project.id}`}>
         <div className="flex items-center justify-between">
-          <h4 className="text-sm font-medium">Project Status</h4>
+          <h4 className="text-sm font-medium">{t('statusStepperLabel')}</h4>
           <Badge variant="outline" className={statusConfigs[project.status]?.bgColor}>
-            {statusConfigs[project.status]?.label}
+            {statusConfigs[project.status] ? t(statusConfigs[project.status].labelKey) : project.status}
           </Badge>
         </div>
         <Progress value={getStepProgress()} className="h-2" />
@@ -293,10 +298,10 @@ export function StatusStepper({
     <Card className={cn("w-full", className)} data-testid={`status-stepper-${project.id}`}>
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">Project Status</CardTitle>
+          <CardTitle className="text-lg">{t('statusStepperLabel')}</CardTitle>
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">
-              {Math.round(getStepProgress())}% Complete
+              {Math.round(getStepProgress())}{t('statusStepperPercentComplete')}
             </span>
             <Progress value={getStepProgress()} className="w-20 h-2" />
           </div>
@@ -342,15 +347,15 @@ export function StatusStepper({
                       </TooltipTrigger>
                       <TooltipContent>
                         <div className="space-y-1">
-                          <p className="font-medium">{config.label}</p>
-                          <p className="text-xs text-muted-foreground">{config.description}</p>
+                          <p className="font-medium">{t(config.labelKey)}</p>
+                          <p className="text-xs text-muted-foreground">{t(config.descriptionKey)}</p>
                           {timestamp && showTimestamps && (
                             <p className="text-xs">
                               {format(new Date(timestamp), 'MMM dd, yyyy HH:mm')}
                             </p>
                           )}
                           {isAvailable && !isCurrent && (
-                            <p className="text-xs text-blue-600">Click to advance</p>
+                            <p className="text-xs text-blue-600">{t('statusStepperClickToAdvance')}</p>
                           )}
                         </div>
                       </TooltipContent>
@@ -365,7 +370,7 @@ export function StatusStepper({
                       isCompleted && "text-green-600",
                       !isCurrent && !isCompleted && "text-gray-500"
                     )}>
-                      {config.label}
+                      {t(config.labelKey)}
                     </p>
                     {timestamp && showTimestamps && (
                       <p className="text-xs text-muted-foreground mt-1">
@@ -407,15 +412,15 @@ export function StatusStepper({
             
             <div className="flex-1 space-y-1">
               <h4 className="font-medium text-sm">
-                {statusConfigs[project.status]?.label}
+                {statusConfigs[project.status] ? t(statusConfigs[project.status].labelKey) : project.status}
               </h4>
               <p className="text-sm text-muted-foreground">
-                {statusConfigs[project.status]?.description}
+                {statusConfigs[project.status] ? t(statusConfigs[project.status].descriptionKey) : ''}
               </p>
               
               {showTimestamps && project.updatedAt && (
                 <p className="text-xs text-muted-foreground">
-                  Last updated: {format(new Date(project.updatedAt), 'MMM dd, yyyy HH:mm')}
+                  {t('statusStepperLastUpdated')} {format(new Date(project.updatedAt), 'MMM dd, yyyy HH:mm')}
                 </p>
               )}
             </div>
@@ -443,7 +448,7 @@ export function StatusStepper({
                     ) : (
                       <ChevronRight className="h-4 w-4 mr-1" />
                     )}
-                    {isForward ? 'Advance to' : 'Return to'} {targetConfig.label}
+                    {isForward ? t('statusStepperAdvanceTo') : t('statusStepperReturnTo')} {t(targetConfig.labelKey)}
                   </Button>
                 );
               })}
@@ -455,25 +460,25 @@ export function StatusStepper({
         <AlertDialog open={!!pendingStatus} onOpenChange={() => setPendingStatus(null)}>
           <AlertDialogContent data-testid={`status-confirmation-${project.id}`}>
             <AlertDialogHeader>
-              <AlertDialogTitle>Confirm Status Change</AlertDialogTitle>
+              <AlertDialogTitle>{t('statusStepperConfirmTitle')}</AlertDialogTitle>
               <AlertDialogDescription>
-                Are you sure you want to change the project status to{' '}
-                <strong>{pendingStatus && statusConfigs[pendingStatus]?.label}</strong>?
+                {t('statusStepperConfirmDescPrefix')}{' '}
+                <strong>{pendingStatus && statusConfigs[pendingStatus] ? t(statusConfigs[pendingStatus].labelKey) : ''}</strong>?
                 {pendingStatus === 'completed' && (
                   <span className="block mt-2 text-yellow-600">
                     <AlertTriangle className="h-4 w-4 inline mr-1" />
-                    This will mark the project as fully completed.
+                    {t('statusStepperConfirmCompletedNote')}
                   </span>
                 )}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
               <AlertDialogAction 
                 onClick={confirmStatusChange}
                 disabled={updateStatusMutation.isPending}
               >
-                {updateStatusMutation.isPending ? 'Updating...' : 'Confirm'}
+                {updateStatusMutation.isPending ? t('statusStepperUpdating') : t('statusStepperConfirm')}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

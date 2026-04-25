@@ -19,6 +19,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useReopenTargets, useReopenWorkflowStep } from '@/hooks/useProjectWorkflow';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/hooks/use-language';
+import type { Translations } from '@/lib/i18n';
 import { RotateCcw, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
@@ -30,13 +32,13 @@ interface ReopenStepDialogProps {
   triggerText?: string;
 }
 
-const STATUS_LABELS: Record<string, string> = {
-  planned: 'Planning',
-  submission: 'Vendor Submission',
-  pre_work: 'Pre-Work',
-  in_progress: 'In Progress',
-  post_work: 'Post-Work',
-  completed: 'Completed'
+const STATUS_LABEL_KEYS: Record<string, keyof Translations> = {
+  planned: 'reopenStepStatusPlanning',
+  submission: 'reopenStepStatusVendorSubmission',
+  pre_work: 'reopenStepStatusPreWork',
+  in_progress: 'reopenStepStatusInProgress',
+  post_work: 'reopenStepStatusPostWork',
+  completed: 'reopenStepStatusCompleted',
 };
 
 export function ReopenStepDialog({ 
@@ -44,12 +46,19 @@ export function ReopenStepDialog({
   currentStatus, 
   onSuccess, 
   disabled = false,
-  triggerText = 'Reopen Step'
+  triggerText
 }: ReopenStepDialogProps) {
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [selectedTarget, setSelectedTarget] = useState<string>('');
   const [reason, setReason] = useState('');
+
+  const getStatusLabel = (status: string) => {
+    const key = STATUS_LABEL_KEYS[status];
+    return key ? t(key) : status;
+  };
+  const resolvedTriggerText = triggerText ?? t('reopenStepTrigger');
 
   const { 
     data: allowedTargets = [], 
@@ -62,8 +71,8 @@ export function ReopenStepDialog({
   const handleReopen = () => {
     if (!selectedTarget) {
       toast({
-        title: 'Please select a target',
-        description: 'You must select which phase to reopen to.',
+        title: t('reopenStepSelectTargetTitle'),
+        description: t('reopenStepSelectTargetDesc'),
         variant: 'destructive',
       });
       return;
@@ -78,8 +87,8 @@ export function ReopenStepDialog({
       {
         onSuccess: () => {
           toast({
-            title: 'Step Reopened',
-            description: `Successfully reopened to ${STATUS_LABELS[selectedTarget] || selectedTarget} phase.`,
+            title: t('reopenStepSuccessTitle'),
+            description: t('reopenStepSuccessDesc').replace('{phase}', getStatusLabel(selectedTarget)),
           });
           setOpen(false);
           setSelectedTarget('');
@@ -88,8 +97,8 @@ export function ReopenStepDialog({
         },
         onError: (error: any) => {
           toast({
-            title: 'Failed to Reopen Step',
-            description: error.message || 'An error occurred while trying to reopen the step.',
+            title: t('failedToReopenStepTitle'),
+            description: error.message || t('reopenStepFailedDesc'),
             variant: 'destructive',
           });
         }
@@ -118,14 +127,14 @@ export function ReopenStepDialog({
           data-testid="button-reopen-step-trigger"
         >
           <RotateCcw className="h-4 w-4" />
-          {triggerText}
+          {resolvedTriggerText}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Reopen Workflow Step</DialogTitle>
+          <DialogTitle>{t('reopenStepDialogTitle')}</DialogTitle>
           <DialogDescription>
-            Select which previous phase you'd like to reopen to. Your progress in future phases will be preserved.
+            {t('reopenStepDialogDescription')}
           </DialogDescription>
         </DialogHeader>
         
@@ -134,32 +143,32 @@ export function ReopenStepDialog({
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                Failed to load available reopen targets. Please try again.
+                {t('reopenStepLoadTargetsFailed')}
               </AlertDescription>
             </Alert>
           ) : !hasTargets && !isLoadingTargets ? (
             <Alert>
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                No previous phases available to reopen to. The project must have completed at least one phase to use this feature.
+                {t('reopenStepNoTargetsAvailable')}
               </AlertDescription>
             </Alert>
           ) : (
             <>
               <div className="space-y-2">
-                <Label htmlFor="target-status">Target Phase</Label>
+                <Label htmlFor="target-status">{t('reopenStepTargetPhaseLabel')}</Label>
                 <Select
                   value={selectedTarget}
                   onValueChange={setSelectedTarget}
                   disabled={isLoadingTargets || isReopening}
                 >
                   <SelectTrigger data-testid="select-reopen-target">
-                    <SelectValue placeholder={isLoadingTargets ? "Loading phases..." : "Select a phase to reopen to"} />
+                    <SelectValue placeholder={isLoadingTargets ? t('reopenStepLoadingPhasesPlaceholder') : t('reopenStepSelectPhasePlaceholder')} />
                   </SelectTrigger>
                   <SelectContent>
                     {allowedTargets.map((status: string) => (
                       <SelectItem key={status} value={status}>
-                        {STATUS_LABELS[status] || status}
+                        {getStatusLabel(status)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -167,12 +176,12 @@ export function ReopenStepDialog({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="reason">Reason (optional)</Label>
+                <Label htmlFor="reason">{t('reopenStepReasonLabel')}</Label>
                 <Textarea
                   id="reason"
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
-                  placeholder="Explain why you're reopening this step..."
+                  placeholder={t('reopenStepReasonPlaceholder')}
                   disabled={isReopening}
                   className="min-h-[80px]"
                   data-testid="textarea-reopen-reason"
@@ -183,7 +192,7 @@ export function ReopenStepDialog({
                 <Alert>
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>
-                    <strong>Note:</strong> Reopening to {STATUS_LABELS[selectedTarget] || selectedTarget} will preserve your progress in future phases. You can continue working where you left off.
+                    <strong>{t('reopenStepNoteLabel')}</strong> {t('reopenStepNoteBody').replace('{phase}', getStatusLabel(selectedTarget))}
                   </AlertDescription>
                 </Alert>
               )}
@@ -198,14 +207,14 @@ export function ReopenStepDialog({
             disabled={isReopening}
             data-testid="button-reopen-cancel"
           >
-            Cancel
+            {t('cancel')}
           </Button>
           <Button 
             onClick={handleReopen}
             disabled={!selectedTarget || isReopening || !hasTargets}
             data-testid="button-reopen-confirm"
           >
-            {isReopening ? 'Reopening...' : 'Reopen to Phase'}
+            {isReopening ? t('reopenStepReopening') : t('reopenStepReopenToPhase')}
           </Button>
         </div>
       </DialogContent>

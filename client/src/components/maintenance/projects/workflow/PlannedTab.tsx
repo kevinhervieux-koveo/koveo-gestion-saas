@@ -27,6 +27,7 @@ import { useUpdateProjectDetails, useMarkStatusComplete, type ProjectWorkflowSta
 import { ReopenStepDialog } from './ReopenStepDialog';
 import { MaintenanceProject, BuildingElement } from '@shared/schemas/maintenance';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/hooks/use-language';
 import { useBuildingContext } from '@/hooks/use-building-context';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { cn, formatStatus, parseDateOnly } from '@/lib/utils';
@@ -63,6 +64,7 @@ type PlannedTabData = z.infer<typeof plannedTabSchema>;
  */
 export function PlannedTab({ project, workflowState, onUpdate, onAdvanceToNext }: PlannedTabProps) {
   const { toast } = useToast();
+  const { t } = useLanguage();
   const { buildingId } = useBuildingContext();
   const [hasChanges, setHasChanges] = useState(false);
   const [initialDataLoaded, setInitialDataLoaded] = useState(false);
@@ -196,8 +198,8 @@ export function PlannedTab({ project, workflowState, onUpdate, onAdvanceToNext }
         setHasChanges(false);
         onUpdate();
         toast({
-          title: 'Success',
-          description: 'Project planning completed and moved to submission stage.',
+          title: t('plannedTabSuccessTitle'),
+          description: t('plannedTabSuccessDesc'),
         });
         // Advance to the next tab
         if (onAdvanceToNext) {
@@ -257,8 +259,8 @@ export function PlannedTab({ project, workflowState, onUpdate, onAdvanceToNext }
     } catch (error) {
       console.error('Error updating project elements:', error);
       toast({
-        title: 'Warning',
-        description: 'Project saved but there was an issue updating the selected elements.',
+        title: t('plannedTabWarningTitle'),
+        description: t('plannedTabElementsUpdateWarningDesc'),
         variant: 'destructive',
       });
     }
@@ -270,9 +272,9 @@ export function PlannedTab({ project, workflowState, onUpdate, onAdvanceToNext }
     <div className="h-full flex flex-col" data-testid="planned-tab">
       {/* Header */}
       <div className="space-y-1 mb-6">
-        <h3 className="text-lg font-semibold">Project Planning</h3>
+        <h3 className="text-lg font-semibold">{t('plannedTabHeader')}</h3>
         <p className="text-sm text-muted-foreground">
-          Define the project description, planning timeline, and estimated cost
+          {t('plannedTabSubheader')}
         </p>
       </div>
 
@@ -286,17 +288,17 @@ export function PlannedTab({ project, workflowState, onUpdate, onAdvanceToNext }
               name="planningDescription"
               render={({ field }) => (
                 <FormItem data-testid="form-item-description">
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel>{t('plannedTabDescriptionLabel')}</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Describe the maintenance work needed, including scope, specific areas, and any special requirements..."
+                      placeholder={t('plannedTabDescriptionPlaceholder')}
                       rows={4}
                       data-testid="textarea-description"
                       {...field}
                     />
                   </FormControl>
                   <FormDescription>
-                    Provide a detailed description of the planned maintenance work
+                    {t('plannedTabDescriptionHelp')}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -309,7 +311,7 @@ export function PlannedTab({ project, workflowState, onUpdate, onAdvanceToNext }
               name="planningStartDate"
               render={({ field }) => (
                 <FormItem data-testid="form-item-start-planning-date">
-                  <FormLabel>Start Planning Date</FormLabel>
+                  <FormLabel>{t('plannedTabStartDateLabel')}</FormLabel>
                   <FormControl>
                     <Input
                       type="date"
@@ -326,7 +328,7 @@ export function PlannedTab({ project, workflowState, onUpdate, onAdvanceToNext }
                     />
                   </FormControl>
                   <FormDescription>
-                    When do you plan to start working on this project?
+                    {t('plannedTabStartDateHelp')}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -339,7 +341,7 @@ export function PlannedTab({ project, workflowState, onUpdate, onAdvanceToNext }
               name="estimatedCost"
               render={({ field }) => (
                 <FormItem data-testid="form-item-estimated-cost">
-                  <FormLabel>Estimated Cost</FormLabel>
+                  <FormLabel>{t('plannedTabEstimatedCostLabel')}</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <DollarSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -358,7 +360,7 @@ export function PlannedTab({ project, workflowState, onUpdate, onAdvanceToNext }
                     </div>
                   </FormControl>
                   <FormDescription>
-                    Estimated total cost for this project in dollars
+                    {t('plannedTabEstimatedCostHelp')}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -371,7 +373,7 @@ export function PlannedTab({ project, workflowState, onUpdate, onAdvanceToNext }
               name="financialYear"
               render={({ field }) => (
                 <FormItem data-testid="form-item-financial-year">
-                  <FormLabel>Financial Year</FormLabel>
+                  <FormLabel>{t('plannedTabFinancialYearLabel')}</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
@@ -385,7 +387,7 @@ export function PlannedTab({ project, workflowState, onUpdate, onAdvanceToNext }
                     />
                   </FormControl>
                   <FormDescription>
-                    The financial year for budget assignment. Costs will be allocated to the closest month in this year.
+                    {t('plannedTabFinancialYearHelp')}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -395,7 +397,7 @@ export function PlannedTab({ project, workflowState, onUpdate, onAdvanceToNext }
             {/* Status Display */}
             <div className="flex items-center justify-between pt-4">
               <div className="text-sm text-muted-foreground">
-                Current Status: <span className="font-medium capitalize">{formatStatus(workflowState.currentStatus)}</span>
+                {t('plannedTabCurrentStatus')} <span className="font-medium capitalize">{formatStatus(workflowState.currentStatus)}</span>
               </div>
             </div>
           </form>
@@ -410,24 +412,24 @@ export function PlannedTab({ project, workflowState, onUpdate, onAdvanceToNext }
             name="selectedElements"
             render={({ field }) => (
               <FormItem data-testid="form-item-building-elements">
-                <FormLabel>Building Elements</FormLabel>
+                <FormLabel>{t('buildingElements')}</FormLabel>
                 <FormControl>
                   <BuildingElementsMultiSelect
                     value={field.value}
                     onValueChange={field.onChange}
                     elements={availableElements}
                     disabled={isLoadingElements}
-                    placeholder={isLoadingElements ? "Loading elements..." : "Select building elements for this project"}
-                    searchPlaceholder="Search by name, code, or condition..."
-                    emptyMessage={isLoadingElements ? "Loading..." : "No building elements found"}
+                    placeholder={isLoadingElements ? t('plannedTabBuildingElementsLoadingPlaceholder') : t('plannedTabBuildingElementsPlaceholder')}
+                    searchPlaceholder={t('plannedTabBuildingElementsSearchPlaceholder')}
+                    emptyMessage={isLoadingElements ? t('plannedTabBuildingElementsLoading') : t('plannedTabBuildingElementsNotFound')}
                     data-testid="select-building-elements"
                   />
                 </FormControl>
                 <FormDescription>
-                  Select the building elements that will be affected by this maintenance project.
+                  {t('plannedTabBuildingElementsHelp')}
                   {availableElements.length === 0 && !isLoadingElements && (
                     <span className="text-amber-600 dark:text-amber-400 block mt-1">
-                      No building elements available. You may need to add elements to this building first.
+                      {t('plannedTabNoBuildingElementsAvailable')}
                     </span>
                   )}
                 </FormDescription>
@@ -445,12 +447,12 @@ export function PlannedTab({ project, workflowState, onUpdate, onAdvanceToNext }
             projectId={project.id}
             currentStatus={workflowState.currentStatus}
             onSuccess={onUpdate}
-            triggerText="Reopen Step"
+            triggerText={t('reopenStepTrigger')}
           />
           
           <div className="text-sm text-muted-foreground">
             {workflowState.nextStatus && (
-              <>Next: <span className="capitalize">{formatStatus(workflowState.nextStatus)}</span></>
+              <>{t('workflowNextLabel')} <span className="capitalize">{formatStatus(workflowState.nextStatus)}</span></>
             )}
           </div>
         </div>
@@ -463,7 +465,7 @@ export function PlannedTab({ project, workflowState, onUpdate, onAdvanceToNext }
               disabled={isUpdating} 
               data-testid="button-save-changes"
             >
-              {isUpdating ? 'Saving...' : 'Save Changes'}
+              {isUpdating ? t('workflowSavingButton') : t('workflowSaveChangesButton')}
             </Button>
           )}
           
@@ -488,7 +490,7 @@ export function PlannedTab({ project, workflowState, onUpdate, onAdvanceToNext }
               data-testid="button-complete-planning"
               className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700"
             >
-              {isMarkingComplete ? 'Completing...' : 'Complete Planning Phase'}
+              {isMarkingComplete ? t('workflowCompletingButton') : t('workflowCompletePlanningPhaseButton')}
             </Button>
           )}
         </div>

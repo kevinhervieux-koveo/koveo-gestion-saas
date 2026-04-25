@@ -35,6 +35,7 @@ import {
 } from '@/hooks/useProjectWorkflow';
 import { MaintenanceProject } from '@shared/schemas/maintenance';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/hooks/use-language';
 import { cn, formatStatus } from '@/lib/utils';
 import { ReopenStepDialog } from './ReopenStepDialog';
 import { TaskDateInput } from './TaskDateInput';
@@ -76,6 +77,7 @@ type NotificationData = z.infer<typeof notificationSchema>;
  */
 export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps) {
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   // Defensive null check for project data
   if (!project) {
@@ -160,7 +162,7 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
         projectId: project.id,
         taskData: {
           phase: 'pre_work',
-          taskName: 'New Task',
+          taskName: t('preWorkNewTaskDefault'),
           description: '',
           orderIndex: newTaskIndex,
           isCompleted: false,
@@ -333,8 +335,8 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
     // completion and leave stale/inconsistent task state on the server.
     if (createTask.isPending || updateTask.isPending || deleteTask.isPending) {
       toast({
-        title: 'Please wait',
-        description: 'Saving task changes. Try again in a moment.',
+        title: t('workflowPleaseWaitTitle'),
+        description: t('workflowSavingTaskChangesDescription'),
       });
       return;
     }
@@ -371,7 +373,7 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
       }).catch(() => {
         toast({
           title: "Error",
-          description: "Failed to save changes before completing phase",
+          description: t('workflowFailedToSavePhaseDescription'),
           variant: "destructive",
         });
       });
@@ -391,26 +393,26 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
 
 
   const timingOptions = [
-    { value: 'one_day_before', label: '1 Day Before' },
-    { value: 'three_days_before', label: '3 Days Before' },
-    { value: 'one_week_before', label: '1 Week Before' },
-    { value: 'custom', label: 'Custom' },
+    { value: 'one_day_before', label: t('preWorkTimingOneDayBefore') },
+    { value: 'three_days_before', label: t('preWorkTimingThreeDaysBefore') },
+    { value: 'one_week_before', label: t('preWorkTimingOneWeekBefore') },
+    { value: 'custom', label: t('preWorkTimingCustom') },
   ];
 
   return (
     <div className="space-y-6" data-testid="pre-work-tab">
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <h3 className="text-lg font-semibold">Pre-Work Preparation</h3>
+          <h3 className="text-lg font-semibold">{t('preWorkPreparationHeader')}</h3>
           <p className="text-sm text-muted-foreground">
-            Set up preparation tasks and user notifications
+            {t('preWorkSetupTasksSubheader')}
           </p>
         </div>
         
         {/* Skip option info */}
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Info className="h-4 w-4" />
-          <span>This step can be skipped in tab navigation</span>
+          <span>{t('workflowStepCanBeSkipped')}</span>
         </div>
       </div>
 
@@ -423,10 +425,10 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
                 <div>
                   <CardTitle className="flex items-center gap-2">
                     <ListChecks className="h-5 w-5" />
-                    Preparation Tasks
+                    {t('preWorkPreparationTasksTitle')}
                   </CardTitle>
                   <CardDescription>
-                    Define tasks that need to be completed before work begins
+                    {t('preWorkPreparationTasksDescription')}
                   </CardDescription>
                 </div>
                 <Button
@@ -437,7 +439,7 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
                   data-testid="button-add-preWork-task"
                 >
                   <Plus className="h-4 w-4 mr-1" />
-                  Add Task
+                  {t('preWorkAddTaskButton')}
                 </Button>
               </div>
             </CardHeader>
@@ -451,8 +453,8 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
               ) : preWorkTasks.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   <ListChecks className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>No preparation tasks defined</p>
-                  <p className="text-sm mt-1">Add tasks that need to be completed before work starts</p>
+                  <p>{t('preWorkNoTasksDefined')}</p>
+                  <p className="text-sm mt-1">{t('preWorkAddTasksHelper')}</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -466,7 +468,7 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
                             value={getTaskValue(task, 'taskName')}
                             onChange={(e) => handleTaskEdit(task.id, 'taskName', e.target.value)}
                             onBlur={() => handleTaskFieldBlur(task.id)}
-                            placeholder="Task description (required)"
+                            placeholder={t('preWorkTaskDescriptionPlaceholder')}
                             className="font-medium"
                             data-testid={`input-task-description-${index}`}
                           />
@@ -502,7 +504,7 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
                               data-testid={`button-task-toggle-${index}`}
                             >
                               {task.isCompleted ? <Check className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
-                              {task.isCompleted ? 'Done' : 'Pending'}
+                              {task.isCompleted ? t('preWorkTaskDoneBadge') : t('preWorkTaskPendingBadge')}
                             </Button>
                           </div>
                         </div>
@@ -530,10 +532,10 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Bell className="h-5 w-5" />
-                Notification Settings
+                {t('preWorkNotificationSettingsTitle')}
               </CardTitle>
               <CardDescription>
-                Set up automated reminders that will be sent to all users linked to this building
+                {t('preWorkNotificationSettingsDescription')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -544,10 +546,10 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
                     name="messageText"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Notification Message</FormLabel>
+                        <FormLabel>{t('preWorkNotificationMessageLabel')}</FormLabel>
                         <FormControl>
                           <Textarea
-                            placeholder="Enter notification message..."
+                            placeholder={t('preWorkNotificationMessagePlaceholder')}
                             {...field}
                             data-testid="textarea-notification-message"
                           />
@@ -563,7 +565,7 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
                       name="timingType"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Timing</FormLabel>
+                          <FormLabel>{t('preWorkTimingLabel')}</FormLabel>
                           <Select onValueChange={field.onChange} value={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="select-notification-timing">
@@ -589,7 +591,7 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
                         name="customDaysBefore"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Days Before</FormLabel>
+                            <FormLabel>{t('preWorkDaysBeforeLabel')}</FormLabel>
                             <FormControl>
                               <Input
                                 type="number"
@@ -616,12 +618,12 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
                       {editingNotification ? (
                         <>
                           <Check className="h-4 w-4 mr-1" />
-                          Update Notification
+                          {t('preWorkUpdateNotificationButton')}
                         </>
                       ) : (
                         <>
                           <Plus className="h-4 w-4 mr-1" />
-                          Add Notification
+                          {t('preWorkAddNotificationButton')}
                         </>
                       )}
                     </Button>
@@ -634,7 +636,7 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
                         data-testid="button-cancel-edit"
                       >
                         <X className="h-4 w-4 mr-1" />
-                        Cancel
+                        {t('preWorkCancelButton')}
                       </Button>
                     )}
                   </div>
@@ -646,7 +648,7 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
                 <div className="mt-6 pt-6 border-t">
                   <div className="flex items-center gap-2 mb-4">
                     <Bell className="h-4 w-4 text-muted-foreground" />
-                    <h4 className="font-medium text-sm">Created Notifications ({notifications.length})</h4>
+                    <h4 className="font-medium text-sm">{t('preWorkCreatedNotificationsTemplate').replace('{count}', String(notifications.length))}</h4>
                   </div>
                   <div className="space-y-3">
                     {notifications.map((notification) => (
@@ -656,19 +658,19 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
                             <div className="flex items-center gap-2 mb-2">
                               <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                                 {notification.timingType === 'custom' 
-                                  ? `${notification.customDaysBefore} days before`
+                                  ? t('preWorkCustomDaysBeforeTemplate').replace('{days}', String(notification.customDaysBefore))
                                   : formatStatus(notification.timingType, 'Not specified').replace('_', ' ')
                                 }
                               </span>
                               {notification.isSent ? (
                                 <Badge variant="secondary" className="text-green-600 bg-green-50">
                                   <Check className="h-3 w-3 mr-1" />
-                                  Sent
+                                  {t('preWorkSentBadge')}
                                 </Badge>
                               ) : (
                                 <Badge variant="secondary" className="text-orange-600 bg-orange-50">
                                   <Clock className="h-3 w-3 mr-1" />
-                                  Pending
+                                  {t('preWorkPendingBadge')}
                                 </Badge>
                               )}
                             </div>
@@ -717,7 +719,7 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
             projectId={project.id}
             currentStatus={workflowState.currentStatus}
             onSuccess={onUpdate}
-            triggerText="Reopen Step"
+            triggerText={t('reopenStepTrigger')}
           />
           
           {hasChanges && (
@@ -727,13 +729,13 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
               disabled={updateTask.isPending}
               data-testid="button-save-changes"
             >
-              {updateTask.isPending ? 'Saving...' : 'Save Changes'}
+              {updateTask.isPending ? t('workflowSavingButton') : t('workflowSaveChangesButton')}
             </Button>
           )}
           
           <div className="text-sm text-muted-foreground">
             {workflowState.nextStatus && (
-              <>Next: <span className="capitalize">{formatStatus(workflowState.nextStatus)}</span></>
+              <>{t('workflowNextLabel')} <span className="capitalize">{formatStatus(workflowState.nextStatus)}</span></>
             )}
           </div>
         </div>
@@ -746,7 +748,7 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
             data-testid="button-mark-prework-complete"
           >
             <CheckCircle2 className="h-4 w-4" />
-            {isMarkingComplete ? 'Completing...' : 'Complete Pre-Work Phase'}
+            {isMarkingComplete ? t('preWorkCompletingButton') : t('preWorkCompletePhaseButton')}
           </Button>
         )}
       </div>

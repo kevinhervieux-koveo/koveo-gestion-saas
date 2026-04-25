@@ -28,6 +28,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useBuildingContext } from '@/hooks/use-building-context';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/hooks/use-language';
 import { apiRequest } from '@/lib/queryClient';
 import { insertMaintenanceProjectSchema, MaintenanceProject, EvaluationSuggestion } from '@shared/schemas/maintenance';
 import { cn } from '@/lib/utils';
@@ -85,16 +86,6 @@ const projectFormSchema = insertMaintenanceProjectSchema
 
 type ProjectFormData = z.infer<typeof projectFormSchema>;
 
-const projectStatuses = [
-  { value: 'planned', label: 'Planned', description: 'Project is in planning phase' },
-  { value: 'evaluation', label: 'Evaluation', description: 'Under evaluation' },
-  { value: 'submission', label: 'Submission', description: 'Submitted for approval' },
-  { value: 'pre_work', label: 'Pre-Work', description: 'Preparing for work' },
-  { value: 'work', label: 'In Progress', description: 'Work is ongoing' },
-  { value: 'post_work', label: 'Post-Work', description: 'Work completed, cleanup phase' },
-  { value: 'completed', label: 'Completed', description: 'Project finished' },
-];
-
 /**
  * ProjectForm component for creating and editing maintenance projects
  * Uses FormModal foundation with comprehensive validation and integration
@@ -110,6 +101,7 @@ export function ProjectForm({
   // Get building context for real buildingId and permissions
   const { buildingId, organizationId: contextOrganizationId, hasPermission } = useBuildingContext();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [error, setError] = useState<string | null>(null);
   
   // Fetch building's financial year for Quick Project default date
@@ -283,12 +275,15 @@ export function ProjectForm({
       
       return result;
     },
-    successTitle: mode === 'create' ? 'Project Created' : 'Project Updated',
-    successMessage: (response) =>
-      `Project "${response.project?.title || response.data?.title}" has been ${mode === 'create' ? 'created' : 'updated'} successfully.`,
-    errorTitle: mode === 'create' ? 'Creation Failed' : 'Update Failed',
+    successTitle: mode === 'create' ? t('projectFormToastCreatedTitle') : t('projectFormToastUpdatedTitle'),
+    successMessage: (response) => {
+      const projectTitle = response.project?.title || response.data?.title || '';
+      const template = mode === 'create' ? t('projectFormToastCreatedDesc') : t('projectFormToastUpdatedDesc');
+      return template.replace('{title}', projectTitle);
+    },
+    errorTitle: mode === 'create' ? t('projectFormToastCreationFailed') : t('projectFormToastUpdateFailed'),
     errorMessage: (error: any) =>
-      error?.response?.data?.message || error?.message || 'An error occurred',
+      error?.response?.data?.message || error?.message || t('projectFormToastErrorOccurred'),
     invalidateQueries: (response, queryClient) => {
       // Use the buildingId from the actual form data that was used to create the project
       // This ensures we invalidate the correct cache even if the context buildingId differs
@@ -324,7 +319,7 @@ export function ProjectForm({
       form.reset();
     },
     onErrorCallback: (error: any) => {
-      const message = error?.response?.data?.message || error?.message || 'An error occurred';
+      const message = error?.response?.data?.message || error?.message || t('projectFormToastErrorOccurred');
       setError(message);
     },
   });
@@ -332,10 +327,10 @@ export function ProjectForm({
   const handleSubmit = async (data: ProjectFormData) => {
     // Validate buildingId is available
     if (!data.buildingId) {
-      setError('Building ID is required but not available. Please refresh the page and try again.');
+      setError(t('projectFormToastBuildingIdRequired'));
       toast({
-        title: "Validation Error",
-        description: "Building ID is required but not available. Please refresh the page and try again.",
+        title: t('validationError'),
+        description: t('projectFormToastBuildingIdRequired'),
         variant: "destructive",
       });
       return;
@@ -343,8 +338,8 @@ export function ProjectForm({
 
     if (!hasPermission('canCreateProjects') && mode === 'create') {
       toast({
-        title: "Permission Denied",
-        description: "You don't have permission to create projects.",
+        title: t('projectFormToastPermissionDenied'),
+        description: t('projectFormToastNoCreatePermission'),
         variant: "destructive",
       });
       return;
@@ -352,8 +347,8 @@ export function ProjectForm({
 
     if (!hasPermission('canEditMaintenance') && mode === 'edit') {
       toast({
-        title: "Permission Denied",
-        description: "You don't have permission to edit projects.",
+        title: t('projectFormToastPermissionDenied'),
+        description: t('projectFormToastNoEditPermission'),
         variant: "destructive",
       });
       return;
@@ -365,12 +360,12 @@ export function ProjectForm({
 
 
   const title = mode === 'create' 
-    ? (evaluationSuggestion ? 'Create Project from Suggestion' : 'Create New Project')
-    : 'Edit Project';
+    ? (evaluationSuggestion ? t('projectFormCreateFromSuggestionTitle') : t('projectFormCreateNewTitle'))
+    : t('projectFormEditTitle');
 
   const description = mode === 'create'
-    ? 'Create a new maintenance project to track work and manage resources.'
-    : 'Update project details and configuration.';
+    ? t('projectFormCreateDescription')
+    : t('projectFormEditDescription');
 
   return (
     <FormModal
@@ -381,7 +376,8 @@ export function ProjectForm({
       form={form}
       onSubmit={handleSubmit}
       isSubmitting={saveMutation.isPending}
-      submitLabel={mode === 'create' ? 'Create Project' : 'Update Project'}
+      submitLabel={mode === 'create' ? t('projectFormSubmitCreate') : t('projectFormSubmitUpdate')}
+      cancelLabel={t('cancel')}
       size="lg"
       error={error}
     >
@@ -393,11 +389,10 @@ export function ProjectForm({
               <Info className="h-5 w-5 text-blue-600 mt-0.5" />
               <div className="space-y-1">
                 <h4 className="text-sm font-medium text-blue-900 dark:text-blue-100">
-                  Creating from Evaluation Suggestion
+                  {t('projectFormCreatingFromSuggestionTitle')}
                 </h4>
                 <p className="text-sm text-blue-700 dark:text-blue-300">
-                  This project is being created based on an evaluation suggestion. 
-                  Some fields have been pre-populated for you.
+                  {t('projectFormCreatingFromSuggestionDesc')}
                 </p>
               </div>
             </div>
@@ -413,9 +408,9 @@ export function ProjectForm({
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg">
                   <div className="space-y-0.5">
-                    <FormLabel className="text-base font-medium">Quick Project</FormLabel>
+                    <FormLabel className="text-base font-medium">{t('quickProject')}</FormLabel>
                     <FormDescription>
-                      Create a simplified project with essential fields only (Title, Description, Budget, Financial Year, Date)
+                      {t('projectFormQuickProjectDesc')}
                     </FormDescription>
                   </div>
                   <FormControl>
@@ -439,16 +434,16 @@ export function ProjectForm({
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Title</FormLabel>
+                  <FormLabel>{t('projectFormTitleLabel')}</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="e.g., Roof Repair - Building A"
+                      placeholder={t('projectFormTitlePlaceholder')}
                       {...field}
                       data-testid="input-quick-project-title"
                     />
                   </FormControl>
                   <FormDescription>
-                    Clear, descriptive name for the project
+                    {t('projectFormTitleDesc')}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -460,17 +455,17 @@ export function ProjectForm({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description <span className="text-muted-foreground">(Optional)</span></FormLabel>
+                  <FormLabel>{t('projectFormDescriptionLabel')} <span className="text-muted-foreground">{t('projectFormOptional')}</span></FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Brief description of the project..."
+                      placeholder={t('projectFormDescriptionPlaceholderQuick')}
                       className="min-h-[80px]"
                       {...field}
                       data-testid="textarea-quick-project-description"
                     />
                   </FormControl>
                   <FormDescription>
-                    Optional detailed description
+                    {t('projectFormDescriptionDescQuick')}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -483,7 +478,7 @@ export function ProjectForm({
                 name="quickProjectBudget"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Budget</FormLabel>
+                    <FormLabel>{t('projectFormBudgetLabel')}</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <DollarSign className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -502,7 +497,7 @@ export function ProjectForm({
                       </div>
                     </FormControl>
                     <FormDescription>
-                      Project budget in dollars
+                      {t('projectFormBudgetDescQuick')}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -514,7 +509,7 @@ export function ProjectForm({
                 name="financialYear"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Financial Year</FormLabel>
+                    <FormLabel>{t('projectFormFinancialYearLabel')}</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -527,7 +522,7 @@ export function ProjectForm({
                       />
                     </FormControl>
                     <FormDescription>
-                      Budget assignment year
+                      {t('projectFormFinancialYearDescQuick')}
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -540,7 +535,7 @@ export function ProjectForm({
               name="quickProjectDate"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Project Date</FormLabel>
+                  <FormLabel>{t('projectFormProjectDateLabel')}</FormLabel>
                   <FormControl>
                     <div className="relative">
                       <Calendar className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
@@ -560,7 +555,7 @@ export function ProjectForm({
                     </div>
                   </FormControl>
                   <FormDescription>
-                    Target completion date for the project
+                    {t('projectFormProjectDateDesc')}
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -578,16 +573,16 @@ export function ProjectForm({
           name="projectNumber"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Project Number</FormLabel>
+              <FormLabel>{t('projectFormProjectNumberLabel')}</FormLabel>
               <FormControl>
                 <Input
-                  placeholder="e.g., 2024-001"
+                  placeholder={t('projectFormProjectNumberPlaceholder')}
                   {...field}
                   data-testid="input-project-number"
                 />
               </FormControl>
               <FormDescription>
-                Unique identifier for this project
+                {t('projectFormProjectNumberDesc')}
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -599,16 +594,16 @@ export function ProjectForm({
           name="title"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Project Title</FormLabel>
+              <FormLabel>{t('projectFormProjectTitleLabel')}</FormLabel>
               <FormControl>
                 <Input
-                  placeholder="e.g., Roof Repair - Building A"
+                  placeholder={t('projectFormTitlePlaceholder')}
                   {...field}
                   data-testid="input-project-title"
                 />
               </FormControl>
               <FormDescription>
-                Clear, descriptive name for the project
+                {t('projectFormTitleDesc')}
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -620,17 +615,17 @@ export function ProjectForm({
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Description</FormLabel>
+              <FormLabel>{t('projectFormDescriptionLabel')}</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="Detailed description of the project scope and objectives..."
+                  placeholder={t('projectFormDescriptionPlaceholderStandard')}
                   className="min-h-[100px]"
                   {...field}
                   data-testid="textarea-project-description"
                 />
               </FormControl>
               <FormDescription>
-                Optional detailed description of the project
+                {t('projectFormDescriptionDescStandard')}
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -654,7 +649,7 @@ export function ProjectForm({
 
             return (
               <FormItem>
-                <FormLabel>Planned Start Date</FormLabel>
+                <FormLabel>{t('projectFormPlannedStartDateLabel')}</FormLabel>
                 <FormControl>
                   <Input
                     value={formatDateForInput(field.value)}
@@ -684,7 +679,7 @@ export function ProjectForm({
                   />
                 </FormControl>
                 <FormDescription>
-                  When the project is planned to start
+                  {t('projectFormPlannedStartDateDesc')}
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -699,7 +694,7 @@ export function ProjectForm({
             name="totalBudget"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Total Budget</FormLabel>
+                <FormLabel>{t('projectFormTotalBudgetLabel')}</FormLabel>
                 <FormControl>
                   <div className="relative">
                     <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -716,7 +711,7 @@ export function ProjectForm({
                   </div>
                 </FormControl>
                 <FormDescription>
-                  Total allocated budget for this project
+                  {t('projectFormTotalBudgetDesc')}
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -731,7 +726,7 @@ export function ProjectForm({
             name="actualCost"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Actual Cost</FormLabel>
+                <FormLabel>{t('projectFormActualCostLabel')}</FormLabel>
                 <FormControl>
                   <div className="relative">
                     <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -748,7 +743,7 @@ export function ProjectForm({
                   </div>
                 </FormControl>
                 <FormDescription>
-                  Current actual cost spent on this project
+                  {t('projectFormActualCostDesc')}
                 </FormDescription>
                 <FormMessage />
               </FormItem>

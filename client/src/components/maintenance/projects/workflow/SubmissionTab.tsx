@@ -18,6 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useSubmissionVendors, useSubmissionVendorMutations, useMarkStatusComplete, useReopenWorkflowStep, type ProjectWorkflowState } from '@/hooks/useProjectWorkflow';
 import { ReopenStepDialog } from './ReopenStepDialog';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/hooks/use-language';
 import { MaintenanceProject, type SubmissionVendor } from '@shared/schemas/maintenance';
 import { PaymentPlanForm } from './PaymentPlanForm';
 import { ElementManagementTab } from './ElementManagementTab';
@@ -241,6 +242,9 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
     return 'document';
   };
 
+  const { toast } = useToast();
+  const { t } = useLanguage();
+
   // Defensive null check for project data
   if (!project) {
     return (
@@ -248,7 +252,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
-            Project data is missing. Unable to load the submission tab.
+            {t('submissionProjectDataMissing')}
           </AlertDescription>
         </Alert>
       </div>
@@ -260,8 +264,6 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
     isLoading: isLoadingVendors,
     error: vendorsError 
   } = useSubmissionVendors(project.id);
-
-  const { toast } = useToast();
   const { mutate: markComplete, isPending: isMarkingComplete } = useMarkStatusComplete();
   const { mutate: reopenStep, isPending: isReopening } = useReopenWorkflowStep();
   const { createSubmissionVendor, updateSubmissionVendor, updatePreferredStatus, deleteSubmissionVendor } = useSubmissionVendorMutations();
@@ -447,8 +449,8 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
     );
     if (hasPendingUpload) {
       toast({
-        title: 'Upload in progress',
-        description: 'Please wait for document uploads to finish before saving.',
+        title: t('submissionUploadInProgressTitle'),
+        description: t('submissionUploadInProgressSaveDesc'),
       });
       return;
     }
@@ -580,8 +582,8 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
     // Validate that we have the required data
     if (!project.id || !workflowState.currentStatus) {
       toast({
-        title: "Cannot Reopen Step",
-        description: "Workflow data is not available. Please refresh the page and try again.",
+        title: t('cannotReopenStepTitle'),
+        description: t('reopenStepWorkflowDataUnavailableDesc'),
         variant: "destructive",
       });
       return;
@@ -590,8 +592,8 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
     // Validate that current status matches this tab's phase
     if (workflowState.currentStatus !== 'submission') {
       toast({
-        title: "Cannot Reopen Step",
-        description: "This step can only be reopened when the project is currently in the Submission phase.",
+        title: t('cannotReopenStepTitle'),
+        description: t('reopenStepWrongPhaseSubmissionDesc'),
         variant: "destructive",
       });
       return;
@@ -602,15 +604,15 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
       { 
         onSuccess: () => {
           toast({
-            title: "Step Reopened",
-            description: "Successfully returned to the previous workflow step.",
+            title: t('reopenStepSuccessTitle'),
+            description: t('reopenStepReturnedSuccessDesc'),
           });
           onUpdate();
         },
         onError: (error: any) => {
           toast({
-            title: "Failed to Reopen Step",
-            description: error.message || "An error occurred while trying to reopen the step.",
+            title: t('failedToReopenStepTitle'),
+            description: error.message || t('reopenStepFailedDesc'),
             variant: "destructive",
           });
         }
@@ -644,8 +646,8 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
     );
     if (hasPendingUpload) {
       toast({
-        title: 'Upload in progress',
-        description: 'Please wait for document uploads to finish before submitting.',
+        title: t('submissionUploadInProgressTitle'),
+        description: t('submissionUploadInProgressSubmitDesc'),
       });
       return;
     }
@@ -810,8 +812,8 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
         return rest;
       });
       toast({
-        title: 'Upload failed',
-        description: `Could not upload ${file.name}. Please try again.`,
+        title: t('submissionUploadFailedTitle'),
+        description: t('submissionUploadFailedDescTemplate').replace('{fileName}', file.name),
         variant: 'destructive',
       });
     }
@@ -858,8 +860,8 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
         return rest;
       });
       toast({
-        title: 'Upload failed',
-        description: `Could not upload ${file.name}. Please try again.`,
+        title: t('submissionUploadFailedTitle'),
+        description: t('submissionUploadFailedDescTemplate').replace('{fileName}', file.name),
         variant: 'destructive',
       });
     }
@@ -894,9 +896,9 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
     <div className="space-y-6" data-testid="submission-tab">
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <h3 className="text-lg font-semibold">Submission Management</h3>
+          <h3 className="text-lg font-semibold">{t('submissionManagementHeader')}</h3>
           <p className="text-sm text-muted-foreground">
-            Manage vendor submissions and project elements
+            {t('submissionManagementSubheader')}
           </p>
         </div>
         
@@ -904,7 +906,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
           {/* Skip option info */}
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Info className="h-4 w-4" />
-            <span>This step can be skipped in tab navigation</span>
+            <span>{t('postWorkSkippableInfo')}</span>
           </div>
         </div>
       </div>
@@ -912,11 +914,11 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className={cn("grid w-full", hasPreferredVendor ? "grid-cols-2" : "grid-cols-1")}>
           <TabsTrigger value="vendors" data-testid="tab-vendor-submissions">
-            Vendor Submissions
+            {t('submissionVendorSubmissionsHeader')}
           </TabsTrigger>
           {hasPreferredVendor && (
             <TabsTrigger value="elements" data-testid="tab-element-management">
-              Element Management  
+              {t('submissionElementManagementTab')}
             </TabsTrigger>
           )}
         </TabsList>
@@ -924,9 +926,9 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
         <TabsContent value="vendors" className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h4 className="text-md font-semibold">Vendor Submissions</h4>
+              <h4 className="text-md font-semibold">{t('submissionVendorSubmissionsHeader')}</h4>
               <p className="text-sm text-muted-foreground">
-                Review and select from vendor proposals and quotes
+                {t('submissionVendorSubmissionsSubheader')}
               </p>
             </div>
           
@@ -947,14 +949,14 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
             <DialogTrigger asChild>
               <Button data-testid="button-add-submission">
                 <Plus className="h-4 w-4 mr-2" />
-                Add Submission
+                {t('submissionAddSubmissionButton')}
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" aria-describedby="add-submission-description">
               <DialogHeader>
-                <DialogTitle>Add New Vendor Submission</DialogTitle>
+                <DialogTitle>{t('submissionAddNewVendorTitle')}</DialogTitle>
                 <div id="add-submission-description" className="sr-only">
-                  Create a new vendor submission with payment plan and document attachments
+                  {t('submissionAddSubmissionDescriptionSr')}
                 </div>
               </DialogHeader>
               <Form {...submissionForm}>
@@ -965,10 +967,10 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                     name="vendorName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Vendor Name *</FormLabel>
+                        <FormLabel>{t('submissionVendorNameLabel')}</FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="Enter vendor name"
+                            placeholder={t('submissionVendorNamePlaceholder')}
                             data-testid="input-vendor-name"
                             {...field}
                           />
@@ -984,7 +986,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                     name="availableDate"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Available Date</FormLabel>
+                        <FormLabel>{t('submissionAvailableDateLabel')}</FormLabel>
                         <FormControl>
                           <Input
                             type="date"
@@ -1015,10 +1017,10 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                     name="description"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Description</FormLabel>
+                        <FormLabel>{t('submissionDescriptionLabel')}</FormLabel>
                         <FormControl>
                           <Textarea
-                            placeholder="Describe the vendor's proposal..."
+                            placeholder={t('submissionDescriptionPlaceholder')}
                             rows={3}
                             data-testid="textarea-description"
                             {...field}
@@ -1044,7 +1046,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                       buildingId: project.buildingId,
                       projectId: project.id,
                     }}
-                    title="Documents (Optional)"
+                    title={t('submissionDocumentsOptionalTitle')}
                     showUploadTabs={false}
                     defaultUploadTab="file"
                     aiEnabled={false}
@@ -1056,7 +1058,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                   <div className="space-y-4 border-t pt-4">
                     <div className="flex items-center gap-2">
                       <DollarSign className="h-4 w-4" />
-                      <h4 className="text-sm font-semibold">Payment Plan</h4>
+                      <h4 className="text-sm font-semibold">{t('submissionPaymentPlanHeader')}</h4>
                     </div>
 
                     {/* Payment Type */}
@@ -1065,20 +1067,20 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                       name="paymentType"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Payment Type</FormLabel>
+                          <FormLabel>{t('submissionPaymentTypeLabel')}</FormLabel>
                           <Select onValueChange={field.onChange} defaultValue={field.value}>
                             <FormControl>
                               <SelectTrigger data-testid="select-payment-type">
-                                <SelectValue placeholder="Select payment type" />
+                                <SelectValue placeholder={t('submissionSelectPaymentTypePlaceholder')} />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="unique">One-time Payment</SelectItem>
-                              <SelectItem value="recurrent">Recurring Payments</SelectItem>
+                              <SelectItem value="unique">{t('submissionPaymentTypeOneTime')}</SelectItem>
+                              <SelectItem value="recurrent">{t('submissionPaymentTypeRecurring')}</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormDescription>
-                            Choose whether this is a single payment or multiple payments over time
+                            {t('submissionPaymentTypeDescription')}
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -1093,7 +1095,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                           name="totalAmount"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Total Amount</FormLabel>
+                              <FormLabel>{t('submissionTotalAmountLabel')}</FormLabel>
                               <FormControl>
                                 <Input
                                   type="number"
@@ -1105,7 +1107,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                                 />
                               </FormControl>
                               <FormDescription>
-                                Enter the total amount for this one-time payment
+                                {t('submissionTotalAmountDescription')}
                               </FormDescription>
                               <FormMessage />
                             </FormItem>
@@ -1118,7 +1120,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                           name="dateFirstPayment"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Payment Date</FormLabel>
+                              <FormLabel>{t('submissionPaymentDateLabel')}</FormLabel>
                               <FormControl>
                                 <Input
                                   type="date"
@@ -1129,7 +1131,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                                 />
                               </FormControl>
                               <FormDescription>
-                                The date when this payment is due
+                                {t('submissionPaymentDateDescription')}
                               </FormDescription>
                               <FormMessage />
                             </FormItem>
@@ -1147,19 +1149,19 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                           name="schedulePayment"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Payment Schedule</FormLabel>
+                              <FormLabel>{t('submissionPaymentScheduleLabel')}</FormLabel>
                               <Select onValueChange={field.onChange} defaultValue={field.value}>
                                 <FormControl>
                                   <SelectTrigger data-testid="select-schedule-payment">
-                                    <SelectValue placeholder="Select payment schedule" />
+                                    <SelectValue placeholder={t('submissionSelectPaymentSchedulePlaceholder')} />
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                  <SelectItem value="weekly">Weekly</SelectItem>
-                                  <SelectItem value="monthly">Monthly</SelectItem>
-                                  <SelectItem value="quarterly">Quarterly</SelectItem>
-                                  <SelectItem value="yearly">Yearly</SelectItem>
-                                  <SelectItem value="custom">Custom Schedule</SelectItem>
+                                  <SelectItem value="weekly">{t('submissionScheduleWeekly')}</SelectItem>
+                                  <SelectItem value="monthly">{t('submissionScheduleMonthly')}</SelectItem>
+                                  <SelectItem value="quarterly">{t('submissionScheduleQuarterly')}</SelectItem>
+                                  <SelectItem value="yearly">{t('submissionScheduleYearly')}</SelectItem>
+                                  <SelectItem value="custom">{t('submissionScheduleCustom')}</SelectItem>
                                 </SelectContent>
                               </Select>
                               <FormMessage />
@@ -1173,7 +1175,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                           name="dateFirstPayment"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Date First Payment</FormLabel>
+                              <FormLabel>{t('submissionDateFirstPaymentLabel')}</FormLabel>
                               <FormControl>
                                 <Input
                                   type="date"
@@ -1194,7 +1196,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                           name="dateEndPayment"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Date End Payment</FormLabel>
+                              <FormLabel>{t('submissionDateEndPaymentLabel')}</FormLabel>
                               <FormControl>
                                 <Input
                                   type="date"
@@ -1223,9 +1225,9 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                                 />
                               </FormControl>
                               <div className="space-y-1 leading-none">
-                                <FormLabel>Has initial payment</FormLabel>
+                                <FormLabel>{t('submissionHasInitialPaymentLabel')}</FormLabel>
                                 <FormDescription>
-                                  Check if there's a different initial payment amount
+                                  {t('submissionHasInitialPaymentDescription')}
                                 </FormDescription>
                               </div>
                             </FormItem>
@@ -1239,7 +1241,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                             name="initialPaymentAmount"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Initial Payment Amount</FormLabel>
+                                <FormLabel>{t('submissionInitialPaymentAmountLabel')}</FormLabel>
                                 <FormControl>
                                   <Input
                                     type="number"
@@ -1270,9 +1272,9 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                                 />
                               </FormControl>
                               <div className="space-y-1 leading-none">
-                                <FormLabel>Equal recurring payments</FormLabel>
+                                <FormLabel>{t('submissionEqualRecurringLabel')}</FormLabel>
                                 <FormDescription>
-                                  Check if all recurring payments are the same amount
+                                  {t('submissionEqualRecurringDescription')}
                                 </FormDescription>
                               </div>
                             </FormItem>
@@ -1286,7 +1288,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                             name="recurringPaymentAmount"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Recurring Payment Amount</FormLabel>
+                                <FormLabel>{t('submissionRecurringPaymentAmountLabel')}</FormLabel>
                                 <FormControl>
                                   <Input
                                     type="number"
@@ -1307,7 +1309,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                         {!submissionForm.watch('recurringPaymentsEqual') && (
                           <div className="space-y-3">
                             <div className="flex items-center justify-between">
-                              <FormLabel>Custom Payment Amounts</FormLabel>
+                              <FormLabel>{t('submissionCustomPaymentAmountsLabel')}</FormLabel>
                               <Button
                                 type="button"
                                 variant="outline"
@@ -1322,7 +1324,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                                 data-testid="button-add-custom-payment"
                               >
                                 <Plus className="h-4 w-4 mr-2" />
-                                Add Payment
+                                {t('submissionAddPaymentButton')}
                               </Button>
                             </div>
                             
@@ -1334,7 +1336,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                                     name={`customPayments.${index}.amount`}
                                     render={({ field }) => (
                                       <FormItem>
-                                        <FormLabel className="text-xs">Amount</FormLabel>
+                                        <FormLabel className="text-xs">{t('submissionCustomPaymentAmountSubLabel')}</FormLabel>
                                         <FormControl>
                                           <Input
                                             type="number"
@@ -1354,7 +1356,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                                     name={`customPayments.${index}.date`}
                                     render={({ field }) => (
                                       <FormItem>
-                                        <FormLabel className="text-xs">Date</FormLabel>
+                                        <FormLabel className="text-xs">{t('submissionCustomPaymentDateSubLabel')}</FormLabel>
                                         <FormControl>
                                           <Input
                                             type="date"
@@ -1371,10 +1373,10 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                                     name={`customPayments.${index}.description`}
                                     render={({ field }) => (
                                       <FormItem>
-                                        <FormLabel className="text-xs">Description (Optional)</FormLabel>
+                                        <FormLabel className="text-xs">{t('submissionCustomPaymentDescriptionSubLabel')}</FormLabel>
                                         <FormControl>
                                           <Input
-                                            placeholder="Payment description"
+                                            placeholder={t('submissionCustomPaymentDescriptionPlaceholder')}
                                             data-testid={`input-custom-payment-description-${index}`}
                                             {...field}
                                           />
@@ -1419,9 +1421,9 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                           />
                         </FormControl>
                         <div className="space-y-1 leading-none">
-                          <FormLabel>Mark as preferred vendor</FormLabel>
+                          <FormLabel>{t('submissionMarkAsPreferredLabel')}</FormLabel>
                           <FormDescription>
-                            Flag this vendor as a preferred choice
+                            {t('submissionMarkAsPreferredDescription')}
                           </FormDescription>
                         </div>
                       </FormItem>
@@ -1440,10 +1442,10 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                       }}
                       data-testid="button-cancel"
                     >
-                      Cancel
+                      {t('submissionCancelButton')}
                     </Button>
                     <Button type="submit" data-testid="button-submit" disabled={createSubmissionVendor.isPending}>
-                      {createSubmissionVendor.isPending ? 'Adding...' : 'Add Submission'}
+                      {createSubmissionVendor.isPending ? t('submissionAddingButton') : t('submissionAddSubmissionButton')}
                     </Button>
                   </div>
                 </form>
@@ -1468,7 +1470,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
-            Failed to load vendor submissions: {vendorsError.message}
+            {t('submissionFailedToLoadVendors')}: {vendorsError.message}
           </AlertDescription>
         </Alert>
       )}
@@ -1479,19 +1481,19 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Users className="h-5 w-5" />
-              No Submissions Yet
+              {t('submissionNoSubmissionsYetTitle')}
             </CardTitle>
             <CardDescription>
-              No vendor submissions have been received for this project
+              {t('submissionNoSubmissionsYetDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="text-center py-8 space-y-4">
               <Users className="h-12 w-12 text-muted-foreground mx-auto" />
               <div>
-                <h4 className="text-lg font-semibold">No Vendor Submissions Yet</h4>
+                <h4 className="text-lg font-semibold">{t('submissionNoVendorSubmissionsHeader')}</h4>
                 <p className="text-muted-foreground">
-                  Add vendor submissions with their quotes, availability, and proposal documents.
+                  {t('submissionNoVendorSubmissionsYetMessage')}
                 </p>
               </div>
             </div>
@@ -1503,13 +1505,13 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h4 className="text-base font-semibold">
-              Vendor Submissions ({submissionVendors.length})
+              {t('submissionVendorSubmissionsHeader')} ({submissionVendors.length})
             </h4>
             <div className="flex items-center gap-2">
               {submissionVendors.some(v => v.preferred) && (
                 <Badge variant="outline" className="border-yellow-400 text-yellow-600">
                   <Star className="h-3 w-3 mr-1" />
-                  {submissionVendors.filter(v => v.preferred).length} Preferred
+                  {t('submissionPreferredCountTemplate').replace('{count}', String(submissionVendors.filter(v => v.preferred).length))}
                 </Badge>
               )}
             </div>
@@ -1532,13 +1534,13 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                         {vendor.availableDate && (
                           <span className="flex items-center gap-1">
                             <Calendar className="h-3 w-3" />
-                            Available: {(parseDateOnly(vendor.availableDate) ?? new Date(vendor.availableDate)).toLocaleDateString()}
+                            {t('submissionAvailableLabel')}: {(parseDateOnly(vendor.availableDate) ?? new Date(vendor.availableDate)).toLocaleDateString()}
                           </span>
                         )}
                         {vendor.contactInfo && (
                           <span className="flex items-center gap-1">
                             <Phone className="h-3 w-3" />
-                            Contact Available
+                            {t('submissionContactAvailable')}
                           </span>
                         )}
                         <Badge variant="outline" className="text-xs">
@@ -1553,7 +1555,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                       {vendor.preferred && (
                         <Badge className="bg-yellow-600">
                           <Star className="h-3 w-3 mr-1" />
-                          Preferred
+                          {t('submissionPreferredBadge')}
                         </Badge>
                       )}
                     </div>
@@ -1569,7 +1571,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                         className="w-full mb-1"
                       >
                         <Edit className="h-3 w-3 mr-1" />
-                        Edit
+                        {t('submissionEditButton')}
                       </Button>
                       <Button
                         variant={vendor.preferred ? "secondary" : "outline"}
@@ -1582,7 +1584,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                         className="w-full"
                       >
                         <Star className={cn("h-3 w-3 mr-1", vendor.preferred && "fill-yellow-400 text-yellow-400")} />
-                        {vendor.preferred ? 'Unmark Preferred' : 'Mark as Preferred'}
+                        {vendor.preferred ? t('submissionUnmarkPreferredButton') : t('submissionMarkAsPreferredButton')}
                       </Button>
                     </div>
                   </div>
@@ -1593,7 +1595,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Proposal Details */}
                   <div className="space-y-2">
-                    <h5 className="font-medium text-sm">Proposal Details</h5>
+                    <h5 className="font-medium text-sm">{t('submissionProposalDetailsHeader')}</h5>
                     
                     {/* Description */}
                     {vendor.notes ? (
@@ -1601,26 +1603,26 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                         <p className="text-muted-foreground">{vendor.notes}</p>
                       </div>
                     ) : (
-                      <p className="text-xs text-muted-foreground italic">No description provided</p>
+                      <p className="text-xs text-muted-foreground italic">{t('submissionNoDescriptionProvided')}</p>
                     )}
                     
                     <div className="text-sm text-muted-foreground space-y-1">
                       {vendor.availableDate && (
                         <div className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
-                          <span>Available for work: {(parseDateOnly(vendor.availableDate) ?? new Date(vendor.availableDate)).toLocaleDateString()}</span>
+                          <span>{t('submissionAvailableForWorkLabel')}: {(parseDateOnly(vendor.availableDate) ?? new Date(vendor.availableDate)).toLocaleDateString()}</span>
                         </div>
                       )}
                       {vendor.addedLifespan && (
                         <div className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
-                          <span>Extends lifespan: {vendor.addedLifespan} years</span>
+                          <span>{t('submissionExtendsLifespanTemplate').replace('{years}', String(vendor.addedLifespan))}</span>
                         </div>
                       )}
                       {vendor.documents && Array.isArray(vendor.documents) && vendor.documents.length > 0 && (
                         <div className="flex items-center gap-1">
                           <FileText className="h-3 w-3" />
-                          <span>{vendor.documents.length} document(s) submitted</span>
+                          <span>{t('submissionDocumentsSubmittedTemplate').replace('{count}', String(vendor.documents.length))}</span>
                         </div>
                       )}
                     </div>
@@ -1629,26 +1631,26 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                   {/* Payment Plan */}
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <h5 className="font-medium text-sm">Payment Plan</h5>
+                      <h5 className="font-medium text-sm">{t('submissionPaymentPlanHeader')}</h5>
                     </div>
                     <div className="text-sm text-muted-foreground space-y-1">
                       <div className="flex items-center gap-1">
                         <DollarSign className="h-3 w-3" />
-                        <span>Schedule: {formatPaymentSchedule(vendor.paymentPlanSchedule)}</span>
+                        <span>{t('submissionPaymentScheduleSummaryTemplate').replace('{schedule}', formatPaymentSchedule(vendor.paymentPlanSchedule))}</span>
                       </div>
                       {vendor.paymentPlanStartDate && (
                         <div className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
-                          <span>Starts: {(parseDateOnly(vendor.paymentPlanStartDate) ?? new Date(vendor.paymentPlanStartDate)).toLocaleDateString()}</span>
+                          <span>{t('submissionPaymentStartsTemplate').replace('{date}', (parseDateOnly(vendor.paymentPlanStartDate) ?? new Date(vendor.paymentPlanStartDate)).toLocaleDateString())}</span>
                         </div>
                       )}
                       {vendor.paymentPlanCosts && vendor.paymentPlanCosts.length > 0 && (
                         <div>
-                          <span>Payment breakdown:</span>
+                          <span>{t('submissionPaymentBreakdownLabel')}</span>
                           <div className="ml-4 mt-1">
                             {vendor.paymentPlanCosts.map((cost, i) => (
                               <div key={`plan-cost-${formatCurrency(cost)}-${i}`} className="text-xs">
-                                Payment {i + 1}: {formatCurrency(cost)}
+                                {t('submissionPaymentItemTemplate').replace('{index}', String(i + 1)).replace('{amount}', formatCurrency(cost))}
                               </div>
                             ))}
                           </div>
@@ -1656,7 +1658,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                       )}
                       {(!vendor.paymentPlanCosts || vendor.paymentPlanCosts.length === 0) && (
                         <div className="text-xs text-muted-foreground italic">
-                          No payment plan configured yet
+                          {t('submissionNoPaymentPlanConfigured')}
                         </div>
                       )}
                     </div>
@@ -1666,7 +1668,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                 {/* Contact Information */}
                 {vendor.contactInfo && (
                   <div className="mt-4 p-3 bg-muted rounded-lg">
-                    <h5 className="font-medium text-sm mb-2">Contact Information</h5>
+                    <h5 className="font-medium text-sm mb-2">{t('submissionContactInformationHeader')}</h5>
                     <p className="text-sm text-muted-foreground">{vendor.contactInfo}</p>
                   </div>
                 )}
@@ -1686,10 +1688,10 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Settings className="h-5 w-5" />
-              Edit Payment Plan - {editingPaymentPlan?.vendorName}
+              {t('submissionEditPaymentPlanTitleTemplate').replace('{vendor}', editingPaymentPlan?.vendorName ?? '')}
             </DialogTitle>
             <div id="payment-plan-description" className="sr-only">
-              Configure payment schedule, costs, and timing for this vendor submission
+              {t('submissionEditPaymentPlanDescription')}
             </div>
           </DialogHeader>
           
@@ -1719,10 +1721,10 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Edit className="h-5 w-5" />
-              Edit Vendor - {editingVendor?.vendorName}
+              {t('submissionEditVendorTitleTemplate').replace('{vendor}', editingVendor?.vendorName ?? '')}
             </DialogTitle>
             <div id="edit-vendor-description" className="sr-only">
-              Edit vendor information, documents, and preferences for this submission
+              {t('submissionEditVendorDialogDescription')}
             </div>
           </DialogHeader>
           
@@ -1734,9 +1736,9 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                   name="vendorName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Vendor Name</FormLabel>
+                      <FormLabel>{t('submissionVendorNameLabelEdit')}</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter vendor name" {...field} />
+                        <Input placeholder={t('submissionVendorNamePlaceholder')} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -1749,7 +1751,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                   name="availableDate"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Available Date</FormLabel>
+                      <FormLabel>{t('submissionAvailableDateLabel')}</FormLabel>
                       <FormControl>
                         <Input
                           type="date"
@@ -1775,10 +1777,10 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                   name="description"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Description</FormLabel>
+                      <FormLabel>{t('submissionDescriptionLabel')}</FormLabel>
                       <FormControl>
                         <Textarea 
-                          placeholder="Enter description or notes" 
+                          placeholder={t('submissionDescriptionPlaceholderEdit')} 
                           {...field}
                           value={field.value || ''}
                         />
@@ -1793,10 +1795,10 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                   name="contactInfo"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Contact Information</FormLabel>
+                      <FormLabel>{t('submissionContactInformationLabel')}</FormLabel>
                       <FormControl>
                         <Input 
-                          placeholder="Enter contact information" 
+                          placeholder={t('submissionContactInformationPlaceholder')} 
                           {...field}
                           value={field.value || ''}
                         />
@@ -1810,7 +1812,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                 <div className="space-y-4 border-t pt-4">
                   <div className="flex items-center gap-2">
                     <DollarSign className="h-4 w-4" />
-                    <h4 className="text-sm font-semibold">Payment Plan</h4>
+                    <h4 className="text-sm font-semibold">{t('submissionPaymentPlanHeader')}</h4>
                   </div>
 
                   {/* Payment Type */}
@@ -1819,20 +1821,20 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                     name="paymentType"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Payment Type</FormLabel>
+                        <FormLabel>{t('submissionPaymentTypeLabel')}</FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger data-testid="select-edit-payment-type">
-                              <SelectValue placeholder="Select payment type" />
+                              <SelectValue placeholder={t('submissionSelectPaymentTypePlaceholder')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="unique">One-time Payment</SelectItem>
-                            <SelectItem value="recurrent">Recurring Payments</SelectItem>
+                            <SelectItem value="unique">{t('submissionPaymentTypeOneTime')}</SelectItem>
+                            <SelectItem value="recurrent">{t('submissionPaymentTypeRecurring')}</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormDescription>
-                          Choose whether this is a single payment or multiple payments over time
+                          {t('submissionPaymentTypeDescription')}
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -1847,7 +1849,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                         name="totalAmount"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Total Amount</FormLabel>
+                            <FormLabel>{t('submissionTotalAmountLabel')}</FormLabel>
                             <FormControl>
                               <Input
                                 type="number"
@@ -1859,7 +1861,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                               />
                             </FormControl>
                             <FormDescription>
-                              Enter the total amount for this one-time payment
+                              {t('submissionTotalAmountDescription')}
                             </FormDescription>
                             <FormMessage />
                           </FormItem>
@@ -1872,7 +1874,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                         name="dateFirstPayment"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Payment Date</FormLabel>
+                            <FormLabel>{t('submissionPaymentDateLabel')}</FormLabel>
                             <FormControl>
                               <Input
                                 type="date"
@@ -1883,7 +1885,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                               />
                             </FormControl>
                             <FormDescription>
-                              The date when this payment is due
+                              {t('submissionPaymentDateDescription')}
                             </FormDescription>
                             <FormMessage />
                           </FormItem>
@@ -1901,19 +1903,19 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                         name="schedulePayment"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Payment Schedule</FormLabel>
+                            <FormLabel>{t('submissionPaymentScheduleLabel')}</FormLabel>
                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                               <FormControl>
                                 <SelectTrigger data-testid="select-edit-schedule-payment">
-                                  <SelectValue placeholder="Select payment schedule" />
+                                  <SelectValue placeholder={t('submissionSelectPaymentSchedulePlaceholder')} />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="weekly">Weekly</SelectItem>
-                                <SelectItem value="monthly">Monthly</SelectItem>
-                                <SelectItem value="quarterly">Quarterly</SelectItem>
-                                <SelectItem value="yearly">Yearly</SelectItem>
-                                <SelectItem value="custom">Custom Schedule</SelectItem>
+                                <SelectItem value="weekly">{t('submissionScheduleWeekly')}</SelectItem>
+                                <SelectItem value="monthly">{t('submissionScheduleMonthly')}</SelectItem>
+                                <SelectItem value="quarterly">{t('submissionScheduleQuarterly')}</SelectItem>
+                                <SelectItem value="yearly">{t('submissionScheduleYearly')}</SelectItem>
+                                <SelectItem value="custom">{t('submissionScheduleCustom')}</SelectItem>
                               </SelectContent>
                             </Select>
                             <FormMessage />
@@ -1927,7 +1929,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                         name="dateFirstPayment"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Date First Payment</FormLabel>
+                            <FormLabel>{t('submissionDateFirstPaymentLabel')}</FormLabel>
                             <FormControl>
                               <Input
                                 type="date"
@@ -1948,7 +1950,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                         name="dateEndPayment"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Date End Payment</FormLabel>
+                            <FormLabel>{t('submissionDateEndPaymentLabel')}</FormLabel>
                             <FormControl>
                               <Input
                                 type="date"
@@ -1977,9 +1979,9 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                               />
                             </FormControl>
                             <div className="space-y-1 leading-none">
-                              <FormLabel>Has initial payment</FormLabel>
+                              <FormLabel>{t('submissionHasInitialPaymentLabel')}</FormLabel>
                               <FormDescription>
-                                Check if there's a different initial payment amount
+                                {t('submissionHasInitialPaymentDescription')}
                               </FormDescription>
                             </div>
                           </FormItem>
@@ -1993,7 +1995,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                           name="initialPaymentAmount"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Initial Payment Amount</FormLabel>
+                              <FormLabel>{t('submissionInitialPaymentAmountLabel')}</FormLabel>
                               <FormControl>
                                 <Input
                                   type="number"
@@ -2024,9 +2026,9 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                               />
                             </FormControl>
                             <div className="space-y-1 leading-none">
-                              <FormLabel>Equal recurring payments</FormLabel>
+                              <FormLabel>{t('submissionEqualRecurringLabel')}</FormLabel>
                               <FormDescription>
-                                Check if all recurring payments are the same amount
+                                {t('submissionEqualRecurringDescription')}
                               </FormDescription>
                             </div>
                           </FormItem>
@@ -2040,7 +2042,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                           name="recurringPaymentAmount"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Recurring Payment Amount</FormLabel>
+                              <FormLabel>{t('submissionRecurringPaymentAmountLabel')}</FormLabel>
                               <FormControl>
                                 <Input
                                   type="number"
@@ -2061,7 +2063,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                       {!editVendorForm.watch('recurringPaymentsEqual') && (
                         <div className="space-y-3">
                           <div className="flex items-center justify-between">
-                            <FormLabel>Custom Payment Amounts</FormLabel>
+                            <FormLabel>{t('submissionCustomPaymentAmountsLabel')}</FormLabel>
                             <Button
                               type="button"
                               variant="outline"
@@ -2076,7 +2078,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                               data-testid="button-edit-add-custom-payment"
                             >
                               <Plus className="h-4 w-4 mr-2" />
-                              Add Payment
+                              {t('submissionAddPaymentButton')}
                             </Button>
                           </div>
                           
@@ -2088,7 +2090,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                                   name={`customPayments.${index}.amount`}
                                   render={({ field }) => (
                                     <FormItem>
-                                      <FormLabel className="text-xs">Amount</FormLabel>
+                                      <FormLabel className="text-xs">{t('submissionCustomPaymentAmountSubLabel')}</FormLabel>
                                       <FormControl>
                                         <Input
                                           type="number"
@@ -2108,7 +2110,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                                   name={`customPayments.${index}.date`}
                                   render={({ field }) => (
                                     <FormItem>
-                                      <FormLabel className="text-xs">Date</FormLabel>
+                                      <FormLabel className="text-xs">{t('submissionCustomPaymentDateSubLabel')}</FormLabel>
                                       <FormControl>
                                         <Input
                                           type="date"
@@ -2125,10 +2127,10 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                                   name={`customPayments.${index}.description`}
                                   render={({ field }) => (
                                     <FormItem>
-                                      <FormLabel className="text-xs">Description (Optional)</FormLabel>
+                                      <FormLabel className="text-xs">{t('submissionCustomPaymentDescriptionSubLabel')}</FormLabel>
                                       <FormControl>
                                         <Input
-                                          placeholder="Payment description"
+                                          placeholder={t('submissionCustomPaymentDescriptionPlaceholder')}
                                           data-testid={`input-edit-custom-payment-description-${index}`}
                                           {...field}
                                         />
@@ -2172,7 +2174,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                       buildingId: project.buildingId,
                       projectId: project.id,
                     }}
-                    title="Documents"
+                    title={t('submissionDocumentsTitle')}
                     showUploadTabs={false}
                     defaultUploadTab="file"
                     aiEnabled={false}
@@ -2192,9 +2194,9 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                         />
                       </FormControl>
                       <div className="space-y-1 leading-none">
-                        <FormLabel>Mark as Preferred</FormLabel>
+                        <FormLabel>{t('submissionMarkAsPreferredLabel')}</FormLabel>
                         <FormDescription>
-                          Mark this vendor as preferred for this project
+                          {t('submissionMarkAsPreferredEditDescription')}
                         </FormDescription>
                       </div>
                     </FormItem>
@@ -2209,7 +2211,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                     disabled={updateSubmissionVendor.isPending}
                     data-testid="button-delete-vendor"
                   >
-                    Delete Vendor
+                    {t('submissionDeleteVendorButton')}
                   </Button>
                   <div className="flex space-x-2">
                     <Button
@@ -2218,13 +2220,13 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                       onClick={handleCancelVendorEdit}
                       disabled={updateSubmissionVendor.isPending}
                     >
-                      Cancel
+                      {t('submissionCancelButton')}
                     </Button>
                     <Button 
                       type="submit"
                       disabled={updateSubmissionVendor.isPending}
                     >
-                      {updateSubmissionVendor.isPending ? 'Saving...' : 'Save Changes'}
+                      {updateSubmissionVendor.isPending ? t('workflowSavingButton') : t('workflowSaveChangesButton')}
                     </Button>
                   </div>
                 </div>
@@ -2254,12 +2256,12 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
             projectId={project.id}
             currentStatus={workflowState.currentStatus}
             onSuccess={onUpdate}
-            triggerText="Reopen Step"
+            triggerText={t('reopenStepTrigger')}
           />
           
           <div className="text-sm text-muted-foreground">
             {workflowState.nextStatus && (
-              <>Next: <span className="capitalize">{formatStatus(workflowState.nextStatus)}</span></>
+              <>{t('workflowNextLabel')} <span className="capitalize">{formatStatus(workflowState.nextStatus)}</span></>
             )}
           </div>
         </div>
@@ -2272,7 +2274,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
             data-testid="button-complete-submission"
           >
             <CheckCircle2 className="h-4 w-4" />
-            {isMarkingComplete ? 'Completing...' : 'Complete Submission Phase'}
+            {isMarkingComplete ? t('submissionCompletingButton') : t('submissionCompleteSubmissionPhaseButton')}
           </Button>
         )}
       </div>

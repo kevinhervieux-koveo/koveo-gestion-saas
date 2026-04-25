@@ -41,6 +41,371 @@ export interface Translations {
   chainRemoveErrorTitle: string;
   notFoundTitle: string;
   notFoundMessage: string;
+  // Project workflow status names (used by ProjectForm select & StatusStepper)
+  projectStatusPlanned: string;
+  projectStatusEvaluation: string;
+  projectStatusSubmissionStage: string;
+  projectStatusPreWorkStage: string;
+  projectStatusInProgressStage: string;
+  projectStatusPostWorkStage: string;
+  projectStatusCompletedStage: string;
+  projectStatusPlannedDesc: string;
+  projectStatusEvaluationDesc: string;
+  projectStatusSubmissionDesc: string;
+  projectStatusPreWorkDesc: string;
+  projectStatusInProgressDesc: string;
+  projectStatusPostWorkDesc: string;
+  projectStatusCompletedDesc: string;
+  // ProjectForm modal labels and copy
+  projectFormCreateNewTitle: string;
+  projectFormCreateFromSuggestionTitle: string;
+  projectFormEditTitle: string;
+  projectFormCreateDescription: string;
+  projectFormEditDescription: string;
+  projectFormSubmitCreate: string;
+  projectFormSubmitUpdate: string;
+  projectFormCreatingFromSuggestionTitle: string;
+  projectFormCreatingFromSuggestionDesc: string;
+  projectFormQuickProjectDesc: string;
+  projectFormTitleLabel: string;
+  projectFormTitlePlaceholder: string;
+  projectFormTitleDesc: string;
+  projectFormDescriptionLabel: string;
+  projectFormOptional: string;
+  projectFormDescriptionPlaceholderQuick: string;
+  projectFormDescriptionDescQuick: string;
+  projectFormBudgetLabel: string;
+  projectFormBudgetDescQuick: string;
+  projectFormFinancialYearLabel: string;
+  projectFormFinancialYearDescQuick: string;
+  projectFormProjectDateLabel: string;
+  projectFormProjectDateDesc: string;
+  projectFormProjectNumberLabel: string;
+  projectFormProjectNumberPlaceholder: string;
+  projectFormProjectNumberDesc: string;
+  projectFormProjectTitleLabel: string;
+  projectFormDescriptionPlaceholderStandard: string;
+  projectFormDescriptionDescStandard: string;
+  projectFormPlannedStartDateLabel: string;
+  projectFormPlannedStartDateDesc: string;
+  projectFormTotalBudgetLabel: string;
+  projectFormTotalBudgetDesc: string;
+  projectFormActualCostLabel: string;
+  projectFormActualCostDesc: string;
+  projectFormToastBuildingIdRequired: string;
+  projectFormToastPermissionDenied: string;
+  projectFormToastNoCreatePermission: string;
+  projectFormToastNoEditPermission: string;
+  projectFormToastCreatedTitle: string;
+  projectFormToastUpdatedTitle: string;
+  projectFormToastCreatedDesc: string;
+  projectFormToastUpdatedDesc: string;
+  projectFormToastCreationFailed: string;
+  projectFormToastUpdateFailed: string;
+  projectFormToastErrorOccurred: string;
+  // StatusStepper copy
+  statusStepperLabel: string;
+  statusStepperPercentComplete: string;
+  statusStepperClickToAdvance: string;
+  statusStepperLastUpdated: string;
+  statusStepperToastUpdatedTitle: string;
+  statusStepperToastUpdatedDesc: string;
+  statusStepperToastUpdateFailed: string;
+  statusStepperToastUpdateFailedDesc: string;
+  statusStepperToastPermissionDenied: string;
+  statusStepperConfirmTitle: string;
+  statusStepperConfirmDescPrefix: string;
+  statusStepperConfirmCompletedNote: string;
+  statusStepperUpdating: string;
+  statusStepperConfirm: string;
+  statusStepperAdvanceTo: string;
+  statusStepperReturnTo: string;
+  // Workflow tabs (PlannedTab and shared)
+  plannedTabCurrentStatus: string;
+  plannedTabNoBuildingElementsAvailable: string;
+  plannedTabBuildingElementsLoading: string;
+  plannedTabBuildingElementsNotFound: string;
+  reopenStepTrigger: string;
+  reopenStepDialogTitle: string;
+  reopenStepDialogDescription: string;
+  reopenStepStatusPlanning: string;
+  reopenStepStatusVendorSubmission: string;
+  reopenStepStatusPreWork: string;
+  reopenStepStatusInProgress: string;
+  reopenStepStatusPostWork: string;
+  reopenStepStatusCompleted: string;
+  reopenStepSelectTargetTitle: string;
+  reopenStepSelectTargetDesc: string;
+  reopenStepLoadTargetsFailed: string;
+  reopenStepNoTargetsAvailable: string;
+  reopenStepTargetPhaseLabel: string;
+  reopenStepLoadingPhasesPlaceholder: string;
+  reopenStepSelectPhasePlaceholder: string;
+  reopenStepReasonLabel: string;
+  reopenStepReasonPlaceholder: string;
+  reopenStepNoteLabel: string;
+  reopenStepNoteBody: string;
+  reopenStepReopening: string;
+  reopenStepReopenToPhase: string;
+  reopenStepSuccessTitle: string;
+  reopenStepSuccessDesc: string;
+  reopenStepFailedTitle: string;
+  reopenStepFailedDesc: string;
+  cannotReopenStepTitle: string;
+  failedToReopenStepTitle: string;
+  reopenStepWorkflowDataUnavailableDesc: string;
+  reopenStepWrongPhaseSubmissionDesc: string;
+  reopenStepWrongPhasePostWorkDesc: string;
+  reopenStepReturnedSuccessDesc: string;
+  plannedTabHeader: string;
+  plannedTabSubheader: string;
+  plannedTabDescriptionLabel: string;
+  plannedTabDescriptionPlaceholder: string;
+  plannedTabDescriptionHelp: string;
+  plannedTabStartDateLabel: string;
+  plannedTabStartDateHelp: string;
+  plannedTabEstimatedCostLabel: string;
+  plannedTabEstimatedCostHelp: string;
+  plannedTabFinancialYearLabel: string;
+  plannedTabFinancialYearHelp: string;
+  plannedTabBuildingElementsPlaceholder: string;
+  plannedTabBuildingElementsLoadingPlaceholder: string;
+  plannedTabBuildingElementsSearchPlaceholder: string;
+  plannedTabBuildingElementsHelp: string;
+  plannedTabSuccessTitle: string;
+  plannedTabSuccessDesc: string;
+  plannedTabWarningTitle: string;
+  plannedTabElementsUpdateWarningDesc: string;
+  workflowNextLabel: string;
+  workflowSavingButton: string;
+  workflowSaveChangesButton: string;
+  workflowCompletingButton: string;
+  workflowCompletePlanningPhaseButton: string;
+  workflowAllTasksCompleted: string;
+  workflowErrorTitle: string;
+  workflowSuccessTitle: string;
+  postWorkProjectDataMissing: string;
+  postWorkFailedUpdateConfirmation: string;
+  postWorkAllElementsConfirmedDesc: string;
+  postWorkFailedConfirmAll: string;
+  postWorkAllChangesSavedDesc: string;
+  postWorkFailedSaveSomeChanges: string;
+  postWorkFailedApplyInventoryChangesDesc: string;
+  postWorkCompletionFailedTitle: string;
+  postWorkFailedMarkCompleteDesc: string;
+  postWorkUnexpectedErrorDesc: string;
+  postWorkActivitiesHeader: string;
+  postWorkActivitiesSubheader: string;
+  postWorkSkippableInfo: string;
+  autoGeneratedProjectTitle: string;
+  autoGeneratedProjectDesc: string;
+  postWorkTasksTitle: string;
+  postWorkTasksDesc: string;
+  postWorkCompletedCounter: string;
+  postWorkAddTaskButton: string;
+  postWorkNoTasksDefined: string;
+  postWorkAddCleanupTasksHint: string;
+  postWorkTaskDescriptionPlaceholder: string;
+  postWorkTaskDoneLabel: string;
+  postWorkTaskPendingLabel: string;
+  postWorkElementLifespanImpactTitle: string;
+  postWorkElementLifespanImpactDesc: string;
+  postWorkConfirmedCounter: string;
+  postWorkConfirmAllButton: string;
+  postWorkNoElementsLinked: string;
+  postWorkElementsMustBeAddedDuringPlanning: string;
+  postWorkUnknownElement: string;
+  postWorkNoCode: string;
+  postWorkPlannedWorkPrefix: string;
+  postWorkConfirmedBadge: string;
+  postWorkInterventionTypeLabel: string;
+  postWorkSelectInterventionTypePlaceholder: string;
+  postWorkInterventionNoWork: string;
+  postWorkInterventionRepair: string;
+  postWorkInterventionMinorRehab: string;
+  postWorkInterventionMajorRehab: string;
+  postWorkInterventionReplacement: string;
+  postWorkSuggestedStandardLifespanLabel: string;
+  postWorkYearsSuffix: string;
+  postWorkUniformatStandardLifespanHelp: string;
+  postWorkRemainingLifespanBeforeLabel: string;
+  postWorkNotSpecified: string;
+  postWorkUniformatStandardPrefix: string;
+  postWorkSuggestedExtensionPrefix: string;
+  postWorkLifespanImpactYearsLabel: string;
+  postWorkSuggestedPrefix: string;
+  postWorkYearsAddedToRemainingLifespan: string;
+  postWorkImpactSummaryLabel: string;
+  postWorkThisWorkWill: string;
+  postWorkSetLifespanToYearsTemplate: string;
+  postWorkAddYearsToLifespanTemplate: string;
+  postWorkNotChangeRemainingLifespan: string;
+  postWorkElementConfirmationsLabel: string;
+  postWorkAllElementsConfirmed: string;
+  postWorkProgressSummaryTitle: string;
+  postWorkTasksCompletedLabel: string;
+  postWorkMarkProjectCompleteButton: string;
+  postWorkCompleteAllTasksToProceed: string;
+  postWorkConfirmAllElementsToProceed: string;
+  postWorkConfirmProjectCompletionTitle: string;
+  postWorkConfirmProjectCompletionDesc: string;
+  postWorkFollowingChangesWillBeApplied: string;
+  postWorkWillBeMarkedAsReplaced: string;
+  postWorkNewLifespanPrefix: string;
+  postWorkCurrentLifespanWillBeExtendedBy: string;
+  postWorkInterventionTypePrefix: string;
+  postWorkNoChangesWillBeApplied: string;
+  postWorkTheseChangesCannotBeUndone: string;
+  postWorkConfirmAndCompleteProjectButton: string;
+  postWorkCompletingButton: string;
+  submissionProjectDataMissing: string;
+  submissionUploadInProgressTitle: string;
+  submissionUploadInProgressSaveDesc: string;
+  submissionUploadInProgressSubmitDesc: string;
+  submissionUploadFailedTitle: string;
+  submissionUploadFailedDescTemplate: string;
+  submissionManagementHeader: string;
+  submissionManagementSubheader: string;
+  submissionVendorSubmissionsHeader: string;
+  submissionVendorSubmissionsSubheader: string;
+  submissionElementManagementTab: string;
+  submissionAddSubmissionButton: string;
+  submissionVendorSubmittedDate: string;
+  submissionEditButton: string;
+  submissionDeleteButton: string;
+  submissionPreferredBadge: string;
+  submissionDeleteVendorConfirmTitle: string;
+  submissionDeleteVendorConfirmDesc: string;
+  submissionEditVendorTitle: string;
+  submissionAddSubmissionDescriptionSr: string;
+  submissionEditDialogDescription: string;
+  submissionAddNewVendorTitle: string;
+  submissionVendorNameLabel: string;
+  submissionVendorNamePlaceholder: string;
+  submissionAvailableDateLabel: string;
+  submissionDescriptionLabel: string;
+  submissionDescriptionPlaceholder: string;
+  submissionPaymentPlanHeader: string;
+  submissionPaymentTypeLabel: string;
+  submissionSelectPaymentTypePlaceholder: string;
+  submissionPaymentTypeOneTime: string;
+  submissionPaymentTypeRecurring: string;
+  submissionTotalAmountLabel: string;
+  submissionPaymentDateLabel: string;
+  submissionPaymentScheduleLabel: string;
+  submissionSelectPaymentSchedulePlaceholder: string;
+  submissionScheduleWeekly: string;
+  submissionScheduleMonthly: string;
+  submissionScheduleQuarterly: string;
+  submissionScheduleYearly: string;
+  submissionScheduleCustom: string;
+  submissionDateFirstPaymentLabel: string;
+  submissionDateEndPaymentLabel: string;
+  submissionHasInitialPaymentLabel: string;
+  submissionInitialPaymentAmountLabel: string;
+  submissionEqualRecurringLabel: string;
+  submissionRecurringPaymentAmountLabel: string;
+  submissionCustomPaymentAmountsLabel: string;
+  submissionCustomPaymentAmountSubLabel: string;
+  submissionCustomPaymentDateSubLabel: string;
+  submissionCustomPaymentDescriptionSubLabel: string;
+  submissionCustomPaymentDescriptionPlaceholder: string;
+  submissionMarkAsPreferredLabel: string;
+  submissionMarkAsPreferredVendorLabel: string;
+  submissionNoVendorSubmissionsHeader: string;
+  submissionProposalDetailsHeader: string;
+  submissionNoDescriptionProvided: string;
+  submissionPaymentBreakdownLabel: string;
+  submissionContactInformationHeader: string;
+  submissionVendorNameLabelEdit: string;
+  submissionContactInformationLabel: string;
+  submissionContactInformationPlaceholder: string;
+  submissionDescriptionPlaceholderEdit: string;
+  submissionAddPaymentButton: string;
+  submissionPaymentTypeDescription: string;
+  submissionTotalAmountDescription: string;
+  submissionPaymentDateDescription: string;
+  submissionHasInitialPaymentDescription: string;
+  submissionEqualRecurringDescription: string;
+  submissionMarkAsPreferredDescription: string;
+  submissionCancelButton: string;
+  submissionAddingButton: string;
+  submissionFailedToLoadVendors: string;
+  submissionContactAvailable: string;
+  submissionAvailableLabel: string;
+  submissionUnmarkPreferredButton: string;
+  submissionMarkAsPreferredButton: string;
+  submissionAvailableForWorkLabel: string;
+  submissionExtendsLifespanTemplate: string;
+  submissionDocumentsSubmittedTemplate: string;
+  submissionPaymentScheduleSummaryTemplate: string;
+  submissionPaymentStartsTemplate: string;
+  submissionPaymentItemTemplate: string;
+  submissionNoPaymentPlanConfigured: string;
+  submissionEditPaymentPlanTitleTemplate: string;
+  submissionEditPaymentPlanDescription: string;
+  submissionNoSubmissionsYetTitle: string;
+  submissionNoSubmissionsYetDescription: string;
+  submissionNoVendorSubmissionsYetMessage: string;
+  submissionPreferredCountTemplate: string;
+  submissionUpdatingButton: string;
+  submissionSaveChangesButton: string;
+  submissionEditVendorTitleTemplate: string;
+  submissionEditVendorDialogDescription: string;
+  submissionDocumentsTitle: string;
+  submissionMarkAsPreferredEditDescription: string;
+  submissionDeleteVendorButton: string;
+  submissionCompletingButton: string;
+  submissionCompleteSubmissionPhaseButton: string;
+  submissionDocumentsOptionalTitle: string;
+  workflowStepCanBeSkipped: string;
+  workflowAutoGeneratedProjectTitle: string;
+  workflowFailedToSavePhaseDescription: string;
+  workflowPleaseWaitTitle: string;
+  workflowSavingTaskChangesDescription: string;
+  preWorkPreparationHeader: string;
+  preWorkNoTasksDefined: string;
+  preWorkAddTasksHelper: string;
+  inProgressHeader: string;
+  inProgressNoWorkTasksDefined: string;
+  inProgressAddTasksHelper: string;
+  workflowProgressSummaryTitle: string;
+  workflowTasksCompletedLabel: string;
+  preWorkSetupTasksSubheader: string;
+  preWorkPreparationTasksTitle: string;
+  preWorkPreparationTasksDescription: string;
+  preWorkAddTaskButton: string;
+  preWorkTaskDescriptionPlaceholder: string;
+  preWorkTaskDoneBadge: string;
+  preWorkTaskPendingBadge: string;
+  preWorkNotificationSettingsTitle: string;
+  preWorkNotificationSettingsDescription: string;
+  preWorkNotificationMessageLabel: string;
+  preWorkNotificationMessagePlaceholder: string;
+  preWorkTimingLabel: string;
+  preWorkDaysBeforeLabel: string;
+  preWorkUpdateNotificationButton: string;
+  preWorkAddNotificationButton: string;
+  preWorkCancelButton: string;
+  preWorkCreatedNotificationsTemplate: string;
+  preWorkSentBadge: string;
+  preWorkPendingBadge: string;
+  preWorkCustomDaysBeforeTemplate: string;
+  preWorkCompletingButton: string;
+  preWorkCompletePhaseButton: string;
+  preWorkTimingOneDayBefore: string;
+  preWorkTimingThreeDaysBefore: string;
+  preWorkTimingOneWeekBefore: string;
+  preWorkTimingCustom: string;
+  inProgressSubheader: string;
+  inProgressWorkTasksTitle: string;
+  inProgressWorkTasksDescription: string;
+  inProgressTaskCountTemplate: string;
+  inProgressAddTaskButton: string;
+  inProgressTaskDescriptionPlaceholder: string;
+  inProgressMarkWorkCompleteButton: string;
+  preWorkNewTaskDefault: string;
+  inProgressNewWorkTaskDefault: string;
   dashboard: string;
   pillarFramework: string;
   qualityAssurance: string;
@@ -4489,6 +4854,371 @@ export const translations: Record<Language, Translations> = {
     // Budget chart empty state
     budgetChartNoData: 'No data available for selected filters',
     budgetChartAdjustFilters: 'Try adjusting your filter settings',
+    // Project workflow status names
+    projectStatusPlanned: 'Planned',
+    projectStatusEvaluation: 'Evaluation',
+    projectStatusSubmissionStage: 'Submission',
+    projectStatusPreWorkStage: 'Pre-Work',
+    projectStatusInProgressStage: 'In Progress',
+    projectStatusPostWorkStage: 'Post-Work',
+    projectStatusCompletedStage: 'Completed',
+    projectStatusPlannedDesc: 'Project is in planning phase',
+    projectStatusEvaluationDesc: 'Under evaluation',
+    projectStatusSubmissionDesc: 'Submitted for approval',
+    projectStatusPreWorkDesc: 'Preparing for work',
+    projectStatusInProgressDesc: 'Work is ongoing',
+    projectStatusPostWorkDesc: 'Work completed, cleanup phase',
+    projectStatusCompletedDesc: 'Project finished',
+    // ProjectForm modal labels and copy
+    projectFormCreateNewTitle: 'Create New Project',
+    projectFormCreateFromSuggestionTitle: 'Create Project from Suggestion',
+    projectFormEditTitle: 'Edit Project',
+    projectFormCreateDescription: 'Create a new maintenance project to track work and manage resources.',
+    projectFormEditDescription: 'Update project details and configuration.',
+    projectFormSubmitCreate: 'Create Project',
+    projectFormSubmitUpdate: 'Update Project',
+    projectFormCreatingFromSuggestionTitle: 'Creating from Evaluation Suggestion',
+    projectFormCreatingFromSuggestionDesc: 'This project is being created based on an evaluation suggestion. Some fields have been pre-populated for you.',
+    projectFormQuickProjectDesc: 'Create a simplified project with essential fields only (Title, Description, Budget, Financial Year, Date)',
+    projectFormTitleLabel: 'Title',
+    projectFormTitlePlaceholder: 'e.g., Roof Repair - Building A',
+    projectFormTitleDesc: 'Clear, descriptive name for the project',
+    projectFormDescriptionLabel: 'Description',
+    projectFormOptional: '(Optional)',
+    projectFormDescriptionPlaceholderQuick: 'Brief description of the project...',
+    projectFormDescriptionDescQuick: 'Optional detailed description',
+    projectFormBudgetLabel: 'Budget',
+    projectFormBudgetDescQuick: 'Project budget in dollars',
+    projectFormFinancialYearLabel: 'Financial Year',
+    projectFormFinancialYearDescQuick: 'Budget assignment year',
+    projectFormProjectDateLabel: 'Project Date',
+    projectFormProjectDateDesc: 'Target completion date for the project',
+    projectFormProjectNumberLabel: 'Project Number',
+    projectFormProjectNumberPlaceholder: 'e.g., 2024-001',
+    projectFormProjectNumberDesc: 'Unique identifier for this project',
+    projectFormProjectTitleLabel: 'Project Title',
+    projectFormDescriptionPlaceholderStandard: 'Detailed description of the project scope and objectives...',
+    projectFormDescriptionDescStandard: 'Optional detailed description of the project',
+    projectFormPlannedStartDateLabel: 'Planned Start Date',
+    projectFormPlannedStartDateDesc: 'When the project is planned to start',
+    projectFormTotalBudgetLabel: 'Total Budget',
+    projectFormTotalBudgetDesc: 'Total allocated budget for this project',
+    projectFormActualCostLabel: 'Actual Cost',
+    projectFormActualCostDesc: 'Current actual cost spent on this project',
+    projectFormToastBuildingIdRequired: 'Building ID is required but not available. Please refresh the page and try again.',
+    projectFormToastPermissionDenied: 'Permission Denied',
+    projectFormToastNoCreatePermission: "You don't have permission to create projects.",
+    projectFormToastNoEditPermission: "You don't have permission to edit projects.",
+    projectFormToastCreatedTitle: 'Project Created',
+    projectFormToastUpdatedTitle: 'Project Updated',
+    projectFormToastCreatedDesc: 'Project "{title}" has been created successfully.',
+    projectFormToastUpdatedDesc: 'Project "{title}" has been updated successfully.',
+    projectFormToastCreationFailed: 'Creation Failed',
+    projectFormToastUpdateFailed: 'Update Failed',
+    projectFormToastErrorOccurred: 'An error occurred',
+    // StatusStepper copy
+    statusStepperLabel: 'Project Status',
+    statusStepperPercentComplete: '% Complete',
+    statusStepperClickToAdvance: 'Click to advance',
+    statusStepperLastUpdated: 'Last updated:',
+    statusStepperToastUpdatedTitle: 'Status Updated',
+    statusStepperToastUpdatedDesc: 'Project status has been updated to {status}.',
+    statusStepperToastUpdateFailed: 'Update Failed',
+    statusStepperToastUpdateFailedDesc: 'Failed to update status',
+    statusStepperToastPermissionDenied: "You don't have permission to update project status.",
+    statusStepperConfirmTitle: 'Confirm Status Change',
+    statusStepperConfirmDescPrefix: 'Are you sure you want to change the project status to',
+    statusStepperConfirmCompletedNote: 'This will mark the project as fully completed.',
+    statusStepperUpdating: 'Updating...',
+    statusStepperConfirm: 'Confirm',
+    statusStepperAdvanceTo: 'Advance to',
+    statusStepperReturnTo: 'Return to',
+    // Workflow tabs
+    plannedTabCurrentStatus: 'Current Status:',
+    plannedTabNoBuildingElementsAvailable: 'No building elements available. You may need to add elements to this building first.',
+    plannedTabBuildingElementsLoading: 'Loading...',
+    plannedTabBuildingElementsNotFound: 'No building elements found',
+    reopenStepTrigger: 'Reopen Step',
+    reopenStepDialogTitle: 'Reopen Workflow Step',
+    reopenStepDialogDescription: "Select which previous phase you'd like to reopen to. Your progress in future phases will be preserved.",
+    reopenStepStatusPlanning: 'Planning',
+    reopenStepStatusVendorSubmission: 'Vendor Submission',
+    reopenStepStatusPreWork: 'Pre-Work',
+    reopenStepStatusInProgress: 'In Progress',
+    reopenStepStatusPostWork: 'Post-Work',
+    reopenStepStatusCompleted: 'Completed',
+    reopenStepSelectTargetTitle: 'Please select a target',
+    reopenStepSelectTargetDesc: 'You must select which phase to reopen to.',
+    reopenStepLoadTargetsFailed: 'Failed to load available reopen targets. Please try again.',
+    reopenStepNoTargetsAvailable: 'No previous phases available to reopen to. The project must have completed at least one phase to use this feature.',
+    reopenStepTargetPhaseLabel: 'Target Phase',
+    reopenStepLoadingPhasesPlaceholder: 'Loading phases...',
+    reopenStepSelectPhasePlaceholder: 'Select a phase to reopen to',
+    reopenStepReasonLabel: 'Reason (optional)',
+    reopenStepReasonPlaceholder: "Explain why you're reopening this step...",
+    reopenStepNoteLabel: 'Note:',
+    reopenStepNoteBody: 'Reopening to {phase} will preserve your progress in future phases. You can continue working where you left off.',
+    reopenStepReopening: 'Reopening...',
+    reopenStepReopenToPhase: 'Reopen to Phase',
+    reopenStepSuccessTitle: 'Step Reopened',
+    reopenStepSuccessDesc: 'Successfully reopened to {phase} phase.',
+    reopenStepFailedTitle: 'Failed to Reopen',
+    reopenStepFailedDesc: 'An error occurred while trying to reopen the step.',
+    cannotReopenStepTitle: 'Cannot Reopen',
+    failedToReopenStepTitle: 'Failed to Reopen',
+    reopenStepWorkflowDataUnavailableDesc: 'Workflow data is not available. Please refresh the page and try again.',
+    reopenStepWrongPhaseSubmissionDesc: 'This step can only be reopened when the project is currently in the Submission phase.',
+    reopenStepWrongPhasePostWorkDesc: 'This step can only be reopened when the project is currently in the Post-Work phase.',
+    reopenStepReturnedSuccessDesc: 'Successfully returned to the previous workflow step.',
+    plannedTabHeader: 'Project Planning',
+    plannedTabSubheader: 'Define the project description, planning timeline, and estimated cost',
+    plannedTabDescriptionLabel: 'Description',
+    plannedTabDescriptionPlaceholder: 'Describe the maintenance work needed, including scope, specific areas, and any special requirements...',
+    plannedTabDescriptionHelp: 'Provide a detailed description of the planned maintenance work',
+    plannedTabStartDateLabel: 'Start Planning Date',
+    plannedTabStartDateHelp: 'When do you plan to start working on this project?',
+    plannedTabEstimatedCostLabel: 'Estimated Cost',
+    plannedTabEstimatedCostHelp: 'Estimated total cost for this project in dollars',
+    plannedTabFinancialYearLabel: 'Financial Year',
+    plannedTabFinancialYearHelp: 'The financial year for budget assignment. Costs will be allocated to the closest month in this year.',
+    plannedTabBuildingElementsPlaceholder: 'Select building elements for this project',
+    plannedTabBuildingElementsLoadingPlaceholder: 'Loading elements...',
+    plannedTabBuildingElementsSearchPlaceholder: 'Search by name, code, or condition...',
+    plannedTabBuildingElementsHelp: 'Select the building elements that will be affected by this maintenance project.',
+    plannedTabSuccessTitle: 'Success',
+    plannedTabSuccessDesc: 'Project planning completed and moved to submission stage.',
+    plannedTabWarningTitle: 'Warning',
+    plannedTabElementsUpdateWarningDesc: 'Project saved but there was an issue updating the selected elements.',
+    workflowNextLabel: 'Next:',
+    workflowSavingButton: 'Saving...',
+    workflowSaveChangesButton: 'Save Changes',
+    workflowCompletingButton: 'Completing...',
+    workflowCompletePlanningPhaseButton: 'Complete Planning Phase',
+    workflowAllTasksCompleted: 'All tasks completed!',
+    workflowErrorTitle: 'Error',
+    workflowSuccessTitle: 'Success',
+    postWorkProjectDataMissing: 'Project data is missing. Unable to load the post-work tab.',
+    postWorkFailedUpdateConfirmation: 'Failed to update element confirmation',
+    postWorkAllElementsConfirmedDesc: 'All elements confirmed successfully',
+    postWorkFailedConfirmAll: 'Failed to confirm all elements',
+    postWorkAllChangesSavedDesc: 'All changes saved successfully',
+    postWorkFailedSaveSomeChanges: 'Failed to save some changes',
+    postWorkFailedApplyInventoryChangesDesc: 'Failed to apply inventory changes. Please try again.',
+    postWorkCompletionFailedTitle: 'Completion Failed',
+    postWorkFailedMarkCompleteDesc: 'Failed to mark the project complete. Please try again.',
+    postWorkUnexpectedErrorDesc: 'An unexpected error occurred. Please try again.',
+    postWorkActivitiesHeader: 'Post-Work Activities',
+    postWorkActivitiesSubheader: 'Manage cleanup, finalization, and project closure tasks',
+    postWorkSkippableInfo: 'This step can be skipped in tab navigation',
+    autoGeneratedProjectTitle: 'Auto-Generated Project',
+    autoGeneratedProjectDesc: 'This project was automatically generated and may have pre-populated fields and tasks based on system analysis. You can modify all information as needed.',
+    postWorkTasksTitle: 'Post-Work Tasks',
+    postWorkTasksDesc: 'Cleanup, finalization, and closure tasks to complete the project',
+    postWorkCompletedCounter: 'completed',
+    postWorkAddTaskButton: 'Add Task',
+    postWorkNoTasksDefined: 'No post-work tasks defined',
+    postWorkAddCleanupTasksHint: 'Add cleanup and finalization tasks',
+    postWorkTaskDescriptionPlaceholder: 'Task description (required)',
+    postWorkTaskDoneLabel: 'Done',
+    postWorkTaskPendingLabel: 'Pending',
+    postWorkElementLifespanImpactTitle: 'Element Lifespan Impact',
+    postWorkElementLifespanImpactDesc: 'Review and confirm the lifespan impact of interventions on each project element',
+    postWorkConfirmedCounter: 'confirmed',
+    postWorkConfirmAllButton: 'Confirm All',
+    postWorkNoElementsLinked: 'No elements linked to this project',
+    postWorkElementsMustBeAddedDuringPlanning: 'Elements must be added during the planning phase',
+    postWorkUnknownElement: 'Unknown Element',
+    postWorkNoCode: 'No code',
+    postWorkPlannedWorkPrefix: 'Planned work:',
+    postWorkConfirmedBadge: 'Confirmed',
+    postWorkInterventionTypeLabel: 'Intervention Type',
+    postWorkSelectInterventionTypePlaceholder: 'Select intervention type',
+    postWorkInterventionNoWork: 'No Work',
+    postWorkInterventionRepair: 'Repair',
+    postWorkInterventionMinorRehab: 'Minor Rehab',
+    postWorkInterventionMajorRehab: 'Major Rehab',
+    postWorkInterventionReplacement: 'Replacement',
+    postWorkSuggestedStandardLifespanLabel: 'Suggested Standard Lifespan',
+    postWorkYearsSuffix: 'years',
+    postWorkUniformatStandardLifespanHelp: 'UNIFORMAT standard lifespan for this element type',
+    postWorkRemainingLifespanBeforeLabel: 'Remaining Lifespan Before',
+    postWorkNotSpecified: 'Not specified',
+    postWorkUniformatStandardPrefix: 'UNIFORMAT standard:',
+    postWorkSuggestedExtensionPrefix: 'Suggested extension:',
+    postWorkLifespanImpactYearsLabel: 'Lifespan Impact (Years)',
+    postWorkSuggestedPrefix: 'Suggested:',
+    postWorkYearsAddedToRemainingLifespan: 'Years added to remaining lifespan',
+    postWorkImpactSummaryLabel: 'Impact Summary:',
+    postWorkThisWorkWill: 'This work will',
+    postWorkSetLifespanToYearsTemplate: "set the element's lifespan to {years} year(s) starting from the date of the work",
+    postWorkAddYearsToLifespanTemplate: "add {years} year(s) to the element's remaining lifespan",
+    postWorkNotChangeRemainingLifespan: 'not change the remaining lifespan',
+    postWorkElementConfirmationsLabel: 'Element Confirmations',
+    postWorkAllElementsConfirmed: 'All elements confirmed!',
+    postWorkProgressSummaryTitle: 'Progress Summary',
+    postWorkTasksCompletedLabel: 'Tasks completed',
+    postWorkMarkProjectCompleteButton: 'Mark Project Complete',
+    postWorkCompleteAllTasksToProceed: 'Complete all tasks to proceed',
+    postWorkConfirmAllElementsToProceed: 'Confirm all element lifespan impacts to proceed',
+    postWorkConfirmProjectCompletionTitle: 'Confirm Project Completion',
+    postWorkConfirmProjectCompletionDesc: 'Completing this project will apply changes to your building element inventory.',
+    postWorkFollowingChangesWillBeApplied: 'The following changes will be applied to your building element inventory:',
+    postWorkWillBeMarkedAsReplaced: 'Will be marked as replaced with new construction date',
+    postWorkNewLifespanPrefix: 'New lifespan:',
+    postWorkCurrentLifespanWillBeExtendedBy: 'Current lifespan will be extended by',
+    postWorkInterventionTypePrefix: 'Intervention type:',
+    postWorkNoChangesWillBeApplied: 'No changes will be applied',
+    postWorkTheseChangesCannotBeUndone: 'These changes cannot be undone. Are you sure you want to complete this project?',
+    postWorkConfirmAndCompleteProjectButton: 'Confirm & Complete Project',
+    postWorkCompletingButton: 'Completing...',
+    submissionProjectDataMissing: 'Project data is missing. Unable to load the submission tab.',
+    submissionUploadInProgressTitle: 'Upload in progress',
+    submissionUploadInProgressSaveDesc: 'Please wait for document uploads to finish before saving.',
+    submissionUploadInProgressSubmitDesc: 'Please wait for document uploads to finish before submitting.',
+    submissionUploadFailedTitle: 'Upload failed',
+    submissionUploadFailedDescTemplate: 'Could not upload {fileName}. Please try again.',
+    submissionManagementHeader: 'Submission Management',
+    submissionManagementSubheader: 'Manage vendor submissions and project elements',
+    submissionVendorSubmissionsHeader: 'Vendor Submissions',
+    submissionVendorSubmissionsSubheader: 'Review and select from vendor proposals and quotes',
+    submissionElementManagementTab: 'Element Management',
+    submissionAddSubmissionButton: 'Add Submission',
+    submissionVendorSubmittedDate: 'Submitted',
+    submissionEditButton: 'Edit',
+    submissionDeleteButton: 'Delete',
+    submissionPreferredBadge: 'Preferred',
+    submissionDeleteVendorConfirmTitle: 'Delete Vendor Submission',
+    submissionDeleteVendorConfirmDesc: 'Are you sure you want to delete this vendor submission? This action cannot be undone.',
+    submissionEditVendorTitle: 'Edit Vendor Submission',
+    submissionAddSubmissionDescriptionSr: 'Create a new vendor submission with payment plan and document attachments',
+    submissionEditDialogDescription: 'Update the vendor submission details, payment plan, and document attachments',
+    submissionAddNewVendorTitle: 'Add New Vendor Submission',
+    submissionVendorNameLabel: 'Vendor Name *',
+    submissionVendorNamePlaceholder: 'Enter vendor name',
+    submissionAvailableDateLabel: 'Available Date',
+    submissionDescriptionLabel: 'Description',
+    submissionDescriptionPlaceholder: "Describe the vendor's proposal...",
+    submissionPaymentPlanHeader: 'Payment Plan',
+    submissionPaymentTypeLabel: 'Payment Type',
+    submissionSelectPaymentTypePlaceholder: 'Select payment type',
+    submissionPaymentTypeOneTime: 'One-time Payment',
+    submissionPaymentTypeRecurring: 'Recurring Payments',
+    submissionTotalAmountLabel: 'Total Amount',
+    submissionPaymentDateLabel: 'Payment Date',
+    submissionPaymentScheduleLabel: 'Payment Schedule',
+    submissionSelectPaymentSchedulePlaceholder: 'Select payment schedule',
+    submissionScheduleWeekly: 'Weekly',
+    submissionScheduleMonthly: 'Monthly',
+    submissionScheduleQuarterly: 'Quarterly',
+    submissionScheduleYearly: 'Yearly',
+    submissionScheduleCustom: 'Custom Schedule',
+    submissionDateFirstPaymentLabel: 'Date First Payment',
+    submissionDateEndPaymentLabel: 'Date End Payment',
+    submissionHasInitialPaymentLabel: 'Has initial payment',
+    submissionInitialPaymentAmountLabel: 'Initial Payment Amount',
+    submissionEqualRecurringLabel: 'Equal recurring payments',
+    submissionRecurringPaymentAmountLabel: 'Recurring Payment Amount',
+    submissionCustomPaymentAmountsLabel: 'Custom Payment Amounts',
+    submissionCustomPaymentAmountSubLabel: 'Amount',
+    submissionCustomPaymentDateSubLabel: 'Date',
+    submissionCustomPaymentDescriptionSubLabel: 'Description (Optional)',
+    submissionCustomPaymentDescriptionPlaceholder: 'Payment description',
+    submissionMarkAsPreferredLabel: 'Mark as Preferred',
+    submissionMarkAsPreferredVendorLabel: 'Mark as preferred vendor',
+    submissionNoVendorSubmissionsHeader: 'No Vendor Submissions Yet',
+    submissionProposalDetailsHeader: 'Proposal Details',
+    submissionNoDescriptionProvided: 'No description provided',
+    submissionPaymentBreakdownLabel: 'Payment breakdown:',
+    submissionContactInformationHeader: 'Contact Information',
+    submissionVendorNameLabelEdit: 'Vendor Name',
+    submissionContactInformationLabel: 'Contact Information',
+    submissionContactInformationPlaceholder: 'Enter contact information',
+    submissionDescriptionPlaceholderEdit: 'Enter description or notes',
+    submissionAddPaymentButton: 'Add Payment',
+    submissionPaymentTypeDescription: 'Choose whether this is a single payment or multiple payments over time',
+    submissionTotalAmountDescription: 'Enter the total amount for this one-time payment',
+    submissionPaymentDateDescription: 'The date when this payment is due',
+    submissionHasInitialPaymentDescription: "Check if there's a different initial payment amount",
+    submissionEqualRecurringDescription: 'Check if all recurring payments are the same amount',
+    submissionMarkAsPreferredDescription: 'Flag this vendor as a preferred choice',
+    submissionCancelButton: 'Cancel',
+    submissionAddingButton: 'Adding...',
+    submissionFailedToLoadVendors: 'Failed to load vendor submissions',
+    submissionContactAvailable: 'Contact Available',
+    submissionAvailableLabel: 'Available',
+    submissionUnmarkPreferredButton: 'Unmark Preferred',
+    submissionMarkAsPreferredButton: 'Mark as Preferred',
+    submissionAvailableForWorkLabel: 'Available for work',
+    submissionExtendsLifespanTemplate: 'Extends lifespan: {years} years',
+    submissionDocumentsSubmittedTemplate: '{count} document(s) submitted',
+    submissionPaymentScheduleSummaryTemplate: 'Schedule: {schedule}',
+    submissionPaymentStartsTemplate: 'Starts: {date}',
+    submissionPaymentItemTemplate: 'Payment {index}: {amount}',
+    submissionNoPaymentPlanConfigured: 'No payment plan configured yet',
+    submissionEditPaymentPlanTitleTemplate: 'Edit Payment Plan - {vendor}',
+    submissionEditPaymentPlanDescription: 'Configure payment schedule, costs, and timing for this vendor submission',
+    submissionNoSubmissionsYetTitle: 'No Submissions Yet',
+    submissionNoSubmissionsYetDescription: 'No vendor submissions have been received for this project',
+    submissionNoVendorSubmissionsYetMessage: 'Add vendor submissions with their quotes, availability, and proposal documents.',
+    submissionPreferredCountTemplate: '{count} Preferred',
+    submissionUpdatingButton: 'Updating...',
+    submissionSaveChangesButton: 'Save Changes',
+    submissionEditVendorTitleTemplate: 'Edit Vendor - {vendor}',
+    submissionEditVendorDialogDescription: 'Edit vendor information, documents, and preferences for this submission',
+    submissionDocumentsTitle: 'Documents',
+    submissionMarkAsPreferredEditDescription: 'Mark this vendor as preferred for this project',
+    submissionDeleteVendorButton: 'Delete Vendor',
+    submissionCompletingButton: 'Completing...',
+    submissionCompleteSubmissionPhaseButton: 'Complete Submission Phase',
+    submissionDocumentsOptionalTitle: 'Documents (Optional)',
+    workflowStepCanBeSkipped: 'This step can be skipped in tab navigation',
+    workflowAutoGeneratedProjectTitle: 'Auto-Generated Project',
+    workflowFailedToSavePhaseDescription: 'Failed to save changes before completing phase',
+    workflowPleaseWaitTitle: 'Please wait',
+    workflowSavingTaskChangesDescription: 'Saving task changes. Try again in a moment.',
+    preWorkPreparationHeader: 'Pre-Work Preparation',
+    preWorkNoTasksDefined: 'No preparation tasks defined',
+    preWorkAddTasksHelper: 'Add tasks that need to be completed before work starts',
+    inProgressHeader: 'Work In Progress',
+    inProgressNoWorkTasksDefined: 'No work tasks defined',
+    inProgressAddTasksHelper: 'Add tasks to track work progress',
+    workflowProgressSummaryTitle: 'Progress Summary',
+    workflowTasksCompletedLabel: 'Tasks completed',
+    preWorkSetupTasksSubheader: 'Set up preparation tasks and user notifications',
+    preWorkPreparationTasksTitle: 'Preparation Tasks',
+    preWorkPreparationTasksDescription: 'Define tasks that need to be completed before work begins',
+    preWorkAddTaskButton: 'Add Task',
+    preWorkTaskDescriptionPlaceholder: 'Task description (required)',
+    preWorkTaskDoneBadge: 'Done',
+    preWorkTaskPendingBadge: 'Pending',
+    preWorkNotificationSettingsTitle: 'Notification Settings',
+    preWorkNotificationSettingsDescription: 'Set up automated reminders that will be sent to all users linked to this building',
+    preWorkNotificationMessageLabel: 'Notification Message',
+    preWorkNotificationMessagePlaceholder: 'Enter notification message...',
+    preWorkTimingLabel: 'Timing',
+    preWorkDaysBeforeLabel: 'Days Before',
+    preWorkUpdateNotificationButton: 'Update Notification',
+    preWorkAddNotificationButton: 'Add Notification',
+    preWorkCancelButton: 'Cancel',
+    preWorkCreatedNotificationsTemplate: 'Created Notifications ({count})',
+    preWorkSentBadge: 'Sent',
+    preWorkPendingBadge: 'Pending',
+    preWorkCustomDaysBeforeTemplate: '{days} days before',
+    preWorkCompletingButton: 'Completing...',
+    preWorkCompletePhaseButton: 'Complete Pre-Work Phase',
+    preWorkTimingOneDayBefore: '1 Day Before',
+    preWorkTimingThreeDaysBefore: '3 Days Before',
+    preWorkTimingOneWeekBefore: '1 Week Before',
+    preWorkTimingCustom: 'Custom',
+    inProgressSubheader: 'Manage active work execution and track progress',
+    inProgressWorkTasksTitle: 'Work Tasks',
+    inProgressWorkTasksDescription: 'Set reminder to for task to do by the manager during the work',
+    inProgressTaskCountTemplate: '{completed} / {total} completed',
+    inProgressAddTaskButton: 'Add Task',
+    inProgressTaskDescriptionPlaceholder: 'Task description (required)',
+    inProgressMarkWorkCompleteButton: 'Mark Work Complete',
+    preWorkNewTaskDefault: 'New Task',
+    inProgressNewWorkTaskDefault: 'New Work Task',
   },
   fr: {
 
@@ -6730,5 +7460,370 @@ export const translations: Record<Language, Translations> = {
     // Budget chart empty state
     budgetChartNoData: 'Aucune donnée disponible pour les filtres sélectionnés',
     budgetChartAdjustFilters: 'Essayez d\'ajuster vos paramètres de filtre',
+    // Project workflow status names
+    projectStatusPlanned: 'Planifié',
+    projectStatusEvaluation: 'Évaluation',
+    projectStatusSubmissionStage: 'Soumission',
+    projectStatusPreWorkStage: 'Pré-travaux',
+    projectStatusInProgressStage: 'En cours',
+    projectStatusPostWorkStage: 'Post-travaux',
+    projectStatusCompletedStage: 'Terminé',
+    projectStatusPlannedDesc: 'Le projet est en phase de planification',
+    projectStatusEvaluationDesc: 'En cours d\'évaluation',
+    projectStatusSubmissionDesc: 'Soumis pour approbation',
+    projectStatusPreWorkDesc: 'Préparation des travaux',
+    projectStatusInProgressDesc: 'Travaux en cours',
+    projectStatusPostWorkDesc: 'Travaux terminés, phase de nettoyage',
+    projectStatusCompletedDesc: 'Projet terminé',
+    // ProjectForm modal labels and copy
+    projectFormCreateNewTitle: 'Créer un nouveau projet',
+    projectFormCreateFromSuggestionTitle: 'Créer un projet à partir d\'une suggestion',
+    projectFormEditTitle: 'Modifier le projet',
+    projectFormCreateDescription: 'Créez un nouveau projet d\'entretien pour suivre les travaux et gérer les ressources.',
+    projectFormEditDescription: 'Mettez à jour les détails et la configuration du projet.',
+    projectFormSubmitCreate: 'Créer le projet',
+    projectFormSubmitUpdate: 'Mettre à jour le projet',
+    projectFormCreatingFromSuggestionTitle: 'Création à partir d\'une suggestion d\'évaluation',
+    projectFormCreatingFromSuggestionDesc: 'Ce projet est créé à partir d\'une suggestion d\'évaluation. Certains champs ont été préremplis pour vous.',
+    projectFormQuickProjectDesc: 'Créer un projet simplifié avec uniquement les champs essentiels (Titre, Description, Budget, Année financière, Date)',
+    projectFormTitleLabel: 'Titre',
+    projectFormTitlePlaceholder: 'p. ex., Réparation de toiture - Bâtiment A',
+    projectFormTitleDesc: 'Nom clair et descriptif du projet',
+    projectFormDescriptionLabel: 'Description',
+    projectFormOptional: '(Optionnel)',
+    projectFormDescriptionPlaceholderQuick: 'Brève description du projet...',
+    projectFormDescriptionDescQuick: 'Description détaillée optionnelle',
+    projectFormBudgetLabel: 'Budget',
+    projectFormBudgetDescQuick: 'Budget du projet en dollars',
+    projectFormFinancialYearLabel: 'Année financière',
+    projectFormFinancialYearDescQuick: 'Année d\'attribution du budget',
+    projectFormProjectDateLabel: 'Date du projet',
+    projectFormProjectDateDesc: 'Date d\'achèvement cible du projet',
+    projectFormProjectNumberLabel: 'Numéro de projet',
+    projectFormProjectNumberPlaceholder: 'p. ex., 2024-001',
+    projectFormProjectNumberDesc: 'Identifiant unique pour ce projet',
+    projectFormProjectTitleLabel: 'Titre du projet',
+    projectFormDescriptionPlaceholderStandard: 'Description détaillée de la portée et des objectifs du projet...',
+    projectFormDescriptionDescStandard: 'Description détaillée optionnelle du projet',
+    projectFormPlannedStartDateLabel: 'Date de début prévue',
+    projectFormPlannedStartDateDesc: 'Quand le projet doit-il commencer?',
+    projectFormTotalBudgetLabel: 'Budget total',
+    projectFormTotalBudgetDesc: 'Budget total alloué pour ce projet',
+    projectFormActualCostLabel: 'Coût réel',
+    projectFormActualCostDesc: 'Coût réel actuellement dépensé pour ce projet',
+    projectFormToastBuildingIdRequired: 'L\'identifiant du bâtiment est requis mais non disponible. Veuillez actualiser la page et réessayer.',
+    projectFormToastPermissionDenied: 'Permission refusée',
+    projectFormToastNoCreatePermission: 'Vous n\'avez pas la permission de créer des projets.',
+    projectFormToastNoEditPermission: 'Vous n\'avez pas la permission de modifier des projets.',
+    projectFormToastCreatedTitle: 'Projet créé',
+    projectFormToastUpdatedTitle: 'Projet mis à jour',
+    projectFormToastCreatedDesc: 'Le projet « {title} » a été créé avec succès.',
+    projectFormToastUpdatedDesc: 'Le projet « {title} » a été mis à jour avec succès.',
+    projectFormToastCreationFailed: 'Échec de la création',
+    projectFormToastUpdateFailed: 'Échec de la mise à jour',
+    projectFormToastErrorOccurred: 'Une erreur est survenue',
+    // StatusStepper copy
+    statusStepperLabel: 'Statut du projet',
+    statusStepperPercentComplete: '% terminé',
+    statusStepperClickToAdvance: 'Cliquez pour avancer',
+    statusStepperLastUpdated: 'Dernière mise à jour :',
+    statusStepperToastUpdatedTitle: 'Statut mis à jour',
+    statusStepperToastUpdatedDesc: 'Le statut du projet a été mis à jour à {status}.',
+    statusStepperToastUpdateFailed: 'Échec de la mise à jour',
+    statusStepperToastUpdateFailedDesc: 'Impossible de mettre à jour le statut',
+    statusStepperToastPermissionDenied: 'Vous n\'avez pas la permission de mettre à jour le statut du projet.',
+    statusStepperConfirmTitle: 'Confirmer le changement de statut',
+    statusStepperConfirmDescPrefix: 'Êtes-vous sûr de vouloir changer le statut du projet à',
+    statusStepperConfirmCompletedNote: 'Cela marquera le projet comme entièrement terminé.',
+    statusStepperUpdating: 'Mise à jour…',
+    statusStepperConfirm: 'Confirmer',
+    statusStepperAdvanceTo: 'Avancer à',
+    statusStepperReturnTo: 'Revenir à',
+    // Workflow tabs
+    plannedTabCurrentStatus: 'Statut actuel :',
+    plannedTabNoBuildingElementsAvailable: 'Aucun élément du bâtiment disponible. Vous devrez peut-être ajouter d\'abord des éléments à ce bâtiment.',
+    plannedTabBuildingElementsLoading: 'Chargement…',
+    plannedTabBuildingElementsNotFound: 'Aucun élément du bâtiment trouvé',
+    reopenStepTrigger: 'Rouvrir l\'étape',
+    reopenStepDialogTitle: 'Rouvrir une étape du flux',
+    reopenStepDialogDescription: 'Sélectionnez la phase précédente à rouvrir. Votre progression dans les phases ultérieures sera préservée.',
+    reopenStepStatusPlanning: 'Planification',
+    reopenStepStatusVendorSubmission: 'Soumission du fournisseur',
+    reopenStepStatusPreWork: 'Pré-travaux',
+    reopenStepStatusInProgress: 'En cours',
+    reopenStepStatusPostWork: 'Post-travaux',
+    reopenStepStatusCompleted: 'Terminé',
+    reopenStepSelectTargetTitle: 'Veuillez sélectionner une cible',
+    reopenStepSelectTargetDesc: 'Vous devez sélectionner la phase à rouvrir.',
+    reopenStepLoadTargetsFailed: 'Échec du chargement des cibles disponibles. Veuillez réessayer.',
+    reopenStepNoTargetsAvailable: 'Aucune phase précédente disponible à rouvrir. Le projet doit avoir terminé au moins une phase pour utiliser cette fonctionnalité.',
+    reopenStepTargetPhaseLabel: 'Phase cible',
+    reopenStepLoadingPhasesPlaceholder: 'Chargement des phases…',
+    reopenStepSelectPhasePlaceholder: 'Sélectionnez une phase à rouvrir',
+    reopenStepReasonLabel: 'Raison (optionnelle)',
+    reopenStepReasonPlaceholder: 'Expliquez pourquoi vous rouvrez cette étape…',
+    reopenStepNoteLabel: 'Note :',
+    reopenStepNoteBody: 'La réouverture à {phase} préservera votre progression dans les phases ultérieures. Vous pouvez reprendre là où vous vous êtes arrêté.',
+    reopenStepReopening: 'Réouverture en cours…',
+    reopenStepReopenToPhase: 'Rouvrir à la phase',
+    reopenStepSuccessTitle: 'Étape rouverte',
+    reopenStepSuccessDesc: 'Réouverture réussie à la phase {phase}.',
+    reopenStepFailedTitle: 'Échec de la réouverture',
+    reopenStepFailedDesc: 'Une erreur est survenue en tentant de rouvrir l\'étape.',
+    cannotReopenStepTitle: 'Impossible de rouvrir',
+    failedToReopenStepTitle: 'Échec de la réouverture',
+    reopenStepWorkflowDataUnavailableDesc: 'Les données du flux de travail ne sont pas disponibles. Veuillez actualiser la page et réessayer.',
+    reopenStepWrongPhaseSubmissionDesc: 'Cette étape ne peut être rouverte que lorsque le projet est actuellement à la phase de soumission.',
+    reopenStepWrongPhasePostWorkDesc: 'Cette étape ne peut être rouverte que lorsque le projet est actuellement à la phase post-travaux.',
+    reopenStepReturnedSuccessDesc: 'Retour à l\'étape précédente du flux de travail réussi.',
+    plannedTabHeader: 'Planification du projet',
+    plannedTabSubheader: 'Définissez la description du projet, l\'échéancier de planification et le coût estimé',
+    plannedTabDescriptionLabel: 'Description',
+    plannedTabDescriptionPlaceholder: 'Décrivez les travaux d\'entretien nécessaires, y compris la portée, les zones précises et toute exigence particulière…',
+    plannedTabDescriptionHelp: 'Fournissez une description détaillée des travaux d\'entretien planifiés',
+    plannedTabStartDateLabel: 'Date de début de la planification',
+    plannedTabStartDateHelp: 'Quand prévoyez-vous commencer à travailler sur ce projet ?',
+    plannedTabEstimatedCostLabel: 'Coût estimé',
+    plannedTabEstimatedCostHelp: 'Coût total estimé pour ce projet en dollars',
+    plannedTabFinancialYearLabel: 'Année financière',
+    plannedTabFinancialYearHelp: 'L\'année financière pour l\'affectation budgétaire. Les coûts seront alloués au mois le plus proche de cette année.',
+    plannedTabBuildingElementsPlaceholder: 'Sélectionnez les éléments du bâtiment pour ce projet',
+    plannedTabBuildingElementsLoadingPlaceholder: 'Chargement des éléments…',
+    plannedTabBuildingElementsSearchPlaceholder: 'Rechercher par nom, code ou état…',
+    plannedTabBuildingElementsHelp: 'Sélectionnez les éléments du bâtiment qui seront concernés par ce projet d\'entretien.',
+    plannedTabSuccessTitle: 'Succès',
+    plannedTabSuccessDesc: 'Planification du projet terminée et passée à l\'étape de soumission.',
+    plannedTabWarningTitle: 'Avertissement',
+    plannedTabElementsUpdateWarningDesc: 'Le projet a été enregistré, mais une erreur est survenue lors de la mise à jour des éléments sélectionnés.',
+    workflowNextLabel: 'Suivant :',
+    workflowSavingButton: 'Enregistrement…',
+    workflowSaveChangesButton: 'Enregistrer les modifications',
+    workflowCompletingButton: 'Finalisation…',
+    workflowCompletePlanningPhaseButton: 'Terminer la phase de planification',
+    workflowAllTasksCompleted: 'Toutes les tâches sont terminées !',
+    workflowErrorTitle: 'Erreur',
+    workflowSuccessTitle: 'Succès',
+    postWorkProjectDataMissing: 'Les données du projet sont manquantes. Impossible de charger l\'onglet post-travaux.',
+    postWorkFailedUpdateConfirmation: 'Échec de la mise à jour de la confirmation de l\'élément',
+    postWorkAllElementsConfirmedDesc: 'Tous les éléments ont été confirmés avec succès',
+    postWorkFailedConfirmAll: 'Échec de la confirmation de tous les éléments',
+    postWorkAllChangesSavedDesc: 'Toutes les modifications ont été enregistrées avec succès',
+    postWorkFailedSaveSomeChanges: 'Échec de l\'enregistrement de certaines modifications',
+    postWorkFailedApplyInventoryChangesDesc: 'Échec de l\'application des modifications de l\'inventaire. Veuillez réessayer.',
+    postWorkCompletionFailedTitle: 'Échec de la finalisation',
+    postWorkFailedMarkCompleteDesc: 'Échec de la finalisation du projet. Veuillez réessayer.',
+    postWorkUnexpectedErrorDesc: 'Une erreur inattendue est survenue. Veuillez réessayer.',
+    postWorkActivitiesHeader: 'Activités post-travaux',
+    postWorkActivitiesSubheader: 'Gérer les tâches de nettoyage, de finalisation et de clôture du projet',
+    postWorkSkippableInfo: 'Cette étape peut être ignorée dans la navigation par onglets',
+    autoGeneratedProjectTitle: 'Projet généré automatiquement',
+    autoGeneratedProjectDesc: 'Ce projet a été généré automatiquement et peut comporter des champs et des tâches préremplis selon l\'analyse du système. Vous pouvez modifier toutes les informations selon vos besoins.',
+    postWorkTasksTitle: 'Tâches post-travaux',
+    postWorkTasksDesc: 'Tâches de nettoyage, de finalisation et de clôture pour terminer le projet',
+    postWorkCompletedCounter: 'terminées',
+    postWorkAddTaskButton: 'Ajouter une tâche',
+    postWorkNoTasksDefined: 'Aucune tâche post-travaux définie',
+    postWorkAddCleanupTasksHint: 'Ajoutez des tâches de nettoyage et de finalisation',
+    postWorkTaskDescriptionPlaceholder: 'Description de la tâche (obligatoire)',
+    postWorkTaskDoneLabel: 'Terminée',
+    postWorkTaskPendingLabel: 'En attente',
+    postWorkElementLifespanImpactTitle: 'Impact sur la durée de vie des éléments',
+    postWorkElementLifespanImpactDesc: 'Examinez et confirmez l\'impact des interventions sur la durée de vie de chaque élément du projet',
+    postWorkConfirmedCounter: 'confirmés',
+    postWorkConfirmAllButton: 'Tout confirmer',
+    postWorkNoElementsLinked: 'Aucun élément lié à ce projet',
+    postWorkElementsMustBeAddedDuringPlanning: 'Les éléments doivent être ajoutés durant la phase de planification',
+    postWorkUnknownElement: 'Élément inconnu',
+    postWorkNoCode: 'Aucun code',
+    postWorkPlannedWorkPrefix: 'Travaux planifiés :',
+    postWorkConfirmedBadge: 'Confirmé',
+    postWorkInterventionTypeLabel: 'Type d\'intervention',
+    postWorkSelectInterventionTypePlaceholder: 'Sélectionnez le type d\'intervention',
+    postWorkInterventionNoWork: 'Aucun travail',
+    postWorkInterventionRepair: 'Réparation',
+    postWorkInterventionMinorRehab: 'Réfection mineure',
+    postWorkInterventionMajorRehab: 'Réfection majeure',
+    postWorkInterventionReplacement: 'Remplacement',
+    postWorkSuggestedStandardLifespanLabel: 'Durée de vie standard suggérée',
+    postWorkYearsSuffix: 'années',
+    postWorkUniformatStandardLifespanHelp: 'Durée de vie standard UNIFORMAT pour ce type d\'élément',
+    postWorkRemainingLifespanBeforeLabel: 'Durée de vie restante avant',
+    postWorkNotSpecified: 'Non précisé',
+    postWorkUniformatStandardPrefix: 'Standard UNIFORMAT :',
+    postWorkSuggestedExtensionPrefix: 'Extension suggérée :',
+    postWorkLifespanImpactYearsLabel: 'Impact sur la durée de vie (années)',
+    postWorkSuggestedPrefix: 'Suggéré :',
+    postWorkYearsAddedToRemainingLifespan: 'Années ajoutées à la durée de vie restante',
+    postWorkImpactSummaryLabel: 'Résumé de l\'impact :',
+    postWorkThisWorkWill: 'Ces travaux vont',
+    postWorkSetLifespanToYearsTemplate: 'fixer la durée de vie de l\'élément à {years} année(s) à partir de la date des travaux',
+    postWorkAddYearsToLifespanTemplate: 'ajouter {years} année(s) à la durée de vie restante de l\'élément',
+    postWorkNotChangeRemainingLifespan: 'ne pas modifier la durée de vie restante',
+    postWorkElementConfirmationsLabel: 'Confirmations des éléments',
+    postWorkAllElementsConfirmed: 'Tous les éléments sont confirmés !',
+    postWorkProgressSummaryTitle: 'Résumé de la progression',
+    postWorkTasksCompletedLabel: 'Tâches terminées',
+    postWorkMarkProjectCompleteButton: 'Marquer le projet comme terminé',
+    postWorkCompleteAllTasksToProceed: 'Terminez toutes les tâches pour continuer',
+    postWorkConfirmAllElementsToProceed: 'Confirmez tous les impacts sur la durée de vie des éléments pour continuer',
+    postWorkConfirmProjectCompletionTitle: 'Confirmer la finalisation du projet',
+    postWorkConfirmProjectCompletionDesc: 'La finalisation de ce projet appliquera des modifications à votre inventaire des éléments du bâtiment.',
+    postWorkFollowingChangesWillBeApplied: 'Les modifications suivantes seront appliquées à votre inventaire des éléments du bâtiment :',
+    postWorkWillBeMarkedAsReplaced: 'Sera marqué comme remplacé avec une nouvelle date de construction',
+    postWorkNewLifespanPrefix: 'Nouvelle durée de vie :',
+    postWorkCurrentLifespanWillBeExtendedBy: 'La durée de vie actuelle sera prolongée de',
+    postWorkInterventionTypePrefix: 'Type d\'intervention :',
+    postWorkNoChangesWillBeApplied: 'Aucune modification ne sera appliquée',
+    postWorkTheseChangesCannotBeUndone: 'Ces modifications ne peuvent pas être annulées. Êtes-vous sûr de vouloir terminer ce projet ?',
+    postWorkConfirmAndCompleteProjectButton: 'Confirmer et terminer le projet',
+    postWorkCompletingButton: 'Finalisation…',
+    submissionProjectDataMissing: 'Les données du projet sont manquantes. Impossible de charger l\'onglet de soumission.',
+    submissionUploadInProgressTitle: 'Téléversement en cours',
+    submissionUploadInProgressSaveDesc: 'Veuillez attendre la fin du téléversement des documents avant d\'enregistrer.',
+    submissionUploadInProgressSubmitDesc: 'Veuillez attendre la fin du téléversement des documents avant de soumettre.',
+    submissionUploadFailedTitle: 'Échec du téléversement',
+    submissionUploadFailedDescTemplate: 'Impossible de téléverser {fileName}. Veuillez réessayer.',
+    submissionManagementHeader: 'Gestion des soumissions',
+    submissionManagementSubheader: 'Gérer les soumissions des fournisseurs et les éléments du projet',
+    submissionVendorSubmissionsHeader: 'Soumissions des fournisseurs',
+    submissionVendorSubmissionsSubheader: 'Examinez et sélectionnez les propositions et devis des fournisseurs',
+    submissionElementManagementTab: 'Gestion des éléments',
+    submissionAddSubmissionButton: 'Ajouter une soumission',
+    submissionVendorSubmittedDate: 'Soumis le',
+    submissionEditButton: 'Modifier',
+    submissionDeleteButton: 'Supprimer',
+    submissionPreferredBadge: 'Privilégié',
+    submissionDeleteVendorConfirmTitle: 'Supprimer la soumission du fournisseur',
+    submissionDeleteVendorConfirmDesc: 'Êtes-vous sûr de vouloir supprimer cette soumission de fournisseur ? Cette action ne peut pas être annulée.',
+    submissionEditVendorTitle: 'Modifier la soumission du fournisseur',
+    submissionAddSubmissionDescriptionSr: 'Créer une nouvelle soumission de fournisseur avec un plan de paiement et des pièces jointes',
+    submissionEditDialogDescription: 'Mettre à jour les détails de la soumission du fournisseur, le plan de paiement et les pièces jointes',
+    submissionAddNewVendorTitle: 'Ajouter une nouvelle soumission de fournisseur',
+    submissionVendorNameLabel: 'Nom du fournisseur *',
+    submissionVendorNamePlaceholder: 'Saisissez le nom du fournisseur',
+    submissionAvailableDateLabel: 'Date de disponibilité',
+    submissionDescriptionLabel: 'Description',
+    submissionDescriptionPlaceholder: 'Décrivez la proposition du fournisseur…',
+    submissionPaymentPlanHeader: 'Plan de paiement',
+    submissionPaymentTypeLabel: 'Type de paiement',
+    submissionSelectPaymentTypePlaceholder: 'Sélectionnez le type de paiement',
+    submissionPaymentTypeOneTime: 'Paiement unique',
+    submissionPaymentTypeRecurring: 'Paiements récurrents',
+    submissionTotalAmountLabel: 'Montant total',
+    submissionPaymentDateLabel: 'Date du paiement',
+    submissionPaymentScheduleLabel: 'Calendrier de paiement',
+    submissionSelectPaymentSchedulePlaceholder: 'Sélectionnez le calendrier de paiement',
+    submissionScheduleWeekly: 'Hebdomadaire',
+    submissionScheduleMonthly: 'Mensuel',
+    submissionScheduleQuarterly: 'Trimestriel',
+    submissionScheduleYearly: 'Annuel',
+    submissionScheduleCustom: 'Calendrier personnalisé',
+    submissionDateFirstPaymentLabel: 'Date du premier paiement',
+    submissionDateEndPaymentLabel: 'Date du dernier paiement',
+    submissionHasInitialPaymentLabel: 'Possède un paiement initial',
+    submissionInitialPaymentAmountLabel: 'Montant du paiement initial',
+    submissionEqualRecurringLabel: 'Paiements récurrents égaux',
+    submissionRecurringPaymentAmountLabel: 'Montant du paiement récurrent',
+    submissionCustomPaymentAmountsLabel: 'Montants de paiement personnalisés',
+    submissionCustomPaymentAmountSubLabel: 'Montant',
+    submissionCustomPaymentDateSubLabel: 'Date',
+    submissionCustomPaymentDescriptionSubLabel: 'Description (facultative)',
+    submissionCustomPaymentDescriptionPlaceholder: 'Description du paiement',
+    submissionMarkAsPreferredLabel: 'Marquer comme privilégié',
+    submissionMarkAsPreferredVendorLabel: 'Marquer comme fournisseur privilégié',
+    submissionNoVendorSubmissionsHeader: 'Aucune soumission de fournisseur pour l\'instant',
+    submissionProposalDetailsHeader: 'Détails de la proposition',
+    submissionNoDescriptionProvided: 'Aucune description fournie',
+    submissionPaymentBreakdownLabel: 'Détail des paiements :',
+    submissionContactInformationHeader: 'Coordonnées',
+    submissionVendorNameLabelEdit: 'Nom du fournisseur',
+    submissionContactInformationLabel: 'Coordonnées',
+    submissionContactInformationPlaceholder: 'Saisissez les coordonnées',
+    submissionDescriptionPlaceholderEdit: 'Saisissez une description ou des notes',
+    submissionAddPaymentButton: 'Ajouter un paiement',
+    submissionPaymentTypeDescription: 'Choisissez s\'il s\'agit d\'un paiement unique ou de paiements multiples dans le temps',
+    submissionTotalAmountDescription: 'Saisissez le montant total de ce paiement unique',
+    submissionPaymentDateDescription: 'La date à laquelle ce paiement est dû',
+    submissionHasInitialPaymentDescription: 'Cochez si un montant de paiement initial différent s\'applique',
+    submissionEqualRecurringDescription: 'Cochez si tous les paiements récurrents sont du même montant',
+    submissionMarkAsPreferredDescription: 'Désigner ce fournisseur comme choix privilégié',
+    submissionCancelButton: 'Annuler',
+    submissionAddingButton: 'Ajout en cours...',
+    submissionFailedToLoadVendors: 'Échec du chargement des soumissions des fournisseurs',
+    submissionContactAvailable: 'Coordonnées disponibles',
+    submissionAvailableLabel: 'Disponible',
+    submissionUnmarkPreferredButton: 'Retirer le statut privilégié',
+    submissionMarkAsPreferredButton: 'Marquer comme privilégié',
+    submissionAvailableForWorkLabel: 'Disponible pour les travaux',
+    submissionExtendsLifespanTemplate: 'Prolonge la durée de vie : {years} ans',
+    submissionDocumentsSubmittedTemplate: '{count} document(s) soumis',
+    submissionPaymentScheduleSummaryTemplate: 'Calendrier : {schedule}',
+    submissionPaymentStartsTemplate: 'Début : {date}',
+    submissionPaymentItemTemplate: 'Paiement {index} : {amount}',
+    submissionNoPaymentPlanConfigured: 'Aucun plan de paiement configuré pour le moment',
+    submissionEditPaymentPlanTitleTemplate: 'Modifier le plan de paiement - {vendor}',
+    submissionEditPaymentPlanDescription: 'Configurez le calendrier de paiement, les coûts et le calendrier pour cette soumission de fournisseur',
+    submissionNoSubmissionsYetTitle: 'Aucune soumission pour l\'instant',
+    submissionNoSubmissionsYetDescription: 'Aucune soumission de fournisseur n\'a été reçue pour ce projet',
+    submissionNoVendorSubmissionsYetMessage: 'Ajoutez des soumissions de fournisseurs avec leurs devis, disponibilités et documents de proposition.',
+    submissionPreferredCountTemplate: '{count} privilégié(s)',
+    submissionUpdatingButton: 'Mise à jour...',
+    submissionSaveChangesButton: 'Enregistrer les modifications',
+    submissionEditVendorTitleTemplate: 'Modifier le fournisseur - {vendor}',
+    submissionEditVendorDialogDescription: 'Modifier les renseignements du fournisseur, les documents et les préférences pour cette soumission',
+    submissionDocumentsTitle: 'Documents',
+    submissionMarkAsPreferredEditDescription: 'Marquer ce fournisseur comme privilégié pour ce projet',
+    submissionDeleteVendorButton: 'Supprimer le fournisseur',
+    submissionCompletingButton: 'Finalisation...',
+    submissionCompleteSubmissionPhaseButton: 'Terminer la phase de soumission',
+    submissionDocumentsOptionalTitle: 'Documents (facultatif)',
+    workflowStepCanBeSkipped: 'Cette étape peut être ignorée dans la navigation par onglets',
+    workflowAutoGeneratedProjectTitle: 'Projet généré automatiquement',
+    workflowFailedToSavePhaseDescription: 'Échec de l\'enregistrement des modifications avant de terminer la phase',
+    workflowPleaseWaitTitle: 'Veuillez patienter',
+    workflowSavingTaskChangesDescription: 'Enregistrement des modifications en cours. Veuillez réessayer dans un instant.',
+    preWorkPreparationHeader: 'Préparation avant les travaux',
+    preWorkNoTasksDefined: 'Aucune tâche de préparation définie',
+    preWorkAddTasksHelper: 'Ajoutez les tâches à compléter avant le début des travaux',
+    inProgressHeader: 'Travaux en cours',
+    inProgressNoWorkTasksDefined: 'Aucune tâche de travail définie',
+    inProgressAddTasksHelper: 'Ajoutez des tâches pour suivre l\'avancement des travaux',
+    workflowProgressSummaryTitle: 'Résumé de l\'avancement',
+    workflowTasksCompletedLabel: 'Tâches complétées',
+    preWorkSetupTasksSubheader: 'Configurez les tâches de préparation et les notifications aux utilisateurs',
+    preWorkPreparationTasksTitle: 'Tâches de préparation',
+    preWorkPreparationTasksDescription: 'Définissez les tâches à compléter avant le début des travaux',
+    preWorkAddTaskButton: 'Ajouter une tâche',
+    preWorkTaskDescriptionPlaceholder: 'Description de la tâche (obligatoire)',
+    preWorkTaskDoneBadge: 'Terminé',
+    preWorkTaskPendingBadge: 'En attente',
+    preWorkNotificationSettingsTitle: 'Paramètres de notification',
+    preWorkNotificationSettingsDescription: 'Configurez les rappels automatisés qui seront envoyés à tous les utilisateurs liés à cet immeuble',
+    preWorkNotificationMessageLabel: 'Message de notification',
+    preWorkNotificationMessagePlaceholder: 'Saisissez le message de notification...',
+    preWorkTimingLabel: 'Échéance',
+    preWorkDaysBeforeLabel: 'Jours avant',
+    preWorkUpdateNotificationButton: 'Mettre à jour la notification',
+    preWorkAddNotificationButton: 'Ajouter une notification',
+    preWorkCancelButton: 'Annuler',
+    preWorkCreatedNotificationsTemplate: 'Notifications créées ({count})',
+    preWorkSentBadge: 'Envoyée',
+    preWorkPendingBadge: 'En attente',
+    preWorkCustomDaysBeforeTemplate: '{days} jours avant',
+    preWorkCompletingButton: 'Finalisation...',
+    preWorkCompletePhaseButton: 'Terminer la phase de préparation',
+    preWorkTimingOneDayBefore: '1 jour avant',
+    preWorkTimingThreeDaysBefore: '3 jours avant',
+    preWorkTimingOneWeekBefore: '1 semaine avant',
+    preWorkTimingCustom: 'Personnalisé',
+    inProgressSubheader: 'Gérez l\'exécution active des travaux et suivez l\'avancement',
+    inProgressWorkTasksTitle: 'Tâches de travail',
+    inProgressWorkTasksDescription: 'Définissez les rappels de tâches à effectuer par le gestionnaire pendant les travaux',
+    inProgressTaskCountTemplate: '{completed} / {total} terminées',
+    inProgressAddTaskButton: 'Ajouter une tâche',
+    inProgressTaskDescriptionPlaceholder: 'Description de la tâche (obligatoire)',
+    inProgressMarkWorkCompleteButton: 'Marquer les travaux comme terminés',
+    preWorkNewTaskDefault: 'Nouvelle tâche',
+    inProgressNewWorkTaskDefault: 'Nouvelle tâche de travail',
   }
 };

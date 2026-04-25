@@ -29,6 +29,7 @@ import { TaskDateInput } from './TaskDateInput';
 import { MaintenanceProject, BuildingElement } from '@shared/schemas/maintenance';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/hooks/use-language';
 import { cn, formatStatus } from '@/lib/utils';
 import { format } from 'date-fns';
 import {
@@ -82,23 +83,22 @@ interface ElementLifespanUpdate {
  * Handles post-work task management, element lifespan tracking, and progress confirmation
  */
 export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }: PostWorkTabProps) {
-  // Defensive null check for project data — must come BEFORE any hook calls
-  // to comply with the Rules of Hooks. The parent modal already guards against
-  // a missing project, but this provides a defensive fallback render.
+  const { toast } = useToast();
+  const { t } = useLanguage();
+
+  // Defensive null check for project data
   if (!project) {
     return (
       <div className="p-6">
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
-            Project data is missing. Unable to load the post-work tab.
+            {t('postWorkProjectDataMissing')}
           </AlertDescription>
         </Alert>
       </div>
     );
   }
-
-  const { toast } = useToast();
   
   // Local state for task editing to prevent API calls on every keystroke
   const [localTaskEdits, setLocalTaskEdits] = useState<Record<string, any>>({});
@@ -142,8 +142,8 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
     },
     onError: (error: any) => {
       toast({
-        title: 'Error',
-        description: 'Failed to update element confirmation',
+        title: t('workflowErrorTitle'),
+        description: t('postWorkFailedUpdateConfirmation'),
         variant: 'destructive',
       });
     },
@@ -160,15 +160,15 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/maintenance/projects', project.id, 'elements'] });
       toast({
-        title: 'Success',
-        description: 'All elements confirmed successfully',
+        title: t('workflowSuccessTitle'),
+        description: t('postWorkAllElementsConfirmedDesc'),
         variant: 'default',
       });
     },
     onError: (error: any) => {
       toast({
-        title: 'Error',
-        description: 'Failed to confirm all elements',
+        title: t('workflowErrorTitle'),
+        description: t('postWorkFailedConfirmAll'),
         variant: 'destructive',
       });
     },
@@ -367,15 +367,15 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
               queryKey: ['/api/maintenance/projects', project.id, 'tasks', 'post_work'] 
             });
             toast({
-              title: 'Success',
-              description: 'All changes saved successfully',
+              title: t('workflowSuccessTitle'),
+              description: t('postWorkAllChangesSavedDesc'),
             });
           }
         },
         onError: (error: any) => {
           toast({
-            title: 'Error',
-            description: 'Failed to save some changes',
+            title: t('workflowErrorTitle'),
+            description: t('postWorkFailedSaveSomeChanges'),
             variant: 'destructive',
           });
         }
@@ -467,8 +467,8 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
         await applyInventoryChanges();
       } catch (inventoryError: any) {
         toast({
-          title: 'Error',
-          description: 'Failed to apply inventory changes. Please try again.',
+          title: t('workflowErrorTitle'),
+          description: t('postWorkFailedApplyInventoryChangesDesc'),
           variant: 'destructive',
         });
         return;
@@ -495,16 +495,16 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
         }
       } catch (completionError: any) {
         toast({
-          title: 'Completion Failed',
-          description: completionError?.message || 'Failed to mark the project complete. Please try again.',
+          title: t('postWorkCompletionFailedTitle'),
+          description: completionError?.message || t('postWorkFailedMarkCompleteDesc'),
           variant: 'destructive',
         });
       }
     } catch (error: any) {
       // Catch-all for any unexpected errors (e.g. saving pending edits)
       toast({
-        title: 'Error',
-        description: error?.message || 'An unexpected error occurred. Please try again.',
+        title: t('workflowErrorTitle'),
+        description: error?.message || t('postWorkUnexpectedErrorDesc'),
         variant: 'destructive',
       });
     }
@@ -539,8 +539,8 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
     // Validate that we have the required data
     if (!project.id || !workflowState.currentStatus) {
       toast({
-        title: "Cannot Reopen Step",
-        description: "Workflow data is not available. Please refresh the page and try again.",
+        title: t('cannotReopenStepTitle'),
+        description: t('reopenStepWorkflowDataUnavailableDesc'),
         variant: "destructive",
       });
       return;
@@ -549,8 +549,8 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
     // Validate that current status matches this tab's phase
     if (workflowState.currentStatus !== 'post_work') {
       toast({
-        title: "Cannot Reopen Step",
-        description: "This step can only be reopened when the project is currently in the Post-Work phase.",
+        title: t('cannotReopenStepTitle'),
+        description: t('reopenStepWrongPhasePostWorkDesc'),
         variant: "destructive",
       });
       return;
@@ -570,9 +570,9 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
     <div className="space-y-6" data-testid="post-work-tab">
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <h3 className="text-lg font-semibold">Post-Work Activities</h3>
+          <h3 className="text-lg font-semibold">{t('postWorkActivitiesHeader')}</h3>
           <p className="text-sm text-muted-foreground">
-            Manage cleanup, finalization, and project closure tasks
+            {t('postWorkActivitiesSubheader')}
           </p>
         </div>
         
@@ -580,7 +580,7 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
           {/* Skip option info */}
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Info className="h-4 w-4" />
-            <span>This step can be skipped in tab navigation</span>
+            <span>{t('postWorkSkippableInfo')}</span>
           </div>
         </div>
       </div>
@@ -591,10 +591,9 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
           <div className="flex items-start gap-3">
             <Info className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
             <div>
-              <h4 className="font-medium text-blue-900">Auto-Generated Project</h4>
+              <h4 className="font-medium text-blue-900">{t('autoGeneratedProjectTitle')}</h4>
               <p className="text-sm text-blue-800 mt-1">
-                This project was automatically generated and may have pre-populated fields and tasks 
-                based on system analysis. You can modify all information as needed.
+                {t('autoGeneratedProjectDesc')}
               </p>
             </div>
           </div>
@@ -611,15 +610,15 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
                     <div>
                       <CardTitle className="flex items-center gap-2">
                         <ListChecks className="h-5 w-5" />
-                        Post-Work Tasks
+                        {t('postWorkTasksTitle')}
                       </CardTitle>
                       <CardDescription>
-                        Cleanup, finalization, and closure tasks to complete the project
+                        {t('postWorkTasksDesc')}
                       </CardDescription>
                     </div>
                     <div className="text-right">
                       <div className="text-sm text-muted-foreground">
-                        {completedTasks.length} / {totalTasks} completed
+                        {completedTasks.length} / {totalTasks} {t('postWorkCompletedCounter')}
                       </div>
                       <Button
                         variant="outline"
@@ -629,7 +628,7 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
                         data-testid="button-add-postwork-task"
                       >
                         <Plus className="h-4 w-4 mr-1" />
-                        Add Task
+                        {t('postWorkAddTaskButton')}
                       </Button>
                     </div>
                   </div>
@@ -644,8 +643,8 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
                   ) : postWorkTasks.length === 0 ? (
                     <div className="text-center py-8 text-muted-foreground">
                       <ListChecks className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                      <p>No post-work tasks defined</p>
-                      <p className="text-sm mt-1">Add cleanup and finalization tasks</p>
+                      <p>{t('postWorkNoTasksDefined')}</p>
+                      <p className="text-sm mt-1">{t('postWorkAddCleanupTasksHint')}</p>
                     </div>
                   ) : (
                     <div className="space-y-3">
@@ -657,7 +656,7 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
                               <Input
                                 value={getTaskValue(task, 'taskName')}
                                 onChange={(e) => handleTaskEdit(task.id, 'taskName', e.target.value)}
-                                placeholder="Task description (required)"
+                                placeholder={t('postWorkTaskDescriptionPlaceholder')}
                                 className="font-medium"
                                 data-testid={`input-postwork-task-name-${index}`}
                               />
@@ -692,7 +691,7 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
                                   data-testid={`button-postwork-task-toggle-${index}`}
                                 >
                                   {task.isCompleted ? <Check className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
-                                  {task.isCompleted ? 'Done' : 'Pending'}
+                                  {task.isCompleted ? t('postWorkTaskDoneLabel') : t('postWorkTaskPendingLabel')}
                                 </Button>
                               </div>
                             </div>
@@ -720,16 +719,16 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
                     <div>
                       <CardTitle className="flex items-center gap-2">
                         <Building2 className="h-5 w-5" />
-                        Element Lifespan Impact
+                        {t('postWorkElementLifespanImpactTitle')}
                       </CardTitle>
                       <CardDescription>
-                        Review and confirm the lifespan impact of interventions on each project element
+                        {t('postWorkElementLifespanImpactDesc')}
                       </CardDescription>
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="text-right">
                         <div className="text-sm text-muted-foreground">
-                          {projectElements.filter(el => el.confirmed).length} / {projectElements.length} confirmed
+                          {projectElements.filter(el => el.confirmed).length} / {projectElements.length} {t('postWorkConfirmedCounter')}
                         </div>
                       </div>
                       {projectElements.length > 0 && (
@@ -742,7 +741,7 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
                           data-testid="button-confirm-all-elements"
                         >
                           <CheckCircle2 className="h-4 w-4 mr-2" />
-                          Confirm All
+                          {t('postWorkConfirmAllButton')}
                         </Button>
                       )}
                     </div>
@@ -758,8 +757,8 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
                   ) : projectElements.length === 0 ? (
                     <div className="text-center py-8 text-muted-foreground">
                       <Building2 className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                      <p>No elements linked to this project</p>
-                      <p className="text-sm mt-1">Elements must be added during the planning phase</p>
+                      <p>{t('postWorkNoElementsLinked')}</p>
+                      <p className="text-sm mt-1">{t('postWorkElementsMustBeAddedDuringPlanning')}</p>
                     </div>
                   ) : (
                     <div className="space-y-4">
@@ -771,20 +770,20 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
                           <div key={element.id} className="border rounded-lg p-4 space-y-3">
                             <div className="flex items-start justify-between">
                               <div>
-                                <h4 className="font-medium">{element.element?.name || 'Unknown Element'}</h4>
+                                <h4 className="font-medium">{element.element?.name || t('postWorkUnknownElement')}</h4>
                                 <p className="text-sm text-muted-foreground">
-                                  {element.element?.uniformatCode || 'No code'}
+                                  {element.element?.uniformatCode || t('postWorkNoCode')}
                                 </p>
                                 {element.workDescription && (
                                   <p className="text-sm text-muted-foreground mt-1">
-                                    Planned work: {element.workDescription}
+                                    {t('postWorkPlannedWorkPrefix')} {element.workDescription}
                                   </p>
                                 )}
                               </div>
                               {element.confirmed && (
                                 <Badge className="bg-green-600">
                                   <ShieldCheck className="h-3 w-3 mr-1" />
-                                  Confirmed
+                                  {t('postWorkConfirmedBadge')}
                                 </Badge>
                               )}
                             </div>
@@ -793,7 +792,7 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
                               // Layout for replacement interventions - show suggested standard lifespan
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                 <div>
-                                  <label className="text-sm font-medium mb-1 block">Intervention Type</label>
+                                  <label className="text-sm font-medium mb-1 block">{t('postWorkInterventionTypeLabel')}</label>
                                   <Select
                                     value={update.interventionType}
                                     onValueChange={(value: InterventionType) => 
@@ -801,25 +800,25 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
                                     }
                                   >
                                     <SelectTrigger data-testid={`select-intervention-type-${element.elementId}`}>
-                                      <SelectValue placeholder="Select intervention type" />
+                                      <SelectValue placeholder={t('postWorkSelectInterventionTypePlaceholder')} />
                                     </SelectTrigger>
                                     <SelectContent>
-                                      <SelectItem value="nothing">No Work</SelectItem>
-                                      <SelectItem value="repair">Repair</SelectItem>
-                                      <SelectItem value="minor_rehab">Minor Rehab</SelectItem>
-                                      <SelectItem value="major_rehab">Major Rehab</SelectItem>
-                                      <SelectItem value="replace">Replacement</SelectItem>
+                                      <SelectItem value="nothing">{t('postWorkInterventionNoWork')}</SelectItem>
+                                      <SelectItem value="repair">{t('postWorkInterventionRepair')}</SelectItem>
+                                      <SelectItem value="minor_rehab">{t('postWorkInterventionMinorRehab')}</SelectItem>
+                                      <SelectItem value="major_rehab">{t('postWorkInterventionMajorRehab')}</SelectItem>
+                                      <SelectItem value="replace">{t('postWorkInterventionReplacement')}</SelectItem>
                                     </SelectContent>
                                   </Select>
                                 </div>
 
                                 <div>
-                                  <label className="text-sm font-medium mb-1 block">Suggested Standard Lifespan</label>
+                                  <label className="text-sm font-medium mb-1 block">{t('postWorkSuggestedStandardLifespanLabel')}</label>
                                   <div className="p-2 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded text-sm font-medium" data-testid={`suggested-lifespan-${element.elementId}`}>
-                                    {element.element?.typicalLifespan || 25} years
+                                    {element.element?.typicalLifespan || 25} {t('postWorkYearsSuffix')}
                                   </div>
                                   <p className="text-xs text-muted-foreground mt-1">
-                                    UNIFORMAT standard lifespan for this element type
+                                    {t('postWorkUniformatStandardLifespanHelp')}
                                   </p>
                                 </div>
                               </div>
@@ -827,7 +826,7 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
                               // Layout for repair/rehab interventions - enhanced with UNIFORMAT suggestions
                               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                                 <div>
-                                  <label className="text-sm font-medium mb-1 block">Intervention Type</label>
+                                  <label className="text-sm font-medium mb-1 block">{t('postWorkInterventionTypeLabel')}</label>
                                   <Select
                                     value={update.interventionType}
                                     onValueChange={(value: InterventionType) => 
@@ -835,36 +834,36 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
                                     }
                                   >
                                     <SelectTrigger data-testid={`select-intervention-type-${element.elementId}`}>
-                                      <SelectValue placeholder="Select intervention type" />
+                                      <SelectValue placeholder={t('postWorkSelectInterventionTypePlaceholder')} />
                                     </SelectTrigger>
                                     <SelectContent>
-                                      <SelectItem value="nothing">No Work</SelectItem>
-                                      <SelectItem value="repair">Repair</SelectItem>
-                                      <SelectItem value="minor_rehab">Minor Rehab</SelectItem>
-                                      <SelectItem value="major_rehab">Major Rehab</SelectItem>
-                                      <SelectItem value="replace">Replacement</SelectItem>
+                                      <SelectItem value="nothing">{t('postWorkInterventionNoWork')}</SelectItem>
+                                      <SelectItem value="repair">{t('postWorkInterventionRepair')}</SelectItem>
+                                      <SelectItem value="minor_rehab">{t('postWorkInterventionMinorRehab')}</SelectItem>
+                                      <SelectItem value="major_rehab">{t('postWorkInterventionMajorRehab')}</SelectItem>
+                                      <SelectItem value="replace">{t('postWorkInterventionReplacement')}</SelectItem>
                                     </SelectContent>
                                   </Select>
                                 </div>
 
                                 <div>
-                                  <label className="text-sm font-medium mb-1 block">Remaining Lifespan Before</label>
+                                  <label className="text-sm font-medium mb-1 block">{t('postWorkRemainingLifespanBeforeLabel')}</label>
                                   <div className="p-2 bg-muted/50 rounded text-sm" data-testid={`remaining-lifespan-${element.elementId}`}>
-                                    {element.element?.currentLifespan ? `${element.element.currentLifespan} years` : 'Not specified'}
+                                    {element.element?.currentLifespan ? `${element.element.currentLifespan} ${t('postWorkYearsSuffix')}` : t('postWorkNotSpecified')}
                                   </div>
                                   {element.element?.typicalLifespan && ['minor_rehab', 'major_rehab'].includes(update.interventionType) && (
                                     <p className="text-xs text-muted-foreground mt-1">
-                                      UNIFORMAT standard: {element.element.typicalLifespan} years • Suggested extension: {
+                                      {t('postWorkUniformatStandardPrefix')} {element.element.typicalLifespan} {t('postWorkYearsSuffix')} • {t('postWorkSuggestedExtensionPrefix')} {
                                         update.interventionType === 'minor_rehab' 
                                           ? Math.round(element.element.typicalLifespan * 0.20)
                                           : Math.round(element.element.typicalLifespan * 0.50)
-                                      } years ({update.interventionType === 'minor_rehab' ? '20%' : '50%'})
+                                      } {t('postWorkYearsSuffix')} ({update.interventionType === 'minor_rehab' ? '20%' : '50%'})
                                     </p>
                                   )}
                                 </div>
 
                                 <div>
-                                  <label className="text-sm font-medium mb-1 block">Lifespan Impact (Years)</label>
+                                  <label className="text-sm font-medium mb-1 block">{t('postWorkLifespanImpactYearsLabel')}</label>
                                   <div className="flex items-center gap-1">
                                     <Input
                                       type="number"
@@ -880,14 +879,14 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
                                       }
                                       data-testid={`input-lifespan-impact-${element.elementId}`}
                                       placeholder={element.element?.typicalLifespan && ['minor_rehab', 'major_rehab'].includes(update.interventionType) 
-                                        ? `Suggested: ${calculateLifespanSuggestion(update.interventionType, element.element)}`
+                                        ? `${t('postWorkSuggestedPrefix')} ${calculateLifespanSuggestion(update.interventionType, element.element)}`
                                         : '0'
                                       }
                                     />
-                                    <span className="text-xs text-muted-foreground">years</span>
+                                    <span className="text-xs text-muted-foreground">{t('postWorkYearsSuffix')}</span>
                                   </div>
                                   <p className="text-xs text-muted-foreground mt-1">
-                                    Years added to remaining lifespan
+                                    {t('postWorkYearsAddedToRemainingLifespan')}
                                   </p>
                                 </div>
                               </div>
@@ -907,29 +906,29 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
                                 htmlFor={`confirm-${element.elementId}`}
                                 className="text-sm font-medium cursor-pointer"
                               >
-                                Confirmed
+                                {t('postWorkConfirmedBadge')}
                               </label>
                             </div>
 
                             <div className="text-sm bg-muted/50 rounded p-2">
                               <div className="flex items-center gap-1 font-medium">
                                 <Info className="h-3 w-3" />
-                                Impact Summary:
+                                {t('postWorkImpactSummaryLabel')}
                               </div>
                               <p className="mt-1">
-                                This work will{' '}
+                                {t('postWorkThisWorkWill')}{' '}
                                 {update.lifespanImpactYears > 0 ? (
                                   update.interventionType === 'replace' ? (
                                     <span className="font-medium text-blue-600">
-                                      set the element's lifespan to {update.lifespanImpactYears} year{update.lifespanImpactYears !== 1 ? 's' : ''} starting from the date of the work
+                                      {t('postWorkSetLifespanToYearsTemplate').replace('{years}', String(update.lifespanImpactYears))}
                                     </span>
                                   ) : (
                                     <span className="font-medium text-blue-600">
-                                      add {update.lifespanImpactYears} year{update.lifespanImpactYears !== 1 ? 's' : ''} to the element's remaining lifespan
+                                      {t('postWorkAddYearsToLifespanTemplate').replace('{years}', String(update.lifespanImpactYears))}
                                     </span>
                                   )
                                 ) : (
-                                  <span className="font-medium text-gray-600">not change the remaining lifespan</span>
+                                  <span className="font-medium text-gray-600">{t('postWorkNotChangeRemainingLifespan')}</span>
                                 )}
                               </p>
                             </div>
@@ -941,7 +940,7 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
                       {projectElements.length > 0 && (
                         <div className="mt-4 p-4 bg-muted/50 rounded-lg">
                           <div className="flex justify-between text-sm mb-2">
-                            <span>Element Confirmations</span>
+                            <span>{t('postWorkElementConfirmationsLabel')}</span>
                             <span className="font-medium">
                               {projectElements.filter(el => el.confirmed).length} / {projectElements.length}
                             </span>
@@ -958,7 +957,7 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
                           {allElementsConfirmed && (
                             <div className="flex items-center gap-2 text-green-600 text-sm font-medium mt-2">
                               <CheckCircle2 className="h-4 w-4" />
-                              All elements confirmed!
+                              {t('postWorkAllElementsConfirmed')}
                             </div>
                           )}
                         </div>
@@ -972,12 +971,12 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
               {totalTasks > 0 && (
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-base">Progress Summary</CardTitle>
+                    <CardTitle className="text-base">{t('postWorkProgressSummaryTitle')}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
-                        <span>Tasks completed</span>
+                        <span>{t('postWorkTasksCompletedLabel')}</span>
                         <span className="font-medium">{completedTasks.length} / {totalTasks}</span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
@@ -989,7 +988,7 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
                       {completedTasks.length === totalTasks && totalTasks > 0 && (
                         <div className="flex items-center gap-2 text-green-600 text-sm font-medium">
                           <Check className="h-4 w-4" />
-                          All tasks completed!
+                          {t('workflowAllTasksCompleted')}
                         </div>
                       )}
                     </div>
@@ -1006,7 +1005,7 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
               projectId={project.id}
               currentStatus={workflowState.currentStatus}
               onSuccess={onUpdate}
-              triggerText="Reopen Step"
+              triggerText={t('reopenStepTrigger')}
             />
             
             {hasChanges && (
@@ -1017,13 +1016,13 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
                 data-testid="button-save-changes"
               >
                 <Save className="h-4 w-4 mr-2" />
-                {updateTask.isPending ? 'Saving...' : 'Save Changes'}
+                {updateTask.isPending ? t('workflowSavingButton') : t('workflowSaveChangesButton')}
               </Button>
             )}
             
             <div className="text-sm text-muted-foreground">
               {workflowState.nextStatus && (
-                <>Next: <span className="capitalize">{formatStatus(workflowState.nextStatus)}</span></>
+                <>{t('workflowNextLabel')} <span className="capitalize">{formatStatus(workflowState.nextStatus)}</span></>
               )}
             </div>
           </div>
@@ -1036,20 +1035,20 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
               data-testid="button-mark-postwork-complete"
             >
               <CheckCircle2 className="h-4 w-4" />
-              {isMarkingComplete ? 'Completing...' : 'Mark Project Complete'}
+              {isMarkingComplete ? t('postWorkCompletingButton') : t('postWorkMarkProjectCompleteButton')}
             </Button>
           ) : (
             <div className="text-sm text-muted-foreground">
               {!allTasksCompleted && (
                 <div className="flex items-center gap-1">
                   <Clock className="h-4 w-4" />
-                  Complete all tasks to proceed
+                  {t('postWorkCompleteAllTasksToProceed')}
                 </div>
               )}
               {allTasksCompleted && !allElementsConfirmed && (
                 <div className="flex items-center gap-1">
                   <ShieldCheck className="h-4 w-4" />
-                  Confirm all element lifespan impacts to proceed
+                  {t('postWorkConfirmAllElementsToProceed')}
                 </div>
               )}
             </div>
@@ -1063,14 +1062,14 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <Building2 className="h-5 w-5" />
-              Confirm Project Completion
+              {t('postWorkConfirmProjectCompletionTitle')}
             </AlertDialogTitle>
             <AlertDialogDescription className="text-sm text-muted-foreground">
-              Completing this project will apply changes to your building element inventory.
+              {t('postWorkConfirmProjectCompletionDesc')}
             </AlertDialogDescription>
             <div className="space-y-3 mt-4">
               <div>
-                The following changes will be applied to your building element inventory:
+                {t('postWorkFollowingChangesWillBeApplied')}
               </div>
               <div className="bg-muted/50 rounded-lg p-3 space-y-2">
                 {projectElements.map((element) => {
@@ -1079,20 +1078,20 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
 
                   return (
                     <div key={element.id} className="text-sm">
-                      <strong>{element.element?.name || 'Unknown Element'}</strong>
+                      <strong>{element.element?.name || t('postWorkUnknownElement')}</strong>
                       {update.interventionType === 'replace' ? (
                         <div className="text-orange-700">
-                          • Will be marked as replaced with new construction date
-                          • New lifespan: {update.lifespanImpactYears} years
+                          • {t('postWorkWillBeMarkedAsReplaced')}
+                          • {t('postWorkNewLifespanPrefix')} {update.lifespanImpactYears} {t('postWorkYearsSuffix')}
                         </div>
                       ) : update.interventionType === 'minor_rehab' || update.interventionType === 'major_rehab' ? (
                         <div className="text-blue-700">
-                          • Current lifespan will be extended by {update.lifespanImpactYears} years
-                          • Intervention type: {formatInterventionType(update.interventionType)}
+                          • {t('postWorkCurrentLifespanWillBeExtendedBy')} {update.lifespanImpactYears} {t('postWorkYearsSuffix')}
+                          • {t('postWorkInterventionTypePrefix')} {formatInterventionType(update.interventionType)}
                         </div>
                       ) : (
                         <div className="text-gray-600">
-                          • No changes will be applied (intervention type: {formatInterventionType(update.interventionType)})
+                          • {t('postWorkNoChangesWillBeApplied')} ({t('postWorkInterventionTypePrefix')} {formatInterventionType(update.interventionType)})
                         </div>
                       )}
                     </div>
@@ -1100,17 +1099,17 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
                 })}
               </div>
               <div className="text-sm text-muted-foreground font-medium">
-                These changes cannot be undone. Are you sure you want to complete this project?
+                {t('postWorkTheseChangesCannotBeUndone')}
               </div>
             </div>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleConfirmedCompletion}
               className="bg-green-600 hover:bg-green-700"
             >
-              Confirm & Complete Project
+              {t('postWorkConfirmAndCompleteProjectButton')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
