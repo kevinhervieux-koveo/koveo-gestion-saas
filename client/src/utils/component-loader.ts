@@ -250,11 +250,6 @@ export const optimizedPageLoaders = {
     'settings-settings',
     { enableMemoryCleanup: true }
   ),
-  SettingsBugReports: createOptimizedLoader(
-    () => import('@/pages/settings/bug-reports'),
-    'settings-bug-reports',
-    { enableMemoryCleanup: true }
-  ),
 };
 
 /**

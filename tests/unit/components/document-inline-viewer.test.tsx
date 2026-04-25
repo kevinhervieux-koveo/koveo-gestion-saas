@@ -561,11 +561,9 @@ describe('AttachedFileSection', () => {
     await expectInlineViewerOpenedFor('/api/documents/doc-123/file');
   });
 
-  it.each<{ entityType: 'document' | 'bill' | 'bug' | 'feature-request'; id: string; url: string }>([
+  it.each<{ entityType: 'document' | 'bill'; id: string; url: string }>([
     { entityType: 'document', id: 'd1', url: '/api/documents/d1/file' },
     { entityType: 'bill', id: 'b1', url: '/api/bills/b1/file' },
-    { entityType: 'bug', id: 'g1', url: '/api/bugs/g1/file' },
-    { entityType: 'feature-request', id: 'f1', url: '/api/feature-requests/f1/file' },
   ])(
     'wires the iframe to the $entityType entity endpoint',
     async ({ entityType, id, url }) => {

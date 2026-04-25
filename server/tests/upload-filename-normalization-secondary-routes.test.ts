@@ -4,8 +4,6 @@
  * also handle French / diacritic / special-character filenames correctly.
  *
  * Sites covered here:
- *   - server/api/feature-requests.ts  (POST /api/feature-requests)
- *   - server/api/bugs.ts              (POST /api/bugs)
  *   - server/routes.ts                (POST /api/upload — generic upload used
  *                                      by demands, which then hits POST
  *                                      /api/demands and persists fileName)
@@ -47,8 +45,6 @@ import {
   userResidences,
   residences,
   demands,
-  bugs,
-  featureRequests,
 } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 import { normalizeFilename } from '../utils/filenameNormalization';
@@ -65,8 +61,6 @@ describe('Upload filename normalization — secondary routes (end-to-end)', () =
   let testResidence: any;
   let testUser: any;
 
-  const createdBugIds = new Set<string>();
-  const createdFeatureRequestIds = new Set<string>();
   const createdDemandIds = new Set<string>();
 
   beforeAll(async () => {
@@ -155,12 +149,6 @@ describe('Upload filename normalization — secondary routes (end-to-end)', () =
 
   afterAll(async () => {
     try {
-      for (const id of createdBugIds) {
-        await db.delete(bugs).where(eq(bugs.id, id));
-      }
-      for (const id of createdFeatureRequestIds) {
-        await db.delete(featureRequests).where(eq(featureRequests.id, id));
-      }
       for (const id of createdDemandIds) {
         await db.delete(demands).where(eq(demands.id, id));
       }
@@ -194,69 +182,6 @@ describe('Upload filename normalization — secondary routes (end-to-end)', () =
    */
   it('normalizer pins the expected output for the French fixture name', () => {
     expect(normalizeFilename(FRENCH_FILENAME)).toBe(EXPECTED_NORMALIZED);
-  });
-
-  it('POST /api/bugs persists normalized fileName and matching filePath', async () => {
-    const res = await request(app)
-      .post('/api/bugs')
-      .set('x-test-user-id', testUser.id)
-      .field('title', 'French bug')
-      .field('description', 'A bug with a French attachment name')
-      .field('category', 'functionality')
-      .field('page', '/test')
-      .field('priority', 'low')
-      .attach('attachment', TEST_PDF_PATH, FRENCH_FILENAME);
-
-    expect(res.status, `body=${JSON.stringify(res.body)}`).toBe(201);
-    const bugId: string = res.body.id;
-    expect(bugId).toBeTruthy();
-    createdBugIds.add(bugId);
-
-    const rows = await db.select().from(bugs).where(eq(bugs.id, bugId));
-    expect(rows).toHaveLength(1);
-    const row = rows[0];
-
-    expect(row.fileName, '/api/bugs: fileName must equal normalizeFilename(originalName)')
-      .toBe(EXPECTED_NORMALIZED);
-    expect(row.filePath, '/api/bugs: filePath must be persisted').toBeTruthy();
-    expect(
-      row.filePath!.endsWith(EXPECTED_NORMALIZED),
-      `/api/bugs: filePath ("${row.filePath}") must end with "${EXPECTED_NORMALIZED}"`,
-    ).toBe(true);
-  });
-
-  it('POST /api/feature-requests persists normalized fileName and matching filePath', async () => {
-    const res = await request(app)
-      .post('/api/feature-requests')
-      .set('x-test-user-id', testUser.id)
-      .field('title', 'French feature request')
-      .field('description', 'A feature request with a French attachment name')
-      .field('need', 'Support French filenames everywhere')
-      .field('category', 'document_management')
-      .field('page', '/test')
-      .attach('file', TEST_PDF_PATH, FRENCH_FILENAME);
-
-    expect(res.status, `body=${JSON.stringify(res.body)}`).toBe(201);
-    const featureRequestId: string = res.body.id;
-    expect(featureRequestId).toBeTruthy();
-    createdFeatureRequestIds.add(featureRequestId);
-
-    const rows = await db
-      .select()
-      .from(featureRequests)
-      .where(eq(featureRequests.id, featureRequestId));
-    expect(rows).toHaveLength(1);
-    const row = rows[0];
-
-    expect(
-      row.fileName,
-      '/api/feature-requests: fileName must equal normalizeFilename(originalName)',
-    ).toBe(EXPECTED_NORMALIZED);
-    expect(row.filePath, '/api/feature-requests: filePath must be persisted').toBeTruthy();
-    expect(
-      row.filePath!.endsWith(EXPECTED_NORMALIZED),
-      `/api/feature-requests: filePath ("${row.filePath}") must end with "${EXPECTED_NORMALIZED}"`,
-    ).toBe(true);
   });
 
   it('POST /api/upload preserves utf8 originalName for French filenames', async () => {

@@ -24,9 +24,7 @@ import { logDebug, logInfo, logWarn, logError } from './utils/logger';
 // cache stores) only enter `require.cache` on the first matching request.
 import { registerDocumentTagRoutes } from './api/document-tags';
 import { seedKoveoDocumentTags } from './api/document-tags-seed';
-import { registerBugRoutes } from './api/bugs';
 import { registerResidenceRoutes } from './api/residences';
-import { registerFeatureRequestRoutes } from './api/feature-requests';
 import { registerContactRoutes } from './api/contacts';
 import { registerPermissionsRoutes } from './api/permissions';
 import { registerTrialRequestRoutes } from './api/trial-request';
@@ -177,10 +175,8 @@ export async function registerRoutes(app: Express) {
   registerDocumentTagRoutes(app);
   // Idempotent seeding of Koveo system tags (safe to run on every startup)
   void seedKoveoDocumentTags();
-  registerBugRoutes(app);
 
   registerResidenceRoutes(app);
-  registerFeatureRequestRoutes(app);
   registerContactRoutes(app);
   registerPermissionsRoutes(app);
   registerTrialRequestRoutes(app);

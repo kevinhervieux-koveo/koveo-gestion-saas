@@ -10,7 +10,6 @@ import {
   DollarSign,
   FileText,
   AlertCircle,
-  Lightbulb,
   Shield,
   LayoutDashboard,
   AreaChart,
@@ -52,8 +51,6 @@ export const NAVIGATION_KEYS = {
   inventory: 'inventory',
   projects: 'projects',
   settings: 'settings',
-  bugReports: 'bugReports',
-  ideaBox: 'ideaBox',
 } as const;
 
 /**
@@ -159,8 +156,6 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
     requiredRole: 'tenant',
     items: [
       { nameKey: 'settings', href: '/settings/settings', icon: Settings },
-      { nameKey: 'bugReports', href: '/settings/bug-reports', icon: AlertCircle },
-      { nameKey: 'ideaBox', href: '/settings/idea-box', icon: Lightbulb },
     ],
   },
 ];

@@ -559,19 +559,7 @@ const apiRouteHandlers: Record<string, (url: string, options?: any) => Promise<a
     };
   },
   '/api/features/trigger-sync': async () => ({ success: true }),
-  
-  // Bug reports routes
-  '/api/bugs': async () => ({ 
-    success: true, 
-    data: [{ id: 'bug1', title: 'Test Bug', status: 'open' }] 
-  }),
-  
-  // Feature requests routes
-  '/api/feature-requests': async () => ({ 
-    success: true, 
-    data: [{ id: 'fr1', title: 'Test Feature Request', votes: 5 }] 
-  }),
-  
+
   // Upload routes
   '/api/upload': async () => ({ 
     success: true, 

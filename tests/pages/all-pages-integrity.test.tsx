@@ -59,8 +59,6 @@ const allPages = [
   
   // Settings pages
   { path: '/settings/settings', name: 'Settings' },
-  { path: '/settings/bug-reports', name: 'Bug Reports' },
-  { path: '/settings/idea-box', name: 'Idea Box' },
 ];
 
 // Import all page components dynamically
@@ -95,8 +93,6 @@ const pageComponents = {
   '/residents/my-calendar': () => import('@/pages/residents/my-calendar'),
   '/residents/residence': () => import('@/pages/residents/residence'),
   '/settings/settings': () => import('@/pages/settings/settings'),
-  '/settings/bug-reports': () => import('@/pages/settings/bug-reports'),
-  '/settings/idea-box': () => import('@/pages/settings/idea-box'),
 };
 
 // Helper to create test providers

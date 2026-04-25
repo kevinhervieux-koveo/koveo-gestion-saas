@@ -267,9 +267,7 @@ describe('Help System - Route Coverage', () => {
     '/residents/residence',
     '/residents/building',
     '/residents/demands',
-    '/settings/settings',
-    '/settings/bug-reports',
-    '/settings/idea-box'
+    '/settings/settings'
   ];
 
   describe('Core Route Coverage', () => {
@@ -306,7 +304,7 @@ describe('Help System - Route Coverage', () => {
   describe('Settings Pages Coverage', () => {
     it('should have help for all settings routes', () => {
       const settingsRoutes = Object.keys(helpContentMap).filter(r => r.startsWith('/settings'));
-      expect(settingsRoutes.length).toBeGreaterThanOrEqual(3);
+      expect(settingsRoutes.length).toBeGreaterThanOrEqual(1);
     });
   });
 });

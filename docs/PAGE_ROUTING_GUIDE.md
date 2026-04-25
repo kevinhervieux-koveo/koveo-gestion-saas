@@ -103,8 +103,6 @@ client/src/pages/
 
 ```text
 /settings/settings - User settings
-/settings/bug-reports - Bug reporting
-/settings/idea-box - Feature suggestions
 ```
 
 ## Adding New Pages

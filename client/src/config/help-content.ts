@@ -472,32 +472,6 @@ export const helpContentMap: Record<string, HelpContent> = {
       { label: { en: 'Change Password', fr: 'Changer Mot de Passe' }, description: { en: 'Update your account password', fr: 'Mettre à jour votre mot de passe de compte' } },
     ],
   },
-  '/settings/bug-reports': {
-    title: { en: 'Report a Bug', fr: 'Signaler un Bogue' },
-    description: { en: 'Report technical issues or problems with the system.', fr: 'Signalez des problèmes techniques ou des anomalies du système.' },
-    goal: { en: 'Help improve the platform by reporting issues.', fr: 'Aidez à améliorer la plateforme en signalant des problèmes.' },
-    howToUse: { en: 'Describe the problem you encountered, include steps to reproduce it, and submit.', fr: 'Décrivez le problème rencontré, incluez les étapes pour le reproduire et soumettez.' },
-    buttons: [
-      { label: { en: 'Submit Report', fr: 'Soumettre Rapport' }, description: { en: 'Send your bug report to the development team', fr: 'Envoyer votre rapport de bogue à l\'équipe de développement' } },
-    ],
-    formFields: [
-      { label: { en: 'Issue Summary', fr: 'Résumé du Problème' }, description: { en: 'Brief description of the problem', fr: 'Description brève du problème' }, required: true },
-      { label: { en: 'Steps to Reproduce', fr: 'Étapes pour Reproduire' }, description: { en: 'How to recreate the issue', fr: 'Comment recréer le problème' } },
-      { label: { en: 'Expected Behavior', fr: 'Comportement Attendu' }, description: { en: 'What should have happened', fr: 'Ce qui aurait dû se produire' } },
-      { label: { en: 'Actual Behavior', fr: 'Comportement Actuel' }, description: { en: 'What actually happened', fr: 'Ce qui s\'est réellement produit' } },
-    ],
-  },
-  '/settings/idea-box': {
-    title: { en: 'Idea Box', fr: 'Boîte à Idées' },
-    description: { en: 'Share your suggestions for new features or improvements.', fr: 'Partagez vos suggestions pour de nouvelles fonctionnalités ou améliorations.' },
-    goal: { en: 'Contribute ideas to make the platform better.', fr: 'Contribuez des idées pour améliorer la plateforme.' },
-    howToUse: { en: 'Submit your ideas, vote on others\' suggestions, and see what\'s being considered.', fr: 'Soumettez vos idées, votez sur les suggestions des autres et voyez ce qui est considéré.' },
-    buttons: [
-      { label: { en: 'Submit Idea', fr: 'Soumettre Idée' }, description: { en: 'Share your suggestion for improvement', fr: 'Partager votre suggestion d\'amélioration' } },
-      { label: { en: 'Vote', fr: 'Voter' }, description: { en: 'Support ideas you like', fr: 'Soutenir les idées que vous aimez' } },
-    ],
-  },
-
   // ===== DOCUMENTS PAGES =====
   '/manager/buildings/documents': {
     title: { en: 'Building Documents', fr: 'Documents d\'Immeuble' },

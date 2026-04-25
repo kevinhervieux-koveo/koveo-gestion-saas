@@ -9,8 +9,6 @@ const FILES = [
   'server/api/communication.ts',
   'server/api/common-spaces.ts',
   'server/api/budgets.ts',
-  'server/api/bugs.ts',
-  'server/api/feature-requests.ts',
   'server/api/invoices.ts',
   'server/api/organizations.ts',
   'server/api/demo-management.ts',

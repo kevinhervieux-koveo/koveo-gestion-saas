@@ -160,17 +160,6 @@ const SettingsSettings = createOptimizedLoader(
   'settings-settings',
   { enableMemoryCleanup: true }
 );
-const SettingsBugReports = createOptimizedLoader(
-  () => import('@/pages/settings/bug-reports'),
-  'settings-bug-reports',
-  { enableMemoryCleanup: true }
-);
-const SettingsIdeaBox = createOptimizedLoader(
-  () => import('@/pages/settings/idea-box'),
-  'settings-idea-box',
-  { enableMemoryCleanup: true }
-);
-
 // Optimized lazy-loaded Legacy pages
 const NotFound = createOptimizedLoader(() => import('@/pages/not-found'), 'not-found', {
   enableMemoryCleanup: true,
@@ -424,8 +413,6 @@ function AuthenticatedLayout() {
 
             {/* Settings routes */}
             <Route path='/settings/settings' component={SettingsSettings} />
-            <Route path='/settings/bug-reports' component={SettingsBugReports} />
-            <Route path='/settings/idea-box' component={SettingsIdeaBox} />
 
             {/* Auto-discovered pages — drop new pages in
                 client/src/pages/auto/ instead of editing this file.

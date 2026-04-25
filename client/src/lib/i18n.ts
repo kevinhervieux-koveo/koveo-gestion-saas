@@ -893,8 +893,6 @@ export interface Translations {
   dataExportedDescription: string;
   exportFailed: string;
   failedExportData: string;
-  bugReports: string;
-  bugReportsSubtitle: string;
   reportTrackIssues: string;
   reportBug: string;
   reportNewBug: string;
@@ -929,8 +927,6 @@ export interface Translations {
   bugUpdatedSuccess: string;
   failedUpdateBug: string;
   bugDeletedSuccess: string;
-  ideaBox: string;
-  ideaBoxSubtitle: string;
   shareIdeasImprove: string;
   submitNewIdea: string;
   createIdea: string;
@@ -3207,8 +3203,6 @@ export const translations: Record<Language, Translations> = {
     dataExportedDescription: 'Your data has been downloaded successfully.',
     exportFailed: 'Export failed',
     failedExportData: 'Failed to export data',
-    bugReports: 'Bug Reports',
-    bugReportsSubtitle: 'Report and track application issues',
     reportTrackIssues: 'Report and track application issues',
     reportBug: 'Report Bug',
     reportNewBug: 'Report New Bug',
@@ -3243,8 +3237,6 @@ export const translations: Record<Language, Translations> = {
     bugUpdatedSuccess: 'Bug report updated successfully',
     failedUpdateBug: 'Failed to update bug report',
     bugDeletedSuccess: 'Bug report deleted successfully',
-    ideaBox: 'Idea Box',
-    ideaBoxSubtitle: 'Share your ideas to improve our platform',
     shareIdeasImprove: 'Share your ideas to improve our platform',
     submitNewIdea: 'Submit New Idea',
     createIdea: 'Create Idea',
@@ -5350,8 +5342,6 @@ export const translations: Record<Language, Translations> = {
     failedChangePassword: 'Échec de la modification du mot de passe',
     dataExported: 'Données exportées',
     dataExportedDescription: 'Vos données ont été téléchargées avec succès.',
-    bugReports: 'Rapports de bogues',
-    bugReportsSubtitle: 'Signaler et suivre les problèmes de l\'application',
     reportBug: 'Signaler un bogue',
     reportNewBug: 'Signaler un nouveau bogue',
     searchBugs: 'Rechercher des bogues...',
@@ -5385,8 +5375,6 @@ export const translations: Record<Language, Translations> = {
     bugUpdatedSuccess: 'Rapport de bogue mis à jour avec succès',
     failedUpdateBug: 'Échec de la mise à jour du rapport de bogue',
     bugDeletedSuccess: 'Rapport de bogue supprimé avec succès',
-    ideaBox: 'Boîte à idées',
-    ideaBoxSubtitle: 'Partagez vos idées pour améliorer notre plateforme',
     shareIdeasImprove: 'Partagez vos idées pour améliorer notre plateforme',
     submitNewIdea: 'Soumettre une nouvelle idée',
     createIdea: 'Créer une idée',
