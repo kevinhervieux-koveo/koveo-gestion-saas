@@ -68,6 +68,14 @@ import {
   type ConfidenceBand,
 } from '@shared/schemas/bulk-import';
 import { FallbackReasonBadge } from './bulk-import-fallback-reason-badge';
+import {
+  AUTO_STEPS,
+  NextStepBlock,
+  STEP_ORDER,
+  STEP_PRE_STATUS,
+  isAutoStep,
+  type AutoStep,
+} from './bulk-import-next-step-block';
 
 interface Building {
   id: string;
@@ -179,38 +187,6 @@ interface SessionPayload {
 }
 
 const HISTORY_PAGE_SIZE = 20;
-
-const STEP_ORDER: BulkImportStep[] = [
-  'upload',
-  'screening',
-  'sorting',
-  'branching',
-  'identification',
-  'linking',
-  'complete',
-];
-
-/** AI steps that are auto-run server-side (Task #592). */
-type AutoStep = 'screening' | 'sorting' | 'branching' | 'identification' | 'linking';
-const AUTO_STEPS: ReadonlyArray<AutoStep> = [
-  'screening',
-  'sorting',
-  'branching',
-  'identification',
-  'linking',
-];
-function isAutoStep(step: BulkImportStep): step is AutoStep {
-  return (AUTO_STEPS as readonly string[]).includes(step);
-}
-
-/** Status the item must be in before a step's run-all loop will pick it up. */
-const STEP_PRE_STATUS: Record<AutoStep, BulkImportItem['status']> = {
-  screening: 'pending',
-  sorting: 'screened',
-  branching: 'sorted',
-  identification: 'branched',
-  linking: 'identified',
-};
 
 interface RunAllProgress {
   total: number;
@@ -1866,42 +1842,13 @@ export default function BulkDocumentImportPage() {
                         );
                       })}
                     </div>
-                    {(() => {
-                      const stillAnalyzingCount = isAutoStep(currentStep)
-                        ? items.filter((item) => {
-                            if (item.status === 'rejected') return false;
-                            const preStatus = STEP_PRE_STATUS[currentStep as AutoStep];
-                            return (
-                              item.status === preStatus ||
-                              (currentStep === 'screening' && item.status === 'screening')
-                            );
-                          }).length
-                        : 0;
-                      const isNextBlocked =
-                        stepIndex >= STEP_ORDER.length - 1 || stillAnalyzingCount > 0;
-                      return (
-                        <div className="mt-4 flex flex-col items-end gap-2">
-                          {stillAnalyzingCount > 0 && (
-                            <p
-                              className="text-sm text-amber-700"
-                              data-testid="analyzing-warning"
-                            >
-                              {isFr
-                                ? `${stillAnalyzingCount} document(s) sont encore en cours d'analyse. Attendez la fin de l'analyse ou excluez-les pour continuer.`
-                                : `${stillAnalyzingCount} document(s) are still being analyzed. Wait for them to finish or exclude them to continue.`}
-                            </p>
-                          )}
-                          <Button
-                            variant="outline"
-                            disabled={isNextBlocked}
-                            onClick={() => updateStep.mutate(STEP_ORDER[stepIndex + 1])}
-                            data-testid="button-next-step"
-                          >
-                            {isFr ? 'Étape suivante' : 'Next step'}
-                          </Button>
-                        </div>
-                      );
-                    })()}
+                    <NextStepBlock
+                      items={items}
+                      currentStep={currentStep}
+                      stepIndex={stepIndex}
+                      isFr={isFr}
+                      onNext={() => updateStep.mutate(STEP_ORDER[stepIndex + 1])}
+                    />
                   </CardContent>
                 </Card>
               )}
