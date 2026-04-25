@@ -17,6 +17,9 @@
  *     touches the API.
  *   - Clicking Edit on a different row while one row is already being edited
  *     prompts the user to discard their unsaved changes.
+ *   - When the PATCH call fails, the mutation's `onError` fires a destructive
+ *     toast with the translated "Failed to save dates" message and the row
+ *     stays in edit mode so the user can retry (Task #838 regression guard).
  */
 
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
@@ -93,6 +96,13 @@ jest.mock('@/lib/queryClient', () => ({
   },
 }));
 
+const mockToast = jest.fn();
+
+jest.mock('@/hooks/use-toast', () => ({
+  useToast: () => ({ toast: mockToast }),
+  toast: mockToast,
+}));
+
 /**
  * Fixed plot width (`clientWidth - RECHARTS_RIGHT_MARGIN`) chosen so that the
  * drag math works out to exactly 1 day per pixel for our 365-day domain.
@@ -122,13 +132,17 @@ function toDateStr(ts: number): string {
 function BudgetGanttHarness({
   projects,
   dateRange,
+  language = 'en',
 }: {
   projects: GanttProject[];
   dateRange: { start: string; end: string };
+  language?: 'en' | 'fr';
 }) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingDates, setEditingDates] = useState<GanttEditingDates | null>(null);
   const originalDates = useRef<GanttEditingDates | null>(null);
+  const { useToast } = require('@/hooks/use-toast');
+  const { toast } = useToast();
 
   const confirmDiscard = useCallback((): boolean => {
     if (!editingId) return true;
@@ -156,6 +170,21 @@ function BudgetGanttHarness({
       setEditingId(null);
       setEditingDates(null);
       originalDates.current = null;
+    },
+    // Mirrors `saveGanttDatesMutation.onError` in
+    // `client/src/pages/manager/budget/index.tsx` (around line 1291): a
+    // destructive toast with `t('error')` as the title and either the thrown
+    // error's message or the translated "Failed to save dates" fallback as
+    // the description. We deliberately do NOT clear `editingId` /
+    // `editingDates` here so the row stays in edit mode for the user to retry.
+    onError: (error: any) => {
+      toast({
+        title: 'error',
+        description:
+          error?.message ||
+          (language === 'fr' ? 'Échec de la sauvegarde des dates' : 'Failed to save dates'),
+        variant: 'destructive',
+      });
     },
   });
 
@@ -261,6 +290,7 @@ describe('GanttChart drag-to-reschedule save flow (Task #818 regression guards)'
 
   beforeEach(() => {
     mockApiRequest.mockReset();
+    mockToast.mockReset();
   });
 
   it('sends the dragged plannedStartDate / plannedEndDate to PATCH /api/maintenance/projects/:id', async () => {
@@ -405,5 +435,98 @@ describe('GanttChart drag-to-reschedule save flow (Task #818 regression guards)'
     } finally {
       confirmSpy.mockRestore();
     }
+  });
+
+  // Task #838 regression guard: when the maintenance PATCH fails, the
+  // mutation's onError must surface a destructive toast AND the row must
+  // remain in edit mode so the user can retry. If onError silently breaks
+  // (or `ganttEditingId` / `ganttEditingDates` get reset on failure), users
+  // would either lose feedback or lose their unsaved drag — both regressions.
+  it('shows a destructive "Failed to save dates" toast and stays in edit mode when the PATCH fails', async () => {
+    // Resolve with `ok: false` and an empty body so:
+    //   - mutationFn throws `new Error('HTTP 500')` if status is set, or
+    //   - we control the message via the rejection below.
+    // We use a plain rejection here so the fallback "Failed to save dates"
+    // copy in `onError` is exercised (error.message is the empty string).
+    mockApiRequest.mockRejectedValue(new Error(''));
+
+    renderHarness({ projects: baseProjects, dateRange });
+
+    // 1. Enter edit mode and drag the bar so editingDates is set.
+    fireEvent.click(screen.getByTestId('gantt-edit-p1'));
+    const overlay = await screen.findByTestId('gantt-drag-overlay-p1');
+    stubLayoutFor(overlay, /* plotWidth */ 365);
+
+    fireEvent.pointerDown(overlay, { clientX: 0, pointerId: 1 });
+    fireEvent.pointerMove(overlay, { clientX: 30, pointerId: 1 });
+    fireEvent.pointerUp(overlay, { clientX: 30, pointerId: 1 });
+
+    // 2. Click Save and let the rejected mutation settle.
+    fireEvent.click(screen.getByTestId('gantt-save-p1'));
+
+    await waitFor(() => {
+      expect(mockApiRequest).toHaveBeenCalledTimes(1);
+    });
+
+    // 3. The destructive toast must fire with the translated fallback copy.
+    await waitFor(() => {
+      expect(mockToast).toHaveBeenCalledTimes(1);
+    });
+    expect(mockToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: 'error',
+        description: 'Failed to save dates',
+        variant: 'destructive',
+      }),
+    );
+
+    // 4. The row must STAY in edit mode (Save + Cancel buttons + drag overlay
+    //    still visible, Edit button still hidden) so the user can retry the
+    //    save without redoing the drag.
+    expect(screen.getByTestId('gantt-save-p1')).toBeInTheDocument();
+    expect(screen.getByTestId('gantt-cancel-p1')).toBeInTheDocument();
+    expect(screen.getByTestId('gantt-drag-overlay-p1')).toBeInTheDocument();
+    expect(screen.queryByTestId('gantt-edit-p1')).not.toBeInTheDocument();
+  });
+
+  // Companion regression guard: when the server responds with `ok: false` and
+  // a structured error body, the mutationFn re-throws using `errorData.error`
+  // and the toast surfaces that specific server message instead of the
+  // generic fallback. This keeps users informed when the backend rejects
+  // their dates (e.g. validation failures).
+  it('forwards the server error message to the destructive toast when the PATCH responds with ok:false', async () => {
+    mockApiRequest.mockResolvedValue({
+      ok: false,
+      status: 400,
+      json: async () => ({ error: 'plannedEndDate must be after plannedStartDate' }),
+    });
+
+    renderHarness({ projects: baseProjects, dateRange });
+
+    fireEvent.click(screen.getByTestId('gantt-edit-p1'));
+    const overlay = await screen.findByTestId('gantt-drag-overlay-p1');
+    stubLayoutFor(overlay, 365);
+
+    fireEvent.pointerDown(overlay, { clientX: 0, pointerId: 1 });
+    fireEvent.pointerMove(overlay, { clientX: 15, pointerId: 1 });
+    fireEvent.pointerUp(overlay, { clientX: 15, pointerId: 1 });
+
+    fireEvent.click(screen.getByTestId('gantt-save-p1'));
+
+    await waitFor(() => {
+      expect(mockToast).toHaveBeenCalledTimes(1);
+    });
+    expect(mockToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: 'error',
+        description: 'plannedEndDate must be after plannedStartDate',
+        variant: 'destructive',
+      }),
+    );
+
+    // Row stays in edit mode after the server rejection too.
+    expect(screen.getByTestId('gantt-save-p1')).toBeInTheDocument();
+    expect(screen.getByTestId('gantt-cancel-p1')).toBeInTheDocument();
+    expect(screen.queryByTestId('gantt-edit-p1')).not.toBeInTheDocument();
   });
 });
