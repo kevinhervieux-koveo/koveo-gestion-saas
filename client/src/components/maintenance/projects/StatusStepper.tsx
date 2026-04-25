@@ -462,8 +462,19 @@ export function StatusStepper({
             <AlertDialogHeader>
               <AlertDialogTitle>{t('statusStepperConfirmTitle')}</AlertDialogTitle>
               <AlertDialogDescription>
-                {t('statusStepperConfirmDescPrefix')}{' '}
-                <strong>{pendingStatus && statusConfigs[pendingStatus] ? t(statusConfigs[pendingStatus].labelKey) : ''}</strong>?
+                {(() => {
+                  const label = pendingStatus && statusConfigs[pendingStatus]
+                    ? t(statusConfigs[pendingStatus].labelKey)
+                    : '';
+                  const [before, after = ''] = t('statusStepperConfirmDesc').split('{status}');
+                  return (
+                    <>
+                      {before}
+                      <strong>{label}</strong>
+                      {after}
+                    </>
+                  );
+                })()}
                 {pendingStatus === 'completed' && (
                   <span className="block mt-2 text-yellow-600">
                     <AlertTriangle className="h-4 w-4 inline mr-1" />

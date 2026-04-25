@@ -776,7 +776,7 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
                                 </p>
                                 {element.workDescription && (
                                   <p className="text-sm text-muted-foreground mt-1">
-                                    {t('postWorkPlannedWorkPrefix')} {element.workDescription}
+                                    {t('postWorkPlannedWork').replace('{description}', element.workDescription)}
                                   </p>
                                 )}
                               </div>
@@ -815,7 +815,7 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
                                 <div>
                                   <label className="text-sm font-medium mb-1 block">{t('postWorkSuggestedStandardLifespanLabel')}</label>
                                   <div className="p-2 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded text-sm font-medium" data-testid={`suggested-lifespan-${element.elementId}`}>
-                                    {element.element?.typicalLifespan || 25} {t('postWorkYearsSuffix')}
+                                    {t('postWorkYearsCount').replace('{count}', String(element.element?.typicalLifespan || 25))}
                                   </div>
                                   <p className="text-xs text-muted-foreground mt-1">
                                     {t('postWorkUniformatStandardLifespanHelp')}
@@ -849,15 +849,20 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
                                 <div>
                                   <label className="text-sm font-medium mb-1 block">{t('postWorkRemainingLifespanBeforeLabel')}</label>
                                   <div className="p-2 bg-muted/50 rounded text-sm" data-testid={`remaining-lifespan-${element.elementId}`}>
-                                    {element.element?.currentLifespan ? `${element.element.currentLifespan} ${t('postWorkYearsSuffix')}` : t('postWorkNotSpecified')}
+                                    {element.element?.currentLifespan
+                                      ? t('postWorkYearsCount').replace('{count}', String(element.element.currentLifespan))
+                                      : t('postWorkNotSpecified')}
                                   </div>
                                   {element.element?.typicalLifespan && ['minor_rehab', 'major_rehab'].includes(update.interventionType) && (
                                     <p className="text-xs text-muted-foreground mt-1">
-                                      {t('postWorkUniformatStandardPrefix')} {element.element.typicalLifespan} {t('postWorkYearsSuffix')} • {t('postWorkSuggestedExtensionPrefix')} {
-                                        update.interventionType === 'minor_rehab' 
-                                          ? Math.round(element.element.typicalLifespan * 0.20)
-                                          : Math.round(element.element.typicalLifespan * 0.50)
-                                      } {t('postWorkYearsSuffix')} ({update.interventionType === 'minor_rehab' ? '20%' : '50%'})
+                                      {t('postWorkUniformatStandardWithExtension')
+                                        .replace('{standard}', String(element.element.typicalLifespan))
+                                        .replace('{extension}', String(
+                                          update.interventionType === 'minor_rehab'
+                                            ? Math.round(element.element.typicalLifespan * 0.20)
+                                            : Math.round(element.element.typicalLifespan * 0.50)
+                                        ))
+                                        .replace('{percent}', update.interventionType === 'minor_rehab' ? '20' : '50')}
                                     </p>
                                   )}
                                 </div>
@@ -879,11 +884,11 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
                                       }
                                       data-testid={`input-lifespan-impact-${element.elementId}`}
                                       placeholder={element.element?.typicalLifespan && ['minor_rehab', 'major_rehab'].includes(update.interventionType) 
-                                        ? `${t('postWorkSuggestedPrefix')} ${calculateLifespanSuggestion(update.interventionType, element.element)}`
+                                        ? t('postWorkSuggestedValue').replace('{value}', String(calculateLifespanSuggestion(update.interventionType, element.element)))
                                         : '0'
                                       }
                                     />
-                                    <span className="text-xs text-muted-foreground">{t('postWorkYearsSuffix')}</span>
+                                    <span className="text-xs text-muted-foreground">{t('postWorkYearsUnit')}</span>
                                   </div>
                                   <p className="text-xs text-muted-foreground mt-1">
                                     {t('postWorkYearsAddedToRemainingLifespan')}
@@ -1082,16 +1087,16 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
                       {update.interventionType === 'replace' ? (
                         <div className="text-orange-700">
                           • {t('postWorkWillBeMarkedAsReplaced')}
-                          • {t('postWorkNewLifespanPrefix')} {update.lifespanImpactYears} {t('postWorkYearsSuffix')}
+                          • {t('postWorkNewLifespanLine').replace('{years}', String(update.lifespanImpactYears))}
                         </div>
                       ) : update.interventionType === 'minor_rehab' || update.interventionType === 'major_rehab' ? (
                         <div className="text-blue-700">
-                          • {t('postWorkCurrentLifespanWillBeExtendedBy')} {update.lifespanImpactYears} {t('postWorkYearsSuffix')}
-                          • {t('postWorkInterventionTypePrefix')} {formatInterventionType(update.interventionType)}
+                          • {t('postWorkCurrentLifespanWillBeExtendedBy').replace('{years}', String(update.lifespanImpactYears))}
+                          • {t('postWorkInterventionTypeLine').replace('{type}', formatInterventionType(update.interventionType))}
                         </div>
                       ) : (
                         <div className="text-gray-600">
-                          • {t('postWorkNoChangesWillBeApplied')} ({t('postWorkInterventionTypePrefix')} {formatInterventionType(update.interventionType)})
+                          • {t('postWorkNoChangesWillBeApplied')} ({t('postWorkInterventionTypeLine').replace('{type}', formatInterventionType(update.interventionType))})
                         </div>
                       )}
                     </div>

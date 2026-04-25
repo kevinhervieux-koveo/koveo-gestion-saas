@@ -3214,22 +3214,22 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
                       <SelectContent>
                         {filters.viewType === 'month' ? (
                           <>
-                            <SelectItem value="6">{`6 ${t('budgetMonthsSuffix')}`}</SelectItem>
-                            <SelectItem value="12">{`12 ${t('budgetMonthsSuffix')}`}</SelectItem>
-                            <SelectItem value="18">{`18 ${t('budgetMonthsSuffix')}`}</SelectItem>
-                            <SelectItem value="24">{`24 ${t('budgetMonthsSuffix')}`}</SelectItem>
-                            <SelectItem value="36">{`36 ${t('budgetMonthsSuffix')}`}</SelectItem>
+                            <SelectItem value="6">{t('budgetMonthsCount').replace('{count}', '6')}</SelectItem>
+                            <SelectItem value="12">{t('budgetMonthsCount').replace('{count}', '12')}</SelectItem>
+                            <SelectItem value="18">{t('budgetMonthsCount').replace('{count}', '18')}</SelectItem>
+                            <SelectItem value="24">{t('budgetMonthsCount').replace('{count}', '24')}</SelectItem>
+                            <SelectItem value="36">{t('budgetMonthsCount').replace('{count}', '36')}</SelectItem>
                           </>
                         ) : (
                           <>
-                            <SelectItem value="1">{`1 ${t('budgetYearsSuffix')}`}</SelectItem>
-                            <SelectItem value="2">{`2 ${t('budgetYearsSuffix')}`}</SelectItem>
-                            <SelectItem value="3">{`3 ${t('budgetYearsSuffix')}`}</SelectItem>
-                            <SelectItem value="5">{`5 ${t('budgetYearsSuffix')}`}</SelectItem>
-                            <SelectItem value="10">{`10 ${t('budgetYearsSuffix')}`}</SelectItem>
-                            <SelectItem value="15">{`15 ${t('budgetYearsSuffix')}`}</SelectItem>
-                            <SelectItem value="20">{`20 ${t('budgetYearsSuffix')}`}</SelectItem>
-                            <SelectItem value="25">{`25 ${t('budgetYearsSuffix')}`}</SelectItem>
+                            <SelectItem value="1">{t('budgetYearsCount').replace('{count}', '1')}</SelectItem>
+                            <SelectItem value="2">{t('budgetYearsCount').replace('{count}', '2')}</SelectItem>
+                            <SelectItem value="3">{t('budgetYearsCount').replace('{count}', '3')}</SelectItem>
+                            <SelectItem value="5">{t('budgetYearsCount').replace('{count}', '5')}</SelectItem>
+                            <SelectItem value="10">{t('budgetYearsCount').replace('{count}', '10')}</SelectItem>
+                            <SelectItem value="15">{t('budgetYearsCount').replace('{count}', '15')}</SelectItem>
+                            <SelectItem value="20">{t('budgetYearsCount').replace('{count}', '20')}</SelectItem>
+                            <SelectItem value="25">{t('budgetYearsCount').replace('{count}', '25')}</SelectItem>
                           </>
                         )}
                       </SelectContent>

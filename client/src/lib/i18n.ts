@@ -114,7 +114,7 @@ export interface Translations {
   statusStepperToastUpdateFailedDesc: string;
   statusStepperToastPermissionDenied: string;
   statusStepperConfirmTitle: string;
-  statusStepperConfirmDescPrefix: string;
+  statusStepperConfirmDesc: string;
   statusStepperConfirmCompletedNote: string;
   statusStepperUpdating: string;
   statusStepperConfirm: string;
@@ -216,7 +216,7 @@ export interface Translations {
   postWorkElementsMustBeAddedDuringPlanning: string;
   postWorkUnknownElement: string;
   postWorkNoCode: string;
-  postWorkPlannedWorkPrefix: string;
+  postWorkPlannedWork: string;
   postWorkConfirmedBadge: string;
   postWorkInterventionTypeLabel: string;
   postWorkSelectInterventionTypePlaceholder: string;
@@ -226,14 +226,14 @@ export interface Translations {
   postWorkInterventionMajorRehab: string;
   postWorkInterventionReplacement: string;
   postWorkSuggestedStandardLifespanLabel: string;
-  postWorkYearsSuffix: string;
+  postWorkYearsCount: string;
+  postWorkYearsUnit: string;
   postWorkUniformatStandardLifespanHelp: string;
   postWorkRemainingLifespanBeforeLabel: string;
   postWorkNotSpecified: string;
-  postWorkUniformatStandardPrefix: string;
-  postWorkSuggestedExtensionPrefix: string;
+  postWorkUniformatStandardWithExtension: string;
   postWorkLifespanImpactYearsLabel: string;
-  postWorkSuggestedPrefix: string;
+  postWorkSuggestedValue: string;
   postWorkYearsAddedToRemainingLifespan: string;
   postWorkImpactSummaryLabel: string;
   postWorkThisWorkWill: string;
@@ -251,9 +251,9 @@ export interface Translations {
   postWorkConfirmProjectCompletionDesc: string;
   postWorkFollowingChangesWillBeApplied: string;
   postWorkWillBeMarkedAsReplaced: string;
-  postWorkNewLifespanPrefix: string;
+  postWorkNewLifespanLine: string;
   postWorkCurrentLifespanWillBeExtendedBy: string;
-  postWorkInterventionTypePrefix: string;
+  postWorkInterventionTypeLine: string;
   postWorkNoChangesWillBeApplied: string;
   postWorkTheseChangesCannotBeUndone: string;
   postWorkConfirmAndCompleteProjectButton: string;
@@ -2584,8 +2584,8 @@ export interface Translations {
   budgetDataVisibility: string;
   budgetCapitalInvestmentsLabel: string;
   budgetProjects: string;
-  budgetMonthsSuffix: string;
-  budgetYearsSuffix: string;
+  budgetMonthsCount: string;
+  budgetYearsCount: string;
   budgetDataSummary: string;
   budgetLoadingData: string;
 
@@ -6291,8 +6291,8 @@ export const translations: Record<Language, Translations> = {
     budgetDataVisibility: 'Data Visibility',
     budgetCapitalInvestmentsLabel: 'Capital Investments',
     budgetProjects: 'Projects',
-    budgetMonthsSuffix: 'months',
-    budgetYearsSuffix: 'years',
+    budgetMonthsCount: '{count} months',
+    budgetYearsCount: '{count} years',
     budgetDataSummary: 'Data: {visible} of {total} categories visible',
     budgetLoadingData: 'Loading budget data...',
 
@@ -6419,7 +6419,7 @@ export const translations: Record<Language, Translations> = {
     statusStepperToastUpdateFailedDesc: 'Failed to update status',
     statusStepperToastPermissionDenied: "You don't have permission to update project status.",
     statusStepperConfirmTitle: 'Confirm Status Change',
-    statusStepperConfirmDescPrefix: 'Are you sure you want to change the project status to',
+    statusStepperConfirmDesc: 'Are you sure you want to change the project status to {status}?',
     statusStepperConfirmCompletedNote: 'This will mark the project as fully completed.',
     statusStepperUpdating: 'Updating...',
     statusStepperConfirm: 'Confirm',
@@ -6521,7 +6521,7 @@ export const translations: Record<Language, Translations> = {
     postWorkElementsMustBeAddedDuringPlanning: 'Elements must be added during the planning phase',
     postWorkUnknownElement: 'Unknown Element',
     postWorkNoCode: 'No code',
-    postWorkPlannedWorkPrefix: 'Planned work:',
+    postWorkPlannedWork: 'Planned work: {description}',
     postWorkConfirmedBadge: 'Confirmed',
     postWorkInterventionTypeLabel: 'Intervention Type',
     postWorkSelectInterventionTypePlaceholder: 'Select intervention type',
@@ -6531,14 +6531,14 @@ export const translations: Record<Language, Translations> = {
     postWorkInterventionMajorRehab: 'Major Rehab',
     postWorkInterventionReplacement: 'Replacement',
     postWorkSuggestedStandardLifespanLabel: 'Suggested Standard Lifespan',
-    postWorkYearsSuffix: 'years',
+    postWorkYearsCount: '{count} years',
+    postWorkYearsUnit: 'years',
     postWorkUniformatStandardLifespanHelp: 'UNIFORMAT standard lifespan for this element type',
     postWorkRemainingLifespanBeforeLabel: 'Remaining Lifespan Before',
     postWorkNotSpecified: 'Not specified',
-    postWorkUniformatStandardPrefix: 'UNIFORMAT standard:',
-    postWorkSuggestedExtensionPrefix: 'Suggested extension:',
+    postWorkUniformatStandardWithExtension: 'UNIFORMAT standard: {standard} years • Suggested extension: {extension} years ({percent}%)',
     postWorkLifespanImpactYearsLabel: 'Lifespan Impact (Years)',
-    postWorkSuggestedPrefix: 'Suggested:',
+    postWorkSuggestedValue: 'Suggested: {value}',
     postWorkYearsAddedToRemainingLifespan: 'Years added to remaining lifespan',
     postWorkImpactSummaryLabel: 'Impact Summary:',
     postWorkThisWorkWill: 'This work will',
@@ -6556,9 +6556,9 @@ export const translations: Record<Language, Translations> = {
     postWorkConfirmProjectCompletionDesc: 'Completing this project will apply changes to your building element inventory.',
     postWorkFollowingChangesWillBeApplied: 'The following changes will be applied to your building element inventory:',
     postWorkWillBeMarkedAsReplaced: 'Will be marked as replaced with new construction date',
-    postWorkNewLifespanPrefix: 'New lifespan:',
-    postWorkCurrentLifespanWillBeExtendedBy: 'Current lifespan will be extended by',
-    postWorkInterventionTypePrefix: 'Intervention type:',
+    postWorkNewLifespanLine: 'New lifespan: {years} years',
+    postWorkCurrentLifespanWillBeExtendedBy: 'Current lifespan will be extended by {years} years',
+    postWorkInterventionTypeLine: 'Intervention type: {type}',
     postWorkNoChangesWillBeApplied: 'No changes will be applied',
     postWorkTheseChangesCannotBeUndone: 'These changes cannot be undone. Are you sure you want to complete this project?',
     postWorkConfirmAndCompleteProjectButton: 'Confirm & Complete Project',
@@ -10397,8 +10397,8 @@ export const translations: Record<Language, Translations> = {
     budgetDataVisibility: 'Visibilité des données',
     budgetCapitalInvestmentsLabel: 'Investissements en capital',
     budgetProjects: 'Projets',
-    budgetMonthsSuffix: 'mois',
-    budgetYearsSuffix: 'ans',
+    budgetMonthsCount: '{count} mois',
+    budgetYearsCount: '{count} ans',
     budgetDataSummary: 'Données : {visible} sur {total} catégories visibles',
     budgetLoadingData: 'Chargement des données budgétaires…',
 
@@ -10526,7 +10526,7 @@ export const translations: Record<Language, Translations> = {
     statusStepperToastUpdateFailedDesc: 'Impossible de mettre à jour le statut',
     statusStepperToastPermissionDenied: 'Vous n\'avez pas la permission de mettre à jour le statut du projet.',
     statusStepperConfirmTitle: 'Confirmer le changement de statut',
-    statusStepperConfirmDescPrefix: 'Êtes-vous sûr de vouloir changer le statut du projet à',
+    statusStepperConfirmDesc: 'Êtes-vous sûr de vouloir changer le statut du projet à {status} ?',
     statusStepperConfirmCompletedNote: 'Cela marquera le projet comme entièrement terminé.',
     statusStepperUpdating: 'Mise à jour…',
     statusStepperConfirm: 'Confirmer',
@@ -10628,7 +10628,7 @@ export const translations: Record<Language, Translations> = {
     postWorkElementsMustBeAddedDuringPlanning: 'Les éléments doivent être ajoutés durant la phase de planification',
     postWorkUnknownElement: 'Élément inconnu',
     postWorkNoCode: 'Aucun code',
-    postWorkPlannedWorkPrefix: 'Travaux planifiés :',
+    postWorkPlannedWork: 'Travaux planifiés : {description}',
     postWorkConfirmedBadge: 'Confirmé',
     postWorkInterventionTypeLabel: 'Type d\'intervention',
     postWorkSelectInterventionTypePlaceholder: 'Sélectionnez le type d\'intervention',
@@ -10638,14 +10638,14 @@ export const translations: Record<Language, Translations> = {
     postWorkInterventionMajorRehab: 'Réfection majeure',
     postWorkInterventionReplacement: 'Remplacement',
     postWorkSuggestedStandardLifespanLabel: 'Durée de vie standard suggérée',
-    postWorkYearsSuffix: 'années',
+    postWorkYearsCount: '{count} années',
+    postWorkYearsUnit: 'années',
     postWorkUniformatStandardLifespanHelp: 'Durée de vie standard UNIFORMAT pour ce type d\'élément',
     postWorkRemainingLifespanBeforeLabel: 'Durée de vie restante avant',
     postWorkNotSpecified: 'Non précisé',
-    postWorkUniformatStandardPrefix: 'Standard UNIFORMAT :',
-    postWorkSuggestedExtensionPrefix: 'Extension suggérée :',
+    postWorkUniformatStandardWithExtension: 'Standard UNIFORMAT : {standard} années • Extension suggérée : {extension} années ({percent} %)',
     postWorkLifespanImpactYearsLabel: 'Impact sur la durée de vie (années)',
-    postWorkSuggestedPrefix: 'Suggéré :',
+    postWorkSuggestedValue: 'Suggéré : {value}',
     postWorkYearsAddedToRemainingLifespan: 'Années ajoutées à la durée de vie restante',
     postWorkImpactSummaryLabel: 'Résumé de l\'impact :',
     postWorkThisWorkWill: 'Ces travaux vont',
@@ -10663,9 +10663,9 @@ export const translations: Record<Language, Translations> = {
     postWorkConfirmProjectCompletionDesc: 'La finalisation de ce projet appliquera des modifications à votre inventaire des éléments du bâtiment.',
     postWorkFollowingChangesWillBeApplied: 'Les modifications suivantes seront appliquées à votre inventaire des éléments du bâtiment :',
     postWorkWillBeMarkedAsReplaced: 'Sera marqué comme remplacé avec une nouvelle date de construction',
-    postWorkNewLifespanPrefix: 'Nouvelle durée de vie :',
-    postWorkCurrentLifespanWillBeExtendedBy: 'La durée de vie actuelle sera prolongée de',
-    postWorkInterventionTypePrefix: 'Type d\'intervention :',
+    postWorkNewLifespanLine: 'Nouvelle durée de vie : {years} années',
+    postWorkCurrentLifespanWillBeExtendedBy: 'La durée de vie actuelle sera prolongée de {years} années',
+    postWorkInterventionTypeLine: 'Type d\'intervention : {type}',
     postWorkNoChangesWillBeApplied: 'Aucune modification ne sera appliquée',
     postWorkTheseChangesCannotBeUndone: 'Ces modifications ne peuvent pas être annulées. Êtes-vous sûr de vouloir terminer ce projet ?',
     postWorkConfirmAndCompleteProjectButton: 'Confirmer et terminer le projet',
