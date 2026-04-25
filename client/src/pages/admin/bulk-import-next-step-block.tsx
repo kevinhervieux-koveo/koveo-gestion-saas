@@ -66,6 +66,8 @@ export interface NextStepBlockProps {
   stepIndex: number;
   isFr: boolean;
   onNext: () => void;
+  /** Number of residence_documents items still missing a residence (Task #780). */
+  residenceIncompleteCount?: number;
 }
 
 export function NextStepBlock({
@@ -74,10 +76,13 @@ export function NextStepBlock({
   stepIndex,
   isFr,
   onNext,
+  residenceIncompleteCount = 0,
 }: NextStepBlockProps) {
   const stillAnalyzingCount = computeStillAnalyzingCount(items, currentStep);
   const isNextBlocked =
-    stepIndex >= STEP_ORDER.length - 1 || stillAnalyzingCount > 0;
+    stepIndex >= STEP_ORDER.length - 1 ||
+    stillAnalyzingCount > 0 ||
+    residenceIncompleteCount > 0;
   return (
     <div className="mt-4 flex flex-col items-end gap-2">
       {stillAnalyzingCount > 0 && (
@@ -85,6 +90,13 @@ export function NextStepBlock({
           {isFr
             ? `${stillAnalyzingCount} document(s) sont encore en cours d'analyse. Attendez la fin de l'analyse ou excluez-les pour continuer.`
             : `${stillAnalyzingCount} document(s) are still being analyzed. Wait for them to finish or exclude them to continue.`}
+        </p>
+      )}
+      {residenceIncompleteCount > 0 && (
+        <p className="text-sm text-red-700" data-testid="residence-incomplete-warning">
+          {isFr
+            ? `${residenceIncompleteCount} document(s) de résidence nécessitent une résidence avant de continuer.`
+            : `${residenceIncompleteCount} residence document(s) need a residence selected before you can continue.`}
         </p>
       )}
       <Button

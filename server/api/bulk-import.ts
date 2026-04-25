@@ -239,6 +239,7 @@ async function processItemForStep(
   step: AutoStep,
   item: schema.BulkImportItem,
   sessionItems: { id: string; name: string; screening?: Record<string, unknown> | null }[],
+  residences?: Array<{ id: string; unitNumber: string }>,
 ): Promise<schema.BulkImportItem> {
   if (step === 'screening') {
     const result = await bulkImportAnalyzer.screen({
@@ -331,12 +332,25 @@ async function processItemForStep(
       description,
       stagedPath: item.stagedPath,
       mimeType: item.mimeType,
+      residences,
     });
+    // Preserve any existing residenceManualOverride the admin may have
+    // set on a prior attempt; only overwrite the AI-generated fields.
+    const existingDecision = (item.branchDecision ?? {}) as Record<string, unknown>;
+    const nextDecision: Record<string, unknown> = {
+      ...result,
+      residenceManualOverride: existingDecision.residenceManualOverride ?? false,
+    };
+    // Gate: don't promote to `branched` if destination is residence_documents
+    // but no residenceId was resolved. The admin must pick one via the
+    // set-residence endpoint before the item can advance.
+    const advanceToBranched =
+      result.branch !== 'residence_documents' || !!result.residenceId;
     const [updated] = await db
       .update(schema.bulkImportItems)
       .set({
-        branchDecision: result as unknown as Record<string, unknown>,
-        status: 'branched',
+        branchDecision: nextDecision,
+        status: advanceToBranched ? 'branched' : 'sorted',
         updatedAt: new Date(),
       })
       .where(eq(schema.bulkImportItems.id, item.id))
@@ -411,6 +425,25 @@ async function runAllForStep(sessionId: string, step: AutoStep): Promise<void> {
       screening: i.screening as Record<string, unknown> | null,
     }));
 
+    // Fetch the session's building residences once so every item in the
+    // branching loop can receive the same list without N extra queries.
+    let sessionResidences: Array<{ id: string; unitNumber: string }> | undefined;
+    if (step === 'branching') {
+      const session = await loadSession(sessionId);
+      if (session?.buildingId) {
+        const rows = await db
+          .select({ id: schema.residences.id, unitNumber: schema.residences.unitNumber })
+          .from(schema.residences)
+          .where(
+            and(
+              eq(schema.residences.buildingId, session.buildingId),
+              eq(schema.residences.isActive, true),
+            ),
+          );
+        sessionResidences = rows;
+      }
+    }
+
     await patchRunAllProgress(sessionId, step, {
       total: eligible.length,
       processed: 0,
@@ -437,7 +470,7 @@ async function runAllForStep(sessionId: string, step: AutoStep): Promise<void> {
       if (!inFlightRunAll.has(key)) break;
 
       try {
-        await processItemForStep(step, item, sessionItems);
+        await processItemForStep(step, item, sessionItems, sessionResidences);
       } catch (err) {
         failed += 1;
         logError(
@@ -673,7 +706,18 @@ export function registerBulkImportRoutes(app: Express): void {
 
       function extractBranchStep(json: Record<string, unknown> | null | undefined) {
         const base = extractStep(json);
-        if (!json) return { ...base, branch: null, subCategory: null, branchReason: null, manualOverride: false };
+        if (!json) return {
+          ...base,
+          branch: null,
+          subCategory: null,
+          branchReason: null,
+          manualOverride: false,
+          residenceId: null,
+          residenceConfidence: null,
+          residenceReason: null,
+          residenceFallbackReason: null,
+          residenceManualOverride: false,
+        };
         const validBranches: BranchDestination[] = [
           'building_documents', 'residence_documents', 'demand', 'bill', 'maintenance', 'other',
         ];
@@ -685,7 +729,23 @@ export function registerBulkImportRoutes(app: Express): void {
         const subCategory = (json.subCategory as string | null | undefined) ?? null;
         const branchReason = (json.reason as string | null | undefined) ?? null;
         const manualOverride = (json.manualOverride as boolean | null | undefined) ?? false;
-        return { ...base, branch, subCategory, branchReason, manualOverride };
+        const residenceId = (json.residenceId as string | null | undefined) ?? null;
+        const residenceConfidence = (json.residenceConfidence as number | null | undefined) ?? null;
+        const residenceReason = (json.residenceReason as string | null | undefined) ?? null;
+        const residenceFallbackReason = (json.residenceFallbackReason as string | null | undefined) ?? null;
+        const residenceManualOverride = (json.residenceManualOverride as boolean | null | undefined) ?? false;
+        return {
+          ...base,
+          branch,
+          subCategory,
+          branchReason,
+          manualOverride,
+          residenceId,
+          residenceConfidence,
+          residenceReason,
+          residenceFallbackReason,
+          residenceManualOverride,
+        };
       }
 
       const items = rows.map((r) => ({
@@ -719,6 +779,11 @@ export function registerBulkImportRoutes(app: Express): void {
             subCategory: br.subCategory,
             branchReason: br.branchReason,
             branchManualOverride: br.manualOverride,
+            residenceId: br.residenceId,
+            residenceConfidence: br.residenceConfidence,
+            residenceReason: br.residenceReason,
+            residenceFallbackReason: br.residenceFallbackReason,
+            residenceManualOverride: br.residenceManualOverride,
             identificationConfidence: id.confidence,
             identificationFallback: id.fallbackReason,
             linkingConfidence: lk.confidence,
@@ -1179,12 +1244,24 @@ export function registerBulkImportRoutes(app: Express): void {
           .where(eq(schema.bulkImportItems.id, req.params.id));
         if (!item) return res.status(404).json({ error: 'Item not found' });
         const existing = (item.branchDecision ?? {}) as Record<string, unknown>;
+        const oldBranch = existing.branch as string | null | undefined;
         const updated_decision: Record<string, unknown> = {
           ...existing,
           branch,
           subCategory,
           manualOverride: true,
         };
+        // When reassigning away from residence_documents, clear all
+        // residence-specific fields so they don't become stale.
+        if (oldBranch === 'residence_documents' && branch !== 'residence_documents') {
+          delete updated_decision.residenceId;
+          delete updated_decision.residenceConfidence;
+          delete updated_decision.residenceReason;
+          delete updated_decision.residenceFallbackReason;
+          delete updated_decision.residenceManualOverride;
+        }
+        // When reassigning into residence_documents, leave residence
+        // fields unset — the admin must pick one via the picker.
         const [updated] = await db
           .update(schema.bulkImportItems)
           .set({
@@ -1306,6 +1383,83 @@ export function registerBulkImportRoutes(app: Express): void {
   );
 
   /**
+   * Set (or clear) the residence assigned to a single Sorting-step item
+   * (Task #780). Only valid for items whose branchDecision.branch is
+   * `residence_documents`. Setting a residenceId also advances the item
+   * from `sorted` to `branched` (the normal promotion gate, which is
+   * bypassed when the AI couldn't resolve a residence). Clearing
+   * (null) reverts the item back to `sorted` so it stays in the
+   * "Residence required" state.
+   */
+  const setResidenceSchema = z.object({
+    residenceId: z.string().min(1).nullable(),
+  });
+  app.post(
+    '/api/admin/bulk-import/items/:id/set-residence',
+    requireAuth,
+    requireRole(['admin']),
+    async (req: AuthenticatedRequest, res: Response) => {
+      try {
+        const { residenceId } = setResidenceSchema.parse(req.body);
+        const [item] = await db
+          .select()
+          .from(schema.bulkImportItems)
+          .where(eq(schema.bulkImportItems.id, req.params.id));
+        if (!item) return res.status(404).json({ error: 'Item not found' });
+        const existing = (item.branchDecision ?? {}) as Record<string, unknown>;
+        if (existing.branch !== 'residence_documents') {
+          return res.status(400).json({
+            error: 'Residence can only be set on items routed to residence_documents',
+          });
+        }
+
+        // Validate residenceId belongs to the session's building and org.
+        if (residenceId !== null) {
+          const session = await loadSession(item.sessionId);
+          if (!session) return res.status(404).json({ error: 'Session not found' });
+          const canAccess = await canUserAccessOrganization(req.user!.id, session.organizationId);
+          if (!canAccess) return res.status(403).json({ error: 'Forbidden' });
+          const [residence] = await db
+            .select({ id: schema.residences.id, buildingId: schema.residences.buildingId })
+            .from(schema.residences)
+            .where(eq(schema.residences.id, residenceId));
+          if (!residence) return res.status(404).json({ error: 'Residence not found' });
+          if (residence.buildingId !== session.buildingId) {
+            return res.status(400).json({
+              error: 'Residence does not belong to this session\'s building',
+            });
+          }
+        }
+
+        const aiResidenceId = (existing.residenceId as string | null | undefined) ?? null;
+        const isManualOverride = residenceId !== aiResidenceId;
+        const updated_decision: Record<string, unknown> = {
+          ...existing,
+          residenceId,
+          residenceManualOverride: residenceId !== null ? isManualOverride : false,
+        };
+        const newStatus = residenceId !== null
+          ? 'branched'
+          : 'sorted';
+        const [updated] = await db
+          .update(schema.bulkImportItems)
+          .set({
+            branchDecision: updated_decision,
+            status: newStatus,
+            updatedAt: new Date(),
+          })
+          .where(eq(schema.bulkImportItems.id, item.id))
+          .returning();
+        return res.json(updated);
+      } catch (err) {
+        if (err instanceof z.ZodError) return res.status(400).json({ error: err.errors });
+        logError('[bulk-import] set-residence failed', err as Error);
+        return res.status(500).json({ error: 'Failed to set residence' });
+      }
+    },
+  );
+
+  /**
    * Per-item AI step endpoints. The wizard auto-runs every step in
    * bulk via `/sessions/:id/run-all` (Task #592), so these handlers
    * are now reserved for the per-row "Retry" button shown when a
@@ -1333,6 +1487,25 @@ export function registerBulkImportRoutes(app: Express): void {
             })
             .from(schema.bulkImportItems)
             .where(eq(schema.bulkImportItems.sessionId, item.sessionId));
+
+          // For the branching retry, fetch the session's building
+          // residences so the AI can suggest a concrete residenceId.
+          let residences: Array<{ id: string; unitNumber: string }> | undefined;
+          if (step === 'branching') {
+            const session = await loadSession(item.sessionId);
+            if (session?.buildingId) {
+              residences = await db
+                .select({ id: schema.residences.id, unitNumber: schema.residences.unitNumber })
+                .from(schema.residences)
+                .where(
+                  and(
+                    eq(schema.residences.buildingId, session.buildingId),
+                    eq(schema.residences.isActive, true),
+                  ),
+                );
+            }
+          }
+
           const updated = await processItemForStep(
             step,
             item,
@@ -1341,6 +1514,7 @@ export function registerBulkImportRoutes(app: Express): void {
               name: s.name,
               screening: s.screening as Record<string, unknown> | null,
             })),
+            residences,
           );
           return res.json(updated);
         } catch (err) {
@@ -1436,9 +1610,14 @@ export function registerBulkImportRoutes(app: Express): void {
             tags?: string[];
             effectiveDate?: string;
           } | null) ?? {};
-        const branch =
-          (item.branchDecision as { branch?: string } | null)?.branch ??
-          'building_documents';
+        const branchDecision = (item.branchDecision as {
+          branch?: string;
+          residenceId?: string | null;
+        } | null) ?? {};
+        const branch = branchDecision.branch ?? 'building_documents';
+        const residenceId = branch === 'residence_documents'
+          ? (branchDecision.residenceId ?? null)
+          : null;
 
         const filePath = documentService.normalizePath(
           documentService.buildHierarchicalPath(
@@ -1461,6 +1640,7 @@ export function registerBulkImportRoutes(app: Express): void {
             buildingId: session.buildingId,
             uploadedById: req.user!.id,
             effectiveDate: ident.effectiveDate ? new Date(ident.effectiveDate) : null,
+            ...(residenceId ? { residenceId } : {}),
           })
           .returning();
 

@@ -148,6 +148,10 @@ export interface BranchResult extends AnalyzerConfidence {
   subCategory: string;
   residenceHint?: string;
   reason: string;
+  residenceId?: string | null;
+  residenceConfidence?: number | null;
+  residenceReason?: string | null;
+  residenceFallbackReason?: string | null;
 }
 
 export interface IdentificationResult extends AnalyzerConfidence {
@@ -667,11 +671,21 @@ Return JSON: { decision: 'keep'|'merge'|'split', reason: string, mergeWithItemId
     stagedPath?: string | null;
     buffer?: Buffer | null;
     mimeType?: string | null;
+    residences?: Array<{ id: string; unitNumber: string }>;
   }): Promise<BranchResult> {
+    const residenceLines = (input.residences ?? [])
+      .map((r) => `  - id="${r.id}" unit="${r.unitNumber}"`)
+      .join('\n');
+    const residenceSection = residenceLines
+      ? `\nBuilding residences (use exact id when picking for residence_documents):\n${residenceLines}\n`
+      : '';
+    const residenceJsonNote = input.residences && input.residences.length > 0
+      ? ', residenceId?: string (exact id from the list above, only when branch=residence_documents), residenceConfidence?: number (0..1 for the residence pick), residenceReason?: string (one sentence why), residenceFallbackReason?: string (set when you cannot confidently pick a residence)'
+      : '';
     const prompt = `Choose the best destination for this document inside a property-management app.
 Filename: ${input.originalName}
 Description: ${input.description ?? ''}
-
+${residenceSection}
 Destinations: building_documents | residence_documents | demand | bill | maintenance | other
 Sub-categories per destination:
   building_documents: bylaws | minutes | insurance | financial_statement | contract | correspondence | other
@@ -681,7 +695,7 @@ Sub-categories per destination:
   maintenance: work_order | quote | inspection_report | inventory | other
   other: other
 
-Return JSON: { branch: string, subCategory: string, residenceHint?: string, reason: string, confidence: number }.`;
+Return JSON: { branch: string, subCategory: string, residenceHint?: string, reason: string, confidence: number${residenceJsonNote} }.`;
     const { data: raw, fallbackReason } = await callClaudeJson<Partial<BranchResult & { subCategory: string }>>(
       prompt,
       {
@@ -700,7 +714,7 @@ Return JSON: { branch: string, subCategory: string, residenceHint?: string, reas
       'other',
     ];
     if (!raw) {
-      return { branch: 'building_documents', subCategory: 'other', reason: 'fallback', confidence: 0.2, fallbackReason };
+      return { branch: 'building_documents', subCategory: 'other', reason: 'fallback', confidence: 0.2, fallbackReason, residenceId: null, residenceConfidence: null, residenceReason: null, residenceFallbackReason: null };
     }
     const branch: BranchDestination = allowed.includes(raw.branch as BranchDestination)
       ? (raw.branch as BranchDestination)
@@ -710,6 +724,34 @@ Return JSON: { branch: string, subCategory: string, residenceHint?: string, reas
       typeof raw.subCategory === 'string' && allowedSubCats.includes(raw.subCategory)
         ? raw.subCategory
         : 'other';
+
+    let residenceId: string | null = null;
+    let residenceConfidence: number | null = null;
+    let residenceReason: string | null = null;
+    let residenceFallbackReason: string | null = null;
+
+    if (branch === 'residence_documents' && input.residences && input.residences.length > 0) {
+      const rawResidenceId = typeof (raw as Record<string, unknown>).residenceId === 'string'
+        ? (raw as Record<string, unknown>).residenceId as string
+        : null;
+      const validIds = new Set(input.residences.map((r) => r.id));
+      if (rawResidenceId && validIds.has(rawResidenceId)) {
+        residenceId = rawResidenceId;
+        residenceConfidence = typeof (raw as Record<string, unknown>).residenceConfidence === 'number'
+          ? clampConfidence((raw as Record<string, unknown>).residenceConfidence)
+          : null;
+        residenceReason = typeof (raw as Record<string, unknown>).residenceReason === 'string'
+          ? (raw as Record<string, unknown>).residenceReason as string
+          : null;
+      } else {
+        residenceFallbackReason = typeof (raw as Record<string, unknown>).residenceFallbackReason === 'string'
+          ? (raw as Record<string, unknown>).residenceFallbackReason as string
+          : rawResidenceId
+          ? 'AI returned an unrecognised residence id'
+          : 'AI could not determine the residence';
+      }
+    }
+
     return {
       branch,
       subCategory,
@@ -718,6 +760,10 @@ Return JSON: { branch: string, subCategory: string, residenceHint?: string, reas
       reason: typeof raw.reason === 'string' ? raw.reason : '',
       confidence: clampConfidence(raw.confidence),
       fallbackReason,
+      residenceId,
+      residenceConfidence,
+      residenceReason,
+      residenceFallbackReason,
     };
   },
 

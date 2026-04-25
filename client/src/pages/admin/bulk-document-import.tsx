@@ -217,6 +217,12 @@ interface BulkImportItemLite {
   subCategory: string | null;
   branchReason: string | null;
   branchManualOverride: boolean;
+  /** Residence fields (Task #780). Only relevant when branch === 'residence_documents'. */
+  residenceId: string | null;
+  residenceConfidence: number | null;
+  residenceReason: string | null;
+  residenceFallbackReason: string | null;
+  residenceManualOverride: boolean;
   identificationConfidence: number | null;
   identificationFallback: BulkImportFallbackReason | null;
   linkingConfidence: number | null;
@@ -1024,6 +1030,8 @@ export default function BulkDocumentImportPage() {
   const [groupReassignKey, setGroupReassignKey] = useState<string | null>(null);
   const [groupReassignBranch, setGroupReassignBranch] = useState<BranchDestination>('building_documents');
   const [groupReassignSubCategory, setGroupReassignSubCategory] = useState<string>('other');
+  const [residencePickerItemId, setResidencePickerItemId] = useState<string | null>(null);
+  const [residencePickerValue, setResidencePickerValue] = useState<string>('');
 
   // Pull the org list so each building's organizationId can be
   // resolved to a human-readable group header (Task #600). The picker
@@ -1441,6 +1449,54 @@ export default function BulkDocumentImportPage() {
         title: isFr
           ? 'Échec de la réaffectation du groupe'
           : 'Failed to reassign group',
+      });
+    },
+  });
+
+  /**
+   * Fetch the active building's residences for the residence picker
+   * (Task #780). Only fetched when the wizard is on the branching step
+   * so we don't burden other steps with an unnecessary query.
+   */
+  const { data: buildingResidences = [] } = useQuery<Array<{ id: string; unitNumber: string }>>({
+    queryKey: ['/api/buildings', session?.buildingId, 'residences'],
+    enabled: !!session?.buildingId && currentStep === 'branching',
+    queryFn: async () => {
+      const res = await fetch(`/api/buildings/${session!.buildingId}/residences`, {
+        credentials: 'include',
+      });
+      if (!res.ok) return [];
+      const data = await res.json() as Array<{ id: string; unitNumber: string }>;
+      return data.sort((a, b) =>
+        a.unitNumber.localeCompare(b.unitNumber, undefined, { numeric: true }),
+      );
+    },
+  });
+  const residencesById = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const r of buildingResidences) m.set(r.id, r.unitNumber);
+    return m;
+  }, [buildingResidences]);
+
+  const setResidenceMutation = useMutation({
+    mutationFn: async ({ itemId, residenceId }: { itemId: string; residenceId: string | null }) => {
+      const res = await apiRequest(
+        'POST',
+        `/api/admin/bulk-import/items/${itemId}/set-residence`,
+        { residenceId },
+      );
+      return res.json() as Promise<BulkImportItem>;
+    },
+    onSuccess: () => {
+      setResidencePickerItemId(null);
+      queryClient.invalidateQueries({
+        queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
+      });
+    },
+    onError: () => {
+      toast({
+        variant: 'destructive',
+        title: isFr ? 'Échec de l\'attribution de résidence' : 'Failed to set residence',
       });
     },
   });
@@ -2205,8 +2261,10 @@ export default function BulkDocumentImportPage() {
                                   const canToggleExclude = item.status !== 'committed' && item.status !== 'duplicate';
                                   const togglePending = toggleExclude.isPending && toggleExclude.variables?.itemId === item.id;
                                   const isPickerOpen = reassignPickerItemId === item.id;
+                                  const isResidencePickerOpen = residencePickerItemId === item.id;
                                   const subCatLabels = isFr ? SUB_CATEGORY_LABEL_FR : SUB_CATEGORY_LABEL_EN;
                                   const destLabels = isFr ? BRANCH_DESTINATION_LABEL_FR : BRANCH_DESTINATION_LABEL_EN;
+                                  const needsResidence = item.branch === 'residence_documents' && !item.residenceId && !isExcluded;
                                   return (
                                     <div key={item.id} className="rounded-md border">
                                       <div
@@ -2265,6 +2323,39 @@ export default function BulkDocumentImportPage() {
                                             >
                                               {isFr ? 'Manuel' : 'Manual'}
                                             </Badge>
+                                          )}
+                                          {!isExcluded && item.branch === 'residence_documents' && (
+                                            item.residenceId ? (
+                                              <Badge
+                                                variant="outline"
+                                                className="shrink-0 border-blue-300 bg-blue-50 text-blue-900 dark:border-blue-700 dark:bg-blue-950 dark:text-blue-200 text-xs cursor-pointer"
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  setResidencePickerItemId(isResidencePickerOpen ? null : item.id);
+                                                  setResidencePickerValue(item.residenceId ?? '');
+                                                }}
+                                                data-testid={`badge-residence-${item.id}`}
+                                                title={item.residenceReason ?? undefined}
+                                              >
+                                                <MapPin className="mr-1 h-3 w-3" />
+                                                {residencesById.get(item.residenceId) ?? item.residenceId.slice(0, 8)}
+                                                {item.residenceManualOverride && ` (${isFr ? 'manuel' : 'manual'})`}
+                                              </Badge>
+                                            ) : (
+                                              <Badge
+                                                variant="outline"
+                                                className="shrink-0 border-red-300 bg-red-50 text-red-900 dark:border-red-700 dark:bg-red-950 dark:text-red-200 text-xs cursor-pointer"
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  setResidencePickerItemId(isResidencePickerOpen ? null : item.id);
+                                                  setResidencePickerValue('');
+                                                }}
+                                                data-testid={`badge-residence-needed-${item.id}`}
+                                              >
+                                                <MapPin className="mr-1 h-3 w-3" />
+                                                {isFr ? 'Résidence requise' : 'Residence required'}
+                                              </Badge>
+                                            )
                                           )}
                                           {!isExcluded && (
                                             <>
@@ -2390,6 +2481,85 @@ export default function BulkDocumentImportPage() {
                                               className="h-8 text-xs"
                                               onClick={() => setReassignPickerItemId(null)}
                                               data-testid={`button-reassign-cancel-${item.id}`}
+                                            >
+                                              {isFr ? 'Annuler' : 'Cancel'}
+                                            </Button>
+                                          </div>
+                                        </div>
+                                      )}
+                                      {isResidencePickerOpen && item.branch === 'residence_documents' && (
+                                        <div
+                                          className="border-t bg-muted/30 px-3 py-3 flex flex-wrap items-end gap-3"
+                                          data-testid={`residence-picker-${item.id}`}
+                                        >
+                                          <div className="flex flex-col gap-1">
+                                            <Label className="text-xs">
+                                              {isFr ? 'Résidence' : 'Residence'}
+                                            </Label>
+                                            <Select
+                                              value={residencePickerValue}
+                                              onValueChange={setResidencePickerValue}
+                                            >
+                                              <SelectTrigger className="h-8 w-[220px] text-xs" data-testid={`residence-picker-select-${item.id}`}>
+                                                <SelectValue placeholder={isFr ? 'Choisir une résidence…' : 'Choose a residence…'} />
+                                              </SelectTrigger>
+                                              <SelectContent>
+                                                {buildingResidences.length === 0 ? (
+                                                  <SelectItem value="__none__" disabled className="text-xs text-muted-foreground">
+                                                    {isFr ? 'Aucune résidence' : 'No residences'}
+                                                  </SelectItem>
+                                                ) : (
+                                                  buildingResidences.map((r) => (
+                                                    <SelectItem key={r.id} value={r.id} className="text-xs">
+                                                      {r.unitNumber}
+                                                    </SelectItem>
+                                                  ))
+                                                )}
+                                              </SelectContent>
+                                            </Select>
+                                          </div>
+                                          <div className="flex gap-2">
+                                            <Button
+                                              size="sm"
+                                              className="h-8 text-xs"
+                                              onClick={() =>
+                                                setResidenceMutation.mutate({
+                                                  itemId: item.id,
+                                                  residenceId: residencePickerValue || null,
+                                                })
+                                              }
+                                              disabled={setResidenceMutation.isPending || !residencePickerValue}
+                                              data-testid={`button-residence-save-${item.id}`}
+                                            >
+                                              {setResidenceMutation.isPending ? (
+                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                              ) : (
+                                                isFr ? 'Enregistrer' : 'Save'
+                                              )}
+                                            </Button>
+                                            {item.residenceId && (
+                                              <Button
+                                                size="sm"
+                                                variant="outline"
+                                                className="h-8 text-xs"
+                                                onClick={() =>
+                                                  setResidenceMutation.mutate({
+                                                    itemId: item.id,
+                                                    residenceId: null,
+                                                  })
+                                                }
+                                                disabled={setResidenceMutation.isPending}
+                                                data-testid={`button-residence-clear-${item.id}`}
+                                              >
+                                                {isFr ? 'Effacer' : 'Clear'}
+                                              </Button>
+                                            )}
+                                            <Button
+                                              size="sm"
+                                              variant="ghost"
+                                              className="h-8 text-xs"
+                                              onClick={() => setResidencePickerItemId(null)}
+                                              data-testid={`button-residence-cancel-${item.id}`}
                                             >
                                               {isFr ? 'Annuler' : 'Cancel'}
                                             </Button>
@@ -2780,6 +2950,16 @@ export default function BulkDocumentImportPage() {
                       stepIndex={stepIndex}
                       isFr={isFr}
                       onNext={() => updateStep.mutate(STEP_ORDER[stepIndex + 1])}
+                      residenceIncompleteCount={
+                        currentStep === 'branching'
+                          ? items.filter(
+                              (i) =>
+                                i.branch === 'residence_documents' &&
+                                !i.residenceId &&
+                                i.status !== 'rejected',
+                            ).length
+                          : 0
+                      }
                     />
                   </CardContent>
                 </Card>
