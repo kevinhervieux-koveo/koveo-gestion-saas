@@ -472,6 +472,47 @@ export function requireRole(allowedRoles: string[]) {
 }
 
 /**
+ * Internal Koveo staff email domain. A request is considered to come from
+ * internal staff (a "super admin") only when the authenticated user has the
+ * `admin` role AND an email on this domain. Used to gate developer/internal
+ * panels — e.g. the Quebec Law 25 compliance scan endpoint, which surfaces
+ * raw file paths and Semgrep rule IDs that customer admins should not see.
+ */
+export const SUPER_ADMIN_EMAIL_DOMAIN = '@koveo-gestion.com';
+
+/**
+ * Express middleware that restricts a route to internal Koveo staff only.
+ * Customer admins (any other email domain) and lower-privileged users receive
+ * a 403. Must be used after `requireAuth` so that `req.user` is populated.
+ *
+ * @example
+ * ```typescript
+ * app.use('/api/law25-compliance', requireAuth, requireSuperAdmin, router);
+ * ```
+ */
+export function requireSuperAdmin(req: Request, res: Response, next: NextFunction) {
+  if (!req.user) {
+    return res.status(401).json({
+      message: 'Authentication required',
+      code: 'AUTH_REQUIRED',
+    });
+  }
+
+  const email = typeof req.user.email === 'string' ? req.user.email.toLowerCase() : '';
+  const isInternalAdmin =
+    req.user.role === 'admin' && email.endsWith(SUPER_ADMIN_EMAIL_DOMAIN);
+
+  if (!isInternalAdmin) {
+    return res.status(403).json({
+      message: 'Insufficient permissions',
+      code: 'INSUFFICIENT_PERMISSIONS',
+    });
+  }
+
+  next();
+}
+
+/**
  * Permission-based authorization middleware factory using the comprehensive RBAC system.
  * Validates user permissions based on the database RBAC system.
  * Must be used after requireAuth middleware.

@@ -316,7 +316,7 @@ export function Sidebar({ forceExpanded = false }: SidebarProps) {
   const roleLabel = user?.role || 'User';
 
   // Get filtered navigation based on user role and common spaces access
-  const menuSections = getFilteredNavigation(effectiveRole).map((section) => ({
+  const menuSections = getFilteredNavigation(effectiveRole, user).map((section) => ({
     ...section,
     items: section.items.filter((item) => {
       if (item.nameKey === 'commonSpaces' && !hasCommonSpacesAccess) {

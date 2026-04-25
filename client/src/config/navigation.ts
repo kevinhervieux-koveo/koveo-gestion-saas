@@ -61,6 +61,7 @@ export interface NavigationItem {
   href?: string; // Optional for items that have sub-items
   icon: React.ComponentType<any>;
   requiredRole?: string;
+  superAdminOnly?: boolean; // Restrict to internal Koveo staff only
   _key?: string; // Optional key for collapsible items
   items?: NavigationItem[]; // Optional sub-items for collapsible navigation
 }
@@ -144,7 +145,12 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
     items: [
       { nameKey: 'organizations', href: '/admin/organizations', icon: Building },
       { nameKey: 'navQualityAssurance', href: '/admin/quality', icon: CheckCircle },
-      { nameKey: 'navLaw25Compliance', href: '/admin/compliance', icon: Shield },
+      {
+        nameKey: 'navLaw25Compliance',
+        href: '/admin/compliance',
+        icon: Shield,
+        superAdminOnly: true,
+      },
       { nameKey: 'rbacPermissions', href: '/admin/permissions', icon: ShieldCheck },
       { nameKey: 'navBulkDocumentImport', href: '/admin/bulk-document-import', icon: Folder },
     ],
@@ -198,6 +204,34 @@ export function hasRoleOrHigher(userRole: string | undefined, requiredRole: stri
 }
 
 /**
+ * Internal Koveo staff email domain. Users with an admin role AND an email
+ * matching this domain are considered "super admins" — they can see internal
+ * developer/scan tooling such as the Quebec Law 25 compliance panel that
+ * surfaces raw file paths, line numbers and Semgrep rule IDs.
+ */
+export const SUPER_ADMIN_EMAIL_DOMAIN = '@koveo-gestion.com';
+
+/**
+ * Returns true when the user is internal Koveo staff: an admin whose email is
+ * on the internal domain. All other users (including customer admins) are
+ * treated as non-super-admin.
+ *
+ * @param user - Authenticated user (or partial user shape) to inspect.
+ * @returns True if the user qualifies as a super admin.
+ */
+export function isSuperAdmin(
+  user: { role?: string | null; email?: string | null } | null | undefined
+): boolean {
+  if (!user || !user.role || !user.email) {
+    return false;
+  }
+  if (user.role !== 'admin') {
+    return false;
+  }
+  return user.email.toLowerCase().endsWith(SUPER_ADMIN_EMAIL_DOMAIN);
+}
+
+/**
  * Filter navigation sections based on user role.
  * @param userRole - The user's current role.
  * @returns Array of navigation sections the user can access.
@@ -207,12 +241,18 @@ export function hasRoleOrHigher(userRole: string | undefined, requiredRole: stri
  * @param userRole
  * @returns Function result.
  */
-export function getFilteredNavigation(userRole: string | undefined): NavigationSection[] {
+export function getFilteredNavigation(
+  userRole: string | undefined,
+  user?: { role?: string | null; email?: string | null } | null
+): NavigationSection[] {
+  const userIsSuperAdmin = isSuperAdmin(user);
   return NAVIGATION_CONFIG.filter((section) => hasRoleOrHigher(userRole, section.requiredRole)).map(
     (section) => ({
       ...section,
       items: section.items.filter(
-        (item) => !item.requiredRole || hasRoleOrHigher(userRole, item.requiredRole)
+        (item) =>
+          (!item.requiredRole || hasRoleOrHigher(userRole, item.requiredRole)) &&
+          (!item.superAdminOnly || userIsSuperAdmin)
       ),
     })
   );

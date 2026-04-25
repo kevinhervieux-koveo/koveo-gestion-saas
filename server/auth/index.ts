@@ -12,6 +12,8 @@ export {
   verifyPassword,
   requireAuth,
   requireRole,
+  requireSuperAdmin,
+  SUPER_ADMIN_EMAIL_DOMAIN,
   authorize,
   setupAuthRoutes,
 } from '../auth';

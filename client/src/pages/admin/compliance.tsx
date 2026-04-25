@@ -1,37 +1,65 @@
 import { Header } from '@/components/layout/header';
 import { Law25Compliance } from '@/components/dashboard/law25-compliance';
-import { Terminal, Shield } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { RefreshCw } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+
+interface Law25LastScan {
+  lastScanDate?: string;
+}
 
 /**
  * Quebec Law 25 compliance dashboard page for administrators.
  * Provides comprehensive overview of privacy compliance status and violations.
  */
 export default function Compliance() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const queryClient = useQueryClient();
+  const { data, isFetching } = useQuery<Law25LastScan>({
+    queryKey: ['/api/law25-compliance'],
+  });
+
+  const handleRescan = () => {
+    queryClient.invalidateQueries({ queryKey: ['/api/law25-compliance'] });
+  };
+
+  const formatLastScan = () => {
+    if (!data?.lastScanDate) {
+      return t('notAvailable');
+    }
+    const date = new Date(data.lastScanDate);
+    const locale = language === 'fr' ? 'fr-CA' : 'en-CA';
+    return `${date.toLocaleDateString(locale)} ${date.toLocaleTimeString(locale)}`;
+  };
+
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
       <Header
-        title={t('compliancePageTitle')}
-        subtitle={t('compliancePageSubtitle')}
+        title={t('quebecLaw25Compliance')}
+        subtitle={t('privacyComplianceMonitoring')}
       />
 
-      {/* Refresh Command */}
-      <div className='border-b bg-blue-50 px-6 py-3'>
-        <div className='max-w-7xl mx-auto'>
-          <div className='flex items-center gap-2 text-sm text-blue-700'>
-            <Terminal className='h-4 w-4' />
-            <span className='font-medium'>Scan Command:</span>
-            <code className='bg-blue-100 px-2 py-1 rounded text-xs font-mono'>
-              npm run quality:check
-            </code>
-            <span className='text-blue-600 ml-4'>•</span>
-            <Shield className='h-4 w-4' />
-            <span className='font-medium'>Semgrep CLI:</span>
-            <code className='bg-blue-100 px-2 py-1 rounded text-xs font-mono'>
-              npx semgrep --config=.semgrep.yml .
-            </code>
+      {/* Last scan info & re-scan action */}
+      <div className='border-b bg-gray-50 px-6 py-3'>
+        <div className='max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3'>
+          <div className='text-sm text-gray-700' data-testid='text-last-scan'>
+            <span className='font-medium'>{t('lastScan')}:</span>{' '}
+            <span>{formatLastScan()}</span>
           </div>
+          <Button
+            type='button'
+            variant='outline'
+            size='sm'
+            onClick={handleRescan}
+            disabled={isFetching}
+            data-testid='button-rescan-compliance'
+          >
+            <RefreshCw
+              className={`h-4 w-4 mr-2 ${isFetching ? 'animate-spin' : ''}`}
+            />
+            {isFetching ? t('loading') : t('rescanCompliance')}
+          </Button>
         </div>
       </div>
 

@@ -4,7 +4,7 @@ import { setupAuthRoutes, sessionConfig } from './auth';
 import path from 'path';
 import fs from 'fs';
 import multer from 'multer';
-import { requireAuth } from './auth/index';
+import { requireAuth, requireSuperAdmin } from './auth/index';
 import { secureErrorHandler, notFoundHandler } from './middleware/error-security';
 import { enforceDemoSecurity } from './middleware/demo-security';
 import { logDebug, logInfo, logWarn, logError } from './utils/logger';
@@ -204,8 +204,9 @@ export async function registerRoutes(app: Express) {
   app.use(performanceRouter);
   app.use(webVitalsRouter);
   
-  // Law 25 compliance routes
-  app.use('/api/law25-compliance', requireAuth, law25ComplianceRouter);
+  // Law 25 compliance routes — restricted to internal Koveo staff because
+  // the response surfaces raw file paths, line numbers and Semgrep rule IDs.
+  app.use('/api/law25-compliance', requireAuth, requireSuperAdmin, law25ComplianceRouter);
   
   
   // Features API for roadmap

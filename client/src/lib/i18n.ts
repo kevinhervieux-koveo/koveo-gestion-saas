@@ -960,6 +960,8 @@ export interface Translations {
   violationTracking: string;
   scanCommand: string;
   semgrepCli: string;
+  rescanCompliance: string;
+  notAvailable: string;
   qualityMetricsTracking: string;
   refreshCommand: string;
   documentationCenter: string;
@@ -3288,6 +3290,8 @@ export const translations: Record<Language, Translations> = {
     violationTracking: 'Violation Tracking',
     scanCommand: 'Scan Command',
     semgrepCli: 'Semgrep CLI',
+    rescanCompliance: 'Re-scan',
+    notAvailable: 'N/A',
     qualityMetricsTracking: 'Quality metrics and assurance tracking',
     refreshCommand: 'Refresh Command',
     documentationCenter: 'Documentation Center',
@@ -5445,6 +5449,8 @@ export const translations: Record<Language, Translations> = {
     violationTracking: 'Suivi des violations',
     scanCommand: 'Commande de balayage',
     semgrepCli: 'Interface de ligne de commande Semgrep',
+    rescanCompliance: "Relancer l'analyse",
+    notAvailable: 'N/D',
     qualityMetricsTracking: 'Suivi des métriques et assurance qualité',
     refreshCommand: 'Commande de rafraîchissement',
     documentationCenter: 'Centre de documentation',
