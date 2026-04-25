@@ -3,7 +3,7 @@ import { render, screen, cleanup } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import React from 'react';
 
-import { ConfidenceBadge } from '@/pages/admin/bulk-document-import';
+import { ConfidenceBadge } from '@/pages/admin/bulk-import-confidence-badge';
 import type { BulkImportFallbackReason } from '@shared/schemas/bulk-import';
 
 const FALLBACK_REASONS: ReadonlyArray<BulkImportFallbackReason> = [
