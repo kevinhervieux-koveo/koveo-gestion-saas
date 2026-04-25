@@ -815,7 +815,7 @@ function HistorySessionRow({
               <ul className="space-y-2">
                 {items.map((item) => {
                   const reasons = fallbackReasonsForItem(item);
-                  const showQa = hasQuickAnalysisSignal(item);
+                  const showQa = hasQuickAnalysisSignal(item) || Boolean(item.screeningFallback);
                   return (
                     <li
                       key={item.id}
@@ -893,7 +893,20 @@ function HistorySessionRow({
                                 </span>
                               )}
                           </div>
-                          {item.screeningQaReason && (
+                          {item.screeningFallback ? (
+                            <div
+                              className="mt-1.5 rounded-md bg-amber-50 px-2 py-1.5 text-xs text-amber-800 dark:bg-amber-950/40 dark:text-amber-300"
+                              data-testid={`history-item-fallback-explanation-${item.id}`}
+                              title={(isFr ? FALLBACK_REASON_EXPLANATIONS.fr : FALLBACK_REASON_EXPLANATIONS.en)[item.screeningFallback]}
+                            >
+                              <p className="font-medium">
+                                {(isFr ? FALLBACK_REASON_LABELS.fr : FALLBACK_REASON_LABELS.en)[item.screeningFallback]}
+                              </p>
+                              <p className="mt-0.5 text-amber-700 dark:text-amber-400">
+                                {(isFr ? FALLBACK_REASON_EXPLANATIONS.fr : FALLBACK_REASON_EXPLANATIONS.en)[item.screeningFallback]}
+                              </p>
+                            </div>
+                          ) : item.screeningQaReason && (
                             <p
                               className="mt-1.5 whitespace-pre-wrap text-xs text-foreground/80"
                               data-testid={`history-item-qa-reason-${item.id}`}
@@ -901,9 +914,7 @@ function HistorySessionRow({
                               <span className="mr-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                                 {isFr ? 'Raison' : 'Reason'}:
                               </span>
-                              {item.screeningFallback
-                                ? (isFr ? "L\u2019IA n\u2019a pas analys\u00e9 ce fichier." : 'AI did not analyze this file.')
-                                : item.screeningQaReason}
+                              {item.screeningQaReason}
                             </p>
                           )}
                         </div>
