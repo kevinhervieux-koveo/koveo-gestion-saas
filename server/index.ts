@@ -228,16 +228,22 @@ if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
     if (process.env.NODE_ENV === 'production') {
       log('🏭 Production mode detected - applying production configurations');
 
-      // Verify production requirements
-      if (!process.env.DATABASE_URL && !process.env.DATABASE_URL_KOVEO) {
-        log('❌ Either DATABASE_URL or DATABASE_URL_KOVEO is required in production', 'error');
+      // Fail fast if neither prod DB var is set. `resolveDatabaseUrl()`
+      // (Task #938) is the same helper the deploy-time migration runner
+      // uses, so we accept either `DATABASE_URL_KOVEO` or
+      // `PRODUCTION_DATABASE_URL` and refuse to silently fall back to
+      // `DATABASE_URL` from a production deploy.
+      try {
+        const { resolveDatabaseUrl, maskDatabaseUrl } = await import(
+          '../scripts/run-migrations-url'
+        );
+        const r = resolveDatabaseUrl(process.env);
+        log(
+          `✅ Database configured: ${r.source} -> ${maskDatabaseUrl(r.url)}`,
+        );
+      } catch (err: any) {
+        log(`❌ ${err?.message || err}`, 'error');
         process.exit(1);
-      }
-      
-      // Log which database URL we're using (without exposing the full URL)
-      const dbUrl = process.env.DATABASE_URL_KOVEO || process.env.DATABASE_URL;
-      if (dbUrl) {
-        log(`✅ Database configured: ${dbUrl.substring(0, 20)}...`);
       }
 
       // Set production-specific configurations
@@ -424,13 +430,10 @@ async function loadFullApplication(): Promise<void> {
     if (process.env.NODE_ENV === 'production') {
       log('🔍 Production validation: Checking application requirements...');
 
-      // Verify critical environment variables
-      const requiredEnvVars = ['DATABASE_URL'];
-      for (const envVar of requiredEnvVars) {
-        if (!process.env[envVar]) {
-          throw new Error(`Missing required environment variable: ${envVar}`);
-        }
-      }
+      // Database URL presence is enforced earlier via `resolveDatabaseUrl()`
+      // (Task #938) — accepts `DATABASE_URL_KOVEO` or
+      // `PRODUCTION_DATABASE_URL`. We deliberately do NOT require
+      // `DATABASE_URL` here, since either prod alias is sufficient.
 
       log('✅ Production environment validation passed');
     }

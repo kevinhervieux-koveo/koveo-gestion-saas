@@ -889,6 +889,10 @@ jest.mock('./server/config/index', () => ({
     },
     database: {
       url: 'mock://test-database',
+      urlSource: 'DATABASE_URL',
+      urlMasked: '<unparseable-url>',
+      ignoredUrlSource: undefined,
+      ignoredUrlSourceDiffers: false,
       getRuntimeDatabaseUrl: jest.fn(() => 'mock://test-database'),
     },
     session: {
@@ -913,6 +917,10 @@ jest.mock('./server/config/index', () => ({
     },
     database: {
       url: 'mock://test-database',
+      urlSource: 'DATABASE_URL',
+      urlMasked: '<unparseable-url>',
+      ignoredUrlSource: undefined,
+      ignoredUrlSourceDiffers: false,
       getRuntimeDatabaseUrl: jest.fn(() => 'mock://test-database'),
     },
     session: {

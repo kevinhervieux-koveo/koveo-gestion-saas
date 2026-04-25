@@ -89,31 +89,33 @@ async function checkUserPermission(userRole: string, permissionName: string): Pr
 const PostgreSqlStore = connectPg(session);
 
 /**
- * Get the correct database URL based on environment and request domain.
- * Uses centralized configuration to determine the appropriate database.
+ * Get the correct database URL for the session store.
+ *
+ * Routes through `config.database.getRuntimeDatabaseUrl()` which is
+ * itself backed by the boot-time `resolveDatabaseUrl()` (Task #938) —
+ * so the session store always lands on the same database the rest of
+ * the server is talking to, including when the operator switched
+ * their secret name from `DATABASE_URL_KOVEO` to
+ * `PRODUCTION_DATABASE_URL`.
  */
 function getDatabaseUrl(requestDomain?: string): string {
-  // CRITICAL: koveo-gestion.com MUST use DATABASE_URL_KOVEO exclusively
   const finalUrl = config.database.getRuntimeDatabaseUrl(requestDomain);
-  const isKoveoRequest = requestDomain?.includes('koveo-gestion.com');
-  const isProduction = config.server.isProduction || isKoveoRequest;
-  
-  // Debug logging for session store database selection (dev only — never log
-  // database routing details in production deployment logs)
-  if (process.env.NODE_ENV !== 'production') {
-    console.log('🔍 [SESSION STORE DB] Domain:', requestDomain || 'none');
-    console.log('🔍 [SESSION STORE DB] Is Production:', isProduction);
-    console.log('🔍 [SESSION STORE DB] Has DATABASE_URL_KOVEO:', !!process.env.DATABASE_URL_KOVEO);
-    console.log('🔍 [SESSION STORE DB] Using:', isProduction ? 'DATABASE_URL_KOVEO' : 'DATABASE_URL');
+
+  // Startup log: name the env var that supplied the URL and the
+  // masked host/db. Always log (suppressed in tests) so operators can
+  // confirm session-store routing in production deploy logs too.
+  if (process.env.NODE_ENV !== 'test') {
+    console.log(
+      `🔍 [SESSION STORE DB] Source: ${config.database.urlSource} -> ` +
+        `${config.database.urlMasked}` +
+        (requestDomain ? ` (domain hint: ${requestDomain})` : ''),
+    );
   }
-  
-  // Mask the database URL for security - only show connection type and domain
-  const maskedUrl = finalUrl ? `${finalUrl.split('://')[0]}://***@[masked-host]/[masked-db]` : '[no-url]';
-  
+
   if (!finalUrl) {
     throw new Error('No database URL available for session store');
   }
-  
+
   return finalUrl;
 }
 
@@ -193,20 +195,31 @@ function createSessionStore(requestDomain?: string) {
   }
 }
 
-// Create session store with production database detection
+// Create session store. The database URL is decided once at boot by
+// `resolveDatabaseUrl()` in `server/config/index.ts`, so the session
+// store automatically picks up `PRODUCTION_DATABASE_URL` as an alias
+// for `DATABASE_URL_KOVEO` (Task #938) — no env-var sniffing needed
+// here.
 let sessionStore: any;
 try {
-  // CRITICAL: For production deployments, explicitly detect koveo-gestion.com environment
-  const isProductionDeployment = process.env.REPLIT_DEPLOYMENT === '1' || 
-                                config.server.isProduction ||
-                                process.env.DATABASE_URL_KOVEO;
-  
-  // Force koveo-gestion.com domain detection for session store
+  // For production deployments we still pass the koveo-gestion.com
+  // domain hint so that a non-prod NODE_ENV workspace serving a prod
+  // domain (legacy behaviour) gets the prod URL too.
+  const isProductionDeployment =
+    process.env.REPLIT_DEPLOYMENT === '1' ||
+    config.server.isProduction ||
+    !!process.env.DATABASE_URL_KOVEO ||
+    !!process.env.PRODUCTION_DATABASE_URL;
+
   const productionDomain = isProductionDeployment ? 'koveo-gestion.com' : undefined;
-  
+
   sessionStore = createSessionStore(productionDomain);
-  
-  console.log('✅ Session store created for:', isProductionDeployment ? 'PRODUCTION (DATABASE_URL_KOVEO)' : 'DEVELOPMENT (DATABASE_URL)');
+
+  if (process.env.NODE_ENV !== 'test') {
+    console.log(
+      `✅ Session store created using ${config.database.urlSource} -> ${config.database.urlMasked}`,
+    );
+  }
 } catch (error) {
   console.error('❌ Session store creation failed:', error);
   sessionStore = undefined; // Will fall back to memory store

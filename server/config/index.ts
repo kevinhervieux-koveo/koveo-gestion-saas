@@ -3,12 +3,26 @@
  */
 
 import { z } from 'zod';
+import {
+  maskDatabaseUrl,
+  resolveDatabaseUrl,
+  type ResolvedDatabaseUrl,
+} from '../../scripts/run-migrations-url';
 
 // Environment schema validation
+//
+// `DATABASE_URL` is intentionally optional here: in production the operator
+// may have only set `DATABASE_URL_KOVEO` *or* `PRODUCTION_DATABASE_URL`
+// (the two are aliases — see `scripts/run-migrations-url.ts`). Requiring
+// `DATABASE_URL` would make the server refuse to boot in that valid
+// production configuration. The actual presence/absence check is
+// performed by `resolveDatabaseUrl()` below, which throws fail-fast when
+// no usable URL is configured for the current `NODE_ENV`.
 const envSchema = z.object({
   PORT: z.coerce.number().default(5000),
-  DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
-  DATABASE_URL_KOVEO: z.string().optional(), // Production database
+  DATABASE_URL: z.string().optional(),
+  DATABASE_URL_KOVEO: z.string().optional(), // Production database (canonical)
+  PRODUCTION_DATABASE_URL: z.string().optional(), // Production database (alias)
   SESSION_SECRET: z.string().min(32, 'SESSION_SECRET must be at least 32 characters for security'),
   REPL_SLUG: z.string().optional(),
   REPL_OWNER: z.string().optional(),
@@ -97,6 +111,32 @@ const detectEnvironment = () => {
 
 const envConfig = detectEnvironment();
 
+/**
+ * Resolve the database URL once at boot using the same helper as the
+ * deploy-time migration runner (Task #936). This keeps a single source
+ * of truth for "which DB does the running server talk to?": prefer
+ * `DATABASE_URL_KOVEO`, accept `PRODUCTION_DATABASE_URL` as an alias,
+ * and fail fast in `NODE_ENV=production` when neither is set instead
+ * of silently falling back to the dev `DATABASE_URL`.
+ *
+ * `resolveDatabaseUrl()` reads `NODE_ENV` itself; we re-read directly
+ * from `process.env` (rather than going through `envConfig`) so that
+ * the contract here matches the migration runner exactly. The
+ * domain-based detection in `detectEnvironment()` remains for things
+ * like cookie/SSL behaviour but does not affect DB selection.
+ */
+const resolvedDb: ResolvedDatabaseUrl = resolveDatabaseUrl(process.env);
+
+if (resolvedDb.ignoredSource && resolvedDb.ignoredSourceDiffers) {
+  console.warn(
+    `⚠️  [DB CONFIG] Both DATABASE_URL_KOVEO and ${resolvedDb.ignoredSource} ` +
+      `are set but point at DIFFERENT databases. Using ` +
+      `${resolvedDb.source} (${maskDatabaseUrl(resolvedDb.url)}) and ` +
+      `ignoring ${resolvedDb.ignoredSource}. Set both to the same value ` +
+      `or unset one to silence this warning.`,
+  );
+}
+
 export const config = {
   // Server configuration
   server: {
@@ -110,19 +150,47 @@ export const config = {
 
   // Database configuration
   database: {
-    // Use DATABASE_URL_KOVEO only in production, otherwise use DATABASE_URL for development
-    url: envConfig.isProduction ? (env.DATABASE_URL_KOVEO || env.DATABASE_URL) : env.DATABASE_URL,
+    // Single source of truth: resolved by `resolveDatabaseUrl()` above
+    // using the same alias rules as the deploy-time migration runner.
+    url: resolvedDb.url,
+    // Which env var supplied the URL (`DATABASE_URL_KOVEO`,
+    // `PRODUCTION_DATABASE_URL`, or `DATABASE_URL`). Used by `db.ts`
+    // and `auth.ts` to log the source without echoing the URL itself.
+    urlSource: resolvedDb.source,
+    // `host[:port]/dbname` — safe to log; credentials are stripped.
+    urlMasked: maskDatabaseUrl(resolvedDb.url),
+    // True when both prod aliases were set: the alias is recorded so
+    // we can mention it in startup logs.
+    ignoredUrlSource: resolvedDb.ignoredSource,
+    // True when the two prod aliases pointed at different databases.
+    ignoredUrlSourceDiffers: !!resolvedDb.ignoredSourceDiffers,
     poolSize: env.DB_POOL_SIZE,
     queryTimeout: env.QUERY_TIMEOUT,
-    // Helper function to get database URL at runtime based on request
+    // Helper function to get database URL at runtime based on request.
+    // Kept for backwards compatibility with callers that pass a
+    // request domain — both prod and "koveo-gestion.com" requests now
+    // resolve to the same URL we picked at boot, so the result is
+    // deterministic regardless of `requestDomain`. In a non-prod
+    // workspace serving a request whose host is `koveo-gestion.com`
+    // we still upgrade to the prod URL when one is configured (the
+    // historical behaviour of this helper).
     getRuntimeDatabaseUrl: (requestDomain?: string) => {
-      // Use REPLIT_DEPLOYMENT and domain detection for proper database selection
       const isRuntimeDeployment = process.env.REPLIT_DEPLOYMENT === '1';
       const isRuntimeKoveoProduction = requestDomain?.includes('koveo-gestion.com');
-      const isRuntimeProduction = isRuntimeDeployment || isRuntimeKoveoProduction || envConfig.isProduction;
+      const wantsProd =
+        isRuntimeDeployment || isRuntimeKoveoProduction || envConfig.isProduction;
 
-      // Use DATABASE_URL_KOVEO for production/deployment, DATABASE_URL for workspace
-      return isRuntimeProduction ? (env.DATABASE_URL_KOVEO || env.DATABASE_URL) : env.DATABASE_URL;
+      if (wantsProd) {
+        // If we already resolved a prod URL at boot, use it; otherwise
+        // fall back to whatever boot resolution returned (e.g. dev
+        // workspace with no prod var set).
+        return (
+          env.DATABASE_URL_KOVEO ||
+          env.PRODUCTION_DATABASE_URL ||
+          resolvedDb.url
+        );
+      }
+      return env.DATABASE_URL || resolvedDb.url;
     },
   },
 

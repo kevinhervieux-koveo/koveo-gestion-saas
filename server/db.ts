@@ -48,25 +48,43 @@ import {
   elementProjectUpdates,
 } from '@shared/schema';
 
-// Use correct database URL based on environment (production uses DATABASE_URL_KOVEO)
+// Single source of truth: which DB env var supplied the URL is decided
+// in `server/config/index.ts` via `resolveDatabaseUrl()` — the same
+// helper the deploy-time migration runner uses (Task #936/#938). This
+// guarantees that whichever database the migration runner just wrote
+// to is the one the running server will read from.
 const databaseUrl = config.database.url;
 
-if (process.env.NODE_ENV !== 'production') {
+// Always log the env var source + masked host/db at startup (including
+// in production), suppressed only under tests. This is the line a
+// human will look at when diagnosing "did the server connect to the
+// right database after I switched the secret name?".
+if (process.env.NODE_ENV !== 'test') {
+  const ignoredSuffix = config.database.ignoredUrlSource
+    ? config.database.ignoredUrlSourceDiffers
+      ? ` (ignoring ${config.database.ignoredUrlSource} which points at a DIFFERENT database)`
+      : ` (alias ${config.database.ignoredUrlSource} also set with the same value)`
+    : '';
+  console.log(
+    `🔍 [DB DEBUG] Database URL source: ${config.database.urlSource} -> ` +
+      `${config.database.urlMasked}${ignoredSuffix}`,
+  );
+}
+
+if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
   console.log('🔍 [DB DEBUG] Environment:', config.server.nodeEnv);
   console.log('🔍 [DB DEBUG] Is Production:', config.server.isProduction);
-  console.log('🔍 [DB DEBUG] Database URL (masked):', databaseUrl ? databaseUrl.replace(/\/\/[^:]+:[^@]+@/, '//***:***@') : 'UNDEFINED');
   console.log('🔍 [DB DEBUG] DATABASE_URL_KOVEO available:', !!process.env.DATABASE_URL_KOVEO);
+  console.log('🔍 [DB DEBUG] PRODUCTION_DATABASE_URL available:', !!process.env.PRODUCTION_DATABASE_URL);
   console.log('🔍 [DB DEBUG] DATABASE_URL available:', !!process.env.DATABASE_URL);
 }
 
 if (!databaseUrl) {
   console.error('❌ [DB DEBUG] No database URL found!');
-  throw new Error('DATABASE_URL must be set. Did you forget to provision a database?');
-}
-
-const isUsingKoveoDb = databaseUrl.includes('DATABASE_URL_KOVEO') || (config.server.isProduction && process.env.DATABASE_URL_KOVEO);
-if (process.env.NODE_ENV !== 'production') {
-  console.log('🔍 [DB DEBUG] Using Koveo DB:', isUsingKoveoDb);
+  throw new Error(
+    'No database URL configured. Set DATABASE_URL_KOVEO or ' +
+      'PRODUCTION_DATABASE_URL (production) or DATABASE_URL (development).',
+  );
 }
 
 /**
