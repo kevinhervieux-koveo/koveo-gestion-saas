@@ -1648,6 +1648,8 @@ export interface Translations {
   ganttSaveChanges: string;
   ganttCancel: string;
   ganttDiscardUnsaved: string;
+  ganttResizeStart: string;
+  ganttResizeEnd: string;
   statusSubmission: string;
   statusPreWork: string;
   statusPostWork: string;
@@ -5445,6 +5447,8 @@ export const translations: Record<Language, Translations> = {
     ganttSaveChanges: 'Save changes',
     ganttCancel: 'Cancel',
     ganttDiscardUnsaved: 'Discard unsaved changes?',
+    ganttResizeStart: 'Drag to change start date',
+    ganttResizeEnd: 'Drag to change end date',
     statusSubmission: 'Submission',
     statusPreWork: 'Pre work',
     statusPostWork: 'Post work',
@@ -9463,6 +9467,8 @@ export const translations: Record<Language, Translations> = {
     ganttSaveChanges: 'Enregistrer',
     ganttCancel: 'Annuler',
     ganttDiscardUnsaved: 'Abandonner les modifications non enregistrées?',
+    ganttResizeStart: 'Glisser pour modifier la date de début',
+    ganttResizeEnd: 'Glisser pour modifier la date de fin',
     statusSubmission: 'Soumission',
     statusPreWork: 'Pré-travaux',
     statusPostWork: 'Post-travaux',

@@ -157,17 +157,23 @@ export function GanttChart({
   const editLabel = t('ganttEditProject');
   const saveLabel = t('ganttSaveChanges');
   const cancelLabel = t('ganttCancel');
+  const resizeStartLabel = t('ganttResizeStart');
+  const resizeEndLabel = t('ganttResizeEnd');
 
   const timelineRef = useRef<HTMLDivElement>(null);
 
+  type DragMode = 'move' | 'resize-left' | 'resize-right';
+
   // Local drag state — offset in ms from the committed editingDates
   const [dragOffsetMs, setDragOffsetMs] = useState(0);
+  const [dragMode, setDragMode] = useState<DragMode>('move');
   const dragStartX = useRef<number | null>(null);
   const isDragging = useRef(false);
 
   // Reset drag offset when editing project changes
   useEffect(() => {
     setDragOffsetMs(0);
+    setDragMode('move');
     dragStartX.current = null;
     isDragging.current = false;
   }, [editingProjectId]);
@@ -278,19 +284,35 @@ export function GanttChart({
   const getEffectiveEditingDates = useCallback(() => {
     if (!editingDates) return null;
     const dur = editingDates.endTs - editingDates.startTs;
-    let newStart = editingDates.startTs + dragOffsetMs;
-    let newEnd = editingDates.endTs + dragOffsetMs;
-    // Clamp to domain
-    if (newStart < domain[0]) {
-      newStart = domain[0];
-      newEnd = domain[0] + dur;
-    }
-    if (newEnd > domain[1]) {
-      newEnd = domain[1];
-      newStart = domain[1] - dur;
+    let newStart = editingDates.startTs;
+    let newEnd = editingDates.endTs;
+    if (dragMode === 'move') {
+      newStart = editingDates.startTs + dragOffsetMs;
+      newEnd = editingDates.endTs + dragOffsetMs;
+      // Clamp to domain (preserve duration)
+      if (newStart < domain[0]) {
+        newStart = domain[0];
+        newEnd = domain[0] + dur;
+      }
+      if (newEnd > domain[1]) {
+        newEnd = domain[1];
+        newStart = domain[1] - dur;
+      }
+    } else if (dragMode === 'resize-left') {
+      newStart = editingDates.startTs + dragOffsetMs;
+      // Clamp: cannot go past domain start, must keep at least 1 day duration
+      if (newStart < domain[0]) newStart = domain[0];
+      const maxStart = editingDates.endTs - DAY_MS;
+      if (newStart > maxStart) newStart = maxStart;
+    } else if (dragMode === 'resize-right') {
+      newEnd = editingDates.endTs + dragOffsetMs;
+      // Clamp: cannot exceed domain end, must keep at least 1 day duration
+      if (newEnd > domain[1]) newEnd = domain[1];
+      const minEnd = editingDates.startTs + DAY_MS;
+      if (newEnd < minEnd) newEnd = minEnd;
     }
     return { startTs: newStart, endTs: newEnd };
-  }, [editingDates, dragOffsetMs, domain]);
+  }, [editingDates, dragOffsetMs, domain, dragMode]);
 
   const effectiveEditingDates = getEffectiveEditingDates();
 
@@ -307,13 +329,17 @@ export function GanttChart({
     });
   }, [rows, editingProjectId, effectiveEditingDates]);
 
-  // Drag pointer handlers
-  const handlePointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-    if (!editingProjectId || !editingDates) return;
+  // Drag pointer handlers — `mode` distinguishes whole-bar slide from edge resize
+  const startDrag = useCallback((mode: DragMode) => (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!editingProjectId || !editingDates || isSaving) return;
+    // Stop the parent overlay's onPointerDown from also firing for resize handles
+    e.stopPropagation();
     e.currentTarget.setPointerCapture(e.pointerId);
     dragStartX.current = e.clientX;
     isDragging.current = true;
-  }, [editingProjectId, editingDates]);
+    setDragMode(mode);
+    setDragOffsetMs(0);
+  }, [editingProjectId, editingDates, isSaving]);
 
   const handlePointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     if (!isDragging.current || dragStartX.current === null || !editingDates) return;
@@ -323,15 +349,26 @@ export function GanttChart({
     if (plotWidth <= 0) return;
     const deltaX = e.clientX - dragStartX.current;
     const rawDeltaMs = (deltaX / plotWidth) * domainSpan;
-    // Clamp so bar stays within domain
-    const dur = editingDates.endTs - editingDates.startTs;
-    const minDelta = domain[0] - editingDates.startTs;
-    const maxDelta = domain[1] - editingDates.endTs;
-    const clampedDelta = Math.max(minDelta, Math.min(maxDelta, rawDeltaMs));
+    let clampedDelta: number;
+    if (dragMode === 'move') {
+      const minDelta = domain[0] - editingDates.startTs;
+      const maxDelta = domain[1] - editingDates.endTs;
+      clampedDelta = Math.max(minDelta, Math.min(maxDelta, rawDeltaMs));
+    } else if (dragMode === 'resize-left') {
+      // Left edge: cannot go past domain start, must stay >= 1 day before end
+      const minDelta = domain[0] - editingDates.startTs;
+      const maxDelta = (editingDates.endTs - DAY_MS) - editingDates.startTs;
+      clampedDelta = Math.max(minDelta, Math.min(maxDelta, rawDeltaMs));
+    } else {
+      // resize-right: cannot exceed domain end, must stay >= 1 day after start
+      const minDelta = (editingDates.startTs + DAY_MS) - editingDates.endTs;
+      const maxDelta = domain[1] - editingDates.endTs;
+      clampedDelta = Math.max(minDelta, Math.min(maxDelta, rawDeltaMs));
+    }
     setDragOffsetMs(clampedDelta);
-  }, [editingDates, domainSpan, domain]);
+  }, [editingDates, domainSpan, domain, dragMode]);
 
-  const handlePointerUp = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+  const handlePointerUp = useCallback((_e: React.PointerEvent<HTMLDivElement>) => {
     if (!isDragging.current || !editingProjectId || !editingDates) return;
     isDragging.current = false;
     dragStartX.current = null;
@@ -339,6 +376,7 @@ export function GanttChart({
     // Reset local drag offset BEFORE calling onDragEnd so the parent's new
     // editingDates value is the sole source of truth and is not double-offset.
     setDragOffsetMs(0);
+    setDragMode('move');
     if (effective && onDragEnd) {
       onDragEnd(editingProjectId, effective.startTs, effective.endTs);
     }
@@ -667,16 +705,56 @@ export function GanttChart({
               />
             )}
 
-            {/* Drag overlay for editing row */}
+            {/* Drag overlay for editing row — middle area slides the bar,
+                edge handles resize start / end independently. */}
             {dragOverlayStyle && (
               <div
                 data-testid={`gantt-drag-overlay-${editingProjectId}`}
                 style={dragOverlayStyle}
-                onPointerDown={handlePointerDown}
+                onPointerDown={startDrag('move')}
                 onPointerMove={handlePointerMove}
                 onPointerUp={handlePointerUp}
                 onPointerCancel={handlePointerUp}
-              />
+              >
+                <div
+                  data-testid={`gantt-resize-left-${editingProjectId}`}
+                  title={resizeStartLabel}
+                  onPointerDown={startDrag('resize-left')}
+                  onPointerMove={handlePointerMove}
+                  onPointerUp={handlePointerUp}
+                  onPointerCancel={handlePointerUp}
+                  style={{
+                    position: 'absolute',
+                    left: -4,
+                    top: 0,
+                    bottom: 0,
+                    width: 10,
+                    cursor: isSaving ? 'default' : 'ew-resize',
+                    touchAction: 'none',
+                    pointerEvents: isSaving ? 'none' : 'auto',
+                    zIndex: 1,
+                  }}
+                />
+                <div
+                  data-testid={`gantt-resize-right-${editingProjectId}`}
+                  title={resizeEndLabel}
+                  onPointerDown={startDrag('resize-right')}
+                  onPointerMove={handlePointerMove}
+                  onPointerUp={handlePointerUp}
+                  onPointerCancel={handlePointerUp}
+                  style={{
+                    position: 'absolute',
+                    right: -4,
+                    top: 0,
+                    bottom: 0,
+                    width: 10,
+                    cursor: isSaving ? 'default' : 'ew-resize',
+                    touchAction: 'none',
+                    pointerEvents: isSaving ? 'none' : 'auto',
+                    zIndex: 1,
+                  }}
+                />
+              </div>
             )}
 
             <ResponsiveContainer width="100%" height="100%">
