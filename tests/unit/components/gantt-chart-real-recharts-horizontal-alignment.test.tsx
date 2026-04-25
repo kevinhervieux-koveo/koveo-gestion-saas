@@ -39,25 +39,22 @@
  *
  * Coordinate-system notes
  * -----------------------
- * The overlay positions itself with CSS percentages relative to the
- * timeline div, while the bar's `<rect x/width>` is in SVG/plot-area
- * coordinates. The bar's plot-area uses `svgWidth - margin.right` (the
- * BarChart sets `margin.left = 0`, `margin.right = RECHARTS_RIGHT_MARGIN`),
- * so to compare them on equal footing we read the chart background rect to
- * recover Recharts' actual plot-area width and compare both positions in
- * plot-space pixels. That way the assertion checks the *relationship* both
- * sides use to map a date to a screen position, which is exactly the drift
- * class this guard is meant to catch (Recharts adopting a different scale
- * — padding, log, banded, etc. — than the overlay's straight linear math).
+ * After task #954 the overlay positions itself in absolute pixels anchored
+ * to the same plot area Recharts uses to render the bar
+ * (`timelineWidth - RECHARTS_RIGHT_MARGIN`), via a ResizeObserver-tracked
+ * timeline width. So we can read `style.left` / `style.width` directly and
+ * compare them to the bar's `<rect x>` for a strict pixel match. Before
+ * #954 the overlay's `left/width` were CSS percentages of the full
+ * timeline div, which on real browsers drifted up to ~20px to the right
+ * of the bar near the end of the visible domain.
  *
  * Recharts in jsdom (v3.1.2) does not compute non-zero `width` on the
  * range-bar `<rect>` (bar `x` is correct, `width` comes back as 0). We
  * therefore validate horizontal width by comparing the overlay's width
- * percentage, converted to plot-space pixels, against the bar's expected
- * end position derived from the row's date range using Recharts' own
- * plot-area dimensions. If the overlay's percentage formula and Recharts'
- * X-axis scale ever start mapping the same date to different positions,
- * this comparison fails.
+ * (in pixels) against the bar's expected end position derived from the
+ * row's date range using Recharts' own plot-area dimensions. If the
+ * overlay's pixel math and Recharts' X-axis scale ever start mapping the
+ * same date to different positions, this comparison fails.
  */
 
 import { describe, it, expect, jest, beforeAll, afterAll, beforeEach, afterEach } from '@jest/globals';
@@ -283,12 +280,6 @@ function toIso(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
-function parsePct(value: string | undefined): number {
-  if (!value) return 0;
-  const m = /^(-?\d+(?:\.\d+)?)%$/.exec(value);
-  return m ? parseFloat(m[1]) : 0;
-}
-
 function readBarRect(rowId: string): { x: number; width: number } {
   const rect = screen.getByTestId(`gantt-bar-rect-${rowId}`);
   const x = parseFloat(rect.getAttribute('x') ?? '');
@@ -296,11 +287,15 @@ function readBarRect(rowId: string): { x: number; width: number } {
   return { x, width };
 }
 
-function readOverlayPct(rowId: string): { leftPct: number; widthPct: number } {
+function readOverlayPx(rowId: string): { leftPx: number; widthPx: number } {
   const overlay = screen.getByTestId(`gantt-drag-overlay-${rowId}`);
+  // After task #954 the overlay positions itself in absolute pixels
+  // (anchored to the plot area), so reading style.left / style.width
+  // directly gives plot-space values that can be compared 1:1 to the
+  // bar's `<rect x>` without any further conversion.
   return {
-    leftPct: parsePct(overlay.style.left),
-    widthPct: parsePct(overlay.style.width),
+    leftPx: parseFloat(overlay.style.left),
+    widthPx: parseFloat(overlay.style.width),
   };
 }
 
@@ -345,7 +340,7 @@ function readPlotArea(): { x: number; width: number } {
  */
 function expectOverlayMatchesBarHorizontally(rowId: string, projects: GanttProject[]): void {
   const bar = readBarRect(rowId);
-  const overlay = readOverlayPct(rowId);
+  const overlay = readOverlayPx(rowId);
   const plot = readPlotArea();
 
   // Recharts in jsdom (v3.1.2) returns x correctly but renders width=0 for
@@ -357,18 +352,19 @@ function expectOverlayMatchesBarHorizontally(rowId: string, projects: GanttProje
   // the assertions below would catch it.
   expect(plot.width).toBeGreaterThan(0);
 
-  const overlayLeftPx = (overlay.leftPct / 100) * plot.width + plot.x;
-  expect(Math.abs(overlayLeftPx - bar.x)).toBeLessThanOrEqual(1);
+  // Strict pixel match: after task #954 the overlay's `style.left` is in
+  // plot-space pixels (matching `bar.x` exactly), no scaling required.
+  expect(Math.abs(overlay.leftPx - bar.x)).toBeLessThanOrEqual(1);
 
-  // Width invariant: the overlay's width percentage, when projected onto
-  // the same plot-area Recharts maps the bar into, should land on the
-  // bar's expected right edge for the row's editing date range.
+  // Width invariant: the overlay's width in pixels should match the bar's
+  // expected right edge for the row's editing date range, derived from
+  // the same plot-area scale Recharts uses for the bar.
   const project = projects.find((p) => p.id === rowId);
   if (!project) throw new Error(`Project ${rowId} not in list`);
   const startTs = parseDateOnly(project.plannedStartDate!)!.getTime();
   const endTs = parseDateOnly(project.plannedEndDate!)!.getTime();
   const expectedBarEnd = ((endTs - domainStartMs) / domainSpanMs) * plot.width + plot.x;
-  const overlayRightPx = ((overlay.leftPct + overlay.widthPct) / 100) * plot.width + plot.x;
+  const overlayRightPx = overlay.leftPx + overlay.widthPx;
   expect(Math.abs(overlayRightPx - expectedBarEnd)).toBeLessThanOrEqual(1);
 }
 
@@ -416,7 +412,10 @@ async function waitForBars(rowId: string): Promise<void> {
     () => {
       const overlay = screen.queryByTestId(`gantt-drag-overlay-${rowId}`);
       expect(overlay).not.toBeNull();
-      expect(parsePct(overlay!.style.width)).toBeGreaterThan(0);
+      // Overlay width is set in absolute pixels after the timeline div
+      // has been measured by the ResizeObserver — wait until that has
+      // happened and the overlay has a non-zero width.
+      expect(parseFloat(overlay!.style.width)).toBeGreaterThan(0);
     },
     { timeout: 5000, interval: 50 },
   );
@@ -471,29 +470,23 @@ describe('GanttChart with real Recharts — horizontal alignment guard', () => {
       expectOverlayMatchesBarHorizontally(editId, projects);
 
       // Slide drag preserves the editing project's duration, so the
-      // overlay's expected widthPct stays fixed across the gesture and
+      // overlay's expected width stays fixed across the gesture and
       // gives us an independent oracle for the right-edge / width
       // invariant during drag (we cannot compare against bar.width
       // directly because Recharts in jsdom returns width=0 for range
       // bars).
       const startTs = parseDateOnly(editProject.plannedStartDate!)!.getTime();
       const endTs = parseDateOnly(editProject.plannedEndDate!)!.getTime();
-      const expectedWidthPct = ((endTs - startTs) / domainSpanMs) * 100;
       const assertDragOverlayAlignment = (rowId: string): void => {
         const bar = readBarRect(rowId);
-        const overlayPct = readOverlayPct(rowId);
+        const overlayPx = readOverlayPx(rowId);
         const plot = readPlotArea();
-        const overlayLeftPx = (overlayPct.leftPct / 100) * plot.width + plot.x;
-        // LEFT edge: must track Recharts' bar.x in plot-space pixels.
-        expect(Math.abs(overlayLeftPx - bar.x)).toBeLessThanOrEqual(1);
-        // WIDTH / RIGHT edge: slide preserves duration, so the
-        // overlay's widthPct must remain the duration fraction of the
-        // domain. Tolerance is 1 px expressed in widthPct units against
-        // the chart's plot width — i.e. ≤ 1 px of right-edge drift.
-        const widthTolerancePct = (1 / plot.width) * 100;
-        expect(Math.abs(overlayPct.widthPct - expectedWidthPct)).toBeLessThanOrEqual(
-          widthTolerancePct,
-        );
+        // LEFT edge: strict pixel match against Recharts' bar.x.
+        expect(Math.abs(overlayPx.leftPx - bar.x)).toBeLessThanOrEqual(1);
+        // WIDTH / RIGHT edge: slide preserves duration, so the overlay's
+        // width must remain the duration fraction of the plot area.
+        const expectedWidthPx = ((endTs - startTs) / domainSpanMs) * plot.width;
+        expect(Math.abs(overlayPx.widthPx - expectedWidthPx)).toBeLessThanOrEqual(1);
       };
 
       const overlay = screen.getByTestId(`gantt-drag-overlay-${editId}`);

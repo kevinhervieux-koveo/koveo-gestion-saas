@@ -269,6 +269,29 @@ export function GanttChart({
     [],
   );
 
+  // Measured width of the timeline div, tracked via ResizeObserver. Used as
+  // a secondary fallback for the overlay/chip/today-line coordinate math
+  // when `plotMetrics` cannot be derived (e.g. Recharts in jsdom returns
+  // `width=0` for range bars, so `plotMetrics` stays null even after
+  // layout). In that case we approximate the plot area with
+  // `timelineWidth - RECHARTS_RIGHT_MARGIN`, which still keeps the overlay
+  // pixel-aligned with the bar in real browsers and unblocks the
+  // pixel-strict alignment test in jsdom.
+  const [timelineWidthPx, setTimelineWidthPx] = useState(0);
+  useEffect(() => {
+    const el = timelineRef.current;
+    if (!el) return;
+    const update = () => {
+      const w = el.clientWidth;
+      setTimelineWidthPx(prev => (prev === w ? prev : w));
+    };
+    update();
+    if (typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   const { rows, domain, ticks, monthSpan } = useMemo(() => {
     const dated: GanttRow[] = [];
     const undated: GanttProject[] = [];
@@ -546,22 +569,36 @@ export function GanttChart({
   const todayLabel = t('today');
 
   // Convert a timestamp to a `left` CSS value in the timeline's coordinate
-  // space. Prefers measured-plot pixels (so it matches the bars exactly);
-  // falls back to container-percentage math when no bar has been measured
-  // yet (first render).
+  // space. Resolution order:
+  //   1. `plotMetrics` derived from a measured bar — most accurate, matches
+  //      Recharts exactly (handles left margin, axis space, etc.).
+  //   2. `timelineWidthPx - RECHARTS_RIGHT_MARGIN` from the ResizeObserver
+  //      — used when Recharts can't be measured (e.g. jsdom returns
+  //      `width=0` for range bars). Still pixel-accurate to the bar
+  //      because the chart's only horizontal margin is `right`.
+  //   3. Container-percentage math — last-resort fallback for the very
+  //      first frame before either measurement is available.
   const tsToLeft = (ts: number): string | number => {
     if (plotMetrics) {
       return plotMetrics.plotLeftPx + ((ts - domain[0]) / domainSpan) * plotMetrics.plotWidthPx;
+    }
+    const plotWidthPx = timelineWidthPx - RECHARTS_RIGHT_MARGIN;
+    if (plotWidthPx > 0 && domainSpan > 0) {
+      return ((ts - domain[0]) / domainSpan) * plotWidthPx;
     }
     const pct = domainSpan > 0 ? ((ts - domain[0]) / domainSpan) * 100 : 0;
     return `${pct}%`;
   };
 
   // Convert a duration in ms to a CSS `width` in the timeline's coordinate
-  // space, mirroring `tsToLeft` (pixels when measured, % as fallback).
+  // space, mirroring `tsToLeft`'s resolution order.
   const tsSpanToWidth = (spanMs: number): string | number => {
     if (plotMetrics) {
       return (spanMs / domainSpan) * plotMetrics.plotWidthPx;
+    }
+    const plotWidthPx = timelineWidthPx - RECHARTS_RIGHT_MARGIN;
+    if (plotWidthPx > 0 && domainSpan > 0) {
+      return (spanMs / domainSpan) * plotWidthPx;
     }
     const pct = domainSpan > 0 ? (spanMs / domainSpan) * 100 : 0;
     return `${pct}%`;
@@ -570,7 +607,10 @@ export function GanttChart({
   // Compute the editing row's drag overlay position. Vertical placement is
   // taken from the actual rendered Recharts bar (`barLayouts[editingProjectId]`),
   // and horizontal placement uses the same plot-area pixel coordinates the
-  // bars use, so the blue overlay sits exactly on top of the grey bar.
+  // bars use, so the blue overlay sits exactly on top of the grey bar
+  // (task #954: previously the overlay used CSS percentages of the full
+  // timeline div and drifted up to ~20px right of the bar near the end of
+  // the visible domain).
   let dragOverlayStyle: React.CSSProperties | null = null;
   const editingBarLayout = editingProjectId ? barLayouts[editingProjectId] : undefined;
   const editingBarTop =
