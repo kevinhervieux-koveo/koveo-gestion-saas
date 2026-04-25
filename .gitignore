@@ -71,6 +71,8 @@ temp/
 *.tmp
 *.temp
 core.*
+!shared/schemas/core.ts
+!shared/schemas/core.*.ts
 *.pid
 *.log
 .jest-cache/
