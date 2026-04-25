@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/use-language';
+import type { Translations } from '@/lib/i18n';
 import { apiRequest } from '@/lib/queryClient';
 import { BuildingElement, ProjectElement, ProjectWorkflowState } from '@shared/schemas/maintenance';
 import { MaintenanceProject } from '@shared/schemas/maintenance';
@@ -42,12 +43,12 @@ interface ProjectElementWithDetails extends ProjectElement {
 }
 
 const PROJECT_TYPES = [
-  { value: 'repair', label: 'Repair', icon: Wrench, description: 'Fix existing components' },
-  { value: 'minor_rehab', label: 'Minor Rehabilitation', icon: Building2, description: 'Minor improvements' },
-  { value: 'major_rehab', label: 'Major Rehabilitation', icon: Building2, description: 'Significant renovations' },
-  { value: 'replacement', label: 'Replacement', icon: CheckCircle2, description: 'Full component replacement' },
-  { value: 'not_sure', label: 'Assessment Needed', icon: Target, description: 'Requires evaluation' },
-];
+  { value: 'repair', labelKey: 'wfElementsTypeRepairLabel', icon: Wrench, descriptionKey: 'wfElementsTypeRepairDesc' },
+  { value: 'minor_rehab', labelKey: 'wfElementsTypeMinorRehabLabel', icon: Building2, descriptionKey: 'wfElementsTypeMinorRehabDesc' },
+  { value: 'major_rehab', labelKey: 'wfElementsTypeMajorRehabLabel', icon: Building2, descriptionKey: 'wfElementsTypeMajorRehabDesc' },
+  { value: 'replacement', labelKey: 'wfElementsTypeReplacementLabel', icon: CheckCircle2, descriptionKey: 'wfElementsTypeReplacementDesc' },
+  { value: 'not_sure', labelKey: 'wfElementsTypeAssessmentLabel', icon: Target, descriptionKey: 'wfElementsTypeAssessmentDesc' },
+] as const;
 
 export function ElementManagementTab({ project, workflowState, onUpdate, onNavigateToTab }: ElementManagementTabProps) {
   const { t } = useLanguage();
@@ -113,16 +114,16 @@ export function ElementManagementTab({ project, workflowState, onUpdate, onNavig
     },
     onSuccess: () => {
       toast({
-        title: 'Elements Added',
-        description: 'Elements have been successfully added to the project.',
+        title: t('wfElementsAddedTitle'),
+        description: t('wfElementsAddedDescription'),
       });
       queryClient.invalidateQueries({ queryKey: [`/api/maintenance/projects/${project.id}/elements`] });
       onUpdate();
     },
     onError: (error) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to add elements to project.',
+        title: t('workflowErrorTitle'),
+        description: error.message || t('wfElementsAddFailedDescription'),
         variant: 'destructive',
       });
     },
@@ -137,16 +138,16 @@ export function ElementManagementTab({ project, workflowState, onUpdate, onNavig
     },
     onSuccess: () => {
       toast({
-        title: 'Element Removed',
-        description: 'Element has been successfully removed from the project.',
+        title: t('wfElementsRemovedTitle'),
+        description: t('wfElementsRemovedDescription'),
       });
       queryClient.invalidateQueries({ queryKey: [`/api/maintenance/projects/${project.id}/elements`] });
       onUpdate();
     },
     onError: (error) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to remove element from project.',
+        title: t('workflowErrorTitle'),
+        description: error.message || t('wfElementsRemoveFailedDescription'),
         variant: 'destructive',
       });
     },
@@ -161,16 +162,16 @@ export function ElementManagementTab({ project, workflowState, onUpdate, onNavig
     },
     onSuccess: () => {
       toast({
-        title: 'Element Updated',
-        description: 'Project element has been successfully updated.',
+        title: t('wfElementsUpdatedTitle'),
+        description: t('wfElementsUpdatedDescription'),
       });
       queryClient.invalidateQueries({ queryKey: [`/api/maintenance/projects/${project.id}/elements`] });
       onUpdate();
     },
     onError: (error) => {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to update project element.',
+        title: t('workflowErrorTitle'),
+        description: error.message || t('wfElementsUpdateFailedDescription'),
         variant: 'destructive',
       });
     },
@@ -276,8 +277,8 @@ export function ElementManagementTab({ project, workflowState, onUpdate, onNavig
   };
 
   const getProjectTypeDisplay = (projectType?: string) => {
-    const type = PROJECT_TYPES.find(t => t.value === projectType);
-    return type || { value: 'not_sure', label: 'Assessment Needed', icon: HelpCircle, description: 'Requires evaluation' };
+    const type = PROJECT_TYPES.find(pt => pt.value === projectType);
+    return type || { value: 'not_sure', labelKey: 'wfElementsTypeAssessmentLabel', icon: HelpCircle, descriptionKey: 'wfElementsTypeAssessmentDesc' } as const;
   };
 
   const linkedElementIds = projectElements.map(pe => pe.elementId);
@@ -296,9 +297,9 @@ export function ElementManagementTab({ project, workflowState, onUpdate, onNavig
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Building2 className="h-5 w-5" />
-              Element Management
+              {t('wfElementsManagementTitle')}
             </CardTitle>
-            <CardDescription>Loading elements...</CardDescription>
+            <CardDescription>{t('wfElementsLoading')}</CardDescription>
           </CardHeader>
         </Card>
       </div>
@@ -333,7 +334,7 @@ export function ElementManagementTab({ project, workflowState, onUpdate, onNavig
           </div>
           {searchTerm && (
             <div className="mt-2 text-sm text-muted-foreground">
-              Filtering by: "{searchTerm}" • {filteredProjectElements.length + filteredAvailableElements.length} results
+              {t('wfElementsFilteringByPrefix')} "{searchTerm}" • {filteredProjectElements.length + filteredAvailableElements.length} {t('wfElementsResultsSuffix')}
             </div>
           )}
         </CardContent>
@@ -356,11 +357,11 @@ export function ElementManagementTab({ project, workflowState, onUpdate, onNavig
                 <div>
                   <CardTitle className="flex items-center gap-2">
                     <Plus className="h-5 w-5" />
-                    Available Building Elements ({searchTerm ? filteredAvailableElements.length : availableElements.length})
+                    {t('wfElementsAvailableTitle')} ({searchTerm ? filteredAvailableElements.length : availableElements.length})
                   </CardTitle>
                   <CardDescription>
                     {t('wfElementsAddDescription')}
-                    {searchTerm && ` • Filtered by "${searchTerm}"`}
+                    {searchTerm && ` ${t('wfElementsFilteredBySuffix')} "${searchTerm}"`}
                   </CardDescription>
                 </div>
               </div>
@@ -371,7 +372,7 @@ export function ElementManagementTab({ project, workflowState, onUpdate, onNavig
                   data-testid="button-add-selected-elements"
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  Add Selected ({selectedElements.length})
+                  {t('wfElementsAddSelectedButton')} ({selectedElements.length})
                 </Button>
               )}
             </div>
@@ -437,7 +438,7 @@ export function ElementManagementTab({ project, workflowState, onUpdate, onNavig
               <div>
                 <CardTitle className="flex items-center gap-2">
                   <Building2 className="h-5 w-5" />
-                  Project Elements ({projectElements.length})
+                  {t('wfElementsProjectTitle')} ({projectElements.length})
                 </CardTitle>
                 {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                 <CardDescription>
@@ -454,7 +455,7 @@ export function ElementManagementTab({ project, workflowState, onUpdate, onNavig
                   data-testid="button-select-all-project-elements"
                 >
                   <CheckCircle2 className="h-4 w-4 mr-2" />
-                  {filteredProjectElements.every(pe => selectedElements.includes(pe.elementId)) ? 'Deselect All' : 'Select All'}
+                  {filteredProjectElements.every(pe => selectedElements.includes(pe.elementId)) ? t('wfElementsDeselectAllButton') : t('wfElementsSelectAllButton')}
                 </Button>
               )}
               {selectedElements.length > 0 && (
@@ -465,7 +466,7 @@ export function ElementManagementTab({ project, workflowState, onUpdate, onNavig
                   data-testid="button-bulk-edit"
                 >
                   <Settings className="h-4 w-4 mr-2" />
-                  Bulk Actions ({selectedElements.length})
+                  {t('wfElementsBulkActionsButton')} ({selectedElements.length})
                 </Button>
               )}
             </div>
@@ -478,7 +479,7 @@ export function ElementManagementTab({ project, workflowState, onUpdate, onNavig
               <AlertCircle className="h-12 w-12 mx-auto mb-4 opacity-20" />
               {searchTerm ? (
                 <div>
-                  <p>No elements found matching "{searchTerm}"</p>
+                  <p>{t('wfElementsNoMatchPrefix')} "{searchTerm}"</p>
                   <p className="text-sm">{t('wfElementsAdjustSearchHint')}</p>
                 </div>
               ) : projectElements.length === 0 ? (
@@ -488,8 +489,8 @@ export function ElementManagementTab({ project, workflowState, onUpdate, onNavig
                 </div>
               ) : (
                 <div>
-                  <p>No elements match your search.</p>
-                  <p className="text-sm">Try different search terms.</p>
+                  <p>{t('wfElementsNoMatchTitle')}</p>
+                  <p className="text-sm">{t('wfElementsTryDifferent')}</p>
                 </div>
               )}
             </div>
@@ -514,7 +515,7 @@ export function ElementManagementTab({ project, workflowState, onUpdate, onNavig
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
                             <h4 className="font-medium">
-                              {projectElement.elementName || projectElement.element?.name || 'Unknown Element'}
+                              {projectElement.elementName || projectElement.element?.name || t('wfElementsUnknownElement')}
                             </h4>
                             <Badge variant="outline">
                               {projectElement.uniformatCode}
@@ -528,7 +529,7 @@ export function ElementManagementTab({ project, workflowState, onUpdate, onNavig
                           
                           {/* Project Type Selection */}
                           <div className="flex items-center gap-2">
-                            <label className="text-sm font-medium">Project Type:</label>
+                            <label className="text-sm font-medium">{t('wfElementsProjectTypeFieldLabel')}</label>
                             <Select
                               value={projectElement.projectType || 'not_sure'}
                               onValueChange={(value) => handleProjectTypeChange(projectElement.id, value)}
@@ -542,8 +543,8 @@ export function ElementManagementTab({ project, workflowState, onUpdate, onNavig
                                     <div className="flex items-center gap-2">
                                       <type.icon className="h-4 w-4" />
                                       <div>
-                                        <div className="font-medium">{type.label}</div>
-                                        <div className="text-xs text-muted-foreground">{type.description}</div>
+                                        <div className="font-medium">{t(type.labelKey as keyof Translations)}</div>
+                                        <div className="text-xs text-muted-foreground">{t(type.descriptionKey as keyof Translations)}</div>
                                       </div>
                                     </div>
                                   </SelectItem>
@@ -577,12 +578,12 @@ export function ElementManagementTab({ project, workflowState, onUpdate, onNavig
       <Dialog open={showBulkEdit} onOpenChange={setShowBulkEdit}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Bulk Actions</DialogTitle>
+            <DialogTitle>{t('wfElementsBulkActionsButton')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
               <p className="text-sm text-muted-foreground mb-4">
-                Choose an action for {selectedElements.length} selected elements
+                {t('wfElementsBulkActionDescPrefix')} {selectedElements.length} {t('wfElementsBulkActionDescSuffix')}
               </p>
               
               {/* Action Selection */}
@@ -598,7 +599,7 @@ export function ElementManagementTab({ project, workflowState, onUpdate, onNavig
                     htmlFor="update_type"
                     className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                   >
-                    Change Project Type
+                    {t('wfElementsChangeTypeOption')}
                   </label>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -612,7 +613,7 @@ export function ElementManagementTab({ project, workflowState, onUpdate, onNavig
                     htmlFor="remove"
                     className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                   >
-                    Remove Elements from Project
+                    {t('wfElementsRemoveOption')}
                   </label>
                 </div>
               </div>
@@ -620,10 +621,10 @@ export function ElementManagementTab({ project, workflowState, onUpdate, onNavig
               {/* Project Type Selection - only show when updating type */}
               {bulkAction === 'update_type' && (
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Select New Project Type:</label>
+                  <label className="text-sm font-medium mb-2 block">{t('wfElementsSelectNewTypeLabel')}</label>
                   <Select value={bulkProjectType} onValueChange={setBulkProjectType}>
                     <SelectTrigger data-testid="select-bulk-project-type">
-                      <SelectValue placeholder="Select project type" />
+                      <SelectValue placeholder={t('wfElementsSelectTypePlaceholder')} />
                     </SelectTrigger>
                     <SelectContent>
                       {PROJECT_TYPES.map((type) => (
@@ -631,8 +632,8 @@ export function ElementManagementTab({ project, workflowState, onUpdate, onNavig
                           <div className="flex items-center gap-2">
                             <type.icon className="h-4 w-4" />
                             <div>
-                              <div className="font-medium">{type.label}</div>
-                              <div className="text-xs text-muted-foreground">{type.description}</div>
+                              <div className="font-medium">{t(type.labelKey as keyof Translations)}</div>
+                              <div className="text-xs text-muted-foreground">{t(type.descriptionKey as keyof Translations)}</div>
                             </div>
                           </div>
                         </SelectItem>
@@ -647,7 +648,7 @@ export function ElementManagementTab({ project, workflowState, onUpdate, onNavig
                 <div className="p-3 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg">
                   <div className="flex items-center gap-2 text-red-800 dark:text-red-200">
                     <AlertCircle className="h-4 w-4" />
-                    <span className="text-sm font-medium">Warning</span>
+                    <span className="text-sm font-medium">{t('wfElementsWarningLabel')}</span>
                   </div>
                   <p className="text-sm text-red-700 dark:text-red-300 mt-1">
                     {t('wfElementsBulkRemoveWarning', { count: selectedElements.length })}
@@ -666,7 +667,7 @@ export function ElementManagementTab({ project, workflowState, onUpdate, onNavig
                 }}
                 data-testid="button-cancel-bulk-edit"
               >
-                Cancel
+                {t('cancel')}
               </Button>
               <Button
                 onClick={handleBulkAction}
@@ -681,12 +682,12 @@ export function ElementManagementTab({ project, workflowState, onUpdate, onNavig
                 {bulkAction === 'remove' ? (
                   <>
                     <Trash2 className="h-4 w-4 mr-2" />
-                    Remove Elements
+                    {t('wfElementsRemoveButton')}
                   </>
                 ) : (
                   <>
                     <CheckCircle2 className="h-4 w-4 mr-2" />
-                    Update Project Type
+                    {t('wfElementsUpdateTypeButton')}
                   </>
                 )}
               </Button>
@@ -700,7 +701,7 @@ export function ElementManagementTab({ project, workflowState, onUpdate, onNavig
         <div className="flex items-center justify-between pt-6 border-t">
           <div className="text-sm text-muted-foreground">
             {workflowState.nextStatus && (
-              <>Next: <span className="capitalize">{workflowState.nextStatus.replace(/_/g, ' ')}</span></>
+              <>{t('wfElementsNextLabel')} <span className="capitalize">{workflowState.nextStatus.replace(/_/g, ' ')}</span></>
             )}
           </div>
           
@@ -711,7 +712,7 @@ export function ElementManagementTab({ project, workflowState, onUpdate, onNavig
             data-testid="button-complete-submission-phase"
           >
             <CheckCircle2 className="h-4 w-4" />
-            {isMarkingComplete ? 'Completing...' : 'Complete Submission Phase'}
+            {isMarkingComplete ? t('wfElementsCompletingButton') : t('wfElementsCompleteSubmissionButton')}
           </Button>
         </div>
       )}

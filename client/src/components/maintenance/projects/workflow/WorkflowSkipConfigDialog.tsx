@@ -37,26 +37,26 @@ export interface WorkflowSkipConfigDialogProps {
 const STEP_CONFIG = {
   submission: {
     icon: Users,
-    label: 'Submission',
-    description: 'Skip vendor submissions and selection phase',
+    labelKey: 'wfStepSubmissionLabel' as const,
+    descriptionKey: 'wfStepSubmissionDescription' as const,
     key: 'skipSubmission' as const,
   },
   pre_work: {
     icon: Building2,
-    label: 'Pre-Work',
-    description: 'Skip preparation and coordination phase',
+    labelKey: 'wfStepPreWorkLabel' as const,
+    descriptionKey: 'wfStepPreWorkDescription' as const,
     key: 'skipPreWork' as const,
   },
   in_progress: {
     icon: Wrench,
-    label: 'In Progress',
-    description: 'Skip active work execution phase',
+    labelKey: 'wfStepInProgressLabel' as const,
+    descriptionKey: 'wfStepInProgressDescription' as const,
     key: 'skipInProgress' as const,
   },
   post_work: {
     icon: CheckCircle2,
-    label: 'Post-Work',
-    description: 'Skip cleanup and finalization phase',
+    labelKey: 'wfStepPostWorkLabel' as const,
+    descriptionKey: 'wfStepPostWorkDescription' as const,
     key: 'skipPostWork' as const,
   },
 } as const;
@@ -143,7 +143,7 @@ export function WorkflowSkipConfigDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Settings className="h-5 w-5" />
-            Workflow Configuration
+            {t('wfSkipConfigDialogTitle')}
           </DialogTitle>
           {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
           <DialogDescription>
@@ -180,9 +180,9 @@ export function WorkflowSkipConfigDialog({
                         stepStatus === 'upcoming' && "text-gray-400"
                       )} />
                       <div>
-                        <CardTitle className="text-base">{config.label}</CardTitle>
+                        <CardTitle className="text-base">{t(config.labelKey)}</CardTitle>
                         <CardDescription className="text-sm">
-                          {config.description}
+                          {t(config.descriptionKey)}
                         </CardDescription>
                       </div>
                     </div>
@@ -190,17 +190,17 @@ export function WorkflowSkipConfigDialog({
                     <div className="flex items-center gap-3">
                       {stepStatus === 'completed' && (
                         <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-                          Completed
+                          {t('wfSkipConfigStatusCompleted')}
                         </span>
                       )}
                       {stepStatus === 'current' && (
                         <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                          Current
+                          {t('wfSkipConfigStatusCurrent')}
                         </span>
                       )}
                       {isSkipped && stepStatus !== 'completed' && (
                         <span className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded">
-                          Skipped
+                          {t('wfSkipConfigStatusSkipped')}
                         </span>
                       )}
                     </div>
@@ -216,7 +216,7 @@ export function WorkflowSkipConfigDialog({
                         !canToggle && "text-gray-400"
                       )}
                     >
-                      {isSkipped ? 'Skip this step' : 'Include this step'}
+                      {isSkipped ? t('wfSkipConfigSkipStepLabel') : t('wfSkipConfigIncludeStepLabel')}
                     </Label>
                     <Switch
                       key={`${projectId}-${config.key}-${isSkipped}`}
@@ -250,7 +250,7 @@ export function WorkflowSkipConfigDialog({
               data-testid="button-delete-project"
             >
               <Trash2 className="h-4 w-4 mr-2" />
-              {isDeleting ? 'Deleting...' : 'Delete Project'}
+              {isDeleting ? t('wfSkipConfigDeletingLabel') : t('wfSkipConfigDeleteButton')}
             </Button>
 
             <div className="text-sm text-muted-foreground">
@@ -259,7 +259,7 @@ export function WorkflowSkipConfigDialog({
           </div>
           
           <Button onClick={() => setIsOpen(false)} data-testid="button-close-config">
-            Close
+            {t('wfSkipConfigCloseButton')}
           </Button>
         </div>
       </DialogContent>
@@ -270,20 +270,19 @@ export function WorkflowSkipConfigDialog({
     <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete Project</AlertDialogTitle>
-          {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
+          <AlertDialogTitle>{t('wfSkipConfigDeleteAlertTitle')}</AlertDialogTitle>
           <AlertDialogDescription>
             {t('wfSkipConfigDeleteConfirmation')}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel>{t('wfSkipConfigCancelButton')}</AlertDialogCancel>
           <AlertDialogAction
             onClick={handleDeleteProject}
             className="bg-red-600 hover:bg-red-700"
             data-testid="confirm-delete-project"
           >
-            Delete Permanently
+            {t('wfSkipConfigDeletePermanentlyButton')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

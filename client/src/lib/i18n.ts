@@ -2846,6 +2846,36 @@ export interface Translations {
   wfSkipConfigCompletedNote: string;
   wfSkipConfigChangesImmediate: string;
   wfSkipConfigDeleteConfirmation: string;
+  wfSkipConfigDialogTitle: string;
+  wfSkipConfigStatusCompleted: string;
+  wfSkipConfigStatusCurrent: string;
+  wfSkipConfigStatusSkipped: string;
+  wfSkipConfigSkipStepLabel: string;
+  wfSkipConfigIncludeStepLabel: string;
+  wfSkipConfigDeletingLabel: string;
+  wfSkipConfigDeleteButton: string;
+  wfSkipConfigCloseButton: string;
+  wfSkipConfigDeleteAlertTitle: string;
+  wfSkipConfigCancelButton: string;
+  wfSkipConfigDeletePermanentlyButton: string;
+  wfStepSubmissionLabel: string;
+  wfStepSubmissionDescription: string;
+  wfStepPreWorkLabel: string;
+  wfStepPreWorkDescription: string;
+  wfStepInProgressLabel: string;
+  wfStepInProgressDescription: string;
+  wfStepPostWorkLabel: string;
+  wfStepPostWorkDescription: string;
+  wfElementsAddedTitle: string;
+  wfElementsAddedDescription: string;
+  wfElementsAddFailedDescription: string;
+  wfElementsRemovedTitle: string;
+  wfElementsRemovedDescription: string;
+  wfElementsRemoveFailedDescription: string;
+  wfElementsUpdatedTitle: string;
+  wfElementsUpdatedDescription: string;
+  wfElementsUpdateFailedDescription: string;
+  postWorkNewTaskDefault: string;
   wfCompleteSummaryPlaceholder: string;
   wfElementsSearchPlaceholder: string;
 
@@ -3347,6 +3377,143 @@ export interface Translations {
   authErrorPrefix: string;
   authCreatingYourAccount: string;
   authRegistrationFooter: string;
+  // CompleteTab labels
+  wfCompleteHeaderTitle: string;
+  wfCompleteCompleteBadge: string;
+  wfCompleteSavingButton: string;
+  wfCompleteSaveChangesButton: string;
+  wfCompleteSummaryCardTitle: string;
+  wfCompleteTimelineTitle: string;
+  wfCompletePlannedStartLabel: string;
+  wfCompleteNotSpecified: string;
+  wfCompleteActualEndLabel: string;
+  wfCompleteDurationLabel: string;
+  wfCompleteDays: string;
+  wfCompleteBudgetSummary: string;
+  wfCompleteTotalBudget: string;
+  wfCompleteActualCost: string;
+  wfCompleteBudgetUtilization: string;
+  wfCompleteUtilizedSuffix: string;
+  wfCompleteOverBudgetBy: string;
+  wfCompleteProjectDetails: string;
+  wfCompleteProjectNumber: string;
+  wfCompleteProjectType: string;
+  wfCompletePriority: string;
+  wfCompleteOrigin: string;
+  wfCompleteOriginAuto: string;
+  wfCompleteOriginManual: string;
+  wfCompleteCreated: string;
+  wfCompleteStatusTitle: string;
+  wfCompleteProjectCompleteText: string;
+  wfCompleteAllStagesText: string;
+  wfCompleteReopenProjectButton: string;
+  // ProjectWorkflowModal labels
+  wfModalProjectMissingTitle: string;
+  wfModalWorkflowErrorTitle: string;
+  wfModalLoadFailedFallback: string;
+  wfModalProjectNumberPrefix: string;
+  wfModalStatusPrefix: string;
+  wfModalManagingDescription: string;
+  wfModalUnknownTabPrefix: string;
+  wfModalCompleteStepDefault: string;
+  wfModalCompletePlanning: string;
+  wfModalCompleteSubmissions: string;
+  wfModalCompletePreWork: string;
+  wfModalCompleteWork: string;
+  wfModalCompletePostWork: string;
+  wfModalCompleteProject: string;
+  wfModalTabPlannedLabel: string;
+  wfModalTabPlannedDesc: string;
+  wfModalTabSubmissionLabel: string;
+  wfModalTabSubmissionDesc: string;
+  wfModalTabPreWorkLabel: string;
+  wfModalTabPreWorkDesc: string;
+  wfModalTabInProgressLabel: string;
+  wfModalTabInProgressDesc: string;
+  wfModalTabPostWorkLabel: string;
+  wfModalTabPostWorkDesc: string;
+  wfModalTabCompletedLabel: string;
+  wfModalTabCompletedDesc: string;
+  // PaymentPlanForm labels
+  wfPaymentSetupTitle: string;
+  wfPaymentTypeLabel: string;
+  wfPaymentTypePlaceholder: string;
+  wfPaymentTypeSingle: string;
+  wfPaymentTypeRecurring: string;
+  wfPaymentScheduleLabel: string;
+  wfPaymentSchedulePlaceholder: string;
+  wfPaymentScheduleWeekly: string;
+  wfPaymentScheduleMonthly: string;
+  wfPaymentScheduleQuarterly: string;
+  wfPaymentScheduleYearly: string;
+  wfPaymentScheduleCustom: string;
+  wfPaymentFirstDateLabel: string;
+  wfPaymentCustomDatesLabel: string;
+  wfPaymentAddDateButton: string;
+  wfPaymentHasInitialLabel: string;
+  wfPaymentInitialAmountLabel: string;
+  wfPaymentEqualLabel: string;
+  wfPaymentRecurringAmountLabel: string;
+  wfPaymentAmountsLabel: string;
+  wfPaymentDistributeButton: string;
+  wfPaymentAddPaymentButton: string;
+  wfPaymentNumberPrefix: string;
+  wfPaymentSummaryLabel: string;
+  wfPaymentSummarySingle: string;
+  wfPaymentSummaryWithInitialSuffix: string;
+  wfPaymentSummaryEqualMiddle: string;
+  wfPaymentSummaryPlusInitialSuffix: string;
+  wfPaymentSummaryCustomSingular: string;
+  wfPaymentSummaryCustomPlural: string;
+  wfPaymentOver: string;
+  wfPaymentUnder: string;
+  wfPaymentBy: string;
+  wfPaymentSavePlanButton: string;
+  // ElementManagementTab labels
+  wfElementsManagementTitle: string;
+  wfElementsLoading: string;
+  wfElementsFilteringByPrefix: string;
+  wfElementsResultsSuffix: string;
+  wfElementsAvailableTitle: string;
+  wfElementsFilteredBySuffix: string;
+  wfElementsAddSelectedButton: string;
+  wfElementsProjectTitle: string;
+  wfElementsDeselectAllButton: string;
+  wfElementsSelectAllButton: string;
+  wfElementsBulkActionsButton: string;
+  wfElementsNoMatchPrefix: string;
+  wfElementsNoMatchTitle: string;
+  wfElementsTryDifferent: string;
+  wfElementsUnknownElement: string;
+  wfElementsProjectTypeFieldLabel: string;
+  wfElementsBulkActionDescPrefix: string;
+  wfElementsBulkActionDescSuffix: string;
+  wfElementsChangeTypeOption: string;
+  wfElementsRemoveOption: string;
+  wfElementsSelectNewTypeLabel: string;
+  wfElementsSelectTypePlaceholder: string;
+  wfElementsWarningLabel: string;
+  wfElementsRemoveButton: string;
+  wfElementsUpdateTypeButton: string;
+  wfElementsCompletingButton: string;
+  wfElementsCompleteSubmissionButton: string;
+  wfElementsNextLabel: string;
+  wfElementsTypeRepairLabel: string;
+  wfElementsTypeRepairDesc: string;
+  wfElementsTypeMinorRehabLabel: string;
+  wfElementsTypeMinorRehabDesc: string;
+  wfElementsTypeMajorRehabLabel: string;
+  wfElementsTypeMajorRehabDesc: string;
+  wfElementsTypeReplacementLabel: string;
+  wfElementsTypeReplacementDesc: string;
+  wfElementsTypeAssessmentLabel: string;
+  wfElementsTypeAssessmentDesc: string;
+  // WorkflowTabNavigation labels
+  wfNavLoading: string;
+  wfNavWorkflowProgress: string;
+  wfNavBadgeComplete: string;
+  wfNavBadgeInProgress: string;
+  wfNavCurrent: string;
 }
 
 /**
@@ -6197,6 +6364,36 @@ export const translations: Record<Language, Translations> = {
     wfSkipConfigCompletedNote: 'This step has already been completed and cannot be modified.',
     wfSkipConfigChangesImmediate: 'Changes are applied immediately',
     wfSkipConfigDeleteConfirmation: 'Are you sure you want to permanently delete this project? This action cannot be undone. All project data, tasks, vendor submissions, and workflow history will be permanently removed.',
+    wfSkipConfigDialogTitle: 'Workflow Configuration',
+    wfSkipConfigStatusCompleted: 'Completed',
+    wfSkipConfigStatusCurrent: 'Current',
+    wfSkipConfigStatusSkipped: 'Skipped',
+    wfSkipConfigSkipStepLabel: 'Skip this step',
+    wfSkipConfigIncludeStepLabel: 'Include this step',
+    wfSkipConfigDeletingLabel: 'Deleting...',
+    wfSkipConfigDeleteButton: 'Delete Project',
+    wfSkipConfigCloseButton: 'Close',
+    wfSkipConfigDeleteAlertTitle: 'Delete Project',
+    wfSkipConfigCancelButton: 'Cancel',
+    wfSkipConfigDeletePermanentlyButton: 'Delete Permanently',
+    wfStepSubmissionLabel: 'Submission',
+    wfStepSubmissionDescription: 'Skip vendor submissions and selection phase',
+    wfStepPreWorkLabel: 'Pre-Work',
+    wfStepPreWorkDescription: 'Skip preparation and coordination phase',
+    wfStepInProgressLabel: 'In Progress',
+    wfStepInProgressDescription: 'Skip active work execution phase',
+    wfStepPostWorkLabel: 'Post-Work',
+    wfStepPostWorkDescription: 'Skip cleanup and finalization phase',
+    wfElementsAddedTitle: 'Elements Added',
+    wfElementsAddedDescription: 'Elements have been successfully added to the project.',
+    wfElementsAddFailedDescription: 'Failed to add elements to project.',
+    wfElementsRemovedTitle: 'Element Removed',
+    wfElementsRemovedDescription: 'Element has been successfully removed from the project.',
+    wfElementsRemoveFailedDescription: 'Failed to remove element from project.',
+    wfElementsUpdatedTitle: 'Element Updated',
+    wfElementsUpdatedDescription: 'Project element has been successfully updated.',
+    wfElementsUpdateFailedDescription: 'Failed to update project element.',
+    postWorkNewTaskDefault: 'New Post-Work Task',
     wfCompleteSummaryPlaceholder: 'Provide a comprehensive summary of the completed work, including:\n• What was accomplished\n• Any challenges overcome\n• Quality of work delivered\n• Impact on the building/residents\n• Lessons learned for future projects\n• Recommendations for maintenance',
     wfElementsSearchPlaceholder: 'Search elements by name, description, or UNIFORMAT code...',
 
@@ -6713,6 +6910,138 @@ export const translations: Record<Language, Translations> = {
     authCreatingYourAccount: 'Creating your account',
     authRegistrationFooter:
       'By registering, you accept our terms of use and our privacy policy compliant with Quebec\'s Law 25.',
+    wfCompleteHeaderTitle: 'Project Completion',
+    wfCompleteCompleteBadge: 'Complete',
+    wfCompleteSavingButton: 'Saving...',
+    wfCompleteSaveChangesButton: 'Save Changes',
+    wfCompleteSummaryCardTitle: 'Completion Summary',
+    wfCompleteTimelineTitle: 'Project Timeline',
+    wfCompletePlannedStartLabel: 'Planned Start',
+    wfCompleteNotSpecified: 'Not specified',
+    wfCompleteActualEndLabel: 'Actual End',
+    wfCompleteDurationLabel: 'Project duration',
+    wfCompleteDays: 'days',
+    wfCompleteBudgetSummary: 'Budget Summary',
+    wfCompleteTotalBudget: 'Total Budget',
+    wfCompleteActualCost: 'Actual Cost',
+    wfCompleteBudgetUtilization: 'Budget Utilization',
+    wfCompleteUtilizedSuffix: '% utilized',
+    wfCompleteOverBudgetBy: 'Over budget by',
+    wfCompleteProjectDetails: 'Project Details',
+    wfCompleteProjectNumber: 'Project Number',
+    wfCompleteProjectType: 'Project Type',
+    wfCompletePriority: 'Priority',
+    wfCompleteOrigin: 'Origin',
+    wfCompleteOriginAuto: 'Auto-generated',
+    wfCompleteOriginManual: 'Manual',
+    wfCompleteCreated: 'Created',
+    wfCompleteStatusTitle: 'Status',
+    wfCompleteProjectCompleteText: 'Project Complete',
+    wfCompleteAllStagesText: 'All workflow stages completed',
+    wfCompleteReopenProjectButton: 'Reopen Project',
+    wfModalProjectMissingTitle: 'Project Missing',
+    wfModalWorkflowErrorTitle: 'Workflow Error',
+    wfModalLoadFailedFallback: 'Failed to load workflow state. Please try again.',
+    wfModalProjectNumberPrefix: 'Project #',
+    wfModalStatusPrefix: 'Status',
+    wfModalManagingDescription: 'Managing project workflow',
+    wfModalUnknownTabPrefix: 'Unknown tab',
+    wfModalCompleteStepDefault: 'Complete Step',
+    wfModalCompletePlanning: 'Complete Planning',
+    wfModalCompleteSubmissions: 'Complete Submissions',
+    wfModalCompletePreWork: 'Complete Pre-Work',
+    wfModalCompleteWork: 'Complete Work',
+    wfModalCompletePostWork: 'Complete Post-Work',
+    wfModalCompleteProject: 'Complete Project',
+    wfModalTabPlannedLabel: 'Planned',
+    wfModalTabPlannedDesc: 'Project planning and timeline',
+    wfModalTabSubmissionLabel: 'Submission',
+    wfModalTabSubmissionDesc: 'Vendor submissions and selection',
+    wfModalTabPreWorkLabel: 'Pre-Work',
+    wfModalTabPreWorkDesc: 'Preparation and coordination',
+    wfModalTabInProgressLabel: 'In Progress',
+    wfModalTabInProgressDesc: 'Active work execution',
+    wfModalTabPostWorkLabel: 'Post-Work',
+    wfModalTabPostWorkDesc: 'Cleanup and finalization',
+    wfModalTabCompletedLabel: 'Complete',
+    wfModalTabCompletedDesc: 'Project completion and summary',
+    wfPaymentSetupTitle: 'Payment Plan Setup',
+    wfPaymentTypeLabel: 'Payment Type',
+    wfPaymentTypePlaceholder: 'Choose payment type',
+    wfPaymentTypeSingle: 'Single Payment',
+    wfPaymentTypeRecurring: 'Recurring Payments',
+    wfPaymentScheduleLabel: 'Payment Schedule',
+    wfPaymentSchedulePlaceholder: 'Select payment schedule',
+    wfPaymentScheduleWeekly: 'Weekly',
+    wfPaymentScheduleMonthly: 'Monthly',
+    wfPaymentScheduleQuarterly: 'Quarterly',
+    wfPaymentScheduleYearly: 'Yearly',
+    wfPaymentScheduleCustom: 'Custom Dates',
+    wfPaymentFirstDateLabel: 'Date First Payment',
+    wfPaymentCustomDatesLabel: 'Custom Payment Dates',
+    wfPaymentAddDateButton: 'Add Date',
+    wfPaymentHasInitialLabel: 'Has initial payment',
+    wfPaymentInitialAmountLabel: 'Initial Payment Amount',
+    wfPaymentEqualLabel: 'Equal recurring payments',
+    wfPaymentRecurringAmountLabel: 'Recurring Payment Amount',
+    wfPaymentAmountsLabel: 'Payment Amounts',
+    wfPaymentDistributeButton: 'Distribute Evenly',
+    wfPaymentAddPaymentButton: 'Add Payment',
+    wfPaymentNumberPrefix: 'Payment',
+    wfPaymentSummaryLabel: 'Payment Summary',
+    wfPaymentSummarySingle: 'Single payment',
+    wfPaymentSummaryWithInitialSuffix: ' with initial payment',
+    wfPaymentSummaryEqualMiddle: 'equal recurring payments',
+    wfPaymentSummaryPlusInitialSuffix: ' + initial payment',
+    wfPaymentSummaryCustomSingular: 'custom payment',
+    wfPaymentSummaryCustomPlural: 'custom payments',
+    wfPaymentOver: 'Over',
+    wfPaymentUnder: 'Under',
+    wfPaymentBy: 'by',
+    wfPaymentSavePlanButton: 'Save Payment Plan',
+    wfElementsManagementTitle: 'Element Management',
+    wfElementsLoading: 'Loading elements...',
+    wfElementsFilteringByPrefix: 'Filtering by:',
+    wfElementsResultsSuffix: 'results',
+    wfElementsAvailableTitle: 'Available Building Elements',
+    wfElementsFilteredBySuffix: 'Filtered by',
+    wfElementsAddSelectedButton: 'Add Selected',
+    wfElementsProjectTitle: 'Project Elements',
+    wfElementsDeselectAllButton: 'Deselect All',
+    wfElementsSelectAllButton: 'Select All',
+    wfElementsBulkActionsButton: 'Bulk Actions',
+    wfElementsNoMatchPrefix: 'No elements found matching',
+    wfElementsNoMatchTitle: 'No elements match your search.',
+    wfElementsTryDifferent: 'Try different search terms.',
+    wfElementsUnknownElement: 'Unknown Element',
+    wfElementsProjectTypeFieldLabel: 'Project Type:',
+    wfElementsBulkActionDescPrefix: 'Choose an action for',
+    wfElementsBulkActionDescSuffix: 'selected elements',
+    wfElementsChangeTypeOption: 'Change Project Type',
+    wfElementsRemoveOption: 'Remove Elements from Project',
+    wfElementsSelectNewTypeLabel: 'Select New Project Type:',
+    wfElementsSelectTypePlaceholder: 'Select project type',
+    wfElementsWarningLabel: 'Warning',
+    wfElementsRemoveButton: 'Remove Elements',
+    wfElementsUpdateTypeButton: 'Update Project Type',
+    wfElementsCompletingButton: 'Completing...',
+    wfElementsCompleteSubmissionButton: 'Complete Submission Phase',
+    wfElementsNextLabel: 'Next',
+    wfElementsTypeRepairLabel: 'Repair',
+    wfElementsTypeRepairDesc: 'Fix existing components',
+    wfElementsTypeMinorRehabLabel: 'Minor Rehabilitation',
+    wfElementsTypeMinorRehabDesc: 'Minor improvements',
+    wfElementsTypeMajorRehabLabel: 'Major Rehabilitation',
+    wfElementsTypeMajorRehabDesc: 'Significant renovations',
+    wfElementsTypeReplacementLabel: 'Replacement',
+    wfElementsTypeReplacementDesc: 'Full component replacement',
+    wfElementsTypeAssessmentLabel: 'Assessment Needed',
+    wfElementsTypeAssessmentDesc: 'Requires evaluation',
+    wfNavLoading: 'Loading workflow navigation...',
+    wfNavWorkflowProgress: 'Workflow Progress',
+    wfNavBadgeComplete: 'Complete',
+    wfNavBadgeInProgress: 'In Progress',
+    wfNavCurrent: 'Current',
   },
   fr: {
 
@@ -9559,6 +9888,36 @@ export const translations: Record<Language, Translations> = {
     wfSkipConfigCompletedNote: 'Cette étape a déjà été complétée et ne peut être modifiée.',
     wfSkipConfigChangesImmediate: 'Les modifications sont appliquées immédiatement',
     wfSkipConfigDeleteConfirmation: 'Êtes-vous certain de vouloir supprimer définitivement ce projet ? Cette action est irréversible. Toutes les données du projet, les tâches, les soumissions des fournisseurs et l\'historique du flux de travail seront définitivement supprimés.',
+    wfSkipConfigDialogTitle: 'Configuration du flux de travail',
+    wfSkipConfigStatusCompleted: 'Complétée',
+    wfSkipConfigStatusCurrent: 'En cours',
+    wfSkipConfigStatusSkipped: 'Ignorée',
+    wfSkipConfigSkipStepLabel: 'Ignorer cette étape',
+    wfSkipConfigIncludeStepLabel: 'Inclure cette étape',
+    wfSkipConfigDeletingLabel: 'Suppression...',
+    wfSkipConfigDeleteButton: 'Supprimer le projet',
+    wfSkipConfigCloseButton: 'Fermer',
+    wfSkipConfigDeleteAlertTitle: 'Supprimer le projet',
+    wfSkipConfigCancelButton: 'Annuler',
+    wfSkipConfigDeletePermanentlyButton: 'Supprimer définitivement',
+    wfStepSubmissionLabel: 'Soumissions',
+    wfStepSubmissionDescription: 'Ignorer la phase de soumissions et de sélection des fournisseurs',
+    wfStepPreWorkLabel: 'Pré-travaux',
+    wfStepPreWorkDescription: 'Ignorer la phase de préparation et de coordination',
+    wfStepInProgressLabel: 'En cours',
+    wfStepInProgressDescription: 'Ignorer la phase d\'exécution active des travaux',
+    wfStepPostWorkLabel: 'Post-travaux',
+    wfStepPostWorkDescription: 'Ignorer la phase de nettoyage et de finalisation',
+    wfElementsAddedTitle: 'Éléments ajoutés',
+    wfElementsAddedDescription: 'Les éléments ont été ajoutés au projet avec succès.',
+    wfElementsAddFailedDescription: 'Échec de l\'ajout des éléments au projet.',
+    wfElementsRemovedTitle: 'Élément retiré',
+    wfElementsRemovedDescription: 'L\'élément a été retiré du projet avec succès.',
+    wfElementsRemoveFailedDescription: 'Échec du retrait de l\'élément du projet.',
+    wfElementsUpdatedTitle: 'Élément mis à jour',
+    wfElementsUpdatedDescription: 'L\'élément du projet a été mis à jour avec succès.',
+    wfElementsUpdateFailedDescription: 'Échec de la mise à jour de l\'élément du projet.',
+    postWorkNewTaskDefault: 'Nouvelle tâche post-travaux',
     wfCompleteSummaryPlaceholder: 'Fournissez un résumé complet des travaux réalisés, incluant :\n• Ce qui a été accompli\n• Les défis surmontés\n• La qualité des travaux livrés\n• L\'impact sur l\'immeuble et les résidents\n• Les leçons apprises pour les projets futurs\n• Les recommandations d\'entretien',
     wfElementsSearchPlaceholder: 'Rechercher des éléments par nom, description ou code UNIFORMAT...',
 
@@ -10084,5 +10443,137 @@ export const translations: Record<Language, Translations> = {
     authCreatingYourAccount: 'Création de votre compte',
     authRegistrationFooter:
       'En vous inscrivant, vous acceptez nos conditions d\'utilisation et notre politique de confidentialité conforme à la Loi 25 du Québec.',
+    wfCompleteHeaderTitle: 'Complétion du projet',
+    wfCompleteCompleteBadge: 'Complété',
+    wfCompleteSavingButton: 'Enregistrement...',
+    wfCompleteSaveChangesButton: 'Enregistrer les modifications',
+    wfCompleteSummaryCardTitle: 'Résumé de complétion',
+    wfCompleteTimelineTitle: 'Calendrier du projet',
+    wfCompletePlannedStartLabel: 'Début planifié',
+    wfCompleteNotSpecified: 'Non spécifié',
+    wfCompleteActualEndLabel: 'Fin réelle',
+    wfCompleteDurationLabel: 'Durée du projet',
+    wfCompleteDays: 'jours',
+    wfCompleteBudgetSummary: 'Résumé du budget',
+    wfCompleteTotalBudget: 'Budget total',
+    wfCompleteActualCost: 'Coût réel',
+    wfCompleteBudgetUtilization: 'Utilisation du budget',
+    wfCompleteUtilizedSuffix: '% utilisé',
+    wfCompleteOverBudgetBy: 'Dépassement du budget de',
+    wfCompleteProjectDetails: 'Détails du projet',
+    wfCompleteProjectNumber: 'Numéro de projet',
+    wfCompleteProjectType: 'Type de projet',
+    wfCompletePriority: 'Priorité',
+    wfCompleteOrigin: 'Origine',
+    wfCompleteOriginAuto: 'Généré automatiquement',
+    wfCompleteOriginManual: 'Manuel',
+    wfCompleteCreated: 'Créé',
+    wfCompleteStatusTitle: 'Statut',
+    wfCompleteProjectCompleteText: 'Projet complété',
+    wfCompleteAllStagesText: 'Toutes les étapes du flux de travail sont complétées',
+    wfCompleteReopenProjectButton: 'Réouvrir le projet',
+    wfModalProjectMissingTitle: 'Projet manquant',
+    wfModalWorkflowErrorTitle: 'Erreur du flux de travail',
+    wfModalLoadFailedFallback: 'Échec du chargement de l\'état du flux de travail. Veuillez réessayer.',
+    wfModalProjectNumberPrefix: 'Projet n°',
+    wfModalStatusPrefix: 'Statut',
+    wfModalManagingDescription: 'Gestion du flux de travail du projet',
+    wfModalUnknownTabPrefix: 'Onglet inconnu',
+    wfModalCompleteStepDefault: 'Compléter l\'étape',
+    wfModalCompletePlanning: 'Compléter la planification',
+    wfModalCompleteSubmissions: 'Compléter les soumissions',
+    wfModalCompletePreWork: 'Compléter le pré-travail',
+    wfModalCompleteWork: 'Compléter le travail',
+    wfModalCompletePostWork: 'Compléter le post-travail',
+    wfModalCompleteProject: 'Compléter le projet',
+    wfModalTabPlannedLabel: 'Planifié',
+    wfModalTabPlannedDesc: 'Planification du projet et calendrier',
+    wfModalTabSubmissionLabel: 'Soumission',
+    wfModalTabSubmissionDesc: 'Soumissions des fournisseurs et sélection',
+    wfModalTabPreWorkLabel: 'Pré-travail',
+    wfModalTabPreWorkDesc: 'Préparation et coordination',
+    wfModalTabInProgressLabel: 'En cours',
+    wfModalTabInProgressDesc: 'Exécution active du travail',
+    wfModalTabPostWorkLabel: 'Post-travail',
+    wfModalTabPostWorkDesc: 'Nettoyage et finalisation',
+    wfModalTabCompletedLabel: 'Complété',
+    wfModalTabCompletedDesc: 'Complétion et résumé du projet',
+    wfPaymentSetupTitle: 'Configuration du plan de paiement',
+    wfPaymentTypeLabel: 'Type de paiement',
+    wfPaymentTypePlaceholder: 'Choisir le type de paiement',
+    wfPaymentTypeSingle: 'Paiement unique',
+    wfPaymentTypeRecurring: 'Paiements récurrents',
+    wfPaymentScheduleLabel: 'Calendrier de paiement',
+    wfPaymentSchedulePlaceholder: 'Sélectionner le calendrier de paiement',
+    wfPaymentScheduleWeekly: 'Hebdomadaire',
+    wfPaymentScheduleMonthly: 'Mensuel',
+    wfPaymentScheduleQuarterly: 'Trimestriel',
+    wfPaymentScheduleYearly: 'Annuel',
+    wfPaymentScheduleCustom: 'Dates personnalisées',
+    wfPaymentFirstDateLabel: 'Date du premier paiement',
+    wfPaymentCustomDatesLabel: 'Dates de paiement personnalisées',
+    wfPaymentAddDateButton: 'Ajouter une date',
+    wfPaymentHasInitialLabel: 'A un paiement initial',
+    wfPaymentInitialAmountLabel: 'Montant du paiement initial',
+    wfPaymentEqualLabel: 'Paiements récurrents égaux',
+    wfPaymentRecurringAmountLabel: 'Montant du paiement récurrent',
+    wfPaymentAmountsLabel: 'Montants des paiements',
+    wfPaymentDistributeButton: 'Distribuer également',
+    wfPaymentAddPaymentButton: 'Ajouter un paiement',
+    wfPaymentNumberPrefix: 'Paiement',
+    wfPaymentSummaryLabel: 'Résumé du paiement',
+    wfPaymentSummarySingle: 'Paiement unique',
+    wfPaymentSummaryWithInitialSuffix: ' avec paiement initial',
+    wfPaymentSummaryEqualMiddle: 'paiements récurrents égaux',
+    wfPaymentSummaryPlusInitialSuffix: ' + paiement initial',
+    wfPaymentSummaryCustomSingular: 'paiement personnalisé',
+    wfPaymentSummaryCustomPlural: 'paiements personnalisés',
+    wfPaymentOver: 'Au-dessus',
+    wfPaymentUnder: 'En dessous',
+    wfPaymentBy: 'de',
+    wfPaymentSavePlanButton: 'Enregistrer le plan de paiement',
+    wfElementsManagementTitle: 'Gestion des éléments',
+    wfElementsLoading: 'Chargement des éléments...',
+    wfElementsFilteringByPrefix: 'Filtrage par :',
+    wfElementsResultsSuffix: 'résultats',
+    wfElementsAvailableTitle: 'Éléments de bâtiment disponibles',
+    wfElementsFilteredBySuffix: 'Filtré par',
+    wfElementsAddSelectedButton: 'Ajouter la sélection',
+    wfElementsProjectTitle: 'Éléments du projet',
+    wfElementsDeselectAllButton: 'Tout désélectionner',
+    wfElementsSelectAllButton: 'Tout sélectionner',
+    wfElementsBulkActionsButton: 'Actions en lot',
+    wfElementsNoMatchPrefix: 'Aucun élément trouvé correspondant à',
+    wfElementsNoMatchTitle: 'Aucun élément ne correspond à votre recherche.',
+    wfElementsTryDifferent: 'Essayez différents termes de recherche.',
+    wfElementsUnknownElement: 'Élément inconnu',
+    wfElementsProjectTypeFieldLabel: 'Type de projet :',
+    wfElementsBulkActionDescPrefix: 'Choisir une action pour',
+    wfElementsBulkActionDescSuffix: 'éléments sélectionnés',
+    wfElementsChangeTypeOption: 'Changer le type de projet',
+    wfElementsRemoveOption: 'Retirer les éléments du projet',
+    wfElementsSelectNewTypeLabel: 'Sélectionner le nouveau type de projet :',
+    wfElementsSelectTypePlaceholder: 'Sélectionner le type de projet',
+    wfElementsWarningLabel: 'Avertissement',
+    wfElementsRemoveButton: 'Retirer les éléments',
+    wfElementsUpdateTypeButton: 'Mettre à jour le type de projet',
+    wfElementsCompletingButton: 'Complétion en cours...',
+    wfElementsCompleteSubmissionButton: 'Compléter la phase de soumission',
+    wfElementsNextLabel: 'Suivant',
+    wfElementsTypeRepairLabel: 'Réparation',
+    wfElementsTypeRepairDesc: 'Réparer les composants existants',
+    wfElementsTypeMinorRehabLabel: 'Réhabilitation mineure',
+    wfElementsTypeMinorRehabDesc: 'Améliorations mineures',
+    wfElementsTypeMajorRehabLabel: 'Réhabilitation majeure',
+    wfElementsTypeMajorRehabDesc: 'Rénovations importantes',
+    wfElementsTypeReplacementLabel: 'Remplacement',
+    wfElementsTypeReplacementDesc: 'Remplacement complet du composant',
+    wfElementsTypeAssessmentLabel: 'Évaluation requise',
+    wfElementsTypeAssessmentDesc: 'Nécessite une évaluation',
+    wfNavLoading: 'Chargement de la navigation du flux de travail...',
+    wfNavWorkflowProgress: 'Progression du flux de travail',
+    wfNavBadgeComplete: 'Complété',
+    wfNavBadgeInProgress: 'En cours',
+    wfNavCurrent: 'Actuel',
   }
 };

@@ -271,7 +271,7 @@ export function PaymentPlanForm({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <DollarSign className="h-5 w-5" />
-          Payment Plan Setup
+          {t('wfPaymentSetupTitle')}
         </CardTitle>
         {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
         <CardDescription>
@@ -288,16 +288,16 @@ export function PaymentPlanForm({
               name="paymentType"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Payment Type</FormLabel>
+                  <FormLabel>{t('wfPaymentTypeLabel')}</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger data-testid="select-payment-type">
-                        <SelectValue placeholder="Choose payment type" />
+                        <SelectValue placeholder={t('wfPaymentTypePlaceholder')} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="single">Single Payment</SelectItem>
-                      <SelectItem value="recurring">Recurring Payments</SelectItem>
+                      <SelectItem value="single">{t('wfPaymentTypeSingle')}</SelectItem>
+                      <SelectItem value="recurring">{t('wfPaymentTypeRecurring')}</SelectItem>
                     </SelectContent>
                   </Select>
                   {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
@@ -316,19 +316,19 @@ export function PaymentPlanForm({
                 name="paymentPlanSchedule"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Payment Schedule</FormLabel>
+                    <FormLabel>{t('wfPaymentScheduleLabel')}</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger data-testid="select-payment-schedule">
-                          <SelectValue placeholder="Select payment schedule" />
+                          <SelectValue placeholder={t('wfPaymentSchedulePlaceholder')} />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="weekly">Weekly</SelectItem>
-                        <SelectItem value="monthly">Monthly</SelectItem>
-                        <SelectItem value="quarterly">Quarterly</SelectItem>
-                        <SelectItem value="yearly">Yearly</SelectItem>
-                        <SelectItem value="custom">Custom Dates</SelectItem>
+                        <SelectItem value="weekly">{t('wfPaymentScheduleWeekly')}</SelectItem>
+                        <SelectItem value="monthly">{t('wfPaymentScheduleMonthly')}</SelectItem>
+                        <SelectItem value="quarterly">{t('wfPaymentScheduleQuarterly')}</SelectItem>
+                        <SelectItem value="yearly">{t('wfPaymentScheduleYearly')}</SelectItem>
+                        <SelectItem value="custom">{t('wfPaymentScheduleCustom')}</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -343,7 +343,7 @@ export function PaymentPlanForm({
               name="dateFirstPayment"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Date First Payment</FormLabel>
+                  <FormLabel>{t('wfPaymentFirstDateLabel')}</FormLabel>
                   <FormControl>
                     <Input
                       type="date"
@@ -380,7 +380,7 @@ export function PaymentPlanForm({
             {/* Custom Dates (only for custom schedule) */}
             {watchedPaymentType === 'recurring' && watchedSchedule === 'custom' && (
               <div className="space-y-3">
-                <Label>Custom Payment Dates</Label>
+                <Label>{t('wfPaymentCustomDatesLabel')}</Label>
                 {customDates.map((date, index) => (
                   <div key={index} className="flex items-center gap-2">
                     <Input
@@ -409,7 +409,7 @@ export function PaymentPlanForm({
                   data-testid="button-add-custom-date"
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  Add Date
+                  {t('wfPaymentAddDateButton')}
                 </Button>
               </div>
             )}
@@ -430,7 +430,7 @@ export function PaymentPlanForm({
                   </FormControl>
                   <div className="space-y-1 leading-none">
                     <FormLabel>
-                      Has initial payment
+                      {t('wfPaymentHasInitialLabel')}
                     </FormLabel>
                     {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                     <FormDescription>
@@ -449,7 +449,7 @@ export function PaymentPlanForm({
                 name="initialPaymentAmount"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Initial Payment Amount</FormLabel>
+                    <FormLabel>{t('wfPaymentInitialAmountLabel')}</FormLabel>
                     <FormControl>
                       <div className="relative">
                         <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -487,7 +487,7 @@ export function PaymentPlanForm({
                       </FormControl>
                       <div className="space-y-1 leading-none">
                         <FormLabel>
-                          Equal recurring payments
+                          {t('wfPaymentEqualLabel')}
                         </FormLabel>
                         {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                         <FormDescription>
@@ -505,7 +505,7 @@ export function PaymentPlanForm({
                     name="recurringPaymentAmount"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Recurring Payment Amount</FormLabel>
+                        <FormLabel>{t('wfPaymentRecurringAmountLabel')}</FormLabel>
                         <FormControl>
                           <div className="relative">
                             <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -532,7 +532,7 @@ export function PaymentPlanForm({
             {(watchedPaymentType === 'single' || (watchedPaymentType === 'recurring' && !watchedEqualRecurringPayments)) && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <Label>Payment Amounts</Label>
+                <Label>{t('wfPaymentAmountsLabel')}</Label>
                 <div className="flex items-center gap-2">
                   {totalAmount > 0 && (
                     <Button
@@ -543,7 +543,7 @@ export function PaymentPlanForm({
                       data-testid="button-distribute-evenly"
                     >
                       <Calculator className="h-4 w-4 mr-2" />
-                      Distribute Evenly
+                      {t('wfPaymentDistributeButton')}
                     </Button>
                   )}
                   <Button
@@ -554,7 +554,7 @@ export function PaymentPlanForm({
                     data-testid="button-add-payment"
                   >
                     <Plus className="h-4 w-4 mr-2" />
-                    Add Payment
+                    {t('wfPaymentAddPaymentButton')}
                   </Button>
                 </div>
               </div>
@@ -562,7 +562,7 @@ export function PaymentPlanForm({
               <div className="space-y-2">
                 {watchedCosts.map((cost, index) => (
                   <div key={index} className="flex items-center gap-2">
-                    <Label className="min-w-20">Payment {index + 1}</Label>
+                    <Label className="min-w-20">{t('wfPaymentNumberPrefix')} {index + 1}</Label>
                     <div className="relative flex-1">
                       <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
@@ -595,13 +595,13 @@ export function PaymentPlanForm({
             {/* Payment Summary - always visible */}
             <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
               <div className="space-y-1">
-                <div className="text-sm font-medium">Payment Summary</div>
+                <div className="text-sm font-medium">{t('wfPaymentSummaryLabel')}</div>
                 <div className="text-xs text-muted-foreground">
                   {watchedPaymentType === 'single' 
-                    ? `Single payment${watchedHasInitialPayment ? ' with initial payment' : ''}` 
+                    ? `${t('wfPaymentSummarySingle')}${watchedHasInitialPayment ? t('wfPaymentSummaryWithInitialSuffix') : ''}` 
                     : watchedEqualRecurringPayments 
-                    ? `${calculateRecurringPaymentCount()} equal recurring payments${watchedHasInitialPayment ? ' + initial payment' : ''}` 
-                    : `${watchedCosts.length} custom payment${watchedCosts.length !== 1 ? 's' : ''}${watchedHasInitialPayment ? ' + initial payment' : ''}`}
+                    ? `${calculateRecurringPaymentCount()} ${t('wfPaymentSummaryEqualMiddle')}${watchedHasInitialPayment ? t('wfPaymentSummaryPlusInitialSuffix') : ''}` 
+                    : `${watchedCosts.length} ${watchedCosts.length !== 1 ? t('wfPaymentSummaryCustomPlural') : t('wfPaymentSummaryCustomSingular')}${watchedHasInitialPayment ? t('wfPaymentSummaryPlusInitialSuffix') : ''}`}
                 </div>
               </div>
               <div className="text-right">
@@ -610,7 +610,7 @@ export function PaymentPlanForm({
                 </div>
                 {totalAmount > 0 && Math.abs(total - totalAmount) > 0.01 && (
                   <Badge variant="outline" className="text-xs">
-                    {total > totalAmount ? 'Over' : 'Under'} by ${Math.abs(total - totalAmount).toFixed(2)}
+                    {total > totalAmount ? t('wfPaymentOver') : t('wfPaymentUnder')} {t('wfPaymentBy')} ${Math.abs(total - totalAmount).toFixed(2)}
                   </Badge>
                 )}
               </div>
@@ -638,14 +638,14 @@ export function PaymentPlanForm({
                 disabled={isLoading}
                 data-testid="button-cancel-payment-plan"
               >
-                Cancel
+                {t('cancel')}
               </Button>
               <Button
                 type="submit"
                 disabled={isLoading}
                 data-testid="button-save-payment-plan"
               >
-                {isLoading ? 'Saving...' : 'Save Payment Plan'}
+                {isLoading ? t('saving') : t('wfPaymentSavePlanButton')}
               </Button>
             </div>
           </form>

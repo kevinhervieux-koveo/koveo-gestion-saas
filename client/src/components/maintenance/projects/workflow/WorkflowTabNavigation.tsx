@@ -5,6 +5,7 @@ import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useUpdateSkipFlags, type ProjectWorkflowState } from '@/hooks/useProjectWorkflow';
 import { cn, formatStatus } from '@/lib/utils';
+import { useLanguage } from '@/hooks/use-language';
 import {
   CheckCircle2,
   Circle,
@@ -39,13 +40,14 @@ export function WorkflowTabNavigation({
   tabConfig,
 }: WorkflowTabNavigationProps) {
   const { mutate: updateSkipFlags, isPending: isUpdatingSkipFlags } = useUpdateSkipFlags();
+  const { t } = useLanguage();
 
   // Handle case where workflowState is not yet available
   if (!workflowState) {
     return (
       <div className="p-4" data-testid="workflow-tab-navigation">
         <div className="text-center text-muted-foreground">
-          Loading workflow navigation...
+          {t('wfNavLoading')}
         </div>
       </div>
     );
@@ -130,10 +132,10 @@ export function WorkflowTabNavigation({
       {/* Simple Vertical Progress */}
       <div className="mb-2">
         <span className="text-sm font-medium text-muted-foreground">
-          Workflow Progress
+          {t('wfNavWorkflowProgress')}
         </span>
         <Badge variant="secondary" className="ml-2 text-xs">
-          {currentStatus === 'completed' ? 'Complete' : 'In Progress'}
+          {currentStatus === 'completed' ? t('wfNavBadgeComplete') : t('wfNavBadgeInProgress')}
         </Badge>
       </div>
       
@@ -198,7 +200,7 @@ export function WorkflowTabNavigation({
               {/* Status Badge */}
               {status === 'current' && (
                 <Badge variant="secondary" className="text-xs">
-                  Current
+                  {t('wfNavCurrent')}
                 </Badge>
               )}
 

@@ -155,11 +155,11 @@ export function CompleteTab({ project, workflowState, onUpdate }: CompleteTabPro
       <div className="flex items-center justify-between">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <h3 className="text-lg font-semibold">Project Completion</h3>
+            <h3 className="text-lg font-semibold">{t('wfCompleteHeaderTitle')}</h3>
             {isProjectComplete && (
               <Badge className="bg-green-600">
                 <CheckCircle2 className="h-3 w-3 mr-1" />
-                Complete
+                {t('wfCompleteCompleteBadge')}
               </Badge>
             )}
           </div>
@@ -177,7 +177,7 @@ export function CompleteTab({ project, workflowState, onUpdate }: CompleteTabPro
             disabled={isUpdating || workflowState.currentStatus === 'completed'}
             data-testid="button-save-changes"
           >
-            {isUpdating ? 'Saving...' : 'Save Changes'}
+            {isUpdating ? t('wfCompleteSavingButton') : t('wfCompleteSaveChangesButton')}
           </Button>
         )}
       </div>
@@ -189,7 +189,7 @@ export function CompleteTab({ project, workflowState, onUpdate }: CompleteTabPro
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <FileText className="h-5 w-5" />
-                Completion Summary
+                {t('wfCompleteSummaryCardTitle')}
               </CardTitle>
               {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
               <CardDescription>
@@ -230,7 +230,7 @@ export function CompleteTab({ project, workflowState, onUpdate }: CompleteTabPro
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Calendar className="h-5 w-5" />
-                Project Timeline
+                {t('wfCompleteTimelineTitle')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -238,11 +238,11 @@ export function CompleteTab({ project, workflowState, onUpdate }: CompleteTabPro
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <div className="text-sm font-medium text-muted-foreground">Planned Start</div>
+                      <div className="text-sm font-medium text-muted-foreground">{t('wfCompletePlannedStartLabel')}</div>
                       <div className="text-base">
                         {project.planningStartDate 
                           ? format(parseDateOnly(project.planningStartDate)!, 'MMM d, yyyy')
-                          : 'Not specified'
+                          : t('wfCompleteNotSpecified')
                         }
                       </div>
                     </div>
@@ -252,7 +252,7 @@ export function CompleteTab({ project, workflowState, onUpdate }: CompleteTabPro
                         name="actualEndDate"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel className="text-sm font-medium text-muted-foreground">Actual End</FormLabel>
+                            <FormLabel className="text-sm font-medium text-muted-foreground">{t('wfCompleteActualEndLabel')}</FormLabel>
                             <FormControl>
                               <Input
                                 type="date"
@@ -272,7 +272,7 @@ export function CompleteTab({ project, workflowState, onUpdate }: CompleteTabPro
                       <div className="flex items-center gap-2">
                         <Clock className="h-4 w-4 text-muted-foreground" />
                         <span className="text-sm">
-                          Project duration: <span className="font-medium">{projectMetrics.duration} days</span>
+                          {t('wfCompleteDurationLabel')}: <span className="font-medium">{projectMetrics.duration} {t('wfCompleteDays')}</span>
                         </span>
                       </div>
                     </div>
@@ -289,20 +289,20 @@ export function CompleteTab({ project, workflowState, onUpdate }: CompleteTabPro
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
                 <DollarSign className="h-4 w-4" />
-                Budget Summary
+                {t('wfCompleteBudgetSummary')}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div>
-                  <div className="text-sm text-muted-foreground">Total Budget</div>
+                  <div className="text-sm text-muted-foreground">{t('wfCompleteTotalBudget')}</div>
                   <div className="text-lg font-semibold">
                     {formatCurrency(projectMetrics.budgetTotal)}
                   </div>
                 </div>
                 
                 <div>
-                  <div className="text-sm text-muted-foreground">Actual Cost</div>
+                  <div className="text-sm text-muted-foreground">{t('wfCompleteActualCost')}</div>
                   <div className={`text-lg font-semibold ${projectMetrics.isOverBudget ? 'text-red-600' : 'text-green-600'}`}>
                     {formatCurrency(projectMetrics.budgetUsed)}
                   </div>
@@ -310,7 +310,7 @@ export function CompleteTab({ project, workflowState, onUpdate }: CompleteTabPro
 
                 {projectMetrics.budgetTotal > 0 && (
                   <div>
-                    <div className="text-sm text-muted-foreground mb-2">Budget Utilization</div>
+                    <div className="text-sm text-muted-foreground mb-2">{t('wfCompleteBudgetUtilization')}</div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div 
                         className={`h-2 rounded-full transition-all ${
@@ -324,13 +324,13 @@ export function CompleteTab({ project, workflowState, onUpdate }: CompleteTabPro
                       budgetUtilization > 100 ? 'text-red-600' : 
                       budgetUtilization > 90 ? 'text-yellow-600' : 'text-green-600'
                     }`}>
-                      {budgetUtilization}% utilized
+                      {budgetUtilization}{t('wfCompleteUtilizedSuffix')}
                     </div>
 
                     {projectMetrics.isOverBudget && (
                       <div className="flex items-center gap-1 text-red-600 text-sm mt-2">
                         <AlertTriangle className="h-3 w-3" />
-                        Over budget by {formatCurrency(projectMetrics.budgetUsed - projectMetrics.budgetTotal)}
+                        {t('wfCompleteOverBudgetBy')} {formatCurrency(projectMetrics.budgetUsed - projectMetrics.budgetTotal)}
                       </div>
                     )}
                   </div>
@@ -343,25 +343,25 @@ export function CompleteTab({ project, workflowState, onUpdate }: CompleteTabPro
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
                 <Target className="h-4 w-4" />
-                Project Details
+                {t('wfCompleteProjectDetails')}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3 text-sm">
                 <div>
-                  <div className="text-muted-foreground">Project Number</div>
+                  <div className="text-muted-foreground">{t('wfCompleteProjectNumber')}</div>
                   <div className="font-medium">{project.projectNumber}</div>
                 </div>
                 
                 <div>
-                  <div className="text-muted-foreground">Project Type</div>
+                  <div className="text-muted-foreground">{t('wfCompleteProjectType')}</div>
                   <div className="capitalize font-medium">
-                    {formatStatus(project.type, 'Not specified')}
+                    {formatStatus(project.type, t('wfCompleteNotSpecified'))}
                   </div>
                 </div>
                 
                 <div>
-                  <div className="text-muted-foreground">Priority</div>
+                  <div className="text-muted-foreground">{t('wfCompletePriority')}</div>
                   <Badge variant={
                     project.priority === 'critical' ? 'destructive' :
                     project.priority === 'high' ? 'default' :
@@ -372,24 +372,24 @@ export function CompleteTab({ project, workflowState, onUpdate }: CompleteTabPro
                 </div>
 
                 <div>
-                  <div className="text-muted-foreground">Origin</div>
+                  <div className="text-muted-foreground">{t('wfCompleteOrigin')}</div>
                   <div className="flex items-center gap-1">
                     {project.origin === 'auto' ? (
                       <>
                         <TrendingUp className="h-3 w-3" />
-                        <span>Auto-generated</span>
+                        <span>{t('wfCompleteOriginAuto')}</span>
                       </>
                     ) : (
                       <>
                         <FileText className="h-3 w-3" />
-                        <span>Manual</span>
+                        <span>{t('wfCompleteOriginManual')}</span>
                       </>
                     )}
                   </div>
                 </div>
 
                 <div>
-                  <div className="text-muted-foreground">Created</div>
+                  <div className="text-muted-foreground">{t('wfCompleteCreated')}</div>
                   <div>{format(new Date(project.createdAt), 'MMM d, yyyy')}</div>
                 </div>
               </div>
@@ -400,7 +400,7 @@ export function CompleteTab({ project, workflowState, onUpdate }: CompleteTabPro
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
                 <Award className="h-4 w-4" />
-                Status
+                {t('wfCompleteStatusTitle')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -408,10 +408,10 @@ export function CompleteTab({ project, workflowState, onUpdate }: CompleteTabPro
                 <div className="text-center">
                   <CheckCircle2 className="h-12 w-12 text-green-600 mx-auto mb-3" />
                   <div className="text-lg font-semibold text-green-600">
-                    Project Complete
+                    {t('wfCompleteProjectCompleteText')}
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    All workflow stages completed
+                    {t('wfCompleteAllStagesText')}
                   </div>
                 </div>
               </div>
@@ -431,7 +431,7 @@ export function CompleteTab({ project, workflowState, onUpdate }: CompleteTabPro
           currentStatus={workflowState.currentStatus}
           onSuccess={onUpdate}
           disabled={!workflowState.currentStatus || workflowState.currentStatus !== 'completed'}
-          triggerText="Reopen Project"
+          triggerText={t('wfCompleteReopenProjectButton')}
         />
       </div>
 

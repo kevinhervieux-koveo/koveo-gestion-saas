@@ -373,7 +373,7 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
         });
       }).catch(() => {
         toast({
-          title: "Error",
+          title: t('workflowErrorTitle'),
           description: t('workflowFailedToSavePhaseDescription'),
           variant: "destructive",
         });

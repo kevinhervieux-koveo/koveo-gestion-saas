@@ -33,6 +33,7 @@ import {
 } from 'lucide-react';
 import { WorkflowSkipConfigDialog } from './WorkflowSkipConfigDialog';
 import { useLanguage } from '@/hooks/use-language';
+import type { Translations } from '@/lib/i18n';
 
 export interface ProjectWorkflowModalProps {
   isOpen: boolean;
@@ -45,39 +46,39 @@ export interface ProjectWorkflowModalProps {
 const TAB_CONFIG = {
   planned: {
     id: 'planned',
-    label: 'Planned',
+    labelKey: 'wfModalTabPlannedLabel',
     icon: Clock,
-    description: 'Project planning and timeline',
+    descriptionKey: 'wfModalTabPlannedDesc',
   },
   submission: {
     id: 'submission',
-    label: 'Submission',
+    labelKey: 'wfModalTabSubmissionLabel',
     icon: Users,
-    description: 'Vendor submissions and selection',
+    descriptionKey: 'wfModalTabSubmissionDesc',
   },
   pre_work: {
     id: 'pre_work',
-    label: 'Pre-Work',
+    labelKey: 'wfModalTabPreWorkLabel',
     icon: Building2,
-    description: 'Preparation and coordination',
+    descriptionKey: 'wfModalTabPreWorkDesc',
   },
   in_progress: {
     id: 'in_progress',
-    label: 'In Progress',
+    labelKey: 'wfModalTabInProgressLabel',
     icon: Building2,
-    description: 'Active work execution',
+    descriptionKey: 'wfModalTabInProgressDesc',
   },
   post_work: {
     id: 'post_work',
-    label: 'Post-Work',
+    labelKey: 'wfModalTabPostWorkLabel',
     icon: CheckCircle2,
-    description: 'Cleanup and finalization',
+    descriptionKey: 'wfModalTabPostWorkDesc',
   },
   completed: {
     id: 'completed',
-    label: 'Complete',
+    labelKey: 'wfModalTabCompletedLabel',
     icon: CheckCircle2,
-    description: 'Project completion and summary',
+    descriptionKey: 'wfModalTabCompletedDesc',
   },
 } as const;
 
@@ -101,7 +102,7 @@ export function ProjectWorkflowModal({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-destructive">
               <AlertTriangle className="h-5 w-5" />
-              Project Missing
+              {t('wfModalProjectMissingTitle')}
             </DialogTitle>
             {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
             <DialogDescription>
@@ -220,23 +221,23 @@ export function ProjectWorkflowModal({
 
   // Get appropriate button text based on current status
   const getMarkCompleteButtonText = () => {
-    if (!workflowState?.currentStatus) return 'Complete Step';
+    if (!workflowState?.currentStatus) return t('wfModalCompleteStepDefault');
     
     switch (workflowState.currentStatus) {
       case 'planned':
-        return 'Complete Planning';
+        return t('wfModalCompletePlanning');
       case 'submission':
-        return 'Complete Submissions';
+        return t('wfModalCompleteSubmissions');
       case 'pre_work':
-        return 'Complete Pre-Work';
+        return t('wfModalCompletePreWork');
       case 'in_progress':
-        return 'Complete Work';
+        return t('wfModalCompleteWork');
       case 'post_work':
-        return 'Complete Post-Work';
+        return t('wfModalCompletePostWork');
       case 'completed':
-        return 'Complete Project';
+        return t('wfModalCompleteProject');
       default:
-        return 'Complete Step';
+        return t('wfModalCompleteStepDefault');
     }
   };
 
@@ -307,7 +308,7 @@ export function ProjectWorkflowModal({
           <Alert className="m-4">
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
-              Unknown tab: {activeTab}. {t('wfModalUnknownTabSuffix')}
+              {t('wfModalUnknownTabPrefix')}: {activeTab}. {t('wfModalUnknownTabSuffix')}
             </AlertDescription>
           </Alert>
         );
@@ -363,7 +364,7 @@ export function ProjectWorkflowModal({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-destructive">
               <AlertTriangle className="h-5 w-5" />
-              Workflow Error
+              {t('wfModalWorkflowErrorTitle')}
             </DialogTitle>
             {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
             <DialogDescription>
@@ -374,7 +375,7 @@ export function ProjectWorkflowModal({
           <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
-              {workflowError.message || 'Failed to load workflow state. Please try again.'}
+              {workflowError.message || t('wfModalLoadFailedFallback')}
             </AlertDescription>
           </Alert>
         </DialogContent>
@@ -402,7 +403,7 @@ export function ProjectWorkflowModal({
                   {project.title}
                 </span>
                 <span className="text-sm text-muted-foreground font-normal">
-                  Project #{project.projectNumber}
+                  {t('wfModalProjectNumberPrefix')}{project.projectNumber}
                 </span>
               </div>
             </DialogTitle>
@@ -418,11 +419,11 @@ export function ProjectWorkflowModal({
           
           <DialogDescription className="flex items-center gap-2">
             <span>
-              {currentTabConfig?.description || 'Managing project workflow'}
+              {currentTabConfig ? t(currentTabConfig.descriptionKey as keyof Translations) : t('wfModalManagingDescription')}
             </span>
             {workflowState.currentStatus !== 'completed' && (
               <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                Status: {formatStatus(workflowState.currentStatus)}
+                {t('wfModalStatusPrefix')}: {formatStatus(workflowState.currentStatus)}
               </span>
             )}
           </DialogDescription>
@@ -436,7 +437,17 @@ export function ProjectWorkflowModal({
               activeTab={activeTab}
               onTabChange={handleTabChange}
               workflowState={workflowState}
-              tabConfig={TAB_CONFIG}
+              tabConfig={Object.fromEntries(
+                Object.entries(TAB_CONFIG).map(([key, cfg]) => [
+                  key,
+                  {
+                    id: cfg.id,
+                    icon: cfg.icon,
+                    label: t(cfg.labelKey as keyof Translations),
+                    description: t(cfg.descriptionKey as keyof Translations),
+                  },
+                ])
+              )}
             />
           </div>
 

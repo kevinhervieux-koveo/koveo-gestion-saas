@@ -184,7 +184,7 @@ export function InProgressTab({ project, workflowState, onUpdate, onMarkComplete
         }
       }).catch(() => {
         toast({
-          title: "Error",
+          title: t('workflowErrorTitle'),
           description: t('workflowFailedToSavePhaseDescription'),
           variant: "destructive",
         });

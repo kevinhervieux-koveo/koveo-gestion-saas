@@ -416,7 +416,7 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
       projectId: project.id,
       taskData: {
         phase: 'post_work',
-        taskName: 'New Post-Work Task',
+        taskName: t('postWorkNewTaskDefault'),
         description: undefined,
         cost: undefined,
         orderIndex: newTaskIndex,
