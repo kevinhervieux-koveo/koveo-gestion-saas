@@ -5558,6 +5558,21 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
         onProjectUpdate={(updatedProject) => {
           queryClient.invalidateQueries({ queryKey: ['/api/maintenance/buildings', buildingId, 'projects'] });
         }}
+        onProjectDelete={() => {
+          if (selectedProjectForWorkflow) {
+            const deletedId = selectedProjectForWorkflow.id;
+            setProjects(prev => prev.filter(p => p.id !== deletedId));
+            projectStatesRef.current.delete(deletedId);
+            queryClient.removeQueries({ queryKey: ['/api/maintenance/projects', deletedId] });
+            queryClient.removeQueries({ queryKey: ['/api/maintenance/projects', deletedId, 'workflow'] });
+          }
+          setSelectedProjectForWorkflow(null);
+          setShowProjectWorkflowModal(false);
+          queryClient.invalidateQueries({ queryKey: ['/api/maintenance/buildings', buildingId, 'projects'] });
+          queryClient.invalidateQueries({ queryKey: ['budgetForecast', buildingId] });
+          queryClient.invalidateQueries({ queryKey: ['/api/budgets', buildingId, 'bank-account'] });
+          queryClient.invalidateQueries({ queryKey: ['/api/budgets', buildingId, 'investments'] });
+        }}
       />
 
     </div>

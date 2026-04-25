@@ -41,6 +41,7 @@ export interface ProjectWorkflowModalProps {
   project: MaintenanceProject;
   initialTab?: string; // Optional tab to open first
   onProjectUpdate?: (project: MaintenanceProject) => void;
+  onProjectDelete?: () => void; // Called after a successful project deletion
 }
 
 const TAB_CONFIG = {
@@ -92,6 +93,7 @@ export function ProjectWorkflowModal({
   project,
   initialTab,
   onProjectUpdate,
+  onProjectDelete,
 }: ProjectWorkflowModalProps) {
   const { t } = useLanguage();
   // Defensive null check for project prop
@@ -410,6 +412,12 @@ export function ProjectWorkflowModal({
               workflowState={workflowState}
               onUpdate={handleWorkflowUpdate}
               isQuickProject={project.isQuickProject}
+              onDelete={() => {
+                onOpenChange(false);
+                if (onProjectDelete) {
+                  onProjectDelete();
+                }
+              }}
             />
           </div>
           

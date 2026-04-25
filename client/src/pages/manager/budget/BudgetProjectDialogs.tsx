@@ -38,7 +38,7 @@ export interface EditingProjectData extends QuickProjectData {
   isQuickProject: boolean;
 }
 
-interface CreateProjectPayload {
+export interface CreateProjectPayload {
   title: string;
   totalBudget: number;
   financialYear: number;
@@ -47,7 +47,7 @@ interface CreateProjectPayload {
   description: string;
 }
 
-interface UpdateProjectPayload extends CreateProjectPayload {
+export interface UpdateProjectPayload extends CreateProjectPayload {
   id: string;
 }
 
@@ -71,6 +71,7 @@ interface BudgetProjectDialogsProps {
   organizationId?: string;
   onProjectWorkflowClose: () => void;
   onProjectUpdate: (project: MaintenanceProject) => void;
+  onProjectDelete?: () => void;
 }
 
 export function BudgetProjectDialogs({
@@ -93,6 +94,7 @@ export function BudgetProjectDialogs({
   organizationId,
   onProjectWorkflowClose,
   onProjectUpdate,
+  onProjectDelete,
 }: BudgetProjectDialogsProps) {
   const { t, language } = useLanguage();
   const { toast } = useToast();
@@ -452,6 +454,13 @@ export function BudgetProjectDialogs({
             onProjectUpdate={(updatedProject) => {
               setSelectedProjectForWorkflow(updatedProject);
               onProjectUpdate(updatedProject);
+            }}
+            onProjectDelete={() => {
+              setShowProjectWorkflowModal(false);
+              setSelectedProjectForWorkflow(null);
+              if (onProjectDelete) {
+                onProjectDelete();
+              }
             }}
           />
         </BuildingContextProvider>

@@ -3308,9 +3308,11 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         });
       }
       
-      // Delete related project data first (cascade)
-      // Note: When archive functionality is added, regular projects should be archived instead
-      
+      // Delete the project — all child rows (project_steps, submission_vendors,
+      // project_notifications, workflow_tasks, element_project_updates,
+      // project_elements) are removed automatically by ON DELETE CASCADE.
+      // evaluation_suggestions.project_id and maintenance_projects.auto_generated_id
+      // use ON DELETE SET NULL and do not block the delete.
       await db
         .delete(maintenanceProjects)
         .where(eq(maintenanceProjects.id, id));
@@ -3321,6 +3323,18 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
       });
     } catch (error: any) {
       console.error('Error deleting maintenance project:', error);
+      // Surface FK constraint violations with a clear user-facing message so the
+      // frontend toast can display something meaningful instead of a generic 500.
+      const isConstraintError =
+        error?.code === '23503' ||
+        error?.message?.includes('foreign key') ||
+        error?.message?.includes('violates');
+      if (isConstraintError) {
+        return res.status(409).json({
+          error: 'Cannot delete project',
+          message: 'This project has dependent data that could not be removed automatically. Please contact support.',
+        });
+      }
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to delete maintenance project',

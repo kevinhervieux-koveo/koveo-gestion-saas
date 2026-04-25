@@ -918,9 +918,14 @@ export function useDeleteProject() {
         queryKey: ['/api/maintenance/buildings'] 
       });
       
-      // Remove specific project from cache
+      // Remove specific project and its workflow state from cache
       queryClient.removeQueries({
         queryKey: ['/api/maintenance/projects', projectId]
+      });
+      // Explicitly remove the workflow state sub-key so no stale workflow
+      // data is served if another component queries it before refetch.
+      queryClient.removeQueries({
+        queryKey: ['/api/maintenance/projects', projectId, 'workflow']
       });
 
       toast({
