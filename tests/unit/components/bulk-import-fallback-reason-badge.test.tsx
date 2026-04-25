@@ -38,6 +38,11 @@ const REASONS: ReadonlyArray<{
     en: 'Staged file unreadable',
     fr: 'Fichier en attente illisible',
   },
+  {
+    reason: 'no_api_key',
+    en: 'AI unavailable',
+    fr: 'IA indisponible',
+  },
 ];
 
 describe('FallbackReasonBadge (bulk-document-import)', () => {
@@ -82,6 +87,7 @@ describe('FallbackReasonBadge (bulk-document-import)', () => {
       unsupported_mime: true,
       extraction_failed: true,
       missing_file: true,
+      no_api_key: true,
     };
     const covered = new Set(REASONS.map((r) => r.reason));
     for (const key of Object.keys(exhaustive) as BulkImportFallbackReason[]) {

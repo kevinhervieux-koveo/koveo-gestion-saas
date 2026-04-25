@@ -179,6 +179,18 @@ function getClient(): Anthropic | null {
 }
 
 /**
+ * Whether the analyzer can currently call Anthropic. Returns false when
+ * `ANTHROPIC_API_KEY` is missing or the SDK fails to initialise — in
+ * which case every analyzer call falls through to the deterministic
+ * 20%-confidence stub path. Exposed so the admin Bulk Document Import
+ * page can show a single page-level "AI unavailable" banner instead of
+ * relying on per-document fallback badges alone.
+ */
+export function isBulkImportAiAvailable(): boolean {
+  return getClient() !== null;
+}
+
+/**
  * Read the staged file (or use the supplied buffer) and turn it into
  * Anthropic content blocks plus an optional text prefix to inject into
  * the prompt. Any failure (missing file, oversize, unsupported type,
@@ -345,7 +357,11 @@ async function callClaudeJson<T>(
   step?: AnalyzerStep,
 ): Promise<{ data: T | null; fallbackReason: BulkImportFallbackReason | null }> {
   const c = getClient();
-  if (!c) return { data: null, fallbackReason: null };
+  // No Anthropic client = no AI run at all. Tag the result with
+  // `no_api_key` so the UI can show "AI unavailable" alongside the
+  // 20% stub instead of a generic low-confidence badge that makes
+  // admins think the AI ran and disagreed with the document.
+  if (!c) return { data: null, fallbackReason: 'no_api_key' };
   let fallbackReason: BulkImportFallbackReason | null = null;
   try {
     const loaded = await loadFileForClaude(source);

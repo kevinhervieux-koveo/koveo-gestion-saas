@@ -83,6 +83,67 @@ describe('bulkImportAnalyzer fallback mode', () => {
     });
     expect(r.relatedItemIds).toEqual([]);
   });
+
+  // Regression: when Anthropic isn't configured every analyzer entry
+  // point must tag the stub result with `no_api_key` so the bulk
+  // import UI can render the page-level "AI unavailable" banner and
+  // per-item badge instead of a generic 20% confidence pill (Task #710).
+  it("tags every fallback stub with 'no_api_key' when the client is missing", async () => {
+    const screen = await bulkImportAnalyzer.screen({
+      originalName: 'a.pdf',
+      mimeType: 'application/pdf',
+    });
+    const merge = await bulkImportAnalyzer.suggestMergeOrSplit({
+      originalName: 'a.pdf',
+      siblingNames: [],
+    });
+    const branch = await bulkImportAnalyzer.suggestBranch({
+      originalName: 'a.pdf',
+    });
+    const identify = await bulkImportAnalyzer.identify({
+      originalName: 'a.pdf',
+    });
+    const links = await bulkImportAnalyzer.suggestLinks({
+      originalName: 'a.pdf',
+      candidates: [],
+    });
+    expect(screen.fallbackReason).toBe('no_api_key');
+    expect(merge.fallbackReason).toBe('no_api_key');
+    expect(branch.fallbackReason).toBe('no_api_key');
+    expect(identify.fallbackReason).toBe('no_api_key');
+    expect(links.fallbackReason).toBe('no_api_key');
+  });
+});
+
+describe('isBulkImportAiAvailable health probe (Task #710)', () => {
+  // Used by the admin Bulk Document Import page to drive the
+  // page-level "AI unavailable" banner. Reflects whether the Anthropic
+  // client can currently be constructed.
+  beforeEach(() => {
+    bulkImportAnalyzer.__setClientForTests(null);
+  });
+  afterAll(() => {
+    bulkImportAnalyzer.__setClientForTests(null);
+    delete process.env.ANTHROPIC_API_KEY;
+  });
+
+  it('returns false when ANTHROPIC_API_KEY is missing', async () => {
+    const { isBulkImportAiAvailable } = await import(
+      '../../../server/services/bulk-import-analyzer'
+    );
+    delete process.env.ANTHROPIC_API_KEY;
+    expect(isBulkImportAiAvailable()).toBe(false);
+  });
+
+  it('returns true once a client has been initialised', async () => {
+    const { isBulkImportAiAvailable } = await import(
+      '../../../server/services/bulk-import-analyzer'
+    );
+    bulkImportAnalyzer.__setClientForTests({
+      messages: { create: jest.fn() },
+    } as unknown as Parameters<typeof bulkImportAnalyzer.__setClientForTests>[0]);
+    expect(isBulkImportAiAvailable()).toBe(true);
+  });
 });
 
 describe('bulkImportAnalyzer file attachments (Task #455)', () => {

@@ -5,6 +5,7 @@ const FALLBACK_REASON_LABEL_EN: Record<BulkImportFallbackReason, string> = {
   unsupported_mime: 'File type not supported by AI',
   extraction_failed: 'Could not extract document text',
   missing_file: 'Staged file unreadable',
+  no_api_key: 'AI unavailable',
 };
 
 const FALLBACK_REASON_LABEL_FR: Record<BulkImportFallbackReason, string> = {
@@ -12,6 +13,7 @@ const FALLBACK_REASON_LABEL_FR: Record<BulkImportFallbackReason, string> = {
   unsupported_mime: 'Type de fichier non pris en charge',
   extraction_failed: 'Extraction du texte impossible',
   missing_file: 'Fichier en attente illisible',
+  no_api_key: 'IA indisponible',
 };
 
 export const FALLBACK_REASON_LABELS = {

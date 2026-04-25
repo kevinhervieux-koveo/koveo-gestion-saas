@@ -31,6 +31,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useLanguage } from '@/hooks/use-language';
@@ -676,6 +677,21 @@ export default function BulkDocumentImportPage() {
     queryKey: ['/api/buildings'],
   });
 
+  /**
+   * Page-level AI health probe (Task #710). When the Anthropic key is
+   * missing every analyzer call falls back to a 20%-confidence stub.
+   * The page-level banner makes that explicit so admins don't scroll
+   * through dozens of fallback badges trying to figure out why nothing
+   * looks accurate. Defaulted to `available: true` so the banner stays
+   * hidden while the probe is loading or fails — better to be quiet
+   * than to flash a misleading warning.
+   */
+  const { data: aiStatus } = useQuery<{ available: boolean }>({
+    queryKey: ['/api/admin/bulk-import/ai-status'],
+  });
+  const aiAvailable = aiStatus?.available ?? true;
+  const [aiBannerDismissed, setAiBannerDismissed] = useState(false);
+
   // Pull the org list so each building's organizationId can be
   // resolved to a human-readable group header (Task #600). The picker
   // still renders gracefully if this is loading or fails — buildings
@@ -999,6 +1015,43 @@ export default function BulkDocumentImportPage() {
 
       <main className="flex-1 overflow-auto p-6">
         <div className="mx-auto max-w-6xl space-y-6">
+          {/* AI unavailability banner (Task #710). Surfaced once at the
+              top of the page so admins immediately understand that
+              every confidence score on this page is a deterministic
+              filename-only stub when Anthropic is not configured.
+              Dismissible per page visit because admins debugging a
+              broken deploy may want to keep working with stub data
+              and don't need to be reminded on every interaction. */}
+          {!aiAvailable && !aiBannerDismissed && (
+            <Alert
+              variant="destructive"
+              data-testid="alert-ai-unavailable"
+              className="border-amber-300 bg-amber-50 text-amber-900 [&>svg]:text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-100 dark:[&>svg]:text-amber-100"
+            >
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>
+                {isFr ? 'IA indisponible' : 'AI unavailable'}
+              </AlertTitle>
+              <AlertDescription className="space-y-2">
+                <p>
+                  {isFr
+                    ? "L'analyseur IA n'est pas configuré sur ce déploiement. Tous les documents recevront un score de confiance générique de 20 % basé uniquement sur le nom du fichier — aucune analyse réelle n'est effectuée."
+                    : 'The AI analyzer is not configured on this deployment. Every document will receive a generic 20% confidence score based on its filename only — no real analysis is performed.'}
+                </p>
+                <div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setAiBannerDismissed(true)}
+                    data-testid="button-dismiss-ai-banner"
+                  >
+                    {isFr ? 'Compris' : 'Got it'}
+                  </Button>
+                </div>
+              </AlertDescription>
+            </Alert>
+          )}
+
           {/* Back-to-start button (Task #591) — only shown while a
               session is active so admins can return to the picker +
               history list without deleting the session. */}

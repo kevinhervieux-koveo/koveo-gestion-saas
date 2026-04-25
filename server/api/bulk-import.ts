@@ -20,7 +20,10 @@ type AuthenticatedRequest = Request & { user?: { id: string; role: string } };
 import { db } from '../db';
 import * as schema from '@shared/schema';
 import { storage } from '../storage';
-import { bulkImportAnalyzer } from '../services/bulk-import-analyzer';
+import {
+  bulkImportAnalyzer,
+  isBulkImportAiAvailable,
+} from '../services/bulk-import-analyzer';
 import { documentService } from '../services/document-service';
 import { logError, logInfo } from '../utils/logger';
 
@@ -387,6 +390,27 @@ async function runAllForStep(sessionId: string, step: AutoStep): Promise<void> {
 }
 
 export function registerBulkImportRoutes(app: Express): void {
+  /**
+   * Lightweight health probe for the AI side of the bulk-import
+   * pipeline. Returns whether `ANTHROPIC_API_KEY` is configured and an
+   * Anthropic client can be constructed. The admin Bulk Document
+   * Import page polls this once on mount so it can render a single
+   * page-level "AI unavailable — results are filename-only stubs"
+   * banner instead of relying on per-document fallback badges alone.
+   *
+   * No payload validation; no DB hits. Admin-gated like the rest of
+   * this router so we don't leak deployment configuration to non-admin
+   * users.
+   */
+  app.get(
+    '/api/admin/bulk-import/ai-status',
+    requireAuth,
+    requireRole(['admin']),
+    async (_req: AuthenticatedRequest, res: Response) => {
+      return res.json({ available: isBulkImportAiAvailable() });
+    },
+  );
+
   /** Create a new session (or return the existing active one) for a building. */
   app.post(
     '/api/admin/bulk-import/sessions',
