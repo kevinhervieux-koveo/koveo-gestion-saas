@@ -93,8 +93,8 @@ export function ElementDetailsPanel({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/maintenance/buildings', element?.buildingId, 'elements'] });
       toast({
-        title: 'Element deleted',
-        description: 'The building element has been removed successfully',
+        title: t('edpElementDeletedToastTitle'),
+        description: t('edpElementDeletedToastDesc'),
       });
       // Call the onDelete callback to close the panel
       if (element) {
@@ -204,10 +204,10 @@ export function ElementDetailsPanel({
 
   const urgencyStatus = getUrgencyStatus();
   const urgencyConfig = {
-    'overdue': { color: 'text-red-600', bg: 'bg-red-100', icon: AlertTriangle, label: 'Overdue' },
-    'due-soon': { color: 'text-yellow-600', bg: 'bg-yellow-100', icon: Clock, label: 'Due Soon' },
-    'scheduled': { color: 'text-green-600', bg: 'bg-green-100', icon: CheckCircle, label: 'Scheduled' },
-    'not-scheduled': { color: 'text-gray-600', bg: 'bg-gray-100', icon: Calendar, label: 'Not Scheduled' },
+    'overdue': { color: 'text-red-600', bg: 'bg-red-100', icon: AlertTriangle, label: t('edpUrgencyOverdueLabel') },
+    'due-soon': { color: 'text-yellow-600', bg: 'bg-yellow-100', icon: Clock, label: t('edpUrgencyDueSoonLabel') },
+    'scheduled': { color: 'text-green-600', bg: 'bg-green-100', icon: CheckCircle, label: t('edpUrgencyScheduledLabel') },
+    'not-scheduled': { color: 'text-gray-600', bg: 'bg-gray-100', icon: Calendar, label: t('edpUrgencyNotScheduledLabel') },
   };
 
   const urgency = urgencyConfig[urgencyStatus];
@@ -249,7 +249,7 @@ export function ElementDetailsPanel({
           data-testid="edit-element-action"
         >
           <Edit2 className="h-4 w-4 mr-2" />
-          Edit
+          {t('edpEditAction')}
         </Button>
         <Button
           variant="outline"
@@ -258,7 +258,7 @@ export function ElementDetailsPanel({
           data-testid="upload-documents-action"
         >
           <Upload className="h-4 w-4 mr-2" />
-          Upload Files
+          {t('edpUploadFilesAction')}
         </Button>
         <Button
           variant="outline"
@@ -267,7 +267,7 @@ export function ElementDetailsPanel({
           data-testid="schedule-evaluation-action"
         >
           <Calendar className="h-4 w-4 mr-2" />
-          Schedule
+          {t('edpScheduleAction')}
         </Button>
         
         {onDelete && (
@@ -280,26 +280,25 @@ export function ElementDetailsPanel({
                 data-testid="delete-element-action"
               >
                 <Trash2 className="h-4 w-4 mr-2" />
-                Delete
+                {t('edpDeleteAction')}
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Delete Building Element</AlertDialogTitle>
-                {/* eslint-disable i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
+                <AlertDialogTitle>{t('edpDeleteDialogTitle')}</AlertDialogTitle>
                 <AlertDialogDescription>
                   {t('areYouSureYouWantTo2')}{element.name}{t('thisActionCannotBeUndoneAnd')}
                 </AlertDialogDescription>
                 {/* eslint-enable i18n/no-untranslated-jsx-strings */}
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogCancel>{t('edpDeleteDialogConfirmCancel')}</AlertDialogCancel>
                 <AlertDialogAction
                   onClick={() => deleteElementMutation.mutate(element)}
                   className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                   disabled={deleteElementMutation.isPending}
                 >
-                  {deleteElementMutation.isPending ? 'Deleting...' : 'Delete'}
+                  {deleteElementMutation.isPending ? t('edpDeletingProgress') : t('edpDeleteAction')}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
@@ -311,9 +310,9 @@ export function ElementDetailsPanel({
       <ScrollArea className="flex-1">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="p-6">
           <TabsList className="grid w-full grid-cols-3" data-testid="details-tabs">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="documents">Documents</TabsTrigger>
-            <TabsTrigger value="projects">Projects</TabsTrigger>
+            <TabsTrigger value="overview">{t('edpOverviewTab')}</TabsTrigger>
+            <TabsTrigger value="documents">{t('edpDocumentsTab')}</TabsTrigger>
+            <TabsTrigger value="projects">{t('edpProjectsTab')}</TabsTrigger>
           </TabsList>
 
           {/* Overview Tab */}
@@ -321,16 +320,16 @@ export function ElementDetailsPanel({
             {/* Status Card */}
             <Card data-testid="status-card">
               <CardHeader>
-                <CardTitle className="text-sm font-medium">Status & Evaluation</CardTitle>
+                <CardTitle className="text-sm font-medium">{t('edpStatusEvaluationTitle')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Current Condition</span>
+                  <span className="text-sm text-muted-foreground">{t('edpCurrentConditionLabel')}</span>
                   <ConditionBadge condition={element.currentCondition} />
                 </div>
                 
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Next Evaluation</span>
+                  <span className="text-sm text-muted-foreground">{t('edpNextEvaluationLabel')}</span>
                   <div className={cn('flex items-center gap-2 px-2 py-1 rounded-full text-xs', urgency.bg, urgency.color)}>
                     <urgency.icon className="h-3 w-3" />
                     {element.nextEvaluationDate ? format(parseISO(element.nextEvaluationDate), 'MMM d, yyyy') : urgency.label}
@@ -338,11 +337,11 @@ export function ElementDetailsPanel({
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Last Inspection</span>
+                  <span className="text-sm text-muted-foreground">{t('edpLastInspectionLabel')}</span>
                   <span className="text-sm">
                     {element.lastInspectionDate 
                       ? format(parseISO(element.lastInspectionDate), 'MMM d, yyyy')
-                      : 'Never'
+                      : t('edpLastInspectionNever')
                     }
                   </span>
                 </div>
@@ -355,23 +354,23 @@ export function ElementDetailsPanel({
                 <CardHeader>
                   <CardTitle className="text-sm font-medium flex items-center gap-2">
                     <TrendingUp className="h-4 w-4" />
-                    Lifespan Analysis
+                    {t('edpLifespanAnalysisTitle')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-sm">
-                      <span>Age Progress</span>
-                      <span className="font-medium">{age} / {currentLifespan} years</span>
+                      <span>{t('edpAgeProgressLabel')}</span>
+                      <span className="font-medium">{age} / {currentLifespan} {t('edpYearsSuffix')}</span>
                     </div>
                     <Progress value={lifespanProgress} className="h-2" data-testid="lifespan-progress" />
                     <div className="text-xs text-muted-foreground">
                       {lifespanProgress > 80 ? (
-                        <span className="text-red-600">⚠️ Nearing end of lifespan</span>
+                        <span className="text-red-600">⚠️ {t('edpNearingEndLifespan')}</span>
                       ) : lifespanProgress > 60 ? (
-                        <span className="text-yellow-600">⚡ Aging, monitor closely</span>
+                        <span className="text-yellow-600">⚡ {t('edpAgingMonitor')}</span>
                       ) : (
-                        <span className="text-green-600">✓ Good remaining lifespan</span>
+                        <span className="text-green-600">✓ {t('edpGoodRemaining')}</span>
                       )}
                     </div>
                   </div>
@@ -380,18 +379,18 @@ export function ElementDetailsPanel({
 
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <div className="text-muted-foreground">Original Lifespan</div>
-                      <div className="font-medium">{originalLifespan} years</div>
+                      <div className="text-muted-foreground">{t('edpOriginalLifespanLabel')}</div>
+                      <div className="font-medium">{originalLifespan} {t('edpYearsSuffix')}</div>
                     </div>
                     <div>
-                      <div className="text-muted-foreground">Current Lifespan</div>
-                      <div className="font-medium">{currentLifespan} years</div>
+                      <div className="text-muted-foreground">{t('edpCurrentLifespanLabel')}</div>
+                      <div className="font-medium">{currentLifespan} {t('edpYearsSuffix')}</div>
                     </div>
                   </div>
 
                   {element.originalConstructionDate && (
                     <div>
-                      <div className="text-muted-foreground text-sm">Construction Date</div>
+                      <div className="text-muted-foreground text-sm">{t('edpConstructionDateLabel')}</div>
                       <div className="font-medium">{format(parseISO(element.originalConstructionDate), 'MMMM d, yyyy')}</div>
                     </div>
                   )}
@@ -404,19 +403,19 @@ export function ElementDetailsPanel({
               <CardHeader>
                 <CardTitle className="text-sm font-medium flex items-center gap-2">
                   <Calculator className="h-4 w-4" />
-                  Specifications
+                  {t('edpSpecificationsTitle')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 {element.unitValue && element.unit && (
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Quantity</span>
+                    <span className="text-sm text-muted-foreground">{t('edpQuantityLabel')}</span>
                     <span className="font-medium">{element.unitValue} {element.unit}</span>
                   </div>
                 )}
                 
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">UNIFORMAT Code</span>
+                  <span className="text-sm text-muted-foreground">{t('edpUniformatCodeLabel')}</span>
                   <Badge variant="outline">{element.uniformatCode}</Badge>
                 </div>
 
@@ -424,7 +423,7 @@ export function ElementDetailsPanel({
                   <>
                     <Separator />
                     <div>
-                      <div className="text-sm text-muted-foreground mb-1">Notes</div>
+                      <div className="text-sm text-muted-foreground mb-1">{t('edpNotesLabel')}</div>
                       <p className="text-sm">{element.notes}</p>
                     </div>
                   </>
@@ -457,7 +456,7 @@ export function ElementDetailsPanel({
                       <div className="flex-1 min-w-0">
                         <div className="font-medium text-sm truncate">{doc.fileName}</div>
                         <div className="text-xs text-muted-foreground">
-                          {doc.documentType} • {doc.fileSize ? `${(doc.fileSize / 1024).toFixed(1)} KB` : 'Unknown size'}
+                          {doc.documentType} • {doc.fileSize ? `${(doc.fileSize / 1024).toFixed(1)} KB` : t('edpUnknownSize')}
                         </div>
                       </div>
                       <div className="flex gap-1">
@@ -475,7 +474,7 @@ export function ElementDetailsPanel({
             ) : (
               <div className="text-center py-8 text-muted-foreground">
                 <FileText className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                <p>No documents uploaded</p>
+                <p>{t('edpNoDocumentsUploaded')}</p>
               </div>
             )}
           </TabsContent>
@@ -496,7 +495,7 @@ export function ElementDetailsPanel({
                       <div>
                         <div className="font-medium text-sm">{project.title}</div>
                         <div className="text-xs text-muted-foreground">
-                          Project #{project.projectNumber}
+                          {t('edpProjectNumberPrefix')} #{project.projectNumber}
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -517,7 +516,7 @@ export function ElementDetailsPanel({
             ) : (
               <div className="text-center py-8 text-muted-foreground">
                 <Building className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                <p>No related projects</p>
+                <p>{t('edpNoRelatedProjects')}</p>
               </div>
             )}
           </TabsContent>

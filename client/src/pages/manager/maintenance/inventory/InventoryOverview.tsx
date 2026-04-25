@@ -111,8 +111,8 @@ export function InventoryOverview({ className, buildingId, organizationId, build
       // Force refetch the building data immediately
       queryClient.refetchQueries({ queryKey: ['/api/manager/buildings', buildingId] });
       toast({
-        title: 'Building updated',
-        description: 'Construction date has been updated successfully',
+        title: t('iovBuildingUpdatedTitle'),
+        description: t('iovBuildingUpdatedDesc'),
       });
       setIsEditingDate(false);
     },
@@ -131,8 +131,8 @@ export function InventoryOverview({ className, buildingId, organizationId, build
   const handleSaveDate = () => {
     if (!editingDate) {
       toast({
-        title: 'Invalid date',
-        description: 'Please select a valid construction date',
+        title: t('iovInvalidDateTitle'),
+        description: t('iovInvalidDateDesc'),
         variant: 'destructive',
       });
       return;
@@ -141,8 +141,8 @@ export function InventoryOverview({ className, buildingId, organizationId, build
     const currentYear = new Date().getFullYear();
     if (editingDate.getFullYear() < 1800 || editingDate.getFullYear() > currentYear) {
       toast({
-        title: 'Invalid date',
-        description: `Please select a date between 1800 and ${currentYear}`,
+        title: t('iovInvalidDateTitle'),
+        description: t('iovInvalidDateRangeDesc'),
         variant: 'destructive',
       });
       return;
@@ -249,7 +249,7 @@ export function InventoryOverview({ className, buildingId, organizationId, build
         <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg border">
           <div className="flex items-center gap-2">
             <Package className="h-5 w-5 text-muted-foreground" />
-            <h3 className="text-lg font-semibold">Inventory Overview</h3>
+            <h3 className="text-lg font-semibold">{t('iovHeaderTitle')}</h3>
           </div>
           <CollapsibleTrigger asChild>
             <Button variant="ghost" size="sm" data-testid="inventory-overview-toggle">
@@ -258,7 +258,7 @@ export function InventoryOverview({ className, buildingId, organizationId, build
               ) : (
                 <ChevronRight className="h-4 w-4" />
               )}
-              <span className="sr-only">Toggle inventory overview</span>
+              <span className="sr-only">{t('iovToggleSrText')}</span>
             </Button>
           </CollapsibleTrigger>
         </div>
@@ -291,11 +291,11 @@ export function InventoryOverview({ className, buildingId, organizationId, build
   };
 
   const conditionLabels = {
-    excellent: 'Excellent',
-    good: 'Good',
-    fair: 'Fair',
-    poor: 'Poor',
-    critical: 'Critical',
+    excellent: t('iovConditionExcellent'),
+    good: t('iovConditionGood'),
+    fair: t('iovConditionFair'),
+    poor: t('iovConditionPoor'),
+    critical: t('iovConditionCritical'),
   };
 
   return (
@@ -308,7 +308,7 @@ export function InventoryOverview({ className, buildingId, organizationId, build
       <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg border">
         <div className="flex items-center gap-2">
           <Package className="h-5 w-5 text-muted-foreground" />
-          <h3 className="text-lg font-semibold">Inventory Overview</h3>
+          <h3 className="text-lg font-semibold">{t('iovHeaderTitle')}</h3>
           {building?.name && (
             <span className="text-sm text-muted-foreground">- {building.name}</span>
           )}
@@ -320,7 +320,7 @@ export function InventoryOverview({ className, buildingId, organizationId, build
             ) : (
               <ChevronRight className="h-4 w-4" />
             )}
-            <span className="sr-only">Toggle inventory overview</span>
+            <span className="sr-only">{t('iovToggleSrText')}</span>
           </Button>
         </CollapsibleTrigger>
       </div>
@@ -329,7 +329,7 @@ export function InventoryOverview({ className, buildingId, organizationId, build
         {/* Building Construction Date Field */}
         <Card data-testid="building-construction-date-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Building Construction Date</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('iovBuildingConstructionDate')}</CardTitle>
             <Building className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -397,7 +397,7 @@ export function InventoryOverview({ className, buildingId, organizationId, build
               )}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Default for new elements
+              {t('iovDefaultForNewElements')}
             </p>
           </CardContent>
         </Card>
@@ -406,7 +406,7 @@ export function InventoryOverview({ className, buildingId, organizationId, build
       {/* Total Elements */}
       <Card data-testid="total-elements-card">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Total Elements</CardTitle>
+          <CardTitle className="text-sm font-medium">{t('iovTotalElementsTitle')}</CardTitle>
           <Package className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
@@ -414,7 +414,7 @@ export function InventoryOverview({ className, buildingId, organizationId, build
             {metrics.totalElements}
           </div>
           <p className="text-xs text-muted-foreground">
-            Building inventory items
+            {t('iovBuildingInventoryItems')}
           </p>
         </CardContent>
       </Card>
@@ -422,7 +422,7 @@ export function InventoryOverview({ className, buildingId, organizationId, build
       {/* Critical Alerts */}
       <Card data-testid="critical-alerts-card">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Critical Alerts</CardTitle>
+          <CardTitle className="text-sm font-medium">{t('iovCriticalAlertsTitle')}</CardTitle>
           <AlertTriangle className="h-4 w-4 text-red-500" />
         </CardHeader>
         <CardContent>
@@ -430,7 +430,7 @@ export function InventoryOverview({ className, buildingId, organizationId, build
             {metrics.criticalElements}
           </div>
           <p className="text-xs text-muted-foreground">
-            Poor or critical condition
+            {t('iovPoorOrCriticalCondition')}
           </p>
         </CardContent>
       </Card>
@@ -438,7 +438,7 @@ export function InventoryOverview({ className, buildingId, organizationId, build
       {/* Overdue Evaluations */}
       <Card data-testid="overdue-evaluations-card">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Overdue Evaluations</CardTitle>
+          <CardTitle className="text-sm font-medium">{t('iovOverdueEvaluationsTitle')}</CardTitle>
           <Clock className="h-4 w-4 text-orange-500" />
         </CardHeader>
         <CardContent>
@@ -446,7 +446,7 @@ export function InventoryOverview({ className, buildingId, organizationId, build
             {metrics.overdueElements}
           </div>
           <p className="text-xs text-muted-foreground">
-            Past due date
+            {t('iovPastDueDate')}
           </p>
         </CardContent>
       </Card>
@@ -454,7 +454,7 @@ export function InventoryOverview({ className, buildingId, organizationId, build
       {/* Total Asset Value */}
       <Card data-testid="asset-value-card">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Asset Value</CardTitle>
+          <CardTitle className="text-sm font-medium">{t('iovAssetValueTitle')}</CardTitle>
           <DollarSign className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
@@ -462,7 +462,7 @@ export function InventoryOverview({ className, buildingId, organizationId, build
             ${metrics.totalAssetValue > 0 ? Math.round(metrics.totalAssetValue / 1000).toLocaleString() : '—'}K
           </div>
           <p className="text-xs text-muted-foreground">
-            Estimated replacement cost
+            {t('iovEstimatedReplacementCost')}
           </p>
         </CardContent>
       </Card>
@@ -472,7 +472,7 @@ export function InventoryOverview({ className, buildingId, organizationId, build
         <CardHeader>
           <CardTitle className="text-sm font-medium flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
-            Condition Breakdown
+            {t('iovConditionBreakdownTitle')}
           </CardTitle>
           <CardDescription>
             {t('distributionOfElementConditions')}
@@ -511,24 +511,24 @@ export function InventoryOverview({ className, buildingId, organizationId, build
         <CardHeader>
           <CardTitle className="text-sm font-medium flex items-center gap-2">
             <Activity className="h-4 w-4" />
-            Quick Statistics
+            {t('iovQuickStatisticsTitle')}
           </CardTitle>
           <CardDescription>
-            Key insights and trends
+            {t('iovKeyInsightsTrends')}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1" data-testid="average-age-stat">
-              <div className="text-sm text-muted-foreground">Average Age</div>
-              <div className="text-lg font-semibold">{metrics.averageAge} years</div>
+              <div className="text-sm text-muted-foreground">{t('iovAverageAgeLabel')}</div>
+              <div className="text-lg font-semibold">{metrics.averageAge} {t('iovYearsSuffix')}</div>
             </div>
             <div className="space-y-1" data-testid="due-soon-stat">
-              <div className="text-sm text-muted-foreground">Due Soon (30 days)</div>
+              <div className="text-sm text-muted-foreground">{t('iovDueSoonLabel')}</div>
               <div className="text-lg font-semibold text-yellow-600">{metrics.dueSoonElements}</div>
             </div>
             <div className="space-y-1" data-testid="most-common-category-stat">
-              <div className="text-sm text-muted-foreground">Most Common Category</div>
+              <div className="text-sm text-muted-foreground">{t('iovMostCommonCategoryLabel')}</div>
               <div className="text-lg font-semibold">
                 {metrics.mostCommonCategory ? (
                   <Badge variant="outline">

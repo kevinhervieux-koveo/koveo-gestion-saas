@@ -19,6 +19,7 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { MaintenanceProject } from '@shared/schemas/maintenance';
 import { cn, parseDateOnly } from '@/lib/utils';
+import { useLanguage } from '@/hooks/use-language';
 import {
   MoreHorizontal,
   Edit2,
@@ -62,34 +63,34 @@ interface ProjectMetrics {
   nextMilestone?: string;
 }
 
-const getTypeConfig = (type: string) => {
+const getTypeConfig = (type: string, t: (key: string) => string) => {
   const typeConfigs = {
     evaluation: { 
-      label: 'Evaluation', 
+      label: t('pcTypeEvaluation'), 
       icon: Target, 
       color: 'text-purple-600 bg-purple-50 border-purple-200',
       darkColor: 'dark:text-purple-300 dark:bg-purple-950 dark:border-purple-800'
     },
     repair: { 
-      label: 'Repair', 
+      label: t('pcTypeRepair'), 
       icon: Building2, 
       color: 'text-orange-600 bg-orange-50 border-orange-200',
       darkColor: 'dark:text-orange-300 dark:bg-orange-950 dark:border-orange-800'
     },
     minor_rehab: { 
-      label: 'Minor Rehab', 
+      label: t('pcTypeMinorRehab'), 
       icon: Building2, 
       color: 'text-blue-600 bg-blue-50 border-blue-200',
       darkColor: 'dark:text-blue-300 dark:bg-blue-950 dark:border-blue-800'
     },
     major_rehab: { 
-      label: 'Major Rehab', 
+      label: t('pcTypeMajorRehab'), 
       icon: Building2, 
       color: 'text-indigo-600 bg-indigo-50 border-indigo-200',
       darkColor: 'dark:text-indigo-300 dark:bg-indigo-950 dark:border-indigo-800'
     },
     replacement: { 
-      label: 'Replacement', 
+      label: t('pcTypeReplacement'), 
       icon: CheckCircle2, 
       color: 'text-green-600 bg-green-50 border-green-200',
       darkColor: 'dark:text-green-300 dark:bg-green-950 dark:border-green-800'
@@ -151,6 +152,7 @@ export function ProjectCard({
   showMetrics = true,
   interactive = true,
 }: ProjectCardProps) {
+  const { t } = useLanguage();
   const { hasPermission, buildingId } = useBuildingContext();
   const { toast } = useToast();
 
@@ -163,10 +165,10 @@ export function ProjectCard({
       });
       return response.json();
     },
-    successTitle: 'Status Updated',
-    successMessage: 'Project status has been updated successfully.',
-    errorTitle: 'Update Failed',
-    errorMessage: 'Failed to update project status. Please try again.',
+    successTitle: t('pcStatusUpdatedTitle'),
+    successMessage: t('pcStatusUpdatedDesc'),
+    errorTitle: t('pcUpdateFailedTitle'),
+    errorMessage: t('pcUpdateFailedDesc'),
     queryKeysToInvalidate: [['/api/maintenance/buildings', buildingId, 'projects']],
     onErrorCallback: (error) => {
       console.error('Status update failed:', error);
@@ -181,7 +183,7 @@ export function ProjectCard({
     }
   };
 
-  const typeConfig = getTypeConfig(project.type);
+  const typeConfig = getTypeConfig(project.type, t);
   const TypeIcon = typeConfig.icon;
   const compact = variant === 'compact';
 
@@ -202,7 +204,7 @@ export function ProjectCard({
           text: (
             <span className="flex items-center gap-1">
               <AlertTriangle className="h-3 w-3" />
-              Overdue
+              {t('pcOverdueBadge')}
             </span>
           ),
           variant: 'destructive' as const,
@@ -211,7 +213,7 @@ export function ProjectCard({
           text: (
             <span className="flex items-center gap-1">
               <TrendingUp className="h-3 w-3" />
-              Over Budget
+              {t('pcOverBudgetBadge')}
             </span>
           ),
           variant: 'destructive' as const,
@@ -220,7 +222,7 @@ export function ProjectCard({
           text: (
             <span className="flex items-center gap-1">
               <Zap className="h-3 w-3" />
-              Critical Priority
+              {t('pcCriticalPriorityBadge')}
             </span>
           ),
           variant: 'destructive' as const,
@@ -238,7 +240,7 @@ export function ProjectCard({
           value: `#${project.projectNumber}`,
         },
         ...(metrics.lastActivity ? [{
-          value: `Updated ${format(new Date(metrics.lastActivity), 'MMM dd')}`,
+          value: `${t('pcUpdatedPrefix')} ${format(new Date(metrics.lastActivity), 'MMM dd')}`,
         }] : []),
         ...(project.totalBudget ? [{
           icon: <DollarSign className="w-3 h-3" />,
@@ -247,8 +249,8 @@ export function ProjectCard({
         ...(metrics.daysRemaining !== undefined ? [{
           icon: <Clock className="w-3 h-3" />,
           value: metrics.isOverdue 
-            ? `${Math.abs(metrics.daysRemaining)} days overdue`
-            : `${metrics.daysRemaining} days remaining`,
+            ? `${Math.abs(metrics.daysRemaining)} ${t('pcDaysOverdueSuffix')}`
+            : `${metrics.daysRemaining} ${t('pcDaysRemainingSuffix')}`,
         }] : []),
       ];
 
@@ -263,12 +265,12 @@ export function ProjectCard({
           className="h-8 w-8 p-0"
           data-testid={`project-card-actions-${project.id}`}
         >
-          <span className="sr-only">Open menu</span>
+          <span className="sr-only">{t('pcOpenMenu')}</span>
           <MoreHorizontal className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuLabel>Quick Actions</DropdownMenuLabel>
+        <DropdownMenuLabel>{t('pcQuickActionsLabel')}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         
         <DropdownMenuItem 
@@ -276,7 +278,7 @@ export function ProjectCard({
           data-testid={`project-card-edit-${project.id}`}
         >
           <Edit2 className="mr-2 h-4 w-4" />
-          Edit Project
+          {t('pcEditProject')}
         </DropdownMenuItem>
         
         <DropdownMenuItem 
@@ -284,7 +286,7 @@ export function ProjectCard({
           data-testid={`project-card-timeline-${project.id}`}
         >
           <Calendar className="mr-2 h-4 w-4" />
-          View Timeline
+          {t('pcViewTimeline')}
         </DropdownMenuItem>
         
         <DropdownMenuItem 
@@ -292,7 +294,7 @@ export function ProjectCard({
           data-testid={`project-card-notes-${project.id}`}
         >
           <FileText className="mr-2 h-4 w-4" />
-          Add Notes
+          {t('pcAddNotes')}
         </DropdownMenuItem>
 
         <DropdownMenuSeparator />
@@ -303,7 +305,7 @@ export function ProjectCard({
             data-testid={`project-card-start-work-${project.id}`}
           >
             <Play className="mr-2 h-4 w-4" />
-            Start Work
+            {t('pcStartWork')}
           </DropdownMenuItem>
         )}
         
@@ -313,7 +315,7 @@ export function ProjectCard({
             data-testid={`project-card-complete-work-${project.id}`}
           >
             <CheckCircle2 className="mr-2 h-4 w-4" />
-            Complete Work
+            {t('pcCompleteWork')}
           </DropdownMenuItem>
         )}
       </DropdownMenuContent>
@@ -345,7 +347,7 @@ export function ProjectCard({
       actions={shouldShowQuickActions ? [
         {
           icon: <ActionsDropdown />,
-          label: 'Actions',
+          label: t('pcQuickActionsLabel'),
           onClick: () => {},
         },
       ] : []}
@@ -371,7 +373,7 @@ export function ProjectCard({
           {showProgress && (
             <div className="space-y-2" data-testid={`project-progress-${project.id}`}>
               <div className="flex items-center justify-between text-sm">
-                <span className="font-medium">Progress</span>
+                <span className="font-medium">{t('pcProgressLabel')}</span>
                 <span className="text-muted-foreground">{metrics.progress}%</span>
               </div>
               <Progress value={metrics.progress} className="h-2" />
@@ -385,7 +387,7 @@ export function ProjectCard({
                 <div className="space-y-1">
                   <div className="flex items-center gap-1 text-xs text-muted-foreground">
                     <Calendar className="h-3 w-3" />
-                    Start Date
+                    {t('pcStartDateLabel')}
                   </div>
                   <div className="text-sm font-medium">
                     {format(parseDateOnly(project.plannedStartDate)!, 'MMM dd, yyyy')}
@@ -397,7 +399,7 @@ export function ProjectCard({
                 <div className="space-y-1">
                   <div className="flex items-center gap-1 text-xs text-muted-foreground">
                     <Clock className="h-3 w-3" />
-                    End Date
+                    {t('pcEndDateLabel')}
                   </div>
                   <div className="text-sm font-medium">
                     {format(parseDateOnly(project.plannedEndDate)!, 'MMM dd, yyyy')}
@@ -409,8 +411,8 @@ export function ProjectCard({
                       metrics.daysRemaining <= 7 ? "text-yellow-600" : "text-green-600"
                     )}>
                       {metrics.isOverdue 
-                        ? `${Math.abs(metrics.daysRemaining)} days overdue`
-                        : `${metrics.daysRemaining} days remaining`
+                        ? `${Math.abs(metrics.daysRemaining)} ${t('pcDaysOverdueSuffix')}`
+                        : `${metrics.daysRemaining} ${t('pcDaysRemainingSuffix')}`
                       }
                     </div>
                   )}
@@ -426,7 +428,7 @@ export function ProjectCard({
                 <div className="space-y-1">
                   <div className="flex items-center gap-1 text-xs text-muted-foreground">
                     <DollarSign className="h-3 w-3" />
-                    Budget
+                    {t('pcBudgetLabel')}
                   </div>
                   <div className="text-sm font-medium">
                     ${parseFloat(project.totalBudget).toLocaleString()}
@@ -435,7 +437,7 @@ export function ProjectCard({
                     <span className={cn(
                       metrics.isOverBudget ? "text-red-600" : "text-green-600"
                     )}>
-                      {metrics.budgetUtilization}% used
+                      {metrics.budgetUtilization}{t('pcBudgetUsedSuffix')}
                     </span>
                     {metrics.isOverBudget ? (
                       <TrendingUp className="h-3 w-3 text-red-600" />
@@ -449,13 +451,13 @@ export function ProjectCard({
               <div className="space-y-1">
                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
                   <Users className="h-3 w-3" />
-                  Elements
+                  {t('pcElementsLabel')}
                 </div>
                 <div className="text-sm font-medium">
-                  {metrics.elementCount} assigned
+                  {metrics.elementCount} {t('pcElementsAssignedSuffix')}
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  Building components
+                  {t('pcBuildingComponents')}
                 </div>
               </div>
             </div>

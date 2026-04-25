@@ -85,7 +85,7 @@ export function InventoryHeader({
         <div className="flex items-center gap-3 pb-2 border-b">
           <Button variant="ghost" size="sm" onClick={onBack} data-testid="back-to-building">
             <ChevronLeft className="h-4 w-4 mr-1" />
-            Back to Building
+            {t('ihdrBackToBuildingButton')}
           </Button>
           {buildingName && (
             <div className="flex items-center gap-2 text-muted-foreground">
@@ -101,7 +101,7 @@ export function InventoryHeader({
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div className="space-y-1">
           <h1 className="text-2xl font-bold text-foreground" data-testid="page-title">
-            Inventory - Building Elements
+            {t('ihdrPageTitle')}
           </h1>
           {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
           <p className="text-muted-foreground">
@@ -114,7 +114,7 @@ export function InventoryHeader({
           {onAddElement && (
             <Button onClick={onAddElement} data-testid="add-element-button">
               <Plus className="h-4 w-4 mr-2" />
-              Add Element
+              {t('ihdrAddElement')}
             </Button>
           )}
         </div>
@@ -126,8 +126,7 @@ export function InventoryHeader({
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
           <Input
-            // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
-            placeholder="Search elements by name, UNIFORMAT code, or description..."
+            placeholder={t('ihdrSearchPlaceholder')}
             value={searchTerm}
             onChange={(e) => onSearchChange?.(e.target.value)}
             className="pl-10"
@@ -144,10 +143,10 @@ export function InventoryHeader({
             data-testid="filters-toggle"
           >
             <Filter className="h-4 w-4 mr-2" />
-            Filters
+            {t('ihdrFilters')}
             {(conditionFilter || uniformatFilter || showOverdueOnly) && (
               <Badge variant="secondary" className="ml-2 text-xs">
-                {[conditionFilter, uniformatFilter, showOverdueOnly && 'Overdue'].filter(Boolean).length}
+                {[conditionFilter, uniformatFilter, showOverdueOnly && t('ihdrOverdueLabel')].filter(Boolean).length}
               </Badge>
             )}
           </Button>
@@ -159,7 +158,7 @@ export function InventoryHeader({
             data-testid="overdue-filter-button"
           >
             <AlertTriangle className="h-4 w-4 mr-2" />
-            Overdue Evaluations
+            {t('ihdrOverdueEvaluations')}
           </Button>
         </div>
       </div>
@@ -169,41 +168,41 @@ export function InventoryHeader({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-muted/50 rounded-lg border" data-testid="expanded-filters">
           {/* Condition Filter */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Condition</label>
+            <label className="text-sm font-medium">{t('ihdrConditionLabel')}</label>
             <Select value={conditionFilter} onValueChange={onConditionFilterChange}>
               <SelectTrigger data-testid="condition-filter">
-                <SelectValue placeholder="All conditions" />
+                <SelectValue placeholder={t('ihdrAllConditionsPlaceholder')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Conditions</SelectItem>
+                <SelectItem value="all">{t('ihdrAllConditionsItem')}</SelectItem>
                 <SelectItem value="excellent">
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-green-500" />
-                    Excellent
+                    {t('ihdrConditionExcellent')}
                   </div>
                 </SelectItem>
                 <SelectItem value="good">
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-blue-500" />
-                    Good
+                    {t('ihdrConditionGood')}
                   </div>
                 </SelectItem>
                 <SelectItem value="fair">
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-yellow-500" />
-                    Fair
+                    {t('ihdrConditionFair')}
                   </div>
                 </SelectItem>
                 <SelectItem value="poor">
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-orange-500" />
-                    Poor
+                    {t('ihdrConditionPoor')}
                   </div>
                 </SelectItem>
                 <SelectItem value="critical">
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-red-500" />
-                    Critical
+                    {t('ihdrConditionCritical')}
                   </div>
                 </SelectItem>
               </SelectContent>
@@ -212,27 +211,27 @@ export function InventoryHeader({
 
           {/* UNIFORMAT Category Filter */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">UNIFORMAT Category</label>
+            <label className="text-sm font-medium">{t('ihdrUniformatCategoryLabel')}</label>
             <Select value={uniformatFilter} onValueChange={onUniformatFilterChange}>
               <SelectTrigger data-testid="uniformat-filter">
-                <SelectValue placeholder="All categories" />
+                <SelectValue placeholder={t('ihdrAllCategoriesPlaceholder')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                <SelectItem value="A">A - Substructure</SelectItem>
-                <SelectItem value="B">B - Shell</SelectItem>
-                <SelectItem value="C">C - Interiors</SelectItem>
-                <SelectItem value="D">D - Services</SelectItem>
-                <SelectItem value="E">E - Equipment & Furnishings</SelectItem>
-                <SelectItem value="F">F - Special Construction</SelectItem>
-                <SelectItem value="G">G - Building Sitework</SelectItem>
+                <SelectItem value="all">{t('ihdrAllCategoriesItem')}</SelectItem>
+                <SelectItem value="A">{t('ihdrUniformatA')}</SelectItem>
+                <SelectItem value="B">{t('ihdrUniformatB')}</SelectItem>
+                <SelectItem value="C">{t('ihdrUniformatC')}</SelectItem>
+                <SelectItem value="D">{t('ihdrUniformatD')}</SelectItem>
+                <SelectItem value="E">{t('ihdrUniformatE')}</SelectItem>
+                <SelectItem value="F">{t('ihdrUniformatF')}</SelectItem>
+                <SelectItem value="G">{t('ihdrUniformatG')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           {/* Evaluation Status Filter */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Evaluation Status</label>
+            <label className="text-sm font-medium">{t('ihdrEvaluationStatusLabel')}</label>
             <div className="flex flex-wrap gap-2">
               <Button
                 variant={showOverdueOnly ? 'default' : 'outline'}
@@ -241,7 +240,7 @@ export function InventoryHeader({
                 data-testid="overdue-evaluations-filter"
               >
                 <Clock className="h-3 w-3 mr-1" />
-                Overdue
+                {t('ihdrFilterOverdue')}
               </Button>
               <Button
                 variant="outline"
@@ -252,7 +251,7 @@ export function InventoryHeader({
                 data-testid="due-soon-filter"
               >
                 <AlertTriangle className="h-3 w-3 mr-1" />
-                Due Soon
+                {t('ihdrFilterDueSoon')}
               </Button>
               <Button
                 variant="outline"
@@ -263,7 +262,7 @@ export function InventoryHeader({
                 data-testid="up-to-date-filter"
               >
                 <CheckCircle className="h-3 w-3 mr-1" />
-                Up to Date
+                {t('ihdrFilterUpToDate')}
               </Button>
             </div>
           </div>

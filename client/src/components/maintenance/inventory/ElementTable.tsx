@@ -103,14 +103,14 @@ export function ElementTable({
       // Also invalidate the inventory overview data
       queryClient.invalidateQueries({ queryKey: ['/api/maintenance/buildings'] });
       toast({
-        title: 'Element deleted',
-        description: 'The building element has been removed successfully',
+        title: t('etElementDeletedTitle'),
+        description: t('etElementDeletedDesc'),
       });
     },
     onError: (error: any) => {
       toast({
-        title: 'Delete failed',
-        description: error.message || 'Failed to delete building element',
+        title: t('etDeleteFailedSingleTitle'),
+        description: error.message || t('etDeleteFailedSingleDesc'),
         variant: 'destructive',
       });
     },
@@ -248,7 +248,7 @@ export function ElementTable({
           <Checkbox
             checked={table.getIsAllPageRowsSelected()}
             onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-            aria-label="Select all elements"
+            aria-label={t('etSelectAllAria')}
             data-testid="select-all-checkbox"
           />
         ),
@@ -256,7 +256,7 @@ export function ElementTable({
           <Checkbox
             checked={row.getIsSelected()}
             onCheckedChange={(value) => row.toggleSelected(!!value)}
-            aria-label="Select element"
+            aria-label={t('etSelectElementAria')}
             data-testid={`select-element-${row.original.id}`}
           />
         ),
@@ -268,7 +268,7 @@ export function ElementTable({
       // Element name and UNIFORMAT code
       {
         accessorKey: 'name',
-        header: 'Element',
+        header: t('etElementColumn'),
         cell: ({ row }) => {
           const element = row.original;
           return (
@@ -292,7 +292,7 @@ export function ElementTable({
       // Current condition
       {
         accessorKey: 'currentCondition',
-        header: 'Condition',
+        header: t('etConditionColumn'),
         cell: ({ row }) => {
           const condition = row.original.currentCondition;
           return (
@@ -312,7 +312,7 @@ export function ElementTable({
       // Age and lifespan
       {
         id: 'age',
-        header: 'Age / Lifespan',
+        header: t('etAgeLifespanColumn'),
         cell: ({ row }) => {
           const element = row.original;
           const age = calculateElementAge(element.originalConstructionDate);
@@ -325,7 +325,7 @@ export function ElementTable({
           return (
             <div className="space-y-1 min-w-0" data-testid={`age-${element.id}`}>
               <div className="text-sm font-medium">
-                {age} / {currentLifespan || originalLifespan || '—'} years
+                {age} / {currentLifespan || originalLifespan || '—'} {t('etYearsSuffix')}
               </div>
               {originalLifespan && (
                 <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
@@ -352,13 +352,13 @@ export function ElementTable({
       // Last inspection
       {
         accessorKey: 'lastInspectionDate',
-        header: 'Last Inspection',
+        header: t('etLastInspectionColumn'),
         cell: ({ row }) => {
           const date = row.original.lastInspectionDate;
           if (!date) {
             return (
               <Badge variant="outline" className="text-muted-foreground">
-                Never
+                {t('etNeverBadge')}
               </Badge>
             );
           }
@@ -374,7 +374,7 @@ export function ElementTable({
               {isOld && (
                 <Badge variant="outline" className="text-xs text-orange-600">
                   <AlertTriangle className="h-3 w-3 mr-1" />
-                  Overdue
+                  {t('etOverdueBadge')}
                 </Badge>
               )}
             </div>
@@ -387,13 +387,13 @@ export function ElementTable({
       // Next evaluation
       {
         accessorKey: 'nextEvaluationDate',
-        header: 'Next Evaluation',
+        header: t('etNextEvaluationColumn'),
         cell: ({ row }) => {
           const date = row.original.nextEvaluationDate;
           if (!date) {
             return (
               <Badge variant="outline" className="text-muted-foreground">
-                Not scheduled
+                {t('etNotScheduledBadge')}
               </Badge>
             );
           }
@@ -402,10 +402,10 @@ export function ElementTable({
           const evaluationDate = parseISO(date);
           
           const urgencyConfig = {
-            overdue: { variant: 'destructive' as const, icon: AlertTriangle, label: 'Overdue' },
-            'due-soon': { variant: 'outline' as const, icon: Clock, label: 'Due Soon' },
-            scheduled: { variant: 'secondary' as const, icon: Calendar, label: 'Scheduled' },
-            none: { variant: 'outline' as const, icon: Calendar, label: 'Not Set' },
+            overdue: { variant: 'destructive' as const, icon: AlertTriangle, label: t('etOverdueBadge') },
+            'due-soon': { variant: 'outline' as const, icon: Clock, label: t('etDueSoonBadge') },
+            scheduled: { variant: 'secondary' as const, icon: Calendar, label: t('etScheduledBadge') },
+            none: { variant: 'outline' as const, icon: Calendar, label: t('etNotSetBadge') },
           };
           
           const config = urgencyConfig[urgency];
@@ -427,7 +427,7 @@ export function ElementTable({
       // Actions column
       {
         id: 'actions',
-        header: 'Actions',
+        header: t('etActionsColumn'),
         cell: ({ row }) => renderRowActions(row),
         enableSorting: false,
         size: 60,
@@ -435,7 +435,7 @@ export function ElementTable({
     ];
 
     return baseColumns;
-  }, [calculateElementAge, getEvaluationUrgency, enableBulkActions]);
+  }, [calculateElementAge, getEvaluationUrgency, enableBulkActions, t]);
 
   // Row actions
   const renderRowActions = useCallback((row: Row<BuildingElement>) => {
@@ -450,7 +450,7 @@ export function ElementTable({
           data-testid={`view-element-${element.id}`}
         >
           <Eye className="h-4 w-4 mr-2" />
-          View
+          {t('etViewButton')}
         </Button>
         {canEdit && onEditElement && (
           <Button 
@@ -460,12 +460,12 @@ export function ElementTable({
             data-testid={`edit-element-${element.id}`}
           >
             <Edit2 className="h-4 w-4 mr-2" />
-            Edit
+            {t('etEditButton')}
           </Button>
         )}
       </div>
     );
-  }, [onViewElement, onEditElement, canEdit]);
+  }, [onViewElement, onEditElement, canEdit, t]);
 
   // Bulk actions - row selection keys are element IDs directly
   const selectedElementsCount = Object.keys(rowSelection).filter(id => rowSelection[id]).length;
@@ -475,7 +475,7 @@ export function ElementTable({
     if (!enableBulkActions || selectedElementsCount === 0) return null;
 
     const handleBulkDelete = async () => {
-      if (!confirm(`Are you sure you want to delete ${selectedElementsCount} element(s)? This action cannot be undone.`)) {
+      if (!confirm(`${t('etConfirmBulkDelete')} ${selectedElementsCount}`)) {
         return;
       }
       
@@ -498,19 +498,19 @@ export function ElementTable({
       
       if (failCount === 0) {
         toast({
-          title: 'Elements deleted',
-          description: `Successfully deleted ${successCount} element(s)`,
+          title: t('etElementsDeletedTitle'),
+          description: `${t('etElementsDeletedDescPrefix')} ${successCount} ${t('etElementsDeletedDescSuffix')}`,
         });
       } else if (successCount > 0) {
         toast({
-          title: 'Partially completed',
-          description: `Deleted ${successCount} elements, failed to delete ${failCount} elements`,
+          title: t('etPartiallyCompletedTitle'),
+          description: t('etPartiallyCompletedDesc'),
           variant: 'destructive',
         });
       } else {
         toast({
-          title: 'Delete failed',
-          description: `Failed to delete all ${failCount} elements. Please try again.`,
+          title: t('etDeleteFailedTitle'),
+          description: t('etDeleteFailedDesc'),
           variant: 'destructive',
         });
       }
@@ -528,7 +528,7 @@ export function ElementTable({
       <div className="flex items-center gap-2 p-4 bg-muted/50 border rounded-lg">
         <div className="flex-1">
           <p className="text-sm font-medium">
-            {selectedElementsCount} element(s) selected
+            {selectedElementsCount} {t('etElementsSelectedSuffix')}
           </p>
         </div>
         
@@ -541,17 +541,17 @@ export function ElementTable({
                 data-testid="bulk-edit-button"
               >
                 <Edit2 className="h-4 w-4 mr-2" />
-                Bulk Edit
+                {t('etBulkEditButton')}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem onClick={handleResidenceAssignment}>
                 <Building className="h-4 w-4 mr-2" />
-                Change Residence Assignment
+                {t('etChangeResidenceItem')}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={handleCostUpdate}>
                 <Package className="h-4 w-4 mr-2" />
-                Update Cost
+                {t('etUpdateCostItem')}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem 
@@ -559,7 +559,7 @@ export function ElementTable({
                 className="text-destructive focus:text-destructive"
               >
                 <Trash2 className="h-4 w-4 mr-2" />
-                Delete Selected
+                {t('etDeleteSelectedItem')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -582,9 +582,9 @@ export function ElementTable({
     return (
       <div className="p-8 text-center">
         <AlertTriangle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-        <h3 className="text-lg font-semibold mb-2">Failed to load elements</h3>
+        <h3 className="text-lg font-semibold mb-2">{t('etFailedToLoadTitle')}</h3>
         <p className="text-muted-foreground">
-          {error instanceof Error ? error.message : 'An error occurred while loading building elements'}
+          {error instanceof Error ? error.message : t('etFailedToLoadDesc')}
         </p>
       </div>
     );
@@ -595,7 +595,7 @@ export function ElementTable({
     return (
       <div className="p-8 text-center">
         <div className="animate-spin h-8 w-8 border-4 border-primary/30 border-t-primary rounded-full mx-auto mb-4" />
-        <p className="text-muted-foreground">Loading building elements...</p>
+        <p className="text-muted-foreground">{t('etLoadingMessage')}</p>
       </div>
     );
   }
@@ -607,8 +607,7 @@ export function ElementTable({
         <div className="p-8 text-center space-y-4">
           <Package className="h-12 w-12 text-muted-foreground mx-auto" />
           <div>
-            <h3 className="text-lg font-semibold mb-2">No Elements Found</h3>
-            {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
+            <h3 className="text-lg font-semibold mb-2">{t('etNoElementsFoundTitle')}</h3>
             <p className="text-muted-foreground">
               {t('startBuildingYourInventoryByAdding')}
             </p>

@@ -3514,6 +3514,306 @@ export interface Translations {
   wfNavBadgeComplete: string;
   wfNavBadgeInProgress: string;
   wfNavCurrent: string;
+
+  // Task #736 — Inventory & Projects translations (Bill 101 parity)
+  ehfAddMaintenanceHistoryTitle: string;
+  ehfEditMaintenanceHistoryTitle: string;
+  ehfEditModeBadge: string;
+  ehfRecordWorkPrefix: string;
+  ehfUpdateEntryDescription: string;
+  ehfEventTypeLabel: string;
+  ehfEventTypePlaceholder: string;
+  ehfEventTypeOriginalConstruction: string;
+  ehfEventTypeOriginalConstructionDesc: string;
+  ehfEventTypeRepair: string;
+  ehfEventTypeRepairDesc: string;
+  ehfEventTypeMinorRehab: string;
+  ehfEventTypeMinorRehabDesc: string;
+  ehfEventTypeMajorRehab: string;
+  ehfEventTypeMajorRehabDesc: string;
+  ehfEventTypeReplacement: string;
+  ehfEventTypeReplacementDesc: string;
+  ehfLifespanExtensionBadgeSuffix: string;
+  ehfEventDateLabel: string;
+  ehfSelectDate: string;
+  ehfCostLabel: string;
+  ehfWorkDescriptionLabel: string;
+  ehfWorkDescriptionPlaceholder: string;
+  ehfVendorInformationHeading: string;
+  ehfVendorLabel: string;
+  ehfVendorSelectPlaceholder: string;
+  ehfNoVendorInternalWork: string;
+  ehfVendorNameLabel: string;
+  ehfVendorNameDesc: string;
+  ehfVendorNamePlaceholder: string;
+  ehfWarrantyInformationHeading: string;
+  ehfWarrantyDurationLabel: string;
+  ehfWarrantyTermsLabel: string;
+  ehfWarrantyTermsPlaceholder: string;
+  ehfWarrantyExpiresLabel: string;
+  ehfLifespanImpactHeading: string;
+  ehfAutoCalculate: string;
+  ehfLifespanExtensionLabel: string;
+  ehfAdditionalNotesLabel: string;
+  ehfNotesPlaceholder: string;
+  ehfCancel: string;
+  ehfCreating: string;
+  ehfSaving: string;
+  ehfCreate: string;
+  ehfSaveChanges: string;
+
+  ihdrBackToBuildingButton: string;
+  ihdrPageTitle: string;
+  ihdrAddElement: string;
+  ihdrSearchPlaceholder: string;
+  ihdrFilters: string;
+  ihdrOverdueLabel: string;
+  ihdrOverdueEvaluations: string;
+  ihdrConditionLabel: string;
+  ihdrAllConditionsPlaceholder: string;
+  ihdrAllConditionsItem: string;
+  ihdrConditionExcellent: string;
+  ihdrConditionGood: string;
+  ihdrConditionFair: string;
+  ihdrConditionPoor: string;
+  ihdrConditionCritical: string;
+  ihdrUniformatCategoryLabel: string;
+  ihdrAllCategoriesPlaceholder: string;
+  ihdrAllCategoriesItem: string;
+  ihdrUniformatA: string;
+  ihdrUniformatB: string;
+  ihdrUniformatC: string;
+  ihdrUniformatD: string;
+  ihdrUniformatE: string;
+  ihdrUniformatF: string;
+  ihdrUniformatG: string;
+  ihdrEvaluationStatusLabel: string;
+  ihdrFilterOverdue: string;
+  ihdrFilterDueSoon: string;
+  ihdrFilterUpToDate: string;
+
+  ubCatalogTitle: string;
+  ubCommonButton: string;
+  ubSearchPlaceholder: string;
+  ubAllLevelsPlaceholder: string;
+  ubAllLevelsItem: string;
+  ubLevelLabel: string;
+  ubAllCategoriesPlaceholder: string;
+  ubAllCategoriesItem: string;
+  ubCommonBadge: string;
+  ubFilteredResultsPrefix: string;
+  ubFilteredResultsSuffix: string;
+  ubNoMatchingCodes: string;
+  ubNoCodesAvailable: string;
+  ubFailedToLoad: string;
+  ubLoadErrorDesc: string;
+  ubYearsSuffix: string;
+
+  pcTypeEvaluation: string;
+  pcTypeRepair: string;
+  pcTypeMinorRehab: string;
+  pcTypeMajorRehab: string;
+  pcTypeReplacement: string;
+  pcOverdueBadge: string;
+  pcOverBudgetBadge: string;
+  pcCriticalPriorityBadge: string;
+  pcOpenMenu: string;
+  pcQuickActionsLabel: string;
+  pcEditProject: string;
+  pcViewTimeline: string;
+  pcAddNotes: string;
+  pcStartWork: string;
+  pcCompleteWork: string;
+  pcUpdatedPrefix: string;
+  pcDaysOverdueSuffix: string;
+  pcDaysRemainingSuffix: string;
+  pcProgressLabel: string;
+  pcStartDateLabel: string;
+  pcEndDateLabel: string;
+  pcBudgetLabel: string;
+  pcBudgetUsedSuffix: string;
+  pcElementsLabel: string;
+  pcElementsAssignedSuffix: string;
+  pcBuildingComponents: string;
+  pcStatusUpdatedTitle: string;
+  pcStatusUpdatedDesc: string;
+  pcUpdateFailedTitle: string;
+  pcUpdateFailedDesc: string;
+
+  emcEditElementLabel: string;
+  emcEditButton: string;
+  emcBuiltLabel: string;
+  emcLastInspectionLabel: string;
+  emcAgeLifespanLabel: string;
+  emcLifespanProgressSuffix: string;
+  emcConstructionLabel: string;
+  emcUnknown: string;
+  emcNever: string;
+  emcNextEvaluationLabel: string;
+  emcOverdueBadge: string;
+  emcDueSoonBadge: string;
+  emcScheduledBadge: string;
+  emcTotalCostLabel: string;
+  emcCostPerYearAvgSuffix: string;
+  emcActivityLabel: string;
+  emcEntriesSuffix: string;
+  emcDocumentsSuffix: string;
+  emcTimelineButton: string;
+  emcYearsSuffix: string;
+  emcExpectedLifespanSuffix: string;
+  emcPhotoAltSuffix: string;
+
+  etElementColumn: string;
+  etConditionColumn: string;
+  etAgeLifespanColumn: string;
+  etLastInspectionColumn: string;
+  etNextEvaluationColumn: string;
+  etActionsColumn: string;
+  etYearsSuffix: string;
+  etNeverBadge: string;
+  etOverdueBadge: string;
+  etDueSoonBadge: string;
+  etScheduledBadge: string;
+  etNotSetBadge: string;
+  etNotScheduledBadge: string;
+  etViewButton: string;
+  etEditButton: string;
+  etSelectAllAria: string;
+  etSelectElementAria: string;
+  etElementsSelectedSuffix: string;
+  etBulkEditButton: string;
+  etChangeResidenceItem: string;
+  etUpdateCostItem: string;
+  etDeleteSelectedItem: string;
+  etConfirmBulkDelete: string;
+  etElementsDeletedTitle: string;
+  etElementsDeletedDescPrefix: string;
+  etElementsDeletedDescSuffix: string;
+  etPartiallyCompletedTitle: string;
+  etPartiallyCompletedDesc: string;
+  etDeleteFailedTitle: string;
+  etDeleteFailedDesc: string;
+  etElementDeletedTitle: string;
+  etElementDeletedDesc: string;
+  etDeleteFailedSingleTitle: string;
+  etDeleteFailedSingleDesc: string;
+  etFailedToLoadTitle: string;
+  etFailedToLoadDesc: string;
+  etLoadingMessage: string;
+  etNoElementsFoundTitle: string;
+
+  htDateColumn: string;
+  htEventTypeColumn: string;
+  htDescriptionColumn: string;
+  htVendorColumn: string;
+  htCostColumn: string;
+  htWarrantyColumn: string;
+  htInternalLabel: string;
+  htNoCostLabel: string;
+  htWarrantyNoneLabel: string;
+  htWarrantyYearSuffix: string;
+  htWarrantyYearsSuffix: string;
+  htWarrantyUntilPrefix: string;
+  htOpenMenu: string;
+  htEditEntry: string;
+  htViewDocuments: string;
+  htDeleteEntry: string;
+  htDeleteHistoryTitle: string;
+  htCancelButton: string;
+  htDeleteButton: string;
+  htTotalCostLabel: string;
+  htCostPerYearAvgSuffix: string;
+  htLifespanExtensionLabel: string;
+  htLifespanFromInterventionsPrefix: string;
+  htLifespanFromInterventionsSuffix: string;
+  htLastMaintenanceLabel: string;
+  htLastMaintenanceNever: string;
+  htWorkEventsLabel: string;
+  htMaintenanceHistoryTitle: string;
+  htMaintenanceHistoryDescPrefix: string;
+  htSearchPlaceholder: string;
+  htNoHistoryTitle: string;
+  htNoHistoryDesc: string;
+  htHistoryEntryDeletedTitle: string;
+  htHistoryEntryDeletedDesc: string;
+  htDeleteFailedTitle: string;
+  htDeleteFailedDesc: string;
+  htFailedToLoadTitle: string;
+  htFailedToLoadDesc: string;
+  htConstructionEventLabel: string;
+  htRepairEventLabel: string;
+  htMinorRehabEventLabel: string;
+  htMajorRehabEventLabel: string;
+  htReplacementEventLabel: string;
+
+  edpEditAction: string;
+  edpUploadFilesAction: string;
+  edpScheduleAction: string;
+  edpDeleteAction: string;
+  edpDeleteDialogTitle: string;
+  edpDeleteDialogConfirmCancel: string;
+  edpDeletingProgress: string;
+  edpOverviewTab: string;
+  edpDocumentsTab: string;
+  edpProjectsTab: string;
+  edpStatusEvaluationTitle: string;
+  edpCurrentConditionLabel: string;
+  edpNextEvaluationLabel: string;
+  edpLastInspectionLabel: string;
+  edpLastInspectionNever: string;
+  edpUrgencyOverdueLabel: string;
+  edpUrgencyDueSoonLabel: string;
+  edpUrgencyScheduledLabel: string;
+  edpUrgencyNotScheduledLabel: string;
+  edpLifespanAnalysisTitle: string;
+  edpAgeProgressLabel: string;
+  edpYearsSuffix: string;
+  edpNearingEndLifespan: string;
+  edpAgingMonitor: string;
+  edpGoodRemaining: string;
+  edpOriginalLifespanLabel: string;
+  edpCurrentLifespanLabel: string;
+  edpConstructionDateLabel: string;
+  edpSpecificationsTitle: string;
+  edpQuantityLabel: string;
+  edpUniformatCodeLabel: string;
+  edpNotesLabel: string;
+  edpUnknownSize: string;
+  edpNoDocumentsUploaded: string;
+  edpProjectNumberPrefix: string;
+  edpNoRelatedProjects: string;
+  edpElementDeletedToastTitle: string;
+  edpElementDeletedToastDesc: string;
+
+  iovHeaderTitle: string;
+  iovToggleSrText: string;
+  iovBuildingConstructionDate: string;
+  iovDefaultForNewElements: string;
+  iovTotalElementsTitle: string;
+  iovBuildingInventoryItems: string;
+  iovCriticalAlertsTitle: string;
+  iovPoorOrCriticalCondition: string;
+  iovOverdueEvaluationsTitle: string;
+  iovPastDueDate: string;
+  iovAssetValueTitle: string;
+  iovEstimatedReplacementCost: string;
+  iovConditionBreakdownTitle: string;
+  iovQuickStatisticsTitle: string;
+  iovKeyInsightsTrends: string;
+  iovAverageAgeLabel: string;
+  iovYearsSuffix: string;
+  iovDueSoonLabel: string;
+  iovMostCommonCategoryLabel: string;
+  iovBuildingUpdatedTitle: string;
+  iovBuildingUpdatedDesc: string;
+  iovInvalidDateTitle: string;
+  iovInvalidDateDesc: string;
+  iovInvalidDateRangeDesc: string;
+  iovConditionExcellent: string;
+  iovConditionGood: string;
+  iovConditionFair: string;
+  iovConditionPoor: string;
+  iovConditionCritical: string;
 }
 
 /**
@@ -7042,6 +7342,306 @@ export const translations: Record<Language, Translations> = {
     wfNavBadgeComplete: 'Complete',
     wfNavBadgeInProgress: 'In Progress',
     wfNavCurrent: 'Current',
+
+    // Task #736 — Inventory & Projects translations (Bill 101 parity)
+    ehfAddMaintenanceHistoryTitle: 'Add Maintenance History',
+    ehfEditMaintenanceHistoryTitle: 'Edit Maintenance History',
+    ehfEditModeBadge: 'Edit Mode',
+    ehfRecordWorkPrefix: 'Record maintenance work performed on',
+    ehfUpdateEntryDescription: 'Update the maintenance history entry details',
+    ehfEventTypeLabel: 'Event Type',
+    ehfEventTypePlaceholder: 'Select event type',
+    ehfEventTypeOriginalConstruction: 'Original Construction',
+    ehfEventTypeOriginalConstructionDesc: 'Initial construction or installation',
+    ehfEventTypeRepair: 'Repair',
+    ehfEventTypeRepairDesc: 'Fix or restore to working condition',
+    ehfEventTypeMinorRehab: 'Minor Rehabilitation',
+    ehfEventTypeMinorRehabDesc: 'Minor improvements or restoration',
+    ehfEventTypeMajorRehab: 'Major Rehabilitation',
+    ehfEventTypeMajorRehabDesc: 'Significant renovation or restoration',
+    ehfEventTypeReplacement: 'Replacement',
+    ehfEventTypeReplacementDesc: 'Complete replacement of element',
+    ehfLifespanExtensionBadgeSuffix: 'years lifespan extension',
+    ehfEventDateLabel: 'Event Date',
+    ehfSelectDate: 'Select date',
+    ehfCostLabel: 'Cost',
+    ehfWorkDescriptionLabel: 'Work Description',
+    ehfWorkDescriptionPlaceholder: 'Describe the maintenance work performed, materials used, and any specific details...',
+    ehfVendorInformationHeading: 'Vendor Information',
+    ehfVendorLabel: 'Vendor',
+    ehfVendorSelectPlaceholder: 'Select vendor',
+    ehfNoVendorInternalWork: 'No vendor (Internal work)',
+    ehfVendorNameLabel: 'Vendor Name',
+    ehfVendorNameDesc: 'Or enter vendor name manually',
+    ehfVendorNamePlaceholder: 'Enter vendor name',
+    ehfWarrantyInformationHeading: 'Warranty Information',
+    ehfWarrantyDurationLabel: 'Warranty Duration (months)',
+    ehfWarrantyTermsLabel: 'Warranty Terms',
+    ehfWarrantyTermsPlaceholder: 'Parts and labor warranty',
+    ehfWarrantyExpiresLabel: 'Warranty expires:',
+    ehfLifespanImpactHeading: 'Lifespan Impact',
+    ehfAutoCalculate: 'Auto-calculate',
+    ehfLifespanExtensionLabel: 'Lifespan Extension (years)',
+    ehfAdditionalNotesLabel: 'Additional Notes',
+    ehfNotesPlaceholder: 'Additional notes, observations, or future recommendations...',
+    ehfCancel: 'Cancel',
+    ehfCreating: 'Creating...',
+    ehfSaving: 'Saving...',
+    ehfCreate: 'Create',
+    ehfSaveChanges: 'Save Changes',
+
+    ihdrBackToBuildingButton: 'Back to Building',
+    ihdrPageTitle: 'Inventory - Building Elements',
+    ihdrAddElement: 'Add Element',
+    ihdrSearchPlaceholder: 'Search elements by name, UNIFORMAT code, or description...',
+    ihdrFilters: 'Filters',
+    ihdrOverdueLabel: 'Overdue',
+    ihdrOverdueEvaluations: 'Overdue Evaluations',
+    ihdrConditionLabel: 'Condition',
+    ihdrAllConditionsPlaceholder: 'All conditions',
+    ihdrAllConditionsItem: 'All Conditions',
+    ihdrConditionExcellent: 'Excellent',
+    ihdrConditionGood: 'Good',
+    ihdrConditionFair: 'Fair',
+    ihdrConditionPoor: 'Poor',
+    ihdrConditionCritical: 'Critical',
+    ihdrUniformatCategoryLabel: 'UNIFORMAT Category',
+    ihdrAllCategoriesPlaceholder: 'All categories',
+    ihdrAllCategoriesItem: 'All Categories',
+    ihdrUniformatA: 'A - Substructure',
+    ihdrUniformatB: 'B - Shell',
+    ihdrUniformatC: 'C - Interiors',
+    ihdrUniformatD: 'D - Services',
+    ihdrUniformatE: 'E - Equipment & Furnishings',
+    ihdrUniformatF: 'F - Special Construction',
+    ihdrUniformatG: 'G - Building Sitework',
+    ihdrEvaluationStatusLabel: 'Evaluation Status',
+    ihdrFilterOverdue: 'Overdue',
+    ihdrFilterDueSoon: 'Due Soon',
+    ihdrFilterUpToDate: 'Up to Date',
+
+    ubCatalogTitle: 'UNIFORMAT II Catalog',
+    ubCommonButton: 'Common',
+    ubSearchPlaceholder: 'Search codes, names, or descriptions...',
+    ubAllLevelsPlaceholder: 'All levels',
+    ubAllLevelsItem: 'All levels',
+    ubLevelLabel: 'Level',
+    ubAllCategoriesPlaceholder: 'All categories',
+    ubAllCategoriesItem: 'All categories',
+    ubCommonBadge: 'Common',
+    ubFilteredResultsPrefix: 'Filtered:',
+    ubFilteredResultsSuffix: 'results',
+    ubNoMatchingCodes: 'No codes match your current filters',
+    ubNoCodesAvailable: 'No UNIFORMAT codes available',
+    ubFailedToLoad: 'Failed to load UNIFORMAT codes',
+    ubLoadErrorDesc: 'An error occurred while loading the catalog',
+    ubYearsSuffix: 'years',
+
+    pcTypeEvaluation: 'Evaluation',
+    pcTypeRepair: 'Repair',
+    pcTypeMinorRehab: 'Minor Rehab',
+    pcTypeMajorRehab: 'Major Rehab',
+    pcTypeReplacement: 'Replacement',
+    pcOverdueBadge: 'Overdue',
+    pcOverBudgetBadge: 'Over Budget',
+    pcCriticalPriorityBadge: 'Critical Priority',
+    pcOpenMenu: 'Open menu',
+    pcQuickActionsLabel: 'Quick Actions',
+    pcEditProject: 'Edit Project',
+    pcViewTimeline: 'View Timeline',
+    pcAddNotes: 'Add Notes',
+    pcStartWork: 'Start Work',
+    pcCompleteWork: 'Complete Work',
+    pcUpdatedPrefix: 'Updated',
+    pcDaysOverdueSuffix: 'days overdue',
+    pcDaysRemainingSuffix: 'days remaining',
+    pcProgressLabel: 'Progress',
+    pcStartDateLabel: 'Start Date',
+    pcEndDateLabel: 'End Date',
+    pcBudgetLabel: 'Budget',
+    pcBudgetUsedSuffix: '% used',
+    pcElementsLabel: 'Elements',
+    pcElementsAssignedSuffix: 'assigned',
+    pcBuildingComponents: 'Building components',
+    pcStatusUpdatedTitle: 'Status Updated',
+    pcStatusUpdatedDesc: 'Project status has been updated successfully.',
+    pcUpdateFailedTitle: 'Update Failed',
+    pcUpdateFailedDesc: 'Failed to update project status. Please try again.',
+
+    emcEditElementLabel: 'Edit element',
+    emcEditButton: 'Edit',
+    emcBuiltLabel: 'Built',
+    emcLastInspectionLabel: 'Last Inspection',
+    emcAgeLifespanLabel: 'Age / Lifespan',
+    emcLifespanProgressSuffix: '% of expected lifespan',
+    emcConstructionLabel: 'Construction',
+    emcUnknown: 'Unknown',
+    emcNever: 'Never',
+    emcNextEvaluationLabel: 'Next Evaluation',
+    emcOverdueBadge: 'Overdue',
+    emcDueSoonBadge: 'Due Soon',
+    emcScheduledBadge: 'Scheduled',
+    emcTotalCostLabel: 'Total Cost',
+    emcCostPerYearAvgSuffix: '/year avg',
+    emcActivityLabel: 'Activity',
+    emcEntriesSuffix: 'entries',
+    emcDocumentsSuffix: 'documents',
+    emcTimelineButton: 'Timeline',
+    emcYearsSuffix: 'years',
+    emcExpectedLifespanSuffix: 'of expected lifespan',
+    emcPhotoAltSuffix: 'photo',
+
+    etElementColumn: 'Element',
+    etConditionColumn: 'Condition',
+    etAgeLifespanColumn: 'Age / Lifespan',
+    etLastInspectionColumn: 'Last Inspection',
+    etNextEvaluationColumn: 'Next Evaluation',
+    etActionsColumn: 'Actions',
+    etYearsSuffix: 'years',
+    etNeverBadge: 'Never',
+    etOverdueBadge: 'Overdue',
+    etDueSoonBadge: 'Due Soon',
+    etScheduledBadge: 'Scheduled',
+    etNotSetBadge: 'Not set',
+    etNotScheduledBadge: 'Not scheduled',
+    etViewButton: 'View',
+    etEditButton: 'Edit',
+    etSelectAllAria: 'Select all elements',
+    etSelectElementAria: 'Select element',
+    etElementsSelectedSuffix: 'element(s) selected',
+    etBulkEditButton: 'Bulk Actions',
+    etChangeResidenceItem: 'Change Residence',
+    etUpdateCostItem: 'Update Replacement Cost',
+    etDeleteSelectedItem: 'Delete Selected',
+    etConfirmBulkDelete: 'Are you sure you want to delete the selected elements? This action cannot be undone.',
+    etElementsDeletedTitle: 'Elements deleted',
+    etElementsDeletedDescPrefix: 'Successfully deleted',
+    etElementsDeletedDescSuffix: 'element(s).',
+    etPartiallyCompletedTitle: 'Partially completed',
+    etPartiallyCompletedDesc: 'Some elements could not be deleted.',
+    etDeleteFailedTitle: 'Delete failed',
+    etDeleteFailedDesc: 'Failed to delete the selected elements.',
+    etElementDeletedTitle: 'Element deleted',
+    etElementDeletedDesc: 'The element has been removed from the inventory.',
+    etDeleteFailedSingleTitle: 'Delete failed',
+    etDeleteFailedSingleDesc: 'Failed to delete the element.',
+    etFailedToLoadTitle: 'Failed to load elements',
+    etFailedToLoadDesc: 'There was a problem loading the inventory.',
+    etLoadingMessage: 'Loading elements...',
+    etNoElementsFoundTitle: 'No elements found',
+
+    htDateColumn: 'Date',
+    htEventTypeColumn: 'Event',
+    htDescriptionColumn: 'Description',
+    htVendorColumn: 'Vendor',
+    htCostColumn: 'Cost',
+    htWarrantyColumn: 'Warranty',
+    htInternalLabel: 'Internal',
+    htNoCostLabel: 'No cost',
+    htWarrantyNoneLabel: 'None',
+    htWarrantyYearSuffix: 'year',
+    htWarrantyYearsSuffix: 'years',
+    htWarrantyUntilPrefix: 'Until',
+    htOpenMenu: 'Open menu',
+    htEditEntry: 'Edit Entry',
+    htViewDocuments: 'View Documents',
+    htDeleteEntry: 'Delete Entry',
+    htDeleteHistoryTitle: 'Delete history entry?',
+    htCancelButton: 'Cancel',
+    htDeleteButton: 'Delete',
+    htTotalCostLabel: 'Total Cost',
+    htCostPerYearAvgSuffix: '/year avg',
+    htLifespanExtensionLabel: 'Lifespan Extension',
+    htLifespanFromInterventionsPrefix: 'From',
+    htLifespanFromInterventionsSuffix: 'interventions',
+    htLastMaintenanceLabel: 'Last Maintenance',
+    htLastMaintenanceNever: 'Never',
+    htWorkEventsLabel: 'Work Events',
+    htMaintenanceHistoryTitle: 'Maintenance History',
+    htMaintenanceHistoryDescPrefix: 'Complete history for',
+    htSearchPlaceholder: 'Search history...',
+    htNoHistoryTitle: 'No maintenance history',
+    htNoHistoryDesc: 'No maintenance work has been recorded for this element yet.',
+    htHistoryEntryDeletedTitle: 'History entry deleted',
+    htHistoryEntryDeletedDesc: 'The maintenance history entry has been removed.',
+    htDeleteFailedTitle: 'Delete failed',
+    htDeleteFailedDesc: 'Failed to delete the history entry.',
+    htFailedToLoadTitle: 'Failed to load history',
+    htFailedToLoadDesc: 'There was a problem loading the maintenance history.',
+    htConstructionEventLabel: 'Construction',
+    htRepairEventLabel: 'Repair',
+    htMinorRehabEventLabel: 'Minor Rehab',
+    htMajorRehabEventLabel: 'Major Rehab',
+    htReplacementEventLabel: 'Replacement',
+
+    edpEditAction: 'Edit',
+    edpUploadFilesAction: 'Upload Files',
+    edpScheduleAction: 'Schedule Evaluation',
+    edpDeleteAction: 'Delete',
+    edpDeleteDialogTitle: 'Delete this element?',
+    edpDeleteDialogConfirmCancel: 'Cancel',
+    edpDeletingProgress: 'Deleting...',
+    edpOverviewTab: 'Overview',
+    edpDocumentsTab: 'Documents',
+    edpProjectsTab: 'Projects',
+    edpStatusEvaluationTitle: 'Status & Evaluation',
+    edpCurrentConditionLabel: 'Current Condition',
+    edpNextEvaluationLabel: 'Next Evaluation',
+    edpLastInspectionLabel: 'Last Inspection',
+    edpLastInspectionNever: 'Never',
+    edpUrgencyOverdueLabel: 'Overdue',
+    edpUrgencyDueSoonLabel: 'Due Soon',
+    edpUrgencyScheduledLabel: 'Scheduled',
+    edpUrgencyNotScheduledLabel: 'Not scheduled',
+    edpLifespanAnalysisTitle: 'Lifespan Analysis',
+    edpAgeProgressLabel: 'Age vs. Expected Lifespan',
+    edpYearsSuffix: 'years',
+    edpNearingEndLifespan: 'Nearing end of expected lifespan',
+    edpAgingMonitor: 'Aging - monitor closely',
+    edpGoodRemaining: 'Good remaining lifespan',
+    edpOriginalLifespanLabel: 'Original Lifespan',
+    edpCurrentLifespanLabel: 'Current Lifespan',
+    edpConstructionDateLabel: 'Construction Date',
+    edpSpecificationsTitle: 'Specifications',
+    edpQuantityLabel: 'Quantity',
+    edpUniformatCodeLabel: 'UNIFORMAT Code',
+    edpNotesLabel: 'Notes',
+    edpUnknownSize: 'Unknown size',
+    edpNoDocumentsUploaded: 'No documents uploaded yet.',
+    edpProjectNumberPrefix: 'Project',
+    edpNoRelatedProjects: 'No related projects.',
+    edpElementDeletedToastTitle: 'Element deleted',
+    edpElementDeletedToastDesc: 'The element has been removed.',
+
+    iovHeaderTitle: 'Inventory Overview',
+    iovToggleSrText: 'Toggle building edit mode',
+    iovBuildingConstructionDate: 'Building Construction Date',
+    iovDefaultForNewElements: 'Used as a default for new elements without explicit construction date.',
+    iovTotalElementsTitle: 'Total Elements',
+    iovBuildingInventoryItems: 'Building inventory items',
+    iovCriticalAlertsTitle: 'Critical Alerts',
+    iovPoorOrCriticalCondition: 'Poor or critical condition',
+    iovOverdueEvaluationsTitle: 'Overdue Evaluations',
+    iovPastDueDate: 'Past due date',
+    iovAssetValueTitle: 'Asset Value',
+    iovEstimatedReplacementCost: 'Estimated replacement cost',
+    iovConditionBreakdownTitle: 'Condition Breakdown',
+    iovQuickStatisticsTitle: 'Quick Statistics',
+    iovKeyInsightsTrends: 'Key insights and trends',
+    iovAverageAgeLabel: 'Average Age',
+    iovYearsSuffix: 'years',
+    iovDueSoonLabel: 'Due Soon',
+    iovMostCommonCategoryLabel: 'Most Common Category',
+    iovBuildingUpdatedTitle: 'Building updated',
+    iovBuildingUpdatedDesc: 'Construction date has been saved.',
+    iovInvalidDateTitle: 'Invalid date',
+    iovInvalidDateDesc: 'Please enter a valid date.',
+    iovInvalidDateRangeDesc: 'Date must be between 1800 and today.',
+    iovConditionExcellent: 'Excellent',
+    iovConditionGood: 'Good',
+    iovConditionFair: 'Fair',
+    iovConditionPoor: 'Poor',
+    iovConditionCritical: 'Critical',
   },
   fr: {
 
@@ -10575,5 +11175,305 @@ export const translations: Record<Language, Translations> = {
     wfNavBadgeComplete: 'Complété',
     wfNavBadgeInProgress: 'En cours',
     wfNavCurrent: 'Actuel',
+
+    // Task #736 — Inventory & Projects translations (Bill 101 parity)
+    ehfAddMaintenanceHistoryTitle: 'Ajouter un historique d\'entretien',
+    ehfEditMaintenanceHistoryTitle: 'Modifier l\'historique d\'entretien',
+    ehfEditModeBadge: 'Mode édition',
+    ehfRecordWorkPrefix: 'Enregistrer les travaux d\'entretien effectués sur',
+    ehfUpdateEntryDescription: 'Mettre à jour les détails de l\'entrée d\'historique d\'entretien',
+    ehfEventTypeLabel: 'Type d\'événement',
+    ehfEventTypePlaceholder: 'Sélectionner un type d\'événement',
+    ehfEventTypeOriginalConstruction: 'Construction d\'origine',
+    ehfEventTypeOriginalConstructionDesc: 'Construction ou installation initiale',
+    ehfEventTypeRepair: 'Réparation',
+    ehfEventTypeRepairDesc: 'Remettre en état de fonctionnement',
+    ehfEventTypeMinorRehab: 'Réhabilitation mineure',
+    ehfEventTypeMinorRehabDesc: 'Améliorations ou restauration mineures',
+    ehfEventTypeMajorRehab: 'Réhabilitation majeure',
+    ehfEventTypeMajorRehabDesc: 'Rénovation ou restauration importante',
+    ehfEventTypeReplacement: 'Remplacement',
+    ehfEventTypeReplacementDesc: 'Remplacement complet de l\'élément',
+    ehfLifespanExtensionBadgeSuffix: 'années de prolongation de durée de vie',
+    ehfEventDateLabel: 'Date de l\'événement',
+    ehfSelectDate: 'Sélectionner une date',
+    ehfCostLabel: 'Coût',
+    ehfWorkDescriptionLabel: 'Description des travaux',
+    ehfWorkDescriptionPlaceholder: 'Décrivez les travaux d\'entretien effectués, les matériaux utilisés et tout détail spécifique...',
+    ehfVendorInformationHeading: 'Renseignements sur le fournisseur',
+    ehfVendorLabel: 'Fournisseur',
+    ehfVendorSelectPlaceholder: 'Sélectionner un fournisseur',
+    ehfNoVendorInternalWork: 'Aucun fournisseur (travaux internes)',
+    ehfVendorNameLabel: 'Nom du fournisseur',
+    ehfVendorNameDesc: 'Ou saisir le nom du fournisseur manuellement',
+    ehfVendorNamePlaceholder: 'Saisir le nom du fournisseur',
+    ehfWarrantyInformationHeading: 'Renseignements sur la garantie',
+    ehfWarrantyDurationLabel: 'Durée de la garantie (mois)',
+    ehfWarrantyTermsLabel: 'Conditions de la garantie',
+    ehfWarrantyTermsPlaceholder: 'Garantie pièces et main-d\'œuvre',
+    ehfWarrantyExpiresLabel: 'La garantie expire :',
+    ehfLifespanImpactHeading: 'Impact sur la durée de vie',
+    ehfAutoCalculate: 'Calcul automatique',
+    ehfLifespanExtensionLabel: 'Prolongation de la durée de vie (années)',
+    ehfAdditionalNotesLabel: 'Notes supplémentaires',
+    ehfNotesPlaceholder: 'Notes supplémentaires, observations ou recommandations futures...',
+    ehfCancel: 'Annuler',
+    ehfCreating: 'Création en cours...',
+    ehfSaving: 'Enregistrement en cours...',
+    ehfCreate: 'Créer',
+    ehfSaveChanges: 'Enregistrer les modifications',
+
+    ihdrBackToBuildingButton: 'Retour au bâtiment',
+    ihdrPageTitle: 'Inventaire — Éléments du bâtiment',
+    ihdrAddElement: 'Ajouter un élément',
+    ihdrSearchPlaceholder: 'Rechercher des éléments par nom, code UNIFORMAT ou description...',
+    ihdrFilters: 'Filtres',
+    ihdrOverdueLabel: 'En retard',
+    ihdrOverdueEvaluations: 'Évaluations en retard',
+    ihdrConditionLabel: 'État',
+    ihdrAllConditionsPlaceholder: 'Tous les états',
+    ihdrAllConditionsItem: 'Tous les états',
+    ihdrConditionExcellent: 'Excellent',
+    ihdrConditionGood: 'Bon',
+    ihdrConditionFair: 'Passable',
+    ihdrConditionPoor: 'Mauvais',
+    ihdrConditionCritical: 'Critique',
+    ihdrUniformatCategoryLabel: 'Catégorie UNIFORMAT',
+    ihdrAllCategoriesPlaceholder: 'Toutes les catégories',
+    ihdrAllCategoriesItem: 'Toutes les catégories',
+    ihdrUniformatA: 'A — Infrastructure',
+    ihdrUniformatB: 'B — Enveloppe',
+    ihdrUniformatC: 'C — Intérieurs',
+    ihdrUniformatD: 'D — Services',
+    ihdrUniformatE: 'E — Équipements et mobilier',
+    ihdrUniformatF: 'F — Constructions spéciales',
+    ihdrUniformatG: 'G — Aménagement du site',
+    ihdrEvaluationStatusLabel: 'État d\'évaluation',
+    ihdrFilterOverdue: 'En retard',
+    ihdrFilterDueSoon: 'Bientôt dû',
+    ihdrFilterUpToDate: 'À jour',
+
+    ubCatalogTitle: 'Catalogue UNIFORMAT II',
+    ubCommonButton: 'Courants',
+    ubSearchPlaceholder: 'Rechercher des codes, noms ou descriptions...',
+    ubAllLevelsPlaceholder: 'Tous les niveaux',
+    ubAllLevelsItem: 'Tous les niveaux',
+    ubLevelLabel: 'Niveau',
+    ubAllCategoriesPlaceholder: 'Toutes les catégories',
+    ubAllCategoriesItem: 'Toutes les catégories',
+    ubCommonBadge: 'Courant',
+    ubFilteredResultsPrefix: 'Filtré :',
+    ubFilteredResultsSuffix: 'résultats',
+    ubNoMatchingCodes: 'Aucun code ne correspond aux filtres actuels',
+    ubNoCodesAvailable: 'Aucun code UNIFORMAT disponible',
+    ubFailedToLoad: 'Échec du chargement des codes UNIFORMAT',
+    ubLoadErrorDesc: 'Une erreur est survenue lors du chargement du catalogue',
+    ubYearsSuffix: 'ans',
+
+    pcTypeEvaluation: 'Évaluation',
+    pcTypeRepair: 'Réparation',
+    pcTypeMinorRehab: 'Réhab. mineure',
+    pcTypeMajorRehab: 'Réhab. majeure',
+    pcTypeReplacement: 'Remplacement',
+    pcOverdueBadge: 'En retard',
+    pcOverBudgetBadge: 'Dépassement du budget',
+    pcCriticalPriorityBadge: 'Priorité critique',
+    pcOpenMenu: 'Ouvrir le menu',
+    pcQuickActionsLabel: 'Actions rapides',
+    pcEditProject: 'Modifier le projet',
+    pcViewTimeline: 'Voir l\'échéancier',
+    pcAddNotes: 'Ajouter des notes',
+    pcStartWork: 'Démarrer les travaux',
+    pcCompleteWork: 'Terminer les travaux',
+    pcUpdatedPrefix: 'Mis à jour le',
+    pcDaysOverdueSuffix: 'jours de retard',
+    pcDaysRemainingSuffix: 'jours restants',
+    pcProgressLabel: 'Progression',
+    pcStartDateLabel: 'Date de début',
+    pcEndDateLabel: 'Date de fin',
+    pcBudgetLabel: 'Budget',
+    pcBudgetUsedSuffix: ' % utilisé',
+    pcElementsLabel: 'Éléments',
+    pcElementsAssignedSuffix: 'assignés',
+    pcBuildingComponents: 'Composants du bâtiment',
+    pcStatusUpdatedTitle: 'Statut mis à jour',
+    pcStatusUpdatedDesc: 'Le statut du projet a été mis à jour avec succès.',
+    pcUpdateFailedTitle: 'Échec de la mise à jour',
+    pcUpdateFailedDesc: 'Échec de la mise à jour du statut du projet. Veuillez réessayer.',
+
+    emcEditElementLabel: 'Modifier l\'élément',
+    emcEditButton: 'Modifier',
+    emcBuiltLabel: 'Construit',
+    emcLastInspectionLabel: 'Dernière inspection',
+    emcAgeLifespanLabel: 'Âge / Durée de vie',
+    emcLifespanProgressSuffix: ' % de la durée de vie prévue',
+    emcConstructionLabel: 'Construction',
+    emcUnknown: 'Inconnu',
+    emcNever: 'Jamais',
+    emcNextEvaluationLabel: 'Prochaine évaluation',
+    emcOverdueBadge: 'En retard',
+    emcDueSoonBadge: 'Bientôt dû',
+    emcScheduledBadge: 'Prévu',
+    emcTotalCostLabel: 'Coût total',
+    emcCostPerYearAvgSuffix: '/année (moy.)',
+    emcActivityLabel: 'Activité',
+    emcEntriesSuffix: 'entrées',
+    emcDocumentsSuffix: 'documents',
+    emcTimelineButton: 'Échéancier',
+    emcYearsSuffix: 'ans',
+    emcExpectedLifespanSuffix: 'de la durée de vie prévue',
+    emcPhotoAltSuffix: 'photo',
+
+    etElementColumn: 'Élément',
+    etConditionColumn: 'État',
+    etAgeLifespanColumn: 'Âge / Durée de vie',
+    etLastInspectionColumn: 'Dernière inspection',
+    etNextEvaluationColumn: 'Prochaine évaluation',
+    etActionsColumn: 'Actions',
+    etYearsSuffix: 'ans',
+    etNeverBadge: 'Jamais',
+    etOverdueBadge: 'En retard',
+    etDueSoonBadge: 'Bientôt dû',
+    etScheduledBadge: 'Prévu',
+    etNotSetBadge: 'Non défini',
+    etNotScheduledBadge: 'Non prévu',
+    etViewButton: 'Voir',
+    etEditButton: 'Modifier',
+    etSelectAllAria: 'Sélectionner tous les éléments',
+    etSelectElementAria: 'Sélectionner l\'élément',
+    etElementsSelectedSuffix: 'élément(s) sélectionné(s)',
+    etBulkEditButton: 'Actions groupées',
+    etChangeResidenceItem: 'Changer la résidence',
+    etUpdateCostItem: 'Mettre à jour le coût de remplacement',
+    etDeleteSelectedItem: 'Supprimer la sélection',
+    etConfirmBulkDelete: 'Voulez-vous vraiment supprimer les éléments sélectionnés? Cette action est irréversible.',
+    etElementsDeletedTitle: 'Éléments supprimés',
+    etElementsDeletedDescPrefix: 'Suppression réussie de',
+    etElementsDeletedDescSuffix: 'élément(s).',
+    etPartiallyCompletedTitle: 'Partiellement complété',
+    etPartiallyCompletedDesc: 'Certains éléments n\'ont pas pu être supprimés.',
+    etDeleteFailedTitle: 'Échec de la suppression',
+    etDeleteFailedDesc: 'Échec de la suppression des éléments sélectionnés.',
+    etElementDeletedTitle: 'Élément supprimé',
+    etElementDeletedDesc: 'L\'élément a été retiré de l\'inventaire.',
+    etDeleteFailedSingleTitle: 'Échec de la suppression',
+    etDeleteFailedSingleDesc: 'Échec de la suppression de l\'élément.',
+    etFailedToLoadTitle: 'Échec du chargement des éléments',
+    etFailedToLoadDesc: 'Un problème est survenu lors du chargement de l\'inventaire.',
+    etLoadingMessage: 'Chargement des éléments...',
+    etNoElementsFoundTitle: 'Aucun élément trouvé',
+
+    htDateColumn: 'Date',
+    htEventTypeColumn: 'Événement',
+    htDescriptionColumn: 'Description',
+    htVendorColumn: 'Fournisseur',
+    htCostColumn: 'Coût',
+    htWarrantyColumn: 'Garantie',
+    htInternalLabel: 'Interne',
+    htNoCostLabel: 'Aucun coût',
+    htWarrantyNoneLabel: 'Aucune',
+    htWarrantyYearSuffix: 'année',
+    htWarrantyYearsSuffix: 'années',
+    htWarrantyUntilPrefix: 'Jusqu\'au',
+    htOpenMenu: 'Ouvrir le menu',
+    htEditEntry: 'Modifier l\'entrée',
+    htViewDocuments: 'Voir les documents',
+    htDeleteEntry: 'Supprimer l\'entrée',
+    htDeleteHistoryTitle: 'Supprimer l\'entrée d\'historique?',
+    htCancelButton: 'Annuler',
+    htDeleteButton: 'Supprimer',
+    htTotalCostLabel: 'Coût total',
+    htCostPerYearAvgSuffix: '/année (moy.)',
+    htLifespanExtensionLabel: 'Prolongation de la durée de vie',
+    htLifespanFromInterventionsPrefix: 'Provenant de',
+    htLifespanFromInterventionsSuffix: 'interventions',
+    htLastMaintenanceLabel: 'Dernier entretien',
+    htLastMaintenanceNever: 'Jamais',
+    htWorkEventsLabel: 'Événements de travaux',
+    htMaintenanceHistoryTitle: 'Historique d\'entretien',
+    htMaintenanceHistoryDescPrefix: 'Historique complet pour',
+    htSearchPlaceholder: 'Rechercher dans l\'historique...',
+    htNoHistoryTitle: 'Aucun historique d\'entretien',
+    htNoHistoryDesc: 'Aucun travail d\'entretien n\'a encore été enregistré pour cet élément.',
+    htHistoryEntryDeletedTitle: 'Entrée d\'historique supprimée',
+    htHistoryEntryDeletedDesc: 'L\'entrée d\'historique d\'entretien a été retirée.',
+    htDeleteFailedTitle: 'Échec de la suppression',
+    htDeleteFailedDesc: 'Échec de la suppression de l\'entrée d\'historique.',
+    htFailedToLoadTitle: 'Échec du chargement de l\'historique',
+    htFailedToLoadDesc: 'Un problème est survenu lors du chargement de l\'historique d\'entretien.',
+    htConstructionEventLabel: 'Construction',
+    htRepairEventLabel: 'Réparation',
+    htMinorRehabEventLabel: 'Réhab. mineure',
+    htMajorRehabEventLabel: 'Réhab. majeure',
+    htReplacementEventLabel: 'Remplacement',
+
+    edpEditAction: 'Modifier',
+    edpUploadFilesAction: 'Téléverser des fichiers',
+    edpScheduleAction: 'Planifier l\'évaluation',
+    edpDeleteAction: 'Supprimer',
+    edpDeleteDialogTitle: 'Supprimer cet élément?',
+    edpDeleteDialogConfirmCancel: 'Annuler',
+    edpDeletingProgress: 'Suppression...',
+    edpOverviewTab: 'Aperçu',
+    edpDocumentsTab: 'Documents',
+    edpProjectsTab: 'Projets',
+    edpStatusEvaluationTitle: 'Statut et évaluation',
+    edpCurrentConditionLabel: 'État actuel',
+    edpNextEvaluationLabel: 'Prochaine évaluation',
+    edpLastInspectionLabel: 'Dernière inspection',
+    edpLastInspectionNever: 'Jamais',
+    edpUrgencyOverdueLabel: 'En retard',
+    edpUrgencyDueSoonLabel: 'Bientôt dû',
+    edpUrgencyScheduledLabel: 'Prévu',
+    edpUrgencyNotScheduledLabel: 'Non prévu',
+    edpLifespanAnalysisTitle: 'Analyse de la durée de vie',
+    edpAgeProgressLabel: 'Âge vs durée de vie prévue',
+    edpYearsSuffix: 'ans',
+    edpNearingEndLifespan: 'Approche de la fin de la durée de vie prévue',
+    edpAgingMonitor: 'Vieillissant — surveiller de près',
+    edpGoodRemaining: 'Bonne durée de vie restante',
+    edpOriginalLifespanLabel: 'Durée de vie d\'origine',
+    edpCurrentLifespanLabel: 'Durée de vie actuelle',
+    edpConstructionDateLabel: 'Date de construction',
+    edpSpecificationsTitle: 'Spécifications',
+    edpQuantityLabel: 'Quantité',
+    edpUniformatCodeLabel: 'Code UNIFORMAT',
+    edpNotesLabel: 'Notes',
+    edpUnknownSize: 'Taille inconnue',
+    edpNoDocumentsUploaded: 'Aucun document téléversé pour le moment.',
+    edpProjectNumberPrefix: 'Projet',
+    edpNoRelatedProjects: 'Aucun projet associé.',
+    edpElementDeletedToastTitle: 'Élément supprimé',
+    edpElementDeletedToastDesc: 'L\'élément a été retiré.',
+
+    iovHeaderTitle: 'Aperçu de l\'inventaire',
+    iovToggleSrText: 'Basculer le mode édition du bâtiment',
+    iovBuildingConstructionDate: 'Date de construction du bâtiment',
+    iovDefaultForNewElements: 'Utilisée par défaut pour les nouveaux éléments sans date de construction explicite.',
+    iovTotalElementsTitle: 'Total des éléments',
+    iovBuildingInventoryItems: 'Articles d\'inventaire du bâtiment',
+    iovCriticalAlertsTitle: 'Alertes critiques',
+    iovPoorOrCriticalCondition: 'État mauvais ou critique',
+    iovOverdueEvaluationsTitle: 'Évaluations en retard',
+    iovPastDueDate: 'Date dépassée',
+    iovAssetValueTitle: 'Valeur des actifs',
+    iovEstimatedReplacementCost: 'Coût de remplacement estimé',
+    iovConditionBreakdownTitle: 'Répartition des états',
+    iovQuickStatisticsTitle: 'Statistiques rapides',
+    iovKeyInsightsTrends: 'Aperçus et tendances clés',
+    iovAverageAgeLabel: 'Âge moyen',
+    iovYearsSuffix: 'ans',
+    iovDueSoonLabel: 'Bientôt dû',
+    iovMostCommonCategoryLabel: 'Catégorie la plus courante',
+    iovBuildingUpdatedTitle: 'Bâtiment mis à jour',
+    iovBuildingUpdatedDesc: 'La date de construction a été enregistrée.',
+    iovInvalidDateTitle: 'Date invalide',
+    iovInvalidDateDesc: 'Veuillez saisir une date valide.',
+    iovInvalidDateRangeDesc: 'La date doit être comprise entre 1800 et aujourd\'hui.',
+    iovConditionExcellent: 'Excellent',
+    iovConditionGood: 'Bon',
+    iovConditionFair: 'Passable',
+    iovConditionPoor: 'Mauvais',
+    iovConditionCritical: 'Critique',
   }
 };

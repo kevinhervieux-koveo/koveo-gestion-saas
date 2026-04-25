@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/select';
 import { apiRequest } from '@/lib/queryClient';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/hooks/use-language';
 
 interface UniformatCode {
   code: string;
@@ -61,6 +62,7 @@ export function UniformatBrowser({
   className,
   language = 'en',
 }: UniformatBrowserProps) {
+  const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [levelFilter, setLevelFilter] = useState<string>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
@@ -304,7 +306,7 @@ export function UniformatBrowser({
               {showLifespan && node.typicalLifespan && (
                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
                   <Clock className="h-3 w-3" />
-                  {node.typicalLifespan} years
+                  {node.typicalLifespan} {t('ubYearsSuffix')}
                 </div>
               )}
             </div>
@@ -312,12 +314,12 @@ export function UniformatBrowser({
 
           <div className="flex items-center gap-1">
             <Badge variant="secondary" className="text-xs">
-              Level {node.level}
+              {t('ubLevelLabel')} {node.level}
             </Badge>
             
             {favoritesCodes.includes(node.code) && (
               <Badge variant="outline" className="text-xs text-orange-600">
-                Common
+                {t('ubCommonBadge')}
               </Badge>
             )}
           </div>
@@ -338,9 +340,9 @@ export function UniformatBrowser({
       <Card className={className}>
         <CardContent className="p-8 text-center">
           <Building className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-semibold mb-2">Failed to load UNIFORMAT codes</h3>
+          <h3 className="text-lg font-semibold mb-2">{t('ubFailedToLoad')}</h3>
           <p className="text-muted-foreground">
-            {error instanceof Error ? error.message : 'An error occurred while loading the catalog'}
+            {error instanceof Error ? error.message : t('ubLoadErrorDesc')}
           </p>
         </CardContent>
       </Card>
@@ -352,7 +354,7 @@ export function UniformatBrowser({
       <CardHeader className={cn('space-y-4', compact && 'pb-4')}>
         <div className="flex items-center justify-between">
           <CardTitle className={cn('text-lg', compact && 'text-base')}>
-            UNIFORMAT II Catalog
+            {t('ubCatalogTitle')}
           </CardTitle>
           
           <div className="flex items-center gap-2">
@@ -362,7 +364,7 @@ export function UniformatBrowser({
               onClick={() => setShowFavorites(!showFavorites)}
               data-testid="favorites-toggle"
             >
-              Common
+              {t('ubCommonButton')}
             </Button>
             
             {(searchTerm || levelFilter !== 'all' || categoryFilter !== 'all' || showFavorites) && (
@@ -383,7 +385,7 @@ export function UniformatBrowser({
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
-              placeholder="Search codes, names, or descriptions..."
+              placeholder={t('ubSearchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -395,13 +397,13 @@ export function UniformatBrowser({
             <div className="grid grid-cols-2 gap-2">
               <Select value={levelFilter} onValueChange={setLevelFilter}>
                 <SelectTrigger data-testid="level-filter">
-                  <SelectValue placeholder="All levels" />
+                  <SelectValue placeholder={t('ubAllLevelsPlaceholder')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All levels</SelectItem>
+                  <SelectItem value="all">{t('ubAllLevelsItem')}</SelectItem>
                   {levels.map(level => (
                     <SelectItem key={level} value={level.toString()}>
-                      Level {level}
+                      {t('ubLevelLabel')} {level}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -409,10 +411,10 @@ export function UniformatBrowser({
 
               <Select value={categoryFilter} onValueChange={setCategoryFilter}>
                 <SelectTrigger data-testid="category-filter">
-                  <SelectValue placeholder="All categories" />
+                  <SelectValue placeholder={t('ubAllCategoriesPlaceholder')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All categories</SelectItem>
+                  <SelectItem value="all">{t('ubAllCategoriesItem')}</SelectItem>
                   {categories.map(category => (
                     <SelectItem key={category} value={category}>
                       {category}
@@ -428,12 +430,12 @@ export function UniformatBrowser({
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Filter className="h-3 w-3" />
               <span>
-                Filtered: {treeData.reduce((count, node) => {
+                {t('ubFilteredResultsPrefix')} {treeData.reduce((count, node) => {
                   const countNode = (n: TreeNode): number => {
                     return 1 + n.children.reduce((sum, child) => sum + countNode(child), 0);
                   };
                   return count + countNode(node);
-                }, 0)} results
+                }, 0)} {t('ubFilteredResultsSuffix')}
               </span>
             </div>
           )}
@@ -462,8 +464,8 @@ export function UniformatBrowser({
                 <Building className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
                 <p className="text-sm text-muted-foreground">
                   {searchTerm || levelFilter !== 'all' || categoryFilter !== 'all' || showFavorites
-                    ? 'No codes match your current filters'
-                    : 'No UNIFORMAT codes available'
+                    ? t('ubNoMatchingCodes')
+                    : t('ubNoCodesAvailable')
                   }
                 </p>
               </div>

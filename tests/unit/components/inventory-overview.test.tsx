@@ -183,7 +183,7 @@ describe('InventoryOverview Construction Date Tests', () => {
   describe('Component Rendering', () => {
     it('should render Inventory Overview header', () => {
       renderComponent();
-      expect(screen.getByText('Inventory Overview')).toBeInTheDocument();
+      expect(screen.getByText('iovHeaderTitle')).toBeInTheDocument();
     });
 
     it('should render building name after loading', async () => {
@@ -221,17 +221,17 @@ describe('InventoryOverview Construction Date Tests', () => {
   describe('Component Edge Cases', () => {
     it('should handle missing building prop', () => {
       renderComponent({ building: undefined });
-      expect(screen.getByText('Inventory Overview')).toBeInTheDocument();
+      expect(screen.getByText('iovHeaderTitle')).toBeInTheDocument();
     });
 
     it('should handle missing buildingId', () => {
       renderComponent({ buildingId: undefined });
-      expect(screen.getByText('Inventory Overview')).toBeInTheDocument();
+      expect(screen.getByText('iovHeaderTitle')).toBeInTheDocument();
     });
 
     it('should handle missing organizationId', () => {
       renderComponent({ organizationId: undefined });
-      expect(screen.getByText('Inventory Overview')).toBeInTheDocument();
+      expect(screen.getByText('iovHeaderTitle')).toBeInTheDocument();
     });
   });
 

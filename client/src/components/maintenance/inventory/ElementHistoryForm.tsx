@@ -149,46 +149,46 @@ export function ElementHistoryForm({
   // Event type configurations
   const eventTypeConfig = useMemo(() => ({
     construction: {
-      label: 'Original Construction',
+      label: t('ehfEventTypeOriginalConstruction'),
       icon: Building,
-      description: 'Initial construction or installation',
+      description: t('ehfEventTypeOriginalConstructionDesc'),
       lifespanMultiplier: 0,
       defaultWarranty: 12,
       color: 'blue',
     },
     repair: {
-      label: 'Repair',
+      label: t('ehfEventTypeRepair'),
       icon: Wrench,
-      description: 'Fix or restore to working condition',
+      description: t('ehfEventTypeRepairDesc'),
       lifespanMultiplier: 0.1,
       defaultWarranty: 12,
       color: 'green',
     },
     minor_rehab: {
-      label: 'Minor Rehabilitation',
+      label: t('ehfEventTypeMinorRehab'),
       icon: TrendingUp,
-      description: 'Minor improvements or restoration',
+      description: t('ehfEventTypeMinorRehabDesc'),
       lifespanMultiplier: 0.2,
       defaultWarranty: 24,
       color: 'orange',
     },
     major_rehab: {
-      label: 'Major Rehabilitation',
+      label: t('ehfEventTypeMajorRehab'),
       icon: TrendingUp,
-      description: 'Significant renovation or restoration',
+      description: t('ehfEventTypeMajorRehabDesc'),
       lifespanMultiplier: 0.5,
       defaultWarranty: 60,
       color: 'purple',
     },
     replacement: {
-      label: 'Replacement',
+      label: t('ehfEventTypeReplacement'),
       icon: Building,
-      description: 'Complete replacement of element',
+      description: t('ehfEventTypeReplacementDesc'),
       lifespanMultiplier: 1.0,
       defaultWarranty: 120,
       color: 'red',
     },
-  }), []);
+  }), [t]);
 
   // Update form when history entry changes
   useEffect(() => {
@@ -310,17 +310,17 @@ export function ElementHistoryForm({
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" data-testid="element-history-form">
         <DialogHeader>
           <DialogTitle>
-            {mode === 'create' ? 'Add Maintenance History' : 'Edit Maintenance History'}
+            {mode === 'create' ? t('ehfAddMaintenanceHistoryTitle') : t('ehfEditMaintenanceHistoryTitle')}
             {mode === 'edit' && (
               <Badge variant="secondary" className="ml-2">
-                Edit Mode
+                {t('ehfEditModeBadge')}
               </Badge>
             )}
           </DialogTitle>
           <DialogDescription>
             {mode === 'create' 
-              ? `Record maintenance work performed on ${element.name}`
-              : 'Update the maintenance history entry details'
+              ? `${t('ehfRecordWorkPrefix')} ${element.name}`
+              : t('ehfUpdateEntryDescription')
             }
           </DialogDescription>
         </DialogHeader>
@@ -336,13 +336,13 @@ export function ElementHistoryForm({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="flex items-center gap-1">
-                        Event Type
+                        {t('ehfEventTypeLabel')}
                         <span className="text-destructive">*</span>
                       </FormLabel>
                       <FormControl>
                         <Select onValueChange={field.onChange} value={field.value}>
                           <SelectTrigger data-testid="event-type-select">
-                            <SelectValue placeholder="Select event type" />
+                            <SelectValue placeholder={t('ehfEventTypePlaceholder')} />
                           </SelectTrigger>
                           <SelectContent>
                             {Object.entries(eventTypeConfig).map(([key, config]) => (
@@ -376,7 +376,7 @@ export function ElementHistoryForm({
                           {typeof currentLifespanImpact === 'number' && currentLifespanImpact > 0 && (
                             <Badge variant="outline" className="text-green-600">
                               <TrendingUp className="h-3 w-3 mr-1" />
-                              +{currentLifespanImpact} years lifespan extension
+                              +{currentLifespanImpact} {t('ehfLifespanExtensionBadgeSuffix')}
                             </Badge>
                           )}
                         </div>
@@ -391,7 +391,7 @@ export function ElementHistoryForm({
               {/* Basic Information */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Event Date</label>
+                  <label className="text-sm font-medium">{t('ehfEventDateLabel')}</label>
                   <Popover>
                     <PopoverTrigger asChild>
                       <Button
@@ -403,7 +403,7 @@ export function ElementHistoryForm({
                         data-testid="event-date-button"
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
-                        {eventDate ? format(eventDate, "PPP") : "Select date"}
+                        {eventDate ? format(eventDate, "PPP") : t('ehfSelectDate')}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
@@ -423,7 +423,7 @@ export function ElementHistoryForm({
                   name="cost"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Cost</FormLabel>
+                      <FormLabel>{t('ehfCostLabel')}</FormLabel>
                       <FormDescription>{t('totalCostOfTheWorkOptional')}</FormDescription>
                       <FormControl>
                         <div className="relative">
@@ -456,15 +456,14 @@ export function ElementHistoryForm({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel className="flex items-center gap-1">
-                      Work Description
+                      {t('ehfWorkDescriptionLabel')}
                       <span className="text-destructive">*</span>
                     </FormLabel>
                     <FormDescription>{t('detailedDescriptionOfTheWorkPerformed')}</FormDescription>
                     <FormControl>
                       <Textarea
                         {...field}
-                        // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
-                        placeholder="Describe the maintenance work performed, materials used, and any specific details..."
+                        placeholder={t('ehfWorkDescriptionPlaceholder')}
                         rows={4}
                         data-testid="work-description"
                       />
@@ -480,7 +479,7 @@ export function ElementHistoryForm({
               <div className="space-y-4">
                 <h4 className="text-sm font-medium flex items-center gap-2">
                   <User className="h-4 w-4" />
-                  Vendor Information
+                  {t('ehfVendorInformationHeading')}
                 </h4>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -489,7 +488,7 @@ export function ElementHistoryForm({
                     name="vendorId"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Vendor</FormLabel>
+                        <FormLabel>{t('ehfVendorLabel')}</FormLabel>
                         <FormDescription>{t('selectFromExistingVendorsOrEnter')}</FormDescription>
                         <FormControl>
                           <Select onValueChange={(value) => {
@@ -500,10 +499,10 @@ export function ElementHistoryForm({
                             }
                           }}>
                             <SelectTrigger data-testid="vendor-select">
-                              <SelectValue placeholder="Select vendor" />
+                              <SelectValue placeholder={t('ehfVendorSelectPlaceholder')} />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="">No vendor (Internal work)</SelectItem>
+                              <SelectItem value="">{t('ehfNoVendorInternalWork')}</SelectItem>
                               {vendors.map((vendor: any) => (
                                 <SelectItem key={vendor.id} value={vendor.id}>
                                   <div className="flex flex-col">
@@ -525,12 +524,12 @@ export function ElementHistoryForm({
                     name="vendorName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Vendor Name</FormLabel>
-                        <FormDescription>Or enter vendor name manually</FormDescription>
+                        <FormLabel>{t('ehfVendorNameLabel')}</FormLabel>
+                        <FormDescription>{t('ehfVendorNameDesc')}</FormDescription>
                         <FormControl>
                           <Input
                             {...field}
-                            placeholder="Enter vendor name"
+                            placeholder={t('ehfVendorNamePlaceholder')}
                             data-testid="vendor-name-input"
                           />
                         </FormControl>
@@ -547,7 +546,7 @@ export function ElementHistoryForm({
               <div className="space-y-4">
                 <h4 className="text-sm font-medium flex items-center gap-2">
                   <Shield className="h-4 w-4" />
-                  Warranty Information
+                  {t('ehfWarrantyInformationHeading')}
                 </h4>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -556,7 +555,7 @@ export function ElementHistoryForm({
                     name="warrantyDuration"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Warranty Duration (months)</FormLabel>
+                        <FormLabel>{t('ehfWarrantyDurationLabel')}</FormLabel>
                         <FormControl>
                           <Input
                             type="number"
@@ -581,12 +580,12 @@ export function ElementHistoryForm({
                     name="warrantyTerms"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Warranty Terms</FormLabel>
+                        <FormLabel>{t('ehfWarrantyTermsLabel')}</FormLabel>
                         <FormDescription>{t('briefDescriptionOfWarrantyCoverage')}</FormDescription>
                         <FormControl>
                           <Input
                             {...field}
-                            placeholder="Parts and labor warranty"
+                            placeholder={t('ehfWarrantyTermsPlaceholder')}
                             data-testid="warranty-terms-input"
                           />
                         </FormControl>
@@ -601,7 +600,7 @@ export function ElementHistoryForm({
                   return warrantyDuration && eventDate && (
                     <div className="text-sm text-muted-foreground flex items-center gap-1">
                       <Info className="h-3 w-3" />
-                      Warranty expires: {format(addYears(eventDate, warrantyDuration / 12), 'MMM d, yyyy')}
+                      {t('ehfWarrantyExpiresLabel')} {format(addYears(eventDate, warrantyDuration / 12), 'MMM d, yyyy')}
                     </div>
                   );
                 })()}
@@ -614,7 +613,7 @@ export function ElementHistoryForm({
                 <div className="flex items-center justify-between">
                   <h4 className="text-sm font-medium flex items-center gap-2">
                     <Calculator className="h-4 w-4" />
-                    Lifespan Impact
+                    {t('ehfLifespanImpactHeading')}
                   </h4>
                   <div className="flex items-center gap-2">
                     <Checkbox
@@ -622,7 +621,7 @@ export function ElementHistoryForm({
                       onCheckedChange={(checked) => setAutoCalculateLifespan(checked === true)}
                       data-testid="auto-calculate-lifespan"
                     />
-                    <span className="text-xs text-muted-foreground">Auto-calculate</span>
+                    <span className="text-xs text-muted-foreground">{t('ehfAutoCalculate')}</span>
                   </div>
                 </div>
 
@@ -631,7 +630,7 @@ export function ElementHistoryForm({
                   name="lifespanImpact"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Lifespan Extension (years)</FormLabel>
+                      <FormLabel>{t('ehfLifespanExtensionLabel')}</FormLabel>
                       <FormDescription>{t('additionalYearsAddedToElementLifespan')}</FormDescription>
                       <FormControl>
                         <Input
@@ -668,13 +667,12 @@ export function ElementHistoryForm({
                 name="notes"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Additional Notes</FormLabel>
+                    <FormLabel>{t('ehfAdditionalNotesLabel')}</FormLabel>
                     <FormDescription>{t('anyAdditionalInformationOrObservations')}</FormDescription>
                     <FormControl>
                       <Textarea
                         {...field}
-                        // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
-                        placeholder="Additional notes, observations, or future recommendations..."
+                        placeholder={t('ehfNotesPlaceholder')}
                         rows={3}
                         data-testid="notes-input"
                       />
@@ -695,7 +693,7 @@ export function ElementHistoryForm({
                     disabled={mutation.isPending}
                     data-testid="cancel-button"
                   >
-                    Cancel
+                    {t('ehfCancel')}
                   </Button>
                   
                   <Button
@@ -706,10 +704,10 @@ export function ElementHistoryForm({
                     {mutation.isPending ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        {mode === 'create' ? 'Creating...' : 'Saving...'}
+                        {mode === 'create' ? t('ehfCreating') : t('ehfSaving')}
                       </>
                     ) : (
-                      mode === 'create' ? 'Create' : 'Save Changes'
+                      mode === 'create' ? t('ehfCreate') : t('ehfSaveChanges')
                     )}
                   </Button>
                 </div>

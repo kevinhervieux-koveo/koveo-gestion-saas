@@ -9,6 +9,7 @@ import { ConditionBadge } from '@/components/maintenance/StatusBadges';
 import { apiRequest } from '@/lib/queryClient';
 import { BuildingElement } from '@shared/schemas/maintenance';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/hooks/use-language';
 import {
   Edit2,
   Clock,
@@ -52,6 +53,7 @@ export function ElementCard({
   showPhotos = true,
   compact = false,
 }: ElementCardProps) {
+  const { t } = useLanguage();
   // Simplified placeholder - no context for now
   const hasPermission = () => true;
 
@@ -112,16 +114,27 @@ export function ElementCard({
     const today = new Date();
     const daysDiff = Math.ceil((evaluationDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
     
-    if (daysDiff < 0) return { status: 'overdue', label: 'Overdue', variant: 'destructive' as const };
-    if (daysDiff <= 30) return { status: 'due-soon', label: 'Due Soon', variant: 'outline' as const };
-    return { status: 'scheduled', label: 'Scheduled', variant: 'secondary' as const };
-  }, [element.nextEvaluationDate]);
+    if (daysDiff < 0) return { status: 'overdue', label: t('emcOverdueBadge'), variant: 'destructive' as const };
+    if (daysDiff <= 30) return { status: 'due-soon', label: t('emcDueSoonBadge'), variant: 'outline' as const };
+    return { status: 'scheduled', label: t('emcScheduledBadge'), variant: 'secondary' as const };
+  }, [element.nextEvaluationDate, t]);
 
   const canEdit = hasPermission();
 
   // Get element icon based on uniformat code or type
   const getElementIcon = () => {
     return <Package className="w-5 h-5 text-blue-500" />;
+  };
+
+  const conditionLabel = (cond: string) => {
+    switch (cond) {
+      case 'excellent': return t('ihdrConditionExcellent');
+      case 'good': return t('ihdrConditionGood');
+      case 'fair': return t('ihdrConditionFair');
+      case 'poor': return t('ihdrConditionPoor');
+      case 'critical': return t('ihdrConditionCritical');
+      default: return cond.charAt(0).toUpperCase() + cond.slice(1);
+    }
   };
 
   // Build badges array for StandardCard - only show in non-compact mode
@@ -133,7 +146,7 @@ export function ElementCard({
     },
     // Use ConditionBadge component for condition display - but need to map to badge format
     element.currentCondition && {
-      text: element.currentCondition.charAt(0).toUpperCase() + element.currentCondition.slice(1),
+      text: conditionLabel(element.currentCondition),
       variant: element.currentCondition === 'critical' ? 'destructive' as const : 
                element.currentCondition === 'poor' ? 'outline' as const : 'secondary' as const,
       className: 'text-xs'
@@ -149,8 +162,8 @@ export function ElementCard({
   const actions = showActions ? [
     canEdit && onEdit && {
       icon: <Edit2 className="w-4 h-4" />,
-      label: 'Edit element',
-      text: !compact ? 'Edit' : undefined,
+      label: t('emcEditElementLabel'),
+      text: !compact ? t('emcEditButton') : undefined,
       onClick: () => onEdit(element),
       variant: 'ghost' as const,
       testId: `edit-element-${element.id}`
@@ -161,12 +174,12 @@ export function ElementCard({
   const metadata = !compact ? [
     element.originalConstructionDate && {
       icon: <Calendar className="w-3 h-3" />,
-      label: 'Built',
+      label: t('emcBuiltLabel'),
       value: format(parseISO(element.originalConstructionDate), 'MMM yyyy')
     },
     element.lastInspectionDate && {
       icon: <Clock className="w-3 h-3" />,
-      label: 'Last Inspection',
+      label: t('emcLastInspectionLabel'),
       value: format(parseISO(element.lastInspectionDate), 'MMM yyyy')
     }
   ].filter(Boolean) : [];
@@ -182,7 +195,7 @@ export function ElementCard({
         >
           <img
             src={photo.url}
-            alt={`${element.name} photo ${index + 1}`}
+            alt={`${element.name} ${t('emcPhotoAltSuffix')} ${index + 1}`}
             className="w-full h-full object-cover"
             loading="lazy"
           />
@@ -208,9 +221,9 @@ export function ElementCard({
       {/* Age and Lifespan */}
       <div className="space-y-2" data-testid={`lifespan-info-${element.id}`}>
         <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">Age / Lifespan</span>
+          <span className="text-muted-foreground">{t('emcAgeLifespanLabel')}</span>
           <span className="font-medium">
-            {elementAge} / {element.currentLifespan || element.originalLifespan || '—'} years
+            {elementAge} / {element.currentLifespan || element.originalLifespan || '—'} {t('emcYearsSuffix')}
           </span>
         </div>
         
@@ -227,7 +240,7 @@ export function ElementCard({
               />
             </div>
             <div className="text-xs text-muted-foreground">
-              {lifespanProgress.toFixed(0)}% of expected lifespan
+              {lifespanProgress.toFixed(0)}{t('emcLifespanProgressSuffix')}
             </div>
           </div>
         )}
@@ -236,21 +249,21 @@ export function ElementCard({
       {/* Key Dates */}
       <div className="grid grid-cols-2 gap-4 text-sm">
         <div>
-          <div className="text-muted-foreground mb-1">Construction</div>
+          <div className="text-muted-foreground mb-1">{t('emcConstructionLabel')}</div>
           <div className="font-medium">
             {element.originalConstructionDate 
               ? format(parseISO(element.originalConstructionDate), 'MMM yyyy')
-              : 'Unknown'
+              : t('emcUnknown')
             }
           </div>
         </div>
         
         <div>
-          <div className="text-muted-foreground mb-1">Last Inspection</div>
+          <div className="text-muted-foreground mb-1">{t('emcLastInspectionLabel')}</div>
           <div className="font-medium">
             {element.lastInspectionDate 
               ? format(parseISO(element.lastInspectionDate), 'MMM yyyy')
-              : 'Never'
+              : t('emcNever')
             }
           </div>
         </div>
@@ -259,7 +272,7 @@ export function ElementCard({
       {/* Next Evaluation */}
       {element.nextEvaluationDate && (
         <div className="space-y-2">
-          <div className="text-sm text-muted-foreground">Next Evaluation</div>
+          <div className="text-sm text-muted-foreground">{t('emcNextEvaluationLabel')}</div>
           <div className="flex items-center justify-between">
             <span className="font-medium">
               {format(parseISO(element.nextEvaluationDate), 'MMM d, yyyy')}
@@ -286,14 +299,14 @@ export function ElementCard({
               <div className="space-y-1" data-testid={`cost-metrics-${element.id}`}>
                 <div className="flex items-center gap-1 text-muted-foreground">
                   <DollarSign className="h-3 w-3" />
-                  Total Cost
+                  {t('emcTotalCostLabel')}
                 </div>
                 <div className="font-medium">
                   ${metrics.totalCost.toLocaleString()}
                 </div>
                 {metrics.averageCostPerYear > 0 && (
                   <div className="text-xs text-muted-foreground">
-                    ${metrics.averageCostPerYear.toLocaleString()}/year avg
+                    ${metrics.averageCostPerYear.toLocaleString()}{t('emcCostPerYearAvgSuffix')}
                   </div>
                 )}
               </div>
@@ -301,13 +314,13 @@ export function ElementCard({
               <div className="space-y-1" data-testid={`activity-metrics-${element.id}`}>
                 <div className="flex items-center gap-1 text-muted-foreground">
                   <FileText className="h-3 w-3" />
-                  Activity
+                  {t('emcActivityLabel')}
                 </div>
                 <div className="font-medium">
-                  {metrics.historyCount} entries
+                  {metrics.historyCount} {t('emcEntriesSuffix')}
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  {metrics.documentCount} documents
+                  {metrics.documentCount} {t('emcDocumentsSuffix')}
                 </div>
               </div>
             </div>
@@ -327,7 +340,7 @@ export function ElementCard({
                 data-testid={`view-timeline-${element.id}`}
               >
                 <Clock className="h-4 w-4 mr-1" />
-                Timeline
+                {t('emcTimelineButton')}
               </Button>
             )}
           </div>

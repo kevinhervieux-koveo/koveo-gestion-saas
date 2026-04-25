@@ -120,14 +120,14 @@ export function HistoryTable({
       queryClient.invalidateQueries({ queryKey: ['/api/maintenance/elements', element.id, 'history'] });
       queryClient.invalidateQueries({ queryKey: ['/api/maintenance/buildings'] }); // Refresh element data
       toast({
-        title: 'History entry deleted',
-        description: 'The history entry has been removed successfully',
+        title: t('htHistoryEntryDeletedTitle'),
+        description: t('htHistoryEntryDeletedDesc'),
       });
     },
     onError: (error: any) => {
       toast({
-        title: 'Delete failed',
-        description: error.message || 'Failed to delete history entry',
+        title: t('htDeleteFailedTitle'),
+        description: error.message || t('htDeleteFailedDesc'),
         variant: 'destructive',
       });
     },
@@ -160,11 +160,11 @@ export function HistoryTable({
   // Event type badge configurations
   const getEventTypeBadge = useCallback((eventType: string) => {
     const configs = {
-      construction: { variant: 'secondary' as const, icon: Building, label: 'Construction' },
-      repair: { variant: 'outline' as const, icon: Wrench, label: 'Repair' },
-      minor_rehab: { variant: 'default' as const, icon: TrendingUp, label: 'Minor Rehab' },
-      major_rehab: { variant: 'destructive' as const, icon: TrendingUp, label: 'Major Rehab' },
-      replacement: { variant: 'secondary' as const, icon: Building, label: 'Replacement' },
+      construction: { variant: 'secondary' as const, icon: Building, label: t('htConstructionEventLabel') },
+      repair: { variant: 'outline' as const, icon: Wrench, label: t('htRepairEventLabel') },
+      minor_rehab: { variant: 'default' as const, icon: TrendingUp, label: t('htMinorRehabEventLabel') },
+      major_rehab: { variant: 'destructive' as const, icon: TrendingUp, label: t('htMajorRehabEventLabel') },
+      replacement: { variant: 'secondary' as const, icon: Building, label: t('htReplacementEventLabel') },
     };
 
     const config = configs[eventType as keyof typeof configs] || configs.repair;
@@ -175,13 +175,13 @@ export function HistoryTable({
         {config.label}
       </Badge>
     );
-  }, []);
+  }, [t]);
 
   // Table columns configuration
   const columns = useMemo<ColumnDef<ElementHistoryEntry>[]>(() => [
     {
       accessorKey: 'eventDate',
-      header: 'Date',
+      header: t('htDateColumn'),
       cell: ({ row }) => {
         const date = parseISO(row.original.eventDate);
         return (
@@ -197,7 +197,7 @@ export function HistoryTable({
 
     {
       accessorKey: 'eventType',
-      header: 'Event Type',
+      header: t('htEventTypeColumn'),
       cell: ({ row }) => getEventTypeBadge(row.original.eventType),
       enableSorting: true,
       filterFn: (row, id, value) => {
@@ -207,7 +207,7 @@ export function HistoryTable({
 
     {
       accessorKey: 'workDescription',
-      header: 'Description',
+      header: t('htDescriptionColumn'),
       cell: ({ row }) => {
         const description = row.original.workDescription;
         const lifespanImpact = row.original.lifespanImpact;
@@ -217,7 +217,7 @@ export function HistoryTable({
             <div className="text-sm font-medium line-clamp-2">{description}</div>
             {lifespanImpact && lifespanImpact > 0 && (
               <Badge variant="outline" className="text-xs text-green-600">
-                +{lifespanImpact} years
+                +{lifespanImpact} {t('htWarrantyYearsSuffix')}
               </Badge>
             )}
           </div>
@@ -228,7 +228,7 @@ export function HistoryTable({
 
     {
       accessorKey: 'vendorName',
-      header: 'Vendor',
+      header: t('htVendorColumn'),
       cell: ({ row }) => {
         const vendorName = row.original.vendorName;
         return vendorName ? (
@@ -237,7 +237,7 @@ export function HistoryTable({
             <span className="text-sm">{vendorName}</span>
           </div>
         ) : (
-          <span className="text-xs text-muted-foreground">Internal</span>
+          <span className="text-xs text-muted-foreground">{t('htInternalLabel')}</span>
         );
       },
       enableSorting: true,
@@ -245,7 +245,7 @@ export function HistoryTable({
 
     {
       accessorKey: 'cost',
-      header: 'Cost',
+      header: t('htCostColumn'),
       cell: ({ row }) => {
         const cost = row.original.cost;
         return cost ? (
@@ -254,7 +254,7 @@ export function HistoryTable({
             <span>${cost.toLocaleString()}</span>
           </div>
         ) : (
-          <span className="text-xs text-muted-foreground">No cost</span>
+          <span className="text-xs text-muted-foreground">{t('htNoCostLabel')}</span>
         );
       },
       enableSorting: true,
@@ -263,11 +263,11 @@ export function HistoryTable({
 
     {
       accessorKey: 'warranty',
-      header: 'Warranty',
+      header: t('htWarrantyColumn'),
       cell: ({ row }) => {
         const warranty = row.original.warranty;
         if (!warranty || !warranty.duration) {
-          return <span className="text-xs text-muted-foreground">None</span>;
+          return <span className="text-xs text-muted-foreground">{t('htWarrantyNoneLabel')}</span>;
         }
         
         const expiryDate = warranty.expiryDate ? parseISO(warranty.expiryDate) : null;
@@ -279,11 +279,11 @@ export function HistoryTable({
               variant={isExpired ? 'outline' : 'secondary'} 
               className={cn('text-xs', isExpired && 'text-red-600')}
             >
-              {warranty.duration} {warranty.duration === 1 ? 'year' : 'years'}
+              {warranty.duration} {warranty.duration === 1 ? t('htWarrantyYearSuffix') : t('htWarrantyYearsSuffix')}
             </Badge>
             {expiryDate && (
               <div className="text-xs text-muted-foreground">
-                Until {format(expiryDate, 'MMM yyyy')}
+                {t('htWarrantyUntilPrefix')} {format(expiryDate, 'MMM yyyy')}
               </div>
             )}
           </div>
@@ -291,7 +291,7 @@ export function HistoryTable({
       },
       enableSorting: false,
     },
-  ], [getEventTypeBadge]);
+  ], [getEventTypeBadge, t]);
 
   // Row actions
   const renderRowActions = useCallback((row: Row<ElementHistoryEntry>) => {
@@ -306,7 +306,7 @@ export function HistoryTable({
             className="h-8 w-8 p-0"
             data-testid={`history-actions-${entry.id}`}
           >
-            <span className="sr-only">Open menu</span>
+            <span className="sr-only">{t('htOpenMenu')}</span>
             <MoreHorizontal className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
@@ -317,7 +317,7 @@ export function HistoryTable({
               data-testid={`edit-history-${entry.id}`}
             >
               <Edit2 className="mr-2 h-4 w-4" />
-              Edit Entry
+              {t('htEditEntry')}
             </DropdownMenuItem>
           )}
           
@@ -326,7 +326,7 @@ export function HistoryTable({
             data-testid={`view-documents-${entry.id}`}
           >
             <FileText className="mr-2 h-4 w-4" />
-            View Documents
+            {t('htViewDocuments')}
           </DropdownMenuItem>
           
           {canEdit && (
@@ -340,24 +340,23 @@ export function HistoryTable({
                     data-testid={`delete-history-${entry.id}`}
                   >
                     <Trash2 className="mr-2 h-4 w-4" />
-                    Delete Entry
+                    {t('htDeleteEntry')}
                   </DropdownMenuItem>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Delete History Entry</AlertDialogTitle>
-                    {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
+                    <AlertDialogTitle>{t('htDeleteHistoryTitle')}</AlertDialogTitle>
                     <AlertDialogDescription>
                       {t('areYouSureYouWantTo3')}
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel>{t('htCancelButton')}</AlertDialogCancel>
                     <AlertDialogAction
                       onClick={() => deleteHistoryMutation.mutate(entry.id)}
                       className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                     >
-                      Delete
+                      {t('htDeleteButton')}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>
@@ -367,16 +366,16 @@ export function HistoryTable({
         </DropdownMenuContent>
       </DropdownMenu>
     );
-  }, [hasPermission, onEditHistory, onViewDocuments, deleteHistoryMutation]);
+  }, [hasPermission, onEditHistory, onViewDocuments, deleteHistoryMutation, t]);
 
   if (error) {
     return (
       <Card className={className}>
         <CardContent className="p-8 text-center">
           <AlertTriangle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-semibold mb-2">Failed to load history</h3>
+          <h3 className="text-lg font-semibold mb-2">{t('htFailedToLoadTitle')}</h3>
           <p className="text-muted-foreground">
-            {error instanceof Error ? error.message : 'An error occurred while loading element history'}
+            {error instanceof Error ? error.message : t('htFailedToLoadDesc')}
           </p>
         </CardContent>
       </Card>
@@ -392,11 +391,11 @@ export function HistoryTable({
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Total Cost</p>
+                  <p className="text-sm text-muted-foreground">{t('htTotalCostLabel')}</p>
                   <p className="text-2xl font-bold">${summaryMetrics.totalCost.toLocaleString()}</p>
                   {summaryMetrics.averageCostPerYear > 0 && (
                     <p className="text-xs text-muted-foreground">
-                      ${summaryMetrics.averageCostPerYear.toLocaleString()}/year avg
+                      ${summaryMetrics.averageCostPerYear.toLocaleString()}{t('htCostPerYearAvgSuffix')}
                     </p>
                   )}
                 </div>
@@ -409,10 +408,10 @@ export function HistoryTable({
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Lifespan Extension</p>
-                  <p className="text-2xl font-bold">+{summaryMetrics.totalLifespanImpact} years</p>
+                  <p className="text-sm text-muted-foreground">{t('htLifespanExtensionLabel')}</p>
+                  <p className="text-2xl font-bold">+{summaryMetrics.totalLifespanImpact} {t('htWarrantyYearsSuffix')}</p>
                   <p className="text-xs text-muted-foreground">
-                    From {summaryMetrics.entryCount} interventions
+                    {t('htLifespanFromInterventionsPrefix')} {summaryMetrics.entryCount} {t('htLifespanFromInterventionsSuffix')}
                   </p>
                 </div>
                 <TrendingUp className="h-8 w-8 text-muted-foreground" />
@@ -424,11 +423,11 @@ export function HistoryTable({
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Last Maintenance</p>
+                  <p className="text-sm text-muted-foreground">{t('htLastMaintenanceLabel')}</p>
                   <p className="text-2xl font-bold">
                     {summaryMetrics.latestEntry 
                       ? format(parseISO(summaryMetrics.latestEntry.eventDate), 'MMM yyyy')
-                      : 'Never'
+                      : t('htLastMaintenanceNever')
                     }
                   </p>
                   {summaryMetrics.latestEntry && (
@@ -446,7 +445,7 @@ export function HistoryTable({
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground">Work Events</p>
+                  <p className="text-sm text-muted-foreground">{t('htWorkEventsLabel')}</p>
                   <p className="text-2xl font-bold">{summaryMetrics.entryCount}</p>
                   <div className="flex gap-1 mt-1">
                     {Object.entries(summaryMetrics.eventCounts).map(([type, count]) => (
@@ -467,10 +466,10 @@ export function HistoryTable({
       <DataTable
         columns={columns}
         data={history}
-        title={compact ? undefined : "Maintenance History"}
-        description={compact ? undefined : `Complete history of work performed on ${element.name}`}
+        title={compact ? undefined : t('htMaintenanceHistoryTitle')}
+        description={compact ? undefined : `${t('htMaintenanceHistoryDescPrefix')} ${element.name}`}
         isLoading={isLoading}
-        searchPlaceholder="Search by description, vendor, or event type..."
+        searchPlaceholder={t('htSearchPlaceholder')}
         searchableColumn="workDescription"
         enableFiltering={true}
         enableSorting={true}
@@ -478,8 +477,8 @@ export function HistoryTable({
         enablePagination={!compact}
         pageSize={compact ? 5 : 10}
         emptyState={{
-          title: 'No history found',
-          description: 'No maintenance work has been recorded for this element yet.',
+          title: t('htNoHistoryTitle'),
+          description: t('htNoHistoryDesc'),
           icon: Clock,
         }}
         renderRowActions={renderRowActions}
