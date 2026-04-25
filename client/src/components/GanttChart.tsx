@@ -167,6 +167,10 @@ export function GanttChart({
   // Local drag state — offset in ms from the committed editingDates
   const [dragOffsetMs, setDragOffsetMs] = useState(0);
   const [dragMode, setDragMode] = useState<DragMode>('move');
+  // Whether a pointer drag gesture is currently in progress. Mirrored as
+  // state (in addition to the isDragging ref) so the floating date chips
+  // can re-render on gesture start/end.
+  const [dragActive, setDragActive] = useState(false);
   const dragStartX = useRef<number | null>(null);
   const isDragging = useRef(false);
 
@@ -174,6 +178,7 @@ export function GanttChart({
   useEffect(() => {
     setDragOffsetMs(0);
     setDragMode('move');
+    setDragActive(false);
     dragStartX.current = null;
     isDragging.current = false;
   }, [editingProjectId]);
@@ -339,6 +344,7 @@ export function GanttChart({
     isDragging.current = true;
     setDragMode(mode);
     setDragOffsetMs(0);
+    setDragActive(true);
   }, [editingProjectId, editingDates, isSaving]);
 
   const handlePointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
@@ -377,6 +383,7 @@ export function GanttChart({
     // editingDates value is the sole source of truth and is not double-offset.
     setDragOffsetMs(0);
     setDragMode('move');
+    setDragActive(false);
     if (effective && onDragEnd) {
       onDragEnd(editingProjectId, effective.startTs, effective.endTs);
     }
@@ -704,6 +711,63 @@ export function GanttChart({
                 }}
               />
             )}
+
+            {/* Floating date chips during a drag/resize gesture.
+                - resize-left → start chip anchored to the left edge
+                - resize-right → end chip anchored to the right edge
+                - move → both chips so the user can see both proposed dates */}
+            {dragActive && effectiveEditingDates && editingRowIndex >= 0 && domainSpan > 0 && (() => {
+              const leftPct = ((effectiveEditingDates.startTs - domain[0]) / domainSpan) * 100;
+              const rightPct = ((effectiveEditingDates.endTs - domain[0]) / domainSpan) * 100;
+              const chipTop =
+                TOP_MARGIN + editingRowIndex * ROW_HEIGHT + (ROW_HEIGHT - BAR_SIZE) / 2 - 20;
+              const chipBaseStyle: React.CSSProperties = {
+                position: 'absolute',
+                top: chipTop,
+                fontSize: 10,
+                lineHeight: '16px',
+                height: 18,
+                padding: '0 6px',
+                borderRadius: 9999,
+                background: '#2563eb',
+                color: 'white',
+                fontWeight: 600,
+                whiteSpace: 'nowrap',
+                pointerEvents: 'none',
+                zIndex: 6,
+                boxShadow: '0 1px 2px rgba(0,0,0,0.15)',
+              };
+              const showStart = dragMode === 'resize-left' || dragMode === 'move';
+              const showEnd = dragMode === 'resize-right' || dragMode === 'move';
+              return (
+                <>
+                  {showStart && (
+                    <div
+                      data-testid={`gantt-drag-chip-start-${editingProjectId}`}
+                      style={{
+                        ...chipBaseStyle,
+                        left: `${leftPct}%`,
+                        transform: 'translateX(-50%)',
+                      }}
+                    >
+                      {formatDate(effectiveEditingDates.startTs, locale)}
+                    </div>
+                  )}
+                  {showEnd && (
+                    <div
+                      data-testid={`gantt-drag-chip-end-${editingProjectId}`}
+                      style={{
+                        ...chipBaseStyle,
+                        left: `${rightPct}%`,
+                        transform: 'translateX(-50%)',
+                      }}
+                    >
+                      {formatDate(effectiveEditingDates.endTs, locale)}
+                    </div>
+                  )}
+                </>
+              );
+            })()}
 
             {/* Drag overlay for editing row — middle area slides the bar,
                 edge handles resize start / end independently. */}
