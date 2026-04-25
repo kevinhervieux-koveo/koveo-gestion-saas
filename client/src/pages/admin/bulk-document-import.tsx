@@ -3293,14 +3293,39 @@ export default function BulkDocumentImportPage() {
                                 item.preExcludeStatus == null),
                             )
                           : items;
+                        // Sorting step: build the set of sibling item IDs that
+                        // belong to a merge group but are not the lead. Siblings
+                        // are hidden at the top level and rendered inside their
+                        // lead's card instead (Task #927).
+                        // Only items that have sortingMergeWithItemIds (the
+                        // ordered array from Task #856) are treated as leads;
+                        // items with only the legacy sortingMergeWithItemId
+                        // back-reference are siblings and never leads. This
+                        // prevents mutual-reference loops from hiding both items.
+                        const siblingItemIds = new Set<string>();
+                        if (currentStep === 'sorting') {
+                          for (const it of visibleItems) {
+                            if (it.sortingDecision !== 'merge') continue;
+                            if (!it.sortingMergeWithItemIds?.length) continue;
+                            for (const sid of it.sortingMergeWithItemIds) {
+                              const sib = items.find((i) => i.id === sid);
+                              if (sib && sib.status !== 'rejected') {
+                                siblingItemIds.add(sid);
+                              }
+                            }
+                          }
+                        }
+                        const topLevelItems = currentStep === 'sorting'
+                          ? visibleItems.filter((item) => !siblingItemIds.has(item.id))
+                          : visibleItems;
                         return (
                           <>
-                      {visibleItems.length === 0 && (
+                      {topLevelItems.length === 0 && (
                         <p className="text-sm text-muted-foreground">
                           {isFr ? 'Aucun fichier' : 'No items'}
                         </p>
                       )}
-                      {visibleItems.map((item) => {
+                      {topLevelItems.map((item) => {
                         const decision = getItemStepDecision(item, currentStep);
                         const isAuto = isAutoStep(currentStep);
                         const retryAction = isAuto
@@ -3382,6 +3407,16 @@ export default function BulkDocumentImportPage() {
                           acceptAllPendingSorting.isPending ||
                           (setSortingDecision.isPending &&
                           (setSortingDecision.variables as { itemId: string } | undefined)?.itemId === item.id);
+                        // Non-excluded siblings of this merge-lead, rendered
+                        // as a nested list inside the lead's card (Task #927).
+                        // Mirrors the siblingItemIds logic: only items with
+                        // sortingMergeWithItemIds act as leads.
+                        const mergeGroupSiblingItems: BulkImportItemLite[] =
+                          currentStep === 'sorting' && item.sortingMergeWithItemIds?.length
+                            ? item.sortingMergeWithItemIds
+                                .map((sid) => items.find((i) => i.id === sid))
+                                .filter((si): si is BulkImportItemLite => si != null && si.status !== 'rejected')
+                            : [];
                         return (
                           <div
                             key={item.id}
@@ -3738,6 +3773,76 @@ export default function BulkDocumentImportPage() {
                               )}
                             </div>
                             </div>
+                            {/* Nested merge siblings (Task #927): shown on the
+                                sorting step when this item is a merge lead with
+                                at least one non-excluded sibling. */}
+                            {mergeGroupSiblingItems.length > 0 && (
+                              <div
+                                className="border-t border-border"
+                                data-testid={`branching-merge-group-${item.id}`}
+                              >
+                                <p className="px-3 pt-2 pb-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                  {isFr ? 'Dans cette fusion' : 'In this merge'}
+                                </p>
+                                <ul className="pb-2">
+                                  {mergeGroupSiblingItems.map((sibling) => {
+                                    const SiblingIcon = iconForMime(sibling.mimeType);
+                                    const siblingTogglePending =
+                                      toggleExclude.isPending &&
+                                      toggleExclude.variables?.itemId === sibling.id;
+                                    const siblingCanToggleExclude =
+                                      sibling.status !== 'committed' &&
+                                      sibling.status !== 'duplicate';
+                                    return (
+                                      <li
+                                        key={sibling.id}
+                                        className="flex items-center gap-2 ml-4 pl-4 py-1.5 border-l-2 border-border"
+                                        data-testid={`branching-merge-group-sibling-${item.id}-${sibling.id}`}
+                                      >
+                                        <SiblingIcon className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground" />
+                                        <button
+                                          type="button"
+                                          className="min-w-0 flex-1 truncate text-sm text-left hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
+                                          data-testid={`item-preview-trigger-${sibling.id}`}
+                                          onClick={() =>
+                                            setPreviewItem({
+                                              id: sibling.id,
+                                              originalName: sibling.originalName,
+                                              mimeType: sibling.mimeType,
+                                            })
+                                          }
+                                        >
+                                          {sibling.originalName}
+                                        </button>
+                                        {siblingCanToggleExclude && (
+                                          <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            className="h-6 w-6 p-0 flex-shrink-0"
+                                            onClick={() =>
+                                              toggleExclude.mutate({
+                                                itemId: sibling.id,
+                                                excluded: true,
+                                              })
+                                            }
+                                            disabled={siblingTogglePending}
+                                            aria-label={isFr ? 'Exclure le fichier' : 'Exclude file'}
+                                            title={isFr ? 'Exclure' : 'Exclude'}
+                                            data-testid={`button-toggle-exclude-${sibling.id}`}
+                                          >
+                                            {siblingTogglePending ? (
+                                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                            ) : (
+                                              <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />
+                                            )}
+                                          </Button>
+                                        )}
+                                      </li>
+                                    );
+                                  })}
+                                </ul>
+                              </div>
+                            )}
                             {/* Manual picker – always visible when the row
                                 is in the 'rejected' state so the admin can
                                 immediately switch to Keep / Merge / Slice
