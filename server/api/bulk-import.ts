@@ -34,6 +34,30 @@ import { logError, logInfo } from '../utils/logger';
 const STAGING_ROOT = path.join(process.cwd(), '.staging', 'bulk-import');
 
 /**
+ * Pull the Screening AI's quickAnalysis fields (typeGuess, bucketGuess,
+ * reason) out of a stored screening JSON blob and return them as flat
+ * scalar fields. Both the lite polling endpoint and the full session
+ * endpoint surface these so the wizard and the history view render the
+ * same AI guesses without re-uploading the file (Tasks #767, #771, #782).
+ */
+function extractScreeningQuickAnalysisFields(
+  json: Record<string, unknown> | null | undefined,
+): {
+  screeningTypeGuess: string | null;
+  screeningBucketGuess: string | null;
+  screeningQaReason: string | null;
+} {
+  if (!json) return { screeningTypeGuess: null, screeningBucketGuess: null, screeningQaReason: null };
+  const qa = json.quickAnalysis as Record<string, unknown> | null | undefined;
+  if (!qa) return { screeningTypeGuess: null, screeningBucketGuess: null, screeningQaReason: null };
+  return {
+    screeningTypeGuess: (qa.typeGuess as string | null | undefined) ?? null,
+    screeningBucketGuess: (qa.bucketGuess as string | null | undefined) ?? null,
+    screeningQaReason: (qa.reason as string | null | undefined) ?? null,
+  };
+}
+
+/**
  * Sessions that currently have a fire-and-forget `screen-all` loop
  * running on this process. Prevents the wizard's auto-trigger from
  * stacking up duplicate background passes when polling refreshes the
@@ -632,17 +656,6 @@ export function registerBulkImportRoutes(app: Express): void {
         return { ...base, decision, reason, mergeWithItemId };
       }
 
-      function extractScreeningQuickAnalysis(json: Record<string, unknown> | null | undefined) {
-        if (!json) return { screeningTypeGuess: null, screeningBucketGuess: null, screeningQaReason: null };
-        const qa = json.quickAnalysis as Record<string, unknown> | null | undefined;
-        if (!qa) return { screeningTypeGuess: null, screeningBucketGuess: null, screeningQaReason: null };
-        return {
-          screeningTypeGuess: (qa.typeGuess as string | null | undefined) ?? null,
-          screeningBucketGuess: (qa.bucketGuess as string | null | undefined) ?? null,
-          screeningQaReason: (qa.reason as string | null | undefined) ?? null,
-        };
-      }
-
       // Surface rotation outcome so the Screening row can render a
       // "Rotated Xdeg" badge (Task #772). `rotationApplied` is only true
       // when the staged file was actually rewritten in place — failed or
@@ -664,7 +677,7 @@ export function registerBulkImportRoutes(app: Express): void {
         preExcludeStatus: r.preExcludeStatus,
         ...(() => {
           const sc = extractStep(r.screening);
-          const sqaFields = extractScreeningQuickAnalysis(r.screening);
+          const sqaFields = extractScreeningQuickAnalysisFields(r.screening);
           const srot = extractScreeningRotation(r.screening);
           const so = extractSortingStep(r.sortingDecision);
           const br = extractStep(r.branchDecision);
@@ -777,7 +790,13 @@ export function registerBulkImportRoutes(app: Express): void {
     },
   );
 
-  /** Fetch a single session WITH its items (full resume payload). */
+  /**
+   * Fetch a single session WITH its items (full resume payload). Each
+   * item carries the same flat `screeningTypeGuess` / `screeningBucketGuess`
+   * / `screeningQaReason` fields the lite endpoint exposes (Task #782) so
+   * the history view can surface the AI's quickAnalysis without re-parsing
+   * the heavy `screening` JSON blob client-side.
+   */
   app.get(
     '/api/admin/bulk-import/sessions/:id',
     requireAuth,
@@ -785,10 +804,16 @@ export function registerBulkImportRoutes(app: Express): void {
     async (req: AuthenticatedRequest, res: Response) => {
       const session = await loadSession(req.params.id);
       if (!session) return res.status(404).json({ error: 'Session not found' });
-      const items = await db
+      const rows = await db
         .select()
         .from(schema.bulkImportItems)
         .where(eq(schema.bulkImportItems.sessionId, session.id));
+      const items = rows.map((row) => ({
+        ...row,
+        ...extractScreeningQuickAnalysisFields(
+          row.screening as Record<string, unknown> | null | undefined,
+        ),
+      }));
       return res.json({ session, items });
     },
   );

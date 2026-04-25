@@ -210,9 +210,21 @@ function ItemThumbnail({ item }: { item: { id: string; mimeType?: string | null;
   );
 }
 
+/**
+ * History rows enrich the raw drizzle item with the same flat
+ * quickAnalysis fields the lite endpoint exposes, so the history
+ * expansion can surface the Screening AI's typeGuess + bucketGuess +
+ * reason without re-parsing the `screening` JSON blob (Task #782).
+ */
+type HistoryBulkImportItem = BulkImportItem & {
+  screeningTypeGuess: string | null;
+  screeningBucketGuess: string | null;
+  screeningQaReason: string | null;
+};
+
 interface SessionPayload {
   session: BulkImportSession;
-  items: BulkImportItem[];
+  items: HistoryBulkImportItem[];
 }
 
 const HISTORY_PAGE_SIZE = 20;
@@ -309,7 +321,10 @@ const BUCKET_GUESS_LABEL_FR: Record<string, string> = {
  * not the literal "unknown" placeholder. Used by the detail panel to
  * decide whether the AI-guess section is worth showing at all.
  */
-function hasQuickAnalysisSignal(item: BulkImportItemLite): boolean {
+function hasQuickAnalysisSignal(item: {
+  screeningTypeGuess: string | null;
+  screeningBucketGuess: string | null;
+}): boolean {
   const t = item.screeningTypeGuess;
   const b = item.screeningBucketGuess;
   return Boolean((t && t !== 'unknown') || (b && b !== 'unknown'));
@@ -518,41 +533,95 @@ function HistorySessionRow({
               <ul className="space-y-2">
                 {items.map((item) => {
                   const reasons = fallbackReasonsForItem(item);
+                  const showQa = hasQuickAnalysisSignal(item);
                   return (
                     <li
                       key={item.id}
-                      className="flex flex-wrap items-center justify-between gap-2 rounded-sm border bg-background px-3 py-2"
+                      className="rounded-sm border bg-background px-3 py-2"
                       data-testid={`history-item-${item.id}`}
                     >
-                      <div className="min-w-0 flex-1">
-                        <div className="truncate text-sm font-medium">
-                          {item.originalName}
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate text-sm font-medium">
+                            {item.originalName}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {item.status}
+                            {item.mimeType ? ` · ${item.mimeType}` : ''}
+                          </div>
                         </div>
-                        <div className="text-xs text-muted-foreground">
-                          {item.status}
-                          {item.mimeType ? ` · ${item.mimeType}` : ''}
-                        </div>
-                      </div>
-                      {reasons.length === 0 ? (
-                        <span className="text-xs text-muted-foreground">
-                          {isFr ? 'Aucun repli' : 'No fallback'}
-                        </span>
-                      ) : (
-                        <div
-                          className="flex flex-wrap items-center gap-1"
-                          data-testid={`history-item-fallbacks-${item.id}`}
-                        >
-                          {reasons.map((r) => (
-                            <span
-                              key={`${item.id}-${r.step}`}
-                              className="inline-flex items-center gap-1 text-xs"
-                            >
-                              <span className="text-muted-foreground">
-                                {r.step}:
+                        {reasons.length === 0 ? (
+                          <span className="text-xs text-muted-foreground">
+                            {isFr ? 'Aucun repli' : 'No fallback'}
+                          </span>
+                        ) : (
+                          <div
+                            className="flex flex-wrap items-center gap-1"
+                            data-testid={`history-item-fallbacks-${item.id}`}
+                          >
+                            {reasons.map((r) => (
+                              <span
+                                key={`${item.id}-${r.step}`}
+                                className="inline-flex items-center gap-1 text-xs"
+                              >
+                                <span className="text-muted-foreground">
+                                  {r.step}:
+                                </span>
+                                <FallbackReasonBadge reason={r.reason} isFr={isFr} />
                               </span>
-                              <FallbackReasonBadge reason={r.reason} isFr={isFr} />
-                            </span>
-                          ))}
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                      {showQa && (
+                        <div
+                          className="mt-2 border-t pt-2"
+                          data-testid={`history-item-quick-analysis-${item.id}`}
+                        >
+                          <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                            {isFr ? 'Analyse de l’IA' : 'AI analysis'}
+                          </div>
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            {item.screeningTypeGuess &&
+                              item.screeningTypeGuess !== 'unknown' && (
+                                <span
+                                  className="inline-flex items-center rounded-md border border-purple-300 bg-purple-50 px-2 py-0.5 text-xs font-medium text-purple-900 dark:border-purple-700 dark:bg-purple-950 dark:text-purple-200"
+                                  data-testid={`history-item-type-guess-${item.id}`}
+                                >
+                                  <span className="mr-1 text-[10px] uppercase tracking-wide opacity-75">
+                                    {isFr ? 'Type' : 'Type'}:
+                                  </span>
+                                  {(isFr ? TYPE_GUESS_LABEL_FR : TYPE_GUESS_LABEL_EN)[
+                                    item.screeningTypeGuess
+                                  ] ?? item.screeningTypeGuess}
+                                </span>
+                              )}
+                            {item.screeningBucketGuess &&
+                              item.screeningBucketGuess !== 'unknown' && (
+                                <span
+                                  className="inline-flex items-center rounded-md border border-teal-300 bg-teal-50 px-2 py-0.5 text-xs font-medium text-teal-900 dark:border-teal-700 dark:bg-teal-950 dark:text-teal-200"
+                                  data-testid={`history-item-bucket-guess-${item.id}`}
+                                >
+                                  <span className="mr-1 text-[10px] uppercase tracking-wide opacity-75">
+                                    {isFr ? 'Destination' : 'Bucket'}:
+                                  </span>
+                                  {(isFr ? BUCKET_GUESS_LABEL_FR : BUCKET_GUESS_LABEL_EN)[
+                                    item.screeningBucketGuess
+                                  ] ?? item.screeningBucketGuess}
+                                </span>
+                              )}
+                          </div>
+                          {item.screeningQaReason && (
+                            <p
+                              className="mt-1.5 whitespace-pre-wrap text-xs text-foreground/80"
+                              data-testid={`history-item-qa-reason-${item.id}`}
+                            >
+                              <span className="mr-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+                                {isFr ? 'Raison' : 'Reason'}:
+                              </span>
+                              {item.screeningQaReason}
+                            </p>
+                          )}
                         </div>
                       )}
                     </li>
