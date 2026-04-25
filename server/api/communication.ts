@@ -1472,7 +1472,19 @@ export function registerCommunicationRoutes(app: import('../utils/lazy-mount').R
         });
       }
 
-      // Validate request body
+      const rawScheduledDate = (req.body as { scheduledDate?: unknown } | null)?.scheduledDate;
+      if (rawScheduledDate !== undefined && rawScheduledDate !== null) {
+        const candidate = rawScheduledDate instanceof Date
+          ? rawScheduledDate
+          : new Date(rawScheduledDate as string);
+        if (!Number.isNaN(candidate.getTime()) && candidate.getTime() < Date.now()) {
+          return res.status(400).json({
+            message: 'scheduledDate must be in the future',
+            code: 'PAST_SCHEDULED_DATE',
+          });
+        }
+      }
+
       const validatedData = insertMeetingSchema.parse(req.body);
 
       // console.log(`🗓️ Creating meeting for organization ${validatedData.organizationId} by user ${currentUser.id}`);

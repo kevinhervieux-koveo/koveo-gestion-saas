@@ -127,6 +127,25 @@ describe('create_communication / create_meeting OAuth attribution (task #138)', 
       expect(insertCalls[0].values.organizationId).toBe(ORG_ID);
     });
 
+    it('rejects a past scheduledDate without inserting', async () => {
+      selectQueue.push([{ id: ORG_ID }]);
+
+      const handler = registeredTools.get('create_meeting');
+      expect(handler).toBeDefined();
+      const result = await handler!({
+        role: 'manager',
+        organizationId: ORG_ID,
+        title: 'Backdated meeting',
+        location: 'Salle 1',
+        scheduledDate: '1995-01-01T10:00:00Z',
+        duration: 60,
+      });
+
+      expect(result.content[0].text).toContain('scheduledDate must be in the future');
+      expect(insertCalls.length).toBe(0);
+      expect(selectQueue.length).toBe(0);
+    });
+
     it('still fails clearly when the OAuth user no longer exists in the DB', async () => {
       selectQueue.push([{ id: ORG_ID }]);
       selectQueue.push([]); // user lookup by id finds nothing

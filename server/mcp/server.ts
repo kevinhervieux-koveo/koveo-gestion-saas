@@ -3588,6 +3588,13 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       if (!orgIds.includes(organizationId)) {
         return { content: [{ type: "text" as const, text: "Access denied: organization not in MCP scope" }] };
       }
+      const parsedScheduledDate = new Date(scheduledDate);
+      if (Number.isNaN(parsedScheduledDate.getTime())) {
+        return { content: [{ type: "text" as const, text: "scheduledDate must be a valid ISO 8601 date" }] };
+      }
+      if (parsedScheduledDate.getTime() < Date.now()) {
+        return { content: [{ type: "text" as const, text: "scheduledDate must be in the future" }] };
+      }
       const user = await getMcpUser(role);
       if (!user) return { content: [{ type: "text" as const, text: "MCP user not found" }] };
       try {
@@ -3598,7 +3605,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
             title,
             description: description || null,
             location,
-            scheduledDate: new Date(scheduledDate),
+            scheduledDate: parsedScheduledDate,
             duration,
             createdBy: user.id,
           })
