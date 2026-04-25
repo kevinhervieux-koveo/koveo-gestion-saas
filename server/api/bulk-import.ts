@@ -1518,6 +1518,15 @@ export function registerBulkImportRoutes(app: Express): void {
         };
       }
 
+      // Task #1063: resolve the building's fiscal-year-start month once per
+      // request so the Sorting Period picker prefill (`screeningParsedPeriodHintDate`)
+      // matches the commit-time path. Without this a fiscal-year hint like
+      // "2025-2026" on an April-start building would resolve to Jan 1 in the
+      // picker but Apr 1 at commit, contradicting Task #1060's "Done looks like".
+      const liteFiscalYearStartMonth = await getFiscalYearStartMonthForBuilding(
+        session.buildingId,
+      );
+
       const items = rows.map((r) => {
         const dupeInfo = r.status === 'duplicate'
           ? (duplicateInfoByHash.get(r.contentHash) ?? null)
@@ -1549,7 +1558,10 @@ export function registerBulkImportRoutes(app: Express): void {
             // Task #1003: expose the parsed form of periodHint so the UI can show
             // a "from screening" annotation when identification has no effectiveDate.
             const rawPh = sqaFields.screeningPeriodHint;
-            const parsedPhDate = parsePeriodHint(rawPh);
+            // Task #1063: pass the building's fiscal-year-start month so a
+            // fiscal-year hint like "2025-2026" on an April-start building
+            // resolves to 2025-04-01 instead of 2025-01-01.
+            const parsedPhDate = parsePeriodHint(rawPh, liteFiscalYearStartMonth);
             const screeningParsedPeriodHintDate = parsedPhDate
               ? parsedPhDate.toISOString().slice(0, 10)
               : null;
