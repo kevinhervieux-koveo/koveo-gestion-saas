@@ -100,7 +100,9 @@ const ITEM_UNKNOWN_GUESSES_NAME = 'old-session-file.pdf';
 interface ItemFixture {
   id: string;
   originalName: string;
-  status: 'screened' | 'screening' | 'sorted' | 'branched';
+  status: 'screened' | 'screening' | 'sorted' | 'branched' | 'rejected';
+  /** Optional — null by default (not admin-excluded). */
+  preExcludeStatus?: string | null;
   screeningTypeGuess: string | null;
   screeningBucketGuess: string | null;
   screeningConfidence: number | null;
@@ -113,6 +115,13 @@ interface ItemFixture {
   sortingDecision?: 'keep' | 'merge' | 'split' | null;
   sortingReason?: string | null;
   sortingDecisionState?: 'pending' | 'accepted' | 'rejected' | null;
+  /**
+   * Optional — used by Task #901 regression tests. When set, mimics a file
+   * that was previously the lead of a split (so the field is populated in the
+   * DB) but was subsequently excluded by the admin. The filter must honour
+   * preExcludeStatus and hide such items.
+   */
+  sortingDecisionSplitIntoItemIds?: string[] | null;
 }
 
 let items: ItemFixture[] = [];
@@ -153,7 +162,7 @@ function buildSessionPayload() {
       originalName: it.originalName,
       mimeType: 'application/pdf',
       status: it.status,
-      preExcludeStatus: null,
+      preExcludeStatus: it.preExcludeStatus ?? null,
       screeningConfidence: it.screeningConfidence,
       screeningFallback: it.screeningFallback ?? null,
       screeningTypeGuess: it.screeningTypeGuess,
@@ -167,6 +176,7 @@ function buildSessionPayload() {
       sortingSplitAtPage: null,
       sortingDecisionState: it.sortingDecisionState ?? null,
       sortingManualOverride: false,
+      sortingDecisionSplitIntoItemIds: it.sortingDecisionSplitIntoItemIds ?? null,
       branchingConfidence: null,
       branchingFallback: null,
       identificationConfidence: null,
@@ -589,5 +599,129 @@ describe('BulkDocumentImportPage — fallback explanation in detail panel (Task 
         /car il est trop volumineux/i,
       );
     });
+  });
+});
+
+// -----------------------------------------------------------------------------
+// Task #901 — Excluded files must be hidden from the Branching step (internal
+// step key `sorting`) even when `sortingDecisionSplitIntoItemIds` is populated.
+//
+// The regression: an admin-excluded item that previously had a split-decision
+// recorded (so `sortingDecisionSplitIntoItemIds` is non-empty in the DB) was
+// incorrectly kept visible because the filter exception only checked
+// `!!sortingDecisionSplitIntoItemIds?.length` without also verifying that
+// `preExcludeStatus == null` (i.e. the rejection is from the split action, not
+// from the admin explicitly excluding the item). This test locks down the fixed
+// behaviour: an excluded item (preExcludeStatus set) must NEVER appear in the
+// Branching step flat list, regardless of its `sortingDecisionSplitIntoItemIds`
+// value.
+// -----------------------------------------------------------------------------
+
+const SORTING_EXCLUDED_ID = 'item-sorting-excluded-with-split-history';
+const SORTING_EXCLUDED_NAME = 'excluded-was-split.pdf';
+const SORTING_NORMAL_ID = 'item-sorting-normal';
+const SORTING_NORMAL_NAME = 'normal-sorted-file.pdf';
+
+function setupExcludedAndNormalSortingItems() {
+  currentStep = 'sorting';
+  items = [
+    {
+      id: SORTING_EXCLUDED_ID,
+      originalName: SORTING_EXCLUDED_NAME,
+      // status='rejected' because the admin clicked "Exclude".
+      // preExcludeStatus='sorted' proves it is admin-excluded, not a
+      // draft-split lead (which would have preExcludeStatus=null).
+      // sortingDecisionSplitIntoItemIds is non-empty because the item
+      // previously had a split decision; without the Task #901 fix, the
+      // filter exception would incorrectly keep this item visible.
+      status: 'rejected' as const,
+      preExcludeStatus: 'sorted',
+      sortingDecisionSplitIntoItemIds: ['child-item-1', 'child-item-2'],
+      screeningTypeGuess: 'invoice',
+      screeningBucketGuess: null,
+      screeningConfidence: 0.75,
+      screeningQaReason: null,
+      sortingDecision: 'split',
+      sortingDecisionState: 'accepted',
+    },
+    {
+      id: SORTING_NORMAL_ID,
+      originalName: SORTING_NORMAL_NAME,
+      status: 'sorted' as const,
+      preExcludeStatus: null,
+      sortingDecisionSplitIntoItemIds: null,
+      screeningTypeGuess: 'contract',
+      screeningBucketGuess: null,
+      screeningConfidence: 0.9,
+      screeningQaReason: null,
+      sortingDecision: 'keep',
+      sortingDecisionState: 'accepted',
+    },
+  ];
+}
+
+describe('BulkDocumentImportPage — excluded files hidden in Branching step (Task #901)', () => {
+  it('hides an admin-excluded item that has sortingDecisionSplitIntoItemIds set', async () => {
+    setupExcludedAndNormalSortingItems();
+
+    renderPage();
+
+    // Wait for the non-excluded item to appear — confirms the step rendered.
+    await screen.findByTestId(`item-preview-trigger-${SORTING_NORMAL_ID}`, undefined, {
+      timeout: 4000,
+    });
+
+    // The excluded item must be completely absent from the DOM — neither the
+    // row wrapper nor the preview trigger should be rendered.
+    expect(
+      screen.queryByTestId(`item-row-${SORTING_EXCLUDED_ID}`),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId(`item-preview-trigger-${SORTING_EXCLUDED_ID}`),
+    ).not.toBeInTheDocument();
+  });
+
+  it('keeps a genuine draft-split lead (preExcludeStatus null) visible in the Branching step', async () => {
+    // A draft-split lead has status='rejected' because the SPLIT action
+    // set it, but preExcludeStatus=null (not admin-excluded). It must
+    // remain visible so the admin can adjust or revert the split.
+    currentStep = 'sorting';
+    items = [
+      {
+        id: SORTING_NORMAL_ID,
+        originalName: SORTING_NORMAL_NAME,
+        status: 'sorted' as const,
+        preExcludeStatus: null,
+        sortingDecisionSplitIntoItemIds: null,
+        screeningTypeGuess: null,
+        screeningBucketGuess: null,
+        screeningConfidence: null,
+        screeningQaReason: null,
+        sortingDecision: 'keep',
+        sortingDecisionState: 'accepted',
+      },
+      {
+        id: SORTING_EXCLUDED_ID,
+        originalName: SORTING_EXCLUDED_NAME,
+        // Draft-split lead: rejected by the split action, NOT by admin.
+        status: 'rejected' as const,
+        preExcludeStatus: null,
+        sortingDecisionSplitIntoItemIds: ['child-item-1'],
+        screeningTypeGuess: null,
+        screeningBucketGuess: null,
+        screeningConfidence: null,
+        screeningQaReason: null,
+        sortingDecision: 'split',
+        sortingDecisionState: 'accepted',
+      },
+    ];
+
+    renderPage();
+
+    // Both items should render — the draft-split lead is kept visible.
+    await screen.findByTestId(`item-preview-trigger-${SORTING_NORMAL_ID}`, undefined, {
+      timeout: 4000,
+    });
+    await screen.findByTestId(`item-preview-trigger-${SORTING_EXCLUDED_ID}`);
   });
 });

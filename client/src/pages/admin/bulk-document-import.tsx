@@ -3093,8 +3093,15 @@ export default function BulkDocumentImportPage() {
                         const visibleItems = currentStep !== 'screening'
                           ? items.filter((item) =>
                               item.status !== 'rejected' ||
-                              // Split-draft leads: keep visible in sorting step.
-                              (currentStep === 'sorting' && !!item.sortingDecisionSplitIntoItemIds?.length),
+                              // Split-draft leads: keep visible in sorting step so
+                              // the admin can adjust or revert. Guard with
+                              // preExcludeStatus == null so that an item the admin
+                              // explicitly excluded (preExcludeStatus is set) is
+                              // always hidden — even if it previously had split
+                              // children recorded (Task #804 regression fix).
+                              (currentStep === 'sorting' &&
+                                !!item.sortingDecisionSplitIntoItemIds?.length &&
+                                item.preExcludeStatus == null),
                             )
                           : items;
                         return (
@@ -3128,7 +3135,8 @@ export default function BulkDocumentImportPage() {
                         const isDraftSplitLead =
                           currentStep === 'sorting' &&
                           item.status === 'rejected' &&
-                          !!item.sortingDecisionSplitIntoItemIds?.length;
+                          !!item.sortingDecisionSplitIntoItemIds?.length &&
+                          item.preExcludeStatus == null;
                         const isExcluded = item.status === 'rejected' && !isDraftSplitLead;
                         const showRetry =
                           !isExcluded &&
@@ -3153,10 +3161,7 @@ export default function BulkDocumentImportPage() {
                           currentStep === 'sorting'
                             ? item.sortingDecision != null
                             : hasQuickAnalysisSignal(item);
-                        const isExpanded =
-                          currentStep === 'branching'
-                            ? !collapsedBranchingItemIds.has(item.id)
-                            : expandedItemIds.has(item.id);
+                        const isExpanded = expandedItemIds.has(item.id);
                         // For the sorting step: is the AI's answer
                         // waiting for human acceptance?
                         const sortingIsPending =
@@ -3808,13 +3813,24 @@ export default function BulkDocumentImportPage() {
                                                 ? 'Les fichiers seront combinés dans cet ordre en un seul PDF.'
                                                 : 'Files will be combined in this order into a single PDF.'}
                                             </p>
+                                            {/* Filter out admin-excluded items from the
+                                                 merge group display and reorder handlers.
+                                                 Handlers must operate on the same filtered
+                                                 list the UI shows so indices stay consistent
+                                                 (Task #804 regression fix, Task #901). */}
+                                            {(() => {
+                                              const displayedMergeGroupIds = mergeGroupIds.filter((fileId) => {
+                                                const fi = items.find((i) => i.id === fileId);
+                                                return !fi || fi.status !== 'rejected';
+                                              });
+                                              return (
                                             <ol className="space-y-1">
-                                              {mergeGroupIds.map((fileId, idx) => {
+                                              {displayedMergeGroupIds.map((fileId, idx) => {
                                                 const fileItem = items.find((i) => i.id === fileId);
                                                 const fileName = fileItem?.originalName ?? fileId;
                                                 const FileIconComp = iconForMime(fileItem?.mimeType);
                                                 const canMoveUp = !sortingIsAccepted && idx > 0;
-                                                const canMoveDown = !sortingIsAccepted && idx < mergeGroupIds.length - 1;
+                                                const canMoveDown = !sortingIsAccepted && idx < displayedMergeGroupIds.length - 1;
                                                 return (
                                                   <li
                                                     key={fileId}
@@ -3844,7 +3860,7 @@ export default function BulkDocumentImportPage() {
                                                           data-testid={`branching-merge-move-up-${item.id}-${idx}`}
                                                           onClick={() => {
                                                             if (!canMoveUp) return;
-                                                            const next = [...mergeGroupIds];
+                                                            const next = [...displayedMergeGroupIds];
                                                             [next[idx - 1], next[idx]] = [next[idx], next[idx - 1]];
                                                             setInlineMergeOrder((prev) => new Map(prev).set(item.id, next));
                                                             scheduleAutoSave(item);
@@ -3861,7 +3877,7 @@ export default function BulkDocumentImportPage() {
                                                           data-testid={`branching-merge-move-down-${item.id}-${idx}`}
                                                           onClick={() => {
                                                             if (!canMoveDown) return;
-                                                            const next = [...mergeGroupIds];
+                                                            const next = [...displayedMergeGroupIds];
                                                             [next[idx], next[idx + 1]] = [next[idx + 1], next[idx]];
                                                             setInlineMergeOrder((prev) => new Map(prev).set(item.id, next));
                                                             scheduleAutoSave(item);
@@ -3875,6 +3891,8 @@ export default function BulkDocumentImportPage() {
                                                 );
                                               })}
                                             </ol>
+                                              );
+                                            })()}
                                             {!sortingIsAccepted && itemIsPdf && (() => {
                                               const candidates = items.filter(
                                                 (i) =>
