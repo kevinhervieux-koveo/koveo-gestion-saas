@@ -648,7 +648,13 @@ describeIfDb('MCP delete_building cascade — real Postgres (Task #273)', () => 
     const invBldgAcceptedId = crypto.randomUUID();
     const invResCancelledId = crypto.randomUUID();
     const invSiblingPendingId = crypto.randomUUID();
+    // Task #630: also seed EXPIRED rows in both sweep paths
+    // (residence-scoped and building-scoped) so we can verify the
+    // delete_building cascade now sweeps them too.
+    const invBldgExpiredId = crypto.randomUUID();
+    const invResExpiredId = crypto.randomUUID();
     const futureExp = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const pastExp = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     await db.insert(schema.invitations).values([
       {
         id: invBldgPendingId,
@@ -723,6 +729,32 @@ describeIfDb('MCP delete_building cascade — real Postgres (Task #273)', () => 
         invitedByUserId: userId,
         expiresAt: futureExp,
       },
+      // Task #630: building-scoped EXPIRED invitation should be swept.
+      {
+        id: invBldgExpiredId,
+        organizationId,
+        buildingId: targetBuildingId,
+        email: `${TEST_TAG}-bldg-expired@example.test`,
+        token: `tok-bldg-expired-${invBldgExpiredId}`,
+        tokenHash: `hash-bldg-expired-${invBldgExpiredId}`,
+        role: 'manager',
+        status: 'expired',
+        invitedByUserId: userId,
+        expiresAt: pastExp,
+      },
+      // Task #630: residence-scoped EXPIRED invitation should be swept.
+      {
+        id: invResExpiredId,
+        organizationId,
+        residenceId,
+        email: `${TEST_TAG}-res-expired@example.test`,
+        token: `tok-res-expired-${invResExpiredId}`,
+        tokenHash: `hash-res-expired-${invResExpiredId}`,
+        role: 'tenant',
+        status: 'expired',
+        invitedByUserId: userId,
+        expiresAt: pastExp,
+      },
     ]);
     created.invitationIds.add(invBldgPendingId);
     created.invitationIds.add(invResPendingId);
@@ -730,6 +762,8 @@ describeIfDb('MCP delete_building cascade — real Postgres (Task #273)', () => 
     created.invitationIds.add(invBldgAcceptedId);
     created.invitationIds.add(invResCancelledId);
     created.invitationIds.add(invSiblingPendingId);
+    created.invitationIds.add(invBldgExpiredId);
+    created.invitationIds.add(invResExpiredId);
 
     // ---- Invoke the real MCP `delete_building` handler ----
     const server = createMcpServer();
@@ -760,7 +794,11 @@ describeIfDb('MCP delete_building cascade — real Postgres (Task #273)', () => 
       commonSpaces: 1,
       userBuildings: 1,
       userResidences: 1,
-      invitations: 3, // 1 building-only pending + 1 residence-only pending + 1 dual-linked pending; terminal rows untouched
+      // Task #630: 1 building-only pending + 1 residence-only pending +
+      // 1 dual-linked pending + 1 building-only EXPIRED + 1
+      // residence-only EXPIRED. Terminal (accepted/cancelled) rows
+      // and the sibling-building pending row stay untouched.
+      invitations: 5,
     });
     expect(parsed.demandsAssignationCleared).toBe(1);
 
@@ -951,6 +989,36 @@ describeIfDb('MCP delete_building cascade — real Postgres (Task #273)', () => 
     expect(resPendingAfter).toHaveLength(1);
     expect(resPendingAfter[0].status).toBe('cancelled');
     expect(resPendingAfter[0].residenceId).toBeNull();
+
+    // Task #630: the EXPIRED building-scoped invitation is also swept
+    // by the building-scoped sweep — flipped to 'cancelled' with its
+    // buildingId nulled out.
+    const bldgExpiredAfter = await db
+      .select({
+        id: schema.invitations.id,
+        status: schema.invitations.status,
+        buildingId: schema.invitations.buildingId,
+      })
+      .from(schema.invitations)
+      .where(eq(schema.invitations.id, invBldgExpiredId));
+    expect(bldgExpiredAfter).toHaveLength(1);
+    expect(bldgExpiredAfter[0].status).toBe('cancelled');
+    expect(bldgExpiredAfter[0].buildingId).toBeNull();
+
+    // Task #630: the EXPIRED residence-scoped invitation is also swept
+    // by the residence-scoped sweep — flipped to 'cancelled' with its
+    // residenceId nulled out.
+    const resExpiredAfter = await db
+      .select({
+        id: schema.invitations.id,
+        status: schema.invitations.status,
+        residenceId: schema.invitations.residenceId,
+      })
+      .from(schema.invitations)
+      .where(eq(schema.invitations.id, invResExpiredId));
+    expect(resExpiredAfter).toHaveLength(1);
+    expect(resExpiredAfter[0].status).toBe('cancelled');
+    expect(resExpiredAfter[0].residenceId).toBeNull();
 
     // Dual-linked pending invitation: BOTH FK columns must be nulled
     // (regression guard for the code-review edge case on task #383).

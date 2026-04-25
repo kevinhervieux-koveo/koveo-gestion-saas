@@ -175,7 +175,7 @@ describeIfDb('sweep-orphaned-invitations script — real Postgres (Task #496)', 
     function makeInvitation(opts: {
       bId: string | null;
       rId: string | null;
-      status: 'pending' | 'accepted';
+      status: 'pending' | 'accepted' | 'expired';
       label: string;
     }) {
       const id = crypto.randomUUID();
@@ -212,6 +212,15 @@ describeIfDb('sweep-orphaned-invitations script — real Postgres (Task #496)', 
       status: 'pending',
       label: 'dangling-both',
     });
+    // Task #630: an EXPIRED invitation with a dangling residenceId
+    // must also be swept (previously the sweep only touched 'pending').
+    const ghostResidenceExpired = crypto.randomUUID();
+    const danglingExpired = makeInvitation({
+      bId: null,
+      rId: ghostResidenceExpired,
+      status: 'expired',
+      label: 'dangling-expired',
+    });
     const acceptedTerminal = makeInvitation({
       bId: ghostBuildingTerminal,
       rId: ghostResidenceTerminal,
@@ -228,6 +237,7 @@ describeIfDb('sweep-orphaned-invitations script — real Postgres (Task #496)', 
       danglingBuildingOnly,
       danglingResidenceOnly,
       danglingBoth,
+      danglingExpired,
       acceptedTerminal,
       validPending,
     ];
@@ -253,11 +263,15 @@ describeIfDb('sweep-orphaned-invitations script — real Postgres (Task #496)', 
     // The sweep is global (the script has no scope filter), so any
     // pre-existing orphans from other tests will also get swept. We
     // only own the +3 delta we just seeded.
-    expect(result.detected - baseline.detected).toBe(3);
+    expect(result.detected - baseline.detected).toBe(4);
     expect(result.cancelled).toBe(result.detected);
     expect(result.buildingDangling - baseline.buildingDangling).toBe(2); // dangling-bldg + dangling-both
-    expect(result.residenceDangling - baseline.residenceDangling).toBe(2); // dangling-res + dangling-both
+    expect(result.residenceDangling - baseline.residenceDangling).toBe(3); // dangling-res + dangling-both + dangling-expired
     expect(result.bothDangling - baseline.bothDangling).toBe(1); // dangling-both
+    // Task #630: the sweep result reports the new expiredSwept counter
+    // so callers can distinguish 'pending' vs 'expired' rows taken to
+    // 'cancelled'.
+    expect(result.expiredSwept - baseline.expiredSwept).toBe(1); // dangling-expired
 
     // 5. Read every test invitation back and assert state.
     const after = await db
@@ -289,10 +303,18 @@ describeIfDb('sweep-orphaned-invitations script — real Postgres (Task #496)', 
       buildingId: null,
       residenceId: null,
     });
+    // Task #630: expired-status orphan is also flipped to 'cancelled'
+    // and its dangling residenceId nulled.
+    expect(byId.get(danglingExpired.id)).toMatchObject({
+      status: 'cancelled',
+      buildingId: null,
+      residenceId: null,
+    });
 
     // Negative cases: untouched. The terminal-status row keeps its
-    // ghost FKs (the script only filters on status='pending'), and the
-    // valid pending row keeps its live FKs.
+    // ghost FKs (the sweep filters on status IN ('pending','expired')
+    // and 'accepted' is neither), and the valid pending row keeps its
+    // live FKs.
     expect(byId.get(acceptedTerminal.id)).toMatchObject({
       status: 'accepted',
       buildingId: ghostBuildingTerminal,
@@ -323,7 +345,7 @@ describeIfDb('sweep-orphaned-invitations script — real Postgres (Task #496)', 
           allInvitations.map((i) => i.id)
         )
       );
-    expect(auditRows).toHaveLength(3);
+    expect(auditRows).toHaveLength(4);
     const auditByInv = new Map(auditRows.map((a) => [a.invitationId, a]));
     for (const orphanId of [danglingBuildingOnly.id, danglingResidenceOnly.id, danglingBoth.id]) {
       const entry = auditByInv.get(orphanId);
@@ -337,6 +359,18 @@ describeIfDb('sweep-orphaned-invitations script — real Postgres (Task #496)', 
         source: 'scripts/sweep-orphaned-invitations.ts',
       });
     }
+    // Task #630: the audit row for the EXPIRED orphan must record the
+    // actual prior status ('expired') rather than hard-coding 'pending'.
+    const expiredEntry = auditByInv.get(danglingExpired.id);
+    expect(expiredEntry).toBeDefined();
+    expect(expiredEntry).toMatchObject({
+      action: 'cancelled',
+      previousStatus: 'expired',
+      newStatus: 'cancelled',
+    });
+    expect(expiredEntry?.details).toMatchObject({
+      source: 'scripts/sweep-orphaned-invitations.ts',
+    });
     // No audit row was written for the negative-case invitations.
     expect(auditByInv.has(acceptedTerminal.id)).toBe(false);
     expect(auditByInv.has(validPending.id)).toBe(false);

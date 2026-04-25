@@ -3637,6 +3637,27 @@ export function registerUserRoutes(app: Express): void {
         });
       }
 
+      // Residence-existence guard (task #630). invitations.residenceId
+      // has no FK in the database, so an invitation that survived a
+      // residence delete from before the cascade fix (task #383) — or
+      // any future row that slips through — would otherwise be
+      // resurrected here against a ghost residence. Refuse to resend
+      // such an invitation; the operator should cancel it explicitly
+      // (or re-invite against a live residence).
+      if (invitation.residenceId) {
+        const [residenceRow] = await db
+          .select({ id: schema.residences.id })
+          .from(schema.residences)
+          .where(eq(schema.residences.id, invitation.residenceId))
+          .limit(1);
+        if (!residenceRow) {
+          return res.status(422).json({
+            message: `Residence not found: ${invitation.residenceId} (cannot resend invitation pointing at a deleted residence)`,
+            code: 'INVITATION_RESIDENCE_MISSING',
+          });
+        }
+      }
+
       // Update invitation with new expiry
       const newExpiresAt = new Date();
       newExpiresAt.setDate(newExpiresAt.getDate() + 7); // Extend by 7 days

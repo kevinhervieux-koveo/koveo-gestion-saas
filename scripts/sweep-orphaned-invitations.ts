@@ -1,25 +1,31 @@
 #!/usr/bin/env tsx
 /**
- * One-time sweep: cancel pending invitations that reference deleted buildings
- * or residences.
+ * One-time sweep: cancel pending or expired invitations that reference
+ * deleted buildings or residences.
  *
  * Task #383 added a soft-cancel cascade to delete_building and delete_residence
  * in the MCP server (server/mcp/server.ts), so newly deleted parents no longer
  * leave invitations dangling. But rows that were orphaned BEFORE that fix
- * shipped are still in the database with status='pending' and dangling
- * buildingId/residenceId. Those rows produce 500s when the user tries to
- * accept the invitation because the accept flow dereferences the missing
- * parent.
+ * shipped are still in the database with status='pending' (or 'expired'
+ * after their expiry tick) and dangling buildingId/residenceId. Those rows
+ * produce 500s when the user tries to accept the invitation because the
+ * accept flow dereferences the missing parent. They can also be silently
+ * resurrected by `resend_invitation` if the row is in `expired` state and
+ * the resend path doesn't catch the dangling FK (task #630).
  *
  * This script mirrors the cascade behavior:
- *   - For every pending invitation whose buildingId no longer resolves in
- *     the `buildings` table, set status='cancelled' and null buildingId.
- *   - For every pending invitation whose residenceId no longer resolves in
- *     the `residences` table, set status='cancelled' and null residenceId.
+ *   - For every pending or expired invitation whose buildingId no longer
+ *     resolves in the `buildings` table, set status='cancelled' and null
+ *     buildingId.
+ *   - For every pending or expired invitation whose residenceId no longer
+ *     resolves in the `residences` table, set status='cancelled' and null
+ *     residenceId.
  *   - A single invitation may have both columns dangling — both are nulled
  *     in the same UPDATE so we never leave a half-cleaned row behind.
- *   - Already-terminal invitations (accepted/cancelled/expired) are left
- *     alone so the audit trail is preserved.
+ *   - Already-terminal invitations (accepted/cancelled) are left alone so
+ *     the audit trail is preserved. Expired invitations are NOT terminal
+ *     for this sweep: the resend flow will happily re-activate them, so
+ *     dangling FKs on `expired` rows must also be cleaned up.
  *
  * Writes an `invitation_audit_log` entry per swept invitation so operators
  * can later trace why these rows changed.
@@ -38,6 +44,7 @@ import { invitationAuditLog } from '../shared/schemas/core';
 
 interface OrphanRow {
   id: string;
+  prior_status: 'pending' | 'expired';
   prior_building_id: string | null;
   prior_residence_id: string | null;
   building_dangling: boolean;
@@ -57,6 +64,13 @@ export interface SweepResult {
   buildingDangling: number;
   residenceDangling: number;
   bothDangling: number;
+  /**
+   * Of the swept rows, how many were originally `status='expired'`
+   * (vs. `status='pending'`). Lets callers and tests verify the
+   * task #630 expansion separately from the original task #383
+   * pending-only sweep.
+   */
+  expiredSwept: number;
 }
 
 function describeError(err: unknown): string {
@@ -79,9 +93,14 @@ export async function sweepOrphanedInvitations(
   // Identify orphans first so we can report counts BEFORE writing. The
   // detection predicate is intentionally identical to the one used in the
   // UPDATE below so the reported count matches the rows we touch.
+  // Status filter covers BOTH 'pending' and 'expired' (task #630): an
+  // expired invitation with a dangling FK can be silently re-activated
+  // by `resend_invitation`, so we treat it the same as a pending one
+  // for cleanup purposes.
   const findSql = sql`
     SELECT
       id,
+      status::text AS prior_status,
       building_id AS prior_building_id,
       residence_id AS prior_residence_id,
       (building_id IS NOT NULL
@@ -91,7 +110,7 @@ export async function sweepOrphanedInvitations(
         AND NOT EXISTS (SELECT 1 FROM residences r WHERE r.id = invitations.residence_id))
         AS residence_dangling
     FROM invitations
-    WHERE status = 'pending'
+    WHERE status IN ('pending', 'expired')
       AND (
         (building_id IS NOT NULL
           AND NOT EXISTS (SELECT 1 FROM buildings b WHERE b.id = invitations.building_id))
@@ -113,6 +132,7 @@ export async function sweepOrphanedInvitations(
       buildingDangling: 0,
       residenceDangling: 0,
       bothDangling: 0,
+      expiredSwept: 0,
     };
   }
 
@@ -120,12 +140,14 @@ export async function sweepOrphanedInvitations(
   const buildingDangling = orphans.filter((o) => o.building_dangling).length;
   const residenceDangling = orphans.filter((o) => o.residence_dangling).length;
   const bothDangling = orphans.filter((o) => o.building_dangling && o.residence_dangling).length;
+  const expiredSwept = orphans.filter((o) => o.prior_status === 'expired').length;
 
   console.log(
-    `[sweep-invitations] Found ${total} orphaned pending invitation(s): ` +
+    `[sweep-invitations] Found ${total} orphaned non-terminal invitation(s): ` +
       `${buildingDangling} with dangling buildingId, ` +
       `${residenceDangling} with dangling residenceId, ` +
-      `${bothDangling} with both.`
+      `${bothDangling} with both, ` +
+      `${expiredSwept} originally expired.`
   );
 
   if (total === 0) {
@@ -137,6 +159,7 @@ export async function sweepOrphanedInvitations(
       buildingDangling,
       residenceDangling,
       bothDangling,
+      expiredSwept,
     };
   }
 
@@ -144,7 +167,8 @@ export async function sweepOrphanedInvitations(
     console.log('[sweep-invitations] DRY RUN — no writes performed.');
     for (const o of orphans) {
       console.log(
-        `  ${o.id} buildingId=${o.prior_building_id ?? 'null'}` +
+        `  ${o.id} status=${o.prior_status} ` +
+          `buildingId=${o.prior_building_id ?? 'null'}` +
           `${o.building_dangling ? '(MISSING)' : ''} ` +
           `residenceId=${o.prior_residence_id ?? 'null'}` +
           `${o.residence_dangling ? '(MISSING)' : ''}`
@@ -157,6 +181,7 @@ export async function sweepOrphanedInvitations(
       buildingDangling,
       residenceDangling,
       bothDangling,
+      expiredSwept,
     };
   }
 
@@ -168,7 +193,8 @@ export async function sweepOrphanedInvitations(
       // column whose target no longer exists, and bump updatedAt. The
       // CASE expressions ensure we never null a column that still points
       // at a live parent (e.g. residence-only orphans keep their valid
-      // buildingId).
+      // buildingId). The status filter covers both 'pending' and
+      // 'expired' (task #630).
       const updateSql = sql`
         UPDATE invitations
         SET status = 'cancelled',
@@ -181,7 +207,7 @@ export async function sweepOrphanedInvitations(
                 AND NOT EXISTS (SELECT 1 FROM residences r WHERE r.id = invitations.residence_id)
               THEN NULL ELSE residence_id END,
             updated_at = NOW()
-        WHERE status = 'pending'
+        WHERE status IN ('pending', 'expired')
           AND (
             (building_id IS NOT NULL
               AND NOT EXISTS (SELECT 1 FROM buildings b WHERE b.id = invitations.building_id))
@@ -192,6 +218,11 @@ export async function sweepOrphanedInvitations(
       `;
       const updateResult = await tx.execute(updateSql);
       const updatedRows = updateResult.rows as unknown as Array<{ id: string }>;
+      // Recover each swept row's prior status (for accurate audit-log
+      // previousStatus) from the detection pass we ran above.
+      const priorStatusById = new Map<string, 'pending' | 'expired'>(
+        orphans.map((o) => [o.id, o.prior_status])
+      );
 
       // Audit-log every swept row so the cancellation is traceable later.
       // performedBy is left null because no specific user is performing
@@ -201,16 +232,23 @@ export async function sweepOrphanedInvitations(
       // hard-deleted.
       if (updatedRows.length > 0) {
         await tx.insert(invitationAuditLog).values(
-          updatedRows.map((row) => ({
-            invitationId: row.id,
-            action: 'cancelled',
-            previousStatus: 'pending' as const,
-            newStatus: 'cancelled' as const,
-            details: {
-              reason: 'swept orphaned invitation (post-task-383 cleanup)',
-              source: 'scripts/sweep-orphaned-invitations.ts',
-            },
-          })),
+          updatedRows.map((row) => {
+            // Fall back to 'pending' if a swept row was not in the
+            // detection set (only possible if a concurrent insert
+            // produced a fresh orphan between detection and UPDATE).
+            const prior = priorStatusById.get(row.id) ?? 'pending';
+            return {
+              invitationId: row.id,
+              action: 'cancelled' as const,
+              previousStatus: prior,
+              newStatus: 'cancelled' as const,
+              details: {
+                reason: 'swept orphaned invitation (post-task-383 cleanup)',
+                source: 'scripts/sweep-orphaned-invitations.ts',
+                priorStatus: prior,
+              },
+            };
+          }),
         );
       }
 
@@ -225,6 +263,7 @@ export async function sweepOrphanedInvitations(
       buildingDangling,
       residenceDangling,
       bothDangling,
+      expiredSwept,
     };
   }
 
@@ -243,6 +282,7 @@ export async function sweepOrphanedInvitations(
     buildingDangling,
     residenceDangling,
     bothDangling,
+    expiredSwept,
   };
 }
 

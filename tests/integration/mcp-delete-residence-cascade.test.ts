@@ -356,17 +356,21 @@ describeIfDb('MCP delete_residence cascade — real Postgres (Task #266)', () =>
     });
     created.userResidenceIds.add(userResidenceId);
 
-    // 11. Invitations attached to the residence (task #383). Seed
-    //     three rows so we can verify the cascade only touches pending
-    //     invitations and leaves terminal ones alone:
+    // 11. Invitations attached to the residence (task #383, extended
+    //     by task #630). Seed FOUR rows so we can verify the cascade:
     //     - pending invitation pointing at the residence -> cancelled
+    //     - expired invitation pointing at the residence -> cancelled
+    //       (task #630: previously left dangling and resurrectable via
+    //       resend_invitation)
     //     - accepted invitation pointing at the residence -> left alone
     //     - pending invitation pointing at the SIBLING residence ->
     //       left alone (not in the deleted residence's scope)
     const pendingInvitationId = crypto.randomUUID();
+    const expiredInvitationId = crypto.randomUUID();
     const acceptedInvitationId = crypto.randomUUID();
     const siblingInvitationId = crypto.randomUUID();
     const future = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const past = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     await db.insert(schema.invitations).values([
       {
         id: pendingInvitationId,
@@ -379,6 +383,18 @@ describeIfDb('MCP delete_residence cascade — real Postgres (Task #266)', () =>
         status: 'pending',
         invitedByUserId: userId,
         expiresAt: future,
+      },
+      {
+        id: expiredInvitationId,
+        organizationId: created.organizationId,
+        residenceId,
+        email: `${TEST_TAG}-expired@example.test`,
+        token: `tok-expired-${expiredInvitationId}`,
+        tokenHash: `hash-expired-${expiredInvitationId}`,
+        role: 'tenant',
+        status: 'expired',
+        invitedByUserId: userId,
+        expiresAt: past,
       },
       {
         id: acceptedInvitationId,
@@ -406,6 +422,7 @@ describeIfDb('MCP delete_residence cascade — real Postgres (Task #266)', () =>
       },
     ]);
     created.invitationIds.add(pendingInvitationId);
+    created.invitationIds.add(expiredInvitationId);
     created.invitationIds.add(acceptedInvitationId);
     created.invitationIds.add(siblingInvitationId);
 
@@ -424,7 +441,9 @@ describeIfDb('MCP delete_residence cascade — real Postgres (Task #266)', () =>
       maintenanceRequests: 1,
       buildingElements: 1,
       userResidences: 1,
-      invitations: 1, // only the pending invitation; accepted is left alone
+      // Both the pending AND the expired invitation are swept (task
+      // #630). The accepted invitation is left alone.
+      invitations: 2,
     });
     expect(parsed.demandsAssignationCleared).toBe(1);
 
@@ -526,6 +545,22 @@ describeIfDb('MCP delete_residence cascade — real Postgres (Task #266)', () =>
     expect(pendingAfter).toHaveLength(1);
     expect(pendingAfter[0].status).toBe('cancelled');
     expect(pendingAfter[0].residenceId).toBeNull();
+
+    // Task #630: the EXPIRED invitation pointing at the deleted
+    // residence is also swept — flipped to 'cancelled' with its
+    // residenceId nulled out — so it can no longer be revived via
+    // resend_invitation pointing at a missing residence.
+    const expiredAfter = await db
+      .select({
+        id: schema.invitations.id,
+        status: schema.invitations.status,
+        residenceId: schema.invitations.residenceId,
+      })
+      .from(schema.invitations)
+      .where(eq(schema.invitations.id, expiredInvitationId));
+    expect(expiredAfter).toHaveLength(1);
+    expect(expiredAfter[0].status).toBe('cancelled');
+    expect(expiredAfter[0].residenceId).toBeNull();
 
     const acceptedAfter = await db
       .select({

@@ -5458,15 +5458,19 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
               .where(inArray(schema.userResidences.residenceId, residenceIds))
               .returning({ id: schema.userResidences.id })).length;
             // Soft-cancel invitations attached to any residence in this
-            // building (see task #383). The status='pending' guard keeps
-            // already-terminal rows untouched so the audit trail is
-            // preserved. We null both residenceId AND buildingId here:
-            // every residence in residenceIds belongs to the building
-            // being deleted, so any buildingId on the invitation is
-            // about to dangle anyway. Nulling it in the same pass also
-            // prevents the dual-linked edge case where the building-
-            // scope sweep below (filtered by status='pending') would
-            // skip the row we just cancelled and leave buildingId set.
+            // building (see task #383). The status filter keeps
+            // already-terminal rows (accepted/cancelled) untouched so
+            // the audit trail is preserved, but we sweep BOTH 'pending'
+            // and 'expired' invitations: an expired invitation that
+            // still references the deleted residence could otherwise be
+            // resurrected by `resend_invitation` and re-attached to a
+            // ghost residence (task #630). We null both residenceId
+            // AND buildingId here: every residence in residenceIds
+            // belongs to the building being deleted, so any buildingId
+            // on the invitation is about to dangle anyway. Nulling it
+            // in the same pass also prevents the dual-linked edge case
+            // where the building-scope sweep below would skip the row
+            // we just cancelled and leave buildingId set.
             resInvitationsCancelled = (await tx
               .update(schema.invitations)
               .set({
@@ -5477,7 +5481,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
               })
               .where(and(
                 inArray(schema.invitations.residenceId, residenceIds),
-                eq(schema.invitations.status, 'pending'),
+                inArray(schema.invitations.status, ['pending', 'expired']),
               ))
               .returning({ id: schema.invitations.id })).length;
             residencesDeletedCount = (await tx
@@ -5591,17 +5595,19 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
             .delete(schema.maintenanceProjects)
             .where(eq(schema.maintenanceProjects.buildingId, buildingId))
             .returning({ id: schema.maintenanceProjects.id });
-          // Soft-cancel pending invitations directly attached to this
-          // building (see task #383). Residence-scoped invitations were
-          // already swept in Step 1 above. We also null the dangling
-          // buildingId so any future inspection doesn't dereference a
-          // missing building row.
+          // Soft-cancel non-terminal invitations directly attached to
+          // this building (see task #383). Residence-scoped invitations
+          // were already swept in Step 1 above. We sweep BOTH 'pending'
+          // and 'expired' invitations so an expired invitation cannot be
+          // resurrected by `resend_invitation` against a ghost building
+          // (task #630). We also null the dangling buildingId so any
+          // future inspection doesn't dereference a missing building row.
           const buildingInvitationsCancelled = await tx
             .update(schema.invitations)
             .set({ status: 'cancelled', buildingId: null, updatedAt: new Date() })
             .where(and(
               eq(schema.invitations.buildingId, buildingId),
-              eq(schema.invitations.status, 'pending'),
+              inArray(schema.invitations.status, ['pending', 'expired']),
             ))
             .returning({ id: schema.invitations.id });
 
@@ -5719,15 +5725,18 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
           // this residence and null the dangling residenceId so the
           // accept/resend/cancel flows treat it as a finished
           // invitation instead of attempting to dereference a missing
-          // residence row. Already-terminal rows
-          // (accepted/cancelled/expired) are left alone to preserve the
-          // audit trail.
+          // residence row. We sweep BOTH 'pending' and 'expired'
+          // invitations: an expired invitation that still references
+          // the deleted residence could otherwise be resurrected by
+          // `resend_invitation` and re-attached to a ghost residence
+          // (task #630). Already-terminal rows (accepted/cancelled)
+          // are left alone to preserve the audit trail.
           const invitationsCancelled = await tx
             .update(schema.invitations)
             .set({ status: 'cancelled', residenceId: null, updatedAt: new Date() })
             .where(and(
               eq(schema.invitations.residenceId, residenceId),
-              eq(schema.invitations.status, 'pending'),
+              inArray(schema.invitations.status, ['pending', 'expired']),
             ))
             .returning({ id: schema.invitations.id });
           const deleted = await tx
@@ -6767,6 +6776,30 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
             text: `Cannot resend invitation: status is "${invitation.status}"`,
           }],
         };
+      }
+
+      // Residence-existence guard (task #630). invitations.residenceId
+      // has no FK in the database, so a residence delete that pre-dates
+      // the cascade fix in task #383 — or any future row that slips
+      // through — could leave us with an invitation pointing at a ghost
+      // residence. Refuse to resurrect such an invitation: the operator
+      // should cancel it explicitly (or re-invite the user against a
+      // valid residence) rather than silently re-activating a row whose
+      // FK target is gone.
+      if (invitation.residenceId) {
+        const [residenceRow] = await db
+          .select({ id: schema.residences.id })
+          .from(schema.residences)
+          .where(eq(schema.residences.id, invitation.residenceId))
+          .limit(1);
+        if (!residenceRow) {
+          return {
+            content: [{
+              type: "text" as const,
+              text: `Residence not found: ${invitation.residenceId} (cannot resend invitation pointing at a deleted residence)`,
+            }],
+          };
+        }
       }
 
       const newExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
