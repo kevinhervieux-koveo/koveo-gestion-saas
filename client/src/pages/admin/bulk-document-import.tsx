@@ -1322,6 +1322,60 @@ function HistoryCard({
   );
 }
 
+/**
+ * Task #1045: Returns true when an item is "ready for the next step" at
+ * the given wizard step. Used by the hide-ready toggle to filter the list.
+ *
+ * Rules per step (mirrors the next-step-block readiness logic):
+ *   screening    — AI classification done AND not excluded (status past pending/screening)
+ *   sorting      — sortingDecisionState accepted
+ *   branching    — status past sorted AND (not residence_documents OR has residence)
+ *   identification — status past branched
+ *   linking      — status past identified
+ *   complete     — status is committed
+ */
+function isItemReadyForNextStep(item: BulkImportItemLite, step: BulkImportStep): boolean {
+  switch (step) {
+    case 'screening':
+      return (
+        item.status !== 'pending' &&
+        item.status !== 'screening' &&
+        item.status !== 'rejected'
+      );
+    case 'sorting':
+      return item.sortingDecisionState === 'accepted';
+    case 'branching':
+      return (
+        item.status !== 'pending' &&
+        item.status !== 'screening' &&
+        item.status !== 'screened' &&
+        item.status !== 'sorted' &&
+        (item.branch !== 'residence_documents' || item.residenceId !== null)
+      );
+    case 'identification':
+      return (
+        item.status !== 'pending' &&
+        item.status !== 'screening' &&
+        item.status !== 'screened' &&
+        item.status !== 'sorted' &&
+        item.status !== 'branched'
+      );
+    case 'linking':
+      return (
+        item.status !== 'pending' &&
+        item.status !== 'screening' &&
+        item.status !== 'screened' &&
+        item.status !== 'sorted' &&
+        item.status !== 'branched' &&
+        item.status !== 'identified'
+      );
+    case 'complete':
+      return item.status === 'committed';
+    default:
+      return false;
+  }
+}
+
 export default function BulkDocumentImportPage() {
   const { language } = useLanguage();
   const { toast } = useToast();
@@ -1535,6 +1589,14 @@ export default function BulkDocumentImportPage() {
   const session = payload?.session;
   const items = payload?.items ?? [];
   const currentStep: BulkImportStep = session?.currentStep ?? 'upload';
+
+  // Hide-ready toggle (Task #1045). Defaults OFF on every step; resets
+  // automatically when the wizard advances to a new step so hidden rows
+  // from one step never bleed into the next.
+  const [hideReady, setHideReady] = useState(false);
+  useEffect(() => {
+    setHideReady(false);
+  }, [currentStep]);
 
   const createSession = useMutation({
     mutationFn: async (targetBuildingId: string) => {
@@ -2878,10 +2940,25 @@ export default function BulkDocumentImportPage() {
               {/* Items table for AI steps */}
               {currentStep !== 'upload' && currentStep !== 'complete' && (
                 <Card>
-                  <CardHeader>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
                     <CardTitle>
                       {isFr ? 'Étape :' : 'Step:'} {stepLabels[currentStep]}
                     </CardTitle>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setHideReady((v) => !v)}
+                      data-testid="toggle-hide-ready"
+                    >
+                      {hideReady ? (
+                        <Eye className="mr-2 h-4 w-4" />
+                      ) : (
+                        <EyeOff className="mr-2 h-4 w-4" />
+                      )}
+                      {hideReady
+                        ? (isFr ? 'Afficher tous les fichiers' : 'Show all files')
+                        : (isFr ? "Masquer les fichiers prêts pour l'étape suivante" : 'Hide files ready for next step')}
+                    </Button>
                   </CardHeader>
                   <CardContent>
                     {/* Auto-run progress (Task #592) — replaces the
@@ -2977,8 +3054,17 @@ export default function BulkDocumentImportPage() {
                       // Excluded (rejected) files are hidden from step 3+
                       // so they are filtered out before grouping (Task #804).
                       const branchingItems = items.filter((item) => item.status !== 'rejected');
+                      // Task #1045: when the hide-ready toggle is ON, filter
+                      // out items that are already ready for the next step
+                      // before grouping so group counts and empty groups stay
+                      // consistent with the rendered rows. Bulk-action banners
+                      // (Accept all / Review AI suggestions) still read the
+                      // unfiltered branchingItems so they remain accurate.
+                      const displayedBranchingItems = hideReady
+                        ? branchingItems.filter((item) => !isItemReadyForNextStep(item, 'branching'))
+                        : branchingItems;
                       const grouped = new Map<string, BulkImportItemLite[]>();
-                      for (const item of branchingItems) {
+                      for (const item of displayedBranchingItems) {
                         const key = item.branch ?? 'unsorted';
                         if (!grouped.has(key)) grouped.set(key, []);
                         grouped.get(key)!.push(item);
@@ -2998,8 +3084,10 @@ export default function BulkDocumentImportPage() {
                       }
                       if (sections.length === 0) {
                         return (
-                          <p className="text-sm text-muted-foreground">
-                            {isFr ? 'Aucun fichier' : 'No items'}
+                          <p className="text-sm text-muted-foreground" data-testid="empty-state-branching">
+                            {hideReady && displayedBranchingItems.length === 0 && branchingItems.length > 0
+                              ? (isFr ? 'Tous les fichiers sont prêts pour l\'étape suivante.' : 'All files are ready for the next step.')
+                              : (isFr ? 'Aucun fichier' : 'No items')}
                           </p>
                         );
                       }
@@ -3715,14 +3803,23 @@ export default function BulkDocumentImportPage() {
                               });
                             })()
                           : visibleItems;
+                        // Task #1045: when the hide-ready toggle is ON, filter
+                        // out items that are already ready for the next step.
+                        // Applied after sibling removal so lead–sibling grouping
+                        // is unaffected (hidden leads take their siblings with them).
+                        const displayedTopLevelItems = hideReady
+                          ? topLevelItems.filter((item) => !isItemReadyForNextStep(item, currentStep))
+                          : topLevelItems;
                         return (
                           <>
-                      {topLevelItems.length === 0 && (
-                        <p className="text-sm text-muted-foreground">
-                          {isFr ? 'Aucun fichier' : 'No items'}
+                      {displayedTopLevelItems.length === 0 && (
+                        <p className="text-sm text-muted-foreground" data-testid={`empty-state-${currentStep}`}>
+                          {hideReady && topLevelItems.length > 0
+                            ? (isFr ? "Tous les fichiers sont prêts pour l'étape suivante." : 'All files are ready for the next step.')
+                            : (isFr ? 'Aucun fichier' : 'No items')}
                         </p>
                       )}
-                      {topLevelItems.map((item) => {
+                      {displayedTopLevelItems.map((item) => {
                         const decision = getItemStepDecision(item, currentStep);
                         const isAuto = isAutoStep(currentStep);
                         const retryAction = isAuto
@@ -6196,8 +6293,23 @@ export default function BulkDocumentImportPage() {
 
               {currentStep === 'complete' && (
                 <Card>
-                  <CardHeader>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
                     <CardTitle>{isFr ? 'Terminé' : 'Complete'}</CardTitle>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setHideReady((v) => !v)}
+                      data-testid="toggle-hide-ready"
+                    >
+                      {hideReady ? (
+                        <Eye className="mr-2 h-4 w-4" />
+                      ) : (
+                        <EyeOff className="mr-2 h-4 w-4" />
+                      )}
+                      {hideReady
+                        ? (isFr ? 'Afficher tous les fichiers' : 'Show all files')
+                        : (isFr ? "Masquer les fichiers prêts pour l'étape suivante" : 'Hide files ready for next step')}
+                    </Button>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <p className="text-sm text-muted-foreground">
@@ -6208,9 +6320,20 @@ export default function BulkDocumentImportPage() {
                     {/* Excluded (rejected) files are hidden from step 3+ (Task #804).
                         The committed count above is unaffected — it already
                         counts only committed items. */}
-                    {items.filter((i) => i.status !== 'rejected').length > 0 && (
-                      <div className="space-y-2">
-                        {items.filter((i) => i.status !== 'rejected').map((item) => (
+                    {(() => {
+                      const completeItems = items.filter((i) => i.status !== 'rejected');
+                      const displayedCompleteItems = hideReady
+                        ? completeItems.filter((i) => !isItemReadyForNextStep(i, 'complete'))
+                        : completeItems;
+                      if (completeItems.length === 0) return null;
+                      return (
+                        <div className="space-y-2">
+                          {displayedCompleteItems.length === 0 && hideReady && (
+                            <p className="text-sm text-muted-foreground" data-testid="empty-state-complete">
+                              {isFr ? "Tous les fichiers sont prêts pour l'étape suivante." : 'All files are ready for the next step.'}
+                            </p>
+                          )}
+                        {displayedCompleteItems.map((item) => (
                           <div
                             key={item.id}
                             className={`flex items-center gap-3 rounded-md border p-3 cursor-pointer hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
@@ -6239,8 +6362,9 @@ export default function BulkDocumentImportPage() {
                             </div>
                           </div>
                         ))}
-                      </div>
-                    )}
+                        </div>
+                      );
+                    })()}
                   </CardContent>
                 </Card>
               )}

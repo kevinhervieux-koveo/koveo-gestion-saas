@@ -32,7 +32,7 @@
  */
 
 import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
-import { render, screen, fireEvent, act, cleanup } from '@testing-library/react';
+import { render, screen, fireEvent, act, cleanup, waitFor } from '@testing-library/react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import '@testing-library/jest-dom';
 import React from 'react';
@@ -100,7 +100,7 @@ const ITEM_UNKNOWN_GUESSES_NAME = 'old-session-file.pdf';
 interface ItemFixture {
   id: string;
   originalName: string;
-  status: 'screened' | 'screening' | 'sorted' | 'branched' | 'rejected';
+  status: 'screened' | 'screening' | 'sorted' | 'branched' | 'identified' | 'linked' | 'committed' | 'rejected';
   /** Optional — null by default (not admin-excluded). */
   preExcludeStatus?: string | null;
   screeningTypeGuess: string | null;
@@ -142,6 +142,10 @@ interface ItemFixture {
    * Defaults to false in the payload so existing fixtures stay unchanged.
    */
   sortingDecisionDraft?: boolean;
+  /** Optional — used by Task #1045 toggle tests (branching step). */
+  branch?: string | null;
+  /** Optional — used by Task #1045 toggle tests (branching step). */
+  residenceId?: string | null;
 }
 
 let items: ItemFixture[] = [];
@@ -149,7 +153,8 @@ let items: ItemFixture[] = [];
 // `screening` so the original Task #783 suite still exercises the
 // screening-row detail panel; Task #853 tests override this to
 // `sorting` to exercise the sorting/branching detail panel.
-let currentStep: 'screening' | 'sorting' = 'screening';
+// Task #1045 toggle tests also set this to branching/identification/linking/complete.
+let currentStep: string = 'screening';
 
 function buildSessionPayload() {
   return {
@@ -201,6 +206,8 @@ function buildSessionPayload() {
       sortingDecisionSplitIntoItemIds: it.sortingDecisionSplitIntoItemIds ?? null,
       branchingConfidence: null,
       branchingFallback: null,
+      branch: it.branch ?? null,
+      residenceId: it.residenceId ?? null,
       identificationConfidence: null,
       identificationFallback: null,
       linkingConfidence: null,
@@ -912,4 +919,290 @@ describe('BulkDocumentImportPage — rejected Branching AI suggestion card (Task
       `Merge with: ${BRANCHING_MERGE_PARTNER_A_NAME}, ${BRANCHING_MERGE_PARTNER_B_NAME}`,
     );
   });
+});
+
+// =============================================================================
+// Task #1045 — "Hide files ready for next step" toggle button
+//
+// The toggle (data-testid="toggle-hide-ready") appears on every wizard step
+// except Upload.  When ON, items already ready to advance to the next step
+// are removed from the list.  The toggle resets to OFF on every step change.
+// =============================================================================
+
+const TOGGLE_READY_ID = 'tr-ready';
+const TOGGLE_NOT_READY_ID = 'tr-not-ready';
+
+/** Minimal ItemFixture skeleton so we only supply the fields that vary. */
+function makeItem(
+  id: string,
+  status: ItemFixture['status'],
+  extra: Partial<ItemFixture> = {},
+): ItemFixture {
+  return {
+    id,
+    originalName: `${id}.pdf`,
+    status,
+    screeningTypeGuess: null,
+    screeningBucketGuess: null,
+    screeningConfidence: null,
+    screeningQaReason: null,
+    ...extra,
+  };
+}
+
+async function clickToggle() {
+  const btn = await screen.findByTestId('toggle-hide-ready', undefined, { timeout: 4000 });
+  await act(async () => { fireEvent.click(btn); });
+}
+
+describe('BulkDocumentImportPage — hide-ready toggle (Task #1045)', () => {
+  // ---------------------------------------------------------------------------
+  // Toggle visible on every non-upload step
+  // ---------------------------------------------------------------------------
+  it('toggle is visible on the screening step', async () => {
+    currentStep = 'screening';
+    items = [makeItem('s1', 'screened')];
+    renderPage();
+    await screen.findByTestId('item-preview-trigger-s1', undefined, { timeout: 4000 });
+    expect(screen.getByTestId('toggle-hide-ready')).toBeInTheDocument();
+  });
+
+  it('toggle is visible on the sorting step (internal: sorting)', async () => {
+    currentStep = 'sorting';
+    items = [makeItem('s2', 'sorted', { sortingDecisionState: 'accepted' })];
+    renderPage();
+    await screen.findByTestId('item-preview-trigger-s2', undefined, { timeout: 4000 });
+    expect(screen.getByTestId('toggle-hide-ready')).toBeInTheDocument();
+  });
+
+  it('toggle is visible on the branching step (internal: branching)', async () => {
+    currentStep = 'branching';
+    items = [makeItem('s3', 'branched', { branch: 'building_documents' })];
+    renderPage();
+    await screen.findByTestId('item-preview-trigger-s3', undefined, { timeout: 4000 });
+    expect(screen.getByTestId('toggle-hide-ready')).toBeInTheDocument();
+  });
+
+  it('toggle is visible on the identification step', async () => {
+    currentStep = 'identification';
+    items = [makeItem('s4', 'identified')];
+    renderPage();
+    await screen.findByTestId('item-preview-trigger-s4', undefined, { timeout: 4000 });
+    expect(screen.getByTestId('toggle-hide-ready')).toBeInTheDocument();
+  });
+
+  it('toggle is visible on the linking step', async () => {
+    currentStep = 'linking';
+    items = [makeItem('s5', 'linked')];
+    renderPage();
+    await screen.findByTestId('item-preview-trigger-s5', undefined, { timeout: 4000 });
+    expect(screen.getByTestId('toggle-hide-ready')).toBeInTheDocument();
+  });
+
+  it('toggle is visible on the complete step', async () => {
+    currentStep = 'complete';
+    items = [makeItem('s6', 'committed')];
+    renderPage();
+    await screen.findByTestId('item-preview-trigger-s6', undefined, { timeout: 4000 });
+    expect(screen.getByTestId('toggle-hide-ready')).toBeInTheDocument();
+  });
+
+  // ---------------------------------------------------------------------------
+  // Toggle defaults to OFF — ready items are visible before any click
+  // ---------------------------------------------------------------------------
+  it('defaults to OFF so ready items are visible without clicking', async () => {
+    currentStep = 'screening';
+    items = [makeItem(TOGGLE_READY_ID, 'screened')];
+    renderPage();
+    await screen.findByTestId(`item-preview-trigger-${TOGGLE_READY_ID}`, undefined, {
+      timeout: 4000,
+    });
+    expect(screen.getByTestId(`item-preview-trigger-${TOGGLE_READY_ID}`)).toBeInTheDocument();
+  });
+
+  // ---------------------------------------------------------------------------
+  // Per-step: toggle ON hides ready items and keeps not-ready items
+  // ---------------------------------------------------------------------------
+  it('screening: hides screened items when ON; keeps pending/screening items', async () => {
+    currentStep = 'screening';
+    items = [
+      makeItem(TOGGLE_READY_ID, 'screened'),
+      makeItem(TOGGLE_NOT_READY_ID, 'screening'),
+    ];
+    renderPage();
+    await screen.findByTestId(`item-preview-trigger-${TOGGLE_READY_ID}`, undefined, { timeout: 4000 });
+    await screen.findByTestId(`item-preview-trigger-${TOGGLE_NOT_READY_ID}`, undefined, { timeout: 4000 });
+
+    await clickToggle();
+
+    await waitFor(() => {
+      expect(screen.queryByTestId(`item-preview-trigger-${TOGGLE_READY_ID}`)).not.toBeInTheDocument();
+      expect(screen.queryByTestId(`item-preview-trigger-${TOGGLE_NOT_READY_ID}`)).toBeInTheDocument();
+    }, { timeout: 4000 });
+  }, 10_000);
+
+  it('sorting: hides accepted-decision items when ON; keeps pending-decision items', async () => {
+    currentStep = 'sorting';
+    items = [
+      makeItem(TOGGLE_READY_ID, 'sorted', { sortingDecisionState: 'accepted' }),
+      makeItem(TOGGLE_NOT_READY_ID, 'screened', { sortingDecisionState: null }),
+    ];
+    renderPage();
+    await screen.findByTestId(`item-preview-trigger-${TOGGLE_READY_ID}`, undefined, { timeout: 4000 });
+
+    await clickToggle();
+
+    await waitFor(() => {
+      expect(screen.queryByTestId(`item-preview-trigger-${TOGGLE_READY_ID}`)).not.toBeInTheDocument();
+      expect(screen.queryByTestId(`item-preview-trigger-${TOGGLE_NOT_READY_ID}`)).toBeInTheDocument();
+    }, { timeout: 4000 });
+  }, 10_000);
+
+  it('branching: hides past-sorted items when ON; keeps sorted/unassigned items', async () => {
+    currentStep = 'branching';
+    items = [
+      makeItem(TOGGLE_READY_ID, 'branched', { branch: 'building_documents' }),
+      makeItem(TOGGLE_NOT_READY_ID, 'sorted', { branch: null }),
+    ];
+    renderPage();
+    await screen.findByTestId(`item-preview-trigger-${TOGGLE_READY_ID}`, undefined, { timeout: 4000 });
+
+    await clickToggle();
+
+    await waitFor(() => {
+      expect(screen.queryByTestId(`item-preview-trigger-${TOGGLE_READY_ID}`)).not.toBeInTheDocument();
+      expect(screen.queryByTestId(`item-preview-trigger-${TOGGLE_NOT_READY_ID}`)).toBeInTheDocument();
+    }, { timeout: 4000 });
+  }, 10_000);
+
+  it('identification: hides identified items when ON; keeps branched items', async () => {
+    currentStep = 'identification';
+    const readyId = 'ident-ready';
+    const notReadyId = 'ident-not-ready';
+    items = [
+      makeItem(readyId, 'identified'),
+      makeItem(notReadyId, 'branched'),
+    ];
+    renderPage();
+    await screen.findByTestId(`item-preview-trigger-${readyId}`, undefined, { timeout: 8000 });
+
+    await clickToggle();
+
+    await waitFor(() => {
+      expect(screen.queryByTestId(`item-preview-trigger-${readyId}`)).not.toBeInTheDocument();
+      expect(screen.queryByTestId(`item-preview-trigger-${notReadyId}`)).toBeInTheDocument();
+    }, { timeout: 4000 });
+  }, 15_000);
+
+  it('linking: hides linked items when ON; keeps identified items', async () => {
+    currentStep = 'linking';
+    items = [
+      makeItem(TOGGLE_READY_ID, 'linked'),
+      makeItem(TOGGLE_NOT_READY_ID, 'identified'),
+    ];
+    renderPage();
+    await screen.findByTestId(`item-preview-trigger-${TOGGLE_READY_ID}`, undefined, { timeout: 4000 });
+
+    await clickToggle();
+
+    await waitFor(() => {
+      expect(screen.queryByTestId(`item-preview-trigger-${TOGGLE_READY_ID}`)).not.toBeInTheDocument();
+      expect(screen.queryByTestId(`item-preview-trigger-${TOGGLE_NOT_READY_ID}`)).toBeInTheDocument();
+    }, { timeout: 4000 });
+  }, 10_000);
+
+  it('complete: hides committed items when ON; keeps non-committed items', async () => {
+    currentStep = 'complete';
+    items = [
+      makeItem(TOGGLE_READY_ID, 'committed'),
+      makeItem(TOGGLE_NOT_READY_ID, 'linked'),
+    ];
+    renderPage();
+    await screen.findByTestId(`item-preview-trigger-${TOGGLE_READY_ID}`, undefined, { timeout: 4000 });
+
+    await clickToggle();
+
+    await waitFor(() => {
+      expect(screen.queryByTestId(`item-preview-trigger-${TOGGLE_READY_ID}`)).not.toBeInTheDocument();
+      expect(screen.queryByTestId(`item-preview-trigger-${TOGGLE_NOT_READY_ID}`)).toBeInTheDocument();
+    }, { timeout: 4000 });
+  }, 10_000);
+
+  // ---------------------------------------------------------------------------
+  // "All files are ready" empty state when toggle ON and every item is ready
+  // ---------------------------------------------------------------------------
+  it('shows "all caught up" empty state when toggle ON and every item is ready (screening)', async () => {
+    currentStep = 'screening';
+    items = [makeItem('all-ready-1', 'screened'), makeItem('all-ready-2', 'screened')];
+    renderPage();
+    await screen.findByTestId('item-preview-trigger-all-ready-1', undefined, { timeout: 4000 });
+
+    await clickToggle();
+
+    const emptyMsg = await screen.findByTestId('empty-state-screening', undefined, { timeout: 4000 });
+    expect(emptyMsg).toHaveTextContent('All files are ready for the next step.');
+    expect(screen.queryByTestId('item-preview-trigger-all-ready-1')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('item-preview-trigger-all-ready-2')).not.toBeInTheDocument();
+  }, 10_000);
+
+  // ---------------------------------------------------------------------------
+  // Next Step button enabled state is independent of the toggle
+  // ---------------------------------------------------------------------------
+  it('Next Step button remains enabled when all items are ready, toggle ON or OFF', async () => {
+    currentStep = 'screening';
+    items = [makeItem('ns-item', 'screened')];
+    renderPage();
+    await screen.findByTestId('item-preview-trigger-ns-item', undefined, { timeout: 4000 });
+
+    const nextStepBtn = screen.getByTestId('button-next-step');
+    expect(nextStepBtn).not.toBeDisabled();
+
+    await clickToggle();
+
+    expect(screen.getByTestId('button-next-step')).not.toBeDisabled();
+  }, 10_000);
+
+  // ---------------------------------------------------------------------------
+  // Excluded items remain hidden regardless of toggle state (steps 3+)
+  // ---------------------------------------------------------------------------
+  it('excluded items stay hidden on the branching step regardless of toggle state', async () => {
+    currentStep = 'branching';
+    items = [
+      makeItem('excluded-br', 'rejected', {
+        preExcludeStatus: 'sorted',
+        branch: 'building_documents',
+      }),
+      makeItem('visible-br', 'branched', { branch: 'building_documents' }),
+    ];
+    renderPage();
+    await screen.findByTestId('item-preview-trigger-visible-br', undefined, { timeout: 4000 });
+
+    expect(screen.queryByTestId('item-preview-trigger-excluded-br')).not.toBeInTheDocument();
+
+    await clickToggle();
+
+    await waitFor(() => {
+      expect(screen.queryByTestId('item-preview-trigger-excluded-br')).not.toBeInTheDocument();
+    }, { timeout: 4000 });
+  }, 10_000);
+
+  // ---------------------------------------------------------------------------
+  // Branching step: entire group disappears when all its items are filtered out
+  // ---------------------------------------------------------------------------
+  it('branching: group with all ready items disappears and shows "all caught up" msg', async () => {
+    currentStep = 'branching';
+    items = [
+      makeItem('gr-a', 'branched', { branch: 'building_documents' }),
+      makeItem('gr-b', 'branched', { branch: 'building_documents' }),
+    ];
+    renderPage();
+    await screen.findByTestId('item-preview-trigger-gr-a', undefined, { timeout: 4000 });
+
+    await clickToggle();
+
+    const emptyMsg = await screen.findByTestId('empty-state-branching', undefined, { timeout: 4000 });
+    expect(emptyMsg).toHaveTextContent('All files are ready for the next step.');
+    expect(screen.queryByTestId('item-preview-trigger-gr-a')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('item-preview-trigger-gr-b')).not.toBeInTheDocument();
+  }, 10_000);
 });
