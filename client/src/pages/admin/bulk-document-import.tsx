@@ -3888,7 +3888,7 @@ export default function BulkDocumentImportPage() {
                                     const currentSplitAtPage = item.sortingSplitAtPage;
                                     const inlineSlice = inlineSlicePage.get(item.id);
                                     const showSliceSection = currentDecision === 'split' || inlineSlice !== undefined;
-                                    const showMergeSection = currentDecision === 'merge';
+                                    const showMergeSection = currentDecision === 'merge' || inlineMergeOrder.has(item.id);
                                     const effectiveSlicePage = inlineSlice ?? currentSplitAtPage ?? 1;
                                     const mergeGroupIds = inlineMergeOrder.get(item.id) ?? computeMergeGroup(items, item.id);
                                     // For merge groups all rename state is keyed to the GROUP LEAD so
@@ -4168,9 +4168,9 @@ export default function BulkDocumentImportPage() {
                                           </div>
                                         )}
 
-                                        {/* "Add slice" button for PDF items without a slice decision */}
+                                        {/* "Add slice" / "Add merge" buttons for PDF items without a slice/merge decision */}
                                         {!isExcluded && !showSliceSection && !showMergeSection && itemIsPdf && (currentDecision === 'keep' || !currentDecision) && !sortingIsAccepted && (
-                                          <div>
+                                          <div className="flex items-center gap-2">
                                             <Button
                                               size="sm"
                                               variant="outline"
@@ -4183,6 +4183,19 @@ export default function BulkDocumentImportPage() {
                                               <Scissors className="mr-1.5 h-3.5 w-3.5" />
                                               {isFr ? 'Ajouter un découpage' : 'Add slice'}
                                             </Button>
+                                            {!inlineMergeOrder.has(item.id) && (
+                                              <Button
+                                                size="sm"
+                                                variant="outline"
+                                                data-testid={`branching-merge-add-trigger-${item.id}`}
+                                                onClick={() => {
+                                                  setInlineMergeOrder((prev) => new Map(prev).set(item.id, [item.id]));
+                                                }}
+                                              >
+                                                <GitMerge className="mr-1.5 h-3.5 w-3.5" />
+                                                {isFr ? 'Ajouter une fusion' : 'Add merge'}
+                                              </Button>
+                                            )}
                                           </div>
                                         )}
 
