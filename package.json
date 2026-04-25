@@ -36,7 +36,7 @@
     "build:production": "vite build && node scripts/check-assets.mjs && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist && npx tsx scripts/write-build-info.ts",
     "build:client": "vite build && node scripts/check-assets.mjs",
     "build:server": "npx tsx scripts/build-server.ts",
-    "db:push": "npx drizzle-kit push",
+    "db:push": "npx tsx scripts/db-push-warning.ts",
     "migrate": "npx tsx scripts/run-migrations.ts",
     "migrate:status": "npx tsx scripts/run-migrations.ts --status",
     "migrate:baseline": "npx tsx scripts/run-migrations.ts --baseline",
@@ -82,9 +82,10 @@
     "docs:validate": "npx tsx scripts/docs-validation.ts",
     "build:complete": "npx tsx scripts/build.ts",
     "deploy:hooks": "npx tsx scripts/deployment-hooks.ts",
-    "db:push:force": "npx drizzle-kit push --force",
     "backfill:cross-residence-demands": "npx tsx server/scripts/backfill-cross-residence-demands.ts",
-    "backfill:cross-assignation-demands": "npx tsx server/scripts/backfill-cross-assignation-demands.ts"
+    "backfill:cross-assignation-demands": "npx tsx server/scripts/backfill-cross-assignation-demands.ts",
+    "db:push:danger": "npx drizzle-kit push",
+    "db:push:danger:force": "npx drizzle-kit push --force"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.37.0",

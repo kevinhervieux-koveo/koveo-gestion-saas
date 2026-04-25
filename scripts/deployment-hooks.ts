@@ -54,8 +54,11 @@ async function runDeploymentHooks(): Promise<void> {
   console.warn('🚀 Starting deployment hooks...\n');
 
   try {
-    // 1. Run database migrations
-    runCommand(['npm', 'run', 'db:push'], 'Running database migrations');
+    // 1. Run database migrations.
+    // Switched from `npm run db:push` to the numbered-migration runner in
+    // Task #815: pushing the Drizzle schema bypasses the migration chain
+    // and silently drifts dev away from prod. See docs/migrations.md.
+    runCommand(['npm', 'run', 'migrate'], 'Running database migrations');
 
     // 2. Warm up the application
     if (process.env.WARMUP_ON_DEPLOY === 'true') {

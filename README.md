@@ -43,8 +43,9 @@ npm install
 # Set up environment variables
 cp .env.example .env
 
-# Initialize database
-npm run db:push
+# Initialize database (numbered migrations under migrations/;
+# see docs/migrations.md for the full workflow)
+npm run migrate
 
 # Start development server
 npm run dev
@@ -106,13 +107,14 @@ npm run dev              # Start development server
 npm run build           # Build for production
 npm run preview         # Preview production build
 
-# Database
-npm run db:generate     # Generate database migrations
-npm run db:push         # Push schema changes to local dev database
-npm run db:studio       # Open Drizzle Studio
-npx tsx scripts/run-migrations.ts             # Apply pending SQL migrations
-npx tsx scripts/run-migrations.ts --status    # Show applied / pending
-npx tsx scripts/run-migrations.ts --baseline  # Force-baseline existing DB
+# Database (see docs/migrations.md for the full workflow)
+npx drizzle-kit generate  # Generate the next numbered NNNN_*.sql migration
+npm run migrate           # Apply pending numbered migrations
+npm run migrate:status    # Show highest applied + pending migrations
+# `npm run db:push` no longer pushes the schema directly — it now prints
+# a warning and refuses to run unattended. The escape hatches
+# `npm run db:push:danger` / `db:push:danger:force` are reserved for rare
+# recovery scenarios.
 
 # Testing
 npm test                # Run all tests

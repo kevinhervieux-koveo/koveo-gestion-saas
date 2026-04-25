@@ -18,8 +18,9 @@ npm install
 cp .env.example .env
 # Edit .env with your database credentials (PostgreSQL/Neon)
 
-# Initialize database with latest schema
-npm run db:push
+# Initialize database with latest schema (numbered migrations under
+# migrations/; see docs/migrations.md for the full workflow).
+npm run migrate
 
 # Start development server (React 18 + Express)
 npm run dev

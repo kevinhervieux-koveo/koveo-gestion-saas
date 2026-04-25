@@ -26,8 +26,9 @@ npm install
 cp .env.example .env
 # Edit .env file with your database credentials
 
-# 4. Initialize the database
-npm run db:push
+# 4. Initialize the database (numbered migrations under migrations/;
+# see docs/migrations.md for the full workflow).
+npm run migrate
 
 # 5. Start the development server
 npm run dev
@@ -181,9 +182,11 @@ npm run preview         # Preview production build
 **Database**
 
 ```bash
-npm run db:push         # Push schema changes
-npm run db:generate     # Generate migration files
-npm run db:studio       # Open database GUI
+npm run migrate              # Apply pending numbered migrations
+npm run migrate:status       # Show applied / pending migrations
+npx drizzle-kit generate     # Generate the next NNNN_*.sql migration
+# (See docs/migrations.md. `npm run db:push` is no longer the dev
+# workflow — it now prints a warning and refuses to run unattended.)
 ```
 
 **Testing**

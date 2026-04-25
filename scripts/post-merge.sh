@@ -2,36 +2,15 @@
 set -e
 npm install
 
-# drizzle-kit push shows an interactive arrow-key prompt when adding a
-# unique constraint to a table that already has rows (e.g. the new
-# organizations.code constraint from Task #255). It only honours stdin
-# when there is a real TTY, so piping newlines does not work.
-#
-# Strategy: pre-create the new column AND its unique constraint via psql
-# (idempotently) BEFORE db:push runs, so drizzle-kit sees them already
-# in place and proceeds non-interactively.
-
+# Idempotent guard: ensure `ai_suggestion_cache` exists. It lives in
+# shared/schemas/infrastructure.ts but does NOT yet have a numbered
+# migration of its own — historically it was created via `drizzle-kit
+# push` only. Until it is folded into a numbered migration, we create it
+# here so post-merge dev databases match the schema. Safe on fresh DBs
+# and no-ops on databases that already have it.
 PGURL="${DATABASE_URL_KOVEO:-${DATABASE_URL:-}}"
 if [ -n "$PGURL" ]; then
   psql "$PGURL" -v ON_ERROR_STOP=1 <<'SQL'
-ALTER TABLE organizations
-  ADD COLUMN IF NOT EXISTS code varchar(8);
-
-DO $$ BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_constraint WHERE conname = 'organizations_code_unique'
-  ) THEN
-    ALTER TABLE organizations
-      ADD CONSTRAINT organizations_code_unique UNIQUE (code);
-  END IF;
-END $$;
-
-ALTER TABLE bills
-  ADD COLUMN IF NOT EXISTS source varchar(8);
-
--- Shared, database-backed cache for AI-generated suggestions (Task #355).
--- Created idempotently here so the table exists even if drizzle-kit push
--- bails out on an unrelated pre-existing constraint issue.
 CREATE TABLE IF NOT EXISTS ai_suggestion_cache (
   cache_key text PRIMARY KEY,
   value json NOT NULL,
@@ -45,4 +24,10 @@ CREATE INDEX IF NOT EXISTS ai_suggestion_cache_created_idx
 SQL
 fi
 
-npm run db:push
+# Apply the numbered SQL migrations under migrations/ (see
+# scripts/run-migrations.ts). Replaces the previous `npm run db:push`
+# call as part of Task #815: pushing the Drizzle schema directly let dev
+# and prod drift apart because nothing got recorded in the migration
+# chain. New schema changes must ship as numbered migrations alongside
+# the schema.ts diff — see docs/migrations.md.
+RUN_DB_MIGRATIONS=true npm run migrate

@@ -29,7 +29,7 @@ Koveo Gestion is an AI-powered property management SaaS platform designed specif
 
 ```bash
 npm install
-npm run db:push
+npm run migrate    # apply numbered SQL migrations under migrations/
 npm run dev
 ```
 
@@ -158,13 +158,17 @@ All components follow these patterns:
 ### Database Changes
 
 ```bash
-# Update schema in shared/schema.ts
-# Push changes to database
-npm run db:push
+# 1. Update the schema in shared/schema.ts
+# 2. Generate the next numbered SQL migration
+npx drizzle-kit generate
 
-# Generate migrations (production)
-npm run db:generate
-npm run db:migrate
+# 3. Apply it locally and verify there's no drift
+npm run migrate
+npx tsx scripts/check-migration-coverage.ts
+
+# 4. Commit shared/schema.ts AND migrations/NNNN_*.sql together.
+# See docs/migrations.md for the full workflow and why `npm run db:push`
+# is no longer the dev workflow.
 ```
 
 ## Quality System
