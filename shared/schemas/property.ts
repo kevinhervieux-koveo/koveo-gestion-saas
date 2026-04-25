@@ -588,6 +588,22 @@ export type InsertUserTimeLimit = z.infer<typeof insertUserTimeLimitSchema>;
  */
 export type UserTimeLimit = typeof userTimeLimits.$inferSelect;
 
+/**
+ * Response row shape for the GET /api/user/residences endpoint.
+ * Used by the ProfileResidences widget on the settings page.
+ */
+export const userResidenceProfileRowSchema = z.object({
+  id: z.string(),
+  residenceId: z.string(),
+  relationshipType: z.string(),
+  startDate: z.string(),
+  unitNumber: z.string(),
+  buildingName: z.string(),
+  organizationName: z.string(),
+});
+
+export type UserResidenceProfileRow = z.infer<typeof userResidenceProfileRowSchema>;
+
 // Relations - Temporarily commented out due to drizzle-orm version compatibility
 /*
 export const buildingsRelations = relations(buildings, ({ one, many }) => ({

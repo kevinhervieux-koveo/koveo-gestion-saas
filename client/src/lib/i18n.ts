@@ -1667,6 +1667,13 @@ export interface Translations {
   ofWhich: string;
   calendar: string;
   myResidence: string;
+  myResidences: string;
+  noResidenceLinkedYet: string;
+  residencesLoadError: string;
+  residenceRelationshipOwner: string;
+  residenceRelationshipTenant: string;
+  residenceRelationshipOccupant: string;
+  residenceSince: string;
   myBuilding: string;
   commonSpaces: string;
   budget: string;
@@ -5503,6 +5510,13 @@ export const translations: Record<Language, Translations> = {
     ofWhich: 'of which',
     calendar: 'Calendar',
     myResidence: 'My Residence',
+    myResidences: 'My Residences',
+    noResidenceLinkedYet: 'No residence linked yet — contact your manager.',
+    residencesLoadError: 'Unable to load your residences. Please try again later.',
+    residenceRelationshipOwner: 'Owner',
+    residenceRelationshipTenant: 'Tenant',
+    residenceRelationshipOccupant: 'Occupant',
+    residenceSince: 'Since',
     myBuilding: 'My Building',
     commonSpaces: 'Common Spaces',
     budget: 'Budget',
@@ -9563,6 +9577,13 @@ export const translations: Record<Language, Translations> = {
     ofWhich: 'dont',
     calendar: 'Calendrier',
     myResidence: 'Ma résidence',
+    myResidences: 'Mes résidences',
+    noResidenceLinkedYet: 'Aucune résidence liée pour l\'instant — contactez votre gestionnaire.',
+    residencesLoadError: 'Impossible de charger vos résidences. Veuillez réessayer plus tard.',
+    residenceRelationshipOwner: 'Propriétaire',
+    residenceRelationshipTenant: 'Locataire',
+    residenceRelationshipOccupant: 'Occupant',
+    residenceSince: 'Depuis',
     myBuilding: 'Mon bâtiment',
     commonSpaces: 'Espaces communs',
     budget: 'Budget',

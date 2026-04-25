@@ -53,6 +53,7 @@ import {
 } from 'lucide-react';
 import { z } from 'zod';
 import { useLanguage } from '@/hooks/use-language';
+import { ProfileResidences } from '@/components/profile-residences';
 
 // Form schemas
 const profileSchema = z.object({
@@ -415,6 +416,9 @@ export default function Settings() {
               </Form>
             </CardContent>
           </Card>
+
+          {/* My Residences */}
+          <ProfileResidences />
 
           {/* Security Settings */}
           <Card>

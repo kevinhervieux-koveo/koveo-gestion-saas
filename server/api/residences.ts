@@ -64,14 +64,23 @@ async function userCanManageBuilding(user: any, buildingId: string): Promise<boo
  * @returns Function result.
  */
 export function registerResidenceRoutes(app: Express) {
-  // Get user's residences
+  // Get user's residences (enriched for profile widget)
   app.get('/api/user/residences', requireAuth, asyncHandler(async (req: any, res: any) => {
       const user = req.user;
       const userResidencesList = await db
         .select({
+          id: userResidences.id,
           residenceId: userResidences.residenceId,
+          relationshipType: userResidences.relationshipType,
+          startDate: userResidences.startDate,
+          unitNumber: residences.unitNumber,
+          buildingName: buildings.name,
+          organizationName: organizations.name,
         })
         .from(userResidences)
+        .innerJoin(residences, eq(userResidences.residenceId, residences.id))
+        .innerJoin(buildings, eq(residences.buildingId, buildings.id))
+        .innerJoin(organizations, eq(buildings.organizationId, organizations.id))
         .where(and(eq(userResidences.userId, user.id), eq(userResidences.isActive, true)));
       res.json(userResidencesList);
     }, { errorMessage: 'Failed to fetch user residences', errorLogPrefix: '❌ Error fetching user residences' }));
