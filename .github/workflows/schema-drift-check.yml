@@ -51,6 +51,24 @@ jobs:
           echo "status=${status}" >> "$GITHUB_OUTPUT"
           exit "${status}"
 
+      - name: Integration smoke-test for list_bills (requires _INTEGRATION_DB_URL)
+        # This step runs the real-Postgres integration suite that guards against
+        # schema/migration drift on the `bills` table.  When _INTEGRATION_DB_URL
+        # is not supplied (most PR checks) the test suite skips cleanly via
+        # `describe.skip` — no failures.  Pipelines that provision a live DB
+        # (e.g. a staging-deploy gate) should set the secret so the full five
+        # cases run and block the deploy on any DrizzleQueryError regression.
+        #
+        # To run manually:
+        #   _INTEGRATION_DB_URL=$DATABASE_URL npx jest tests/integration/mcp-list-bills.test.ts
+        env:
+          _INTEGRATION_DB_URL: ${{ secrets.INTEGRATION_DB_URL }}
+        run: |
+          npx jest tests/integration/mcp-list-bills.test.ts \
+            --passWithNoTests=false \
+            --testTimeout=30000 \
+            --forceExit
+
       - name: Explain how to resolve drift
         if: failure() && steps.drift.outputs.status != '0'
         run: |
