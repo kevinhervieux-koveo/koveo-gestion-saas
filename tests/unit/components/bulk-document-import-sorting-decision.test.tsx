@@ -1141,4 +1141,157 @@ describe('BulkDocumentImportPage — sorting decision UI (Task #817 / #825)', ()
 
     global.fetch = savedFetch;
   });
+
+  // ---------------------------------------------------------------------------
+  // Task #956 — "In this merge" hidden when picker decision is Keep or Split
+  // ---------------------------------------------------------------------------
+
+  /**
+   * A rejected merge-lead: the AI originally suggested merging this item
+   * with a sibling, but the admin rejected the AI answer. The manual picker
+   * is pre-filled with 'merge' (matching the AI suggestion). Switching the
+   * picker to Keep/Split must hide the sibling list immediately; switching
+   * back to Merge must bring it back.
+   *
+   * We also assert that an accepted-merge row whose effective decision is
+   * 'merge' continues to show its sibling list after the fix.
+   */
+  function pushRejectedMergeLeadFixture() {
+    const LEAD = 'item-rejected-merge-lead-956';
+    const SIB = 'item-rejected-merge-sib-956';
+    const ACCEPTED_LEAD = 'item-accepted-merge-lead-956';
+    const ACCEPTED_SIB = 'item-accepted-merge-sib-956';
+
+    items.push(
+      {
+        id: LEAD,
+        originalName: 'rejected-lead.pdf',
+        status: 'sorted',
+        sortingDecisionState: 'rejected',
+        sortingDecision: 'merge',
+        sortingMergeWithItemId: SIB,
+        sortingMergeWithItemIds: [SIB],
+        sortingSplitAtPage: null,
+        sortingManualOverride: false,
+        sortingReason: 'AI thought these pages belong together',
+        sortingConfidence: 0.55,
+      },
+      {
+        id: SIB,
+        originalName: 'rejected-sib.pdf',
+        status: 'sorted',
+        sortingDecisionState: 'rejected',
+        sortingDecision: 'merge',
+        sortingMergeWithItemId: LEAD,
+        sortingMergeWithItemIds: null,
+        sortingSplitAtPage: null,
+        sortingManualOverride: false,
+        sortingReason: null,
+        sortingConfidence: null,
+      },
+      {
+        id: ACCEPTED_LEAD,
+        originalName: 'accepted-merge-lead.pdf',
+        status: 'sorted',
+        sortingDecisionState: 'accepted',
+        sortingDecision: 'merge',
+        sortingMergeWithItemId: ACCEPTED_SIB,
+        sortingMergeWithItemIds: [ACCEPTED_SIB],
+        sortingSplitAtPage: null,
+        sortingManualOverride: false,
+        sortingReason: 'Pages of the same invoice',
+        sortingConfidence: 0.97,
+      },
+      {
+        id: ACCEPTED_SIB,
+        originalName: 'accepted-merge-sib.pdf',
+        status: 'sorted',
+        sortingDecisionState: 'accepted',
+        sortingDecision: 'merge',
+        sortingMergeWithItemId: ACCEPTED_LEAD,
+        sortingMergeWithItemIds: null,
+        sortingSplitAtPage: null,
+        sortingManualOverride: false,
+        sortingReason: null,
+        sortingConfidence: null,
+      },
+    );
+    return { LEAD, SIB, ACCEPTED_LEAD, ACCEPTED_SIB };
+  }
+
+  it('rejected merge-lead: sibling list IS shown when picker decision is "merge"', async () => {
+    const { LEAD } = pushRejectedMergeLeadFixture();
+
+    renderPage();
+    await screen.findByTestId(`item-preview-trigger-${ITEM_PENDING}`, undefined, { timeout: 8000 });
+    await screen.findByTestId(`branching-merge-group-${LEAD}`, undefined, { timeout: 8000 });
+
+    expect(screen.getByTestId(`branching-merge-group-${LEAD}`)).toBeInTheDocument();
+  });
+
+  it('rejected merge-lead: switching picker to Keep hides the sibling list', async () => {
+    const { LEAD } = pushRejectedMergeLeadFixture();
+
+    renderPage();
+    await screen.findByTestId(`item-preview-trigger-${ITEM_PENDING}`, undefined, { timeout: 8000 });
+    await screen.findByTestId(`branching-merge-group-${LEAD}`, undefined, { timeout: 8000 });
+
+    expect(screen.getByTestId(`branching-merge-group-${LEAD}`)).toBeInTheDocument();
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId(`sorting-picker-option-keep-${LEAD}`));
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByTestId(`branching-merge-group-${LEAD}`)).not.toBeInTheDocument();
+    });
+  });
+
+  it('rejected merge-lead: switching picker to Split hides the sibling list', async () => {
+    const { LEAD } = pushRejectedMergeLeadFixture();
+
+    renderPage();
+    await screen.findByTestId(`item-preview-trigger-${ITEM_PENDING}`, undefined, { timeout: 8000 });
+    await screen.findByTestId(`branching-merge-group-${LEAD}`, undefined, { timeout: 8000 });
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId(`sorting-picker-option-split-${LEAD}`));
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByTestId(`branching-merge-group-${LEAD}`)).not.toBeInTheDocument();
+    });
+  });
+
+  it('rejected merge-lead: switching Keep → Merge brings the sibling list back', async () => {
+    const { LEAD } = pushRejectedMergeLeadFixture();
+
+    renderPage();
+    await screen.findByTestId(`item-preview-trigger-${ITEM_PENDING}`, undefined, { timeout: 8000 });
+    await screen.findByTestId(`branching-merge-group-${LEAD}`, undefined, { timeout: 8000 });
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId(`sorting-picker-option-keep-${LEAD}`));
+    });
+    await waitFor(() => {
+      expect(screen.queryByTestId(`branching-merge-group-${LEAD}`)).not.toBeInTheDocument();
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId(`sorting-picker-option-merge-${LEAD}`));
+    });
+    await waitFor(() => {
+      expect(screen.getByTestId(`branching-merge-group-${LEAD}`)).toBeInTheDocument();
+    });
+  });
+
+  it('accepted merge row continues to show its sibling list (effective decision is merge)', async () => {
+    const { ACCEPTED_LEAD } = pushRejectedMergeLeadFixture();
+
+    renderPage();
+    await screen.findByTestId(`item-preview-trigger-${ITEM_PENDING}`, undefined, { timeout: 8000 });
+    await screen.findByTestId(`branching-merge-group-${ACCEPTED_LEAD}`, undefined, { timeout: 8000 });
+
+    expect(screen.getByTestId(`branching-merge-group-${ACCEPTED_LEAD}`)).toBeInTheDocument();
+  });
 });

@@ -3423,12 +3423,25 @@ export default function BulkDocumentImportPage() {
                           acceptAllPendingSorting.isPending ||
                           (setSortingDecision.isPending &&
                           (setSortingDecision.variables as { itemId: string } | undefined)?.itemId === item.id);
+                        // When the row is in the 'rejected' state the admin is
+                        // choosing manually via the picker, so the effective
+                        // decision is whatever the picker currently shows.
+                        // For all other states (pending, accepted) we use the
+                        // item's saved sortingDecision.  This drives the "In
+                        // this merge" sibling list and the merge-count badge:
+                        // both should only appear when the effective decision
+                        // is actually 'merge' (Task #956).
+                        const effectiveSortingDecision: string | null = sortingIsRejected
+                          ? pickerDecision
+                          : item.sortingDecision;
                         // Non-excluded siblings of this merge-lead, rendered
                         // as a nested list inside the lead's card (Task #927).
                         // Mirrors the siblingItemIds logic: only items with
                         // sortingMergeWithItemIds act as leads.
                         const mergeGroupSiblingItems: BulkImportItemLite[] =
-                          currentStep === 'sorting' && item.sortingMergeWithItemIds?.length
+                          currentStep === 'sorting' &&
+                          effectiveSortingDecision === 'merge' &&
+                          item.sortingMergeWithItemIds?.length
                             ? item.sortingMergeWithItemIds
                                 .map((sid) => items.find((i) => i.id === sid))
                                 .filter((si): si is BulkImportItemLite => si != null && si.status !== 'rejected')
@@ -3439,7 +3452,9 @@ export default function BulkDocumentImportPage() {
                         // have to expand the nested list to know whether it's
                         // a 2-way or 5-way merge (Task #929).
                         const mergeGroupTotalCount =
-                          currentStep === 'sorting' && item.sortingMergeWithItemIds?.length
+                          currentStep === 'sorting' &&
+                          effectiveSortingDecision === 'merge' &&
+                          item.sortingMergeWithItemIds?.length
                             ? mergeGroupSiblingItems.length + 1
                             : 0;
                         const mergeGroupCountSuffix =
