@@ -1076,6 +1076,7 @@ export function registerBulkImportRoutes(app: Express): void {
           preExcludeStatus: schema.bulkImportItems.preExcludeStatus,
           excludeSource: schema.bulkImportItems.excludeSource,
           finalFileName: schema.bulkImportItems.finalFileName,
+          contentHash: schema.bulkImportItems.contentHash,
           screening: schema.bulkImportItems.screening,
           sortingDecision: schema.bulkImportItems.sortingDecision,
           branchDecision: schema.bulkImportItems.branchDecision,
@@ -1084,6 +1085,75 @@ export function registerBulkImportRoutes(app: Express): void {
         })
         .from(schema.bulkImportItems)
         .where(eq(schema.bulkImportItems.sessionId, session.id));
+
+      // Task #1002: Resolve the linked document for duplicate items so the
+      // wizard can show "Already in Koveo" with the document's name and
+      // location. Only queried for rows whose status is `duplicate`, which
+      // are a small subset of the full list.
+      const duplicateHashes = rows
+        .filter((r) => r.status === 'duplicate')
+        .map((r) => r.contentHash);
+
+      // Map contentHash → enriched duplicate info.
+      type DuplicateInfo = {
+        documentId: string | null;
+        documentName: string | null;
+        buildingId: string | null;
+        buildingName: string | null;
+        residenceLabel: string | null;
+        documentType: string | null;
+        removed: boolean;
+      };
+      const duplicateInfoByHash = new Map<string, DuplicateInfo>();
+
+      if (duplicateHashes.length > 0) {
+        const fpRows = await db
+          .select({
+            contentHash: schema.clientDocumentFingerprints.contentHash,
+            finalDocumentId: schema.clientDocumentFingerprints.finalDocumentId,
+            docName: schema.documents.name,
+            docType: schema.documents.documentType,
+            buildingId: schema.buildings.id,
+            buildingName: schema.buildings.name,
+            residenceUnitNumber: schema.residences.unitNumber,
+            residenceId: schema.documents.residenceId,
+          })
+          .from(schema.clientDocumentFingerprints)
+          .leftJoin(
+            schema.documents,
+            eq(schema.clientDocumentFingerprints.finalDocumentId, schema.documents.id),
+          )
+          .leftJoin(
+            schema.buildings,
+            eq(schema.documents.buildingId, schema.buildings.id),
+          )
+          .leftJoin(
+            schema.residences,
+            eq(schema.documents.residenceId, schema.residences.id),
+          )
+          .where(
+            and(
+              eq(schema.clientDocumentFingerprints.organizationId, session.organizationId),
+              inArray(schema.clientDocumentFingerprints.contentHash, duplicateHashes),
+            ),
+          );
+
+        for (const fp of fpRows) {
+          // The `finalDocumentId` FK is ON DELETE SET NULL, so a deleted
+          // document leaves `finalDocumentId = null` on the fingerprint row.
+          // When finalDocumentId is null the linked document has been removed.
+          const removed = fp.finalDocumentId === null;
+          duplicateInfoByHash.set(fp.contentHash, {
+            documentId: fp.finalDocumentId ?? null,
+            documentName: fp.docName ?? null,
+            buildingId: fp.buildingId ?? null,
+            buildingName: fp.buildingName ?? null,
+            residenceLabel: fp.residenceUnitNumber ?? null,
+            documentType: fp.docType ?? null,
+            removed,
+          });
+        }
+      }
 
       // Pre-extract confidence + fallbackReason from each step's JSON so
       // the client never has to download or parse the full AI decision blob.
@@ -1236,68 +1306,81 @@ export function registerBulkImportRoutes(app: Express): void {
         };
       }
 
-      const items = rows.map((r) => ({
-        id: r.id,
-        originalName: r.originalName,
-        mimeType: r.mimeType,
-        status: r.status,
-        preExcludeStatus: r.preExcludeStatus,
-        excludeSource: r.excludeSource,
-        finalFileName: r.finalFileName ?? null,
-        ...(() => {
-          const sc = extractStep(r.screening);
-          const sqaFields = extractScreeningQuickAnalysisFields(r.screening);
-          const srot = extractScreeningRotation(r.screening);
-          const so = extractSortingStep(r.sortingDecision);
-          const br = extractBranchStep(r.branchDecision);
-          const id = extractIdentificationStep(r.identification);
-          const lk = extractLinkingStep(r.linkDecisions);
-          return {
-            screeningConfidence: sc.confidence,
-            screeningFallback: sc.fallbackReason,
-            ...sqaFields,
-            screeningRotationDegrees: srot.rotationDegrees,
-            screeningRotationApplied: srot.rotationApplied,
-            sortingConfidence: so.confidence,
-            sortingFallback: so.fallbackReason,
-            sortingDecision: so.decision,
-            sortingReason: so.reason,
-            sortingMergeWithItemId: so.mergeWithItemId,
-            sortingMergeWithItemIds: so.mergeWithItemIds,
-            sortingSplitAtPage: so.splitAtPage,
-            sortingDecisionState: so.decisionState,
-            sortingManualOverride: so.manualOverride,
-            sortingDecisionSplitIntoItemIds: so.splitIntoItemIds,
-            sortingDecisionDraft: so.draft,
-            sortingDecisionSplitFinalNames: so.splitFinalNames,
-            branchingConfidence: br.confidence,
-            branchingFallback: br.fallbackReason,
-            branch: br.branch,
-            subCategory: br.subCategory,
-            branchReason: br.branchReason,
-            branchManualOverride: br.manualOverride,
-            residenceId: br.residenceId,
-            residenceConfidence: br.residenceConfidence,
-            residenceReason: br.residenceReason,
-            residenceFallbackReason: br.residenceFallbackReason,
-            residenceManualOverride: br.residenceManualOverride,
-            residenceAiSuggestedId: br.residenceAiSuggestedId,
-            residenceAiSuggested: br.residenceAiSuggested,
-            residenceAiConfirmed: br.residenceAiConfirmed,
-            identificationConfidence: id.confidence,
-            identificationFallback: id.fallbackReason,
-            identificationName: id.name,
-            identificationDescription: id.description,
-            identificationTags: id.tags,
-            identificationEffectiveDate: id.effectiveDate,
-            linkingConfidence: lk.confidence,
-            linkingFallback: lk.fallbackReason,
-            linkingReason: lk.linkingReason,
-            linkingBeforeItemId: lk.beforeItemId,
-            linkingAfterItemId: lk.afterItemId,
-          };
-        })(),
-      }));
+      const items = rows.map((r) => {
+        const dupeInfo = r.status === 'duplicate'
+          ? (duplicateInfoByHash.get(r.contentHash) ?? null)
+          : null;
+        return {
+          id: r.id,
+          originalName: r.originalName,
+          mimeType: r.mimeType,
+          status: r.status,
+          preExcludeStatus: r.preExcludeStatus,
+          excludeSource: r.excludeSource,
+          finalFileName: r.finalFileName ?? null,
+          // Task #1002: enriched duplicate info (null for non-duplicate items).
+          duplicateOfDocumentId: dupeInfo?.documentId ?? null,
+          duplicateOfDocumentName: dupeInfo?.documentName ?? null,
+          duplicateOfBuildingId: dupeInfo?.buildingId ?? null,
+          duplicateOfBuildingName: dupeInfo?.buildingName ?? null,
+          duplicateOfResidenceLabel: dupeInfo?.residenceLabel ?? null,
+          duplicateOfDocumentType: dupeInfo?.documentType ?? null,
+          duplicateOfDocumentRemoved: dupeInfo?.removed ?? false,
+          ...(() => {
+            const sc = extractStep(r.screening);
+            const sqaFields = extractScreeningQuickAnalysisFields(r.screening);
+            const srot = extractScreeningRotation(r.screening);
+            const so = extractSortingStep(r.sortingDecision);
+            const br = extractBranchStep(r.branchDecision);
+            const id = extractIdentificationStep(r.identification);
+            const lk = extractLinkingStep(r.linkDecisions);
+            return {
+              screeningConfidence: sc.confidence,
+              screeningFallback: sc.fallbackReason,
+              ...sqaFields,
+              screeningRotationDegrees: srot.rotationDegrees,
+              screeningRotationApplied: srot.rotationApplied,
+              sortingConfidence: so.confidence,
+              sortingFallback: so.fallbackReason,
+              sortingDecision: so.decision,
+              sortingReason: so.reason,
+              sortingMergeWithItemId: so.mergeWithItemId,
+              sortingMergeWithItemIds: so.mergeWithItemIds,
+              sortingSplitAtPage: so.splitAtPage,
+              sortingDecisionState: so.decisionState,
+              sortingManualOverride: so.manualOverride,
+              sortingDecisionSplitIntoItemIds: so.splitIntoItemIds,
+              sortingDecisionDraft: so.draft,
+              sortingDecisionSplitFinalNames: so.splitFinalNames,
+              branchingConfidence: br.confidence,
+              branchingFallback: br.fallbackReason,
+              branch: br.branch,
+              subCategory: br.subCategory,
+              branchReason: br.branchReason,
+              branchManualOverride: br.manualOverride,
+              residenceId: br.residenceId,
+              residenceConfidence: br.residenceConfidence,
+              residenceReason: br.residenceReason,
+              residenceFallbackReason: br.residenceFallbackReason,
+              residenceManualOverride: br.residenceManualOverride,
+              residenceAiSuggestedId: br.residenceAiSuggestedId,
+              residenceAiSuggested: br.residenceAiSuggested,
+              residenceAiConfirmed: br.residenceAiConfirmed,
+              identificationConfidence: id.confidence,
+              identificationFallback: id.fallbackReason,
+              identificationName: id.name,
+              identificationDescription: id.description,
+              identificationTags: id.tags,
+              identificationEffectiveDate: id.effectiveDate,
+              linkingConfidence: lk.confidence,
+              linkingFallback: lk.fallbackReason,
+              linkingReason: lk.linkingReason,
+              linkingBeforeItemId: lk.beforeItemId,
+              linkingAfterItemId: lk.afterItemId,
+            };
+          })(),
+        };
+      });
 
       return res.json({ session, items });
     },
@@ -1581,7 +1664,84 @@ export function registerBulkImportRoutes(app: Express): void {
             .returning();
           created.push(row);
         }
-        return res.status(201).json(created);
+
+        // Task #1002: enrich duplicate rows with existing document details so
+        // the upload response already carries the "Already in Koveo" context.
+        const uploadDupeHashes = created
+          .filter((r) => r.status === 'duplicate')
+          .map((r) => r.contentHash);
+
+        type UploadDupeInfo = {
+          documentId: string | null;
+          documentName: string | null;
+          buildingId: string | null;
+          buildingName: string | null;
+          residenceLabel: string | null;
+          documentType: string | null;
+          removed: boolean;
+        };
+        const uploadDupeInfoByHash = new Map<string, UploadDupeInfo>();
+
+        if (uploadDupeHashes.length > 0) {
+          const fpRows = await db
+            .select({
+              contentHash: schema.clientDocumentFingerprints.contentHash,
+              finalDocumentId: schema.clientDocumentFingerprints.finalDocumentId,
+              docName: schema.documents.name,
+              docType: schema.documents.documentType,
+              buildingId: schema.buildings.id,
+              buildingName: schema.buildings.name,
+              residenceUnitNumber: schema.residences.unitNumber,
+            })
+            .from(schema.clientDocumentFingerprints)
+            .leftJoin(
+              schema.documents,
+              eq(schema.clientDocumentFingerprints.finalDocumentId, schema.documents.id),
+            )
+            .leftJoin(
+              schema.buildings,
+              eq(schema.documents.buildingId, schema.buildings.id),
+            )
+            .leftJoin(
+              schema.residences,
+              eq(schema.documents.residenceId, schema.residences.id),
+            )
+            .where(
+              and(
+                eq(schema.clientDocumentFingerprints.organizationId, session.organizationId),
+                inArray(schema.clientDocumentFingerprints.contentHash, uploadDupeHashes),
+              ),
+            );
+          for (const fp of fpRows) {
+            const removed = fp.finalDocumentId === null;
+            uploadDupeInfoByHash.set(fp.contentHash, {
+              documentId: fp.finalDocumentId ?? null,
+              documentName: fp.docName ?? null,
+              buildingId: fp.buildingId ?? null,
+              buildingName: fp.buildingName ?? null,
+              residenceLabel: fp.residenceUnitNumber ?? null,
+              documentType: fp.docType ?? null,
+              removed,
+            });
+          }
+        }
+
+        const enriched = created.map((r) => {
+          if (r.status !== 'duplicate') return r;
+          const di = uploadDupeInfoByHash.get(r.contentHash) ?? null;
+          return {
+            ...r,
+            duplicateOfDocumentId: di?.documentId ?? null,
+            duplicateOfDocumentName: di?.documentName ?? null,
+            duplicateOfBuildingId: di?.buildingId ?? null,
+            duplicateOfBuildingName: di?.buildingName ?? null,
+            duplicateOfResidenceLabel: di?.residenceLabel ?? null,
+            duplicateOfDocumentType: di?.documentType ?? null,
+            duplicateOfDocumentRemoved: di?.removed ?? false,
+          };
+        });
+
+        return res.status(201).json(enriched);
       } catch (err) {
         logError('[bulk-import] upload failed', err as Error);
         return res.status(500).json({ error: 'Failed to upload files' });
@@ -3616,7 +3776,10 @@ export function registerBulkImportRoutes(app: Express): void {
           })
           .returning();
 
-        // Idempotent fingerprint upsert.
+        // Idempotent fingerprint upsert. On conflict (same org + content hash)
+        // we do nothing so the first-committed document's finalDocumentId is
+        // preserved. The new Task #1002 source fields are also only written on
+        // first insert; subsequent commits of the same file are no-ops.
         await db
           .insert(schema.clientDocumentFingerprints)
           .values({
@@ -3624,6 +3787,8 @@ export function registerBulkImportRoutes(app: Express): void {
             buildingId: session.buildingId,
             contentHash: item.contentHash,
             finalDocumentId: doc.id,
+            sourceFileName: item.originalName,
+            sourceSessionId: session.id,
           })
           .onConflictDoNothing({
             target: [

@@ -64,6 +64,7 @@ import {
   Scissors,
   Copy,
   Pencil,
+  ExternalLink,
 } from 'lucide-react';
 import {
   type BulkImportFallbackReason,
@@ -319,6 +320,19 @@ interface BulkImportItemLite {
   linkingReason: string | null;
   linkingBeforeItemId: string | null;
   linkingAfterItemId: string | null;
+  /**
+   * Task #1002: enriched duplicate info — null for non-duplicate items.
+   * When status === 'duplicate', these fields carry info about the
+   * already-committed document so the UI can show "Already in Koveo".
+   */
+  duplicateOfDocumentId: string | null;
+  duplicateOfDocumentName: string | null;
+  duplicateOfBuildingId: string | null;
+  duplicateOfBuildingName: string | null;
+  duplicateOfResidenceLabel: string | null;
+  duplicateOfDocumentType: string | null;
+  /** True when the linked document was deleted after being committed. */
+  duplicateOfDocumentRemoved: boolean;
 }
 
 interface SessionPayloadLite {
@@ -2603,7 +2617,7 @@ export default function BulkDocumentImportPage() {
                             }}
                           >
                             <ItemThumbnail item={item} />
-                            <div className="min-w-0 flex flex-col">
+                            <div className="min-w-0 flex flex-1 flex-col gap-0.5">
                               <span className="truncate font-medium" data-testid={`item-name-${item.id}`}>
                                 {item.originalName}
                               </span>
@@ -2611,6 +2625,61 @@ export default function BulkDocumentImportPage() {
                                 {item.status}
                                 {item.mimeType ? ` · ${item.mimeType}` : ''}
                               </span>
+                              {item.status === 'duplicate' && (() => {
+                                const docLabels = isFr ? BRANCH_DESTINATION_LABEL_FR : BRANCH_DESTINATION_LABEL_EN;
+                                const locationParts: string[] = [];
+                                if (item.duplicateOfBuildingName) locationParts.push(item.duplicateOfBuildingName);
+                                if (item.duplicateOfResidenceLabel) locationParts.push(item.duplicateOfResidenceLabel);
+                                if (item.duplicateOfDocumentType) {
+                                  const label = docLabels[item.duplicateOfDocumentType as BranchDestination] ?? item.duplicateOfDocumentType;
+                                  locationParts.push(label);
+                                }
+                                const locationStr = locationParts.join(' › ');
+                                return (
+                                  <div
+                                    className="flex flex-wrap items-center gap-1.5 mt-0.5"
+                                    onClick={(e) => e.stopPropagation()}
+                                    data-testid={`duplicate-info-${item.id}`}
+                                  >
+                                    <Badge
+                                      variant="outline"
+                                      className="border-teal-300 bg-teal-50 text-teal-900 dark:border-teal-700 dark:bg-teal-950 dark:text-teal-200 text-xs shrink-0"
+                                      data-testid={`badge-already-in-koveo-${item.id}`}
+                                    >
+                                      {isFr ? 'Déjà dans Koveo' : 'Already in Koveo'}
+                                    </Badge>
+                                    {item.duplicateOfDocumentRemoved ? (
+                                      <span className="text-xs text-muted-foreground italic" data-testid={`duplicate-removed-${item.id}`}>
+                                        {isFr ? '(document supprimé)' : '(document removed)'}
+                                      </span>
+                                    ) : item.duplicateOfDocumentId && item.duplicateOfDocumentName ? (
+                                      <a
+                                        href={
+                                          item.duplicateOfBuildingId
+                                            ? `/manager/buildings/${item.duplicateOfBuildingId}/documents`
+                                            : `/api/documents/${item.duplicateOfDocumentId}/file`
+                                        }
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-1 text-xs text-teal-700 hover:text-teal-900 hover:underline dark:text-teal-400 dark:hover:text-teal-200 truncate max-w-[240px]"
+                                        data-testid={`duplicate-doc-link-${item.id}`}
+                                        title={item.duplicateOfDocumentName}
+                                      >
+                                        <ExternalLink className="h-3 w-3 shrink-0" />
+                                        <span className="truncate">{item.duplicateOfDocumentName}</span>
+                                      </a>
+                                    ) : null}
+                                    {locationStr && (
+                                      <span
+                                        className="text-xs text-muted-foreground truncate"
+                                        data-testid={`duplicate-location-${item.id}`}
+                                      >
+                                        {locationStr}
+                                      </span>
+                                    )}
+                                  </div>
+                                );
+                              })()}
                             </div>
                           </div>
                         ))}

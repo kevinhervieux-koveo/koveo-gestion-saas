@@ -167,6 +167,21 @@ export const clientDocumentFingerprints = pgTable(
     finalDocumentId: text('final_document_id').references(() => documents.id, {
       onDelete: 'set null',
     }),
+    /**
+     * Original source filename from the bulk-import item that committed
+     * this fingerprint (Task #1002). Null for fingerprints created before
+     * this column was added.
+     */
+    sourceFileName: text('source_file_name'),
+    /**
+     * ID of the bulk-import session that first committed this fingerprint
+     * (Task #1002). Null for pre-migration rows. Set NULL when the session
+     * is deleted so there is no dangling reference.
+     */
+    sourceSessionId: text('source_session_id').references(
+      () => bulkImportSessions.id,
+      { onDelete: 'set null' },
+    ),
     createdAt: timestamp('created_at').defaultNow().notNull(),
   },
   (table) => ({
@@ -276,6 +291,10 @@ export const insertClientDocumentFingerprintSchema = z.object({
   buildingId: z.string().optional().nullable(),
   contentHash: z.string().min(1),
   finalDocumentId: z.string().optional().nullable(),
+  /** Task #1002: original filename of the committed source file. */
+  sourceFileName: z.string().optional().nullable(),
+  /** Task #1002: session id that committed this fingerprint. */
+  sourceSessionId: z.string().optional().nullable(),
 });
 
 export const insertClientExcludedFingerprintSchema = z.object({
