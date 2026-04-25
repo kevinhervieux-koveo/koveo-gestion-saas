@@ -2531,8 +2531,11 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
   //                                                     building (clamped)
   //   3. manager role with active userOrganizations  -> buildings of
   //                                                     those orgs (clamped)
-  //   4. fallback (incl. tenants and managers w/o
-  //      org link)                                   -> active
+  //   4. manager with no MCP-scoped org link         -> every active
+  //                                                     building (clamped),
+  //                                                     same set as
+  //                                                     create_project
+  //   5. fallback (tenants)                          -> active
   //                                                     userResidences
   //                                                     building links
   //                                                     (clamped)
@@ -2581,7 +2584,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     );
     if (hasGlobalAccess) return allActiveBuildings();
 
-    if (role === "manager" && userOrgs.length > 0) {
+    if (role === "manager") {
       const userOrgIds = userOrgs
         .map((o) => o.organizationId)
         .filter((id) => mcpOrgIds.includes(id));
@@ -2597,11 +2600,22 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
           );
         return rows.map((r) => r.buildingId);
       }
-      // fall through to residence-linked path if no MCP-scoped org link
+      // Manager with no MCP-scoped userOrganizations link: align with
+      // `create_project`, which only checks that the building's
+      // organizationId is in the MCP-scoped set (no per-user org gate).
+      // Falling through to the residence-linked path would require a
+      // userResidences row managers never have, producing a spurious
+      // "Access denied" on every common-space write tool. Return every
+      // active building in the MCP-scoped org set instead — the same
+      // set the admin path returns and `create_project` already allows.
+      return allActiveBuildings();
     }
 
-    // Fallback: residence-linked buildings (covers tenants and the
-    // manager-without-org-link case, matching REST behaviour).
+    // Fallback: residence-linked buildings — tenants only. Managers
+    // are handled by the branch above (Task #629): a manager with no
+    // MCP-scoped org link gets the full active-building set, matching
+    // create_project, instead of falling through here and getting
+    // denied for lacking a userResidences row.
     const rows = await db
       .selectDistinct({ buildingId: schema.residences.buildingId })
       .from(schema.userResidences)

@@ -148,6 +148,7 @@ describeIfDb('MCP common-space tools — real Postgres (Task #291)', () => {
   const created = {
     organizationId: null as string | null,
     organizationCreatedByUs: false,
+    nonMcpOrganizationId: null as string | null,
     buildingIds: new Set<string>(),
     residenceIds: new Set<string>(),
     userIds: new Set<string>(),
@@ -167,6 +168,9 @@ describeIfDb('MCP common-space tools — real Postgres (Task #291)', () => {
   let tenantUserId: string;
   let tenantNoLinkUserId: string;
   let managerUserId: string;
+  let managerNoOrgUserId: string;
+  let managerNonMcpOrgUserId: string;
+  let nonMcpOrgId: string;
   let adminUserId: string;
   let reservableSpaceId: string;
   let openHoursSpaceId: string;
@@ -282,7 +286,40 @@ describeIfDb('MCP common-space tools — real Postgres (Task #291)', () => {
     tenantUserId = await mkUser('tenant', 'tenant');
     tenantNoLinkUserId = await mkUser('tenant', 'noLink');
     managerUserId = await mkUser('manager', 'mgr');
+    // A manager with NO userOrganizations link at all — exercises the
+    // task-629 fallback path where managers without an MCP-scoped org
+    // membership should still see every active building in MCP-scoped
+    // orgs (mirroring create_project).
+    managerNoOrgUserId = await mkUser('manager', 'mgrNoOrg');
+    // A manager linked ONLY to a non-MCP-scoped org. The intersection
+    // with mcpOrgIds is empty, so this also exercises the task-629
+    // fallback (the second branch of the requirement wording).
+    managerNonMcpOrgUserId = await mkUser('manager', 'mgrNonMcp');
     adminUserId = await mkUser('admin', 'adm');
+
+    // Non-MCP organization fixture for the manager-linked-only-to-non-MCP
+    // case. Always created fresh — we don't want to accidentally add
+    // MCP scope to a real seed org.
+    nonMcpOrgId = crypto.randomUUID();
+    await db.insert(schema.organizations).values({
+      id: nonMcpOrgId,
+      name: `${TEST_TAG} non-mcp`,
+      type: 'syndicate',
+      address: `${TEST_TAG} non-mcp 1`,
+      city: 'Montreal',
+      province: 'QC',
+      postalCode: 'H1A1A1',
+    });
+    created.nonMcpOrganizationId = nonMcpOrgId;
+    const nonMcpUserOrgId = crypto.randomUUID();
+    await db.insert(schema.userOrganizations).values({
+      id: nonMcpUserOrgId,
+      userId: managerNonMcpOrgUserId,
+      organizationId: nonMcpOrgId,
+      organizationRole: 'manager',
+      isActive: true,
+    });
+    created.userOrgIds.add(nonMcpUserOrgId);
 
     // userResidences link only for the "linked" tenant.
     const userResId = crypto.randomUUID();
@@ -415,6 +452,11 @@ describeIfDb('MCP common-space tools — real Postgres (Task #291)', () => {
       await db
         .delete(schema.organizations)
         .where(eq(schema.organizations.id, created.organizationId));
+    }
+    if (created.nonMcpOrganizationId) {
+      await db
+        .delete(schema.organizations)
+        .where(eq(schema.organizations.id, created.nonMcpOrganizationId));
     }
   }, 60000);
 
@@ -781,5 +823,148 @@ describeIfDb('MCP common-space tools — real Postgres (Task #291)', () => {
       await handler({ role: 'admin', spaceId: otherBuildingSpaceId }),
     );
     expect(json.id).toBe(otherBuildingSpaceId);
+  }, 30000);
+
+  // ---------------------------------------------------------------
+  // Task #629 — manager with NO MCP-scoped userOrganizations link
+  // must still reach common-space write tools on MCP-scoped buildings,
+  // matching the create_project access policy. Before this fix the
+  // helper fell through to the residence-linked path, denying every
+  // manager that lacked a userResidences row (i.e. all of them).
+  // ---------------------------------------------------------------
+  it('manager without an MCP-scoped userOrganizations link can use common-space write tools', async () => {
+    const mgrSrv = serverFor('manager', managerNoOrgUserId);
+
+    // (a) create_common_space — the original failure mode.
+    const createSpace = getToolHandler(mgrSrv, 'create_common_space');
+    const createRes = await createSpace({
+      role: 'manager',
+      buildingId: buildingInScopeId,
+      name: `${TEST_TAG}-task629-noOrg`,
+      isReservable: true,
+      capacity: 4,
+    });
+    const createText = textOf(createRes);
+    expect(createText).not.toMatch(/Access denied/i);
+    const createdSpace = parseJson<{ id: string; name: string; buildingId: string }>(createRes);
+    expect(createdSpace.id).toBeTruthy();
+    expect(createdSpace.buildingId).toBe(buildingInScopeId);
+    created.spaceIds.add(createdSpace.id);
+
+    // (b) list_common_spaces should include the new row.
+    const listHandler = getToolHandler(mgrSrv, 'list_common_spaces');
+    const listed = parseJson<Array<{ id: string }>>(
+      await listHandler({ role: 'manager', buildingId: buildingInScopeId }),
+    );
+    expect(listed.find((s) => s.id === createdSpace.id)).toBeTruthy();
+
+    // (c) create_common_space_booking inside opening hours.
+    // Pick a day at least 30 days out so we don't collide with any
+    // bookings made earlier in the suite on testYear/testMonth/testDay.
+    const date = nextMontrealDateOnWeekday('saturday', 30);
+    const bookingStart = montrealDate(date.year, date.month, date.day, 10);
+    const bookingEnd = montrealDate(date.year, date.month, date.day, 11);
+    const bookingHandler = getToolHandler(mgrSrv, 'create_common_space_booking');
+    const bookingRes = await bookingHandler({
+      role: 'manager',
+      spaceId: createdSpace.id,
+      startTime: bookingStart.toISOString(),
+      endTime: bookingEnd.toISOString(),
+    });
+    const bookingText = textOf(bookingRes);
+    expect(bookingText).not.toMatch(/Access denied/i);
+    const booking = parseJson<{ id: string; userId: string }>(bookingRes);
+    expect(booking.id).toBeTruthy();
+    expect(booking.userId).toBe(managerNoOrgUserId);
+    created.bookingIds.add(booking.id);
+
+    // (d) Booking outside opening hours is still rejected (proves the
+    //     fix did not bypass the rule engine — only the building gate).
+    // Use a different reservable space with explicit opening hours.
+    const earlyStart = montrealDate(date.year, date.month, date.day, 6);
+    const earlyEnd = montrealDate(date.year, date.month, date.day, 7);
+    const tenantSrv = serverFor('tenant', tenantUserId);
+    const tenantBooking = getToolHandler(tenantSrv, 'create_common_space_booking');
+    const earlyRes = await tenantBooking({
+      role: 'tenant',
+      spaceId: openHoursSpaceId,
+      startTime: earlyStart.toISOString(),
+      endTime: earlyEnd.toISOString(),
+    });
+    expect(textOf(earlyRes)).toMatch(/opening hours/i);
+
+    // (e) set_user_booking_restriction (space-scoped restriction tool).
+    const restrictionHandler = getToolHandler(mgrSrv, 'set_user_booking_restriction');
+    const restrictionRes = await restrictionHandler({
+      role: 'manager',
+      spaceId: createdSpace.id,
+      userId: tenantUserId,
+      isBlocked: true,
+      reason: `${TEST_TAG} task629`,
+    });
+    const restrictionText = textOf(restrictionRes);
+    expect(restrictionText).not.toMatch(/Access denied/i);
+    const restriction = parseJson<{ id: string; userId: string; isBlocked: boolean }>(restrictionRes);
+    expect(restriction.id).toBeTruthy();
+    expect(restriction.userId).toBe(tenantUserId);
+    expect(restriction.isBlocked).toBe(true);
+    created.restrictionIds.add(restriction.id);
+
+    // (f) set_user_time_limit on the same space (space-scoped path).
+    const timeLimitHandler = getToolHandler(mgrSrv, 'set_user_time_limit');
+    const timeLimitRes = await timeLimitHandler({
+      role: 'manager',
+      spaceId: createdSpace.id,
+      userId: tenantUserId,
+      limitType: 'monthly',
+      limitHours: 5,
+    });
+    const timeLimitText = textOf(timeLimitRes);
+    expect(timeLimitText).not.toMatch(/Access denied/i);
+    const timeLimit = parseJson<{ id: string; userId: string; limitHours: number }>(timeLimitRes);
+    expect(timeLimit.id).toBeTruthy();
+    expect(timeLimit.limitHours).toBe(5);
+    created.timeLimitIds.add(timeLimit.id);
+  }, 60000);
+
+  // Task #629 — second branch of the requirement wording: a manager
+  // linked ONLY to a non-MCP-scoped org also intersects empty with
+  // mcpOrgIds, so they should hit the same "fall-through to all
+  // active MCP-scoped buildings" path as a manager with no org link.
+  it('manager linked only to a non-MCP-scoped org can use common-space write tools', async () => {
+    const mgrSrv = serverFor('manager', managerNonMcpOrgUserId);
+    const createSpace = getToolHandler(mgrSrv, 'create_common_space');
+    const createRes = await createSpace({
+      role: 'manager',
+      buildingId: buildingInScopeId,
+      name: `${TEST_TAG}-task629-nonMcpOrg`,
+      isReservable: true,
+      capacity: 2,
+    });
+    expect(textOf(createRes)).not.toMatch(/Access denied/i);
+    const createdSpace = parseJson<{ id: string; buildingId: string }>(createRes);
+    expect(createdSpace.id).toBeTruthy();
+    expect(createdSpace.buildingId).toBe(buildingInScopeId);
+    created.spaceIds.add(createdSpace.id);
+  }, 30000);
+
+  // Tenant scoping must remain intact: the unlinked tenant still gets
+  // denied on every space — the helper fix only loosened the manager
+  // branch, the tenant fallback is unchanged.
+  it('tenant without a residence link is still denied on common-space tools', async () => {
+    const tenantSrv = serverFor('tenant', tenantNoLinkUserId);
+    const handler = getToolHandler(tenantSrv, 'get_common_space');
+    const res = await handler({ role: 'tenant', spaceId: reservableSpaceId });
+    expect(textOf(res)).toMatch(/Access denied/i);
+
+    const createBooking = getToolHandler(tenantSrv, 'create_common_space_booking');
+    const date = nextMontrealDateOnWeekday('saturday', 45);
+    const bookingRes = await createBooking({
+      role: 'tenant',
+      spaceId: openHoursSpaceId,
+      startTime: montrealDate(date.year, date.month, date.day, 10).toISOString(),
+      endTime: montrealDate(date.year, date.month, date.day, 11).toISOString(),
+    });
+    expect(textOf(bookingRes)).toMatch(/Access denied/i);
   }, 30000);
 });
