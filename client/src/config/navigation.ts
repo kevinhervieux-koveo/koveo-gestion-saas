@@ -161,7 +161,7 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
     icon: Settings,
     requiredRole: 'tenant',
     items: [
-      { nameKey: 'settings', href: '/settings/settings', icon: Settings },
+      { nameKey: 'settings', href: '/settings', icon: Settings },
     ],
   },
 ];

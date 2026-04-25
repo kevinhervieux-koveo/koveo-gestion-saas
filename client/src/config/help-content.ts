@@ -462,7 +462,7 @@ export const helpContentMap: Record<string, HelpContent> = {
   },
 
   // ===== SETTINGS PAGES =====
-  '/settings/settings': {
+  '/settings': {
     title: { en: 'Settings', fr: 'Paramètres' },
     description: { en: 'Configure your personal preferences and account settings.', fr: 'Configurez vos préférences personnelles et paramètres de compte.' },
     goal: { en: 'Customize your experience and manage your account.', fr: 'Personnalisez votre expérience et gérez votre compte.' },

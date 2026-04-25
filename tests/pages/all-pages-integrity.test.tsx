@@ -58,7 +58,7 @@ const allPages = [
   { path: '/residents/residence', name: 'Residents Residence' },
   
   // Settings pages
-  { path: '/settings/settings', name: 'Settings' },
+  { path: '/settings', name: 'Settings' },
 ];
 
 // Import all page components dynamically
@@ -92,7 +92,7 @@ const pageComponents = {
   '/residents/common-spaces': () => import('@/pages/residents/common-spaces'),
   '/residents/my-calendar': () => import('@/pages/residents/my-calendar'),
   '/residents/residence': () => import('@/pages/residents/residence'),
-  '/settings/settings': () => import('@/pages/settings/settings'),
+  '/settings': () => import('@/pages/settings/settings'),
 };
 
 // Helper to create test providers

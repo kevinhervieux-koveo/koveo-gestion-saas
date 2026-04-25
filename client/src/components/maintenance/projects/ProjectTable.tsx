@@ -14,6 +14,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { StatusBadge, PriorityBadge } from '@/components/maintenance/StatusBadges';
 // import { useBuildingContext } from '@/hooks/use-building-context';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/hooks/use-language';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { MaintenanceProject } from '@shared/schemas/maintenance';
 import { cn, parseDateOnly } from '@/lib/utils';
@@ -99,6 +100,7 @@ export function ProjectTable({
   // Simplified placeholder - no context for now
   const hasPermission = () => true;
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [selectedProjects, setSelectedProjects] = useState<Row<ProjectWithMetrics>[]>([]);
 
   // Fetch projects for current building
@@ -237,7 +239,7 @@ export function ProjectTable({
     const baseColumns: ColumnDef<ProjectWithMetrics>[] = [
       {
         accessorKey: 'title',
-        header: 'Project Name',
+        header: t('projectName'),
         cell: ({ row }) => {
           const project = row.original;
           return (
@@ -251,7 +253,7 @@ export function ProjectTable({
               {project.isOverdue && (
                 <Badge variant="destructive" className="text-xs">
                   <AlertTriangle className="h-3 w-3 mr-1" />
-                  Overdue
+                  {t('overdue')}
                 </Badge>
               )}
             </div>
@@ -260,7 +262,7 @@ export function ProjectTable({
       },
       {
         accessorKey: 'status',
-        header: 'Status',
+        header: t('status'),
         cell: ({ row }) => (
           <StatusBadge 
             status={row.getValue('status')} 
@@ -270,7 +272,7 @@ export function ProjectTable({
       },
       {
         accessorKey: 'priority',
-        header: 'Priority',
+        header: t('priority'),
         cell: ({ row }) => (
           <PriorityBadge 
             priority={row.getValue('priority')} 
@@ -280,11 +282,11 @@ export function ProjectTable({
       },
       {
         accessorKey: 'plannedStartDate',
-        header: 'Start Date',
+        header: t('startDate'),
         cell: ({ row }) => {
           const date = row.getValue('plannedStartDate') as string;
           const parsed = parseDateOnly(date);
-          if (!parsed) return <span className="text-muted-foreground text-sm">Not set</span>;
+          if (!parsed) return <span className="text-muted-foreground text-sm">{t('notSet')}</span>;
           
           return (
             <div className="text-sm" data-testid={`project-start-date-${row.original.id}`}>
@@ -295,13 +297,13 @@ export function ProjectTable({
       },
       {
         accessorKey: 'totalBudget',
-        header: 'Budget',
+        header: t('budget'),
         cell: ({ row }) => {
           const project = row.original;
           const budget = project.totalBudget ? parseFloat(project.totalBudget) : 0;
           const actual = project.actualCost ? parseFloat(project.actualCost) : 0;
           
-          if (budget === 0) return <span className="text-muted-foreground text-sm">Not set</span>;
+          if (budget === 0) return <span className="text-muted-foreground text-sm">{t('notSet')}</span>;
           
           return (
             <div className="space-y-1" data-testid={`project-budget-${project.id}`}>
@@ -312,7 +314,7 @@ export function ProjectTable({
                 "text-xs",
                 project.isOverBudget ? "text-red-600" : "text-green-600"
               )}>
-                ${actual.toLocaleString()} spent ({project.budgetUtilization}%)
+                ${actual.toLocaleString()} ({project.budgetUtilization}%)
               </div>
             </div>
           );
@@ -324,7 +326,7 @@ export function ProjectTable({
     if (showActions) {
       baseColumns.push({
         id: 'actions',
-        header: 'Actions',
+        header: t('actions'),
         cell: ({ row }) => {
           const project = row.original;
           
@@ -338,7 +340,7 @@ export function ProjectTable({
                 data-testid={`button-view-${project.id}`}
               >
                 <Eye className="h-4 w-4 mr-1" />
-                <span className="text-xs">View</span>
+                <span className="text-xs">{t('view')}</span>
               </Button>
               
               {hasPermission() && (
@@ -350,7 +352,7 @@ export function ProjectTable({
                   data-testid={`button-edit-${project.id}`}
                 >
                   <Edit2 className="h-4 w-4 mr-1" />
-                  <span className="text-xs">Edit</span>
+                  <span className="text-xs">{t('edit')}</span>
                 </Button>
               )}
             </div>
@@ -360,7 +362,7 @@ export function ProjectTable({
     }
 
     return baseColumns;
-  }, [showActions, hasPermission, onProjectSelect, onEditProject, onViewTimeline, onAssignElements, updateStatusMutation]);
+  }, [showActions, hasPermission, onProjectSelect, onEditProject, onViewTimeline, onAssignElements, updateStatusMutation, t]);
 
   // Bulk actions for selected rows
   const bulkActions = useMemo(() => {
@@ -403,9 +405,9 @@ export function ProjectTable({
     return (
       <div className="text-center p-8" data-testid="projects-error">
         <AlertTriangle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-        <h3 className="text-lg font-semibold mb-2">Failed to Load Projects</h3>
+        <h3 className="text-lg font-semibold mb-2">{t('failedToLoadProjects')}</h3>
         <p className="text-muted-foreground">
-          There was an error loading the projects. Please try again.
+          {t('errorLoadingProjects')}
         </p>
       </div>
     );
@@ -420,11 +422,11 @@ export function ProjectTable({
         <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4 sm:items-end">
           {/* Search Input */}
           <div className="flex-1 space-y-2">
-            <label className="text-sm font-medium">Search Projects</label>
+            <label className="text-sm font-medium">{t('searchProjects')}</label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
-                placeholder="Search by name or number..."
+                placeholder={t('searchByNamePlaceholder')}
                 value={searchTerm}
                 onChange={(e) => onSearchChange?.(e.target.value)}
                 className="pl-10"
@@ -435,36 +437,36 @@ export function ProjectTable({
 
           {/* Status Filter */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Status</label>
+            <label className="text-sm font-medium">{t('status')}</label>
             <Select value={statusFilter} onValueChange={(value) => onStatusFilterChange?.(value)}>
               <SelectTrigger className="w-[140px]" data-testid="status-filter">
-                <SelectValue placeholder="All Status" />
+                <SelectValue placeholder={t('allStatus')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="planned">Planned</SelectItem>
+                <SelectItem value="all">{t('allStatus')}</SelectItem>
+                <SelectItem value="planned">{t('planned')}</SelectItem>
                 <SelectItem value="submission">Submission</SelectItem>
                 <SelectItem value="pre_work">Pre-Work</SelectItem>
-                <SelectItem value="in_progress">In Progress</SelectItem>
+                <SelectItem value="in_progress">{t('inProgress')}</SelectItem>
                 <SelectItem value="post_work">Post-Work</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="completed">{t('completed')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           {/* Priority Filter */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Priority</label>
+            <label className="text-sm font-medium">{t('priority')}</label>
             <Select value={priorityFilter} onValueChange={(value) => onPriorityFilterChange?.(value)}>
               <SelectTrigger className="w-[120px]" data-testid="priority-filter">
-                <SelectValue placeholder="All" />
+                <SelectValue placeholder={t('all')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="critical">Critical</SelectItem>
-                <SelectItem value="high">High</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="low">Low</SelectItem>
+                <SelectItem value="all">{t('all')}</SelectItem>
+                <SelectItem value="critical">{t('critical')}</SelectItem>
+                <SelectItem value="high">{t('high')}</SelectItem>
+                <SelectItem value="medium">{t('medium')}</SelectItem>
+                <SelectItem value="low">{t('low')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -482,7 +484,7 @@ export function ProjectTable({
               htmlFor="overdue-filter"
               className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
             >
-              Overdue Only
+              {t('overdueOnly')}
             </label>
           </div>
         </div>
@@ -493,28 +495,28 @@ export function ProjectTable({
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Filter className="h-4 w-4" />
               <span>
-                Showing {projects.length} of {allProjects.length} projects
+                {t('showing')} {projects.length} / {allProjects.length}
               </span>
             </div>
             <div className="flex items-center gap-2">
               {searchTerm && (
                 <Badge variant="secondary" className="text-xs">
-                  Search: {searchTerm}
+                  {searchTerm}
                 </Badge>
               )}
               {statusFilter && statusFilter !== 'all' && (
                 <Badge variant="secondary" className="text-xs">
-                  Status: {statusFilter}
+                  {t('status')}: {statusFilter}
                 </Badge>
               )}
               {priorityFilter && priorityFilter !== 'all' && (
                 <Badge variant="secondary" className="text-xs">
-                  Priority: {priorityFilter}
+                  {t('priority')}: {priorityFilter}
                 </Badge>
               )}
               {showOverdueOnly && (
                 <Badge variant="destructive" className="text-xs">
-                  Overdue Only
+                  {t('overdueOnly')}
                 </Badge>
               )}
             </div>
@@ -542,8 +544,8 @@ export function ProjectTable({
         onSelectionChange={setSelectedProjects}
         onRowClick={(row) => onProjectSelect?.(row.original)}
         emptyState={{
-          title: "No Projects Found",
-          description: "No maintenance projects have been created for this building yet.",
+          title: t('noProjectsFoundTitle'),
+          description: t('noProjectsForBuilding'),
           icon: Building2,
         }}
         getRowId={(row) => row.id}

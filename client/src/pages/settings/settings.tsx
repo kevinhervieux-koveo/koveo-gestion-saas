@@ -567,10 +567,9 @@ export default function Settings() {
               <div className='space-y-3'>
                 <div className='flex items-center justify-between p-4 border rounded-lg'>
                   <div className='space-y-1'>
-                    <h5 className='font-medium'>Download Your Data</h5>
+                    <h5 className='font-medium'>{t('downloadYourData')}</h5>
                     <p className='text-sm text-muted-foreground'>
-                      Export all your personal data including profile information, bills, documents,
-                      and activity history.
+                      {t('downloadYourDataDescription')}
                     </p>
                   </div>
                   <Button
@@ -589,11 +588,10 @@ export default function Settings() {
                 <div className='flex items-center justify-between p-4 border rounded-lg border-red-200 dark:border-red-800'>
                   <div className='space-y-1'>
                     <h5 className='font-medium text-red-900 dark:text-red-100'>
-                      Delete Your Account
+                      {t('deleteYourAccount')}
                     </h5>
                     <p className='text-sm text-red-700 dark:text-red-300'>
-                      Permanently delete your account and all associated data. This action cannot be
-                      undone.
+                      {t('deleteYourAccountWarning')}
                     </p>
                   </div>
                   <Button
@@ -603,7 +601,7 @@ export default function Settings() {
                     data-testid='button-delete-account'
                   >
                     <Trash2 className='w-4 h-4' />
-                    Delete Account
+                    {t('deleteAccount')}
                   </Button>
                 </div>
               </div>
@@ -618,18 +616,18 @@ export default function Settings() {
           <AlertDialogHeader>
             <AlertDialogTitle className='flex items-center gap-2 text-red-600'>
               <Trash2 className='w-5 h-5' />
-              Delete Account Permanently
+              {t('deleteAccountPermanently')}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete your account and all associated data, including:
+              {t('deleteAccountIntro')}
               <ul className='list-disc list-inside mt-2 space-y-1'>
-                <li>Your profile information</li>
-                <li>All documents and files</li>
-                <li>Bill history and payments</li>
-                <li>Maintenance requests</li>
-                <li>All other personal data</li>
+                <li>{t('deleteAccountItemProfile')}</li>
+                <li>{t('deleteAccountItemDocuments')}</li>
+                <li>{t('deleteAccountItemBills')}</li>
+                <li>{t('deleteAccountItemMaintenance')}</li>
+                <li>{t('deleteAccountItemOther')}</li>
               </ul>
-              <strong className='text-red-600 block mt-3'>This action cannot be undone.</strong>
+              <strong className='text-red-600 block mt-3'>{t('deleteAccountIrreversible')}</strong>
             </AlertDialogDescription>
           </AlertDialogHeader>
 
@@ -640,7 +638,7 @@ export default function Settings() {
                 name='confirmEmail'
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Confirm your email to proceed</FormLabel>
+                    <FormLabel>{t('confirmEmailToProceed')}</FormLabel>
                     <FormControl>
                       <Input
                         type='email'
@@ -659,10 +657,10 @@ export default function Settings() {
                 name='reason'
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Reason for deletion (optional)</FormLabel>
+                    <FormLabel>{t('reasonForDeletionOptional')}</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder='Let us know why you are deleting your account...'
+                        placeholder={t('reasonForDeletionPlaceholder')}
                         data-testid='textarea-delete-reason'
                         {...field}
                       />

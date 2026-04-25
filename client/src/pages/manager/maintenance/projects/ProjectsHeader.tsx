@@ -10,6 +10,7 @@ import {
 // import { useBuildingContext } from '@/hooks/use-building-context';
 import { cn } from '@/lib/utils';
 import { logDebug } from '@/lib/logger';
+import { useLanguage } from '@/hooks/use-language';
 import {
   ChevronLeft,
   Building,
@@ -37,6 +38,7 @@ export function ProjectsHeader({
   showBackButton,
   onBack,
 }: ProjectsHeaderProps) {
+  const { t } = useLanguage();
   // Simplified placeholder - no context for now
   const building = null;
   const availableBuildings = [];
@@ -62,7 +64,7 @@ export function ProjectsHeader({
             data-testid="back-to-building"
           >
             <ChevronLeft className="h-4 w-4 mr-1" />
-            Back to Building
+            {t('backToBuildingArrow')}
           </Button>
           {buildingName && (
             <div className="flex items-center gap-2 text-muted-foreground">

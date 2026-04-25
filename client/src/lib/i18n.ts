@@ -406,6 +406,33 @@ export interface Translations {
   inProgressMarkWorkCompleteButton: string;
   preWorkNewTaskDefault: string;
   inProgressNewWorkTaskDefault: string;
+  downloadYourData: string;
+  downloadYourDataDescription: string;
+  deleteYourAccount: string;
+  deleteYourAccountWarning: string;
+  backToBuildingArrow: string;
+  searchProjects: string;
+  searchByNamePlaceholder: string;
+  overdueOnly: string;
+  projectName: string;
+  startDate: string;
+  paginationShowingResults: string;
+  noProjectsFoundTitle: string;
+  noProjectsForBuilding: string;
+  profileSettings: string;
+  failedToLoadProjects: string;
+  errorLoadingProjects: string;
+  deleteAccountPermanently: string;
+  deleteAccountIntro: string;
+  deleteAccountItemProfile: string;
+  deleteAccountItemDocuments: string;
+  deleteAccountItemBills: string;
+  deleteAccountItemMaintenance: string;
+  deleteAccountItemOther: string;
+  deleteAccountIrreversible: string;
+  confirmEmailToProceed: string;
+  reasonForDeletionOptional: string;
+  reasonForDeletionPlaceholder: string;
   dashboard: string;
   pillarFramework: string;
   qualityAssurance: string;
@@ -5219,6 +5246,39 @@ export const translations: Record<Language, Translations> = {
     inProgressMarkWorkCompleteButton: 'Mark Work Complete',
     preWorkNewTaskDefault: 'New Task',
     inProgressNewWorkTaskDefault: 'New Work Task',
+
+    // Settings - delete account & data export
+    downloadYourData: 'Download Your Data',
+    downloadYourDataDescription:
+      'Export all your personal data including profile information, bills, documents, and activity history.',
+    deleteYourAccount: 'Delete Your Account',
+    deleteYourAccountWarning:
+      'Permanently delete your account and all associated data. This action cannot be undone.',
+
+    // Maintenance projects page
+    backToBuildingArrow: '← Back to Building',
+    searchProjects: 'Search Projects',
+    searchByNamePlaceholder: 'Search by name...',
+    overdueOnly: 'Overdue Only',
+    projectName: 'Project Name',
+    startDate: 'Start Date',
+    paginationShowingResults: 'Showing {start} to {end} of {total} result(s)',
+    noProjectsFoundTitle: 'No Projects Found',
+    noProjectsForBuilding: 'No maintenance projects have been created for this building yet.',
+    profileSettings: 'Profile Settings',
+    failedToLoadProjects: 'Failed to Load Projects',
+    errorLoadingProjects: 'There was an error loading the projects. Please try again.',
+    deleteAccountPermanently: 'Delete Account Permanently',
+    deleteAccountIntro: 'This will permanently delete your account and all associated data, including:',
+    deleteAccountItemProfile: 'Your profile information',
+    deleteAccountItemDocuments: 'All documents and files',
+    deleteAccountItemBills: 'Bill history and payments',
+    deleteAccountItemMaintenance: 'Maintenance requests',
+    deleteAccountItemOther: 'All other personal data',
+    deleteAccountIrreversible: 'This action cannot be undone.',
+    confirmEmailToProceed: 'Confirm your email to proceed',
+    reasonForDeletionOptional: 'Reason for deletion (optional)',
+    reasonForDeletionPlaceholder: 'Let us know why you are deleting your account...',
   },
   fr: {
 
@@ -7825,5 +7885,38 @@ export const translations: Record<Language, Translations> = {
     inProgressMarkWorkCompleteButton: 'Marquer les travaux comme terminés',
     preWorkNewTaskDefault: 'Nouvelle tâche',
     inProgressNewWorkTaskDefault: 'Nouvelle tâche de travail',
+
+    // Settings - delete account & data export
+    downloadYourData: 'Télécharger vos données',
+    downloadYourDataDescription:
+      "Exportez toutes vos données personnelles, y compris vos informations de profil, vos factures, vos documents et votre historique d'activité.",
+    deleteYourAccount: 'Supprimer votre compte',
+    deleteYourAccountWarning:
+      'Supprimez définitivement votre compte et toutes les données associées. Cette action est irréversible.',
+
+    // Maintenance projects page
+    backToBuildingArrow: '← Retour au bâtiment',
+    searchProjects: 'Rechercher des projets',
+    searchByNamePlaceholder: 'Rechercher par nom...',
+    overdueOnly: 'En retard seulement',
+    projectName: 'Nom du projet',
+    startDate: 'Date de début',
+    paginationShowingResults: 'Affichage de {start} à {end} sur {total} résultat(s)',
+    noProjectsFoundTitle: 'Aucun projet trouvé',
+    noProjectsForBuilding: 'Aucun projet d\'entretien n\'a été créé pour ce bâtiment.',
+    profileSettings: 'Paramètres du profil',
+    failedToLoadProjects: 'Échec du chargement des projets',
+    errorLoadingProjects: 'Une erreur s\'est produite lors du chargement des projets. Veuillez réessayer.',
+    deleteAccountPermanently: 'Supprimer le compte définitivement',
+    deleteAccountIntro: 'Cela supprimera définitivement votre compte et toutes les données associées, y compris :',
+    deleteAccountItemProfile: 'Vos informations de profil',
+    deleteAccountItemDocuments: 'Tous les documents et fichiers',
+    deleteAccountItemBills: 'Historique des factures et paiements',
+    deleteAccountItemMaintenance: 'Demandes d\'entretien',
+    deleteAccountItemOther: 'Toutes les autres données personnelles',
+    deleteAccountIrreversible: 'Cette action ne peut pas être annulée.',
+    confirmEmailToProceed: 'Confirmez votre courriel pour continuer',
+    reasonForDeletionOptional: 'Raison de la suppression (facultatif)',
+    reasonForDeletionPlaceholder: 'Dites-nous pourquoi vous supprimez votre compte...',
   }
 };

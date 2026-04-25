@@ -33,6 +33,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { useLanguage } from '@/hooks/use-language';
 import { 
   ChevronDown, 
   Search, 
@@ -110,6 +111,7 @@ export function DataTable<TData, TValue>({
   onSelectionChange,
   getRowId,
 }: DataTableProps<TData, TValue>) {
+  const { t } = useLanguage();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -468,12 +470,13 @@ export function DataTable<TData, TValue>({
                   {selectedRows.length} of {table.getFilteredRowModel().rows.length} row(s) selected
                 </span>
               )}
-              Showing {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1} to{" "}
-              {Math.min(
-                (table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
-                table.getFilteredRowModel().rows.length
-              )}{" "}
-              of {table.getFilteredRowModel().rows.length} result(s)
+              {t('paginationShowingResults')
+                .replace('{start}', String(table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1))
+                .replace('{end}', String(Math.min(
+                  (table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
+                  table.getFilteredRowModel().rows.length
+                )))
+                .replace('{total}', String(table.getFilteredRowModel().rows.length))}
             </div>
             
             <div className="flex items-center space-x-2">

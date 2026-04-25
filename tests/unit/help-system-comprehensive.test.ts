@@ -267,7 +267,7 @@ describe('Help System - Route Coverage', () => {
     '/residents/residence',
     '/residents/building',
     '/residents/demands',
-    '/settings/settings'
+    '/settings'
   ];
 
   describe('Core Route Coverage', () => {
