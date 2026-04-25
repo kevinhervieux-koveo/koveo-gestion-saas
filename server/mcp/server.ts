@@ -2215,7 +2215,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       role: roleParam,
       buildingId: z.string().describe("Building ID"),
       type: z.enum(["complaint", "information", "maintenance", "other"]).describe("Demand type"),
-      description: z.string().trim().min(1, 'Description is required').describe("Detailed description"),
+      description: z.string().trim().min(1, 'Description is required').max(2000, 'Description must not exceed 2000 characters').describe("Detailed description"),
       residenceId: z.string().optional().describe("Optional residence ID"),
       attachment: demandAttachmentParam,
     },
@@ -3565,8 +3565,8 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     {
       role: roleParam,
       organizationId: z.string().describe("Organization ID"),
-      title: z.string().trim().min(1, 'Title is required').describe("Communication title"),
-      content: z.string().trim().min(1, 'Content is required').describe("Communication content"),
+      title: z.string().trim().min(1, 'Title is required').max(200, 'Title must be 200 characters or fewer').describe("Communication title"),
+      content: z.string().trim().min(1, 'Content is required').max(5000, 'Content must be 5000 characters or fewer').describe("Communication content"),
       isUrgent: z.boolean().default(false).describe("Whether this is urgent"),
     },
     async ({ role, organizationId, title, content, isUrgent }) => {
@@ -3710,8 +3710,8 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     {
       role: roleParam,
       organizationId: z.string().describe("Organization ID"),
-      title: z.string().describe("Meeting title"),
-      description: z.string().optional().describe("Meeting description"),
+      title: z.string().trim().min(1, 'Title is required').max(200, 'Title must be 200 characters or fewer').describe("Meeting title"),
+      description: z.string().trim().min(1, 'Description must not be blank').max(5000, 'Description must be 5000 characters or fewer').optional().describe("Meeting description"),
       location: z.string().describe("Meeting location"),
       scheduledDate: z.string().describe("Scheduled date/time (ISO 8601)"),
       duration: z.number().int().min(1, "Duration must be at least 1 minute").describe("Duration in minutes"),

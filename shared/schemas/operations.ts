@@ -164,6 +164,8 @@ export const demands = pgTable('demands', {
   type: demandTypeEnum('type').notNull(),
   assignationResidenceId: varchar('assignation_residence_id').references(() => residences.id),
   assignationBuildingId: varchar('assignation_building_id').references(() => buildings.id),
+  // text column intentionally kept as TEXT (not varchar); the 2000-character
+  // limit is enforced at the API/Zod layer (insertDemandSchema) on purpose.
   description: text('description').notNull(),
   filePath: text('file_path'), // Path to uploaded file
   fileName: text('file_name'), // Original filename
@@ -299,6 +301,8 @@ export const meetings = pgTable('meetings', {
   createdBy: varchar('created_by')
     .notNull()
     .references(() => users.id),
+  // text columns intentionally kept as TEXT (not varchar); the 200/5000-character
+  // limits are enforced at the API/Zod layer (insertMeetingSchema) on purpose.
   title: text('title').notNull(),
   description: text('description'),
   location: text('location').notNull(),
@@ -538,8 +542,8 @@ export const MEETING_DESCRIPTION_MAX = 5000;
 export const insertMeetingSchema = z.object({
   organizationId: z.string().uuid(),
   createdBy: z.string().uuid(),
-  title: z.string().trim().min(1, 'Title is required'),
-  description: z.string().optional(),
+  title: z.string().trim().min(1, 'Title is required').max(200, 'Title must be 200 characters or fewer'),
+  description: z.string().trim().min(1, 'Description must not be blank').max(5000, 'Description must be 5000 characters or fewer').optional(),
   location: z.string().trim().min(1, 'Location is required'),
   scheduledDate: z.date(),
   duration: z.number().int().positive('Duration must be a positive number'),
