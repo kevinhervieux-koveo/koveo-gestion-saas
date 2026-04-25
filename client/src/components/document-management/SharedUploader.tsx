@@ -37,7 +37,7 @@ interface FilePreview {
   type: 'image' | 'document';
 }
 
-const DEFAULT_ALLOWED_TYPES = [
+export const DEFAULT_ALLOWED_TYPES = [
   'application/pdf',
   'application/msword',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -47,6 +47,46 @@ const DEFAULT_ALLOWED_TYPES = [
   'image/jpg',
   'image/png'
 ];
+
+const MIME_TYPE_LABELS: Record<string, string> = {
+  'application/pdf': 'PDF',
+  'application/msword': 'DOC',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'DOCX',
+  'application/vnd.ms-excel': 'XLS',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'XLSX',
+  'text/plain': 'TXT',
+  'text/csv': 'CSV',
+  'application/json': 'JSON',
+};
+
+/**
+ * Convert an array of accepted MIME types into a de-duplicated list of
+ * short, human-readable labels for display in the upload hint.
+ *
+ * Lookup precedence:
+ *   1. Image MIME types (concrete or wildcard) collapse to the single label "Images".
+ *   2. Exact MIME-string match in MIME_TYPE_LABELS.
+ *   3. Fallback: the part after the slash, uppercased (e.g. ".log" -> "LOG").
+ *
+ * Duplicates are removed so e.g. multiple image types only emit one "Images".
+ */
+export function formatAcceptedFileTypes(mimeTypes: string[]): string[] {
+  const labels: string[] = [];
+  for (const type of mimeTypes) {
+    if (!type) continue;
+    let label: string | undefined;
+    if (type === 'image/*' || type.startsWith('image/')) {
+      label = 'Images';
+    } else if (MIME_TYPE_LABELS[type]) {
+      label = MIME_TYPE_LABELS[type];
+    } else {
+      const tail = type.includes('/') ? type.split('/').pop() : type.replace(/^\./, '');
+      label = tail ? tail.toUpperCase() : undefined;
+    }
+    if (label) labels.push(label);
+  }
+  return [...new Set(labels)];
+}
 
 /**
  * SharedUploader - A reusable component for file uploads and text creation
@@ -543,13 +583,7 @@ export function SharedUploader({
                     💻 On desktop: Drag & drop, click to browse, or paste screenshots (Ctrl+V)
                   </p>
                   <p className="text-xs text-gray-400 dark:text-gray-500">
-                    Maximum {finalMaxFileSize}MB • {finalAllowedTypes.map(type => {
-                      if (type.includes('image')) return 'Images';
-                      if (type.includes('pdf')) return 'PDF';
-                      if (type.includes('word')) return 'DOCX';
-                      if (type.includes('excel') || type.includes('sheet')) return 'XLSX';
-                      return type.split('/').pop()?.toUpperCase();
-                    }).filter(Boolean).join(', ')}
+                    Maximum {finalMaxFileSize}MB • {formatAcceptedFileTypes(finalAllowedTypes).join(', ')}
                   </p>
                   {aiEnabled && (
                     <p className="text-xs text-purple-500 dark:text-purple-400 mt-1">

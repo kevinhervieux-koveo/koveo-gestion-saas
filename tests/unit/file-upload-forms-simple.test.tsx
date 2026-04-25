@@ -21,7 +21,11 @@ if (typeof URL.createObjectURL === 'undefined') {
 }
 
 // Import components for testing
-import { SharedUploader } from '../../client/src/components/document-management/SharedUploader';
+import {
+  SharedUploader,
+  formatAcceptedFileTypes,
+  DEFAULT_ALLOWED_TYPES,
+} from '../../client/src/components/document-management/SharedUploader';
 
 // Mock API request function
 const mockApiRequest = jest.fn() as jest.MockedFunction<any>;
@@ -133,6 +137,45 @@ const TestFileUploadForm = ({
     </div>
   );
 };
+
+describe('formatAcceptedFileTypes', () => {
+  it('returns the correct de-duplicated short labels for DEFAULT_ALLOWED_TYPES', () => {
+    expect(formatAcceptedFileTypes(DEFAULT_ALLOWED_TYPES)).toEqual([
+      'PDF',
+      'DOC',
+      'DOCX',
+      'XLS',
+      'XLSX',
+      'Images',
+    ]);
+  });
+
+  it('removes duplicates when the same category appears multiple times', () => {
+    expect(
+      formatAcceptedFileTypes([
+        'image/jpeg',
+        'image/jpg',
+        'image/png',
+        'image/*',
+      ]),
+    ).toEqual(['Images']);
+
+    expect(
+      formatAcceptedFileTypes([
+        'application/pdf',
+        'application/pdf',
+      ]),
+    ).toEqual(['PDF']);
+  });
+
+  it('maps text/plain to TXT instead of PLAIN', () => {
+    expect(formatAcceptedFileTypes(['text/plain'])).toEqual(['TXT']);
+  });
+
+  it('falls back to the upper-cased extension for unknown MIME types', () => {
+    expect(formatAcceptedFileTypes(['application/zip'])).toEqual(['ZIP']);
+  });
+});
 
 describe('Simplified File Upload Forms Test Suite', () => {
   beforeEach(() => {
