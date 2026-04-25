@@ -46,9 +46,16 @@ jest.mock('@/hooks/use-toast', () => ({
   useToast: () => ({ toast: mockToast }),
 }));
 
+// The active language is read from this mutable variable so individual
+// tests can switch between English and French without re-mocking the
+// module. Reset to 'en' in beforeEach so legacy tests stay deterministic.
+let currentLanguage: 'en' | 'fr' = 'en';
+
 jest.mock('@/hooks/use-language', () => ({
   useLanguage: () => ({
-    language: 'en',
+    get language() {
+      return currentLanguage;
+    },
     t: (key: string) => key,
     setLanguage: jest.fn(),
   }),
@@ -93,14 +100,27 @@ const ITEM_UNKNOWN_GUESSES_NAME = 'old-session-file.pdf';
 interface ItemFixture {
   id: string;
   originalName: string;
-  status: 'screened' | 'screening';
+  status: 'screened' | 'screening' | 'sorted' | 'branched';
   screeningTypeGuess: string | null;
   screeningBucketGuess: string | null;
   screeningConfidence: number | null;
   screeningQaReason: string | null;
+  /** Optional screening fallback reason — used by Task #853 tests. */
+  screeningFallback?: string | null;
+  /** Optional sorting fields — used by Task #853 tests. */
+  sortingConfidence?: number | null;
+  sortingFallback?: string | null;
+  sortingDecision?: 'keep' | 'merge' | 'split' | null;
+  sortingReason?: string | null;
+  sortingDecisionState?: 'pending' | 'accepted' | 'rejected' | null;
 }
 
 let items: ItemFixture[] = [];
+// The current wizard step the mock session is sitting on. Defaults to
+// `screening` so the original Task #783 suite still exercises the
+// screening-row detail panel; Task #853 tests override this to
+// `sorting` to exercise the sorting/branching detail panel.
+let currentStep: 'screening' | 'sorting' = 'screening';
 
 function buildSessionPayload() {
   return {
@@ -109,16 +129,14 @@ function buildSessionPayload() {
       buildingId: 'building-1',
       organizationId: 'org-1',
       adminUserId: 'admin-1',
-      // Stay on the screening step so the rows render in the section
-      // that exercises the detail-panel gate.
-      currentStep: 'screening' as const,
+      currentStep,
       status: 'active' as const,
-      // Mark the screening auto-run as finished so the page does not
+      // Mark the relevant auto-run as finished so the page does not
       // attempt to launch additional run-step mutations during the
       // test and the rows render in their stable, post-AI shape.
       progress: {
         runAll: {
-          screening: {
+          [currentStep]: {
             total: items.length,
             processed: items.length,
             failed: 0,
@@ -137,15 +155,18 @@ function buildSessionPayload() {
       status: it.status,
       preExcludeStatus: null,
       screeningConfidence: it.screeningConfidence,
-      screeningFallback: null,
+      screeningFallback: it.screeningFallback ?? null,
       screeningTypeGuess: it.screeningTypeGuess,
       screeningBucketGuess: it.screeningBucketGuess,
       screeningQaReason: it.screeningQaReason,
-      sortingConfidence: null,
-      sortingFallback: null,
-      sortingDecision: null,
-      sortingReason: null,
+      sortingConfidence: it.sortingConfidence ?? null,
+      sortingFallback: it.sortingFallback ?? null,
+      sortingDecision: it.sortingDecision ?? null,
+      sortingReason: it.sortingReason ?? null,
       sortingMergeWithItemId: null,
+      sortingSplitAtPage: null,
+      sortingDecisionState: it.sortingDecisionState ?? null,
+      sortingManualOverride: false,
       branchingConfidence: null,
       branchingFallback: null,
       identificationConfidence: null,
@@ -206,6 +227,8 @@ const fetchMock = jest.fn(async (input: RequestInfo | URL, init?: RequestInit): 
 let originalFetch: typeof fetch | undefined;
 
 beforeEach(() => {
+  currentLanguage = 'en';
+  currentStep = 'screening';
   items = [
     {
       id: ITEM_WITH_TYPE_ID,
@@ -374,5 +397,197 @@ describe('BulkDocumentImportPage — detail panel visibility (Task #783)', () =>
       screen.queryByTestId(`item-detail-panel-${ITEM_WITH_TYPE_ID}`),
     ).not.toBeInTheDocument();
     expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  });
+});
+
+// -----------------------------------------------------------------------------
+// Task #853 — Friendly fallback explanation block in the detail panel.
+//
+// Task #852 introduced a per-step amber explanation block inside the
+// expanded detail panel that translates the raw fallbackReason enum
+// (e.g. `api_error`, `oversize`) into a friendly short label plus a
+// one-sentence explanation. The block lives at:
+//
+//   - lines ~3372–3394 of bulk-document-import.tsx (sorting/branching
+//     decision detail panel — gated by `currentStep === 'sorting'`)
+//   - lines ~3442–3464 (screening / other-step detail panel — the
+//     `else` branch of the same conditional)
+//
+// Without coverage, an innocent edit could silently regress the block
+// back to the raw enum (or drop the explanation paragraph entirely).
+// The cases below mount the real page on a session whose item carries
+// a known fallback reason, expand the row's detail panel, and assert
+// that:
+//
+//   1. The raw enum string (e.g. `api_error`) is NOT in the DOM.
+//   2. The friendly short label IS rendered inside the
+//      `detail-fallback-explanation-{id}` container.
+//   3. The one-sentence explanation IS rendered inside the same
+//      container.
+//
+// Both English and French label/explanation tables are covered for
+// each step.
+// -----------------------------------------------------------------------------
+
+const SORTING_ITEM_ID = 'item-sorting-api-error';
+const SORTING_ITEM_NAME = 'sorting-api-error.pdf';
+const SCREENING_FALLBACK_ITEM_ID = 'item-screening-oversize';
+const SCREENING_FALLBACK_ITEM_NAME = 'screening-oversize.pdf';
+
+function setupSortingApiErrorItem() {
+  currentStep = 'sorting';
+  items = [
+    {
+      id: SORTING_ITEM_ID,
+      originalName: SORTING_ITEM_NAME,
+      // Status must not be 'rejected' — non-screening steps filter
+      // those out. 'sorted' keeps the row visible and stable.
+      status: 'sorted',
+      // Screening guesses unused on the sorting detail panel but
+      // populated so the row can't accidentally match the
+      // hasQuickAnalysisSignal-only path.
+      screeningTypeGuess: 'invoice',
+      screeningBucketGuess: null,
+      screeningConfidence: 0.7,
+      screeningQaReason: null,
+      // hasAnalysis on the sorting step requires sortingDecision != null.
+      sortingDecision: 'keep',
+      sortingDecisionState: 'accepted',
+      sortingConfidence: 0.6,
+      sortingFallback: 'api_error',
+      sortingReason: 'AI returned an error mid-batch.',
+    },
+  ];
+}
+
+function setupScreeningOversizeItem() {
+  currentStep = 'screening';
+  items = [
+    {
+      id: SCREENING_FALLBACK_ITEM_ID,
+      originalName: SCREENING_FALLBACK_ITEM_NAME,
+      status: 'screened',
+      // hasQuickAnalysisSignal needs at least one real guess so the
+      // detail panel and chevron toggle are rendered for the row.
+      screeningTypeGuess: 'invoice',
+      screeningBucketGuess: null,
+      screeningConfidence: 0.4,
+      screeningQaReason: 'File too large for AI to analyze.',
+      screeningFallback: 'oversize',
+    },
+  ];
+}
+
+async function expandPanel(itemId: string): Promise<HTMLElement> {
+  const toggle = await screen.findByTestId(`button-toggle-detail-${itemId}`);
+  await act(async () => {
+    fireEvent.click(toggle);
+  });
+  return screen.getByTestId(`item-detail-panel-${itemId}`);
+}
+
+describe('BulkDocumentImportPage — fallback explanation in detail panel (Task #853)', () => {
+  describe('sorting/branching step (api_error)', () => {
+    it('shows the friendly English label and explanation, not the raw enum', async () => {
+      setupSortingApiErrorItem();
+      currentLanguage = 'en';
+
+      renderPage();
+      await screen.findByTestId(`item-preview-trigger-${SORTING_ITEM_ID}`, undefined, {
+        timeout: 4000,
+      });
+
+      const panel = await expandPanel(SORTING_ITEM_ID);
+      const explanation = screen.getByTestId(
+        `detail-fallback-explanation-${SORTING_ITEM_ID}`,
+      );
+      expect(panel).toContainElement(explanation);
+
+      // The raw enum must never bleed through into the UI.
+      expect(explanation).not.toHaveTextContent('api_error');
+
+      // Friendly short label.
+      expect(explanation).toHaveTextContent('AI service error');
+
+      // One-sentence explanation (stable substring chosen so a small
+      // copy tweak doesn't break the assertion).
+      expect(explanation).toHaveTextContent(
+        /AI service returned an error/i,
+      );
+    });
+
+    it('shows the friendly French label and explanation, not the raw enum', async () => {
+      setupSortingApiErrorItem();
+      currentLanguage = 'fr';
+
+      renderPage();
+      await screen.findByTestId(`item-preview-trigger-${SORTING_ITEM_ID}`, undefined, {
+        timeout: 4000,
+      });
+
+      const panel = await expandPanel(SORTING_ITEM_ID);
+      const explanation = screen.getByTestId(
+        `detail-fallback-explanation-${SORTING_ITEM_ID}`,
+      );
+      expect(panel).toContainElement(explanation);
+
+      expect(explanation).not.toHaveTextContent('api_error');
+      expect(explanation).toHaveTextContent('Erreur du service IA');
+      expect(explanation).toHaveTextContent(
+        /le service IA a retourn\u00e9 une erreur/i,
+      );
+    });
+  });
+
+  describe('screening step (oversize)', () => {
+    it('shows the friendly English label and explanation, not the raw enum', async () => {
+      setupScreeningOversizeItem();
+      currentLanguage = 'en';
+
+      renderPage();
+      await screen.findByTestId(
+        `item-preview-trigger-${SCREENING_FALLBACK_ITEM_ID}`,
+        undefined,
+        { timeout: 4000 },
+      );
+
+      const panel = await expandPanel(SCREENING_FALLBACK_ITEM_ID);
+      const explanation = screen.getByTestId(
+        `detail-fallback-explanation-${SCREENING_FALLBACK_ITEM_ID}`,
+      );
+      expect(panel).toContainElement(explanation);
+
+      expect(explanation).not.toHaveTextContent('oversize');
+      expect(explanation).toHaveTextContent('File too large to analyze');
+      expect(explanation).toHaveTextContent(
+        /because it is too large/i,
+      );
+    });
+
+    it('shows the friendly French label and explanation, not the raw enum', async () => {
+      setupScreeningOversizeItem();
+      currentLanguage = 'fr';
+
+      renderPage();
+      await screen.findByTestId(
+        `item-preview-trigger-${SCREENING_FALLBACK_ITEM_ID}`,
+        undefined,
+        { timeout: 4000 },
+      );
+
+      const panel = await expandPanel(SCREENING_FALLBACK_ITEM_ID);
+      const explanation = screen.getByTestId(
+        `detail-fallback-explanation-${SCREENING_FALLBACK_ITEM_ID}`,
+      );
+      expect(panel).toContainElement(explanation);
+
+      expect(explanation).not.toHaveTextContent('oversize');
+      expect(explanation).toHaveTextContent(
+        /Fichier trop volumineux pour l\u2019analyse/,
+      );
+      expect(explanation).toHaveTextContent(
+        /car il est trop volumineux/i,
+      );
+    });
   });
 });
