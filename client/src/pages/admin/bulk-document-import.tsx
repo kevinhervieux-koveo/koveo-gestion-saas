@@ -608,6 +608,41 @@ interface HistoryRowBuilding {
 }
 
 /**
+ * Map a backend sorting-decision error code to a user-facing,
+ * actionable message in French/English (Task #1036). Returns null
+ * when the code is not a known PDF/merge corruption error so the
+ * caller can fall back to the generic server message.
+ *
+ * Covers the corruption-class codes emitted by `server/api/bulk-import.ts`
+ * during a merge:
+ *   - MERGE_LEAD_PDF_CORRUPT          (lead PDF failed to load even after re-encode)
+ *   - PDF_PAGE_TREE_UNRECOVERABLE     (page-tree walk failed twice)
+ *   - MERGE_PDF_COPY_FAILED           (copyPages threw, even after sibling re-encode)
+ *   - MERGE_PDF_SAVE_FAILED           (serialising the merged PDF threw)
+ */
+function getSortingDecisionFriendlyMessage(
+  code: string,
+  isFr: boolean,
+): { title: string; description: string } | null {
+  switch (code) {
+    case 'MERGE_LEAD_PDF_CORRUPT':
+    case 'PDF_PAGE_TREE_UNRECOVERABLE':
+    case 'MERGE_PDF_COPY_FAILED':
+    case 'MERGE_PDF_SAVE_FAILED':
+      return {
+        title: isFr
+          ? 'Fusion impossible : ce PDF semble corrompu'
+          : "Merge failed: this PDF appears to be corrupted",
+        description: isFr
+          ? "Le fichier est endommagé ou utilise un encodage non pris en charge (souvent vu sur les PDF exportés par NoCentris). Essayez de l'ouvrir et de le ré-enregistrer (Aperçu, Adobe Acrobat) puis remplacez-le, ou scindez-le manuellement avant de relancer la fusion."
+          : "The file is damaged or uses an unsupported encoding (commonly seen on PDFs exported by NoCentris). Try opening it and re-saving it (Preview, Adobe Acrobat) then replace it, or split it manually before retrying the merge.",
+      };
+    default:
+      return null;
+  }
+}
+
+/**
  * Live page-count badge rendered next to the manual sorting picker's
  * split-page input (Task #824). Fetches the staged PDF's page count
  * once when mounted (the picker opens) and re-renders client-side as
@@ -1396,6 +1431,14 @@ export default function BulkDocumentImportPage() {
   // pending edit isn't lost when the lite payload re-fetches.
   const [editingEffectiveDate, setEditingEffectiveDate] = useState<Map<string, string>>(new Map());
   const [autoSaveStatus, setAutoSaveStatus] = useState<Map<string, 'idle' | 'saving' | 'saved' | 'error'>>(new Map());
+  // Per-item sorting-decision error map (Task #1036). Keyed by item id.
+  // Populated when set-sorting-decision returns a 400 with a recognised
+  // PDF-corruption code so the affected card can show an inline alert
+  // explaining which file is problematic and how to fix it. Cleared on
+  // success / retry so the alert disappears once the admin recovers.
+  const [sortingDecisionErrors, setSortingDecisionErrors] = useState<
+    Map<string, { code: string; title: string; description: string }>
+  >(new Map());
   // Group-level reassign picker (Task #776). At most one section's
   // picker is open at a time; opening a per-file picker closes it and
   // vice-versa so the wizard never shows two competing pickers.
@@ -1991,6 +2034,14 @@ export default function BulkDocumentImportPage() {
       mergeWithItemIds?: string[];
       splitAtPage?: number;
     }) => {
+      // Optimistically clear any previous inline error for this row so
+      // the alert disappears as soon as the admin retries (Task #1036).
+      setSortingDecisionErrors((prev) => {
+        if (!prev.has(itemId)) return prev;
+        const next = new Map(prev);
+        next.delete(itemId);
+        return next;
+      });
       const res = await apiRequest(
         'POST',
         `/api/admin/bulk-import/items/${itemId}/set-sorting-decision`,
@@ -2014,17 +2065,49 @@ export default function BulkDocumentImportPage() {
         next.delete(variables.itemId);
         return next;
       });
+      setSortingDecisionErrors((prev) => {
+        if (!prev.has(variables.itemId)) return prev;
+        const next = new Map(prev);
+        next.delete(variables.itemId);
+        return next;
+      });
       queryClient.invalidateQueries({
         queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
       });
     },
-    onError: (error) => {
+    onError: (error, variables) => {
       let serverMessage: string | undefined;
+      let serverCode: string | undefined;
       if (error instanceof ApiError && error.body && typeof error.body === 'object') {
         const body = error.body as Record<string, unknown>;
         serverMessage = typeof body.error === 'string' ? body.error
           : typeof body.message === 'string' ? body.message
           : undefined;
+        serverCode = typeof body.code === 'string' ? body.code : undefined;
+      }
+      // For known PDF-corruption codes, swap the raw server message for an
+      // actionable FR/EN explanation and surface the same message inline on
+      // the affected card so the admin can see which file is problematic
+      // (Task #1036).
+      const friendly = serverCode
+        ? getSortingDecisionFriendlyMessage(serverCode, isFr)
+        : null;
+      if (friendly && serverCode) {
+        setSortingDecisionErrors((prev) => {
+          const next = new Map(prev);
+          next.set(variables.itemId, {
+            code: serverCode,
+            title: friendly.title,
+            description: friendly.description,
+          });
+          return next;
+        });
+        toast({
+          variant: 'destructive',
+          title: friendly.title,
+          description: friendly.description,
+        });
+        return;
       }
       toast({
         variant: 'destructive',
@@ -5040,6 +5123,51 @@ export default function BulkDocumentImportPage() {
                               )}
                             </div>
                             </div>
+                            {/* Inline PDF-corruption error banner (Task #1036).
+                                Surfaces classified set-sorting-decision 400s
+                                (MERGE_PDF_COPY_FAILED, MERGE_LEAD_PDF_CORRUPT,
+                                PDF_PAGE_TREE_UNRECOVERABLE, MERGE_PDF_SAVE_FAILED)
+                                next to the offending file so the admin knows
+                                which one to replace or split manually. */}
+                            {(() => {
+                              const itemError = sortingDecisionErrors.get(item.id);
+                              if (!itemError) return null;
+                              return (
+                                <div
+                                  className="mx-3 mb-3 flex items-start gap-2 rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-800 dark:border-red-700 dark:bg-red-950 dark:text-red-200"
+                                  role="alert"
+                                  data-testid={`sorting-decision-error-${item.id}`}
+                                  data-error-code={itemError.code}
+                                >
+                                  <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+                                  <div className="min-w-0 flex-1">
+                                    <p className="font-medium leading-tight">
+                                      {itemError.title}
+                                    </p>
+                                    <p className="mt-1 leading-snug">
+                                      {itemError.description}
+                                    </p>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setSortingDecisionErrors((prev) => {
+                                        if (!prev.has(item.id)) return prev;
+                                        const next = new Map(prev);
+                                        next.delete(item.id);
+                                        return next;
+                                      })
+                                    }
+                                    className="shrink-0 rounded p-0.5 text-red-700 hover:bg-red-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:text-red-200 dark:hover:bg-red-900"
+                                    aria-label={isFr ? 'Fermer' : 'Dismiss'}
+                                    title={isFr ? 'Fermer' : 'Dismiss'}
+                                    data-testid={`sorting-decision-error-dismiss-${item.id}`}
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </button>
+                                </div>
+                              );
+                            })()}
                             {/* Manual picker – always visible when the row
                                 is in the 'rejected' state so the admin can
                                 immediately switch to Keep / Merge / Slice

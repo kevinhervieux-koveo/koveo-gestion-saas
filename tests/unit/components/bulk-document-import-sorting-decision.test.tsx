@@ -1113,6 +1113,159 @@ describe('BulkDocumentImportPage — sorting decision UI (Task #817 / #825)', ()
   });
 
   // ---------------------------------------------------------------------------
+  // Task #1036 — Map PDF-corruption error codes to actionable FR/EN messages
+  // and surface them inline on the affected card.
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Helper for the Task #1036 tests below: install a fetch override that
+   * returns a 400 with the given error code on any POST to
+   * `/set-sorting-decision`, while letting every other request fall back
+   * to the shared fetchMock. Returns a restore function so individual
+   * tests can clean up after themselves.
+   */
+  function installSortingDecision400(code: string, error = 'PDF merge failed'): () => void {
+    const savedFetch = global.fetch;
+    global.fetch = jest.fn(async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+      const url =
+        typeof input === 'string'
+          ? input
+          : input instanceof URL
+            ? input.toString()
+            : (input as Request).url;
+      const method = (init?.method || 'GET').toUpperCase();
+      const [pathname] = url.split('?');
+      if (
+        method === 'POST' &&
+        pathname.startsWith('/api/admin/bulk-import/items/') &&
+        pathname.endsWith('/set-sorting-decision')
+      ) {
+        return jsonResponse({ error, code }, 400);
+      }
+      return (fetchMock as unknown as (i: RequestInfo | URL, init?: RequestInit) => Promise<Response>)(input, init);
+    }) as unknown as typeof fetch;
+    return () => { global.fetch = savedFetch; };
+  }
+
+  it('replaces the raw server error with an actionable English message on MERGE_PDF_COPY_FAILED (Task #1036)', async () => {
+    const restore = installSortingDecision400('MERGE_PDF_COPY_FAILED', 'Failed to copy pages from merge target: foo.pdf');
+
+    renderPage();
+    await waitForRows();
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId(`button-sorting-accept-${ITEM_PENDING}`));
+    });
+
+    await waitFor(
+      () => {
+        expect(mockToast).toHaveBeenCalledWith(
+          expect.objectContaining({
+            variant: 'destructive',
+            title: expect.stringContaining('PDF appears to be corrupted'),
+            description: expect.stringContaining('damaged or uses an unsupported encoding'),
+          }),
+        );
+      },
+      { timeout: 4000 },
+    );
+
+    // The toast description must NOT leak the raw server error string.
+    const calls = mockToast.mock.calls.map((c) => c[0] as { description?: string });
+    expect(calls.some((c) => (c.description ?? '').includes('Failed to copy pages from merge target'))).toBe(false);
+
+    restore();
+  });
+
+  it('shows the actionable French message when the language is fr (Task #1036)', async () => {
+    languageRef.current = 'fr';
+    const restore = installSortingDecision400('MERGE_LEAD_PDF_CORRUPT', 'Failed to load lead PDF');
+
+    renderPage();
+    await waitForRows();
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId(`button-sorting-accept-${ITEM_PENDING}`));
+    });
+
+    await waitFor(
+      () => {
+        expect(mockToast).toHaveBeenCalledWith(
+          expect.objectContaining({
+            variant: 'destructive',
+            title: expect.stringContaining('Fusion impossible'),
+            description: expect.stringContaining('endommagé'),
+          }),
+        );
+      },
+      { timeout: 4000 },
+    );
+
+    restore();
+  });
+
+  it('renders the inline error banner on the affected card and dismisses on click (Task #1036)', async () => {
+    const restore = installSortingDecision400('PDF_PAGE_TREE_UNRECOVERABLE', 'PDF page tree unrecoverable: invalid xref');
+
+    renderPage();
+    await waitForRows();
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId(`button-sorting-accept-${ITEM_PENDING}`));
+    });
+
+    const banner = await screen.findByTestId(
+      `sorting-decision-error-${ITEM_PENDING}`,
+      undefined,
+      { timeout: 4000 },
+    );
+    expect(banner).toBeInTheDocument();
+    expect(banner.getAttribute('data-error-code')).toBe('PDF_PAGE_TREE_UNRECOVERABLE');
+    expect(banner.textContent ?? '').toContain('damaged or uses an unsupported encoding');
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId(`sorting-decision-error-dismiss-${ITEM_PENDING}`));
+    });
+
+    await waitFor(() => {
+      expect(screen.queryByTestId(`sorting-decision-error-${ITEM_PENDING}`)).not.toBeInTheDocument();
+    });
+
+    restore();
+  });
+
+  it('does NOT render the inline corruption banner for non-corruption error codes (Task #1036)', async () => {
+    const restore = installSortingDecision400('MERGE_LEAD_FILE_MISSING', 'Staged file missing for this item');
+
+    renderPage();
+    // This test runs near the end of the suite, where prior renders accumulate
+    // event-loop pressure and the default 4s row-wait can be too tight on
+    // loaded CI runners. Use a generous wait for the row trigger before
+    // exercising the negative assertion.
+    await screen.findByTestId(`item-preview-trigger-${ITEM_PENDING}`, undefined, { timeout: 10000 });
+    await screen.findByTestId(`item-preview-trigger-${ITEM_REJECTED}`, undefined, { timeout: 10000 });
+    await screen.findByTestId(`item-preview-trigger-${ITEM_ACCEPTED}`, undefined, { timeout: 10000 });
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId(`button-sorting-accept-${ITEM_PENDING}`));
+    });
+
+    // Wait for the toast to fire so we know the mutation has settled.
+    await waitFor(
+      () => {
+        expect(mockToast).toHaveBeenCalledWith(
+          expect.objectContaining({ variant: 'destructive' }),
+        );
+      },
+      { timeout: 4000 },
+    );
+
+    expect(screen.queryByTestId(`sorting-decision-error-${ITEM_PENDING}`)).not.toBeInTheDocument();
+
+    restore();
+  });
+
+  // ---------------------------------------------------------------------------
   // Task #956 — "In this merge" hidden when picker decision is Keep or Split
   // ---------------------------------------------------------------------------
 
