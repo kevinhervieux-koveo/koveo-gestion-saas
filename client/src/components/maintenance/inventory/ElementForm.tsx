@@ -17,7 +17,9 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ConditionBadge } from '@/components/maintenance/StatusBadges';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DocumentAttachmentManager } from '@/components/maintenance/inventory/DocumentAttachmentManager';
+import { HistoryTable } from '@/components/maintenance/inventory/HistoryTable';
 import { DollarSign } from 'lucide-react';
 // import { useBuildingContext } from '@/hooks/use-building-context';
 import { useToast } from '@/hooks/use-toast';
@@ -438,6 +440,9 @@ export function ElementForm({
   // Local state to track current mode (allows switching from view to edit)
   const [currentMode, setCurrentMode] = useState<'create' | 'edit' | 'view'>(mode);
 
+  // Active tab inside the element form (Details vs History)
+  const [activeTab, setActiveTab] = useState<'details' | 'history'>('details');
+
   // Fetch building data to get yearBuilt for default construction date
   const { data: building } = useQuery({
     queryKey: ['building', buildingId],
@@ -493,6 +498,11 @@ export function ElementForm({
   useEffect(() => {
     setCurrentMode(mode);
   }, [mode, isOpen, element?.id]);
+
+  // Always start on the Details tab when the modal opens or the element changes
+  useEffect(() => {
+    setActiveTab('details');
+  }, [isOpen, element?.id]);
 
   // Update form when element changes
   useEffect(() => {
@@ -773,7 +783,48 @@ export function ElementForm({
         ) : undefined
       }
     >
-      <div className="space-y-6">
+      {currentMode !== 'create' && element && (
+        <Tabs
+          value={activeTab}
+          onValueChange={(value) => setActiveTab(value as 'details' | 'history')}
+          className="w-full"
+          data-testid="element-form-tabs"
+        >
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="details" data-testid="element-details-tab">
+              {t('efDetailsTabLabel')}
+            </TabsTrigger>
+            <TabsTrigger value="history" data-testid="element-history-tab">
+              {t('efHistoryTabLabel')}
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent
+            value="history"
+            className="mt-4"
+            onKeyDown={(e) => {
+              // Prevent the surrounding form from submitting when the user
+              // presses Enter inside the history tab's search input
+              if (e.key === 'Enter') {
+                e.preventDefault();
+              }
+            }}
+            data-testid="element-history-tab-content"
+          >
+            <HistoryTable
+              element={element}
+              buildingId={buildingId}
+              organizationId={organizationId}
+            />
+          </TabsContent>
+        </Tabs>
+      )}
+      <div
+        className={cn(
+          'space-y-6',
+          currentMode !== 'create' && element && activeTab !== 'details' && 'hidden'
+        )}
+        data-testid="element-details-tab-content"
+      >
         {/* UNIFORMAT Code Selection */}
         <FormFieldWrapper
           form={form as any}

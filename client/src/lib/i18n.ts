@@ -3087,6 +3087,8 @@ export interface Translations {
   efDeleteButton: string;
   efDeletingProgress: string;
   efDeleteConfirm: string;
+  efDetailsTabLabel: string;
+  efHistoryTabLabel: string;
   efUniformatCodeLabel: string;
   efBrowseButton: string;
   efSearchPlaceholder: string;
@@ -7244,6 +7246,8 @@ export const translations: Record<Language, Translations> = {
     efDeleteButton: 'Delete',
     efDeletingProgress: 'Deleting...',
     efDeleteConfirm: 'Are you sure you want to delete this element? This action cannot be undone.',
+    efDetailsTabLabel: 'Details',
+    efHistoryTabLabel: 'History',
     efUniformatCodeLabel: 'UNIFORMAT Code',
     efBrowseButton: 'Browse',
     efSearchPlaceholder: 'Search UNIFORMAT codes...',
@@ -11404,6 +11408,8 @@ export const translations: Record<Language, Translations> = {
     efDeleteButton: 'Supprimer',
     efDeletingProgress: 'Suppression…',
     efDeleteConfirm: 'Êtes-vous sûr de vouloir supprimer cet élément ? Cette action est irréversible.',
+    efDetailsTabLabel: 'Détails',
+    efHistoryTabLabel: 'Historique',
     efUniformatCodeLabel: 'Code UNIFORMAT',
     efBrowseButton: 'Parcourir',
     efSearchPlaceholder: 'Rechercher des codes UNIFORMAT…',
