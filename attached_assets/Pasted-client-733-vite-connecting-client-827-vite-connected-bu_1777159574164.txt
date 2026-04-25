@@ -1,0 +1,159 @@
+client:733 [vite] connecting...
+client:827 [vite] connected.
+bulk-document-import:1 Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner.
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+queryClient.ts:140  GET https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/admin/bulk-import/sessions/05526003-b633-4e33-b492-e430c4d10417/lite 502 (Bad Gateway)
+(anonymous) @ queryClient.ts:140
+fetchFn @ @tanstack_react-query.js?v=1625281e:852
+run @ @tanstack_react-query.js?v=1625281e:491
+start @ @tanstack_react-query.js?v=1625281e:533
+fetch @ @tanstack_react-query.js?v=1625281e:891
+#executeFetch @ @tanstack_react-query.js?v=1625281e:2047
+(anonymous) @ @tanstack_react-query.js?v=1625281e:2084
+setInterval
+#updateRefetchInterval @ @tanstack_react-query.js?v=1625281e:2082
+#updateTimers @ @tanstack_react-query.js?v=1625281e:2090
+onQueryUpdate @ @tanstack_react-query.js?v=1625281e:2293
+(anonymous) @ @tanstack_react-query.js?v=1625281e:1010
+(anonymous) @ @tanstack_react-query.js?v=1625281e:1009
+batch @ @tanstack_react-query.js?v=1625281e:581
+#dispatch @ @tanstack_react-query.js?v=1625281e:1008
+setData @ @tanstack_react-query.js?v=1625281e:690
+fetch @ @tanstack_react-query.js?v=1625281e:900
+await in fetch
+#executeFetch @ @tanstack_react-query.js?v=1625281e:2047
+(anonymous) @ @tanstack_react-query.js?v=1625281e:2084
+setInterval
+#updateRefetchInterval @ @tanstack_react-query.js?v=1625281e:2082
+#updateTimers @ @tanstack_react-query.js?v=1625281e:2090
+onQueryUpdate @ @tanstack_react-query.js?v=1625281e:2293
+(anonymous) @ @tanstack_react-query.js?v=1625281e:1010
+(anonymous) @ @tanstack_react-query.js?v=1625281e:1009
+batch @ @tanstack_react-query.js?v=1625281e:581
+#dispatch @ @tanstack_react-query.js?v=1625281e:1008
+setData @ @tanstack_react-query.js?v=1625281e:690
+fetch @ @tanstack_react-query.js?v=1625281e:900
+await in fetch
+(anonymous) @ @tanstack_react-query.js?v=1625281e:1758
+(anonymous) @ @tanstack_react-query.js?v=1625281e:1757
+batch @ @tanstack_react-query.js?v=1625281e:581
+refetchQueries @ @tanstack_react-query.js?v=1625281e:1756
+(anonymous) @ @tanstack_react-query.js?v=1625281e:1742
+batch @ @tanstack_react-query.js?v=1625281e:581
+invalidateQueries @ @tanstack_react-query.js?v=1625281e:1735
+(anonymous) @ bulk-document-import.tsx:1632
+execute @ @tanstack_react-query.js?v=1625281e:1242
+await in execute
+mutate @ @tanstack_react-query.js?v=1625281e:2642
+(anonymous) @ @tanstack_react-query.js?v=1625281e:3356
+(anonymous) @ bulk-document-import.tsx:2744
+executeDispatch @ react-dom_client.js?v=1625281e:11736
+runWithFiberInDEV @ react-dom_client.js?v=1625281e:1485
+processDispatchQueue @ react-dom_client.js?v=1625281e:11772
+(anonymous) @ react-dom_client.js?v=1625281e:12182
+batchedUpdates$1 @ react-dom_client.js?v=1625281e:2628
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1625281e:11877
+dispatchEvent @ react-dom_client.js?v=1625281e:14792
+dispatchDiscreteEvent @ react-dom_client.js?v=1625281e:14773
+<input>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1625281e:250
+(anonymous) @ bulk-document-import.tsx:2735
+react_stack_bottom_frame @ react-dom_client.js?v=1625281e:17424
+renderWithHooks @ react-dom_client.js?v=1625281e:4206
+updateFunctionComponent @ react-dom_client.js?v=1625281e:6619
+beginWork @ react-dom_client.js?v=1625281e:7654
+runWithFiberInDEV @ react-dom_client.js?v=1625281e:1485
+performUnitOfWork @ react-dom_client.js?v=1625281e:10868
+workLoopSync @ react-dom_client.js?v=1625281e:10728
+renderRootSync @ react-dom_client.js?v=1625281e:10711
+performWorkOnRoot @ react-dom_client.js?v=1625281e:10330
+performSyncWorkOnRoot @ react-dom_client.js?v=1625281e:11635
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=1625281e:11536
+processRootScheduleInMicrotask @ react-dom_client.js?v=1625281e:11558
+(anonymous) @ react-dom_client.js?v=1625281e:11649
+file:1  GET https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/admin/bulk-import/items/6c4bc79a-8758-46b4-8585-c465b8a5eb93/file 502 (Bad Gateway)
+queryClient.ts:140  GET https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/admin/bulk-import/sessions/05526003-b633-4e33-b492-e430c4d10417/lite 502 (Bad Gateway)
+(anonymous) @ queryClient.ts:140
+fetchFn @ @tanstack_react-query.js?v=1625281e:852
+run @ @tanstack_react-query.js?v=1625281e:491
+(anonymous) @ @tanstack_react-query.js?v=1625281e:515
+Promise.then
+(anonymous) @ @tanstack_react-query.js?v=1625281e:511
+Promise.catch
+run @ @tanstack_react-query.js?v=1625281e:495
+start @ @tanstack_react-query.js?v=1625281e:533
+fetch @ @tanstack_react-query.js?v=1625281e:891
+#executeFetch @ @tanstack_react-query.js?v=1625281e:2047
+(anonymous) @ @tanstack_react-query.js?v=1625281e:2084
+setInterval
+#updateRefetchInterval @ @tanstack_react-query.js?v=1625281e:2082
+#updateTimers @ @tanstack_react-query.js?v=1625281e:2090
+onQueryUpdate @ @tanstack_react-query.js?v=1625281e:2293
+(anonymous) @ @tanstack_react-query.js?v=1625281e:1010
+(anonymous) @ @tanstack_react-query.js?v=1625281e:1009
+batch @ @tanstack_react-query.js?v=1625281e:581
+#dispatch @ @tanstack_react-query.js?v=1625281e:1008
+setData @ @tanstack_react-query.js?v=1625281e:690
+fetch @ @tanstack_react-query.js?v=1625281e:900
+await in fetch
+#executeFetch @ @tanstack_react-query.js?v=1625281e:2047
+(anonymous) @ @tanstack_react-query.js?v=1625281e:2084
+setInterval
+#updateRefetchInterval @ @tanstack_react-query.js?v=1625281e:2082
+#updateTimers @ @tanstack_react-query.js?v=1625281e:2090
+onQueryUpdate @ @tanstack_react-query.js?v=1625281e:2293
+(anonymous) @ @tanstack_react-query.js?v=1625281e:1010
+(anonymous) @ @tanstack_react-query.js?v=1625281e:1009
+batch @ @tanstack_react-query.js?v=1625281e:581
+#dispatch @ @tanstack_react-query.js?v=1625281e:1008
+setData @ @tanstack_react-query.js?v=1625281e:690
+fetch @ @tanstack_react-query.js?v=1625281e:900
+await in fetch
+(anonymous) @ @tanstack_react-query.js?v=1625281e:1758
+(anonymous) @ @tanstack_react-query.js?v=1625281e:1757
+batch @ @tanstack_react-query.js?v=1625281e:581
+refetchQueries @ @tanstack_react-query.js?v=1625281e:1756
+(anonymous) @ @tanstack_react-query.js?v=1625281e:1742
+batch @ @tanstack_react-query.js?v=1625281e:581
+invalidateQueries @ @tanstack_react-query.js?v=1625281e:1735
+(anonymous) @ bulk-document-import.tsx:1632
+execute @ @tanstack_react-query.js?v=1625281e:1242
+await in execute
+mutate @ @tanstack_react-query.js?v=1625281e:2642
+(anonymous) @ @tanstack_react-query.js?v=1625281e:3356
+(anonymous) @ bulk-document-import.tsx:2744
+executeDispatch @ react-dom_client.js?v=1625281e:11736
+runWithFiberInDEV @ react-dom_client.js?v=1625281e:1485
+processDispatchQueue @ react-dom_client.js?v=1625281e:11772
+(anonymous) @ react-dom_client.js?v=1625281e:12182
+batchedUpdates$1 @ react-dom_client.js?v=1625281e:2628
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1625281e:11877
+dispatchEvent @ react-dom_client.js?v=1625281e:14792
+dispatchDiscreteEvent @ react-dom_client.js?v=1625281e:14773
+<input>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1625281e:250
+(anonymous) @ bulk-document-import.tsx:2735
+react_stack_bottom_frame @ react-dom_client.js?v=1625281e:17424
+renderWithHooks @ react-dom_client.js?v=1625281e:4206
+updateFunctionComponent @ react-dom_client.js?v=1625281e:6619
+beginWork @ react-dom_client.js?v=1625281e:7654
+runWithFiberInDEV @ react-dom_client.js?v=1625281e:1485
+performUnitOfWork @ react-dom_client.js?v=1625281e:10868
+workLoopSync @ react-dom_client.js?v=1625281e:10728
+renderRootSync @ react-dom_client.js?v=1625281e:10711
+performWorkOnRoot @ react-dom_client.js?v=1625281e:10330
+performSyncWorkOnRoot @ react-dom_client.js?v=1625281e:11635
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=1625281e:11536
+processRootScheduleInMicrotask @ react-dom_client.js?v=1625281e:11558
+(anonymous) @ react-dom_client.js?v=1625281e:11649
