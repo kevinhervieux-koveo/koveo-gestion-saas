@@ -303,12 +303,6 @@ export default [
       'client/src/pages/auth/forgot-password.tsx',
       'client/src/pages/auth/invitation-acceptance.tsx',
       'client/src/pages/auth/reset-password.tsx',
-      'client/src/pages/manager/maintenance/projects/ProjectDashboardView.tsx',
-      'client/src/pages/manager/maintenance/projects/ProjectDetailsPanel.tsx',
-      'client/src/pages/manager/maintenance/projects/ProjectTableView.tsx',
-      'client/src/pages/manager/maintenance/projects/ProjectTimelineView.tsx',
-      'client/src/pages/manager/maintenance/projects/ProjectsOverview.tsx',
-      'client/src/pages/manager/maintenance/projects/SuggestionsIntegration.tsx',
     ],
     languageOptions: {
       parser: typescriptParser,

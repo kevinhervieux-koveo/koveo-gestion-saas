@@ -82,7 +82,7 @@ export function SuggestionsIntegration({
   // Simplified placeholder - no context for now
   const hasPermission = () => true;
   const { toast } = useToast();
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
@@ -238,12 +238,11 @@ export function SuggestionsIntegration({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Lightbulb className="h-5 w-5 text-yellow-500" />
-            Create Projects from Suggestions
+            {t('pvCreateProjectsFromSuggestions')}
           </DialogTitle>
           {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
           <DialogDescription>
-            Review and select evaluation suggestions to automatically create maintenance projects.
-            Projects will be generated with standard workflows and can be customized after creation.
+            {t('pvSuggestionsDialogDesc')}
           </DialogDescription>
         </DialogHeader>
 
@@ -264,7 +263,7 @@ export function SuggestionsIntegration({
             <AlertTriangle className="h-4 w-4" />
             {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
             <AlertDescription>
-              Failed to load suggestions. Please try again.
+              {t('pvFailedToLoadSuggestions')}
             </AlertDescription>
           </Alert>
         )}
@@ -345,8 +344,8 @@ export function SuggestionsIntegration({
                   <h3 className="text-lg font-semibold mb-2">No Suggestions Found</h3>
                   <p className="text-muted-foreground text-center">
                     {suggestions.length === 0 
-                      ? "No pending evaluation suggestions are available for this building."
-                      : "No suggestions match your current search and filter criteria."
+                      ? t('pvNoPendingSuggestions')
+                      : t('pvNoSuggestionsMatchFilters')
                     }
                   </p>
                 </div>
@@ -426,7 +425,7 @@ export function SuggestionsIntegration({
                   <CardTitle className="text-sm">Project Defaults</CardTitle>
                   {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                   <CardDescription>
-                    Set default values for all generated projects
+                    {t('pvProjectDefaultsDesc')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">

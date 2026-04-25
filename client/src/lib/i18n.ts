@@ -3126,6 +3126,52 @@ export interface Translations {
   efElementDeletedDesc: string;
   efDeletionFailedTitle: string;
   efFailedToDeleteElement: string;
+  // Manager > Maintenance > Projects: dashboard / table / timeline / details
+  // panels copy. Keys prefixed with `pv` (project view) and added in task #712
+  // when removing these files from the i18n allow-list.
+  pvFailedToLoadDashboard: string;
+  pvNoBuildingDashboard: string;
+  pvDashboardSubtitle: string;
+  pvProjectTrendsDesc: string;
+  pvBudgetAnalysisDesc: string;
+  pvStatusBreakdownDesc: string;
+  pvPriorityBreakdownDesc: string;
+  pvOverdueProjectsAlert: string;
+  pvBudgetUtilizationHighAlert: string;
+  pvExecutiveSummaryDesc: string;
+  pvBudgetWithinTarget: string;
+  pvQualityMeetingExpectations: string;
+  pvDetailsPanelDesc: string;
+  pvFailedToLoadDetails: string;
+  pvImmediateAttention: string;
+  pvFinancialTrackingDesc: string;
+  pvElementsAssociatedDesc: string;
+  pvElementsAvailableInFullView: string;
+  pvFailedToLoadProjects: string;
+  pvNoBuildingProjectsTable: string;
+  pvNoProjectsCreatedYet: string;
+  pvGetStartedHint: string;
+  pvNoProjectsMatchFilters: string;
+  pvAdjustFiltersHint: string;
+  pvRealtimeBulkHint: string;
+  pvFailedToLoadTimeline: string;
+  pvNoBuildingTimeline: string;
+  pvTimelineSubtitle: string;
+  pvClickDateToView: string;
+  pvNoEventsScheduled: string;
+  pvOverdueEventSingular: string;
+  pvOverdueEventPlural: string;
+  pvFailedToLoadMetrics: string;
+  pvBudgetCriticallyHigh: string;
+  pvSchedulePerformanceAttention: string;
+  pvEfficiencyBelowAcceptable: string;
+  pvHealthAlertSuffix: string;
+  pvCreateProjectsFromSuggestions: string;
+  pvSuggestionsDialogDesc: string;
+  pvFailedToLoadSuggestions: string;
+  pvProjectDefaultsDesc: string;
+  pvNoPendingSuggestions: string;
+  pvNoSuggestionsMatchFilters: string;
 }
 
 /**
@@ -6256,6 +6302,50 @@ export const translations: Record<Language, Translations> = {
     efElementDeletedDesc: 'Building element has been successfully removed from the inventory.',
     efDeletionFailedTitle: 'Deletion failed',
     efFailedToDeleteElement: 'Failed to delete element',
+    // Manager > Maintenance > Projects (task #712)
+    pvFailedToLoadDashboard: 'Failed to load dashboard analytics. Please try again.',
+    pvNoBuildingDashboard: 'Please select a building to view its project dashboard.',
+    pvDashboardSubtitle: 'Analytics, insights, and performance metrics for maintenance project management',
+    pvProjectTrendsDesc: 'Monthly project creation and completion trends',
+    pvBudgetAnalysisDesc: 'Planned vs actual budget utilization over time',
+    pvStatusBreakdownDesc: 'Current breakdown of projects by status',
+    pvPriorityBreakdownDesc: 'Project breakdown by priority level',
+    pvOverdueProjectsAlert: '{count} project(s) are overdue and require immediate attention.',
+    pvBudgetUtilizationHighAlert: 'Budget utilization is high ({percent}%). Consider reviewing spending.',
+    pvExecutiveSummaryDesc: 'Key insights and recommendations for project portfolio management',
+    pvBudgetWithinTarget: '• Budget utilization within target range',
+    pvQualityMeetingExpectations: '• Quality metrics meeting expectations',
+    pvDetailsPanelDesc: 'Comprehensive project details, timeline, budget, and management tools',
+    pvFailedToLoadDetails: 'Failed to load project details. Please try again.',
+    pvImmediateAttention: 'Immediate attention may be required.',
+    pvFinancialTrackingDesc: 'Financial tracking and cost management',
+    pvElementsAssociatedDesc: 'Building elements associated with this project',
+    pvElementsAvailableInFullView: 'Element management available in full view',
+    pvFailedToLoadProjects: 'Failed to load projects. Please try refreshing the page.',
+    pvNoBuildingProjectsTable: 'Please select a building to view its maintenance projects.',
+    pvNoProjectsCreatedYet: 'No maintenance projects have been created for this building yet.',
+    pvGetStartedHint: 'Get started by creating your first project or generating projects from evaluation suggestions.',
+    pvNoProjectsMatchFilters: 'No projects match your current search and filter criteria.',
+    pvAdjustFiltersHint: 'Try adjusting your filters or search terms.',
+    pvRealtimeBulkHint: 'Project data is updated in real-time. Use bulk actions to manage multiple projects at once.',
+    pvFailedToLoadTimeline: 'Failed to load timeline data. Please try refreshing the page.',
+    pvNoBuildingTimeline: 'Please select a building to view its project timeline.',
+    pvTimelineSubtitle: 'Schedule overview and milestone tracking for all projects',
+    pvClickDateToView: 'Click on any date to view scheduled events',
+    pvNoEventsScheduled: 'No events scheduled for this date',
+    pvOverdueEventSingular: '{count} project event is overdue. Review project schedules and consider adjusting timelines or reallocating resources.',
+    pvOverdueEventPlural: '{count} project events are overdue. Review project schedules and consider adjusting timelines or reallocating resources.',
+    pvFailedToLoadMetrics: 'Failed to load project metrics. Please try refreshing the page.',
+    pvBudgetCriticallyHigh: 'Budget utilization is critically high. ',
+    pvSchedulePerformanceAttention: 'Schedule performance needs immediate attention. ',
+    pvEfficiencyBelowAcceptable: 'Project completion efficiency is below acceptable levels. ',
+    pvHealthAlertSuffix: 'Consider reviewing project portfolio and resource allocation.',
+    pvCreateProjectsFromSuggestions: 'Create Projects from Suggestions',
+    pvSuggestionsDialogDesc: 'Review and select evaluation suggestions to automatically create maintenance projects. Projects will be generated with standard workflows and can be customized after creation.',
+    pvFailedToLoadSuggestions: 'Failed to load suggestions. Please try again.',
+    pvProjectDefaultsDesc: 'Set default values for all generated projects',
+    pvNoPendingSuggestions: 'No pending evaluation suggestions are available for this building.',
+    pvNoSuggestionsMatchFilters: 'No suggestions match your current search and filter criteria.',
   },
   fr: {
 
@@ -9382,5 +9472,49 @@ export const translations: Record<Language, Translations> = {
     efElementDeletedDesc: 'L\'élément du bâtiment a été retiré de l\'inventaire avec succès.',
     efDeletionFailedTitle: 'Échec de la suppression',
     efFailedToDeleteElement: 'Échec de la suppression de l\'élément',
+    // Manager > Maintenance > Projects (task #712)
+    pvFailedToLoadDashboard: 'Échec du chargement des analyses du tableau de bord. Veuillez réessayer.',
+    pvNoBuildingDashboard: 'Veuillez sélectionner un immeuble pour afficher son tableau de bord de projets.',
+    pvDashboardSubtitle: 'Analyses, aperçus et indicateurs de performance pour la gestion des projets d\'entretien',
+    pvProjectTrendsDesc: 'Tendances mensuelles de création et d\'achèvement des projets',
+    pvBudgetAnalysisDesc: 'Utilisation budgétaire planifiée vs réelle dans le temps',
+    pvStatusBreakdownDesc: 'Répartition actuelle des projets par statut',
+    pvPriorityBreakdownDesc: 'Répartition des projets par niveau de priorité',
+    pvOverdueProjectsAlert: '{count} projet(s) sont en retard et nécessitent une attention immédiate.',
+    pvBudgetUtilizationHighAlert: 'L\'utilisation du budget est élevée ({percent} %). Envisagez de réviser les dépenses.',
+    pvExecutiveSummaryDesc: 'Aperçus clés et recommandations pour la gestion du portefeuille de projets',
+    pvBudgetWithinTarget: '• Utilisation du budget dans la fourchette cible',
+    pvQualityMeetingExpectations: '• Indicateurs de qualité conformes aux attentes',
+    pvDetailsPanelDesc: 'Détails complets du projet : échéancier, budget et outils de gestion',
+    pvFailedToLoadDetails: 'Échec du chargement des détails du projet. Veuillez réessayer.',
+    pvImmediateAttention: 'Une attention immédiate peut être requise.',
+    pvFinancialTrackingDesc: 'Suivi financier et gestion des coûts',
+    pvElementsAssociatedDesc: 'Éléments d\'immeuble associés à ce projet',
+    pvElementsAvailableInFullView: 'Gestion des éléments disponible en vue complète',
+    pvFailedToLoadProjects: 'Échec du chargement des projets. Veuillez actualiser la page.',
+    pvNoBuildingProjectsTable: 'Veuillez sélectionner un immeuble pour afficher ses projets d\'entretien.',
+    pvNoProjectsCreatedYet: 'Aucun projet d\'entretien n\'a encore été créé pour cet immeuble.',
+    pvGetStartedHint: 'Commencez en créant votre premier projet ou en générant des projets à partir des suggestions d\'évaluation.',
+    pvNoProjectsMatchFilters: 'Aucun projet ne correspond à vos critères de recherche et de filtrage actuels.',
+    pvAdjustFiltersHint: 'Essayez d\'ajuster vos filtres ou vos termes de recherche.',
+    pvRealtimeBulkHint: 'Les données des projets sont mises à jour en temps réel. Utilisez les actions groupées pour gérer plusieurs projets à la fois.',
+    pvFailedToLoadTimeline: 'Échec du chargement des données de l\'échéancier. Veuillez actualiser la page.',
+    pvNoBuildingTimeline: 'Veuillez sélectionner un immeuble pour afficher son échéancier de projets.',
+    pvTimelineSubtitle: 'Vue d\'ensemble de l\'horaire et suivi des jalons pour tous les projets',
+    pvClickDateToView: 'Cliquez sur une date pour voir les événements planifiés',
+    pvNoEventsScheduled: 'Aucun événement planifié à cette date',
+    pvOverdueEventSingular: '{count} événement de projet est en retard. Révisez les calendriers des projets et envisagez d\'ajuster les échéanciers ou de réaffecter les ressources.',
+    pvOverdueEventPlural: '{count} événements de projet sont en retard. Révisez les calendriers des projets et envisagez d\'ajuster les échéanciers ou de réaffecter les ressources.',
+    pvFailedToLoadMetrics: 'Échec du chargement des indicateurs de projets. Veuillez actualiser la page.',
+    pvBudgetCriticallyHigh: 'L\'utilisation du budget est dangereusement élevée. ',
+    pvSchedulePerformanceAttention: 'La performance de l\'horaire requiert une attention immédiate. ',
+    pvEfficiencyBelowAcceptable: 'L\'efficacité d\'achèvement des projets est sous les niveaux acceptables. ',
+    pvHealthAlertSuffix: 'Envisagez de réviser le portefeuille de projets et l\'allocation des ressources.',
+    pvCreateProjectsFromSuggestions: 'Créer des projets à partir de suggestions',
+    pvSuggestionsDialogDesc: 'Examinez et sélectionnez les suggestions d\'évaluation pour créer automatiquement des projets d\'entretien. Les projets seront générés avec des flux de travail standards et pourront être personnalisés après leur création.',
+    pvFailedToLoadSuggestions: 'Échec du chargement des suggestions. Veuillez réessayer.',
+    pvProjectDefaultsDesc: 'Définissez les valeurs par défaut pour tous les projets générés',
+    pvNoPendingSuggestions: 'Aucune suggestion d\'évaluation en attente n\'est disponible pour cet immeuble.',
+    pvNoSuggestionsMatchFilters: 'Aucune suggestion ne correspond à vos critères de recherche et de filtrage actuels.',
   }
 };

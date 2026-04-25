@@ -24,6 +24,7 @@ import {
   AreaChart,
 } from 'recharts';
 import { useBuildingContext } from '@/hooks/use-building-context';
+import { useLanguage } from '@/hooks/use-language';
 import { apiRequest } from '@/lib/queryClient';
 import { MaintenanceProject } from '@shared/schemas/maintenance';
 import { format, subMonths, startOfMonth } from 'date-fns';
@@ -129,6 +130,7 @@ export function ProjectDashboardView({
 }: ProjectDashboardViewProps) {
   // Use building context to get current building state
   const { building, hasPermission } = useBuildingContext();
+  const { t } = useLanguage();
 
   // Permission checks for various actions
   const canCreateProjects = hasPermission ? hasPermission('canCreateProjects') : true;
@@ -265,8 +267,7 @@ export function ProjectDashboardView({
       <Alert variant="destructive" className={className} data-testid="dashboard-view-error">
         <AlertTriangle className="h-4 w-4" />
         <AlertDescription className="flex items-center justify-between">
-          {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
-          <span>Failed to load dashboard analytics. Please try again.</span>
+          <span>{t('pvFailedToLoadDashboard')}</span>
           <Button variant="outline" size="sm" onClick={() => refetch()}>
             <RefreshCw className="h-4 w-4 mr-2" />
             Retry
@@ -284,7 +285,7 @@ export function ProjectDashboardView({
         <h3 className="text-lg font-semibold mb-2">No Building Selected</h3>
         {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
         <p className="text-muted-foreground text-center">
-          Please select a building to view its project dashboard.
+          {t('pvNoBuildingDashboard')}
         </p>
       </div>
     );
@@ -298,7 +299,7 @@ export function ProjectDashboardView({
           <h3 className="text-lg font-semibold">Project Portfolio Dashboard</h3>
           {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
           <p className="text-sm text-muted-foreground">
-            Analytics, insights, and performance metrics for maintenance project management
+            {t('pvDashboardSubtitle')}
           </p>
         </div>
 
@@ -431,7 +432,7 @@ export function ProjectDashboardView({
             <CardTitle className="text-base">Project Trends</CardTitle>
             {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
             <CardDescription>
-              Monthly project creation and completion trends
+              {t('pvProjectTrendsDesc')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -471,7 +472,7 @@ export function ProjectDashboardView({
             <CardTitle className="text-base">Budget Analysis</CardTitle>
             {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
             <CardDescription>
-              Planned vs actual budget utilization over time
+              {t('pvBudgetAnalysisDesc')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -507,7 +508,7 @@ export function ProjectDashboardView({
           <CardHeader>
             <CardTitle className="text-base">Project Status Distribution</CardTitle>
             <CardDescription>
-              Current breakdown of projects by status
+              {t('pvStatusBreakdownDesc')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -538,7 +539,7 @@ export function ProjectDashboardView({
           <CardHeader>
             <CardTitle className="text-base">Priority Distribution</CardTitle>
             <CardDescription>
-              Project breakdown by priority level
+              {t('pvPriorityBreakdownDesc')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -650,11 +651,10 @@ export function ProjectDashboardView({
           <AlertDescription>
             <div className="space-y-1">
               {dashboardMetrics.overdueProjects > 0 && (
-                // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
-                <p>{dashboardMetrics.overdueProjects} project(s) are overdue and require immediate attention.</p>
+                <p>{t('pvOverdueProjectsAlert').replace('{count}', String(dashboardMetrics.overdueProjects))}</p>
               )}
               {dashboardMetrics.budgetUtilization > 90 && (
-                <p>Budget utilization is high ({dashboardMetrics.budgetUtilization}%). Consider reviewing spending.</p>
+                <p>{t('pvBudgetUtilizationHighAlert').replace('{percent}', String(dashboardMetrics.budgetUtilization))}</p>
               )}
             </div>
           </AlertDescription>
@@ -667,7 +667,7 @@ export function ProjectDashboardView({
           <CardTitle className="text-base">Executive Summary</CardTitle>
           {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
           <CardDescription>
-            Key insights and recommendations for project portfolio management
+            {t('pvExecutiveSummaryDesc')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -686,8 +686,8 @@ export function ProjectDashboardView({
               <ul className="space-y-1 text-muted-foreground">
                 <li>• Cost efficiency at {dashboardMetrics.costEfficiency}%</li>
                 <li>• {dashboardMetrics.onTimeCompletion}% projects delivered on time</li>
-                <li>• Budget utilization within target range</li>
-                <li>• Quality metrics meeting expectations</li>
+                <li>{t('pvBudgetWithinTarget')}</li>
+                <li>{t('pvQualityMeetingExpectations')}</li>
               </ul>
             </div>
           </div>

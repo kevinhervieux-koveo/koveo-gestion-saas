@@ -6,6 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 // import { useBuildingContext } from '@/hooks/use-building-context';
+import { useLanguage } from '@/hooks/use-language';
 import { apiRequest } from '@/lib/queryClient';
 import { cn } from '@/lib/utils';
 import {
@@ -61,6 +62,7 @@ interface ProjectMetrics {
 export function ProjectsOverview({ className, buildingId, organizationId }: ProjectsOverviewProps) {
   // Simplified placeholder - no context for now
   const hasPermission = () => true;
+  const { t } = useLanguage();
 
   // Fetch projects metrics for current building
   const {
@@ -140,7 +142,7 @@ export function ProjectsOverview({ className, buildingId, organizationId }: Proj
         <AlertTriangle className="h-4 w-4" />
         {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
         <AlertDescription>
-          Failed to load project metrics. Please try refreshing the page.
+          {t('pvFailedToLoadMetrics')}
         </AlertDescription>
       </Alert>
     );
@@ -431,11 +433,10 @@ export function ProjectsOverview({ className, buildingId, organizationId }: Proj
         <Alert variant="destructive" data-testid="health-alert">
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
-            {performanceMetrics.budgetHealth === 'critical' && 'Budget utilization is critically high. '}
-            {performanceMetrics.scheduleHealth === 'critical' && 'Schedule performance needs immediate attention. '}
-            {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
-            {performanceMetrics.efficiencyHealth === 'critical' && 'Project completion efficiency is below acceptable levels. '}
-            Consider reviewing project portfolio and resource allocation.
+            {performanceMetrics.budgetHealth === 'critical' && t('pvBudgetCriticallyHigh')}
+            {performanceMetrics.scheduleHealth === 'critical' && t('pvSchedulePerformanceAttention')}
+            {performanceMetrics.efficiencyHealth === 'critical' && t('pvEfficiencyBelowAcceptable')}
+            {t('pvHealthAlertSuffix')}
           </AlertDescription>
         </Alert>
       )}

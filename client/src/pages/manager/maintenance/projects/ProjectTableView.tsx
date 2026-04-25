@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useBuildingContext } from '@/hooks/use-building-context';
+import { useLanguage } from '@/hooks/use-language';
 import { apiRequest } from '@/lib/queryClient';
 import { MaintenanceProject } from '@shared/schemas/maintenance';
 import { ProjectTable } from '@/components/maintenance/projects/ProjectTable';
@@ -66,6 +67,7 @@ export function ProjectTableView({
 }: ProjectTableViewProps) {
   // Use building context to get current building state
   const { building, hasPermission } = useBuildingContext();
+  const { t } = useLanguage();
 
   // Permission checks for various actions
   const canCreateProjects = hasPermission ? hasPermission('canCreateProjects') : true;
@@ -166,7 +168,7 @@ export function ProjectTableView({
         <AlertTriangle className="h-4 w-4" />
         {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
         <AlertDescription>
-          Failed to load projects. Please try refreshing the page.
+          {t('pvFailedToLoadProjects')}
         </AlertDescription>
       </Alert>
     );
@@ -180,7 +182,7 @@ export function ProjectTableView({
         <h3 className="text-lg font-semibold mb-2">No Building Selected</h3>
         {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
         <p className="text-muted-foreground text-center">
-          Please select a building to view its maintenance projects.
+          {t('pvNoBuildingProjectsTable')}
         </p>
       </div>
     );
@@ -194,12 +196,12 @@ export function ProjectTableView({
         <h3 className="text-lg font-semibold mb-2">No Projects Found</h3>
         {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
         <p className="text-muted-foreground text-center mb-4">
-          No maintenance projects have been created for this building yet.
+          {t('pvNoProjectsCreatedYet')}
         </p>
         {canCreateProjects && (
           // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
           <p className="text-sm text-muted-foreground text-center">
-            Get started by creating your first project or generating projects from evaluation suggestions.
+            {t('pvGetStartedHint')}
           </p>
         )}
       </div>
@@ -214,11 +216,11 @@ export function ProjectTableView({
         <h3 className="text-lg font-semibold mb-2">No Projects Match Filters</h3>
         {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
         <p className="text-muted-foreground text-center">
-          No projects match your current search and filter criteria.
+          {t('pvNoProjectsMatchFilters')}
         </p>
         {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
         <p className="text-sm text-muted-foreground text-center mt-2">
-          Try adjusting your filters or search terms.
+          {t('pvAdjustFiltersHint')}
         </p>
       </div>
     );
@@ -290,7 +292,7 @@ export function ProjectTableView({
         <div className="text-xs text-muted-foreground text-center p-4 border-t">
           {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
           <p>
-            Project data is updated in real-time. Use bulk actions to manage multiple projects at once.
+            {t('pvRealtimeBulkHint')}
           </p>
         </div>
       )}

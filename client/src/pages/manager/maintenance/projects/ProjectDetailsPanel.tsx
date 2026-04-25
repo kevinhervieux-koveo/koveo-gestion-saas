@@ -17,6 +17,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { StatusBadge, PriorityBadge } from '@/components/maintenance/StatusBadges';
 // import { useBuildingContext } from '@/hooks/use-building-context';
+import { useLanguage } from '@/hooks/use-language';
 import { apiRequest } from '@/lib/queryClient';
 import { MaintenanceProject } from '@shared/schemas/maintenance';
 import { cn, parseDateOnly } from '@/lib/utils';
@@ -75,6 +76,7 @@ export function ProjectDetailsPanel({
 }: ProjectDetailsPanelProps) {
   // Simplified placeholder - no context for now
   const hasPermission = () => true;
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('overview');
 
   // Fetch detailed project data when panel is open
@@ -168,7 +170,7 @@ export function ProjectDetailsPanel({
           
           {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
           <SheetDescription className="text-sm">
-            Comprehensive project details, timeline, budget, and management tools
+            {t('pvDetailsPanelDesc')}
           </SheetDescription>
 
           {/* Quick Actions */}
@@ -225,7 +227,7 @@ export function ProjectDetailsPanel({
             <AlertTriangle className="h-4 w-4" />
             {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
             <AlertDescription>
-              Failed to load project details. Please try again.
+              {t('pvFailedToLoadDetails')}
             </AlertDescription>
           </Alert>
         )}
@@ -295,7 +297,7 @@ export function ProjectDetailsPanel({
                     <AlertDescription>
                       {metrics.isOverdue && "This project is overdue. "}
                       {metrics.isOverBudget && "This project is over budget. "}
-                      Immediate attention may be required.
+                      {t('pvImmediateAttention')}
                     </AlertDescription>
                   </Alert>
                 )}
@@ -496,7 +498,7 @@ export function ProjectDetailsPanel({
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-sm">Budget Analysis</CardTitle>
-                    <CardDescription>Financial tracking and cost management</CardDescription>
+                    <CardDescription>{t('pvFinancialTrackingDesc')}</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="space-y-2">
@@ -562,14 +564,12 @@ export function ProjectDetailsPanel({
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-sm">Project Elements</CardTitle>
-                    {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
-                    <CardDescription>Building elements associated with this project</CardDescription>
+                    <CardDescription>{t('pvElementsAssociatedDesc')}</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="text-center py-6 text-muted-foreground">
                       <Building2 className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                      {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
-                      <p className="text-sm">Element management available in full view</p>
+                      <p className="text-sm">{t('pvElementsAvailableInFullView')}</p>
                     </div>
                     
                     {onManageElements && (

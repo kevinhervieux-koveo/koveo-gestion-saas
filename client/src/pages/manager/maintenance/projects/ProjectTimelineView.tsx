@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/select';
 import { StatusBadge, PriorityBadge } from '@/components/maintenance/StatusBadges';
 // import { useBuildingContext } from '@/hooks/use-building-context';
+import { useLanguage } from '@/hooks/use-language';
 import { apiRequest } from '@/lib/queryClient';
 import { MaintenanceProject } from '@shared/schemas/maintenance';
 import { cn, parseDateOnly } from '@/lib/utils';
@@ -86,6 +87,7 @@ export function ProjectTimelineView({
   // Simplified placeholder - no context for now
   const building = null;
   const hasPermission = () => true;
+  const { t } = useLanguage();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [timelineView, setTimelineView] = useState<TimelineView>('month');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
@@ -274,7 +276,7 @@ export function ProjectTimelineView({
         <AlertTriangle className="h-4 w-4" />
         {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
         <AlertDescription>
-          Failed to load timeline data. Please try refreshing the page.
+          {t('pvFailedToLoadTimeline')}
         </AlertDescription>
       </Alert>
     );
@@ -288,7 +290,7 @@ export function ProjectTimelineView({
         <h3 className="text-lg font-semibold mb-2">No Building Selected</h3>
         {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
         <p className="text-muted-foreground text-center">
-          Please select a building to view its project timeline.
+          {t('pvNoBuildingTimeline')}
         </p>
       </div>
     );
@@ -302,7 +304,7 @@ export function ProjectTimelineView({
           <h3 className="text-lg font-semibold">Project Timeline</h3>
           {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
           <p className="text-sm text-muted-foreground">
-            Schedule overview and milestone tracking for all projects
+            {t('pvTimelineSubtitle')}
           </p>
         </div>
 
@@ -403,7 +405,7 @@ export function ProjectTimelineView({
               </div>
               {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
               <CardDescription>
-                Click on any date to view scheduled events
+                {t('pvClickDateToView')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -494,7 +496,7 @@ export function ProjectTimelineView({
               {selectedDateEvents.length === 0 ? (
                 <div className="text-center py-6 text-muted-foreground">
                   <CalendarIcon className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">No events scheduled for this date</p>
+                  <p className="text-sm">{t('pvNoEventsScheduled')}</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -597,9 +599,10 @@ export function ProjectTimelineView({
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
-            {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
-            {timelineStats.overdueEvents} project event{timelineStats.overdueEvents !== 1 ? 's are' : ' is'} overdue. 
-            Review project schedules and consider adjusting timelines or reallocating resources.
+            {(timelineStats.overdueEvents !== 1
+              ? t('pvOverdueEventPlural')
+              : t('pvOverdueEventSingular')
+            ).replace('{count}', String(timelineStats.overdueEvents))}
           </AlertDescription>
         </Alert>
       )}
