@@ -1983,6 +1983,8 @@ export interface Translations {
   budgetMonthlySpending: string;
   budgetYearEndProjection: string;
   budgetTotalInvestment: string;
+  budgetNoDataForPeriod: string;
+  budgetConfigureAction: string;
   budgetUseQuickProjectHelp: string;
   budgetConfirmAndMakePermanent: string;
   budgetMonths: string;
@@ -4086,6 +4088,8 @@ export const translations: Record<Language, Translations> = {
     budgetMonthlySpending: 'Monthly Spending',
     budgetYearEndProjection: 'Year End Projection',
     budgetTotalInvestment: 'Total Investment',
+    budgetNoDataForPeriod: 'No budget data for this period',
+    budgetConfigureAction: 'Configure budget',
     budgetUseQuickProjectHelp: 'Use "Add Quick Project" to create a new project',
     budgetConfirmAndMakePermanent: 'Confirm and make permanent',
     budgetMonths: 'months',
@@ -6304,6 +6308,8 @@ export const translations: Record<Language, Translations> = {
     budgetMonthlySpending: 'Dépenses mensuelles',
     budgetYearEndProjection: 'Projection de fin d\'exercice',
     budgetTotalInvestment: 'Investissement total',
+    budgetNoDataForPeriod: 'Aucune donnée budgétaire pour cette période',
+    budgetConfigureAction: 'Configurer le budget',
     budgetUseQuickProjectHelp: 'Utilisez "Ajouter un projet rapide" pour créer un nouveau projet',
     budgetConfirmAndMakePermanent: 'Confirmer et rendre permanent',
     budgetMonths: 'mois',

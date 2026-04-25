@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Skeleton } from '@/components/ui/skeleton';
 import { withHierarchicalSelection } from '@/components/hoc/withHierarchicalSelection';
 import { useLocation } from 'wouter';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -2905,6 +2906,23 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
   
   // Calculate metrics directly (not memoized to avoid hook ordering issues)
   const summaryMetrics = calculateSummaryMetrics();
+
+  // Empty-state condition: no forecast points, no baseline expenses (bills),
+  // and no stored revenue config for the selected building/period.
+  const hasNoBudgetData =
+    (!forecastData?.forecast || forecastData.forecast.length === 0) &&
+    (forecastData?.baselineMonthlyExpenses ?? 0) === 0 &&
+    customRevenueLines.length === 0;
+
+  const handleConfigureBudget = () => {
+    if (cardsCollapsed.bankAccount) {
+      toggleCard('bankAccount');
+    }
+    requestAnimationFrame(() => {
+      const target = document.getElementById('budget-configuration-section');
+      target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  };
   
   // Memoize investment summary to prevent infinite re-renders
   const investmentSummary = useMemo(() => {
@@ -3378,74 +3396,111 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
       <div className='flex-1 overflow-auto p-6'>
         <div className='max-w-7xl mx-auto space-y-6'>
           {forecastLoading || bankAccountLoading ? (
-            <div className='flex items-center justify-center py-12'>
-              <div className='text-center'>
-                <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4'></div>
-                <p className='text-muted-foreground'>Loading budget data...</p>
+            <>
+              <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6' data-testid='budget-loading-skeleton'>
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <Card key={i}>
+                    <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
+                      <Skeleton className='h-4 w-24' />
+                      <Skeleton className='h-4 w-4 rounded' />
+                    </CardHeader>
+                    <CardContent className='card-content-safe'>
+                      <Skeleton className='h-8 w-32' />
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
-            </div>
+              <Card>
+                <CardContent className='p-6'>
+                  <Skeleton className='h-96 w-full' />
+                </CardContent>
+              </Card>
+            </>
           ) : (
             <>
-              {/* Summary Cards */}
-              <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
-                <Card data-testid="card-monthly-income">
-                  <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                    <CardTitle className='text-sm font-medium'>{t('budgetMonthlyRevenue')}</CardTitle>
-                    <TrendingUp className='h-4 w-4 text-muted-foreground' />
-                  </CardHeader>
-                  <CardContent className='card-content-safe'>
-                    <div className='financial-value-large' title={`$${calculateTotalRevenue().toFixed(2)}`} data-testid='value-monthly-revenue'>
-                      ${calculateTotalRevenue().toFixed(2)}
+              {hasNoBudgetData ? (
+                <Card data-testid='card-budget-empty-state'>
+                  <CardContent className='flex flex-col items-center justify-center text-center py-16 px-6'>
+                    <div className='rounded-full bg-muted p-4 mb-4'>
+                      <PieChart className='h-10 w-10 text-muted-foreground' />
                     </div>
+                    <h3 className='text-lg font-semibold mb-2' data-testid='text-budget-empty-title'>
+                      {t('budgetNoDataForPeriod')}
+                    </h3>
+                    <Button
+                      onClick={handleConfigureBudget}
+                      data-testid='button-configure-budget'
+                      className='mt-2'
+                    >
+                      <Settings className='w-4 h-4 mr-2' />
+                      {t('budgetConfigureAction')}
+                    </Button>
                   </CardContent>
                 </Card>
-                
-                <Card data-testid="card-monthly-spending">
-                  <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                    <CardTitle className='text-sm font-medium'>{t('budgetMonthlySpending')}</CardTitle>
-                    <Calculator className='h-4 w-4 text-muted-foreground' />
-                  </CardHeader>
-                  <CardContent className='card-content-safe'>
-                    <div className='financial-value-large' title={`$${summaryMetrics.monthlySpending.toFixed(2)}`} data-testid='value-monthly-spending'>
-                      ${summaryMetrics.monthlySpending.toFixed(2)}
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                <Card data-testid="card-year-end-projection">
-                  <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                    <CardTitle className='text-sm font-medium'>{t('budgetYearEndProjection')}</CardTitle>
-                    <TrendingDown className='h-4 w-4 text-muted-foreground' />
-                  </CardHeader>
-                  <CardContent className='card-content-safe'>
-                    <div className='financial-value-large' title={`$${summaryMetrics.yearEndBalance.toFixed(2)}`} data-testid='value-year-end-projection'>
-                      ${summaryMetrics.yearEndBalance.toFixed(2)}
-                    </div>
-                  </CardContent>
-                </Card>
-                
-                <Card data-testid="card-total-investment">
-                  <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-                    <CardTitle className='text-sm font-medium'>{t('budgetTotalInvestment')}</CardTitle>
-                    <TrendingUp className='h-4 w-4 text-muted-foreground' />
-                  </CardHeader>
-                  <CardContent className='card-content-safe'>
-                    <div className='financial-value-large' title={`$${investmentSummary.totalAmount.toFixed(2)}`} data-testid='value-total-investment'>
-                      ${investmentSummary.totalAmount.toFixed(2)}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+              ) : (
+                <>
+                  {/* Summary Cards */}
+                  <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6'>
+                    <Card data-testid="card-monthly-income">
+                      <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
+                        <CardTitle className='text-sm font-medium'>{t('budgetMonthlyRevenue')}</CardTitle>
+                        <TrendingUp className='h-4 w-4 text-muted-foreground' />
+                      </CardHeader>
+                      <CardContent className='card-content-safe'>
+                        <div className='financial-value-large' title={`$${calculateTotalRevenue().toFixed(2)}`} data-testid='value-monthly-revenue'>
+                          ${calculateTotalRevenue().toFixed(2)}
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card data-testid="card-monthly-spending">
+                      <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
+                        <CardTitle className='text-sm font-medium'>{t('budgetMonthlySpending')}</CardTitle>
+                        <Calculator className='h-4 w-4 text-muted-foreground' />
+                      </CardHeader>
+                      <CardContent className='card-content-safe'>
+                        <div className='financial-value-large' title={`$${summaryMetrics.monthlySpending.toFixed(2)}`} data-testid='value-monthly-spending'>
+                          ${summaryMetrics.monthlySpending.toFixed(2)}
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card data-testid="card-year-end-projection">
+                      <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
+                        <CardTitle className='text-sm font-medium'>{t('budgetYearEndProjection')}</CardTitle>
+                        <TrendingDown className='h-4 w-4 text-muted-foreground' />
+                      </CardHeader>
+                      <CardContent className='card-content-safe'>
+                        <div className='financial-value-large' title={`$${summaryMetrics.yearEndBalance.toFixed(2)}`} data-testid='value-year-end-projection'>
+                          ${summaryMetrics.yearEndBalance.toFixed(2)}
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card data-testid="card-total-investment">
+                      <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
+                        <CardTitle className='text-sm font-medium'>{t('budgetTotalInvestment')}</CardTitle>
+                        <TrendingUp className='h-4 w-4 text-muted-foreground' />
+                      </CardHeader>
+                      <CardContent className='card-content-safe'>
+                        <div className='financial-value-large' title={`$${investmentSummary.totalAmount.toFixed(2)}`} data-testid='value-total-investment'>
+                          ${investmentSummary.totalAmount.toFixed(2)}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
 
 
-              <BudgetChart
-                chartData={chartData as ChartDataPoint[]}
-                filters={filters}
-                minimumFund={forecastData?.minimumFund}
-                budgetChartRef={budgetChartRef as React.RefObject<HTMLDivElement>}
-                onDownloadPDF={handleDownloadChartPDF}
-                t={t as (key: string) => string}
-              />
+                  <BudgetChart
+                    chartData={chartData as ChartDataPoint[]}
+                    filters={filters}
+                    minimumFund={forecastData?.minimumFund}
+                    budgetChartRef={budgetChartRef as React.RefObject<HTMLDivElement>}
+                    onDownloadPDF={handleDownloadChartPDF}
+                    t={t as (key: string) => string}
+                  />
+                </>
+              )}
 
               {/* Project Card - First card under the graph */}
               <Card data-testid="card-project-management">
@@ -3641,7 +3696,7 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
               </Card>
 
               {/* Configuration Cards */}
-              <div className='grid grid-cols-1 gap-6'>
+              <div id='budget-configuration-section' className='grid grid-cols-1 gap-6'>
                 {/* Bank Account Configuration */}
                 <Card data-testid="card-bank-account-config">
                   <CardHeader 
