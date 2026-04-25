@@ -486,6 +486,10 @@ export interface Translations {
   noResidencesFound: string;
   noResidencesFoundOrg: string;
   notAssignedResidences: string;
+  noResidenceLinkedTitle: string;
+  noResidenceLinkedDescription: string;
+  selectYourResidence: string;
+  selectYourBuilding: string;
   selectResidence: string;
   selectAResidence: string;
   areYouSureDelete: string;
@@ -2796,6 +2800,10 @@ export const translations: Record<Language, Translations> = {
     noResidencesFound: 'No residences found',
     noResidencesFoundOrg: 'No residences found in your organization.',
     notAssignedResidences: 'You are not assigned to any residences.',
+    noResidenceLinkedTitle: 'No residence linked',
+    noResidenceLinkedDescription: 'No residence is linked to your account yet. Contact your property manager.',
+    selectYourResidence: 'Select your residence',
+    selectYourBuilding: 'Select your building',
     selectResidence: 'Select residence',
     selectAResidence: 'Select a residence',
     areYouSureDelete: 'Are you sure you want to delete this contact?',
@@ -5884,6 +5892,10 @@ export const translations: Record<Language, Translations> = {
     organizationOverview: 'Aperçu de l\'organisation',
     viewManageResidences: 'Voir et gérer les résidences de l\'organisation',
     notAssignedResidences: 'Vous n\'êtes assigné à aucune résidence.',
+    noResidenceLinkedTitle: 'Aucune résidence liée',
+    noResidenceLinkedDescription: 'Aucune résidence n\'est liée à votre compte. Contactez votre gestionnaire d\'immeuble.',
+    selectYourResidence: 'Sélectionnez votre résidence',
+    selectYourBuilding: 'Sélectionnez votre immeuble',
     occupancyStats: 'Statistiques d\'occupation',
     unableToDisplayAmenities: 'Impossible d\'afficher les commodités',
     emailRequired: 'L\'adresse courriel est requise',

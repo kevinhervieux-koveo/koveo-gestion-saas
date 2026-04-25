@@ -353,6 +353,11 @@ function ResidencePageInner({ buildingId, showBackButton, backButtonLabel, onBac
   }
 
   if (filteredResidences.length === 0) {
+    const isResidentOrTenant = user?.role
+      ? ['resident', 'tenant', 'demo_resident', 'demo_tenant'].includes(user.role)
+      : false;
+    const isAdminOrManager = user?.role && ['admin', 'manager'].includes(user.role);
+
     return (
       <div className='flex-1 flex flex-col overflow-hidden'>
         <Header
@@ -363,10 +368,14 @@ function ResidencePageInner({ buildingId, showBackButton, backButtonLabel, onBac
         <div className='flex-1 flex items-center justify-center p-6'>
           <NoDataCard
             icon={Home}
-            titleKey="noResidencesFound"
-            descriptionKey={user?.role && ['admin', 'manager'].includes(user.role)
-              ? 'noResidencesFoundOrg'
-              : 'notAssignedResidences'}
+            titleKey={isResidentOrTenant ? 'noResidenceLinkedTitle' : 'noResidencesFound'}
+            descriptionKey={
+              isResidentOrTenant
+                ? 'noResidenceLinkedDescription'
+                : isAdminOrManager
+                  ? 'noResidencesFoundOrg'
+                  : 'notAssignedResidences'
+            }
             testId="no-residences-message"
           />
         </div>

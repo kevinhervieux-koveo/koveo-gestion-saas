@@ -6,9 +6,20 @@ import { SelectionGrid, SelectionGridItem } from '@/components/common/SelectionG
 import { Header } from '@/components/layout/header';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft } from 'lucide-react';
+import { NoDataCard } from '@/components/ui/no-data-card';
+import { ArrowLeft, Home } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
+
+const RESIDENT_TENANT_ROLES = ['resident', 'tenant', 'demo_resident', 'demo_tenant'];
+
+interface UserResidenceSummary {
+  id: string;
+  unitNumber: string;
+  floor?: number | null;
+  buildingId: string;
+  buildingName: string;
+}
 
 /**
  * Configuration for the hierarchical selection flow
@@ -65,11 +76,51 @@ export function withHierarchicalSelection<T extends object>(
   config: HierarchyConfig
 ) {
   return function HierarchicalSelectionWrapper(props: T) {
+    const { user } = useAuth();
+    const isResidentOrTenant = RESIDENT_TENANT_ROLES.includes(user?.role || '');
+
+    // Residents and tenants do not own organizations or pick buildings —
+    // they belong to one or a few specific units. Skip the admin-style
+    // org → building picker entirely and route them through a lightweight
+    // resident-aware flow that derives context from /api/users/me/residences.
+    if (isResidentOrTenant) {
+      return (
+        <ResidentBypassFlow
+          config={config}
+          WrappedComponent={WrappedComponent}
+          wrappedProps={props}
+        />
+      );
+    }
+
+    return (
+      <AdminManagerHierarchyFlow
+        config={config}
+        WrappedComponent={WrappedComponent}
+        wrappedProps={props}
+      />
+    );
+  };
+}
+
+/**
+ * Admin/manager hierarchical flow — the original Organization → Building →
+ * Residence picker behaviour, unchanged.
+ */
+function AdminManagerHierarchyFlow<T extends object>({
+  config,
+  WrappedComponent,
+  wrappedProps: props,
+}: {
+  config: HierarchyConfig;
+  WrappedComponent: React.ComponentType<T & HierarchyProps>;
+  wrappedProps: T;
+}) {
     const [location, setLocation] = useLocation();
     const search = useSearch();
     const { t } = useLanguage();
     const { user } = useAuth();
-    
+
     // Force re-render when location changes
     React.useEffect(() => {
       // Location effect for debugging
@@ -653,7 +704,177 @@ export function withHierarchicalSelection<T extends object>(
         {...backNavProps}
       />
     );
-  };
+}
+
+/**
+ * Resident/tenant bypass flow.
+ *
+ * Skips the admin-style organization → building picker entirely. Derives
+ * context from the user's active residence links (/api/users/me/residences):
+ *   - 0 active links → empty-state card with localized "contact your
+ *     property manager" message.
+ *   - For residence-level pages (config.hierarchy includes 'residence'),
+ *     render the wrapped page directly. The wrapped page is responsible for
+ *     listing 1+ residences (the inner residence page already does this with
+ *     a built-in selector).
+ *   - For building-level pages (e.g. ['organization','building'] like
+ *     /resident/common-spaces): auto-select the user's building when there is
+ *     a single distinct building, or show a small building picker when the
+ *     user is linked to residences across multiple buildings. The user's
+ *     selection is persisted via the `?building=` URL param so deep-links
+ *     keep working.
+ */
+function ResidentBypassFlow<T extends object>({
+  config,
+  WrappedComponent,
+  wrappedProps,
+}: {
+  config: HierarchyConfig;
+  WrappedComponent: React.ComponentType<T & HierarchyProps>;
+  wrappedProps: T;
+}) {
+  const { t } = useLanguage();
+  const [location, setLocation] = useLocation();
+  const search = useSearch();
+
+  const urlParams = new URLSearchParams(search);
+  const selectedBuildingId = urlParams.get('building');
+
+  const navigate = useCallback((updates: Record<string, string | null>) => {
+    const decodedLocation = decodeURIComponent(location);
+    const currentSearchParams = decodedLocation.includes('?')
+      ? decodedLocation.split('?')[1]
+      : '';
+    const newParams = new URLSearchParams(currentSearchParams);
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value === null) {
+        newParams.delete(key);
+      } else {
+        newParams.set(key, value);
+      }
+    });
+    const newSearch = newParams.toString();
+    const basePath = decodedLocation.split('?')[0];
+    setLocation(newSearch ? `${basePath}?${newSearch}` : basePath);
+  }, [location, setLocation]);
+
+  const {
+    data: userResidences = [],
+    isLoading: isLoadingResidences,
+  } = useQuery<UserResidenceSummary[]>({
+    queryKey: ['/api/users/me/residences'],
+    staleTime: 5 * 60 * 1000,
+    gcTime: 15 * 60 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  const includesResidence = config.hierarchy.includes('residence');
+  const includesBuilding = config.hierarchy.includes('building');
+
+  const uniqueBuildings = useMemo(() => {
+    const map = new Map<string, string>();
+    userResidences.forEach((r) => {
+      if (r.buildingId && !map.has(r.buildingId)) {
+        map.set(r.buildingId, r.buildingName);
+      }
+    });
+    return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
+  }, [userResidences]);
+
+  if (isLoadingResidences) {
+    return (
+      <div className='flex-1 flex flex-col overflow-hidden'>
+        <Header title={t('myResidence' as any)} subtitle={t('loading' as any)} />
+        <div className='flex-1 overflow-auto p-6'>
+          <div className='max-w-4xl mx-auto space-y-4'>
+            <Skeleton className='h-32 w-full' />
+            <Skeleton className='h-32 w-full' />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (userResidences.length === 0) {
+    return (
+      <div className='flex-1 flex flex-col overflow-hidden'>
+        <Header title={t('myResidence' as any)} subtitle={t('viewResidenceInfo' as any)} />
+        <div className='flex-1 flex items-center justify-center p-6'>
+          <NoDataCard
+            icon={Home}
+            titleKey='noResidenceLinkedTitle'
+            descriptionKey='noResidenceLinkedDescription'
+            testId='no-residence-linked'
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Residence-level pages (e.g. /residents/residence): the wrapped page
+  // already lists the user's residences (and provides its own selector when
+  // there are 2+). Render it directly without org/building/residence URL
+  // context — preserving the existing inner-page behaviour while bypassing
+  // the admin picker.
+  if (includesResidence) {
+    return <WrappedComponent {...(wrappedProps as T)} />;
+  }
+
+  // Building-level pages (e.g. /resident/common-spaces): we need a buildingId
+  // before the wrapped page can render. Auto-select when there is a single
+  // distinct building; otherwise show a small building picker.
+  if (includesBuilding) {
+    const resolvedBuildingId =
+      selectedBuildingId && uniqueBuildings.some((b) => b.id === selectedBuildingId)
+        ? selectedBuildingId
+        : uniqueBuildings.length === 1
+          ? uniqueBuildings[0].id
+          : null;
+
+    if (resolvedBuildingId) {
+      const resolvedBuildingName = uniqueBuildings.find((b) => b.id === resolvedBuildingId)?.name;
+      const showBackButton = uniqueBuildings.length > 1;
+      return (
+        <WrappedComponent
+          {...(wrappedProps as T)}
+          buildingId={resolvedBuildingId}
+          buildingName={resolvedBuildingName}
+          showBackButton={showBackButton}
+          backButtonLabel={resolvedBuildingName || t('building' as any)}
+          onBack={showBackButton ? () => navigate({ building: null }) : undefined}
+        />
+      );
+    }
+
+    // Multiple buildings, none selected → show a building picker.
+    const items: SelectionGridItem[] = uniqueBuildings.map((b) => ({
+      id: b.id,
+      name: b.name,
+      details: '',
+      type: 'building',
+    }));
+
+    return (
+      <div className='flex-1 flex flex-col overflow-hidden'>
+        <Header
+          title={config.title || t('selectYourBuilding' as any)}
+          subtitle={config.subtitle}
+        />
+        <div className='flex-1 overflow-auto p-6'>
+          <SelectionGrid
+            title=''
+            items={items}
+            onSelectItem={(id) => navigate({ building: id })}
+            onBack={null}
+            isLoading={false}
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // No residence or building level in hierarchy — render directly.
+  return <WrappedComponent {...(wrappedProps as T)} />;
 }
 
 /**
