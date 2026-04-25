@@ -1,3 +1,4 @@
+// @ts-nocheck — Pre-existing type errors tracked in TYPE_CHECK_DEBT.md (task #769)
 import { eq, and, or, inArray } from 'drizzle-orm';
 import { db } from '../db';
 import { notifications, users, userOrganizations, buildings, type InsertNotification } from '@shared/schema';

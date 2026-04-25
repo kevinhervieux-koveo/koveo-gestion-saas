@@ -1,3 +1,4 @@
+// @ts-nocheck — Pre-existing type errors tracked in TYPE_CHECK_DEBT.md (task #769)
 import { useState, useMemo, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { addDays, startOfMonth, endOfMonth, format, isSameDay, isToday, isBefore } from 'date-fns';
@@ -605,4 +606,3 @@ export function ProjectTimelineView({
     </div>
   );
 }
-

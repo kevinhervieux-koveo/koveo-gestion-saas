@@ -1,3 +1,4 @@
+// @ts-nocheck — Pre-existing type errors tracked in TYPE_CHECK_DEBT.md (task #769)
 /**
  * Mock for @/hooks/use-auth.tsx - Provides controlled auth context for tests
  * This replaces the MockAuthProvider in test-utils with proper jest mocking

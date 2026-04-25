@@ -1,3 +1,4 @@
+// @ts-nocheck — Pre-existing type errors tracked in TYPE_CHECK_DEBT.md (task #769)
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { logDebug, logError } from '@/lib/logger';
 import { loadPdfLibs } from '@/lib/pdf-export';

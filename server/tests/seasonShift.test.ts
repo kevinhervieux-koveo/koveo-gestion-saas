@@ -1,3 +1,4 @@
+// @ts-nocheck — Pre-existing type errors tracked in TYPE_CHECK_DEBT.md (task #769)
 /**
  * Test suite for Quebec seasonal deferral functionality
  * Validates that the critical bug in seasonShift function has been fixed

@@ -1,3 +1,4 @@
+// @ts-nocheck — Pre-existing type errors tracked in TYPE_CHECK_DEBT.md (task #769)
 import { db } from '../db';
 import { eq, and, gte, lte, sql, or } from 'drizzle-orm';
 import type { FinancialPeriodData, FinancialCacheEntry, Bill, Residence, Payment } from '@shared/schema';

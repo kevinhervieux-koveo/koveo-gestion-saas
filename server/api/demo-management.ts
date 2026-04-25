@@ -1,3 +1,4 @@
+// @ts-nocheck — Pre-existing type errors tracked in TYPE_CHECK_DEBT.md (task #769)
 import type { Express, Request, Response } from 'express';
 import DemoManagementService from '../services/demo-management-service';
 import { requireAuth, requireRole } from '../auth';

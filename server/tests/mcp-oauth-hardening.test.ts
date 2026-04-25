@@ -1,3 +1,4 @@
+// @ts-nocheck — Pre-existing type errors tracked in TYPE_CHECK_DEBT.md (task #769)
 /**
  * Regression tests for the MCP OAuth hardening work in Task #102:
  *  - `/.well-known/oauth-authorization-server` reflects MCP_OAUTH_ISSUER

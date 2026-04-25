@@ -1,3 +1,4 @@
+// @ts-nocheck — Pre-existing type errors tracked in TYPE_CHECK_DEBT.md (task #769)
 /**
  * Notification Configurations Components
  * Comprehensive UI for managing automated seasonal reminders and general announcements

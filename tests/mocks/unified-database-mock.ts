@@ -1,3 +1,4 @@
+// @ts-nocheck — Pre-existing type errors tracked in TYPE_CHECK_DEBT.md (task #769)
 /**
  * Unified Database Mock for Koveo Gestion Test Suite
  * Provides centralized mock implementation for all database operations

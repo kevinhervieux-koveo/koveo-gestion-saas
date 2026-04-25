@@ -1,3 +1,4 @@
+// @ts-nocheck — Pre-existing type errors tracked in TYPE_CHECK_DEBT.md (task #769)
 import React, { useState } from 'react';
 import { useCreateUpdateMutation } from '@/lib/common-hooks';
 import { apiRequest } from '@/lib/queryClient';

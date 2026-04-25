@@ -47,8 +47,6 @@ export type {
   InsertPasswordResetToken,
   InvitationAuditLog,
   InsertInvitationAuditLog,
-  McpAssumeUserLog,
-  InsertMcpAssumeUserLog,
 } from './schemas/core';
 
 export type {

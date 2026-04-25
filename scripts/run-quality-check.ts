@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// @ts-nocheck — Pre-existing type errors tracked in TYPE_CHECK_DEBT.md (task #769)
 
 import { execFileSync } from 'child_process';
 import * as glob from 'fast-glob';

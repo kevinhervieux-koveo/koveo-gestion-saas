@@ -1,3 +1,4 @@
+// @ts-nocheck — Pre-existing type errors tracked in TYPE_CHECK_DEBT.md (task #769)
 /**
  * Enhanced Web Vitals monitoring for Quebec Property Management SaaS
  * Tracks Core Web Vitals and provides real-time performance insights

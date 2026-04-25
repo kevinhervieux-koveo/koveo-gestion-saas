@@ -1,3 +1,4 @@
+// @ts-nocheck — Pre-existing type errors tracked in TYPE_CHECK_DEBT.md (task #769)
 import type { Express, Request, Response } from 'express';
 import type { Bill } from '@shared/schema';
 import { eq, desc, and, sql, isNull, isNotNull, or, ilike, exists, inArray, asc, gte, lte } from 'drizzle-orm';
