@@ -122,6 +122,26 @@ interface ItemFixture {
    * preExcludeStatus and hide such items.
    */
   sortingDecisionSplitIntoItemIds?: string[] | null;
+  /**
+   * Optional — used by Task #1055 to seed AI-suggested split pages on
+   * rejected Branching items so the read-only suggestion card can render
+   * "Split after page N".
+   */
+  sortingSplitAtPage?: number | null;
+  /**
+   * Optional — used by Task #1055 to seed AI-suggested merge groups on
+   * rejected Branching items. When set, computeMergeGroup will resolve the
+   * sibling filenames so the read-only suggestion card can render
+   * "Merge with: <file names>".
+   */
+  sortingMergeWithItemIds?: string[] | null;
+  /**
+   * Optional — used by Task #1055. The AI-suggestion card is gated on
+   * !sortingDecisionDraft so the card only renders while sortingDecision
+   * still reflects the AI's original guess (not an auto-saved manual draft).
+   * Defaults to false in the payload so existing fixtures stay unchanged.
+   */
+  sortingDecisionDraft?: boolean;
 }
 
 let items: ItemFixture[] = [];
@@ -173,9 +193,11 @@ function buildSessionPayload() {
       sortingDecision: it.sortingDecision ?? null,
       sortingReason: it.sortingReason ?? null,
       sortingMergeWithItemId: null,
-      sortingSplitAtPage: null,
+      sortingMergeWithItemIds: it.sortingMergeWithItemIds ?? null,
+      sortingSplitAtPage: it.sortingSplitAtPage ?? null,
       sortingDecisionState: it.sortingDecisionState ?? null,
       sortingManualOverride: false,
+      sortingDecisionDraft: it.sortingDecisionDraft ?? false,
       sortingDecisionSplitIntoItemIds: it.sortingDecisionSplitIntoItemIds ?? null,
       branchingConfidence: null,
       branchingFallback: null,
@@ -723,5 +745,171 @@ describe('BulkDocumentImportPage — excluded files hidden in Branching step (Ta
       timeout: 4000,
     });
     await screen.findByTestId(`item-preview-trigger-${SORTING_EXCLUDED_ID}`);
+  });
+});
+
+// -----------------------------------------------------------------------------
+// Task #1055 — Rejected Branching items must show the AI suggestion summary.
+//
+// Task #1034 added a read-only "AI suggestion: Split after page N" /
+// "AI suggestion: Merge with: <names>" card to the Branching detail panel
+// for items whose `sortingDecisionState === 'rejected'`. The card lives at
+// `branching-ai-suggestion-${id}` and is gated by:
+//
+//   - sortingIsRejected (sortingDecisionState === 'rejected')
+//   - !sortingDecisionDraft (the saved decision still reflects the AI's
+//     guess, not an admin-side auto-saved draft)
+//   - sortingDecision === 'split' || 'merge'
+//
+// The interactive `branching-slice-section-${id}` is suppressed for
+// rejected items (`!sortingIsRejected` in showSliceSection) because the
+// manual picker owns slice editing for rejected rows.
+//
+// Without this coverage a future refactor of `showSliceSection` /
+// `showMergeSection` could silently regress the read-only card and admins
+// would lose the AI context on rejected items.
+// -----------------------------------------------------------------------------
+
+const BRANCHING_REJECTED_SPLIT_ID = 'item-rejected-split-task-1055';
+const BRANCHING_REJECTED_SPLIT_NAME = 'rejected-split-source.pdf';
+const BRANCHING_REJECTED_MERGE_LEAD_ID = 'item-rejected-merge-lead-task-1055';
+const BRANCHING_REJECTED_MERGE_LEAD_NAME = 'rejected-merge-lead.pdf';
+const BRANCHING_MERGE_PARTNER_A_ID = 'item-merge-partner-a-task-1055';
+const BRANCHING_MERGE_PARTNER_A_NAME = 'merge-partner-a.pdf';
+const BRANCHING_MERGE_PARTNER_B_ID = 'item-merge-partner-b-task-1055';
+const BRANCHING_MERGE_PARTNER_B_NAME = 'merge-partner-b.pdf';
+
+const REJECTED_SPLIT_AT_PAGE = 7;
+
+function setupRejectedBranchingItems() {
+  currentStep = 'sorting';
+  items = [
+    // --- Rejected SPLIT item ---
+    // Status is 'sorted' (not 'rejected') so the row is not filtered out
+    // by the excluded-items filter. The AI suggested splitting after a
+    // specific page; the admin rejected that suggestion. The read-only
+    // card must surface "Split after page 7".
+    {
+      id: BRANCHING_REJECTED_SPLIT_ID,
+      originalName: BRANCHING_REJECTED_SPLIT_NAME,
+      status: 'sorted' as const,
+      preExcludeStatus: null,
+      screeningTypeGuess: 'invoice',
+      screeningBucketGuess: null,
+      screeningConfidence: 0.8,
+      screeningQaReason: null,
+      sortingDecision: 'split',
+      sortingDecisionState: 'rejected',
+      sortingDecisionDraft: false,
+      sortingSplitAtPage: REJECTED_SPLIT_AT_PAGE,
+    },
+    // --- Rejected MERGE lead ---
+    // The AI suggested merging this item with two siblings. The admin
+    // rejected that suggestion. The read-only card must surface
+    // "Merge with: <partner-a name>, <partner-b name>".
+    {
+      id: BRANCHING_REJECTED_MERGE_LEAD_ID,
+      originalName: BRANCHING_REJECTED_MERGE_LEAD_NAME,
+      status: 'sorted' as const,
+      preExcludeStatus: null,
+      screeningTypeGuess: 'contract',
+      screeningBucketGuess: null,
+      screeningConfidence: 0.7,
+      screeningQaReason: null,
+      sortingDecision: 'merge',
+      sortingDecisionState: 'rejected',
+      sortingDecisionDraft: false,
+      sortingMergeWithItemIds: [
+        BRANCHING_MERGE_PARTNER_A_ID,
+        BRANCHING_MERGE_PARTNER_B_ID,
+      ],
+    },
+    // --- Merge partners (siblings of the rejected merge lead) ---
+    // These are referenced by sortingMergeWithItemIds above so
+    // computeMergeGroup can resolve their filenames into the read-only
+    // "Merge with: …" sentence. They themselves are accepted-keep rows
+    // so they don't add noise to the assertions.
+    {
+      id: BRANCHING_MERGE_PARTNER_A_ID,
+      originalName: BRANCHING_MERGE_PARTNER_A_NAME,
+      status: 'sorted' as const,
+      preExcludeStatus: null,
+      screeningTypeGuess: 'contract',
+      screeningBucketGuess: null,
+      screeningConfidence: 0.65,
+      screeningQaReason: null,
+      sortingDecision: 'keep',
+      sortingDecisionState: 'accepted',
+    },
+    {
+      id: BRANCHING_MERGE_PARTNER_B_ID,
+      originalName: BRANCHING_MERGE_PARTNER_B_NAME,
+      status: 'sorted' as const,
+      preExcludeStatus: null,
+      screeningTypeGuess: 'contract',
+      screeningBucketGuess: null,
+      screeningConfidence: 0.55,
+      screeningQaReason: null,
+      sortingDecision: 'keep',
+      sortingDecisionState: 'accepted',
+    },
+  ];
+}
+
+describe('BulkDocumentImportPage — rejected Branching AI suggestion card (Task #1055)', () => {
+  it('renders the read-only AI suggestion card for both split and merge rejections, and suppresses the interactive slice section', async () => {
+    setupRejectedBranchingItems();
+    currentLanguage = 'en';
+
+    renderPage();
+
+    // Wait for the rejected-split row to appear — confirms the Branching
+    // step rendered and the rejected-but-not-excluded items are visible.
+    await screen.findByTestId(
+      `item-preview-trigger-${BRANCHING_REJECTED_SPLIT_ID}`,
+      undefined,
+      { timeout: 4000 },
+    );
+    await screen.findByTestId(
+      `item-preview-trigger-${BRANCHING_REJECTED_MERGE_LEAD_ID}`,
+    );
+
+    // --- Rejected SPLIT item ---
+    // Rejected rows are force-expanded (Task #1001) so the detail panel is
+    // present without a chevron click. The AI suggestion card must be
+    // inside it with the expected English split sentence.
+    const splitPanel = screen.getByTestId(
+      `item-detail-panel-${BRANCHING_REJECTED_SPLIT_ID}`,
+    );
+    const splitSuggestion = screen.getByTestId(
+      `branching-ai-suggestion-${BRANCHING_REJECTED_SPLIT_ID}`,
+    );
+    expect(splitPanel).toContainElement(splitSuggestion);
+    expect(splitSuggestion).toHaveTextContent('AI suggestion');
+    expect(splitSuggestion).toHaveTextContent(
+      `Split after page ${REJECTED_SPLIT_AT_PAGE}`,
+    );
+
+    // The interactive slice sub-section must NOT be rendered for the
+    // rejected split item — the manual picker owns slice editing in the
+    // rejected state (showSliceSection gates on !sortingIsRejected).
+    expect(
+      screen.queryByTestId(`branching-slice-section-${BRANCHING_REJECTED_SPLIT_ID}`),
+    ).not.toBeInTheDocument();
+
+    // --- Rejected MERGE lead ---
+    // The AI suggestion card must surface "Merge with: <names>" with both
+    // partner filenames in the order returned by computeMergeGroup.
+    const mergePanel = screen.getByTestId(
+      `item-detail-panel-${BRANCHING_REJECTED_MERGE_LEAD_ID}`,
+    );
+    const mergeSuggestion = screen.getByTestId(
+      `branching-ai-suggestion-${BRANCHING_REJECTED_MERGE_LEAD_ID}`,
+    );
+    expect(mergePanel).toContainElement(mergeSuggestion);
+    expect(mergeSuggestion).toHaveTextContent('AI suggestion');
+    expect(mergeSuggestion).toHaveTextContent(
+      `Merge with: ${BRANCHING_MERGE_PARTNER_A_NAME}, ${BRANCHING_MERGE_PARTNER_B_NAME}`,
+    );
   });
 });
