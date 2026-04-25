@@ -1,0 +1,129 @@
+client:733 [vite] connecting...
+client:827 [vite] connected.
+admin/bulk-document-import:1 Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner.
+client:865 [vite] server connection lost. Polling for restart...
+client:935 Creating a worker from 'blob:https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/e6f2367f-2eac-4b53-a85b-e750a5fc5b5d' violates the following Content Security Policy directive: "script-src 'self' 'unsafe-inline' https://replit.com https://replit-cdn.com https://*.replit.com https://*.replit-cdn.com". Note that 'worker-src' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked.
+waitForSuccessfulPing @ client:935
+handleMessage @ client:869
+user:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+buildings?has_common_spaces=true:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+sessions?limit=20&offset=0:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+koveo_logo_small_1777056266792.jpg:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+src/pages/auth/login.tsx:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+installHook.js:1 Failed to load component login-page after 3 attempts: TypeError: Failed to fetch dynamically imported module: https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/src/pages/auth/login.tsx
+overrideMethod @ installHook.js:1
+(anonymous) @ component-loader.ts:80
+installHook.js:1 TypeError: Failed to fetch dynamically imported module: https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/src/pages/auth/login.tsx
+
+The above error occurred in one of your React components.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, AuthErrorBoundary.
+
+overrideMethod @ installHook.js:1
+defaultOnCaughtError @ react-dom_client.js?v=1625281e:6264
+logCaughtError @ react-dom_client.js?v=1625281e:6296
+runWithFiberInDEV @ react-dom_client.js?v=1625281e:1485
+inst.componentDidCatch.update.callback @ react-dom_client.js?v=1625281e:6341
+callCallback @ react-dom_client.js?v=1625281e:4097
+commitCallbacks @ react-dom_client.js?v=1625281e:4109
+runWithFiberInDEV @ react-dom_client.js?v=1625281e:1485
+commitClassCallbacks @ react-dom_client.js?v=1625281e:8543
+commitLayoutEffectOnFiber @ react-dom_client.js?v=1625281e:9011
+recursivelyTraverseLayoutEffects @ react-dom_client.js?v=1625281e:9682
+commitLayoutEffectOnFiber @ react-dom_client.js?v=1625281e:9096
+recursivelyTraverseLayoutEffects @ react-dom_client.js?v=1625281e:9682
+commitLayoutEffectOnFiber @ react-dom_client.js?v=1625281e:8956
+recursivelyTraverseLayoutEffects @ react-dom_client.js?v=1625281e:9682
+commitLayoutEffectOnFiber @ react-dom_client.js?v=1625281e:9096
+recursivelyTraverseLayoutEffects @ react-dom_client.js?v=1625281e:9682
+commitLayoutEffectOnFiber @ react-dom_client.js?v=1625281e:8956
+recursivelyTraverseLayoutEffects @ react-dom_client.js?v=1625281e:9682
+commitLayoutEffectOnFiber @ react-dom_client.js?v=1625281e:8960
+recursivelyTraverseLayoutEffects @ react-dom_client.js?v=1625281e:9682
+commitLayoutEffectOnFiber @ react-dom_client.js?v=1625281e:8956
+recursivelyTraverseLayoutEffects @ react-dom_client.js?v=1625281e:9682
+commitLayoutEffectOnFiber @ react-dom_client.js?v=1625281e:9016
+flushLayoutEffects @ react-dom_client.js?v=1625281e:11174
+commitRoot @ react-dom_client.js?v=1625281e:11080
+commitRootWhenReady @ react-dom_client.js?v=1625281e:10512
+performWorkOnRoot @ react-dom_client.js?v=1625281e:10457
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=1625281e:11623
+performWorkUntilDeadline @ react-dom_client.js?v=1625281e:36
+web-vitals:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+icon-192.png:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+web-vitals:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+web-vitals:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+web-vitals:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+icon-192.png:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+Error while trying to use the following icon from the Manifest: <URL> (Download error or resource isn't a valid image)
+Error while trying to use the following icon from the Manifest: <URL> (Download error or resource isn't a valid image)
+Error while trying to use the following icon from the Manifest: <URL> (Download error or resource isn't a valid image)
+Error while trying to use the following icon from the Manifest: <URL> (Download error or resource isn't a valid image)
+Error while trying to use the following icon from the Manifest: <URL> (Download error or resource isn't a valid image)
+icon-512.png:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+login:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+manifest.webmanifest:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+web-vitals:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+web-vitals:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+icon-192.png:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+web-vitals:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+web-vitals:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+web-vitals:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+icon-192.png:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+icon-512.png:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+web-vitals:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+web-vitals:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+icon-192.png:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+web-vitals:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+web-vitals:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+web-vitals:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+icon-192.png:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+icon-512.png:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+web-vitals:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+icon-192.png:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+web-vitals:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+web-vitals:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+web-vitals:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+icon-512.png:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+icon-192.png:1  Failed to load resource: the server responded with a status of 502 (Bad Gateway)
+web-vitals-monitor.ts:196  POST https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/performance/web-vitals net::ERR_ABORTED 502 (Bad Gateway)
+sendToAnalytics @ web-vitals-monitor.ts:196
+onMetric @ web-vitals-monitor.ts:85
+(anonymous) @ web-vitals.js?v=1625281e:13
+(anonymous) @ web-vitals.js?v=1625281e:233
+(anonymous) @ web-vitals.js?v=1625281e:7
+icon-192.png:1  GET https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/icon-192.png 502 (Bad Gateway)
+web-vitals-monitor.ts:196  POST https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/performance/web-vitals net::ERR_ABORTED 502 (Bad Gateway)
+sendToAnalytics @ web-vitals-monitor.ts:196
+onMetric @ web-vitals-monitor.ts:85
+(anonymous) @ web-vitals.js?v=1625281e:13
+(anonymous) @ web-vitals.js?v=1625281e:100
+requestAnimationFrame
+(anonymous) @ web-vitals.js?v=1625281e:17
+requestAnimationFrame
+i @ web-vitals.js?v=1625281e:17
+(anonymous) @ web-vitals.js?v=1625281e:99
+(anonymous) @ web-vitals.js?v=1625281e:7
+web-vitals-monitor.ts:196  POST https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/performance/web-vitals net::ERR_ABORTED 502 (Bad Gateway)
+sendToAnalytics @ web-vitals-monitor.ts:196
+onMetric @ web-vitals-monitor.ts:85
+(anonymous) @ web-vitals.js?v=1625281e:13
+(anonymous) @ web-vitals.js?v=1625281e:218
+requestAnimationFrame
+(anonymous) @ web-vitals.js?v=1625281e:17
+requestAnimationFrame
+i @ web-vitals.js?v=1625281e:17
+(anonymous) @ web-vitals.js?v=1625281e:217
+(anonymous) @ web-vitals.js?v=1625281e:7
+web-vitals-monitor.ts:196  POST https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/performance/web-vitals net::ERR_ABORTED 502 (Bad Gateway)
+sendToAnalytics @ web-vitals-monitor.ts:196
+onMetric @ web-vitals-monitor.ts:85
+(anonymous) @ web-vitals.js?v=1625281e:13
+requestAnimationFrame
+(anonymous) @ web-vitals.js?v=1625281e:17
+requestAnimationFrame
+i @ web-vitals.js?v=1625281e:17
+(anonymous) @ web-vitals.js?v=1625281e:117
+(anonymous) @ web-vitals.js?v=1625281e:7
+icon-192.png:1  GET https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/icon-192.png 502 (Bad Gateway)
+icon-512.png:1  GET https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/icon-512.png 502 (Bad Gateway)
