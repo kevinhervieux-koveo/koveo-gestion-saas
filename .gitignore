@@ -94,4 +94,15 @@ core.*
 /architect_review_request.txt
 
 .git.backup.*
-.github/workflows/
+# Ignore workflow files by glob (not by directory) so individual files
+# can be surgically un-ignored below. A bare `.github/workflows/`
+# excludes the directory itself, and gitignore cannot re-include a
+# file under an excluded parent directory.
+.github/workflows/*
+# Surgical un-ignore for the schema-drift CI guard added in Task #814.
+# The rest of the workflow tree was ignored after the workflow scope
+# was removed historically (see commit 767c71171 "Remove workflows
+# directory"). This file must be tracked so GitHub Actions actually
+# runs the schema-drift check on every PR — without it, the guard from
+# Task #814 would only exist on the local Replit environment.
+!.github/workflows/schema-drift-check.yml
