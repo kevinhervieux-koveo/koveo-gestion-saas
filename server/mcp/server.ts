@@ -125,6 +125,16 @@ export interface McpAuthContext {
    * escalation by simply passing `role: "admin"` in tool args.
    */
   role?: McpRole;
+  /**
+   * Client IP address captured at session-initialize time. Stored on the
+   * session and copied into the `mcp_assume_user_log` audit rows so we
+   * can attribute impersonation actions back to a specific caller. Optional
+   * because the legacy MCP_API_KEY path and unit tests construct the
+   * context without an Express request.
+   */
+  ipAddress?: string;
+  /** User-Agent header captured at session-initialize time. See `ipAddress`. */
+  userAgent?: string;
 }
 
 async function lookupMcpUser(role: McpRole): Promise<{ id: string; role: string } | null> {
@@ -157,17 +167,22 @@ async function lookupMcpUserById(userId: string): Promise<{ id: string; role: st
  * be tested in isolation from the database.
  *
  * Resolution order:
- *   - If the request is OAuth-authenticated (`authContext.userId` is set),
- *     return the real Koveo user behind that OAuth grant. This is what every
- *     write tool that needs an `xxxBy` foreign key (createdBy, submitterId,
- *     etc.) should use, so rows are attributed to the actual caller.
+ *   - If a session-level `assumedUserId` override is set (Task #642 — admin-only
+ *     `assume_user` impersonation tool), return that user. This wins over the
+ *     OAuth-bound user so all subsequent tool calls are scoped to the assumed
+ *     identity. The override is cleared by `restore_acting_user`.
+ *   - Otherwise, if the request is OAuth-authenticated (`authContext.userId`
+ *     is set), return the real Koveo user behind that OAuth grant. This is
+ *     what every write tool that needs an `xxxBy` foreign key (createdBy,
+ *     submitterId, etc.) should use, so rows are attributed to the actual
+ *     caller.
  *   - Otherwise (legacy MCP_API_KEY path, no OAuth context), fall back to the
  *     synthetic seed account for the requested role
  *     (`mcp-{role}@koveo-mcp.test`).
  *
- * If the OAuth-bound user can't be found in the DB (e.g. they were deleted
- * after the token was issued), this returns null — callers should handle that
- * the same way they handle a missing seed account.
+ * If the OAuth-bound (or assumed) user can't be found in the DB (e.g. they
+ * were deleted after the token was issued), this returns null — callers should
+ * handle that the same way they handle a missing seed account.
  */
 export async function resolveMcpUser(
   authContext: McpAuthContext | undefined,
@@ -175,12 +190,45 @@ export async function resolveMcpUser(
   deps: {
     lookupById: (id: string) => Promise<{ id: string; role: string } | null>;
     lookupByRole: (role: McpRole) => Promise<{ id: string; role: string } | null>;
+    /**
+     * Per-session impersonation override resolver. When it returns a non-null
+     * userId, that user is looked up via `lookupById` and returned. Optional
+     * so the function stays easy to call from tests that don't exercise
+     * impersonation.
+     */
+    getAssumedUserId?: () => string | null | undefined;
   },
 ): Promise<{ id: string; role: string } | null> {
+  const assumedUserId = deps.getAssumedUserId?.();
+  if (assumedUserId) {
+    return deps.lookupById(assumedUserId);
+  }
   if (authContext?.userId) {
     return deps.lookupById(authContext.userId);
   }
   return deps.lookupByRole(role);
+}
+
+/**
+ * Map a raw DB user role (any value of the `user_role` enum) to one of the
+ * three McpRole buckets used throughout the MCP RBAC model. Exported so the
+ * `assume_user` tool and unit tests share the same mapping.
+ *
+ * Rationale: the `users.role` column may hold values that the MCP layer does
+ * not natively model (`resident`, `demo_*`). To keep RBAC behaviour intuitive
+ * when impersonating, we collapse:
+ *   - `admin` → `admin`
+ *   - `manager` / `demo_manager` → `manager`
+ *   - everything else (`tenant`, `resident`, `demo_tenant`, `demo_resident`,
+ *     and any future tenant-equivalent roles) → `tenant`
+ *
+ * The fallback to `tenant` is deliberately conservative: an unknown role
+ * should never silently grant elevated privileges via impersonation.
+ */
+export function mapDbRoleToMcpRole(dbRole: string): McpRole {
+  if (dbRole === 'admin') return 'admin';
+  if (dbRole === 'manager' || dbRole === 'demo_manager') return 'manager';
+  return 'tenant';
 }
 
 /**
@@ -646,6 +694,20 @@ const ROLE_META_TOOL_NAMES: ReadonlySet<string> = new Set([
   'get_mcp_info',
   'downgrade_acting_role',
   'restore_acting_role',
+  // Task #642 — impersonation tools also already include the assumed-user
+  // information in their primary payload, so we exempt them from the generic
+  // downgrade reminder for the same reason.
+  'assume_user',
+  'restore_acting_user',
+]);
+
+// Task #642 — impersonation tools bypass the generic role-enforcement
+// wrapper so that EVERY invocation reaches the handler and produces an
+// audit row (the wrapper would short-circuit on escalated `role` args).
+// Admin gating is performed in-handler instead.
+const IMPERSONATION_TOOL_NAMES: ReadonlySet<string> = new Set([
+  'assume_user',
+  'restore_acting_user',
 ]);
 
 /**
@@ -674,14 +736,59 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
   // at consent time. Otherwise (legacy MCP_API_KEY path) fall back to the
   // caller-supplied role for backwards compatibility.
   const enforcedRole: McpRole | undefined = authContext?.role;
+
+  // Per-session impersonation override (Task #642). When set by the admin-only
+  // `assume_user` tool, `getMcpUser` resolves to this user instead of the
+  // OAuth-bound user, scoping every subsequent tool call to the assumed
+  // identity. Cleared by `restore_acting_user`. Lives in the session closure
+  // (just like `actingRole` below) so it cannot leak across MCP sessions —
+  // each `initialize` request gets a fresh `createMcpServer` call.
+  let assumedUserId: string | null = null;
+
+  // Task #642 audit helper. Returns true on persisted insert, false on
+  // throw (so callers can abort without mutating session state).
+  const writeAssumeUserAudit = async (args: {
+    action: "assume" | "restore";
+    assumedUserIdForRow: string | null;
+    outcome: string;
+    extraDetails?: Record<string, unknown>;
+  }): Promise<boolean> => {
+    try {
+      await db.insert(schema.mcpAssumeUserLog).values({
+        performedBy: authContext?.userId ?? null,
+        assumedUserId: args.assumedUserIdForRow,
+        action: args.action,
+        ipAddress: authContext?.ipAddress ?? null,
+        userAgent: authContext?.userAgent ?? null,
+        details: {
+          tool: args.action === "assume" ? "assume_user" : "restore_acting_user",
+          outcome: args.outcome,
+          oauthBoundRole: enforcedRole ?? null,
+          oauthHasUserId: Boolean(authContext?.userId),
+          ...(args.extraDetails ?? {}),
+        },
+      });
+      return true;
+    } catch (e) {
+      console.error(
+        `[mcp:${args.action}_user] failed to write audit row (outcome=${args.outcome})`,
+        e,
+      );
+      return false;
+    }
+  };
+
   // Resolves the user the tool should attribute writes to. When OAuth is in
   // use, this is the real Koveo user behind the token; when the legacy API-key
   // path is in use, it falls back to the synthetic `mcp-{role}@koveo-mcp.test`
-  // seed account so existing dev/test workflows keep working.
+  // seed account so existing dev/test workflows keep working. When a
+  // session-level `assumedUserId` override is set (admin impersonation via
+  // `assume_user`), it takes precedence over both.
   const getMcpUser = (role: McpRole) =>
     resolveMcpUser(authContext, enforcedRole ?? role, {
       lookupById: lookupMcpUserById,
       lookupByRole: lookupMcpUser,
+      getAssumedUserId: () => assumedUserId,
     });
   const server = new McpServer({
     name: "koveo-gestion",
@@ -722,11 +829,16 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
         ...rest: unknown[]
       ) => unknown;
       if (typeof handler === 'function') {
-        const enforced = wrapHandlerWithRoleEnforcement(
-          handler,
-          enforcedRole,
-          () => actingRole ?? enforcedRole,
-        );
+        // Task #642 — impersonation tools bypass the wrapper; they audit
+        // every invocation in-handler (see IMPERSONATION_TOOL_NAMES).
+        const skipWrapper = IMPERSONATION_TOOL_NAMES.has(toolName);
+        const enforced = skipWrapper
+          ? handler
+          : wrapHandlerWithRoleEnforcement(
+              handler,
+              enforcedRole,
+              () => actingRole ?? enforcedRole,
+            );
         // Append a session-state reminder to every tool response when a
         // downgrade is in effect, so the model sees the active (reduced)
         // role on every turn rather than only after explicitly calling
@@ -4446,6 +4558,288 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     },
   );
 
+  // Task #642 — admin-only impersonation tool. Gated on the MCP_ASSUME_USER
+  // flag, OAuth-bound admin role, and the target user existing. Updates both
+  // `assumedUserId` and `actingRole` (mapped from the assumed user's DB
+  // role) so the rest of the session is scoped to that identity. Every
+  // invocation writes one row to `mcp_assume_user_log`.
+  server.tool(
+    "assume_user",
+    "Admin-only QA tool: replace the effective user on this MCP session with " +
+      "the user identified by `userId`. Subsequent tool calls on this session " +
+      "behave as if that user were the OAuth caller — `list_residences`, " +
+      "`get_residence`, etc. return data scoped to the assumed user. Also " +
+      "auto-downgrades the acting role to match the assumed user's role. " +
+      "Use `restore_acting_user` to clear the override. Requires the " +
+      "MCP_ASSUME_USER feature flag and an admin OAuth session. Every call " +
+      "is recorded in the `mcp_assume_user_log` audit table.",
+    {
+      // No `role` arg by design (see IMPERSONATION_TOOL_NAMES).
+      userId: z.string().min(1).describe("The user id to impersonate."),
+    },
+    async ({ userId }) => {
+      const { isMcpAssumeUserEnabled } = await import("../utils/feature-flags");
+
+      if (!isMcpAssumeUserEnabled()) {
+        await writeAssumeUserAudit({
+          action: "assume",
+          assumedUserIdForRow: null,
+          outcome: "feature_disabled",
+          extraDetails: { attemptedUserId: userId },
+        });
+        return {
+          content: [{
+            type: "text" as const,
+            text:
+              "assume_user is not enabled on this server. Set the MCP_ASSUME_USER " +
+              "environment variable to a truthy value (e.g. \"1\", \"true\") to enable " +
+              "the impersonation surface, then restart the server.",
+          }],
+        };
+      }
+      if (!enforcedRole) {
+        await writeAssumeUserAudit({
+          action: "assume",
+          assumedUserIdForRow: null,
+          outcome: "not_oauth",
+          extraDetails: { attemptedUserId: userId },
+        });
+        return {
+          content: [{
+            type: "text" as const,
+            text:
+              "assume_user requires an OAuth-authenticated admin session. The legacy " +
+              "MCP_API_KEY auth path is not supported.",
+          }],
+        };
+      }
+      if (enforcedRole !== "admin") {
+        await writeAssumeUserAudit({
+          action: "assume",
+          assumedUserIdForRow: null,
+          outcome: "not_admin",
+          extraDetails: { attemptedUserId: userId },
+        });
+        return {
+          content: [{
+            type: "text" as const,
+            text:
+              `Permission denied: assume_user requires an admin OAuth session. ` +
+              `This session is bound to role "${enforcedRole}".`,
+          }],
+        };
+      }
+      if (!authContext?.userId) {
+        await writeAssumeUserAudit({
+          action: "assume",
+          assumedUserIdForRow: null,
+          outcome: "missing_user_id",
+          extraDetails: { attemptedUserId: userId },
+        });
+        return {
+          content: [{
+            type: "text" as const,
+            text:
+              "assume_user requires an OAuth session bound to a real user id; " +
+              "the current session has no userId in its auth context, so the " +
+              "impersonation cannot be safely attributed.",
+          }],
+        };
+      }
+      const target = await lookupMcpUserById(userId);
+      if (!target) {
+        await writeAssumeUserAudit({
+          action: "assume",
+          assumedUserIdForRow: null,
+          outcome: "unknown_target_user",
+          extraDetails: { attemptedUserId: userId },
+        });
+        return {
+          content: [{
+            type: "text" as const,
+            text: `assume_user failed: no user found with id "${userId}".`,
+          }],
+        };
+      }
+      const previousAssumedUserId = assumedUserId;
+      const previousActingRole = actingRole ?? enforcedRole;
+      const targetActingRole = mapDbRoleToMcpRole(target.role);
+      // Audit-first: persist the success row BEFORE mutating session state.
+      const audited = await writeAssumeUserAudit({
+        action: "assume",
+        assumedUserIdForRow: target.id,
+        outcome: "success",
+        extraDetails: {
+          previousActingRole,
+          previousAssumedUserId,
+          assumedUserDbRole: target.role,
+          assumedUserMcpRole: targetActingRole,
+        },
+      });
+      if (!audited) {
+        return {
+          content: [{
+            type: "text" as const,
+            text:
+              "assume_user aborted: failed to persist audit log entry. " +
+              "Session state was not changed.",
+          }],
+        };
+      }
+      assumedUserId = target.id;
+      actingRole = targetActingRole;
+      return {
+        content: [{
+          type: "text" as const,
+          text: JSON.stringify(
+            {
+              ok: true,
+              oauthBoundRole: enforcedRole,
+              assumedUserId: target.id,
+              assumedUserRole: target.role,
+              actingRole: targetActingRole,
+              previousActingRole,
+              previousAssumedUserId,
+              message:
+                `Now acting as user "${target.id}" (db role "${target.role}", ` +
+                `mapped to MCP role "${targetActingRole}"). Subsequent tool calls ` +
+                `will be scoped to this user. Call restore_acting_user to revert.`,
+            },
+            null,
+            2,
+          ),
+        }],
+      };
+    },
+  );
+
+  // Task #642 — companion to `assume_user`: clears the impersonation
+  // override and resets `actingRole` to the OAuth-bound ceiling. Same
+  // gating as `assume_user`; same audit-on-every-invocation contract.
+  server.tool(
+    "restore_acting_user",
+    "Clear any impersonation override set by `assume_user` on this MCP session " +
+      "and revert the effective user to the OAuth-bound user. Also resets the " +
+      "acting role back to the OAuth-bound role. Requires the MCP_ASSUME_USER " +
+      "feature flag and an admin OAuth session. Every call is recorded in the " +
+      "`mcp_assume_user_log` audit table.",
+    {},
+    async () => {
+      const { isMcpAssumeUserEnabled } = await import("../utils/feature-flags");
+
+      if (!isMcpAssumeUserEnabled()) {
+        await writeAssumeUserAudit({
+          action: "restore",
+          assumedUserIdForRow: assumedUserId,
+          outcome: "feature_disabled",
+        });
+        return {
+          content: [{
+            type: "text" as const,
+            text:
+              "restore_acting_user is not enabled on this server. Set the " +
+              "MCP_ASSUME_USER environment variable to a truthy value to enable " +
+              "the impersonation surface, then restart the server.",
+          }],
+        };
+      }
+      if (!enforcedRole) {
+        await writeAssumeUserAudit({
+          action: "restore",
+          assumedUserIdForRow: assumedUserId,
+          outcome: "not_oauth",
+        });
+        return {
+          content: [{
+            type: "text" as const,
+            text:
+              "restore_acting_user requires an OAuth-authenticated admin session. " +
+              "The legacy MCP_API_KEY auth path is not supported.",
+          }],
+        };
+      }
+      if (enforcedRole !== "admin") {
+        await writeAssumeUserAudit({
+          action: "restore",
+          assumedUserIdForRow: assumedUserId,
+          outcome: "not_admin",
+        });
+        return {
+          content: [{
+            type: "text" as const,
+            text:
+              `Permission denied: restore_acting_user requires an admin OAuth session. ` +
+              `This session is bound to role "${enforcedRole}".`,
+          }],
+        };
+      }
+      if (!authContext?.userId) {
+        await writeAssumeUserAudit({
+          action: "restore",
+          assumedUserIdForRow: assumedUserId,
+          outcome: "missing_user_id",
+        });
+        return {
+          content: [{
+            type: "text" as const,
+            text:
+              "restore_acting_user requires an OAuth session bound to a real user id; " +
+              "the current session has no userId in its auth context, so the " +
+              "restore cannot be safely attributed.",
+          }],
+        };
+      }
+      const previousAssumedUserId = assumedUserId;
+      const previousActingRole = actingRole ?? enforcedRole;
+      const noChange = previousAssumedUserId === null;
+      // Audit-first: leave session state unchanged if the insert fails.
+      const audited = await writeAssumeUserAudit({
+        action: "restore",
+        assumedUserIdForRow: previousAssumedUserId,
+        outcome: noChange ? "success_noop" : "success",
+        extraDetails: {
+          previousActingRole,
+          previousAssumedUserId,
+          noChange,
+        },
+      });
+      if (!audited) {
+        return {
+          content: [{
+            type: "text" as const,
+            text:
+              "restore_acting_user aborted: failed to persist audit log entry. " +
+              "Session state was not changed.",
+          }],
+        };
+      }
+      assumedUserId = null;
+      actingRole = enforcedRole;
+      return {
+        content: [{
+          type: "text" as const,
+          text: JSON.stringify(
+            {
+              ok: true,
+              oauthBoundRole: enforcedRole,
+              assumedUserId: null,
+              actingRole: enforcedRole,
+              previousAssumedUserId,
+              previousActingRole,
+              noChange,
+              message: noChange
+                ? "No impersonation was active on this session — nothing to restore."
+                : `Cleared impersonation of user "${previousAssumedUserId}" and ` +
+                  `restored acting role to OAuth-bound role "${enforcedRole}".`,
+            },
+            null,
+            2,
+          ),
+        }],
+      };
+    },
+  );
+
   server.tool(
     "get_mcp_info",
     "Get information about the MCP setup including available organizations, users, and roles",
@@ -4541,6 +4935,13 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
         oauthBoundRole,
         actingRole: currentActingRole,
         downgradeActive,
+        // Task #642 — surface the impersonation override so admin callers
+        // (and unit tests) can introspect whether `assume_user` is currently
+        // active without having to remember the assumed user id themselves.
+        // `null` means no impersonation; a string means the effective user
+        // for this session is that user, not the OAuth-bound one.
+        assumedUserId,
+        impersonationActive: assumedUserId !== null,
         allowedRoles,
         roleNote,
         // `note` is an alias for `roleNote` so MCP clients that look for a

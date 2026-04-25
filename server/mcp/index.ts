@@ -221,9 +221,19 @@ export async function registerMcpRoutes(app: Express) {
 
       if (!sessionId && isInitializeRequest(req.body)) {
         const auth = (req as Request & { auth?: { extra?: { userId?: string; role?: "admin" | "manager" | "tenant" } } }).auth;
+        // Capture client IP and User-Agent at session-initialize time so the
+        // `assume_user` audit log (Task #642) can attribute every
+        // impersonation row back to a specific caller. These values live on
+        // the per-session McpServer closure, so they reflect the IP/UA that
+        // *opened* the session, not necessarily the IP of every later POST
+        // — that's good enough for an audit trail and avoids plumbing the
+        // request object through every tool handler.
+        const userAgent = req.headers["user-agent"];
         const server = createMcpServer({
           userId: auth?.extra?.userId,
           role: auth?.extra?.role,
+          ipAddress: req.ip ?? undefined,
+          userAgent: typeof userAgent === "string" ? userAgent : undefined,
         });
         const transport = new StreamableHTTPServerTransport({
           sessionIdGenerator: () => crypto.randomUUID(),

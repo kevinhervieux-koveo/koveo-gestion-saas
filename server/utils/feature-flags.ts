@@ -25,3 +25,16 @@ function readBoolEnv(name: string): boolean {
 export function isBillNumberV2Enabled(): boolean {
   return readBoolEnv('BILL_NUMBER_V2');
 }
+
+/**
+ * MCP_ASSUME_USER — when on, the admin-only `assume_user` and
+ * `restore_acting_user` MCP tools are registered. When off, both tools
+ * are unavailable: `assume_user` is registered but returns a clear
+ * "feature not enabled" error if invoked, and `restore_acting_user`
+ * does the same. Gating the tools behind a flag lets us ship the
+ * impersonation surface dark and only flip it on in QA / staging where
+ * tenant-perspective testing is needed. See Task #642.
+ */
+export function isMcpAssumeUserEnabled(): boolean {
+  return readBoolEnv('MCP_ASSUME_USER');
+}
