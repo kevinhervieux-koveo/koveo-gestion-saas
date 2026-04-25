@@ -47,7 +47,17 @@ export type {
   InsertPasswordResetToken,
   InvitationAuditLog,
   InsertInvitationAuditLog,
+  McpAssumeUserLog,
+  InsertMcpAssumeUserLog,
 } from './schemas/core';
+
+// Re-export the `mcpAssumeUserLog` Drizzle table object as a value so that
+// `db.insert(schema.mcpAssumeUserLog)` resolves to a real table reference
+// (Task #689 / #798 regression). The `export *` above already covers this,
+// but listing it explicitly here keeps the table alongside the other
+// backward-compatibility table re-exports below and prevents accidental
+// regressions from future selective `export type { ... }` edits.
+export { mcpAssumeUserLog } from './schemas/core';
 
 export type {
   Building,
