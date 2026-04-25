@@ -1,7 +1,92 @@
 import { db } from "../db";
 import * as schema from "@shared/schema";
-import { eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import * as bcrypt from "bcryptjs";
+
+/**
+ * One-shot backfill for environments whose MCP sandbox was seeded BEFORE
+ * the manager `user_buildings` inserts were added (Task #963). Without
+ * these rows, `mcp-manager@koveo-mcp.test` is treated as having access to
+ * no buildings, which makes manager-only flows impossible to exercise
+ * end-to-end in already-seeded environments.
+ *
+ * The check is keyed on (mcp-manager, MCP-scoped buildings): if every
+ * MCP-1/MCP-2 building already has an active `user_buildings` row for the
+ * manager, this is a true no-op and the caller's "skipping" log path is
+ * preserved. Otherwise we insert ONLY the missing rows so we can never
+ * create duplicates in environments that were seeded after the fix.
+ *
+ * Returns the number of rows inserted (0 means nothing to backfill).
+ */
+async function backfillMcpManagerBuildingAccess(log: (msg: string) => void): Promise<number> {
+  const [manager] = await db
+    .select()
+    .from(schema.users)
+    .where(eq(schema.users.email, "mcp-manager@koveo-mcp.test"))
+    .limit(1);
+
+  if (!manager) {
+    // Pre-existing sandbox without the canonical manager user — out of
+    // scope for this backfill. Don't touch anything.
+    return 0;
+  }
+
+  const mcpOrgs = await db
+    .select({ id: schema.organizations.id })
+    .from(schema.organizations)
+    .where(inArray(schema.organizations.name, ["MCP-1", "MCP-2"]));
+
+  if (mcpOrgs.length === 0) {
+    return 0;
+  }
+
+  const mcpOrgIds = mcpOrgs.map((o) => o.id);
+  const mcpBuildings = await db
+    .select({ id: schema.buildings.id })
+    .from(schema.buildings)
+    .where(inArray(schema.buildings.organizationId, mcpOrgIds));
+
+  if (mcpBuildings.length === 0) {
+    return 0;
+  }
+
+  const mcpBuildingIds = mcpBuildings.map((b) => b.id);
+  // Existence check ignores `isActive` on purpose: if an admin manually
+  // deactivated a row out-of-band, the backfill should NOT silently
+  // re-enable it (that would surprise operators). It only fills truly
+  // missing rows.
+  const existing = await db
+    .select({ buildingId: schema.userBuildings.buildingId })
+    .from(schema.userBuildings)
+    .where(
+      and(
+        eq(schema.userBuildings.userId, manager.id),
+        inArray(schema.userBuildings.buildingId, mcpBuildingIds),
+      ),
+    );
+
+  const existingBuildingIds = new Set(existing.map((e) => e.buildingId));
+  const missingBuildingIds = mcpBuildingIds.filter((id) => !existingBuildingIds.has(id));
+
+  if (missingBuildingIds.length === 0) {
+    return 0;
+  }
+
+  await db.insert(schema.userBuildings).values(
+    missingBuildingIds.map((buildingId) => ({
+      userId: manager.id,
+      buildingId,
+      relationshipType: "manager",
+      isActive: true,
+    })),
+  );
+
+  log(
+    `[MCP SEED] Backfilled ${missingBuildingIds.length} missing manager ` +
+      `user_buildings row(s) for mcp-manager@koveo-mcp.test.`,
+  );
+  return missingBuildingIds.length;
+}
 
 export async function seedMcpData() {
   // Always log seed progress now: in dev it preserves existing developer
@@ -18,6 +103,11 @@ export async function seedMcpData() {
     .limit(1);
 
   if (existingOrg.length > 0) {
+    // Backfill ONLY runs on the fast-path: it's a no-op when rows are
+    // already present (preserving the original "skipping" log message)
+    // and inserts only what's missing in environments seeded before
+    // Task #963's manager `user_buildings` inserts landed.
+    await backfillMcpManagerBuildingAccess(log);
     log("[MCP SEED] MCP-1 already exists — sandbox already seeded, skipping.");
     return;
   }
