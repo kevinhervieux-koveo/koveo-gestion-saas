@@ -256,3 +256,157 @@ describe('BRANCH_SUB_CATEGORIES vocabulary validation logic (reassign endpoint g
     }
   });
 });
+
+// ===========================================================================
+// Task #802 — residence suggestion handling inside `suggestBranch`.
+//
+// Task #780 extended `suggestBranch` so that — when the AI routes a
+// document to `residence_documents` AND the caller passed in a list of
+// `residences` — the analyzer also tries to extract a concrete
+// `residenceId` from the model's response. The endpoint then uses
+// that id (or the absence of it) to drive the promotion gate inside
+// `processItemForStep` (covered separately in
+// tests/unit/api/bulk-import-set-residence.test.ts).
+//
+// Without coverage on the analyzer side, regressions like "I forgot
+// to validate the AI's residenceId against the building's actual
+// residences" would silently route imports to a wrong unit. The
+// cases below pin every branch of the residence-resolution logic.
+// ===========================================================================
+
+describe('suggestBranch — residence suggestion (Task #780/#802)', () => {
+  beforeAll(() => {
+    process.env.ANTHROPIC_API_KEY = 'test-key-task802';
+  });
+
+  const RESIDENCES = [
+    { id: 'res-A', unitNumber: '101' },
+    { id: 'res-B', unitNumber: '202' },
+  ];
+
+  it('returns the AI-picked residenceId when it matches one of the supplied residences', async () => {
+    makeFakeClient({
+      branch: 'residence_documents',
+      subCategory: 'lease',
+      residenceId: 'res-A',
+      residenceConfidence: 0.91,
+      residenceReason: 'unit 101 in filename',
+      reason: 'lease for unit 101',
+      confidence: 0.9,
+    });
+
+    const r = await bulkImportAnalyzer.suggestBranch({
+      originalName: 'lease-101.pdf',
+      residences: RESIDENCES,
+    });
+
+    expect(r.branch).toBe('residence_documents');
+    expect(r.residenceId).toBe('res-A');
+    expect(r.residenceConfidence).toBeGreaterThan(0.8);
+    expect(r.residenceReason).toBe('unit 101 in filename');
+    expect(r.residenceFallbackReason).toBeNull();
+  });
+
+  it('drops an AI-picked residenceId that is NOT in the supplied list and records a fallback reason', async () => {
+    makeFakeClient({
+      branch: 'residence_documents',
+      subCategory: 'lease',
+      residenceId: 'res-DOES-NOT-EXIST',
+      residenceConfidence: 0.95,
+      reason: 'lease',
+      confidence: 0.85,
+    });
+
+    const r = await bulkImportAnalyzer.suggestBranch({
+      originalName: 'mystery-lease.pdf',
+      residences: RESIDENCES,
+    });
+
+    expect(r.branch).toBe('residence_documents');
+    // The unrecognised id MUST be dropped — otherwise the gate would
+    // wave the item through to a residence that doesn't exist.
+    expect(r.residenceId).toBeNull();
+    expect(r.residenceConfidence).toBeNull();
+    expect(r.residenceFallbackReason).toMatch(/unrecognised/i);
+  });
+
+  it('records "AI could not determine the residence" when the model omits residenceId entirely', async () => {
+    makeFakeClient({
+      branch: 'residence_documents',
+      subCategory: 'lease',
+      reason: 'looks like a lease',
+      confidence: 0.8,
+      // No residenceId field at all.
+    });
+
+    const r = await bulkImportAnalyzer.suggestBranch({
+      originalName: 'lease-no-unit.pdf',
+      residences: RESIDENCES,
+    });
+
+    expect(r.branch).toBe('residence_documents');
+    expect(r.residenceId).toBeNull();
+    expect(r.residenceFallbackReason).toMatch(/could not determine/i);
+  });
+
+  it('does NOT attempt residence resolution when the branch is not residence_documents', async () => {
+    makeFakeClient({
+      branch: 'bill',
+      subCategory: 'utility',
+      // Even if the AI hallucinates a residenceId here, it must be
+      // ignored — bills are never tied to a residence in this flow.
+      residenceId: 'res-A',
+      reason: 'utility invoice',
+      confidence: 0.95,
+    });
+
+    const r = await bulkImportAnalyzer.suggestBranch({
+      originalName: 'electricity.pdf',
+      residences: RESIDENCES,
+    });
+
+    expect(r.branch).toBe('bill');
+    expect(r.residenceId).toBeNull();
+    expect(r.residenceConfidence).toBeNull();
+    expect(r.residenceReason).toBeNull();
+    expect(r.residenceFallbackReason).toBeNull();
+  });
+
+  it('does NOT attempt residence resolution when the residences list is empty (no building context)', async () => {
+    makeFakeClient({
+      branch: 'residence_documents',
+      subCategory: 'lease',
+      residenceId: 'res-A', // ignored, no list to validate against
+      reason: 'lease',
+      confidence: 0.9,
+    });
+
+    const r = await bulkImportAnalyzer.suggestBranch({
+      originalName: 'lease.pdf',
+      residences: [],
+    });
+
+    expect(r.branch).toBe('residence_documents');
+    expect(r.residenceId).toBeNull();
+    expect(r.residenceFallbackReason).toBeNull();
+  });
+
+  it('forwards a model-supplied residenceFallbackReason verbatim', async () => {
+    makeFakeClient({
+      branch: 'residence_documents',
+      subCategory: 'lease',
+      residenceFallbackReason: 'unit number absent from document',
+      reason: 'generic lease template',
+      confidence: 0.6,
+    });
+
+    const r = await bulkImportAnalyzer.suggestBranch({
+      originalName: 'lease-template.pdf',
+      residences: RESIDENCES,
+    });
+
+    expect(r.branch).toBe('residence_documents');
+    expect(r.residenceId).toBeNull();
+    expect(r.residenceFallbackReason).toBe('unit number absent from document');
+  });
+});
