@@ -78,6 +78,10 @@ The platform exposes an MCP server at `/mcp` for LLM integration (e.g., Claude D
 - **Debug Logging**: All `[DB DEBUG]`, `[SESSION STORE DB]`, `[MCP SEED]`, and optimization diagnostic logs are silenced in `NODE_ENV=production`; errors are still logged
 - **Session Security**: In production, cookies use `secure: true`, `sameSite: 'strict'`, `httpOnly: true`; session secret must be 32+ characters
 - **Environment Variables**: See `.env.example` for all required and optional variables
+- **Production Migration DB URL (Task #936)**: `npm run migrate` (and `drizzle.production.config.ts`) accept either `DATABASE_URL_KOVEO` or `PRODUCTION_DATABASE_URL` — they are aliases. When `NODE_ENV=production`:
+  - The runner prints a banner naming which env var supplied the URL and the masked `host:port/db` it is about to migrate (no credentials).
+  - If both prod vars are set, `DATABASE_URL_KOVEO` wins deterministically; if they point at different databases, a loud warning is logged and the alias is ignored.
+  - If neither prod var is set, the runner refuses to fall back to `DATABASE_URL` (the dev DB) and exits non-zero so the deploy fails fast instead of silently corrupting prod.
 
 ### MCP Tooling
 - **Write-Error Envelope (`server/mcp/server.ts` → `buildWriteErrorResponse`)**: All MCP write tools must wrap database failures with this helper. The text payload is a JSON object of shape `{ status, code, retryable, message, pgCode?, referenced_entity?, blocking_entity? }`.

@@ -4,6 +4,19 @@
 
 This guide provides instructions for updating the production database to ensure all bills have proper payment structures. This update was successfully completed on the development database and processed **1,483 bills** with **zero errors**.
 
+## Prerequisite: production database connection string
+
+Both `npm run migrate` and `drizzle.production.config.ts` accept either of two env var names for the production connection string — they are **aliases**, you only need to set one:
+
+- `DATABASE_URL_KOVEO`
+- `PRODUCTION_DATABASE_URL`
+
+Behaviour when `NODE_ENV=production`:
+
+- The migration runner prints a startup banner that names which env var supplied the URL and shows the masked `host:port/db` it is about to migrate (credentials stripped).
+- If **both** are set: `DATABASE_URL_KOVEO` wins deterministically. If the two point at different databases, a loud warning is logged and the `PRODUCTION_DATABASE_URL` value is ignored. Set both to the same value or unset one.
+- If **neither** is set: the runner refuses to fall back to the dev `DATABASE_URL` and exits non-zero. This is intentional — silently migrating the dev database from a production deploy is exactly the failure this guard prevents. Set one of the two prod aliases before retrying the deploy.
+
 ## ⚠️ IMPORTANT SAFETY NOTES
 
 - **BACKUP REQUIRED**: Create a full database backup before proceeding

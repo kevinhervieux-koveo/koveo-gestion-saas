@@ -88,22 +88,24 @@ function checksum(content: string): string {
   return createHash('sha256').update(content).digest('hex');
 }
 
-function resolveDatabaseUrl(): string {
-  // In production we deliberately prefer DATABASE_URL_KOVEO so the deploy
-  // step migrates the real production database. In any other environment
-  // we use DATABASE_URL so that local invocations target the dev DB and
-  // never accidentally write to prod.
-  const isProd = process.env.NODE_ENV === 'production';
-  const url = isProd
-    ? process.env.DATABASE_URL_KOVEO || process.env.DATABASE_URL
-    : process.env.DATABASE_URL || process.env.DATABASE_URL_KOVEO;
-  if (!url) {
-    throw new Error(
-      'No database URL configured. Set DATABASE_URL_KOVEO (production) or DATABASE_URL (development).',
-    );
-  }
-  return url;
-}
+// Re-export the URL helpers from their pure-helper module so existing
+// importers of `scripts/run-migrations.ts` (e.g. legacy scripts and
+// docs that reference the file path) keep working. The helpers live
+// in `run-migrations-url.ts` so the unit test suite can load them
+// without dragging in this file's `import.meta.url` usage, which the
+// Jest CJS loader cannot parse.
+export {
+  resolveDatabaseUrl,
+  maskDatabaseUrl,
+  type ProdUrlSource,
+  type DatabaseUrlSource,
+  type ResolvedDatabaseUrl,
+} from './run-migrations-url';
+import {
+  resolveDatabaseUrl,
+  maskDatabaseUrl,
+  type ResolvedDatabaseUrl,
+} from './run-migrations-url';
 
 // Stable advisory lock key so concurrent runners (e.g. multiple
 // Autoscale containers booting at once) serialize on the same lock
@@ -185,12 +187,54 @@ async function applyMigration(
   }
 }
 
+/**
+ * Print a startup banner that makes it unmistakable which database the
+ * runner is about to touch. In production the banner names the env var
+ * that supplied the URL and the masked `host/db`; if both prod aliases
+ * were set, it also notes which alias was ignored (and warns loudly if
+ * the two pointed at different databases).
+ */
+function logStartupBanner(
+  resolved: ResolvedDatabaseUrl,
+  opts: { statusOnly?: boolean },
+): void {
+  const masked = maskDatabaseUrl(resolved.url);
+  const action = opts.statusOnly ? 'inspect' : 'migrate';
+  if (resolved.isProd) {
+    // First production log line names the env var AND the masked target
+    // — the task spec ("very first log line clearly states which env
+    // var supplied the URL and shows the masked host/database") relies
+    // on this ordering for grep-friendly post-deploy checks.
+    log(
+      `PRODUCTION migration runner — env var ${resolved.source} → ${masked} (about to ${action})`,
+    );
+    log('================================================================');
+    if (resolved.ignoredSource) {
+      if (resolved.ignoredSourceDiffers) {
+        err(
+          `WARNING: ${resolved.ignoredSource} is also set but points at a ` +
+            `DIFFERENT database than ${resolved.source}. Ignoring ` +
+            `${resolved.ignoredSource}. Set both to the same value or unset one.`,
+        );
+      } else {
+        log(
+          `Note: ${resolved.ignoredSource} is also set (same value) and was ignored.`,
+        );
+      }
+    }
+    log('================================================================');
+  } else {
+    log(`Using ${resolved.source} (${masked}) — NODE_ENV is not production.`);
+  }
+}
+
 export async function runMigrations(opts: {
   baseline?: boolean;
   statusOnly?: boolean;
 }): Promise<MigrationResult> {
-  const url = resolveDatabaseUrl();
-  const pool = new Pool({ connectionString: url });
+  const resolved = resolveDatabaseUrl();
+  logStartupBanner(resolved, opts);
+  const pool = new Pool({ connectionString: resolved.url });
   const result: MigrationResult = {
     applied: [],
     baselined: [],
