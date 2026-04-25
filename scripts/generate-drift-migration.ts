@@ -321,11 +321,34 @@ END $$;
 -- DEFAULT-drop step is what allows DROP TYPE to succeed; otherwise the
 -- default expression itself keeps a reference to the old enum.
 
-DO $$ BEGIN
+DO $$
+DECLARE
+  pending_idx_def text;
+BEGIN
   IF EXISTS (
     SELECT 1 FROM pg_enum
     WHERE enumtypid = 'invitation_status'::regtype AND enumlabel = 'replaced'
   ) THEN
+    -- Capture and drop any partial indexes on invitations whose predicate
+    -- references the invitation_status enum literally (e.g. a unique index
+    -- for pending invitations). Such partial indexes were created in prod
+    -- via db:push and are not represented in any numbered migration, so
+    -- they would otherwise block the ALTER COLUMN TYPE text below with
+    -- "operator does not exist: text = invitation_status". We rebuild
+    -- them after the column is back on the rebuilt invitation_status type.
+    SELECT pg_get_indexdef(i.indexrelid)
+      INTO pending_idx_def
+      FROM pg_index i
+      JOIN pg_class c ON c.oid = i.indrelid
+     WHERE c.relname = 'invitations'
+       AND c.relnamespace = 'public'::regnamespace
+       AND i.indpred IS NOT NULL
+       AND pg_get_expr(i.indpred, i.indrelid) ILIKE '%invitation_status%'
+     LIMIT 1;
+    IF pending_idx_def IS NOT NULL THEN
+      EXECUTE 'DROP INDEX IF EXISTS public.invitations_pending_org_email_residence_unique';
+    END IF;
+
     UPDATE invitations SET status = 'cancelled' WHERE status::text = 'replaced';
     UPDATE invitation_audit_log SET previous_status = NULL WHERE previous_status::text = 'replaced';
     UPDATE invitation_audit_log SET new_status = NULL WHERE new_status::text = 'replaced';
@@ -339,6 +362,14 @@ DO $$ BEGIN
     ALTER TABLE invitations ALTER COLUMN status SET DEFAULT 'pending';
     ALTER TABLE invitation_audit_log ALTER COLUMN previous_status TYPE invitation_status USING previous_status::invitation_status;
     ALTER TABLE invitation_audit_log ALTER COLUMN new_status TYPE invitation_status USING new_status::invitation_status;
+
+    IF pending_idx_def IS NOT NULL THEN
+      BEGIN
+        EXECUTE pending_idx_def;
+      EXCEPTION WHEN duplicate_table THEN
+        NULL;
+      END;
+    END IF;
   END IF;
 END $$;
 
