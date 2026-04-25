@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/hooks/use-language';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { DollarSign, Loader2 } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
@@ -34,6 +35,7 @@ export function BulkEditCostDialog({
 }: BulkEditCostDialogProps) {
   const { t } = useLanguage();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [costType, setCostType] = useState<'per-element' | 'per-unit'>('per-element');
   const [costValue, setCostValue] = useState<string>('');
 
@@ -50,7 +52,7 @@ export function BulkEditCostDialog({
     mutationFn: async () => {
       const cost = parseFloat(costValue);
       if (isNaN(cost) || cost <= 0) {
-        throw new Error('Please enter a valid cost amount');
+        throw new Error(t('bulkCostInvalidAmountError'));
       }
 
       const response = await apiRequest('PATCH', '/api/maintenance/elements/bulk-cost', {
@@ -64,16 +66,16 @@ export function BulkEditCostDialog({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/maintenance/buildings', buildingId, 'elements'] });
       toast({
-        title: 'Costs updated',
-        description: `Successfully updated costs for ${selectedElementIds.length} element(s)`,
+        title: t('bulkCostToastUpdatedTitle'),
+        description: `${t('bulkCostToastUpdatedDescPrefix')}${selectedElementIds.length}${t('bulkCostToastUpdatedDescSuffix')}`,
       });
       onSuccess?.();
       handleClose();
     },
     onError: (error: any) => {
       toast({
-        title: 'Update failed',
-        description: error.message || 'Failed to update element costs',
+        title: t('bulkCostToastFailedTitle'),
+        description: error.message || t('bulkCostToastFailedDesc'),
         variant: 'destructive',
       });
     },
@@ -97,35 +99,35 @@ export function BulkEditCostDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <DollarSign className="h-5 w-5" />
-            Update Reconstruction Costs
+            {t('bulkCostUpdateTitle')}
           </DialogTitle>
           <DialogDescription>
-            {t('updateReconstructionCostsFor')} {selectedElementIds.length} selected element(s).
+            {t('bulkCostUpdateDescPrefix')}{selectedElementIds.length}{t('bulkCostUpdateDescSuffix')}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
           {/* Cost Type Selection */}
           <div className="space-y-3">
-            <Label className="text-sm font-medium">Cost Assignment Type</Label>
+            <Label className="text-sm font-medium">{t('bulkCostAssignmentType')}</Label>
             <RadioGroup value={costType} onValueChange={(value) => setCostType(value as 'per-element' | 'per-unit')}>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="per-element" id="per-element" />
                 <Label htmlFor="per-element" className="text-sm">
-                  Per Element
+                  {t('bulkCostPerElement')}
                 </Label>
               </div>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="per-unit" id="per-unit" />
                 <Label htmlFor="per-unit" className="text-sm">
-                  Per Unit (m², m, etc.)
+                  {t('bulkCostPerUnit')}
                 </Label>
               </div>
             </RadioGroup>
             <p className="text-xs text-muted-foreground">
-              {costType === 'per-element' 
-                ? 'Assign the same total cost to each element'
-                : 'Assign cost per unit - total cost will be calculated based on element quantity and unit type'
+              {costType === 'per-element'
+                ? t('bulkCostPerElementHint')
+                : t('bulkCostPerUnitHint')
               }
             </p>
           </div>
@@ -133,7 +135,7 @@ export function BulkEditCostDialog({
           {/* Cost Value Input */}
           <div className="space-y-2">
             <Label htmlFor="cost-value" className="text-sm font-medium">
-              Cost Amount ($)
+              {t('bulkCostAmountLabel')}
             </Label>
             <div className="relative">
               <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -150,23 +152,21 @@ export function BulkEditCostDialog({
               />
             </div>
             <p className="text-xs text-muted-foreground">
-              {costType === 'per-element' ? (
-                <>{t('totalReconstructionCostForEachElement')}</>
-              ) : (
-                <>{t('costPerUnitEG50')}</>
-              )}
+              {costType === 'per-element'
+                ? t('bulkCostPerElementHelper')
+                : t('bulkCostPerUnitHelper')}
             </p>
           </div>
 
           {/* Preview */}
           {isValidCost && (
             <div className="p-3 bg-muted rounded-lg">
-              <p className="text-sm font-medium mb-1">Preview:</p>
+              <p className="text-sm font-medium mb-1">{t('bulkCostPreviewLabel')}</p>
               <p className="text-sm text-muted-foreground">
                 {costType === 'per-element' ? (
-                  <>{t('eachElementWillHaveAReconstruction')}{parseFloat(costValue).toFixed(2)}</>
+                  <>{t('bulkCostPreviewPerElementPrefix')}{parseFloat(costValue).toFixed(2)}{t('bulkCostPreviewPerElementSuffix')}</>
                 ) : (
-                  <>{t('eachElementWillHaveAUnit')}{parseFloat(costValue).toFixed(2)} per unit</>
+                  <>{t('bulkCostPreviewPerUnitPrefix')}{parseFloat(costValue).toFixed(2)}{t('bulkCostPreviewPerUnitSuffix')}</>
                 )}
               </p>
             </div>
@@ -179,7 +179,7 @@ export function BulkEditCostDialog({
             onClick={handleClose}
             disabled={updateCostMutation.isPending}
           >
-            Cancel
+            {t('cancel')}
           </Button>
           <Button
             onClick={handleSubmit}
@@ -189,10 +189,10 @@ export function BulkEditCostDialog({
             {updateCostMutation.isPending ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Updating...
+                {t('updating')}
               </>
             ) : (
-              'Update Costs'
+              t('bulkCostUpdateButton')
             )}
           </Button>
         </DialogFooter>

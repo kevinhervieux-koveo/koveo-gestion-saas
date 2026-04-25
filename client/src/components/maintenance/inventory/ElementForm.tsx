@@ -20,6 +20,8 @@ import { DocumentAttachmentManager } from '@/components/maintenance/inventory/Do
 import { DollarSign } from 'lucide-react';
 // import { useBuildingContext } from '@/hooks/use-building-context';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/hooks/use-language';
+import type { Translations } from '@/lib/i18n';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { insertBuildingElementSchema, BuildingElement } from '@shared/schemas/maintenance';
 import { cn } from '@/lib/utils';
@@ -159,7 +161,7 @@ function UniformatCodeSelector({ value, onChange, onCodeSelect, error, disabled 
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
           <Input
-            placeholder="Search UNIFORMAT codes..."
+            placeholder={t('efSearchPlaceholder')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className={cn("pl-10", hasError && "border-red-500")}
@@ -176,7 +178,7 @@ function UniformatCodeSelector({ value, onChange, onCodeSelect, error, disabled 
           className={cn(hasError && "border-red-500")}
         >
           <Building className="h-4 w-4 mr-2" />
-          Browse
+          {t('efBrowseButton')}
         </Button>
       </div>
 
@@ -190,7 +192,7 @@ function UniformatCodeSelector({ value, onChange, onCodeSelect, error, disabled 
           <div className="text-xs text-muted-foreground">{selectedCode.nameFr}</div>
           {selectedCode.typicalLifespan && (
             <div className="text-xs text-muted-foreground mt-1">
-              Typical lifespan: {selectedCode.typicalLifespan} years
+              {t('efTypicalLifespanPrefix')}{selectedCode.typicalLifespan}{t('efTypicalLifespanSuffix')}
             </div>
           )}
         </div>
@@ -201,7 +203,7 @@ function UniformatCodeSelector({ value, onChange, onCodeSelect, error, disabled 
         <div className="border rounded-lg max-h-48 overflow-y-auto">
           {isLoading ? (
             <div className="p-3 text-center text-sm text-muted-foreground">
-              Loading UNIFORMAT codes...
+              {t('efLoadingCodes')}
             </div>
           ) : filteredCodes.length > 0 ? (
             <div className="divide-y">
@@ -223,7 +225,7 @@ function UniformatCodeSelector({ value, onChange, onCodeSelect, error, disabled 
                   <div className="text-xs text-muted-foreground">{code.nameFr}</div>
                   {code.typicalLifespan && (
                     <div className="text-xs text-muted-foreground">
-                      Typical: {code.typicalLifespan} years
+                      {t('efTypicalLifespanShortPrefix')}{code.typicalLifespan}{t('efTypicalLifespanSuffix')}
                     </div>
                   )}
                 </button>
@@ -231,7 +233,7 @@ function UniformatCodeSelector({ value, onChange, onCodeSelect, error, disabled 
             </div>
           ) : (
             <div className="p-3 text-center text-sm text-muted-foreground">
-              No matching codes found
+              {t('efNoMatchingCodes')}
             </div>
           )}
         </div>
@@ -248,9 +250,9 @@ function UniformatCodeSelector({ value, onChange, onCodeSelect, error, disabled 
       }}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Browse UNIFORMAT Codes</DialogTitle>
+            <DialogTitle>{t('efBrowseDialogTitle')}</DialogTitle>
             <div className="text-sm text-muted-foreground">
-              {t('navigateLevel1Level2Level')}
+              {t('efBrowseDialogHint')}
             </div>
           </DialogHeader>
           <div className="space-y-4">
@@ -265,7 +267,7 @@ function UniformatCodeSelector({ value, onChange, onCodeSelect, error, disabled 
                 }}
                 className="text-blue-600 hover:text-blue-800"
               >
-                Level 1
+                {t('efBreadcrumbLevel1')}
               </Button>
               {selectedLevel1 && (
                 <>
@@ -276,14 +278,14 @@ function UniformatCodeSelector({ value, onChange, onCodeSelect, error, disabled 
                     onClick={() => setSelectedLevel2(null)}
                     className="text-blue-600 hover:text-blue-800"
                   >
-                    Level 2 ({selectedLevel1})
+                    {t('efBreadcrumbLevel2Prefix')} ({selectedLevel1})
                   </Button>
                 </>
               )}
               {selectedLevel2 && (
                 <>
                   <span>→</span>
-                  <span className="font-medium">Level 3 ({selectedLevel2})</span>
+                  <span className="font-medium">{t('efBreadcrumbLevel3Prefix')} ({selectedLevel2})</span>
                 </>
               )}
             </div>
@@ -293,7 +295,7 @@ function UniformatCodeSelector({ value, onChange, onCodeSelect, error, disabled 
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                 <Input
-                  placeholder="Search UNIFORMAT codes..."
+                  placeholder={t('efSearchPlaceholderBrowser')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -305,7 +307,7 @@ function UniformatCodeSelector({ value, onChange, onCodeSelect, error, disabled 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-96 overflow-y-auto">
               {isLoading ? (
                 <div className="col-span-full p-4 text-center text-sm text-muted-foreground">
-                  Loading UNIFORMAT codes...
+                  {t('efLoadingCodes')}
                 </div>
               ) : searchTerm && !selectedLevel1 && !selectedLevel2 ? (
                 // Search results (all levels)
@@ -338,21 +340,21 @@ function UniformatCodeSelector({ value, onChange, onCodeSelect, error, disabled 
                           {code.code} (L{code.level})
                         </Badge>
                         {!code.selectable && (
-                          <span className="text-xs text-orange-600">Navigate only</span>
+                          <span className="text-xs text-orange-600">{t('efNavigateOnlyLabel')}</span>
                         )}
                       </div>
                       <div className="text-sm font-medium">{code.nameEn}</div>
                       <div className="text-xs text-muted-foreground">{code.nameFr}</div>
                       {code.typicalLifespan && (
                         <div className="text-xs text-muted-foreground mt-1">
-                          Typical: {code.typicalLifespan} years
+                          {t('efTypicalLifespanShortPrefix')}{code.typicalLifespan}{t('efTypicalLifespanSuffix')}
                         </div>
                       )}
                     </button>
                   ))
                 ) : (
                   <div className="col-span-full p-4 text-center text-sm text-muted-foreground">
-                    No matching codes found
+                    {t('efNoMatchingCodes')}
                   </div>
                 )
               ) : (
@@ -391,16 +393,16 @@ function UniformatCodeSelector({ value, onChange, onCodeSelect, error, disabled 
                         {code.code}
                       </Badge>
                       {code.level === 3 ? (
-                        <span className="text-xs text-green-600">Selectable</span>
+                        <span className="text-xs text-green-600">{t('efSelectableLabel')}</span>
                       ) : (
-                        <span className="text-xs text-blue-600">Navigate →</span>
+                        <span className="text-xs text-blue-600">{t('efNavigateLabel')}</span>
                       )}
                     </div>
                     <div className="text-sm font-medium">{code.nameEn}</div>
                     <div className="text-xs text-muted-foreground">{code.nameFr}</div>
                     {code.typicalLifespan && (
                       <div className="text-xs text-muted-foreground mt-1">
-                        Typical: {code.typicalLifespan} years
+                        {t('efTypicalLifespanShortPrefix')}{code.typicalLifespan}{t('efTypicalLifespanSuffix')}
                       </div>
                     )}
                   </button>
@@ -430,6 +432,7 @@ export function ElementForm({
   const { t } = useLanguage();
   // Simplified placeholder - no context for now
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [isNameManuallyEdited, setIsNameManuallyEdited] = useState(false);
   const [isBuildingWideExplicit, setIsBuildingWideExplicit] = useState(true); // Track explicit building-wide choice
   
@@ -660,21 +663,21 @@ export function ElementForm({
       const isMultiple = createdCount > 1;
       return mode === 'create'
         ? isMultiple
-          ? `${createdCount} Elements created`
-          : 'Element created'
-        : 'Element updated';
+          ? `${createdCount}${t('efElementsCreatedSuffix')}`
+          : t('efElementCreatedTitle')
+        : t('efElementUpdatedTitle');
     },
     successMessage: (data) => {
       const createdCount = data?.createdCount || 1;
       const isMultiple = createdCount > 1;
       return mode === 'create'
         ? isMultiple
-          ? `Successfully created ${createdCount} numbered elements`
-          : `${data?.data?.name} has been created successfully`
-        : `${data?.data?.name} has been updated successfully`;
+          ? `${t('efSuccessfullyCreatedPrefix')}${createdCount}${t('efSuccessfullyCreatedSuffix')}`
+          : `${data?.data?.name}${t('efElementCreatedSuccessSuffix')}`
+        : `${data?.data?.name}${t('efElementUpdatedSuccessSuffix')}`;
     },
-    errorTitle: mode === 'create' ? 'Creation failed' : 'Update failed',
-    errorMessage: (error: any) => error?.message || `Failed to ${mode} element`,
+    errorTitle: mode === 'create' ? t('efCreationFailedTitle') : t('efUpdateFailedTitle'),
+    errorMessage: (error: any) => error?.message || (mode === 'create' ? t('efFailedToCreateElement') : t('efFailedToUpdateElement')),
     onSuccessCallback: (data) => {
       onSuccess?.(data.data);
       onOpenChange(false);
@@ -684,14 +687,14 @@ export function ElementForm({
   // Delete mutation for removing elements
   const deleteMutation = useCreateUpdateMutation({
     mutationFn: async () => {
-      if (!element?.id) throw new Error('No element to delete');
+      if (!element?.id) throw new Error(t('efNoElementToDelete'));
       const response = await apiRequest('DELETE', `/api/maintenance/elements/${element.id}`);
       return response;
     },
-    successTitle: 'Element deleted',
-    successMessage: 'Building element has been successfully removed from the inventory.',
-    errorTitle: 'Deletion failed',
-    errorMessage: (error: any) => error?.message || 'Failed to delete element',
+    successTitle: t('efElementDeletedTitle'),
+    successMessage: t('efElementDeletedDesc'),
+    errorTitle: t('efDeletionFailedTitle'),
+    errorMessage: (error: any) => error?.message || t('efFailedToDeleteElement'),
     queryKeysToInvalidate: ['building-elements'],
     onSuccessCallback: () => {
       onOpenChange(false);
@@ -724,7 +727,7 @@ export function ElementForm({
 
   // Handle element deletion
   const handleDelete = () => {
-    if (window.confirm('Are you sure you want to delete this element? This action cannot be undone.')) {
+    if (window.confirm(t('efDeleteConfirm'))) {
       deleteMutation.mutate();
     }
   };
@@ -734,12 +737,12 @@ export function ElementForm({
     <FormModal
       isOpen={isOpen}
       onOpenChange={onOpenChange}
-      title={currentMode === 'create' ? 'Add Building Element' : currentMode === 'view' ? 'View Building Element' : 'Edit Building Element'}
+      title={currentMode === 'create' ? t('efAddBuildingElement') : currentMode === 'view' ? t('efViewBuildingElement') : t('efEditBuildingElement')}
       description={currentMode === 'create' 
-        ? 'Add a new building element to the inventory with its specifications and condition'
+        ? t('efAddDescription')
         : currentMode === 'view'
-        ? 'View building element information and condition'
-        : 'Update the building element information and condition'
+        ? t('efViewDescription')
+        : t('efEditDescription')
       }
       form={form as any}
       onSubmit={handleSubmit}
@@ -759,12 +762,12 @@ export function ElementForm({
             {deleteMutation.isPending ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Deleting...
+                {t('efDeletingProgress')}
               </>
             ) : (
               <>
                 <Trash2 className="h-4 w-4 mr-2" />
-                Delete
+                {t('efDeleteButton')}
               </>
             )}
           </Button>
@@ -776,7 +779,7 @@ export function ElementForm({
         <FormFieldWrapper
           form={form as any}
           name="uniformatCode"
-          label="UNIFORMAT Code"
+          label={t('efUniformatCodeLabel')}
           required
         >
           {(field, hasError) => (
@@ -798,7 +801,7 @@ export function ElementForm({
           <FormFieldWrapper
             form={form as any}
             name="name"
-            label="Element Name"
+            label={t('efElementNameLabel')}
             required
           >
             {(field, hasError) => (
@@ -808,7 +811,7 @@ export function ElementForm({
                   field.onChange(e);
                   setIsNameManuallyEdited(true);
                 }}
-                placeholder="e.g., Exterior Wall - North"
+                placeholder={t('efElementNamePlaceholder')}
                 data-testid="element-name-input"
                 disabled={isFormDisabled}
                 className={hasError ? 'border-red-500' : ''}
@@ -819,13 +822,13 @@ export function ElementForm({
           <FormFieldWrapper
             form={form as any}
             name="currentCondition"
-            label="Current Condition"
+            label={t('efCurrentConditionLabel')}
             required
           >
             {(field, hasError) => (
               <Select onValueChange={field.onChange} value={field.value} disabled={isFormDisabled}>
                 <SelectTrigger data-testid="condition-select" className={hasError ? 'border-red-500' : ''}>
-                  <SelectValue placeholder="Select condition" />
+                  <SelectValue placeholder={t('efSelectCondition')} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="excellent">
@@ -862,13 +865,13 @@ export function ElementForm({
         <FormFieldWrapper
           form={form as any}
           name="description"
-          label="Description"
-          description="Optional detailed description of the element"
+          label={t('efDescriptionLabel')}
+          description={t('efDescriptionLabelHelper')}
         >
           {(field, hasError) => (
             <Textarea
               {...field}
-              placeholder="Describe the element location, specifications, or other relevant details..."
+              placeholder={t('efDescriptionPlaceholder')}
               rows={3}
               data-testid="element-description"
               disabled={isFormDisabled}
@@ -882,8 +885,8 @@ export function ElementForm({
           <FormFieldWrapper
             form={form as any}
             name="residenceId"
-            label="Residence Assignment"
-            description="Select if this element is building-wide or applies to specific residences"
+            label={t('efResidenceAssignmentLabel')}
+            description={t('efResidenceAssignmentDesc')}
             required
           >
             {(field, hasError) => {
@@ -915,7 +918,7 @@ export function ElementForm({
                       disabled={isFormDisabled}
                     />
                     <label htmlFor="building-wide" className="text-sm font-medium">
-                      Building-wide element
+                      {t('efBuildingWideElement')}
                     </label>
                   </div>
 
@@ -938,20 +941,20 @@ export function ElementForm({
                         data-testid="residence-select-trigger"
                         className={cn(hasError && "border-red-500")}
                       >
-                        <SelectValue placeholder="Select residence assignment" />
+                        <SelectValue placeholder={t('efSelectResidenceAssignment')} />
                       </SelectTrigger>
                       <SelectContent data-testid="residence-select-content">
-                        <SelectItem value="building-wide">Building-wide element</SelectItem>
+                        <SelectItem value="building-wide">{t('efBuildingWideElement')}</SelectItem>
                         {(residences || []).map((residence: any) => (
                           <SelectItem 
                             key={residence.id} 
                             value={residence.id}
                             data-testid={`residence-option-${residence.id}`}
                           >
-                            Unit {residence.unitNumber}
+                            {t('efUnitPrefix')}{residence.unitNumber}
                             {residence.floor && (
                               <span className="text-muted-foreground ml-1">
-                                (Floor {residence.floor})
+                                ({t('efFloorPrefix')}{residence.floor})
                               </span>
                             )}
                           </SelectItem>
@@ -963,8 +966,8 @@ export function ElementForm({
                   {/* Display current selection */}
                   {selectedResidence && (
                     <div className="text-sm text-muted-foreground">
-                      Currently assigned to: Unit {selectedResidence.unitNumber}
-                      {selectedResidence.floor && ` (Floor ${selectedResidence.floor})`}
+                      {t('efAssignedToPrefix')}{selectedResidence.unitNumber}
+                      {selectedResidence.floor && ` (${t('efFloorPrefix')}${selectedResidence.floor})`}
                     </div>
                   )}
                 </div>
@@ -975,26 +978,26 @@ export function ElementForm({
           <FormFieldWrapper
             form={form as any}
             name="access"
-            label="Access Type"
-            description="Access restrictions for this element"
+            label={t('efAccessTypeLabel')}
+            description={t('efAccessTypeDesc')}
             required
           >
             {(field, hasError) => (
               <Select onValueChange={field.onChange} value={field.value} disabled={isFormDisabled}>
                 <SelectTrigger data-testid="access-select" className={hasError ? 'border-red-500' : ''}>
-                  <SelectValue placeholder="Select access type" />
+                  <SelectValue placeholder={t('efSelectAccessType')} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="not_restrained">
                     <div className="flex flex-col">
-                      <span>Not Restrained</span>
-                      <span className="text-xs text-muted-foreground">Free access</span>
+                      <span>{t('efNotRestrained')}</span>
+                      <span className="text-xs text-muted-foreground">{t('efNotRestrainedDesc')}</span>
                     </div>
                   </SelectItem>
                   <SelectItem value="restrained">
                     <div className="flex flex-col">
-                      <span>Restrained</span>
-                      <span className="text-xs text-muted-foreground">Restricted access</span>
+                      <span>{t('efRestrained')}</span>
+                      <span className="text-xs text-muted-foreground">{t('efRestrainedDesc')}</span>
                     </div>
                   </SelectItem>
                 </SelectContent>
@@ -1005,26 +1008,26 @@ export function ElementForm({
           <FormFieldWrapper
             form={form as any}
             name="charge"
-            label="Charge Type"
-            description="Who is responsible for costs"
+            label={t('efChargeTypeLabel')}
+            description={t('efChargeTypeDesc')}
             required
           >
             {(field, hasError) => (
               <Select onValueChange={field.onChange} value={field.value} disabled={isFormDisabled}>
                 <SelectTrigger data-testid="charge-select" className={hasError ? 'border-red-500' : ''}>
-                  <SelectValue placeholder="Select charge type" />
+                  <SelectValue placeholder={t('efSelectChargeType')} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="common">
                     <div className="flex flex-col">
-                      <span>Common</span>
-                      <span className="text-xs text-muted-foreground">Building responsibility</span>
+                      <span>{t('efCommon')}</span>
+                      <span className="text-xs text-muted-foreground">{t('efCommonDesc')}</span>
                     </div>
                   </SelectItem>
                   <SelectItem value="personnal">
                     <div className="flex flex-col">
-                      <span>Personal</span>
-                      <span className="text-xs text-muted-foreground">Resident responsibility</span>
+                      <span>{t('efPersonal')}</span>
+                      <span className="text-xs text-muted-foreground">{t('efPersonalDesc')}</span>
                     </div>
                   </SelectItem>
                 </SelectContent>
@@ -1039,14 +1042,14 @@ export function ElementForm({
         <div className="space-y-4">
           <h4 className="text-sm font-medium flex items-center gap-2">
             <Clock className="h-4 w-4" />
-            Timeline & Lifespan
+            {t('efTimelineHeading')}
           </h4>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormFieldWrapper
               form={form as any}
               name="originalConstructionDate"
-              label="Original Construction Date"
+              label={t('efOriginalConstructionDate')}
               required
             >
               {(field, hasError) => {
@@ -1097,7 +1100,7 @@ export function ElementForm({
               <FormFieldWrapper
                 form={form as any}
                 name="originalLifespan"
-                label="Original Lifespan (years)"
+                label={t('efOriginalLifespan')}
                 required
               >
                 {(field, hasError) => (
@@ -1117,7 +1120,7 @@ export function ElementForm({
               <FormFieldWrapper
                 form={form as any}
                 name="currentLifespan"
-                label="Years left to reconstruction"
+                label={t('efYearsLeftToReconstruction')}
                 required
               >
                 {(field, hasError) => (
@@ -1143,14 +1146,14 @@ export function ElementForm({
         <div className="space-y-4">
           <h4 className="text-sm font-medium flex items-center gap-2">
             <Calculator className="h-4 w-4" />
-            Quantity & Unit
+            {t('efQuantityHeading')}
           </h4>
 
           <div className="grid grid-cols-2 gap-4">
             <FormFieldWrapper
               form={form as any}
               name="unitValue"
-              label="Quantity"
+              label={t('efQuantityLabel')}
             >
               {(field, hasError) => (
                 <Input
@@ -1169,20 +1172,20 @@ export function ElementForm({
             <FormFieldWrapper
               form={form as any}
               name="unit"
-              label="Unit"
+              label={t('efUnitLabel')}
             >
               {(field, hasError) => (
                 <Select onValueChange={field.onChange} value={field.value} disabled={isFormDisabled}>
                   <SelectTrigger data-testid="unit-select" className={hasError ? 'border-red-500' : ''}>
-                    <SelectValue placeholder="Select unit" />
+                    <SelectValue placeholder={t('efSelectUnit')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="m2">m² (square meters)</SelectItem>
-                    <SelectItem value="m">m (linear meters)</SelectItem>
-                    <SelectItem value="unit">unit (each)</SelectItem>
-                    <SelectItem value="m3">m³ (cubic meters)</SelectItem>
-                    <SelectItem value="kg">kg (kilograms)</SelectItem>
-                    <SelectItem value="L">L (liters)</SelectItem>
+                    <SelectItem value="m2">{t('efUnitM2')}</SelectItem>
+                    <SelectItem value="m">{t('efUnitM')}</SelectItem>
+                    <SelectItem value="unit">{t('efUnitUnit')}</SelectItem>
+                    <SelectItem value="m3">{t('efUnitM3')}</SelectItem>
+                    <SelectItem value="kg">{t('efUnitKg')}</SelectItem>
+                    <SelectItem value="L">{t('efUnitL')}</SelectItem>
                   </SelectContent>
                 </Select>
               )}
@@ -1194,7 +1197,7 @@ export function ElementForm({
         <FormFieldWrapper
           form={form as any}
           name="nextEvaluationDate"
-          label="Next Evaluation Date"
+          label={t('efNextEvaluationDate')}
         >
           {(field, hasError) => (
             <div className="space-y-2">
@@ -1207,7 +1210,7 @@ export function ElementForm({
                   data-testid="auto-calculate-checkbox"
                   disabled={isFormDisabled}
                 />
-                <span className="text-xs text-muted-foreground">Auto-calculate</span>
+                <span className="text-xs text-muted-foreground">{t('efAutoCalculate')}</span>
               </div>
               
               <Input
@@ -1227,7 +1230,7 @@ export function ElementForm({
               {autoCalculateEvaluation && field.value && (
                 <div className="text-xs text-muted-foreground flex items-center gap-1">
                   <Info className="h-3 w-3" />
-                  {t('automaticallyCalculatedBasedOnConditionAnd')}
+                  {t('efAutoCalcHelper')}
                 </div>
               )}
             </div>
@@ -1238,14 +1241,14 @@ export function ElementForm({
         <div className="space-y-4">
           <h4 className="text-sm font-medium flex items-center gap-2">
             <DollarSign className="h-4 w-4" />
-            Reconstruction Evaluation
+            {t('efReconstructionEvaluation')}
           </h4>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormFieldWrapper
               form={form as any}
               name="reconstructionCost"
-              label="Reconstruction Cost"
+              label={t('efReconstructionCost')}
               required
             >
               {(field, hasError) => (
@@ -1254,7 +1257,7 @@ export function ElementForm({
                   <Input
                     {...field}
                     type="number"
-                    placeholder="0.00"
+                    placeholder={t('efReconstructionCostPlaceholder')}
                     className={`pl-9 ${hasError ? 'border-red-500' : ''}`}
                     step="0.01"
                     min="0"
@@ -1268,7 +1271,7 @@ export function ElementForm({
             <FormFieldWrapper
               form={form as any}
               name="costEstimationDate"
-              label="Date of Estimation"
+              label={t('efDateOfEstimation')}
               required
             >
               {(field, hasError) => (
@@ -1312,13 +1315,13 @@ export function ElementForm({
         <div className="space-y-4">
           <h4 className="text-sm font-medium flex items-center gap-2">
             <Calculator className="h-4 w-4" />
-            Element Quantity
+            {t('efElementQuantityHeading')}
           </h4>
           <FormFieldWrapper
             form={form as any}
             name="quantity"
-            label="Quantity (Duplicate)"
-            description="Number of identical elements to create (e.g., 30 windows, 5 doors)"
+            label={t('efQuantityDuplicateLabel')}
+            description={t('efQuantityDuplicateDesc')}
             required
           >
             {(field, hasError) => (
@@ -1342,12 +1345,12 @@ export function ElementForm({
         <FormFieldWrapper
           form={form as any}
           name="notes"
-          label="Notes"
+          label={t('efNotesLabel')}
         >
           {(field, hasError) => (
             <Textarea
               {...field}
-              placeholder="Any additional notes about this element..."
+              placeholder={t('efNotesPlaceholder')}
               rows={3}
               data-testid="element-notes"
               disabled={isFormDisabled}

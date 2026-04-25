@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/hooks/use-language';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { Building, Loader2 } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
@@ -40,6 +41,7 @@ export function BulkEditResidenceDialog({
 }: BulkEditResidenceDialogProps) {
   const { t } = useLanguage();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [formData, setFormData] = useState<FormData>({
     residenceId: null,
     accessType: '',
@@ -83,7 +85,7 @@ export function BulkEditResidenceDialog({
   const updateAssignmentMutation = useMutation({
     mutationFn: async () => {
       const updates: Partial<FormData> = {};
-      
+
       if (fieldsToUpdate.residenceId) {
         updates.residenceId = formData.residenceId;
       }
@@ -95,7 +97,7 @@ export function BulkEditResidenceDialog({
       }
 
       if (Object.keys(updates).length === 0) {
-        throw new Error('Please select at least one field to update');
+        throw new Error(t('bulkResidenceSelectFieldError'));
       }
 
       const response = await apiRequest('PATCH', '/api/maintenance/elements/bulk-assignment', {
@@ -108,16 +110,16 @@ export function BulkEditResidenceDialog({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/maintenance/buildings', buildingId, 'elements'] });
       toast({
-        title: 'Assignment updated',
-        description: `Successfully updated assignment for ${selectedElementIds.length} element(s)`,
+        title: t('bulkResidenceToastUpdatedTitle'),
+        description: `${t('bulkResidenceToastUpdatedDescPrefix')}${selectedElementIds.length}${t('bulkResidenceToastUpdatedDescSuffix')}`,
       });
       onSuccess?.();
       handleClose();
     },
     onError: (error: any) => {
       toast({
-        title: 'Update failed',
-        description: error.message || 'Failed to update element assignments',
+        title: t('bulkResidenceToastFailedTitle'),
+        description: error.message || t('bulkResidenceToastFailedDesc'),
         variant: 'destructive',
       });
     },
@@ -168,10 +170,10 @@ export function BulkEditResidenceDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Building className="h-5 w-5" />
-            Change Assignment & Properties
+            {t('bulkResidenceTitle')}
           </DialogTitle>
           <DialogDescription>
-            {t('updateResidenceAssignmentAccessTypeAnd')} {selectedElementIds.length} selected element(s).
+            {t('bulkResidenceDescPrefix')}{selectedElementIds.length}{t('bulkResidenceDescSuffix')}
           </DialogDescription>
         </DialogHeader>
 
@@ -185,33 +187,33 @@ export function BulkEditResidenceDialog({
                 onCheckedChange={(checked) => handleFieldToggle('residenceId', !!checked)}
               />
               <Label htmlFor="update-residence" className="text-sm font-medium">
-                Update Residence Assignment
+                {t('bulkResidenceUpdateAssignment')}
               </Label>
             </div>
-            
+
             {fieldsToUpdate.residenceId && (
               <div className="ml-6 space-y-2">
                 <Select
                   value={formData.residenceId || 'building-wide'}
-                  onValueChange={(value) => 
+                  onValueChange={(value) =>
                     handleFormChange('residenceId', value === 'building-wide' ? null : value)
                   }
                 >
                   <SelectTrigger data-testid="residence-select">
-                    <SelectValue placeholder="Select residence" />
+                    <SelectValue placeholder={t('bulkResidenceSelectPlaceholder')} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="building-wide">
                       <div className="flex flex-col">
-                        <span>Building-wide</span>
-                        <span className="text-xs text-muted-foreground">Common to entire building</span>
+                        <span>{t('bulkResidenceBuildingWide')}</span>
+                        <span className="text-xs text-muted-foreground">{t('bulkResidenceBuildingWideDesc')}</span>
                       </div>
                     </SelectItem>
                     {residences?.map((residence: any) => (
                       <SelectItem key={residence.id} value={residence.id}>
                         <div className="flex flex-col">
-                          <span>Unit {residence.unitNumber}</span>
-                          <span className="text-xs text-muted-foreground">Floor {residence.floor}</span>
+                          <span>{t('bulkResidenceUnitPrefix')}{residence.unitNumber}</span>
+                          <span className="text-xs text-muted-foreground">{t('bulkResidenceFloorPrefix')}{residence.floor}</span>
                         </div>
                       </SelectItem>
                     ))}
@@ -230,10 +232,10 @@ export function BulkEditResidenceDialog({
                 onCheckedChange={(checked) => handleFieldToggle('accessType', !!checked)}
               />
               <Label htmlFor="update-access" className="text-sm font-medium">
-                Update Access Type
+                {t('bulkResidenceUpdateAccess')}
               </Label>
             </div>
-            
+
             {fieldsToUpdate.accessType && (
               <div className="ml-6 space-y-2">
                 <Select
@@ -241,19 +243,19 @@ export function BulkEditResidenceDialog({
                   onValueChange={(value) => handleFormChange('accessType', value)}
                 >
                   <SelectTrigger data-testid="access-type-select">
-                    <SelectValue placeholder="Select access type" />
+                    <SelectValue placeholder={t('bulkResidenceSelectAccess')} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="not_restrained">
                       <div className="flex flex-col">
-                        <span>Not Restrained</span>
-                        <span className="text-xs text-muted-foreground">Easy access</span>
+                        <span>{t('bulkResidenceNotRestrained')}</span>
+                        <span className="text-xs text-muted-foreground">{t('bulkResidenceNotRestrainedDesc')}</span>
                       </div>
                     </SelectItem>
                     <SelectItem value="restrained">
                       <div className="flex flex-col">
-                        <span>Restrained</span>
-                        <span className="text-xs text-muted-foreground">Restricted access</span>
+                        <span>{t('bulkResidenceRestrained')}</span>
+                        <span className="text-xs text-muted-foreground">{t('bulkResidenceRestrainedDesc')}</span>
                       </div>
                     </SelectItem>
                   </SelectContent>
@@ -271,10 +273,10 @@ export function BulkEditResidenceDialog({
                 onCheckedChange={(checked) => handleFieldToggle('chargeType', !!checked)}
               />
               <Label htmlFor="update-charge" className="text-sm font-medium">
-                Update Charge Type
+                {t('bulkResidenceUpdateCharge')}
               </Label>
             </div>
-            
+
             {fieldsToUpdate.chargeType && (
               <div className="ml-6 space-y-2">
                 <Select
@@ -282,19 +284,19 @@ export function BulkEditResidenceDialog({
                   onValueChange={(value) => handleFormChange('chargeType', value)}
                 >
                   <SelectTrigger data-testid="charge-type-select">
-                    <SelectValue placeholder="Select charge type" />
+                    <SelectValue placeholder={t('bulkResidenceSelectCharge')} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="common">
                       <div className="flex flex-col">
-                        <span>Common</span>
-                        <span className="text-xs text-muted-foreground">Building responsibility</span>
+                        <span>{t('bulkResidenceCommon')}</span>
+                        <span className="text-xs text-muted-foreground">{t('bulkResidenceCommonDesc')}</span>
                       </div>
                     </SelectItem>
                     <SelectItem value="personnal">
                       <div className="flex flex-col">
-                        <span>Personal</span>
-                        <span className="text-xs text-muted-foreground">Resident responsibility</span>
+                        <span>{t('bulkResidencePersonal')}</span>
+                        <span className="text-xs text-muted-foreground">{t('bulkResidencePersonalDesc')}</span>
                       </div>
                     </SelectItem>
                   </SelectContent>
@@ -306,24 +308,24 @@ export function BulkEditResidenceDialog({
           {/* Preview */}
           {hasSelectedFields && (
             <div className="p-3 bg-muted rounded-lg">
-              <p className="text-sm font-medium mb-2">Changes to apply:</p>
+              <p className="text-sm font-medium mb-2">{t('bulkResidenceChangesToApply')}</p>
               <ul className="text-sm text-muted-foreground space-y-1">
                 {fieldsToUpdate.residenceId && (
                   <li>
-                    • Residence: {formData.residenceId ? 
-                      `Unit ${residences?.find((r: any) => r.id === formData.residenceId)?.unitNumber || 'Unknown'}` : 
-                      'Building-wide'
+                    • {t('bulkResidenceChangeResidence')}: {formData.residenceId ?
+                      `${t('bulkResidenceUnitPrefix')}${residences?.find((r: any) => r.id === formData.residenceId)?.unitNumber || t('bulkResidenceUnknownUnit')}` :
+                      t('bulkResidenceBuildingWide')
                     }
                   </li>
                 )}
                 {fieldsToUpdate.accessType && formData.accessType && (
                   <li>
-                    • Access: {formData.accessType === 'not_restrained' ? 'Not Restrained' : 'Restrained'}
+                    • {t('bulkResidenceChangeAccess')}: {formData.accessType === 'not_restrained' ? t('bulkResidenceNotRestrained') : t('bulkResidenceRestrained')}
                   </li>
                 )}
                 {fieldsToUpdate.chargeType && formData.chargeType && (
                   <li>
-                    • Charge: {formData.chargeType === 'common' ? 'Common' : 'Personal'}
+                    • {t('bulkResidenceChangeCharge')}: {formData.chargeType === 'common' ? t('bulkResidenceCommon') : t('bulkResidencePersonal')}
                   </li>
                 )}
               </ul>
@@ -337,7 +339,7 @@ export function BulkEditResidenceDialog({
             onClick={handleClose}
             disabled={updateAssignmentMutation.isPending}
           >
-            Cancel
+            {t('cancel')}
           </Button>
           <Button
             onClick={handleSubmit}
@@ -347,10 +349,10 @@ export function BulkEditResidenceDialog({
             {updateAssignmentMutation.isPending ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Updating...
+                {t('updating')}
               </>
             ) : (
-              'Update Assignment'
+              t('bulkResidenceUpdateButton')
             )}
           </Button>
         </DialogFooter>

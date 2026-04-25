@@ -40,6 +40,7 @@ import { ElementCard } from '@/components/maintenance/inventory/ElementCard';
 import { ConditionBadge } from '@/components/maintenance/StatusBadges';
 import { useBuildingContext } from '@/hooks/use-building-context';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/hooks/use-language';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { MaintenanceProject, BuildingElement, ProjectElement } from '@shared/schemas/maintenance';
 import { cn } from '@/lib/utils';
@@ -97,7 +98,8 @@ export function ProjectElements({
   const { t } = useLanguage();
   const { buildingId, hasPermission } = useBuildingContext();
   const { toast } = useToast();
-  
+  const { t } = useLanguage();
+
   // State management
   const [isAddElementOpen, setIsAddElementOpen] = useState(false);
   const [isEditCostOpen, setIsEditCostOpen] = useState(false);
@@ -161,10 +163,10 @@ export function ProjectElements({
       });
       return response.json();
     },
-    successTitle: 'Element Added',
-    successMessage: 'Building element has been added to the project successfully.',
-    errorTitle: 'Failed to Add Element',
-    errorMessage: (error: any) => error?.response?.data?.message || 'Please try again.',
+    successTitle: t('peElementAddedTitle'),
+    successMessage: t('peElementAddedDesc'),
+    errorTitle: t('peElementAddFailedTitle'),
+    errorMessage: (error: any) => error?.response?.data?.message || t('pePleaseTryAgain'),
     queryKeysToInvalidate: [elementsQueryKey],
     onSuccessCallback: () => {
       setIsAddElementOpen(false);
@@ -178,14 +180,14 @@ export function ProjectElements({
       const response = await apiRequest('PATCH', `/api/maintenance/projects/${project.id}`, {
         isQuickProject: true,
         estimatedCost: costAllocation ? parseFloat(costAllocation) : undefined,
-        planningDescription: workDescription || 'Quick Project for planning purposes',
+        planningDescription: workDescription || t('peQuickProjectFallbackDescription'),
       });
       return response.json();
     },
-    successTitle: 'Quick Project Created',
-    successMessage: 'This project has been set as a Quick Project for planning purposes only.',
-    errorTitle: 'Failed to Create Quick Project',
-    errorMessage: (error: any) => error?.response?.data?.message || 'Please try again.',
+    successTitle: t('peQuickProjectCreatedTitle'),
+    successMessage: t('peQuickProjectCreatedDesc'),
+    errorTitle: t('peQuickProjectFailedTitle'),
+    errorMessage: (error: any) => error?.response?.data?.message || t('pePleaseTryAgain'),
     queryKeysToInvalidate: [projectQueryKey],
     onSuccessCallback: () => {
       setIsAddElementOpen(false);
@@ -204,10 +206,10 @@ export function ProjectElements({
       const response = await apiRequest('PATCH', `/api/maintenance/project-elements/${elementData.id}`, elementData);
       return response.json();
     },
-    successTitle: 'Element Updated',
-    successMessage: 'Element details have been updated successfully.',
-    errorTitle: 'Update Failed',
-    errorMessage: (error: any) => error?.response?.data?.message || 'Please try again.',
+    successTitle: t('peElementUpdatedTitle'),
+    successMessage: t('peElementUpdatedDesc'),
+    errorTitle: t('peElementUpdateFailedTitle'),
+    errorMessage: (error: any) => error?.response?.data?.message || t('pePleaseTryAgain'),
     queryKeysToInvalidate: [elementsQueryKey],
     onSuccessCallback: () => {
       setIsEditCostOpen(false);
@@ -222,10 +224,10 @@ export function ProjectElements({
       const response = await apiRequest('DELETE', `/api/maintenance/project-elements/${elementId}`);
       return response.json();
     },
-    successTitle: 'Element Removed',
-    successMessage: 'Element has been removed from the project.',
-    errorTitle: 'Removal Failed',
-    errorMessage: (error: any) => error?.response?.data?.message || 'Please try again.',
+    successTitle: t('peElementRemovedTitle'),
+    successMessage: t('peElementRemovedDesc'),
+    errorTitle: t('peElementRemoveFailedTitle'),
+    errorMessage: (error: any) => error?.response?.data?.message || t('pePleaseTryAgain'),
     queryKeysToInvalidate: [elementsQueryKey],
     onSuccessCallback: () => {
       setElementToRemove(null);
@@ -242,13 +244,14 @@ export function ProjectElements({
       const response = await apiRequest('POST', `/api/maintenance/projects/${project.id}/elements/bulk`, operation);
       return response.json();
     },
-    successTitle: 'Bulk Operation Complete',
+    successTitle: t('peBulkOpDoneTitle'),
     successMessage: (_data, operation) => {
-      const actionLabel = operation.type === 'remove' ? 'removed' : 'updated';
-      return `Selected elements have been ${actionLabel} successfully.`;
+      return operation.type === 'remove'
+        ? t('peBulkOpRemovedDesc')
+        : t('peBulkOpUpdatedDesc');
     },
-    errorTitle: 'Bulk Operation Failed',
-    errorMessage: (error: any) => error?.response?.data?.message || 'Please try again.',
+    errorTitle: t('peBulkOpFailedTitle'),
+    errorMessage: (error: any) => error?.response?.data?.message || t('pePleaseTryAgain'),
     queryKeysToInvalidate: [elementsQueryKey],
     onSuccessCallback: () => {
       setSelectedElements([]);
@@ -264,8 +267,8 @@ export function ProjectElements({
   const handleAddElement = (elementId: string) => {
     if (!hasPermission('canEditMaintenance')) {
       toast({
-        title: "Permission Denied",
-        description: "You don't have permission to add elements to projects.",
+        title: t('pePermissionDeniedTitle'),
+        description: t('pePermissionDeniedAddElements'),
         variant: "destructive",
       });
       return;
@@ -301,8 +304,8 @@ export function ProjectElements({
   const handleCreateQuickProject = () => {
     if (!hasPermission('canEditMaintenance')) {
       toast({
-        title: "Permission Denied",
-        description: "You don't have permission to create Quick Projects.",
+        title: t('pePermissionDeniedTitle'),
+        description: t('pePermissionDeniedQuickProject'),
         variant: "destructive",
       });
       return;
@@ -320,7 +323,7 @@ export function ProjectElements({
     const baseColumns: ColumnDef<ProjectElementWithDetails>[] = [
       {
         accessorKey: 'elementName',
-        header: 'Element',
+        header: t('peElement'),
         cell: ({ row }) => {
           const element = row.original;
           return (
@@ -335,7 +338,7 @@ export function ProjectElements({
       },
       {
         accessorKey: 'currentCondition',
-        header: 'Condition',
+        header: t('peCondition'),
         cell: ({ row }) => (
           <ConditionBadge 
             condition={row.getValue('currentCondition')} 
@@ -346,7 +349,7 @@ export function ProjectElements({
       },
       {
         accessorKey: 'workDescription',
-        header: 'Planned Work',
+        header: t('pePlannedWork'),
         cell: ({ row }) => {
           const description = row.getValue('workDescription') as string;
           return description ? (
@@ -354,7 +357,7 @@ export function ProjectElements({
               {description}
             </div>
           ) : (
-            <span className="text-muted-foreground text-sm">Not specified</span>
+            <span className="text-muted-foreground text-sm">{t('peNotSpecified')}</span>
           );
         },
       },
@@ -363,7 +366,7 @@ export function ProjectElements({
     if (showCostAllocation) {
       baseColumns.push({
         accessorKey: 'costAllocation',
-        header: 'Cost Allocation',
+        header: t('peCostAllocation'),
         cell: ({ row }) => {
           const cost = row.getValue('costAllocation') as number;
           return cost ? (
@@ -371,7 +374,7 @@ export function ProjectElements({
               ${cost.toLocaleString()}
             </div>
           ) : (
-            <span className="text-muted-foreground text-sm">Not set</span>
+            <span className="text-muted-foreground text-sm">{t('peNotSet')}</span>
           );
         },
       });
@@ -380,15 +383,15 @@ export function ProjectElements({
     if (showLifespanImpact) {
       baseColumns.push({
         accessorKey: 'lifespanImpact',
-        header: 'Lifespan Impact',
+        header: t('peLifespanImpact'),
         cell: ({ row }) => {
           const impact = row.getValue('lifespanImpact') as number;
           return impact ? (
             <div className="text-sm" data-testid={`element-lifespan-${row.original.elementId}`}>
-              +{impact} years
+              +{impact}{t('peYearsSuffix')}
             </div>
           ) : (
-            <span className="text-muted-foreground text-sm">TBD</span>
+            <span className="text-muted-foreground text-sm">{t('peTbd')}</span>
           );
         },
       });
@@ -397,7 +400,7 @@ export function ProjectElements({
     if (editable && hasPermission('canEditMaintenance')) {
       baseColumns.push({
         id: 'actions',
-        header: 'Actions',
+        header: t('peActions'),
         cell: ({ row }) => {
           const element = row.original;
           return (
@@ -408,12 +411,12 @@ export function ProjectElements({
                   className="h-8 w-8 p-0"
                   data-testid={`element-actions-${element.elementId}`}
                 >
-                  <span className="sr-only">Open menu</span>
+                  <span className="sr-only">{t('peOpenMenu')}</span>
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuLabel>{t('peActionsLabel')}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 
                 <DropdownMenuItem 
@@ -421,7 +424,7 @@ export function ProjectElements({
                   data-testid={`action-view-element-${element.elementId}`}
                 >
                   <Eye className="mr-2 h-4 w-4" />
-                  View Details
+                  {t('peActionViewDetails')}
                 </DropdownMenuItem>
                 
                 <DropdownMenuItem 
@@ -429,7 +432,7 @@ export function ProjectElements({
                   data-testid={`action-edit-element-${element.elementId}`}
                 >
                   <Edit2 className="mr-2 h-4 w-4" />
-                  Edit Allocation
+                  {t('peActionEditAllocation')}
                 </DropdownMenuItem>
                 
                 <DropdownMenuSeparator />
@@ -440,7 +443,7 @@ export function ProjectElements({
                   data-testid={`action-remove-element-${element.elementId}`}
                 >
                   <Trash2 className="mr-2 h-4 w-4" />
-                  Remove from Project
+                  {t('peActionRemoveFromProject')}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -450,7 +453,7 @@ export function ProjectElements({
     }
 
     return baseColumns;
-  }, [showCostAllocation, showLifespanImpact, editable, hasPermission, onElementClick]);
+  }, [showCostAllocation, showLifespanImpact, editable, hasPermission, onElementClick, t]);
 
   // Bulk actions
   const bulkActions = useMemo(() => {
@@ -458,7 +461,7 @@ export function ProjectElements({
 
     return [
       {
-        label: 'Remove Selected',
+        label: t('peRemoveSelected'),
         icon: Trash2,
         onClick: (selectedRows: Row<ProjectElementWithDetails>[]) => {
           const elementIds = selectedRows.map(row => row.original.id);
@@ -468,7 +471,7 @@ export function ProjectElements({
         disabled: (selectedRows: Row<ProjectElementWithDetails>[]) => selectedRows.length === 0,
       },
       {
-        label: 'Export Elements',
+        label: t('peExportElements'),
         icon: Download,
         onClick: (selectedRows: Row<ProjectElementWithDetails>[]) => {
           // Export logic would be implemented here
@@ -477,7 +480,7 @@ export function ProjectElements({
         disabled: (selectedRows: Row<ProjectElementWithDetails>[]) => selectedRows.length === 0,
       },
     ];
-  }, [editable, hasPermission, bulkUpdateMutation]);
+  }, [editable, hasPermission, bulkUpdateMutation, t]);
 
   if (isLoadingElements) {
     return (
@@ -501,21 +504,21 @@ export function ProjectElements({
       <Card className={cn("w-full", className)} data-testid={`project-elements-${project.id}`}>
         <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg">Project Elements</CardTitle>
+            <CardTitle className="text-lg">{t('peProjectElementsTitle')}</CardTitle>
             
             {editable && hasPermission('canEditMaintenance') && (
               <Dialog open={isAddElementOpen} onOpenChange={setIsAddElementOpen}>
                 <DialogTrigger asChild>
                   <Button size="sm" data-testid="add-element-button">
                     <Plus className="h-4 w-4 mr-2" />
-                    Add Element
+                    {t('peAddElement')}
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                   <DialogHeader>
-                    <DialogTitle>Add Building Element</DialogTitle>
+                    <DialogTitle>{t('peAddBuildingElementTitle')}</DialogTitle>
                     <DialogDescription>
-                      {t('selectBuildingElementsToIncludeIn2')}
+                      {t('peAddBuildingElementDesc')}
                     </DialogDescription>
                   </DialogHeader>
                   
@@ -529,9 +532,9 @@ export function ProjectElements({
                               <Target className="h-5 w-5 text-primary" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="font-medium text-sm">Quick Project</p>
+                              <p className="font-medium text-sm">{t('peQuickProject')}</p>
                               <p className="text-xs text-muted-foreground mt-1">
-                                {t('planningOnlyProjectThatCannotAdvance')}
+                                {t('peQuickProjectLong')}
                               </p>
                             </div>
                           </div>
@@ -569,7 +572,7 @@ export function ProjectElements({
             {projectElements.length === 0 ? (
               <div className="col-span-full text-center py-8 text-muted-foreground">
                 <Building2 className="h-12 w-12 mx-auto mb-4" />
-                <p>{t('noElementsAssignedToThisProject')}</p>
+                <p>{t('peNoElementsAssignedShort')}</p>
               </div>
             ) : (
               projectElements.map((element) => (
@@ -594,10 +597,10 @@ export function ProjectElements({
       <DataTable
         columns={columns}
         data={projectElements}
-        title="Project Elements"
-        description={`${projectElements.length} building elements assigned to this project`}
+        title={t('peProjectElementsTitle')}
+        description={`${projectElements.length}${t('peElementsAssignedSuffix')}`}
         isLoading={isLoadingElements}
-        searchPlaceholder="Search elements..."
+        searchPlaceholder={t('peSearchPlaceholder')}
         searchableColumn="elementName"
         enableRowSelection={editable}
         enableFiltering={true}
@@ -609,8 +612,8 @@ export function ProjectElements({
         onSelectionChange={setSelectedElements}
         onRowClick={(row) => onElementClick?.(row.original.element)}
         emptyState={{
-          title: "No Elements Assigned",
-          description: "No building elements have been assigned to this project yet.",
+          title: t('peNoElementsAssignedTitle'),
+          description: t('peNoElementsAssignedDesc'),
           icon: Building2,
         }}
         getRowId={(row) => row.id}
@@ -624,23 +627,23 @@ export function ProjectElements({
             <DialogTrigger asChild>
               <Button data-testid="add-element-button">
                 <Plus className="h-4 w-4 mr-2" />
-                Add Element
+                {t('peAddElement')}
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Add Building Elements</DialogTitle>
+                <DialogTitle>{t('peAddBuildingElementsTitle')}</DialogTitle>
                 <DialogDescription>
-                  {t('selectBuildingElementsToIncludeIn')}
+                  {t('peAddBuildingElementsDesc')}
                 </DialogDescription>
               </DialogHeader>
               
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <label className="text-sm font-medium">Work Description</label>
+                    <label className="text-sm font-medium">{t('peWorkDescriptionLabel')}</label>
                     <Textarea
-                      placeholder="Describe the work to be done on these elements..."
+                      placeholder={t('peWorkDescriptionPlaceholder')}
                       value={workDescription}
                       onChange={(e) => setWorkDescription(e.target.value)}
                       rows={3}
@@ -649,7 +652,7 @@ export function ProjectElements({
                   </div>
                   
                   <div>
-                    <label className="text-sm font-medium">Cost Allocation ($)</label>
+                    <label className="text-sm font-medium">{t('peCostAllocationLabel')}</label>
                     <Input
                       type="number"
                       placeholder="0.00"
@@ -662,7 +665,7 @@ export function ProjectElements({
                   </div>
                   
                   <div>
-                    <label className="text-sm font-medium">Lifespan Impact (Years)</label>
+                    <label className="text-sm font-medium">{t('peLifespanImpactLabel')}</label>
                     <Input
                       type="number"
                       placeholder="0"
@@ -675,7 +678,7 @@ export function ProjectElements({
                 </div>
 
                 <div className="border rounded-lg p-4">
-                  <h4 className="font-medium mb-3">Available Elements</h4>
+                  <h4 className="font-medium mb-3">{t('peAvailableElements')}</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-60 overflow-y-auto">
                     {/* Quick Project Option - Only in planning phase */}
                     {isInPlanningPhase && !isQuickProject && (
@@ -689,9 +692,9 @@ export function ProjectElements({
                             <Target className="h-4 w-4 text-primary" />
                           </div>
                           <div>
-                            <div className="font-medium text-sm">Quick Project</div>
+                            <div className="font-medium text-sm">{t('peQuickProject')}</div>
                             <div className="text-xs text-muted-foreground">
-                              Planning-only project
+                              {t('peQuickProjectShort')}
                             </div>
                           </div>
                         </div>
@@ -705,7 +708,7 @@ export function ProjectElements({
                     ) : unassignedElements.length === 0 && (!isInPlanningPhase || isQuickProject) ? (
                       <div className="col-span-full text-center py-4 text-muted-foreground">
                         <Building2 className="h-8 w-8 mx-auto mb-2" />
-                        <p>{t('allAvailableElementsAreAlreadyAssigned')}</p>
+                        <p>{t('peAllAlreadyAssigned')}</p>
                       </div>
                     ) : (
                       unassignedElements.map((element) => (
@@ -739,17 +742,17 @@ export function ProjectElements({
       <Dialog open={isEditCostOpen} onOpenChange={setIsEditCostOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Element Details</DialogTitle>
+            <DialogTitle>{t('peEditElementTitle')}</DialogTitle>
             <DialogDescription>
-              {t('updateCostAllocationAndWorkDetails')}
+              {t('peEditElementDesc')}
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4">
             <div>
-              <label className="text-sm font-medium">Work Description</label>
+              <label className="text-sm font-medium">{t('peWorkDescriptionLabel')}</label>
               <Textarea
-                placeholder="Describe the work to be done..."
+                placeholder={t('peEditWorkDescriptionPlaceholder')}
                 value={workDescription}
                 onChange={(e) => setWorkDescription(e.target.value)}
                 rows={3}
@@ -759,7 +762,7 @@ export function ProjectElements({
             
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium">Cost Allocation ($)</label>
+                <label className="text-sm font-medium">{t('peCostAllocationLabel')}</label>
                 <Input
                   type="number"
                   placeholder="0.00"
@@ -772,7 +775,7 @@ export function ProjectElements({
               </div>
               
               <div>
-                <label className="text-sm font-medium">Lifespan Impact (Years)</label>
+                <label className="text-sm font-medium">{t('peLifespanImpactLabel')}</label>
                 <Input
                   type="number"
                   placeholder="0"
@@ -787,14 +790,14 @@ export function ProjectElements({
           
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditCostOpen(false)}>
-              Cancel
+              {t('cancel')}
             </Button>
             <Button 
               onClick={handleUpdateElement}
               disabled={updateElementMutation.isPending}
               data-testid="save-element-changes"
             >
-              {updateElementMutation.isPending ? 'Saving...' : 'Save Changes'}
+              {updateElementMutation.isPending ? t('peSavingProgress') : t('saveChanges')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -804,18 +807,18 @@ export function ProjectElements({
       <AlertDialog open={!!elementToRemove} onOpenChange={() => setElementToRemove(null)}>
         <AlertDialogContent data-testid="remove-element-confirmation">
           <AlertDialogHeader>
-            <AlertDialogTitle>Remove Element</AlertDialogTitle>
+            <AlertDialogTitle>{t('peRemoveElementTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              {t('areYouSureYouWantTo4')}
+              {t('peRemoveElementConfirm')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => elementToRemove && removeElementMutation.mutate(elementToRemove)}
               disabled={removeElementMutation.isPending}
             >
-              {removeElementMutation.isPending ? 'Removing...' : 'Remove'}
+              {removeElementMutation.isPending ? t('peRemovingProgress') : t('peRemoveButton')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

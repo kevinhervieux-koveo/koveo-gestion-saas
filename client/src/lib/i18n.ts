@@ -2850,6 +2850,284 @@ export interface Translations {
   wfSkipConfigDeleteConfirmation: string;
   wfCompleteSummaryPlaceholder: string;
   wfElementsSearchPlaceholder: string;
+
+  // Bulk edit cost dialog (task #707)
+  bulkCostUpdateTitle: string;
+  bulkCostUpdateDescPrefix: string;
+  bulkCostUpdateDescSuffix: string;
+  bulkCostAssignmentType: string;
+  bulkCostPerElement: string;
+  bulkCostPerUnit: string;
+  bulkCostPerElementHint: string;
+  bulkCostPerUnitHint: string;
+  bulkCostAmountLabel: string;
+  bulkCostPerElementHelper: string;
+  bulkCostPerUnitHelper: string;
+  bulkCostPreviewLabel: string;
+  bulkCostPreviewPerElementPrefix: string;
+  bulkCostPreviewPerElementSuffix: string;
+  bulkCostPreviewPerUnitPrefix: string;
+  bulkCostPreviewPerUnitSuffix: string;
+  bulkCostUpdateButton: string;
+  bulkCostToastUpdatedTitle: string;
+  bulkCostToastUpdatedDescPrefix: string;
+  bulkCostToastUpdatedDescSuffix: string;
+  bulkCostToastFailedTitle: string;
+  bulkCostToastFailedDesc: string;
+  bulkCostInvalidAmountError: string;
+
+  // Bulk edit residence dialog (task #707)
+  bulkResidenceTitle: string;
+  bulkResidenceDescPrefix: string;
+  bulkResidenceDescSuffix: string;
+  bulkResidenceUpdateAssignment: string;
+  bulkResidenceSelectPlaceholder: string;
+  bulkResidenceBuildingWide: string;
+  bulkResidenceBuildingWideDesc: string;
+  bulkResidenceUnitPrefix: string;
+  bulkResidenceFloorPrefix: string;
+  bulkResidenceUpdateAccess: string;
+  bulkResidenceSelectAccess: string;
+  bulkResidenceNotRestrained: string;
+  bulkResidenceNotRestrainedDesc: string;
+  bulkResidenceRestrained: string;
+  bulkResidenceRestrainedDesc: string;
+  bulkResidenceUpdateCharge: string;
+  bulkResidenceSelectCharge: string;
+  bulkResidenceCommon: string;
+  bulkResidenceCommonDesc: string;
+  bulkResidencePersonal: string;
+  bulkResidencePersonalDesc: string;
+  bulkResidenceChangesToApply: string;
+  bulkResidenceChangeResidence: string;
+  bulkResidenceChangeAccess: string;
+  bulkResidenceChangeCharge: string;
+  bulkResidenceUpdateButton: string;
+  bulkResidenceToastUpdatedTitle: string;
+  bulkResidenceToastUpdatedDescPrefix: string;
+  bulkResidenceToastUpdatedDescSuffix: string;
+  bulkResidenceToastFailedTitle: string;
+  bulkResidenceToastFailedDesc: string;
+  bulkResidenceSelectFieldError: string;
+  bulkResidenceUnknownUnit: string;
+
+  // Project budget (task #707)
+  pbBudgetOverview: string;
+  pbBudgetBreakdown: string;
+  pbViewElements: string;
+  pbExportBudget: string;
+  pbTotalBudget: string;
+  pbActualCost: string;
+  pbAllocated: string;
+  pbRemaining: string;
+  pbBudgetUtilization: string;
+  pbOverBudgetPrefix: string;
+  pbOverBudgetSuffix: string;
+  pbFailedToLoadTitle: string;
+  pbFailedToLoadDesc: string;
+  pbCategory: string;
+  pbVariance: string;
+  pbActions: string;
+  pbHistoricalOnly: string;
+  pbViewDetails: string;
+  pbCount: string;
+  pbElementsSuffix: string;
+  pbVendorsSuffix: string;
+  pbOver: string;
+  pbNotAvailable: string;
+  pbSearchBreakdownPlaceholder: string;
+  pbNoBudgetDataTitle: string;
+  pbNoBudgetDataDesc: string;
+  pbBreakdownDetailsTitle: string;
+  pbBreakdownDetailsDesc: string;
+  pbDetailsSuffix: string;
+  pbProjectElementsHeading: string;
+  pbVendorHistoryHeading: string;
+  pbUnknownVendor: string;
+  pbCategoryElementAllocations: string;
+  pbCategoryElementAllocationsDesc: string;
+  pbCategoryVendorCosts: string;
+  pbCategoryVendorCostsDesc: string;
+  pbCategoryMaterials: string;
+  pbCategoryMaterialsDesc: string;
+  pbCategoryLabor: string;
+  pbCategoryLaborDesc: string;
+  pbCategoryUnallocated: string;
+  pbCategoryUnallocatedDesc: string;
+  pbBreakdownAllocatedToPrefix: string;
+  pbBreakdownAllocatedToSuffix: string;
+  pbBreakdownVendorCountPrefix: string;
+  pbBreakdownVendorCountSuffix: string;
+  pbBreakdownMaterialsDesc: string;
+  pbBreakdownLaborDesc: string;
+  pbBreakdownUnallocatedDesc: string;
+
+  // Project elements (task #707)
+  peElement: string;
+  peCondition: string;
+  pePlannedWork: string;
+  peCostAllocation: string;
+  peLifespanImpact: string;
+  peActions: string;
+  peNotSpecified: string;
+  peNotSet: string;
+  peTbd: string;
+  peYearsSuffix: string;
+  peOpenMenu: string;
+  peActionsLabel: string;
+  peActionViewDetails: string;
+  peActionEditAllocation: string;
+  peActionRemoveFromProject: string;
+  peRemoveSelected: string;
+  peExportElements: string;
+  peProjectElementsTitle: string;
+  peElementsAssignedSuffix: string;
+  peSearchPlaceholder: string;
+  peNoElementsAssignedTitle: string;
+  peNoElementsAssignedDesc: string;
+  peNoElementsAssignedShort: string;
+  peAddElement: string;
+  peAddBuildingElementTitle: string;
+  peAddBuildingElementDesc: string;
+  peAddBuildingElementsTitle: string;
+  peAddBuildingElementsDesc: string;
+  peQuickProject: string;
+  peQuickProjectLong: string;
+  peQuickProjectShort: string;
+  peWorkDescriptionLabel: string;
+  peWorkDescriptionPlaceholder: string;
+  peCostAllocationLabel: string;
+  peLifespanImpactLabel: string;
+  peAvailableElements: string;
+  peAllAlreadyAssigned: string;
+  peEditElementTitle: string;
+  peEditElementDesc: string;
+  peEditWorkDescriptionPlaceholder: string;
+  peSavingProgress: string;
+  peRemoveElementTitle: string;
+  peRemoveElementConfirm: string;
+  peRemoveButton: string;
+  peRemovingProgress: string;
+  pePermissionDeniedTitle: string;
+  pePermissionDeniedAddElements: string;
+  pePermissionDeniedQuickProject: string;
+  peElementAddedTitle: string;
+  peElementAddedDesc: string;
+  peElementAddFailedTitle: string;
+  peElementUpdatedTitle: string;
+  peElementUpdatedDesc: string;
+  peElementUpdateFailedTitle: string;
+  peElementRemovedTitle: string;
+  peElementRemovedDesc: string;
+  peElementRemoveFailedTitle: string;
+  peQuickProjectCreatedTitle: string;
+  peQuickProjectCreatedDesc: string;
+  peQuickProjectFailedTitle: string;
+  peBulkOpDoneTitle: string;
+  peBulkOpRemovedDesc: string;
+  peBulkOpUpdatedDesc: string;
+  peBulkOpFailedTitle: string;
+  pePleaseTryAgain: string;
+  peQuickProjectFallbackDescription: string;
+
+  // Element form (task #707)
+  efAddBuildingElement: string;
+  efEditBuildingElement: string;
+  efViewBuildingElement: string;
+  efAddDescription: string;
+  efEditDescription: string;
+  efViewDescription: string;
+  efDeleteButton: string;
+  efDeletingProgress: string;
+  efDeleteConfirm: string;
+  efUniformatCodeLabel: string;
+  efBrowseButton: string;
+  efSearchPlaceholder: string;
+  efSearchPlaceholderBrowser: string;
+  efBrowseDialogTitle: string;
+  efBrowseDialogHint: string;
+  efBreadcrumbLevel1: string;
+  efBreadcrumbLevel2Prefix: string;
+  efBreadcrumbLevel3Prefix: string;
+  efTypicalLifespanPrefix: string;
+  efTypicalLifespanShortPrefix: string;
+  efTypicalLifespanSuffix: string;
+  efLoadingCodes: string;
+  efNoMatchingCodes: string;
+  efSelectableLabel: string;
+  efNavigateLabel: string;
+  efNavigateOnlyLabel: string;
+  efElementNameLabel: string;
+  efElementNamePlaceholder: string;
+  efCurrentConditionLabel: string;
+  efSelectCondition: string;
+  efDescriptionLabel: string;
+  efDescriptionLabelHelper: string;
+  efDescriptionPlaceholder: string;
+  efResidenceAssignmentLabel: string;
+  efResidenceAssignmentDesc: string;
+  efBuildingWideElement: string;
+  efSelectResidenceAssignment: string;
+  efUnitPrefix: string;
+  efFloorPrefix: string;
+  efAssignedToPrefix: string;
+  efFloorSuffix: string;
+  efAccessTypeLabel: string;
+  efAccessTypeDesc: string;
+  efSelectAccessType: string;
+  efNotRestrained: string;
+  efNotRestrainedDesc: string;
+  efRestrained: string;
+  efRestrainedDesc: string;
+  efChargeTypeLabel: string;
+  efChargeTypeDesc: string;
+  efSelectChargeType: string;
+  efCommon: string;
+  efCommonDesc: string;
+  efPersonal: string;
+  efPersonalDesc: string;
+  efTimelineHeading: string;
+  efOriginalConstructionDate: string;
+  efOriginalLifespan: string;
+  efYearsLeftToReconstruction: string;
+  efQuantityHeading: string;
+  efQuantityLabel: string;
+  efUnitLabel: string;
+  efSelectUnit: string;
+  efUnitM2: string;
+  efUnitM: string;
+  efUnitUnit: string;
+  efUnitM3: string;
+  efUnitKg: string;
+  efUnitL: string;
+  efNextEvaluationDate: string;
+  efAutoCalculate: string;
+  efAutoCalcHelper: string;
+  efReconstructionEvaluation: string;
+  efReconstructionCost: string;
+  efReconstructionCostPlaceholder: string;
+  efDateOfEstimation: string;
+  efElementQuantityHeading: string;
+  efQuantityDuplicateLabel: string;
+  efQuantityDuplicateDesc: string;
+  efNotesLabel: string;
+  efNotesPlaceholder: string;
+  efElementCreatedTitle: string;
+  efElementsCreatedSuffix: string;
+  efElementUpdatedTitle: string;
+  efElementCreatedSuccessSuffix: string;
+  efElementUpdatedSuccessSuffix: string;
+  efSuccessfullyCreatedPrefix: string;
+  efSuccessfullyCreatedSuffix: string;
+  efCreationFailedTitle: string;
+  efUpdateFailedTitle: string;
+  efFailedToCreateElement: string;
+  efFailedToUpdateElement: string;
+  efNoElementToDelete: string;
+  efElementDeletedTitle: string;
+  efElementDeletedDesc: string;
+  efDeletionFailedTitle: string;
+  efFailedToDeleteElement: string;
 }
 
 /**
@@ -5704,6 +5982,284 @@ export const translations: Record<Language, Translations> = {
     wfSkipConfigDeleteConfirmation: 'Are you sure you want to permanently delete this project? This action cannot be undone. All project data, tasks, vendor submissions, and workflow history will be permanently removed.',
     wfCompleteSummaryPlaceholder: 'Provide a comprehensive summary of the completed work, including:\n• What was accomplished\n• Any challenges overcome\n• Quality of work delivered\n• Impact on the building/residents\n• Lessons learned for future projects\n• Recommendations for maintenance',
     wfElementsSearchPlaceholder: 'Search elements by name, description, or UNIFORMAT code...',
+
+    // Bulk edit cost dialog (task #707)
+    bulkCostUpdateTitle: 'Update Reconstruction Costs',
+    bulkCostUpdateDescPrefix: 'Update reconstruction costs for ',
+    bulkCostUpdateDescSuffix: ' selected element(s).',
+    bulkCostAssignmentType: 'Cost Assignment Type',
+    bulkCostPerElement: 'Per Element',
+    bulkCostPerUnit: 'Per Unit (m², m, etc.)',
+    bulkCostPerElementHint: 'Assign the same total cost to each element',
+    bulkCostPerUnitHint: 'Assign cost per unit - total cost will be calculated based on element quantity and unit type',
+    bulkCostAmountLabel: 'Cost Amount ($)',
+    bulkCostPerElementHelper: 'Total reconstruction cost for each element (e.g., $5,000 per window)',
+    bulkCostPerUnitHelper: 'Cost per unit (e.g., $50 per m² for flooring, $200 per m for railings)',
+    bulkCostPreviewLabel: 'Preview:',
+    bulkCostPreviewPerElementPrefix: 'Each element will have a reconstruction cost of $',
+    bulkCostPreviewPerElementSuffix: '.',
+    bulkCostPreviewPerUnitPrefix: 'Each element will have a unit cost of $',
+    bulkCostPreviewPerUnitSuffix: ' per unit',
+    bulkCostUpdateButton: 'Update Costs',
+    bulkCostToastUpdatedTitle: 'Costs updated',
+    bulkCostToastUpdatedDescPrefix: 'Successfully updated costs for ',
+    bulkCostToastUpdatedDescSuffix: ' element(s)',
+    bulkCostToastFailedTitle: 'Update failed',
+    bulkCostToastFailedDesc: 'Failed to update element costs',
+    bulkCostInvalidAmountError: 'Please enter a valid cost amount',
+
+    // Bulk edit residence dialog (task #707)
+    bulkResidenceTitle: 'Change Assignment & Properties',
+    bulkResidenceDescPrefix: 'Update residence assignment, access type, and charge type for ',
+    bulkResidenceDescSuffix: ' selected element(s).',
+    bulkResidenceUpdateAssignment: 'Update Residence Assignment',
+    bulkResidenceSelectPlaceholder: 'Select residence',
+    bulkResidenceBuildingWide: 'Building-wide',
+    bulkResidenceBuildingWideDesc: 'Common to entire building',
+    bulkResidenceUnitPrefix: 'Unit ',
+    bulkResidenceFloorPrefix: 'Floor ',
+    bulkResidenceUpdateAccess: 'Update Access Type',
+    bulkResidenceSelectAccess: 'Select access type',
+    bulkResidenceNotRestrained: 'Not Restrained',
+    bulkResidenceNotRestrainedDesc: 'Easy access',
+    bulkResidenceRestrained: 'Restrained',
+    bulkResidenceRestrainedDesc: 'Restricted access',
+    bulkResidenceUpdateCharge: 'Update Charge Type',
+    bulkResidenceSelectCharge: 'Select charge type',
+    bulkResidenceCommon: 'Common',
+    bulkResidenceCommonDesc: 'Building responsibility',
+    bulkResidencePersonal: 'Personal',
+    bulkResidencePersonalDesc: 'Resident responsibility',
+    bulkResidenceChangesToApply: 'Changes to apply:',
+    bulkResidenceChangeResidence: 'Residence',
+    bulkResidenceChangeAccess: 'Access',
+    bulkResidenceChangeCharge: 'Charge',
+    bulkResidenceUpdateButton: 'Update Assignment',
+    bulkResidenceToastUpdatedTitle: 'Assignment updated',
+    bulkResidenceToastUpdatedDescPrefix: 'Successfully updated assignment for ',
+    bulkResidenceToastUpdatedDescSuffix: ' element(s)',
+    bulkResidenceToastFailedTitle: 'Update failed',
+    bulkResidenceToastFailedDesc: 'Failed to update element assignments',
+    bulkResidenceSelectFieldError: 'Please select at least one field to update',
+    bulkResidenceUnknownUnit: 'Unknown',
+
+    // Project budget (task #707)
+    pbBudgetOverview: 'Budget Overview',
+    pbBudgetBreakdown: 'Budget Breakdown',
+    pbViewElements: 'View Elements',
+    pbExportBudget: 'Export Budget',
+    pbTotalBudget: 'Total Budget',
+    pbActualCost: 'Actual Cost',
+    pbAllocated: 'Allocated',
+    pbRemaining: 'Remaining',
+    pbBudgetUtilization: 'Budget Utilization',
+    pbOverBudgetPrefix: 'Project is over budget by $',
+    pbOverBudgetSuffix: '.',
+    pbFailedToLoadTitle: 'Failed to Load Budget',
+    pbFailedToLoadDesc: 'There was an error loading the project budget. Please try again.',
+    pbCategory: 'Category',
+    pbVariance: 'Variance',
+    pbActions: 'Actions',
+    pbHistoricalOnly: 'Historical only',
+    pbViewDetails: 'View Details',
+    pbCount: 'Count',
+    pbElementsSuffix: ' elements',
+    pbVendorsSuffix: ' vendors',
+    pbOver: ' over',
+    pbNotAvailable: 'N/A',
+    pbSearchBreakdownPlaceholder: 'Search breakdown categories...',
+    pbNoBudgetDataTitle: 'No Budget Data',
+    pbNoBudgetDataDesc: 'No budget allocations or historical costs found for this project.',
+    pbBreakdownDetailsTitle: 'Budget Breakdown Details',
+    pbBreakdownDetailsDesc: 'Detailed breakdown of costs and allocations for this budget category.',
+    pbDetailsSuffix: ' Details',
+    pbProjectElementsHeading: 'Project Elements',
+    pbVendorHistoryHeading: 'Vendor History',
+    pbUnknownVendor: 'Unknown Vendor',
+    pbCategoryElementAllocations: 'Element Allocations',
+    pbCategoryElementAllocationsDesc: 'Budget allocated to specific building elements',
+    pbCategoryVendorCosts: 'Vendor Costs',
+    pbCategoryVendorCostsDesc: 'Historical contractor and vendor expenses',
+    pbCategoryMaterials: 'Materials',
+    pbCategoryMaterialsDesc: 'Material and supply costs from history',
+    pbCategoryLabor: 'Labor',
+    pbCategoryLaborDesc: 'Labor costs from project work',
+    pbCategoryUnallocated: 'Unallocated',
+    pbCategoryUnallocatedDesc: 'Budget not yet allocated to specific elements',
+    pbBreakdownAllocatedToPrefix: 'Budget allocated to ',
+    pbBreakdownAllocatedToSuffix: ' building elements',
+    pbBreakdownVendorCountPrefix: 'Historical costs from ',
+    pbBreakdownVendorCountSuffix: ' vendors',
+    pbBreakdownMaterialsDesc: 'Material and supply costs',
+    pbBreakdownLaborDesc: 'Labor costs from repair work',
+    pbBreakdownUnallocatedDesc: 'Budget not yet allocated to specific elements',
+
+    // Project elements (task #707)
+    peElement: 'Element',
+    peCondition: 'Condition',
+    pePlannedWork: 'Planned Work',
+    peCostAllocation: 'Cost Allocation',
+    peLifespanImpact: 'Lifespan Impact',
+    peActions: 'Actions',
+    peNotSpecified: 'Not specified',
+    peNotSet: 'Not set',
+    peTbd: 'TBD',
+    peYearsSuffix: ' years',
+    peOpenMenu: 'Open menu',
+    peActionsLabel: 'Actions',
+    peActionViewDetails: 'View Details',
+    peActionEditAllocation: 'Edit Allocation',
+    peActionRemoveFromProject: 'Remove from Project',
+    peRemoveSelected: 'Remove Selected',
+    peExportElements: 'Export Elements',
+    peProjectElementsTitle: 'Project Elements',
+    peElementsAssignedSuffix: ' building elements assigned to this project',
+    peSearchPlaceholder: 'Search elements...',
+    peNoElementsAssignedTitle: 'No Elements Assigned',
+    peNoElementsAssignedDesc: 'No building elements have been assigned to this project yet.',
+    peNoElementsAssignedShort: 'No elements assigned to this project yet.',
+    peAddElement: 'Add Element',
+    peAddBuildingElementTitle: 'Add Building Element',
+    peAddBuildingElementDesc: 'Select building elements to include in this project.',
+    peAddBuildingElementsTitle: 'Add Building Elements',
+    peAddBuildingElementsDesc: 'Select building elements to include in this project and optionally set cost allocation and work details.',
+    peQuickProject: 'Quick Project',
+    peQuickProjectLong: 'Planning-only project that cannot advance beyond planning phase',
+    peQuickProjectShort: 'Planning-only project',
+    peWorkDescriptionLabel: 'Work Description',
+    peWorkDescriptionPlaceholder: 'Describe the work to be done on these elements...',
+    peCostAllocationLabel: 'Cost Allocation ($)',
+    peLifespanImpactLabel: 'Lifespan Impact (Years)',
+    peAvailableElements: 'Available Elements',
+    peAllAlreadyAssigned: 'All available elements are already assigned to this project.',
+    peEditElementTitle: 'Edit Element Details',
+    peEditElementDesc: 'Update cost allocation and work details for this element.',
+    peEditWorkDescriptionPlaceholder: 'Describe the work to be done...',
+    peSavingProgress: 'Saving...',
+    peRemoveElementTitle: 'Remove Element',
+    peRemoveElementConfirm: 'Are you sure you want to remove this element from the project? This action cannot be undone.',
+    peRemoveButton: 'Remove',
+    peRemovingProgress: 'Removing...',
+    pePermissionDeniedTitle: 'Permission Denied',
+    pePermissionDeniedAddElements: "You don't have permission to add elements to projects.",
+    pePermissionDeniedQuickProject: "You don't have permission to create Quick Projects.",
+    peElementAddedTitle: 'Element Added',
+    peElementAddedDesc: 'Building element has been added to the project successfully.',
+    peElementAddFailedTitle: 'Failed to Add Element',
+    peElementUpdatedTitle: 'Element Updated',
+    peElementUpdatedDesc: 'Element details have been updated successfully.',
+    peElementUpdateFailedTitle: 'Update Failed',
+    peElementRemovedTitle: 'Element Removed',
+    peElementRemovedDesc: 'Element has been removed from the project.',
+    peElementRemoveFailedTitle: 'Removal Failed',
+    peQuickProjectCreatedTitle: 'Quick Project Created',
+    peQuickProjectCreatedDesc: 'This project has been set as a Quick Project for planning purposes only.',
+    peQuickProjectFailedTitle: 'Failed to Create Quick Project',
+    peBulkOpDoneTitle: 'Bulk Operation Complete',
+    peBulkOpRemovedDesc: 'Selected elements have been removed successfully.',
+    peBulkOpUpdatedDesc: 'Selected elements have been updated successfully.',
+    peBulkOpFailedTitle: 'Bulk Operation Failed',
+    pePleaseTryAgain: 'Please try again.',
+    peQuickProjectFallbackDescription: 'Quick Project for planning purposes',
+
+    // Element form (task #707)
+    efAddBuildingElement: 'Add Building Element',
+    efEditBuildingElement: 'Edit Building Element',
+    efViewBuildingElement: 'View Building Element',
+    efAddDescription: 'Add a new building element to the inventory with its specifications and condition',
+    efEditDescription: 'Update the building element information and condition',
+    efViewDescription: 'View building element information and condition',
+    efDeleteButton: 'Delete',
+    efDeletingProgress: 'Deleting...',
+    efDeleteConfirm: 'Are you sure you want to delete this element? This action cannot be undone.',
+    efUniformatCodeLabel: 'UNIFORMAT Code',
+    efBrowseButton: 'Browse',
+    efSearchPlaceholder: 'Search UNIFORMAT codes...',
+    efSearchPlaceholderBrowser: 'Search UNIFORMAT codes...',
+    efBrowseDialogTitle: 'Browse UNIFORMAT Codes',
+    efBrowseDialogHint: 'Navigate: Level 1 → Level 2 → Level 3 (only Level 3 can be selected for elements)',
+    efBreadcrumbLevel1: 'Level 1',
+    efBreadcrumbLevel2Prefix: 'Level 2',
+    efBreadcrumbLevel3Prefix: 'Level 3',
+    efTypicalLifespanPrefix: 'Typical lifespan: ',
+    efTypicalLifespanShortPrefix: 'Typical: ',
+    efTypicalLifespanSuffix: ' years',
+    efLoadingCodes: 'Loading UNIFORMAT codes...',
+    efNoMatchingCodes: 'No matching codes found',
+    efSelectableLabel: 'Selectable',
+    efNavigateLabel: 'Navigate →',
+    efNavigateOnlyLabel: 'Navigate only',
+    efElementNameLabel: 'Element Name',
+    efElementNamePlaceholder: 'e.g., Exterior Wall - North',
+    efCurrentConditionLabel: 'Current Condition',
+    efSelectCondition: 'Select condition',
+    efDescriptionLabel: 'Description',
+    efDescriptionLabelHelper: 'Optional detailed description of the element',
+    efDescriptionPlaceholder: 'Describe the element location, specifications, or other relevant details...',
+    efResidenceAssignmentLabel: 'Residence Assignment',
+    efResidenceAssignmentDesc: 'Select if this element is building-wide or applies to specific residences',
+    efBuildingWideElement: 'Building-wide element',
+    efSelectResidenceAssignment: 'Select residence assignment',
+    efUnitPrefix: 'Unit ',
+    efFloorPrefix: 'Floor ',
+    efAssignedToPrefix: 'Currently assigned to: Unit ',
+    efFloorSuffix: 'Floor',
+    efAccessTypeLabel: 'Access Type',
+    efAccessTypeDesc: 'Access restrictions for this element',
+    efSelectAccessType: 'Select access type',
+    efNotRestrained: 'Not Restrained',
+    efNotRestrainedDesc: 'Free access',
+    efRestrained: 'Restrained',
+    efRestrainedDesc: 'Restricted access',
+    efChargeTypeLabel: 'Charge Type',
+    efChargeTypeDesc: 'Who is responsible for costs',
+    efSelectChargeType: 'Select charge type',
+    efCommon: 'Common',
+    efCommonDesc: 'Building responsibility',
+    efPersonal: 'Personal',
+    efPersonalDesc: 'Resident responsibility',
+    efTimelineHeading: 'Timeline & Lifespan',
+    efOriginalConstructionDate: 'Original Construction Date',
+    efOriginalLifespan: 'Original Lifespan (years)',
+    efYearsLeftToReconstruction: 'Years left to reconstruction',
+    efQuantityHeading: 'Quantity & Unit',
+    efQuantityLabel: 'Quantity',
+    efUnitLabel: 'Unit',
+    efSelectUnit: 'Select unit',
+    efUnitM2: 'm² (square meters)',
+    efUnitM: 'm (linear meters)',
+    efUnitUnit: 'unit (each)',
+    efUnitM3: 'm³ (cubic meters)',
+    efUnitKg: 'kg (kilograms)',
+    efUnitL: 'L (liters)',
+    efNextEvaluationDate: 'Next Evaluation Date',
+    efAutoCalculate: 'Auto-calculate',
+    efAutoCalcHelper: 'Automatically calculated based on condition and remaining years',
+    efReconstructionEvaluation: 'Reconstruction Evaluation',
+    efReconstructionCost: 'Reconstruction Cost',
+    efReconstructionCostPlaceholder: '0.00',
+    efDateOfEstimation: 'Date of Estimation',
+    efElementQuantityHeading: 'Element Quantity',
+    efQuantityDuplicateLabel: 'Quantity (Duplicate)',
+    efQuantityDuplicateDesc: 'Number of identical elements to create (e.g., 30 windows, 5 doors)',
+    efNotesLabel: 'Notes',
+    efNotesPlaceholder: 'Any additional notes about this element...',
+    efElementCreatedTitle: 'Element created',
+    efElementsCreatedSuffix: ' Elements created',
+    efElementUpdatedTitle: 'Element updated',
+    efElementCreatedSuccessSuffix: ' has been created successfully',
+    efElementUpdatedSuccessSuffix: ' has been updated successfully',
+    efSuccessfullyCreatedPrefix: 'Successfully created ',
+    efSuccessfullyCreatedSuffix: ' numbered elements',
+    efCreationFailedTitle: 'Creation failed',
+    efUpdateFailedTitle: 'Update failed',
+    efFailedToCreateElement: 'Failed to create element',
+    efFailedToUpdateElement: 'Failed to update element',
+    efNoElementToDelete: 'No element to delete',
+    efElementDeletedTitle: 'Element deleted',
+    efElementDeletedDesc: 'Building element has been successfully removed from the inventory.',
+    efDeletionFailedTitle: 'Deletion failed',
+    efFailedToDeleteElement: 'Failed to delete element',
   },
   fr: {
 
@@ -8554,5 +9110,283 @@ export const translations: Record<Language, Translations> = {
     wfSkipConfigDeleteConfirmation: 'Êtes-vous certain de vouloir supprimer définitivement ce projet ? Cette action est irréversible. Toutes les données du projet, les tâches, les soumissions des fournisseurs et l\'historique du flux de travail seront définitivement supprimés.',
     wfCompleteSummaryPlaceholder: 'Fournissez un résumé complet des travaux réalisés, incluant :\n• Ce qui a été accompli\n• Les défis surmontés\n• La qualité des travaux livrés\n• L\'impact sur l\'immeuble et les résidents\n• Les leçons apprises pour les projets futurs\n• Les recommandations d\'entretien',
     wfElementsSearchPlaceholder: 'Rechercher des éléments par nom, description ou code UNIFORMAT...',
+
+    // Bulk edit cost dialog (task #707)
+    bulkCostUpdateTitle: 'Mettre à jour les coûts de reconstruction',
+    bulkCostUpdateDescPrefix: 'Mettre à jour les coûts de reconstruction pour ',
+    bulkCostUpdateDescSuffix: ' élément(s) sélectionné(s).',
+    bulkCostAssignmentType: 'Type d\'attribution du coût',
+    bulkCostPerElement: 'Par élément',
+    bulkCostPerUnit: 'Par unité (m², m, etc.)',
+    bulkCostPerElementHint: 'Attribuer le même coût total à chaque élément',
+    bulkCostPerUnitHint: 'Attribuer un coût par unité — le coût total sera calculé selon la quantité et le type d\'unité de l\'élément',
+    bulkCostAmountLabel: 'Montant du coût ($)',
+    bulkCostPerElementHelper: 'Coût total de reconstruction pour chaque élément (p. ex. 5 000 $ par fenêtre)',
+    bulkCostPerUnitHelper: 'Coût par unité (p. ex. 50 $ par m² pour le revêtement de sol, 200 $ par m pour les rampes)',
+    bulkCostPreviewLabel: 'Aperçu :',
+    bulkCostPreviewPerElementPrefix: 'Chaque élément aura un coût de reconstruction de ',
+    bulkCostPreviewPerElementSuffix: ' $',
+    bulkCostPreviewPerUnitPrefix: 'Chaque élément aura un coût unitaire de ',
+    bulkCostPreviewPerUnitSuffix: ' $ par unité',
+    bulkCostUpdateButton: 'Mettre à jour les coûts',
+    bulkCostToastUpdatedTitle: 'Coûts mis à jour',
+    bulkCostToastUpdatedDescPrefix: 'Coûts mis à jour avec succès pour ',
+    bulkCostToastUpdatedDescSuffix: ' élément(s)',
+    bulkCostToastFailedTitle: 'Échec de la mise à jour',
+    bulkCostToastFailedDesc: 'Échec de la mise à jour des coûts des éléments',
+    bulkCostInvalidAmountError: 'Veuillez saisir un montant de coût valide',
+
+    // Bulk edit residence dialog (task #707)
+    bulkResidenceTitle: 'Modifier l\'attribution et les propriétés',
+    bulkResidenceDescPrefix: 'Mettre à jour l\'attribution de résidence, le type d\'accès et le type de charge pour ',
+    bulkResidenceDescSuffix: ' élément(s) sélectionné(s).',
+    bulkResidenceUpdateAssignment: 'Mettre à jour l\'attribution de résidence',
+    bulkResidenceSelectPlaceholder: 'Sélectionner une résidence',
+    bulkResidenceBuildingWide: 'Pour tout le bâtiment',
+    bulkResidenceBuildingWideDesc: 'Commun à l\'ensemble du bâtiment',
+    bulkResidenceUnitPrefix: 'Unité ',
+    bulkResidenceFloorPrefix: 'Étage ',
+    bulkResidenceUpdateAccess: 'Mettre à jour le type d\'accès',
+    bulkResidenceSelectAccess: 'Sélectionner le type d\'accès',
+    bulkResidenceNotRestrained: 'Non restreint',
+    bulkResidenceNotRestrainedDesc: 'Accès facile',
+    bulkResidenceRestrained: 'Restreint',
+    bulkResidenceRestrainedDesc: 'Accès restreint',
+    bulkResidenceUpdateCharge: 'Mettre à jour le type de charge',
+    bulkResidenceSelectCharge: 'Sélectionner le type de charge',
+    bulkResidenceCommon: 'Commun',
+    bulkResidenceCommonDesc: 'Responsabilité du bâtiment',
+    bulkResidencePersonal: 'Personnel',
+    bulkResidencePersonalDesc: 'Responsabilité du résident',
+    bulkResidenceChangesToApply: 'Modifications à appliquer :',
+    bulkResidenceChangeResidence: 'Résidence',
+    bulkResidenceChangeAccess: 'Accès',
+    bulkResidenceChangeCharge: 'Charge',
+    bulkResidenceUpdateButton: 'Mettre à jour l\'attribution',
+    bulkResidenceToastUpdatedTitle: 'Attribution mise à jour',
+    bulkResidenceToastUpdatedDescPrefix: 'Attribution mise à jour avec succès pour ',
+    bulkResidenceToastUpdatedDescSuffix: ' élément(s)',
+    bulkResidenceToastFailedTitle: 'Échec de la mise à jour',
+    bulkResidenceToastFailedDesc: 'Échec de la mise à jour des attributions des éléments',
+    bulkResidenceSelectFieldError: 'Veuillez sélectionner au moins un champ à mettre à jour',
+    bulkResidenceUnknownUnit: 'Inconnue',
+
+    // Project budget (task #707)
+    pbBudgetOverview: 'Aperçu du budget',
+    pbBudgetBreakdown: 'Répartition du budget',
+    pbViewElements: 'Voir les éléments',
+    pbExportBudget: 'Exporter le budget',
+    pbTotalBudget: 'Budget total',
+    pbActualCost: 'Coût réel',
+    pbAllocated: 'Alloué',
+    pbRemaining: 'Restant',
+    pbBudgetUtilization: 'Utilisation du budget',
+    pbOverBudgetPrefix: 'Le projet dépasse le budget de ',
+    pbOverBudgetSuffix: ' $',
+    pbFailedToLoadTitle: 'Échec du chargement du budget',
+    pbFailedToLoadDesc: 'Une erreur est survenue lors du chargement du budget du projet. Veuillez réessayer.',
+    pbCategory: 'Catégorie',
+    pbVariance: 'Écart',
+    pbActions: 'Actions',
+    pbHistoricalOnly: 'Historique seulement',
+    pbViewDetails: 'Voir les détails',
+    pbCount: 'Nombre',
+    pbElementsSuffix: ' éléments',
+    pbVendorsSuffix: ' fournisseurs',
+    pbOver: ' dépassement',
+    pbNotAvailable: 'S.O.',
+    pbSearchBreakdownPlaceholder: 'Rechercher des catégories de répartition…',
+    pbNoBudgetDataTitle: 'Aucune donnée budgétaire',
+    pbNoBudgetDataDesc: 'Aucune allocation budgétaire ni coût historique trouvé pour ce projet.',
+    pbBreakdownDetailsTitle: 'Détails de la répartition du budget',
+    pbBreakdownDetailsDesc: 'Répartition détaillée des coûts et des allocations pour cette catégorie budgétaire.',
+    pbDetailsSuffix: ' — détails',
+    pbProjectElementsHeading: 'Éléments du projet',
+    pbVendorHistoryHeading: 'Historique des fournisseurs',
+    pbUnknownVendor: 'Fournisseur inconnu',
+    pbCategoryElementAllocations: 'Allocations aux éléments',
+    pbCategoryElementAllocationsDesc: 'Budget alloué à des éléments spécifiques du bâtiment',
+    pbCategoryVendorCosts: 'Coûts des fournisseurs',
+    pbCategoryVendorCostsDesc: 'Dépenses historiques des entrepreneurs et fournisseurs',
+    pbCategoryMaterials: 'Matériaux',
+    pbCategoryMaterialsDesc: 'Coûts des matériaux et fournitures de l\'historique',
+    pbCategoryLabor: 'Main-d\'œuvre',
+    pbCategoryLaborDesc: 'Coûts de main-d\'œuvre liés aux travaux du projet',
+    pbCategoryUnallocated: 'Non alloué',
+    pbCategoryUnallocatedDesc: 'Budget non encore alloué à des éléments spécifiques',
+    pbBreakdownAllocatedToPrefix: 'Budget alloué à ',
+    pbBreakdownAllocatedToSuffix: ' éléments du bâtiment',
+    pbBreakdownVendorCountPrefix: 'Coûts historiques de ',
+    pbBreakdownVendorCountSuffix: ' fournisseurs',
+    pbBreakdownMaterialsDesc: 'Coûts des matériaux et fournitures',
+    pbBreakdownLaborDesc: 'Coûts de main-d\'œuvre liés aux réparations',
+    pbBreakdownUnallocatedDesc: 'Budget non encore alloué à des éléments spécifiques',
+
+    // Project elements (task #707)
+    peElement: 'Élément',
+    peCondition: 'État',
+    pePlannedWork: 'Travaux prévus',
+    peCostAllocation: 'Allocation de coût',
+    peLifespanImpact: 'Impact sur la durée de vie',
+    peActions: 'Actions',
+    peNotSpecified: 'Non précisé',
+    peNotSet: 'Non défini',
+    peTbd: 'À déterminer',
+    peYearsSuffix: ' ans',
+    peOpenMenu: 'Ouvrir le menu',
+    peActionsLabel: 'Actions',
+    peActionViewDetails: 'Voir les détails',
+    peActionEditAllocation: 'Modifier l\'allocation',
+    peActionRemoveFromProject: 'Retirer du projet',
+    peRemoveSelected: 'Retirer la sélection',
+    peExportElements: 'Exporter les éléments',
+    peProjectElementsTitle: 'Éléments du projet',
+    peElementsAssignedSuffix: ' éléments du bâtiment associés à ce projet',
+    peSearchPlaceholder: 'Rechercher des éléments…',
+    peNoElementsAssignedTitle: 'Aucun élément associé',
+    peNoElementsAssignedDesc: 'Aucun élément du bâtiment n\'a encore été associé à ce projet.',
+    peNoElementsAssignedShort: 'Aucun élément associé à ce projet pour le moment.',
+    peAddElement: 'Ajouter un élément',
+    peAddBuildingElementTitle: 'Ajouter un élément du bâtiment',
+    peAddBuildingElementDesc: 'Sélectionnez les éléments du bâtiment à inclure dans ce projet.',
+    peAddBuildingElementsTitle: 'Ajouter des éléments du bâtiment',
+    peAddBuildingElementsDesc: 'Sélectionnez les éléments du bâtiment à inclure dans ce projet et définissez éventuellement l\'allocation des coûts et les détails des travaux.',
+    peQuickProject: 'Projet rapide',
+    peQuickProjectLong: 'Projet de planification uniquement, ne pouvant pas dépasser la phase de planification',
+    peQuickProjectShort: 'Projet de planification uniquement',
+    peWorkDescriptionLabel: 'Description des travaux',
+    peWorkDescriptionPlaceholder: 'Décrivez les travaux à effectuer sur ces éléments…',
+    peCostAllocationLabel: 'Allocation de coût ($)',
+    peLifespanImpactLabel: 'Impact sur la durée de vie (années)',
+    peAvailableElements: 'Éléments disponibles',
+    peAllAlreadyAssigned: 'Tous les éléments disponibles sont déjà associés à ce projet.',
+    peEditElementTitle: 'Modifier les détails de l\'élément',
+    peEditElementDesc: 'Mettre à jour l\'allocation des coûts et les détails des travaux pour cet élément.',
+    peEditWorkDescriptionPlaceholder: 'Décrivez les travaux à effectuer…',
+    peSavingProgress: 'Enregistrement…',
+    peRemoveElementTitle: 'Retirer l\'élément',
+    peRemoveElementConfirm: 'Êtes-vous sûr de vouloir retirer cet élément du projet ? Cette action est irréversible.',
+    peRemoveButton: 'Retirer',
+    peRemovingProgress: 'Retrait…',
+    pePermissionDeniedTitle: 'Permission refusée',
+    pePermissionDeniedAddElements: 'Vous n\'avez pas la permission d\'ajouter des éléments aux projets.',
+    pePermissionDeniedQuickProject: 'Vous n\'avez pas la permission de créer des projets rapides.',
+    peElementAddedTitle: 'Élément ajouté',
+    peElementAddedDesc: 'L\'élément du bâtiment a été ajouté au projet avec succès.',
+    peElementAddFailedTitle: 'Échec de l\'ajout de l\'élément',
+    peElementUpdatedTitle: 'Élément mis à jour',
+    peElementUpdatedDesc: 'Les détails de l\'élément ont été mis à jour avec succès.',
+    peElementUpdateFailedTitle: 'Échec de la mise à jour',
+    peElementRemovedTitle: 'Élément retiré',
+    peElementRemovedDesc: 'L\'élément a été retiré du projet.',
+    peElementRemoveFailedTitle: 'Échec du retrait',
+    peQuickProjectCreatedTitle: 'Projet rapide créé',
+    peQuickProjectCreatedDesc: 'Ce projet a été défini comme projet rapide à des fins de planification uniquement.',
+    peQuickProjectFailedTitle: 'Échec de la création du projet rapide',
+    peBulkOpDoneTitle: 'Opération groupée terminée',
+    peBulkOpRemovedDesc: 'Les éléments sélectionnés ont été retirés avec succès.',
+    peBulkOpUpdatedDesc: 'Les éléments sélectionnés ont été mis à jour avec succès.',
+    peBulkOpFailedTitle: 'Échec de l\'opération groupée',
+    pePleaseTryAgain: 'Veuillez réessayer.',
+    peQuickProjectFallbackDescription: 'Projet rapide à des fins de planification',
+
+    // Element form (task #707)
+    efAddBuildingElement: 'Ajouter un élément du bâtiment',
+    efEditBuildingElement: 'Modifier l\'élément du bâtiment',
+    efViewBuildingElement: 'Consulter l\'élément du bâtiment',
+    efAddDescription: 'Ajouter un nouvel élément du bâtiment à l\'inventaire avec ses spécifications et son état',
+    efEditDescription: 'Mettre à jour les informations et l\'état de l\'élément du bâtiment',
+    efViewDescription: 'Consulter les informations et l\'état de l\'élément du bâtiment',
+    efDeleteButton: 'Supprimer',
+    efDeletingProgress: 'Suppression…',
+    efDeleteConfirm: 'Êtes-vous sûr de vouloir supprimer cet élément ? Cette action est irréversible.',
+    efUniformatCodeLabel: 'Code UNIFORMAT',
+    efBrowseButton: 'Parcourir',
+    efSearchPlaceholder: 'Rechercher des codes UNIFORMAT…',
+    efSearchPlaceholderBrowser: 'Rechercher des codes UNIFORMAT…',
+    efBrowseDialogTitle: 'Parcourir les codes UNIFORMAT',
+    efBrowseDialogHint: 'Navigation : Niveau 1 → Niveau 2 → Niveau 3 (seuls les codes de niveau 3 sont sélectionnables)',
+    efBreadcrumbLevel1: 'Niveau 1',
+    efBreadcrumbLevel2Prefix: 'Niveau 2',
+    efBreadcrumbLevel3Prefix: 'Niveau 3',
+    efTypicalLifespanPrefix: 'Durée de vie typique : ',
+    efTypicalLifespanShortPrefix: 'Typique : ',
+    efTypicalLifespanSuffix: ' ans',
+    efLoadingCodes: 'Chargement des codes UNIFORMAT…',
+    efNoMatchingCodes: 'Aucun code correspondant',
+    efSelectableLabel: 'Sélectionnable',
+    efNavigateLabel: 'Naviguer →',
+    efNavigateOnlyLabel: 'Navigation seulement',
+    efElementNameLabel: 'Nom de l\'élément',
+    efElementNamePlaceholder: 'p. ex. Mur extérieur — Nord',
+    efCurrentConditionLabel: 'État actuel',
+    efSelectCondition: 'Sélectionner l\'état',
+    efDescriptionLabel: 'Description',
+    efDescriptionLabelHelper: 'Description détaillée optionnelle de l\'élément',
+    efDescriptionPlaceholder: 'Décrivez l\'emplacement, les spécifications ou les autres détails pertinents de l\'élément…',
+    efResidenceAssignmentLabel: 'Attribution de résidence',
+    efResidenceAssignmentDesc: 'Indiquez si cet élément concerne tout le bâtiment ou des résidences spécifiques',
+    efBuildingWideElement: 'Élément pour tout le bâtiment',
+    efSelectResidenceAssignment: 'Sélectionner l\'attribution de résidence',
+    efUnitPrefix: 'Unité ',
+    efFloorPrefix: 'Étage ',
+    efAssignedToPrefix: 'Actuellement attribué à : Unité ',
+    efFloorSuffix: 'Étage',
+    efAccessTypeLabel: 'Type d\'accès',
+    efAccessTypeDesc: 'Restrictions d\'accès pour cet élément',
+    efSelectAccessType: 'Sélectionner le type d\'accès',
+    efNotRestrained: 'Non restreint',
+    efNotRestrainedDesc: 'Accès libre',
+    efRestrained: 'Restreint',
+    efRestrainedDesc: 'Accès restreint',
+    efChargeTypeLabel: 'Type de charge',
+    efChargeTypeDesc: 'Qui est responsable des coûts',
+    efSelectChargeType: 'Sélectionner le type de charge',
+    efCommon: 'Commun',
+    efCommonDesc: 'Responsabilité du bâtiment',
+    efPersonal: 'Personnel',
+    efPersonalDesc: 'Responsabilité du résident',
+    efTimelineHeading: 'Échéancier et durée de vie',
+    efOriginalConstructionDate: 'Date de construction originale',
+    efOriginalLifespan: 'Durée de vie originale (années)',
+    efYearsLeftToReconstruction: 'Années restantes avant reconstruction',
+    efQuantityHeading: 'Quantité et unité',
+    efQuantityLabel: 'Quantité',
+    efUnitLabel: 'Unité',
+    efSelectUnit: 'Sélectionner une unité',
+    efUnitM2: 'm² (mètres carrés)',
+    efUnitM: 'm (mètres linéaires)',
+    efUnitUnit: 'unité (chacune)',
+    efUnitM3: 'm³ (mètres cubes)',
+    efUnitKg: 'kg (kilogrammes)',
+    efUnitL: 'L (litres)',
+    efNextEvaluationDate: 'Prochaine date d\'évaluation',
+    efAutoCalculate: 'Calcul automatique',
+    efAutoCalcHelper: 'Calculée automatiquement selon l\'état et les années restantes',
+    efReconstructionEvaluation: 'Évaluation de reconstruction',
+    efReconstructionCost: 'Coût de reconstruction',
+    efReconstructionCostPlaceholder: '0,00',
+    efDateOfEstimation: 'Date de l\'estimation',
+    efElementQuantityHeading: 'Quantité de l\'élément',
+    efQuantityDuplicateLabel: 'Quantité (duplication)',
+    efQuantityDuplicateDesc: 'Nombre d\'éléments identiques à créer (p. ex. 30 fenêtres, 5 portes)',
+    efNotesLabel: 'Notes',
+    efNotesPlaceholder: 'Notes additionnelles à propos de cet élément…',
+    efElementCreatedTitle: 'Élément créé',
+    efElementsCreatedSuffix: ' éléments créés',
+    efElementUpdatedTitle: 'Élément mis à jour',
+    efElementCreatedSuccessSuffix: ' a été créé avec succès',
+    efElementUpdatedSuccessSuffix: ' a été mis à jour avec succès',
+    efSuccessfullyCreatedPrefix: 'Création réussie de ',
+    efSuccessfullyCreatedSuffix: ' éléments numérotés',
+    efCreationFailedTitle: 'Échec de la création',
+    efUpdateFailedTitle: 'Échec de la mise à jour',
+    efFailedToCreateElement: 'Échec de la création de l\'élément',
+    efFailedToUpdateElement: 'Échec de la mise à jour de l\'élément',
+    efNoElementToDelete: 'Aucun élément à supprimer',
+    efElementDeletedTitle: 'Élément supprimé',
+    efElementDeletedDesc: 'L\'élément du bâtiment a été retiré de l\'inventaire avec succès.',
+    efDeletionFailedTitle: 'Échec de la suppression',
+    efFailedToDeleteElement: 'Échec de la suppression de l\'élément',
   }
 };

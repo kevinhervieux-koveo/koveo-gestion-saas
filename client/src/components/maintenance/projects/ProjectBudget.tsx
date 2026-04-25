@@ -51,6 +51,8 @@ import {
 import { Separator } from '@/components/ui/separator';
 import { useBuildingContext } from '@/hooks/use-building-context';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/hooks/use-language';
+import type { Translations } from '@/lib/i18n';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { MaintenanceProject } from '@shared/schemas/maintenance';
 import { cn, parseDateOnly } from '@/lib/utils';
@@ -112,12 +114,12 @@ interface BudgetSummary {
 
 // Removed budget category form schema since we're now aggregate-only
 
-const budgetCategories = [
-  { name: 'Element Allocations', description: 'Budget allocated to specific building elements', icon: Building },
-  { name: 'Vendor Costs', description: 'Historical contractor and vendor expenses', icon: Wrench },
-  { name: 'Materials', description: 'Material and supply costs from history', icon: FileText },
-  { name: 'Labor', description: 'Labor costs from project work', icon: Target },
-  { name: 'Unallocated', description: 'Budget not yet allocated to specific elements', icon: DollarSign },
+const budgetCategories: { name: string; nameKey: keyof Translations; descriptionKey: keyof Translations; icon: typeof Building }[] = [
+  { name: 'Element Allocations', nameKey: 'pbCategoryElementAllocations', descriptionKey: 'pbCategoryElementAllocationsDesc', icon: Building },
+  { name: 'Vendor Costs', nameKey: 'pbCategoryVendorCosts', descriptionKey: 'pbCategoryVendorCostsDesc', icon: Wrench },
+  { name: 'Materials', nameKey: 'pbCategoryMaterials', descriptionKey: 'pbCategoryMaterialsDesc', icon: FileText },
+  { name: 'Labor', nameKey: 'pbCategoryLabor', descriptionKey: 'pbCategoryLaborDesc', icon: Target },
+  { name: 'Unallocated', nameKey: 'pbCategoryUnallocated', descriptionKey: 'pbCategoryUnallocatedDesc', icon: DollarSign },
 ];
 
 /**
@@ -135,7 +137,8 @@ export function ProjectBudget({
   const { t } = useLanguage();
   const { hasPermission, buildingId } = useBuildingContext();
   const { toast } = useToast();
-  
+  const { t } = useLanguage();
+
   // State management - simplified for aggregate-only view
   const [selectedBreakdown, setSelectedBreakdown] = useState<BudgetBreakdown | null>(null);
   const [showBreakdownDetails, setShowBreakdownDetails] = useState(false);
@@ -261,7 +264,7 @@ export function ProjectBudget({
     if (totalElementAllocation > 0) {
       breakdowns.push({
         category: 'Element Allocations',
-        description: `Budget allocated to ${projectElements.length} building elements`,
+        description: `${t('pbBreakdownAllocatedToPrefix')}${projectElements.length}${t('pbBreakdownAllocatedToSuffix')}`,
         budgetAmount: totalElementAllocation,
         actualAmount: budgetSummary.historyBreakdown.vendorCosts + budgetSummary.historyBreakdown.laborCosts,
         elementCount: projectElements.length,
@@ -277,7 +280,7 @@ export function ProjectBudget({
       
       breakdowns.push({
         category: 'Vendor Costs',
-        description: `Historical costs from ${vendorCount} vendors`,
+        description: `${t('pbBreakdownVendorCountPrefix')}${vendorCount}${t('pbBreakdownVendorCountSuffix')}`,
         budgetAmount: 0, // No specific budget allocation
         actualAmount: budgetSummary.historyBreakdown.vendorCosts,
         vendorCount,
@@ -288,7 +291,7 @@ export function ProjectBudget({
     if (budgetSummary.historyBreakdown.materialCosts > 0) {
       breakdowns.push({
         category: 'Materials',
-        description: 'Material and supply costs',
+        description: t('pbBreakdownMaterialsDesc'),
         budgetAmount: 0,
         actualAmount: budgetSummary.historyBreakdown.materialCosts,
       });
@@ -298,7 +301,7 @@ export function ProjectBudget({
     if (budgetSummary.historyBreakdown.laborCosts > 0) {
       breakdowns.push({
         category: 'Labor',
-        description: 'Labor costs from repair work',
+        description: t('pbBreakdownLaborDesc'),
         budgetAmount: 0,
         actualAmount: budgetSummary.historyBreakdown.laborCosts,
       });
@@ -309,14 +312,14 @@ export function ProjectBudget({
     if (unallocated > 0) {
       breakdowns.push({
         category: 'Unallocated',
-        description: 'Budget not yet allocated to specific elements',
+        description: t('pbBreakdownUnallocatedDesc'),
         budgetAmount: unallocated,
         actualAmount: 0,
       });
     }
     
     return breakdowns;
-  }, [projectElements, elementHistory, budgetSummary]);
+  }, [projectElements, elementHistory, budgetSummary, t]);
   
   const handleViewBreakdownDetails = (breakdown: BudgetBreakdown) => {
     setSelectedBreakdown(breakdown);
@@ -328,25 +331,27 @@ export function ProjectBudget({
     const baseColumns: ColumnDef<BudgetBreakdown>[] = [
       {
         accessorKey: 'category',
-        header: 'Category',
+        header: t('pbCategory'),
         cell: ({ row }) => {
           const breakdown = row.original;
-          const categoryIcon = budgetCategories.find(cat => cat.name === breakdown.category)?.icon || DollarSign;
+          const categoryEntry = budgetCategories.find(cat => cat.name === breakdown.category);
+          const categoryIcon = categoryEntry?.icon || DollarSign;
           const IconComponent = categoryIcon;
-          
+          const localizedCategory = categoryEntry ? t(categoryEntry.nameKey) : breakdown.category;
+
           return (
             <div className="space-y-1" data-testid={`breakdown-category-${breakdown.category.toLowerCase().replace(/\s+/g, '-')}`}>
               <div className="flex items-center gap-2">
                 <IconComponent className="h-4 w-4 text-muted-foreground" />
-                <span className="font-medium">{breakdown.category}</span>
+                <span className="font-medium">{localizedCategory}</span>
                 {breakdown.elementCount && (
                   <Badge variant="outline">
-                    {breakdown.elementCount} elements
+                    {breakdown.elementCount}{t('pbElementsSuffix')}
                   </Badge>
                 )}
                 {breakdown.vendorCount && (
                   <Badge variant="outline">
-                    {breakdown.vendorCount} vendors
+                    {breakdown.vendorCount}{t('pbVendorsSuffix')}
                   </Badge>
                 )}
               </div>
@@ -359,19 +364,19 @@ export function ProjectBudget({
       },
       {
         accessorKey: 'budgetAmount',
-        header: 'Allocated',
+        header: t('pbAllocated'),
         cell: ({ row }) => {
           const amount = row.getValue('budgetAmount') as number;
           return (
             <div className="text-sm font-medium" data-testid={`breakdown-budget-${row.original.category.toLowerCase().replace(/\s+/g, '-')}`}>
-              {amount > 0 ? `$${amount.toLocaleString()}` : 'N/A'}
+              {amount > 0 ? `$${amount.toLocaleString()}` : t('pbNotAvailable')}
             </div>
           );
         },
       },
       {
         accessorKey: 'actualAmount',
-        header: 'Actual',
+        header: t('actual'),
         cell: ({ row }) => {
           const amount = row.getValue('actualAmount') as number;
           const budget = row.original.budgetAmount;
@@ -404,7 +409,7 @@ export function ProjectBudget({
       },
       {
         accessorKey: 'variance',
-        header: 'Variance',
+        header: t('pbVariance'),
         cell: ({ row }) => {
           const budget = row.original.budgetAmount;
           const actual = row.original.actualAmount;
@@ -412,7 +417,7 @@ export function ProjectBudget({
           if (budget === 0) {
             return (
               <div className="text-sm text-muted-foreground">
-                Historical only
+                {t('pbHistoricalOnly')}
               </div>
             );
           }
@@ -426,7 +431,7 @@ export function ProjectBudget({
               isOver ? "text-red-600" : "text-green-600"
             )}>
               {isOver ? '+' : ''}${Math.abs(variance).toLocaleString()}
-              {isOver && " over"}
+              {isOver && t('pbOver')}
             </div>
           );
         },
@@ -436,7 +441,7 @@ export function ProjectBudget({
     // Add view details action for breakdown analysis
     baseColumns.push({
       id: 'actions',
-      header: 'Actions',
+      header: t('pbActions'),
       cell: ({ row }) => {
         const breakdown = row.original;
         
@@ -448,14 +453,14 @@ export function ProjectBudget({
             data-testid={`breakdown-details-${breakdown.category.toLowerCase().replace(/\s+/g, '-')}`}
           >
             <Eye className="h-4 w-4 mr-2" />
-            View Details
+            {t('pbViewDetails')}
           </Button>
         );
       },
     });
 
     return baseColumns;
-  }, [budgetCategories]);
+  }, [t]);
 
   if (isLoading) {
     return (
@@ -482,9 +487,9 @@ export function ProjectBudget({
       <Card className={className}>
         <CardContent className="text-center py-8">
           <AlertTriangle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-semibold mb-2">Failed to Load Budget</h3>
+          <h3 className="text-lg font-semibold mb-2">{t('pbFailedToLoadTitle')}</h3>
           <p className="text-muted-foreground">
-            {t('thereWasAnErrorLoadingThe')}
+            {t('pbFailedToLoadDesc')}
           </p>
         </CardContent>
       </Card>
@@ -497,7 +502,7 @@ export function ProjectBudget({
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg">Budget Overview</CardTitle>
+            <CardTitle className="text-lg">{t('pbBudgetOverview')}</CardTitle>
             
             <div className="flex items-center gap-2">
               <Button 
@@ -507,7 +512,7 @@ export function ProjectBudget({
                 data-testid="view-elements"
               >
                 <Building className="h-4 w-4 mr-2" />
-                View Elements
+                {t('pbViewElements')}
               </Button>
               
               <Button 
@@ -517,7 +522,7 @@ export function ProjectBudget({
                 data-testid="export-budget"
               >
                 <Download className="h-4 w-4 mr-2" />
-                Export Budget
+                {t('pbExportBudget')}
               </Button>
             </div>
           </div>
@@ -532,7 +537,7 @@ export function ProjectBudget({
                   <Target className="h-5 w-5 text-blue-600" />
                 </div>
                 <div>
-                  <div className="text-sm text-muted-foreground">Total Budget</div>
+                  <div className="text-sm text-muted-foreground">{t('pbTotalBudget')}</div>
                   <div className="text-lg font-semibold" data-testid="total-budget">
                     ${budgetSummary.totalBudget.toLocaleString()}
                   </div>
@@ -552,7 +557,7 @@ export function ProjectBudget({
                   )} />
                 </div>
                 <div>
-                  <div className="text-sm text-muted-foreground">Actual Cost</div>
+                  <div className="text-sm text-muted-foreground">{t('pbActualCost')}</div>
                   <div className={cn(
                     "text-lg font-semibold",
                     budgetSummary.isOverBudget ? "text-red-600" : "text-green-600"
@@ -569,7 +574,7 @@ export function ProjectBudget({
                   <PieChart className="h-5 w-5 text-purple-600" />
                 </div>
                 <div>
-                  <div className="text-sm text-muted-foreground">Allocated</div>
+                  <div className="text-sm text-muted-foreground">{t('pbAllocated')}</div>
                   <div className="text-lg font-semibold" data-testid="allocated-cost">
                     ${budgetSummary.totalAllocated.toLocaleString()}
                   </div>
@@ -589,13 +594,13 @@ export function ProjectBudget({
                   )} />
                 </div>
                 <div>
-                  <div className="text-sm text-muted-foreground">Remaining</div>
+                  <div className="text-sm text-muted-foreground">{t('pbRemaining')}</div>
                   <div className={cn(
                     "text-lg font-semibold",
                     budgetSummary.remainingBudget < 0 ? "text-red-600" : "text-green-600"
                   )} data-testid="remaining-budget">
                     ${Math.abs(budgetSummary.remainingBudget).toLocaleString()}
-                    {budgetSummary.remainingBudget < 0 && " over"}
+                    {budgetSummary.remainingBudget < 0 && t('pbOver')}
                   </div>
                 </div>
               </div>
@@ -605,7 +610,7 @@ export function ProjectBudget({
           {/* Budget Utilization */}
           <div className="space-y-3">
             <div className="flex items-center justify-between text-sm">
-              <span className="font-medium">Budget Utilization</span>
+              <span className="font-medium">{t('pbBudgetUtilization')}</span>
               <span className={cn(
                 "font-medium",
                 budgetSummary.isOverBudget ? "text-red-600" : "text-green-600"
@@ -623,7 +628,7 @@ export function ProjectBudget({
             {budgetSummary.isOverBudget && (
               <div className="flex items-center gap-2 text-sm text-red-600">
                 <AlertTriangle className="h-4 w-4" />
-                <span>Project is over budget by ${(budgetSummary.totalActual - budgetSummary.totalBudget).toLocaleString()}</span>
+                <span>{t('pbOverBudgetPrefix')}{(budgetSummary.totalActual - budgetSummary.totalBudget).toLocaleString()}{t('pbOverBudgetSuffix')}</span>
               </div>
             )}
           </div>
@@ -633,22 +638,22 @@ export function ProjectBudget({
       {/* Budget Breakdown Table */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Budget Breakdown</CardTitle>
+          <CardTitle className="text-lg">{t('pbBudgetBreakdown')}</CardTitle>
         </CardHeader>
         <CardContent>
           <DataTable
             columns={columns}
             data={budgetBreakdowns}
             isLoading={isLoading}
-            searchPlaceholder="Search breakdown categories..."
+            searchPlaceholder={t('pbSearchBreakdownPlaceholder')}
             searchableColumn="category"
             enableFiltering={true}
             enableSorting={true}
             enableColumnVisibility={true}
             enablePagination={false}
             emptyState={{
-              title: "No Budget Data",
-              description: "No budget allocations or historical costs found for this project.",
+              title: t('pbNoBudgetDataTitle'),
+              description: t('pbNoBudgetDataDesc'),
               icon: PieChart,
             }}
             getRowId={(row) => row.category}
@@ -662,10 +667,15 @@ export function ProjectBudget({
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {selectedBreakdown ? `${selectedBreakdown.category} Details` : 'Budget Breakdown Details'}
+              {selectedBreakdown
+                ? `${(() => {
+                    const entry = budgetCategories.find(cat => cat.name === selectedBreakdown.category);
+                    return entry ? t(entry.nameKey) : selectedBreakdown.category;
+                  })()}${t('pbDetailsSuffix')}`
+                : t('pbBreakdownDetailsTitle')}
             </DialogTitle>
             <DialogDescription>
-              {t('detailedBreakdownOfCostsAndAllocations')}
+              {t('pbBreakdownDetailsDesc')}
             </DialogDescription>
           </DialogHeader>
           
@@ -674,24 +684,24 @@ export function ProjectBudget({
               {/* Summary */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Card className="p-4">
-                  <div className="text-sm text-muted-foreground">Allocated</div>
+                  <div className="text-sm text-muted-foreground">{t('pbAllocated')}</div>
                   <div className="text-lg font-semibold">
                     {selectedBreakdown.budgetAmount > 0 
                       ? `$${selectedBreakdown.budgetAmount.toLocaleString()}`
-                      : 'N/A'
+                      : t('pbNotAvailable')
                     }
                   </div>
                 </Card>
                 <Card className="p-4">
-                  <div className="text-sm text-muted-foreground">Actual</div>
+                  <div className="text-sm text-muted-foreground">{t('actual')}</div>
                   <div className="text-lg font-semibold">
                     ${selectedBreakdown.actualAmount.toLocaleString()}
                   </div>
                 </Card>
                 <Card className="p-4">
-                  <div className="text-sm text-muted-foreground">Count</div>
+                  <div className="text-sm text-muted-foreground">{t('pbCount')}</div>
                   <div className="text-lg font-semibold">
-                    {selectedBreakdown.elementCount || selectedBreakdown.vendorCount || 'N/A'}
+                    {selectedBreakdown.elementCount || selectedBreakdown.vendorCount || t('pbNotAvailable')}
                   </div>
                 </Card>
               </div>
@@ -699,7 +709,7 @@ export function ProjectBudget({
               {/* Related Items */}
               {selectedBreakdown.category === 'Element Allocations' && (
                 <div>
-                  <h4 className="font-medium mb-3">Project Elements</h4>
+                  <h4 className="font-medium mb-3">{t('pbProjectElementsHeading')}</h4>
                   <div className="space-y-2">
                     {projectElements.map((element: any) => (
                       <div key={element.elementId} className="flex justify-between items-center p-3 border rounded">
@@ -718,14 +728,14 @@ export function ProjectBudget({
               
               {selectedBreakdown.category === 'Vendor Costs' && (
                 <div>
-                  <h4 className="font-medium mb-3">Vendor History</h4>
+                  <h4 className="font-medium mb-3">{t('pbVendorHistoryHeading')}</h4>
                   <div className="space-y-2">
                     {elementHistory
                       .filter((entry: any) => entry.vendorId && entry.cost)
                       .map((entry: any, index: number) => (
                         <div key={index} className="flex justify-between items-center p-3 border rounded">
                           <div>
-                            <div className="font-medium">{entry.vendorName || 'Unknown Vendor'}</div>
+                            <div className="font-medium">{entry.vendorName || t('pbUnknownVendor')}</div>
                             <div className="text-sm text-muted-foreground">
                               {entry.eventType} - {(parseDateOnly(entry.eventDate) ?? new Date(entry.eventDate)).toLocaleDateString()}
                             </div>
@@ -744,7 +754,7 @@ export function ProjectBudget({
           
           <DialogFooter>
             <Button onClick={() => setShowBreakdownDetails(false)}>
-              Close
+              {t('close')}
             </Button>
           </DialogFooter>
         </DialogContent>

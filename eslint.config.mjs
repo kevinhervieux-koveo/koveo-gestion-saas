@@ -194,6 +194,11 @@ export default [
       'client/src/pages/manager/maintenance/projects/ProjectsHeader.tsx',
       'client/src/components/maintenance/projects/ProjectTable.tsx',
       'client/src/components/ui/data-table.tsx',
+      'client/src/components/maintenance/inventory/BulkEditCostDialog.tsx',
+      'client/src/components/maintenance/inventory/BulkEditResidenceDialog.tsx',
+      'client/src/components/maintenance/projects/ProjectBudget.tsx',
+      'client/src/components/maintenance/projects/ProjectElements.tsx',
+      'client/src/components/maintenance/inventory/ElementForm.tsx',
     ],
     plugins: {
       i18n: i18nPlugin,
