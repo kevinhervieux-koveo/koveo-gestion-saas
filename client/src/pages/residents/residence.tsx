@@ -579,10 +579,21 @@ function ResidencePageInner({ buildingId, showBackButton, backButtonLabel, onBac
   );
 }
 
-// Wrap with hierarchical selection HOC using organization and building hierarchy (residents only see buildings they have residences in)
+// Wrap with hierarchical selection HOC. Managers/admins keep the existing
+// org → building → residence picker. Residents and tenants get the flat
+// resident-scope flow (Task #678): a single residence link auto-forwards
+// straight to the residence-documents page; multiple links show a flat
+// "Building · Unit X" chooser instead of the org → building → residence
+// picker that was leaking the generic "Gestion de bâtiments" header.
 const ResidencePage = withHierarchicalSelection(ResidencePageInner, {
   hierarchy: ['organization', 'building', 'residence'],
   checkResidenceAccess: true,
+  residentScope: true,
+  title: { en: 'My Residence', fr: 'Ma résidence' },
+  subtitle: {
+    en: 'View your residence information and contacts',
+    fr: 'Voir les informations de votre résidence et les contacts',
+  },
   onResidenceSelect: (residenceId) => `/residents/residences/${residenceId}/documents`
 });
 

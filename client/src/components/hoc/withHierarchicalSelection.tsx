@@ -895,6 +895,7 @@ function ResidentBypassFlow<T extends object>({
   const { t, language } = useLanguage();
   const [location, setLocation] = useLocation();
   const search = useSearch();
+  const lastAutoForwardRef = useRef<string | null>(null);
 
   // Resolve a LocalizedText (string or { en, fr }) against the active
   // language. Mirrors the helper in `AdminManagerHierarchyFlow` so the
@@ -943,6 +944,31 @@ function ResidentBypassFlow<T extends object>({
   const includesResidence = config.hierarchy.includes('residence');
   const includesBuilding = config.hierarchy.includes('building');
 
+  // Resident-scope auto-forward target (Task #678). When a resident has
+  // exactly one residence link and the page configured an
+  // `onResidenceSelect` (e.g. /residents/residence → residence-documents),
+  // resolve the destination once so the effect below can navigate without
+  // calling setLocation during render.
+  const autoForwardTarget = useMemo(() => {
+    if (
+      includesResidence &&
+      config.onResidenceSelect &&
+      !isLoadingResidences &&
+      userResidences.length === 1
+    ) {
+      const only = userResidences[0];
+      return config.onResidenceSelect(only.id, only.buildingId);
+    }
+    return null;
+  }, [includesResidence, isLoadingResidences, userResidences, config]);
+
+  React.useEffect(() => {
+    if (autoForwardTarget && lastAutoForwardRef.current !== autoForwardTarget) {
+      lastAutoForwardRef.current = autoForwardTarget;
+      setLocation(autoForwardTarget);
+    }
+  }, [autoForwardTarget, setLocation]);
+
   const uniqueBuildings = useMemo(() => {
     const map = new Map<string, string>();
     userResidences.forEach((r) => {
@@ -953,10 +979,18 @@ function ResidentBypassFlow<T extends object>({
     return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
   }, [userResidences]);
 
+  // Configured page-level title/subtitle (Task #678). When the wrapped page
+  // sets a `title`/`subtitle` (e.g. residence.tsx), surface it on every
+  // intermediate screen — loading skeleton, empty state, picker — so the
+  // resident never sees the generic "Gestion de bâtiments / Sélectionnez
+  // l'organisation" leak from the admin picker.
+  const resolvedTitle = resolveText(config.title, t('myResidence' as any));
+  const resolvedSubtitle = resolveText(config.subtitle, t('viewResidenceInfo' as any));
+
   if (isLoadingResidences) {
     return (
       <div className='flex-1 flex flex-col overflow-hidden'>
-        <Header title={t('myResidence' as any)} subtitle={t('loading' as any)} />
+        <Header title={resolvedTitle} subtitle={t('loading' as any)} />
         <div className='flex-1 overflow-auto p-6'>
           <div className='max-w-4xl mx-auto space-y-4'>
             <Skeleton className='h-32 w-full' />
@@ -970,7 +1004,7 @@ function ResidentBypassFlow<T extends object>({
   if (userResidences.length === 0) {
     return (
       <div className='flex-1 flex flex-col overflow-hidden'>
-        <Header title={t('myResidence' as any)} subtitle={t('viewResidenceInfo' as any)} />
+        <Header title={resolvedTitle} subtitle={resolvedSubtitle} />
         <div className='flex-1 flex items-center justify-center p-6'>
           <NoDataCard
             icon={Home}
@@ -983,12 +1017,65 @@ function ResidentBypassFlow<T extends object>({
     );
   }
 
-  // Residence-level pages (e.g. /residents/residence): the wrapped page
-  // already lists the user's residences (and provides its own selector when
-  // there are 2+). Render it directly without org/building/residence URL
-  // context — preserving the existing inner-page behaviour while bypassing
-  // the admin picker.
+  // Residence-level pages (e.g. /residents/residence). When the page also
+  // configures `onResidenceSelect`, route the resident straight to that
+  // destination — single residence link auto-forwards, multiple links show
+  // a flat "Building · Unit X" chooser (no org/building picker, no inner
+  // residence-cards screen). This was the W13 leak diagnosed in Task #625
+  // and fixed for /residents/residence in Task #678.
   if (includesResidence) {
+    if (config.onResidenceSelect) {
+      // Single residence → auto-forward (handled by the effect above).
+      // Render a skeleton placeholder while the navigation flushes so the
+      // resident never sees the org/building picker.
+      if (userResidences.length === 1) {
+        return (
+          <div className='flex-1 flex flex-col overflow-hidden'>
+            <Header title={resolvedTitle} subtitle={resolvedSubtitle} />
+            <div className='flex-1 overflow-auto p-6'>
+              <div className='max-w-4xl mx-auto space-y-4'>
+                <Skeleton className='h-32 w-full' />
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      // Multiple residences → flat "Building · Unit X" picker. Selecting an
+      // entry navigates straight to the configured destination.
+      const items: SelectionGridItem[] = userResidences.map((r) => ({
+        id: r.id,
+        name: `${r.buildingName} · ${t('unit' as any)} ${r.unitNumber}`,
+        details: '',
+        type: 'residence' as const,
+      }));
+
+      const handleResidenceSelect = (residenceId: string) => {
+        const picked = userResidences.find((r) => r.id === residenceId);
+        if (!picked || !config.onResidenceSelect) return;
+        const destination = config.onResidenceSelect(picked.id, picked.buildingId);
+        setLocation(destination);
+      };
+
+      return (
+        <div className='flex-1 flex flex-col overflow-hidden'>
+          <Header title={resolvedTitle} subtitle={resolvedSubtitle} />
+          <div className='flex-1 overflow-auto p-6'>
+            <SelectionGrid
+              title=''
+              items={items}
+              onSelectItem={handleResidenceSelect}
+              onBack={null}
+              isLoading={false}
+            />
+          </div>
+        </div>
+      );
+    }
+
+    // No `onResidenceSelect` configured — fall back to the original
+    // behaviour: render the wrapped page directly so it can show its own
+    // residence list/selector.
     return <WrappedComponent {...(wrappedProps as T)} />;
   }
 
