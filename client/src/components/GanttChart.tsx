@@ -142,6 +142,54 @@ interface GanttRow {
   includeInBudget: boolean;
 }
 
+interface BarLayout {
+  y: number;
+  height: number;
+}
+
+interface MeasuredBarShapeProps {
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+  fill?: string;
+  fillOpacity?: number;
+  payload?: GanttRow;
+  onMeasure: (id: string, y: number, height: number) => void;
+}
+
+// Custom Bar shape that captures the actual y/height Recharts uses to
+// render the grey bar. This becomes the single source of truth for the
+// vertical position of the drag overlay and date chips so they cannot
+// drift from the bar (e.g. due to band-scale padding).
+function MeasuredBarShape({
+  x = 0,
+  y = 0,
+  width = 0,
+  height = 0,
+  fill,
+  fillOpacity,
+  payload,
+  onMeasure,
+}: MeasuredBarShapeProps) {
+  const id = payload?.id;
+  useEffect(() => {
+    if (id) onMeasure(id, y, height);
+  }, [id, y, height, onMeasure]);
+  return (
+    <rect
+      x={x}
+      y={y}
+      width={width}
+      height={height}
+      fill={fill}
+      fillOpacity={fillOpacity}
+      rx={3}
+      ry={3}
+    />
+  );
+}
+
 export function GanttChart({
   projects,
   language = 'en',
@@ -190,6 +238,20 @@ export function GanttChart({
     dragStartX.current = null;
     isDragging.current = false;
   }, [editingProjectId]);
+
+  // Map of projectId → actual {y, height} from Recharts' rendered bar.
+  // Populated by the custom MeasuredBarShape on every Recharts re-layout.
+  // Used to place the drag overlay and floating date chips on the same
+  // vertical position as the grey bar, so the two can never drift apart.
+  const [barLayouts, setBarLayouts] = useState<Record<string, BarLayout>>({});
+
+  const handleBarMeasure = useCallback((id: string, y: number, height: number) => {
+    setBarLayouts(prev => {
+      const existing = prev[id];
+      if (existing && existing.y === y && existing.height === height) return prev;
+      return { ...prev, [id]: { y, height } };
+    });
+  }, []);
 
   const { rows, domain, ticks, monthSpan } = useMemo(() => {
     const dated: GanttRow[] = [];
@@ -429,18 +491,29 @@ export function GanttChart({
   const todayPct = todayInRange ? ((todayTs - domain[0]) / domainSpan) * 100 : 0;
   const todayLabel = t('today');
 
-  // Compute the editing row's drag overlay position (in percentage of timeline div)
+  // Compute the editing row's drag overlay position (in percentage of timeline div).
+  // Vertical placement is taken from the actual rendered Recharts bar
+  // (`barLayouts[editingProjectId]`) so the blue overlay sits exactly on top
+  // of the grey bar. The constant-based math is kept only as a fallback for
+  // the very first frame (or environments where Recharts is mocked) where
+  // the bar hasn't been measured yet.
   let dragOverlayStyle: React.CSSProperties | null = null;
+  const editingBarLayout = editingProjectId ? barLayouts[editingProjectId] : undefined;
+  const editingBarTop =
+    editingBarLayout?.y ??
+    (editingRowIndex >= 0
+      ? TOP_MARGIN + editingRowIndex * ROW_HEIGHT + (ROW_HEIGHT - BAR_SIZE) / 2
+      : 0);
+  const editingBarHeight = editingBarLayout?.height ?? BAR_SIZE;
   if (editingRowIndex >= 0 && effectiveEditingDates && domainSpan > 0) {
     const leftPct = ((effectiveEditingDates.startTs - domain[0]) / domainSpan) * 100;
     const widthPct = ((effectiveEditingDates.endTs - effectiveEditingDates.startTs) / domainSpan) * 100;
-    const topPx = TOP_MARGIN + editingRowIndex * ROW_HEIGHT + (ROW_HEIGHT - BAR_SIZE) / 2;
     dragOverlayStyle = {
       position: 'absolute',
       left: `${leftPct}%`,
       width: `${widthPct}%`,
-      top: topPx,
-      height: BAR_SIZE,
+      top: editingBarTop,
+      height: editingBarHeight,
       cursor: isSaving ? 'default' : (isDragging.current ? 'grabbing' : 'grab'),
       borderRadius: 3,
       border: '2px solid #2563eb',
@@ -760,8 +833,9 @@ export function GanttChart({
             {dragActive && effectiveEditingDates && editingRowIndex >= 0 && domainSpan > 0 && (() => {
               const leftPct = ((effectiveEditingDates.startTs - domain[0]) / domainSpan) * 100;
               const rightPct = ((effectiveEditingDates.endTs - domain[0]) / domainSpan) * 100;
-              const chipTop =
-                TOP_MARGIN + editingRowIndex * ROW_HEIGHT + (ROW_HEIGHT - BAR_SIZE) / 2 - 20;
+              // Anchor the chips above the same row as the drag overlay by
+              // using the measured bar top (with the constant-based fallback).
+              const chipTop = editingBarTop - 20;
               const chipBaseStyle: React.CSSProperties = {
                 position: 'absolute',
                 top: chipTop,
@@ -923,6 +997,17 @@ export function GanttChart({
                   minPointSize={4}
                   radius={[3, 3, 3, 3]}
                   barSize={BAR_SIZE}
+                  // Recharts' ActiveShape callback signature passes the
+                  // per-bar props as `unknown`. We narrow them to the
+                  // subset MeasuredBarShape consumes (x/y/width/height/
+                  // fill/fillOpacity/payload) — the same fields Recharts
+                  // documents it injects into custom bar shapes.
+                  shape={(props: unknown) => {
+                    const barProps = props as Omit<MeasuredBarShapeProps, 'onMeasure'>;
+                    return (
+                      <MeasuredBarShape {...barProps} onMeasure={handleBarMeasure} />
+                    );
+                  }}
                 >
                   {displayRows.map(row => (
                     <Cell
