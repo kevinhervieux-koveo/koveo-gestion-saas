@@ -201,6 +201,31 @@ async function loadSession(sessionId: string) {
 }
 
 /**
+ * Short-lived in-memory cache for `getFiscalYearStartMonthForBuilding`
+ * (Task #1040). The bulk-import flow calls the helper from three places —
+ * the run-all loop, the per-item retry endpoint, and the commit endpoint —
+ * and each per-item HTTP call would otherwise re-query `buildings` even
+ * though the column changes very rarely. A small TTL keeps the cache
+ * correct against admin edits without requiring explicit invalidation.
+ *
+ * `undefined` results are cached the same way as numbers so a missing /
+ * malformed `financialYearStart` doesn't trigger a query on every retry.
+ */
+export const FISCAL_YEAR_START_MONTH_CACHE_TTL_MS = 60_000;
+const fiscalYearStartMonthCache = new Map<
+  string,
+  { value: number | undefined; expiresAt: number }
+>();
+
+/**
+ * Test-only helper: reset the per-process cache between test cases so
+ * one test's fixture doesn't leak into the next.
+ */
+export function __resetFiscalYearStartMonthCacheForTests(): void {
+  fiscalYearStartMonthCache.clear();
+}
+
+/**
  * Resolve the building's fiscal-year-start month (1-indexed) from a session's
  * `buildingId`, for feeding into `parsePeriodHint` (Task #1030). Returns
  * `undefined` when the building cannot be loaded, has no `financialYearStart`,
@@ -211,22 +236,41 @@ async function loadSession(sessionId: string) {
  * representation is a `YYYY-MM-DD` string, so we extract the month with a
  * lightweight regex instead of constructing a Date (avoids local-timezone
  * shifts on dates like `2024-01-01`).
+ *
+ * Results are memoized in `fiscalYearStartMonthCache` for
+ * `FISCAL_YEAR_START_MONTH_CACHE_TTL_MS` so a burst of per-item retries or
+ * commits within the same import session hits the DB at most once per
+ * building (Task #1040).
  */
-async function getFiscalYearStartMonthForBuilding(
+export async function getFiscalYearStartMonthForBuilding(
   buildingId: string | null | undefined,
 ): Promise<number | undefined> {
   if (!buildingId) return undefined;
+  const now = Date.now();
+  const cached = fiscalYearStartMonthCache.get(buildingId);
+  if (cached && cached.expiresAt > now) {
+    return cached.value;
+  }
   const [row] = await db
     .select({ financialYearStart: schema.buildings.financialYearStart })
     .from(schema.buildings)
     .where(eq(schema.buildings.id, buildingId));
   const raw = row?.financialYearStart;
-  if (!raw) return undefined;
-  const match = /^\d{4}-(\d{2})-\d{2}/.exec(String(raw));
-  if (!match) return undefined;
-  const month = parseInt(match[1], 10);
-  if (!Number.isInteger(month) || month < 1 || month > 12) return undefined;
-  return month;
+  let value: number | undefined;
+  if (raw) {
+    const match = /^\d{4}-(\d{2})-\d{2}/.exec(String(raw));
+    if (match) {
+      const month = parseInt(match[1], 10);
+      if (Number.isInteger(month) && month >= 1 && month <= 12) {
+        value = month;
+      }
+    }
+  }
+  fiscalYearStartMonthCache.set(buildingId, {
+    value,
+    expiresAt: now + FISCAL_YEAR_START_MONTH_CACHE_TTL_MS,
+  });
+  return value;
 }
 
 /**
