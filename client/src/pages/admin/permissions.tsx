@@ -40,6 +40,11 @@ import {
 import { useState, useEffect } from 'react';
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import {
+  buildPermissionsMatrixView,
+  coerceRolePermissionIds,
+  coerceToArray,
+} from './permissions-data';
 
 // Permissions config reference for display purposes
 const permissionsConfig = {
@@ -138,18 +143,25 @@ export default function Permissions() {
     queryKey: ['/api/user-permissions'],
   });
 
-  // Fetch users
-  const { data: users, isLoading: usersLoading } = useQuery<User[]>({
+  // Fetch users — `/api/users` returns `{ users: User[] }` in production
+  // but is consumed here as a flat `User[]`. Coerce defensively so a
+  // wrapped response (or any other unexpected shape) cannot crash the
+  // page on `.filter()` like it did in the original regression.
+  const { data: usersRaw, isLoading: usersLoading } = useQuery<unknown>({
     queryKey: ['/api/users'],
   });
+  const users: User[] = coerceToArray<User>(usersRaw);
 
   const isLoading = matrixLoading || userPermissionsLoading || usersLoading;
 
-  // Extract data from matrix
-  const permissions = permissionsMatrix?.permissions || [];
-  const rolePermissions = permissionsMatrix?.rolePermissions || [];
-  const permissionsByResource = permissionsMatrix?.permissionsByResource || {};
-  const roleMatrix = permissionsMatrix?.roleMatrix || {};
+  // Defensively normalise the matrix response. The bare `|| []` / `|| {}`
+  // fallbacks we used to rely on only fire on falsy values, so a truthy
+  // but wrong-shape value (e.g. an object where an array was expected)
+  // would slip through and crash subsequent `.filter()` / `.reduce()`
+  // calls — leaving the page stuck on its loading spinner. See
+  // `permissions-data.ts` for the coercion contract.
+  const { permissions, rolePermissions, permissionsByResource, roleMatrix } =
+    buildPermissionsMatrixView<Permission, RolePermission>(permissionsMatrix);
 
   // Group permissions by role for backward compatibility
   const permissionsByRole = rolePermissions.reduce(
@@ -176,7 +188,7 @@ export default function Permissions() {
 
   // Filter users based on search, role, and status
   const filteredUsers =
-    users?.filter((user) => {
+    users.filter((user) => {
       const matchesSearch =
         searchQuery === '' ||
         user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -203,7 +215,7 @@ export default function Permissions() {
       }
 
       return matchesSearch && matchesRole && matchesStatus;
-    }) || [];
+    });
 
   // Pagination calculations
   const totalUsers = filteredUsers.length;
@@ -322,6 +334,27 @@ export default function Permissions() {
       });
     },
   });
+
+  // Loading gate: stay on the spinner for the full duration that any of
+  // the three queries is in flight. Combined with the defensive
+  // coercion above, this guarantees no derived variable is ever
+  // computed against an undefined / wrong-shape API response.
+  if (isLoading) {
+    return (
+      <div className='flex-1 flex flex-col overflow-hidden'>
+        <Header
+          title='RBAC Permissions'
+          subtitle='Manage role-based access control and user permissions'
+        />
+        <div
+          className='flex-1 flex justify-center items-center'
+          data-testid='loader-permissions-page'
+        >
+          <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-koveo-navy'></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
@@ -498,7 +531,7 @@ export default function Permissions() {
                     {/* Filter summary */}
                     <div className='flex items-center gap-4 text-sm text-gray-600'>
                       <span>
-                        Showing {filteredUsers.length} of {users?.length || 0} users
+                        Showing {filteredUsers.length} of {users.length} users
                       </span>
                       {(searchQuery ||
                         filterRole !== 'all' ||
@@ -916,7 +949,7 @@ export default function Permissions() {
                         <TableBody>
                           {sortedPermissions.map((permission) => {
                             const rolesWithPermission = roles.filter((role) =>
-                              roleMatrix[role]?.includes(permission.id)
+                              coerceRolePermissionIds(roleMatrix[role]).includes(permission.id)
                             );
 
                             return (
