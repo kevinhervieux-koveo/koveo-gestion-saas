@@ -52,17 +52,28 @@ function extractScreeningQuickAnalysisFields(
   screeningBucketGuess: string | null;
   screeningQaReason: string | null;
   screeningPeriodHint: string | null;
+  /**
+   * True when an admin manually overrode `periodHint` via the inline
+   * editor on the Sorting row (Task #997). The flag lives on the
+   * screening blob alongside `periodHint` itself; it lets the chip
+   * surface a "Manual" tag so admins can tell their override apart
+   * from the AI's guess.
+   */
+  screeningPeriodHintManualOverride: boolean;
 } {
   const periodHint =
     json && typeof json.periodHint === 'string' && json.periodHint.length > 0
       ? (json.periodHint as string)
       : null;
+  const periodHintManualOverride =
+    !!(json && (json as Record<string, unknown>).periodHintManualOverride === true);
   if (!json) {
     return {
       screeningTypeGuess: null,
       screeningBucketGuess: null,
       screeningQaReason: null,
       screeningPeriodHint: null,
+      screeningPeriodHintManualOverride: false,
     };
   }
   const qa = json.quickAnalysis as Record<string, unknown> | null | undefined;
@@ -72,6 +83,7 @@ function extractScreeningQuickAnalysisFields(
       screeningBucketGuess: null,
       screeningQaReason: null,
       screeningPeriodHint: periodHint,
+      screeningPeriodHintManualOverride: periodHintManualOverride,
     };
   }
   return {
@@ -79,6 +91,7 @@ function extractScreeningQuickAnalysisFields(
     screeningBucketGuess: (qa.bucketGuess as string | null | undefined) ?? null,
     screeningQaReason: (qa.reason as string | null | undefined) ?? null,
     screeningPeriodHint: periodHint,
+    screeningPeriodHintManualOverride: periodHintManualOverride,
   };
 }
 
@@ -3231,6 +3244,170 @@ export function registerBulkImportRoutes(app: Express): void {
           message: userMessage,
           code: 'SORTING_DECISION_INTERNAL_ERROR',
         });
+      }
+    },
+  );
+
+  /**
+   * Override the AI-detected `screening.periodHint` for a single item
+   * during the Sorting step (Task #997). Lets admins fix a wrong period
+   * directly on the row instead of re-uploading the file when the
+   * Screening AI mis-detected the document's fiscal year, invoice number,
+   * or meeting date — values the Sorting analyzer relies on for both the
+   * trivially-keep short-circuit (`isTriviallyKeep`) and the merge prompt
+   * sibling comparison (see `bulk-import-analyzer.ts`).
+   *
+   * Body: `{ periodHint: string | null }`
+   *   - Non-empty string → set `screening.periodHint` to the trimmed
+   *     value and stamp `screening.periodHintManualOverride = true` so
+   *     the Sorting chip can render a "Manual" tag.
+   *   - `null` (or empty after trim) → clear the period hint and the
+   *     manual-override marker so the row falls back to "AI couldn't
+   *     determine".
+   *
+   * After persisting the override, sorting is re-run for:
+   *   - The target item itself (its prior sorting decision is overwritten
+   *     with the new computation; admin must re-accept).
+   *   - Every same-session sibling that shares the target's typeGuess +
+   *     bucketGuess (those are the only items whose decision could
+   *     plausibly have hinged on the periodHint comparison) AND whose
+   *     `sortingDecision.decisionState` is null or 'pending'. Siblings
+   *     whose decision the admin has already accepted/rejected are left
+   *     alone so we never silently undo a confirmed merge/split file op.
+   *
+   * Refused (400) when the target item is past the sorting step
+   * (status not 'screened' or 'sorted') or its current sorting decision
+   * has already been accepted — re-running sorting at that point would
+   * either undo a committed file op or contradict downstream steps.
+   */
+  const setPeriodHintSchema = z.object({
+    periodHint: z.string().max(120).nullable(),
+  });
+  app.post(
+    '/api/admin/bulk-import/items/:id/set-period-hint',
+    requireAuth,
+    requireRole(['admin']),
+    async (req: AuthenticatedRequest, res: Response) => {
+      try {
+        const { periodHint: rawPeriodHint } = setPeriodHintSchema.parse(req.body);
+        const trimmed = typeof rawPeriodHint === 'string' ? rawPeriodHint.trim() : null;
+        const nextPeriodHint: string | null = trimmed && trimmed.length > 0 ? trimmed : null;
+
+        const [item] = await db
+          .select()
+          .from(schema.bulkImportItems)
+          .where(eq(schema.bulkImportItems.id, req.params.id));
+        if (!item) return res.status(404).json({ error: 'Item not found' });
+
+        if (item.status !== 'screened' && item.status !== 'sorted') {
+          return res.status(400).json({
+            error: 'Period hint can only be edited while the item is on the Sorting step',
+          });
+        }
+
+        const myScreening = (item.screening ?? {}) as Record<string, unknown>;
+        const existingDecision = (item.sortingDecision ?? {}) as Record<string, unknown>;
+        const existingDecisionState = existingDecision.decisionState as
+          | 'pending'
+          | 'accepted'
+          | 'rejected'
+          | null
+          | undefined;
+        if (existingDecisionState === 'accepted') {
+          return res.status(400).json({
+            error:
+              'Sorting decision has already been accepted; reset the decision before changing the period',
+          });
+        }
+
+        // Persist the override on the screening blob. Setting null also
+        // clears the manual-override marker so the chip stops showing
+        // "Manual" — there's nothing to override anymore.
+        const nextScreening: Record<string, unknown> = {
+          ...myScreening,
+          periodHint: nextPeriodHint,
+          periodHintManualOverride: nextPeriodHint !== null,
+        };
+
+        await db
+          .update(schema.bulkImportItems)
+          .set({ screening: nextScreening, updatedAt: new Date() })
+          .where(eq(schema.bulkImportItems.id, item.id));
+
+        // Re-fetch the item with the updated screening blob so the
+        // re-run sees the new periodHint.
+        const [refreshedItem] = await db
+          .select()
+          .from(schema.bulkImportItems)
+          .where(eq(schema.bulkImportItems.id, item.id));
+        if (!refreshedItem) {
+          return res.status(404).json({ error: 'Item disappeared during update' });
+        }
+
+        // Build the fresh session-wide sibling context the sorting
+        // analyzer expects (id + name + screening blob).
+        const sessionRows = await db
+          .select()
+          .from(schema.bulkImportItems)
+          .where(eq(schema.bulkImportItems.sessionId, refreshedItem.sessionId));
+        const sessionItems = sessionRows.map((s) => ({
+          id: s.id,
+          name: s.originalName,
+          screening: s.screening as Record<string, unknown> | null,
+        }));
+
+        // Re-run sorting on the target item (the AI now sees the new period).
+        const updatedTarget = await processItemForStep(
+          'sorting',
+          refreshedItem,
+          sessionItems,
+        );
+
+        // Determine which siblings depended on the old periodHint and
+        // therefore need re-sorting. Same typeGuess + bucketGuess is the
+        // necessary condition for the merge-candidate comparison; we
+        // skip siblings the admin has already touched (accepted/rejected).
+        const myQa = (refreshedItem.screening as Record<string, unknown> | null)
+          ?.quickAnalysis as
+          | { typeGuess?: string | null; bucketGuess?: string | null }
+          | null
+          | undefined;
+        const myType = myQa?.typeGuess ?? null;
+        const myBucket = myQa?.bucketGuess ?? null;
+
+        const sessionItemsByIdAfterTarget = sessionItems.map((s) =>
+          s.id === updatedTarget.id
+            ? { ...s, screening: updatedTarget.screening as Record<string, unknown> | null }
+            : s,
+        );
+
+        const resortedSiblingIds: string[] = [];
+        if (myType && myBucket) {
+          for (const row of sessionRows) {
+            if (row.id === refreshedItem.id) continue;
+            if (row.status !== 'screened' && row.status !== 'sorted') continue;
+            const rowScreening = row.screening as Record<string, unknown> | null;
+            const rowQa = rowScreening?.quickAnalysis as
+              | { typeGuess?: string | null; bucketGuess?: string | null }
+              | null
+              | undefined;
+            if (rowQa?.typeGuess !== myType || rowQa?.bucketGuess !== myBucket) continue;
+            const rowDecision = (row.sortingDecision ?? {}) as Record<string, unknown>;
+            const rowState = rowDecision.decisionState as string | null | undefined;
+            if (rowState === 'accepted' || rowState === 'rejected') continue;
+            await processItemForStep('sorting', row, sessionItemsByIdAfterTarget);
+            resortedSiblingIds.push(row.id);
+          }
+        }
+
+        return res.json({
+          item: updatedTarget,
+          resortedSiblingIds,
+        });
+      } catch (err) {
+        if (err instanceof z.ZodError) return res.status(400).json({ error: err.errors });
+        logError(`[bulk-import] set-period-hint failed for item ${req.params.id}`, err as Error);
+        return res.status(500).json({ error: 'Failed to update period hint' });
       }
     },
   );

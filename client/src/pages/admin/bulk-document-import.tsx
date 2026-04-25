@@ -239,6 +239,13 @@ interface BulkImportItemLite {
    */
   screeningPeriodHint: string | null;
   /**
+   * True when an admin manually overrode the AI-detected period hint via
+   * the inline editor on the Sorting row (Task #997). Drives the small
+   * "Manual" tag shown next to the period chip so admins can tell their
+   * override apart from the AI's guess.
+   */
+  screeningPeriodHintManualOverride: boolean;
+  /**
    * Rotation outcome for the Screening step (Task #772).
    * `screeningRotationDegrees` is the clockwise rotation Screening
    * detected (0/90/180/270). `screeningRotationApplied` is true only when
@@ -408,6 +415,10 @@ type HistoryBulkImportItem = BulkImportItem & {
   screeningTypeGuess: string | null;
   screeningBucketGuess: string | null;
   screeningQaReason: string | null;
+  /** Period hint surfaced in the history view chip (Task #960/#997). */
+  screeningPeriodHint: string | null;
+  /** True when an admin overrode the AI-detected period hint (Task #997). */
+  screeningPeriodHintManualOverride: boolean;
 };
 
 interface SessionPayload {
@@ -929,6 +940,38 @@ function HistorySessionRow({
                                   ] ?? item.screeningBucketGuess}
                                 </span>
                               )}
+                            {/* Period hint chip + manual-override tag (Task #997).
+                                Read-only in the history view — the editable
+                                version lives on the active Sorting row. */}
+                            {item.screeningPeriodHint && (
+                              <span
+                                className="inline-flex items-center rounded-md border border-indigo-300 bg-indigo-50 px-2 py-0.5 text-xs font-medium text-indigo-900 dark:border-indigo-700 dark:bg-indigo-950 dark:text-indigo-200"
+                                title={
+                                  isFr
+                                    ? "Période détectée par l'IA (ou corrigée manuellement)."
+                                    : 'Period detected by the AI (or manually overridden).'
+                                }
+                                data-testid={`history-item-period-hint-${item.id}`}
+                              >
+                                <span className="mr-1 text-[10px] uppercase tracking-wide opacity-75">
+                                  {isFr ? 'Période' : 'Period'}:
+                                </span>
+                                {item.screeningPeriodHint}
+                              </span>
+                            )}
+                            {item.screeningPeriodHintManualOverride && (
+                              <span
+                                className="inline-flex items-center rounded-md border border-slate-300 bg-slate-50 px-2 py-0.5 text-xs font-medium text-slate-700 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-300"
+                                title={
+                                  isFr
+                                    ? "Période corrigée manuellement par un administrateur."
+                                    : 'Period manually overridden by an admin.'
+                                }
+                                data-testid={`history-item-period-hint-manual-${item.id}`}
+                              >
+                                {isFr ? 'Manuel' : 'Manual'}
+                              </span>
+                            )}
                           </div>
                           {item.screeningFallback ? (
                             <div
@@ -1282,6 +1325,10 @@ export default function BulkDocumentImportPage() {
   const [inlineMergeOrder, setInlineMergeOrder] = useState<Map<string, string[]>>(new Map());
   const [inlineRename, setInlineRename] = useState<Map<string, string>>(new Map());
   const [inlineRenameSplit, setInlineRenameSplit] = useState<Map<string, [string, string]>>(new Map());
+  // Inline period-hint editor state (Task #997). Keyed by item id;
+  // presence of a key = the row's chip is in edit mode. The string
+  // value mirrors the input field as the admin types.
+  const [editingPeriodHint, setEditingPeriodHint] = useState<Map<string, string>>(new Map());
   const [autoSaveStatus, setAutoSaveStatus] = useState<Map<string, 'idle' | 'saving' | 'saved' | 'error'>>(new Map());
   // Group-level reassign picker (Task #776). At most one section's
   // picker is open at a time; opening a per-file picker closes it and
@@ -1916,6 +1963,55 @@ export default function BulkDocumentImportPage() {
       toast({
         variant: 'destructive',
         title: isFr ? 'Échec de la décision' : 'Failed to save decision',
+        ...(serverMessage ? { description: serverMessage } : {}),
+      });
+    },
+  });
+
+  /**
+   * Persist an admin override for `screening.periodHint` on a single
+   * Sorting row (Task #997). The server re-runs sorting for the target
+   * item AND any same-type+bucket sibling whose decision is still
+   * pending so the admin doesn't have to re-upload the file when the
+   * Screening AI guessed the wrong fiscal year / invoice number /
+   * meeting date.
+   */
+  const setPeriodHint = useMutation({
+    mutationFn: async ({
+      itemId,
+      periodHint,
+    }: {
+      itemId: string;
+      periodHint: string | null;
+    }) => {
+      const res = await apiRequest(
+        'POST',
+        `/api/admin/bulk-import/items/${itemId}/set-period-hint`,
+        { periodHint },
+      );
+      return res.json();
+    },
+    onSuccess: (_data, variables) => {
+      setEditingPeriodHint((prev) => {
+        const next = new Map(prev);
+        next.delete(variables.itemId);
+        return next;
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
+      });
+    },
+    onError: (error) => {
+      let serverMessage: string | undefined;
+      if (error instanceof ApiError && error.body && typeof error.body === 'object') {
+        const body = error.body as Record<string, unknown>;
+        serverMessage = typeof body.error === 'string' ? body.error
+          : typeof body.message === 'string' ? body.message
+          : undefined;
+      }
+      toast({
+        variant: 'destructive',
+        title: isFr ? 'Échec de la mise à jour de la période' : 'Failed to update period',
         ...(serverMessage ? { description: serverMessage } : {}),
       });
     },
@@ -3629,20 +3725,169 @@ export default function BulkDocumentImportPage() {
                                       {isFr ? 'Rejeté – choix requis' : 'Rejected – choose manually'}
                                     </Badge>
                                   )}
-                                  {currentStep === 'sorting' && item.screeningPeriodHint && (
-                                    <Badge
-                                      variant="outline"
-                                      className="shrink-0 border-indigo-300 bg-indigo-50 text-indigo-900 dark:border-indigo-700 dark:bg-indigo-950 dark:text-indigo-200"
-                                      title={
-                                        isFr
-                                          ? "Période détectée par l'IA lors du filtrage (année, exercice, n° de facture, date de réunion). Utilisée pour distinguer deux documents du même type."
-                                          : 'Period detected by the Screening AI (year, fiscal year, invoice number, meeting date). Used to tell two same-type documents apart.'
+                                  {currentStep === 'sorting' && !isExcluded && (() => {
+                                    // Inline period-hint editor (Task #997). Admins can fix
+                                    // a wrong AI-detected period directly on the row instead
+                                    // of re-uploading the file. Editing is disabled once the
+                                    // sorting decision is accepted (the server enforces this
+                                    // too) so we never silently undo a committed merge/split.
+                                    const editingValue = editingPeriodHint.get(item.id);
+                                    const isEditing = editingValue !== undefined;
+                                    const periodHintEditingDisabled =
+                                      item.sortingDecisionState === 'accepted';
+                                    const openEditor = () => {
+                                      if (periodHintEditingDisabled) return;
+                                      setEditingPeriodHint((prev) => {
+                                        const next = new Map(prev);
+                                        next.set(item.id, item.screeningPeriodHint ?? '');
+                                        return next;
+                                      });
+                                    };
+                                    const closeEditor = () => {
+                                      setEditingPeriodHint((prev) => {
+                                        const next = new Map(prev);
+                                        next.delete(item.id);
+                                        return next;
+                                      });
+                                    };
+                                    const saveEditor = () => {
+                                      const trimmed = (editingValue ?? '').trim();
+                                      const original = item.screeningPeriodHint ?? '';
+                                      if (trimmed === original) {
+                                        closeEditor();
+                                        return;
                                       }
-                                      data-testid={`sorting-period-hint-${item.id}`}
-                                    >
-                                      {item.screeningPeriodHint}
-                                    </Badge>
-                                  )}
+                                      setPeriodHint.mutate({
+                                        itemId: item.id,
+                                        periodHint: trimmed.length > 0 ? trimmed : null,
+                                      });
+                                    };
+
+                                    if (isEditing) {
+                                      return (
+                                        <div
+                                          className="flex items-center gap-1"
+                                          data-testid={`sorting-period-hint-editor-${item.id}`}
+                                        >
+                                          <Input
+                                            value={editingValue}
+                                            onChange={(e) => {
+                                              const v = e.target.value;
+                                              setEditingPeriodHint((prev) => {
+                                                const next = new Map(prev);
+                                                next.set(item.id, v);
+                                                return next;
+                                              });
+                                            }}
+                                            onKeyDown={(e) => {
+                                              if (e.key === 'Enter') {
+                                                e.preventDefault();
+                                                saveEditor();
+                                              } else if (e.key === 'Escape') {
+                                                e.preventDefault();
+                                                closeEditor();
+                                              }
+                                            }}
+                                            placeholder={isFr ? 'p. ex. 2024-2025' : 'e.g. 2024-2025'}
+                                            maxLength={120}
+                                            autoFocus
+                                            disabled={setPeriodHint.isPending}
+                                            className="h-7 w-40 text-xs"
+                                            data-testid={`sorting-period-hint-input-${item.id}`}
+                                          />
+                                          <Button
+                                            size="sm"
+                                            variant="outline"
+                                            className="h-7 px-2"
+                                            onClick={saveEditor}
+                                            disabled={setPeriodHint.isPending}
+                                            data-testid={`sorting-period-hint-save-${item.id}`}
+                                            aria-label={isFr ? 'Enregistrer la période' : 'Save period'}
+                                          >
+                                            {setPeriodHint.isPending
+                                              ? <Loader2 className="h-3 w-3 animate-spin" />
+                                              : <Check className="h-3 w-3" />}
+                                          </Button>
+                                          <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            className="h-7 px-2"
+                                            onClick={closeEditor}
+                                            disabled={setPeriodHint.isPending}
+                                            data-testid={`sorting-period-hint-cancel-${item.id}`}
+                                            aria-label={isFr ? 'Annuler' : 'Cancel'}
+                                          >
+                                            <X className="h-3 w-3" />
+                                          </Button>
+                                        </div>
+                                      );
+                                    }
+
+                                    return (
+                                      <div className="flex items-center gap-1">
+                                        <Badge
+                                          variant="outline"
+                                          className={`shrink-0 border-indigo-300 bg-indigo-50 text-indigo-900 dark:border-indigo-700 dark:bg-indigo-950 dark:text-indigo-200 ${
+                                            periodHintEditingDisabled
+                                              ? 'cursor-default'
+                                              : 'cursor-pointer hover:bg-indigo-100 dark:hover:bg-indigo-900'
+                                          }`}
+                                          title={
+                                            periodHintEditingDisabled
+                                              ? isFr
+                                                ? 'La décision de tri est acceptée — réinitialisez-la avant de modifier la période.'
+                                                : 'Sorting decision is accepted — reset it before changing the period.'
+                                              : item.screeningPeriodHint
+                                              ? isFr
+                                                ? "Cliquer pour corriger la période détectée par l'IA."
+                                                : 'Click to fix the AI-detected period.'
+                                              : isFr
+                                              ? "L'IA n'a pas détecté de période. Cliquer pour l'ajouter."
+                                              : 'The AI did not detect a period. Click to add one.'
+                                          }
+                                          onClick={openEditor}
+                                          onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                              e.preventDefault();
+                                              openEditor();
+                                            }
+                                          }}
+                                          role={periodHintEditingDisabled ? undefined : 'button'}
+                                          tabIndex={periodHintEditingDisabled ? -1 : 0}
+                                          aria-disabled={periodHintEditingDisabled || undefined}
+                                          data-testid={`sorting-period-hint-${item.id}`}
+                                        >
+                                          {item.screeningPeriodHint ? (
+                                            <>
+                                              {item.screeningPeriodHint}
+                                              {!periodHintEditingDisabled && (
+                                                <Pencil className="ml-1 h-3 w-3 opacity-60" />
+                                              )}
+                                            </>
+                                          ) : (
+                                            <>
+                                              <Pencil className="mr-1 h-3 w-3 opacity-60" />
+                                              {isFr ? 'Ajouter une période' : 'Add period'}
+                                            </>
+                                          )}
+                                        </Badge>
+                                        {item.screeningPeriodHintManualOverride && (
+                                          <Badge
+                                            variant="outline"
+                                            className="shrink-0 border-slate-300 bg-slate-50 text-slate-700 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-300"
+                                            title={
+                                              isFr
+                                                ? "Période corrigée manuellement par un administrateur (au lieu de la valeur détectée par l'IA)."
+                                                : 'Period manually overridden by an admin (instead of the AI-detected value).'
+                                            }
+                                            data-testid={`sorting-period-hint-manual-${item.id}`}
+                                          >
+                                            {isFr ? 'Manuel' : 'Manual'}
+                                          </Badge>
+                                        )}
+                                      </div>
+                                    );
+                                  })()}
                                   {currentStep === 'screening' && item.screeningTypeGuess && item.screeningTypeGuess !== 'unknown' && (
                                     <Badge
                                       variant="outline"
