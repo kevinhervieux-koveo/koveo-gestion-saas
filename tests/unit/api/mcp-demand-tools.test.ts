@@ -10,6 +10,7 @@
  * already used by `mcp-link-user-to-residence.test.ts`.
  */
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
+import { DEMAND_DESCRIPTION_MAX } from '../../../shared/schemas/operations';
 
 type ToolHandler = (args: Record<string, unknown>) => Promise<{ content: Array<{ text: string }> }>;
 const registeredTools = new Map<string, ToolHandler>();
@@ -757,5 +758,27 @@ describe('MCP demand attachment handling', () => {
     expect(insertCalls[0].values).not.toHaveProperty('fileSize');
     expect(getExistingObjectAclMock).not.toHaveBeenCalled();
     expect(trySetObjectEntityAclPolicyMock).not.toHaveBeenCalled();
+  });
+});
+
+describe('create_demand MCP schema — description length cap (task #651)', () => {
+  type ZodLike = { safeParse: (v: unknown) => { success: boolean; error?: { issues: Array<{ code: string }> } } };
+
+  it('accepts a description of exactly ' + DEMAND_DESCRIPTION_MAX + ' characters', () => {
+    const schema = registeredSchemas.get('create_demand') as Record<string, ZodLike> | undefined;
+    expect(schema).toBeDefined();
+    const result = schema!.description.safeParse('a'.repeat(DEMAND_DESCRIPTION_MAX));
+    expect(result.success).toBe(true);
+  });
+
+  it('rejects a description of ' + (DEMAND_DESCRIPTION_MAX + 1) + ' characters with a too_big error', () => {
+    const schema = registeredSchemas.get('create_demand') as Record<string, ZodLike> | undefined;
+    expect(schema).toBeDefined();
+    const result = schema!.description.safeParse('a'.repeat(DEMAND_DESCRIPTION_MAX + 1));
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      const issue = result.error!.issues.find((i) => i.code === 'too_big');
+      expect(issue).toBeDefined();
+    }
   });
 });

@@ -5,18 +5,33 @@
  * resolved the author via the synthetic `mcp-{role}@koveo-mcp.test`
  * seed account. They must now use the OAuth caller's real user id.
  *
+ * Also includes boundary tests for free-text length caps (task #651):
+ * each capped field is exercised at exactly the cap (accepted) and at
+ * cap+1 (rejected with a Zod too_big error), with cap values read from
+ * the shared schema constants so a future change only edits one number.
+ *
  * These tests stub out the MCP SDK and the Drizzle `db` so the full
  * tool-registration flow runs without touching the database.
  */
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
+import {
+  COMMUNICATION_TITLE_MAX,
+  COMMUNICATION_CONTENT_MAX,
+  MEETING_TITLE_MAX,
+  MEETING_DESCRIPTION_MAX,
+} from '../../../shared/schemas/operations';
 
 type ToolHandler = (args: Record<string, unknown>) => Promise<{ content: Array<{ text: string }> }>;
+type ZodLike = { safeParse: (v: unknown) => { success: boolean; error?: { issues: Array<{ code: string; path: unknown[] }> } } };
+
 const registeredTools = new Map<string, ToolHandler>();
+const registeredSchemas = new Map<string, Record<string, ZodLike>>();
 
 jest.mock('@modelcontextprotocol/sdk/server/mcp.js', () => ({
   McpServer: jest.fn().mockImplementation(() => ({
-    tool: (name: string, _desc: string, _schema: unknown, handler: ToolHandler) => {
+    tool: (name: string, _desc: string, schema: Record<string, ZodLike>, handler: ToolHandler) => {
       registeredTools.set(name, handler);
+      registeredSchemas.set(name, schema);
     },
   })),
 }));
@@ -73,6 +88,7 @@ const SEED_USER_ID = 'seed-mcp-manager-id';
 
 beforeEach(() => {
   registeredTools.clear();
+  registeredSchemas.clear();
   selectQueue.length = 0;
   insertCalls.length = 0;
 });
@@ -186,6 +202,105 @@ describe('create_communication / create_meeting OAuth attribution (task #138)', 
       expect(result.content[0].text).not.toContain('MCP user not found');
       expect(insertCalls.length).toBe(1);
       expect(insertCalls[0].values.createdBy).toBe(SEED_USER_ID);
+    });
+  });
+});
+
+describe('create_communication MCP schema — free-text length caps (task #651)', () => {
+  beforeEach(() => {
+    createMcpServer(undefined);
+  });
+
+  describe('title field (max ' + COMMUNICATION_TITLE_MAX + ')', () => {
+    it('accepts a title of exactly ' + COMMUNICATION_TITLE_MAX + ' characters', () => {
+      const schema = registeredSchemas.get('create_communication');
+      expect(schema).toBeDefined();
+      const result = schema!.title.safeParse('a'.repeat(COMMUNICATION_TITLE_MAX));
+      expect(result.success).toBe(true);
+    });
+
+    it('rejects a title of ' + (COMMUNICATION_TITLE_MAX + 1) + ' characters with a too_big error', () => {
+      const schema = registeredSchemas.get('create_communication');
+      expect(schema).toBeDefined();
+      const result = schema!.title.safeParse('a'.repeat(COMMUNICATION_TITLE_MAX + 1));
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        const issue = result.error!.issues.find((i) => i.code === 'too_big');
+        expect(issue).toBeDefined();
+      }
+    });
+  });
+
+  describe('content field (max ' + COMMUNICATION_CONTENT_MAX + ')', () => {
+    it('accepts content of exactly ' + COMMUNICATION_CONTENT_MAX + ' characters', () => {
+      const schema = registeredSchemas.get('create_communication');
+      expect(schema).toBeDefined();
+      const result = schema!.content.safeParse('b'.repeat(COMMUNICATION_CONTENT_MAX));
+      expect(result.success).toBe(true);
+    });
+
+    it('rejects content of ' + (COMMUNICATION_CONTENT_MAX + 1) + ' characters with a too_big error', () => {
+      const schema = registeredSchemas.get('create_communication');
+      expect(schema).toBeDefined();
+      const result = schema!.content.safeParse('b'.repeat(COMMUNICATION_CONTENT_MAX + 1));
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        const issue = result.error!.issues.find((i) => i.code === 'too_big');
+        expect(issue).toBeDefined();
+      }
+    });
+  });
+});
+
+describe('create_meeting MCP schema — free-text length caps (task #651)', () => {
+  beforeEach(() => {
+    createMcpServer(undefined);
+  });
+
+  describe('title field (max ' + MEETING_TITLE_MAX + ')', () => {
+    it('accepts a title of exactly ' + MEETING_TITLE_MAX + ' characters', () => {
+      const schema = registeredSchemas.get('create_meeting');
+      expect(schema).toBeDefined();
+      const result = schema!.title.safeParse('a'.repeat(MEETING_TITLE_MAX));
+      expect(result.success).toBe(true);
+    });
+
+    it('rejects a title of ' + (MEETING_TITLE_MAX + 1) + ' characters with a too_big error', () => {
+      const schema = registeredSchemas.get('create_meeting');
+      expect(schema).toBeDefined();
+      const result = schema!.title.safeParse('a'.repeat(MEETING_TITLE_MAX + 1));
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        const issue = result.error!.issues.find((i) => i.code === 'too_big');
+        expect(issue).toBeDefined();
+      }
+    });
+  });
+
+  describe('description field (optional, max ' + MEETING_DESCRIPTION_MAX + ')', () => {
+    it('accepts an omitted description', () => {
+      const schema = registeredSchemas.get('create_meeting');
+      expect(schema).toBeDefined();
+      const result = schema!.description.safeParse(undefined);
+      expect(result.success).toBe(true);
+    });
+
+    it('accepts a description of exactly ' + MEETING_DESCRIPTION_MAX + ' characters', () => {
+      const schema = registeredSchemas.get('create_meeting');
+      expect(schema).toBeDefined();
+      const result = schema!.description.safeParse('c'.repeat(MEETING_DESCRIPTION_MAX));
+      expect(result.success).toBe(true);
+    });
+
+    it('rejects a description of ' + (MEETING_DESCRIPTION_MAX + 1) + ' characters with a too_big error', () => {
+      const schema = registeredSchemas.get('create_meeting');
+      expect(schema).toBeDefined();
+      const result = schema!.description.safeParse('c'.repeat(MEETING_DESCRIPTION_MAX + 1));
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        const issue = result.error!.issues.find((i) => i.code === 'too_big');
+        expect(issue).toBeDefined();
+      }
     });
   });
 });

@@ -451,6 +451,8 @@ export const insertNotificationSchema = z.object({
   relatedEntityType: z.string().optional(),
 });
 
+export const DEMAND_DESCRIPTION_MAX = 2000;
+
 export const insertDemandSchema = z.object({
   submitterId: z.string().uuid().optional(),
   type: z.enum(['complaint', 'information', 'maintenance', 'other']),
@@ -460,7 +462,7 @@ export const insertDemandSchema = z.object({
     .string()
     .trim()
     .min(10, 'Description must be at least 10 characters')
-    .max(2000, 'Description must not exceed 2000 characters'),
+    .max(DEMAND_DESCRIPTION_MAX, 'Description must not exceed 2000 characters'),
   filePath: z.string().optional(), // Path to uploaded file
   fileName: z.string().optional(), // Original filename  
   fileSize: z.number().int().optional(), // File size in bytes
@@ -509,6 +511,9 @@ export const insertUserNotificationPreferenceSchema = z.object({
   startingDate: z.date().optional(),
 });
 
+export const COMMUNICATION_TITLE_MAX = 200;
+export const COMMUNICATION_CONTENT_MAX = 5000;
+
 export const insertGeneralCommunicationSchema = z.object({
   organizationId: z.string().uuid(),
   createdBy: z.string().uuid(),
@@ -516,16 +521,19 @@ export const insertGeneralCommunicationSchema = z.object({
     .string()
     .trim()
     .min(1, 'Title is required')
-    .max(200, 'Title must be 200 characters or fewer'),
+    .max(COMMUNICATION_TITLE_MAX, 'Title must be 200 characters or fewer'),
   content: z
     .string()
     .trim()
     .min(1, 'Content is required')
-    .max(5000, 'Content must be 5000 characters or fewer'),
+    .max(COMMUNICATION_CONTENT_MAX, 'Content must be 5000 characters or fewer'),
   isUrgent: z.boolean().default(false),
   scheduledFor: z.date().optional(),
   recipientRoles: z.array(z.string()).optional(),
 });
+
+export const MEETING_TITLE_MAX = 200;
+export const MEETING_DESCRIPTION_MAX = 5000;
 
 export const insertMeetingSchema = z.object({
   organizationId: z.string().uuid(),
