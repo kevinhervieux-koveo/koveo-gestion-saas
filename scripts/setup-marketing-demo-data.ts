@@ -631,109 +631,6 @@ async function seedVendorSubmissionsForProject(
   }
 }
 
-const BUG_TEMPLATES_FR = [
-  { title: 'Le tableau de bord ne charge pas', description: 'Le tableau de bord reste bloqué sur "Chargement..." après la connexion.', category: 'ui_ux' as const, page: '/dashboard', priority: 'high' as const, status: 'new' as const },
-  { title: 'Erreur 500 sur la page des factures', description: 'Cliquer sur "Factures" affiche une page blanche avec une erreur 500.', category: 'functionality' as const, page: '/bills', priority: 'critical' as const, status: 'acknowledged' as const },
-  { title: 'Notifications en retard', description: 'Les courriels de rappel de paiement arrivent plusieurs heures après l\'échéance.', category: 'functionality' as const, page: '/notifications', priority: 'medium' as const, status: 'in_progress' as const },
-  { title: 'Filtre de recherche cassé', description: 'Le filtre par bâtiment dans la liste des demandes ne retourne aucun résultat.', category: 'ui_ux' as const, page: '/demands', priority: 'medium' as const, status: 'new' as const },
-  { title: 'PDF téléchargé corrompu', description: 'Les PDF téléchargés depuis le module documents sont parfois illisibles.', category: 'data' as const, page: '/documents', priority: 'high' as const, status: 'resolved' as const },
-  { title: 'Session expire trop tôt', description: 'Je suis déconnecté après 5 minutes d\'inactivité alors que le paramètre est à 30 minutes.', category: 'security' as const, page: '/settings', priority: 'low' as const, status: 'new' as const },
-];
-
-type FeatureRequestCategory = (typeof schema.featureRequestCategoryEnum.enumValues)[number];
-type FeatureRequestStatus = (typeof schema.featureRequestStatusEnum.enumValues)[number];
-type FeatureTemplate = {
-  title: string;
-  description: string;
-  need: string;
-  category: FeatureRequestCategory;
-  page: string;
-  status: FeatureRequestStatus;
-};
-
-const FEATURE_TEMPLATES_FR: FeatureTemplate[] = [
-  { title: 'Export Excel des factures', description: 'Pouvoir exporter la liste filtrée de factures en Excel.', need: 'Les gestionnaires veulent intégrer les données à leur comptabilité externe.', category: 'financial_management', page: '/bills', status: 'submitted' },
-  { title: 'Rappels de paiement automatiques', description: 'Envoyer un courriel automatique aux résidents 3 jours avant une échéance.', need: 'Réduire les retards de paiement.', category: 'communication', page: '/notifications', status: 'under_review' },
-  { title: 'Mode sombre', description: 'Ajouter un thème sombre à toute l\'application.', need: 'Confort visuel pour les utilisateurs travaillant le soir.', category: 'other', page: '/settings', status: 'planned' },
-  { title: 'Réservations récurrentes', description: 'Permettre de réserver un espace commun chaque semaine à la même heure.', need: 'Simplifier les activités régulières comme les cours de yoga.', category: 'property_management', page: '/bookings', status: 'in_progress' },
-  { title: 'Application mobile', description: 'Application iOS / Android avec notifications push.', need: 'Les résidents veulent gérer leur immeuble depuis leur téléphone.', category: 'mobile_app', page: '/dashboard', status: 'submitted' },
-  { title: 'Historique des modifications', description: 'Voir qui a modifié une facture ou une demande et quand.', need: 'Traçabilité et audit pour les gestionnaires.', category: 'reports', page: '/bills', status: 'submitted' },
-];
-
-async function seedBugOrFeatureAttachment(
-  type: 'bugs' | 'features',
-  ownerId: string,
-): Promise<{ filePath: string; fileName: string; fileSize: number }> {
-  const uuid = randomUUID();
-  const fileName = `${type}_${uuid}.pdf`;
-  const filePath = `/objects/${type}/${uuid}_${fileName}`;
-  // Bug / feature attachments are owned by the reporter and visible publicly
-  // to match the runtime expectation that any authenticated user can see
-  // these files once they exist. canAccessObject returns true for
-  // visibility=public, which avoids 403s in the demo.
-  await uploadSeededDocumentPlaceholder(filePath, {
-    owner: ownerId,
-    visibility: 'public',
-  });
-  return { filePath, fileName, fileSize: getSeededPlaceholderPdfSize() };
-}
-
-async function createBugsAndFeatureRequests() {
-  console.log('🐛 Creating bugs and feature requests...\n');
-
-  const users = await db
-    .select()
-    .from(schema.users)
-    .where(eq(schema.users.isActive, true))
-    .limit(20);
-  if (users.length === 0) {
-    console.log('  ⚠ No users found — skipping bugs and feature requests.');
-    return;
-  }
-
-  await db.delete(schema.bugs);
-  await db.delete(schema.featureRequests);
-
-  let bugCount = 0;
-  for (let i = 0; i < BUG_TEMPLATES_FR.length; i++) {
-    const tpl = BUG_TEMPLATES_FR[i];
-    const creator = users[i % users.length];
-    const attachment = i % 3 === 0 ? await seedBugOrFeatureAttachment('bugs', creator.id) : null;
-    await db.insert(schema.bugs).values({
-      createdBy: creator.id,
-      title: tpl.title,
-      description: tpl.description,
-      category: tpl.category,
-      page: tpl.page,
-      priority: tpl.priority,
-      status: tpl.status,
-      ...(attachment ?? {}),
-    });
-    bugCount++;
-  }
-  console.log(`  ✓ Created ${bugCount} bug reports`);
-
-  let featureCount = 0;
-  for (let i = 0; i < FEATURE_TEMPLATES_FR.length; i++) {
-    const tpl = FEATURE_TEMPLATES_FR[i];
-    const creator = users[i % users.length];
-    const attachment = i % 3 === 0 ? await seedBugOrFeatureAttachment('features', creator.id) : null;
-    await db.insert(schema.featureRequests).values({
-      createdBy: creator.id,
-      title: tpl.title,
-      description: tpl.description,
-      need: tpl.need,
-      category: tpl.category,
-      page: tpl.page,
-      status: tpl.status,
-      ...(attachment ?? {}),
-    });
-    featureCount++;
-  }
-  console.log(`  ✓ Created ${featureCount} feature requests`);
-  console.log('✅ Bugs and feature requests complete!\n');
-}
-
 async function createInventoryAndProjects() {
   console.log('🔧 Creating inventory elements and maintenance projects...\n');
   
@@ -1201,7 +1098,6 @@ async function main() {
     await createDemands();
     await createMonthlyBudgets();
     await createResidenceDocuments();
-    await createBugsAndFeatureRequests();
     
     console.log('='.repeat(50));
     console.log('\n🎉 Marketing Demo Environment Setup Complete!\n');

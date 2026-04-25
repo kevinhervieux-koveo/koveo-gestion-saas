@@ -165,9 +165,6 @@ export const monthlyBudgets = createMockTable('monthlyBudgets');
 // Operations tables
 export const maintenanceRequests = createMockTable('maintenanceRequests');
 export const notifications = createMockTable('notifications');
-export const bugs = createMockTable('bugs');
-export const featureRequests = createMockTable('featureRequests');
-export const featureRequestUpvotes = createMockTable('featureRequestUpvotes');
 export const demands = createMockTable('demands');
 export const demandComments = createMockTable('demandComments');
 
@@ -485,32 +482,6 @@ export interface Notification {
 
 export type InsertNotification = Partial<Notification>;
 
-export interface Bug {
-  id: string;
-  title: string;
-  description: string;
-  severity: string;
-}
-
-export type InsertBug = Partial<Bug>;
-
-export interface FeatureRequest {
-  id: string;
-  title: string;
-  description: string;
-  priority: string;
-}
-
-export type InsertFeatureRequest = Partial<FeatureRequest>;
-
-export interface FeatureRequestUpvote {
-  id: string;
-  featureRequestId: string;
-  userId: string;
-}
-
-export type InsertFeatureRequestUpvote = Partial<FeatureRequestUpvote>;
-
 // Mock drizzle-orm operators and functions
 export const eq = jest.fn().mockImplementation((column: any, value: any) => {
   return { type: 'eq', column, value };
@@ -595,21 +566,6 @@ export const insertNotificationSchema = {
   safeParse: jest.fn().mockImplementation((data) => ({ success: true, data })),
 };
 
-export const insertBugSchema = {
-  parse: jest.fn().mockImplementation((data) => data),
-  safeParse: jest.fn().mockImplementation((data) => ({ success: true, data })),
-};
-
-export const insertFeatureRequestSchema = {
-  parse: jest.fn().mockImplementation((data) => data),
-  safeParse: jest.fn().mockImplementation((data) => ({ success: true, data })),
-};
-
-export const insertFeatureRequestUpvoteSchema = {
-  parse: jest.fn().mockImplementation((data) => data),
-  safeParse: jest.fn().mockImplementation((data) => ({ success: true, data })),
-};
-
 // Add other validation schemas as needed
 export const validationSchemas = {
   ...userValidationSchemas,
@@ -622,9 +578,6 @@ export const validationSchemas = {
   insertBudgetSchema,
   insertMaintenanceRequestSchema,
   insertNotificationSchema,
-  insertBugSchema,
-  insertFeatureRequestSchema,
-  insertFeatureRequestUpvoteSchema,
 };
 
 // Mock drizzle-orm table inference

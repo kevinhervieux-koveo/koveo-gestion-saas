@@ -18,9 +18,6 @@ export interface IStorage {
   actionableItems: Map<string, any>;
   invitations: Map<string, any>;
   invitationAuditLogs: Map<string, any>;
-  bugs: Map<string, any>;
-  featureRequests: Map<string, any>;
-  featureRequestUpvotes: Map<string, any>;
   invoices: Map<string, any>;
   
   // Common storage methods
@@ -46,9 +43,6 @@ export class MemStorage implements IStorage {
   actionableItems = new Map<string, any>();
   invitations = new Map<string, any>();
   invitationAuditLogs = new Map<string, any>();
-  bugs = new Map<string, any>();
-  featureRequests = new Map<string, any>();
-  featureRequestUpvotes = new Map<string, any>();
   invoices = new Map<string, any>();
 
   clear(): void {
@@ -65,9 +59,6 @@ export class MemStorage implements IStorage {
     this.actionableItems.clear();
     this.invitations.clear();
     this.invitationAuditLogs.clear();
-    this.bugs.clear();
-    this.featureRequests.clear();
-    this.featureRequestUpvotes.clear();
     this.invoices.clear();
   }
 

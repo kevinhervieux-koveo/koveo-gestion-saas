@@ -83,51 +83,6 @@ export const demandStatusEnum = pgEnum('demand_status', [
   'cancelled',
 ]);
 
-export const bugStatusEnum = pgEnum('bug_status', [
-  'new',
-  'acknowledged',
-  'in_progress',
-  'resolved',
-  'closed',
-]);
-
-export const bugPriorityEnum = pgEnum('bug_priority', ['low', 'medium', 'high', 'critical']);
-
-export const bugCategoryEnum = pgEnum('bug_category', [
-  'ui_ux',
-  'functionality',
-  'performance',
-  'data',
-  'security',
-  'integration',
-  'other',
-]);
-
-export const featureRequestStatusEnum = pgEnum('feature_request_status', [
-  'submitted',
-  'under_review',
-  'planned',
-  'in_progress',
-  'completed',
-  'rejected',
-]);
-
-export const featureRequestCategoryEnum = pgEnum('feature_request_category', [
-  'dashboard',
-  'property_management',
-  'resident_management',
-  'financial_management',
-  'maintenance',
-  'document_management',
-  'communication',
-  'reports',
-  'mobile_app',
-  'integrations',
-  'security',
-  'performance',
-  'other',
-]);
-
 // Operations tables
 /**
  * Maintenance requests table for tracking property maintenance and repairs.
@@ -271,111 +226,6 @@ export const demandComments = pgTable('demands_comments', {
   // Date indexes for range queries
   createdAtIdx: index('demand_comments_created_at_idx').on(table.createdAt),
   updatedAtIdx: index('demand_comments_updated_at_idx').on(table.updatedAt),
-}));
-
-/**
- * Bugs table for tracking application issues and bug reports.
- * All users can create bugs with category and page assignments.
- * Now supports single file attachment per bug like document management.
- */
-export const bugs = pgTable('bugs', {
-  id: text('id')
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
-  createdBy: varchar('created_by')
-    .references(() => users.id),
-  title: text('title').notNull(),
-  description: text('description').notNull(),
-  category: bugCategoryEnum('category').notNull(),
-  page: text('page').notNull(), // The page where the bug was found
-  priority: bugPriorityEnum('priority').notNull().default('medium'),
-  status: bugStatusEnum('status').notNull().default('new'),
-  assignedTo: varchar('assigned_to').references(() => users.id),
-  resolvedAt: timestamp('resolved_at'),
-  resolvedBy: varchar('resolved_by').references(() => users.id),
-  notes: text('notes'), // Internal notes for resolution
-  reproductionSteps: text('reproduction_steps'), // Steps to reproduce the bug
-  environment: text('environment'), // Browser, OS, device info
-  // File attachment fields (single file per bug like documents)
-  filePath: text('file_path'), // Path to the uploaded file
-  fileName: text('file_name'), // Original file name
-  fileSize: integer('file_size'), // File size in bytes
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
-}, (table) => ({
-  createdByIdx: index('bugs_created_by_idx').on(table.createdBy),
-  assignedToIdx: index('bugs_assigned_to_idx').on(table.assignedTo),
-  resolvedByIdx: index('bugs_resolved_by_idx').on(table.resolvedBy),
-  statusIdx: index('bugs_status_idx').on(table.status),
-  priorityIdx: index('bugs_priority_idx').on(table.priority),
-  categoryIdx: index('bugs_category_idx').on(table.category),
-  // Date indexes for range queries
-  resolvedAtIdx: index('bugs_resolved_at_idx').on(table.resolvedAt),
-  createdAtIdx: index('bugs_created_at_idx').on(table.createdAt),
-  updatedAtIdx: index('bugs_updated_at_idx').on(table.updatedAt),
-}));
-
-/**
- * Feature requests table for collecting user suggestions and ideas.
- * All users can submit feature requests with category and page assignments.
- * Supports upvoting and merging similar requests.
- */
-export const featureRequests = pgTable('feature_requests', {
-  id: text('id')
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
-  createdBy: varchar('created_by')
-    .references(() => users.id),
-  title: text('title').notNull(),
-  description: text('description').notNull(),
-  need: text('need').notNull(), // The specific need this feature addresses
-  category: featureRequestCategoryEnum('category').notNull(),
-  page: text('page').notNull(), // The page/section where this feature should be added
-  status: featureRequestStatusEnum('status').notNull().default('submitted'),
-  upvoteCount: integer('upvote_count').notNull().default(0),
-  assignedTo: varchar('assigned_to').references(() => users.id),
-  reviewedBy: varchar('reviewed_by').references(() => users.id),
-  reviewedAt: timestamp('reviewed_at'),
-  adminNotes: text('admin_notes'), // Internal notes for admins only
-  mergedIntoId: varchar('merged_into_id'), // If merged into another request
-  // File attachment fields (single file per feature request like documents)
-  filePath: text('file_path'), // Path to the uploaded file
-  fileName: text('file_name'), // Original file name
-  fileSize: integer('file_size'), // File size in bytes
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
-}, (table) => ({
-  createdByIdx: index('feature_requests_created_by_idx').on(table.createdBy),
-  assignedToIdx: index('feature_requests_assigned_to_idx').on(table.assignedTo),
-  reviewedByIdx: index('feature_requests_reviewed_by_idx').on(table.reviewedBy),
-  statusIdx: index('feature_requests_status_idx').on(table.status),
-  categoryIdx: index('feature_requests_category_idx').on(table.category),
-  // Date indexes for range queries
-  reviewedAtIdx: index('feature_requests_reviewed_at_idx').on(table.reviewedAt),
-  createdAtIdx: index('feature_requests_created_at_idx').on(table.createdAt),
-  updatedAtIdx: index('feature_requests_updated_at_idx').on(table.updatedAt),
-}));
-
-/**
- * Feature request upvotes table for tracking user votes on feature requests.
- * Each user can only upvote a feature request once.
- */
-export const featureRequestUpvotes = pgTable('feature_request_upvotes', {
-  id: text('id')
-    .primaryKey()
-    .default(sql`gen_random_uuid()`),
-  featureRequestId: varchar('feature_request_id')
-    .notNull()
-    .references(() => featureRequests.id),
-  userId: varchar('user_id')
-    .notNull()
-    .references(() => users.id),
-  createdAt: timestamp('created_at').defaultNow(),
-}, (table) => ({
-  featureRequestIdIdx: index('feature_request_upvotes_feature_request_id_idx').on(table.featureRequestId),
-  userIdIdx: index('feature_request_upvotes_user_id_idx').on(table.userId),
-  // Date indexes for range queries
-  createdAtIdx: index('feature_request_upvotes_created_at_idx').on(table.createdAt),
 }));
 
 /**
@@ -635,70 +485,6 @@ export const insertDemandCommentSchema = z.object({
   fileSize: z.number().int().optional(),
 });
 
-export const insertBugSchema = z.object({
-  createdBy: z.string().uuid().optional(),
-  title: z.string().min(1, 'Title is required').max(200, 'Title must not exceed 200 characters'),
-  description: z
-    .string()
-    .min(10, 'Description must be at least 10 characters')
-    .max(2000, 'Description must not exceed 2000 characters'),
-  category: z.enum([
-    'ui_ux',
-    'functionality',
-    'performance',
-    'data',
-    'security',
-    'integration',
-    'other',
-  ]),
-  page: z.string().min(1, 'Page is required'),
-  priority: z.enum(['low', 'medium', 'high', 'critical']).default('medium'),
-  reproductionSteps: z.string().optional(),
-  environment: z.string().optional(),
-  // File attachment fields (optional for bug reports)
-  filePath: z.string().optional(), // Path to uploaded file
-  fileName: z.string().optional(), // Original filename  
-  fileSize: z.number().int().optional(), // File size in bytes
-});
-
-export const insertFeatureRequestSchema = z.object({
-  createdBy: z.string().uuid().optional(),
-  title: z.string().min(1, 'Title is required').max(200, 'Title must not exceed 200 characters'),
-  description: z
-    .string()
-    .min(10, 'Description must be at least 10 characters')
-    .max(2000, 'Description must not exceed 2000 characters'),
-  need: z
-    .string()
-    .min(5, 'Need must be at least 5 characters')
-    .max(500, 'Need must not exceed 500 characters'),
-  category: z.enum([
-    'dashboard',
-    'property_management',
-    'resident_management',
-    'financial_management',
-    'maintenance',
-    'document_management',
-    'communication',
-    'reports',
-    'mobile_app',
-    'integrations',
-    'security',
-    'performance',
-    'other',
-  ]),
-  page: z.string().min(1, 'Page is required'),
-  // File attachment fields
-  filePath: z.string().optional(), // Path to the uploaded file
-  fileName: z.string().optional(), // Original file name
-  fileSize: z.number().int().optional(), // File size in bytes
-});
-
-export const insertFeatureRequestUpvoteSchema = z.object({
-  featureRequestId: z.string().uuid(),
-  userId: z.string().uuid(),
-});
-
 export const insertUserNotificationPreferenceSchema = z.object({
   userId: z.string().uuid(),
   notificationType: z.enum([
@@ -816,33 +602,6 @@ export type InsertDemandComment = z.infer<typeof insertDemandCommentSchema>;
  *
  */
 export type DemandComment = typeof demandComments.$inferSelect;
-
-/**
- *
- */
-export type InsertBug = z.infer<typeof insertBugSchema>;
-/**
- *
- */
-export type Bug = typeof bugs.$inferSelect;
-
-/**
- *
- */
-export type InsertFeatureRequest = z.infer<typeof insertFeatureRequestSchema>;
-/**
- *
- */
-export type FeatureRequest = typeof featureRequests.$inferSelect;
-
-/**
- *
- */
-export type InsertFeatureRequestUpvote = z.infer<typeof insertFeatureRequestUpvoteSchema>;
-/**
- *
- */
-export type FeatureRequestUpvote = typeof featureRequestUpvotes.$inferSelect;
 
 /**
  *

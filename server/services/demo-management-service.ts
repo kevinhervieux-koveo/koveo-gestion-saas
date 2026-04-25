@@ -102,9 +102,8 @@ export class DemoManagementService {
 
   /**
    * Sample a handful of `filePath` values that look like seeded object-storage
-   * attachments (they start with `/objects/`) across documents, bills, bugs,
-   * and feature requests, and verify that the underlying files actually exist
-   * in object storage.
+   * attachments (they start with `/objects/`) across documents and bills, and
+   * verify that the underlying files actually exist in object storage.
    *
    * When a demo environment is cloned or restored without re-running the seed
    * script, the database rows still reference `/objects/...` paths whose
@@ -152,34 +151,6 @@ export class DemoManagementService {
               and(
                 isNotNull(schema.bills.filePath),
                 like(schema.bills.filePath, '/objects/%'),
-              ),
-            )
-            .limit(sampleSize),
-      },
-      {
-        table: 'bugs',
-        select: () =>
-          db
-            .select({ filePath: schema.bugs.filePath })
-            .from(schema.bugs)
-            .where(
-              and(
-                isNotNull(schema.bugs.filePath),
-                like(schema.bugs.filePath, '/objects/%'),
-              ),
-            )
-            .limit(sampleSize),
-      },
-      {
-        table: 'feature_requests',
-        select: () =>
-          db
-            .select({ filePath: schema.featureRequests.filePath })
-            .from(schema.featureRequests)
-            .where(
-              and(
-                isNotNull(schema.featureRequests.filePath),
-                like(schema.featureRequests.filePath, '/objects/%'),
               ),
             )
             .limit(sampleSize),

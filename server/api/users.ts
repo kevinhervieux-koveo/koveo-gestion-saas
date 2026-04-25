@@ -1118,22 +1118,6 @@ export function registerUserRoutes(app: Express): void {
         deletionSummary.manualCleanupPerformed.push('invoices (createdBy nullified)');
         logDebug('[HARD DELETE] Nullified invoices createdBy', { requestId: operationId });
 
-        // Nullify bugs.createdBy (preserve bugs)
-        await db
-          .update(schema.bugs)
-          .set({ createdBy: null })
-          .where(eq(schema.bugs.createdBy, userId));
-        deletionSummary.manualCleanupPerformed.push('bugs (createdBy nullified)');
-        logDebug('[HARD DELETE] Nullified bugs createdBy', { requestId: operationId });
-
-        // Nullify featureRequests.createdBy (preserve feature requests)
-        await db
-          .update(schema.featureRequests)
-          .set({ createdBy: null })
-          .where(eq(schema.featureRequests.createdBy, userId));
-        deletionSummary.manualCleanupPerformed.push('featureRequests (createdBy nullified)');
-        logDebug('[HARD DELETE] Nullified feature requests createdBy', { requestId: operationId });
-
         // Delete demand comments (these are user-generated comments, not preserved)
         const demandCommentsDeleted = await db
           .delete(schema.demandComments)
@@ -2465,14 +2449,6 @@ export function registerUserRoutes(app: Express): void {
         await tx.update(schema.budgets).set({ approvedBy: null }).where(eq(schema.budgets.approvedBy, currentUser.id));
         await tx.update(schema.monthlyBudgets).set({ approvedBy: null }).where(eq(schema.monthlyBudgets.approvedBy, currentUser.id));
 
-        // Nullify bug and feature request references
-        await tx.update(schema.bugs).set({ createdBy: null }).where(eq(schema.bugs.createdBy, currentUser.id));
-        await tx.update(schema.bugs).set({ assignedTo: null }).where(eq(schema.bugs.assignedTo, currentUser.id));
-        await tx.update(schema.bugs).set({ resolvedBy: null }).where(eq(schema.bugs.resolvedBy, currentUser.id));
-        await tx.update(schema.featureRequests).set({ createdBy: null }).where(eq(schema.featureRequests.createdBy, currentUser.id));
-        await tx.update(schema.featureRequests).set({ assignedTo: null }).where(eq(schema.featureRequests.assignedTo, currentUser.id));
-        await tx.update(schema.featureRequests).set({ reviewedBy: null }).where(eq(schema.featureRequests.reviewedBy, currentUser.id));
-
         // Step 3: Delete records with NOT NULL user references (cannot be nullified)
         // Delete communications and meetings created by user (NOT NULL createdBy)
         await tx.delete(schema.generalCommunications).where(eq(schema.generalCommunications.createdBy, currentUser.id));
@@ -2505,9 +2481,6 @@ export function registerUserRoutes(app: Express): void {
 
         // Delete user notification preferences
         await tx.delete(schema.userNotificationPreferences).where(eq(schema.userNotificationPreferences.userId, currentUser.id));
-
-        // Delete feature request upvotes
-        await tx.delete(schema.featureRequestUpvotes).where(eq(schema.featureRequestUpvotes.userId, currentUser.id));
 
         // Finally, delete the user account itself
         await tx.delete(schema.users).where(eq(schema.users.id, currentUser.id));
@@ -2626,14 +2599,6 @@ export function registerUserRoutes(app: Express): void {
         await tx.update(schema.budgets).set({ approvedBy: null }).where(eq(schema.budgets.approvedBy, targetUserId));
         await tx.update(schema.monthlyBudgets).set({ approvedBy: null }).where(eq(schema.monthlyBudgets.approvedBy, targetUserId));
 
-        // Nullify bug and feature request references
-        await tx.update(schema.bugs).set({ createdBy: null }).where(eq(schema.bugs.createdBy, targetUserId));
-        await tx.update(schema.bugs).set({ assignedTo: null }).where(eq(schema.bugs.assignedTo, targetUserId));
-        await tx.update(schema.bugs).set({ resolvedBy: null }).where(eq(schema.bugs.resolvedBy, targetUserId));
-        await tx.update(schema.featureRequests).set({ createdBy: null }).where(eq(schema.featureRequests.createdBy, targetUserId));
-        await tx.update(schema.featureRequests).set({ assignedTo: null }).where(eq(schema.featureRequests.assignedTo, targetUserId));
-        await tx.update(schema.featureRequests).set({ reviewedBy: null }).where(eq(schema.featureRequests.reviewedBy, targetUserId));
-
         // Step 3: Delete records with NOT NULL user references (cannot be nullified)
         // Delete communications and meetings created by user (NOT NULL createdBy)
         await tx.delete(schema.generalCommunications).where(eq(schema.generalCommunications.createdBy, targetUserId));
@@ -2663,9 +2628,6 @@ export function registerUserRoutes(app: Express): void {
 
         // Delete user notification preferences
         await tx.delete(schema.userNotificationPreferences).where(eq(schema.userNotificationPreferences.userId, targetUserId));
-
-        // Delete feature request upvotes
-        await tx.delete(schema.featureRequestUpvotes).where(eq(schema.featureRequestUpvotes.userId, targetUserId));
 
         // Delete notifications
         await tx.delete(schema.notifications).where(eq(schema.notifications.userId, targetUserId));

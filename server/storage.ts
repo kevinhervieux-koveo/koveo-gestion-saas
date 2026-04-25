@@ -36,12 +36,6 @@ import {
   type UserPermission,
   type PasswordResetToken,
   type InsertPasswordResetToken,
-  type Bug,
-  type InsertBug,
-  type FeatureRequest,
-  type InsertFeatureRequest,
-  type FeatureRequestUpvote,
-  type InsertFeatureRequestUpvote,
 } from '@shared/schema';
 import {
   type Demand,
@@ -209,32 +203,7 @@ export interface IStorage {
   createInvitationAuditLog(_log: InsertInvitationAuditLog): Promise<InvitationAuditLog>;
   getCommentsByDemand(_demandId: string): Promise<DemandComment[]>;
   createDemandComment(_comment: InsertDemandComment): Promise<DemandComment>;
-  getBugs(): Promise<Bug[]>;
-  getBugsForUser(_userId: string, _userRole: string, _organizationId?: string): Promise<Bug[]>;
-  getBug(_id: string): Promise<Bug | undefined>;
-  getBug(_id: string, _userId: string, _role: string, _organizationId?: string): Promise<Bug | undefined>;
-  createBug(_bug: InsertBug): Promise<Bug>;
-  updateBug(_id: string, _updates: Partial<Bug>): Promise<Bug | undefined>;
-  updateBug(_id: string, _updates: Partial<Bug>, _userId: string, _role: string): Promise<Bug | undefined>;
-  deleteBug(_id: string, _userId: string, _role: string): Promise<boolean>;
-  getFeatureRequests(): Promise<FeatureRequest[]>;
-  getFeatureRequestsForUser(_userId: string, _role: string, _organizationId?: string): Promise<FeatureRequest[]>;
-  getFeatureRequest(_id: string): Promise<FeatureRequest | undefined>;
-  getFeatureRequest(_id: string, _userId: string, _role: string, _organizationId?: string): Promise<FeatureRequest | undefined>;
-  createFeatureRequest(_request: InsertFeatureRequest): Promise<FeatureRequest>;
-  updateFeatureRequest(
-    _id: string,
-    _updates: Partial<FeatureRequest>
-  ): Promise<FeatureRequest | undefined>;
-  addFeatureRequestUpvote(
-    _featureRequestId: string,
-    _userId: string
-  ): Promise<{ success: boolean; message: string; data?: any }>;
-  removeFeatureRequestUpvote(
-    _featureRequestId: string,
-    _userId: string
-  ): Promise<{ success: boolean; message: string; data?: any }>;
-  
+
   // Improvement suggestion operations
   clearNewSuggestions(): Promise<void>;
   updateSuggestionStatus(_id: string, _status: string): Promise<ImprovementSuggestion | undefined>;
@@ -259,9 +228,6 @@ export class MemStorage implements IStorage {
   private actionableItems: Map<string, ActionableItem>;
   private invitations: Map<string, Invitation>;
   private invitationAuditLogs: Map<string, InvitationAuditLog>;
-  private bugs: Map<string, Bug>;
-  private featureRequests: Map<string, FeatureRequest>;
-  private featureRequestUpvotes: Map<string, FeatureRequestUpvote>;
   private invoices: Map<string, Invoice>;
 
   constructor() {
@@ -278,9 +244,6 @@ export class MemStorage implements IStorage {
     this.actionableItems = new Map();
     this.invitations = new Map();
     this.invitationAuditLogs = new Map();
-    this.bugs = new Map();
-    this.featureRequests = new Map();
-    this.featureRequestUpvotes = new Map();
     this.invoices = new Map();
 
     // Initialize test user asynchronously
@@ -1174,184 +1137,6 @@ export class MemStorage implements IStorage {
     };
   }
 
-  async getBugs(): Promise<Bug[]> {
-    return Array.from(this.bugs.values());
-  }
-  
-  async getBugsForUser(userId: string, userRole: string, organizationId?: string): Promise<Bug[]> {
-    const allBugs = Array.from(this.bugs.values());
-    
-    if (userRole === 'admin') {
-      // Admin can see all bugs
-      return allBugs;
-    } else if (userRole === 'manager' && organizationId) {
-      // For managers, return all bugs for now (can be refined later based on organization)
-      return allBugs;
-    } else {
-      // For residents and tenants, return only their own bugs
-      return allBugs.filter(bug => bug.createdBy === userId);
-    }
-  }
-  
-  async getBug(id: string, userId?: string, role?: string, organizationId?: string): Promise<Bug | undefined> {
-    const bug = this.bugs.get(id);
-    if (!bug) return undefined;
-    
-    // If access control parameters are provided, check permissions
-    if (userId && role) {
-      if (role === 'admin') {
-        return bug;
-      } else if (role === 'manager' && organizationId) {
-        return bug;
-      } else if (bug.createdBy === userId) {
-        return bug;
-      } else {
-        return undefined; // Access denied
-      }
-    }
-    
-    return bug;
-  }
-  
-  async createBug(bug: InsertBug): Promise<Bug> {
-    const id = randomUUID();
-    const newBug: Bug = {
-      ...bug,
-      id,
-      createdBy: bug.createdBy,
-      title: bug.title,
-      description: bug.description,
-      category: bug.category,
-      page: bug.page,
-      priority: bug.priority || 'medium',
-      filePath: bug.filePath || null,
-      fileName: bug.fileName || null,
-      fileSize: bug.fileSize || null,
-      status: 'new',
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      reproductionSteps: bug.reproductionSteps || null,
-      assignedTo: null,
-      resolvedAt: null,
-      resolvedBy: null,
-      notes: null,
-      environment: bug.environment || null,
-    };
-    this.bugs.set(id, newBug);
-    return newBug;
-  }
-  
-  async updateBug(id: string, updates: Partial<Bug>, userId?: string, role?: string): Promise<Bug | undefined> {
-    const existing = this.bugs.get(id);
-    if (!existing) return undefined;
-    
-    // If access control parameters are provided, check permissions
-    if (userId && role) {
-      if (role === 'admin' || role === 'manager') {
-        // Admin and managers can edit any bug
-      } else if (existing.createdBy === userId) {
-        // Users can edit their own bugs
-      } else {
-        return undefined; // Access denied
-      }
-    }
-    
-    const updated = { ...existing, ...updates, updatedAt: new Date() };
-    this.bugs.set(id, updated);
-    return updated;
-  }
-  
-  async deleteBug(id: string, userId: string, role: string): Promise<boolean> {
-    const existing = this.bugs.get(id);
-    if (!existing) return false;
-    
-    // Check permissions - only admins and bug creators can delete bugs
-    if (role === 'admin' || existing.createdBy === userId) {
-      this.bugs.delete(id);
-      return true;
-    }
-    
-    return false; // Access denied
-  }
-
-  async getFeatureRequests(): Promise<FeatureRequest[]> {
-    const featureRequests = Array.from(this.featureRequests.values());
-    // Add attachment information to each feature request
-    const enrichedRequests = await Promise.all(
-      featureRequests.map(async (request) => {
-        // For now, return empty attachments - will be implemented once storage is fixed
-        const attachments: any[] = [];
-        return {
-          ...request,
-          attachmentCount: attachments.length,
-          attachments: []
-        };
-      })
-    );
-    return enrichedRequests;
-  }
-  
-  async getFeatureRequestsForUser(userId: string, role: string, organizationId?: string): Promise<FeatureRequest[]> {
-    // For now, just return all feature requests - proper filtering can be added later
-    return this.getFeatureRequests();
-  }
-  
-  async getFeatureRequest(id: string): Promise<FeatureRequest | undefined>;
-  async getFeatureRequest(id: string, userId?: string, role?: string, organizationId?: string): Promise<FeatureRequest | undefined> {
-    const request = this.featureRequests.get(id);
-    if (!request) return undefined;
-    
-    // For now, return empty attachments - will be implemented once storage is fixed
-    const attachments: any[] = [];
-    
-    return request;
-  }
-  async createFeatureRequest(request: InsertFeatureRequest): Promise<FeatureRequest> {
-    const id = randomUUID();
-    const newRequest: FeatureRequest = {
-      ...request,
-      id,
-      title: request.title,
-      description: request.description,
-      category: request.category,
-      need: request.need || '',
-      page: request.page || '',
-      filePath: request.filePath || null,
-      fileName: request.fileName || null,
-      fileSize: request.fileSize || null,
-      status: 'submitted',
-      createdBy: request.createdBy,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      upvoteCount: 0,
-      assignedTo: null,
-      reviewedBy: null,
-      reviewedAt: null,
-      mergedIntoId: null,
-      adminNotes: null,
-    };
-    this.featureRequests.set(id, newRequest);
-    return newRequest;
-  }
-  async updateFeatureRequest(
-    id: string,
-    updates: Partial<FeatureRequest>
-  ): Promise<FeatureRequest | undefined> {
-    const existing = this.featureRequests.get(id);
-    if (!existing) return undefined;
-    const updated = { ...existing, ...updates, updatedAt: new Date() };
-    this.featureRequests.set(id, updated);
-    return updated;
-  }
-
-  async addFeatureRequestUpvote(): Promise<{ success: boolean; message: string; data?: any }> {
-    return { success: true, message: 'Upvote added' };
-  }
-  async removeFeatureRequestUpvote(): Promise<{ success: boolean; message: string; data?: any }> {
-    return { success: true, message: 'Upvote removed' };
-  }
-
-
 }
 
 // Import the database storage implementation
@@ -1937,56 +1722,6 @@ class ProductionFallbackStorage implements IStorage {
   async hasPermission(userId: string, permission: string): Promise<boolean> {
     return true;
   } // Admin fallback
-  async getBugs(): Promise<Bug[]> {
-    return [];
-  }
-  
-  async getBugsForUser(userId: string, userRole: string, organizationId?: string): Promise<Bug[]> {
-    return [];
-  }
-  
-  async getBug(id: string, userId?: string, role?: string, organizationId?: string): Promise<Bug | undefined> {
-    return undefined;
-  }
-  
-  async createBug(bug: InsertBug): Promise<Bug> {
-    throw new Error('Not implemented in fallback');
-  }
-  
-  async updateBug(id: string, updates: Partial<Bug>, userId?: string, role?: string): Promise<Bug | undefined> {
-    return undefined;
-  }
-  
-  async deleteBug(id: string, userId: string, role: string): Promise<boolean> {
-    return false;
-  }
-  async getFeatureRequests(): Promise<FeatureRequest[]> {
-    return [];
-  }
-  async getFeatureRequest(id: string): Promise<FeatureRequest | undefined> {
-    return undefined;
-  }
-  async createFeatureRequest(request: InsertFeatureRequest): Promise<FeatureRequest> {
-    throw new Error('Not implemented in fallback');
-  }
-  async updateFeatureRequest(
-    id: string,
-    updates: Partial<FeatureRequest>
-  ): Promise<FeatureRequest | undefined> {
-    return undefined;
-  }
-  async addFeatureRequestUpvote(
-    featureRequestId: string,
-    userId: string
-  ): Promise<{ success: boolean; message: string; data?: any }> {
-    return { success: true, message: 'Fallback mode' };
-  }
-  async removeFeatureRequestUpvote(
-    featureRequestId: string,
-    userId: string
-  ): Promise<{ success: boolean; message: string; data?: any }> {
-    return { success: true, message: 'Fallback mode' };
-  }
 
   async getOrganizationByName(name: string): Promise<Organization | undefined> {
     try {
@@ -2038,10 +1773,6 @@ class ProductionFallbackStorage implements IStorage {
 
   async createDemandComment(comment: InsertDemandComment): Promise<DemandComment> {
     throw new Error('Not implemented in fallback');
-  }
-
-  async getFeatureRequestsForUser(userId: string, role: string, organizationId?: string): Promise<FeatureRequest[]> {
-    return [];
   }
 
   async deleteActionableItem(id: string): Promise<boolean> {

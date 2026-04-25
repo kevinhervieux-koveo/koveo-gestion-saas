@@ -16,7 +16,6 @@ import postgres from 'postgres';
 import { documents } from '../shared/schemas/documents.js';
 import { bills } from '../shared/schemas/financial.js';
 import { maintenanceRequests } from '../shared/schemas/operations.js';
-import { bugReports, featureRequests } from '../shared/schemas/development.js';
 import { securityIncidents } from '../shared/schemas/monitoring.js';
 import { eq, like } from 'drizzle-orm';
 
@@ -188,8 +187,6 @@ class UploadPathMigration {
       { table: documents, name: 'documents' },
       { table: bills, name: 'bills' },
       { table: maintenanceRequests, name: 'maintenanceRequests' },
-      { table: bugReports, name: 'bugReports' },
-      { table: featureRequests, name: 'featureRequests' },
       { table: securityIncidents, name: 'securityIncidents' }
     ];
     

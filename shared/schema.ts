@@ -87,12 +87,6 @@ export type {
   InsertMaintenanceRequest,
   Notification,
   InsertNotification,
-  Bug,
-  InsertBug,
-  FeatureRequest,
-  InsertFeatureRequest,
-  FeatureRequestUpvote,
-  InsertFeatureRequestUpvote,
 } from './schemas/operations';
 
 export type {
@@ -137,9 +131,6 @@ export type { SslCertificate, InsertSslCertificate, Session, InsertSession } fro
 
 // Export tables for use in storage and API layers
 export {
-  bugs,
-  featureRequests,
-  featureRequestUpvotes,
   maintenanceRequests,
   notifications,
   demands,

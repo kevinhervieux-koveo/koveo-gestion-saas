@@ -27,8 +27,6 @@ jest.mock('../../server/objectStorage', () => ({
 jest.mock('../../shared/schema', () => ({
   documents: { filePath: 'documents.file_path' },
   bills: { filePath: 'bills.file_path' },
-  bugs: { filePath: 'bugs.file_path' },
-  featureRequests: { filePath: 'feature_requests.file_path' },
 }));
 
 import { DemoManagementService } from '../../server/services/demo-management-service';
@@ -83,20 +81,18 @@ describe('DemoManagementService.checkSeededDocumentIntegrity', () => {
   });
 
   it('skips sources whose table does not exist (relation missing)', async () => {
-    const relMissing = Object.assign(new Error('relation "bugs" does not exist'), {
+    const relMissing = Object.assign(new Error('relation "bills" does not exist'), {
       code: '42P01',
     });
-    // First 2 sources OK, 3rd throws "relation does not exist", 4th OK.
+    // First source OK, second throws "relation does not exist".
     mockDbLimit
       .mockResolvedValueOnce([{ filePath: '/objects/doc1.pdf' }])
-      .mockResolvedValueOnce([{ filePath: '/objects/bill1.pdf' }])
-      .mockRejectedValueOnce(relMissing)
-      .mockResolvedValueOnce([{ filePath: '/objects/feature1.pdf' }]);
+      .mockRejectedValueOnce(relMissing);
     mockGetObjectEntityFile.mockResolvedValue({} as never);
 
     const report = await DemoManagementService.checkSeededDocumentIntegrity(1);
     expect(report.healthy).toBe(true);
     expect(report.errors).toEqual([]);
-    expect(report.totalSampled).toBe(3);
+    expect(report.totalSampled).toBe(1);
   });
 });

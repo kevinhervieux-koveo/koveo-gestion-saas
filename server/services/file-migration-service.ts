@@ -14,7 +14,7 @@ import { generateOptimizedStorageDirectory, mapLegacyToOptimizedPath } from '@sh
 import type { OptimizedUploadContext } from '@shared/config/optimized-upload-config';
 // CRITICAL FIX: Add database support for transactional updates
 import { db } from '../db';
-import { documents, bills, bugs, featureRequests, demands } from '@shared/schema';
+import { documents, bills, demands } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 
 interface MigrationResult {
@@ -70,8 +70,6 @@ export class FileMigrationService {
   private async findDatabaseRecordsNeedingUpdate(): Promise<{
     documents: Array<{ id: string; filePath: string; table: 'documents' }>;
     bills: Array<{ id: string; filePath: string; table: 'bills' }>;
-    bugs: Array<{ id: string; filePath: string; table: 'bugs' }>;
-    featureRequests: Array<{ id: string; filePath: string; table: 'feature_requests' }>;
     demands: Array<{ id: string; filePath: string; table: 'demands' }>;
     total: number;
   }> {
@@ -79,7 +77,7 @@ export class FileMigrationService {
       console.log('🔍 Scanning database for file path references...');
       
       // Find all records with file paths that match legacy structure
-      const [documentsWithFiles, billsWithFiles, bugsWithFiles, featureRequestsWithFiles, demandsWithFiles] = await Promise.all([
+      const [documentsWithFiles, billsWithFiles, demandsWithFiles] = await Promise.all([
         db.select({ id: documents.id, filePath: documents.filePath })
           .from(documents)
           .where(documents.filePath.isNotNull()),
@@ -87,14 +85,6 @@ export class FileMigrationService {
         db.select({ id: bills.id, filePath: bills.filePath })
           .from(bills)
           .where(bills.filePath.isNotNull()),
-        
-        db.select({ id: bugs.id, filePath: bugs.filePath })
-          .from(bugs)
-          .where(bugs.filePath.isNotNull()),
-          
-        db.select({ id: featureRequests.id, filePath: featureRequests.filePath })
-          .from(featureRequests)
-          .where(featureRequests.filePath.isNotNull()),
           
         db.select({ id: demands.id, filePath: demands.filePath })
           .from(demands)
@@ -113,20 +103,15 @@ export class FileMigrationService {
       const result = {
         documents: filterLegacyPaths(documentsWithFiles.map(r => ({ ...r, table: 'documents' }))),
         bills: filterLegacyPaths(billsWithFiles.map(r => ({ ...r, table: 'bills' }))),
-        bugs: filterLegacyPaths(bugsWithFiles.map(r => ({ ...r, table: 'bugs' }))),
-        featureRequests: filterLegacyPaths(featureRequestsWithFiles.map(r => ({ ...r, table: 'feature_requests' }))),
         demands: filterLegacyPaths(demandsWithFiles.map(r => ({ ...r, table: 'demands' }))),
         total: 0
       };
       
-      result.total = result.documents.length + result.bills.length + result.bugs.length + 
-                    result.featureRequests.length + result.demands.length;
+      result.total = result.documents.length + result.bills.length + result.demands.length;
       
       console.log(`📊 Found ${result.total} database records with file paths needing migration`);
       console.log(`  - Documents: ${result.documents.length}`);
       console.log(`  - Bills: ${result.bills.length}`);
-      console.log(`  - Bugs: ${result.bugs.length}`);
-      console.log(`  - Feature Requests: ${result.featureRequests.length}`);
       console.log(`  - Demands: ${result.demands.length}`);
       
       return result;
@@ -144,8 +129,6 @@ export class FileMigrationService {
     recordsToUpdate: {
       documents: Array<{ id: string; filePath: string; table: string }>;
       bills: Array<{ id: string; filePath: string; table: string }>;
-      bugs: Array<{ id: string; filePath: string; table: string }>;
-      featureRequests: Array<{ id: string; filePath: string; table: string }>;
       demands: Array<{ id: string; filePath: string; table: string }>;
     },
     pathMappings: Map<string, string> // oldPath -> newPath
@@ -201,18 +184,6 @@ export class FileMigrationService {
         await db.update(bills)
           .set({ filePath: newPath, updatedAt: new Date() })
           .where(eq(bills.id, id));
-      });
-      
-      await updateTable('bugs', recordsToUpdate.bugs, async (id, newPath) => {
-        await db.update(bugs)
-          .set({ filePath: newPath, updatedAt: new Date() })
-          .where(eq(bugs.id, id));
-      });
-      
-      await updateTable('feature_requests', recordsToUpdate.featureRequests, async (id, newPath) => {
-        await db.update(featureRequests)
-          .set({ filePath: newPath, updatedAt: new Date() })
-          .where(eq(featureRequests.id, id));
       });
       
       await updateTable('demands', recordsToUpdate.demands, async (id, newPath) => {

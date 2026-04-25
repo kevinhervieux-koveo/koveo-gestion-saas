@@ -213,7 +213,7 @@ class AdvancedDatabaseMigrator {
         'bills', 'budgets', 'monthly_budgets', 'notifications',
         'demands', 'demands_comments', 'maintenance_requests', 'contacts',
         'common_spaces', 'bookings', 'user_booking_restrictions', 'user_time_limits',
-        'feature_requests', 'feature_request_upvotes', 'bugs', 'improvement_suggestions',
+        'improvement_suggestions',
         'development_pillars', 'framework_configuration', 'quality_metrics',
         'quality_issues', 'workspace_status', 'metric_predictions', 'prediction_validations',
         'metric_calibration_data', 'metric_effectiveness_tracking', 'actionable_items',
