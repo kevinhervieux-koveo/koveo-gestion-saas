@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useRef, useState, useCallback, useEffect } from 'react';
 import {
   BarChart,
   Bar,
@@ -9,7 +9,7 @@ import {
   ResponsiveContainer,
   Cell,
 } from 'recharts';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Pencil, Save, X, Loader2 } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 import type { Translations } from '@/lib/i18n';
 import { parseDateOnly } from '@/lib/utils';
@@ -39,6 +39,11 @@ export interface GanttDateRange {
   end: Date | string;
 }
 
+export interface GanttEditingDates {
+  startTs: number;
+  endTs: number;
+}
+
 interface GanttChartProps {
   projects: GanttProject[];
   language?: 'en' | 'fr' | string;
@@ -55,6 +60,17 @@ interface GanttChartProps {
    * a small eye/eye-off control is rendered next to each row label.
    */
   onToggleInclude?: (projectId: string, includeInBudget: boolean) => void;
+  /**
+   * Edit mode props — when provided, each row with dates gets an Edit
+   * button and the active editing row becomes draggable.
+   */
+  editingProjectId?: string | null;
+  editingDates?: GanttEditingDates | null;
+  onStartEdit?: (projectId: string) => void;
+  onDragEnd?: (projectId: string, startTs: number, endTs: number) => void;
+  onSave?: (projectId: string) => void;
+  onCancel?: () => void;
+  isSaving?: boolean;
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -75,6 +91,8 @@ const BOTTOM_MARGIN = 10;
 const X_AXIS_HEIGHT = 30;
 const MIN_MONTH_PX = 80;
 const HEADER_HEIGHT = 28;
+const BAR_SIZE = ROW_HEIGHT * 0.7;
+const RECHARTS_RIGHT_MARGIN = 20;
 
 function parseDate(value?: string | null | Date): Date | null {
   if (!value) return null;
@@ -123,12 +141,36 @@ export function GanttChart({
   height,
   dateRange,
   onToggleInclude,
+  editingProjectId,
+  editingDates,
+  onStartEdit,
+  onDragEnd,
+  onSave,
+  onCancel,
+  isSaving = false,
 }: GanttChartProps) {
   const { t } = useLanguage();
   const locale = language === 'fr' ? 'fr-CA' : 'en-CA';
   const noDatesLabel = t('noDatesSet');
   const includeTitle = t('includeInBudget');
   const excludeTitle = t('excludeFromBudget');
+  const editLabel = t('ganttEditProject');
+  const saveLabel = t('ganttSaveChanges');
+  const cancelLabel = t('ganttCancel');
+
+  const timelineRef = useRef<HTMLDivElement>(null);
+
+  // Local drag state — offset in ms from the committed editingDates
+  const [dragOffsetMs, setDragOffsetMs] = useState(0);
+  const dragStartX = useRef<number | null>(null);
+  const isDragging = useRef(false);
+
+  // Reset drag offset when editing project changes
+  useEffect(() => {
+    setDragOffsetMs(0);
+    dragStartX.current = null;
+    isDragging.current = false;
+  }, [editingProjectId]);
 
   const { rows, domain, ticks, monthSpan } = useMemo(() => {
     const dated: GanttRow[] = [];
@@ -230,7 +272,86 @@ export function GanttChart({
     };
   }, [projects, dateRange]);
 
-  const labelWidth = onToggleInclude ? 220 : 180;
+  // Compute displayed rows — override the editing row's range with dragged dates
+  const domainSpan = domain[1] - domain[0];
+
+  const getEffectiveEditingDates = useCallback(() => {
+    if (!editingDates) return null;
+    const dur = editingDates.endTs - editingDates.startTs;
+    let newStart = editingDates.startTs + dragOffsetMs;
+    let newEnd = editingDates.endTs + dragOffsetMs;
+    // Clamp to domain
+    if (newStart < domain[0]) {
+      newStart = domain[0];
+      newEnd = domain[0] + dur;
+    }
+    if (newEnd > domain[1]) {
+      newEnd = domain[1];
+      newStart = domain[1] - dur;
+    }
+    return { startTs: newStart, endTs: newEnd };
+  }, [editingDates, dragOffsetMs, domain]);
+
+  const effectiveEditingDates = getEffectiveEditingDates();
+
+  const displayRows = useMemo(() => {
+    if (!editingProjectId || !effectiveEditingDates) return rows;
+    return rows.map(r => {
+      if (r.id !== editingProjectId) return r;
+      return {
+        ...r,
+        range: [effectiveEditingDates.startTs, effectiveEditingDates.endTs] as [number, number],
+        startTs: effectiveEditingDates.startTs,
+        endTs: effectiveEditingDates.endTs,
+      };
+    });
+  }, [rows, editingProjectId, effectiveEditingDates]);
+
+  // Drag pointer handlers
+  const handlePointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (!editingProjectId || !editingDates) return;
+    e.currentTarget.setPointerCapture(e.pointerId);
+    dragStartX.current = e.clientX;
+    isDragging.current = true;
+  }, [editingProjectId, editingDates]);
+
+  const handlePointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDragging.current || dragStartX.current === null || !editingDates) return;
+    const timelineEl = timelineRef.current;
+    if (!timelineEl) return;
+    const plotWidth = timelineEl.clientWidth - RECHARTS_RIGHT_MARGIN;
+    if (plotWidth <= 0) return;
+    const deltaX = e.clientX - dragStartX.current;
+    const rawDeltaMs = (deltaX / plotWidth) * domainSpan;
+    // Clamp so bar stays within domain
+    const dur = editingDates.endTs - editingDates.startTs;
+    const minDelta = domain[0] - editingDates.startTs;
+    const maxDelta = domain[1] - editingDates.endTs;
+    const clampedDelta = Math.max(minDelta, Math.min(maxDelta, rawDeltaMs));
+    setDragOffsetMs(clampedDelta);
+  }, [editingDates, domainSpan, domain]);
+
+  const handlePointerUp = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDragging.current || !editingProjectId || !editingDates) return;
+    isDragging.current = false;
+    dragStartX.current = null;
+    const effective = getEffectiveEditingDates();
+    // Reset local drag offset BEFORE calling onDragEnd so the parent's new
+    // editingDates value is the sole source of truth and is not double-offset.
+    setDragOffsetMs(0);
+    if (effective && onDragEnd) {
+      onDragEnd(editingProjectId, effective.startTs, effective.endTs);
+    }
+  }, [editingProjectId, editingDates, getEffectiveEditingDates, onDragEnd]);
+
+  const editingRowIndex = useMemo(() => {
+    if (!editingProjectId) return -1;
+    return displayRows.findIndex(r => r.id === editingProjectId);
+  }, [displayRows, editingProjectId]);
+
+  const hasEditSupport = !!(onStartEdit || onSave || onCancel);
+
+  const labelWidth = (onToggleInclude || hasEditSupport) ? 220 : 180;
   const chartHeight =
     height ??
     Math.max(
@@ -243,12 +364,34 @@ export function GanttChart({
     return null;
   }
 
-  const domainSpan = domain[1] - domain[0];
   const todayTs = Date.now();
   const todayInRange =
     domainSpan > 0 && todayTs >= domain[0] && todayTs <= domain[1];
   const todayPct = todayInRange ? ((todayTs - domain[0]) / domainSpan) * 100 : 0;
   const todayLabel = t('today');
+
+  // Compute the editing row's drag overlay position (in percentage of timeline div)
+  let dragOverlayStyle: React.CSSProperties | null = null;
+  if (editingRowIndex >= 0 && effectiveEditingDates && domainSpan > 0) {
+    const leftPct = ((effectiveEditingDates.startTs - domain[0]) / domainSpan) * 100;
+    const widthPct = ((effectiveEditingDates.endTs - effectiveEditingDates.startTs) / domainSpan) * 100;
+    const topPx = TOP_MARGIN + editingRowIndex * ROW_HEIGHT + (ROW_HEIGHT - BAR_SIZE) / 2;
+    dragOverlayStyle = {
+      position: 'absolute',
+      left: `${leftPct}%`,
+      width: `${widthPct}%`,
+      top: topPx,
+      height: BAR_SIZE,
+      cursor: isSaving ? 'default' : (isDragging.current ? 'grabbing' : 'grab'),
+      borderRadius: 3,
+      border: '2px solid #2563eb',
+      background: 'rgba(37, 99, 235, 0.15)',
+      boxSizing: 'border-box',
+      zIndex: 5,
+      touchAction: 'none',
+      pointerEvents: isSaving ? 'none' : 'auto',
+    };
+  }
 
   return (
     <div className="w-full" data-testid="gantt-chart">
@@ -363,57 +506,143 @@ export function GanttChart({
             }}
             data-testid="gantt-labels"
           >
-            {rows.map(row => (
-              <div
-                key={row.id}
-                style={{
-                  height: ROW_HEIGHT,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  fontSize: 12,
-                  paddingRight: 8,
-                  paddingLeft: 4,
-                  boxSizing: 'border-box',
-                }}
-              >
-                <span
+            {displayRows.map(row => {
+              const isEditing = row.id === editingProjectId;
+              return (
+                <div
+                  key={row.id}
                   style={{
-                    flex: 1,
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                    opacity: row.includeInBudget ? 1 : 0.55,
+                    height: ROW_HEIGHT,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    fontSize: 12,
+                    paddingRight: 4,
+                    paddingLeft: 4,
+                    boxSizing: 'border-box',
+                    background: isEditing ? 'hsl(var(--accent) / 0.4)' : undefined,
                   }}
-                  title={row.name}
                 >
-                  {row.name}
-                </span>
-                {onToggleInclude && (
-                  <button
-                    type="button"
-                    onClick={() => onToggleInclude(row.id, !row.includeInBudget)}
-                    title={row.includeInBudget ? excludeTitle : includeTitle}
-                    data-testid={`gantt-toggle-include-${row.id}`}
+                  <span
                     style={{
-                      cursor: 'pointer',
-                      background: 'transparent',
-                      border: 'none',
-                      padding: 2,
-                      color: row.includeInBudget ? '#2563eb' : '#94a3b8',
-                      display: 'inline-flex',
-                      alignItems: 'center',
+                      flex: 1,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      opacity: row.includeInBudget ? 1 : 0.55,
                     }}
+                    title={row.name}
                   >
-                    {row.includeInBudget ? <Eye size={14} /> : <EyeOff size={14} />}
-                  </button>
-                )}
-              </div>
-            ))}
+                    {row.name}
+                  </span>
+                  {onToggleInclude && (
+                    <button
+                      type="button"
+                      onClick={() => onToggleInclude(row.id, !row.includeInBudget)}
+                      title={row.includeInBudget ? excludeTitle : includeTitle}
+                      data-testid={`gantt-toggle-include-${row.id}`}
+                      disabled={!!editingProjectId}
+                      style={{
+                        cursor: editingProjectId ? 'default' : 'pointer',
+                        background: 'transparent',
+                        border: 'none',
+                        padding: 2,
+                        color: row.includeInBudget ? '#2563eb' : '#94a3b8',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        opacity: editingProjectId && !isEditing ? 0.3 : 1,
+                      }}
+                    >
+                      {row.includeInBudget ? <Eye size={14} /> : <EyeOff size={14} />}
+                    </button>
+                  )}
+                  {/* Edit button — only for rows with dates; remains clickable
+                      even while another row is editing so the user can switch
+                      rows (the parent's onStartEdit handles the discard prompt) */}
+                  {onStartEdit && row.hasDates && !isEditing && (
+                    <button
+                      type="button"
+                      onClick={() => onStartEdit(row.id)}
+                      title={editLabel}
+                      data-testid={`gantt-edit-${row.id}`}
+                      disabled={isSaving}
+                      style={{
+                        cursor: isSaving ? 'default' : 'pointer',
+                        background: 'transparent',
+                        border: 'none',
+                        padding: 2,
+                        color: '#6b7280',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        opacity: isSaving ? 0.3 : 1,
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Pencil size={13} />
+                    </button>
+                  )}
+                  {/* Save / Cancel for editing row */}
+                  {isEditing && onSave && onCancel && (
+                    <div style={{ display: 'inline-flex', gap: 2, flexShrink: 0 }}>
+                      <button
+                        type="button"
+                        onClick={() => onSave(row.id)}
+                        title={saveLabel}
+                        data-testid={`gantt-save-${row.id}`}
+                        disabled={isSaving}
+                        style={{
+                          cursor: isSaving ? 'default' : 'pointer',
+                          background: '#2563eb',
+                          border: 'none',
+                          padding: '2px 5px',
+                          borderRadius: 4,
+                          color: 'white',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 2,
+                          fontSize: 10,
+                          fontWeight: 600,
+                          whiteSpace: 'nowrap',
+                          opacity: isSaving ? 0.7 : 1,
+                        }}
+                      >
+                        {isSaving ? (
+                          <Loader2 size={11} className="animate-spin" />
+                        ) : (
+                          <Save size={11} />
+                        )}
+                        {saveLabel}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={onCancel}
+                        title={cancelLabel}
+                        data-testid={`gantt-cancel-${row.id}`}
+                        disabled={isSaving}
+                        style={{
+                          cursor: isSaving ? 'default' : 'pointer',
+                          background: 'transparent',
+                          border: '1px solid #d1d5db',
+                          padding: '2px 4px',
+                          borderRadius: 4,
+                          color: '#6b7280',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          fontSize: 10,
+                        }}
+                      >
+                        <X size={11} />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           {/* Scrollable timeline (chart) */}
           <div
+            ref={timelineRef}
             style={{
               height: chartHeight,
               minWidth: minTimelineWidth,
@@ -437,11 +666,24 @@ export function GanttChart({
                 }}
               />
             )}
+
+            {/* Drag overlay for editing row */}
+            {dragOverlayStyle && (
+              <div
+                data-testid={`gantt-drag-overlay-${editingProjectId}`}
+                style={dragOverlayStyle}
+                onPointerDown={handlePointerDown}
+                onPointerMove={handlePointerMove}
+                onPointerUp={handlePointerUp}
+                onPointerCancel={handlePointerUp}
+              />
+            )}
+
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
-                data={rows}
+                data={displayRows}
                 layout="vertical"
-                margin={{ top: TOP_MARGIN, right: 20, left: 0, bottom: BOTTOM_MARGIN }}
+                margin={{ top: TOP_MARGIN, right: RECHARTS_RIGHT_MARGIN, left: 0, bottom: BOTTOM_MARGIN }}
                 barCategoryGap={0}
               >
                 <CartesianGrid strokeDasharray="3 3" horizontal={false} />
@@ -463,6 +705,9 @@ export function GanttChart({
                   content={({ active, payload }) => {
                     if (!active || !payload || payload.length === 0) return null;
                     const row = payload[0].payload as GanttRow;
+                    const isEditingRow = row.id === editingProjectId;
+                    const dispStart = isEditingRow && effectiveEditingDates ? effectiveEditingDates.startTs : row.startTs;
+                    const dispEnd = isEditingRow && effectiveEditingDates ? effectiveEditingDates.endTs : row.endTs;
                     return (
                       <div className="rounded-md border bg-background p-2 text-xs shadow-md">
                         <div className="font-medium">{row.name}</div>
@@ -471,14 +716,19 @@ export function GanttChart({
                             {row.status.replace(/_/g, ' ')}
                           </div>
                         )}
-                        {row.hasDates && row.startTs && row.endTs ? (
+                        {row.hasDates && dispStart && dispEnd ? (
                           <div className="text-muted-foreground">
-                            {formatDate(row.startTs, locale)} —{' '}
-                            {formatDate(row.endTs, locale)}
+                            {formatDate(dispStart, locale)} —{' '}
+                            {formatDate(dispEnd, locale)}
                           </div>
                         ) : (
                           <div className="text-muted-foreground italic">
                             {noDatesLabel}
+                          </div>
+                        )}
+                        {isEditingRow && (
+                          <div style={{ color: '#2563eb', marginTop: 2, fontStyle: 'italic' }}>
+                            {saveLabel}
                           </div>
                         )}
                       </div>
@@ -489,10 +739,14 @@ export function GanttChart({
                   dataKey="range"
                   minPointSize={4}
                   radius={[3, 3, 3, 3]}
-                  barSize={ROW_HEIGHT * 0.7}
+                  barSize={BAR_SIZE}
                 >
-                  {rows.map(row => (
-                    <Cell key={row.id} fill={row.color} fillOpacity={row.opacity} />
+                  {displayRows.map(row => (
+                    <Cell
+                      key={row.id}
+                      fill={row.color}
+                      fillOpacity={row.id === editingProjectId ? row.opacity * 0.5 : row.opacity}
+                    />
                   ))}
                 </Bar>
               </BarChart>

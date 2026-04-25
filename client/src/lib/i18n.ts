@@ -1644,6 +1644,10 @@ export interface Translations {
   noDatesSet: string;
   includeInBudget: string;
   excludeFromBudget: string;
+  ganttEditProject: string;
+  ganttSaveChanges: string;
+  ganttCancel: string;
+  ganttDiscardUnsaved: string;
   statusSubmission: string;
   statusPreWork: string;
   statusPostWork: string;
@@ -5437,6 +5441,10 @@ export const translations: Record<Language, Translations> = {
     noDatesSet: 'No dates set',
     includeInBudget: 'Include in budget',
     excludeFromBudget: 'Exclude from budget',
+    ganttEditProject: 'Edit dates',
+    ganttSaveChanges: 'Save changes',
+    ganttCancel: 'Cancel',
+    ganttDiscardUnsaved: 'Discard unsaved changes?',
     statusSubmission: 'Submission',
     statusPreWork: 'Pre work',
     statusPostWork: 'Post work',
@@ -9451,6 +9459,10 @@ export const translations: Record<Language, Translations> = {
     noDatesSet: 'Aucune date définie',
     includeInBudget: 'Inclure au budget',
     excludeFromBudget: 'Exclure du budget',
+    ganttEditProject: 'Modifier les dates',
+    ganttSaveChanges: 'Enregistrer',
+    ganttCancel: 'Annuler',
+    ganttDiscardUnsaved: 'Abandonner les modifications non enregistrées?',
     statusSubmission: 'Soumission',
     statusPreWork: 'Pré-travaux',
     statusPostWork: 'Post-travaux',

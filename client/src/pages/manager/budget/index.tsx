@@ -1,5 +1,5 @@
 // @ts-nocheck — Pre-existing type errors tracked in TYPE_CHECK_DEBT.md (task #769)
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { logDebug, logError } from '@/lib/logger';
 import { loadPdfLibs } from '@/lib/pdf-export';
 import { Header } from '@/components/layout/header';
@@ -296,6 +296,21 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
       window.sessionStorage.setItem('budget.projectViewMode', projectViewMode);
     }
   }, [projectViewMode]);
+
+  // Gantt inline editing state
+  const [ganttEditingId, setGanttEditingId] = useState<string | null>(null);
+  const [ganttEditingDates, setGanttEditingDates] = useState<{ startTs: number; endTs: number } | null>(null);
+  const ganttOriginalDates = useRef<{ startTs: number; endTs: number } | null>(null);
+
+  /** Returns false if we should NOT proceed (user chose to keep editing). */
+  const confirmGanttDiscard = useCallback((): boolean => {
+    if (!ganttEditingId) return true;
+    if (!confirm(t('ganttDiscardUnsaved'))) return false;
+    setGanttEditingId(null);
+    setGanttEditingDates(null);
+    ganttOriginalDates.current = null;
+    return true;
+  }, [ganttEditingId, t]);
   
   // Log filter changes
   useEffect(() => {
@@ -1247,6 +1262,38 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
         language,
         language === 'fr' ? 'Échec de la mise à jour du projet' : 'Failed to update project'
       );
+    },
+  });
+
+  // Gantt inline date drag-and-save mutation
+  const saveGanttDatesMutation = useMutation({
+    mutationFn: async ({ id, startTs, endTs }: { id: string; startTs: number; endTs: number }) => {
+      const toDateStr = (ts: number) => {
+        const d = new Date(ts);
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      };
+      const response = await apiRequest('PATCH', `/api/maintenance/projects/${id}`, {
+        plannedStartDate: toDateStr(startTs),
+        plannedEndDate: toDateStr(endTs),
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+        throw new Error(errorData.error || `HTTP ${response.status}`);
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/maintenance/buildings', buildingId, 'projects'] });
+      setGanttEditingId(null);
+      setGanttEditingDates(null);
+      ganttOriginalDates.current = null;
+    },
+    onError: (error: any) => {
+      toast({
+        title: t('error'),
+        description: error?.message || (language === 'fr' ? 'Échec de la sauvegarde des dates' : 'Failed to save dates'),
+        variant: 'destructive',
+      });
     },
   });
 
@@ -3580,7 +3627,10 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
               <Card data-testid="card-project-management">
                 <CardHeader 
                   className="cursor-pointer"
-                  onClick={() => toggleCard('project')}
+                  onClick={() => {
+                    if (!confirmGanttDiscard()) return;
+                    toggleCard('project');
+                  }}
                 >
                   <CardTitle className='flex items-center justify-between'>
                     <div className='flex items-center gap-2'>
@@ -3597,7 +3647,10 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
                           size='sm'
                           variant={projectViewMode === 'list' ? 'default' : 'ghost'}
                           className='h-7 px-2'
-                          onClick={() => setProjectViewMode('list')}
+                          onClick={() => {
+                            if (!confirmGanttDiscard()) return;
+                            setProjectViewMode('list');
+                          }}
                           data-testid='button-projects-view-list'
                           title={t('listView')}
                         >
@@ -3680,6 +3733,44 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
                               pp.id === id ? { ...pp, includeInBudget: value } : pp
                             ));
                           }}
+                          editingProjectId={ganttEditingId}
+                          editingDates={ganttEditingDates}
+                          onStartEdit={(id) => {
+                            if (ganttEditingId && ganttEditingId !== id) {
+                              if (!confirmGanttDiscard()) return;
+                            }
+                            const proj = projects.find(p => p.id === id);
+                            if (!proj) return;
+                            const parseTs = (s: string | null | undefined) => {
+                              if (!s) return null;
+                              const d = new Date(s.length === 10 ? s + 'T00:00:00' : s);
+                              return isNaN(d.getTime()) ? null : d.getTime();
+                            };
+                            const startTs = parseTs(proj.plannedStartDate) ?? parseTs(proj.actualStartDate);
+                            const endTs = parseTs(proj.plannedEndDate) ?? parseTs(proj.actualEndDate);
+                            if (!startTs || !endTs) return;
+                            const dates = { startTs, endTs };
+                            ganttOriginalDates.current = dates;
+                            setGanttEditingId(id);
+                            setGanttEditingDates(dates);
+                          }}
+                          onDragEnd={(id, startTs, endTs) => {
+                            setGanttEditingDates({ startTs, endTs });
+                          }}
+                          onSave={(id) => {
+                            if (!ganttEditingDates) return;
+                            saveGanttDatesMutation.mutate({
+                              id,
+                              startTs: ganttEditingDates.startTs,
+                              endTs: ganttEditingDates.endTs,
+                            });
+                          }}
+                          onCancel={() => {
+                            setGanttEditingId(null);
+                            setGanttEditingDates(null);
+                            ganttOriginalDates.current = null;
+                          }}
+                          isSaving={saveGanttDatesMutation.isPending}
                         />
                       ) : projects.length > 0 ? (
                         projects.map((project) => {
