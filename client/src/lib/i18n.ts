@@ -899,10 +899,6 @@ export interface Translations {
   dataExportedDescription: string;
   exportFailed: string;
   failedExportData: string;
-  reportTrackIssues: string;
-  reportBug: string;
-  reportNewBug: string;
-  searchBugs: string;
   new: string;
   acknowledged: string;
   resolved: string;
@@ -918,9 +914,6 @@ export interface Translations {
   reproducePlaceholder: string;
   attachDocumentsOptional: string;
   submitting: string;
-  submitBugReport: string;
-  editBug: string;
-  deleteBug: string;
   selectPriority: string;
   locationPlaceholder: string;
   uiUx: string;
@@ -928,15 +921,6 @@ export interface Translations {
   performance: string;
   data: string;
   integration: string;
-  bugCreatedSuccess: string;
-  failedCreateBug: string;
-  bugUpdatedSuccess: string;
-  failedUpdateBug: string;
-  bugDeletedSuccess: string;
-  shareIdeasImprove: string;
-  submitNewIdea: string;
-  createIdea: string;
-  searchIdeas: string;
   sortBy: string;
   newest: string;
   oldest: string;
@@ -959,18 +943,9 @@ export interface Translations {
   reports: string;
   mobileApp: string;
   integrations: string;
-  ideaSubmitted: string;
-  ideaSubmittedDescription: string;
-  failedSubmitIdea: string;
-  ideaUpdated: string;
-  ideaUpdatedDescription: string;
-  failedUpdateIdea: string;
   upvotedMessage: string;
   upvotedDescription: string;
   failedUpvote: string;
-  ideaDeleted: string;
-  ideaDeletedDescription: string;
-  failedDeleteIdea: string;
   organizationsManagement: string;
   organizationsManagementDesc: string;
   createEditDeleteOrganizations: string;
@@ -1652,16 +1627,11 @@ export interface Translations {
   'bills.customPaymentDateRequiredSingle': string;
   'bills.customPaymentDateRequiredPlural': string;
   
-  // Bug Reports additional keys (unique non-duplicate keys only)
-  editBugReport: string;
-  bugReportDetails: string;
-  areYouSureDeleteBugReport: string;
   savingChanges: string;
   fileAttached: string;
   searchAndFilters: string;
   categoryAndSort: string;
   
-  // Idea Box additional keys (unique non-duplicate keys only)
   mostUpvotes: string;
   whyIsThisNeeded: string;
   chooseDocumentType: string;
@@ -1669,51 +1639,25 @@ export interface Translations {
   selectFileToUpload: string;
   attachScreenshot: string;
   addDetailedNotes: string;
-  thisWillShowAsAdditionalNotes: string;
-  submitIdea: string;
-  editIdea: string;
   internalNotesVisibleAdmins: string;
   currentAttachment: string;
   uploadNewFileToReplace: string;
-  updateIdea: string;
-  deleteIdea: string;
   attachment: string;
   attachments: string;
   submittedOn: string;
   lastUpdatedOn: string;
   
-  // Additional idea box and common keys (unique non-duplicate keys only)
   featureTitlePlaceholder: string;
-  featureDescriptionPlaceholder: string;
   whyIsThisNeededPlaceholder: string;
   pageLocationPlaceholder: string;
   adminNotes: string;
   search: string;
-  noIdeasFound: string;
   tryAdjustingSearchOrFilters: string;
-  getStartedBySubmittingFirstIdea: string;
-  confirmDeleteIdea: string;
   
-  // Additional Bug Reports translation keys (unique non-duplicate keys only)
-  bugReportCreatedSuccessfully: string;
-  bugReportUpdatedSuccessfully: string;
-  bugReportDeletedSuccessfully: string;
-  failedToCreateBugReport: string;
-  failedToUpdateBugReport: string;
-  failedToDeleteBugReport: string;
   titleRequired: string;
   descriptionMinLength20: string;
   pageLocationRequired: string;
-  noBugsMatchFilters: string;
-  noBugReportsYet: string;
   
-  // Additional Idea Box translation keys (unique non-duplicate keys only)
-  ideaSubmittedSuccessfully: string;
-  ideaUpdatedSuccessfully: string;
-  ideaDeletedSuccessfully: string;
-  failedToSubmitIdea: string;
-  failedToUpdateIdea: string;
-  failedToDeleteIdea: string;
   upvoteRecorded: string;
   failedToUpvote: string;
   featureTitleRequired: string;
@@ -2132,7 +2076,6 @@ export interface Translations {
   noMatchingBuildings: string;
   noMatchingBuildingsDescription: string;
   searchBuildingsByNameOrAddress: string;
-  updateBugReport: string;
   viewAccessibleBuildingsAndDocuments: string;
 
   // Terms of Service Page
@@ -3283,10 +3226,6 @@ export const translations: Record<Language, Translations> = {
     dataExportedDescription: 'Your data has been downloaded successfully.',
     exportFailed: 'Export failed',
     failedExportData: 'Failed to export data',
-    reportTrackIssues: 'Report and track application issues',
-    reportBug: 'Report Bug',
-    reportNewBug: 'Report New Bug',
-    searchBugs: 'Search bugs...',
     new: 'New',
     acknowledged: 'Acknowledged',
     resolved: 'Resolved',
@@ -3302,9 +3241,6 @@ export const translations: Record<Language, Translations> = {
     reproducePlaceholder: 'Describe the steps to reproduce this issue...',
     attachDocumentsOptional: 'Attach Documents (Optional)',
     submitting: 'Submitting...',
-    submitBugReport: 'Submit Bug Report',
-    editBug: 'Edit Bug',
-    deleteBug: 'Delete Bug',
     selectPriority: 'Select priority',
     locationPlaceholder: 'e.g. Dashboard, Login page, Settings',
     uiUx: 'UI/UX',
@@ -3312,15 +3248,6 @@ export const translations: Record<Language, Translations> = {
     performance: 'Performance',
     data: 'Data',
     integration: 'Integration',
-    bugCreatedSuccess: 'Bug report created successfully',
-    failedCreateBug: 'Failed to create bug report',
-    bugUpdatedSuccess: 'Bug report updated successfully',
-    failedUpdateBug: 'Failed to update bug report',
-    bugDeletedSuccess: 'Bug report deleted successfully',
-    shareIdeasImprove: 'Share your ideas to improve our platform',
-    submitNewIdea: 'Submit New Idea',
-    createIdea: 'Create Idea',
-    searchIdeas: 'Search ideas...',
     sortBy: 'Sort by',
     newest: 'Newest',
     oldest: 'Oldest',
@@ -3343,18 +3270,9 @@ export const translations: Record<Language, Translations> = {
     reports: 'Reports',
     mobileApp: 'Mobile App',
     integrations: 'Integrations',
-    ideaSubmitted: 'Idea submitted!',
-    ideaSubmittedDescription: 'Your feature idea has been submitted successfully.',
-    failedSubmitIdea: 'Failed to submit idea',
-    ideaUpdated: 'Idea updated!',
-    ideaUpdatedDescription: 'Feature idea has been updated successfully.',
-    failedUpdateIdea: 'Failed to update idea',
     upvotedMessage: 'Upvoted!',
     upvotedDescription: 'Your upvote has been recorded.',
     failedUpvote: 'Failed to upvote',
-    ideaDeleted: 'Idea deleted!',
-    ideaDeletedDescription: 'The feature idea has been deleted successfully.',
-    failedDeleteIdea: 'Failed to delete idea',
     organizationsManagement: 'Organizations Management',
     organizationsManagementDesc: 'Create, view, edit and delete organizations in the system',
     createEditDeleteOrganizations: 'Create, edit and delete organizations',
@@ -3918,27 +3836,14 @@ export const translations: Record<Language, Translations> = {
     commentMinLengthError: 'Comment text is required (minimum 1 character)',
     commentMaxLengthError: 'Comment must be less than 1000 characters',
     
-    // Additional Bug Reports translation keys
-    bugReportCreatedSuccessfully: 'Bug report created successfully',
-    bugReportUpdatedSuccessfully: 'Bug report updated successfully',
-    bugReportDeletedSuccessfully: 'Bug report deleted successfully',
-    failedToCreateBugReport: 'Failed to create bug report',
-    failedToUpdateBugReport: 'Failed to update bug report',
-    failedToDeleteBugReport: 'Failed to delete bug report',
     titleRequired: 'Title is required',
     descriptionMinLength20: 'Description must be at least 20 characters',
     pageLocationRequired: 'Page/location is required',
-    noBugsMatchFilters: 'No bugs match your current filters.',
-    noBugReportsYet: 'No bug reports have been submitted yet.',
-    editBugReport: 'Edit Bug Report',
-    bugReportDetails: 'Bug Report Details',
-    areYouSureDeleteBugReport: 'Are you sure you want to delete this bug report?',
     savingChanges: 'Saving...',
     fileAttached: 'File Attached',
     searchAndFilters: 'Search and Filters',
     categoryAndSort: 'Category and Sort',
     
-    // Additional Idea Box translation keys
     mostUpvotes: 'Most Upvotes',
     whyIsThisNeeded: 'Why is this needed?',
     chooseDocumentType: 'Choose Document Type',
@@ -3946,34 +3851,19 @@ export const translations: Record<Language, Translations> = {
     selectFileToUpload: 'Select file to upload',
     attachScreenshot: 'Attach a screenshot, mockup, or document',
     addDetailedNotes: 'Add detailed notes, specifications, or any additional information...',
-    thisWillShowAsAdditionalNotes: 'This will show as additional notes with your idea',
-    submitIdea: 'Submit Idea',
-    editIdea: 'Edit Idea',
     internalNotesVisibleAdmins: 'Internal Notes (visible to admins only)',
     currentAttachment: 'Current Attachment',
     uploadNewFileToReplace: 'Upload a new file to replace the current attachment',
-    updateIdea: 'Update Idea',
-    deleteIdea: 'Delete Idea',
     attachment: 'Attachment',
     attachments: 'Attachments',
     submittedOn: 'Submitted on',
     lastUpdatedOn: 'Last updated on',
     featureTitlePlaceholder: 'e.g. Add bulk export for documents',
-    featureDescriptionPlaceholder: 'Describe your feature idea in detail...',
     whyIsThisNeededPlaceholder: 'Explain the specific need this feature addresses...',
     pageLocationPlaceholder: 'e.g. Document Management',
     adminNotes: 'Admin Notes',
     search: 'Search',
-    noIdeasFound: 'No ideas found',
     tryAdjustingSearchOrFilters: 'Try adjusting your search or filters.',
-    getStartedBySubmittingFirstIdea: 'Get started by submitting your first idea.',
-    confirmDeleteIdea: 'Are you sure you want to delete "{title}"? This action cannot be undone.',
-    ideaSubmittedSuccessfully: 'Idea submitted successfully',
-    ideaUpdatedSuccessfully: 'Idea updated successfully',
-    ideaDeletedSuccessfully: 'Idea deleted successfully',
-    failedToSubmitIdea: 'Failed to submit idea',
-    failedToUpdateIdea: 'Failed to update idea',
-    failedToDeleteIdea: 'Failed to delete idea',
     upvoteRecorded: 'Your upvote has been recorded',
     failedToUpvote: 'Failed to upvote',
     featureTitleRequired: 'Feature title is required',
@@ -4309,7 +4199,6 @@ export const translations: Record<Language, Translations> = {
     noMatchingBuildings: 'No matching buildings found',
     noMatchingBuildingsDescription: 'Try adjusting your search criteria',
     searchBuildingsByNameOrAddress: 'Search buildings by name or address',
-    updateBugReport: 'Update Bug Report',
     viewAccessibleBuildingsAndDocuments: 'View accessible buildings and documents',
 
     // Features Page translations
@@ -5497,9 +5386,6 @@ export const translations: Record<Language, Translations> = {
     failedChangePassword: 'Échec de la modification du mot de passe',
     dataExported: 'Données exportées',
     dataExportedDescription: 'Vos données ont été téléchargées avec succès.',
-    reportBug: 'Signaler un bogue',
-    reportNewBug: 'Signaler un nouveau bogue',
-    searchBugs: 'Rechercher des bogues...',
     new: 'Nouveau',
     acknowledged: 'Reconnu',
     resolved: 'Résolu',
@@ -5515,9 +5401,6 @@ export const translations: Record<Language, Translations> = {
     reproducePlaceholder: 'Décrivez les étapes pour reproduire ce problème...',
     attachDocumentsOptional: 'Joindre des documents (Optionnel)',
     submitting: 'Soumission...',
-    submitBugReport: 'Soumettre le rapport de bogue',
-    editBug: 'Modifier le bogue',
-    deleteBug: 'Supprimer le bogue',
     selectPriority: 'Sélectionner la priorité',
     locationPlaceholder: 'ex. Tableau de bord, Page de connexion, Paramètres',
     uiUx: 'UI/UX',
@@ -5525,15 +5408,6 @@ export const translations: Record<Language, Translations> = {
     performance: 'Performance',
     data: 'Données',
     integration: 'Intégration',
-    bugCreatedSuccess: 'Rapport de bogue créé avec succès',
-    failedCreateBug: 'Échec de la création du rapport de bogue',
-    bugUpdatedSuccess: 'Rapport de bogue mis à jour avec succès',
-    failedUpdateBug: 'Échec de la mise à jour du rapport de bogue',
-    bugDeletedSuccess: 'Rapport de bogue supprimé avec succès',
-    shareIdeasImprove: 'Partagez vos idées pour améliorer notre plateforme',
-    submitNewIdea: 'Soumettre une nouvelle idée',
-    createIdea: 'Créer une idée',
-    searchIdeas: 'Rechercher des idées...',
     sortBy: 'Trier par',
     newest: 'Plus récent',
     oldest: 'Plus ancien',
@@ -5555,13 +5429,9 @@ export const translations: Record<Language, Translations> = {
     reports: 'Rapports',
     mobileApp: 'Application mobile',
     integrations: 'Intégrations',
-    ideaSubmitted: 'Idée soumise !',
-    ideaSubmittedDescription: 'Votre idée de fonctionnalité a été soumise avec succès.',
-    ideaUpdated: 'Idée mise à jour !',
     upvotedMessage: 'Vote enregistré !',
     upvotedDescription: 'Votre vote positif a été enregistré.',
     failedUpvote: 'Échec du vote',
-    ideaDeleted: 'Idée supprimée !',
     organizationsManagement: 'Gestion des organisations',
     organizationsManagementDesc: 'Créer, consulter, modifier et supprimer les organisations du système',
     createEditDeleteOrganizations: 'Créer, modifier et supprimer les organisations',
@@ -6079,13 +5949,7 @@ export const translations: Record<Language, Translations> = {
     username: 'Nom d\'utilisateur',
     exportFailed: 'Échec de l\'exportation',
     failedExportData: 'Échec de l\'exportation des données',
-    reportTrackIssues: 'Signaler et suivre les problèmes de l\'application',
     today: 'Aujourd\'hui',
-    failedSubmitIdea: 'Échec de la soumission de l\'idée',
-    ideaUpdatedDescription: 'L\'idée de fonctionnalité a été mise à jour avec succès.',
-    failedUpdateIdea: 'Échec de la mise à jour de l\'idée',
-    ideaDeletedDescription: 'L\'idée de fonctionnalité a été supprimée avec succès.',
-    failedDeleteIdea: 'Échec de la suppression de l\'idée',
     permissionsManagementDesc: 'Gérer les rôles d\'utilisateur et les permissions système',
     roleBasedAccessControl: 'Contrôle d\'Accès Basé sur les Rôles',
     userRoles: 'Rôles d\'utilisateur',
@@ -6209,27 +6073,14 @@ export const translations: Record<Language, Translations> = {
     commentMinLengthError: 'Le texte du commentaire est requis (minimum 1 caractère)',
     commentMaxLengthError: 'Le commentaire doit contenir moins de 1000 caractères',
     
-    // Additional Bug Reports translation keys
-    bugReportCreatedSuccessfully: 'Rapport de bogue créé avec succès',
-    bugReportUpdatedSuccessfully: 'Rapport de bogue mis à jour avec succès',
-    bugReportDeletedSuccessfully: 'Rapport de bogue supprimé avec succès',
-    failedToCreateBugReport: 'Échec de la création du rapport de bogue',
-    failedToUpdateBugReport: 'Échec de la mise à jour du rapport de bogue',
-    failedToDeleteBugReport: 'Échec de la suppression du rapport de bogue',
     titleRequired: 'Le titre est requis',
     descriptionMinLength20: 'La description doit contenir au moins 20 caractères',
     pageLocationRequired: 'La page/localisation est requise',
-    noBugsMatchFilters: 'Aucun bogue ne correspond à vos filtres actuels.',
-    noBugReportsYet: 'Aucun rapport de bogue n\'a encore été soumis.',
-    editBugReport: 'Modifier le rapport de bogue',
-    bugReportDetails: 'Détails du rapport de bogue',
-    areYouSureDeleteBugReport: 'Êtes-vous sûr de vouloir supprimer ce rapport de bogue?',
     savingChanges: 'Enregistrement...',
     fileAttached: 'Fichier joint',
     searchAndFilters: 'Recherche et filtres',
     categoryAndSort: 'Catégorie et tri',
     
-    // Additional Idea Box translation keys
     mostUpvotes: 'Plus de votes',
     whyIsThisNeeded: 'Pourquoi est-ce nécessaire?',
     chooseDocumentType: 'Choisir le type de document',
@@ -6237,34 +6088,19 @@ export const translations: Record<Language, Translations> = {
     selectFileToUpload: 'Sélectionner le fichier à télécharger',
     attachScreenshot: 'Joindre une capture d\'écran, une maquette ou un document',
     addDetailedNotes: 'Ajouter des notes détaillées, des spécifications ou toute information supplémentaire...',
-    thisWillShowAsAdditionalNotes: 'Ceci sera affiché comme notes supplémentaires avec votre idée',
-    submitIdea: 'Soumettre l\'idée',
-    editIdea: 'Modifier l\'idée',
     internalNotesVisibleAdmins: 'Notes internes (visibles aux administrateurs seulement)',
     currentAttachment: 'Pièce jointe actuelle',
     uploadNewFileToReplace: 'Télécharger un nouveau fichier pour remplacer la pièce jointe actuelle',
-    updateIdea: 'Mettre à jour l\'idée',
-    deleteIdea: 'Supprimer l\'idée',
     attachment: 'Pièce jointe',
     attachments: 'Pièces jointes',
     submittedOn: 'Soumis le',
     lastUpdatedOn: 'Dernière mise à jour le',
     featureTitlePlaceholder: 'p. ex. Ajouter l\'exportation en masse pour les documents',
-    featureDescriptionPlaceholder: 'Décrivez votre idée de fonctionnalité en détail...',
     whyIsThisNeededPlaceholder: 'Expliquez le besoin spécifique que cette fonctionnalité répond...',
     pageLocationPlaceholder: 'p. ex. Gestion des documents',
     adminNotes: 'Notes administratives',
     search: 'Rechercher',
-    noIdeasFound: 'Aucune idée trouvée',
     tryAdjustingSearchOrFilters: 'Essayez d\'ajuster votre recherche ou vos filtres.',
-    getStartedBySubmittingFirstIdea: 'Commencez par soumettre votre première idée.',
-    confirmDeleteIdea: 'Êtes-vous sûr de vouloir supprimer "{title}"? Cette action ne peut pas être annulée.',
-    ideaSubmittedSuccessfully: 'Idée soumise avec succès',
-    ideaUpdatedSuccessfully: 'Idée mise à jour avec succès',
-    ideaDeletedSuccessfully: 'Idée supprimée avec succès',
-    failedToSubmitIdea: 'Échec de la soumission de l\'idée',
-    failedToUpdateIdea: 'Échec de la mise à jour de l\'idée',
-    failedToDeleteIdea: 'Échec de la suppression de l\'idée',
     upvoteRecorded: 'Votre vote a été enregistré',
     failedToUpvote: 'Échec du vote',
     featureTitleRequired: 'Le titre de la fonctionnalité est requis',
@@ -6600,7 +6436,6 @@ export const translations: Record<Language, Translations> = {
     noMatchingBuildings: 'Aucun immeuble correspondant trouvé',
     noMatchingBuildingsDescription: 'Essayez de modifier vos critères de recherche',
     searchBuildingsByNameOrAddress: 'Rechercher des immeubles par nom ou adresse',
-    updateBugReport: 'Mettre à jour le rapport de bogue',
     viewAccessibleBuildingsAndDocuments: 'Voir les immeubles et documents accessibles',
 
     // Features Page translations
