@@ -1828,16 +1828,42 @@ export default function BulkDocumentImportPage() {
                         );
                       })}
                     </div>
-                    <div className="mt-4 flex justify-end gap-2">
-                      <Button
-                        variant="outline"
-                        disabled={stepIndex >= STEP_ORDER.length - 1}
-                        onClick={() => updateStep.mutate(STEP_ORDER[stepIndex + 1])}
-                        data-testid="button-next-step"
-                      >
-                        {isFr ? 'Étape suivante' : 'Next step'}
-                      </Button>
-                    </div>
+                    {(() => {
+                      const stillAnalyzingCount = isAutoStep(currentStep)
+                        ? items.filter((item) => {
+                            if (item.status === 'rejected') return false;
+                            const preStatus = STEP_PRE_STATUS[currentStep as AutoStep];
+                            return (
+                              item.status === preStatus ||
+                              (currentStep === 'screening' && item.status === 'screening')
+                            );
+                          }).length
+                        : 0;
+                      const isNextBlocked =
+                        stepIndex >= STEP_ORDER.length - 1 || stillAnalyzingCount > 0;
+                      return (
+                        <div className="mt-4 flex flex-col items-end gap-2">
+                          {stillAnalyzingCount > 0 && (
+                            <p
+                              className="text-sm text-amber-700"
+                              data-testid="analyzing-warning"
+                            >
+                              {isFr
+                                ? `${stillAnalyzingCount} document(s) sont encore en cours d'analyse. Attendez la fin de l'analyse ou excluez-les pour continuer.`
+                                : `${stillAnalyzingCount} document(s) are still being analyzed. Wait for them to finish or exclude them to continue.`}
+                            </p>
+                          )}
+                          <Button
+                            variant="outline"
+                            disabled={isNextBlocked}
+                            onClick={() => updateStep.mutate(STEP_ORDER[stepIndex + 1])}
+                            data-testid="button-next-step"
+                          >
+                            {isFr ? 'Étape suivante' : 'Next step'}
+                          </Button>
+                        </div>
+                      );
+                    })()}
                   </CardContent>
                 </Card>
               )}
