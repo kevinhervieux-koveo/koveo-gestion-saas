@@ -556,6 +556,71 @@ function SplitPagePreview({
   );
 }
 
+/**
+ * Manual split-page input + live preview badge (Task #828). Fetches the
+ * staged PDF's page count once when mounted so the underlying number
+ * input can advertise `max=totalPages-1`, matching what the preview
+ * badge clamps to and what the server enforces. Non-PDF items keep the
+ * original `min=1`-only behaviour.
+ */
+function SplitPageManualInput({
+  itemId,
+  isPdf,
+  splitPage,
+  onChange,
+  isFr,
+}: {
+  itemId: string;
+  isPdf: boolean;
+  splitPage: number;
+  onChange: (next: number) => void;
+  isFr: boolean;
+}) {
+  const { data } = useQuery<{ totalPages: number }>({
+    queryKey: ['/api/admin/bulk-import/items', itemId, 'page-count'],
+    enabled: isPdf,
+  });
+  const totalPages = data?.totalPages;
+  const maxSplit =
+    isPdf && typeof totalPages === 'number' && totalPages > 1
+      ? totalPages - 1
+      : undefined;
+
+  // If the user typed a value before the page count resolved (or the
+  // count later shrinks), bring the controlled state back into range
+  // so the input value matches what the badge advertises.
+  useEffect(() => {
+    if (typeof maxSplit === 'number' && splitPage > maxSplit) {
+      onChange(maxSplit);
+    }
+  }, [maxSplit, splitPage, onChange]);
+
+  return (
+    <>
+      <input
+        type="number"
+        min={1}
+        max={maxSplit}
+        className="w-20 rounded-md border border-border bg-background px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+        value={splitPage}
+        onChange={(e) => {
+          const raw = parseInt(e.target.value, 10) || 1;
+          const lowerBounded = Math.max(1, raw);
+          const next =
+            typeof maxSplit === 'number'
+              ? Math.min(lowerBounded, maxSplit)
+              : lowerBounded;
+          onChange(next);
+        }}
+        data-testid={`sorting-picker-split-page-${itemId}`}
+      />
+      {isPdf && (
+        <SplitPagePreview itemId={itemId} splitPage={splitPage} isFr={isFr} />
+      )}
+    </>
+  );
+}
+
 function HistorySessionRow({
   session,
   buildings,
@@ -3207,25 +3272,15 @@ export default function BulkDocumentImportPage() {
                                     <label className="text-sm text-muted-foreground whitespace-nowrap">
                                       {isFr ? 'Scinder après la page :' : 'Split after page:'}
                                     </label>
-                                    <input
-                                      type="number"
-                                      min={1}
-                                      className="w-20 rounded-md border border-border bg-background px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                                      value={sortingPickerSplitPage}
-                                      onChange={(e) =>
-                                        setSortingPickerSplitPage(
-                                          Math.max(1, parseInt(e.target.value, 10) || 1),
-                                        )
+                                    <SplitPageManualInput
+                                      itemId={item.id}
+                                      isPdf={
+                                        (item.mimeType ?? '').toLowerCase() === 'application/pdf'
                                       }
-                                      data-testid={`sorting-picker-split-page-${item.id}`}
+                                      splitPage={sortingPickerSplitPage}
+                                      onChange={setSortingPickerSplitPage}
+                                      isFr={isFr}
                                     />
-                                    {(item.mimeType ?? '').toLowerCase() === 'application/pdf' && (
-                                      <SplitPagePreview
-                                        itemId={item.id}
-                                        splitPage={sortingPickerSplitPage}
-                                        isFr={isFr}
-                                      />
-                                    )}
                                   </div>
                                 )}
                                 <div className="mt-4 flex gap-2">
