@@ -125,3 +125,4 @@ core.*
 # runs the schema-drift check on every PR — without it, the guard from
 # Task #814 would only exist on the local Replit environment.
 !.github/workflows/schema-drift-check.yml
+.staging/
