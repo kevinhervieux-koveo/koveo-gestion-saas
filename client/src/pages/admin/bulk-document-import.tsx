@@ -3682,6 +3682,20 @@ export default function BulkDocumentImportPage() {
                                       {(isFr ? BUCKET_GUESS_LABEL_FR : BUCKET_GUESS_LABEL_EN)[item.screeningBucketGuess] ?? item.screeningBucketGuess}
                                     </Badge>
                                   )}
+                                  {currentStep === 'screening' && item.screeningPeriodHint && (
+                                    <Badge
+                                      variant="outline"
+                                      className="shrink-0 border-indigo-300 bg-indigo-50 text-indigo-900 dark:border-indigo-700 dark:bg-indigo-950 dark:text-indigo-200"
+                                      title={
+                                        isFr
+                                          ? "Période détectée par l'IA lors du filtrage (année, exercice, n° de facture, date de réunion). Utilisée pour distinguer deux documents du même type."
+                                          : 'Period detected by the Screening AI (year, fiscal year, invoice number, meeting date). Used to tell two same-type documents apart.'
+                                      }
+                                      data-testid={`screening-period-hint-${item.id}`}
+                                    >
+                                      {item.screeningPeriodHint}
+                                    </Badge>
+                                  )}
                                   {currentStep !== 'sorting' && (
                                     <>
                                       <FallbackReasonBadge
