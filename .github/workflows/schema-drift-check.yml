@@ -63,6 +63,8 @@ jobs:
             echo "so this PR would leave production out of sync with the TypeScript"
             echo "schema."
             echo ""
+            echo "See docs/migrations.md for the supported workflow."
+            echo ""
             echo "To fix this:"
             echo "  1. Generate a drift migration:"
             echo "       npx tsx scripts/generate-drift-migration.ts > migrations/NNNN_describe_change.sql"

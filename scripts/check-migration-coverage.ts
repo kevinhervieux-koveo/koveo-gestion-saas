@@ -625,6 +625,9 @@ async function main(): Promise<void> {
   console.error(
     '[drift-check] Add a numbered migration in migrations/ to bring the deployed schema in line with shared/schema.ts.',
   );
+  console.error(
+    '[drift-check] See docs/migrations.md for the supported workflow (drizzle-kit generate + npm run migrate).',
+  );
   process.exitCode = 1;
 }
 

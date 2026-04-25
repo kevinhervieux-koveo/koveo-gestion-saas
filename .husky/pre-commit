@@ -39,6 +39,7 @@ if [ -n "$STAGED_SCHEMA_FILES" ]; then
         echo "❌ Schema drift detected between shared/schema.ts and migrations/."
         echo "   Add a numbered migration in migrations/ that brings the deployed"
         echo "   schema in line with shared/schema.ts, then re-stage and commit."
+        echo "   See docs/migrations.md for the supported workflow."
         exit 1
     fi
 fi
