@@ -435,6 +435,7 @@ export function SuggestionCard({
         <AlertDialogContent data-testid="dismiss-suggestion-dialog">
           <AlertDialogHeader>
             <AlertDialogTitle>Dismiss Suggestion</AlertDialogTitle>
+            {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
             <AlertDialogDescription>
               {t('areYouSureYouWantTo7')}
             </AlertDialogDescription>

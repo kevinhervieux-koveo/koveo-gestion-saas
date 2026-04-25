@@ -103,6 +103,7 @@ export function ProjectWorkflowModal({
               <AlertTriangle className="h-5 w-5" />
               Project Missing
             </DialogTitle>
+            {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
             <DialogDescription>
               {t('wfModalNoProjectDescription')}
             </DialogDescription>
@@ -110,6 +111,7 @@ export function ProjectWorkflowModal({
           
           <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
+            {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
             <AlertDescription>
               {t('wfModalProjectMissingMessage')}
             </AlertDescription>
@@ -264,6 +266,7 @@ export function ProjectWorkflowModal({
       return (
         <Alert className="m-4">
           <AlertTriangle className="h-4 w-4" />
+          {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
           <AlertDescription>
             {t('wfModalProjectStillLoading')}
           </AlertDescription>
@@ -362,6 +365,7 @@ export function ProjectWorkflowModal({
               <AlertTriangle className="h-5 w-5" />
               Workflow Error
             </DialogTitle>
+            {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
             <DialogDescription>
               {t('wfModalUnableToLoad')}
             </DialogDescription>

@@ -160,6 +160,7 @@ export function PasswordCreationStep({ _data, onDataChange, onValidationChange }
             {hasPasswordError && (
               <Alert variant='destructive'>
                 <AlertTriangle className='h-4 w-4' />
+                {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                 <AlertDescription>
                   Le mot de passe ne respecte pas les exigences de sécurité.
                 </AlertDescription>
@@ -222,9 +223,13 @@ export function PasswordCreationStep({ _data, onDataChange, onValidationChange }
           <div className='bg-gray-50 p-4 rounded-lg'>
             <h4 className='text-sm font-medium text-gray-900 mb-2'>💡 Conseils de sécurité</h4>
             <ul className='text-xs text-gray-600 space-y-1'>
+              {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
               <li>• Utilisez une combinaison unique de lettres, chiffres et symboles</li>
+              {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
               <li>• Évitez les informations personnelles (nom, date de naissance)</li>
+              {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
               <li>• Ne réutilisez pas un mot de passe d'un autre compte</li>
+              {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
               <li>• Considérez l'utilisation d'un gestionnaire de mots de passe</li>
             </ul>
           </div>

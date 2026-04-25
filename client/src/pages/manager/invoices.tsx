@@ -495,6 +495,7 @@ export default function Invoices() {
               <CardContent className="p-8 text-center">
                 <Receipt className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
                 <h3 className="text-lg font-semibold text-gray-600 mb-2">No Invoices Found</h3>
+                {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                 <p className="text-gray-500 mb-4">
                   {t('noInvoicesFoundForTheSelected')}
                 </p>

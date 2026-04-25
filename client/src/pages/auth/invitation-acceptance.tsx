@@ -201,6 +201,7 @@ export default function InvitationAcceptancePage() {
             </h1>
 
             <p className='text-lg text-gray-600 mb-6'>
+              {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
               Bienvenue {completedUser.firstName} {completedUser.lastName}! Votre compte a été créé
               avec succès.
             </p>
@@ -218,6 +219,7 @@ export default function InvitationAcceptancePage() {
 
             <div className='bg-blue-50 border border-blue-200 p-4 rounded-lg mb-6'>
               <h4 className='text-sm font-medium text-blue-900 mb-2'>🛡️ Conformité Québécoise</h4>
+              {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
               <p className='text-xs text-blue-800'>
                 Vos consentements ont été enregistrés conformément à la Loi 25 du Québec. Vous
                 pouvez exercer vos droits à tout moment en contactant notre équipe.
@@ -234,6 +236,7 @@ export default function InvitationAcceptancePage() {
                 Accéder à mon compte
               </Button>
 
+              {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
               <p className='text-sm text-gray-500'>
                 Vous pouvez maintenant vous connecter avec votre email et mot de passe
               </p>
@@ -260,6 +263,7 @@ export default function InvitationAcceptancePage() {
           </Button>
 
           <h1 className='text-4xl font-bold text-gray-900 mb-4'>Acceptation d'invitation</h1>
+          {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
           <p className='text-lg text-gray-600 max-w-2xl mx-auto'>
             Complétez votre inscription pour rejoindre la plateforme Koveo Gestion
           </p>
@@ -304,6 +308,7 @@ export default function InvitationAcceptancePage() {
 
         {/* Footer */}
         <div className='text-center mt-4 text-sm text-gray-500'>
+          {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
           <p>
             En vous inscrivant, vous acceptez nos conditions d'utilisation et notre politique de
             confidentialité conforme à la Loi 25 du Québec.

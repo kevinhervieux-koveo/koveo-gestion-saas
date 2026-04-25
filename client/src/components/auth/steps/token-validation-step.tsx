@@ -202,6 +202,7 @@ export function TokenValidationStep({ _data, onDataChange, onValidationChange }:
       <div className='flex flex-col items-center justify-center py-12'>
         <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4' />
         <h3 className='text-lg font-medium text-gray-900 mb-2'>Validation de l'invitation</h3>
+        {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
         <p className='text-gray-600 text-center max-w-md'>
           Vérification du token d'invitation et des détails associés...
         </p>
@@ -214,6 +215,7 @@ export function TokenValidationStep({ _data, onDataChange, onValidationChange }:
       <div className='flex flex-col items-center justify-center py-12'>
         <AlertTriangle className='h-12 w-12 text-yellow-500 mb-4' />
         <h3 className='text-lg font-medium text-gray-900 mb-2'>Token d'invitation requis</h3>
+        {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
         <p className='text-gray-600 text-center max-w-md'>
           Aucun token d'invitation valide n'a été trouvé. Veuillez utiliser le lien d'invitation
           reçu par email.
@@ -239,12 +241,16 @@ export function TokenValidationStep({ _data, onDataChange, onValidationChange }:
               <h3 className='text-lg font-medium text-red-900 mb-2'>
                 Impossible de valider l'invitation
               </h3>
+              {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
               <p className='text-red-700 mb-4'>
                 Le lien d'invitation peut être expiré, invalide ou déjà utilisé.
               </p>
               <div className='text-sm text-red-600 space-y-1'>
+                {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                 <p>• Vérifiez que vous utilisez le lien complet reçu par email</p>
+                {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                 <p>• Assurez-vous que l'invitation n'est pas expirée</p>
+                {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                 <p>• Contactez l'administrateur si le problème persiste</p>
               </div>
             </div>
@@ -259,6 +265,7 @@ export function TokenValidationStep({ _data, onDataChange, onValidationChange }:
       <Alert className='border-green-200 bg-green-50'>
         <CheckCircle className='h-4 w-4 text-green-600' />
         <AlertDescription className='text-green-800'>
+          {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
           <strong>Invitation valide!</strong> Vous pouvez procéder à la création de votre compte.
         </AlertDescription>
       </Alert>

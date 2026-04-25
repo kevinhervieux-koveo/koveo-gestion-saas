@@ -608,6 +608,7 @@ export function ElementTable({
           <Package className="h-12 w-12 text-muted-foreground mx-auto" />
           <div>
             <h3 className="text-lg font-semibold mb-2">No Elements Found</h3>
+            {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
             <p className="text-muted-foreground">
               {t('startBuildingYourInventoryByAdding')}
             </p>

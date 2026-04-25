@@ -204,6 +204,7 @@ export function StandardDocumentAttachments({
                           {Math.round((aiExtractionData.confidence || 0) * 100)}% confidence
                         </Badge>
                       </div>
+                      {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                       <p className="text-sm text-green-700 dark:text-green-300">
                         {t('formFieldsHaveBeenAutomaticallyPopulated')}
                       </p>
@@ -359,6 +360,7 @@ export function StandardDocumentAttachments({
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                   No documents attached yet
                 </p>
+                {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                 <p className="text-xs text-gray-500 dark:text-gray-500">
                   {t('useTheUploadSectionAboveTo')}
                 </p>

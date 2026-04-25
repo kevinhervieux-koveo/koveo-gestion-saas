@@ -1002,6 +1002,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                             data-testid="input-available-date"
                           />
                         </FormControl>
+                        {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                         <FormDescription>
                           {t('wfSubmissionAvailableDateDesc')}
                         </FormDescription>
@@ -1026,6 +1027,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                             {...field}
                           />
                         </FormControl>
+                        {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                         <FormDescription>
                           {t('wfSubmissionAdditionalDetailsDesc')}
                         </FormDescription>

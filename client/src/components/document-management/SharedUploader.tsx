@@ -575,12 +575,15 @@ export function SharedUploader({
                   <Camera className="h-6 w-6 text-blue-500" />
                 </div>
                 <div className="space-y-2">
+                  {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                   <p className="text-lg font-medium text-gray-900 dark:text-gray-100">
                     {t('dropFilesHereOrClickTo')}
                   </p>
+                  {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                   <p className="text-sm text-gray-500 dark:text-gray-400">
                     {t('onMobileTapToUseCamera')}
                   </p>
+                  {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                   <p className="text-sm text-gray-500 dark:text-gray-400">
                     {t('onDesktopDragDropClickTo')}
                   </p>
@@ -588,6 +591,7 @@ export function SharedUploader({
                     Maximum {finalMaxFileSize}MB • {formatAcceptedFileTypes(finalAllowedTypes).join(', ')}
                   </p>
                   {aiEnabled && (
+                    // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
                     <p className="text-xs text-purple-500 dark:text-purple-400 mt-1">
                       {t('aiAnalysisWillExtractKeyInformation')}
                     </p>
@@ -611,6 +615,7 @@ export function SharedUploader({
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                     Choose File Source
                   </h3>
+                  {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                   <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                     {t('selectHowYouDLikeTo')}
                   </p>
@@ -694,9 +699,11 @@ export function SharedUploader({
               className="resize-none"
               data-testid="textarea-document-content"
             />
+            {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
             <p className="text-xs text-gray-500 dark:text-gray-400">
               {t('createATextOnlyDocumentEntry')}
               {enableAutoSave && (
+                // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
                 <span className="block mt-1 text-blue-600 dark:text-blue-400">
                   {t('changesAreAutomaticallySavedAfterYou')}
                 </span>

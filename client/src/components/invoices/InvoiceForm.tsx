@@ -253,6 +253,7 @@ export function InvoiceForm({
       {extractionStatus.loading && (
         <Alert>
           <Loader2 className="h-4 w-4 animate-spin" />
+          {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
           <AlertDescription>
             {t('extractingInvoiceDataWithAiThis')}
           </AlertDescription>
@@ -494,6 +495,7 @@ export function InvoiceForm({
                         </div>
                         
                         {fields.length === 0 && (
+                          // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
                           <p className="text-sm text-muted-foreground">
                             {t('noCustomDatesAddedClickAdd')}
                           </p>

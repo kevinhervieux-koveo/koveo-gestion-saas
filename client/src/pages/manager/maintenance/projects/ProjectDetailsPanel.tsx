@@ -166,6 +166,7 @@ export function ProjectDetailsPanel({
             </div>
           </div>
           
+          {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
           <SheetDescription className="text-sm">
             Comprehensive project details, timeline, budget, and management tools
           </SheetDescription>
@@ -222,6 +223,7 @@ export function ProjectDetailsPanel({
         {error && (
           <Alert variant="destructive" className="mt-6">
             <AlertTriangle className="h-4 w-4" />
+            {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
             <AlertDescription>
               Failed to load project details. Please try again.
             </AlertDescription>
@@ -560,11 +562,13 @@ export function ProjectDetailsPanel({
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-sm">Project Elements</CardTitle>
+                    {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                     <CardDescription>Building elements associated with this project</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="text-center py-6 text-muted-foreground">
                       <Building2 className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                      {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                       <p className="text-sm">Element management available in full view</p>
                     </div>
                     

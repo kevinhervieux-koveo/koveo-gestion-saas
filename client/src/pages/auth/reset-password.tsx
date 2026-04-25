@@ -200,6 +200,7 @@ ResetPasswordPage() {
               <CheckCircle className='w-6 h-6 text-green-600 dark:text-green-400' />
             </div>
             <CardTitle className='text-2xl font-bold'>Mot de passe réinitialisé</CardTitle>
+            {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
             <CardDescription>
               Votre mot de passe a été mis à jour avec succès. Vous pouvez maintenant vous connecter
               avec votre nouveau mot de passe.
@@ -241,6 +242,7 @@ ResetPasswordPage() {
         <Card className='w-full max-w-md'>
           <CardHeader className='text-center'>
             <CardTitle className='text-2xl font-bold'>Lien invalide</CardTitle>
+            {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
             <CardDescription>Le lien de réinitialisation est invalide ou manquant.</CardDescription>
           </CardHeader>
           <CardContent>

@@ -132,6 +132,7 @@ export function DeleteConfirmationDialog({
             <AlertTriangle className='h-5 w-5' />
             Confirm Deletion
           </DialogTitle>
+          {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
           <DialogDescription>
             {t('thisActionCannotBeUndonePlease')}
           </DialogDescription>
@@ -224,6 +225,7 @@ export function DeleteConfirmationDialog({
             </div>
           ) : (
             <div className='text-center py-4'>
+              {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
               <p className='text-sm text-gray-600 dark:text-gray-400'>
                 {t('unableToAnalyzeDeletionImpactProceed')}
               </p>

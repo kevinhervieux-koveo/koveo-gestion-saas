@@ -145,6 +145,7 @@ export function ProfileCompletionStep({
       <Alert className='border-blue-200 bg-blue-50'>
         <User className='h-4 w-4 text-blue-600' />
         <AlertDescription className='text-blue-800'>
+          {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
           <strong>Profil utilisateur:</strong> Complétez votre profil pour finaliser votre
           inscription et accéder aux services de gestion immobilière.
         </AlertDescription>

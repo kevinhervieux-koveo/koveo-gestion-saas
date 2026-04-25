@@ -463,6 +463,7 @@ export function ElementHistoryForm({
                     <FormControl>
                       <Textarea
                         {...field}
+                        // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
                         placeholder="Describe the maintenance work performed, materials used, and any specific details..."
                         rows={4}
                         data-testid="work-description"
@@ -654,6 +655,7 @@ export function ElementHistoryForm({
 
                 {autoCalculateLifespan && typeof currentLifespanImpact === 'number' && currentLifespanImpact > 0 && (
                   <div className="text-sm text-muted-foreground flex items-center gap-1">
+                    {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                     <CheckCircle2 className="h-3 w-3 text-green-500" />
                     {t('automaticallyCalculatedBasedOnEventType')}
                   </div>
@@ -671,6 +673,7 @@ export function ElementHistoryForm({
                     <FormControl>
                       <Textarea
                         {...field}
+                        // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
                         placeholder="Additional notes, observations, or future recommendations..."
                         rows={3}
                         data-testid="notes-input"

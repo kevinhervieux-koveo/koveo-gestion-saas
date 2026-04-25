@@ -203,6 +203,7 @@ export function VendorForm({
                     />
                   </div>
                 </FormControl>
+                {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                 <FormDescription>
                   {t('theLegalOrBusinessNameOf')}
                 </FormDescription>
@@ -329,6 +330,7 @@ export function VendorForm({
                 <div className="relative">
                   <FileText className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                   <Textarea
+                    // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
                     placeholder="Additional notes about this vendor, specialties, service quality, etc."
                     className="pl-10 min-h-[100px] resize-none"
                     {...field}
@@ -336,6 +338,7 @@ export function VendorForm({
                   />
                 </div>
               </FormControl>
+              {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
               <FormDescription>
                 {t('additionalInformationServiceQualityNotesSpecialties')}
               </FormDescription>

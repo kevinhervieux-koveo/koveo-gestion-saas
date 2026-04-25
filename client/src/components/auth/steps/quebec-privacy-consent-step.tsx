@@ -112,6 +112,7 @@ export function QuebecPrivacyConsentStep({
       <Alert className='border-blue-200 bg-blue-50'>
         <Shield className='h-4 w-4 text-blue-600' />
         <AlertDescription className='text-blue-800'>
+          {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
           <strong>Protection des renseignements personnels (Loi 25 - Québec):</strong> Votre
           consentement est requis pour la collecte et l'utilisation de vos données personnelles.
         </AlertDescription>
@@ -149,6 +150,7 @@ export function QuebecPrivacyConsentStep({
                           Collecte et traitement des données
                         </Label>
                       </div>
+                      {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                       <p className='text-xs text-green-800 mt-1'>
                         J'accepte tous les types de collecte et traitement de données (essentielles
                         et optionnelles).
@@ -187,9 +189,11 @@ export function QuebecPrivacyConsentStep({
                         <Label
                           htmlFor='dataCollectionConsent'
                           className='text-sm font-medium text-blue-900 cursor-pointer'
+                          // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
                         >
                           Collecte des données essentielles (Requis) *
                         </Label>
+                        {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                         <p className='text-xs text-blue-800 mt-1'>
                           Authentification, communication, gestion de compte, services de gestion
                           immobilière.
@@ -216,6 +220,7 @@ export function QuebecPrivacyConsentStep({
                         >
                           Communications marketing (Optionnel)
                         </Label>
+                        {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                         <p className='text-xs text-gray-600 mt-1'>
                           Communications promotionnelles, nouvelles fonctionnalités, offres
                           spéciales.
@@ -242,6 +247,7 @@ export function QuebecPrivacyConsentStep({
                         >
                           Analyse et amélioration (Optionnel)
                         </Label>
+                        {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                         <p className='text-xs text-gray-600 mt-1'>
                           Données d'utilisation anonymisées pour améliorer les services.
                         </p>
@@ -267,6 +273,7 @@ export function QuebecPrivacyConsentStep({
                         >
                           Services tiers intégrés (Optionnel)
                         </Label>
+                        {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                         <p className='text-xs text-gray-600 mt-1'>
                           Cartographie, notifications, stockage pour améliorer l'expérience.
                         </p>
@@ -310,11 +317,13 @@ export function QuebecPrivacyConsentStep({
                     </Label>
                     <p
                       className={`text-xs mt-1 ${!formData.acknowledgedRights ? 'text-yellow-800' : 'text-blue-800'}`}
+                      // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
                     >
                       J'ai été informé(e) de mes droits concernant mes renseignements personnels et
                       je comprends que je peux exercer ces droits à tout moment.
                     </p>
                     {!formData.acknowledgedRights && (
+                      // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
                       <p className='text-xs text-yellow-700 font-medium mt-2'>
                         ⚠️ Cette case doit être cochée pour continuer.
                       </p>
@@ -325,6 +334,7 @@ export function QuebecPrivacyConsentStep({
 
               {/* User Rights Information */}
               <div className='bg-white border border-gray-200 p-4 rounded-lg'>
+                {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                 <h4 className='text-sm font-medium text-gray-900 mb-3'>
                   📋 Vos droits selon la Loi 25 du Québec
                 </h4>
@@ -350,6 +360,7 @@ export function QuebecPrivacyConsentStep({
                   <div className='flex items-start space-x-2'>
                     <Download className='h-4 w-4 text-purple-500 mt-0.5 flex-shrink-0' />
                     <span>
+                      {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                       <strong>Droit de portabilité:</strong> Récupérer vos données dans un format
                       lisible
                     </span>
@@ -362,6 +373,7 @@ export function QuebecPrivacyConsentStep({
                 <h4 className='text-sm font-medium text-gray-900 mb-2'>
                   📞 Contact pour vos droits
                 </h4>
+                {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                 <p className='text-xs text-gray-600'>
                   Pour exercer vos droits ou pour toute question concernant vos données
                   personnelles, contactez notre responsable de la protection des données:
@@ -393,6 +405,7 @@ export function QuebecPrivacyConsentStep({
               <div className='flex items-start space-x-2'>
                 <Shield className='h-4 w-4 mt-0.5 flex-shrink-0' />
                 <span>
+                  {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                   <strong>Sécurité:</strong> Vos données sont chiffrées et stockées sur des serveurs
                   sécurisés au Canada
                 </span>
@@ -400,6 +413,7 @@ export function QuebecPrivacyConsentStep({
               <div className='flex items-start space-x-2'>
                 <Database className='h-4 w-4 mt-0.5 flex-shrink-0' />
                 <span>
+                  {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                   <strong>Conservation:</strong> Vos données sont conservées selon les exigences
                   légales québécoises
                 </span>
@@ -407,6 +421,7 @@ export function QuebecPrivacyConsentStep({
               <div className='flex items-start space-x-2'>
                 <FileText className='h-4 w-4 mt-0.5 flex-shrink-0' />
                 <span>
+                  {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                   <strong>Transparence:</strong> Consultez notre politique de confidentialité
                   complète à tout moment
                 </span>

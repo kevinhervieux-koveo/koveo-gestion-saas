@@ -145,6 +145,7 @@ export function WorkflowSkipConfigDialog({
             <Settings className="h-5 w-5" />
             Workflow Configuration
           </DialogTitle>
+          {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
           <DialogDescription>
             {t('wfSkipConfigDescription')}
           </DialogDescription>
@@ -228,6 +229,7 @@ export function WorkflowSkipConfigDialog({
                   </div>
                   
                   {!canToggle && (
+                    // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
                     <p className="text-xs text-gray-500 mt-2">
                       {t('wfSkipConfigCompletedNote')}
                     </p>
@@ -269,6 +271,7 @@ export function WorkflowSkipConfigDialog({
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Delete Project</AlertDialogTitle>
+          {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
           <AlertDialogDescription>
             {t('wfSkipConfigDeleteConfirmation')}
           </AlertDialogDescription>

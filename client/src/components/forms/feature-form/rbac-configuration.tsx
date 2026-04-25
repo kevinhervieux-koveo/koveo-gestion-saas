@@ -48,6 +48,7 @@ export function RBACConfiguration({
           checked={formData.rbacRequired}
           onCheckedChange={(checked: boolean) => onUpdateFormData('rbacRequired', checked)}
         />
+        {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
         <span className='text-xs text-gray-500'>
           {t('enableRoleBasedAccessControlFor')}
         </span>
@@ -56,6 +57,7 @@ export function RBACConfiguration({
       {formData.rbacRequired && (
         <div className='bg-yellow-50 p-4 rounded-lg space-y-4'>
           <h4 className='font-medium text-yellow-800'>Configure Role Permissions</h4>
+          {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
           <p className='text-sm text-yellow-700'>
             {t('forEachRoleSpecifyReadWrite')}
           </p>

@@ -138,6 +138,7 @@ export function ProjectsOverview({ className, buildingId, organizationId }: Proj
     return (
       <Alert variant="destructive" className={className}>
         <AlertTriangle className="h-4 w-4" />
+        {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
         <AlertDescription>
           Failed to load project metrics. Please try refreshing the page.
         </AlertDescription>
@@ -432,6 +433,7 @@ export function ProjectsOverview({ className, buildingId, organizationId }: Proj
           <AlertDescription>
             {performanceMetrics.budgetHealth === 'critical' && 'Budget utilization is critically high. '}
             {performanceMetrics.scheduleHealth === 'critical' && 'Schedule performance needs immediate attention. '}
+            {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
             {performanceMetrics.efficiencyHealth === 'critical' && 'Project completion efficiency is below acceptable levels. '}
             Consider reviewing project portfolio and resource allocation.
           </AlertDescription>

@@ -265,6 +265,7 @@ export function ProjectDashboardView({
       <Alert variant="destructive" className={className} data-testid="dashboard-view-error">
         <AlertTriangle className="h-4 w-4" />
         <AlertDescription className="flex items-center justify-between">
+          {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
           <span>Failed to load dashboard analytics. Please try again.</span>
           <Button variant="outline" size="sm" onClick={() => refetch()}>
             <RefreshCw className="h-4 w-4 mr-2" />
@@ -281,6 +282,7 @@ export function ProjectDashboardView({
       <div className={cn('flex flex-col items-center justify-center p-8', className)} data-testid="no-building-selected">
         <Building2 className="h-16 w-16 text-muted-foreground mb-4" />
         <h3 className="text-lg font-semibold mb-2">No Building Selected</h3>
+        {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
         <p className="text-muted-foreground text-center">
           Please select a building to view its project dashboard.
         </p>
@@ -294,6 +296,7 @@ export function ProjectDashboardView({
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="space-y-1">
           <h3 className="text-lg font-semibold">Project Portfolio Dashboard</h3>
+          {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
           <p className="text-sm text-muted-foreground">
             Analytics, insights, and performance metrics for maintenance project management
           </p>
@@ -426,6 +429,7 @@ export function ProjectDashboardView({
         <Card data-testid="project-trends-chart">
           <CardHeader>
             <CardTitle className="text-base">Project Trends</CardTitle>
+            {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
             <CardDescription>
               Monthly project creation and completion trends
             </CardDescription>
@@ -465,6 +469,7 @@ export function ProjectDashboardView({
         <Card data-testid="budget-analysis-chart">
           <CardHeader>
             <CardTitle className="text-base">Budget Analysis</CardTitle>
+            {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
             <CardDescription>
               Planned vs actual budget utilization over time
             </CardDescription>
@@ -645,6 +650,7 @@ export function ProjectDashboardView({
           <AlertDescription>
             <div className="space-y-1">
               {dashboardMetrics.overdueProjects > 0 && (
+                // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
                 <p>{dashboardMetrics.overdueProjects} project(s) are overdue and require immediate attention.</p>
               )}
               {dashboardMetrics.budgetUtilization > 90 && (
@@ -659,6 +665,7 @@ export function ProjectDashboardView({
       <Card data-testid="executive-summary">
         <CardHeader>
           <CardTitle className="text-base">Executive Summary</CardTitle>
+          {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
           <CardDescription>
             Key insights and recommendations for project portfolio management
           </CardDescription>

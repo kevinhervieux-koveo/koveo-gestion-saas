@@ -103,6 +103,7 @@ export function InventoryHeader({
           <h1 className="text-2xl font-bold text-foreground" data-testid="page-title">
             Inventory - Building Elements
           </h1>
+          {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
           <p className="text-muted-foreground">
             {t('manageBuildingElementsTrackConditionsAnd')}
           </p>
@@ -125,6 +126,7 @@ export function InventoryHeader({
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
           <Input
+            // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
             placeholder="Search elements by name, UNIFORMAT code, or description..."
             value={searchTerm}
             onChange={(e) => onSearchChange?.(e.target.value)}

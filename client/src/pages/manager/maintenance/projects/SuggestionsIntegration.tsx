@@ -240,6 +240,7 @@ export function SuggestionsIntegration({
             <Lightbulb className="h-5 w-5 text-yellow-500" />
             Create Projects from Suggestions
           </DialogTitle>
+          {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
           <DialogDescription>
             Review and select evaluation suggestions to automatically create maintenance projects.
             Projects will be generated with standard workflows and can be customized after creation.
@@ -261,6 +262,7 @@ export function SuggestionsIntegration({
         {error && (
           <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
+            {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
             <AlertDescription>
               Failed to load suggestions. Please try again.
             </AlertDescription>
@@ -422,6 +424,7 @@ export function SuggestionsIntegration({
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm">Project Defaults</CardTitle>
+                  {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                   <CardDescription>
                     Set default values for all generated projects
                   </CardDescription>

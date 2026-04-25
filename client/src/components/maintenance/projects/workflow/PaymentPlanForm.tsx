@@ -273,6 +273,7 @@ export function PaymentPlanForm({
           <DollarSign className="h-5 w-5" />
           Payment Plan Setup
         </CardTitle>
+        {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
         <CardDescription>
           {t('wfPaymentConfigDescription')}
         </CardDescription>
@@ -299,6 +300,7 @@ export function PaymentPlanForm({
                       <SelectItem value="recurring">Recurring Payments</SelectItem>
                     </SelectContent>
                   </Select>
+                  {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                   <FormDescription>
                     {t('wfPaymentTypeDescription')}
                   </FormDescription>
@@ -430,6 +432,7 @@ export function PaymentPlanForm({
                     <FormLabel>
                       Has initial payment
                     </FormLabel>
+                    {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                     <FormDescription>
                       {t('wfPaymentInitialDescription')}
                     </FormDescription>
@@ -486,6 +489,7 @@ export function PaymentPlanForm({
                         <FormLabel>
                           Equal recurring payments
                         </FormLabel>
+                        {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                         <FormDescription>
                           {t('wfPaymentEqualRecurringDesc')}
                         </FormDescription>

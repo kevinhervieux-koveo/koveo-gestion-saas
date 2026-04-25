@@ -80,6 +80,7 @@ export default function ForgotPasswordPage() {
               <Mail className='w-6 h-6 text-green-600 dark:text-green-400' />
             </div>
             <CardTitle className='text-2xl font-bold'>E-mail envoyé</CardTitle>
+            {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
             <CardDescription>
               Si votre adresse e-mail est dans notre système, vous recevrez un lien de
               réinitialisation du mot de passe dans quelques minutes.
@@ -87,6 +88,7 @@ export default function ForgotPasswordPage() {
           </CardHeader>
           <CardContent>
             <div className='space-y-4'>
+              {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
               <p className='text-sm text-muted-foreground text-center'>
                 N'oubliez pas de vérifier votre dossier de courrier indésirable.
               </p>
@@ -122,6 +124,7 @@ export default function ForgotPasswordPage() {
       <Card className='w-full max-w-md'>
         <CardHeader className='text-center'>
           <CardTitle className='text-2xl font-bold'>Mot de passe oublié</CardTitle>
+          {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
           <CardDescription>
             Entrez votre adresse e-mail pour recevoir un lien de réinitialisation du mot de passe
           </CardDescription>
@@ -145,6 +148,7 @@ export default function ForgotPasswordPage() {
               placeholder="votre@email.com"
               required
               formName="forgot-password"
+              // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
               description="Nous vous enverrons un lien sécurisé pour réinitialiser votre mot de passe"
             />
           </StandardForm>

@@ -164,6 +164,7 @@ export function ProjectTableView({
     return (
       <Alert variant="destructive" className={className} data-testid="project-table-view-error">
         <AlertTriangle className="h-4 w-4" />
+        {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
         <AlertDescription>
           Failed to load projects. Please try refreshing the page.
         </AlertDescription>
@@ -177,6 +178,7 @@ export function ProjectTableView({
       <div className={cn('flex flex-col items-center justify-center p-8', className)} data-testid="no-building-selected">
         <Building2 className="h-16 w-16 text-muted-foreground mb-4" />
         <h3 className="text-lg font-semibold mb-2">No Building Selected</h3>
+        {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
         <p className="text-muted-foreground text-center">
           Please select a building to view its maintenance projects.
         </p>
@@ -190,10 +192,12 @@ export function ProjectTableView({
       <div className={cn('flex flex-col items-center justify-center p-8', className)} data-testid="no-projects-empty-state">
         <Folder className="h-16 w-16 text-muted-foreground mb-4" />
         <h3 className="text-lg font-semibold mb-2">No Projects Found</h3>
+        {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
         <p className="text-muted-foreground text-center mb-4">
           No maintenance projects have been created for this building yet.
         </p>
         {canCreateProjects && (
+          // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
           <p className="text-sm text-muted-foreground text-center">
             Get started by creating your first project or generating projects from evaluation suggestions.
           </p>
@@ -208,9 +212,11 @@ export function ProjectTableView({
       <div className={cn('flex flex-col items-center justify-center p-8', className)} data-testid="no-projects-filtered-state">
         <Folder className="h-16 w-16 text-muted-foreground mb-4" />
         <h3 className="text-lg font-semibold mb-2">No Projects Match Filters</h3>
+        {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
         <p className="text-muted-foreground text-center">
           No projects match your current search and filter criteria.
         </p>
+        {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
         <p className="text-sm text-muted-foreground text-center mt-2">
           Try adjusting your filters or search terms.
         </p>
@@ -282,6 +288,7 @@ export function ProjectTableView({
       {/* Additional Information */}
       {canEditMaintenance && filteredProjects.length > 0 && (
         <div className="text-xs text-muted-foreground text-center p-4 border-t">
+          {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
           <p>
             Project data is updated in real-time. Use bulk actions to manage multiple projects at once.
           </p>

@@ -738,6 +738,7 @@ ${formData.additionalNotes || 'No additional notes'}
                     }
                     className='scale-90'
                   />
+                  {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                   <span className='text-xs text-gray-500'>
                     {t('markThisFeatureAsPartOf')}
                   </span>
@@ -754,6 +755,7 @@ ${formData.additionalNotes || 'No additional notes'}
                   <Label htmlFor='businessObjective'>Business Objective *</Label>
                   <Textarea
                     id='businessObjective'
+                    // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
                     placeholder='What problem does this feature solve? What business value does it provide?'
                     value={formData.businessObjective}
                     onChange={(e) => updateFormData('businessObjective', e.target.value)}
@@ -774,6 +776,7 @@ ${formData.additionalNotes || 'No additional notes'}
                   <Label htmlFor='successMetrics'>Success Metrics</Label>
                   <Textarea
                     id='successMetrics'
+                    // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
                     placeholder='How will we measure success? What are the KPIs?'
                     value={formData.successMetrics}
                     onChange={(e) => updateFormData('successMetrics', e.target.value)}
@@ -802,6 +805,7 @@ ${formData.additionalNotes || 'No additional notes'}
                   <Label htmlFor='timeline'>Expected Timeline</Label>
                   <Input
                     id='timeline'
+                    // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
                     placeholder='e.g., 2 weeks, 1 month, Next sprint'
                     value={formData.timeline}
                     onChange={(e) => updateFormData('timeline', e.target.value)}
@@ -835,6 +839,7 @@ ${formData.additionalNotes || 'No additional notes'}
                   <Label htmlFor='dependencies'>Dependencies</Label>
                   <Textarea
                     id='dependencies'
+                    // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
                     placeholder='What other features, APIs, or systems does this depend on?'
                     value={formData.dependencies}
                     onChange={(e) => updateFormData('dependencies', e.target.value)}
@@ -845,6 +850,7 @@ ${formData.additionalNotes || 'No additional notes'}
                   <Label htmlFor='dataRequirements'>Data Requirements</Label>
                   <Textarea
                     id='dataRequirements'
+                    // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
                     placeholder='What data needs to be stored, modified, or accessed?'
                     value={formData.dataRequirements}
                     onChange={(e) => updateFormData('dataRequirements', e.target.value)}
@@ -855,6 +861,7 @@ ${formData.additionalNotes || 'No additional notes'}
                   <Label htmlFor='integrationNeeds'>Integration Needs</Label>
                   <Textarea
                     id='integrationNeeds'
+                    // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
                     placeholder='External APIs, services, or third-party integrations needed'
                     value={formData.integrationNeeds}
                     onChange={(e) => updateFormData('integrationNeeds', e.target.value)}
@@ -865,6 +872,7 @@ ${formData.additionalNotes || 'No additional notes'}
                   <Label htmlFor='securityConsiderations'>Security Considerations</Label>
                   <Textarea
                     id='securityConsiderations'
+                    // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
                     placeholder='Authentication, authorization, data privacy concerns'
                     value={formData.securityConsiderations}
                     onChange={(e) => updateFormData('securityConsiderations', e.target.value)}
@@ -881,6 +889,7 @@ ${formData.additionalNotes || 'No additional notes'}
                   <Label htmlFor='userFlow'>User Flow *</Label>
                   <Textarea
                     id='userFlow'
+                    // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
                     placeholder='Describe the step-by-step user interaction with this feature'
                     value={formData.userFlow}
                     onChange={(e) => updateFormData('userFlow', e.target.value)}
@@ -891,6 +900,7 @@ ${formData.additionalNotes || 'No additional notes'}
                   <Label htmlFor='uiRequirements'>UI Requirements</Label>
                   <Textarea
                     id='uiRequirements'
+                    // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
                     placeholder='Specific UI components, layouts, or visual requirements'
                     value={formData.uiRequirements}
                     onChange={(e) => updateFormData('uiRequirements', e.target.value)}
@@ -902,6 +912,7 @@ ${formData.additionalNotes || 'No additional notes'}
                 <Label htmlFor='accessibilityNeeds'>Accessibility Needs</Label>
                 <Input
                   id='accessibilityNeeds'
+                  // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
                   placeholder='Screen reader support, keyboard navigation, color contrast'
                   value={formData.accessibilityNeeds}
                   onChange={(e) => updateFormData('accessibilityNeeds', e.target.value)}
@@ -917,6 +928,7 @@ ${formData.additionalNotes || 'No additional notes'}
                   <Label htmlFor='performanceRequirements'>Performance Requirements</Label>
                   <Textarea
                     id='performanceRequirements'
+                    // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
                     placeholder='Load times, data processing speed, scalability needs'
                     value={formData.performanceRequirements}
                     onChange={(e) => updateFormData('performanceRequirements', e.target.value)}
@@ -927,6 +939,7 @@ ${formData.additionalNotes || 'No additional notes'}
                   <Label htmlFor='testingStrategy'>Testing Strategy</Label>
                   <Textarea
                     id='testingStrategy'
+                    // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
                     placeholder='Unit tests, integration tests, user acceptance criteria'
                     value={formData.testingStrategy}
                     onChange={(e) => updateFormData('testingStrategy', e.target.value)}
@@ -948,6 +961,7 @@ ${formData.additionalNotes || 'No additional notes'}
                   checked={formData.rbacRequired}
                   onCheckedChange={(checked: boolean) => updateFormData('rbacRequired', checked)}
                 />
+                {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                 <span className='text-xs text-gray-500'>
                   {t('enableRoleBasedAccessControlFor')}
                 </span>
@@ -956,6 +970,7 @@ ${formData.additionalNotes || 'No additional notes'}
               {formData.rbacRequired && (
                 <div className='bg-yellow-50 p-4 rounded-lg space-y-4'>
                   <h4 className='font-medium text-yellow-800'>Configure Role Permissions</h4>
+                  {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                   <p className='text-sm text-yellow-700'>
                     {t('forEachRoleSpecifyReadWrite')}
                   </p>
@@ -1031,6 +1046,7 @@ ${formData.additionalNotes || 'No additional notes'}
               <Label htmlFor='additionalNotes'>Additional Notes</Label>
               <Textarea
                 id='additionalNotes'
+                // eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up
                 placeholder='Any other requirements, constraints, or considerations'
                 value={formData.additionalNotes}
                 onChange={(e) => updateFormData('additionalNotes', e.target.value)}
@@ -1043,6 +1059,7 @@ ${formData.additionalNotes || 'No additional notes'}
                 <div className="flex items-center gap-2">
                   <Paperclip className="w-4 h-4 text-gray-500" />
                   <Label className="text-sm font-medium">Supporting Documents</Label>
+                  {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                   <span className="text-xs text-gray-500">
                     {t('optionalMockupsWireframesScreenshotsRequirementsDocs')}
                   </span>

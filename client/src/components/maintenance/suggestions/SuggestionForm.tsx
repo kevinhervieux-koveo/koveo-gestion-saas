@@ -274,6 +274,7 @@ export function SuggestionForm({
                     )}
                   </SelectContent>
                 </Select>
+                {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                 <FormDescription>
                   {t('selectTheBuildingElementForThis')}
                 </FormDescription>
@@ -293,6 +294,7 @@ export function SuggestionForm({
                     <Calculator className="h-4 w-4" />
                     Auto-Calculate Suggestion
                   </FormLabel>
+                  {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                   <FormDescription>
                     {t('automaticallyCalculateSuggestionTypePriorityAnd')}
                   </FormDescription>
@@ -410,6 +412,7 @@ export function SuggestionForm({
                     />
                   </PopoverContent>
                 </Popover>
+                {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                 <FormDescription>
                   {t('whenThisEvaluationOrWorkShould')}
                 </FormDescription>
@@ -441,6 +444,7 @@ export function SuggestionForm({
                     />
                   </div>
                 </FormControl>
+                {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                 <FormDescription>
                   {t('estimatedCostForTheSuggestedWork')}
                 </FormDescription>

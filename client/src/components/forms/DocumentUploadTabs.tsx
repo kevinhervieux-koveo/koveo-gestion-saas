@@ -113,6 +113,7 @@ export function DocumentUploadTabs({
                         {extractionMessage}
                       </span>
                     </div>
+                    {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                     <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
                       {t('thisMayTakeAFewSeconds')}
                     </p>

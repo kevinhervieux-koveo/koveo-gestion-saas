@@ -989,6 +989,7 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
               <DialogContent className='max-w-4xl max-h-[90vh] overflow-y-auto'>
                 <DialogHeader>
                   <DialogTitle>{t('createNewBill')}</DialogTitle>
+                  {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                   <DialogDescription className="sr-only">
                     {t('fillInTheFormBelowTo2')}
                   </DialogDescription>
@@ -1017,6 +1018,7 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
             <Card>
               <CardContent className='p-8 text-center'>
                 <h3 className='text-lg font-semibold text-gray-600 mb-2'>{t('noBillsFound')}</h3>
+                {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
                 <p className='text-gray-500 mb-4'>
                   {t('noBillsFoundForTheSelected')}
                 </p>
@@ -1055,6 +1057,7 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
         <DialogContent className='max-w-4xl max-h-[95vh] overflow-y-auto'>
           <DialogHeader>
             <DialogTitle>{t('createNewBill')}</DialogTitle>
+            {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
             <DialogDescription className="sr-only">
               {t('fillInTheFormBelowTo')}
             </DialogDescription>
@@ -1423,6 +1426,7 @@ function BillCard({
         <DialogContent className='max-w-2xl max-h-[95vh] overflow-y-auto'>
           <DialogHeader>
             <DialogTitle>Bill Details</DialogTitle>
+            {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
             <DialogDescription className="sr-only">
               {t('viewDetailedInformationAboutThisBill')}
             </DialogDescription>
@@ -1447,6 +1451,7 @@ function BillCard({
         <DialogContent className='max-w-4xl max-h-[95vh] overflow-y-auto'>
           <DialogHeader>
             <DialogTitle>{t('bills.editBill')}</DialogTitle>
+            {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
             <DialogDescription className="sr-only">
               {t('editTheDetailsOfThisBill')}
             </DialogDescription>

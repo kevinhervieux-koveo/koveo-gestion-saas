@@ -75,6 +75,7 @@ export function PlannedTab({ project, workflowState, onUpdate, onAdvanceToNext }
       <div className="p-6">
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
+          {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
           <AlertDescription>
             {t('wfPlannedProjectMissing')}
           </AlertDescription>

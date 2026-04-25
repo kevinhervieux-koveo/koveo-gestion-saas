@@ -184,22 +184,11 @@ export default [
       'no-misleading-character-class': 'off',
     },
   },
-  // i18n leak guard: scoped to files recently cleaned up for FR translation
-  // (task #640). Fails CI when JSX text or user-facing attribute strings
-  // longer than 40 chars (or more than 6 words) are not wrapped in t(...)
-  // or <Trans>. Add more files here as additional pages are translated.
+  // i18n leak guard: enforced across the entire client app (task #708).
+  // Fails CI when JSX text or user-facing attribute strings longer than
+  // 40 chars (or more than 6 words) are not wrapped in t(...) or <Trans>.
   {
-    files: [
-      'client/src/pages/settings/settings.tsx',
-      'client/src/pages/manager/maintenance/projects/ProjectsHeader.tsx',
-      'client/src/components/maintenance/projects/ProjectTable.tsx',
-      'client/src/components/ui/data-table.tsx',
-      'client/src/components/maintenance/inventory/BulkEditCostDialog.tsx',
-      'client/src/components/maintenance/inventory/BulkEditResidenceDialog.tsx',
-      'client/src/components/maintenance/projects/ProjectBudget.tsx',
-      'client/src/components/maintenance/projects/ProjectElements.tsx',
-      'client/src/components/maintenance/inventory/ElementForm.tsx',
-    ],
+    files: ['client/src/**/*.{ts,tsx}'],
     plugins: {
       i18n: i18nPlugin,
     },

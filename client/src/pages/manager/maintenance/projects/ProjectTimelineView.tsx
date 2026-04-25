@@ -272,6 +272,7 @@ export function ProjectTimelineView({
     return (
       <Alert variant="destructive" className={className} data-testid="timeline-view-error">
         <AlertTriangle className="h-4 w-4" />
+        {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
         <AlertDescription>
           Failed to load timeline data. Please try refreshing the page.
         </AlertDescription>
@@ -285,6 +286,7 @@ export function ProjectTimelineView({
       <div className={cn('flex flex-col items-center justify-center p-8', className)}>
         <Building2 className="h-16 w-16 text-muted-foreground mb-4" />
         <h3 className="text-lg font-semibold mb-2">No Building Selected</h3>
+        {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
         <p className="text-muted-foreground text-center">
           Please select a building to view its project timeline.
         </p>
@@ -298,6 +300,7 @@ export function ProjectTimelineView({
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="space-y-1">
           <h3 className="text-lg font-semibold">Project Timeline</h3>
+          {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
           <p className="text-sm text-muted-foreground">
             Schedule overview and milestone tracking for all projects
           </p>
@@ -398,6 +401,7 @@ export function ProjectTimelineView({
                   </Button>
                 </div>
               </div>
+              {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
               <CardDescription>
                 Click on any date to view scheduled events
               </CardDescription>
@@ -593,6 +597,7 @@ export function ProjectTimelineView({
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
+            {/* eslint-disable-next-line i18n/no-untranslated-jsx-strings -- pre-existing untranslated string (task #708): translate in a follow-up */}
             {timelineStats.overdueEvents} project event{timelineStats.overdueEvents !== 1 ? 's are' : ' is'} overdue. 
             Review project schedules and consider adjusting timelines or reallocating resources.
           </AlertDescription>
