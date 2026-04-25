@@ -330,6 +330,102 @@ const RUN_ALL_HEARTBEAT_THROTTLE_MS = 800;
 
 export const inFlightRunAll = new Set<string>();
 
+/**
+ * Per-item retry coordination (Task #1047).
+ *
+ * The per-row "Retry" button on the Bulk Document Import wizard used to
+ * `await processItemForStep(...)` inside the HTTP request handler. When
+ * the underlying Anthropic call was slow or had to retry internally, a
+ * single retry could sit longer than the Replit edge proxy's HTTP
+ * timeout (~60s) and the proxy would close the connection with `502
+ * Bad Gateway` even though the server was still working. The user saw
+ * a confusing "Bad Gateway" toast on a page that was otherwise just
+ * waiting for AI work.
+ *
+ * The fix mirrors the run-all background pattern: the retry endpoint
+ * schedules `processItemForStep` fire-and-forget, records the item as
+ * in-flight in the same `runAll[step].inFlight` shape the wizard
+ * already polls, and returns the current item snapshot immediately.
+ * The polling loop then picks up the new state once the background
+ * task settles.
+ *
+ * `inFlightPerItemRetry` keys on `${itemId}:${step}` so two retries on
+ * the same item+step short-circuit, but a retry on a different step
+ * for the same item (rare but possible across step navigations) does
+ * not block.
+ */
+export const inFlightPerItemRetry = new Set<string>();
+
+function perItemRetryKey(itemId: string, step: AutoStep): string {
+  return `${itemId}:${step}`;
+}
+
+/**
+ * Append an item to the session's `runAll[step].inFlight` list so the
+ * polling UI shows the same spinner it shows for the run-all loop
+ * (Task #1047). Idempotent — calling twice for the same item is a
+ * no-op so we never duplicate entries on retry-during-retry races.
+ */
+async function addPerItemRetryInFlight(
+  sessionId: string,
+  step: AutoStep,
+  item: { id: string; originalName: string },
+): Promise<void> {
+  const session = await loadSession(sessionId);
+  if (!session) return;
+  const runAll = getRunAllMap(session.progress);
+  const current = runAll[step] ?? {
+    total: 0,
+    processed: 0,
+    failed: 0,
+    startedAt: new Date().toISOString(),
+    finishedAt: new Date().toISOString(),
+    inFlight: [],
+  };
+  const existingInFlight = current.inFlight ?? [];
+  if (existingInFlight.some((e) => e.itemId === item.id)) return;
+  runAll[step] = {
+    ...current,
+    inFlight: [...existingInFlight, { itemId: item.id, originalName: item.originalName }],
+  };
+  const nextProgress = {
+    ...((session.progress ?? {}) as Record<string, unknown>),
+    runAll,
+  };
+  await db
+    .update(schema.bulkImportSessions)
+    .set({ progress: nextProgress, updatedAt: new Date() })
+    .where(eq(schema.bulkImportSessions.id, sessionId));
+}
+
+/**
+ * Remove an item from the session's `runAll[step].inFlight` list once
+ * its background retry settles (Task #1047). Best-effort: if the
+ * session was cleared mid-flight the row is gone and we silently no-op.
+ */
+async function removePerItemRetryInFlight(
+  sessionId: string,
+  step: AutoStep,
+  itemId: string,
+): Promise<void> {
+  const session = await loadSession(sessionId);
+  if (!session) return;
+  const runAll = getRunAllMap(session.progress);
+  const current = runAll[step];
+  if (!current?.inFlight?.length) return;
+  const nextInFlight = current.inFlight.filter((e) => e.itemId !== itemId);
+  if (nextInFlight.length === current.inFlight.length) return;
+  runAll[step] = { ...current, inFlight: nextInFlight };
+  const nextProgress = {
+    ...((session.progress ?? {}) as Record<string, unknown>),
+    runAll,
+  };
+  await db
+    .update(schema.bulkImportSessions)
+    .set({ progress: nextProgress, updatedAt: new Date() })
+    .where(eq(schema.bulkImportSessions.id, sessionId));
+}
+
 interface RunAllProgress {
   total: number;
   processed: number;
@@ -1665,6 +1761,22 @@ export function registerBulkImportRoutes(app: Express): void {
           inFlightRunAll.delete(key);
         }
       }
+      // Task #1047: also drop any per-item retry markers that belong
+      // to items in this session. The keys are `${itemId}:${step}` so
+      // we look up this session's item ids first and clear matching
+      // markers. The background tasks themselves can't be aborted
+      // mid-AI-call, but their final UPDATE will be a no-op once the
+      // item rows are deleted below — so dropping the marker here just
+      // keeps the in-process Set tidy.
+      const sessionItemIds = await db
+        .select({ id: schema.bulkImportItems.id })
+        .from(schema.bulkImportItems)
+        .where(eq(schema.bulkImportItems.sessionId, session.id));
+      for (const { id } of sessionItemIds) {
+        for (const key of inFlightPerItemRetry) {
+          if (key.startsWith(`${id}:`)) inFlightPerItemRetry.delete(key);
+        }
+      }
       await db
         .update(schema.bulkImportSessions)
         .set({ status: 'cleared', updatedAt: new Date() })
@@ -1697,6 +1809,17 @@ export function registerBulkImportRoutes(app: Express): void {
       for (const key of inFlightRunAll) {
         if (key.startsWith(`${session.id}:`)) {
           inFlightRunAll.delete(key);
+        }
+      }
+      // Task #1047: also drop per-item retry markers for this session's
+      // items (see the matching comment in the soft-clear handler).
+      const sessionItemIdsHard = await db
+        .select({ id: schema.bulkImportItems.id })
+        .from(schema.bulkImportItems)
+        .where(eq(schema.bulkImportItems.sessionId, session.id));
+      for (const { id } of sessionItemIdsHard) {
+        for (const key of inFlightPerItemRetry) {
+          if (key.startsWith(`${id}:`)) inFlightPerItemRetry.delete(key);
         }
       }
       await db
@@ -4003,6 +4126,38 @@ export function registerBulkImportRoutes(app: Express): void {
             .from(schema.bulkImportItems)
             .where(eq(schema.bulkImportItems.id, req.params.id));
           if (!item) return res.status(404).json({ error: 'Item not found' });
+
+          // Task #1047: short-circuit when *this specific item* is
+          // already being processed. Two cases:
+          //   1. A previous per-item retry on the same item+step is
+          //      still running in the background (in-process Set,
+          //      catches double-clicks before the heartbeat lands).
+          //   2. The run-all loop has THIS item in its `inFlight`
+          //      list right now. The run-all heartbeat persists that
+          //      list every RUN_ALL_HEARTBEAT_THROTTLE_MS so a
+          //      concurrent worker on this item is visible here.
+          //      Queuing a duplicate AI call would race the worker's
+          //      writes. Items the run-all loop *hasn't* picked up
+          //      yet (still queued, or already done) are not in
+          //      this list, so the admin can still retry them.
+          // Both cases return the current snapshot so the UI keeps the
+          // existing in-flight indicator and the user sees no error.
+          const itemKey = perItemRetryKey(item.id, step);
+          const session = await loadSession(item.sessionId);
+          const runAllInFlight = session
+            ? (getRunAllMap(session.progress)[step]?.inFlight ?? [])
+            : [];
+          const itemAlreadyInFlight = runAllInFlight.some(
+            (e) => e.itemId === item.id,
+          );
+          if (inFlightPerItemRetry.has(itemKey) || itemAlreadyInFlight) {
+            return res.json(item);
+          }
+
+          // Mark in-flight BEFORE returning so a near-simultaneous
+          // second click can't slip past the gate above.
+          inFlightPerItemRetry.add(itemKey);
+
           const sessionItems = await db
             .select({
               id: schema.bulkImportItems.id,
@@ -4014,20 +4169,18 @@ export function registerBulkImportRoutes(app: Express): void {
 
           // For the branching retry, fetch the session's building
           // residences so the AI can suggest a concrete residenceId.
+          // Reuses the `session` loaded above for the in-flight gate.
           let residences: Array<{ id: string; unitNumber: string }> | undefined;
-          if (step === 'branching') {
-            const session = await loadSession(item.sessionId);
-            if (session?.buildingId) {
-              residences = await db
-                .select({ id: schema.residences.id, unitNumber: schema.residences.unitNumber })
-                .from(schema.residences)
-                .where(
-                  and(
-                    eq(schema.residences.buildingId, session.buildingId),
-                    eq(schema.residences.isActive, true),
-                  ),
-                );
-            }
+          if (step === 'branching' && session?.buildingId) {
+            residences = await db
+              .select({ id: schema.residences.id, unitNumber: schema.residences.unitNumber })
+              .from(schema.residences)
+              .where(
+                and(
+                  eq(schema.residences.buildingId, session.buildingId),
+                  eq(schema.residences.isActive, true),
+                ),
+              );
           }
 
           // Task #1030: identification retries also need the building's
@@ -4035,25 +4188,90 @@ export function registerBulkImportRoutes(app: Express): void {
           // with the bulk run-all path.
           let fiscalYearStartMonth: number | undefined;
           if (step === 'identification') {
-            const session = await loadSession(item.sessionId);
             fiscalYearStartMonth = await getFiscalYearStartMonthForBuilding(
               session?.buildingId ?? null,
             );
           }
 
-          const updated = await processItemForStep(
-            step,
-            item,
-            sessionItems.map((s) => ({
-              id: s.id,
-              name: s.name,
-              screening: s.screening as Record<string, unknown> | null,
-            })),
-            residences,
-            fiscalYearStartMonth,
+          // Surface the in-flight state via the same `runAll[step].inFlight`
+          // shape the wizard already polls (Task #1047). Awaited so the
+          // immediate response below reflects the marker; the UI's polling
+          // loop will see it on its next tick.
+          await addPerItemRetryInFlight(item.sessionId, step, {
+            id: item.id,
+            originalName: item.originalName,
+          });
+
+          // Fire-and-forget: do the AI call in the background so the HTTP
+          // response goes out within milliseconds, regardless of how long
+          // Anthropic takes. The Replit edge proxy used to kill the
+          // connection with 502 when this ran inline (Task #1047).
+          const work = (async () => {
+            try {
+              await withItemTimeout(
+                processItemForStep(
+                  step,
+                  item,
+                  sessionItems.map((s) => ({
+                    id: s.id,
+                    name: s.name,
+                    screening: s.screening as Record<string, unknown> | null,
+                  })),
+                  residences,
+                  fiscalYearStartMonth,
+                ),
+                RUN_ALL_ITEM_TIMEOUT_MS,
+                item.originalName,
+              );
+            } catch (err) {
+              const isTimeout = (err as Error).message?.includes('timed out');
+              logError(
+                `[bulk-import] per-item ${step} ${isTimeout ? 'timeout' : 'error'} for item ${item.id}`,
+                err as Error,
+              );
+              if (isTimeout) {
+                // Mirror the run-all path: persist a step-appropriate
+                // fallback so the row shows the error badge instead of
+                // hanging in its pre-step status forever.
+                try {
+                  await persistTimeoutFallback(step, item);
+                } catch (e) {
+                  logError(
+                    '[bulk-import] persistTimeoutFallback failed (per-item retry)',
+                    e as Error,
+                  );
+                }
+              }
+            } finally {
+              inFlightPerItemRetry.delete(itemKey);
+              try {
+                await removePerItemRetryInFlight(item.sessionId, step, item.id);
+              } catch (e) {
+                logError(
+                  '[bulk-import] removePerItemRetryInFlight failed',
+                  e as Error,
+                );
+              }
+            }
+          })();
+          // Surface unexpected errors from the IIFE itself so they don't
+          // become unhandled rejections (defensive — the inner try/catch
+          // already covers the AI path).
+          void work.catch((e) =>
+            logError('[bulk-import] per-item background task crashed', e as Error),
           );
-          return res.json(updated);
+
+          return res.json(item);
         } catch (err) {
+          // Defensive: ensure we don't leak the in-flight marker if the
+          // pre-flight DB lookups above throw before the background task
+          // is scheduled.
+          try {
+            const id = req.params.id;
+            inFlightPerItemRetry.delete(perItemRetryKey(id, step));
+          } catch {
+            /* noop */
+          }
           logError(`[bulk-import] per-item ${step} failed`, err as Error);
           return res.status(500).json({ error: `Failed to run ${step}` });
         }

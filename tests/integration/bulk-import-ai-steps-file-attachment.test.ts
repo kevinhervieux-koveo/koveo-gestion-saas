@@ -81,6 +81,31 @@ describeIfDb('bulk-import AI route handlers stream staged files to Anthropic —
   let db: any;
   let schema: any;
   let bulkImportAnalyzer: typeof import('../../server/services/bulk-import-analyzer').bulkImportAnalyzer;
+  let inFlightPerItemRetry: Set<string>;
+
+  /**
+   * Task #1047: per-item retry endpoints are now fire-and-forget. The
+   * HTTP response carries the pre-AI snapshot, so we wait for the
+   * `inFlightPerItemRetry` marker to clear before reading the
+   * persisted row.
+   */
+  async function waitForRetryToSettle(
+    itemId: string,
+    step: 'screening' | 'sorting' | 'branching' | 'identification' | 'linking',
+    maxMs = 8000,
+  ): Promise<void> {
+    const key = `${itemId}:${step}`;
+    const start = Date.now();
+    while (inFlightPerItemRetry.has(key)) {
+      if (Date.now() - start > maxMs) {
+        throw new Error(
+          `[test] per-item retry ${key} did not settle within ${maxMs}ms`,
+        );
+      }
+      await new Promise((resolve) => setTimeout(resolve, 25));
+    }
+    await new Promise((resolve) => setImmediate(resolve));
+  }
   let stagingDir: string;
   let pdfStagedPath: string;
   let pngStagedPath: string;
@@ -118,7 +143,9 @@ describeIfDb('bulk-import AI route handlers stream staged files to Anthropic —
     schema = require('@shared/schema');
     bulkImportAnalyzer =
       require('../../server/services/bulk-import-analyzer').bulkImportAnalyzer;
-    const { registerBulkImportRoutes } = require('../../server/api/bulk-import');
+    const bulkImportApi = require('../../server/api/bulk-import');
+    const { registerBulkImportRoutes } = bulkImportApi;
+    inFlightPerItemRetry = bulkImportApi.inFlightPerItemRetry;
 
     app = express();
     app.use(express.json());
@@ -310,8 +337,17 @@ describeIfDb('bulk-import AI route handlers stream staged files to Anthropic —
 
     expect(res.status).toBe(200);
     expect(res.body?.id).toBe(ids.pdfItem);
-    expect(res.body?.status).toBe('sorted');
-    expect(res.body?.sortingDecision?.decision).toBe('keep');
+
+    // Task #1047: per-item retry is fire-and-forget; wait for the
+    // background AI call to settle before reading the persisted row.
+    await waitForRetryToSettle(ids.pdfItem, 'sorting');
+
+    const [row] = await db
+      .select()
+      .from(schema.bulkImportItems)
+      .where(eq(schema.bulkImportItems.id, ids.pdfItem));
+    expect(row.status).toBe('sorted');
+    expect((row.sortingDecision as any).decision).toBe('keep');
 
     const blocks = getFirstUserContent();
     const docBlock = blocks.find((b) => b.type === 'document');
@@ -343,8 +379,17 @@ describeIfDb('bulk-import AI route handlers stream staged files to Anthropic —
 
     expect(res.status).toBe(200);
     expect(res.body?.id).toBe(ids.pngItem);
-    expect(res.body?.status).toBe('branched');
-    expect(res.body?.branchDecision?.branch).toBe('bill');
+
+    // Task #1047: per-item retry is fire-and-forget; wait for the
+    // background AI call to settle before reading the persisted row.
+    await waitForRetryToSettle(ids.pngItem, 'branching');
+
+    const [row] = await db
+      .select()
+      .from(schema.bulkImportItems)
+      .where(eq(schema.bulkImportItems.id, ids.pngItem));
+    expect(row.status).toBe('branched');
+    expect((row.branchDecision as any).branch).toBe('bill');
 
     const blocks = getFirstUserContent();
     const imageBlock = blocks.find((b) => b.type === 'image');
@@ -378,8 +423,17 @@ describeIfDb('bulk-import AI route handlers stream staged files to Anthropic —
 
     expect(res.status).toBe(200);
     expect(res.body?.id).toBe(ids.pdfItem);
-    expect(res.body?.status).toBe('identified');
-    expect(res.body?.identification?.name).toBe('Lease 2026');
+
+    // Task #1047: per-item retry is fire-and-forget; wait for the
+    // background AI call to settle before reading the persisted row.
+    await waitForRetryToSettle(ids.pdfItem, 'identification');
+
+    const [row] = await db
+      .select()
+      .from(schema.bulkImportItems)
+      .where(eq(schema.bulkImportItems.id, ids.pdfItem));
+    expect(row.status).toBe('identified');
+    expect((row.identification as any).name).toBe('Lease 2026');
 
     const blocks = getFirstUserContent();
     const docBlock = blocks.find((b) => b.type === 'document');
@@ -410,8 +464,10 @@ describeIfDb('bulk-import AI route handlers stream staged files to Anthropic —
 
     expect(res.status).toBe(200);
     expect(res.body?.id).toBe(ids.pdfItem);
-    expect(res.body?.status).toBe('linked');
-    expect(res.body?.linkDecisions?.relatedItemIds).toEqual([ids.pngItem]);
+
+    // Task #1047: per-item retry is fire-and-forget; wait for the
+    // background AI call to settle before reading the persisted row.
+    await waitForRetryToSettle(ids.pdfItem, 'linking');
 
     const blocks = getFirstUserContent();
     const docBlock = blocks.find((b) => b.type === 'document');

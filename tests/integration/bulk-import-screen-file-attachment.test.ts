@@ -75,6 +75,31 @@ describeIfDb('bulk-import screen route attaches staged PDF to Anthropic call —
   let db: any;
   let schema: any;
   let bulkImportAnalyzer: typeof import('../../server/services/bulk-import-analyzer').bulkImportAnalyzer;
+  let inFlightPerItemRetry: Set<string>;
+
+  /**
+   * Task #1047: per-item retry endpoints are now fire-and-forget. The
+   * HTTP response carries the pre-AI snapshot, so we wait for the
+   * `inFlightPerItemRetry` marker to clear before reading the
+   * persisted row.
+   */
+  async function waitForRetryToSettle(
+    itemId: string,
+    step: 'screening' | 'sorting' | 'branching' | 'identification' | 'linking',
+    maxMs = 8000,
+  ): Promise<void> {
+    const key = `${itemId}:${step}`;
+    const start = Date.now();
+    while (inFlightPerItemRetry.has(key)) {
+      if (Date.now() - start > maxMs) {
+        throw new Error(
+          `[test] per-item retry ${key} did not settle within ${maxMs}ms`,
+        );
+      }
+      await new Promise((resolve) => setTimeout(resolve, 25));
+    }
+    await new Promise((resolve) => setImmediate(resolve));
+  }
   let stagedPath: string;
   let stagingDir: string;
   let createSpy: jest.Mock;
@@ -110,7 +135,9 @@ describeIfDb('bulk-import screen route attaches staged PDF to Anthropic call —
     schema = require('@shared/schema');
     bulkImportAnalyzer =
       require('../../server/services/bulk-import-analyzer').bulkImportAnalyzer;
-    const { registerBulkImportRoutes } = require('../../server/api/bulk-import');
+    const bulkImportApi = require('../../server/api/bulk-import');
+    const { registerBulkImportRoutes } = bulkImportApi;
+    inFlightPerItemRetry = bulkImportApi.inFlightPerItemRetry;
 
     app = express();
     app.use(express.json());
@@ -272,8 +299,11 @@ describeIfDb('bulk-import screen route attaches staged PDF to Anthropic call —
 
     expect(res.status).toBe(200);
     expect(res.body?.id).toBe(ids.item);
-    expect(res.body?.status).toBe('screened');
-    expect(res.body?.screening?.suggestedFilename).toBe(ORIGINAL_NAME);
+
+    // Task #1047: per-item retry is fire-and-forget — the HTTP body
+    // is the pre-AI snapshot. Wait for the background AI call to
+    // settle before reading the persisted row.
+    await waitForRetryToSettle(ids.item, 'screening');
 
     // The fake transport must have been called exactly once, and the
     // first message's content must include a `document` block whose

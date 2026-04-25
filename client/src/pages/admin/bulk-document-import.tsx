@@ -3273,6 +3273,18 @@ export default function BulkDocumentImportPage() {
                                   const stillEligible = isAuto && item.status === STEP_PRE_STATUS[currentStep as AutoStep];
                                   const isExcluded = item.status === 'rejected';
                                   const showRetry = !isExcluded && !!retryAction && ((!!decision?.fallbackReason) || (stillEligible && !!branchProgress?.finishedAt));
+                                  // Task #1047: the per-item retry endpoint is now
+                                  // fire-and-forget on the server, so `runStep.isPending`
+                                  // drops within milliseconds. The polled session payload
+                                  // surfaces an entry in `runAll[step].inFlight` while the
+                                  // background AI call is running — check that here so the
+                                  // row keeps spinning until the new result lands.
+                                  const polledRetryInFlight =
+                                    isAuto &&
+                                    !!branchProgress?.inFlight?.some((e) => e.itemId === item.id);
+                                  const retryPending =
+                                    (runStep.isPending && runStep.variables?.itemId === item.id) ||
+                                    polledRetryInFlight;
                                   const canToggleExclude = item.status !== 'committed' && item.status !== 'duplicate';
                                   const togglePending = toggleExclude.isPending && toggleExclude.variables?.itemId === item.id;
                                   const isPickerOpen = reassignPickerItemId === item.id;
@@ -3435,10 +3447,10 @@ export default function BulkDocumentImportPage() {
                                               size="sm"
                                               variant="outline"
                                               onClick={() => runStep.mutate({ itemId: item.id, action: retryAction })}
-                                              disabled={runStep.isPending && runStep.variables?.itemId === item.id}
+                                              disabled={retryPending}
                                               data-testid={`button-retry-${currentStep}-${item.id}`}
                                             >
-                                              {runStep.isPending && runStep.variables?.itemId === item.id ? (
+                                              {retryPending ? (
                                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                               ) : (
                                                 <RotateCw className="mr-2 h-4 w-4" />
@@ -3743,6 +3755,16 @@ export default function BulkDocumentImportPage() {
                           !!retryAction &&
                           ((!!decision?.fallbackReason) ||
                             (stillEligible && !!progress?.finishedAt));
+                        // Task #1047: keep the spinner up while the
+                        // background per-item retry is in flight on the
+                        // server (signal lives in `runAll[step].inFlight`
+                        // alongside the run-all loop's entries).
+                        const polledRetryInFlight =
+                          isAuto &&
+                          !!progress?.inFlight?.some((e) => e.itemId === item.id);
+                        const retryPending =
+                          (runStep.isPending && runStep.variables?.itemId === item.id) ||
+                          polledRetryInFlight;
                         // Committed/duplicate items are terminal and
                         // not eligible for the exclude toggle (matches
                         // the server-side guard).
@@ -5162,10 +5184,10 @@ export default function BulkDocumentImportPage() {
                                       action: retryAction,
                                     })
                                   }
-                                  disabled={runStep.isPending && runStep.variables?.itemId === item.id}
+                                  disabled={retryPending}
                                   data-testid={`button-retry-${currentStep}-${item.id}`}
                                 >
-                                  {runStep.isPending && runStep.variables?.itemId === item.id ? (
+                                  {retryPending ? (
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                   ) : (
                                     <RotateCw className="mr-2 h-4 w-4" />

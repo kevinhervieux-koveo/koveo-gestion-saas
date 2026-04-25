@@ -96,6 +96,31 @@ describeIfDb('Screening rotation badge — Task #785', () => {
   let db: any;
   let schema: any;
   let bulkImportAnalyzer: typeof import('../../server/services/bulk-import-analyzer').bulkImportAnalyzer;
+  let inFlightPerItemRetry: Set<string>;
+
+  /**
+   * Task #1047: per-item retry endpoints are now fire-and-forget. The
+   * HTTP response carries the pre-AI snapshot, so we wait for the
+   * `inFlightPerItemRetry` marker to clear before reading the
+   * persisted row.
+   */
+  async function waitForRetryToSettle(
+    itemId: string,
+    step: 'screening' | 'sorting' | 'branching' | 'identification' | 'linking',
+    maxMs = 8000,
+  ): Promise<void> {
+    const key = `${itemId}:${step}`;
+    const start = Date.now();
+    while (inFlightPerItemRetry.has(key)) {
+      if (Date.now() - start > maxMs) {
+        throw new Error(
+          `[test] per-item retry ${key} did not settle within ${maxMs}ms`,
+        );
+      }
+      await new Promise((resolve) => setTimeout(resolve, 25));
+    }
+    await new Promise((resolve) => setImmediate(resolve));
+  }
 
   const ids = {
     org: crypto.randomUUID(),
@@ -122,7 +147,9 @@ describeIfDb('Screening rotation badge — Task #785', () => {
 
     db = require('../../server/db').db;
     schema = require('@shared/schema');
-    const { registerBulkImportRoutes } = require('../../server/api/bulk-import');
+    const bulkImportApi = require('../../server/api/bulk-import');
+    const { registerBulkImportRoutes } = bulkImportApi;
+    inFlightPerItemRetry = bulkImportApi.inFlightPerItemRetry;
     bulkImportAnalyzer =
       require('../../server/services/bulk-import-analyzer').bulkImportAnalyzer;
 
@@ -296,12 +323,10 @@ describeIfDb('Screening rotation badge — Task #785', () => {
         .set('x-test-user-id', ids.admin);
       expect(screen.status).toBe(200);
 
-      // The route is a thin wrapper around `processItemForStep`, so its
-      // returned row reflects exactly what was written to the DB.
-      expect(screen.body.screening?.rotationApplied).toBe(true);
-      expect(screen.body.screening?.rotationDegrees).toBe(90);
-      expect(screen.body.contentHash).toBe(newHash);
-      expect(screen.body.status).toBe('screened');
+      // Task #1047: per-item retry is fire-and-forget — the HTTP body
+      // is the pre-AI snapshot. Wait for the background work to settle
+      // before reading the persisted row.
+      await waitForRetryToSettle(item.id, 'screening');
 
       // Sanity: the helper was invoked with the analyzer-supplied
       // rotation. If this breaks, processItemForStep stopped funneling
@@ -313,11 +338,12 @@ describeIfDb('Screening rotation badge — Task #785', () => {
       });
 
       // Round-trip the row from Postgres so we know the JSONB column
-      // really persisted the flag (not just the response payload).
+      // really persisted the flag.
       const [row] = await db
         .select()
         .from(schema.bulkImportItems)
         .where(eq(schema.bulkImportItems.id, item.id));
+      expect(row.status).toBe('screened');
       expect((row.screening as any).rotationApplied).toBe(true);
       expect((row.screening as any).rotationDegrees).toBe(90);
       expect(row.contentHash).toBe(newHash);
@@ -347,21 +373,22 @@ describeIfDb('Screening rotation badge — Task #785', () => {
         .set('x-test-user-id', ids.admin);
       expect(screen.status).toBe(200);
 
-      expect(screen.body.screening?.rotationApplied).toBe(false);
-      // Even when the rewrite was skipped, the AI-suggested degrees
-      // are still surfaced so admins know "AI thought it was sideways
-      // but we couldn't rotate it" rather than "AI saw nothing wrong".
-      expect(screen.body.screening?.rotationDegrees).toBe(270);
-      // The original hash must be retained because the bytes weren't
-      // rewritten — analyzer cache keys downstream still apply.
-      expect(screen.body.contentHash).toBe(originalHash);
-      expect(screen.body.status).toBe('screened');
+      // Task #1047: response is the pre-AI snapshot; wait for the
+      // background AI call to settle, then assert on the persisted row.
+      await waitForRetryToSettle(item.id, 'screening');
 
       const [row] = await db
         .select()
         .from(schema.bulkImportItems)
         .where(eq(schema.bulkImportItems.id, item.id));
+      expect(row.status).toBe('screened');
       expect((row.screening as any).rotationApplied).toBe(false);
+      // Even when the rewrite was skipped, the AI-suggested degrees
+      // are still surfaced so admins know "AI thought it was sideways
+      // but we couldn't rotate it" rather than "AI saw nothing wrong".
+      expect((row.screening as any).rotationDegrees).toBe(270);
+      // The original hash must be retained because the bytes weren't
+      // rewritten — analyzer cache keys downstream still apply.
       expect(row.contentHash).toBe(originalHash);
     });
 
@@ -388,8 +415,18 @@ describeIfDb('Screening rotation badge — Task #785', () => {
         .post(`/api/admin/bulk-import/items/${item.id}/screen`)
         .set('x-test-user-id', ids.admin);
       expect(screen.status).toBe(200);
-      expect(screen.body.screening?.rotationApplied).toBe(false);
-      expect(screen.body.screening?.rotationDegrees).toBe(0);
+
+      // Task #1047: response is the pre-AI snapshot; wait for the
+      // background AI call to settle.
+      await waitForRetryToSettle(item.id, 'screening');
+
+      const [row] = await db
+        .select()
+        .from(schema.bulkImportItems)
+        .where(eq(schema.bulkImportItems.id, item.id));
+      expect(row.status).toBe('screened');
+      expect((row.screening as any).rotationApplied).toBe(false);
+      expect((row.screening as any).rotationDegrees).toBe(0);
       expect(mockRotate).not.toHaveBeenCalled();
     });
   });

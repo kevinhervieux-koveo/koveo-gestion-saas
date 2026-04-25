@@ -233,7 +233,37 @@ jest.mock('../../../server/utils/logger', () => ({
 // ---------------------------------------------------------------------------
 // Import the router under test (after every mock is registered).
 // ---------------------------------------------------------------------------
-import { registerBulkImportRoutes } from '../../../server/api/bulk-import';
+import {
+  registerBulkImportRoutes,
+  inFlightPerItemRetry,
+} from '../../../server/api/bulk-import';
+
+/**
+ * Task #1047: the per-item branch retry endpoint is now fire-and-forget.
+ * The HTTP response carries the pre-AI snapshot; the AI work runs in the
+ * background and updates the row asynchronously. Tests that assert on
+ * the post-AI state must await this helper before reading the store.
+ */
+async function waitForRetryToSettle(
+  itemId: string,
+  step: 'screening' | 'sorting' | 'branching' | 'identification' | 'linking',
+  maxMs = 4000,
+): Promise<void> {
+  const key = `${itemId}:${step}`;
+  const start = Date.now();
+  while (inFlightPerItemRetry.has(key)) {
+    if (Date.now() - start > maxMs) {
+      throw new Error(
+        `[test] per-item retry ${key} did not settle within ${maxMs}ms`,
+      );
+    }
+    await new Promise((resolve) => setImmediate(resolve));
+  }
+  // One extra microtask flush so the trailing
+  // `removePerItemRetryInFlight` (which runs after the Set delete) can
+  // commit its DB write before the assertion reads the store.
+  await new Promise((resolve) => setImmediate(resolve));
+}
 
 function buildApp(): Express {
   const app = express();
@@ -456,13 +486,20 @@ describe('Branching promotion gate for residence_documents (Task #780/#802)', ()
       .send({})
       .expect(200);
 
+    // Task #1047: the response is now the immediate snapshot. Wait for
+    // the background AI call to settle, then assert on the persisted
+    // item state.
+    expect(res.body.id).toBe('it-no-res');
+    await waitForRetryToSettle('it-no-res', 'branching');
+    const stored = itemStore.get('it-no-res')!;
+
     // Critical: gate held the item back at `sorted` so the admin must
     // use the picker before identification runs.
-    expect(res.body.status).toBe('sorted');
-    expect((res.body.branchDecision as any).branch).toBe('residence_documents');
-    expect((res.body.branchDecision as any).residenceId).toBeNull();
+    expect(stored.status).toBe('sorted');
+    expect((stored.branchDecision as any).branch).toBe('residence_documents');
+    expect((stored.branchDecision as any).residenceId).toBeNull();
     // residenceManualOverride defaults to false on a fresh AI run.
-    expect((res.body.branchDecision as any).residenceManualOverride).toBe(false);
+    expect((stored.branchDecision as any).residenceManualOverride).toBe(false);
   });
 
   it('analyzer returns residence_documents WITH a residenceId → item advances to "branched"', async () => {
@@ -490,8 +527,12 @@ describe('Branching promotion gate for residence_documents (Task #780/#802)', ()
       .send({})
       .expect(200);
 
-    expect(res.body.status).toBe('branched');
-    expect((res.body.branchDecision as any).residenceId).toBe('res-1');
+    // Task #1047: response is the pre-AI snapshot; wait for background.
+    expect(res.body.id).toBe('it-with-res');
+    await waitForRetryToSettle('it-with-res', 'branching');
+    const stored = itemStore.get('it-with-res')!;
+    expect(stored.status).toBe('branched');
+    expect((stored.branchDecision as any).residenceId).toBe('res-1');
   });
 
   it('analyzer returns a NON-residence branch → gate is irrelevant, item advances to "branched"', async () => {
@@ -515,9 +556,13 @@ describe('Branching promotion gate for residence_documents (Task #780/#802)', ()
       .send({})
       .expect(200);
 
+    // Task #1047: response is the pre-AI snapshot; wait for background.
+    expect(res.body.id).toBe('it-bill');
+    await waitForRetryToSettle('it-bill', 'branching');
+    const stored = itemStore.get('it-bill')!;
     // No residence required — promotion is unconditional.
-    expect(res.body.status).toBe('branched');
-    expect((res.body.branchDecision as any).branch).toBe('bill');
+    expect(stored.status).toBe('branched');
+    expect((stored.branchDecision as any).branch).toBe('bill');
   });
 
   it('preserves residenceManualOverride from the previous decision when the analyzer is re-run', async () => {
@@ -544,9 +589,13 @@ describe('Branching promotion gate for residence_documents (Task #780/#802)', ()
       .send({})
       .expect(200);
 
+    // Task #1047: response is the pre-AI snapshot; wait for background.
+    expect(res.body.id).toBe('it-keep-override');
+    await waitForRetryToSettle('it-keep-override', 'branching');
+    const stored = itemStore.get('it-keep-override')!;
     // Manual override survives a re-run of the AI step (Task #780 spec).
-    expect((res.body.branchDecision as any).residenceManualOverride).toBe(true);
+    expect((stored.branchDecision as any).residenceManualOverride).toBe(true);
     // Gate still holds because residenceId is null on the fresh result.
-    expect(res.body.status).toBe('sorted');
+    expect(stored.status).toBe('sorted');
   });
 });

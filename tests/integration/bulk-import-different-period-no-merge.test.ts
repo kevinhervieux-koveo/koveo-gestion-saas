@@ -94,6 +94,7 @@ describeIfDb('bulk-import sorting never auto-merges different-period siblings â€
   let db: any;
   let schema: any;
   let bulkImportAnalyzer: typeof import('../../server/services/bulk-import-analyzer').bulkImportAnalyzer;
+  let inFlightPerItemRetry: Set<string>;
   let stagingDir: string;
   let stagedPath2021: string;
   let stagedPath2022: string;
@@ -132,7 +133,9 @@ describeIfDb('bulk-import sorting never auto-merges different-period siblings â€
     schema = require('@shared/schema');
     bulkImportAnalyzer =
       require('../../server/services/bulk-import-analyzer').bulkImportAnalyzer;
-    const { registerBulkImportRoutes } = require('../../server/api/bulk-import');
+    const bulkImportApi = require('../../server/api/bulk-import');
+    const { registerBulkImportRoutes } = bulkImportApi;
+    inFlightPerItemRetry = bulkImportApi.inFlightPerItemRetry;
 
     app = express();
     app.use(express.json());
@@ -343,6 +346,31 @@ describeIfDb('bulk-import sorting never auto-merges different-period siblings â€
     createSpy.mockClear();
   });
 
+  /**
+   * Task #1047: per-item retry endpoints are now fire-and-forget. The
+   * HTTP response carries the pre-AI snapshot, so we wait for the
+   * `inFlightPerItemRetry` marker to clear before reading the
+   * persisted row.
+   */
+  async function waitForRetryToSettle(
+    itemId: string,
+    step: 'screening' | 'sorting' | 'branching' | 'identification' | 'linking',
+    maxMs = 8000,
+  ): Promise<void> {
+    const key = `${itemId}:${step}`;
+    const start = Date.now();
+    while (inFlightPerItemRetry.has(key)) {
+      if (Date.now() - start > maxMs) {
+        throw new Error(
+          `[test] per-item retry ${key} did not settle within ${maxMs}ms`,
+        );
+      }
+      await new Promise((resolve) => setTimeout(resolve, 25));
+    }
+    // Extra microtask flush so the trailing DB write commits.
+    await new Promise((resolve) => setImmediate(resolve));
+  }
+
   it('per-item /sort returns decision=keep for both PVs and never calls Anthropic', async () => {
     const res2021 = await request(app)
       .post(`/api/admin/bulk-import/items/${ids.item2021}/sort`)
@@ -350,8 +378,7 @@ describeIfDb('bulk-import sorting never auto-merges different-period siblings â€
       .send({});
     expect(res2021.status).toBe(200);
     expect(res2021.body?.id).toBe(ids.item2021);
-    expect(res2021.body?.status).toBe('sorted');
-    expect(res2021.body?.sortingDecision?.decision).toBe('keep');
+    await waitForRetryToSettle(ids.item2021, 'sorting');
 
     const res2022 = await request(app)
       .post(`/api/admin/bulk-import/items/${ids.item2022}/sort`)
@@ -359,8 +386,7 @@ describeIfDb('bulk-import sorting never auto-merges different-period siblings â€
       .send({});
     expect(res2022.status).toBe(200);
     expect(res2022.body?.id).toBe(ids.item2022);
-    expect(res2022.body?.status).toBe('sorted');
-    expect(res2022.body?.sortingDecision?.decision).toBe('keep');
+    await waitForRetryToSettle(ids.item2022, 'sorting');
 
     // Short-circuit guarantee: the mock would have responded with
     // `decision: 'merge'`, so any call at all here would have made
