@@ -4165,6 +4165,11 @@ export default function BulkDocumentImportPage() {
                                                   .filter((id) => id !== sibling.id)
                                                   .map((id) => items.find((i) => i.id === id)?.originalName ?? id)
                                               : [];
+                                          const aiSuggestedConfidence = sibling.sortingConfidence;
+                                          const aiSuggestedConfidencePct =
+                                            typeof aiSuggestedConfidence === 'number' && Number.isFinite(aiSuggestedConfidence)
+                                              ? Math.round(aiSuggestedConfidence * 100)
+                                              : null;
                                           return (
                                             <div className="space-y-4">
                                               {/* --- AI SUGGESTION read-only summary (rejected items only) --- */}
@@ -4188,6 +4193,16 @@ export default function BulkDocumentImportPage() {
                                                             : `Merge with: ${aiSuggestedMergePartnerNames.join(', ')}`)
                                                         : (isFr ? 'Fusion suggérée' : 'Merge suggested')}
                                                   </p>
+                                                  {aiSuggestedConfidencePct != null && (
+                                                    <p
+                                                      className="text-xs text-muted-foreground"
+                                                      data-testid={`branching-ai-suggestion-confidence-${sibling.id}`}
+                                                    >
+                                                      {isFr
+                                                        ? `Confiance de l'IA : ${aiSuggestedConfidencePct} %`
+                                                        : `AI confidence: ${aiSuggestedConfidencePct}%`}
+                                                    </p>
+                                                  )}
                                                 </div>
                                               )}
                                               {/* --- SLICE sub-section --- */}
@@ -5439,6 +5454,11 @@ export default function BulkDocumentImportPage() {
                                             .filter((id) => id !== item.id)
                                             .map((id) => items.find((i) => i.id === id)?.originalName ?? id)
                                         : [];
+                                    const aiSuggestedConfidence = item.sortingConfidence;
+                                    const aiSuggestedConfidencePct =
+                                      typeof aiSuggestedConfidence === 'number' && Number.isFinite(aiSuggestedConfidence)
+                                        ? Math.round(aiSuggestedConfidence * 100)
+                                        : null;
                                     return (
                                       <div className="space-y-4">
                                         {/* --- AI SUGGESTION read-only summary (rejected items only) --- */}
@@ -5462,6 +5482,16 @@ export default function BulkDocumentImportPage() {
                                                       : `Merge with: ${aiSuggestedMergePartnerNames.join(', ')}`)
                                                   : (isFr ? 'Fusion suggérée' : 'Merge suggested')}
                                             </p>
+                                            {aiSuggestedConfidencePct != null && (
+                                              <p
+                                                className="text-xs text-muted-foreground"
+                                                data-testid={`branching-ai-suggestion-confidence-${item.id}`}
+                                              >
+                                                {isFr
+                                                  ? `Confiance de l'IA : ${aiSuggestedConfidencePct} %`
+                                                  : `AI confidence: ${aiSuggestedConfidencePct}%`}
+                                              </p>
+                                            )}
                                           </div>
                                         )}
                                         {/* --- SLICE sub-section --- */}
