@@ -21,6 +21,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useLanguage } from '@/hooks/use-language';
@@ -245,6 +255,8 @@ function HistorySessionRow({
   expanded,
   onToggle,
   onResume,
+  onDelete,
+  isDeleting,
   isFr,
   stepLabels,
 }: {
@@ -253,6 +265,8 @@ function HistorySessionRow({
   expanded: boolean;
   onToggle: () => void;
   onResume: () => void;
+  onDelete: () => void;
+  isDeleting: boolean;
   isFr: boolean;
   stepLabels: Record<BulkImportStep, string>;
 }) {
@@ -345,6 +359,21 @@ function HistorySessionRow({
             {isFr ? 'Reprendre' : 'Resume'}
           </Button>
         )}
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={onDelete}
+          disabled={isDeleting}
+          aria-label={isFr ? 'Supprimer la session' : 'Delete session'}
+          title={isFr ? 'Supprimer la session' : 'Delete session'}
+          data-testid={`history-delete-${session.id}`}
+        >
+          {isDeleting ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Trash2 className="h-4 w-4 text-destructive" />
+          )}
+        </Button>
       </div>
       {expanded && (
         <div className="border-t p-3">
@@ -446,6 +475,7 @@ function HistoryCard({
   isFr: boolean;
   stepLabels: Record<BulkImportStep, string>;
 }) {
+  const { toast } = useToast();
   const { data: sessions = [], isLoading } = useQuery<BulkImportSession[]>({
     queryKey: ['/api/admin/bulk-import/sessions'],
   });
@@ -458,6 +488,50 @@ function HistoryCard({
       ),
     [sessions],
   );
+
+  // Confirmation dialog state for hard-deleting a past session
+  // (Task #696). Tracks the candidate session id so the dialog can
+  // show its building name in the prompt.
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+
+  const hardDeleteSession = useMutation({
+    mutationFn: async (id: string) => {
+      await apiRequest(
+        'DELETE',
+        `/api/admin/bulk-import/sessions/${id}/hard`,
+        {},
+      );
+      return id;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['/api/admin/bulk-import/sessions'],
+      });
+      setPendingDeleteId(null);
+      toast({
+        title: isFr ? 'Session supprimée' : 'Session deleted',
+      });
+    },
+    onError: () => {
+      toast({
+        variant: 'destructive',
+        title: isFr
+          ? 'Échec de la suppression'
+          : 'Failed to delete session',
+        description: isFr
+          ? 'Veuillez réessayer.'
+          : 'Please try again.',
+      });
+    },
+  });
+
+  const pendingSession = pendingDeleteId
+    ? sorted.find((s) => s.id === pendingDeleteId) ?? null
+    : null;
+  const pendingBuildingName = pendingSession
+    ? buildings.find((b) => b.id === pendingSession.buildingId)?.name ??
+      pendingSession.buildingId.slice(0, 8)
+    : '';
 
   return (
     <Card>
@@ -489,6 +563,11 @@ function HistoryCard({
                 expanded={expandedId === s.id}
                 onToggle={() => onToggle(s.id)}
                 onResume={() => onResume(s.id)}
+                onDelete={() => setPendingDeleteId(s.id)}
+                isDeleting={
+                  hardDeleteSession.isPending &&
+                  hardDeleteSession.variables === s.id
+                }
                 isFr={isFr}
                 stepLabels={stepLabels}
               />
@@ -496,6 +575,60 @@ function HistoryCard({
           </div>
         )}
       </CardContent>
+
+      <AlertDialog
+        open={pendingDeleteId !== null}
+        onOpenChange={(open) => {
+          if (!open && !hardDeleteSession.isPending) {
+            setPendingDeleteId(null);
+          }
+        }}
+      >
+        <AlertDialogContent data-testid="history-delete-dialog">
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {isFr
+                ? 'Supprimer cette session ?'
+                : 'Delete this session?'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {isFr
+                ? `La session pour « ${pendingBuildingName} » ainsi que tous ses fichiers et décisions IA seront définitivement supprimés. Cette action ne peut pas être annulée.`
+                : `The session for "${pendingBuildingName}" along with all its files and AI decisions will be permanently removed. This action cannot be undone.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              disabled={hardDeleteSession.isPending}
+              data-testid="history-delete-cancel"
+            >
+              {isFr ? 'Annuler' : 'Cancel'}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              disabled={hardDeleteSession.isPending}
+              onClick={(e) => {
+                e.preventDefault();
+                if (pendingDeleteId) {
+                  hardDeleteSession.mutate(pendingDeleteId);
+                }
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              data-testid="history-delete-confirm"
+            >
+              {hardDeleteSession.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {isFr ? 'Suppression…' : 'Deleting…'}
+                </>
+              ) : isFr ? (
+                'Supprimer'
+              ) : (
+                'Delete'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }

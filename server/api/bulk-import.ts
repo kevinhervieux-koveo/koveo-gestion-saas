@@ -516,6 +516,41 @@ export function registerBulkImportRoutes(app: Express): void {
     },
   );
 
+  /**
+   * Hard-delete a session — permanently removes the session, its items,
+   * and any staged files from disk (Task #696). Unlike the "clear"
+   * endpoint above which marks the session as `cleared` but leaves the
+   * row in place for the history list, this endpoint removes the row
+   * entirely so it disappears from the "Past sessions" view. Cancels
+   * any in-flight run-all loop first using the same cooperative
+   * cancellation signal as the clear path.
+   */
+  app.delete(
+    '/api/admin/bulk-import/sessions/:id/hard',
+    requireAuth,
+    requireRole(['admin']),
+    async (req: AuthenticatedRequest, res: Response) => {
+      const session = await loadSession(req.params.id);
+      if (!session) return res.status(404).json({ error: 'Session not found' });
+      for (const key of inFlightRunAll) {
+        if (key.startsWith(`${session.id}:`)) {
+          inFlightRunAll.delete(key);
+        }
+      }
+      await db
+        .delete(schema.bulkImportItems)
+        .where(eq(schema.bulkImportItems.sessionId, session.id));
+      await db
+        .delete(schema.bulkImportSessions)
+        .where(eq(schema.bulkImportSessions.id, session.id));
+      safeRmSession(session.id);
+      logInfo('[bulk-import] session hard-deleted', {
+        metadata: { sessionId: session.id },
+      });
+      return res.json({ ok: true });
+    },
+  );
+
   /** Upload a folder/zip's worth of files into a session. */
   app.post(
     '/api/admin/bulk-import/sessions/:id/items',
