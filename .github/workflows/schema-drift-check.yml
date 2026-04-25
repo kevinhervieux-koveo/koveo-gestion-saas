@@ -1,0 +1,76 @@
+name: Schema Drift Check
+
+on:
+  pull_request:
+    branches: [main, develop]
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'shared/schema.ts'
+      - 'shared/schemas/**'
+      - 'migrations/**'
+      - 'scripts/check-migration-coverage.ts'
+      - 'scripts/generate-drift-migration.ts'
+      - 'drizzle.config.ts'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/schema-drift-check.yml'
+  push:
+    branches: [main, develop]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  schema-drift-check:
+    name: shared/schema.ts vs migrations/
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run schema-drift check
+        id: drift
+        run: |
+          set +e
+          npx tsx scripts/check-migration-coverage.ts
+          status=$?
+          echo "status=${status}" >> "$GITHUB_OUTPUT"
+          exit "${status}"
+
+      - name: Explain how to resolve drift
+        if: failure() && steps.drift.outputs.status != '0'
+        run: |
+          {
+            echo "::error::Schema drift detected between shared/schema.ts and migrations/."
+            echo ""
+            echo "shared/schema.ts has been changed without a matching numbered SQL"
+            echo "migration in migrations/. The deployed database is updated by"
+            echo "scripts/run-migrations.ts, which only applies the numbered files,"
+            echo "so this PR would leave production out of sync with the TypeScript"
+            echo "schema."
+            echo ""
+            echo "To fix this:"
+            echo "  1. Generate a drift migration:"
+            echo "       npx tsx scripts/generate-drift-migration.ts > migrations/NNNN_describe_change.sql"
+            echo "     (use the next unused 4-digit prefix in migrations/)."
+            echo "  2. Review and edit the generated SQL so it only contains the"
+            echo "     deltas you intend to ship."
+            echo "  3. Re-run the check locally:"
+            echo "       npx tsx scripts/check-migration-coverage.ts"
+            echo "  4. Commit the new migration alongside your shared/schema.ts change."
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+          exit 1
