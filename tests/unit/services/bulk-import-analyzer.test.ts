@@ -1077,6 +1077,222 @@ describe('Task #767 — quickAnalysis in Screening + Branching prompt', () => {
   });
 });
 
+describe('suggestMergeOrSplit periodHint rules (Task #955)', () => {
+  // Shared mock infrastructure re-used from the surrounding suite.
+  beforeEach(() => {
+    cacheMockStore.clear();
+    getCachedMock.mockClear();
+    setCachedMock.mockClear();
+  });
+  afterEach(() => {
+    bulkImportAnalyzer.__setClientForTests(null);
+  });
+
+  function makeFakeClient(jsonPayload: object) {
+    const create = jest.fn().mockResolvedValue({
+      content: [{ type: 'text', text: JSON.stringify(jsonPayload) }],
+    });
+    const fakeClient = {
+      messages: { create },
+    } as unknown as Parameters<typeof bulkImportAnalyzer.__setClientForTests>[0];
+    bulkImportAnalyzer.__setClientForTests(fakeClient);
+    return create;
+  }
+
+  function getPrompt(create: ReturnType<typeof makeFakeClient>): string {
+    return create.mock.calls[0][0].messages[0].content
+      .filter((b: { type: string }) => b.type === 'text')
+      .map((b: { text: string }) => b.text)
+      .join('\n');
+  }
+
+  it('(a) includes periodHint for current item in the prompt', async () => {
+    const create = makeFakeClient({ decision: 'keep', reason: 'different period', confidence: 0.9 });
+
+    await bulkImportAnalyzer.suggestMergeOrSplit({
+      originalName: 'Proces_verbal_2021_10.pdf',
+      siblings: [],
+      quickAnalysis: { typeGuess: 'minutes', bucketGuess: 'building_documents', reason: 'Minutes', confidence: 0.85 },
+      periodHint: '2021-10',
+    });
+
+    const prompt = getPrompt(create);
+    expect(prompt).toContain('periodHint="2021-10"');
+  });
+
+  it('(a) includes periodHint for siblings in the prompt', async () => {
+    const create = makeFakeClient({ decision: 'keep', reason: 'different period', confidence: 0.9 });
+
+    await bulkImportAnalyzer.suggestMergeOrSplit({
+      originalName: 'Proces_verbal_2021_10.pdf',
+      siblings: [
+        {
+          id: 'sib-22',
+          name: 'Proces_verbal_2022_11.pdf',
+          quickAnalysis: { typeGuess: 'minutes', bucketGuess: 'building_documents', reason: 'Minutes', confidence: 0.85 },
+          periodHint: '2022-11',
+        },
+      ],
+      quickAnalysis: { typeGuess: 'minutes', bucketGuess: 'building_documents', reason: 'Minutes', confidence: 0.85 },
+      periodHint: '2021-10',
+    });
+
+    const prompt = getPrompt(create);
+    expect(prompt).toContain('periodHint="2022-11"');
+  });
+
+  it('(a) prompt instructs AI that differing periodHints must produce keep', async () => {
+    const create = makeFakeClient({ decision: 'keep', reason: 'different period', confidence: 0.9 });
+
+    await bulkImportAnalyzer.suggestMergeOrSplit({
+      originalName: 'Proces_verbal_2021_10.pdf',
+      siblings: [
+        {
+          id: 'sib-22',
+          name: 'Proces_verbal_2022_11.pdf',
+          quickAnalysis: { typeGuess: 'minutes', bucketGuess: 'building_documents', reason: 'Minutes', confidence: 0.85 },
+          periodHint: '2022-11',
+        },
+      ],
+      quickAnalysis: { typeGuess: 'minutes', bucketGuess: 'building_documents', reason: 'Minutes', confidence: 0.85 },
+      periodHint: '2021-10',
+    });
+
+    const prompt = getPrompt(create);
+    // The prompt must carry the "differ → keep" rule
+    expect(prompt).toContain('must NOT be merged');
+    // Same type+bucket alone is no longer sufficient
+    expect(prompt).toMatch(/same typeGuess and bucketGuess alone is NOT sufficient/);
+  });
+
+  it('(b) Part-1/Part-2 of same dated PV — AI may suggest merge', async () => {
+    // The AI returns merge when it sees the same date + Part 1/2 pattern.
+    makeFakeClient({
+      decision: 'merge',
+      mergeWithItemId: 'pv-2021-part2',
+      reason: 'Same meeting date, continuation scan Part 1 of Part 2',
+      confidence: 0.92,
+    });
+
+    const r = await bulkImportAnalyzer.suggestMergeOrSplit({
+      originalName: 'Proces_verbal_2021_10_part1.pdf',
+      siblings: [
+        {
+          id: 'pv-2021-part2',
+          name: 'Proces_verbal_2021_10_part2.pdf',
+          quickAnalysis: { typeGuess: 'minutes', bucketGuess: 'building_documents', reason: 'Minutes', confidence: 0.9 },
+          periodHint: '2021-10',
+        },
+      ],
+      quickAnalysis: { typeGuess: 'minutes', bucketGuess: 'building_documents', reason: 'Minutes', confidence: 0.9 },
+      periodHint: '2021-10',
+      isMultiDocument: false,
+    });
+
+    expect(r.decision).toBe('merge');
+    expect(r.mergeWithItemId).toBe('pv-2021-part2');
+  });
+
+  it('(c) same invoice number split across two scans — AI may suggest merge', async () => {
+    makeFakeClient({
+      decision: 'merge',
+      mergeWithItemId: 'inv-042-p2',
+      reason: 'Same invoice number INV-2024-042, continuation scan',
+      confidence: 0.93,
+    });
+
+    const r = await bulkImportAnalyzer.suggestMergeOrSplit({
+      originalName: 'invoice_INV-2024-042_p1.pdf',
+      siblings: [
+        {
+          id: 'inv-042-p2',
+          name: 'invoice_INV-2024-042_p2.pdf',
+          quickAnalysis: { typeGuess: 'invoice', bucketGuess: 'bill', reason: 'Invoice', confidence: 0.9 },
+          periodHint: 'INV-2024-042',
+        },
+      ],
+      quickAnalysis: { typeGuess: 'invoice', bucketGuess: 'bill', reason: 'Invoice', confidence: 0.9 },
+      periodHint: 'INV-2024-042',
+      isMultiDocument: false,
+    });
+
+    expect(r.decision).toBe('merge');
+    expect(r.mergeWithItemId).toBe('inv-042-p2');
+  });
+
+  it('(d) two invoices with different invoice numbers/dates — AI keeps separate', async () => {
+    makeFakeClient({
+      decision: 'keep',
+      reason: 'Different invoice numbers (INV-2024-042 vs INV-2024-057): separate documents',
+      confidence: 0.95,
+    });
+
+    const r = await bulkImportAnalyzer.suggestMergeOrSplit({
+      originalName: 'invoice_INV-2024-042.pdf',
+      siblings: [
+        {
+          id: 'inv-057',
+          name: 'invoice_INV-2024-057.pdf',
+          quickAnalysis: { typeGuess: 'invoice', bucketGuess: 'bill', reason: 'Invoice', confidence: 0.9 },
+          periodHint: 'INV-2024-057',
+        },
+      ],
+      quickAnalysis: { typeGuess: 'invoice', bucketGuess: 'bill', reason: 'Invoice', confidence: 0.9 },
+      periodHint: 'INV-2024-042',
+      isMultiDocument: false,
+    });
+
+    expect(r.decision).toBe('keep');
+  });
+
+  it('(e) isMultiDocument=true always produces split regardless of siblings', async () => {
+    makeFakeClient({
+      decision: 'split',
+      reason: 'isMultiDocument flag set — two documents stitched',
+      splitAtPage: 5,
+      confidence: 0.94,
+    });
+
+    const r = await bulkImportAnalyzer.suggestMergeOrSplit({
+      originalName: 'combined_2021_2022.pdf',
+      siblings: [
+        {
+          id: 'sib-1',
+          name: 'other.pdf',
+          quickAnalysis: { typeGuess: 'minutes', bucketGuess: 'building_documents', reason: 'Minutes', confidence: 0.8 },
+          periodHint: '2021-10',
+        },
+      ],
+      quickAnalysis: { typeGuess: 'minutes', bucketGuess: 'building_documents', reason: 'Minutes', confidence: 0.85 },
+      periodHint: '2021-10',
+      isMultiDocument: true,
+    });
+
+    expect(r.decision).toBe('split');
+    expect(r.splitAtPage).toBe(5);
+  });
+
+  it('omits periodHint from sibling line when it is null', async () => {
+    const create = makeFakeClient({ decision: 'keep', reason: 'no period info', confidence: 0.7 });
+
+    await bulkImportAnalyzer.suggestMergeOrSplit({
+      originalName: 'doc.pdf',
+      siblings: [
+        {
+          id: 'sib-1',
+          name: 'other.pdf',
+          quickAnalysis: { typeGuess: 'minutes', bucketGuess: 'building_documents', reason: 'Minutes', confidence: 0.8 },
+          periodHint: null,
+        },
+      ],
+    });
+
+    const prompt = getPrompt(create);
+    // The sibling line must not include a periodHint= token when hint is null
+    expect(prompt).not.toContain('periodHint=');
+  });
+});
+
 describe('bulkImportAnalyzer per-file AI failure tagging (Task #801)', () => {
   // Covers the two new BulkImportFallbackReason values:
   //   api_error         — Anthropic call threw (network / timeout / rate-limit)

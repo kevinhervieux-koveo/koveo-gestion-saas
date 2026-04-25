@@ -110,6 +110,16 @@ export interface ScreeningResult extends AnalyzerConfidence {
   suggestedFilename: string;
   description: string;
   quickAnalysis: QuickAnalysis;
+  /**
+   * Lightweight period/identifier hint extracted from the filename or
+   * document content during Screening (Task #955). Used by the merge
+   * prompt and the trivially-keep short-circuit to distinguish two
+   * files of the same type that cover different time periods (e.g.
+   * "2021-10" vs "2022-11") from two files that are genuine parts of
+   * the same physical document. Null when the screener could not
+   * determine a period.
+   */
+  periodHint: string | null;
 }
 
 export interface MergeOrSplitResult extends AnalyzerConfidence {
@@ -124,6 +134,8 @@ export interface SiblingContext {
   id: string;
   name: string;
   quickAnalysis?: QuickAnalysis | null;
+  /** Period/identifier hint from Screening (Task #955). Null when unknown. */
+  periodHint?: string | null;
 }
 
 export type BranchDestination =
@@ -543,6 +555,7 @@ function fallbackScreening(
     description: 'Auto-stub description (Anthropic unavailable).',
     confidence: 0.2,
     fallbackReason,
+    periodHint: null,
     quickAnalysis: fallbackQuickAnalysis(fallbackReason),
   };
 }
@@ -601,6 +614,7 @@ Return JSON with keys:
 - suggestedFilename (string): a cleaner filename suggestion
 - description (short string): one-sentence description of the document
 - confidence (0..1): your overall confidence in this analysis
+- periodHint (string or null): a short label identifying the document's time period or unique identifier — a fiscal year (e.g. "2022-2023"), a calendar year ("2022"), a meeting date ("2021-10-15"), an invoice number ("INV-2024-042"), or a date range ("2023 Q3"). Use the filename and document content. Set null when you cannot determine any such identifier.
 - quickAnalysis (object): { typeGuess, bucketGuess, reason, confidence }
   where typeGuess is one of: invoice|contract|minutes|statement|letter|report|other|unknown
   and bucketGuess is one of: building_documents|residence_documents|demand|bill|maintenance|other|unknown
@@ -630,6 +644,7 @@ Return JSON with keys:
       description: typeof raw.description === 'string' ? raw.description : '',
       confidence: clampConfidence(raw.confidence),
       fallbackReason,
+      periodHint: typeof raw.periodHint === 'string' && raw.periodHint ? raw.periodHint : null,
       quickAnalysis: parseQuickAnalysis(raw.quickAnalysis, fallbackReason),
     };
   },
@@ -639,6 +654,7 @@ Return JSON with keys:
     siblings: SiblingContext[];
     quickAnalysis?: QuickAnalysis | null;
     isMultiDocument?: boolean | null;
+    periodHint?: string | null;
     stagedPath?: string | null;
     buffer?: Buffer | null;
     mimeType?: string | null;
@@ -648,17 +664,19 @@ Return JSON with keys:
     const siblingLines = input.siblings
       .map((s) => {
         const qa = s.quickAnalysis;
+        const periodPart = s.periodHint ? ` periodHint="${s.periodHint}"` : '';
         if (qa) {
-          return `  - id=${s.id} name="${s.name}" typeGuess=${qa.typeGuess} bucketGuess=${qa.bucketGuess}`;
+          return `  - id=${s.id} name="${s.name}" typeGuess=${qa.typeGuess} bucketGuess=${qa.bucketGuess}${periodPart}`;
         }
-        return `  - id=${s.id} name="${s.name}"`;
+        return `  - id=${s.id} name="${s.name}"${periodPart}`;
       })
       .join('\n');
 
     const myQa = input.quickAnalysis;
+    const myPeriodHint = input.periodHint ?? null;
     const myQaLine = myQa
-      ? `Screening tagged this file as: typeGuess=${myQa.typeGuess}, bucketGuess=${myQa.bucketGuess} (${myQa.reason})`
-      : '';
+      ? `Screening tagged this file as: typeGuess=${myQa.typeGuess}, bucketGuess=${myQa.bucketGuess} (${myQa.reason})${myPeriodHint ? `, periodHint="${myPeriodHint}"` : ''}`
+      : (myPeriodHint ? `Period/identifier hint: "${myPeriodHint}"` : '');
     const multiDocLine = input.isMultiDocument
       ? 'Screening flagged this file as isMultiDocument=true (it appears to contain multiple separate documents stitched together).'
       : '';
@@ -674,7 +692,9 @@ ${siblingLines || '  (none)'}
 
 Decision rules:
 - If Screening flagged isMultiDocument=true for this file, it is a strong split candidate. Set decision='split' and splitAtPage to the page number where the second document starts.
-- If two documents share the same typeGuess AND bucketGuess, they are strong merge candidates. Set decision='merge' and mergeWithItemId to the sibling's id.
+- Suggest decision='merge' ONLY when the two files are clearly parts of the SAME physical document: they share the same subject AND the same period/date (matching periodHint, or explicit "Part 1"/"Part 2", "page X of Y", or continuation-scan cues in the filename or content).
+- Sharing the same typeGuess and bucketGuess alone is NOT sufficient for merge. Two meeting minutes from different years, two invoices with different invoice numbers or dates, or two reports covering different fiscal years are SEPARATE documents — decide 'keep' for each.
+- When periodHints are present on both the current file and a sibling and they differ, the files cover different periods and must NOT be merged — decide 'keep'.
 - Otherwise decide 'keep'.
 
 Return JSON: { decision: 'keep'|'merge'|'split', reason: string, mergeWithItemId?: string, splitAtPage?: number, confidence: number }.`;

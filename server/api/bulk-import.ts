@@ -293,9 +293,15 @@ export function withItemTimeout<T>(promise: Promise<T>, ms: number, label: strin
 
 /**
  * Check the "trivially keep" pre-conditions for the sorting step
- * (Task #898). Returns true when the item does not need an AI call:
+ * (Task #898, updated Task #955). Returns true when the item does not
+ * need an AI call:
  *   1. Screening said isMultiDocument === false (explicit false, not null)
- *   2. No sibling in the session shares the same typeGuess + bucketGuess
+ *   2. No sibling in the session is a plausible same-document partner:
+ *      - Either no sibling shares the same typeGuess + bucketGuess, OR
+ *      - All type+bucket-matching siblings have a non-null periodHint that
+ *        clearly differs from this item's periodHint (Task #955 extension).
+ *        When either side has a null periodHint the comparison is
+ *        inconclusive, so the AI call is NOT skipped for that sibling.
  *
  * Exported for unit tests.
  */
@@ -312,16 +318,31 @@ export function isTriviallyKeep(
   const myQa = myScreening?.quickAnalysis as QuickAnalysis | null | undefined;
   if (!myQa?.typeGuess || !myQa?.bucketGuess) return false;
 
+  const myPeriodHint = typeof myScreening?.periodHint === 'string'
+    ? myScreening.periodHint
+    : null;
+
   const hasMergeCandidate = allItems.some((s) => {
     if (s.id === itemId) return false;
     const sc = s.screening as Record<string, unknown> | null | undefined;
     const qa = sc?.quickAnalysis as QuickAnalysis | null | undefined;
-    return (
-      qa !== null &&
-      qa !== undefined &&
-      qa.typeGuess === myQa!.typeGuess &&
-      qa.bucketGuess === myQa!.bucketGuess
-    );
+    if (
+      qa === null ||
+      qa === undefined ||
+      qa.typeGuess !== myQa!.typeGuess ||
+      qa.bucketGuess !== myQa!.bucketGuess
+    ) {
+      return false;
+    }
+    // type+bucket match — check period hints. If BOTH sides have a
+    // non-null periodHint that differs, the sibling covers a different
+    // period and cannot be a merge candidate (Task #955). When either
+    // side has null periodHint we fall through to the AI (conservative).
+    const sibPeriodHint = typeof sc?.periodHint === 'string' ? sc.periodHint : null;
+    if (myPeriodHint !== null && sibPeriodHint !== null && myPeriodHint !== sibPeriodHint) {
+      return false;
+    }
+    return true;
   });
   return !hasMergeCandidate;
 }
@@ -524,7 +545,8 @@ async function processItemForStep(
       .map((s) => {
         const sc = s.screening as Record<string, unknown> | null | undefined;
         const qa = sc?.quickAnalysis as QuickAnalysis | null | undefined;
-        return { id: s.id, name: s.name, quickAnalysis: qa ?? null };
+        const periodHint = typeof sc?.periodHint === 'string' ? sc.periodHint : null;
+        return { id: s.id, name: s.name, quickAnalysis: qa ?? null, periodHint };
       });
 
     const myScreening = item.screening as Record<string, unknown> | null | undefined;
@@ -532,6 +554,7 @@ async function processItemForStep(
     const myIsMultiDocument = typeof myScreening?.isMultiDocument === 'boolean'
       ? myScreening.isMultiDocument
       : null;
+    const myPeriodHint = typeof myScreening?.periodHint === 'string' ? myScreening.periodHint : null;
 
     // Trivially-keep short-circuit (Task #898): skip the AI call when
     // Screening said isMultiDocument=false AND no sibling shares this
@@ -562,6 +585,7 @@ async function processItemForStep(
       siblings,
       quickAnalysis: myQa ?? null,
       isMultiDocument: myIsMultiDocument,
+      periodHint: myPeriodHint,
       stagedPath: item.stagedPath,
       mimeType: item.mimeType,
       itemId: item.id,
