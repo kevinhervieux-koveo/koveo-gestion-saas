@@ -1152,6 +1152,64 @@ export function registerBulkImportRoutes(app: Express): void {
     },
   );
 
+  /**
+   * Return the total page count of a staged PDF item so the manual
+   * sorting picker can render a live "page X of N — first part: X
+   * pages, second part: (N - X) pages" badge next to the split-page
+   * input (Task #824). The wizard fetches this once when the picker
+   * opens — keystrokes on the split input recompute the badge in the
+   * client, no re-fetch is needed.
+   *
+   * Non-PDF items return a 400 because the picker only shows the
+   * split control for PDFs anyway. The staged path is resolved and
+   * validated against `STAGING_ROOT` exactly like the `/file`
+   * endpoint above so a poisoned `stagedPath` row can never coax us
+   * into reading arbitrary files off disk.
+   */
+  app.get(
+    '/api/admin/bulk-import/items/:id/page-count',
+    requireAuth,
+    requireRole(['admin']),
+    async (req: AuthenticatedRequest, res: Response) => {
+      const [item] = await db
+        .select()
+        .from(schema.bulkImportItems)
+        .where(eq(schema.bulkImportItems.id, req.params.id));
+      if (!item) return res.status(404).json({ error: 'Item not found' });
+
+      const isPdf = (item.mimeType ?? '').toLowerCase() === 'application/pdf';
+      if (!isPdf) {
+        return res
+          .status(400)
+          .json({ error: 'Page count is only available for PDF items' });
+      }
+      if (!item.stagedPath) {
+        return res.status(404).json({ error: 'Staged file missing' });
+      }
+
+      const resolved = path.resolve(item.stagedPath);
+      const stagingRoot = path.resolve(STAGING_ROOT);
+      if (!resolved.startsWith(stagingRoot + path.sep)) {
+        return res.status(400).json({ error: 'Invalid staged path' });
+      }
+      if (!fs.existsSync(resolved)) {
+        return res.status(404).json({ error: 'Staged file missing' });
+      }
+
+      try {
+        const { PDFDocument } = await import('pdf-lib');
+        const bytes = fs.readFileSync(resolved);
+        const doc = await PDFDocument.load(new Uint8Array(bytes), {
+          ignoreEncryption: true,
+        });
+        return res.json({ totalPages: doc.getPageCount() });
+      } catch (err) {
+        logError('[bulk-import] page-count failed', err as Error);
+        return res.status(500).json({ error: 'Failed to read PDF page count' });
+      }
+    },
+  );
+
   /** Patch a single item's per-step decisions. */
   app.patch(
     '/api/admin/bulk-import/items/:id',

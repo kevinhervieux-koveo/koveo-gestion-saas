@@ -492,6 +492,70 @@ interface HistoryRowBuilding {
   name: string;
 }
 
+/**
+ * Live page-count badge rendered next to the manual sorting picker's
+ * split-page input (Task #824). Fetches the staged PDF's page count
+ * once when mounted (the picker opens) and re-renders client-side as
+ * the admin types — no re-fetch per keystroke. The arithmetic mirrors
+ * the server's split logic in `set-sorting-decision`: first part
+ * receives `splitPage` pages (1..splitPage), second part receives
+ * `totalPages - splitPage` pages.
+ */
+function SplitPagePreview({
+  itemId,
+  splitPage,
+  isFr,
+}: {
+  itemId: string;
+  splitPage: number;
+  isFr: boolean;
+}) {
+  const { data, isLoading, isError } = useQuery<{ totalPages: number }>({
+    queryKey: ['/api/admin/bulk-import/items', itemId, 'page-count'],
+  });
+
+  if (isLoading) {
+    return (
+      <span
+        className="text-xs text-muted-foreground"
+        data-testid={`sorting-picker-split-pagecount-${itemId}`}
+      >
+        {isFr ? 'Chargement du nombre de pages…' : 'Loading page count…'}
+      </span>
+    );
+  }
+
+  if (isError || !data) {
+    return (
+      <span
+        className="text-xs text-muted-foreground"
+        data-testid={`sorting-picker-split-pagecount-${itemId}`}
+      >
+        {isFr ? 'Nombre de pages indisponible' : 'Page count unavailable'}
+      </span>
+    );
+  }
+
+  const total = data.totalPages;
+  // Mirror the server clamp so the badge never advertises a split
+  // that would leave one part empty.
+  const maxSplit = Math.max(1, total - 1);
+  const clamped = Math.max(1, Math.min(splitPage, maxSplit));
+  const firstPart = clamped;
+  const secondPart = Math.max(0, total - clamped);
+
+  return (
+    <span
+      className="inline-flex items-center rounded-md border bg-background px-2 py-0.5 text-xs text-muted-foreground"
+      data-testid={`sorting-picker-split-pagecount-${itemId}`}
+    >
+      {isFr
+        ? `page ${clamped} sur ${total} — première partie : ${firstPart} page${firstPart > 1 ? 's' : ''}, seconde partie : ${secondPart} page${secondPart > 1 ? 's' : ''}`
+        : `page ${clamped} of ${total} — first part: ${firstPart} page${firstPart === 1 ? '' : 's'}, second part: ${secondPart} page${secondPart === 1 ? '' : 's'}`}
+    </span>
+  );
+}
+
 function HistorySessionRow({
   session,
   buildings,
@@ -3139,7 +3203,7 @@ export default function BulkDocumentImportPage() {
                                   </div>
                                 )}
                                 {sortingPickerDecision === 'split' && (
-                                  <div className="mt-3 flex items-center gap-2">
+                                  <div className="mt-3 flex flex-wrap items-center gap-2">
                                     <label className="text-sm text-muted-foreground whitespace-nowrap">
                                       {isFr ? 'Scinder après la page :' : 'Split after page:'}
                                     </label>
@@ -3155,6 +3219,13 @@ export default function BulkDocumentImportPage() {
                                       }
                                       data-testid={`sorting-picker-split-page-${item.id}`}
                                     />
+                                    {(item.mimeType ?? '').toLowerCase() === 'application/pdf' && (
+                                      <SplitPagePreview
+                                        itemId={item.id}
+                                        splitPage={sortingPickerSplitPage}
+                                        isFr={isFr}
+                                      />
+                                    )}
                                   </div>
                                 )}
                                 <div className="mt-4 flex gap-2">
