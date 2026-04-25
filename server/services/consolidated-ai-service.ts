@@ -1328,27 +1328,15 @@ IMPORTANT: Retournez UNIQUEMENT l'objet JSON, sans formatage markdown ni explica
         return (result.value || '').slice(0, 20000);
       }
       if (ConsolidatedAIService.XLSX_MIME_TYPES.has(mimeType)) {
-        const ExcelJS = await import('exceljs');
-        const workbook = new ExcelJS.Workbook();
-        await workbook.xlsx.load(fileBuffer);
+        const XLSX = await import('xlsx');
+        const workbook = XLSX.read(fileBuffer, { type: 'buffer' });
         const lines: string[] = [];
-        for (const worksheet of workbook.worksheets) {
-          const rows: string[] = [];
-          worksheet.eachRow((row) => {
-            const cells: string[] = [];
-            row.eachCell({ includeEmpty: true }, (cell) => {
-              const value = cell.text ?? '';
-              if (value.includes(',') || value.includes('"') || value.includes('\n')) {
-                cells.push(`"${value.replace(/"/g, '""')}"`);
-              } else {
-                cells.push(value);
-              }
-            });
-            rows.push(cells.join(','));
-          });
-          const csv = rows.join('\n');
+        for (const sheetName of workbook.SheetNames) {
+          const sheet = workbook.Sheets[sheetName];
+          if (!sheet) continue;
+          const csv = XLSX.utils.sheet_to_csv(sheet);
           if (csv.trim()) {
-            lines.push(`# ${worksheet.name}\n${csv}`);
+            lines.push(`# ${sheetName}\n${csv}`);
           }
           if (lines.join('\n').length > 20000) break;
         }

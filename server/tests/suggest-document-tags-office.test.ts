@@ -31,40 +31,39 @@ jest.mock('mammoth', () => ({
   extractRawText: (opts: { buffer: Buffer }) => extractRawTextMock(opts),
 }));
 
-type MockCell = { text: string };
-type MockRow = {
-  eachCell: (
-    opts: { includeEmpty: boolean },
-    fn: (cell: MockCell) => void
-  ) => void;
-};
-type MockWorksheet = {
-  name: string;
-  eachRow: (fn: (row: MockRow) => void) => void;
+type MockSheet = { __rows: string[][] };
+type MockWorkbook = {
+  SheetNames: string[];
+  Sheets: Record<string, MockSheet>;
 };
 
-const mockExcelJsLoadFn = jest.fn<(buf: Buffer) => Promise<void>>();
-let mockWorksheets: MockWorksheet[] = [];
+const xlsxReadMock = jest.fn<(buf: Buffer, opts: { type: string }) => MockWorkbook>();
+const xlsxSheetToCsvMock = jest.fn<(sheet: MockSheet) => string>(
+  (sheet) =>
+    sheet.__rows
+      .map((row) =>
+        row
+          .map((cell) =>
+            cell.includes(',') || cell.includes('"') || cell.includes('\n')
+              ? `"${cell.replace(/"/g, '""')}"`
+              : cell
+          )
+          .join(',')
+      )
+      .join('\n')
+);
 
-jest.mock('exceljs', () => ({
+jest.mock('xlsx', () => ({
   __esModule: true,
-  Workbook: jest.fn().mockImplementation(() => ({
-    xlsx: {
-      load: (buf: Buffer) => mockExcelJsLoadFn(buf),
-    },
-    get worksheets() {
-      return mockWorksheets;
-    },
-  })),
+  read: (buf: Buffer, opts: { type: string }) => xlsxReadMock(buf, opts),
+  utils: {
+    sheet_to_csv: (sheet: MockSheet) => xlsxSheetToCsvMock(sheet),
+  },
   default: {
-    Workbook: jest.fn().mockImplementation(() => ({
-      xlsx: {
-        load: (buf: Buffer) => mockExcelJsLoadFn(buf),
-      },
-      get worksheets() {
-        return mockWorksheets;
-      },
-    })),
+    read: (buf: Buffer, opts: { type: string }) => xlsxReadMock(buf, opts),
+    utils: {
+      sheet_to_csv: (sheet: MockSheet) => xlsxSheetToCsvMock(sheet),
+    },
   },
 }));
 
@@ -111,21 +110,15 @@ function isTextPart(part: GeminiPart): part is GeminiTextPart {
   return 'text' in part && typeof (part as GeminiTextPart).text === 'string';
 }
 
-function makeWorksheet(name: string, rows: string[][]): MockWorksheet {
-  return {
-    name,
-    eachRow: (fn) => {
-      for (const rowCells of rows) {
-        fn({
-          eachCell: (_opts, cellFn) => {
-            for (const cellText of rowCells) {
-              cellFn({ text: cellText });
-            }
-          },
-        });
-      }
-    },
-  };
+function setMockWorkbook(sheets: Array<{ name: string; rows: string[][] }>): void {
+  const Sheets: Record<string, MockSheet> = {};
+  for (const { name, rows } of sheets) {
+    Sheets[name] = { __rows: rows };
+  }
+  xlsxReadMock.mockReturnValue({
+    SheetNames: sheets.map((s) => s.name),
+    Sheets,
+  });
 }
 
 describe('ConsolidatedAIService.suggestDocumentTags - Office text extraction', () => {
@@ -134,9 +127,8 @@ describe('ConsolidatedAIService.suggestDocumentTags - Office text extraction', (
   beforeEach(() => {
     generateContentMock.mockReset();
     extractRawTextMock.mockReset();
-    mockExcelJsLoadFn.mockReset();
-    mockExcelJsLoadFn.mockResolvedValue(undefined);
-    mockWorksheets = [];
+    xlsxReadMock.mockReset();
+    setMockWorkbook([]);
     service = new ConsolidatedAIService() as unknown as TagSuggestionService;
   });
 
@@ -166,13 +158,16 @@ describe('ConsolidatedAIService.suggestDocumentTags - Office text extraction', (
   });
 
   test('XLSX upload sends extracted CSV text (not inlineData) to Gemini', async () => {
-    mockWorksheets = [
-      makeWorksheet('Budget', [
-        ['Item', 'Amount'],
-        ['Elevator', '1500'],
-        ['Roof', '3200'],
-      ]),
-    ];
+    setMockWorkbook([
+      {
+        name: 'Budget',
+        rows: [
+          ['Item', 'Amount'],
+          ['Elevator', '1500'],
+          ['Roof', '3200'],
+        ],
+      },
+    ]);
     generateContentMock.mockResolvedValue(makeGeminiResponse(['tag-budget']));
 
     const result = await service.suggestDocumentTags(
@@ -182,13 +177,43 @@ describe('ConsolidatedAIService.suggestDocumentTags - Office text extraction', (
     );
 
     expect(result).toEqual(['tag-budget']);
-    expect(mockExcelJsLoadFn).toHaveBeenCalledTimes(1);
+    expect(xlsxReadMock).toHaveBeenCalledTimes(1);
 
     const parts = getPartsFromCall(generateContentMock.mock.calls[0][0]);
     expect(parts.some(isInlinePart)).toBe(false);
     const joined = parts.filter(isTextPart).map((p) => p.text).join('\n');
     expect(joined).toContain('Elevator,1500');
     expect(joined).toContain('# Budget');
+  });
+
+  test('Legacy .xls MIME flows through the same SheetJS path', async () => {
+    setMockWorkbook([
+      {
+        name: 'Sheet1',
+        rows: [
+          ['Header'],
+          ['legacy-xls-row'],
+        ],
+      },
+    ]);
+    generateContentMock.mockResolvedValue(makeGeminiResponse(['tag-budget']));
+
+    const xlsBuf = Buffer.from('fake-xls-bytes');
+    const result = await service.suggestDocumentTags(
+      xlsBuf,
+      'application/vnd.ms-excel',
+      TAGS
+    );
+
+    expect(result).toEqual(['tag-budget']);
+    expect(xlsxReadMock).toHaveBeenCalledTimes(1);
+    expect(xlsxReadMock).toHaveBeenCalledWith(xlsBuf, { type: 'buffer' });
+
+    const parts = getPartsFromCall(generateContentMock.mock.calls[0][0]);
+    expect(parts.some(isInlinePart)).toBe(false);
+    const joined = parts.filter(isTextPart).map((p) => p.text).join('\n');
+    expect(joined).toContain('legacy-xls-row');
+    expect(joined).toContain('# Sheet1');
   });
 
   test('Empty DOCX extraction returns [] without calling Gemini', async () => {
@@ -218,7 +243,7 @@ describe('ConsolidatedAIService.suggestDocumentTags - Office text extraction', (
   });
 
   test('Empty XLSX extraction returns [] without calling Gemini', async () => {
-    mockWorksheets = [];
+    setMockWorkbook([]);
 
     const result = await service.suggestDocumentTags(
       Buffer.from('empty-xlsx'),
@@ -231,7 +256,9 @@ describe('ConsolidatedAIService.suggestDocumentTags - Office text extraction', (
   });
 
   test('Failed XLSX extraction returns [] without calling Gemini', async () => {
-    mockExcelJsLoadFn.mockRejectedValue(new Error('exceljs boom'));
+    xlsxReadMock.mockImplementation(() => {
+      throw new Error('xlsx boom');
+    });
 
     const result = await service.suggestDocumentTags(
       Buffer.from('broken-xlsx'),
@@ -250,9 +277,9 @@ describe('ConsolidatedAIService.suggestDocumentTags - Office text extraction', (
     await service.suggestDocumentTags(docxBuf, DOCX_MIME, TAGS);
     expect(extractRawTextMock).toHaveBeenCalledWith({ buffer: docxBuf });
 
-    mockWorksheets = [makeWorksheet('S1', [['a', 'b'], ['1', '2']])];
+    setMockWorkbook([{ name: 'S1', rows: [['a', 'b'], ['1', '2']] }]);
     const xlsxBuf = Buffer.from('xlsx-arg-check');
     await service.suggestDocumentTags(xlsxBuf, XLSX_MIME, TAGS);
-    expect(mockExcelJsLoadFn).toHaveBeenCalledWith(xlsxBuf);
+    expect(xlsxReadMock).toHaveBeenCalledWith(xlsxBuf, { type: 'buffer' });
   });
 });
