@@ -19,6 +19,7 @@ import crypto from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
 import { sql, eq } from 'drizzle-orm';
 import { db } from '../db';
+import { config } from '../config';
 import { fixLatin1MisdecodeFilename, normalizeFilename } from '../utils/filenameNormalization';
 import { documentService, type DocumentType } from '../services/document-service';
 import { logDebug, logInfo, logWarn, logError } from '../utils/logger';
@@ -522,13 +523,13 @@ export function registerDocumentRoutes(app: import('../utils/lazy-mount').RouteR
       return {
         success: true,
         result: result.rows[0],
-        url_truncated: process.env.DATABASE_URL?.substring(0, 50) + '...'
+        database: config.database.urlMasked,
       };
     } catch (error: any) {
       return {
         success: false,
         error: 'internal_error',
-        url_truncated: process.env.DATABASE_URL?.substring(0, 50) + '...'
+        database: config.database.urlMasked,
       };
     }
   };
@@ -1339,7 +1340,8 @@ export function registerDocumentRoutes(app: import('../utils/lazy-mount').RouteR
         storageMethod: typeof storage?.getDocuments,
         databaseConnection: {
           hasDb: !!db,
-          dbConfigured: !!process.env.DATABASE_URL
+          dbConfigured: !!config.database.url,
+          database: config.database.urlMasked,
         }
       }, 'DEBUG');
       const specificDocumentType = req.query.documentType as string; // Filter by document type (legal, maintenance, etc.)

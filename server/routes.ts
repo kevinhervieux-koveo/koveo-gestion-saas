@@ -40,6 +40,7 @@ import law25ComplianceRouter from './routes/law25-compliance';
 import { performanceRouter } from './performance-api';
 import { webVitalsRouter } from './web-vitals-api';
 import { db } from './db';
+import { config } from './config';
 import * as schema from '@shared/schema';
 import { demands } from '../shared/schemas/operations';
 import { eq } from 'drizzle-orm';
@@ -445,7 +446,8 @@ export async function registerRoutes(app: Express) {
         status: 'working',
         timestamp: new Date().toISOString(),
         environment: process.env.NODE_ENV || 'unknown',
-        databaseUrl: process.env.DATABASE_URL ? 'present' : 'missing'
+        databaseUrl: config.database.url ? 'present' : 'missing',
+        database: config.database.url ? config.database.urlMasked : null,
       });
     });
 
