@@ -527,7 +527,7 @@ export function registerDocumentRoutes(app: import('../utils/lazy-mount').RouteR
     } catch (error: any) {
       return {
         success: false,
-        error: error.message,
+        error: 'internal_error',
         url_truncated: process.env.DATABASE_URL?.substring(0, 50) + '...'
       };
     }
@@ -548,7 +548,7 @@ export function registerDocumentRoutes(app: import('../utils/lazy-mount').RouteR
     } catch (error: any) {
       return {
         success: false,
-        error: error.message,
+        error: 'internal_error',
         stack: error.stack?.substring(0, 200) + '...'
       };
     }
@@ -574,7 +574,7 @@ export function registerDocumentRoutes(app: import('../utils/lazy-mount').RouteR
     } catch (error: any) {
       return {
         success: false,
-        error: error.message
+        error: 'internal_error'
       };
     }
   };
@@ -618,7 +618,7 @@ export function registerDocumentRoutes(app: import('../utils/lazy-mount').RouteR
     } catch (error: any) {
       return {
         success: false,
-        error: error.message
+        error: 'internal_error'
       };
     }
   };
@@ -656,7 +656,7 @@ export function registerDocumentRoutes(app: import('../utils/lazy-mount').RouteR
       // console.error('❌ Error during enum cleanup:', error);
       res.status(500).json({
         error: 'Enum cleanup failed',
-        message: error.message,
+        message: 'internal_error',
         suggestion: 'Try running npm run db:push --force instead'
       });
     }
@@ -725,7 +725,7 @@ export function registerDocumentRoutes(app: import('../utils/lazy-mount').RouteR
       // console.error('❌ Error fixing user-organization links:', error);
       res.status(500).json({
         error: 'Failed to fix user-organization links',
-        message: error.message,
+        message: 'internal_error',
         timestamp: new Date().toISOString()
       });
     }
@@ -804,7 +804,7 @@ export function registerDocumentRoutes(app: import('../utils/lazy-mount').RouteR
       // console.error('❌ Error during enum migration:', error);
       res.status(500).json({
         error: 'Enum migration failed',
-        message: error.message,
+        message: 'internal_error',
         suggestion: 'This is a complex migration - may need manual intervention',
         timestamp: new Date().toISOString()
       });
@@ -851,7 +851,7 @@ export function registerDocumentRoutes(app: import('../utils/lazy-mount').RouteR
       // console.error('❌ Error fixing invitations dependency:', error);
       res.status(500).json({
         error: 'Failed to fix invitations dependency',
-        message: error.message,
+        message: 'internal_error',
         timestamp: new Date().toISOString()
       });
     }
@@ -882,7 +882,7 @@ export function registerDocumentRoutes(app: import('../utils/lazy-mount').RouteR
       // console.error('❌ Error restoring invitations default:', error);
       res.status(500).json({
         error: 'Failed to restore invitations default',
-        message: error.message,
+        message: 'internal_error',
         timestamp: new Date().toISOString()
       });
     }
@@ -986,7 +986,7 @@ export function registerDocumentRoutes(app: import('../utils/lazy-mount').RouteR
       // console.error('❌ Error migrating owner users to admin:', error);
       res.status(500).json({
         error: 'Owner to admin migration failed',
-        message: error.message,
+        message: 'internal_error',
         timestamp: new Date().toISOString()
       });
     }
@@ -1043,7 +1043,7 @@ export function registerDocumentRoutes(app: import('../utils/lazy-mount').RouteR
       // console.error('❌ Error removing enum dependencies:', error);
       res.status(500).json({
         error: 'Failed to remove enum dependencies',
-        message: error.message,
+        message: 'internal_error',
         timestamp: new Date().toISOString()
       });
     }
@@ -1096,7 +1096,7 @@ export function registerDocumentRoutes(app: import('../utils/lazy-mount').RouteR
       // console.error('❌ Error restoring defaults:', error);
       res.status(500).json({
         error: 'Failed to restore defaults',
-        message: error.message,
+        message: 'internal_error',
         timestamp: new Date().toISOString()
       });
     }
@@ -1220,7 +1220,7 @@ export function registerDocumentRoutes(app: import('../utils/lazy-mount').RouteR
       // console.error('❌ Error during schema synchronization:', error);
       res.status(500).json({
         error: 'Schema synchronization failed',
-        message: error.message,
+        message: 'internal_error',
         timestamp: new Date().toISOString(),
         success: false
       });
@@ -1274,7 +1274,7 @@ export function registerDocumentRoutes(app: import('../utils/lazy-mount').RouteR
       // console.error('❌ Error running diagnostic:', error);
       res.status(500).json({
         error: 'Diagnostic failed',
-        message: error.message
+        message: 'internal_error'
       });
     }
   });
@@ -1733,8 +1733,8 @@ export function registerDocumentRoutes(app: import('../utils/lazy-mount').RouteR
       const errorEntry = logError('GET /api/documents', _error, req.user);
       res.status(500).json({ 
         message: 'Failed to fetch documents',
+        error: 'internal_error',
         error_id: errorEntry.timestamp,
-        debug_info: process.env.NODE_ENV === 'development' ? _error.message : undefined
       });
     }
   });
@@ -3026,7 +3026,7 @@ export function registerDocumentRoutes(app: import('../utils/lazy-mount').RouteR
       logError('Error setting file path', error);
       res.status(500).json({ 
         message: 'Failed to set file path',
-        error: error.message 
+        error: 'internal_error' 
       });
     }
   });
@@ -3694,7 +3694,7 @@ export function registerDocumentRoutes(app: import('../utils/lazy-mount').RouteR
       
       return res.status(500).json({ 
         message: 'Failed to create text document',
-        error: error.message,
+        error: 'internal_error',
         timestamp 
       });
     }
@@ -3977,9 +3977,8 @@ export function registerDocumentRoutes(app: import('../utils/lazy-mount').RouteR
       // Generic error response (non-DB failure path)
       res.status(500).json({
         message: 'Internal server error',
-        error: 'DocumentRecord upload failed',
+        error: 'internal_error',
         error_id: errorEntry.timestamp,
-        debug_info: process.env.NODE_ENV === 'development' ? error.message : undefined
       });
     }
   });

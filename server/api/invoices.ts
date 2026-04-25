@@ -111,7 +111,7 @@ export function registerInvoiceRoutes(app: Express) {
         if (error.message.includes('Unsupported file type')) {
           return res.status(400).json({
             error: 'Unsupported file type',
-            message: error.message,
+            message: 'internal_error',
             code: 'UNSUPPORTED_FILE_TYPE'
           });
         }
@@ -168,7 +168,7 @@ export function registerInvoiceRoutes(app: Express) {
       res.status(503).json({
         status: 'unhealthy',
         service: 'invoice-extraction',
-        error: error.message,
+        error: 'internal_error',
         timestamp: new Date().toISOString()
       });
     }
@@ -202,7 +202,7 @@ export function registerInvoiceRoutes(app: Express) {
     } catch (error: any) {
       res.status(500).json({
         error: 'Failed to fetch invoices',
-        message: error.message
+        message: 'internal_error'
       });
     }
   });
@@ -231,7 +231,7 @@ export function registerInvoiceRoutes(app: Express) {
     } catch (error: any) {
       res.status(500).json({
         error: 'Failed to fetch invoice',
-        message: error.message
+        message: 'internal_error'
       });
     }
   });
@@ -284,7 +284,7 @@ export function registerInvoiceRoutes(app: Express) {
 
       res.status(500).json({
         error: 'Failed to create invoice',
-        message: error.message
+        message: 'internal_error'
       });
     }
   });
@@ -345,7 +345,7 @@ export function registerInvoiceRoutes(app: Express) {
 
       res.status(500).json({
         error: 'Failed to update invoice',
-        message: error.message
+        message: 'internal_error'
       });
     }
   });
@@ -394,7 +394,7 @@ export function registerInvoiceRoutes(app: Express) {
     } catch (error: any) {
       res.status(500).json({
         error: 'Failed to delete invoice',
-        message: error.message
+        message: 'internal_error'
       });
     }
   });

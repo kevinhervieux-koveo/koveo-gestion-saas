@@ -189,6 +189,6 @@ describe('POST /api/bills/:id/apply-ai-analysis', () => {
     expect(res.body).toMatchObject({
       message: 'Failed to apply AI analysis',
     });
-    expect(res.body._error).toMatch(/Gemini exploded/);
+    expect(res.body._error).toBe('internal_error');
   });
 });

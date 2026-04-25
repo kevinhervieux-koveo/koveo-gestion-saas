@@ -948,9 +948,8 @@ export function registerBillRoutes(app: import('../utils/lazy-mount').RouteRegis
     } catch (_error: any) {
       logError('[BILLS API] Error fetching bills', _error);
       res.status(500).json({
-        message: 'Failed to fetch bills',
-        error: _error instanceof Error ? _error.message : 'Unknown error',
-        details: process.env.NODE_ENV === 'production' ? undefined : _error.stack,
+        error: 'internal_error',
+        requestId: req.headers['x-request-id'] || undefined,
       });
     }
   });
@@ -973,9 +972,10 @@ export function registerBillRoutes(app: import('../utils/lazy-mount').RouteRegis
 
       res.json({ ...result.bill, payments: result.payments });
     } catch (_error: any) {
+      logError('[BILLS API] Error fetching bill', _error);
       res.status(500).json({
-        message: 'Failed to fetch bill',
-        _error: _error instanceof Error ? _error.message : 'Unknown error',
+        error: 'internal_error',
+        requestId: req.headers['x-request-id'] || undefined,
       });
     }
   });
@@ -2217,7 +2217,7 @@ export function registerBillRoutes(app: import('../utils/lazy-mount').RouteRegis
 
         res.status(500).json({
           message: 'Failed to upload document',
-          _error: _error instanceof Error ? _error.message : 'Unknown error',
+          _error: 'internal_error',
         });
       }
     }
@@ -2317,7 +2317,7 @@ export function registerBillRoutes(app: import('../utils/lazy-mount').RouteRegis
         res.status(500).json({
           message: 'Failed to download document',
           code: 'DOWNLOAD_ERROR',
-          _error: _error instanceof Error ? _error.message : 'Unknown error',
+          _error: 'internal_error',
           suggestion: 'If the file is missing or corrupted, you can delete the attachment and upload a new one.'
         });
       }
@@ -2407,7 +2407,7 @@ export function registerBillRoutes(app: import('../utils/lazy-mount').RouteRegis
       logError('[BILLS ATTACHMENT DELETE] Error', _error);
       res.status(500).json({
         message: 'Failed to delete attachment',
-        _error: _error instanceof Error ? _error.message : 'Unknown error',
+        _error: 'internal_error',
       });
     }
   });
@@ -2468,7 +2468,7 @@ export function registerBillRoutes(app: import('../utils/lazy-mount').RouteRegis
       // console.error('❌ Error applying AI analysis:', _error);
       res.status(500).json({
         message: 'Failed to apply AI analysis',
-        _error: _error instanceof Error ? _error.message : 'Unknown error',
+        _error: 'internal_error',
       });
     }
   });
@@ -2545,7 +2545,7 @@ export function registerBillRoutes(app: import('../utils/lazy-mount').RouteRegis
       // console.error('❌ Error generating future bills:', _error);
       res.status(500).json({
         message: 'Failed to generate future bills',
-        _error: _error instanceof Error ? _error.message : 'Unknown error',
+        _error: 'internal_error',
       });
     }
   });
@@ -2579,7 +2579,7 @@ export function registerBillRoutes(app: import('../utils/lazy-mount').RouteRegis
       // console.error('❌ Error fetching bill categories:', _error);
       res.status(500).json({
         message: 'Failed to fetch bill categories',
-        _error: _error instanceof Error ? _error.message : 'Unknown error',
+        _error: 'internal_error',
       });
     }
   });
@@ -2660,7 +2660,7 @@ export function registerBillRoutes(app: import('../utils/lazy-mount').RouteRegis
       // console.error('❌ Error getting generated bills statistics:', _error);
       res.status(500).json({
         message: 'Failed to get generated bills statistics',
-        _error: _error instanceof Error ? _error.message : 'Unknown error',
+        _error: 'internal_error',
       });
     }
   });
@@ -2684,7 +2684,7 @@ export function registerBillRoutes(app: import('../utils/lazy-mount').RouteRegis
       // console.error('Error analyzing document:', _error);
       res.status(500).json({
         message: 'Failed to analyze document',
-        _error: _error instanceof Error ? _error.message : 'Unknown error',
+        _error: 'internal_error',
       });
     }
   });
@@ -2755,7 +2755,7 @@ export function registerBillRoutes(app: import('../utils/lazy-mount').RouteRegis
       // console.error('❌ Error generating bills for next year:', error);
       res.status(500).json({
         message: 'Failed to generate bills for next year',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: 'internal_error',
       });
     }
   });
@@ -2787,7 +2787,7 @@ export function registerBillRoutes(app: import('../utils/lazy-mount').RouteRegis
       // console.error('❌ Error getting auto-generated bills:', error);
       res.status(500).json({
         message: 'Failed to get auto-generated bills',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: 'internal_error',
       });
     }
   });
@@ -2859,7 +2859,7 @@ export function registerBillRoutes(app: import('../utils/lazy-mount').RouteRegis
 
       res.status(500).json({
         message: 'Failed to create bill from template',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: 'internal_error',
       });
     }
   });
@@ -2890,7 +2890,7 @@ export function registerBillRoutes(app: import('../utils/lazy-mount').RouteRegis
       // console.error('❌ Error triggering bulk generation:', error);
       res.status(500).json({
         message: 'Failed to trigger bulk generation',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: 'internal_error',
       });
     }
   });
@@ -2911,7 +2911,7 @@ export function registerBillRoutes(app: import('../utils/lazy-mount').RouteRegis
       // console.error('❌ Error running scheduled job:', error);
       res.status(500).json({
         message: 'Failed to run scheduled generation job',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: 'internal_error',
       });
     }
   });
@@ -2997,7 +2997,7 @@ export function registerBillRoutes(app: import('../utils/lazy-mount').RouteRegis
       // console.error('❌ Error getting generation stats:', error);
       res.status(500).json({
         message: 'Failed to get generation statistics',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: 'internal_error',
       });
     }
   });
@@ -3082,7 +3082,7 @@ export function registerBillRoutes(app: import('../utils/lazy-mount').RouteRegis
       // console.error('❌ Error in auto-generation:', error);
       res.status(500).json({
         message: 'Failed to generate bill',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: 'internal_error',
       });
     }
   });
@@ -3157,7 +3157,7 @@ export function registerBillRoutes(app: import('../utils/lazy-mount').RouteRegis
       // console.error('❌ Error getting template data:', error);
       res.status(500).json({
         message: 'Failed to get template data',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: 'internal_error',
       });
     }
   });
@@ -3244,7 +3244,7 @@ export function registerBillRoutes(app: import('../utils/lazy-mount').RouteRegis
       // console.error('❌ Error getting auto-generated bills:', error);
       res.status(500).json({
         message: 'Failed to get auto-generated bills',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: 'internal_error',
       });
     }
   });
@@ -3273,7 +3273,7 @@ export function registerBillRoutes(app: import('../utils/lazy-mount').RouteRegis
     } catch (error: any) {
       res.status(500).json({
         message: 'Failed to fetch payments',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: 'internal_error',
       });
     }
   });
@@ -3343,7 +3343,7 @@ export function registerBillRoutes(app: import('../utils/lazy-mount').RouteRegis
       // console.error('❌ Error updating payment status:', error);
       res.status(500).json({
         message: 'Failed to update payment status',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: 'internal_error',
       });
     }
   });
@@ -3386,13 +3386,13 @@ export function registerBillRoutes(app: import('../utils/lazy-mount').RouteRegis
           // console.log(`✅ Regenerated payments for bill ${bill.id}`);
         } catch (error: any) {
           errorCount++;
-          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          logError('[BILLS] Error regenerating payments for bill', error);
           errors.push({
             billId: bill.id,
             billTitle: bill.title,
-            error: errorMessage
+            error: 'internal_error'
           });
-          // console.error(`❌ Failed to regenerate payments for bill ${bill.id}:`, errorMessage);
+          // console.error(`❌ Failed to regenerate payments for bill ${bill.id}:`, error);
         }
       }
 
@@ -3411,7 +3411,7 @@ export function registerBillRoutes(app: import('../utils/lazy-mount').RouteRegis
       // console.error('❌ Error during payment regeneration:', error);
       res.status(500).json({
         message: 'Failed to regenerate payments',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: 'internal_error',
       });
     }
   });
@@ -3954,7 +3954,7 @@ export function registerBillRoutes(app: import('../utils/lazy-mount').RouteRegis
       logError('Error fetching monthly bills summary:', error);
       res.status(500).json({
         message: 'Failed to fetch monthly bills summary',
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: 'internal_error',
       });
     }
   });

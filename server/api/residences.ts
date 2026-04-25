@@ -522,8 +522,7 @@ export function registerResidenceRoutes(app: Express) {
       }
       res.status(500).json({ 
         message: 'Failed to update residence',
-        error: error.message,
-        details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        error: 'internal_error',
       });
     }
   });

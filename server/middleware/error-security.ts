@@ -8,6 +8,30 @@ import { Request, Response, NextFunction } from 'express';
 import { ZodError } from 'zod';
 import { logSecurity } from '../utils/logger';
 
+const SQL_LEAK_PATTERN = /Failed query|select "|from "|insert into|update .*set |delete from/i;
+
+/**
+ * Scrub SQL fragments from any string values in a response payload.
+ * Walks the object recursively and replaces any string value that looks like
+ * a raw DB error with the generic "internal_error" sentinel.
+ */
+function scrubSqlFromPayload(payload: any): any {
+  if (typeof payload === 'string') {
+    return SQL_LEAK_PATTERN.test(payload) ? 'internal_error' : payload;
+  }
+  if (Array.isArray(payload)) {
+    return payload.map(scrubSqlFromPayload);
+  }
+  if (payload !== null && typeof payload === 'object') {
+    const result: Record<string, any> = {};
+    for (const [k, v] of Object.entries(payload)) {
+      result[k] = scrubSqlFromPayload(v);
+    }
+    return result;
+  }
+  return payload;
+}
+
 /**
  * Sanitize error messages to prevent information disclosure
  */
@@ -126,22 +150,26 @@ export function secureErrorHandler(error: any, req: Request, res: Response, next
     }
     // Only merge extra static label fields on the 500 path — they describe
     // unexpected server errors and shouldn't leak onto typed 4xx responses.
-    return res.status(500).json({
+    return res.status(500).json(scrubSqlFromPayload({
       ...(routeErrorExtraFields ?? {}),
       message: routeErrorMessage,
-    });
+    }));
   }
 
   // Unwrapped routes: keep the existing sanitized response shape so we
   // don't change any response contract callers may already depend on.
   const sanitizedError = sanitizeErrorMessage(error, isDevelopment);
 
-  res.status(statusCode).json({
+  const responsePayload = {
     error: true,
     ...sanitizedError,
     ...(isDevelopment && { errorId }), // Include error ID in development
     requestId: req.headers['x-request-id'] || undefined
-  });
+  };
+
+  res.status(statusCode).json(
+    statusCode === 500 ? scrubSqlFromPayload(responsePayload) : responsePayload
+  );
 }
 
 /**

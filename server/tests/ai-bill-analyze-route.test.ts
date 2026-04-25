@@ -126,7 +126,7 @@ describe('POST /api/bills/analyze-document', () => {
     expect(res.body).toMatchObject({
       message: 'Failed to analyze document',
     });
-    expect(res.body._error).toMatch(/Gemini exploded/);
+    expect(res.body._error).toBe('internal_error');
   });
 
   it('returns 400 when no document is uploaded', async () => {

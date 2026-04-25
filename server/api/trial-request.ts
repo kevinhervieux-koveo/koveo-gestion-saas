@@ -182,7 +182,7 @@ router.post('/trial-requests', async (req, res) => {
 
     return res.status(500).json({
       message: 'Internal server error while processing trial request',
-      error: error.message || 'Failed to process request',
+      error: 'internal_error',
       success: false,
     });
   }
