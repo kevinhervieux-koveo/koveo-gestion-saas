@@ -249,6 +249,24 @@ describe('No raw DB errors in REST API 500 responses', () => {
     expect(src).not.toMatch(/_error:\s*_error\s+instanceof\s+Error\s*\?\s*_error\.message/);
   });
 
+  it('dynamic-budgets.ts must not expose error.message in 5xx HTTP response bodies', () => {
+    const src = read('dynamic-budgets.ts');
+    const lines = src.split('\n');
+    const violations: string[] = [];
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (!/_error\.message|error\.message/.test(line)) continue;
+      if (/logWarn|logError|logSecurity|console\.|\/\/|\.includes|===/.test(line)) continue;
+      const isIn500Block = lines.slice(Math.max(0, i - 6), i).some((l) => /res\.status\(5/.test(l));
+      if (isIn500Block) {
+        violations.push(`  Line ${i + 1}: ${line.trim()}`);
+      }
+    }
+
+    expect(violations).toHaveLength(0);
+  });
+
   it('secureErrorHandler must contain the SQL-leak scrub backstop', () => {
     const src = fs.readFileSync(
       path.resolve(__dirname, '../../server/middleware/error-security.ts'),

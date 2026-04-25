@@ -77,9 +77,9 @@ router.get('/:buildingId', requireAuth, async (req, res) => {
       },
     });
   } catch (error) {
+    console.error('Error getting financial data:', error);
     res.status(500).json({
       _error: 'Failed to get financial data',
-      message: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 });
@@ -172,9 +172,9 @@ router.get('/summary', requireAuth, async (req, res) => {
       },
     });
   } catch (error) {
+    console.error('Error getting financial summary:', error);
     res.status(500).json({
       _error: 'Failed to get financial summary',
-      message: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 });
@@ -198,9 +198,9 @@ router.delete(
         message: `Cache invalidated for building ${buildingId}`,
       });
     } catch (error) {
+      console.error('Error invalidating cache:', error);
       res.status(500).json({
         _error: 'Failed to invalidate cache',
-        message: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
@@ -220,9 +220,9 @@ router.get('/cache/stats', requireAuth, requireRole(['admin']), async (req, res)
       generatedAt: new Date().toISOString(),
     });
   } catch (error) {
+    console.error('Error getting cache statistics:', error);
     res.status(500).json({
       _error: 'Failed to get cache statistics',
-      message: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 });
@@ -246,9 +246,9 @@ router.post(
         message: `Cache refreshed for building ${buildingId}`,
       });
     } catch (error) {
+      console.error('Error refreshing cache:', error);
       res.status(500).json({
         _error: 'Failed to refresh cache',
-        message: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   }
