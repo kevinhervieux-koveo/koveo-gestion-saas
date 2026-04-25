@@ -2947,12 +2947,25 @@ export function registerBulkImportRoutes(app: Express): void {
               return logAndReturn400('MERGE_TARGET_PDF_CORRUPT', `Failed to load merge target PDF (may be corrupt): ${siblingItem.originalName}`);
             }
             const indices = Array.from({ length: sibPdf.getPageCount() }, (_, i) => i);
-            const copiedPages = await leadPdf.copyPages(sibPdf, indices);
-            for (const page of copiedPages) leadPdf.addPage(page);
+            try {
+              const copiedPages = await leadPdf.copyPages(sibPdf, indices);
+              for (const page of copiedPages) leadPdf.addPage(page);
+            } catch (copyErr) {
+              return logAndReturn400('MERGE_PDF_COPY_FAILED', `Failed to copy pages from merge target: ${siblingItem.originalName}`, {
+                underlyingError: copyErr instanceof Error ? copyErr.message : String(copyErr),
+              });
+            }
             siblingItems.push(siblingItem);
           }
 
-          const mergedBytes = Buffer.from(await leadPdf.save());
+          let mergedBytes: Buffer;
+          try {
+            mergedBytes = Buffer.from(await leadPdf.save());
+          } catch (saveErr) {
+            return logAndReturn400('MERGE_PDF_SAVE_FAILED', 'Failed to serialise merged PDF', {
+              underlyingError: saveErr instanceof Error ? saveErr.message : String(saveErr),
+            });
+          }
           const mergedHash = crypto.createHash('sha256').update(mergedBytes).digest('hex');
           const dir = stagingDirFor(item.sessionId);
           const newPath = path.join(dir, `merged_${mergedHash}_${item.originalName}`);
@@ -2971,17 +2984,25 @@ export function registerBulkImportRoutes(app: Express): void {
             updated_decision.mergedFromItemId = siblingItems[0].id;
           }
 
-          const [updatedItem] = await db
-            .update(schema.bulkImportItems)
-            .set({
-              stagedPath: newPath,
-              contentHash: mergedHash,
-              sortingDecision: updated_decision,
-              updatedAt: new Date(),
-              ...(sanitizedFinalFileName !== undefined && { finalFileName: sanitizedFinalFileName }),
-            })
-            .where(eq(schema.bulkImportItems.id, item.id))
-            .returning();
+          let updatedItem: typeof item;
+          try {
+            const [row] = await db
+              .update(schema.bulkImportItems)
+              .set({
+                stagedPath: newPath,
+                contentHash: mergedHash,
+                sortingDecision: updated_decision,
+                updatedAt: new Date(),
+                ...(sanitizedFinalFileName !== undefined && { finalFileName: sanitizedFinalFileName }),
+              })
+              .where(eq(schema.bulkImportItems.id, item.id))
+              .returning();
+            updatedItem = row;
+          } catch (dbErr) {
+            return logAndReturn400('MERGE_DB_UPDATE_FAILED', 'Failed to update lead item record after merge', {
+              underlyingError: dbErr instanceof Error ? dbErr.message : String(dbErr),
+            });
+          }
 
           // Exclude every merged-away sibling with a back-pointer to the lead.
           for (const siblingItem of siblingItems) {
@@ -2991,15 +3012,21 @@ export function registerBulkImportRoutes(app: Express): void {
               decision: 'merge',
               mergedIntoItemId: item.id,
             };
-            await db
-              .update(schema.bulkImportItems)
-              .set({
-                status: 'rejected',
-                preExcludeStatus: siblingItem.status,
-                sortingDecision: siblingDecision,
-                updatedAt: new Date(),
-              })
-              .where(eq(schema.bulkImportItems.id, siblingItem.id));
+            try {
+              await db
+                .update(schema.bulkImportItems)
+                .set({
+                  status: 'rejected',
+                  preExcludeStatus: siblingItem.status,
+                  sortingDecision: siblingDecision,
+                  updatedAt: new Date(),
+                })
+                .where(eq(schema.bulkImportItems.id, siblingItem.id));
+            } catch (sibDbErr) {
+              return logAndReturn400('MERGE_SIBLING_UPDATE_FAILED', `Failed to update sibling item record after merge: ${siblingItem.id}`, {
+                underlyingError: sibDbErr instanceof Error ? sibDbErr.message : String(sibDbErr),
+              });
+            }
           }
 
           return res.json(updatedItem);

@@ -1006,6 +1006,143 @@ describe('POST /api/admin/bulk-import/items/:id/set-sorting-decision (Task #817)
     expect(res.body.error).toMatch(/Failed to write merged PDF/);
   });
 
+  // -----------------------------------------------------------------
+  // 9. New classified merge errors — Task #957
+  // -----------------------------------------------------------------
+
+  it('returns 400 (MERGE_PDF_COPY_FAILED) when copyPages throws during merge', async () => {
+    seed('it-copy-fail-lead', {
+      stagedPath: '/staging/copy-fail-lead.pdf',
+      contentHash: 'hash-copy-fail-lead',
+      sortingDecision: {
+        decision: 'merge',
+        mergeWithItemId: 'it-copy-fail-sib',
+        mergeWithItemIds: ['it-copy-fail-sib'],
+        decisionState: 'pending',
+      },
+    });
+    seed('it-copy-fail-sib', {
+      stagedPath: '/staging/copy-fail-sib.pdf',
+      originalName: 'ordre du jour réunion 28 octobre 2023.pdf',
+      status: 'sorted',
+    });
+    stagePdf('/staging/copy-fail-lead.pdf', 2);
+    stagePdf('/staging/copy-fail-sib.pdf', 3);
+
+    // Make copyPages throw to simulate a pdf-lib internal error on this PDF pair.
+    const pdfLib = require('pdf-lib');
+    const prevImpl = (pdfLib.PDFDocument.load as jest.Mock).getMockImplementation();
+    let loadCalls = 0;
+    (pdfLib.PDFDocument.load as jest.Mock).mockImplementation(async (bytes: Uint8Array) => {
+      loadCalls++;
+      const count = bytes[0] || 0;
+      const pages = Array.from({ length: count }, (_, i) => `p${i}`);
+      return {
+        getPageCount: () => pages.length,
+        copyPages: async () => { throw new Error('Unsupported font encoding'); },
+        addPage: (p: string) => pages.push(p),
+        save: async () => { const out = new Uint8Array(8); out[0] = pages.length; return out; },
+      };
+    });
+
+    try {
+      const res = await request(buildApp())
+        .post(ROUTE('it-copy-fail-lead'))
+        .send({ action: 'accept' })
+        .expect(400);
+
+      expect(res.body.code).toBe('MERGE_PDF_COPY_FAILED');
+      expect(res.body.error).toMatch(/Failed to copy pages/);
+      // Lead row must remain un-accepted.
+      expect((itemStore.get('it-copy-fail-lead')!.sortingDecision as any).decisionState).toBe('pending');
+    } finally {
+      if (prevImpl) (pdfLib.PDFDocument.load as jest.Mock).mockImplementation(prevImpl);
+    }
+  });
+
+  it('returns 400 (MERGE_PDF_SAVE_FAILED) when leadPdf.save throws during merge', async () => {
+    seed('it-save-fail-lead', {
+      stagedPath: '/staging/save-fail-lead.pdf',
+      contentHash: 'hash-save-fail-lead',
+      sortingDecision: {
+        decision: 'merge',
+        mergeWithItemId: 'it-save-fail-sib',
+        mergeWithItemIds: ['it-save-fail-sib'],
+        decisionState: 'pending',
+      },
+    });
+    seed('it-save-fail-sib', {
+      stagedPath: '/staging/save-fail-sib.pdf',
+      originalName: 'Procès verbal octobre 2023.pdf',
+      status: 'sorted',
+    });
+    stagePdf('/staging/save-fail-lead.pdf', 2);
+    stagePdf('/staging/save-fail-sib.pdf', 1);
+
+    const pdfLib = require('pdf-lib');
+    const prevImpl = (pdfLib.PDFDocument.load as jest.Mock).getMockImplementation();
+    (pdfLib.PDFDocument.load as jest.Mock).mockImplementation(async (bytes: Uint8Array) => {
+      const count = bytes[0] || 0;
+      const pages = Array.from({ length: count }, (_, i) => `p${i}`);
+      return {
+        getPageCount: () => pages.length,
+        copyPages: async (_src: any, indices: number[]) => indices.map((i) => `p${i}`),
+        addPage: (p: string) => pages.push(p),
+        save: async () => { throw new Error('Out of memory during PDF serialisation'); },
+      };
+    });
+
+    try {
+      const res = await request(buildApp())
+        .post(ROUTE('it-save-fail-lead'))
+        .send({ action: 'accept' })
+        .expect(400);
+
+      expect(res.body.code).toBe('MERGE_PDF_SAVE_FAILED');
+      expect(res.body.error).toMatch(/Failed to serialise merged PDF/);
+      expect((itemStore.get('it-save-fail-lead')!.sortingDecision as any).decisionState).toBe('pending');
+    } finally {
+      if (prevImpl) (pdfLib.PDFDocument.load as jest.Mock).mockImplementation(prevImpl);
+    }
+  });
+
+  it('returns 400 (MERGE_DB_UPDATE_FAILED) when the lead db.update throws after merge', async () => {
+    seed('it-dbu-lead', {
+      stagedPath: '/staging/dbu-lead.pdf',
+      contentHash: 'hash-dbu-lead',
+      sortingDecision: {
+        decision: 'merge',
+        mergeWithItemId: 'it-dbu-sib',
+        mergeWithItemIds: ['it-dbu-sib'],
+        decisionState: 'pending',
+      },
+    });
+    seed('it-dbu-sib', { stagedPath: '/staging/dbu-sib.pdf', status: 'sorted' });
+    stagePdf('/staging/dbu-lead.pdf', 2);
+    stagePdf('/staging/dbu-sib.pdf', 3);
+
+    // First db.update call (the lead row update) throws.
+    let updateCalls = 0;
+    const origUpdate = mockDb.update;
+    (mockDb.update as jest.Mock).mockImplementation(() => {
+      updateCalls++;
+      if (updateCalls === 1) throw new Error('DB constraint violation');
+      return origUpdate();
+    });
+
+    try {
+      const res = await request(buildApp())
+        .post(ROUTE('it-dbu-lead'))
+        .send({ action: 'accept' })
+        .expect(400);
+
+      expect(res.body.code).toBe('MERGE_DB_UPDATE_FAILED');
+      expect(res.body.error).toMatch(/Failed to update lead item record/);
+    } finally {
+      mockDb.update = origUpdate;
+    }
+  });
+
   it('improved 500 response body contains error and code when an unexpected error escapes', async () => {
     // Force an unexpected error by making the db.update throw after item load.
     seed('it-keep-throw', {
