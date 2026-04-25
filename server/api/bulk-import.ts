@@ -723,6 +723,7 @@ export function registerBulkImportRoutes(app: Express): void {
           mimeType: schema.bulkImportItems.mimeType,
           status: schema.bulkImportItems.status,
           preExcludeStatus: schema.bulkImportItems.preExcludeStatus,
+          excludeSource: schema.bulkImportItems.excludeSource,
           screening: schema.bulkImportItems.screening,
           sortingDecision: schema.bulkImportItems.sortingDecision,
           branchDecision: schema.bulkImportItems.branchDecision,
@@ -854,6 +855,7 @@ export function registerBulkImportRoutes(app: Express): void {
         mimeType: r.mimeType,
         status: r.status,
         preExcludeStatus: r.preExcludeStatus,
+        excludeSource: r.excludeSource,
         ...(() => {
           const sc = extractStep(r.screening);
           const sqaFields = extractScreeningQuickAnalysisFields(r.screening);
@@ -1146,6 +1148,21 @@ export function registerBulkImportRoutes(app: Express): void {
             )
             .limit(1);
 
+          // Duplicate check wins; only test the exclusion store when there
+          // is no committed fingerprint for this file in this org.
+          const [excluded] = dupe
+            ? []
+            : await db
+                .select()
+                .from(schema.clientExcludedFingerprints)
+                .where(
+                  and(
+                    eq(schema.clientExcludedFingerprints.organizationId, session.organizationId),
+                    eq(schema.clientExcludedFingerprints.contentHash, hash),
+                  ),
+                )
+                .limit(1);
+
           const [row] = await db
             .insert(schema.bulkImportItems)
             .values({
@@ -1156,7 +1173,15 @@ export function registerBulkImportRoutes(app: Express): void {
               contentHash: hash,
               mimeType: file.mimetype,
               fileSize: file.size,
-              status: dupe ? 'duplicate' : 'pending',
+              ...(dupe
+                ? { status: 'duplicate' }
+                : excluded
+                  ? {
+                      status: 'rejected',
+                      preExcludeStatus: 'pending',
+                      excludeSource: 'prior_session',
+                    }
+                  : { status: 'pending' }),
             })
             .returning();
           created.push(row);
@@ -1338,17 +1363,53 @@ export function registerBulkImportRoutes(app: Express): void {
         }
 
         if (excluded) {
-          // Already excluded — no-op so the toggle is idempotent.
-          if (item.status === 'rejected') return res.json(item);
-          const [updated] = await db
-            .update(schema.bulkImportItems)
-            .set({
-              status: 'rejected',
-              preExcludeStatus: item.status,
-              updatedAt: new Date(),
-            })
-            .where(eq(schema.bulkImportItems.id, item.id))
-            .returning();
+          // Already excluded — upsert the fingerprint (idempotent) and
+          // return the unchanged item so the caller's state stays correct.
+          if (item.status === 'rejected') {
+            await db
+              .insert(schema.clientExcludedFingerprints)
+              .values({
+                organizationId: session.organizationId,
+                contentHash: item.contentHash,
+                source: 'manual',
+              })
+              .onConflictDoNothing({
+                target: [
+                  schema.clientExcludedFingerprints.organizationId,
+                  schema.clientExcludedFingerprints.contentHash,
+                ],
+              });
+            return res.json(item);
+          }
+          // Exclude the item and persist the fingerprint in a single
+          // transaction so the item state and the fingerprint cache
+          // never disagree.
+          const [updated] = await db.transaction(async (tx) => {
+            const rows = await tx
+              .update(schema.bulkImportItems)
+              .set({
+                status: 'rejected',
+                preExcludeStatus: item.status,
+                excludeSource: null,
+                updatedAt: new Date(),
+              })
+              .where(eq(schema.bulkImportItems.id, item.id))
+              .returning();
+            await tx
+              .insert(schema.clientExcludedFingerprints)
+              .values({
+                organizationId: session.organizationId,
+                contentHash: item.contentHash,
+                source: 'manual',
+              })
+              .onConflictDoNothing({
+                target: [
+                  schema.clientExcludedFingerprints.organizationId,
+                  schema.clientExcludedFingerprints.contentHash,
+                ],
+              });
+            return rows;
+          });
           return res.json(updated);
         }
 
@@ -1358,15 +1419,29 @@ export function registerBulkImportRoutes(app: Express): void {
         // pre-exclusion status (e.g. items rejected by an older code
         // path before this column existed).
         const restored = item.preExcludeStatus ?? 'pending';
-        const [updated] = await db
-          .update(schema.bulkImportItems)
-          .set({
-            status: restored,
-            preExcludeStatus: null,
-            updatedAt: new Date(),
-          })
-          .where(eq(schema.bulkImportItems.id, item.id))
-          .returning();
+        // Remove the item exclusion and the persisted fingerprint in a
+        // single transaction so both are always in sync.
+        const [updated] = await db.transaction(async (tx) => {
+          const rows = await tx
+            .update(schema.bulkImportItems)
+            .set({
+              status: restored,
+              preExcludeStatus: null,
+              excludeSource: null,
+              updatedAt: new Date(),
+            })
+            .where(eq(schema.bulkImportItems.id, item.id))
+            .returning();
+          await tx
+            .delete(schema.clientExcludedFingerprints)
+            .where(
+              and(
+                eq(schema.clientExcludedFingerprints.organizationId, session.organizationId),
+                eq(schema.clientExcludedFingerprints.contentHash, item.contentHash),
+              ),
+            );
+          return rows;
+        });
         return res.json(updated);
       } catch (err) {
         if (err instanceof z.ZodError) {

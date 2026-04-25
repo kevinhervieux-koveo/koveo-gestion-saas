@@ -194,6 +194,14 @@ interface BulkImportItemLite {
   mimeType: string | null;
   status: BulkImportItem['status'];
   preExcludeStatus: BulkImportItem['status'] | null;
+  /**
+   * Non-null only when the item was auto-excluded on upload because its
+   * content hash matched a prior manual exclusion for this org (Task #847).
+   * The value `'prior_session'` triggers the "Previously excluded" badge.
+   * Null means the admin excluded this item manually during the current
+   * session.
+   */
+  excludeSource: string | null;
   screeningConfidence: number | null;
   screeningFallback: BulkImportFallbackReason | null;
   /** quickAnalysis fields from Screening (Task #767). Null for old sessions. */
@@ -2503,7 +2511,9 @@ export default function BulkDocumentImportPage() {
                                         <div className="flex items-center gap-2 flex-wrap justify-end" onClick={(e) => e.stopPropagation()}>
                                           {isExcluded && (
                                             <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-900" data-testid={`badge-excluded-${item.id}`}>
-                                              {isFr ? 'Exclu' : 'Excluded'}
+                                              {item.excludeSource === 'prior_session'
+                                                ? (isFr ? 'Exclu précédemment' : 'Previously excluded')
+                                                : (isFr ? 'Exclu' : 'Excluded')}
                                             </Badge>
                                           )}
                                           {!isExcluded && item.subCategory && (
@@ -2942,7 +2952,9 @@ export default function BulkDocumentImportPage() {
                                   className="border-amber-300 bg-amber-50 text-amber-900"
                                   data-testid={`badge-excluded-${item.id}`}
                                 >
-                                  {isFr ? 'Exclu' : 'Excluded'}
+                                  {item.excludeSource === 'prior_session'
+                                    ? (isFr ? 'Exclu précédemment' : 'Previously excluded')
+                                    : (isFr ? 'Exclu' : 'Excluded')}
                                 </Badge>
                               )}
                               {!isExcluded &&

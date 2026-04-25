@@ -120,6 +120,15 @@ export const bulkImportItems = pgTable(
      * tests in Task #720.
      */
     preExcludeStatus: bulkImportItemStatusEnum('pre_exclude_status'),
+    /**
+     * Non-null only when the item was automatically placed in the
+     * excluded state by the upload handler because the content hash
+     * matched a persisted org-level exclusion from a prior session
+     * (Task #847). Null for items excluded by the admin during the
+     * current session. The UI uses this to show "Previously excluded"
+     * instead of the generic "Excluded" badge.
+     */
+    excludeSource: text('exclude_source'),
     screening: jsonb('screening').$type<Record<string, unknown>>(),
     sortingDecision: jsonb('sorting_decision').$type<Record<string, unknown>>(),
     branchDecision: jsonb('branch_decision').$type<Record<string, unknown>>(),
@@ -166,6 +175,41 @@ export const clientDocumentFingerprints = pgTable(
       table.contentHash,
     ),
     buildingIdx: index('client_document_fingerprints_building_idx').on(table.buildingId),
+  }),
+);
+
+/**
+ * Per-organization exclusion memory (Task #847). When an admin manually
+ * excludes a bulk-import item the file's content hash is upserted here,
+ * scoped to the organization. On the next upload pass the handler checks
+ * this table alongside the duplicate fingerprint cache: any file whose
+ * hash matches is created already in the excluded state so it never
+ * enters the AI pipeline.
+ *
+ * Removing the row (via un-exclude) lets the same file go through
+ * screening normally on the next upload.
+ */
+export const clientExcludedFingerprints = pgTable(
+  'client_excluded_fingerprints',
+  {
+    id: text('id').primaryKey().default(sql`gen_random_uuid()`),
+    organizationId: varchar('organization_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    contentHash: text('content_hash').notNull(),
+    /**
+     * Human-readable source tag so future automated exclusion sources
+     * (e.g. AI-driven) can be distinguished from admin-initiated ones.
+     * Currently always `'manual'`.
+     */
+    source: text('source').notNull().default('manual'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+  },
+  (table) => ({
+    orgHashUniq: uniqueIndex('client_excluded_fingerprints_org_hash_uniq').on(
+      table.organizationId,
+      table.contentHash,
+    ),
   }),
 );
 
@@ -224,6 +268,7 @@ export const insertBulkImportItemSchema = z.object({
   identification: z.record(z.unknown()).optional().nullable(),
   linkDecisions: z.record(z.unknown()).optional().nullable(),
   finalDocumentId: z.string().optional().nullable(),
+  excludeSource: z.string().optional().nullable(),
 });
 
 export const insertClientDocumentFingerprintSchema = z.object({
@@ -233,6 +278,12 @@ export const insertClientDocumentFingerprintSchema = z.object({
   finalDocumentId: z.string().optional().nullable(),
 });
 
+export const insertClientExcludedFingerprintSchema = z.object({
+  organizationId: z.string().min(1),
+  contentHash: z.string().min(1),
+  source: z.string().optional(),
+});
+
 export type BulkImportSession = typeof bulkImportSessions.$inferSelect;
 export type InsertBulkImportSession = z.infer<typeof insertBulkImportSessionSchema>;
 export type BulkImportItem = typeof bulkImportItems.$inferSelect;
@@ -240,6 +291,10 @@ export type InsertBulkImportItem = z.infer<typeof insertBulkImportItemSchema>;
 export type ClientDocumentFingerprint = typeof clientDocumentFingerprints.$inferSelect;
 export type InsertClientDocumentFingerprint = z.infer<
   typeof insertClientDocumentFingerprintSchema
+>;
+export type ClientExcludedFingerprint = typeof clientExcludedFingerprints.$inferSelect;
+export type InsertClientExcludedFingerprint = z.infer<
+  typeof insertClientExcludedFingerprintSchema
 >;
 
 export type BulkImportStep =
