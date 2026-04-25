@@ -4593,16 +4593,34 @@ export default function BulkDocumentImportPage() {
                                               {/* --- PERIOD sub-section --- */}
                                               {!sibIsExcluded && (() => {
                                                 const rawHint = sibling.screeningPeriodHint ?? null;
-                                                const parsedDate = rawHint
-                                                  ? (() => {
-                                                      try {
-                                                        const d = parseISO(rawHint);
-                                                        return isValid(d) ? d : null;
-                                                      } catch {
-                                                        return null;
-                                                      }
-                                                    })()
-                                                  : null;
+                                                // Task #1060: prefer the server-parsed date so that
+                                                // non-ISO hints (fiscal-year ranges, quarters,
+                                                // calendar years, month-years) pre-fill the picker
+                                                // instead of leaving it on "No date selected".
+                                                // Fall back to parsing the raw hint as ISO for
+                                                // single-date hints, then null when neither yields
+                                                // a date (true non-date hints like invoice numbers).
+                                                const parsedHintDateRaw =
+                                                  sibling.screeningParsedPeriodHintDate ?? null;
+                                                const parsedDate = (() => {
+                                                  if (parsedHintDateRaw) {
+                                                    try {
+                                                      const d = parseISO(parsedHintDateRaw);
+                                                      if (isValid(d)) return d;
+                                                    } catch {
+                                                      /* fall through */
+                                                    }
+                                                  }
+                                                  if (rawHint) {
+                                                    try {
+                                                      const d = parseISO(rawHint);
+                                                      if (isValid(d)) return d;
+                                                    } catch {
+                                                      /* fall through */
+                                                    }
+                                                  }
+                                                  return null;
+                                                })();
                                                 const isNonDateHint = rawHint !== null && parsedDate === null;
                                                 const periodDisabled = sibSortingIsAccepted || setPeriodHint.isPending;
                                                 return (
@@ -5887,16 +5905,34 @@ export default function BulkDocumentImportPage() {
                                         {/* --- PERIOD sub-section (sorting step only) --- */}
                                         {!isExcluded && (() => {
                                           const rawHint = item.screeningPeriodHint ?? null;
-                                          const parsedDate = rawHint
-                                            ? (() => {
-                                                try {
-                                                  const d = parseISO(rawHint);
-                                                  return isValid(d) ? d : null;
-                                                } catch {
-                                                  return null;
-                                                }
-                                              })()
-                                            : null;
+                                          // Task #1060: prefer the server-parsed date so that
+                                          // non-ISO hints (fiscal-year ranges, quarters,
+                                          // calendar years, month-years) pre-fill the picker
+                                          // instead of leaving it on "No date selected".
+                                          // Fall back to parsing the raw hint as ISO for
+                                          // single-date hints, then null when neither yields
+                                          // a date (true non-date hints like invoice numbers).
+                                          const parsedHintDateRaw =
+                                            item.screeningParsedPeriodHintDate ?? null;
+                                          const parsedDate = (() => {
+                                            if (parsedHintDateRaw) {
+                                              try {
+                                                const d = parseISO(parsedHintDateRaw);
+                                                if (isValid(d)) return d;
+                                              } catch {
+                                                /* fall through */
+                                              }
+                                            }
+                                            if (rawHint) {
+                                              try {
+                                                const d = parseISO(rawHint);
+                                                if (isValid(d)) return d;
+                                              } catch {
+                                                /* fall through */
+                                              }
+                                            }
+                                            return null;
+                                          })();
                                           const isNonDateHint = rawHint !== null && parsedDate === null;
                                           const periodDisabled =
                                             sortingIsAccepted || setPeriodHint.isPending;

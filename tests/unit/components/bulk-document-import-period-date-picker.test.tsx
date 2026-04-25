@@ -146,12 +146,21 @@ const ITEM_WITH_DATE = 'item-with-date';
 const ITEM_NO_DATE = 'item-no-date';
 const ITEM_ACCEPTED = 'item-accepted';
 const ITEM_MANUAL = 'item-manual';
+// Task #1060: row whose AI hint is a fiscal-year range (not an ISO date)
+// but for which the server has resolved a parsed date. The picker must
+// pre-fill from that parsed date instead of staying on "No date selected".
+const ITEM_FY_RANGE = 'item-fy-range';
+// Task #1060: row whose AI hint is a true non-date string (e.g. an
+// invoice number). The server cannot resolve a parsed date for it, so
+// the picker must stay empty and the "AI hint:" line must still show.
+const ITEM_NON_DATE_HINT = 'item-non-date-hint';
 
 interface ItemRow {
   id: string;
   originalName: string;
   screeningPeriodHint: string | null;
   screeningPeriodHintManualOverride: boolean;
+  screeningParsedPeriodHintDate: string | null;
   sortingDecisionState: 'pending' | 'accepted' | 'rejected' | null;
 }
 
@@ -197,7 +206,7 @@ function buildSessionPayload() {
       screeningRotationApplied: false,
       screeningPeriodHint: it.screeningPeriodHint,
       screeningPeriodHintManualOverride: it.screeningPeriodHintManualOverride,
-      screeningParsedPeriodHintDate: null,
+      screeningParsedPeriodHintDate: it.screeningParsedPeriodHintDate,
       // Sorting fields — sortingDecision must be non-null so hasAnalysis
       // is true and the row's detail panel can be expanded.
       sortingConfidence: 0.95,
@@ -306,6 +315,9 @@ beforeEach(() => {
       originalName: 'with-date.pdf',
       screeningPeriodHint: '2024-03-15',
       screeningPeriodHintManualOverride: false,
+      // ISO-date hints round-trip through the server parser too, so the
+      // payload mirrors what the API actually returns in this case.
+      screeningParsedPeriodHintDate: '2024-03-15',
       sortingDecisionState: 'pending',
     },
     {
@@ -313,6 +325,7 @@ beforeEach(() => {
       originalName: 'no-date.pdf',
       screeningPeriodHint: null,
       screeningPeriodHintManualOverride: false,
+      screeningParsedPeriodHintDate: null,
       sortingDecisionState: 'pending',
     },
     {
@@ -320,6 +333,7 @@ beforeEach(() => {
       originalName: 'accepted.pdf',
       screeningPeriodHint: '2024-03-15',
       screeningPeriodHintManualOverride: false,
+      screeningParsedPeriodHintDate: '2024-03-15',
       sortingDecisionState: 'accepted',
     },
     {
@@ -327,6 +341,30 @@ beforeEach(() => {
       originalName: 'manual.pdf',
       screeningPeriodHint: '2025-01-01',
       screeningPeriodHintManualOverride: true,
+      screeningParsedPeriodHintDate: '2025-01-01',
+      sortingDecisionState: 'pending',
+    },
+    {
+      // Task #1060: fiscal-year range hint with a server-parsed date.
+      // parseISO("2025-2026") returns Invalid Date, so before this fix
+      // the picker stayed empty even though the server already knew the
+      // effective date was 2025-01-01.
+      id: ITEM_FY_RANGE,
+      originalName: 'fy-range.pdf',
+      screeningPeriodHint: '2025-2026',
+      screeningPeriodHintManualOverride: false,
+      screeningParsedPeriodHintDate: '2025-01-01',
+      sortingDecisionState: 'pending',
+    },
+    {
+      // Task #1060: invoice-number-style hint that the server parser
+      // could not turn into a date. The picker must stay empty and the
+      // "AI hint:" annotation must still appear underneath.
+      id: ITEM_NON_DATE_HINT,
+      originalName: 'non-date.pdf',
+      screeningPeriodHint: 'INV-2024-042',
+      screeningPeriodHintManualOverride: false,
+      screeningParsedPeriodHintDate: null,
       sortingDecisionState: 'pending',
     },
   ];
@@ -367,6 +405,8 @@ async function waitForRows() {
   await screen.findByTestId(`item-preview-trigger-${ITEM_NO_DATE}`);
   await screen.findByTestId(`item-preview-trigger-${ITEM_ACCEPTED}`);
   await screen.findByTestId(`item-preview-trigger-${ITEM_MANUAL}`);
+  await screen.findByTestId(`item-preview-trigger-${ITEM_FY_RANGE}`);
+  await screen.findByTestId(`item-preview-trigger-${ITEM_NON_DATE_HINT}`);
 }
 
 async function expandRow(itemId: string) {
@@ -479,6 +519,63 @@ describe('BulkDocumentImportPage — Period date picker (Task #1038)', () => {
       const body = JSON.parse(init.body as string) as { periodHint: string | null };
       expect(body.periodHint).toBe(SELECTED_DATE_YYYY_MM_DD);
     });
+  });
+
+  // -------------------------------------------------------------------------
+  // Task #1060 — pre-fill from screeningParsedPeriodHintDate.
+  // -------------------------------------------------------------------------
+
+  it('pre-fills the picker from screeningParsedPeriodHintDate when the AI hint is a fiscal-year range', async () => {
+    renderPage();
+    await waitForRows();
+
+    // The raw hint "2025-2026" is not parseable by parseISO, so the
+    // picker only shows a date when the UI honours the server-parsed
+    // field. The fiscal-year range resolves to 2025-01-01.
+    const picker = screen.getByTestId(`sorting-period-date-picker-${ITEM_FY_RANGE}`);
+    expect(picker.getAttribute('data-value')).toBe('2025-01-01');
+    expect(picker).not.toHaveTextContent('No date selected');
+
+    // The hint resolved to a date, so the standalone "AI hint:" line
+    // (used for genuine non-date hints) must not appear for this row.
+    const section = screen.getByTestId(`sorting-period-section-${ITEM_FY_RANGE}`);
+    expect(section).not.toHaveTextContent(/AI hint:/);
+
+    // Pre-filling must NOT flip the row into manual-override state — the
+    // badge only appears when the admin actually edits the picker.
+    expect(
+      screen.queryByTestId(`sorting-period-hint-manual-${ITEM_FY_RANGE}`),
+    ).not.toBeInTheDocument();
+
+    // And pre-filling must NOT auto-fire the set-period-hint mutation;
+    // the override flag flips only when the admin changes the value.
+    const setPeriodHintCalls = fetchMock.mock.calls.filter((call) => {
+      const url =
+        typeof call[0] === 'string' ? call[0] : (call[0] as URL).toString();
+      return url.includes('/set-period-hint');
+    });
+    expect(setPeriodHintCalls).toHaveLength(0);
+  });
+
+  it('still shows "No date selected" and the AI hint line for non-date hints', async () => {
+    renderPage();
+    await waitForRows();
+
+    const picker = screen.getByTestId(
+      `sorting-period-date-picker-${ITEM_NON_DATE_HINT}`,
+    );
+    // Neither the raw hint nor the parsed date yields a Date, so the
+    // picker stays empty.
+    expect(picker.getAttribute('data-value')).toBe('');
+    expect(picker).toHaveTextContent('No date selected');
+
+    // The "AI hint:" annotation under the picker must still appear so
+    // the admin can see what the AI extracted.
+    const section = screen.getByTestId(
+      `sorting-period-section-${ITEM_NON_DATE_HINT}`,
+    );
+    expect(section).toHaveTextContent(/AI hint:/);
+    expect(section).toHaveTextContent('INV-2024-042');
   });
 
   it('clicking Clear fires POST /set-period-hint with periodHint: null', async () => {
