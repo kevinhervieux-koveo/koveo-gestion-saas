@@ -893,7 +893,6 @@ export default function BulkDocumentImportPage() {
         screenAllInFlightRef.current = false;
       },
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId, currentStep, items.length, items.map((i) => i.status).join(',')]);
 
   const runStep = useMutation({
@@ -949,7 +948,6 @@ export default function BulkDocumentImportPage() {
     runAll.mutate(currentStep);
     // We intentionally only depend on sessionId + currentStep so the
     // mutation fires exactly once per (session, step) per visit.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId, currentStep, !!session]);
 
   const clearAll = useMutation({
