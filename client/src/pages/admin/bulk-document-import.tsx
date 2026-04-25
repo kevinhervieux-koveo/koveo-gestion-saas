@@ -295,6 +295,18 @@ const BUCKET_GUESS_LABEL_FR: Record<string, string> = {
   unknown: 'Inconnu',
 };
 
+/**
+ * True when the quickAnalysis (typeGuess + bucketGuess) from Screening
+ * carries any signal — i.e. at least one of the two guesses is set and
+ * not the literal "unknown" placeholder. Used by the detail panel to
+ * decide whether the AI-guess section is worth showing at all.
+ */
+function hasQuickAnalysisSignal(item: BulkImportItemLite): boolean {
+  const t = item.screeningTypeGuess;
+  const b = item.screeningBucketGuess;
+  return Boolean((t && t !== 'unknown') || (b && b !== 'unknown'));
+}
+
 export function ConfidenceBadge({
   value,
   fallbackReason,
@@ -825,6 +837,19 @@ export default function BulkDocumentImportPage() {
   const [showHelp, setShowHelp] = useState(false);
   const [expandedHistoryId, setExpandedHistoryId] = useState<string | null>(null);
   const [previewItem, setPreviewItem] = useState<{ id: string; originalName: string; mimeType: string | null } | null>(null);
+  // Per-item expansion state for the detail panel that reveals the
+  // full-size quickAnalysis guesses, the labelled confidence and the
+  // un-truncated reason text (Task #771). Stored as a Set so multiple
+  // rows can be opened simultaneously without forcing the user to
+  // collapse one before opening the next.
+  const [expandedItemIds, setExpandedItemIds] = useState<Set<string>>(new Set());
+  const toggleItemExpanded = (id: string) =>
+    setExpandedItemIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
   // Filters for the building picker on the "Start a session" card
   // (Task #600). Local-only state; not persisted across reloads.
   const [buildingSearch, setBuildingSearch] = useState('');
@@ -1809,15 +1834,57 @@ export default function BulkDocumentImportPage() {
                         const togglePending =
                           toggleExclude.isPending &&
                           toggleExclude.variables?.itemId === item.id;
+                        // Only offer an expansion control when there's
+                        // actually quickAnalysis signal worth showing.
+                        // Items with no AI guesses (or all-unknown) keep
+                        // the compact row layout (Task #771).
+                        const hasAnalysis = hasQuickAnalysisSignal(item);
+                        const isExpanded = expandedItemIds.has(item.id);
                         return (
                           <div
                             key={item.id}
-                            className={`flex items-center justify-between gap-3 rounded-md border p-3 transition ${
+                            className={`rounded-md border transition ${
                               isExcluded ? 'bg-muted/40 opacity-60' : ''
                             }`}
                             data-testid={`item-row-${item.id}`}
                             data-excluded={isExcluded ? 'true' : 'false'}
                           >
+                            <div className="flex items-center justify-between gap-3 p-3">
+                            {hasAnalysis ? (
+                              <button
+                                type="button"
+                                onClick={() => toggleItemExpanded(item.id)}
+                                className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded text-muted-foreground hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                aria-expanded={isExpanded}
+                                aria-label={
+                                  isExpanded
+                                    ? isFr
+                                      ? 'Masquer les détails'
+                                      : 'Hide details'
+                                    : isFr
+                                      ? 'Afficher les détails'
+                                      : 'Show details'
+                                }
+                                title={
+                                  isExpanded
+                                    ? isFr
+                                      ? 'Masquer les détails'
+                                      : 'Hide details'
+                                    : isFr
+                                      ? 'Afficher les détails'
+                                      : 'Show details'
+                                }
+                                data-testid={`button-toggle-detail-${item.id}`}
+                              >
+                                {isExpanded ? (
+                                  <ChevronDown className="h-4 w-4" />
+                                ) : (
+                                  <ChevronRight className="h-4 w-4" />
+                                )}
+                              </button>
+                            ) : (
+                              <span className="h-7 w-7 flex-shrink-0" aria-hidden="true" />
+                            )}
                             <div
                               className="flex min-w-0 flex-1 items-center gap-3 cursor-pointer rounded hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                               role="button"
@@ -2005,6 +2072,72 @@ export default function BulkDocumentImportPage() {
                                 </Button>
                               )}
                             </div>
+                            </div>
+                            {hasAnalysis && isExpanded && (
+                              <div
+                                className="border-t bg-muted/30 px-3 py-3"
+                                data-testid={`item-detail-panel-${item.id}`}
+                              >
+                                <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                  {isFr ? 'Analyse de l’IA' : 'AI analysis'}
+                                </div>
+                                <div className="flex flex-wrap items-center gap-2">
+                                  {item.screeningTypeGuess &&
+                                    item.screeningTypeGuess !== 'unknown' && (
+                                      <span
+                                        className="inline-flex items-center rounded-md border border-purple-300 bg-purple-50 px-3 py-1 text-sm font-medium text-purple-900 dark:border-purple-700 dark:bg-purple-950 dark:text-purple-200"
+                                        data-testid={`detail-type-guess-${item.id}`}
+                                      >
+                                        <span className="mr-1.5 text-xs uppercase tracking-wide opacity-75">
+                                          {isFr ? 'Type' : 'Type'}:
+                                        </span>
+                                        {(isFr ? TYPE_GUESS_LABEL_FR : TYPE_GUESS_LABEL_EN)[
+                                          item.screeningTypeGuess
+                                        ] ?? item.screeningTypeGuess}
+                                      </span>
+                                    )}
+                                  {item.screeningBucketGuess &&
+                                    item.screeningBucketGuess !== 'unknown' && (
+                                      <span
+                                        className="inline-flex items-center rounded-md border border-teal-300 bg-teal-50 px-3 py-1 text-sm font-medium text-teal-900 dark:border-teal-700 dark:bg-teal-950 dark:text-teal-200"
+                                        data-testid={`detail-bucket-guess-${item.id}`}
+                                      >
+                                        <span className="mr-1.5 text-xs uppercase tracking-wide opacity-75">
+                                          {isFr ? 'Destination' : 'Bucket'}:
+                                        </span>
+                                        {(isFr ? BUCKET_GUESS_LABEL_FR : BUCKET_GUESS_LABEL_EN)[
+                                          item.screeningBucketGuess
+                                        ] ?? item.screeningBucketGuess}
+                                      </span>
+                                    )}
+                                  {item.screeningConfidence != null && (
+                                    <span
+                                      className="inline-flex items-center gap-1.5 rounded-md border bg-background px-3 py-1 text-sm font-medium"
+                                      data-testid={`detail-confidence-${item.id}`}
+                                    >
+                                      <Sparkles className="h-3.5 w-3.5 text-muted-foreground" />
+                                      <span className="text-xs uppercase tracking-wide text-muted-foreground">
+                                        {isFr ? 'Confiance' : 'Confidence'}:
+                                      </span>
+                                      <span>
+                                        {Math.round(item.screeningConfidence * 100)}%
+                                      </span>
+                                    </span>
+                                  )}
+                                </div>
+                                {item.screeningQaReason && (
+                                  <p
+                                    className="mt-3 whitespace-pre-wrap text-sm text-foreground/80"
+                                    data-testid={`detail-reason-${item.id}`}
+                                  >
+                                    <span className="mr-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                                      {isFr ? 'Raison' : 'Reason'}:
+                                    </span>
+                                    {item.screeningQaReason}
+                                  </p>
+                                )}
+                              </div>
+                            )}
                           </div>
                         );
                       })}
