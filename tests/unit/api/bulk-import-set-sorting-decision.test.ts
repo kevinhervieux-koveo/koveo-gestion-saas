@@ -847,7 +847,7 @@ describe('POST /api/admin/bulk-import/items/:id/set-sorting-decision (Task #817)
         .send({ action: 'accept' })
         .expect(400);
 
-      expect(res.body.error).toMatch(/Failed to load merge target PDF/);
+      expect(res.body.error).toMatch(/merge target|Failed to (load|copy)/i);
       expect(res.body.error).toMatch(/états financiers/);
       // Lead must remain unchanged.
       expect((itemStore.get('it-lead-ok')!.sortingDecision as any).decisionState).toBe('pending');
@@ -1123,11 +1123,11 @@ describe('POST /api/admin/bulk-import/items/:id/set-sorting-decision (Task #817)
 
     // First db.update call (the lead row update) throws.
     let updateCalls = 0;
-    const origUpdate = mockDb.update;
+    const prevUpdateImpl = (mockDb.update as jest.Mock).getMockImplementation()!;
     (mockDb.update as jest.Mock).mockImplementation(() => {
       updateCalls++;
       if (updateCalls === 1) throw new Error('DB constraint violation');
-      return origUpdate();
+      return prevUpdateImpl();
     });
 
     try {
@@ -1139,7 +1139,7 @@ describe('POST /api/admin/bulk-import/items/:id/set-sorting-decision (Task #817)
       expect(res.body.code).toBe('MERGE_DB_UPDATE_FAILED');
       expect(res.body.error).toMatch(/Failed to update lead item record/);
     } finally {
-      mockDb.update = origUpdate;
+      (mockDb.update as jest.Mock).mockImplementation(prevUpdateImpl);
     }
   });
 
@@ -1148,7 +1148,6 @@ describe('POST /api/admin/bulk-import/items/:id/set-sorting-decision (Task #817)
     seed('it-keep-throw', {
       sortingDecision: { decision: 'keep', decisionState: 'pending' },
     });
-    const originalUpdate = mockDb.update;
     (mockDb.update as jest.Mock).mockImplementationOnce(() => {
       throw new Error('DB connection dropped');
     });
@@ -1161,8 +1160,344 @@ describe('POST /api/admin/bulk-import/items/:id/set-sorting-decision (Task #817)
     expect(res.body.error).toMatch(/Internal error/);
     expect(res.body.code).toBe('SORTING_DECISION_INTERNAL_ERROR');
     expect(res.body.message).toMatch(/Internal error/);
+  });
 
-    // Restore
-    mockDb.update = originalUpdate;
+  // -----------------------------------------------------------------
+  // 10. NoCentris PDF recovery — Task #1014
+  //
+  // PDFs exported by the NoCentris Quebec real-estate system load
+  // successfully under pdf-lib's lenient parser, but getPageCount()
+  // throws "Expected instance of PDFDict, but got instance of undefined"
+  // on the first walk of the page tree.  The loadPdfForBulkImport helper
+  // must recover via a re-encode pass (save → reload) before the merge
+  // is allowed to proceed.  If both attempts fail the endpoint must
+  // still return a classified 400, never a 500.
+  // -----------------------------------------------------------------
+
+  it('NoCentris-style merge: succeeds when sibling getPageCount throws on first load but recovers after re-encode', async () => {
+    // Lead has 2 pages (healthy), sibling has 3 pages (NoCentris-style broken page tree).
+    // The sibling's getPageCount throws on the initial load but succeeds after the
+    // re-encode pass (save → reload), as happens with recoverable NoCentris PDFs.
+    seed('it-nc-lead', {
+      stagedPath: '/staging/nc-lead.pdf',
+      contentHash: 'hash-nc-lead',
+      sortingDecision: {
+        decision: 'merge',
+        mergeWithItemId: 'it-nc-sib',
+        mergeWithItemIds: ['it-nc-sib'],
+        decisionState: 'pending',
+      },
+    });
+    seed('it-nc-sib', {
+      stagedPath: '/staging/nc-sib.pdf',
+      originalName: 'Etats_financiers_2023_preliminaire_15_NoCentris_28525705.pdf',
+      contentHash: 'hash-nc-sib',
+      status: 'sorted',
+    });
+    stagePdf('/staging/nc-lead.pdf', 2);
+    stagePdf('/staging/nc-sib.pdf', 3);
+
+    const pdfLib = require('pdf-lib');
+    const prevImpl = (pdfLib.PDFDocument.load as jest.Mock).getMockImplementation();
+
+    // The NoCentris pattern: load() succeeds but getPageCount() throws on the
+    // ORIGINAL bytes.  The recovery pass calls doc.save() then reloads: the
+    // saved bytes carry a marker in byte-index 1 (0x01) so we can tell them
+    // apart from the original file bytes (byte-index 1 = 0x00).  When the
+    // re-encoded doc is loaded, getPageCount() succeeds → merge can proceed.
+    let loadCallCount = 0;
+    (pdfLib.PDFDocument.load as jest.Mock).mockImplementation(async (bytes: Uint8Array) => {
+      loadCallCount++;
+      const count = bytes[0] || 0;
+      const pages = Array.from({ length: count }, (_, i) => `p${i}`);
+      const isSib = count === 3;
+      const isReencoded = bytes[1] === 0x01;
+      return {
+        getPageCount: () => {
+          // Sib on original bytes: broken page tree → throw.
+          // Sib on re-encoded bytes (or lead): healthy → return count.
+          if (isSib && !isReencoded) {
+            throw new Error('Expected instance of PDFDict, but got instance of undefined');
+          }
+          return pages.length;
+        },
+        copyPages: async (_src: any, indices: number[]) => indices.map((i) => `p${i}`),
+        addPage: (p: string) => pages.push(p),
+        // save() produces re-encoded bytes with marker at index 1.
+        save: async () => { const out = new Uint8Array(8); out[0] = pages.length; out[1] = 0x01; return out; },
+      };
+    });
+
+    try {
+      const res = await request(buildApp())
+        .post(ROUTE('it-nc-lead'))
+        .send({ action: 'accept' })
+        .expect(200);
+
+      // Merge succeeded despite the broken page-tree on first sib load.
+      expect(res.body.id).toBe('it-nc-lead');
+      expect(res.body.stagedPath).toMatch(/merged_/);
+      expect(res.body.contentHash).toHaveLength(64);
+      expect(res.body.sortingDecision).toMatchObject({
+        decision: 'merge',
+        decisionState: 'accepted',
+        mergedFromItemId: 'it-nc-sib',
+      });
+
+      // Sibling is excluded with back-pointer.
+      const sibling = itemStore.get('it-nc-sib')!;
+      expect(sibling.status).toBe('rejected');
+      expect((sibling.sortingDecision as any).mergedIntoItemId).toBe('it-nc-lead');
+
+      // 3 load() calls: lead (1) + sib initial broken (1) + sib re-encoded (1).
+      expect(loadCallCount).toBe(3);
+    } finally {
+      if (prevImpl) (pdfLib.PDFDocument.load as jest.Mock).mockImplementation(prevImpl);
+    }
+  });
+
+  // -----------------------------------------------------------------
+  // 10c. NoCentris-style: stage-2 recovery — copyPages fails on first
+  // call (getPageCount passes) but succeeds after sibling re-encode.
+  //
+  // This covers the second NoCentris failure mode: the page-tree object
+  // graph is corrupt in a way that only surfaces during cross-document
+  // reference resolution inside copyPages(), not during the simpler
+  // getPageCount() walk.  copyPagesFromFileWithRecovery re-encodes the
+  // sibling (raw → save → reload) and retries; the re-encoded doc has
+  // a clean object graph so copyPages succeeds and the merge goes through.
+  // -----------------------------------------------------------------
+  it('NoCentris-style merge: succeeds when copyPages fails on first call but recovers after sibling re-encode (stage-2 recovery)', async () => {
+    seed('it-nc2-lead', {
+      stagedPath: '/staging/nc2-lead.pdf',
+      contentHash: 'hash-nc2-lead',
+      sortingDecision: {
+        decision: 'merge',
+        mergeWithItemId: 'it-nc2-sib',
+        mergeWithItemIds: ['it-nc2-sib'],
+        decisionState: 'pending',
+      },
+    });
+    seed('it-nc2-sib', {
+      stagedPath: '/staging/nc2-sib.pdf',
+      originalName: 'Etats_financiers_2024_NoCentris_stage2_corrupt.pdf',
+      contentHash: 'hash-nc2-sib',
+      status: 'sorted',
+    });
+    stagePdf('/staging/nc2-lead.pdf', 2);
+    stagePdf('/staging/nc2-sib.pdf', 3);
+
+    const pdfLib = require('pdf-lib');
+    const prevImpl = (pdfLib.PDFDocument.load as jest.Mock).getMockImplementation();
+
+    // getPageCount() never throws in this test — the corruption only surfaces
+    // during cross-document copyPages().  Docs loaded from original sib bytes
+    // have broken=true; after save→reload the re-encoded bytes carry a marker
+    // at index 1 (0x01), producing broken=false docs where copyPages succeeds.
+    let loadCallCount2 = 0;
+    (pdfLib.PDFDocument.load as jest.Mock).mockImplementation(async (bytes: Uint8Array) => {
+      loadCallCount2++;
+      const count = bytes[0] || 0;
+      const pages = Array.from({ length: count }, (_, i) => `p${i}`);
+      const isReencoded = bytes[1] === 0x01;
+      const broken = count === 3 && !isReencoded;
+      return {
+        broken,
+        getPageCount: () => pages.length,
+        copyPages: async (src: any, indices: number[]) => {
+          if (src.broken) {
+            throw new Error('Cross-document page tree reference unresolvable (NoCentris)');
+          }
+          return indices.map((i: number) => `p${i}`);
+        },
+        addPage: (p: string) => pages.push(p),
+        save: async () => {
+          const out = new Uint8Array(8);
+          out[0] = pages.length;
+          out[1] = 0x01;
+          return out;
+        },
+      };
+    });
+
+    try {
+      const res = await request(buildApp())
+        .post(ROUTE('it-nc2-lead'))
+        .send({ action: 'accept' })
+        .expect(200);
+
+      // Merge succeeded despite copyPages failing on first sib load.
+      expect(res.body.id).toBe('it-nc2-lead');
+      expect(res.body.stagedPath).toMatch(/merged_/);
+      expect(res.body.contentHash).toHaveLength(64);
+      expect(res.body.sortingDecision).toMatchObject({
+        decision: 'merge',
+        decisionState: 'accepted',
+        mergedFromItemId: 'it-nc2-sib',
+      });
+
+      // Sibling is excluded with back-pointer.
+      const sibling = itemStore.get('it-nc2-sib')!;
+      expect(sibling.status).toBe('rejected');
+      expect((sibling.sortingDecision as any).mergedIntoItemId).toBe('it-nc2-lead');
+
+      // 4 load() calls: lead(1) + sib-initial-broken(2) + sib-raw-for-tempDoc(3) + sib-reencoded(4).
+      expect(loadCallCount2).toBe(4);
+    } finally {
+      if (prevImpl) (pdfLib.PDFDocument.load as jest.Mock).mockImplementation(prevImpl);
+    }
+  });
+
+  // -----------------------------------------------------------------
+  // 10b. NoCentris unrecoverable — fixture-based, REAL pdf-lib.
+  //
+  // tests/fixtures/nocentris-broken-page-tree.pdf is a hand-crafted
+  // PDF whose catalog points /Pages at object 99 0 R (non-existent).
+  // Real pdf-lib's lenient parser loads it successfully, but both
+  // getPageCount() and the recovery save() throw
+  // "Expected instance of PDFDict, but got instance of undefined".
+  //
+  // This test exercises the full endpoint path with real pdf-lib — no
+  // mocking of PDFDocument.load — confirming that an unrecoverable
+  // NoCentris-style PDF yields a classified 400 and never a 500.
+  // -----------------------------------------------------------------
+  it('NoCentris-style merge (fixture, real pdf-lib): returns 400 (MERGE_PDF_COPY_FAILED) when sibling is truly unrecoverable', async () => {
+    const FIXTURE_PATH = 'tests/fixtures/nocentris-broken-page-tree.pdf';
+
+    seed('it-nc-fix-lead', {
+      stagedPath: '/staging/nc-fix-lead.pdf',
+      contentHash: 'hash-nc-fix-lead',
+      sortingDecision: {
+        decision: 'merge',
+        mergeWithItemId: 'it-nc-fix-sib',
+        mergeWithItemIds: ['it-nc-fix-sib'],
+        decisionState: 'pending',
+      },
+    });
+    seed('it-nc-fix-sib', {
+      stagedPath: FIXTURE_PATH,
+      originalName: 'Etats_financiers_unrecoverable_NoCentris.pdf',
+      contentHash: 'hash-nc-fix-sib',
+      status: 'sorted',
+    });
+    // Lead is a normal 2-page mock PDF.
+    stagePdf('/staging/nc-fix-lead.pdf', 2);
+    // Sibling uses the REAL fixture file — NOT registered in stagedFiles,
+    // so fs.readFileSync falls back to the actual file on disk.
+
+    const pdfLib = require('pdf-lib');
+    const realPdfLib = jest.requireActual('pdf-lib') as typeof import('pdf-lib');
+    const prevImpl = (pdfLib.PDFDocument.load as jest.Mock).getMockImplementation();
+
+    // Hybrid mock: real pdf-lib for '%PDF' bytes (fixture), mock for
+    // fake staging bytes (lead).
+    (pdfLib.PDFDocument.load as jest.Mock).mockImplementation(
+      async (bytes: Uint8Array, opts?: any) => {
+        if (bytes[0] === 0x25) {
+          // '%' — real fixture bytes: use actual pdf-lib with lenient options.
+          return realPdfLib.PDFDocument.load(bytes, {
+            ignoreEncryption: true,
+            throwOnInvalidObject: false,
+            updateMetadata: false,
+            ...(realPdfLib.ParseSpeeds != null && {
+              parseSpeed: realPdfLib.ParseSpeeds.Fastest,
+            }),
+          });
+        }
+        // Mock staging bytes: first byte encodes page count.
+        const count = bytes[0] || 0;
+        const pages = Array.from({ length: count }, (_, i) => `p${i}`);
+        return {
+          getPageCount: () => pages.length,
+          copyPages: async (src: any, indices: number[]) =>
+            indices.map((i: number) => src.pages[i]),
+          addPage: (p: any) => pages.push(p),
+          save: async () => {
+            const out = new Uint8Array(8);
+            out[0] = pages.length;
+            return out;
+          },
+        };
+      },
+    );
+
+    try {
+      const res = await request(buildApp())
+        .post(ROUTE('it-nc-fix-lead'))
+        .send({ action: 'accept' })
+        .expect(400);
+
+      // Must be a classified 400, never a 500.
+      expect(res.body.code).toBe('MERGE_PDF_COPY_FAILED');
+      expect(res.body.error).toMatch(/Failed to copy pages from merge target/);
+      expect(res.body.error).toMatch(/NoCentris/);
+
+      // Lead row must NOT be flipped to accepted.
+      expect(
+        (itemStore.get('it-nc-fix-lead')!.sortingDecision as any).decisionState,
+      ).toBe('pending');
+    } finally {
+      if (prevImpl) (pdfLib.PDFDocument.load as jest.Mock).mockImplementation(prevImpl);
+    }
+  });
+
+  it('NoCentris-style merge (mock): returns 400 (MERGE_PDF_COPY_FAILED) when both load attempts fail on sibling', async () => {
+    seed('it-nc-unrecov-lead', {
+      stagedPath: '/staging/nc-unrecov-lead.pdf',
+      contentHash: 'hash-nc-unrecov-lead',
+      sortingDecision: {
+        decision: 'merge',
+        mergeWithItemId: 'it-nc-unrecov-sib',
+        mergeWithItemIds: ['it-nc-unrecov-sib'],
+        decisionState: 'pending',
+      },
+    });
+    seed('it-nc-unrecov-sib', {
+      stagedPath: '/staging/nc-unrecov-sib.pdf',
+      originalName: 'Etats_financiers_unrecoverable_NoCentris.pdf',
+      contentHash: 'hash-nc-unrecov-sib',
+      status: 'sorted',
+    });
+    stagePdf('/staging/nc-unrecov-lead.pdf', 2);
+    stagePdf('/staging/nc-unrecov-sib.pdf', 3);
+
+    const pdfLib = require('pdf-lib');
+    const prevImpl = (pdfLib.PDFDocument.load as jest.Mock).getMockImplementation();
+
+    // Sibling (count=3) ALWAYS throws on getPageCount — even after re-encode.
+    // Lead (count=2) loads normally.
+    let loadCallCount = 0;
+    (pdfLib.PDFDocument.load as jest.Mock).mockImplementation(async (bytes: Uint8Array) => {
+      loadCallCount++;
+      const count = bytes[0] || 0;
+      const pages = Array.from({ length: count }, (_, i) => `p${i}`);
+      const isSib = count === 3;
+      return {
+        getPageCount: () => {
+          if (isSib) throw new Error('Expected instance of PDFDict, but got instance of undefined');
+          return pages.length;
+        },
+        copyPages: async (_src: any, indices: number[]) => indices.map((i) => `p${i}`),
+        addPage: (p: string) => pages.push(p),
+        save: async () => { const out = new Uint8Array(8); out[0] = pages.length; return out; },
+      };
+    });
+
+    try {
+      const res = await request(buildApp())
+        .post(ROUTE('it-nc-unrecov-lead'))
+        .send({ action: 'accept' })
+        .expect(400);
+
+      // Must be a classified 400, never a 500.
+      expect(res.body.code).toBe('MERGE_PDF_COPY_FAILED');
+      expect(res.body.error).toMatch(/Failed to copy pages from merge target/);
+      expect(res.body.error).toMatch(/NoCentris/);
+
+      // Lead row must NOT be flipped to accepted.
+      expect((itemStore.get('it-nc-unrecov-lead')!.sortingDecision as any).decisionState).toBe('pending');
+    } finally {
+      if (prevImpl) (pdfLib.PDFDocument.load as jest.Mock).mockImplementation(prevImpl);
+    }
   });
 });

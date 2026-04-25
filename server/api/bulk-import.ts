@@ -1955,15 +1955,16 @@ export function registerBulkImportRoutes(app: Express): void {
       }
 
       try {
-        const { PDFDocument } = await import('pdf-lib');
-        const bytes = fs.readFileSync(resolved);
-        const doc = await PDFDocument.load(new Uint8Array(bytes), {
-          ignoreEncryption: true,
-        });
+        const doc = await loadPdfForBulkImport(resolved);
         return res.json({ totalPages: doc.getPageCount() });
       } catch (err) {
-        logError('[bulk-import] page-count failed', err as Error);
-        return res.status(500).json({ error: 'Failed to read PDF page count' });
+        const errMsg = err instanceof Error ? err.message : String(err);
+        logError('[bulk-import] page-count failed', err as Error, { metadata: { itemId: req.params.id } });
+        return res.status(400).json({
+          error: 'Failed to read PDF page count: the file may have a corrupted page structure',
+          code: 'PAGE_COUNT_PDF_INVALID',
+          underlyingError: errMsg,
+        });
       }
     },
   );
@@ -2439,6 +2440,123 @@ export function registerBulkImportRoutes(app: Express): void {
   }
 
   /**
+   * Helper: load a staged PDF with fully-lenient pdf-lib options and validate
+   * the page tree by calling getPageCount() once.  On the
+   * "Expected instance of PDFDict, but got instance of undefined" family of
+   * errors (triggered by broken xref / object references in PDFs exported by
+   * some Quebec condo management systems — "NoCentris-style" PDFs), a
+   * re-encode pass (save → reload) is attempted before giving up.
+   *
+   * Recovery strategy (lightest → heaviest):
+   *   1. Lenient load  (throwOnInvalidObject:false, ignoreEncryption:true)
+   *   2. save → reload re-encode pass  [implemented below]
+   *   3. qpdf --linearize external repair  [not yet available on this runtime;
+   *      add here if `which qpdf` ever returns a valid path]
+   *
+   * Callers receive the working PDFDocument, or a typed Error with code
+   * PDF_PAGE_TREE_UNRECOVERABLE so they can surface a classified 400 instead
+   * of leaking a 500.  The try block at every call site wraps both this helper
+   * and the subsequent copyPages() call, so any page-tree walk failure
+   * (whether during getPageCount or copyPages) is always caught and classified.
+   */
+  async function loadPdfForBulkImport(filePath: string): Promise<import('pdf-lib').PDFDocument> {
+    const { PDFDocument, ParseSpeeds } = await import('pdf-lib');
+    const LENIENT: Parameters<typeof PDFDocument.load>[1] = {
+      ignoreEncryption: true,
+      throwOnInvalidObject: false,
+      updateMetadata: false,
+      ...(ParseSpeeds != null && { parseSpeed: ParseSpeeds.Fastest }),
+    };
+
+    const bytes = fs.readFileSync(filePath);
+    const doc = await PDFDocument.load(new Uint8Array(bytes), LENIENT);
+
+    try {
+      doc.getPageCount();
+      return doc;
+    } catch (firstErr) {
+      logWarn('[bulk-import] pdf page-tree walk failed, attempting re-encode pass', {
+        metadata: { filePath, error: firstErr instanceof Error ? firstErr.message : String(firstErr) },
+      });
+      try {
+        const reencoded = await doc.save();
+        const doc2 = await PDFDocument.load(reencoded, LENIENT);
+        doc2.getPageCount();
+        logInfo('[bulk-import] pdf page-tree recovered via re-encode', { metadata: { filePath } });
+        return doc2;
+      } catch (secondErr) {
+        const msg = firstErr instanceof Error ? firstErr.message : String(firstErr);
+        const typed = Object.assign(new Error(`PDF page tree unrecoverable: ${msg}`), {
+          code: 'PDF_PAGE_TREE_UNRECOVERABLE',
+        });
+        throw typed;
+      }
+    }
+  }
+
+  /**
+   * Load a sibling PDF from disk and copy all of its pages into `leadPdf`,
+   * with two-stage recovery that covers the NoCentris failure class:
+   *
+   * Stage 1 (inside loadPdfForBulkImport):
+   *   Handles getPageCount() failures — re-encodes via save→reload.
+   *
+   * Stage 2 (here):
+   *   Handles copyPages() failures that occur even after getPageCount() passes.
+   *   This happens when the page-tree object graph is corrupt in a way that only
+   *   surfaces during cross-document reference resolution, not during the simpler
+   *   getPageCount() walk.  Recovery: re-read the sibling from disk, save→reload
+   *   to rebuild its object graph, then retry copyPages().
+   *
+   * Throws a typed Error with code COPY_PAGES_UNRECOVERABLE on total failure so
+   * callers can surface a classified 400 instead of leaking a 500.
+   */
+  async function copyPagesFromFileWithRecovery(
+    leadPdf: import('pdf-lib').PDFDocument,
+    sibPath: string,
+  ): Promise<import('pdf-lib').PDFPage[]> {
+    const { PDFDocument, ParseSpeeds } = await import('pdf-lib');
+    const LENIENT: Parameters<typeof PDFDocument.load>[1] = {
+      ignoreEncryption: true,
+      throwOnInvalidObject: false,
+      updateMetadata: false,
+      ...(ParseSpeeds != null && { parseSpeed: ParseSpeeds.Fastest }),
+    };
+
+    const sibPdf = await loadPdfForBulkImport(sibPath);
+    const indices = Array.from({ length: sibPdf.getPageCount() }, (_, i) => i);
+
+    try {
+      return await leadPdf.copyPages(sibPdf, indices);
+    } catch (firstCopyErr) {
+      logWarn('[bulk-import] copyPages failed on initial load, re-encoding sibling for retry', {
+        metadata: {
+          sibPath,
+          error: firstCopyErr instanceof Error ? firstCopyErr.message : String(firstCopyErr),
+        },
+      });
+      try {
+        const rawBytes = fs.readFileSync(sibPath);
+        const tempDoc = await PDFDocument.load(new Uint8Array(rawBytes), LENIENT);
+        const reencoded = await tempDoc.save();
+        const sibPdf2 = await PDFDocument.load(reencoded, LENIENT);
+        sibPdf2.getPageCount();
+        const indices2 = Array.from({ length: sibPdf2.getPageCount() }, (_, i) => i);
+        const pages = await leadPdf.copyPages(sibPdf2, indices2);
+        logInfo('[bulk-import] sibling re-encode recovery succeeded for copyPages', {
+          metadata: { sibPath },
+        });
+        return pages;
+      } catch (recoveryErr) {
+        const msg = firstCopyErr instanceof Error ? firstCopyErr.message : String(firstCopyErr);
+        throw Object.assign(new Error(`PDF copyPages unrecoverable: ${msg}`), {
+          code: 'COPY_PAGES_UNRECOVERABLE',
+        });
+      }
+    }
+  }
+
+  /**
    * Helper: physically slice a PDF staged file into two parts and write them
    * to the session staging directory.  Returns both byte Buffers, their SHA-256
    * hashes, and the effective split page (server-clamped to 1…totalPages-1).
@@ -2454,8 +2572,7 @@ export function registerBulkImportRoutes(app: Express): void {
     originalName: string;
   }> {
     const { PDFDocument } = await import('pdf-lib');
-    const srcBytes = fs.readFileSync(srcPath);
-    const srcDoc = await PDFDocument.load(new Uint8Array(srcBytes), { ignoreEncryption: true });
+    const srcDoc = await loadPdfForBulkImport(srcPath);
     const totalPages = srcDoc.getPageCount();
     const splitPage = Math.max(1, Math.min(splitAtPage, totalPages - 1));
 
@@ -2645,9 +2762,13 @@ export function registerBulkImportRoutes(app: Express): void {
             }
 
             try {
-              const { PDFDocument } = await import('pdf-lib');
-              const leadBytes = fs.readFileSync(item.stagedPath);
-              const leadPdf = await PDFDocument.load(new Uint8Array(leadBytes), { ignoreEncryption: true });
+              let leadPdf: import('pdf-lib').PDFDocument;
+              try {
+                leadPdf = await loadPdfForBulkImport(item.stagedPath);
+              } catch {
+                logWarn(`[bulk-import] accept-all-pending-sorting: lead PDF unrecoverable for item ${item.id}, skipping`);
+                continue;
+              }
 
               const siblingItems: (typeof item)[] = [];
               let mergeError = false;
@@ -2664,11 +2785,14 @@ export function registerBulkImportRoutes(app: Express): void {
                   mergeError = true;
                   break;
                 }
-                const sibBytes = fs.readFileSync(siblingItem.stagedPath);
-                const sibPdf = await PDFDocument.load(new Uint8Array(sibBytes), { ignoreEncryption: true });
-                const indices = Array.from({ length: sibPdf.getPageCount() }, (_, i) => i);
-                const copiedPages = await leadPdf.copyPages(sibPdf, indices);
-                for (const page of copiedPages) leadPdf.addPage(page);
+                try {
+                  const copiedPages = await copyPagesFromFileWithRecovery(leadPdf, siblingItem.stagedPath);
+                  for (const page of copiedPages) leadPdf.addPage(page);
+                } catch (sibErr) {
+                  logWarn(`[bulk-import] accept-all-pending-sorting: sibling PDF unrecoverable for item ${siblingId}, skipping merge`);
+                  mergeError = true;
+                  break;
+                }
                 siblingItems.push(siblingItem);
               }
               if (mergeError) {
@@ -3252,11 +3376,14 @@ export function registerBulkImportRoutes(app: Express): void {
 
           const { PDFDocument } = await import('pdf-lib');
 
-          // Load the lead PDF.
-          const leadBytes = fs.readFileSync(item.stagedPath);
-          const leadPdf = await PDFDocument.load(new Uint8Array(leadBytes), { ignoreEncryption: true }).catch(() => null);
-          if (!leadPdf) {
-            return logAndReturn400('MERGE_LEAD_PDF_CORRUPT', 'Failed to load lead PDF: the file may be corrupt or use unsupported encryption');
+          // Load the lead PDF with recovery for broken page-tree references.
+          let leadPdf: import('pdf-lib').PDFDocument;
+          try {
+            leadPdf = await loadPdfForBulkImport(item.stagedPath);
+          } catch (leadLoadErr) {
+            return logAndReturn400('MERGE_LEAD_PDF_CORRUPT', 'Failed to load lead PDF: the file may be corrupt or use unsupported encryption', {
+              underlyingError: leadLoadErr instanceof Error ? leadLoadErr.message : String(leadLoadErr),
+            });
           }
 
           // Load and validate each sibling in order, then append.
@@ -3283,14 +3410,12 @@ export function registerBulkImportRoutes(app: Express): void {
             if (!siblingItem.stagedPath || !fs.existsSync(siblingItem.stagedPath)) {
               return logAndReturn400('MERGE_TARGET_FILE_MISSING', `Staged file missing for merge target: ${siblingId}`);
             }
-            const sibBytes = fs.readFileSync(siblingItem.stagedPath);
-            const sibPdf = await PDFDocument.load(new Uint8Array(sibBytes), { ignoreEncryption: true }).catch(() => null);
-            if (!sibPdf) {
-              return logAndReturn400('MERGE_TARGET_PDF_CORRUPT', `Failed to load merge target PDF (may be corrupt): ${siblingItem.originalName}`);
-            }
-            const indices = Array.from({ length: sibPdf.getPageCount() }, (_, i) => i);
+            // copyPagesFromFileWithRecovery handles both getPageCount failures
+            // (stage-1, inside loadPdfForBulkImport) and copyPages failures (stage-2,
+            // re-encode sibling and retry).  Any un-recoverable error becomes a
+            // classified 400 here, never a 500.
             try {
-              const copiedPages = await leadPdf.copyPages(sibPdf, indices);
+              const copiedPages = await copyPagesFromFileWithRecovery(leadPdf, siblingItem.stagedPath);
               for (const page of copiedPages) leadPdf.addPage(page);
             } catch (copyErr) {
               return logAndReturn400('MERGE_PDF_COPY_FAILED', `Failed to copy pages from merge target: ${siblingItem.originalName}`, {
