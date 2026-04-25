@@ -186,6 +186,7 @@ function MeasuredBarShape({
       fillOpacity={fillOpacity}
       rx={3}
       ry={3}
+      data-testid={id ? `gantt-bar-rect-${id}` : undefined}
     />
   );
 }
