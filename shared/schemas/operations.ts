@@ -98,7 +98,7 @@ export const maintenanceRequests = pgTable('maintenance_requests', {
   submittedBy: varchar('submitted_by')
     .references(() => users.id),
   assignedTo: varchar('assigned_to').references(() => users.id),
-  title: text('title').notNull(),
+  title: varchar('title', { length: 200 }).notNull(),
   description: text('description').notNull(),
   category: text('category').notNull(), // 'plumbing', 'electrical', 'hvac', 'general', etc.
   priority: maintenancePriorityEnum('priority').notNull().default('medium'),
@@ -218,8 +218,10 @@ export const demands = pgTable('demands', {
   type: demandTypeEnum('type').notNull(),
   assignationResidenceId: varchar('assignation_residence_id').references(() => residences.id),
   assignationBuildingId: varchar('assignation_building_id').references(() => buildings.id),
-  // text column intentionally kept as TEXT (not varchar); the 2000-character
-  // limit is enforced at the API/Zod layer (insertDemandSchema) on purpose.
+  // text column intentionally kept as TEXT (not varchar); the 5000-character
+  // limit is enforced at the API/Zod layer (insertDemandSchema) and via a
+  // DB-level CHECK constraint (demands_description_length_check) added in
+  // migration 0015_cap_title_description_lengths.sql.
   description: text('description').notNull(),
   filePath: text('file_path'), // Path to uploaded file
   fileName: text('file_name'), // Original filename
@@ -470,12 +472,23 @@ export const MAINTENANCE_CATEGORY_VALUES = [
 export const maintenanceCategorySchema = z.enum(MAINTENANCE_CATEGORY_VALUES);
 export type MaintenanceCategory = z.infer<typeof maintenanceCategorySchema>;
 
+export const MAINTENANCE_TITLE_MAX = 200;
+export const MAINTENANCE_DESCRIPTION_MAX = 5000;
+
 export const insertMaintenanceRequestSchema = z.object({
   residenceId: z.string().uuid(),
   submittedBy: z.string().uuid().optional(),
   assignedTo: z.string().uuid().optional(),
-  title: z.string(),
-  description: z.string(),
+  title: z
+    .string()
+    .trim()
+    .min(1, 'Title is required')
+    .max(MAINTENANCE_TITLE_MAX, 'Title must be 200 characters or fewer'),
+  description: z
+    .string()
+    .trim()
+    .min(1, 'Description is required')
+    .max(MAINTENANCE_DESCRIPTION_MAX, 'Description must be 5000 characters or fewer'),
   category: maintenanceCategorySchema,
   priority: z.string().default('medium'),
   estimatedCost: z.number().optional(),
@@ -509,7 +522,7 @@ export const insertNotificationSchema = z.object({
   relatedEntityType: z.string().optional(),
 });
 
-export const DEMAND_DESCRIPTION_MAX = 2000;
+export const DEMAND_DESCRIPTION_MAX = 5000;
 
 export const insertDemandSchema = z.object({
   submitterId: z.string().uuid().optional(),
@@ -520,7 +533,7 @@ export const insertDemandSchema = z.object({
     .string()
     .trim()
     .min(10, 'Description must be at least 10 characters')
-    .max(DEMAND_DESCRIPTION_MAX, 'Description must not exceed 2000 characters'),
+    .max(DEMAND_DESCRIPTION_MAX, 'Description must not exceed 5000 characters'),
   filePath: z.string().optional(), // Path to uploaded file
   fileName: z.string().optional(), // Original filename  
   fileSize: z.number().int().optional(), // File size in bytes

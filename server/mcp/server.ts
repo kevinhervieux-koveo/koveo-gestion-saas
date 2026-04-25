@@ -2044,8 +2044,18 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     {
       role: roleParam,
       residenceId: z.string().describe("Residence ID"),
-      title: z.string().describe("Request title"),
-      description: z.string().describe("Detailed description"),
+      title: z
+        .string()
+        .trim()
+        .min(1, 'Title is required')
+        .max(200, 'Title must be 200 characters or fewer')
+        .describe("Request title"),
+      description: z
+        .string()
+        .trim()
+        .min(1, 'Description is required')
+        .max(5000, 'Description must be 5000 characters or fewer')
+        .describe("Detailed description"),
       // Task #619: lock category to the canonical enum at the MCP layer so
       // invalid values are rejected by the SDK's Zod parser before they reach
       // the handler. Keep this list in sync with MAINTENANCE_CATEGORY_VALUES
@@ -2215,7 +2225,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       role: roleParam,
       buildingId: z.string().describe("Building ID"),
       type: z.enum(["complaint", "information", "maintenance", "other"]).describe("Demand type"),
-      description: z.string().trim().min(1, 'Description is required').max(2000, 'Description must not exceed 2000 characters').describe("Detailed description"),
+      description: z.string().trim().min(1, 'Description is required').max(5000, 'Description must not exceed 5000 characters').describe("Detailed description"),
       residenceId: z.string().optional().describe("Optional residence ID"),
       attachment: demandAttachmentParam,
     },
