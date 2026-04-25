@@ -247,6 +247,15 @@ interface BulkImportItemLite {
    */
   screeningPeriodHintManualOverride: boolean;
   /**
+   * Server-parsed date from screeningPeriodHint (Task #1003). When the
+   * periodHint can be converted to a date (e.g. "2022-2023" → "2022-01-01"),
+   * this field holds the YYYY-MM-DD string. Null for non-date hints
+   * (e.g. invoice numbers) and for items where periodHint is absent.
+   * Used to show a "from screening" annotation in the identification step
+   * when identification itself did not return an effectiveDate.
+   */
+  screeningParsedPeriodHintDate: string | null;
+  /**
    * Rotation outcome for the Screening step (Task #772).
    * `screeningRotationDegrees` is the clockwise rotation Screening
    * detected (0/90/180/270). `screeningRotationApplied` is true only when
@@ -4030,6 +4039,32 @@ export default function BulkDocumentImportPage() {
                                         </span>
                                       )}
                                     </>
+                                  )}
+                                  {currentStep === 'identification' && !item.identificationEffectiveDate && item.screeningParsedPeriodHintDate && (
+                                    <Badge
+                                      variant="outline"
+                                      className="shrink-0 border-blue-300 bg-blue-50 text-blue-900 dark:border-blue-700 dark:bg-blue-950 dark:text-blue-200"
+                                      title={
+                                        isFr
+                                          ? `Date issue du filtrage IA (${item.screeningPeriodHint}). L'identification peut affiner cette valeur.`
+                                          : `Date from screening AI (${item.screeningPeriodHint}). Identification may refine this value.`
+                                      }
+                                      data-testid={`identification-period-hint-date-${item.id}`}
+                                    >
+                                      {item.screeningParsedPeriodHintDate}
+                                      <span className="ml-1 text-xs opacity-70">
+                                        {isFr ? '(filtrage)' : '(from screening)'}
+                                      </span>
+                                    </Badge>
+                                  )}
+                                  {currentStep === 'identification' && item.identificationEffectiveDate && (
+                                    <Badge
+                                      variant="outline"
+                                      className="shrink-0 border-emerald-300 bg-emerald-50 text-emerald-900 dark:border-emerald-700 dark:bg-emerald-950 dark:text-emerald-200"
+                                      data-testid={`identification-effective-date-${item.id}`}
+                                    >
+                                      {item.identificationEffectiveDate}
+                                    </Badge>
                                   )}
                                   {currentStep === 'sorting' && !isExcluded && sortingIsPending && (
                                     <>

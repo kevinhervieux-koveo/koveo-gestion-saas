@@ -1334,4 +1334,101 @@ describeIfDb('bulk-import REST endpoints — Task #456', () => {
       expect([401, 403]).toContain(forbidden.status);
     });
   });
+
+  describe('commit — effectiveDate priority (Task #1003)', () => {
+    const trackedDocuments = new Set<string>();
+
+    afterAll(async () => {
+      if (!REAL_DB_URL || !db) return;
+      if (trackedDocuments.size > 0) {
+        await db
+          .delete(schema.documents)
+          .where(inArray(schema.documents.id, Array.from(trackedDocuments)));
+      }
+    }, 15_000);
+
+    async function seedItemForCommit(opts: {
+      screening?: Record<string, unknown>;
+      identification?: Record<string, unknown>;
+    }): Promise<{ sid: string; itemId: string }> {
+      const sid = await createSession();
+      const upload = await request(app)
+        .post(`/api/admin/bulk-import/sessions/${sid}/items`)
+        .set('x-test-user-id', ids.admin)
+        .attach('files', PDF_BODY, {
+          filename: `commit-test-${crypto.randomUUID()}.pdf`,
+          contentType: 'application/pdf',
+        });
+      expect(upload.status).toBe(201);
+      const item = upload.body[0];
+      trackedItems.add(item.id);
+      await db
+        .update(schema.bulkImportItems)
+        .set({
+          screening: opts.screening ?? null,
+          identification: opts.identification ?? null,
+          branchDecision: { branch: 'building_documents' },
+          status: 'screened',
+        })
+        .where(eq(schema.bulkImportItems.id, item.id));
+      return { sid, itemId: item.id };
+    }
+
+    it('uses parsed periodHint as effectiveDate when identification has none', async () => {
+      const { itemId } = await seedItemForCommit({
+        screening: { periodHint: '2024-03-15' },
+        identification: { name: 'Test doc — period hint only' },
+      });
+
+      const res = await request(app)
+        .post(`/api/admin/bulk-import/items/${itemId}/commit`)
+        .set('x-test-user-id', ids.admin);
+
+      expect(res.status).toBe(200);
+      expect(res.body.document).toBeDefined();
+      trackedDocuments.add(res.body.document.id);
+
+      expect(new Date(res.body.document.effectiveDate).toISOString()).toBe(
+        '2024-03-15T00:00:00.000Z',
+      );
+      expect(res.body.item.status).toBe('committed');
+    });
+
+    it('identification.effectiveDate wins over periodHint at commit', async () => {
+      const { itemId } = await seedItemForCommit({
+        screening: { periodHint: '2024-03-15' },
+        identification: { name: 'Test doc — ident wins', effectiveDate: '2025-06-15' },
+      });
+
+      const res = await request(app)
+        .post(`/api/admin/bulk-import/items/${itemId}/commit`)
+        .set('x-test-user-id', ids.admin);
+
+      expect(res.status).toBe(200);
+      expect(res.body.document).toBeDefined();
+      trackedDocuments.add(res.body.document.id);
+
+      const d = new Date(res.body.document.effectiveDate);
+      expect(d.getUTCFullYear()).toBe(2025);
+      expect(d.getUTCMonth()).toBe(5);
+      expect(d.getUTCDate()).toBe(15);
+    });
+
+    it('effectiveDate is null when periodHint is a non-date string and identification has none', async () => {
+      const { itemId } = await seedItemForCommit({
+        screening: { periodHint: 'INV-2024-042' },
+        identification: { name: 'Invoice doc — hint unparseable' },
+      });
+
+      const res = await request(app)
+        .post(`/api/admin/bulk-import/items/${itemId}/commit`)
+        .set('x-test-user-id', ids.admin);
+
+      expect(res.status).toBe(200);
+      expect(res.body.document).toBeDefined();
+      trackedDocuments.add(res.body.document.id);
+
+      expect(res.body.document.effectiveDate).toBeNull();
+    });
+  });
 });

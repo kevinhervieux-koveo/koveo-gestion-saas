@@ -838,10 +838,15 @@ Return JSON: { branch: string, subCategory: string, residenceHint?: string, reas
     mimeType?: string | null;
     itemId?: string;
     sessionId?: string;
+    /** Parsed date from the screening AI's periodHint, when available. */
+    periodHintDate?: Date | null;
   }): Promise<IdentificationResult> {
+    const periodHintLine = input.periodHintDate
+      ? `Screening suggested effective date: ${input.periodHintDate.toISOString().slice(0, 10)} — keep this date unless the document content clearly indicates a different effective date.`
+      : '';
     const prompt = `Extract metadata for a document being filed under "${input.branch ?? 'building_documents'}".
 Filename: ${input.originalName}
-Description: ${input.description ?? ''}
+Description: ${input.description ?? ''}${periodHintLine ? `\n${periodHintLine}` : ''}
 Return JSON: { name: string, description: string, tags: string[],
 effectiveDate?: 'YYYY-MM-DD', metadata: object, confidence: number }.`;
     const { data: raw, fallbackReason } = await callClaudeJson<Partial<IdentificationResult>>(

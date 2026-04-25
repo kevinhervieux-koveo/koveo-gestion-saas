@@ -30,6 +30,7 @@ import {
   type BranchDestination,
 } from '../services/bulk-import-analyzer';
 import { rotateAndRewriteStagedFile } from '../services/bulk-import-rotation';
+import { parsePeriodHint } from '../services/period-hint-parser';
 import { documentService } from '../services/document-service';
 import { logError, logInfo, logWarn } from '../utils/logger';
 import type { BulkImportFallbackReason } from '@shared/schemas/bulk-import';
@@ -692,6 +693,9 @@ async function processItemForStep(
       (item.branchDecision as { branch?: string } | null)?.branch ?? 'building_documents';
     const description =
       (item.screening as { description?: string } | null)?.description ?? '';
+    const rawPeriodHint =
+      (item.screening as { periodHint?: string | null } | null)?.periodHint ?? null;
+    const periodHintDate = parsePeriodHint(rawPeriodHint);
     const result = await bulkImportAnalyzer.identify({
       originalName: item.originalName,
       description,
@@ -700,6 +704,7 @@ async function processItemForStep(
       mimeType: item.mimeType,
       itemId: item.id,
       sessionId: item.sessionId,
+      periodHintDate,
     });
     logPerFileAiFailure(step, item, result.fallbackReason);
     const [updated] = await db
@@ -1334,10 +1339,18 @@ export function registerBulkImportRoutes(app: Express): void {
             const br = extractBranchStep(r.branchDecision);
             const id = extractIdentificationStep(r.identification);
             const lk = extractLinkingStep(r.linkDecisions);
+            // Task #1003: expose the parsed form of periodHint so the UI can show
+            // a "from screening" annotation when identification has no effectiveDate.
+            const rawPh = sqaFields.screeningPeriodHint;
+            const parsedPhDate = parsePeriodHint(rawPh);
+            const screeningParsedPeriodHintDate = parsedPhDate
+              ? parsedPhDate.toISOString().slice(0, 10)
+              : null;
             return {
               screeningConfidence: sc.confidence,
               screeningFallback: sc.fallbackReason,
               ...sqaFields,
+              screeningParsedPeriodHintDate,
               screeningRotationDegrees: srot.rotationDegrees,
               screeningRotationApplied: srot.rotationApplied,
               sortingConfidence: so.confidence,
@@ -3723,6 +3736,16 @@ export function registerBulkImportRoutes(app: Express): void {
             tags?: string[];
             effectiveDate?: string;
           } | null) ?? {};
+
+        // Resolve effectiveDate in priority order (Task #1003):
+        //   1. identification.effectiveDate (AI-extracted, or admin-edited through the UI)
+        //   2. Parsed periodHint from screening (new fallback)
+        //   3. null — when neither source produced a usable date
+        // We parse the periodHint with parsePeriodHint() so non-date hints
+        // like invoice numbers are never coerced into garbage dates.
+        const rawPeriodHintForCommit =
+          (item.screening as { periodHint?: string | null } | null)?.periodHint ?? null;
+        const periodHintDateForCommit = parsePeriodHint(rawPeriodHintForCommit);
         const branchDecision = (item.branchDecision as {
           branch?: string;
           residenceId?: string | null;
@@ -3771,7 +3794,10 @@ export function registerBulkImportRoutes(app: Express): void {
             mimeType: item.mimeType ?? null,
             buildingId: session.buildingId,
             uploadedById: req.user!.id,
-            effectiveDate: ident.effectiveDate ? new Date(ident.effectiveDate) : null,
+            effectiveDate:
+              ident.effectiveDate
+                ? new Date(ident.effectiveDate)
+                : (periodHintDateForCommit ?? null),
             ...(residenceId ? { residenceId } : {}),
           })
           .returning();
