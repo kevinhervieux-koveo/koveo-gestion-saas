@@ -97,18 +97,26 @@ describeOrSkip('backfillCrossResidenceDemands (integration)', () => {
       .returning();
     residence2Id = residence2.id;
 
-    // Cross-org demand: building_id → org 1, residence_id → org 2
-    const [demand] = await db
-      .insert(demands)
-      .values({
-        buildingId: building1Id,
-        residenceId: residence2Id,
-        type: 'other',
-        status: 'draft',
-        description: 'Cross-org test demand for backfill script',
-      })
-      .returning();
-    demandId = demand.id;
+    // Cross-org demand: building_id → org 1, residence_id → org 2.
+    // The DB-level trigger added in migration 0010 normally rejects this
+    // exact shape, so we disable it for the duration of the seed insert
+    // to reproduce the legacy data the backfill script is designed to fix.
+    await db.execute(sql`ALTER TABLE demands DISABLE TRIGGER demands_residence_building_check`);
+    try {
+      const [demand] = await db
+        .insert(demands)
+        .values({
+          buildingId: building1Id,
+          residenceId: residence2Id,
+          type: 'other',
+          status: 'draft',
+          description: 'Cross-org test demand for backfill script',
+        })
+        .returning();
+      demandId = demand.id;
+    } finally {
+      await db.execute(sql`ALTER TABLE demands ENABLE TRIGGER demands_residence_building_check`);
+    }
   }, 30_000);
 
   afterAll(async () => {

@@ -131,7 +131,49 @@ module.exports = async function globalSetup() {
     `[jest.global-setup] drizzle-kit push --force → ${maskDbUrl(databaseUrl)}`,
   );
   await runDrizzleKitPush(databaseUrl);
+
+  // `drizzle-kit push` only syncs Drizzle-modeled schema (tables, columns,
+  // indexes). It does NOT create custom DB objects that exist solely in
+  // the numbered SQL migrations — most importantly the trigger added in
+  // `migrations/0010_demands_residence_building_check.sql`, which enforces
+  // the cross-organisation invariant on `demands.residence_id`. The
+  // numbered migration runner cannot help us here either: after a fresh
+  // `drizzle-kit push`, `users` exists but `schema_migrations` is empty,
+  // which causes `scripts/run-migrations.ts` to auto-baseline (i.e. mark
+  // every migration as already applied, without executing it). To
+  // guarantee the trigger is present for tests that rely on it (and for
+  // the backfill test that disables/re-enables it), apply the SQL of any
+  // such "schema-orthogonal" migrations directly. They are written to be
+  // idempotent (`CREATE OR REPLACE FUNCTION` + `DROP TRIGGER IF EXISTS`).
+  await applyTriggerOnlyMigrations(databaseUrl, [
+    '0010_demands_residence_building_check.sql',
+  ]);
 };
+
+async function applyTriggerOnlyMigrations(databaseUrl, filenames) {
+  // Lazy-require so unit-test runs that early-return above never need to
+  // resolve the pg client. Use `pg` (already a transitive dep) over
+  // `@neondatabase/serverless` so this works against both Neon and a
+  // plain local Postgres without WebSocket plumbing.
+  const path = require('path');
+  const fs = require('fs');
+  const { Client } = require('pg');
+
+  const client = new Client({ connectionString: databaseUrl });
+  await client.connect();
+  try {
+    for (const filename of filenames) {
+      const sqlPath = path.join(__dirname, 'migrations', filename);
+      const sql = fs.readFileSync(sqlPath, 'utf8');
+      console.log(
+        `[jest.global-setup] applying ${filename} idempotently → ${maskDbUrl(databaseUrl)}`,
+      );
+      await client.query(sql);
+    }
+  } finally {
+    await client.end().catch(() => undefined);
+  }
+}
 
 function looksLikeProductionUrl(rawUrl) {
   try {

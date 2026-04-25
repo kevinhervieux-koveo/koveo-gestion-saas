@@ -463,6 +463,19 @@ async function loadFullApplication(): Promise<void> {
         if (r.highestApplied) {
           log(`📌 Highest applied migration: ${r.highestApplied}`);
         }
+
+        // Belt-and-braces: re-apply migrations that create DB objects
+        // outside Drizzle's purview (functions, triggers) idempotently
+        // every boot. The runner's auto-baseline path can otherwise mark
+        // these as "applied" without executing them on a fresh DB that
+        // was originally synced via `drizzle-kit push` (which never
+        // creates triggers). Without this step, a brand-new prod
+        // install could come up missing the cross-org guard on
+        // `demands.residence_id`. The SQL is written to be idempotent
+        // (`CREATE OR REPLACE FUNCTION`, `DROP TRIGGER IF EXISTS`).
+        await ensureTriggerOnlyMigrations([
+          '0010_demands_residence_building_check.sql',
+        ]);
       } catch (migrationErr: any) {
         log(`❌ Database migrations failed: ${migrationErr.message}`, 'error');
         log(`❌ Stack: ${migrationErr.stack}`, 'error');
@@ -609,6 +622,32 @@ async function loadFullApplication(): Promise<void> {
       log('⚠️ Health checks may still be available');
     }
     // Continue - health checks still work
+  }
+}
+
+/**
+ * Idempotently re-apply migrations that create DB objects Drizzle does
+ * not model (currently: PL/pgSQL functions and triggers). Called after
+ * the numbered migration runner so we still apply these even if the
+ * runner auto-baselined them on a freshly-pushed DB.
+ *
+ * The referenced SQL files MUST be safe to execute repeatedly:
+ *   - `CREATE OR REPLACE FUNCTION ...`
+ *   - `DROP TRIGGER IF EXISTS ... ; CREATE TRIGGER ...`
+ */
+async function ensureTriggerOnlyMigrations(filenames: string[]): Promise<void> {
+  const { readFileSync } = await import('fs');
+  const { join, dirname } = await import('path');
+  const { fileURLToPath } = await import('url');
+  const { db } = await import('./db');
+  const { sql } = await import('drizzle-orm');
+
+  const here = dirname(fileURLToPath(import.meta.url));
+  for (const filename of filenames) {
+    const sqlPath = join(here, '..', 'migrations', filename);
+    const ddl = readFileSync(sqlPath, 'utf8');
+    log(`🔧 Ensuring trigger-only migration applied: ${filename}`);
+    await db.execute(sql.raw(ddl));
   }
 }
 
