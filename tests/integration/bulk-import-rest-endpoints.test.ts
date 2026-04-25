@@ -1126,4 +1126,212 @@ describeIfDb('bulk-import REST endpoints — Task #456', () => {
       expect(row.excludeSource).toBeNull();
     });
   });
+
+  /**
+   * Task #796: end-to-end coverage for the bulk group reassign endpoint
+   * added in Task #776 — `POST /sessions/:id/items/reassign-bulk`.
+   *
+   * The handler is the server-side safety net that backs the
+   * "Reassign all in group" button on the Sorting step. The button
+   * already filters out excluded files client-side, but the endpoint
+   * has its own filter for `rejected` / `committed` / `duplicate`
+   * items so that a future regression on the client cannot silently
+   * re-include excluded files in a bulk move. These tests lock that
+   * filter in place by sending the entire mixed-status id set and
+   * asserting only the live items get a new `branchDecision`.
+   */
+  describe('POST /sessions/:id/items/reassign-bulk (Task #796)', () => {
+    /**
+     * Stage four PDFs in a fresh session and force their statuses to a
+     * representative mix: two live items (one `screened`, one
+     * `branched`) plus one each of the three statuses the endpoint
+     * must skip (`rejected`, `committed`, `duplicate`). Returns the
+     * id buckets so each test can assert per-row outcomes.
+     */
+    async function seedMixedSession(): Promise<{
+      sid: string;
+      live: string[];
+      excluded: { rejected: string; committed: string; duplicate: string };
+    }> {
+      const sid = await createSession();
+      const filenames = ['live-a.pdf', 'live-b.pdf', 'rejected.pdf', 'committed.pdf', 'duplicate.pdf'];
+      // supertest needs each .attach individually; chain them so we
+      // can stage the whole mixed bag in a single multipart request.
+      let req = request(app)
+        .post(`/api/admin/bulk-import/sessions/${sid}/items`)
+        .set('x-test-user-id', ids.admin);
+      for (const name of filenames) {
+        req = req.attach('files', Buffer.concat([PDF_BODY, Buffer.from(name)]), {
+          filename: name,
+          contentType: 'application/pdf',
+        });
+      }
+      const res = await req;
+      expect(res.status).toBe(201);
+      expect(res.body).toHaveLength(filenames.length);
+      const byName: Record<string, any> = {};
+      for (const row of res.body) {
+        trackedItems.add(row.id);
+        byName[row.originalName] = row;
+      }
+      // Force terminal-ish statuses directly so we don't have to walk
+      // the full pipeline. We also seed an existing branchDecision on
+      // the excluded rows so we can prove later that the bulk endpoint
+      // did not overwrite them.
+      const seedDecision = { branch: 'other', subCategory: 'other', manualOverride: false };
+      await db
+        .update(schema.bulkImportItems)
+        .set({ status: 'screened' })
+        .where(eq(schema.bulkImportItems.id, byName['live-a.pdf'].id));
+      await db
+        .update(schema.bulkImportItems)
+        .set({ status: 'branched', branchDecision: seedDecision })
+        .where(eq(schema.bulkImportItems.id, byName['live-b.pdf'].id));
+      await db
+        .update(schema.bulkImportItems)
+        .set({ status: 'rejected', branchDecision: seedDecision })
+        .where(eq(schema.bulkImportItems.id, byName['rejected.pdf'].id));
+      await db
+        .update(schema.bulkImportItems)
+        .set({ status: 'committed', branchDecision: seedDecision })
+        .where(eq(schema.bulkImportItems.id, byName['committed.pdf'].id));
+      await db
+        .update(schema.bulkImportItems)
+        .set({ status: 'duplicate', branchDecision: seedDecision })
+        .where(eq(schema.bulkImportItems.id, byName['duplicate.pdf'].id));
+
+      return {
+        sid,
+        live: [byName['live-a.pdf'].id, byName['live-b.pdf'].id],
+        excluded: {
+          rejected: byName['rejected.pdf'].id,
+          committed: byName['committed.pdf'].id,
+          duplicate: byName['duplicate.pdf'].id,
+        },
+      };
+    }
+
+    it('updates only the live items even when excluded ids are sent in the same payload', async () => {
+      const { sid, live, excluded } = await seedMixedSession();
+
+      const allIds = [...live, excluded.rejected, excluded.committed, excluded.duplicate];
+
+      const res = await request(app)
+        .post(`/api/admin/bulk-import/sessions/${sid}/items/reassign-bulk`)
+        .set('x-test-user-id', ids.admin)
+        .send({
+          branch: 'building_documents',
+          subCategory: 'minutes',
+          itemIds: allIds,
+        });
+      expect(res.status).toBe(200);
+      expect(res.body.updated).toBe(live.length);
+      expect(Array.isArray(res.body.items)).toBe(true);
+      expect(res.body.items).toHaveLength(live.length);
+      const returnedIds = (res.body.items as Array<{ id: string }>)
+        .map((r) => r.id)
+        .sort();
+      expect(returnedIds).toEqual([...live].sort());
+
+      // Persist check: each live row got the new branchDecision +
+      // manualOverride flag, none of the excluded rows were touched.
+      const rows = await db
+        .select()
+        .from(schema.bulkImportItems)
+        .where(inArray(schema.bulkImportItems.id, allIds));
+      const byId = new Map(rows.map((r: any) => [r.id, r]));
+      for (const id of live) {
+        const r = byId.get(id) as any;
+        expect(r.branchDecision?.branch).toBe('building_documents');
+        expect(r.branchDecision?.subCategory).toBe('minutes');
+        expect(r.branchDecision?.manualOverride).toBe(true);
+      }
+      for (const [status, id] of Object.entries(excluded)) {
+        const r = byId.get(id) as any;
+        // The seed wrote { branch: 'other', subCategory: 'other' } and
+        // the bulk endpoint must leave that intact for any row whose
+        // status disqualifies it from the move.
+        expect(r.branchDecision?.branch).toBe('other');
+        expect(r.branchDecision?.subCategory).toBe('other');
+        expect(r.status).toBe(status);
+      }
+    });
+
+    it('returns updated=0 (and never touches branchDecision) when every id is excluded', async () => {
+      const { sid, excluded } = await seedMixedSession();
+      const onlyExcluded = [excluded.rejected, excluded.committed, excluded.duplicate];
+
+      const res = await request(app)
+        .post(`/api/admin/bulk-import/sessions/${sid}/items/reassign-bulk`)
+        .set('x-test-user-id', ids.admin)
+        .send({
+          branch: 'building_documents',
+          subCategory: 'minutes',
+          itemIds: onlyExcluded,
+        });
+      expect(res.status).toBe(200);
+      expect(res.body.updated).toBe(0);
+      expect(res.body.items).toEqual([]);
+
+      const rows = await db
+        .select()
+        .from(schema.bulkImportItems)
+        .where(inArray(schema.bulkImportItems.id, onlyExcluded));
+      for (const r of rows as any[]) {
+        expect(r.branchDecision?.branch).toBe('other');
+        expect(r.branchDecision?.subCategory).toBe('other');
+      }
+    });
+
+    it('rejects an invalid (branch, subCategory) pair with 400 and leaves rows untouched', async () => {
+      const { sid, live } = await seedMixedSession();
+      const before = await db
+        .select()
+        .from(schema.bulkImportItems)
+        .where(inArray(schema.bulkImportItems.id, live));
+
+      const res = await request(app)
+        .post(`/api/admin/bulk-import/sessions/${sid}/items/reassign-bulk`)
+        .set('x-test-user-id', ids.admin)
+        .send({
+          branch: 'building_documents',
+          subCategory: 'utility', // valid for `bill`, NOT for building_documents
+          itemIds: live,
+        });
+      expect(res.status).toBe(400);
+
+      const after = await db
+        .select()
+        .from(schema.bulkImportItems)
+        .where(inArray(schema.bulkImportItems.id, live));
+      // No row mutated.
+      const beforeById = new Map((before as any[]).map((r) => [r.id, r.branchDecision]));
+      for (const r of after as any[]) {
+        expect(r.branchDecision).toEqual(beforeById.get(r.id));
+      }
+    });
+
+    it('returns 404 for an unknown session and rejects non-admins', async () => {
+      const missing = await request(app)
+        .post(`/api/admin/bulk-import/sessions/${crypto.randomUUID()}/items/reassign-bulk`)
+        .set('x-test-user-id', ids.admin)
+        .send({
+          branch: 'building_documents',
+          subCategory: 'minutes',
+          itemIds: [crypto.randomUUID()],
+        });
+      expect(missing.status).toBe(404);
+
+      const sid = await createSession();
+      const forbidden = await request(app)
+        .post(`/api/admin/bulk-import/sessions/${sid}/items/reassign-bulk`)
+        .set('x-test-user-id', ids.nonAdmin)
+        .send({
+          branch: 'building_documents',
+          subCategory: 'minutes',
+          itemIds: [crypto.randomUUID()],
+        });
+      expect([401, 403]).toContain(forbidden.status);
+    });
+  });
 });
