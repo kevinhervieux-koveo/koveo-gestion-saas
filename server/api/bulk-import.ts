@@ -51,14 +51,34 @@ function extractScreeningQuickAnalysisFields(
   screeningTypeGuess: string | null;
   screeningBucketGuess: string | null;
   screeningQaReason: string | null;
+  screeningPeriodHint: string | null;
 } {
-  if (!json) return { screeningTypeGuess: null, screeningBucketGuess: null, screeningQaReason: null };
+  const periodHint =
+    json && typeof json.periodHint === 'string' && json.periodHint.length > 0
+      ? (json.periodHint as string)
+      : null;
+  if (!json) {
+    return {
+      screeningTypeGuess: null,
+      screeningBucketGuess: null,
+      screeningQaReason: null,
+      screeningPeriodHint: null,
+    };
+  }
   const qa = json.quickAnalysis as Record<string, unknown> | null | undefined;
-  if (!qa) return { screeningTypeGuess: null, screeningBucketGuess: null, screeningQaReason: null };
+  if (!qa) {
+    return {
+      screeningTypeGuess: null,
+      screeningBucketGuess: null,
+      screeningQaReason: null,
+      screeningPeriodHint: periodHint,
+    };
+  }
   return {
     screeningTypeGuess: (qa.typeGuess as string | null | undefined) ?? null,
     screeningBucketGuess: (qa.bucketGuess as string | null | undefined) ?? null,
     screeningQaReason: (qa.reason as string | null | undefined) ?? null,
+    screeningPeriodHint: periodHint,
   };
 }
 

@@ -232,6 +232,13 @@ interface BulkImportItemLite {
   screeningBucketGuess: string | null;
   screeningQaReason: string | null;
   /**
+   * AI-detected period label extracted by Screening (Task #960). Examples:
+   * "2021-10", "FY2024", "INV-2024-042", "2024-03-15". Null when the
+   * Screening AI could not extract a period for this document, or for
+   * legacy sessions where this field was not yet captured.
+   */
+  screeningPeriodHint: string | null;
+  /**
    * Rotation outcome for the Screening step (Task #772).
    * `screeningRotationDegrees` is the clockwise rotation Screening
    * detected (0/90/180/270). `screeningRotationApplied` is true only when
@@ -3620,6 +3627,20 @@ export default function BulkDocumentImportPage() {
                                       data-testid={`sorting-rejected-badge-${item.id}`}
                                     >
                                       {isFr ? 'Rejeté – choix requis' : 'Rejected – choose manually'}
+                                    </Badge>
+                                  )}
+                                  {currentStep === 'sorting' && item.screeningPeriodHint && (
+                                    <Badge
+                                      variant="outline"
+                                      className="shrink-0 border-indigo-300 bg-indigo-50 text-indigo-900 dark:border-indigo-700 dark:bg-indigo-950 dark:text-indigo-200"
+                                      title={
+                                        isFr
+                                          ? "Période détectée par l'IA lors du filtrage (année, exercice, n° de facture, date de réunion). Utilisée pour distinguer deux documents du même type."
+                                          : 'Period detected by the Screening AI (year, fiscal year, invoice number, meeting date). Used to tell two same-type documents apart.'
+                                      }
+                                      data-testid={`sorting-period-hint-${item.id}`}
+                                    >
+                                      {item.screeningPeriodHint}
                                     </Badge>
                                   )}
                                   {currentStep === 'screening' && item.screeningTypeGuess && item.screeningTypeGuess !== 'unknown' && (
