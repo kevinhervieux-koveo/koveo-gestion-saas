@@ -551,6 +551,47 @@ describe('assume_user / restore_acting_user tools (Task #642)', () => {
     });
   });
 
+  // Task #689 regression: before the fix, `schema.mcpAssumeUserLog` was
+  // undefined, so `db.insert(schema.mcpAssumeUserLog)` was being called with
+  // `undefined` as the table reference. The mock used elsewhere in this file
+  // doesn't care what `table` is passed to `db.insert(table)`, which masked
+  // the bug. These tests target the schema export directly to ensure the
+  // table is real and that the audit-insert code path actually receives it.
+  describe('schema export wiring (Task #689 regression)', () => {
+    it('shared schema exports a real `mcpAssumeUserLog` Drizzle table', async () => {
+      const schema = await import('@shared/schema');
+      const { getTableName } = await import('drizzle-orm');
+      expect(schema.mcpAssumeUserLog).toBeDefined();
+      // Use Drizzle's public helper rather than reaching into Symbol-keyed
+      // internals so this regression check stays valid across ORM upgrades.
+      expect(getTableName(schema.mcpAssumeUserLog)).toBe('mcp_assume_user_log');
+    });
+
+    it('audit insert passes the real `mcpAssumeUserLog` table (not undefined) to db.insert', async () => {
+      const schema = await import('@shared/schema');
+      createMcpServer({ role: 'admin', userId: 'admin-1' });
+      const assume = registeredTools.get('assume_user')!;
+      selectQueue.push([{ id: 'tenant-target-id', role: 'tenant' }]);
+      await assume({ userId: 'tenant-target-id' });
+      expect(insertCalls).toHaveLength(1);
+      // The first positional arg to `db.insert(...)` must be the actual
+      // table object — the bug being regressed was passing `undefined`.
+      expect(insertCalls[0]!.table).toBeDefined();
+      expect(insertCalls[0]!.table).toBe(schema.mcpAssumeUserLog);
+    });
+
+    it('audit insert path completes without throwing on the success outcome', async () => {
+      // Sanity check that mirrors what production does: trigger the insert
+      // path end-to-end and assert it resolves cleanly. With a missing
+      // schema export this would throw `TypeError: Cannot read properties
+      // of undefined (reading "Symbol(...).BaseName")` from drizzle.
+      createMcpServer({ role: 'admin', userId: 'admin-1' });
+      const assume = registeredTools.get('assume_user')!;
+      selectQueue.push([{ id: 'tenant-target-id', role: 'tenant' }]);
+      await expect(assume({ userId: 'tenant-target-id' })).resolves.toBeDefined();
+    });
+  });
+
   describe('audit log captures session-context metadata', () => {
     it('records ipAddress and userAgent from the McpAuthContext', async () => {
       createMcpServer({
