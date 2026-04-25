@@ -15,6 +15,7 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticating: boolean;
   isAuthenticated: boolean;
+  isFirstHydrationComplete: boolean;
   login: (email: string, password: string) => Promise<{ user: User }>;
   logout: () => Promise<void>;
   hasRole: (role: string | string[]) => boolean;
@@ -40,6 +41,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [lastAuthCheck, setLastAuthCheck] = useState<number>(0);
+  const [isFirstHydrationComplete, setIsFirstHydrationComplete] = useState(false);
 
   // Check if we're on a public page that doesn't need auth
   // Use location from wouter for reactivity on navigation changes
@@ -92,6 +94,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return null;
       } finally {
         setIsAuthenticating(false);
+        // Mark hydration as complete after the FIRST actual network response
+        // (not a cache hit). This prevents stale cached roles from being used
+        // to render role-gated nav items before the fresh response arrives.
+        setIsFirstHydrationComplete(true);
       }
     },
     retry: (failureCount, error: any) => {
@@ -328,6 +334,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     isLoading: isLoading || isFetching,
     isAuthenticating,
     isAuthenticated: !!user,
+    isFirstHydrationComplete,
     login,
     logout,
     hasRole,

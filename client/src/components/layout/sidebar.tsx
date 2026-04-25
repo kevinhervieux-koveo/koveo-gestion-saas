@@ -36,7 +36,7 @@ export function Sidebar({ forceExpanded = false }: SidebarProps) {
   const [location] = useLocation();
   const search = useSearch();
   const { t, language } = useLanguage();
-  const { logout, user } = useAuth();
+  const { logout, user, isFirstHydrationComplete } = useAuth();
   const { hasCommonSpacesAccess } = useCommonSpacesAccess();
   const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
 
@@ -315,16 +315,21 @@ export function Sidebar({ forceExpanded = false }: SidebarProps) {
   const effectiveRole = user?.role || (user ? 'tenant' : undefined);
   const roleLabel = user?.role || 'User';
 
-  // Get filtered navigation based on user role and common spaces access
-  const menuSections = getFilteredNavigation(effectiveRole, user).map((section) => ({
-    ...section,
-    items: section.items.filter((item) => {
-      if (item.nameKey === 'commonSpaces' && !hasCommonSpacesAccess) {
-        return false;
-      }
-      return true;
-    }),
-  }));
+  // Get filtered navigation based on user role and common spaces access.
+  // Guard this computation on isFirstHydrationComplete so we never derive
+  // menu sections from a stale cached role before the network has confirmed
+  // the current user's actual role.
+  const menuSections = isFirstHydrationComplete
+    ? getFilteredNavigation(effectiveRole, user).map((section) => ({
+        ...section,
+        items: section.items.filter((item) => {
+          if (item.nameKey === 'commonSpaces' && !hasCommonSpacesAccess) {
+            return false;
+          }
+          return true;
+        }),
+      }))
+    : [];
 
   const sidebarWidth = collapsed ? 'w-16' : 'w-64';
   const horizontalPad = collapsed ? 'px-2' : 'px-6';
@@ -406,16 +411,42 @@ export function Sidebar({ forceExpanded = false }: SidebarProps) {
         {/* Navigation */}
         <nav className={`flex-1 ${horizontalPad} py-4 overflow-y-auto`}>
           <div className='space-y-1'>
-            {menuSections.map((section) => (
-              <div key={section._key}>
-                {renderMenuButton(section)}
-                {!collapsed && expandedMenus.includes(section._key) && (
-                  <div className='ml-6 mt-1 space-y-1 animate-in slide-in-from-top-2 duration-200'>
-                    {section.items.map((item) => renderMenuItem(item))}
-                  </div>
+            {!isFirstHydrationComplete ? (
+              /* Nav skeleton: shown until the first /api/auth/user response
+                 resolves so role-gated items never flash for tenants. */
+              <>
+                {collapsed ? (
+                  <>
+                    {[0, 1, 2].map((i) => (
+                      <div
+                        key={i}
+                        className='w-8 h-8 mx-auto rounded-lg bg-gray-200 animate-pulse'
+                      />
+                    ))}
+                  </>
+                ) : (
+                  <>
+                    {[0, 1, 2].map((i) => (
+                      <div key={i} className='flex items-center space-x-3 px-3 py-2'>
+                        <div className='w-5 h-5 rounded bg-gray-200 animate-pulse flex-shrink-0' />
+                        <div className='h-4 rounded bg-gray-200 animate-pulse flex-1' />
+                      </div>
+                    ))}
+                  </>
                 )}
-              </div>
-            ))}
+              </>
+            ) : (
+              menuSections.map((section) => (
+                <div key={section._key}>
+                  {renderMenuButton(section)}
+                  {!collapsed && expandedMenus.includes(section._key) && (
+                    <div className='ml-6 mt-1 space-y-1 animate-in slide-in-from-top-2 duration-200'>
+                      {section.items.map((item) => renderMenuItem(item))}
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
           </div>
 
           {/* Logout Button */}

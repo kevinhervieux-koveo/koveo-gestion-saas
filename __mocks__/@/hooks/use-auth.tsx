@@ -31,6 +31,7 @@ let mockAuthState = {
   isLoading: false,
   isAuthenticating: false,
   isAuthenticated: false,
+  isFirstHydrationComplete: true,
 };
 
 // Mock functions that can be spied on and controlled
@@ -52,6 +53,7 @@ export const useAuth = jest.fn(() => ({
   isLoading: mockAuthState.isLoading,
   isAuthenticating: mockAuthState.isAuthenticating,
   isAuthenticated: mockAuthState.isAuthenticated,
+  isFirstHydrationComplete: mockAuthState.isFirstHydrationComplete,
   login: mockLogin,
   logout: mockLogout,
   hasRole: mockHasRole,
@@ -73,12 +75,14 @@ export const __mockAuthUtils = {
       isLoading: false,
       isAuthenticating: false,
       isAuthenticated: true,
+      isFirstHydrationComplete: true,
     };
     useAuth.mockReturnValue({
       user: fullUser,
       isLoading: false,
       isAuthenticating: false,
       isAuthenticated: true,
+      isFirstHydrationComplete: true,
       login: mockLogin,
       logout: mockLogout,
       hasRole: mockHasRole,
@@ -93,12 +97,14 @@ export const __mockAuthUtils = {
       isLoading: false,
       isAuthenticating: false,
       isAuthenticated: false,
+      isFirstHydrationComplete: true,
     };
     useAuth.mockReturnValue({
       user: null,
       isLoading: false,
       isAuthenticating: false,
       isAuthenticated: false,
+      isFirstHydrationComplete: true,
       login: mockLogin,
       logout: mockLogout,
       hasRole: mockHasRole,
@@ -131,12 +137,14 @@ export const __mockAuthUtils = {
       isLoading: false,
       isAuthenticating: false,
       isAuthenticated: false,
+      isFirstHydrationComplete: true,
     };
     useAuth.mockReturnValue({
       user: null,
       isLoading: false,
       isAuthenticating: false,
       isAuthenticated: false,
+      isFirstHydrationComplete: true,
       login: mockLogin,
       logout: mockLogout,
       hasRole: mockHasRole,
