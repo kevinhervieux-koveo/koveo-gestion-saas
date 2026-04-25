@@ -2851,10 +2851,10 @@ export default function BulkDocumentImportPage() {
                                               size="sm"
                                               variant="outline"
                                               onClick={() => runStep.mutate({ itemId: item.id, action: retryAction })}
-                                              disabled={runStep.isPending}
+                                              disabled={runStep.isPending && runStep.variables?.itemId === item.id}
                                               data-testid={`button-retry-${currentStep}-${item.id}`}
                                             >
-                                              {runStep.isPending ? (
+                                              {runStep.isPending && runStep.variables?.itemId === item.id ? (
                                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                               ) : (
                                                 <RotateCw className="mr-2 h-4 w-4" />
@@ -3432,10 +3432,10 @@ export default function BulkDocumentImportPage() {
                                       action: retryAction,
                                     })
                                   }
-                                  disabled={runStep.isPending}
+                                  disabled={runStep.isPending && runStep.variables?.itemId === item.id}
                                   data-testid={`button-retry-${currentStep}-${item.id}`}
                                 >
-                                  {runStep.isPending ? (
+                                  {runStep.isPending && runStep.variables?.itemId === item.id ? (
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                   ) : (
                                     <RotateCw className="mr-2 h-4 w-4" />
