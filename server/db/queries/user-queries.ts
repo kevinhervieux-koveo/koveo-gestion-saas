@@ -6,10 +6,29 @@ import { scopeQuery, type UserContext } from './scope-query';
 /**
  * Safe column projection for the users table — every column except `password`.
  *
- * SECURITY NOTE: The users table has been audited and contains only `password`
- * as a sensitive credential column. There are no 2FA secrets, SSO tokens, or
- * other sensitive credential columns at this time. If any are added in future
- * migrations they must also be excluded here.
+ * ## Per-column sensitivity audit (Task #964, 2026-04-25)
+ *
+ * | Column                     | Sensitive?  | Notes                                  |
+ * |----------------------------|-------------|----------------------------------------|
+ * | id                         | No          | Public row identifier                  |
+ * | username                   | No          | Public display name                    |
+ * | email                      | PII (low)   | Not a secret; included in SafeUser     |
+ * | password                   | YES — SECRET| bcrypt hash; MUST NOT leave the server |
+ * | firstName                  | PII (low)   | Included in SafeUser                   |
+ * | lastName                   | PII (low)   | Included in SafeUser                   |
+ * | phone                      | PII (low)   | Included in SafeUser                   |
+ * | profileImage               | No          | URL reference only                     |
+ * | language                   | No          | Locale preference                      |
+ * | role                       | No          | Application role enum                  |
+ * | isActive                   | No          | Account status flag                    |
+ * | notificationsStartingDate  | No          | Feature preference date                |
+ * | lastLoginAt                | No          | Audit timestamp                        |
+ * | createdAt                  | No          | Audit timestamp                        |
+ * | updatedAt                  | No          | Audit timestamp                        |
+ *
+ * `password` is the **only** sensitive credential column. There are no 2FA
+ * secrets, TOTP seeds, SSO tokens, OAuth refresh tokens, or PIN columns.
+ * If any are added in future migrations they **must** also be excluded here.
  *
  * Use this constant in every Drizzle `.select({…})` call that returns user
  * rows to API consumers so that the password hash is never included in

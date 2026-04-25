@@ -489,6 +489,35 @@ rules:
       category: security
       cwe: 'CWE-532: Information Exposure Through Log Files'
 
+  # User Serializer Password-Leak Guard (Task #964)
+  - id: no-password-in-drizzle-select
+    pattern: $OBJ.select({ ..., password: $EXPR, ... })
+    message: >
+      Raw password column included in a Drizzle .select() call — use safeUserColumns
+      from server/db/queries/user-queries.ts instead to ensure the bcrypt hash is
+      never serialized into an HTTP response.
+    languages: [typescript, javascript]
+    severity: ERROR
+    metadata:
+      category: security
+      task: task-964
+      cwe: 'CWE-312: Cleartext Storage of Sensitive Information'
+
+  - id: no-raw-users-select-star
+    pattern-either:
+      - pattern: db.select().from(users)
+      - pattern: db.select().from(schema.users)
+    message: >
+      Bare SELECT * from the users table — always use safeUserColumns from
+      server/db/queries/user-queries.ts to ensure the password hash is never
+      returned. Replace with db.select(safeUserColumns).from(users).
+    languages: [typescript, javascript]
+    severity: ERROR
+    metadata:
+      category: security
+      task: task-964
+      cwe: 'CWE-312: Cleartext Storage of Sensitive Information'
+
   # Database Security
   - id: database-connection-exposure
     pattern-either:
