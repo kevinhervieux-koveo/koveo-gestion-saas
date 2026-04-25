@@ -3417,6 +3417,21 @@ export default function BulkDocumentImportPage() {
                                 .map((sid) => items.find((i) => i.id === sid))
                                 .filter((si): si is BulkImportItemLite => si != null && si.status !== 'rejected')
                             : [];
+                        // Total files in this merge group: the lead itself plus
+                        // any non-excluded siblings. Used to surface the size
+                        // of the merge on the lead's badge so admins don't
+                        // have to expand the nested list to know whether it's
+                        // a 2-way or 5-way merge (Task #929).
+                        const mergeGroupTotalCount =
+                          currentStep === 'sorting' && item.sortingMergeWithItemIds?.length
+                            ? mergeGroupSiblingItems.length + 1
+                            : 0;
+                        const mergeGroupCountSuffix =
+                          mergeGroupTotalCount > 1
+                            ? isFr
+                              ? ` · ${mergeGroupTotalCount} fichiers`
+                              : ` · ${mergeGroupTotalCount} files`
+                            : '';
                         return (
                           <div
                             key={item.id}
@@ -3545,7 +3560,7 @@ export default function BulkDocumentImportPage() {
                                       {decision.decision === 'keep'
                                         ? isFr ? 'Conserver' : 'Keep'
                                         : decision.decision === 'merge'
-                                        ? isFr ? 'Fusionner' : 'Merge'
+                                        ? `${isFr ? 'Fusionner' : 'Merge'}${mergeGroupCountSuffix}`
                                         : isFr ? 'Scinder' : 'Split'}
                                     </Badge>
                                   )}
@@ -3564,7 +3579,7 @@ export default function BulkDocumentImportPage() {
                                       className="shrink-0 border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200"
                                       data-testid={`sorting-pending-badge-${item.id}`}
                                     >
-                                      {isFr ? 'En attente' : 'Pending review'}
+                                      {`${isFr ? 'En attente' : 'Pending review'}${mergeGroupCountSuffix}`}
                                     </Badge>
                                   )}
                                   {currentStep === 'sorting' && sortingIsRejected && (
