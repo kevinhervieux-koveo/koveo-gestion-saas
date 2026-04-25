@@ -373,5 +373,6 @@ function ManagerResidences({ organizationId, buildingId, showBackButton, backBut
 // Export with hierarchical selection HOC - Manager residences page uses organization → building hierarchy
 export default withHierarchicalSelection(ManagerResidences, {
   hierarchy: ['organization', 'building'],
-  checkResidenceAccess: true
+  checkResidenceAccess: true,
+  titleKey: 'residencesManagement'
 });

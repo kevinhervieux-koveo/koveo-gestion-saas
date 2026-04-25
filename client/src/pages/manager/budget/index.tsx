@@ -5351,7 +5351,8 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
 
 // Wrap with hierarchical selection HOC using 2-level hierarchy (organization → building)
 const Budget = withHierarchicalSelection(BudgetInner, {
-  hierarchy: ['organization', 'building']
+  hierarchy: ['organization', 'building'],
+  titleKey: 'budgetManagement'
 });
 
 export default Budget;

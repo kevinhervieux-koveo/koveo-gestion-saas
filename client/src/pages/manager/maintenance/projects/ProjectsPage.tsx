@@ -740,7 +740,7 @@ function ProjectsPageInner(props: ProjectsPageProps) {
 // Wrap with hierarchical selection HOC using 2-level hierarchy (organization → building)
 const ProjectsPage = withHierarchicalSelection(ProjectsPageInner, {
   hierarchy: ['organization', 'building'],
-  title: 'Projects Management'
+  titleKey: 'projectsMaintenanceManagement'
 });
 
 export { ProjectsPage };

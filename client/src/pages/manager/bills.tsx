@@ -1938,5 +1938,6 @@ export function BillDetail({
 
 // Export with hierarchical selection HOC - Manager bills page uses 2-level hierarchy
 export default withHierarchicalSelection(BillsPage, {
-  hierarchy: ['organization', 'building']
+  hierarchy: ['organization', 'building'],
+  titleKey: 'billsManagement'
 });

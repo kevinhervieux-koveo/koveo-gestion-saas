@@ -27,7 +27,8 @@ interface UserResidenceSummary {
 interface HierarchyConfig {
   hierarchy: ('organization' | 'building' | 'residence')[];
   checkResidenceAccess?: boolean;
-  title?: string; // Custom title for the page
+  title?: string; // Custom title for the page (literal, non-translated)
+  titleKey?: string; // i18n key resolved via t() — preferred over `title`
   subtitle?: string; // Custom subtitle for the page
   onResidenceSelect?: (residenceId: string, buildingId?: string, organizationId?: string) => string; // Custom navigation when residence is selected
 }
@@ -455,7 +456,7 @@ function AdminManagerHierarchyFlow<T extends object>({
 
       return (
         <div className='flex-1 flex flex-col overflow-hidden'>
-          <Header title={config.title || t('buildingManagement' as any)} subtitle={t('selectOrganization' as any)} />
+          <Header title={config.titleKey ? t(config.titleKey as any) : (config.title || t('buildingManagement' as any))} subtitle={t('selectOrganization' as any)} />
           <div className='flex-1 overflow-auto p-6'>
             <SelectionGrid
               title=""
@@ -481,7 +482,7 @@ function AdminManagerHierarchyFlow<T extends object>({
 
       return (
         <div className='flex-1 flex flex-col overflow-hidden'>
-          <Header title={config.title || t('buildingManagement' as any)} subtitle={t('selectBuilding' as any)} />
+          <Header title={config.titleKey ? t(config.titleKey as any) : (config.title || t('buildingManagement' as any))} subtitle={t('selectBuilding' as any)} />
           
           {/* Back to Organization Navigation - only show if user has multiple organizations */}
           {config.hierarchy.includes('organization') && organizations.length > 1 && (
@@ -536,7 +537,7 @@ function AdminManagerHierarchyFlow<T extends object>({
 
       return (
         <div className='flex-1 flex flex-col overflow-hidden'>
-          <Header title={config.title || t('buildingManagement' as any)} subtitle={t('selectResidence' as any)} />
+          <Header title={config.titleKey ? t(config.titleKey as any) : (config.title || t('buildingManagement' as any))} subtitle={t('selectResidence' as any)} />
           
           {/* Back to Building Navigation - only show if user has multiple buildings */}
           {showBackToBuilding && (
@@ -857,7 +858,7 @@ function ResidentBypassFlow<T extends object>({
     return (
       <div className='flex-1 flex flex-col overflow-hidden'>
         <Header
-          title={config.title || t('selectYourBuilding' as any)}
+          title={config.titleKey ? t(config.titleKey as any) : (config.title || t('selectYourBuilding' as any))}
           subtitle={config.subtitle}
         />
         <div className='flex-1 overflow-auto p-6'>

@@ -1680,7 +1680,8 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId, showBackButton
 // Export the component wrapped with access control
 // Wrap with hierarchical selection HOC using 2-level hierarchy (organization → building)
 const CommonSpacesStatsPageWithHierarchy = withHierarchicalSelection(CommonSpacesStatsPageInner, {
-  hierarchy: ['organization', 'building']
+  hierarchy: ['organization', 'building'],
+  titleKey: 'manageCommonSpaces'
 });
 
 export default withManagerAccess(CommonSpacesStatsPageWithHierarchy);
