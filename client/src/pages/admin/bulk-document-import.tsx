@@ -87,6 +87,7 @@ import {
   type AutoStep,
 } from './bulk-import-next-step-block';
 import { DocumentInlineViewer } from '@/components/common/DocumentInlineViewer';
+import { TagPicker } from '@/components/document-tags/TagPicker';
 
 interface Building {
   id: string;
@@ -1413,6 +1414,124 @@ function isItemReadyForNextStep(item: BulkImportItemLite, step: BulkImportStep):
   }
 }
 
+const TAG_UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Inline tag editor rendered on every Identification-step row (Task #1103).
+ *
+ * Fetches the tag list (shared TanStack Query cache — same key as TagPicker so
+ * no extra round-trips) to map AI-suggested free-form strings in
+ * `identificationTags` to real tag IDs so they appear highlighted as
+ * suggestions in the picker dropdown. Admin-selected IDs (valid UUIDs) are
+ * pre-filled as `value`.
+ *
+ * Debounces each toggle 300 ms so rapid add/remove operations are coalesced
+ * into a single network request instead of racing.
+ */
+function IdentificationTagEditor({
+  item,
+  isFr,
+  onSave,
+  saveStatus,
+}: {
+  item: BulkImportItemLite;
+  isFr: boolean;
+  onSave: (itemId: string, tagIds: string[]) => void;
+  saveStatus: 'idle' | 'saving' | 'saved' | 'error';
+}) {
+  const { data: tagData } = useQuery<{ tags: Array<{ id: string; name: string; scope: string; importance: string; isSystem: boolean }> }>({
+    queryKey: ['/api/document-tags'],
+  });
+  const allTags = tagData?.tags ?? [];
+
+  const rawTags = item.identificationTags ?? [];
+  const storedTagIds = useMemo(
+    () => rawTags.filter((t) => TAG_UUID_RE.test(t)),
+    [rawTags],
+  );
+  const aiNameSuggestions = useMemo(
+    () => rawTags.filter((t) => !TAG_UUID_RE.test(t)),
+    [rawTags],
+  );
+  const suggestedTagIds = useMemo(() => {
+    if (aiNameSuggestions.length === 0) return [];
+    const nameMap = new Map(allTags.map((t) => [t.name.toLowerCase(), t.id]));
+    return aiNameSuggestions.flatMap((name) => {
+      const id = nameMap.get(name.toLowerCase());
+      return id ? [id] : [];
+    });
+  }, [allTags, aiNameSuggestions]);
+
+  const [localTags, setLocalTags] = useState<string[]>(storedTagIds);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const prevStoredRef = useRef<string[]>(storedTagIds);
+  useEffect(() => {
+    const prev = prevStoredRef.current;
+    if (
+      prev.length !== storedTagIds.length ||
+      prev.some((id, i) => id !== storedTagIds[i])
+    ) {
+      setLocalTags(storedTagIds);
+      prevStoredRef.current = storedTagIds;
+    }
+  }, [storedTagIds]);
+
+  const branchForScope = item.branch;
+  const tagScope: 'building' | 'residence' | undefined =
+    branchForScope === 'residence_documents'
+      ? 'residence'
+      : branchForScope === 'building_documents'
+      ? 'building'
+      : undefined;
+
+  const handleChange = (next: string[]) => {
+    setLocalTags(next);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      onSave(item.id, next);
+    }, 300);
+  };
+
+  return (
+    <div
+      className="mt-2 space-y-1"
+      data-testid={`identification-tag-editor-${item.id}`}
+    >
+      <div className="flex items-center gap-1.5 mb-1">
+        <span className="text-xs text-muted-foreground">
+          {isFr ? 'Étiquettes' : 'Tags'}
+        </span>
+        {saveStatus === 'saving' && (
+          <Loader2
+            className="h-3 w-3 animate-spin text-muted-foreground"
+            data-testid={`identification-tags-saving-${item.id}`}
+          />
+        )}
+        {saveStatus === 'saved' && (
+          <Check
+            className="h-3 w-3 text-green-600 dark:text-green-400"
+            data-testid={`identification-tags-saved-${item.id}`}
+          />
+        )}
+        {saveStatus === 'error' && (
+          <X
+            className="h-3 w-3 text-destructive"
+            data-testid={`identification-tags-error-${item.id}`}
+          />
+        )}
+      </div>
+      <TagPicker
+        value={localTags}
+        onChange={handleChange}
+        scope={tagScope}
+        suggestedTagIds={suggestedTagIds}
+        placeholder={isFr ? 'Ajouter des étiquettes…' : 'Add tags…'}
+      />
+    </div>
+  );
+}
+
 export default function BulkDocumentImportPage() {
   const { language } = useLanguage();
   const { toast } = useToast();
@@ -1528,6 +1647,10 @@ export default function BulkDocumentImportPage() {
   // and a Save button commits it to the server. We keep the map so a
   // pending edit isn't lost when the lite payload re-fetches.
   const [editingEffectiveDate, setEditingEffectiveDate] = useState<Map<string, string>>(new Map());
+  // Per-item tag save status (Task #1103). Drives the per-row saving/saved/error
+  // indicator that is passed as `saveStatus` to each `IdentificationTagEditor`.
+  // Local tag selection state lives inside that component (with debounce).
+  const [tagSaveStatus, setTagSaveStatus] = useState<Map<string, 'idle' | 'saving' | 'saved' | 'error'>>(new Map());
   const [autoSaveStatus, setAutoSaveStatus] = useState<Map<string, 'idle' | 'saving' | 'saved' | 'error'>>(new Map());
   // Per-item sorting-decision error map (Task #1036). Keyed by item id.
   // Populated when set-sorting-decision returns a 400 with a recognised
@@ -2434,6 +2557,64 @@ export default function BulkDocumentImportPage() {
         variant: 'destructive',
         title: isFr ? 'Échec de la mise à jour de la date' : 'Failed to update date',
         ...(serverMessage ? { description: serverMessage } : {}),
+      });
+    },
+  });
+
+  /**
+   * Persist an admin-edited tag list on a single staged item (Task #1103).
+   * Called immediately on every TagPicker change; the per-item
+   * `editingTags` map keeps the picker controlled during the in-flight
+   * request so the UI stays responsive.
+   */
+  const setItemTags = useMutation({
+    mutationFn: async ({
+      itemId,
+      tagIds,
+    }: {
+      itemId: string;
+      tagIds: string[];
+    }) => {
+      const res = await apiRequest(
+        'POST',
+        `/api/admin/bulk-import/items/${itemId}/set-tags`,
+        { tagIds },
+      );
+      return res.json();
+    },
+    onMutate: ({ itemId }) => {
+      setTagSaveStatus((prev) => {
+        const next = new Map(prev);
+        next.set(itemId, 'saving');
+        return next;
+      });
+    },
+    onSuccess: (_data, variables) => {
+      setTagSaveStatus((prev) => {
+        const next = new Map(prev);
+        next.set(variables.itemId, 'saved');
+        return next;
+      });
+      setTimeout(() => {
+        setTagSaveStatus((prev) => {
+          const next = new Map(prev);
+          next.set(variables.itemId, 'idle');
+          return next;
+        });
+      }, 1500);
+      queryClient.invalidateQueries({
+        queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
+      });
+    },
+    onError: (_error, variables) => {
+      setTagSaveStatus((prev) => {
+        const next = new Map(prev);
+        next.set(variables.itemId, 'error');
+        return next;
+      });
+      toast({
+        variant: 'destructive',
+        title: isFr ? 'Échec de la mise à jour des étiquettes' : 'Failed to update tags',
       });
     },
   });
@@ -5631,6 +5812,16 @@ export default function BulkDocumentImportPage() {
                                       </div>
                                     );
                                   })()}
+                                  {currentStep === 'identification' && (
+                                    <IdentificationTagEditor
+                                      item={item}
+                                      isFr={isFr}
+                                      saveStatus={tagSaveStatus.get(item.id) ?? 'idle'}
+                                      onSave={(itemId, tagIds) => {
+                                        setItemTags.mutate({ itemId, tagIds });
+                                      }}
+                                    />
+                                  )}
                                   {currentStep === 'sorting' && !isExcluded && sortingIsPending && (
                                     <>
                                       <Button

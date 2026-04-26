@@ -15,7 +15,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as crypto from 'crypto';
 import { z } from 'zod';
-import { and, desc, eq, inArray } from 'drizzle-orm';
+import { and, desc, eq, inArray, or, isNull } from 'drizzle-orm';
 import { requireAuth, requireRole } from '../auth';
 import { canUserAccessOrganization } from '../rbac';
 
@@ -4976,6 +4976,116 @@ export function registerBulkImportRoutes(app: Express): void {
   );
 
   /**
+   * Update the tag list on a single staged item (Task #1103).
+   *
+   * Mirrors `set-effective-date`: merges the supplied tag IDs into
+   * the item's `identification` JSONB so the admin can adjust tags
+   * before committing without having to edit the document afterwards.
+   *
+   * Validation:
+   *   - Every supplied tag ID must exist in `document_tags`.
+   *   - Tags with `scope = 'building'` are only allowed when the item's
+   *     branch is NOT `residence_documents`; tags with `scope =
+   *     'residence'` are only allowed when the branch IS
+   *     `residence_documents`; `scope = 'any'` is always allowed.
+   *   - An empty array is valid — it clears all tags on the item.
+   */
+  const setTagsSchema = z.object({
+    tagIds: z.array(z.string().min(1)).default([]),
+  });
+  app.post(
+    '/api/admin/bulk-import/items/:id/set-tags',
+    requireAuth,
+    requireRole(['admin']),
+    async (req: AuthenticatedRequest, res: Response) => {
+      try {
+        const { tagIds } = setTagsSchema.parse(req.body);
+
+        const [item] = await db
+          .select()
+          .from(schema.bulkImportItems)
+          .where(eq(schema.bulkImportItems.id, req.params.id));
+        if (!item) return res.status(404).json({ error: 'Item not found' });
+
+        const session = await loadSession(item.sessionId);
+        if (!session) return res.status(404).json({ error: 'Session not found' });
+
+        const allowed = await canUserAccessOrganization(
+          req.user!.id,
+          session.organizationId,
+        );
+        if (!allowed) {
+          return res
+            .status(403)
+            .json({ error: 'You do not have access to this session' });
+        }
+
+        if (tagIds.length > 0) {
+          // Restrict tag lookup to tags the session's organisation can see:
+          // system tags (organizationId IS NULL) plus tags that belong to
+          // this session's organisation. Any ID outside that set is treated
+          // as unknown / inaccessible, which prevents cross-tenant tag
+          // assignment if an attacker supplies IDs from another org.
+          const tagRows = await db
+            .select({ id: schema.documentTags.id, scope: schema.documentTags.scope })
+            .from(schema.documentTags)
+            .where(
+              and(
+                inArray(schema.documentTags.id, tagIds),
+                or(
+                  eq(schema.documentTags.isSystem, true),
+                  isNull(schema.documentTags.organizationId),
+                  eq(schema.documentTags.organizationId, session.organizationId),
+                ),
+              ),
+            );
+
+          const foundIds = new Set(tagRows.map((t) => t.id));
+          const missing = tagIds.filter((id) => !foundIds.has(id));
+          if (missing.length > 0) {
+            return res.status(400).json({ error: `Unknown or inaccessible tag IDs: ${missing.join(', ')}` });
+          }
+
+          const branchDecision = (item.branchDecision as { branch?: string } | null) ?? {};
+          const branch = branchDecision.branch ?? 'building_documents';
+          const isResidence = branch === 'residence_documents';
+
+          for (const tag of tagRows) {
+            if (tag.scope === 'building' && isResidence) {
+              return res.status(400).json({
+                error: `Tag ${tag.id} has scope 'building' but this item is residence-scoped`,
+              });
+            }
+            if (tag.scope === 'residence' && !isResidence) {
+              return res.status(400).json({
+                error: `Tag ${tag.id} has scope 'residence' but this item is building-scoped`,
+              });
+            }
+          }
+        }
+
+        const existingIdentification = (item.identification ?? {}) as Record<string, unknown>;
+        const nextIdentification: Record<string, unknown> = {
+          ...existingIdentification,
+          tags: tagIds,
+        };
+
+        const [updated] = await db
+          .update(schema.bulkImportItems)
+          .set({ identification: nextIdentification, updatedAt: new Date() })
+          .where(eq(schema.bulkImportItems.id, item.id))
+          .returning();
+        if (!updated) return res.status(404).json({ error: 'Item not found' });
+        return res.json(updated);
+      } catch (err) {
+        if (err instanceof z.ZodError) return res.status(400).json({ error: err.errors });
+        logError(`[bulk-import] set-tags failed for item ${req.params.id}`, err as Error);
+        return res.status(500).json({ error: 'Failed to update tags' });
+      }
+    },
+  );
+
+  /**
    * Per-item AI step endpoints. The wizard auto-runs every step in
    * bulk via `/sessions/:id/run-all` (Task #592), so these handlers
    * are now reserved for the per-row "Retry" button shown when a
@@ -5451,6 +5561,26 @@ export function registerBulkImportRoutes(app: Express): void {
               schema.clientDocumentFingerprints.contentHash,
             ],
           });
+
+        // Write admin-chosen tag assignments (Task #1103). The tags array
+        // stored on identification at this point should be UUIDs set via
+        // the set-tags endpoint; free-form AI strings will fail the FK
+        // check, so we only insert IDs that actually exist in documentTags.
+        const rawTagIds = Array.isArray(ident.tags)
+          ? (ident.tags as string[]).filter((t) => typeof t === 'string' && t.length > 0)
+          : [];
+        if (rawTagIds.length > 0) {
+          const validTagRows = await db
+            .select({ id: schema.documentTags.id })
+            .from(schema.documentTags)
+            .where(inArray(schema.documentTags.id, rawTagIds));
+          if (validTagRows.length > 0) {
+            await db
+              .insert(schema.documentTagAssignments)
+              .values(validTagRows.map((t) => ({ documentId: doc.id, tagId: t.id })))
+              .onConflictDoNothing();
+          }
+        }
 
         const [updated] = await db
           .update(schema.bulkImportItems)
