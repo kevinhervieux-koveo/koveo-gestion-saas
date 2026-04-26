@@ -1196,6 +1196,48 @@ async function persistTimeoutFallback(step: AutoStep, item: schema.BulkImportIte
 }
 
 /**
+ * Resolve a list of AI-returned tag name strings to real document-tag UUIDs,
+ * scoped to the tags visible to the given organization (Task #1112).
+ *
+ * Matches are case-insensitive and exact. Names that do not match any
+ * existing tag are silently dropped. When `organizationId` is null/undefined
+ * only system tags are considered (safe fallback for sessions with no org).
+ *
+ * Exported so the integration test suite can import it directly.
+ */
+export async function resolveTagNamesToIds(
+  tagNames: string[],
+  organizationId: string | null | undefined,
+): Promise<string[]> {
+  if (tagNames.length === 0) return [];
+
+  const orgCondition = organizationId
+    ? or(
+        eq(schema.documentTags.isSystem, true),
+        isNull(schema.documentTags.organizationId),
+        eq(schema.documentTags.organizationId, organizationId),
+      )
+    : or(
+        eq(schema.documentTags.isSystem, true),
+        isNull(schema.documentTags.organizationId),
+      );
+
+  const rows = await db
+    .select({ id: schema.documentTags.id, name: schema.documentTags.name })
+    .from(schema.documentTags)
+    .where(orgCondition);
+
+  const nameToId = new Map(rows.map((r) => [r.name.toLowerCase(), r.id]));
+
+  const resolved: string[] = [];
+  for (const name of tagNames) {
+    const id = nameToId.get(name.toLowerCase());
+    if (id) resolved.push(id);
+  }
+  return resolved;
+}
+
+/**
  * Run a single AI step against one staged item and persist the result.
  * Centralised so per-item endpoints and the run-all loop share the
  * exact same behaviour (and therefore the per-item "Retry" button is
@@ -1213,6 +1255,12 @@ async function processItemForStep(
    * here to avoid redundant DB lookups in the run-all loop.
    */
   fiscalYearStartMonth?: number,
+  /**
+   * The session's organization ID, used by the identification step to resolve
+   * AI-returned tag name strings to real tag UUIDs (Task #1112). When omitted
+   * only system tags are considered during resolution.
+   */
+  organizationId?: string | null,
 ): Promise<schema.BulkImportItem> {
   if (step === 'screening') {
     const result = await bulkImportAnalyzer.screen({
@@ -1403,10 +1451,18 @@ async function processItemForStep(
       periodHintDate,
     });
     logPerFileAiFailure(step, item, result.fallbackReason);
+    // Task #1112: resolve AI tag name strings to real UUIDs so the picker
+    // renders them as already-selected on first load without any manual click.
+    // Names that don't match an existing org-visible tag are dropped.
+    const resolvedTagIds = await resolveTagNamesToIds(result.tags, organizationId);
+    const identificationWithResolvedTags = {
+      ...(result as unknown as Record<string, unknown>),
+      tags: resolvedTagIds,
+    };
     const [updated] = await db
       .update(schema.bulkImportItems)
       .set({
-        identification: result as unknown as Record<string, unknown>,
+        identification: identificationWithResolvedTags,
         status: 'identified',
         updatedAt: new Date(),
       })
@@ -1484,12 +1540,16 @@ async function runAllForStep(sessionId: string, step: AutoStep): Promise<void> {
     // Task #1030: resolve the building's fiscal-year-start month once for
     // the identification loop, so every periodHint that names a fiscal-year
     // range is parsed against the building's actual fiscal calendar.
+    // Task #1112: also capture the session's organizationId so AI tag names
+    // can be resolved to real UUIDs before being persisted.
     let sessionFiscalYearStartMonth: number | undefined;
+    let sessionOrganizationId: string | null | undefined;
     if (step === 'identification') {
       const session = await loadSession(sessionId);
       sessionFiscalYearStartMonth = await getFiscalYearStartMonthForBuilding(
         session?.buildingId ?? null,
       );
+      sessionOrganizationId = session?.organizationId ?? null;
     }
 
     await patchRunAllProgress(sessionId, step, {
@@ -1573,6 +1633,7 @@ async function runAllForStep(sessionId: string, step: AutoStep): Promise<void> {
           sessionItems,
           sessionResidences,
           sessionFiscalYearStartMonth,
+          sessionOrganizationId,
         );
         void workPromise
           .finally(() => { rawInFlight--; })
@@ -5243,6 +5304,7 @@ export function registerBulkImportRoutes(app: Express): void {
                   })),
                   residences,
                   fiscalYearStartMonth,
+                  session?.organizationId ?? null,
                 ),
                 RUN_ALL_ITEM_TIMEOUT_MS,
                 item.originalName,
