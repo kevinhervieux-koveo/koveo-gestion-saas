@@ -87,7 +87,18 @@ import { queryClient } from '@/lib/queryClient';
 // Fixtures
 // -----------------------------------------------------------------------------
 
-const SESSION_ID = 'session-test-783';
+// Each test gets its own session ID (see beforeEach). The page's
+// React Query keys all bake `sessionId` in
+// (`['/api/admin/bulk-import/sessions', sessionId, 'lite']`), so
+// using a unique value per test means a previous test's in-flight
+// fetch — even if it resolves AFTER `queryClient.clear()` runs in
+// beforeEach and writes back to the cache — lands under a key the
+// new test never reads. That removes the cache-pollution flake
+// (Task #1076) where the page would stay stuck on its loading
+// spinner because it briefly observed the previous test's data
+// under the same key.
+let SESSION_ID = 'session-test-1076-init';
+let sessionCounter = 0;
 
 const ITEM_WITH_TYPE_ID = 'item-has-type-guess';
 const ITEM_NULL_GUESSES_ID = 'item-null-guesses';
@@ -269,7 +280,23 @@ const fetchMock = jest.fn(async (input: RequestInfo | URL, init?: RequestInit): 
 
 let originalFetch: typeof fetch | undefined;
 
-beforeEach(() => {
+beforeEach(async () => {
+  // Cancel any queries the previous test left in flight BEFORE clearing
+  // the cache. Without this, a fetch that resolves after `clear()` would
+  // happily write its result into the freshly empty cache under the old
+  // queryKey — that's how the loading-spinner flake (Task #1076) used to
+  // sneak in.
+  await queryClient.cancelQueries();
+  queryClient.clear();
+  queryClient.removeQueries();
+
+  // Give every test its own session ID so the queryKey
+  // `['/api/admin/bulk-import/sessions', sessionId, 'lite']` is unique
+  // per test. Even if a stale fetch resolves late, it lands on a key
+  // this test never observes.
+  sessionCounter += 1;
+  SESSION_ID = `session-test-1076-${sessionCounter}`;
+
   currentLanguage = 'en';
   currentStep = 'screening';
   items = [
@@ -1269,24 +1296,19 @@ describe('BulkDocumentImportPage — hide-ready toggle keeps fallback files visi
     items = [
       // Backend promotes failed-screening files to `screened` with a
       // recorded `screeningFallback`. Must STAY visible.
-      // NOTE: unique IDs (sc-fb-toggle / sc-ok-toggle) — reusing the
-      // generic TOGGLE_*_ID constants here triggers React Query cache
-      // pollution from the preceding `branching` test (same key, same
-      // ids) that intermittently keeps the page stuck on the loading
-      // spinner. Unique ids per test side-step that.
-      makeItem('sc-fb-toggle', 'screened', { screeningFallback: 'oversize' }),
+      makeItem(TOGGLE_NOT_READY_ID, 'screened', { screeningFallback: 'oversize' }),
       // Fully-resolved file with no fallback — must still be hidden.
-      makeItem('sc-ok-toggle', 'screened'),
+      makeItem(TOGGLE_READY_ID, 'screened'),
     ];
     renderPage();
-    await screen.findByTestId('item-preview-trigger-sc-fb-toggle', undefined, { timeout: 8000 });
-    await screen.findByTestId('item-preview-trigger-sc-ok-toggle', undefined, { timeout: 4000 });
+    await screen.findByTestId(`item-preview-trigger-${TOGGLE_NOT_READY_ID}`, undefined, { timeout: 8000 });
+    await screen.findByTestId(`item-preview-trigger-${TOGGLE_READY_ID}`, undefined, { timeout: 4000 });
 
     await clickToggle();
 
     await waitFor(() => {
-      expect(screen.queryByTestId('item-preview-trigger-sc-ok-toggle')).not.toBeInTheDocument();
-      expect(screen.queryByTestId('item-preview-trigger-sc-fb-toggle')).toBeInTheDocument();
+      expect(screen.queryByTestId(`item-preview-trigger-${TOGGLE_READY_ID}`)).not.toBeInTheDocument();
+      expect(screen.queryByTestId(`item-preview-trigger-${TOGGLE_NOT_READY_ID}`)).toBeInTheDocument();
     }, { timeout: 4000 });
   }, 15_000);
 
