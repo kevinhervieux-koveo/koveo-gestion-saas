@@ -2042,11 +2042,14 @@ export default function BulkDocumentImportPage() {
     refetchInterval: (query) => {
       const data = query.state.data as SessionPayloadLite | undefined;
       if (!data) return 5000;
+      // Guard against a transient bad poll response (missing session/items)
+      // so a 502 or malformed payload never throws inside this callback and
+      // crashes the component into the error boundary.
       const screeningActive =
-        data.session.currentStep === 'screening' &&
-        data.items.some((i) => i.status === 'pending' || i.status === 'screening');
+        data?.session?.currentStep === 'screening' &&
+        data?.items?.some((i) => i.status === 'pending' || i.status === 'screening');
       if (screeningActive) return 2000;
-      const progress = data.session.progress as Record<string, unknown> | null | undefined;
+      const progress = data?.session?.progress as Record<string, unknown> | null | undefined;
       const runAll = progress?.runAll as Record<string, RunAllProgress> | undefined;
       const anyRunning =
         runAll &&

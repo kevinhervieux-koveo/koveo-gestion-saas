@@ -1925,37 +1925,64 @@ async function processItemForStep(
     return updated;
   }
   // linking
-  const result = await bulkImportAnalyzer.suggestLinks({
-    originalName: item.originalName,
-    candidates: sessionItems.filter((c) => c.id !== item.id),
-    stagedPath: item.stagedPath,
-    mimeType: item.mimeType,
-    itemId: item.id,
-    sessionId: item.sessionId,
-  });
-  logPerFileAiFailure(step, item, result.fallbackReason);
-  const [updated] = await db
-    .update(schema.bulkImportItems)
-    .set({
-      linkDecisions: result as unknown as Record<string, unknown>,
-      status: 'linked',
-      updatedAt: new Date(),
-    })
-    .where(eq(schema.bulkImportItems.id, item.id))
-    .returning();
-  logDebug('[bulk-import] processItemForStep decision', {
-    metadata: {
-      step: 'linking',
+  // Per-item try/catch so a suggestLinks failure or DB write error can
+  // never escape as an unhandled rejection that takes the Express process
+  // down. On failure, write the same fallback as persistTimeoutFallback
+  // so the row settles to 'linked' and the run-all loop keeps going.
+  try {
+    const result = await bulkImportAnalyzer.suggestLinks({
+      originalName: item.originalName,
+      // Trim to { id, name } only — the prompt already declares this
+      // shape and passing the full DB row (with large screening JSONB)
+      // can balloon JSON.stringify() inside the prompt to an unsafe size.
+      candidates: sessionItems
+        .filter((c) => c.id !== item.id)
+        .map((c) => ({ id: c.id, name: c.name })),
+      stagedPath: item.stagedPath,
+      mimeType: item.mimeType,
       itemId: item.id,
       sessionId: item.sessionId,
-      beforeItemId: result.beforeItemId ?? null,
-      afterItemId: result.afterItemId ?? null,
-      relatedCount: result.relatedItemIds?.length ?? 0,
-      conf: result.confidence,
-      fallback: result.fallbackReason ?? null,
-    },
-  });
-  return updated;
+    });
+    logPerFileAiFailure(step, item, result.fallbackReason);
+    const [updated] = await db
+      .update(schema.bulkImportItems)
+      .set({
+        linkDecisions: result as unknown as Record<string, unknown>,
+        status: 'linked',
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.bulkImportItems.id, item.id))
+      .returning();
+    logDebug('[bulk-import] processItemForStep decision', {
+      metadata: {
+        step: 'linking',
+        itemId: item.id,
+        sessionId: item.sessionId,
+        beforeItemId: result.beforeItemId ?? null,
+        afterItemId: result.afterItemId ?? null,
+        relatedCount: result.relatedItemIds?.length ?? 0,
+        conf: result.confidence,
+        fallback: result.fallbackReason ?? null,
+      },
+    });
+    return updated;
+  } catch (linkErr) {
+    logError(
+      `[bulk-import] processItemForStep linking error for item ${item.id} — writing fallback`,
+      linkErr as Error,
+    );
+    logPerFileAiFailure(step, item, 'api_error');
+    const [fallbackItem] = await db
+      .update(schema.bulkImportItems)
+      .set({
+        linkDecisions: { relatedItemIds: [], reason: 'error', confidence: 0, fallbackReason: 'api_error' },
+        status: 'linked',
+        updatedAt: new Date(),
+      })
+      .where(eq(schema.bulkImportItems.id, item.id))
+      .returning();
+    return fallbackItem;
+  }
 }
 
 /**
@@ -1965,7 +1992,7 @@ async function processItemForStep(
  * let the Node event loop drain it after the response goes out. This is
  * what lets an admin navigate away mid-run without the work stopping.
  */
-async function runAllForStep(sessionId: string, step: AutoStep): Promise<void> {
+export async function runAllForStep(sessionId: string, step: AutoStep): Promise<void> {
   const key = runAllKey(sessionId, step);
   if (inFlightRunAll.has(key)) return;
   inFlightRunAll.add(key);
@@ -2478,6 +2505,8 @@ export function registerBulkImportRoutes(app: Express): void {
         return res.status(404).json({ error: 'Session not found' });
       }
 
+      try {
+
       const rows = await db
         .select({
           id: schema.bulkImportItems.id,
@@ -2876,6 +2905,13 @@ export function registerBulkImportRoutes(app: Express): void {
         metadata: { sessionId, itemCount: items.length, durationMs: Date.now() - t0 },
       });
       return res.json({ session, items });
+      } catch (liteErr) {
+        logError('[bulk-import] route error GET /api/admin/bulk-import/sessions/:id/lite', liteErr as Error);
+        logDebug('[bulk-import] route exit GET /api/admin/bulk-import/sessions/:id/lite status 500', {
+          metadata: { sessionId, durationMs: Date.now() - t0 },
+        });
+        return res.status(500).json({ error: 'Failed to load session data' });
+      }
     },
   );
 
