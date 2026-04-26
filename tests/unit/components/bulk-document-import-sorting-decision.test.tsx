@@ -74,11 +74,18 @@ jest.mock('@/components/common/DocumentInlineViewer', () => ({
 // ---------------------------------------------------------------------------
 import BulkDocumentImportPage from '@/pages/admin/bulk-document-import';
 import { queryClient } from '@/lib/queryClient';
+import {
+  nextSessionId,
+  resetSharedQueryClient,
+} from '../../helpers/queryClientIsolation';
 
 // ---------------------------------------------------------------------------
 // Fixtures: three rows on the sorting step, one per decisionState.
 // ---------------------------------------------------------------------------
-const SESSION_ID = 'session-task-825';
+// SESSION_ID is reassigned in `beforeEach` (see Task #1081) so each test
+// gets a unique React Query key. That keeps a previous test's stale
+// in-flight fetch from polluting this test's cache after `clear()`.
+let SESSION_ID = 'session-task-825-init';
 
 const ITEM_PENDING = 'item-pending';
 const ITEM_REJECTED = 'item-rejected';
@@ -255,7 +262,13 @@ const fetchMock = jest.fn(
 
 let originalFetch: typeof fetch | undefined;
 
-beforeEach(() => {
+beforeEach(async () => {
+  // Cancel any stragglers from the previous test BEFORE reassigning the
+  // session id and clearing the cache (Task #1081 — see
+  // tests/helpers/queryClientIsolation.ts for the full rationale).
+  await resetSharedQueryClient();
+  SESSION_ID = nextSessionId('session-task-825');
+
   items = [
     {
       id: ITEM_PENDING,
@@ -303,7 +316,6 @@ beforeEach(() => {
   fetchMock.mockClear();
 
   window.localStorage.setItem('bulkImportActiveSessionId', SESSION_ID);
-  queryClient.clear();
   languageRef.current = 'en';
 });
 

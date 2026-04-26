@@ -65,12 +65,21 @@ jest.mock('@/components/common/DocumentInlineViewer', () => ({
 
 import BulkDocumentImportPage from '@/pages/admin/bulk-document-import';
 import { queryClient } from '@/lib/queryClient';
+import {
+  nextSessionId,
+  resetSharedQueryClient,
+} from '../../helpers/queryClientIsolation';
 
 // -----------------------------------------------------------------------------
 // Fixture helpers
 // -----------------------------------------------------------------------------
 
-const SESSION_ID = 'session-test-796';
+// SESSION_ID is reassigned in `beforeEach` (see Task #1081) so each test
+// gets a unique React Query key. That prevents a previous test's stale
+// in-flight fetch from polluting this test's cache after `clear()` —
+// `setupTest` and `buildPayload` both interpolate the current value at
+// call time, so reassignment is enough.
+let SESSION_ID = 'session-test-796-init';
 const BUILDING_ID = 'building-1';
 const ORG_ID = 'org-1';
 
@@ -223,10 +232,15 @@ function renderPage() {
 
 let originalFetch: typeof fetch | undefined;
 
-beforeEach(() => {
+beforeEach(async () => {
+  // Cancel any stragglers from the previous test BEFORE reassigning the
+  // session id and clearing the cache (Task #1081 — see
+  // tests/helpers/queryClientIsolation.ts for the full rationale).
+  await resetSharedQueryClient();
+  SESSION_ID = nextSessionId('session-test-796');
+
   originalFetch = global.fetch;
   window.localStorage.setItem('bulkImportActiveSessionId', SESSION_ID);
-  queryClient.clear();
 });
 
 afterEach(() => {

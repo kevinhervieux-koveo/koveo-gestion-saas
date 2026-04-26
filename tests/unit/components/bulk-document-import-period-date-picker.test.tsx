@@ -135,12 +135,19 @@ jest.mock('@/components/common/DatePickerField', () => {
 
 import BulkDocumentImportPage from '@/pages/admin/bulk-document-import';
 import { queryClient } from '@/lib/queryClient';
+import {
+  nextSessionId,
+  resetSharedQueryClient,
+} from '../../helpers/queryClientIsolation';
 
 // ---------------------------------------------------------------------------
 // Fixtures: four sorting-step rows covering the Period section's branches.
 // ---------------------------------------------------------------------------
 
-const SESSION_ID = 'session-task-1038';
+// SESSION_ID is reassigned in `beforeEach` (see Task #1081) so each test
+// gets a unique React Query key. That prevents a previous test's stale
+// in-flight fetch from polluting this test's cache after `clear()`.
+let SESSION_ID = 'session-task-1038-init';
 
 const ITEM_WITH_DATE = 'item-with-date';
 const ITEM_NO_DATE = 'item-no-date';
@@ -308,7 +315,13 @@ const fetchMock = jest.fn(
 
 let originalFetch: typeof fetch | undefined;
 
-beforeEach(() => {
+beforeEach(async () => {
+  // Cancel any stragglers from the previous test BEFORE reassigning the
+  // session id and clearing the cache (Task #1081 — see
+  // tests/helpers/queryClientIsolation.ts for the full rationale).
+  await resetSharedQueryClient();
+  SESSION_ID = nextSessionId('session-task-1038');
+
   items = [
     {
       id: ITEM_WITH_DATE,
@@ -375,7 +388,6 @@ beforeEach(() => {
   fetchMock.mockClear();
 
   window.localStorage.setItem('bulkImportActiveSessionId', SESSION_ID);
-  queryClient.clear();
 });
 
 afterEach(() => {
