@@ -2527,17 +2527,30 @@ export default function BulkDocumentImportPage() {
 
   /**
    * Task #1208 (immediate-cancel path) + Task #1213 (confirmation
-   * path). For batches smaller than `BULK_RETRY_CONFIRM_THRESHOLD`
-   * we keep the original snappy behaviour: flip the same abort ref
-   * the session-change effect uses so the loop in
-   * `retryAllAiFailedItems` exits before dispatching the next
-   * per-item retry, and eagerly clear `bulkRetryStep` so the UI
-   * returns to idle without waiting for the in-flight `runStep`
-   * call to settle (the loop's `finally` will set it again to the
-   * same null and is a no-op). For larger batches we instead open
-   * an AlertDialog and defer the abort until the admin confirms,
-   * so a stray click while scanning a 30-row list doesn't halt the
-   * whole batch.
+   * path) + Task #1237 (skip the confirm once a large batch is
+   * almost done). For batches smaller than
+   * `BULK_RETRY_CONFIRM_THRESHOLD` we keep the original snappy
+   * behaviour: flip the same abort ref the session-change effect
+   * uses so the loop in `retryAllAiFailedItems` exits before
+   * dispatching the next per-item retry, and eagerly clear
+   * `bulkRetryStep` so the UI returns to idle without waiting for
+   * the in-flight `runStep` call to settle (the loop's `finally`
+   * will set it again to the same null and is a no-op). For larger
+   * batches we instead open an AlertDialog and defer the abort
+   * until the admin confirms, so a stray click while scanning a
+   * 30-row list doesn't halt the whole batch.
+   *
+   * Task #1237 carve-out: once the batch is almost done — fewer
+   * than `BULK_RETRY_CONFIRM_THRESHOLD` items still pending — the
+   * dialog ("Stop retrying 2 of 30?") becomes more friction than
+   * safety and we fall back to the immediate-cancel path. The
+   * carve-out only applies when the batch started STRICTLY larger
+   * than the threshold; a batch that started exactly at threshold
+   * (5 rows) is already small enough that a stray click costs at
+   * most 5 retries either way, so it keeps the dialog as a safety
+   * net regardless of progress (Task #1240 mirrors a live "X of N"
+   * count into that dialog and relies on it opening even after
+   * the loop has ticked once on a 5-row batch).
    */
   const cancelBulkRetry = useCallback(() => {
     const total = bulkRetryTotalRef.current;
@@ -2545,7 +2558,11 @@ export default function BulkDocumentImportPage() {
       0,
       total - bulkRetryProcessedRef.current,
     );
-    if (total >= BULK_RETRY_CONFIRM_THRESHOLD) {
+    const reachedConfirmSize = total >= BULK_RETRY_CONFIRM_THRESHOLD;
+    const almostDoneOnLargeBatch =
+      total > BULK_RETRY_CONFIRM_THRESHOLD &&
+      remaining < BULK_RETRY_CONFIRM_THRESHOLD;
+    if (reachedConfirmSize && !almostDoneOnLargeBatch) {
       setPendingBulkRetryCancel({ total, remaining });
       return;
     }

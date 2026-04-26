@@ -869,6 +869,80 @@ describe('BulkDocumentImportPage — Task #1202 AI failure retry surfaces', () =
         screen.queryByTestId('cancel-bulk-retry-dialog'),
       ).not.toBeInTheDocument();
     });
+
+    /**
+     * Task #1237 — once the bulk retry is almost done (fewer than
+     * `BULK_RETRY_CONFIRM_THRESHOLD` items still pending), Cancel
+     * should fall back to the Task #1208 immediate-cancel path even
+     * on a batch that started large. Asking "Stop retrying 1 of 6?"
+     * is more friction than safety at that point.
+     *
+     * Setup: 6 retryable rows (above the threshold of 5). Wait for
+     * the loop to dispatch enough per-item retries that `processed`
+     * is >= 2 — i.e., remaining is at most 4 (< threshold). Then
+     * click Cancel and assert no dialog opens and the spinner state
+     * clears immediately.
+     */
+    it('skips the confirm dialog and aborts immediately when the batch started large but only a handful of items remain', async () => {
+      const perItemSortPosts = installSixRowFetchMock();
+      renderPage();
+      await waitForRow(LONG_BULK_RETRY_IDS[0]);
+
+      const bulkBtn = await screen.findByTestId('auto-run-retry-failed-sorting');
+      expect(bulkBtn).toHaveTextContent('Retry AI-failed items (6)');
+
+      await act(async () => {
+        fireEvent.click(bulkBtn);
+      });
+
+      const cancelBtn = await screen.findByTestId(
+        'auto-run-retry-cancel-sorting',
+        undefined,
+        { timeout: 4000 },
+      );
+
+      // Wait until the 3rd per-item POST has been dispatched. The
+      // loop awaits each POST then increments `processed` before
+      // starting the next iteration, so observing length >= 3
+      // guarantees iterations 1 and 2 fully completed and
+      // `bulkRetryProcessedRef.current >= 2`. With total = 6, that
+      // means remaining <= 4, which is below the confirmation
+      // threshold — Cancel must take the immediate-cancel path.
+      await waitFor(
+        () => {
+          expect(perItemSortPosts.length).toBeGreaterThanOrEqual(3);
+        },
+        { timeout: 4000 },
+      );
+
+      const callsBeforeCancel = perItemSortPosts.length;
+
+      await act(async () => {
+        fireEvent.click(cancelBtn);
+      });
+
+      // No confirmation dialog must appear — Task #1237 skips it
+      // because the batch is almost done.
+      expect(
+        screen.queryByTestId('cancel-bulk-retry-dialog'),
+      ).not.toBeInTheDocument();
+
+      // The Cancel button is unmounted right away (the immediate-
+      // cancel path eagerly clears `bulkRetryStep`).
+      await waitFor(() => {
+        expect(
+          screen.queryByTestId('auto-run-retry-cancel-sorting'),
+        ).not.toBeInTheDocument();
+      });
+
+      // Wait past the loop's 200 ms inter-call stagger so any
+      // queued next-iteration POST would have had time to land,
+      // then prove the loop stopped dispatching.
+      await act(async () => {
+        await new Promise<void>((r) => setTimeout(r, 800));
+      });
+      expect(perItemSortPosts.length).toBeLessThanOrEqual(callsBeforeCancel + 1);
+    });
   });
 
   describe('step-level "Retry AI-failed items (N)" button', () => {
