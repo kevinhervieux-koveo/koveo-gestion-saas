@@ -7,7 +7,7 @@ channel = "stable-24_05"
 packages = ["google-cloud-sdk", "yakut", "jq", "dig"]
 
 [deployment]
-deploymentTarget = "autoscale"
+deploymentTarget = "cloudrun"
 build = ["sh", "-c", "bash scripts/run-unit-tests.sh full && npm run build && npm run migrate"]
 run = ["npm", "run", "start"]
 

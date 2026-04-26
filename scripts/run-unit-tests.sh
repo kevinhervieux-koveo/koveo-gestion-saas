@@ -50,6 +50,22 @@
 #              `fast` behaviour (including vitest) when no base ref is
 #              available. In affected mode with a base ref, vitest is run
 #              only when relevant upload/filename source files are in the diff.
+#
+# Where each mode runs (Task #1118 + Task #1121):
+#   affected → "Fast unit tests" workflow (isValidation=true in .replit).
+#              This is the per-task validation gate. Kept lightweight so
+#              every task iteration stays fast.
+#   full     → "Full unit tests" workflow (manual / on-demand) AND the
+#              [deployment].build hook in .replit (pre-deploy gate). The
+#              workflow is intentionally NOT marked isValidation=true so
+#              it does not duplicate "Fast unit tests" on every task. Run
+#              it on-demand (e.g. nightly or before clicking Publish) to
+#              catch timing-sensitive failures the silent fast sweep can
+#              mask. The deployment build runs the same invocation so a
+#              regression fails the publish before it reaches users.
+#   fast     → no automated workflow; available as a manual local run for
+#              developers who want the silent flags without --changedSince
+#              scoping (e.g. when the git base ref is unavailable).
 
 # NOTE: `set -e` is intentionally disabled (only `-uo pipefail` is on)
 # so that both the Jest and vitest phases below always run regardless of
