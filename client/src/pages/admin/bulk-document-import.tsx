@@ -226,7 +226,7 @@ function computeMergeGroup(
 }
 
 /** Lean item shape returned by the /lite polling endpoint (Task #727). */
-interface BulkImportItemLite {
+export interface BulkImportItemLite {
   id: string;
   originalName: string;
   mimeType: string | null;
@@ -1528,7 +1528,7 @@ function HistoryCard({
  * which is forced to `pending` on AI failure, so no extra check is needed
  * there. Complete has no AI step.
  */
-function isItemReadyForNextStep(item: BulkImportItemLite, step: BulkImportStep): boolean {
+export function isItemReadyForNextStep(item: BulkImportItemLite, step: BulkImportStep): boolean {
   if (
     step === 'screening' ||
     step === 'branching' ||
