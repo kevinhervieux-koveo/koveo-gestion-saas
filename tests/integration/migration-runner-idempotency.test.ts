@@ -54,6 +54,14 @@ import {
   type WebSocketConstructor,
 } from '@neondatabase/serverless';
 import ws from 'ws';
+// Task #1214: import the shared production-URL guard rather than
+// carrying a third inline copy of the same regex. The two production
+// guards (`jest.global-setup.cjs` and `scripts/clean-orphan-fk-rows.ts`)
+// already share this module via Task #1211; keeping this suite on the
+// same import means a future tightening of the regex (e.g. to also
+// reject `staging`) cannot silently miss the `CREATE DATABASE` /
+// `DROP DATABASE` admin-URL operations issued below.
+import { looksLikeProductionUrl } from '../../scripts/lib/production-url-guard.cjs';
 
 if (!neonConfig.webSocketConstructor) {
   neonConfig.webSocketConstructor = ws as unknown as WebSocketConstructor;
@@ -64,21 +72,13 @@ const ADMIN_URL =
 
 /**
  * Refuse to spin up throwaway databases against a URL that looks like
- * production unless explicitly allowed. Mirrors the same foot-gun guard
- * used in `jest.global-setup.cjs`. This suite issues `CREATE DATABASE`
- * and `DROP DATABASE` against the admin URL — exactly the operations
- * that must never be attempted against a production cluster from a
- * test run.
+ * production unless explicitly allowed. This suite issues `CREATE
+ * DATABASE` and `DROP DATABASE` against the admin URL — exactly the
+ * operations that must never be attempted against a production cluster
+ * from a test run. The actual matcher lives in
+ * `scripts/lib/production-url-guard.cjs` and is shared with
+ * `jest.global-setup.cjs` and `scripts/clean-orphan-fk-rows.ts`.
  */
-function looksLikeProductionUrl(rawUrl: string): boolean {
-  try {
-    const u = new URL(rawUrl);
-    const haystack = `${u.hostname} ${u.pathname}`.toLowerCase();
-    return /(^|[._-])(prod|production|live)([._-]|$)/.test(haystack);
-  } catch {
-    return false;
-  }
-}
 
 const isProdShaped =
   !!ADMIN_URL &&
