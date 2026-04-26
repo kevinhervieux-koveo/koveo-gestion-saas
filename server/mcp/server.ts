@@ -103,6 +103,11 @@ import {
   InvitationAlreadyPendingError,
 } from "../services/invitation-soft-replace";
 import { demandNotificationService } from "../services/demand-notification-service";
+import {
+  advanceLastInspectionDateForward,
+  isInspectionEventType,
+  recomputeLastInspectionDate,
+} from "../services/inventory-inspection-date";
 import { insertDemandCommentSchema, MAINTENANCE_CATEGORY_VALUES } from "@shared/schemas/operations";
 
 const MCP_ORG_NAMES = ["MCP-1", "MCP-2"];
@@ -4293,24 +4298,14 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
           }
 
           // Forward-only guard: only advance lastInspectionDate, never regress it.
-          // Mirrors the WHERE predicate used by POST /api/maintenance/elements/:elementId/history
-          // so out-of-order backdated repair/minor_rehab events cannot clobber a newer date.
-          // The update_element_history_event / delete_element_history_event handlers
-          // recompute lastInspectionDate from MAX(eventDate) after their write so that
-          // edits and deletions of inspection events stay accurate (Task #1135).
-          if (eventType === "repair" || eventType === "minor_rehab") {
-            await tx
-              .update(schema.buildingElements)
-              .set({ lastInspectionDate: eventDate, updatedAt: new Date() })
-              .where(
-                and(
-                  eq(schema.buildingElements.id, elementId),
-                  or(
-                    isNull(schema.buildingElements.lastInspectionDate),
-                    sql`${schema.buildingElements.lastInspectionDate} < ${eventDate}::date`,
-                  ),
-                ),
-              );
+          // Shared helper mirrors the WHERE predicate used by
+          // POST /api/maintenance/elements/:elementId/history so out-of-order
+          // backdated inspection-type events cannot clobber a newer date. The
+          // update_element_history_event / delete_element_history_event
+          // handlers recompute from MAX(eventDate) after their write so edits
+          // and deletions of inspection events stay accurate (Task #1135).
+          if (isInspectionEventType(eventType)) {
+            await advanceLastInspectionDateForward(tx, elementId, eventDate);
             needsReadBack = true;
           }
 
@@ -4530,13 +4525,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
             lifespanWriteHappened = true;
           }
           if (inspectionRecomputeNeeded) {
-            await tx
-              .update(schema.buildingElements)
-              .set({
-                lastInspectionDate: sql`(SELECT MAX(eh.event_date) FROM element_history eh WHERE eh.element_id = ${element.id} AND eh.event_type IN ('repair', 'minor_rehab'))`,
-                updatedAt: new Date(),
-              })
-              .where(eq(schema.buildingElements.id, element.id));
+            await recomputeLastInspectionDate(tx, element.id);
           }
           let updatedElement: { id: string; currentLifespan: number | null; lastInspectionDate: string | null } | null = null;
           if (lifespanWriteHappened || inspectionRecomputeNeeded) {
@@ -4607,15 +4596,9 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
           // Always recompute lastInspectionDate after delete so removing the
           // event that held the current MAX(eventDate) doesn't leave the
           // element pointing at a date it no longer has any evidence for
-          // (Task #1135). When no inspection events remain the subquery
-          // returns NULL, which correctly clears the column.
-          await tx
-            .update(schema.buildingElements)
-            .set({
-              lastInspectionDate: sql`(SELECT MAX(eh.event_date) FROM element_history eh WHERE eh.element_id = ${element.id} AND eh.event_type IN ('repair', 'minor_rehab'))`,
-              updatedAt: new Date(),
-            })
-            .where(eq(schema.buildingElements.id, element.id));
+          // (Task #1135). When no inspection events remain the helper writes
+          // NULL, correctly clearing the column.
+          await recomputeLastInspectionDate(tx, element.id);
           const [el] = await tx
             .select({
               id: schema.buildingElements.id,

@@ -67,6 +67,11 @@ import { getUploadConfig, type UploadContext } from '@shared/config/upload-confi
 import { maintenanceSuggestionService } from '../services/maintenanceSuggestionService';
 import { maintenanceJobsScheduler } from '../jobs/maintenanceJobs';
 import { projectPaymentService } from '../services/project-payment-service';
+import {
+  advanceLastInspectionDateForward,
+  isInspectionEventType,
+  recomputeLastInspectionDate,
+} from '../services/inventory-inspection-date';
 
 // Security: Generate secure random filename. Uses the shared canonical
 // `normalizeFilename` so the database `fileName` and the underlying object
@@ -1788,26 +1793,12 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         .returning();
       
       // Update element's last inspection date if this is a minor rehab or repair that included inspection.
-      // Only advance lastInspectionDate — never regress it. The WHERE clause ensures the update is
-      // skipped (atomically) when the stored date is already equal-to or newer than the new event's
+      // Forward-only advance: the helper's WHERE clause ensures the update is skipped
+      // (atomically) when the stored date is already equal-to or newer than the new event's
       // date, guarding against out-of-order event inserts clobbering a later inspection date.
-      if (['repair', 'minor_rehab'].includes(validation.data.eventType)) {
+      if (isInspectionEventType(validation.data.eventType)) {
         const eventDateStr = validation.data.eventDate.toISOString().split('T')[0];
-        await db
-          .update(buildingElements)
-          .set({
-            lastInspectionDate: eventDateStr,
-            updatedAt: new Date(),
-          })
-          .where(
-            and(
-              eq(buildingElements.id, elementId),
-              or(
-                isNull(buildingElements.lastInspectionDate),
-                sql`${buildingElements.lastInspectionDate} < ${eventDateStr}::date`,
-              ),
-            ),
-          );
+        await advanceLastInspectionDateForward(db, elementId, eventDateStr);
       }
       
       res.status(201).json({
@@ -1942,13 +1933,7 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         });
 
         if (inspectionRecomputeNeeded) {
-          await tx
-            .update(buildingElements)
-            .set({
-              lastInspectionDate: sql`(SELECT MAX(eh.event_date) FROM element_history eh WHERE eh.element_id = ${elementId} AND eh.event_type IN ('repair', 'minor_rehab'))`,
-              updatedAt: new Date(),
-            })
-            .where(eq(buildingElements.id, elementId));
+          await recomputeLastInspectionDate(tx, elementId);
         }
 
         return [row];
@@ -2108,20 +2093,13 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
       // Delete + recompute lastInspectionDate in a single transaction so the
       // element's stored MAX(eventDate) over inspection-type rows can never
       // outlive the row that established it (Task #1135). When no inspection
-      // events remain the subquery returns NULL, which correctly clears the
-      // column.
+      // events remain the helper writes NULL, correctly clearing the column.
       const elementId = historyResult[0].elementId;
       await db.transaction(async (tx) => {
         await tx
           .delete(elementHistory)
           .where(eq(elementHistory.id, id));
-        await tx
-          .update(buildingElements)
-          .set({
-            lastInspectionDate: sql`(SELECT MAX(eh.event_date) FROM element_history eh WHERE eh.element_id = ${elementId} AND eh.event_type IN ('repair', 'minor_rehab'))`,
-            updatedAt: new Date(),
-          })
-          .where(eq(buildingElements.id, elementId));
+        await recomputeLastInspectionDate(tx, elementId);
       });
 
       res.json({
