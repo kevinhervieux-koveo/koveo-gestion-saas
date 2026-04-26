@@ -2769,6 +2769,14 @@ export default function BulkDocumentImportPage() {
     autoSaveTimers.current.set(item.id, timer);
   }
 
+  function cancelAutoSave(itemId: string) {
+    const existing = autoSaveTimers.current.get(itemId);
+    if (existing) {
+      clearTimeout(existing);
+      autoSaveTimers.current.delete(itemId);
+    }
+  }
+
   const clearAll = useMutation({
     mutationFn: async () => {
       await apiRequest('DELETE', `/api/admin/bulk-import/sessions/${sessionId}`, {});
@@ -4677,12 +4685,13 @@ export default function BulkDocumentImportPage() {
                                                 className="border-green-300 text-green-700 hover:bg-green-50 dark:border-green-700 dark:text-green-300"
                                                 disabled={sibSortingMutationPending}
                                                 data-testid={`button-sorting-accept-${sibling.id}`}
-                                                onClick={() =>
+                                                onClick={() => {
+                                                  cancelAutoSave(sibling.id);
                                                   setSortingDecision.mutate({
                                                     itemId: sibling.id,
                                                     action: 'accept',
-                                                  })
-                                                }
+                                                  });
+                                                }}
                                               >
                                                 {sibSortingMutationPending ? (
                                                   <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
@@ -4698,6 +4707,7 @@ export default function BulkDocumentImportPage() {
                                                 disabled={sibSortingMutationPending}
                                                 data-testid={`button-sorting-reject-${sibling.id}`}
                                                 onClick={() => {
+                                                  cancelAutoSave(sibling.id);
                                                   const d = (sibling.sortingDecision ?? 'keep') as 'keep' | 'merge' | 'split';
                                                   setSortingPickerStates((prev) => {
                                                     const next = new Map(prev);
@@ -4921,14 +4931,15 @@ export default function BulkDocumentImportPage() {
                                                             size="sm"
                                                             disabled={sibSortingMutationPending}
                                                             data-testid={`branching-slice-confirm-${sibling.id}`}
-                                                            onClick={() =>
+                                                            onClick={() => {
+                                                              cancelAutoSave(sibling.id);
                                                               setSortingDecision.mutate({
                                                                 itemId: sibling.id,
                                                                 action: 'manual',
                                                                 decision: 'split',
                                                                 splitAtPage: inlineSlice,
-                                                              })
-                                                            }
+                                                              });
+                                                            }}
                                                           >
                                                             {sibSortingMutationPending ? (
                                                               <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
@@ -5091,6 +5102,7 @@ export default function BulkDocumentImportPage() {
                                                         data-testid={`branching-merge-confirm-${sibling.id}`}
                                                         onClick={() => {
                                                           const order = inlineMergeOrder.get(sibling.id)!;
+                                                          cancelAutoSave(sibling.id);
                                                           setSortingDecision.mutate({
                                                             itemId: order[0],
                                                             action: 'manual',
@@ -5862,6 +5874,7 @@ export default function BulkDocumentImportPage() {
                                         disabled={sortingMutationPending}
                                         data-testid={`button-sorting-accept-${item.id}`}
                                         onClick={() => {
+                                          cancelAutoSave(item.id);
                                           const inlineSlice = inlineSlicePage.get(item.id);
                                           const inlineMerge = inlineMergeOrder.get(item.id);
                                           if (inlineSlice !== undefined) {
@@ -5899,6 +5912,7 @@ export default function BulkDocumentImportPage() {
                                             });
                                             return next;
                                           });
+                                          cancelAutoSave(item.id);
                                           setSortingDecision.mutate({ itemId: item.id, action: 'reject' });
                                         }}
                                       >
@@ -6174,7 +6188,8 @@ export default function BulkDocumentImportPage() {
                                       (pickerDecision === 'merge' && !pickerMergeTargetId)
                                     }
                                     data-testid={`button-sorting-confirm-${item.id}`}
-                                    onClick={() =>
+                                    onClick={() => {
+                                      cancelAutoSave(item.id);
                                       setSortingDecision.mutate({
                                         itemId: item.id,
                                         action: 'manual',
@@ -6187,8 +6202,8 @@ export default function BulkDocumentImportPage() {
                                           pickerDecision === 'split'
                                             ? pickerSplitPage
                                             : undefined,
-                                      })
-                                    }
+                                      });
+                                    }}
                                   >
                                     {sortingMutationPending ? (
                                       <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
@@ -6350,14 +6365,15 @@ export default function BulkDocumentImportPage() {
                                                       size="sm"
                                                       disabled={sortingMutationPending}
                                                       data-testid={`branching-slice-confirm-${item.id}`}
-                                                      onClick={() =>
+                                                      onClick={() => {
+                                                        cancelAutoSave(item.id);
                                                         setSortingDecision.mutate({
                                                           itemId: item.id,
                                                           action: 'manual',
                                                           decision: 'split',
                                                           splitAtPage: inlineSlice,
-                                                        })
-                                                      }
+                                                        });
+                                                      }}
                                                     >
                                                       {sortingMutationPending ? (
                                                         <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
@@ -6525,6 +6541,7 @@ export default function BulkDocumentImportPage() {
                                                   data-testid={`branching-merge-confirm-${item.id}`}
                                                   onClick={() => {
                                                     const order = inlineMergeOrder.get(item.id)!;
+                                                    cancelAutoSave(item.id);
                                                     setSortingDecision.mutate({
                                                       itemId: order[0],
                                                       action: 'manual',
