@@ -209,12 +209,44 @@ const MODEL = 'claude-sonnet-4-6';
 const MAX_DOCUMENT_BYTES = 25 * 1024 * 1024;
 
 // ── Retry configuration ────────────────────────────────────────────────────
+//
+// The retry budget below is sized to fit inside the Bulk Document Import
+// run-all loop's per-item timeout (`RUN_ALL_ITEM_TIMEOUT_MS` in
+// `server/api/bulk-import.ts`). The relationship is:
+//
+//   worst-case per-item AI work
+//     = MAX_RETRY_ATTEMPTS × PER_CALL_TIMEOUT_MS                  (calls)
+//     + Σ(min(RETRY_BASE_DELAY_MS × 2^(attempt-1), RETRY_MAX_DELAY_MS))
+//                                                                 (backoffs)
+//   With the current values (3 × 30s) + (1s + 2s capped at 8s)
+//     = 90s + ~3s (with ±10% jitter) ≈ 93s
+//
+// `RUN_ALL_ITEM_TIMEOUT_MS` is set to 120s in the API layer, leaving
+// ~25s of headroom for big-PDF latency, base64 upload time, and the
+// inter-call sleeps inside the loop. Bumping any of these constants
+// without re-checking that math can re-introduce the original
+// "AI failed after 3 attempts" badges that Task #1191 fixed: a single
+// hung call ate the whole 90s budget so the second attempt never ran.
+//
+// Tests in `tests/unit/services/bulk-import-analyzer.test.ts` lock in
+// this relationship — update them too if you tune any value here.
+//
 /** Maximum number of attempts (first try + retries). */
-const MAX_RETRY_ATTEMPTS = 3;
+export const MAX_RETRY_ATTEMPTS = 3;
 /** Base delay in ms before the first retry; doubles each attempt. */
-const RETRY_BASE_DELAY_MS = 1_000;
+export const RETRY_BASE_DELAY_MS = 1_000;
 /** Absolute cap on inter-attempt wait so a single call can't hang forever. */
-const RETRY_MAX_DELAY_MS = 8_000;
+export const RETRY_MAX_DELAY_MS = 8_000;
+/**
+ * Per-call Anthropic SDK timeout (Task #1202). Without this the SDK
+ * defaults to a 10-minute deadline, so a single hung HTTP request
+ * could consume the entire `RUN_ALL_ITEM_TIMEOUT_MS` budget before any
+ * retry was attempted. Capping each individual call lets the worst
+ * case still fit `MAX_RETRY_ATTEMPTS` calls plus their backoff inside
+ * the per-item budget. Pass `{ timeout: PER_CALL_TIMEOUT_MS }` to
+ * `messages.create(...)` so it overrides the SDK default per-request.
+ */
+export const PER_CALL_TIMEOUT_MS = 30_000;
 
 /**
  * Replaceable sleep implementation so unit tests can eliminate wall-clock
@@ -615,7 +647,13 @@ async function callClaudeJson<T>(
         },
       });
       try {
-        const res = await c.messages.create(requestParams);
+        // Per-request timeout (Task #1202): caps each individual SDK
+        // call so a single hung request cannot consume the whole
+        // run-all per-item budget before the next retry runs. See the
+        // budget commentary by `PER_CALL_TIMEOUT_MS` above.
+        const res = await c.messages.create(requestParams, {
+          timeout: PER_CALL_TIMEOUT_MS,
+        });
         attemptsMade = attempt;
         const text = res.content
           .filter((b) => b.type === 'text')

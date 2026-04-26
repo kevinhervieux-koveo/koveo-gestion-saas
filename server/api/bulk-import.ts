@@ -880,11 +880,25 @@ const STEP_PRE_STATUS: Record<AutoStep, schema.BulkImportItem['status']> = {
 const RUN_ALL_CONCURRENCY = 4;
 
 /**
- * Per-item time budget for the AI analyzer call (Task #898).
+ * Per-item time budget for the AI analyzer call (Task #898 / #1202).
+ *
  * A single hung request no longer blocks the whole batch — after this
  * deadline the item is recorded as a failure and the loop moves on.
+ *
+ * Sized to comfortably hold the analyzer's worst-case retry budget
+ * (`MAX_RETRY_ATTEMPTS × PER_CALL_TIMEOUT_MS` plus exponential
+ * backoff capped at `RETRY_MAX_DELAY_MS`) defined in
+ * `server/services/bulk-import-analyzer.ts`. With the current values
+ * (3 attempts × 30s + 1s + 2s ≈ 93s) this leaves ~25s of headroom
+ * for big-PDF latency, base64 upload time, and inter-call sleeps.
+ *
+ * Tightening this without also lowering `PER_CALL_TIMEOUT_MS` /
+ * `MAX_RETRY_ATTEMPTS` re-introduces the original "AI failed after
+ * 3 attempts" regression where the per-item timeout fired before the
+ * analyzer's retry loop ever finished. See the budget commentary in
+ * the analyzer file.
  */
-const RUN_ALL_ITEM_TIMEOUT_MS = 90_000; // 90 seconds
+export const RUN_ALL_ITEM_TIMEOUT_MS = 120_000; // 120 seconds
 
 /**
  * Minimum interval between heartbeat DB writes when concurrency is
@@ -901,7 +915,7 @@ const RUN_ALL_HEARTBEAT_THROTTLE_MS = 800;
  * per-minute limits and the analyzer's 3-attempt exponential backoff
  * (capped at 8 s, see `RETRY_MAX_DELAY_MS` in
  * `server/services/bulk-import-analyzer.ts`) cannot recover within
- * the 90 s per-item timeout, surfacing as "AI failed after 3 attempts"
+ * the per-item timeout, surfacing as "AI failed after 3 attempts"
  * badges in the wizard.
  *
  * The stagger ramps workers up one-by-one so the first AI call goes
@@ -1945,7 +1959,8 @@ async function runAllForStep(sessionId: string, step: AutoStep): Promise<void> {
         // Semaphore gate: ensure rawInFlight < RUN_ALL_CONCURRENCY before
         // dequeuing. After a timeout the old promise is still counted, so a
         // replacement item will wait here until that slot is freed. The 50 ms
-        // poll is fine because timeouts are already at 90 s granularity.
+        // poll is fine because timeouts are already at minute-scale
+        // granularity (RUN_ALL_ITEM_TIMEOUT_MS).
         while (rawInFlight >= RUN_ALL_CONCURRENCY) {
           await new Promise<void>((r) => setTimeout(r, 50));
           if (!inFlightRunAll.has(key)) return; // cancelled while waiting

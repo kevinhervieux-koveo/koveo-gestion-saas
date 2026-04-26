@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { debugLog } from '@/lib/debug-log';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Header } from '@/components/layout/header';
@@ -1606,6 +1606,87 @@ function IdentificationTagEditor({
   );
 }
 
+/**
+ * Task #1202: the yellow "AI service error" alert that explains a
+ * fallback row used to read like a dead-end — admins had to scroll
+ * back to the row's action toolbar to find Retry. This button surfaces
+ * Retry inline in the alert so the recovery action lives next to the
+ * explanation that motivates it.
+ *
+ * The button shares its in-flight tracking with the existing per-row
+ * Retry button so a single retry in flight (manual click, run-all
+ * loop, or step-level "Retry AI-failed items") shows exactly one
+ * spinner regardless of how many surfaces the row appears in.
+ *
+ * Hidden when:
+ *   - `retryAction` is null (non-AI step like Upload / Complete)
+ *   - `hideRetry` is true (per-step manual-override gates from the
+ *     row's action toolbar — surfacing inline Retry on a row whose
+ *     toolbar Retry is gated would be inconsistent)
+ *   - `fallbackReason` is something other than `api_error` /
+ *     `unreadable_response` (other reasons like `oversize` or
+ *     `missing_file` describe permanent file-side problems that
+ *     retrying cannot fix)
+ */
+function InlineFallbackRetryButton({
+  itemId,
+  fallbackReason,
+  retryAction,
+  retryPending,
+  hideRetry,
+  isFr,
+  onRetry,
+  testIdPrefix = 'button-fallback-retry',
+}: {
+  itemId: string;
+  fallbackReason: BulkImportFallbackReason | null | undefined;
+  retryAction: 'screen' | 'sort' | 'branch' | 'identify' | 'link' | null;
+  retryPending: boolean;
+  hideRetry: boolean;
+  isFr: boolean;
+  onRetry: () => void;
+  testIdPrefix?: string;
+}) {
+  if (!retryAction || hideRetry) return null;
+  if (
+    fallbackReason !== 'api_error' &&
+    fallbackReason !== 'unreadable_response'
+  ) {
+    return null;
+  }
+  return (
+    <div className="mt-2">
+      <Button
+        size="sm"
+        variant="outline"
+        className="border-amber-300 bg-white text-amber-900 hover:bg-amber-100 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-100 dark:hover:bg-amber-900"
+        onClick={onRetry}
+        disabled={retryPending}
+        data-testid={`${testIdPrefix}-${itemId}`}
+      >
+        {retryPending ? (
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+        ) : (
+          <RotateCw className="mr-2 h-4 w-4" />
+        )}
+        {isFr ? 'Réessayer' : 'Retry'}
+      </Button>
+    </div>
+  );
+}
+
+/**
+ * Task #1202: fallback reasons that the per-item Retry endpoint can
+ * actually recover from. `api_error` and `unreadable_response` are
+ * transient (the Anthropic call failed or returned non-JSON) so the
+ * step-level "Retry AI-failed items (N)" button targets exactly these
+ * rows. Other reasons (`oversize`, `missing_file`, `unsupported_mime`)
+ * describe permanent file-side problems that re-running the analyzer
+ * cannot fix.
+ */
+const RETRYABLE_AI_FALLBACK_REASONS: ReadonlySet<BulkImportFallbackReason> =
+  new Set(['api_error', 'unreadable_response']);
+
 export default function BulkDocumentImportPage() {
   const { language } = useLanguage();
   const { toast } = useToast();
@@ -2150,6 +2231,75 @@ export default function BulkDocumentImportPage() {
       });
     },
   });
+
+  /**
+   * Task #1202: step-level "Retry AI-failed items (N)" bulk action.
+   *
+   * Iterates over the failed item ids the caller passes in and dispatches
+   * the existing per-item retry endpoint sequentially with a small
+   * client-side stagger between calls. The stagger:
+   *   1. Lets each item's `inFlightPerItemRetry` marker land on the
+   *      server before the next request arrives, so the server-side
+   *      gate (`perItemRetryKey`) can short-circuit duplicate retries.
+   *   2. Spreads the resulting Anthropic calls over time instead of
+   *      bursting `N` simultaneous calls — the per-item endpoint is
+   *      intentionally exempt from the run-all worker pool's pacing
+   *      (see comment by `RUN_ALL_INTER_CALL_DELAY_MS`) so without
+   *      this gap a 20-row bulk retry would launch 20 simultaneous AI
+   *      calls.
+   *
+   * `bulkRetryStep` is the step currently being processed so the
+   * step-level button can show a spinner. Cleared in a `finally` so
+   * an unhandled error inside the loop does not leave the UI stuck.
+   */
+  const [bulkRetryStep, setBulkRetryStep] = useState<AutoStep | null>(null);
+  const bulkRetryAbortedRef = useRef(false);
+  const retryAllAiFailedItems = useCallback(
+    async (
+      step: AutoStep,
+      itemIds: string[],
+      action: 'screen' | 'sort' | 'branch' | 'identify' | 'link',
+    ) => {
+      if (itemIds.length === 0) return;
+      bulkRetryAbortedRef.current = false;
+      setBulkRetryStep(step);
+      try {
+        for (const id of itemIds) {
+          if (bulkRetryAbortedRef.current) break;
+          try {
+            await runStep.mutateAsync({ itemId: id, action });
+          } catch {
+            // Surface failures via the row-level alert; keep iterating
+            // so a single 500 doesn't block the rest of the batch.
+          }
+          // Cooperative stagger between requests. ~200ms is large
+          // enough for the server to persist the in-flight marker
+          // before the next per-item retry endpoint call hits the
+          // gate, but small enough that the bulk action still feels
+          // responsive on a typical 5-10 row failure batch.
+          if (!bulkRetryAbortedRef.current) {
+            await new Promise<void>((r) => setTimeout(r, 200));
+          }
+        }
+      } finally {
+        setBulkRetryStep(null);
+      }
+    },
+    [runStep],
+  );
+
+  // Cooperative cancellation hook — when the wizard's session changes
+  // (admin navigated away / cleared the session) any in-flight bulk
+  // retry loop should stop dispatching so we don't keep firing per-
+  // item retries against a stale session id.
+  useEffect(() => {
+    bulkRetryAbortedRef.current = true;
+    setBulkRetryStep(null);
+    return () => {
+      bulkRetryAbortedRef.current = true;
+    };
+  }, [sessionId]);
+
   useEffect(() => {
     if (!sessionId || !session) return;
     if (!isAutoStep(currentStep)) return;
@@ -3626,6 +3776,25 @@ export default function BulkDocumentImportPage() {
                           (!!progress && !progress.finishedAt) ||
                           runAll.isPending;
                         const noWork = !progress && !runAll.isPending;
+                        // Task #1202: ids of rows whose AI step failed with
+                        // a transient reason (api_error / unreadable_response)
+                        // and are still candidates for the retry endpoint.
+                        // Excluded rows are filtered out so a manual exclude
+                        // doesn't ask the analyzer to re-run a file the
+                        // admin already gave up on.
+                        const aiFailedItemIds = items
+                          .filter((it) => {
+                            if (it.status === 'rejected') return false;
+                            const dec = getItemStepDecision(it, currentStep);
+                            return (
+                              !!dec?.fallbackReason &&
+                              RETRYABLE_AI_FALLBACK_REASONS.has(dec.fallbackReason)
+                            );
+                          })
+                          .map((it) => it.id);
+                        const aiFailedCount = aiFailedItemIds.length;
+                        const stepBulkRetryRunning =
+                          bulkRetryStep === currentStep;
                         return (
                           <div
                             className="mb-3 flex flex-col gap-1.5 rounded-md border bg-muted/40 px-3 py-2 text-sm"
@@ -3678,6 +3847,40 @@ export default function BulkDocumentImportPage() {
                                     {isFr
                                       ? 'Analyse bloquée — réessayer'
                                       : 'Run looks stalled — retry'}
+                                  </button>
+                                )}
+                                {/* Task #1202: step-level "Retry AI-failed
+                                    items (N)" surfaces only when there is at
+                                    least one transient-failure row to act on.
+                                    Disabled while the bulk loop for THIS step
+                                    is already running so a double-click can't
+                                    queue duplicate retries (the per-item
+                                    server gate would no-op them anyway, but
+                                    surfacing the disabled state matches admin
+                                    expectations). */}
+                                {aiFailedCount > 0 && isAutoStep(currentStep) && (
+                                  <button
+                                    type="button"
+                                    className="inline-flex items-center gap-1 text-xs text-amber-800 underline hover:text-amber-900 disabled:cursor-not-allowed disabled:opacity-50 dark:text-amber-300 dark:hover:text-amber-200"
+                                    data-testid={`auto-run-retry-failed-${currentStep}`}
+                                    disabled={stepBulkRetryRunning}
+                                    onClick={() => {
+                                      if (!isAutoStep(currentStep)) return;
+                                      void retryAllAiFailedItems(
+                                        currentStep,
+                                        aiFailedItemIds,
+                                        stepRetryAction[currentStep],
+                                      );
+                                    }}
+                                  >
+                                    {stepBulkRetryRunning ? (
+                                      <Loader2 className="h-3 w-3 animate-spin" />
+                                    ) : (
+                                      <RotateCw className="h-3 w-3" />
+                                    )}
+                                    {isFr
+                                      ? `Réessayer les fichiers en échec IA (${aiFailedCount})`
+                                      : `Retry AI-failed items (${aiFailedCount})`}
                                   </button>
                                 )}
                                 <button
@@ -5685,6 +5888,31 @@ export default function BulkDocumentImportPage() {
                                                         </p>
                                                       ) : null;
                                                     })()}
+                                                    <InlineFallbackRetryButton
+                                                      itemId={sibling.id}
+                                                      fallbackReason={sibDecision.fallbackReason}
+                                                      retryAction={retryAction}
+                                                      retryPending={
+                                                        (runStep.isPending &&
+                                                          runStep.variables?.itemId === sibling.id) ||
+                                                        (isAuto &&
+                                                          !!progress?.inFlight?.some(
+                                                            (e) => e.itemId === sibling.id,
+                                                          ))
+                                                      }
+                                                      hideRetry={
+                                                        sibIsExcluded ||
+                                                        sibling.sortingManualOverride
+                                                      }
+                                                      isFr={isFr}
+                                                      onRetry={() =>
+                                                        retryAction &&
+                                                        runStep.mutate({
+                                                          itemId: sibling.id,
+                                                          action: retryAction,
+                                                        })
+                                                      }
+                                                    />
                                                   </div>
                                                 )}
                                               </div>
@@ -7122,6 +7350,23 @@ export default function BulkDocumentImportPage() {
                                                   </p>
                                                 ) : null;
                                               })()}
+                                              <InlineFallbackRetryButton
+                                                itemId={item.id}
+                                                fallbackReason={decision.fallbackReason}
+                                                retryAction={retryAction}
+                                                retryPending={retryPending}
+                                                hideRetry={
+                                                  !showRetry || item.sortingManualOverride
+                                                }
+                                                isFr={isFr}
+                                                onRetry={() =>
+                                                  retryAction &&
+                                                  runStep.mutate({
+                                                    itemId: item.id,
+                                                    action: retryAction,
+                                                  })
+                                                }
+                                              />
                                             </div>
                                           )}
                                         </div>
@@ -7196,6 +7441,21 @@ export default function BulkDocumentImportPage() {
                                             </p>
                                           ) : null;
                                         })()}
+                                        <InlineFallbackRetryButton
+                                          itemId={item.id}
+                                          fallbackReason={decision.fallbackReason}
+                                          retryAction={retryAction}
+                                          retryPending={retryPending}
+                                          hideRetry={!showRetry}
+                                          isFr={isFr}
+                                          onRetry={() =>
+                                            retryAction &&
+                                            runStep.mutate({
+                                              itemId: item.id,
+                                              action: retryAction,
+                                            })
+                                          }
+                                        />
                                       </div>
                                     ) : item.screeningQaReason && (
                                       <p
