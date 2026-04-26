@@ -1,0 +1,394 @@
+client:733 [vite] connecting...
+client:827 [vite] connected.
+bulk-document-import:1 Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner.
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+debug-log.ts:3 [bulk-import] runAll start {sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e', step: 'identification'}
+debug-log.ts:3 [bulk-import] runAll success {sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e', step: 'identification'}
+debug-log.ts:3 [bulk-import] run-all transition running→done {sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e', step: 'identification', finishedAt: '2026-04-26T18:02:59.382Z', processed: 0, failed: 0, …}
+client:865 [vite] server connection lost. Polling for restart...
+client:935 Creating a worker from 'blob:https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/b8c9e590-c4e0-469a-95a8-b03d6943dce8' violates the following Content Security Policy directive: "script-src 'self' 'unsafe-inline' https://replit.com https://replit-cdn.com https://*.replit.com https://*.replit-cdn.com". Note that 'worker-src' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked.
+waitForSuccessfulPing @ client:935
+handleMessage @ client:869
+await in handleMessage
+(anonymous) @ client:458
+dequeue @ client:480
+(anonymous) @ client:472
+enqueue @ client:466
+(anonymous) @ client:458
+onMessage @ client:305
+(anonymous) @ client:426
+react-dom_client.js?v=67a03f77:16 [Violation] 'message' handler took 1391ms
+debug-log.ts:3 [bulk-import] runAll start {sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e', step: 'identification'}
+[Violation] Forced reflow while executing JavaScript took 63ms
+debug-log.ts:3 [bulk-import] runAll success {sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e', step: 'identification'}
+debug-log.ts:3 [bulk-import] run-all transition running→done {sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e', step: 'identification', finishedAt: '2026-04-26T18:16:36.627Z', processed: 0, failed: 0, …}
+debug-log.ts:3 [bulk-import] runStep start {itemId: 'c64ea916-aea4-4b28-8de9-56c856f685cd', action: 'identify', sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e'}
+debug-log.ts:3 [bulk-import] runStep success {itemId: 'c64ea916-aea4-4b28-8de9-56c856f685cd', action: 'identify', sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e'}
+react-dom_client.js?v=67a03f77:11645 [Violation] 'click' handler took 171ms
+react-dom_client.js?v=67a03f77:11645 [Violation] 'click' handler took 157ms
+react-dom_client.js?v=67a03f77:11645 [Violation] 'click' handler took 157ms
+debug-log.ts:3 [bulk-import] toggleExclude start {itemId: 'c64ea916-aea4-4b28-8de9-56c856f685cd', sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e', excluded: true}
+debug-log.ts:3 [bulk-import] toggleExclude success {itemId: 'c64ea916-aea4-4b28-8de9-56c856f685cd', sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e', excluded: true}
+debug-log.ts:3 [bulk-import] updateStep start {sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e', step: 'linking'}
+debug-log.ts:3 [bulk-import] updateStep success {sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e', step: 'linking'}
+debug-log.ts:3 [bulk-import] runAll start {sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e', step: 'linking'}
+debug-log.ts:3 [bulk-import] runAll success {sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e', step: 'linking'}
+debug-log.ts:3 [bulk-import] run-all transition pending→running {sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e', step: 'linking', startedAt: '2026-04-26T18:19:29.941Z', total: 16}
+queryClient.ts:140  GET https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/admin/bulk-import/sessions/86642325-4c08-4c33-9e88-b3a081edb44e/lite 502 (Bad Gateway)
+(anonymous) @ queryClient.ts:140
+fetchFn @ @tanstack_react-query.js?v=67a03f77:852
+run @ @tanstack_react-query.js?v=67a03f77:491
+start @ @tanstack_react-query.js?v=67a03f77:533
+fetch @ @tanstack_react-query.js?v=67a03f77:891
+#executeFetch @ @tanstack_react-query.js?v=67a03f77:2047
+(anonymous) @ @tanstack_react-query.js?v=67a03f77:2084
+setInterval
+#updateRefetchInterval @ @tanstack_react-query.js?v=67a03f77:2082
+#updateTimers @ @tanstack_react-query.js?v=67a03f77:2090
+onQueryUpdate @ @tanstack_react-query.js?v=67a03f77:2293
+(anonymous) @ @tanstack_react-query.js?v=67a03f77:1010
+(anonymous) @ @tanstack_react-query.js?v=67a03f77:1009
+batch @ @tanstack_react-query.js?v=67a03f77:581
+#dispatch @ @tanstack_react-query.js?v=67a03f77:1008
+setData @ @tanstack_react-query.js?v=67a03f77:690
+fetch @ @tanstack_react-query.js?v=67a03f77:900
+await in fetch
+#executeFetch @ @tanstack_react-query.js?v=67a03f77:2047
+(anonymous) @ @tanstack_react-query.js?v=67a03f77:2084
+setInterval
+#updateRefetchInterval @ @tanstack_react-query.js?v=67a03f77:2082
+#updateTimers @ @tanstack_react-query.js?v=67a03f77:2090
+onQueryUpdate @ @tanstack_react-query.js?v=67a03f77:2293
+(anonymous) @ @tanstack_react-query.js?v=67a03f77:1010
+(anonymous) @ @tanstack_react-query.js?v=67a03f77:1009
+batch @ @tanstack_react-query.js?v=67a03f77:581
+#dispatch @ @tanstack_react-query.js?v=67a03f77:1008
+setData @ @tanstack_react-query.js?v=67a03f77:690
+fetch @ @tanstack_react-query.js?v=67a03f77:900
+await in fetch
+#executeFetch @ @tanstack_react-query.js?v=67a03f77:2047
+(anonymous) @ @tanstack_react-query.js?v=67a03f77:2084
+setInterval
+#updateRefetchInterval @ @tanstack_react-query.js?v=67a03f77:2082
+#updateTimers @ @tanstack_react-query.js?v=67a03f77:2090
+onQueryUpdate @ @tanstack_react-query.js?v=67a03f77:2293
+(anonymous) @ @tanstack_react-query.js?v=67a03f77:1010
+(anonymous) @ @tanstack_react-query.js?v=67a03f77:1009
+batch @ @tanstack_react-query.js?v=67a03f77:581
+#dispatch @ @tanstack_react-query.js?v=67a03f77:1008
+setData @ @tanstack_react-query.js?v=67a03f77:690
+fetch @ @tanstack_react-query.js?v=67a03f77:900
+await in fetch
+#executeFetch @ @tanstack_react-query.js?v=67a03f77:2047
+(anonymous) @ @tanstack_react-query.js?v=67a03f77:2084
+setInterval
+#updateRefetchInterval @ @tanstack_react-query.js?v=67a03f77:2082
+#updateTimers @ @tanstack_react-query.js?v=67a03f77:2090
+onQueryUpdate @ @tanstack_react-query.js?v=67a03f77:2293
+(anonymous) @ @tanstack_react-query.js?v=67a03f77:1010
+(anonymous) @ @tanstack_react-query.js?v=67a03f77:1009
+batch @ @tanstack_react-query.js?v=67a03f77:581
+#dispatch @ @tanstack_react-query.js?v=67a03f77:1008
+setData @ @tanstack_react-query.js?v=67a03f77:690
+fetch @ @tanstack_react-query.js?v=67a03f77:900
+await in fetch
+(anonymous) @ @tanstack_react-query.js?v=67a03f77:1758
+(anonymous) @ @tanstack_react-query.js?v=67a03f77:1757
+batch @ @tanstack_react-query.js?v=67a03f77:581
+refetchQueries @ @tanstack_react-query.js?v=67a03f77:1756
+(anonymous) @ @tanstack_react-query.js?v=67a03f77:1742
+batch @ @tanstack_react-query.js?v=67a03f77:581
+invalidateQueries @ @tanstack_react-query.js?v=67a03f77:1735
+(anonymous) @ bulk-document-import.tsx:2301
+execute @ @tanstack_react-query.js?v=67a03f77:1242
+await in execute
+mutate @ @tanstack_react-query.js?v=67a03f77:2642
+(anonymous) @ @tanstack_react-query.js?v=67a03f77:3356
+(anonymous) @ bulk-document-import.tsx:2449
+react_stack_bottom_frame @ react-dom_client.js?v=67a03f77:17486
+runWithFiberInDEV @ react-dom_client.js?v=67a03f77:1485
+commitHookEffectListMount @ react-dom_client.js?v=67a03f77:8460
+commitHookPassiveMountEffects @ react-dom_client.js?v=67a03f77:8518
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9887
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9881
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9984
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9881
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9881
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9960
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9940
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9984
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9984
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9881
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9881
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9984
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9881
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9881
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9984
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9881
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9984
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9881
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9984
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9881
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9984
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9881
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9890
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9984
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9881
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9984
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9881
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9890
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9881
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9899
+flushPassiveEffects @ react-dom_client.js?v=67a03f77:11302
+flushPendingEffects @ react-dom_client.js?v=67a03f77:11276
+flushSpawnedWork @ react-dom_client.js?v=67a03f77:11250
+commitRoot @ react-dom_client.js?v=67a03f77:11081
+commitRootWhenReady @ react-dom_client.js?v=67a03f77:10512
+performWorkOnRoot @ react-dom_client.js?v=67a03f77:10457
+performSyncWorkOnRoot @ react-dom_client.js?v=67a03f77:11635
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=67a03f77:11536
+processRootScheduleInMicrotask @ react-dom_client.js?v=67a03f77:11558
+(anonymous) @ react-dom_client.js?v=67a03f77:11649
+queryClient.ts:140  GET https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/admin/bulk-import/sessions/86642325-4c08-4c33-9e88-b3a081edb44e/lite 502 (Bad Gateway)
+(anonymous) @ queryClient.ts:140
+fetchFn @ @tanstack_react-query.js?v=67a03f77:852
+run @ @tanstack_react-query.js?v=67a03f77:491
+(anonymous) @ @tanstack_react-query.js?v=67a03f77:515
+Promise.then
+(anonymous) @ @tanstack_react-query.js?v=67a03f77:511
+Promise.catch
+run @ @tanstack_react-query.js?v=67a03f77:495
+start @ @tanstack_react-query.js?v=67a03f77:533
+fetch @ @tanstack_react-query.js?v=67a03f77:891
+#executeFetch @ @tanstack_react-query.js?v=67a03f77:2047
+(anonymous) @ @tanstack_react-query.js?v=67a03f77:2084
+setInterval
+#updateRefetchInterval @ @tanstack_react-query.js?v=67a03f77:2082
+#updateTimers @ @tanstack_react-query.js?v=67a03f77:2090
+onQueryUpdate @ @tanstack_react-query.js?v=67a03f77:2293
+(anonymous) @ @tanstack_react-query.js?v=67a03f77:1010
+(anonymous) @ @tanstack_react-query.js?v=67a03f77:1009
+batch @ @tanstack_react-query.js?v=67a03f77:581
+#dispatch @ @tanstack_react-query.js?v=67a03f77:1008
+setData @ @tanstack_react-query.js?v=67a03f77:690
+fetch @ @tanstack_react-query.js?v=67a03f77:900
+await in fetch
+#executeFetch @ @tanstack_react-query.js?v=67a03f77:2047
+(anonymous) @ @tanstack_react-query.js?v=67a03f77:2084
+setInterval
+#updateRefetchInterval @ @tanstack_react-query.js?v=67a03f77:2082
+#updateTimers @ @tanstack_react-query.js?v=67a03f77:2090
+onQueryUpdate @ @tanstack_react-query.js?v=67a03f77:2293
+(anonymous) @ @tanstack_react-query.js?v=67a03f77:1010
+(anonymous) @ @tanstack_react-query.js?v=67a03f77:1009
+batch @ @tanstack_react-query.js?v=67a03f77:581
+#dispatch @ @tanstack_react-query.js?v=67a03f77:1008
+setData @ @tanstack_react-query.js?v=67a03f77:690
+fetch @ @tanstack_react-query.js?v=67a03f77:900
+await in fetch
+#executeFetch @ @tanstack_react-query.js?v=67a03f77:2047
+(anonymous) @ @tanstack_react-query.js?v=67a03f77:2084
+setInterval
+#updateRefetchInterval @ @tanstack_react-query.js?v=67a03f77:2082
+#updateTimers @ @tanstack_react-query.js?v=67a03f77:2090
+onQueryUpdate @ @tanstack_react-query.js?v=67a03f77:2293
+(anonymous) @ @tanstack_react-query.js?v=67a03f77:1010
+(anonymous) @ @tanstack_react-query.js?v=67a03f77:1009
+batch @ @tanstack_react-query.js?v=67a03f77:581
+#dispatch @ @tanstack_react-query.js?v=67a03f77:1008
+setData @ @tanstack_react-query.js?v=67a03f77:690
+fetch @ @tanstack_react-query.js?v=67a03f77:900
+await in fetch
+#executeFetch @ @tanstack_react-query.js?v=67a03f77:2047
+(anonymous) @ @tanstack_react-query.js?v=67a03f77:2084
+setInterval
+#updateRefetchInterval @ @tanstack_react-query.js?v=67a03f77:2082
+#updateTimers @ @tanstack_react-query.js?v=67a03f77:2090
+onQueryUpdate @ @tanstack_react-query.js?v=67a03f77:2293
+(anonymous) @ @tanstack_react-query.js?v=67a03f77:1010
+(anonymous) @ @tanstack_react-query.js?v=67a03f77:1009
+batch @ @tanstack_react-query.js?v=67a03f77:581
+#dispatch @ @tanstack_react-query.js?v=67a03f77:1008
+setData @ @tanstack_react-query.js?v=67a03f77:690
+fetch @ @tanstack_react-query.js?v=67a03f77:900
+await in fetch
+(anonymous) @ @tanstack_react-query.js?v=67a03f77:1758
+(anonymous) @ @tanstack_react-query.js?v=67a03f77:1757
+batch @ @tanstack_react-query.js?v=67a03f77:581
+refetchQueries @ @tanstack_react-query.js?v=67a03f77:1756
+(anonymous) @ @tanstack_react-query.js?v=67a03f77:1742
+batch @ @tanstack_react-query.js?v=67a03f77:581
+invalidateQueries @ @tanstack_react-query.js?v=67a03f77:1735
+(anonymous) @ bulk-document-import.tsx:2301
+execute @ @tanstack_react-query.js?v=67a03f77:1242
+await in execute
+mutate @ @tanstack_react-query.js?v=67a03f77:2642
+(anonymous) @ @tanstack_react-query.js?v=67a03f77:3356
+(anonymous) @ bulk-document-import.tsx:2449
+react_stack_bottom_frame @ react-dom_client.js?v=67a03f77:17486
+runWithFiberInDEV @ react-dom_client.js?v=67a03f77:1485
+commitHookEffectListMount @ react-dom_client.js?v=67a03f77:8460
+commitHookPassiveMountEffects @ react-dom_client.js?v=67a03f77:8518
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9887
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9881
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9984
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9881
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9881
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9960
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9940
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9984
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9984
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9881
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9881
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9984
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9881
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9881
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9984
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9881
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9984
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9881
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9984
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9881
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9984
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9881
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9890
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9984
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9881
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9984
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9881
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9890
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9881
+recursivelyTraversePassiveMountEffects @ react-dom_client.js?v=67a03f77:9868
+commitPassiveMountOnFiber @ react-dom_client.js?v=67a03f77:9899
+flushPassiveEffects @ react-dom_client.js?v=67a03f77:11302
+flushPendingEffects @ react-dom_client.js?v=67a03f77:11276
+flushSpawnedWork @ react-dom_client.js?v=67a03f77:11250
+commitRoot @ react-dom_client.js?v=67a03f77:11081
+commitRootWhenReady @ react-dom_client.js?v=67a03f77:10512
+performWorkOnRoot @ react-dom_client.js?v=67a03f77:10457
+performSyncWorkOnRoot @ react-dom_client.js?v=67a03f77:11635
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=67a03f77:11536
+processRootScheduleInMicrotask @ react-dom_client.js?v=67a03f77:11558
+(anonymous) @ react-dom_client.js?v=67a03f77:11649
+installHook.js:1 TypeError: Cannot read properties of undefined (reading 'currentStep')
+    at Object.refetchInterval (bulk-document-import.tsx:2045:22)
+    at #computeRefetchInterval (@tanstack_react-query.js?v=67a03f77:2074:79)
+    at QueryObserver.setOptions (@tanstack_react-query.js?v=67a03f77:1986:61)
+    at @tanstack_react-query.js?v=67a03f77:3099:14
+    at Object.react_stack_bottom_frame (react-dom_client.js?v=67a03f77:17486:20)
+    at runWithFiberInDEV (react-dom_client.js?v=67a03f77:1485:72)
+    at commitHookEffectListMount (react-dom_client.js?v=67a03f77:8460:122)
+    at commitHookPassiveMountEffects (react-dom_client.js?v=67a03f77:8518:60)
+    at commitPassiveMountOnFiber (react-dom_client.js?v=67a03f77:9887:29)
+    at recursivelyTraversePassiveMountEffects (react-dom_client.js?v=67a03f77:9868:13)
+
+The above error occurred in the <BulkDocumentImportPage> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, AuthErrorBoundary.
+
+overrideMethod @ installHook.js:1
+defaultOnCaughtError @ react-dom_client.js?v=67a03f77:6264
+logCaughtError @ react-dom_client.js?v=67a03f77:6296
+runWithFiberInDEV @ react-dom_client.js?v=67a03f77:1485
+inst.componentDidCatch.update.callback @ react-dom_client.js?v=67a03f77:6341
+callCallback @ react-dom_client.js?v=67a03f77:4097
+commitCallbacks @ react-dom_client.js?v=67a03f77:4109
+runWithFiberInDEV @ react-dom_client.js?v=67a03f77:1485
+commitClassCallbacks @ react-dom_client.js?v=67a03f77:8543
+commitLayoutEffectOnFiber @ react-dom_client.js?v=67a03f77:9011
+recursivelyTraverseLayoutEffects @ react-dom_client.js?v=67a03f77:9682
+commitLayoutEffectOnFiber @ react-dom_client.js?v=67a03f77:9096
+recursivelyTraverseLayoutEffects @ react-dom_client.js?v=67a03f77:9682
+commitLayoutEffectOnFiber @ react-dom_client.js?v=67a03f77:8956
+recursivelyTraverseLayoutEffects @ react-dom_client.js?v=67a03f77:9682
+commitLayoutEffectOnFiber @ react-dom_client.js?v=67a03f77:9096
+recursivelyTraverseLayoutEffects @ react-dom_client.js?v=67a03f77:9682
+commitLayoutEffectOnFiber @ react-dom_client.js?v=67a03f77:8956
+recursivelyTraverseLayoutEffects @ react-dom_client.js?v=67a03f77:9682
+commitLayoutEffectOnFiber @ react-dom_client.js?v=67a03f77:8960
+recursivelyTraverseLayoutEffects @ react-dom_client.js?v=67a03f77:9682
+commitLayoutEffectOnFiber @ react-dom_client.js?v=67a03f77:8956
+recursivelyTraverseLayoutEffects @ react-dom_client.js?v=67a03f77:9682
+commitLayoutEffectOnFiber @ react-dom_client.js?v=67a03f77:9016
+flushLayoutEffects @ react-dom_client.js?v=67a03f77:11174
+commitRoot @ react-dom_client.js?v=67a03f77:11080
+commitRootWhenReady @ react-dom_client.js?v=67a03f77:10512
+performWorkOnRoot @ react-dom_client.js?v=67a03f77:10457
+performSyncWorkOnRoot @ react-dom_client.js?v=67a03f77:11635
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=67a03f77:11536
+processRootScheduleInMicrotask @ react-dom_client.js?v=67a03f77:11558
+(anonymous) @ react-dom_client.js?v=67a03f77:11649
