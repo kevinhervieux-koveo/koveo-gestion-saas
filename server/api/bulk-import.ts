@@ -401,6 +401,35 @@ const STEP_ELIGIBLE_STATUSES: Record<AutoStep, schema.BulkImportItem['status'][]
 };
 
 /**
+ * Task #1068 — Statuses considered "already past" a given AI step. These
+ * are the rows the per-step "Retry step from scratch" reset endpoint
+ * reverts back to the pre-step status. Excluded (`rejected`),
+ * committed (`committed`) and duplicate (`duplicate`) items are
+ * intentionally left out so the reset never disturbs admin-curated
+ * exclusions or already-promoted documents.
+ */
+const STEP_RESET_STATUSES: Record<AutoStep, schema.BulkImportItem['status'][]> = {
+  screening: ['screened', 'sorted', 'branched', 'identified', 'linked'],
+  sorting: ['sorted', 'branched', 'identified', 'linked'],
+  branching: ['branched', 'identified', 'linked'],
+  identification: ['identified', 'linked'],
+  linking: ['linked'],
+};
+
+/**
+ * Task #1068 — Pre-step status each AI step starts from. Used by the
+ * reset-step endpoint to put an item back where the run-all loop will
+ * pick it up again on its next iteration.
+ */
+const STEP_PRE_STATUS: Record<AutoStep, schema.BulkImportItem['status']> = {
+  screening: 'pending',
+  sorting: 'screened',
+  branching: 'sorted',
+  identification: 'branched',
+  linking: 'identified',
+};
+
+/**
  * Maximum number of items processed concurrently per run-all loop
  * (Task #898). Conservative to stay under Anthropic rate limits.
  */
@@ -4679,6 +4708,128 @@ export function registerBulkImportRoutes(app: Express): void {
         if (err instanceof z.ZodError) return res.status(400).json({ error: err.errors });
         logError('[bulk-import] run-all failed', err as Error);
         return res.status(500).json({ error: 'Failed to start run-all' });
+      }
+    },
+  );
+
+  /**
+   * Task #1068 — Per-step "Retry step from scratch" reset.
+   *
+   * Wipes the AI decision and any decision-state markers for the given
+   * step on every non-excluded, non-committed item in the session,
+   * reverts those items back to the pre-step status so the run-all
+   * loop will pick them up again, cancels any in-flight loop / per-item
+   * retry for the same (session, step) the same cooperative way the
+   * session-clear endpoint does, drops the `progress.runAll[step]`
+   * payload so the wizard sees a clean "Starting…" state, and
+   * fire-and-forgets a fresh run-all loop.
+   *
+   * Items in `committed`, `rejected`, or `duplicate` status are left
+   * alone — admin-curated exclusions and already-promoted documents
+   * survive the reset. Other steps' JSON columns and the session's
+   * own metadata (currentStep, status, …) are also untouched: this is
+   * surgical to one step.
+   */
+  const resetStepSchema = z.object({
+    step: z.enum(['screening', 'sorting', 'branching', 'identification', 'linking']),
+  });
+  app.post(
+    '/api/admin/bulk-import/sessions/:id/reset-step',
+    requireAuth,
+    requireRole(['admin']),
+    async (req: AuthenticatedRequest, res: Response) => {
+      try {
+        const { step } = resetStepSchema.parse(req.body);
+        const session = await loadSession(req.params.id);
+        if (!session) return res.status(404).json({ error: 'Session not found' });
+
+        // Cooperative cancellation, same pattern as session-clear:
+        // dropping the key signals the worker loop to break on its
+        // next iteration. Workers mid-AI-call may still write a
+        // single stale row before noticing — that is harmless because
+        // the new loop kicked off below will reprocess the item.
+        const key = runAllKey(session.id, step);
+        inFlightRunAll.delete(key);
+
+        // Drop any per-item retry markers for THIS session and step
+        // so a stale "in-flight" gate can't block the new loop.
+        const sessionItemIdRows = await db
+          .select({ id: schema.bulkImportItems.id })
+          .from(schema.bulkImportItems)
+          .where(eq(schema.bulkImportItems.sessionId, session.id));
+        for (const { id } of sessionItemIdRows) {
+          inFlightPerItemRetry.delete(perItemRetryKey(id, step));
+        }
+
+        // Revert eligible rows: clear the matching per-step JSON
+        // column (which carries decisionState / manualOverride /
+        // residence-confirm flags inside it) and set the status back
+        // to the pre-step value so the run-all loop's
+        // STEP_ELIGIBLE_STATUSES filter will pick them up.
+        const eligibleStatuses = STEP_RESET_STATUSES[step];
+        const preStatus = STEP_PRE_STATUS[step];
+        const where = and(
+          eq(schema.bulkImportItems.sessionId, session.id),
+          inArray(schema.bulkImportItems.status, eligibleStatuses),
+        );
+        const baseSet = { status: preStatus, updatedAt: new Date() } as const;
+        if (step === 'screening') {
+          await db
+            .update(schema.bulkImportItems)
+            .set({ ...baseSet, screening: null })
+            .where(where);
+        } else if (step === 'sorting') {
+          await db
+            .update(schema.bulkImportItems)
+            .set({ ...baseSet, sortingDecision: null })
+            .where(where);
+        } else if (step === 'branching') {
+          await db
+            .update(schema.bulkImportItems)
+            .set({ ...baseSet, branchDecision: null })
+            .where(where);
+        } else if (step === 'identification') {
+          await db
+            .update(schema.bulkImportItems)
+            .set({ ...baseSet, identification: null })
+            .where(where);
+        } else {
+          // linking
+          await db
+            .update(schema.bulkImportItems)
+            .set({ ...baseSet, linkDecisions: null })
+            .where(where);
+        }
+
+        // Drop progress.runAll[step] entirely so the wizard's progress
+        // banner shows "Starting…" again instead of a stale
+        // "X of Y processed — Done" snapshot.
+        const fresh = await loadSession(session.id);
+        const runAll = getRunAllMap(fresh?.progress);
+        delete runAll[step];
+        const nextProgress = {
+          ...((fresh?.progress ?? {}) as Record<string, unknown>),
+          runAll,
+        };
+        await db
+          .update(schema.bulkImportSessions)
+          .set({ progress: nextProgress, updatedAt: new Date() })
+          .where(eq(schema.bulkImportSessions.id, session.id));
+
+        // Fire-and-forget the new loop, same as the run-all endpoint.
+        // Returns immediately so the wizard can re-poll for the fresh
+        // progress payload.
+        void runAllForStep(session.id, step);
+
+        const updated = await loadSession(session.id);
+        return res.json({
+          step,
+          session: updated,
+        });
+      } catch (err) {
+        if (err instanceof z.ZodError) return res.status(400).json({ error: err.errors });
+        logError('[bulk-import] reset-step failed', err as Error);
+        return res.status(500).json({ error: 'Failed to reset step' });
       }
     },
   );

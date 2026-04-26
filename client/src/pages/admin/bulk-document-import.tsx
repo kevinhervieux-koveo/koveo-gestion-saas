@@ -66,6 +66,7 @@ import {
   Pencil,
   ExternalLink,
   CalendarIcon,
+  RefreshCw,
 } from 'lucide-react';
 import { format, parseISO, isValid } from 'date-fns';
 import { StandaloneDatePicker } from '@/components/common/DatePickerField';
@@ -1824,6 +1825,51 @@ export default function BulkDocumentImportPage() {
   });
 
   const triggeredAutoRunRef = useRef<Set<string>>(new Set());
+
+  /**
+   * Task #1068 — "Retry step from scratch" reset for the current AI
+   * step. Wipes every eligible item's decision for the step, cancels
+   * any in-flight loop, drops the cached `progress.runAll[step]` so
+   * the progress banner restarts from "Starting…", and re-fires the
+   * server-side run-all loop. Confirmation lives in an AlertDialog
+   * gated on `pendingResetStep`.
+   */
+  const [pendingResetStep, setPendingResetStep] = useState<AutoStep | null>(null);
+  const resetStep = useMutation({
+    mutationFn: async (step: AutoStep) => {
+      const res = await apiRequest(
+        'POST',
+        `/api/admin/bulk-import/sessions/${sessionId}/reset-step`,
+        { step },
+      );
+      return res.json();
+    },
+    onSuccess: (_data, step) => {
+      // Clear the once-per-(session, step) auto-trigger guard so the
+      // useEffect above will re-fire if the wizard remounts on this
+      // same step. The server already kicked off a fresh run-all
+      // loop, but this keeps the client and server in agreement.
+      triggeredAutoRunRef.current.delete(`${sessionId}:${step}`);
+      setPendingResetStep(null);
+      void queryClient.invalidateQueries({
+        queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
+      });
+      toast({
+        title: isFr
+          ? 'Étape réinitialisée — analyse relancée'
+          : 'Step reset — analysis restarted',
+      });
+    },
+    onError: () => {
+      setPendingResetStep(null);
+      toast({
+        variant: 'destructive',
+        title: isFr
+          ? "Échec de la réinitialisation de l'étape"
+          : 'Failed to reset step',
+      });
+    },
+  });
   useEffect(() => {
     if (!sessionId || !session) return;
     if (!isAutoStep(currentStep)) return;
@@ -3096,21 +3142,41 @@ export default function BulkDocumentImportPage() {
                                   {isFr ? 'Terminé' : 'Done'}
                                 </span>
                               )}
-                              {isStalled && (
+                              <div className="ml-auto flex items-center gap-3">
+                                {isStalled && (
+                                  <button
+                                    className="text-xs text-amber-700 underline hover:text-amber-900"
+                                    data-testid={`auto-run-stall-retry-${currentStep}`}
+                                    onClick={() => {
+                                      if (isAutoStep(currentStep)) {
+                                        runAll.mutate(currentStep);
+                                      }
+                                    }}
+                                  >
+                                    {isFr
+                                      ? 'Analyse bloquée — réessayer'
+                                      : 'Run looks stalled — retry'}
+                                  </button>
+                                )}
                                 <button
-                                  className="ml-auto text-xs text-amber-700 underline hover:text-amber-900"
-                                  data-testid={`auto-run-stall-retry-${currentStep}`}
+                                  type="button"
+                                  className="inline-flex items-center gap-1 text-xs text-muted-foreground underline hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
+                                  data-testid={`auto-run-reset-step-${currentStep}`}
+                                  disabled={resetStep.isPending || runAll.isPending}
                                   onClick={() => {
                                     if (isAutoStep(currentStep)) {
-                                      runAll.mutate(currentStep);
+                                      setPendingResetStep(currentStep);
                                     }
                                   }}
                                 >
+                                  <RefreshCw
+                                    className={`h-3 w-3 ${resetStep.isPending ? 'animate-spin' : ''}`}
+                                  />
                                   {isFr
-                                    ? 'Analyse bloquée — réessayer'
-                                    : 'Run looks stalled — retry'}
+                                    ? "Reprendre l'étape à zéro"
+                                    : 'Retry step from scratch'}
                                 </button>
-                              )}
+                              </div>
                             </div>
                             {isRunning && inFlight.length > 0 && (
                               <p
@@ -6646,6 +6712,62 @@ export default function BulkDocumentImportPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Task #1068 — confirm "Retry step from scratch" before wiping
+          AI decisions and manual overrides for the current step. */}
+      <AlertDialog
+        open={pendingResetStep !== null}
+        onOpenChange={(open) => {
+          if (!open && !resetStep.isPending) {
+            setPendingResetStep(null);
+          }
+        }}
+      >
+        <AlertDialogContent data-testid="reset-step-dialog">
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {isFr
+                ? "Reprendre l'étape à zéro ?"
+                : 'Retry this step from scratch?'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {isFr
+                ? `Toutes les décisions de l'IA et les corrections manuelles pour l'étape « ${pendingResetStep ? stepLabels[pendingResetStep] : ''} » seront effacées sur chaque fichier non exclu et non finalisé. Les fichiers exclus, finalisés ou marqués comme doublons ne sont pas touchés. Les autres étapes ne sont pas affectées. L'analyse redémarrera immédiatement.`
+                : `All AI decisions and manual overrides for the "${pendingResetStep ? stepLabels[pendingResetStep] : ''}" step will be wiped on every file that is not excluded or already committed. Excluded, committed, and duplicate files are left alone. Other steps are not affected. Analysis will restart immediately.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              disabled={resetStep.isPending || runAll.isPending}
+              data-testid="reset-step-cancel"
+            >
+              {isFr ? 'Annuler' : 'Cancel'}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              disabled={resetStep.isPending || runAll.isPending}
+              onClick={(e) => {
+                e.preventDefault();
+                if (pendingResetStep) {
+                  resetStep.mutate(pendingResetStep);
+                }
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              data-testid="reset-step-confirm"
+            >
+              {resetStep.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {isFr ? 'Réinitialisation…' : 'Resetting…'}
+                </>
+              ) : isFr ? (
+                "Reprendre l'étape"
+              ) : (
+                'Retry step'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
