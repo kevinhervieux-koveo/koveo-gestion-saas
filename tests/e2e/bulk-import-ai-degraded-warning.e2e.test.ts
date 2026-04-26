@@ -270,6 +270,23 @@ afterAll(async () => {
 
 async function loginAsAdmin(page: Page): Promise<void> {
   await page.goto(`${BASE_URL}/auth/login`, { waitUntil: 'domcontentloaded' });
+  // The browser context is shared across `it()` blocks in this suite,
+  // so a prior test may have already left a valid session cookie. In
+  // that case the login route immediately redirects away (typically to
+  // `/dashboard` or back to the last admin page) and the email input
+  // never mounts. Detect that case and short-circuit instead of
+  // waiting 30 s for a selector that will never appear.
+  await page
+    .waitForFunction(
+      () =>
+        !window.location.pathname.startsWith('/auth/login') ||
+        !!document.querySelector('[data-testid=input-email]'),
+      { timeout: 30_000 },
+    )
+    .catch(() => undefined);
+  if (!page.url().includes('/auth/login')) {
+    return;
+  }
   await page.waitForSelector('[data-testid=input-email]', { visible: true });
   await page.type('[data-testid=input-email]', ADMIN_EMAIL);
   await page.type('[data-testid=input-password]', ADMIN_PASSWORD);
@@ -390,6 +407,158 @@ describe('/admin/bulk-document-import — degraded warning surfaces (Task #1227)
         /Anthropic (degraded|dégradé) \(3\/4\)/,
       );
     } finally {
+      await page.close();
+    }
+  }, 120_000);
+
+  /**
+   * Task #1239 — Click-through recovery flow.
+   *
+   * The previous test only proved the per-row indicator and the
+   * aggregated banner render. It does NOT exercise the next step in
+   * the recovery flow that admins actually rely on: clicking the
+   * indicator should jump into the wizard at the failed step
+   * (`screening` for our seed) and reveal the "Retry AI-failed items"
+   * action added in Task #1209 / Task #1202.
+   *
+   * If a future change quietly broke the click-to-resume routing
+   * (e.g. the `onResume` callback in `HistoryCard` stopped calling
+   * `setSessionId`, or the wizard stopped rendering the in-step
+   * Retry button when `aiFailedCount > 0`), the indicator would
+   * still appear and the prior test would still pass — but the
+   * one-click recovery path would silently break. This test
+   * exercises that exact path end-to-end against the live stack.
+   */
+  it('opens the wizard at the seeded session step and reveals the "Retry AI-failed items" button when the indicator is clicked', async () => {
+    expect(seededSessionId).toBeTruthy();
+
+    const page = await browser.newPage();
+    page.on('pageerror', (err) => {
+      console.error('[pageerror]', err.message);
+    });
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') {
+        console.error('[console.error]', msg.text());
+      }
+    });
+    try {
+      await page.setViewport({ width: 1400, height: 900 });
+      await loginAsAdmin(page);
+
+      await page.goto(`${BASE_URL}/admin/bulk-document-import`, {
+        waitUntil: 'networkidle2',
+        timeout: 30_000,
+      });
+
+      // Sanity: not bounced back to login by the admin route guard.
+      const path = await page.evaluate(() => window.location.pathname);
+      expect(path).toBe('/admin/bulk-document-import');
+
+      // Force the HistoryCard view (where the indicator lives) by
+      // clearing any cached active session id from a prior test run
+      // sharing this browser context. Without this the page can land
+      // directly in the wizard for a different session and the
+      // indicator we need to click would never render.
+      await page.evaluate(() => {
+        window.localStorage.removeItem('bulkImportActiveSessionId');
+      });
+      await page.reload({ waitUntil: 'networkidle2', timeout: 30_000 });
+
+      await page.waitForSelector('[data-testid=history-list]', {
+        visible: true,
+        timeout: 30_000,
+      });
+
+      // Locate the per-row indicator for OUR seeded session, paging
+      // through the list if needed (mirrors the lookup logic in the
+      // first test so a future page-size change doesn't regress this
+      // one for the wrong reason).
+      const indicatorTestId = `history-ai-degraded-${seededSessionId}`;
+      let indicator = await page.$(`[data-testid="${indicatorTestId}"]`);
+      let attempts = 0;
+      while (!indicator && attempts < 5) {
+        const loadMore = await page.$('[data-testid=button-history-load-more]');
+        if (!loadMore) break;
+        await loadMore.click();
+        await page.waitForFunction(
+          (sel) => !document.querySelector(sel) ||
+            !(document.querySelector(sel) as HTMLButtonElement).disabled,
+          { timeout: 10_000 },
+          '[data-testid=button-history-load-more]',
+        );
+        indicator = await page.$(`[data-testid="${indicatorTestId}"]`);
+        attempts += 1;
+      }
+      if (!indicator) {
+        throw new Error(
+          `Per-row degraded indicator [data-testid="${indicatorTestId}"] ` +
+            'did not render. Cannot test the click-to-resume path because ' +
+            'the entry point is missing.',
+        );
+      }
+
+      // Click the indicator — this fires the HistoryCard `onResume`
+      // callback which sets the wizard's `sessionId` state to the
+      // seeded session id, mounting the wizard view in place of the
+      // history list.
+      await indicator.click();
+
+      // The wizard view is gated on `sessionId` truthy; the
+      // HistoryCard explicitly unmounts when that happens. Waiting
+      // for the history list to disappear is the most reliable
+      // signal that the wizard navigation succeeded.
+      await page.waitForFunction(
+        () => !document.querySelector('[data-testid=history-list]'),
+        { timeout: 30_000 },
+      );
+
+      // Confirm the wizard's `sessionId` got set to OUR seeded
+      // session — the page persists it via `localStorage` under
+      // `bulkImportActiveSessionId`, so this is a deterministic
+      // check that the click-through landed on the right session
+      // (and not, e.g., the most recently active one).
+      const activeId = await page.evaluate(() =>
+        window.localStorage.getItem('bulkImportActiveSessionId'),
+      );
+      expect(activeId).toBe(seededSessionId);
+
+      // The seeded session's `current_step` is `screening`, so the
+      // wizard should mount at that step. Both the in-wizard
+      // degraded banner (`auto-run-ai-degraded-banner-screening`)
+      // and the step-level "Retry AI-failed items" action
+      // (`auto-run-retry-failed-screening`) are rendered when the
+      // per-step retryable failure rate crosses
+      // `AI_DEGRADED_FAILURE_RATE_THRESHOLD` (our seed: 3/4 = 75 %
+      // > 25 %). Wait for the retry button specifically — that's
+      // the action the task brief calls out as the recovery the
+      // admin must still be able to reach in one click.
+      const retryButton = await page.waitForSelector(
+        '[data-testid=auto-run-retry-failed-screening]',
+        { visible: true, timeout: 30_000 },
+      );
+      expect(retryButton).toBeTruthy();
+
+      // Verify the button text matches either the English or French
+      // copy from Task #1202 / Task #1209. The MCP admin's preferred
+      // locale defaults to `fr` in dev so we must accept either.
+      const retryText = await page.$eval(
+        '[data-testid=auto-run-retry-failed-screening]',
+        (el) => el.textContent || '',
+      );
+      expect(retryText).toMatch(
+        /Retry AI-failed items \(3\)|Réessayer les fichiers en échec IA \(3\)/,
+      );
+    } finally {
+      // Reset the cached active session so a re-run of this suite
+      // (or a sibling e2e test sharing this browser context) starts
+      // back at the HistoryCard view instead of the wizard.
+      try {
+        await page.evaluate(() => {
+          window.localStorage.removeItem('bulkImportActiveSessionId');
+        });
+      } catch {
+        // Page may already be navigating away — best-effort cleanup.
+      }
       await page.close();
     }
   }, 120_000);
