@@ -171,11 +171,45 @@ export default defineConfig(({ command, mode }) => ({
     // are surfaced loudly during build.
     chunkSizeWarningLimit: 500,
   },
+  optimizeDeps: {
+    entries: [
+      'src/main.tsx',
+      'src/App.tsx',
+      'src/pages/manager/maintenance/inventory/index.tsx',
+      'src/pages/manager/maintenance/inventory/InventoryPage.tsx',
+      'src/components/maintenance/inventory/lazy-components.tsx',
+      'src/components/maintenance/inventory/ElementTable.tsx',
+      'src/components/maintenance/inventory/ElementForm.tsx',
+      'src/components/maintenance/inventory/ElementCard.tsx',
+      'src/components/maintenance/inventory/UniformatBrowser.tsx',
+      'src/components/maintenance/inventory/ElementDocumentViewer.tsx',
+      'src/components/maintenance/inventory/DocumentManager.tsx',
+      'src/components/hoc/withHierarchicalSelection.tsx',
+      'src/utils/component-loader.ts',
+    ],
+    include: [
+      'react',
+      'react-dom',
+      'react-dom/client',
+      'react/jsx-dev-runtime',
+      'react/jsx-runtime',
+      'wouter',
+      '@tanstack/react-query',
+      'react-helmet-async',
+    ],
+  },
   server: {
     host: '0.0.0.0',
     fs: {
       strict: true,
       deny: ['**/.*'],
+    },
+    warmup: {
+      clientFiles: [
+        'src/pages/manager/maintenance/inventory/index.tsx',
+        'src/components/maintenance/inventory/lazy-components.tsx',
+        'src/components/hoc/withHierarchicalSelection.tsx',
+      ],
     },
   },
 }));
