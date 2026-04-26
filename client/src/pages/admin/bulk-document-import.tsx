@@ -1687,6 +1687,20 @@ function InlineFallbackRetryButton({
 const RETRYABLE_AI_FALLBACK_REASONS: ReadonlySet<BulkImportFallbackReason> =
   new Set(['api_error', 'unreadable_response']);
 
+/**
+ * Task #1209 — top-of-step "Anthropic looks degraded" banner.
+ *
+ * When the share of items in the current AI step that failed with a
+ * retryable Anthropic-side reason (api_error / unreadable_response)
+ * crosses this threshold, the wizard surfaces a single yellow banner
+ * above the auto-run progress block summarising the failure rate and
+ * linking the existing "Retry AI-failed items (N)" action. Below the
+ * threshold the per-row yellow alerts and the step-level retry button
+ * already give admins everything they need; the banner only kicks in
+ * when scrolling to count alerts becomes painful.
+ */
+const AI_DEGRADED_FAILURE_RATE_THRESHOLD = 0.25;
+
 export default function BulkDocumentImportPage() {
   const { language } = useLanguage();
   const { toast } = useToast();
@@ -3810,7 +3824,70 @@ export default function BulkDocumentImportPage() {
                         const aiFailedCount = aiFailedItemIds.length;
                         const stepBulkRetryRunning =
                           bulkRetryStep === currentStep;
+                        // Task #1209: top-of-step "service may be
+                        // degraded" banner. Denominator is the total
+                        // count of items in the session for the current
+                        // step (matches the "N of M" framing in the
+                        // task brief, e.g. "6 of 12 sorting items").
+                        // The banner only renders when the rate of
+                        // retryable AI failures crosses
+                        // AI_DEGRADED_FAILURE_RATE_THRESHOLD AND there
+                        // is at least one row to act on — otherwise
+                        // the per-row yellow alerts are sufficient.
+                        const totalForRate = items.length;
+                        const aiFailureRate =
+                          totalForRate > 0
+                            ? aiFailedCount / totalForRate
+                            : 0;
+                        const showDegradedBanner =
+                          aiFailedCount > 0 &&
+                          aiFailureRate > AI_DEGRADED_FAILURE_RATE_THRESHOLD;
+                        const stepLabel = stepLabels[currentStep];
                         return (
+                          <>
+                            {showDegradedBanner && (
+                              <div
+                                className="mb-3 flex flex-wrap items-center gap-3 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200"
+                                data-testid={`auto-run-ai-degraded-banner-${currentStep}`}
+                                role="status"
+                              >
+                                <AlertTriangle
+                                  className="h-4 w-4 shrink-0"
+                                  aria-hidden="true"
+                                />
+                                <span
+                                  className="flex-1"
+                                  data-testid={`auto-run-ai-degraded-message-${currentStep}`}
+                                >
+                                  {isFr
+                                    ? `Anthropic a retourné des erreurs pour ${aiFailedCount} des ${totalForRate} fichiers de l'étape « ${stepLabel} » — le service est peut-être dégradé en ce moment.`
+                                    : `Anthropic returned errors for ${aiFailedCount} of ${totalForRate} ${stepLabel} items — service may be degraded right now.`}
+                                </span>
+                                <button
+                                  type="button"
+                                  className="inline-flex items-center gap-1 rounded text-xs font-medium text-amber-900 underline hover:text-amber-950 disabled:cursor-not-allowed disabled:opacity-50 dark:text-amber-200 dark:hover:text-amber-100"
+                                  data-testid={`auto-run-ai-degraded-retry-${currentStep}`}
+                                  disabled={stepBulkRetryRunning}
+                                  onClick={() => {
+                                    if (!isAutoStep(currentStep)) return;
+                                    void retryAllAiFailedItems(
+                                      currentStep,
+                                      aiFailedItemIds,
+                                      stepRetryAction[currentStep],
+                                    );
+                                  }}
+                                >
+                                  {stepBulkRetryRunning ? (
+                                    <Loader2 className="h-3 w-3 animate-spin" />
+                                  ) : (
+                                    <RotateCw className="h-3 w-3" />
+                                  )}
+                                  {isFr
+                                    ? `Réessayer les fichiers en échec IA (${aiFailedCount})`
+                                    : `Retry AI-failed items (${aiFailedCount})`}
+                                </button>
+                              </div>
+                            )}
                           <div
                             className="mb-3 flex flex-col gap-1.5 rounded-md border bg-muted/40 px-3 py-2 text-sm"
                             data-testid={`auto-run-progress-${currentStep}`}
@@ -3956,6 +4033,7 @@ export default function BulkDocumentImportPage() {
                               </p>
                             )}
                           </div>
+                          </>
                         );
                       })()}
                     {currentStep === 'branching' ? (() => {

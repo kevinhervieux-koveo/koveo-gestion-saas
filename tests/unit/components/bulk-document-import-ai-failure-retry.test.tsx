@@ -241,7 +241,8 @@ function jsonResponse(body: unknown, status = 200): Response {
  * `fetchMock.mockImplementation(...)` and the per-test `beforeEach`
  * can restore this one between cases — without that restoration a
  * custom responder would leak into subsequent tests in the same
- * file (Task #1208 review feedback).
+ * file (Task #1208 review feedback, also relied on by Task #1209
+ * banner tests that run after the step-level "no retry" cases).
  */
 const defaultFetchImpl = async (
   input: RequestInfo | URL,
@@ -293,7 +294,8 @@ beforeEach(async () => {
   // `mockImplementation` overrides applied by an earlier test, so
   // we then reapply the suite's default responder. Without this
   // restoration a custom responder set by one test would leak into
-  // every later test in the same file (Task #1208 review feedback).
+  // every later test in the same file (Task #1208 review feedback;
+  // Task #1209's banner suite also depends on this restoration).
   fetchMock.mockReset();
   fetchMock.mockImplementation(defaultFetchImpl);
   window.localStorage.setItem('bulkImportActiveSessionId', SESSION_ID);
@@ -651,6 +653,120 @@ describe('BulkDocumentImportPage — Task #1202 AI failure retry surfaces', () =
 
       expect(
         screen.queryByTestId('auto-run-retry-failed-sorting'),
+      ).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Task #1209 "Anthropic looks degraded" banner', () => {
+    it('shows the yellow banner above the items list with the count and step name when the AI failure rate exceeds the threshold', async () => {
+      // Fixture: 3 items total, 1 retryable AI failure (api_error).
+      // Failure rate = 1/3 ≈ 33% which is above the 25% threshold,
+      // so the banner must appear with English copy that includes
+      // both the failed count and the visible step label
+      // ("Branching" — STEP_LABEL_EN['sorting'] swap from Task #543).
+      renderPage();
+      await waitForRow(RETRY_ID);
+
+      const banner = await screen.findByTestId(
+        'auto-run-ai-degraded-banner-sorting',
+      );
+      expect(banner).toBeInTheDocument();
+
+      const message = screen.getByTestId(
+        'auto-run-ai-degraded-message-sorting',
+      );
+      expect(message).toHaveTextContent(
+        'Anthropic returned errors for 1 of 3 Branching items — service may be degraded right now.',
+      );
+
+      // The banner's retry control points at the same bulk action
+      // as the existing step-level "Retry AI-failed items (N)"
+      // button so admins can act without scrolling.
+      const bannerRetry = screen.getByTestId(
+        'auto-run-ai-degraded-retry-sorting',
+      );
+      expect(bannerRetry).toHaveTextContent('Retry AI-failed items (1)');
+      expect(bannerRetry).toBeEnabled();
+    });
+
+    it('renders the French copy when the language is fr', async () => {
+      mockLanguage = 'fr';
+      renderPage();
+      await waitForRow(RETRY_ID);
+
+      const message = await screen.findByTestId(
+        'auto-run-ai-degraded-message-sorting',
+      );
+      expect(message).toHaveTextContent(
+        "Anthropic a retourné des erreurs pour 1 des 3 fichiers de l'étape « Aiguillage » — le service est peut-être dégradé en ce moment.",
+      );
+
+      const bannerRetry = screen.getByTestId(
+        'auto-run-ai-degraded-retry-sorting',
+      );
+      expect(bannerRetry).toHaveTextContent(
+        'Réessayer les fichiers en échec IA (1)',
+      );
+    });
+
+    // The "no retryable failures => no banner" case is exercised
+    // implicitly by the step-level "no retry button" test above,
+    // which uses the same onlyPermanent fixture and would surface
+    // the banner if it ignored aiFailedCount=0. Keeping a dedicated
+    // assertion here would require another fetchMock.mockImplementation
+    // override that bleeds into subsequent tests in this suite.
+    it('does NOT render the banner when there are zero retryable AI failures', async () => {
+      // Fresh override for this test only — declared LAST in the
+      // file so the lingering mockImplementation doesn't affect any
+      // earlier test (matches the placement of the equivalent
+      // step-level test above for the same reason).
+      const original = buildSessionPayload();
+      const onlyPermanent = {
+        ...original,
+        items: original.items.filter((i) => i.id !== RETRY_ID),
+      };
+      fetchMock.mockImplementation(async (input, init) => {
+        const url =
+          typeof input === 'string'
+            ? input
+            : input instanceof URL
+              ? input.toString()
+              : (input as Request).url;
+        const method = (init?.method || 'GET').toUpperCase();
+        const [pathname] = url.split('?');
+        if (method === 'GET') {
+          if (pathname === '/api/admin/bulk-import/buildings-lite') return jsonResponse([]);
+          if (pathname === '/api/admin/bulk-import/ai-status') return jsonResponse({ available: true });
+          if (pathname === '/api/organizations') return jsonResponse([]);
+          if (pathname === `/api/admin/bulk-import/sessions/${SESSION_ID}/lite`) {
+            return jsonResponse(onlyPermanent);
+          }
+          if (pathname === '/api/admin/bulk-import/sessions') {
+            return jsonResponse({
+              sessions: [],
+              limit: 20,
+              offset: 0,
+              hasMore: false,
+            });
+          }
+        }
+        if (method === 'POST') return jsonResponse({ ok: true });
+        return jsonResponse({ unmocked: true, url, method }, 404);
+      });
+
+      renderPage();
+      await waitForRow(PERMANENT_ID);
+      await waitFor(
+        () => {
+          expect(
+            screen.getByTestId('auto-run-progress-sorting'),
+          ).toBeInTheDocument();
+        },
+        { timeout: 4000 },
+      );
+
+      expect(
+        screen.queryByTestId('auto-run-ai-degraded-banner-sorting'),
       ).not.toBeInTheDocument();
     });
   });
