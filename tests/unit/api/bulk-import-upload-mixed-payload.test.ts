@@ -12,11 +12,19 @@
  * HTTP layer — verifying that the route does NOT return
  * 400 "No files uploaded" (which would indicate both files were
  * dropped) and that the staged item list contains only the PDF.
+ *
+ * Task #1061 — the upload route now uses `multer.diskStorage()` so
+ * uploads stream straight to the per-session staging directory and
+ * the route hashes them off disk. This test lets multer write to a
+ * real (per-test) staging directory under the repo's `.staging` root
+ * and cleans it up in `afterAll`.
  */
 
-import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterAll, jest } from '@jest/globals';
 import express from 'express';
 import request from 'supertest';
+import * as nodeFs from 'fs';
+import * as nodePath from 'path';
 
 jest.mock('drizzle-orm', () => require('../../manual-mocks/drizzle-orm'));
 jest.mock('drizzle-orm/pg-core', () => require('../../manual-mocks/drizzle-orm/pg-core'));
@@ -72,20 +80,24 @@ jest.mock('../../../server/utils/logger', () => ({
   logWarn: jest.fn(),
 }));
 
-jest.mock('fs', () => {
-  const actual = jest.requireActual('fs');
-  return {
-    ...actual,
-    writeFileSync: jest.fn(),
-    mkdirSync:     jest.fn(),
-    existsSync:    jest.fn().mockReturnValue(true),
-    statSync:      jest.fn().mockReturnValue({ isDirectory: () => true, size: 14 }),
-    readFileSync:  jest.fn().mockReturnValue(Buffer.from('%PDF-1.4\n%%EOF')),
-  };
-});
+// NOTE: We intentionally do NOT mock `fs` here. With multer's disk
+// storage (Task #1061) the route streams uploaded files to disk via
+// `fs.createWriteStream()`, then re-hashes them via `fs.createReadStream()`,
+// then renames them. Mocking those out would be more complex than just
+// letting the test write to a real per-test staging directory under the
+// repo's `.staging/bulk-import/<sessionId>/` path, which is what
+// production uses anyway. We clean the per-test directory up in
+// `afterAll`.
 
 const PDF_BODY = Buffer.from('%PDF-1.4\n%%EOF', 'utf8');
 const ZIP_BODY = Buffer.from('PK\x03\x04 fake zip content', 'utf8');
+
+const TEST_STAGING_DIR = nodePath.join(
+  process.cwd(),
+  '.staging',
+  'bulk-import',
+  'sess-mixed-test',
+);
 
 describe('Task #842 — mixed zip+pdf upload (request-level)', () => {
   let app: express.Application;
@@ -96,6 +108,14 @@ describe('Task #842 — mixed zip+pdf upload (request-level)', () => {
     app.use(express.json());
     const { registerBulkImportRoutes } = require('../../../server/api/bulk-import');
     registerBulkImportRoutes(app);
+  });
+
+  afterAll(() => {
+    try {
+      nodeFs.rmSync(TEST_STAGING_DIR, { recursive: true, force: true });
+    } catch {
+      /* best-effort */
+    }
   });
 
   it('does NOT return 400 when a zip and a PDF are uploaded together', async () => {

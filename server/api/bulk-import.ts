@@ -7,7 +7,7 @@
  * leave the page and resume — nothing is committed to the real
  * `documents` table until the final "Linking" step accepts the item.
  */
-import type { Express, Request, Response } from 'express';
+import type { Express, NextFunction, Request, Response } from 'express';
 import multer from 'multer';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -127,6 +127,23 @@ function sha256(buffer: Buffer): string {
   return crypto.createHash('sha256').update(buffer).digest('hex');
 }
 
+/**
+ * Stream-hash a file already on disk and return the same SHA-256 digest
+ * the previous `sha256(buffer)` path produced. Used by the bulk-import
+ * upload route after switching multer from in-memory storage to disk
+ * storage (Task #1061): we no longer hold the full file bytes in the
+ * Node heap, so the hash has to be computed off the staged file.
+ */
+function sha256File(filePath: string): Promise<string> {
+  return new Promise<string>((resolve, reject) => {
+    const hash = crypto.createHash('sha256');
+    const stream = fs.createReadStream(filePath);
+    stream.on('error', (err) => reject(err));
+    stream.on('data', (chunk) => hash.update(chunk as Buffer));
+    stream.on('end', () => resolve(hash.digest('hex')));
+  });
+}
+
 const ZIP_MIMES = new Set([
   'application/zip',
   'application/x-zip-compressed',
@@ -140,8 +157,51 @@ export function isZipFile(file: Pick<Express.Multer.File, 'mimetype' | 'original
   return false;
 }
 
+/**
+ * Multer storage for the bulk-import upload route. Streams every file
+ * straight to the per-session staging directory under a temporary name
+ * (Task #1061). The previous `multer.memoryStorage()` setup buffered
+ * every uploaded file in the Node heap, so a normal-sized batch of
+ * 30+ scanned PDFs around 20–50 MB each could exhaust container memory
+ * and kill the process — which surfaced to the wizard as 502s on the
+ * `/sessions/:id/lite` poll and on the inline `/items/:id/file`
+ * preview while the proxy bridged the gap until the server restarted.
+ *
+ * Disk-streaming caps RAM use at one chunk per in-flight file plus
+ * normal request overhead, regardless of batch size. The route handler
+ * later stream-hashes the temp file with `sha256File()` and renames it
+ * to the final `<hash>_<originalName>` path the rest of the codebase
+ * already reads from (preview, page-count, split, merge, accept,
+ * retry).
+ */
 const upload = multer({
-  storage: multer.memoryStorage(),
+  storage: multer.diskStorage({
+    destination: (req, _file, cb) => {
+      try {
+        // `req.params` is populated by Express before any middleware in
+        // the route chain runs, so the session id from
+        // `/sessions/:id/items` is already available here.
+        const sessionId = (req.params as { id?: string } | undefined)?.id;
+        if (!sessionId || typeof sessionId !== 'string') {
+          return cb(new Error('Missing session id for upload destination'), '');
+        }
+        const dir = stagingDirFor(sessionId);
+        cb(null, dir);
+      } catch (err) {
+        cb(err as Error, '');
+      }
+    },
+    filename: (_req, _file, cb) => {
+      // Temp name; we rename to `<hash>_<originalName>` in the route
+      // handler once the file's SHA-256 is known. The leading dot keeps
+      // the temp file out of any naive directory listings, and the
+      // random suffix avoids collisions across concurrent uploads.
+      const tmpName = `.upload-tmp-${Date.now()}-${process.pid}-${crypto
+        .randomBytes(8)
+        .toString('hex')}`;
+      cb(null, tmpName);
+    },
+  }),
   limits: { fileSize: 100 * 1024 * 1024 }, // 100MB per file
   fileFilter: (_req, file, cb) => {
     if (isZipFile(file)) {
@@ -151,6 +211,37 @@ const upload = multer({
     }
   },
 });
+
+/**
+ * Wraps the bulk-import `upload.array(...)` middleware so that any
+ * multer error (file too large, disk write failure, missing session id)
+ * cleans up partial files multer wrote to the staging dir before
+ * forwarding the error to the default Express error path. The previous
+ * in-memory storage left no on-disk artifacts on a failed upload; with
+ * disk storage we must not leak half-written files into the staging
+ * directory the rest of the bulk-import flow reads from.
+ */
+function uploadBulkImportFiles(req: Request, res: Response, next: NextFunction): void {
+  upload.array('files', 200)(req, res, (err: unknown) => {
+    if (err) {
+      const partial = (req.files as Express.Multer.File[] | undefined) ?? [];
+      for (const f of partial) {
+        if (f && typeof f.path === 'string') {
+          try {
+            if (fs.existsSync(f.path)) fs.unlinkSync(f.path);
+          } catch (cleanupErr) {
+            logError(
+              '[bulk-import] failed to remove partial upload after multer error',
+              cleanupErr as Error,
+            );
+          }
+        }
+      }
+      return next(err);
+    }
+    next();
+  });
+}
 
 const createSessionSchema = z.object({
   buildingId: z.string().min(1),
@@ -1853,76 +1944,173 @@ export function registerBulkImportRoutes(app: Express): void {
     '/api/admin/bulk-import/sessions/:id/items',
     requireAuth,
     requireRole(['admin']),
-    upload.array('files', 200),
+    uploadBulkImportFiles,
     async (req: AuthenticatedRequest, res: Response) => {
       try {
         const session = await loadSession(req.params.id);
-        if (!session) return res.status(404).json({ error: 'Session not found' });
+        if (!session) {
+          // Multer already streamed every accepted file to the staging
+          // directory. If the session itself does not exist, drop those
+          // temp files so they don't linger on disk indefinitely.
+          const orphan = (req.files as Express.Multer.File[] | undefined) ?? [];
+          for (const f of orphan) {
+            if (f && typeof f.path === 'string') {
+              try {
+                if (fs.existsSync(f.path)) fs.unlinkSync(f.path);
+              } catch (rmErr) {
+                logError(
+                  '[bulk-import] failed to remove temp upload for missing session',
+                  rmErr as Error,
+                );
+              }
+            }
+          }
+          return res.status(404).json({ error: 'Session not found' });
+        }
         const files = (req.files as Express.Multer.File[] | undefined) ?? [];
         if (files.length === 0) return res.status(400).json({ error: 'No files uploaded' });
 
         const dir = stagingDirFor(session.id);
         const created: schema.BulkImportItem[] = [];
+        const failures: string[] = [];
 
         for (const file of files) {
-          const hash = sha256(file.buffer);
-          const stagedPath = path.join(dir, `${hash}_${file.originalname}`);
-          fs.writeFileSync(stagedPath, file.buffer);
+          // Track what we still own on disk for this iteration so a
+          // failure at any step can clean up exactly the artifact this
+          // file produced (temp file before rename, staged file after)
+          // without touching files that belong to other items.
+          let pathToCleanup: string | null = file.path;
+          try {
+            // Stream-hash the staged temp file straight off disk so we
+            // never hold the full buffer in memory (Task #1061). The
+            // resulting hex digest matches what the previous
+            // `sha256(file.buffer)` path produced for the same bytes.
+            const hash = await sha256File(file.path);
+            const stagedPath = path.join(dir, `${hash}_${file.originalname}`);
 
-          // Fix Latin-1 mis-decode: multer may decode UTF-8 filename bytes as
-          // Latin-1, turning é (0xC3 0xA9) into the two-char sequence "Ã©".
-          // Re-interpret as UTF-8 so accented names round-trip correctly.
-          const correctedName = fixLatin1MisdecodeFilename(file.originalname);
+            if (fs.existsSync(stagedPath)) {
+              // Same content was already staged inside this session
+              // (re-upload of an identical file). Drop the freshly
+              // streamed temp copy and let the existing staged file
+              // stand — the dedup query below will still flag the row
+              // as a duplicate against the org-wide fingerprint cache
+              // when appropriate.
+              try {
+                fs.unlinkSync(file.path);
+              } catch (rmErr) {
+                logError(
+                  '[bulk-import] failed to remove redundant temp upload',
+                  rmErr as Error,
+                );
+              }
+              pathToCleanup = null;
+            } else {
+              fs.renameSync(file.path, stagedPath);
+              pathToCleanup = stagedPath;
+            }
 
-          // Dedup against this organization's fingerprint cache.
-          const [dupe] = await db
-            .select()
-            .from(schema.clientDocumentFingerprints)
-            .where(
-              and(
-                eq(schema.clientDocumentFingerprints.organizationId, session.organizationId),
-                eq(schema.clientDocumentFingerprints.contentHash, hash),
-              ),
-            )
-            .limit(1);
+            // Fix Latin-1 mis-decode: multer may decode UTF-8 filename bytes as
+            // Latin-1, turning é (0xC3 0xA9) into the two-char sequence "Ã©".
+            // Re-interpret as UTF-8 so accented names round-trip correctly.
+            const correctedName = fixLatin1MisdecodeFilename(file.originalname);
 
-          // Duplicate check wins; only test the exclusion store when there
-          // is no committed fingerprint for this file in this org.
-          const [excluded] = dupe
-            ? []
-            : await db
-                .select()
-                .from(schema.clientExcludedFingerprints)
-                .where(
-                  and(
-                    eq(schema.clientExcludedFingerprints.organizationId, session.organizationId),
-                    eq(schema.clientExcludedFingerprints.contentHash, hash),
-                  ),
-                )
-                .limit(1);
+            // Dedup against this organization's fingerprint cache.
+            const [dupe] = await db
+              .select()
+              .from(schema.clientDocumentFingerprints)
+              .where(
+                and(
+                  eq(schema.clientDocumentFingerprints.organizationId, session.organizationId),
+                  eq(schema.clientDocumentFingerprints.contentHash, hash),
+                ),
+              )
+              .limit(1);
 
-          const [row] = await db
-            .insert(schema.bulkImportItems)
-            .values({
-              sessionId: session.id,
-              originalPath: correctedName,
-              originalName: correctedName,
-              stagedPath,
-              contentHash: hash,
-              mimeType: file.mimetype,
-              fileSize: file.size,
-              ...(dupe
-                ? { status: 'duplicate' }
-                : excluded
-                  ? {
-                      status: 'rejected',
-                      preExcludeStatus: 'pending',
-                      excludeSource: 'prior_session',
-                    }
-                  : { status: 'pending' }),
-            })
-            .returning();
-          created.push(row);
+            // Duplicate check wins; only test the exclusion store when there
+            // is no committed fingerprint for this file in this org.
+            const [excluded] = dupe
+              ? []
+              : await db
+                  .select()
+                  .from(schema.clientExcludedFingerprints)
+                  .where(
+                    and(
+                      eq(schema.clientExcludedFingerprints.organizationId, session.organizationId),
+                      eq(schema.clientExcludedFingerprints.contentHash, hash),
+                    ),
+                  )
+                  .limit(1);
+
+            const [row] = await db
+              .insert(schema.bulkImportItems)
+              .values({
+                sessionId: session.id,
+                originalPath: correctedName,
+                originalName: correctedName,
+                stagedPath,
+                contentHash: hash,
+                mimeType: file.mimetype,
+                fileSize: file.size,
+                ...(dupe
+                  ? { status: 'duplicate' }
+                  : excluded
+                    ? {
+                        status: 'rejected',
+                        preExcludeStatus: 'pending',
+                        excludeSource: 'prior_session',
+                      }
+                    : { status: 'pending' }),
+              })
+              .returning();
+            created.push(row);
+            // The staged file is now owned by a real DB row; don't
+            // delete it on the per-iteration error path below.
+            pathToCleanup = null;
+          } catch (perFileErr) {
+            // Survive single-file failures so already-inserted rows for
+            // earlier files in this batch keep their staged copies and
+            // their DB rows. Cleanup is scoped to this iteration's own
+            // artifact only.
+            logError(
+              '[bulk-import] failed to stage uploaded file',
+              perFileErr as Error,
+              {
+                metadata: {
+                  sessionId: session.id,
+                  originalName: file.originalname,
+                },
+              },
+            );
+            if (pathToCleanup) {
+              try {
+                if (fs.existsSync(pathToCleanup)) fs.unlinkSync(pathToCleanup);
+              } catch (rmErr) {
+                logError(
+                  '[bulk-import] failed to clean up after per-file upload error',
+                  rmErr as Error,
+                );
+              }
+            }
+            failures.push(file.originalname);
+          }
+        }
+
+        // Per-file failures must surface as a non-2xx response so the
+        // wizard learns about them up front instead of having to diff
+        // its `/lite` poll against what it just attempted to upload
+        // (Task #1061 "Done looks like": a single staging/hash/DB
+        // failure must return a clear 4xx/5xx). The rows that did
+        // stage stay in the database — the loop above already
+        // committed them and will not roll them back — so the wizard
+        // can still see them on its next `/lite` poll. The successful
+        // rows are also echoed back in `created` for client visibility,
+        // alongside `failedFiles` for the names that did not stage.
+        if (failures.length > 0) {
+          return res.status(500).json({
+            error: 'Failed to stage uploaded files',
+            failedFiles: failures,
+            created,
+          });
         }
 
         // Task #1002: enrich duplicate rows with existing document details so
