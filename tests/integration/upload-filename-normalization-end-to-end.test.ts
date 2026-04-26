@@ -1,4 +1,6 @@
 /**
+ * @jest-environment node
+ *
  * End-to-end verification that uploads through every public upload site
  * persist a database `fileName` matching `normalizeFilename(originalName)`
  * and a `filePath` whose final segment ends with that same normalized
@@ -10,34 +12,50 @@
  *   - server/api/bills.ts      (POST /api/bills/:id/upload-document)
  *   - server/api/maintenance.ts (POST /api/maintenance/elements/:id/documents)
  *
+ * Latin-1 mis-decode round-trip coverage (Task #855 / Task #869) is also
+ * exercised below: every regular upload route should call
+ * `fixLatin1MisdecodeFilename` so that `originalFileName` is stored as
+ * UTF-8 even when the client sent Latin-1-mis-decoded bytes.
+ *
  * The fixture filename uses French diacritics and whitespace
- * ("Procès-verbal été 2024.pdf") so any future regression in the
- * normalizer (e.g. losing diacritic stripping or whitespace collapsing)
- * surfaces immediately.
+ * ("Procès-verbal été 2024.pdf") so any future regression in either
+ * the multer charset config or the normalizer surfaces immediately.
+ *
+ * Task #1120: this file was ported from vitest to Jest so it runs in
+ * the standard `npm run test:integration` suite alongside the other
+ * real-DB integration tests, removing the need for a separate vitest
+ * runtime in CI.
  */
+
+// jest.config.cjs maps `./storage`, `./auth`, `./routes`, and the relative
+// `../../server/...` variants to in-repo unit-tier mocks. For this real-DB
+// integration suite we MUST exercise the real implementations. Override the
+// mocks at their resolved paths so jest substitutes the real modules. Mirrors
+// `tests/integration/upload-filename-normalization.test.ts` (Task #380) and
+// `tests/integration/all-or-nothing-rollback.test.ts` (Task #183).
+jest.mock('../../__mocks__/server/storage', () => {
+  const path = require('path');
+  return require(path.resolve(__dirname, '../../server/storage.ts'));
+});
+jest.mock('../../__mocks__/server/auth', () => {
+  const path = require('path');
+  return require(path.resolve(__dirname, '../../server/auth.ts'));
+});
+jest.mock('../../__mocks__/server/routes', () => {
+  const path = require('path');
+  return require(path.resolve(__dirname, '../../server/routes.ts'));
+});
+jest.mock('../../server/config/index', () => {
+  const path = require('path');
+  return require(path.resolve(__dirname, '../../server/config/index.ts'));
+});
+
+import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import request from 'supertest';
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import path from 'path';
 import fs from 'fs';
 import crypto from 'crypto';
-import { testApp as app } from './test-app';
-import { db } from '../db';
-import {
-  documents,
-  users,
-  organizations,
-  buildings,
-  userOrganizations,
-  bills,
-  userBuildings,
-} from '@shared/schema';
-import {
-  buildingElements,
-  elementDocuments,
-  uniformatCodes,
-} from '@shared/schemas/maintenance';
 import { eq } from 'drizzle-orm';
-import { normalizeFilename } from '../utils/filenameNormalization';
 
 const FRENCH_FILENAME = 'Procès-verbal été 2024.pdf';
 const EXPECTED_NORMALIZED = 'proces-verbal_ete_2024.pdf';
@@ -53,9 +71,26 @@ const EXPECTED_NORMALIZED = 'proces-verbal_ete_2024.pdf';
 // `originalFileName` for accented uploads.
 const FRENCH_LATIN1_MISDECODED = Buffer.from(FRENCH_FILENAME, 'utf8').toString('latin1');
 
-describe('Upload filename normalization (end-to-end)', () => {
+const REAL_DB_URL = process.env._INTEGRATION_DB_URL;
+const describeIfDb = REAL_DB_URL ? describe : describe.skip;
+
+describeIfDb('Upload filename normalization (end-to-end) — Task #1120', () => {
   const FIXTURES_DIR = path.join(process.cwd(), 'server/tests/fixtures');
   const TEST_PDF_PATH = path.join(FIXTURES_DIR, 'french-upload.pdf');
+
+  let app: any;
+  let db: any;
+  let documents: any;
+  let users: any;
+  let organizations: any;
+  let buildings: any;
+  let userOrganizations: any;
+  let userBuildings: any;
+  let bills: any;
+  let buildingElements: any;
+  let elementDocuments: any;
+  let uniformatCodes: any;
+  let normalizeFilename: (input: string) => string;
 
   let testOrg: any;
   let testBuilding: any;
@@ -72,6 +107,42 @@ describe('Upload filename normalization (end-to-end)', () => {
   const createdAuxBillIds = new Set<string>();
 
   beforeAll(async () => {
+    if (!REAL_DB_URL) return;
+
+    // Restore the real DATABASE_URL captured by jest.polyfills.js before
+    // jest.setup.simple.ts overwrote it with the placeholder URL. Other
+    // env vars mirror the canonical real-DB integration test pattern.
+    process.env.DATABASE_URL = REAL_DB_URL;
+    process.env.USE_MOCK_DB = 'false';
+    process.env.SESSION_SECRET =
+      process.env.SESSION_SECRET || 'test-session-secret-task1120';
+    process.env.NODE_ENV = process.env.NODE_ENV || 'test';
+
+    // Lazy-require modules that touch the DB AFTER env vars are set so
+    // they bind to the real connection, not the placeholder URL.
+    const schema = require('@shared/schema');
+    documents = schema.documents;
+    users = schema.users;
+    organizations = schema.organizations;
+    buildings = schema.buildings;
+    userOrganizations = schema.userOrganizations;
+    userBuildings = schema.userBuildings;
+    bills = schema.bills;
+
+    const maintenanceSchema = require('@shared/schemas/maintenance');
+    buildingElements = maintenanceSchema.buildingElements;
+    elementDocuments = maintenanceSchema.elementDocuments;
+    uniformatCodes = maintenanceSchema.uniformatCodes;
+
+    db = require('../../server/db').db;
+    normalizeFilename = require('../../server/utils/filenameNormalization').normalizeFilename;
+
+    // The shared test-app helper wires `registerRoutes` against an Express
+    // app with an `x-test-user-id` auth middleware — exactly what the
+    // original vitest-based suite relied on. Require it lazily so it picks
+    // up the real DB env vars set above.
+    app = require('../../server/tests/test-app').testApp;
+
     if (!fs.existsSync(FIXTURES_DIR)) {
       fs.mkdirSync(FIXTURES_DIR, { recursive: true });
     }
@@ -182,9 +253,11 @@ describe('Upload filename normalization (end-to-end)', () => {
       name: 'French upload element',
     });
     testElementId = elementId;
-  });
+  }, 30_000);
 
   afterAll(async () => {
+    if (!REAL_DB_URL || !db) return;
+
     try {
       for (const id of createdElementDocumentIds) {
         await db.delete(elementDocuments).where(eq(elementDocuments.id, id));
@@ -228,7 +301,7 @@ describe('Upload filename normalization (end-to-end)', () => {
     }
 
     if (fs.existsSync(TEST_PDF_PATH)) fs.unlinkSync(TEST_PDF_PATH);
-  });
+  }, 30_000);
 
   /**
    * The filePath produced by the upload sites uses one of two shapes:
@@ -245,18 +318,19 @@ describe('Upload filename normalization (end-to-end)', () => {
     filePath: string | null | undefined;
   }) {
     const { label, fileName, filePath } = opts;
-    expect(fileName, `${label}: fileName must be persisted`).toBeTruthy();
-    expect(filePath, `${label}: filePath must be persisted`).toBeTruthy();
-    expect(fileName, `${label}: fileName must equal normalizeFilename(originalName)`)
-      .toBe(EXPECTED_NORMALIZED);
-    expect(
-      normalizeFilename(FRENCH_FILENAME),
-      `${label}: sanity – normalizer output is stable`,
-    ).toBe(EXPECTED_NORMALIZED);
-    expect(
-      filePath!.endsWith(EXPECTED_NORMALIZED),
-      `${label}: filePath ("${filePath}") must end with normalized name "${EXPECTED_NORMALIZED}"`,
-    ).toBe(true);
+    // Surface `label` in the failure output so a regression in any one
+    // route is easy to attribute when this helper is called from multiple
+    // tests (jest does not natively support custom messages on `.toBe`).
+    expect({ label, fileName: fileName || null }).toEqual({
+      label,
+      fileName: EXPECTED_NORMALIZED,
+    });
+    expect(filePath).toBeTruthy();
+    expect(normalizeFilename(FRENCH_FILENAME)).toBe(EXPECTED_NORMALIZED);
+    expect({ label, endsWithNormalized: filePath!.endsWith(EXPECTED_NORMALIZED) }).toEqual({
+      label,
+      endsWithNormalized: true,
+    });
   }
 
   it('POST /api/documents persists normalized fileName and matching filePath', async () => {
@@ -269,7 +343,7 @@ describe('Upload filename normalization (end-to-end)', () => {
       .field('isVisibleToTenants', 'false')
       .attach('file', TEST_PDF_PATH, FRENCH_FILENAME);
 
-    expect(res.status, `body=${JSON.stringify(res.body)}`).toBe(201);
+    expect(res.status).toBe(201);
     const documentId: string = res.body.id;
     expect(documentId).toBeTruthy();
     createdDocumentIds.add(documentId);
@@ -294,7 +368,7 @@ describe('Upload filename normalization (end-to-end)', () => {
       .set('x-test-user-id', testUser.id)
       .attach('document', TEST_PDF_PATH, FRENCH_FILENAME);
 
-    expect(res.status, `body=${JSON.stringify(res.body)}`).toBe(200);
+    expect(res.status).toBe(200);
 
     const rows = await db.select().from(bills).where(eq(bills.id, testBillId));
     expect(rows).toHaveLength(1);
@@ -313,7 +387,7 @@ describe('Upload filename normalization (end-to-end)', () => {
       .set('x-test-user-id', testUser.id)
       .attach('file', TEST_PDF_PATH, FRENCH_FILENAME);
 
-    expect(res.status, `body=${JSON.stringify(res.body)}`).toBe(201);
+    expect(res.status).toBe(201);
     const elementDocId: string = res.body?.data?.id;
     expect(elementDocId).toBeTruthy();
     createdElementDocumentIds.add(elementDocId);
@@ -364,7 +438,7 @@ describe('Upload filename normalization (end-to-end)', () => {
       .field('isVisibleToTenants', 'false')
       .attach('file', TEST_PDF_PATH, FRENCH_LATIN1_MISDECODED);
 
-    expect(res.status, `body=${JSON.stringify(res.body)}`).toBe(201);
+    expect(res.status).toBe(201);
     const documentId: string = res.body.id;
     expect(documentId).toBeTruthy();
     createdDocumentIds.add(documentId);
@@ -374,12 +448,7 @@ describe('Upload filename normalization (end-to-end)', () => {
       .from(documents)
       .where(eq(documents.id, documentId));
     expect(rows).toHaveLength(1);
-    const row = rows[0];
-
-    expect(
-      row.originalFileName,
-      '/api/documents: originalFileName must recover UTF-8 from Latin-1 mis-decode',
-    ).toBe(FRENCH_FILENAME);
+    expect(rows[0].originalFileName).toBe(FRENCH_FILENAME);
   });
 
   it('POST /api/documents/upload recovers UTF-8 originalFileName from a Latin-1 mis-decoded multipart filename', async () => {
@@ -392,9 +461,9 @@ describe('Upload filename normalization (end-to-end)', () => {
       .field('isVisibleToTenants', 'false')
       .attach('file', TEST_PDF_PATH, FRENCH_LATIN1_MISDECODED);
 
-    expect(res.status, `body=${JSON.stringify(res.body)}`).toBe(201);
+    expect(res.status).toBe(201);
     const documentId: string = res.body?.document?.id;
-    expect(documentId, `body=${JSON.stringify(res.body)}`).toBeTruthy();
+    expect(documentId).toBeTruthy();
     createdDocumentIds.add(documentId);
 
     const rows = await db
@@ -402,12 +471,7 @@ describe('Upload filename normalization (end-to-end)', () => {
       .from(documents)
       .where(eq(documents.id, documentId));
     expect(rows).toHaveLength(1);
-    const row = rows[0];
-
-    expect(
-      row.originalFileName,
-      '/api/documents/upload: originalFileName must recover UTF-8 from Latin-1 mis-decode',
-    ).toBe(FRENCH_FILENAME);
+    expect(rows[0].originalFileName).toBe(FRENCH_FILENAME);
   });
 
   it('PUT /api/documents/:id (replace-file branch) recovers UTF-8 originalFileName from a Latin-1 mis-decoded multipart filename', async () => {
@@ -422,7 +486,7 @@ describe('Upload filename normalization (end-to-end)', () => {
       .field('isVisibleToTenants', 'false')
       .attach('file', TEST_PDF_PATH, 'placeholder.pdf');
 
-    expect(createRes.status, `body=${JSON.stringify(createRes.body)}`).toBe(201);
+    expect(createRes.status).toBe(201);
     const documentId: string = createRes.body.id;
     expect(documentId).toBeTruthy();
     createdDocumentIds.add(documentId);
@@ -433,26 +497,15 @@ describe('Upload filename normalization (end-to-end)', () => {
       .set('x-test-user-id', testUser.id)
       .attach('file', TEST_PDF_PATH, FRENCH_LATIN1_MISDECODED);
 
-    expect(
-      replaceRes.status,
-      `body=${JSON.stringify(replaceRes.body)} text=${replaceRes.text}`,
-    ).toBeGreaterThanOrEqual(200);
-    expect(
-      replaceRes.status,
-      `body=${JSON.stringify(replaceRes.body)} text=${replaceRes.text}`,
-    ).toBeLessThan(300);
+    expect(replaceRes.status).toBeGreaterThanOrEqual(200);
+    expect(replaceRes.status).toBeLessThan(300);
 
     const rows = await db
       .select()
       .from(documents)
       .where(eq(documents.id, documentId));
     expect(rows).toHaveLength(1);
-    const row = rows[0];
-
-    expect(
-      row.originalFileName,
-      'PUT /api/documents/:id: originalFileName must recover UTF-8 from Latin-1 mis-decode',
-    ).toBe(FRENCH_FILENAME);
+    expect(rows[0].originalFileName).toBe(FRENCH_FILENAME);
   });
 
   it('POST /api/bills/:id/upload-document recovers UTF-8 originalFileName from a Latin-1 mis-decoded multipart filename', async () => {
@@ -461,7 +514,7 @@ describe('Upload filename normalization (end-to-end)', () => {
       .set('x-test-user-id', testUser.id)
       .attach('document', TEST_PDF_PATH, FRENCH_LATIN1_MISDECODED);
 
-    expect(res.status, `body=${JSON.stringify(res.body)}`).toBe(200);
+    expect(res.status).toBe(200);
 
     // The route updates the bills row in place and ALSO inserts a linked
     // documents row (attachedTo{Type,Id} === ('bill', billId)). The Latin-1
@@ -472,10 +525,7 @@ describe('Upload filename normalization (end-to-end)', () => {
       .from(bills)
       .where(eq(bills.id, testBillId));
     expect(billRows).toHaveLength(1);
-    expect(
-      billRows[0].originalFileName,
-      '/api/bills/:id/upload-document: bills.originalFileName must recover UTF-8 from Latin-1 mis-decode',
-    ).toBe(FRENCH_FILENAME);
+    expect(billRows[0].originalFileName).toBe(FRENCH_FILENAME);
 
     // Every linked documents row attached to this bill should carry the same
     // recovered UTF-8 string. (Looking up by attachedToId only keeps the
@@ -484,16 +534,10 @@ describe('Upload filename normalization (end-to-end)', () => {
       .select()
       .from(documents)
       .where(eq(documents.attachedToId, testBillId));
-    expect(
-      linkedDocs.length,
-      '/api/bills/:id/upload-document: at least one linked documents row expected',
-    ).toBeGreaterThanOrEqual(1);
+    expect(linkedDocs.length).toBeGreaterThanOrEqual(1);
     for (const doc of linkedDocs) {
       createdDocumentIds.add(doc.id);
-      expect(
-        doc.originalFileName,
-        `/api/bills/:id/upload-document: linked documents row ${doc.id} originalFileName must recover UTF-8`,
-      ).toBe(FRENCH_FILENAME);
+      expect(doc.originalFileName).toBe(FRENCH_FILENAME);
     }
   });
 
@@ -518,9 +562,9 @@ describe('Upload filename normalization (end-to-end)', () => {
       .field('fileMetadata_0', JSON.stringify({ category: 'attachment' }))
       .attach('files', TEST_PDF_PATH, FRENCH_LATIN1_MISDECODED);
 
-    expect(res.status, `body=${JSON.stringify(res.body)}`).toBe(201);
+    expect(res.status).toBe(201);
     const createdBillId: string | undefined = res.body?.bill?.id;
-    expect(createdBillId, `body=${JSON.stringify(res.body)}`).toBeTruthy();
+    expect(createdBillId).toBeTruthy();
     // Track the new bill for cleanup IMMEDIATELY so a later assertion
     // failure does not leak it (and break the FK-constrained delete of
     // testBillId in afterAll).
@@ -529,10 +573,7 @@ describe('Upload filename normalization (end-to-end)', () => {
     }
 
     const attached: any[] = res.body?.attachedDocuments ?? [];
-    expect(
-      attached.length,
-      '/api/bills/from-auto-generated: at least one attached document expected',
-    ).toBeGreaterThanOrEqual(1);
+    expect(attached.length).toBeGreaterThanOrEqual(1);
     for (const doc of attached) {
       createdDocumentIds.add(doc.id);
     }
@@ -549,10 +590,7 @@ describe('Upload filename normalization (end-to-end)', () => {
         .from(documents)
         .where(eq(documents.id, docId));
       expect(persisted).toHaveLength(1);
-      expect(
-        persisted[0].originalFileName,
-        `/api/bills/from-auto-generated: documents row ${docId} originalFileName must recover UTF-8 from Latin-1 mis-decode`,
-      ).toBe(FRENCH_FILENAME);
+      expect(persisted[0].originalFileName).toBe(FRENCH_FILENAME);
     }
   });
 
@@ -562,7 +600,7 @@ describe('Upload filename normalization (end-to-end)', () => {
       .set('x-test-user-id', testUser.id)
       .attach('file', TEST_PDF_PATH, FRENCH_LATIN1_MISDECODED);
 
-    expect(res.status, `body=${JSON.stringify(res.body)}`).toBe(201);
+    expect(res.status).toBe(201);
     const elementDocId: string = res.body?.data?.id;
     expect(elementDocId).toBeTruthy();
     createdElementDocumentIds.add(elementDocId);
@@ -572,11 +610,6 @@ describe('Upload filename normalization (end-to-end)', () => {
       .from(elementDocuments)
       .where(eq(elementDocuments.id, elementDocId));
     expect(rows).toHaveLength(1);
-    const row = rows[0];
-
-    expect(
-      row.originalFileName,
-      '/api/maintenance/elements/:id/documents: originalFileName must recover UTF-8 from Latin-1 mis-decode',
-    ).toBe(FRENCH_FILENAME);
+    expect(rows[0].originalFileName).toBe(FRENCH_FILENAME);
   });
 });

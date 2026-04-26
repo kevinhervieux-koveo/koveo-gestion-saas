@@ -17,26 +17,6 @@
 # with other AI tests") tracks isolating their fixtures so they can be
 # wired in safely.
 #
-# After Jest finishes we additionally run a curated set of vitest-only
-# integration tests via `npx vitest run <path>`. Those files import from
-# `vitest` directly (custom message arg on `expect`, etc.) so they cannot
-# be picked up by the Jest allowlist above without an invasive port. Wiring
-# them in here ensures a regression in the upload-filename Latin-1
-# round-trip suite (Task #869, extended in Task #892) fails the standard
-# Fast/Full unit-test workflows instead of only being caught by manual
-# vitest runs.
-#
-# Both phases (Jest + vitest) always run in `fast` and `full` modes regardless
-# of which fails first, and the script exits non-zero if either phase failed.
-# This guarantees that a regression in `fixLatin1MisdecodeFilename` or in any
-# of the patched upload routes is surfaced even when an unrelated Jest suite
-# is flaky on the same run.
-#
-# In `affected` mode the vitest phase runs ONLY when relevant upload/filename
-# source files appear in the diff — the test requires a real Postgres DB so
-# it should not run unconditionally on every small change. The vitest phase
-# still runs in full/fast modes so those workflows are unaffected.
-#
 # Mode selector (first arg, defaults to `full`):
 #   fast     - mirrors the previous `npm run test:fast` flags (75% workers,
 #              --silent for quieter CI output).
@@ -47,9 +27,7 @@
 #              `--changedSince=<base>` scoped to UNIT_PATHS. When no TS/JS
 #              files changed (doc-only or config-only diff), exits 0
 #              immediately without invoking Jest. Falls back to the existing
-#              `fast` behaviour (including vitest) when no base ref is
-#              available. In affected mode with a base ref, vitest is run
-#              only when relevant upload/filename source files are in the diff.
+#              `fast` behaviour when no base ref is available.
 #
 # Where each mode runs (Task #1118 + Task #1121):
 #   affected → "Fast unit tests" workflow (isValidation=true in .replit).
@@ -67,13 +45,7 @@
 #              developers who want the silent flags without --changedSince
 #              scoping (e.g. when the git base ref is unavailable).
 
-# NOTE: `set -e` is intentionally disabled (only `-uo pipefail` is on)
-# so that both the Jest and vitest phases below always run regardless of
-# which fails first. Any future command added to this script that should
-# abort on failure MUST capture and check its own exit status (see the
-# `JEST_STATUS=0; ... || JEST_STATUS=$?` pattern at the bottom). Don't
-# add bare commands here and assume `set -e` will catch them.
-set -uo pipefail
+set -euo pipefail
 
 MODE="${1:-full}"
 
@@ -85,23 +57,6 @@ UNIT_PATHS=(
   server/tests/ai-invoice-extract-route.test.ts
   server/tests/ai-suggest-payment-schedule-route.test.ts
   server/tests/document-text-endpoint.test.ts
-)
-
-# Vitest-only files that must run alongside the Jest allowlist in fast/full.
-# Keep this list explicit (no globs): adding a new vitest file should be
-# a deliberate decision so the unit-test runtime stays predictable.
-VITEST_PATHS=(
-  server/tests/upload-filename-normalization-integration.test.ts
-)
-
-# Source files that, when changed, should trigger the vitest phase in
-# `affected` mode. Keep in sync with VITEST_PATHS above.
-VITEST_TRIGGER_PATTERNS=(
-  "server/utils/filenameNormalization"
-  "server/api/documents"
-  "server/api/bills"
-  "server/api/maintenance"
-  "upload-filename-normalization"
 )
 
 COMMON_FLAGS=(
@@ -143,18 +98,14 @@ resolve_base_ref() {
 }
 
 # Variables set by the mode block below.
-RUN_VITEST=true
 EXTRA_FLAGS=()
-VITEST_REPORTER_FLAGS=()
 
 case "$MODE" in
   fast)
     EXTRA_FLAGS=(--maxWorkers=75% --silent)
-    VITEST_REPORTER_FLAGS=(--reporter=dot)
     ;;
   full)
     EXTRA_FLAGS=(--maxWorkers=50%)
-    VITEST_REPORTER_FLAGS=()
     ;;
   affected)
     BASE_REF=$(resolve_base_ref)
@@ -162,20 +113,17 @@ case "$MODE" in
     if [[ -z "$BASE_REF" ]]; then
       echo "[run-unit-tests] affected: no base ref found, falling back to fast mode"
       EXTRA_FLAGS=(--maxWorkers=75% --silent)
-      VITEST_REPORTER_FLAGS=(--reporter=dot)
-      # RUN_VITEST remains true (same as fast mode)
     else
       echo "[run-unit-tests] affected: running tests changed since ${BASE_REF}"
 
-      # Collect changed TS/JS files from the diff so we can:
-      #   - short-circuit immediately if nothing changed (no Jest invocation)
-      #   - check VITEST_TRIGGER_PATTERNS to decide whether the vitest phase runs
+      # Collect changed TS/JS files from the diff so we can short-circuit
+      # immediately if nothing changed (no Jest invocation).
       CHANGED_FILES=()
       while IFS= read -r f; do
         [[ "$f" =~ \.(ts|tsx|js|jsx|cjs|mjs)$ ]] && CHANGED_FILES+=("$f")
       done < <(git diff --name-only "$BASE_REF" 2>/dev/null)
       if [[ ${#CHANGED_FILES[@]} -eq 0 ]]; then
-        echo "[run-unit-tests] affected: no TS/JS files changed — skipping Jest and vitest"
+        echo "[run-unit-tests] affected: no TS/JS files changed — skipping Jest"
         echo "[run-unit-tests] OK (no-op)"
         # Exit cleanly WITHOUT invoking Jest. Relying on --changedSince or
         # --passWithNoTests still launches the Jest runner, which can pick up
@@ -192,25 +140,7 @@ case "$MODE" in
         # tests outside the allowlist to be pulled in.
         EXTRA_FLAGS=(--maxWorkers=75% --silent --passWithNoTests --changedSince="$BASE_REF")
         COMMON_FLAGS=(--cache --forceExit)
-
-        # Run vitest only if relevant upload/filename source files changed.
-        RUN_VITEST=false
-        for pattern in "${VITEST_TRIGGER_PATTERNS[@]}"; do
-          for f in "${CHANGED_FILES[@]}"; do
-            if [[ "$f" == *"$pattern"* ]]; then
-              RUN_VITEST=true
-              echo "[run-unit-tests] affected: vitest triggered by changed file: $f"
-              break 2
-            fi
-          done
-        done
-
-        if [[ "$RUN_VITEST" == "false" ]]; then
-          echo "[run-unit-tests] affected: skipping vitest (no relevant files in diff)"
-        fi
       fi
-
-      VITEST_REPORTER_FLAGS=(--reporter=dot)
     fi
     ;;
   *)
@@ -221,33 +151,6 @@ esac
 
 export TEST_TYPE=unit
 
-JEST_STATUS=0
-npx jest "${UNIT_PATHS[@]}" "${COMMON_FLAGS[@]}" "${EXTRA_FLAGS[@]}" || JEST_STATUS=$?
+npx jest "${UNIT_PATHS[@]}" "${COMMON_FLAGS[@]}" "${EXTRA_FLAGS[@]}"
 
-if [[ "$RUN_VITEST" == "true" ]]; then
-  echo
-  echo "[run-unit-tests] Running curated vitest suite (${#VITEST_PATHS[@]} file(s))..."
-  VITEST_STATUS=0
-  npx vitest run "${VITEST_PATHS[@]}" "${VITEST_REPORTER_FLAGS[@]}" || VITEST_STATUS=$?
-
-  if [[ "$JEST_STATUS" -ne 0 || "$VITEST_STATUS" -ne 0 ]]; then
-    echo
-    echo "[run-unit-tests] FAILED (jest=${JEST_STATUS}, vitest=${VITEST_STATUS})" >&2
-    # Prefer surfacing the jest exit code when both failed — the jest output
-    # is the larger signal in CI logs and matches the previous behaviour.
-    if [[ "$JEST_STATUS" -ne 0 ]]; then
-      exit "$JEST_STATUS"
-    fi
-    exit "$VITEST_STATUS"
-  fi
-
-  echo "[run-unit-tests] OK (jest + vitest)"
-else
-  if [[ "$JEST_STATUS" -ne 0 ]]; then
-    echo
-    echo "[run-unit-tests] FAILED (jest=${JEST_STATUS})" >&2
-    exit "$JEST_STATUS"
-  fi
-
-  echo "[run-unit-tests] OK (jest)"
-fi
+echo "[run-unit-tests] OK (jest)"
