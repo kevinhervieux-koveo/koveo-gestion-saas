@@ -208,7 +208,6 @@
     "uuid": "^14.0.0",
     "vaul": "^1.1.2",
     "vite": "^7.3.2",
-    "vitest": "^3.2.4",
     "web-vitals": "^5.1.0",
     "webpack-bundle-analyzer": "^4.10.2",
     "whatwg-fetch": "^3.6.20",

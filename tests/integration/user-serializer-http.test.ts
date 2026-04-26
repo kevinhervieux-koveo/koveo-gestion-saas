@@ -1,4 +1,6 @@
 /**
+ * @jest-environment node
+ *
  * User Serializer HTTP Integration Tests (Task #964)
  *
  * Makes real authenticated HTTP requests against the test Express application
@@ -21,41 +23,86 @@
  *
  * Pass-#21 probe: the `Object.keys` of the first user object in the
  * GET /api/users response must not contain "password".
+ *
+ * Task #1134: ported from vitest to Jest using the same `@jest/globals` +
+ * `testApp` pattern as `tests/integration/upload-filename-normalization-
+ * end-to-end.test.ts` so vitest can be removed from the repo.
  */
 
+jest.mock('../../__mocks__/server/storage', () => {
+  const path = require('path');
+  return require(path.resolve(__dirname, '../../server/storage.ts'));
+});
+jest.mock('../../__mocks__/server/auth', () => {
+  const path = require('path');
+  return require(path.resolve(__dirname, '../../server/auth.ts'));
+});
+jest.mock('../../__mocks__/server/routes', () => {
+  const path = require('path');
+  return require(path.resolve(__dirname, '../../server/routes.ts'));
+});
+jest.mock('../../server/config/index', () => {
+  const path = require('path');
+  return require(path.resolve(__dirname, '../../server/config/index.ts'));
+});
+
+import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import request from 'supertest';
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { testApp as app } from './test-app';
-import { db } from '../db';
-import {
-  users,
-  organizations,
-  buildings,
-  userOrganizations,
-  residences,
-  userResidences,
-  maintenanceProjects,
-  vendors,
-  submissionVendors,
-} from '@shared/schema';
 import { eq } from 'drizzle-orm';
 
 const SENTINEL_HASH =
   '$2b$12$AuDiTtEsThAsH964sentinel.AuDiTtEsTsEcUrItY.task964.x';
 
-describe('User serializer HTTP — no password leak (all 8 endpoints)', () => {
-  let adminUser: typeof users.$inferSelect;
-  let tenantUser: typeof users.$inferSelect;
-  let testOrg: typeof organizations.$inferSelect;
-  let testBuilding: typeof buildings.$inferSelect;
-  let testResidence: typeof residences.$inferSelect;
-  let testProject: typeof maintenanceProjects.$inferSelect;
+const REAL_DB_URL = process.env._INTEGRATION_DB_URL;
+const describeIfDb = REAL_DB_URL ? describe : describe.skip;
+
+describeIfDb('User serializer HTTP — no password leak (all 8 endpoints)', () => {
+  let app: any;
+  let db: any;
+  let users: any;
+  let organizations: any;
+  let buildings: any;
+  let userOrganizations: any;
+  let residences: any;
+  let userResidences: any;
+  let maintenanceProjects: any;
+  let vendors: any;
+  let submissionVendors: any;
+
+  let adminUser: any;
+  let tenantUser: any;
+  let testOrg: any;
+  let testBuilding: any;
+  let testResidence: any;
+  let testProject: any;
   const suffix = Date.now();
 
   // -------------------------------------------------------------------------
   // Seed
   // -------------------------------------------------------------------------
   beforeAll(async () => {
+    if (!REAL_DB_URL) return;
+
+    process.env.DATABASE_URL = REAL_DB_URL;
+    process.env.USE_MOCK_DB = 'false';
+    process.env.SESSION_SECRET =
+      process.env.SESSION_SECRET || 'test-session-secret-task1134-user-serializer';
+    process.env.NODE_ENV = process.env.NODE_ENV || 'test';
+
+    const schema = require('@shared/schema');
+    users = schema.users;
+    organizations = schema.organizations;
+    buildings = schema.buildings;
+    userOrganizations = schema.userOrganizations;
+    residences = schema.residences;
+    userResidences = schema.userResidences;
+    maintenanceProjects = schema.maintenanceProjects;
+    vendors = schema.vendors;
+    submissionVendors = schema.submissionVendors;
+
+    db = require('../../server/db').db;
+    app = require('../../server/tests/test-app').testApp;
+
     const [org] = await db
       .insert(organizations)
       .values({
@@ -175,19 +222,19 @@ describe('User serializer HTTP — no password leak (all 8 endpoints)', () => {
       vendorName: vendor.id,
       projectType: 'not_sure',
     });
-  });
+  }, 30_000);
 
   // -------------------------------------------------------------------------
   // Helpers
   // -------------------------------------------------------------------------
   function assertNoPasswordLeak(body: unknown, endpoint: string): void {
     const json = JSON.stringify(body);
-    expect(json, `${endpoint}: bcrypt $2b$ sentinel must not appear`).not.toMatch(
-      /\$2[ab]\$/
-    );
-    expect(json, `${endpoint}: "password" key must not appear in JSON`).not.toMatch(
-      /"password"\s*:/
-    );
+    expect(
+      { endpoint, hasBcryptHash: /\$2[ab]\$/.test(json) },
+    ).toEqual({ endpoint, hasBcryptHash: false });
+    expect(
+      { endpoint, hasPasswordKey: /"password"\s*:/.test(json) },
+    ).toEqual({ endpoint, hasPasswordKey: false });
   }
 
   // -------------------------------------------------------------------------
@@ -204,9 +251,7 @@ describe('User serializer HTTP — no password leak (all 8 endpoints)', () => {
     expect(Array.isArray(usersList)).toBe(true);
     if (usersList.length > 0) {
       const keys = Object.keys(usersList[0] as object);
-      expect(keys, 'Pass-#21: first user object must not have a `password` key').not.toContain(
-        'password'
-      );
+      expect(keys).not.toContain('password');
     }
   });
 
@@ -321,6 +366,7 @@ describe('User serializer HTTP — no password leak (all 8 endpoints)', () => {
   // Cleanup
   // -------------------------------------------------------------------------
   afterAll(async () => {
+    if (!REAL_DB_URL || !db) return;
     if (testProject?.id) {
       await db.delete(submissionVendors).where(eq(submissionVendors.projectId, testProject.id));
       await db.delete(maintenanceProjects).where(eq(maintenanceProjects.id, testProject.id));
@@ -347,5 +393,5 @@ describe('User serializer HTTP — no password leak (all 8 endpoints)', () => {
     if (testOrg?.id) {
       await db.delete(organizations).where(eq(organizations.id, testOrg.id));
     }
-  });
+  }, 30_000);
 });

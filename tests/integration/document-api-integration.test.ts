@@ -1,48 +1,105 @@
+/**
+ * @jest-environment node
+ *
+ * Document API Integration Tests
+ *
+ * Covers the document CRUD surface exposed under /api/documents:
+ *   - POST   /api/documents               (multer upload happy path)
+ *   - POST   /api/documents               (rejects invalid MIME)
+ *   - POST   /api/documents               (rejects oversize file)
+ *   - POST   /api/documents               (rejects unauthenticated request)
+ *   - GET    /api/documents/:id           (single document fetch)
+ *   - GET    /api/documents               (list with filters)
+ *   - GET    /api/documents/:id/file      (download / inline view)
+ *   - DELETE /api/documents/:id           (soft / hard delete)
+ *
+ * Task #1134: ported from vitest to Jest using the same `@jest/globals` +
+ * `testApp` pattern as `tests/integration/upload-filename-normalization-
+ * end-to-end.test.ts` so vitest can be removed from the repo.
+ */
+
+jest.mock('../../__mocks__/server/storage', () => {
+  const path = require('path');
+  return require(path.resolve(__dirname, '../../server/storage.ts'));
+});
+jest.mock('../../__mocks__/server/auth', () => {
+  const path = require('path');
+  return require(path.resolve(__dirname, '../../server/auth.ts'));
+});
+jest.mock('../../__mocks__/server/routes', () => {
+  const path = require('path');
+  return require(path.resolve(__dirname, '../../server/routes.ts'));
+});
+jest.mock('../../server/config/index', () => {
+  const path = require('path');
+  return require(path.resolve(__dirname, '../../server/config/index.ts'));
+});
+
+import { describe, it, expect, beforeAll, afterAll, beforeEach, afterEach } from '@jest/globals';
 import request from 'supertest';
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import path from 'path';
 import fs from 'fs';
-import { testApp as app } from './test-app';
-import { db } from '../db';
-import { documents, users, organizations, buildings, userOrganizations } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 
-describe('Document API Integration Tests', () => {
+const REAL_DB_URL = process.env._INTEGRATION_DB_URL;
+const describeIfDb = REAL_DB_URL ? describe : describe.skip;
+
+describeIfDb('Document API Integration Tests', () => {
   const TEST_FILES_DIR = path.join(process.cwd(), 'server/tests/fixtures');
   const TEST_PDF_PATH = path.join(TEST_FILES_DIR, 'test-document.pdf');
   const TEST_IMAGE_PATH = path.join(TEST_FILES_DIR, 'test-image.png');
-  
+
+  let app: any;
+  let db: any;
+  let documents: any;
+  let users: any;
+  let organizations: any;
+  let buildings: any;
+  let userOrganizations: any;
+
   let testUser: any;
   let testOrganization: any;
   let testBuilding: any;
-  let authCookie: string;
   let uploadedDocumentId: string;
 
   beforeAll(async () => {
+    if (!REAL_DB_URL) return;
+
+    process.env.DATABASE_URL = REAL_DB_URL;
+    process.env.USE_MOCK_DB = 'false';
+    process.env.SESSION_SECRET =
+      process.env.SESSION_SECRET || 'test-session-secret-task1134-document-api';
+    process.env.NODE_ENV = process.env.NODE_ENV || 'test';
+
+    const schema = require('@shared/schema');
+    documents = schema.documents;
+    users = schema.users;
+    organizations = schema.organizations;
+    buildings = schema.buildings;
+    userOrganizations = schema.userOrganizations;
+
+    db = require('../../server/db').db;
+    app = require('../../server/tests/test-app').testApp;
+
     // Clean up any existing test data from previous runs in correct order
     try {
       const existingUser = await db.select().from(users).where(eq(users.email, 'testdocuser@example.com'));
       const existingOrg = await db.select().from(organizations).where(eq(organizations.email, 'testdocs@example.com'));
-      
+
       if (existingOrg.length > 0) {
-        // Delete documents first
         const orgBuildings = await db.select().from(buildings).where(eq(buildings.organizationId, existingOrg[0].id));
         for (const building of orgBuildings) {
           await db.delete(documents).where(eq(documents.buildingId, building.id));
         }
-        // Delete buildings
         await db.delete(buildings).where(eq(buildings.organizationId, existingOrg[0].id));
       }
-      
+
       if (existingUser.length > 0) {
-        // Delete user organizations
         await db.delete(userOrganizations).where(eq(userOrganizations.userId, existingUser[0].id));
-        // Delete user
         await db.delete(users).where(eq(users.id, existingUser[0].id));
       }
-      
+
       if (existingOrg.length > 0) {
-        // Delete organization
         await db.delete(organizations).where(eq(organizations.id, existingOrg[0].id));
       }
     } catch (error) {
@@ -54,13 +111,11 @@ describe('Document API Integration Tests', () => {
       fs.mkdirSync(TEST_FILES_DIR, { recursive: true });
     }
 
-    // Create test PDF
     if (!fs.existsSync(TEST_PDF_PATH)) {
       const pdfContent = '%PDF-1.4\n1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj 2 0 obj<</Type/Pages/Count 1/Kids[3 0 R]>>endobj 3 0 obj<</Type/Page/MediaBox[0 0 612 792]/Parent 2 0 R/Resources<<>>>>endobj\nxref\n0 4\n0000000000 65535 f\n0000000009 00000 n\n0000000058 00000 n\n0000000115 00000 n\ntrailer<</Size 4/Root 1 0 R>>\nstartxref\n204\n%%EOF';
       fs.writeFileSync(TEST_PDF_PATH, pdfContent);
     }
 
-    // Create test PNG
     if (!fs.existsSync(TEST_IMAGE_PATH)) {
       const pngBuffer = Buffer.from([
         0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,
@@ -76,7 +131,6 @@ describe('Document API Integration Tests', () => {
       fs.writeFileSync(TEST_IMAGE_PATH, pngBuffer);
     }
 
-    // Create test organization
     const orgResult = await db.insert(organizations).values({
       name: 'Test Org for Documents',
       type: 'management_company',
@@ -87,7 +141,6 @@ describe('Document API Integration Tests', () => {
     }).returning();
     testOrganization = orgResult[0];
 
-    // Create test building
     const buildingResult = await db.insert(buildings).values({
       name: 'Test Building for Documents',
       address: '123 Test St',
@@ -99,7 +152,6 @@ describe('Document API Integration Tests', () => {
     }).returning();
     testBuilding = buildingResult[0];
 
-    // Create test user
     const userResult = await db.insert(users).values({
       username: 'testdocuser',
       email: 'testdocuser@example.com',
@@ -110,51 +162,37 @@ describe('Document API Integration Tests', () => {
     }).returning();
     testUser = userResult[0];
 
-    // Link user to organization
     await db.insert(userOrganizations).values({
       userId: testUser.id,
       organizationId: testOrganization.id,
       organizationRole: 'manager',
       isActive: true,
     });
-
-    // Simulate login by creating a session
-    const agent = request.agent(app);
-    const loginRes = await agent
-      .post('/api/auth/login')
-      .send({
-        email: testUser.email,
-        password: 'dummy', // This won't work with real auth, we need to mock the session
-      });
-    
-    // For testing, we'll need to bypass auth or mock the session
-    // Instead, we'll use the requireAuth middleware bypass for tests
-  });
+  }, 30_000);
 
   afterAll(async () => {
-    // Cleanup test data in correct order (documents first, then buildings, then users, then organizations)
+    if (!REAL_DB_URL || !db) return;
     try {
-      // Delete all documents for the test building first
       if (testBuilding?.id) {
         await db.delete(documents).where(eq(documents.buildingId, testBuilding.id));
       }
-      
+
       if (uploadedDocumentId) {
         await db.delete(documents).where(eq(documents.id, uploadedDocumentId));
       }
-      
+
       if (testUser?.id && testOrganization?.id) {
         await db.delete(userOrganizations).where(eq(userOrganizations.userId, testUser.id));
       }
-      
+
       if (testUser?.id) {
         await db.delete(users).where(eq(users.id, testUser.id));
       }
-      
+
       if (testBuilding?.id) {
         await db.delete(buildings).where(eq(buildings.id, testBuilding.id));
       }
-      
+
       if (testOrganization?.id) {
         await db.delete(organizations).where(eq(organizations.id, testOrganization.id));
       }
@@ -162,16 +200,15 @@ describe('Document API Integration Tests', () => {
       console.error('Error during cleanup:', error);
     }
 
-    // Cleanup test files
     if (fs.existsSync(TEST_PDF_PATH)) fs.unlinkSync(TEST_PDF_PATH);
     if (fs.existsSync(TEST_IMAGE_PATH)) fs.unlinkSync(TEST_IMAGE_PATH);
-  });
+  }, 30_000);
 
   describe('POST /api/documents - Document Upload', () => {
     it('should upload a PDF document successfully', async () => {
       const response = await request(app)
         .post('/api/documents')
-        .set('x-test-user-id', testUser.id) // Mock auth header
+        .set('x-test-user-id', testUser.id)
         .attach('file', TEST_PDF_PATH)
         .field('name', 'Test PDF Document')
         .field('documentType', 'legal')
@@ -184,7 +221,7 @@ describe('Document API Integration Tests', () => {
       expect(response.body).toHaveProperty('documentType', 'legal');
       expect(response.body).toHaveProperty('filePath');
       expect(response.body.fileName).toContain('.pdf');
-      
+
       uploadedDocumentId = response.body.id;
     });
 
@@ -204,7 +241,6 @@ describe('Document API Integration Tests', () => {
     });
 
     it('should reject file with invalid type', async () => {
-      // Create a fake executable file
       const invalidPath = path.join(TEST_FILES_DIR, 'malicious.exe');
       fs.writeFileSync(invalidPath, 'fake exe content');
 
@@ -223,7 +259,6 @@ describe('Document API Integration Tests', () => {
     });
 
     it('should reject file that is too large', async () => {
-      // Create a large file (> 10MB)
       const largePath = path.join(TEST_FILES_DIR, 'large.pdf');
       const largeBuffer = Buffer.alloc(11 * 1024 * 1024, 'x'); // 11MB
       fs.writeFileSync(largePath, largeBuffer);
@@ -255,7 +290,6 @@ describe('Document API Integration Tests', () => {
 
   describe('GET /api/documents/:id - Get Document', () => {
     beforeEach(async () => {
-      // Ensure we have a document to test with
       if (!uploadedDocumentId) {
         const uniqueId = Date.now();
         const result = await db.insert(documents).values({
@@ -302,16 +336,15 @@ describe('Document API Integration Tests', () => {
     let downloadTestFilePath: string;
 
     beforeEach(async () => {
-      // Create a real document with actual file using unique filename
       const uniqueId = Date.now();
       const fileName = `test-download-${uniqueId}.pdf`;
       const testFilePath = path.join(process.cwd(), 'uploads', fileName);
       const testDir = path.dirname(testFilePath);
-      
+
       if (!fs.existsSync(testDir)) {
         fs.mkdirSync(testDir, { recursive: true });
       }
-      
+
       fs.copyFileSync(TEST_PDF_PATH, testFilePath);
       downloadTestFilePath = `uploads/${fileName}`;
 
@@ -325,7 +358,7 @@ describe('Document API Integration Tests', () => {
         buildingId: testBuilding.id,
         uploadedById: testUser.id,
       }).returning();
-      
+
       downloadTestDocId = result[0].id;
     });
 
@@ -364,7 +397,6 @@ describe('Document API Integration Tests', () => {
     });
 
     it('should return 404 for non-existent file', async () => {
-      // Create document with non-existent file path
       const uniqueId = Date.now();
       const result = await db.insert(documents).values({
         name: 'Missing File Document',
@@ -403,7 +435,7 @@ describe('Document API Integration Tests', () => {
     it('should filter documents by type', async () => {
       const response = await request(app)
         .get('/api/documents')
-        .query({ 
+        .query({
           buildingId: testBuilding.id,
           documentType: 'legal'
         })
@@ -420,7 +452,6 @@ describe('Document API Integration Tests', () => {
 
   describe('DELETE /api/documents/:id - Delete Document', () => {
     it('should delete document successfully', async () => {
-      // Create a document to delete
       const uniqueId = Date.now();
       const result = await db.insert(documents).values({
         name: 'Document to Delete',
@@ -439,7 +470,6 @@ describe('Document API Integration Tests', () => {
 
       expect(response.status).toBe(204);
 
-      // Verify deletion
       const checkDoc = await db.select().from(documents).where(eq(documents.id, docId));
       expect(checkDoc.length).toBe(0);
     });

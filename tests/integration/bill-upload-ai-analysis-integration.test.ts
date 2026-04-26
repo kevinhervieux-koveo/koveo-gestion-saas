@@ -1,6 +1,8 @@
 /**
+ * @jest-environment node
+ *
  * End-to-end coverage for the AI-analysis side of
- * `POST /api/bills/:id/upload-document` (server/api/bills.ts:1791).
+ * `POST /api/bills/:id/upload-document` (server/api/bills.ts).
  *
  * Task #524 covered the validation layer (auth/file/MIME) of this route.
  * Task #554 (this file) locks in the post-upload AI behaviour that the
@@ -17,29 +19,39 @@
  * The route uses the `aiService` singleton from
  * `server/services/consolidated-ai-service`. Both this test and
  * `bills.ts` import the same module instance, so we monkey-patch
- * `aiService.analyzeBillDocument` directly via `vi.spyOn` — no
+ * `aiService.analyzeBillDocument` directly via `jest.spyOn` — no
  * module-level mock is required and the rest of the upload pipeline
  * (multer → magic-number check → object storage / local fallback →
  * db.update → storage.createDocument) runs end-to-end against the real
  * Postgres test database.
+ *
+ * Task #1134: ported from vitest to Jest using the same `@jest/globals`
+ * + `testApp` pattern as `tests/integration/upload-filename-normalization-
+ * end-to-end.test.ts` so vitest can be removed from the repo.
  */
+
+jest.mock('../../__mocks__/server/storage', () => {
+  const path = require('path');
+  return require(path.resolve(__dirname, '../../server/storage.ts'));
+});
+jest.mock('../../__mocks__/server/auth', () => {
+  const path = require('path');
+  return require(path.resolve(__dirname, '../../server/auth.ts'));
+});
+jest.mock('../../__mocks__/server/routes', () => {
+  const path = require('path');
+  return require(path.resolve(__dirname, '../../server/routes.ts'));
+});
+jest.mock('../../server/config/index', () => {
+  const path = require('path');
+  return require(path.resolve(__dirname, '../../server/config/index.ts'));
+});
+
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/globals';
 import request from 'supertest';
-import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
 import path from 'path';
 import fs from 'fs';
-import { testApp as app } from './test-app';
-import { db } from '../db';
-import {
-  documents,
-  users,
-  organizations,
-  buildings,
-  userOrganizations,
-  bills,
-  userBuildings,
-} from '@shared/schema';
 import { and, eq } from 'drizzle-orm';
-import { aiService } from '../services/consolidated-ai-service';
 
 const FIXTURE_FILENAME = 'bill-ai-success.pdf';
 
@@ -55,9 +67,23 @@ const SAMPLE_ANALYSIS = {
   confidence: 0.91,
 };
 
-describe('POST /api/bills/:id/upload-document — AI analysis end-to-end', () => {
+const REAL_DB_URL = process.env._INTEGRATION_DB_URL;
+const describeIfDb = REAL_DB_URL ? describe : describe.skip;
+
+describeIfDb('POST /api/bills/:id/upload-document — AI analysis end-to-end', () => {
   const FIXTURES_DIR = path.join(process.cwd(), 'server/tests/fixtures');
   const TEST_PDF_PATH = path.join(FIXTURES_DIR, 'bill-ai-analysis.pdf');
+
+  let app: any;
+  let db: any;
+  let documents: any;
+  let users: any;
+  let organizations: any;
+  let buildings: any;
+  let userOrganizations: any;
+  let bills: any;
+  let userBuildings: any;
+  let aiService: any;
 
   let testOrg: any;
   let testBuilding: any;
@@ -65,6 +91,28 @@ describe('POST /api/bills/:id/upload-document — AI analysis end-to-end', () =>
   const createdBillIds = new Set<string>();
 
   beforeAll(async () => {
+    if (!REAL_DB_URL) return;
+
+    process.env.DATABASE_URL = REAL_DB_URL;
+    process.env.USE_MOCK_DB = 'false';
+    process.env.SESSION_SECRET =
+      process.env.SESSION_SECRET || 'test-session-secret-task1134-bill-ai';
+    process.env.NODE_ENV = process.env.NODE_ENV || 'test';
+
+    const schema = require('@shared/schema');
+    documents = schema.documents;
+    users = schema.users;
+    organizations = schema.organizations;
+    buildings = schema.buildings;
+    userOrganizations = schema.userOrganizations;
+    bills = schema.bills;
+    userBuildings = schema.userBuildings;
+
+    db = require('../../server/db').db;
+    aiService = require('../../server/services/consolidated-ai-service').aiService;
+
+    app = require('../../server/tests/test-app').testApp;
+
     if (!fs.existsSync(FIXTURES_DIR)) {
       fs.mkdirSync(FIXTURES_DIR, { recursive: true });
     }
@@ -127,15 +175,16 @@ describe('POST /api/bills/:id/upload-document — AI analysis end-to-end', () =>
       relationshipType: 'manager',
       isActive: true,
     });
-  });
+  }, 30_000);
 
   beforeEach(() => {
     // Make sure spies from previous tests don't leak into this one.
-    vi.restoreAllMocks();
+    jest.restoreAllMocks();
   });
 
   afterAll(async () => {
-    vi.restoreAllMocks();
+    if (!REAL_DB_URL || !db) return;
+    jest.restoreAllMocks();
     try {
       // Documents created by the route are linked via attachedToType/Id
       // OR by buildingId — wipe both to be safe.
@@ -162,7 +211,7 @@ describe('POST /api/bills/:id/upload-document — AI analysis end-to-end', () =>
     }
 
     if (fs.existsSync(TEST_PDF_PATH)) fs.unlinkSync(TEST_PDF_PATH);
-  });
+  }, 30_000);
 
   /** Create a fresh draft bill so each test gets an untouched record. */
   async function createBill(suffix: string): Promise<string> {
@@ -187,7 +236,7 @@ describe('POST /api/bills/:id/upload-document — AI analysis end-to-end', () =>
   }
 
   it('persists the AI analysis on the bill and the linked document on the happy path', async () => {
-    const analyzeSpy = vi
+    const analyzeSpy = jest
       .spyOn(aiService, 'analyzeBillDocument')
       .mockResolvedValue(SAMPLE_ANALYSIS as any);
 
@@ -198,7 +247,7 @@ describe('POST /api/bills/:id/upload-document — AI analysis end-to-end', () =>
       .set('x-test-user-id', testUser.id)
       .attach('document', TEST_PDF_PATH, FIXTURE_FILENAME);
 
-    expect(res.status, `body=${JSON.stringify(res.body)}`).toBe(200);
+    expect(res.status).toBe(200);
     expect(res.body).toMatchObject({
       message: 'Document uploaded and analyzed successfully',
       analysisResult: SAMPLE_ANALYSIS,
@@ -241,7 +290,7 @@ describe('POST /api/bills/:id/upload-document — AI analysis end-to-end', () =>
   });
 
   it('still completes the upload (HTTP 200, file persisted) when the AI analyzer throws', async () => {
-    const analyzeSpy = vi
+    const analyzeSpy = jest
       .spyOn(aiService, 'analyzeBillDocument')
       .mockRejectedValue(new Error('Gemini exploded mid-request'));
 
@@ -254,7 +303,7 @@ describe('POST /api/bills/:id/upload-document — AI analysis end-to-end', () =>
 
     // The whole point of the try/catch around aiService.analyzeBillDocument
     // is that AI failure must not break the upload. Verify the contract.
-    expect(res.status, `body=${JSON.stringify(res.body)}`).toBe(200);
+    expect(res.status).toBe(200);
     expect(res.body).toMatchObject({
       message: 'Document uploaded and analyzed successfully',
       analysisResult: null,

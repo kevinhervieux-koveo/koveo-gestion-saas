@@ -1,6 +1,8 @@
 /**
+ * @jest-environment node
+ *
  * End-to-end verification that the *remaining* multer-backed upload routes
- * (the ones not covered by `upload-filename-normalization-integration.test.ts`)
+ * (the ones not covered by `upload-filename-normalization-end-to-end.test.ts`)
  * also handle French / diacritic / special-character filenames correctly.
  *
  * Sites covered here:
@@ -29,32 +31,60 @@
  * The fixture filename uses French diacritics and whitespace
  * ("Procès-verbal été 2024.pdf") so any future regression in either the
  * multer charset config or the normalizer surfaces immediately.
+ *
+ * Task #1134: ported from vitest to Jest using the same `@jest/globals` +
+ * `testApp` pattern as `tests/integration/upload-filename-normalization-
+ * end-to-end.test.ts` so vitest can be removed from the repo.
  */
+
+// jest.config.cjs maps `./storage`, `./auth`, `./routes`, and the relative
+// `../../server/...` variants to in-repo unit-tier mocks. For this real-DB
+// integration suite we MUST exercise the real implementations. Override the
+// mocks at their resolved paths so jest substitutes the real modules.
+jest.mock('../../__mocks__/server/storage', () => {
+  const path = require('path');
+  return require(path.resolve(__dirname, '../../server/storage.ts'));
+});
+jest.mock('../../__mocks__/server/auth', () => {
+  const path = require('path');
+  return require(path.resolve(__dirname, '../../server/auth.ts'));
+});
+jest.mock('../../__mocks__/server/routes', () => {
+  const path = require('path');
+  return require(path.resolve(__dirname, '../../server/routes.ts'));
+});
+jest.mock('../../server/config/index', () => {
+  const path = require('path');
+  return require(path.resolve(__dirname, '../../server/config/index.ts'));
+});
+
+import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import request from 'supertest';
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import path from 'path';
 import fs from 'fs';
-import { testApp as app } from './test-app';
-import { db } from '../db';
-import {
-  users,
-  organizations,
-  buildings,
-  userOrganizations,
-  userBuildings,
-  userResidences,
-  residences,
-  demands,
-} from '@shared/schema';
 import { eq } from 'drizzle-orm';
-import { normalizeFilename } from '../utils/filenameNormalization';
 
 const FRENCH_FILENAME = 'Procès-verbal été 2024.pdf';
 const EXPECTED_NORMALIZED = 'proces-verbal_ete_2024.pdf';
 
-describe('Upload filename normalization — secondary routes (end-to-end)', () => {
+const REAL_DB_URL = process.env._INTEGRATION_DB_URL;
+const describeIfDb = REAL_DB_URL ? describe : describe.skip;
+
+describeIfDb('Upload filename normalization — secondary routes (end-to-end)', () => {
   const FIXTURES_DIR = path.join(process.cwd(), 'server/tests/fixtures');
   const TEST_PDF_PATH = path.join(FIXTURES_DIR, 'french-upload-secondary.pdf');
+
+  let app: any;
+  let db: any;
+  let users: any;
+  let organizations: any;
+  let buildings: any;
+  let userOrganizations: any;
+  let userBuildings: any;
+  let userResidences: any;
+  let residences: any;
+  let demands: any;
+  let normalizeFilename: (input: string) => string;
 
   let testOrg: any;
   let testBuilding: any;
@@ -64,6 +94,29 @@ describe('Upload filename normalization — secondary routes (end-to-end)', () =
   const createdDemandIds = new Set<string>();
 
   beforeAll(async () => {
+    if (!REAL_DB_URL) return;
+
+    process.env.DATABASE_URL = REAL_DB_URL;
+    process.env.USE_MOCK_DB = 'false';
+    process.env.SESSION_SECRET =
+      process.env.SESSION_SECRET || 'test-session-secret-task1134-secondary';
+    process.env.NODE_ENV = process.env.NODE_ENV || 'test';
+
+    const schema = require('@shared/schema');
+    users = schema.users;
+    organizations = schema.organizations;
+    buildings = schema.buildings;
+    userOrganizations = schema.userOrganizations;
+    userBuildings = schema.userBuildings;
+    userResidences = schema.userResidences;
+    residences = schema.residences;
+    demands = schema.demands;
+
+    db = require('../../server/db').db;
+    normalizeFilename = require('../../server/utils/filenameNormalization').normalizeFilename;
+
+    app = require('../../server/tests/test-app').testApp;
+
     if (!fs.existsSync(FIXTURES_DIR)) {
       fs.mkdirSync(FIXTURES_DIR, { recursive: true });
     }
@@ -145,9 +198,10 @@ describe('Upload filename normalization — secondary routes (end-to-end)', () =
       startDate: '2024-01-01' as any,
       isActive: true,
     } as any);
-  });
+  }, 30_000);
 
   afterAll(async () => {
+    if (!REAL_DB_URL || !db) return;
     try {
       for (const id of createdDemandIds) {
         await db.delete(demands).where(eq(demands.id, id));
@@ -172,7 +226,7 @@ describe('Upload filename normalization — secondary routes (end-to-end)', () =
     }
 
     if (fs.existsSync(TEST_PDF_PATH)) fs.unlinkSync(TEST_PDF_PATH);
-  });
+  }, 30_000);
 
   /**
    * Sanity guard: if anyone weakens the canonical normalizer, every
@@ -195,16 +249,10 @@ describe('Upload filename normalization — secondary routes (end-to-end)', () =
       .set('x-test-user-id', testUser.id)
       .attach('file', TEST_PDF_PATH, FRENCH_FILENAME);
 
-    expect(res.status, `body=${JSON.stringify(res.body)}`).toBe(200);
+    expect(res.status).toBe(200);
     expect(res.body?.files).toHaveLength(1);
-    expect(
-      res.body.files[0].originalName,
-      '/api/upload: originalName must round-trip as utf8',
-    ).toBe(FRENCH_FILENAME);
-    expect(
-      res.body.files[0].url,
-      '/api/upload: url should point at /uploads/demands/',
-    ).toMatch(/^\/uploads\/demands\/demand-\d+-\d+\.pdf$/);
+    expect(res.body.files[0].originalName).toBe(FRENCH_FILENAME);
+    expect(res.body.files[0].url).toMatch(/^\/uploads\/demands\/demand-\d+-\d+\.pdf$/);
   });
 
   it('POST /api/demands persists the utf8 original filename returned by /api/upload', async () => {
@@ -237,7 +285,7 @@ describe('Upload filename normalization — secondary routes (end-to-end)', () =
         ],
       });
 
-    expect(res.status, `body=${JSON.stringify(res.body)}`).toBe(201);
+    expect(res.status).toBe(201);
     const demandId: string = res.body.id;
     expect(demandId).toBeTruthy();
     createdDemandIds.add(demandId);
@@ -251,9 +299,7 @@ describe('Upload filename normalization — secondary routes (end-to-end)', () =
     // server-generated `filePath` uses a synthetic demand-{ts}-{rand}{ext}
     // name instead). The thing we MUST guarantee is that the utf8 bytes
     // survive the multipart round-trip.
-    expect(row.fileName, '/api/demands: fileName must preserve utf8 original').toBe(
-      FRENCH_FILENAME,
-    );
-    expect(row.filePath, '/api/demands: filePath must be persisted').toBe(attachment.url);
+    expect(row.fileName).toBe(FRENCH_FILENAME);
+    expect(row.filePath).toBe(attachment.url);
   });
 });
