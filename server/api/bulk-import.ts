@@ -845,6 +845,45 @@ const RUN_ALL_ITEM_TIMEOUT_MS = 90_000; // 90 seconds
  */
 const RUN_ALL_HEARTBEAT_THROTTLE_MS = 800;
 
+/**
+ * Delay between launching successive run-all workers (Task #1191).
+ *
+ * Without a startup stagger all `RUN_ALL_CONCURRENCY` workers dequeue
+ * at t=0 and fire their Anthropic calls in the same tick. On larger
+ * bulk-import batches that initial burst pushes us over Anthropic's
+ * per-minute limits and the analyzer's 3-attempt exponential backoff
+ * (capped at 8 s, see `RETRY_MAX_DELAY_MS` in
+ * `server/services/bulk-import-analyzer.ts`) cannot recover within
+ * the 90 s per-item timeout, surfacing as "AI failed after 3 attempts"
+ * badges in the wizard.
+ *
+ * The stagger ramps workers up one-by-one so the first AI call goes
+ * out immediately and the rest join shortly after, smoothing the
+ * initial spike. Tune up to slow the ramp further if rate-limit
+ * failures still appear; tune down for snappier startup.
+ */
+const RUN_ALL_WORKER_STAGGER_MS = 750;
+
+/**
+ * Per-worker pause between consecutive items (Task #1191).
+ *
+ * After a worker finishes one item it waits this long before pulling
+ * the next from the queue. Combined with `RUN_ALL_WORKER_STAGGER_MS`
+ * this keeps the steady-state Anthropic call rate well under the
+ * burst rate `RUN_ALL_CONCURRENCY` would otherwise produce, without
+ * meaningfully slowing healthy batches (the analyzer's own latency
+ * dominates).
+ *
+ * Pacing is layered above the analyzer's existing retry/backoff in
+ * `server/services/bulk-import-analyzer.ts` — it is not a replacement.
+ *
+ * Note: pacing applies only to the run-all worker loop. The per-item
+ * "Retry" endpoint (see `inFlightPerItemRetry` below) calls
+ * `processItemForStep` directly and is intentionally exempt — manual
+ * one-off retries should feel instant.
+ */
+const RUN_ALL_INTER_CALL_DELAY_MS = 500;
+
 export const inFlightRunAll = new Set<string>();
 
 /**
@@ -1817,12 +1856,41 @@ async function runAllForStep(sessionId: string, step: AutoStep): Promise<void> {
         processed += 1;
         currentInFlight.delete(item.id);
         await flushHeartbeat();
+
+        // Inter-call settle delay (Task #1191). Pause briefly before
+        // pulling the next item so consecutive Anthropic calls per
+        // worker are spaced out, smoothing the steady-state burst rate.
+        // Skipped when the queue is already empty so we don't add
+        // pointless latency to the final flush. The cancellation flag
+        // is re-checked after the sleep so a session clear during the
+        // pause still terminates the worker cleanly. The semaphore
+        // gate above (`rawInFlight >= RUN_ALL_CONCURRENCY`) still wins
+        // when timed-out work is in flight — pacing is additive.
+        if (queue.length > 0 && RUN_ALL_INTER_CALL_DELAY_MS > 0) {
+          await new Promise<void>((r) => setTimeout(r, RUN_ALL_INTER_CALL_DELAY_MS));
+          if (!inFlightRunAll.has(key)) break;
+        }
       }
     }
 
-    // Launch up to RUN_ALL_CONCURRENCY workers in parallel.
+    // Launch up to RUN_ALL_CONCURRENCY workers with a startup stagger
+    // (Task #1191). The first worker starts immediately; each
+    // subsequent worker waits `RUN_ALL_WORKER_STAGGER_MS` before
+    // joining so the initial burst of Anthropic calls is spread out
+    // over time instead of firing at t=0. Cooperative cancellation is
+    // preserved — a session clear between worker launches removes the
+    // key from `inFlightRunAll`, and the gap below stops dispatching.
     const concurrency = Math.min(RUN_ALL_CONCURRENCY, eligible.length);
-    await Promise.all(Array.from({ length: concurrency }, worker));
+    const workers: Promise<void>[] = [];
+    for (let i = 0; i < concurrency; i++) {
+      if (!inFlightRunAll.has(key)) break;
+      if (i > 0 && RUN_ALL_WORKER_STAGGER_MS > 0) {
+        await new Promise<void>((r) => setTimeout(r, RUN_ALL_WORKER_STAGGER_MS));
+        if (!inFlightRunAll.has(key)) break;
+      }
+      workers.push(worker());
+    }
+    await Promise.all(workers);
 
     // Force-flush final authoritative counters before marking done.
     // Throttled heartbeats may have left processed/failed stale for fast
@@ -5485,6 +5553,11 @@ export function registerBulkImportRoutes(app: Express): void {
           // response goes out within milliseconds, regardless of how long
           // Anthropic takes. The Replit edge proxy used to kill the
           // connection with 502 when this ran inline (Task #1047).
+          //
+          // Pacing note (Task #1191): the run-all loop applies a startup
+          // stagger and inter-call settle delay to smooth Anthropic
+          // bursts. Per-item retries deliberately bypass that pacing —
+          // they are one-off manual actions that should feel instant.
           const work = (async () => {
             try {
               await withItemTimeout(
