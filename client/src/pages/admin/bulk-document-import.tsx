@@ -3951,7 +3951,7 @@ export default function BulkDocumentImportPage() {
                                                 subCategory: reassignSubCategory,
                                                 residenceId: reassignResidenceId || null,
                                               })}
-                                              disabled={reassignItem.isPending}
+                                              disabled={reassignItem.isPending || (reassignBranch === 'residence_documents' && !reassignResidenceId)}
                                               data-testid={`button-reassign-save-${item.id}`}
                                             >
                                               {reassignItem.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : (isFr ? 'Enregistrer' : 'Save')}

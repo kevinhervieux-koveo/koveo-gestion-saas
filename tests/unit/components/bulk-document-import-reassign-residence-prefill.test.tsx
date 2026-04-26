@@ -95,6 +95,8 @@ const ITEM_HAS_RESIDENCE = 'item-has-residence';
 const ITEM_AI_FALLBACK = 'item-ai-fallback';
 const ITEM_DESTINATION_TOGGLE = 'item-destination-toggle';
 const ITEM_AI_HINT_OVERRIDE = 'item-ai-hint-override';
+const ITEM_SAVE_DISABLED = 'item-save-disabled';
+const ITEM_SAVE_NON_RESIDENCE = 'item-save-non-residence';
 
 const RESIDENCES = [
   { id: 'res-101', unitNumber: '101' },
@@ -607,5 +609,116 @@ describe('BulkDocumentImportPage — reassign residence dropdown pre-fill (Task 
     expect(
       screen.getByTestId(`reassign-residence-ai-hint-${ITEM_AI_HINT_OVERRIDE}`),
     ).toBeInTheDocument();
+  });
+
+  // ===========================================================================
+  // 5. Save button is disabled when destination is Residences and no residence
+  //    is picked; it becomes enabled once a residence is selected. (Task #1101)
+  // ===========================================================================
+
+  it('disables Save when destination is Residences and no residence is picked, then re-enables it after a residence is selected', async () => {
+    setupTest([
+      buildItem({
+        id: ITEM_SAVE_DISABLED,
+        originalName: 'lease-no-residence.pdf',
+        status: 'sorted',
+        branch: 'residence_documents',
+        residenceId: null,
+        residenceAiSuggestedId: null,
+        residenceAiSuggested: false,
+        residenceAiConfirmed: false,
+        residenceManualOverride: false,
+        residenceReason: null,
+      }),
+    ]);
+    renderPage();
+
+    const reassignBtn = await screen.findByTestId(
+      `button-reassign-${ITEM_SAVE_DISABLED}`,
+      undefined,
+      { timeout: 4000 },
+    );
+    await act(async () => {
+      fireEvent.click(reassignBtn);
+    });
+
+    await screen.findByTestId(`reassign-picker-${ITEM_SAVE_DISABLED}`);
+
+    // Save must be disabled because destination is residence_documents
+    // and no residence is selected yet.
+    const saveBtn = screen.getByTestId(`button-reassign-save-${ITEM_SAVE_DISABLED}`);
+    expect(saveBtn).toBeDisabled();
+
+    // The amber "residence required" hint must be visible so the admin
+    // understands why Save is blocked.
+    expect(
+      screen.getByTestId(`reassign-residence-required-hint-${ITEM_SAVE_DISABLED}`),
+    ).toBeInTheDocument();
+
+    // Admin picks a residence — Save must become enabled.
+    const residenceTrigger = getResidenceTrigger(ITEM_SAVE_DISABLED);
+    await act(async () => {
+      fireEvent.pointerDown(residenceTrigger, { button: 0 });
+      fireEvent.click(residenceTrigger);
+    });
+    const option101 = await screen.findByRole(
+      'option',
+      { name: /^101$/ },
+      { timeout: 4000 },
+    );
+    await act(async () => {
+      fireEvent.click(option101);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId(`button-reassign-save-${ITEM_SAVE_DISABLED}`)).not.toBeDisabled();
+    });
+
+    // The amber hint must also disappear once a residence is chosen.
+    expect(
+      screen.queryByTestId(`reassign-residence-required-hint-${ITEM_SAVE_DISABLED}`),
+    ).not.toBeInTheDocument();
+  });
+
+  // ===========================================================================
+  // 6. Save button stays enabled when destination is not Residences. (Task #1101)
+  // ===========================================================================
+
+  it('keeps Save enabled when destination is not Residences, regardless of the residence dropdown', async () => {
+    setupTest([
+      buildItem({
+        id: ITEM_SAVE_NON_RESIDENCE,
+        originalName: 'building-doc.pdf',
+        status: 'branched',
+        branch: 'building_documents',
+        residenceId: null,
+        residenceAiSuggestedId: null,
+        residenceAiSuggested: false,
+        residenceAiConfirmed: false,
+        residenceManualOverride: false,
+        residenceReason: null,
+      }),
+    ]);
+    renderPage();
+
+    const reassignBtn = await screen.findByTestId(
+      `button-reassign-${ITEM_SAVE_NON_RESIDENCE}`,
+      undefined,
+      { timeout: 4000 },
+    );
+    await act(async () => {
+      fireEvent.click(reassignBtn);
+    });
+
+    await screen.findByTestId(`reassign-picker-${ITEM_SAVE_NON_RESIDENCE}`);
+
+    // The residence Select must not be rendered for non-residence branches.
+    expect(
+      screen.queryByTestId(`reassign-residence-select-${ITEM_SAVE_NON_RESIDENCE}`),
+    ).not.toBeInTheDocument();
+
+    // Save must be enabled even though no residence is selected.
+    const saveBtn = screen.getByTestId(`button-reassign-save-${ITEM_SAVE_NON_RESIDENCE}`);
+    expect(saveBtn).not.toBeDisabled();
   });
 });
