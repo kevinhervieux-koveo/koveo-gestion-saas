@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import {
   Dialog,
   DialogContent,
@@ -45,6 +46,7 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 import { Header } from '@/components/layout/header';
 import type { DocumentTag } from '@/components/document-tags/TagPicker';
 import { useLanguage } from '@/hooks/use-language';
+import { useAuth } from '@/hooks/use-auth';
 
 const baseTagFormSchema = z.object({
   name: z.string().min(1).max(150),
@@ -52,6 +54,7 @@ const baseTagFormSchema = z.object({
   scope: z.enum(['building', 'residence', 'any']),
   importance: z.enum(['obligatoire', 'nice_to_have', 'extra']),
   suggestedProfessionals: z.string().optional(),
+  isSystem: z.boolean().optional().default(false),
 });
 
 type TagFormValues = z.infer<typeof baseTagFormSchema>;
@@ -59,6 +62,8 @@ type TagFormValues = z.infer<typeof baseTagFormSchema>;
 export default function ManagerDocumentTags() {
   const { t } = useLanguage();
   const { toast } = useToast();
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<DocumentTag | null>(null);
 
@@ -78,6 +83,7 @@ export default function ManagerDocumentTags() {
       scope: 'any',
       importance: 'nice_to_have',
       suggestedProfessionals: '',
+      isSystem: false,
     },
   });
 
@@ -89,6 +95,7 @@ export default function ManagerDocumentTags() {
       scope: 'any',
       importance: 'nice_to_have',
       suggestedProfessionals: '',
+      isSystem: false,
     });
     setOpen(true);
   };
@@ -101,12 +108,13 @@ export default function ManagerDocumentTags() {
       scope: tag.scope,
       importance: tag.importance,
       suggestedProfessionals: (tag.suggestedProfessionals || []).join(', '),
+      isSystem: false,
     });
     setOpen(true);
   };
 
   const submit = async (values: TagFormValues) => {
-    const payload = {
+    const payload: Record<string, unknown> = {
       name: values.name,
       description: values.description || null,
       scope: values.scope,
@@ -116,6 +124,9 @@ export default function ManagerDocumentTags() {
         .map((s) => s.trim())
         .filter(Boolean),
     };
+    if (!editing && isAdmin) {
+      payload.isSystem = values.isSystem ?? false;
+    }
     try {
       if (editing) {
         await apiRequest('PATCH', `/api/document-tags/${editing.id}`, payload);
@@ -313,6 +324,32 @@ export default function ManagerDocumentTags() {
                     </FormItem>
                   )}
                 />
+                {isAdmin && !editing && (
+                  <FormField
+                    control={form.control}
+                    name="isSystem"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col gap-1 rounded-md border p-4">
+                        <div className="flex items-center justify-between">
+                          <FormLabel className="cursor-pointer" htmlFor="toggle-is-system">
+                            {t('dtKoveoTagLabel')}
+                          </FormLabel>
+                          <FormControl>
+                            <Switch
+                              id="toggle-is-system"
+                              checked={field.value ?? false}
+                              onCheckedChange={field.onChange}
+                              data-testid="toggle-is-system"
+                            />
+                          </FormControl>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {t('dtKoveoTagHelper')}
+                        </p>
+                      </FormItem>
+                    )}
+                  />
+                )}
                 <DialogFooter>
                   <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                     {t('dtCancelButton')}

@@ -25,6 +25,10 @@ const tagInputSchema = insertDocumentTagSchema
     suggestedProfessionals: z.array(z.string()).default([]),
   });
 
+const tagCreateSchema = tagInputSchema.extend({
+  isSystem: z.boolean().optional().default(false),
+});
+
 const tagUpdateSchema = tagInputSchema.partial();
 
 /**
@@ -104,9 +108,32 @@ export function registerDocumentTagRoutes(app: Express): void {
     async (req: any, res) => {
       try {
         const user = req.user;
-        const parsed = tagInputSchema.safeParse(req.body);
+        const parsed = tagCreateSchema.safeParse(req.body);
         if (!parsed.success) {
           return res.status(400).json({ message: 'Invalid tag', errors: parsed.error.errors });
+        }
+
+        const wantsSystem = parsed.data.isSystem === true;
+
+        if (wantsSystem && user.role !== 'admin') {
+          return res.status(403).json({ message: 'Only admins can create system tags' });
+        }
+
+        if (wantsSystem) {
+          const [created] = await db
+            .insert(documentTags)
+            .values({
+              organizationId: null,
+              name: parsed.data.name,
+              description: parsed.data.description ?? null,
+              scope: parsed.data.scope,
+              importance: parsed.data.importance,
+              suggestedProfessionals: parsed.data.suggestedProfessionals,
+              isSystem: true,
+              source: 'koveo',
+            })
+            .returning();
+          return res.status(201).json(created);
         }
 
         const orgIds = await getUserOrgIds(user.id);

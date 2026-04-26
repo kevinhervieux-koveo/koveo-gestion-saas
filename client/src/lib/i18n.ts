@@ -4146,6 +4146,8 @@ export interface Translations {
   dtToastErrorTitle: string;
   dtDeleteConfirm: string;
   dtNameRequired: string;
+  dtKoveoTagLabel: string;
+  dtKoveoTagHelper: string;
   ihGlobalSearchPlaceholder: string;
   pdvFailedToLoadDashboard: string;
   pdvSelectBuildingForDashboard: string;
@@ -8333,6 +8335,8 @@ export const translations: Record<Language, Translations> = {
     dtToastErrorTitle: 'Error',
     dtDeleteConfirm: 'Delete tag "{name}"?',
     dtNameRequired: 'Name required',
+    dtKoveoTagLabel: 'Official Koveo tag — available to all organizations',
+    dtKoveoTagHelper: 'When enabled, this tag becomes a system tag visible to every organization.',
     ihGlobalSearchPlaceholder: 'Search elements by name, UNIFORMAT code, or description...',
     pdvFailedToLoadDashboard: 'Failed to load dashboard analytics. Please try again.',
     pdvSelectBuildingForDashboard: 'Please select a building to view its project dashboard.',
@@ -12525,6 +12529,8 @@ export const translations: Record<Language, Translations> = {
     dtToastErrorTitle: 'Erreur',
     dtDeleteConfirm: 'Supprimer l\'étiquette « {name} » ?',
     dtNameRequired: 'Nom requis',
+    dtKoveoTagLabel: 'Étiquette Koveo officielle — disponible pour toutes les organisations',
+    dtKoveoTagHelper: 'Lorsqu\'activée, cette étiquette devient une étiquette système visible par toutes les organisations.',
     ihGlobalSearchPlaceholder: 'Rechercher des éléments par nom, code UNIFORMAT ou description...',
     pdvFailedToLoadDashboard: 'Échec du chargement des analyses du tableau de bord. Veuillez réessayer.',
     pdvSelectBuildingForDashboard: 'Veuillez sélectionner un immeuble pour consulter son tableau de bord de projets.',
