@@ -15,17 +15,11 @@
  * as pages were moved or renamed and were only found by ad-hoc manual
  * scans. This guard catches the next regression the moment it lands.
  *
- * False-positive avoidance:
- *   - Lookbehind rejects `@`, `/`, `.`, `\w`, `-` immediately preceding
- *     the prefix, so node-module specifiers such as
- *     `@modelcontextprotocol/sdk/server/mcp.js` are NOT extracted as
- *     repo paths (the leading `@` disqualifies them).
- *   - The pattern requires the path to begin at one of the known
- *     top-level repo directories, so regex-alternation literals such as
- *     `route-manifest\.(json|js)` cannot synthesize a fake
- *     `route-manifest.js` reference (no prefix → no match), and the
- *     legitimate `server/route-manifest.json` literal resolves on disk
- *     just like any other real path.
+ * The path-extraction logic, prefix list, and false-positive
+ * lookbehinds are factored into `scripts/lib/repo-path-refs.ts` so the
+ * companion production-code guard
+ * (`tests/unit/test-prod-doc-path-references.test.ts`, Task #1236)
+ * stays in lock-step.
  *
  * Allow-list: a small number of legitimate historical/planned
  * references are tolerated (paths that intentionally describe code
@@ -40,6 +34,10 @@
 import { describe, it, expect } from '@jest/globals';
 import fs from 'fs';
 import path from 'path';
+import {
+  findMissingRepoPathRefs,
+  type FoundRef,
+} from '../../scripts/lib/repo-path-refs';
 
 const repoRoot = path.resolve(__dirname, '../..');
 const SCAN_ROOTS = [
@@ -47,38 +45,17 @@ const SCAN_ROOTS = [
   path.join(repoRoot, 'server', 'tests'),
 ];
 
-const SOURCE_FILE_EXTENSIONS = [
-  'ts',
-  'tsx',
-  'js',
-  'jsx',
-  'cjs',
-  'mjs',
-  'json',
-  'css',
-  'html',
-  'md',
-];
-
-const SCAN_FILE_EXTENSIONS = /\.(ts|tsx|js|jsx|cjs|mjs)$/;
-
-const PREFIX_GROUP =
-  '(?:client/src|server|shared|tests|scripts|public|drizzle|migrations)';
-const EXT_GROUP = `(?:${SOURCE_FILE_EXTENSIONS.join('|')})`;
-
 /**
- * Match path-like substrings that:
- *   - are NOT preceded by `@`, `/`, `.`, `-`, or any word character
- *     (filters out `@modelcontextprotocol/sdk/server/mcp.js`,
- *      `node_modules/server/...`, partial-identifier suffixes, etc.)
- *   - start with one of the known top-level repo directories
- *   - end with a recognised source/asset extension followed by a
- *     non-word boundary (so `foo.ts` is a match but `foo.tsfoo` is not)
+ * Files to skip when walking the tests trees. The companion
+ * production-code guard's allow-list contains paths that intentionally
+ * do not exist on disk (and that are accounted for over there); the
+ * file lives under `tests/` only because Jest discovers it there, so
+ * it would otherwise pollute this guard's findings with cross-guard
+ * noise.
  */
-const PATH_PATTERN = new RegExp(
-  String.raw`(?<![@\w./-])(${PREFIX_GROUP}/[A-Za-z0-9_./-]+\.${EXT_GROUP})(?!\w)`,
-  'g',
-);
+const EXCLUDE_FILES = new Set<string>([
+  'tests/unit/test-prod-doc-path-references.test.ts',
+]);
 
 interface AllowedRef {
   filePath: string;
@@ -115,55 +92,12 @@ const ALLOWED_PATHS = new Set(
   ALLOWED_MISSING_REFERENCES.map((entry) => entry.filePath),
 );
 
-function walk(dir: string): string[] {
-  if (!fs.existsSync(dir)) return [];
-  const out: string[] = [];
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    if (entry.name === 'node_modules' || entry.name.startsWith('.')) continue;
-    const p = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      out.push(...walk(p));
-    } else if (SCAN_FILE_EXTENSIONS.test(entry.name)) {
-      out.push(p);
-    }
-  }
-  return out;
-}
-
-interface FoundRef {
-  refPath: string;
-  testFile: string;
-  line: number;
-}
-
 function extractMissingRefs(): FoundRef[] {
-  const findings: FoundRef[] = [];
-  for (const root of SCAN_ROOTS) {
-    for (const file of walk(root)) {
-      const content = fs.readFileSync(file, 'utf-8');
-      const lines = content.split('\n');
-      const seenInFile = new Set<string>();
-      for (let i = 0; i < lines.length; i++) {
-        const lineText = lines[i];
-        PATH_PATTERN.lastIndex = 0;
-        let match: RegExpExecArray | null;
-        while ((match = PATH_PATTERN.exec(lineText)) !== null) {
-          const refPath = match[1];
-          if (seenInFile.has(refPath)) continue;
-          seenInFile.add(refPath);
-          const absPath = path.join(repoRoot, refPath);
-          if (!fs.existsSync(absPath)) {
-            findings.push({
-              refPath,
-              testFile: path.relative(repoRoot, file),
-              line: i + 1,
-            });
-          }
-        }
-      }
-    }
-  }
-  return findings;
+  return findMissingRepoPathRefs({
+    repoRoot,
+    scanRoots: SCAN_ROOTS,
+    walkOptions: { excludeFiles: EXCLUDE_FILES },
+  });
 }
 
 describe('Test Doc Path Reference Guard', () => {
@@ -181,7 +115,7 @@ describe('Test Doc Path Reference Guard', () => {
       for (const [ref, refs] of grouped) {
         lines.push(`  ${ref}`);
         for (const r of refs) {
-          lines.push(`    referenced from ${r.testFile}:${r.line}`);
+          lines.push(`    referenced from ${r.sourceFile}:${r.line}`);
         }
       }
       throw new Error(
