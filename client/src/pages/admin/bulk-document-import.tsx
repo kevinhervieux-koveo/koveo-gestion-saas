@@ -84,7 +84,11 @@ import {
 } from '@shared/schemas/bulk-import';
 import { ConfidenceBadge } from './bulk-import-confidence-badge';
 import { FallbackReasonBadge, TextOnlyDegradedBadge, FALLBACK_REASON_LABELS, FALLBACK_REASON_EXPLANATIONS, formatRetryAttempts } from './bulk-import-fallback-reason-badge';
-import { resolveLinkingGroups } from './bulk-import-linking-groups';
+import {
+  resolveLinkingGroups,
+  computeLinkingDropChanges,
+  computeLinkingMakeStandaloneChanges,
+} from './bulk-import-linking-groups';
 import type { LinkingGroup } from './bulk-import-linking-groups';
 import {
   AUTO_STEPS,
@@ -3550,85 +3554,9 @@ export default function BulkDocumentImportPage() {
    * regardless of where in the chain the drag starts or ends.
    */
   function handleLinkingDrop(dragId: string, targetId: string, position: 'before' | 'after') {
-    if (dragId === targetId) return;
-
-    /**
-     * Walk backwards to the chain head, then forward to collect the full
-     * ordered sequence.  Cycle-guards prevent infinite loops if the
-     * persisted or optimistic state is somehow corrupt.
-     */
-    function getChainOrder(startId: string): string[] {
-      const backSeen = new Set<string>();
-      let headId = startId;
-      while (true) {
-        const eff = getLinkingEffective(headId);
-        if (!eff.before || backSeen.has(eff.before)) break;
-        backSeen.add(headId);
-        headId = eff.before;
-      }
-      const chain: string[] = [];
-      const fwdSeen = new Set<string>();
-      let cur: string | null = headId;
-      while (cur && !fwdSeen.has(cur)) {
-        fwdSeen.add(cur);
-        chain.push(cur);
-        cur = getLinkingEffective(cur).after;
-      }
-      return chain;
-    }
-
-    const dragChain = getChainOrder(dragId);
-    const targetChain = getChainOrder(targetId);
-    const dragChainSet = new Set(dragChain);
-
-    const srcWithoutDrag = dragChain.filter((id) => id !== dragId);
-    const isIntraChain = dragChainSet.has(targetId);
-
-    let newSequence: string[];
-    if (isIntraChain) {
-      const idx = srcWithoutDrag.indexOf(targetId);
-      const insertAt = position === 'before' ? idx : idx + 1;
-      srcWithoutDrag.splice(insertAt, 0, dragId);
-      newSequence = srcWithoutDrag;
-    } else {
-      const targetSeq = [...targetChain];
-      const idx = targetSeq.indexOf(targetId);
-      const insertAt = position === 'before' ? idx : idx + 1;
-      targetSeq.splice(insertAt, 0, dragId);
-      newSequence = targetSeq;
-    }
-
-    function sequenceToChanges(
-      seq: string[],
-      out: Map<string, { beforeItemId: string | null; afterItemId: string | null }>,
-    ) {
-      for (let i = 0; i < seq.length; i++) {
-        out.set(seq[i], {
-          beforeItemId: i > 0 ? seq[i - 1] : null,
-          afterItemId: i < seq.length - 1 ? seq[i + 1] : null,
-        });
-      }
-    }
-
-    const changes = new Map<string, { beforeItemId: string | null; afterItemId: string | null }>();
-    sequenceToChanges(newSequence, changes);
-    if (!isIntraChain) {
-      sequenceToChanges(srcWithoutDrag, changes);
-    }
-
-    let anyChanged = false;
-    for (const [id, v] of changes) {
-      const eff = getLinkingEffective(id);
-      if (eff.before !== v.beforeItemId || eff.after !== v.afterItemId) {
-        anyChanged = true;
-        break;
-      }
-    }
-    if (!anyChanged) return;
-
-    applyLinkingChanges(
-      Array.from(changes.entries()).map(([itemId, v]) => ({ itemId, ...v })),
-    );
+    const changes = computeLinkingDropChanges(dragId, targetId, position, getLinkingEffective);
+    if (changes.length === 0) return;
+    applyLinkingChanges(changes);
   }
 
   /**
@@ -3636,27 +3564,9 @@ export default function BulkDocumentImportPage() {
    * (before = null, after = null) and reconnecting its former neighbors.
    */
   function handleLinkingMakeStandalone(dragId: string) {
-    const eff = getLinkingEffective(dragId);
-    if (!eff.before && !eff.after) return; // already standalone
-
-    const changes = new Map<string, { beforeItemId: string | null; afterItemId: string | null }>();
-    const set = (id: string, b: string | null, a: string | null) =>
-      changes.set(id, { beforeItemId: b, afterItemId: a });
-    const cur = (id: string) => changes.get(id) ?? { beforeItemId: getLinkingEffective(id).before, afterItemId: getLinkingEffective(id).after };
-
-    if (eff.before) {
-      const c = cur(eff.before);
-      set(eff.before, c.beforeItemId, eff.after);
-    }
-    if (eff.after) {
-      const c = cur(eff.after);
-      set(eff.after, eff.before, c.afterItemId);
-    }
-    set(dragId, null, null);
-
-    applyLinkingChanges(
-      Array.from(changes.entries()).map(([itemId, v]) => ({ itemId, ...v })),
-    );
+    const changes = computeLinkingMakeStandaloneChanges(dragId, getLinkingEffective);
+    if (changes.length === 0) return;
+    applyLinkingChanges(changes);
   }
 
   /**

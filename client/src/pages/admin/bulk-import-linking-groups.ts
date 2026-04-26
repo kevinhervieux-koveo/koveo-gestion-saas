@@ -134,3 +134,155 @@ export function resolveLinkingGroups<T extends LinkingItemShape>(
 
   return { groups, standaloneIds };
 }
+
+/** Effective before/after pointers for a single item, after overrides. */
+export interface LinkingEffective {
+  before: string | null;
+  after: string | null;
+}
+
+/** A persisted linking-chain edit for one item. */
+export interface LinkingChange {
+  itemId: string;
+  beforeItemId: string | null;
+  afterItemId: string | null;
+}
+
+/**
+ * Walk backwards then forwards from `startId` using `getEffective` to
+ * build the full ordered chain that contains `startId`.  Both walks are
+ * cycle-guarded so a corrupt persisted/optimistic state can never cause
+ * an infinite loop.
+ */
+function getChainOrder(
+  startId: string,
+  getEffective: (id: string) => LinkingEffective,
+): string[] {
+  const backSeen = new Set<string>();
+  let headId = startId;
+  while (true) {
+    const eff = getEffective(headId);
+    if (!eff.before || backSeen.has(eff.before)) break;
+    backSeen.add(headId);
+    headId = eff.before;
+  }
+  const chain: string[] = [];
+  const fwdSeen = new Set<string>();
+  let cur: string | null = headId;
+  while (cur && !fwdSeen.has(cur)) {
+    fwdSeen.add(cur);
+    chain.push(cur);
+    cur = getEffective(cur).after;
+  }
+  return chain;
+}
+
+function sequenceToChanges(
+  seq: string[],
+  out: Map<string, { beforeItemId: string | null; afterItemId: string | null }>,
+) {
+  for (let i = 0; i < seq.length; i++) {
+    out.set(seq[i], {
+      beforeItemId: i > 0 ? seq[i - 1] : null,
+      afterItemId: i < seq.length - 1 ? seq[i + 1] : null,
+    });
+  }
+}
+
+/**
+ * Pure computation behind `handleLinkingDrop`.
+ *
+ * Given a `dragId` being dropped onto `targetId` at `position`
+ * ('before' | 'after'), returns the minimal set of `LinkingChange`s
+ * (only items whose effective before/after actually changed) needed to
+ * realize the drop.  Returns an empty array when the drop is a no-op
+ * (e.g. dragging onto itself, or the resulting topology equals the
+ * current one).
+ *
+ * Algorithm: collect both the source chain (the chain `dragId` is
+ * leaving) and the target chain (the chain it's joining), splice
+ * `dragId` into the target chain at the requested position, then
+ * regenerate consistent before/after pairs for every member of both
+ * chains.  Pure: no React state and no network calls.
+ */
+export function computeLinkingDropChanges(
+  dragId: string,
+  targetId: string,
+  position: 'before' | 'after',
+  getEffective: (id: string) => LinkingEffective,
+): LinkingChange[] {
+  if (dragId === targetId) return [];
+
+  const dragChain = getChainOrder(dragId, getEffective);
+  const targetChain = getChainOrder(targetId, getEffective);
+  const dragChainSet = new Set(dragChain);
+
+  const srcWithoutDrag = dragChain.filter((id) => id !== dragId);
+  const isIntraChain = dragChainSet.has(targetId);
+
+  let newSequence: string[];
+  if (isIntraChain) {
+    const idx = srcWithoutDrag.indexOf(targetId);
+    const insertAt = position === 'before' ? idx : idx + 1;
+    srcWithoutDrag.splice(insertAt, 0, dragId);
+    newSequence = srcWithoutDrag;
+  } else {
+    const targetSeq = [...targetChain];
+    const idx = targetSeq.indexOf(targetId);
+    const insertAt = position === 'before' ? idx : idx + 1;
+    targetSeq.splice(insertAt, 0, dragId);
+    newSequence = targetSeq;
+  }
+
+  const changes = new Map<string, { beforeItemId: string | null; afterItemId: string | null }>();
+  sequenceToChanges(newSequence, changes);
+  if (!isIntraChain) {
+    sequenceToChanges(srcWithoutDrag, changes);
+  }
+
+  const out: LinkingChange[] = [];
+  for (const [id, v] of changes) {
+    const eff = getEffective(id);
+    if (eff.before !== v.beforeItemId || eff.after !== v.afterItemId) {
+      out.push({ itemId: id, beforeItemId: v.beforeItemId, afterItemId: v.afterItemId });
+    }
+  }
+  return out;
+}
+
+/**
+ * Pure computation behind `handleLinkingMakeStandalone`.
+ *
+ * Detaches `dragId` from whatever chain it belongs to (sets its
+ * before/after to null) and reconnects its former neighbors so the
+ * remaining chain stays consistent.  Returns an empty array when the
+ * item is already standalone.
+ */
+export function computeLinkingMakeStandaloneChanges(
+  dragId: string,
+  getEffective: (id: string) => LinkingEffective,
+): LinkingChange[] {
+  const eff = getEffective(dragId);
+  if (!eff.before && !eff.after) return [];
+
+  const changes = new Map<string, { beforeItemId: string | null; afterItemId: string | null }>();
+  const set = (id: string, b: string | null, a: string | null) =>
+    changes.set(id, { beforeItemId: b, afterItemId: a });
+  const cur = (id: string) =>
+    changes.get(id) ?? {
+      beforeItemId: getEffective(id).before,
+      afterItemId: getEffective(id).after,
+    };
+
+  if (eff.before) {
+    const c = cur(eff.before);
+    set(eff.before, c.beforeItemId, eff.after);
+  }
+  if (eff.after) {
+    const c = cur(eff.after);
+    set(eff.after, eff.before, c.afterItemId);
+  }
+  set(dragId, null, null);
+
+  return Array.from(changes.entries()).map(([itemId, v]) => ({ itemId, ...v }));
+}
