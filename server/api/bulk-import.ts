@@ -2890,6 +2890,7 @@ export function registerBulkImportRoutes(app: Express): void {
       'other',
     ]),
     subCategory: z.string().min(1),
+    residenceId: z.string().min(1).optional().nullable(),
   });
   app.post(
     '/api/admin/bulk-import/items/:id/reassign',
@@ -2897,7 +2898,7 @@ export function registerBulkImportRoutes(app: Express): void {
     requireRole(['admin']),
     async (req: AuthenticatedRequest, res: Response) => {
       try {
-        const { branch, subCategory } = reassignSchema.parse(req.body);
+        const { branch, subCategory, residenceId } = reassignSchema.parse(req.body);
         const allowedSubCats = BRANCH_SUB_CATEGORIES[branch as BranchDestination] as readonly string[];
         if (!allowedSubCats.includes(subCategory)) {
           return res.status(400).json({
@@ -2928,12 +2929,43 @@ export function registerBulkImportRoutes(app: Express): void {
           delete updated_decision.residenceAiSuggestedId;
           delete updated_decision.residenceAiConfirmed;
         }
-        // When reassigning into residence_documents, leave residence
-        // fields unset — the admin must pick one via the picker.
+
+        // When reassigning into residence_documents with an optional
+        // residenceId, validate it belongs to this session's building/org
+        // then persist it (mirroring the set-residence endpoint logic).
+        let newStatus: string | undefined;
+        if (branch === 'residence_documents' && residenceId) {
+          const session = await loadSession(item.sessionId);
+          if (!session) return res.status(404).json({ error: 'Session not found' });
+          const canAccess = await canUserAccessOrganization(req.user!.id, session.organizationId);
+          if (!canAccess) return res.status(403).json({ error: 'Forbidden' });
+          const [residence] = await db
+            .select({ id: schema.residences.id, buildingId: schema.residences.buildingId })
+            .from(schema.residences)
+            .where(eq(schema.residences.id, residenceId));
+          if (!residence) return res.status(404).json({ error: 'Residence not found' });
+          if (residence.buildingId !== session.buildingId) {
+            return res.status(400).json({
+              error: "Residence does not belong to this session's building",
+            });
+          }
+          const aiResidenceId =
+            (existing.residenceAiSuggestedId as string | null | undefined)
+            ?? null;
+          const isManualOverride = residenceId !== aiResidenceId;
+          const residenceAiConfirmed =
+            aiResidenceId !== null && residenceId === aiResidenceId;
+          updated_decision.residenceId = residenceId;
+          updated_decision.residenceManualOverride = isManualOverride;
+          updated_decision.residenceAiConfirmed = residenceAiConfirmed;
+          newStatus = 'branched';
+        }
+
         const [updated] = await db
           .update(schema.bulkImportItems)
           .set({
             branchDecision: updated_decision,
+            ...(newStatus ? { status: newStatus as 'branched' } : {}),
             updatedAt: new Date(),
           })
           .where(eq(schema.bulkImportItems.id, item.id))

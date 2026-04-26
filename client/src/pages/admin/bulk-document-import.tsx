@@ -1507,6 +1507,7 @@ export default function BulkDocumentImportPage() {
   const [reassignPickerItemId, setReassignPickerItemId] = useState<string | null>(null);
   const [reassignBranch, setReassignBranch] = useState<BranchDestination>('building_documents');
   const [reassignSubCategory, setReassignSubCategory] = useState<string>('other');
+  const [reassignResidenceId, setReassignResidenceId] = useState<string>('');
 
   // Sorting-step manual decision picker state. Keyed by item ID so every
   // rejected row can show its own picker simultaneously. Entries are
@@ -2010,15 +2011,21 @@ export default function BulkDocumentImportPage() {
       itemId,
       branch,
       subCategory,
+      residenceId,
     }: {
       itemId: string;
       branch: BranchDestination;
       subCategory: string;
+      residenceId?: string | null;
     }) => {
+      const body: Record<string, unknown> = { branch, subCategory };
+      if (branch === 'residence_documents' && residenceId) {
+        body.residenceId = residenceId;
+      }
       const res = await apiRequest(
         'POST',
         `/api/admin/bulk-import/items/${itemId}/reassign`,
-        { branch, subCategory },
+        body,
       );
       return res.json() as Promise<BulkImportItem>;
     },
@@ -2026,6 +2033,9 @@ export default function BulkDocumentImportPage() {
       setReassignPickerItemId(null);
       queryClient.invalidateQueries({
         queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
+      });
+      toast({
+        title: isFr ? 'Fichier réaffecté' : 'File reassigned',
       });
     },
     onError: () => {
@@ -3588,6 +3598,11 @@ export default function BulkDocumentImportPage() {
                                                 setReassignPickerItemId(item.id);
                                                 setReassignBranch((item.branch as BranchDestination) ?? 'building_documents');
                                                 setReassignSubCategory(item.subCategory ?? 'other');
+                                                setReassignResidenceId(
+                                                  item.residenceId
+                                                    ?? item.residenceAiSuggestedId
+                                                    ?? '',
+                                                );
                                               }
                                             }}
                                             data-testid={`button-reassign-${item.id}`}
@@ -3745,6 +3760,15 @@ export default function BulkDocumentImportPage() {
                                                 setReassignBranch(dest);
                                                 const allowed = BRANCH_SUB_CATEGORIES[dest];
                                                 setReassignSubCategory(allowed.includes(reassignSubCategory) ? reassignSubCategory : 'other');
+                                                if (dest !== 'residence_documents') {
+                                                  setReassignResidenceId('');
+                                                } else {
+                                                  setReassignResidenceId(
+                                                    item.residenceId
+                                                      ?? item.residenceAiSuggestedId
+                                                      ?? '',
+                                                  );
+                                                }
                                               }}
                                             >
                                               <SelectTrigger className="h-8 w-[200px] text-xs" data-testid={`reassign-branch-select-${item.id}`}>
@@ -3777,11 +3801,70 @@ export default function BulkDocumentImportPage() {
                                               </SelectContent>
                                             </Select>
                                           </div>
+                                          {reassignBranch === 'residence_documents' && (
+                                            <div className="flex flex-col gap-1">
+                                              <Label className="text-xs">
+                                                {isFr ? 'Résidence' : 'Residence'}
+                                              </Label>
+                                              {item.residenceAiSuggestedId
+                                                && reassignResidenceId === item.residenceAiSuggestedId
+                                                && !item.residenceAiConfirmed && (
+                                                <span
+                                                  className="flex items-center gap-1 text-[11px] text-violet-700 dark:text-violet-300"
+                                                  data-testid={`reassign-residence-ai-hint-${item.id}`}
+                                                >
+                                                  <Sparkles className="h-3 w-3" />
+                                                  {isFr
+                                                    ? `Suggestion de l'IA : ${residencesById.get(item.residenceAiSuggestedId) ?? item.residenceAiSuggestedId.slice(0, 8)}`
+                                                    : `AI suggestion: ${residencesById.get(item.residenceAiSuggestedId) ?? item.residenceAiSuggestedId.slice(0, 8)}`}
+                                                </span>
+                                              )}
+                                              <Select
+                                                value={reassignResidenceId}
+                                                onValueChange={setReassignResidenceId}
+                                              >
+                                                <SelectTrigger
+                                                  className="h-8 w-[220px] text-xs"
+                                                  data-testid={`reassign-residence-select-${item.id}`}
+                                                >
+                                                  <SelectValue placeholder={isFr ? 'Choisir une résidence…' : 'Choose a residence…'} />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                  {buildingResidences.length === 0 ? (
+                                                    <SelectItem value="__none__" disabled className="text-xs text-muted-foreground">
+                                                      {isFr ? 'Aucune résidence' : 'No residences'}
+                                                    </SelectItem>
+                                                  ) : (
+                                                    buildingResidences.map((r) => (
+                                                      <SelectItem key={r.id} value={r.id} className="text-xs">
+                                                        {r.unitNumber}
+                                                      </SelectItem>
+                                                    ))
+                                                  )}
+                                                </SelectContent>
+                                              </Select>
+                                              {!reassignResidenceId && (
+                                                <span
+                                                  className="text-[11px] text-amber-700 dark:text-amber-400"
+                                                  data-testid={`reassign-residence-required-hint-${item.id}`}
+                                                >
+                                                  {isFr
+                                                    ? 'La résidence est requise pour finaliser ce fichier.'
+                                                    : 'A residence is required to finalize this file.'}
+                                                </span>
+                                              )}
+                                            </div>
+                                          )}
                                           <div className="flex gap-2">
                                             <Button
                                               size="sm"
                                               className="h-8 text-xs"
-                                              onClick={() => reassignItem.mutate({ itemId: item.id, branch: reassignBranch, subCategory: reassignSubCategory })}
+                                              onClick={() => reassignItem.mutate({
+                                                itemId: item.id,
+                                                branch: reassignBranch,
+                                                subCategory: reassignSubCategory,
+                                                residenceId: reassignResidenceId || null,
+                                              })}
                                               disabled={reassignItem.isPending}
                                               data-testid={`button-reassign-save-${item.id}`}
                                             >
