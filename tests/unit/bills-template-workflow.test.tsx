@@ -7,6 +7,15 @@ import ModularBillForm from '../../client/src/components/bill-management/Modular
 import { Bill } from '../../shared/schema';
 import React, { ReactNode } from 'react';
 
+// ModularBillForm is a heavy component (react-hook-form + many Radix UI
+// primitives). Each test renders the entire form, and on top of that several
+// cases drive userEvent typing or wait explicitly for an auto-save window.
+// Under the repo-wide `testTimeout: 3000` (jest.config.cjs) those cases
+// routinely exceed the per-test budget when the worker pool is busy, leaving
+// the suite flaky in CI. Bumping the timeout for just this file is enough to
+// stabilise it without slowing down other suites.
+jest.setTimeout(20_000);
+
 const mockApiRequest = jest.fn();
 
 jest.mock('@/hooks/use-language', () => ({
