@@ -2,7 +2,7 @@
  * @jest-environment node
  *
  * Regression guard for the fr-CA date-shift bug in the element history table
- * and element details panel construction-date display.
+ * and element details panel date displays.
  *
  * Root cause: HistoryTable.tsx and ElementDetailsPanel.tsx previously used
  * `parseISO(eventDate)` / `parseISO(originalConstructionDate)` which interpret
@@ -13,15 +13,16 @@
  * The fix replaces `parseISO` with `parseDateOnly` (from
  * `client/src/lib/utils.ts`) which constructs the Date using
  * `new Date(year, month-1, day)` — always in the user's local timezone —
- * and passes the `fr` date-fns locale to `format()` so French month names
- * are guaranteed.
+ * and passes the `fr` date-fns locale to `format()` where French month names
+ * are needed.
  *
  * This test:
  *   1. Seeds a real history entry with `eventDate = 2026-04-25` via the
  *      admin REST API and records the `eventDate` string returned by the
  *      GET history endpoint (cross-check anchor).
- *   2. Seeds `originalConstructionDate = 2026-04-25` on the element via
- *      the admin REST API.
+ *   2. Seeds `originalConstructionDate = 2026-04-25` and
+ *      `nextEvaluationDate = 2026-04-25` on the element via the admin REST
+ *      API so the details-panel date displays can be asserted below.
  *   3. Launches Chromium with `TZ=America/Montreal` and `--lang=fr-CA` so
  *      the fix must hold for both date parsing and French locale lookup.
  *   4. Logs in as the demo manager, navigates to the real element history
@@ -31,10 +32,22 @@
  *      does NOT contain `24 avril` — directly catching the UTC midnight
  *      roll-back regression if `parseISO` is reintroduced.
  *   6. Asserts the construction-date display identified by
- *      `[data-testid="element-construction-date"]` also contains
- *      `25 avril 2026` — catching the same off-by-one for originalConstructionDate.
- *   7. Cross-checks both rendered strings against the API-returned values so
+ *      `[data-testid="element-construction-date"]` on the history page
+ *      also contains `25 avril 2026`.
+ *   7. Navigates to the inventory page (`/manager/maintenance/inventory`)
+ *      with the element's organization and building pre-selected via URL
+ *      params, expands the building-elements section, opens the row's
+ *      view action and asserts the same construction-date and next-
+ *      evaluation date inside `[data-testid="element-details-panel"]` —
+ *      proving parseDateOnly is used everywhere users see those fields.
+ *   8. Cross-checks all rendered strings against the API-returned values so
  *      any future UTC regression fails the test.
+ *
+ * `plannedStartDate` (used by the panel's projects tab) is exercised in a
+ * focused unit test
+ * (`tests/unit/components/element-details-panel-date-display.test.tsx`)
+ * since the related projects list is fetched from a separate endpoint that
+ * cannot be seeded for an arbitrary demo element from the admin REST API.
  *
  * Fails loudly (no silent skip) when Chromium or the dev server is missing,
  * matching the conventions of the existing e2e suite.
@@ -72,7 +85,11 @@ function findChromium(): string | null {
 
 interface SeededOrg { id: string }
 interface SeededBuilding { id: string; organizationId?: string }
-interface SeededElement { id: string; originalConstructionDate?: string | null }
+interface SeededElement {
+  id: string;
+  originalConstructionDate?: string | null;
+  nextEvaluationDate?: string | null;
+}
 interface HistoryEntry { id: string; eventDate: string }
 
 class CookieClient {
@@ -156,14 +173,22 @@ let browser: Browser;
 let managerApi: CookieClient;
 let adminApi: CookieClient;
 let seededElementId: string | null = null;
+let seededOrganizationId: string | null = null;
+let seededBuildingId: string | null = null;
 let seededHistoryId: string | null = null;
 let seededHistoryEventDate: string | null = null;
 let originalConstructionDate: string | null = null;
+let originalNextEvaluationDate: string | null = null;
 
 async function pickFirstAccessibleElement(
   managerApiClient: CookieClient,
   adminApiClient: CookieClient,
-): Promise<{ elementId: string; element: SeededElement } | null> {
+): Promise<{
+  elementId: string;
+  element: SeededElement;
+  organizationId: string;
+  buildingId: string;
+} | null> {
   const orgs = await managerApiClient.getJson<SeededOrg[]>('/api/users/me/organizations');
   if (!Array.isArray(orgs) || orgs.length === 0) return null;
 
@@ -180,7 +205,12 @@ async function pickFirstAccessibleElement(
       }>(`/api/maintenance/buildings/${building.id}/elements?limit=1`);
       const elements: SeededElement[] = elementsRes?.data ?? elementsRes?.elements ?? [];
       if (Array.isArray(elements) && elements.length > 0) {
-        return { elementId: elements[0].id, element: elements[0] };
+        return {
+          elementId: elements[0].id,
+          element: elements[0],
+          organizationId: org.id,
+          buildingId: building.id,
+        };
       }
     }
   }
@@ -227,15 +257,22 @@ beforeAll(async () => {
     );
   }
   seededElementId = target.elementId;
+  seededOrganizationId = target.organizationId;
+  seededBuildingId = target.buildingId;
 
-  // Record the original construction date so we can restore it in afterAll
+  // Record the original date values so we can restore them in afterAll
   originalConstructionDate = target.element.originalConstructionDate ?? null;
+  originalNextEvaluationDate = target.element.nextEvaluationDate ?? null;
 
-  // Seed originalConstructionDate on the element to EVENT_DATE so the
-  // element details panel construction-date display can be asserted below.
+  // Seed originalConstructionDate AND nextEvaluationDate on the element to
+  // EVENT_DATE so the element details panel date displays can be asserted
+  // below. Both fields go through parseDateOnly in the panel.
   await adminApi.putJson<unknown>(
     `/api/maintenance/elements/${seededElementId}`,
-    { originalConstructionDate: EVENT_DATE }
+    {
+      originalConstructionDate: EVENT_DATE,
+      nextEvaluationDate: EVENT_DATE,
+    }
   );
 
   // Seed a history entry with the fixed test date
@@ -294,11 +331,12 @@ afterAll(async () => {
       `/api/maintenance/elements/${seededElementId}/history/${seededHistoryId}`
     );
   }
-  // Restore the original construction date on the element (null means remove)
+  // Restore the original date values on the element (null means remove)
   if (adminApi && seededElementId) {
     await adminApi
       .putJson<unknown>(`/api/maintenance/elements/${seededElementId}`, {
         originalConstructionDate: originalConstructionDate ?? null,
+        nextEvaluationDate: originalNextEvaluationDate ?? null,
       })
       .catch(() => undefined);
   }
@@ -453,6 +491,125 @@ describe('Element history date rendering in fr-CA / America/Montreal timezone', 
           console.log('[diag] weekdayText:', JSON.stringify(weekdayText));
           // eslint-disable-next-line no-console
           console.log('[diag] constructionDateText:', JSON.stringify(constructionDateText));
+        }
+      } finally {
+        await page.close().catch(() => undefined);
+      }
+    },
+    90_000
+  );
+
+  it(
+    'renders construction-date and next-evaluation-date correctly inside the inventory ElementDetailsPanel',
+    async () => {
+      expect(seededElementId).toBeTruthy();
+      expect(seededOrganizationId).toBeTruthy();
+      expect(seededBuildingId).toBeTruthy();
+
+      const page = await browser.newPage();
+      page.on('pageerror', (err) => console.error('[pageerror]', err.message));
+      page.on('console', (msg) => {
+        if (msg.type() === 'error') console.error('[console.error]', msg.text());
+      });
+
+      try {
+        await page.setViewport({ width: 1280, height: 900 });
+
+        await page.evaluateOnNewDocument(() => {
+          try {
+            localStorage.setItem('koveo-language', 'fr');
+          } catch {
+            // ignore — defaults will still apply
+          }
+        });
+
+        await loginAsManager(page);
+
+        await page.emulateTimezone('America/Montreal');
+
+        // Navigate to the inventory page with the seeded element's
+        // organization and building pre-selected via URL params (the
+        // hierarchical-selection HOC reads ?organization=&building=).
+        const inventoryUrl =
+          `${BASE_URL}/manager/maintenance/inventory` +
+          `?organization=${encodeURIComponent(seededOrganizationId!)}` +
+          `&building=${encodeURIComponent(seededBuildingId!)}`;
+        await page.goto(inventoryUrl, { waitUntil: 'networkidle2', timeout: 60_000 });
+
+        // Sanity-check: must not have been bounced to login
+        const currentPath = await page.evaluate(() => window.location.pathname);
+        expect(currentPath).toBe('/manager/maintenance/inventory');
+
+        // Expand the Building Elements collapsible to reveal the table
+        const toggleSel = '[data-testid="building-elements-toggle"]';
+        await page.waitForSelector(toggleSel, { visible: true, timeout: 30_000 });
+        await page.click(toggleSel);
+
+        // Wait for the seeded element's view-action button to appear
+        const viewActionSel = `[data-testid="view-element-${seededElementId}"]`;
+        await page.waitForSelector(viewActionSel, { visible: true, timeout: 30_000 });
+        await page.click(viewActionSel);
+
+        // Wait for the side panel to render
+        await page.waitForSelector('[data-testid="element-details-panel"]', {
+          visible: true,
+          timeout: 15_000,
+        });
+
+        // ── Construction date inside the panel ──────────────────────────────
+        const panelConstructionSel = '[data-testid="element-details-panel"] [data-testid="element-construction-date"]';
+        await page.waitForSelector(panelConstructionSel, { visible: true, timeout: 15_000 });
+
+        const panelConstructionText = await page.evaluate((sel: string) => {
+          const el = document.querySelector(sel);
+          return el ? el.textContent ?? '' : '';
+        }, panelConstructionSel);
+
+        // Under TZ=America/Montreal + fr-CA the panel must render the exact
+        // French long-date form `25 avril 2026` (pattern `d MMMM yyyy` with
+        // date-fns' fr locale). Anything else — `24 avril 2026`, `April 25,
+        // 2026`, `avril 25, 2026` — would mean either the off-by-one bug
+        // returned (parseISO instead of parseDateOnly) or the panel is no
+        // longer locale-aware.
+        expect(panelConstructionText).toContain('25 avril 2026');
+        // Defensive: the off-by-one or English variants must not appear.
+        expect(panelConstructionText).not.toContain('24 avril');
+        expect(panelConstructionText).not.toContain('April 24');
+        expect(panelConstructionText).not.toContain('April 25');
+        expect(panelConstructionText).not.toMatch(/\b24,\s*2026\b/);
+
+        // ── Next-evaluation date inside the panel ──────────────────────────
+        const panelNextEvalSel = '[data-testid="element-details-panel"] [data-testid="element-next-evaluation-date"]';
+        await page.waitForSelector(panelNextEvalSel, { visible: true, timeout: 15_000 });
+
+        const panelNextEvalText = await page.evaluate((sel: string) => {
+          const el = document.querySelector(sel);
+          return el ? el.textContent ?? '' : '';
+        }, panelNextEvalSel);
+
+        // The panel formats next-evaluation as the locale-aware short pattern
+        // (`d MMM yyyy` for fr, `MMM d, yyyy` for en). Under fr-CA April's
+        // short name is `avr.` from date-fns' fr locale, so the rendered text
+        // must contain `25`, `avr` and `2026` — never the off-by-one day or
+        // the English month name.
+        expect(panelNextEvalText).toContain('25');
+        expect(panelNextEvalText).toContain('2026');
+        expect(panelNextEvalText.toLowerCase()).toMatch(/avr/);
+        expect(panelNextEvalText).not.toContain('24 avril');
+        expect(panelNextEvalText).not.toContain('April 24');
+        expect(panelNextEvalText).not.toContain('April 25');
+        expect(panelNextEvalText).not.toMatch(/\b24,\s*2026\b/);
+
+        // Cross-check: rendered day must match API's EVENT_DATE day component
+        const apiDay = EVENT_DATE.split('-')[2]; // '25'
+        expect(panelConstructionText).toContain(apiDay);
+        expect(panelNextEvalText).toContain(apiDay);
+
+        if (process.env.CI) {
+          // eslint-disable-next-line no-console
+          console.log('[diag] panelConstructionText:', JSON.stringify(panelConstructionText));
+          // eslint-disable-next-line no-console
+          console.log('[diag] panelNextEvalText:', JSON.stringify(panelNextEvalText));
         }
       } finally {
         await page.close().catch(() => undefined);

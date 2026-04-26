@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { format, differenceInYears, parseISO } from 'date-fns';
+import { fr as frLocale, enUS } from 'date-fns/locale';
 import { parseDateOnly } from '@/lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -79,6 +80,12 @@ export function ElementDetailsPanel({
   const [activeTab, setActiveTab] = useState('overview');
   const { toast } = useToast();
   const { language } = useLanguage();
+  // Locale-aware date formatting matches ElementHistoryPage / HistoryTable so
+  // managers see e.g. "25 avril 2026" in fr-CA and "April 25, 2026" in en.
+  const dateFnsLocale = language === 'fr' ? frLocale : enUS;
+  const longDatePattern = language === 'fr' ? 'd MMMM yyyy' : 'MMMM d, yyyy';
+  const shortDatePattern = language === 'fr' ? 'd MMM yyyy' : 'MMM d, yyyy';
+  const monthYearPattern = language === 'fr' ? 'MMM yyyy' : 'MMM yyyy';
   
   // Delete element mutation
   // Exception (task #229): error handled via `handleApiError` for demo-mode/locale-aware messaging.
@@ -336,11 +343,15 @@ export function ElementDetailsPanel({
                 
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">{t('edpNextEvaluationLabel')}</span>
-                  <div className={cn('flex items-center gap-2 px-2 py-1 rounded-full text-xs', urgency.bg, urgency.color)}>
+                  <div
+                    className={cn('flex items-center gap-2 px-2 py-1 rounded-full text-xs', urgency.bg, urgency.color)}
+                    data-testid="element-next-evaluation-date"
+                  >
                     <urgency.icon className="h-3 w-3" />
+                    {/* parseDateOnly prevents UTC-midnight off-by-one in negative-offset zones for date-only nextEvaluationDate. Do not replace with parseISO. */}
                     {element.nextEvaluationDate
                       ? (parseDateOnly(element.nextEvaluationDate)
-                          ? format(parseDateOnly(element.nextEvaluationDate)!, 'MMM d, yyyy')
+                          ? format(parseDateOnly(element.nextEvaluationDate)!, shortDatePattern, { locale: dateFnsLocale })
                           : '—')
                       : urgency.label}
                   </div>
@@ -350,7 +361,7 @@ export function ElementDetailsPanel({
                   <span className="text-sm text-muted-foreground">{t('edpLastInspectionLabel')}</span>
                   <span className="text-sm">
                     {element.lastInspectionDate 
-                      ? format(parseISO(element.lastInspectionDate), 'MMM d, yyyy')
+                      ? format(parseISO(element.lastInspectionDate), shortDatePattern, { locale: dateFnsLocale })
                       : t('edpLastInspectionNever')
                     }
                   </span>
@@ -402,7 +413,7 @@ export function ElementDetailsPanel({
                     <div data-testid="element-construction-date">
                       <div className="text-muted-foreground text-sm">{t('edpConstructionDateLabel')}</div>
                       {/* parseDateOnly prevents UTC-midnight off-by-one in negative-offset zones. Do not replace with parseISO. */}
-                      <div className="font-medium">{format(parsedConstructionDate, 'MMMM d, yyyy')}</div>
+                      <div className="font-medium">{format(parsedConstructionDate, longDatePattern, { locale: dateFnsLocale })}</div>
                     </div>
                   )}
                 </CardContent>
@@ -518,10 +529,13 @@ export function ElementDetailsPanel({
                         </Button>
                       </div>
                     </div>
-                    <div className="text-sm text-muted-foreground">
+                    <div
+                      className="text-sm text-muted-foreground"
+                      data-testid={`project-planned-start-${project.id}`}
+                    >
                       {/* parseDateOnly prevents UTC-midnight off-by-one for date-only plannedStartDate. Do not replace with parseISO. */}
                       {project.type}{project.plannedStartDate && parseDateOnly(project.plannedStartDate)
-                        ? ` • ${format(parseDateOnly(project.plannedStartDate)!, 'MMM yyyy')}`
+                        ? ` • ${format(parseDateOnly(project.plannedStartDate)!, monthYearPattern, { locale: dateFnsLocale })}`
                         : ''}
                     </div>
                   </Card>

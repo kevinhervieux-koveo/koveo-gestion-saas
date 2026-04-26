@@ -31,7 +31,7 @@ import { withHierarchicalSelection } from '@/components/hoc/withHierarchicalSele
 
 // Import inventory components
 import { InventoryOverview } from './InventoryOverview';
-// import { ElementDetailsPanel } from './ElementDetailsPanel'; // Replaced with ElementForm
+import { ElementDetailsPanel } from './ElementDetailsPanel';
 
 // Import existing maintenance components.
 //
@@ -134,6 +134,7 @@ function InventoryPageContent(props: InventoryPageContentProps) {
   const [selectedElement, setSelectedElement] = useState<BuildingElement | null>(null);
   const [showElementForm, setShowElementForm] = useState(false);
   const [elementFormMode, setElementFormMode] = useState<'create' | 'edit' | 'view'>('create');
+  const [showDetailsPanel, setShowDetailsPanel] = useState(false);
   const [showDocumentManager, setShowDocumentManager] = useState(false);
   const [showUniformatBrowser, setShowUniformatBrowser] = useState(false);
 
@@ -178,7 +179,20 @@ function InventoryPageContent(props: InventoryPageContentProps) {
   const handleViewElement = useCallback((element: BuildingElement) => {
     logDebug('🔍 [INVENTORY] User action: View element', { elementId: element.id, elementName: element.name });
     setSelectedElement(element);
-    setElementFormMode('view');
+    setShowDetailsPanel(true);
+  }, []);
+
+  const handleCloseDetailsPanel = useCallback(() => {
+    logDebug('🔍 [INVENTORY] User action: Close element details panel');
+    setShowDetailsPanel(false);
+    setSelectedElement(null);
+  }, []);
+
+  const handleEditFromDetails = useCallback((element: BuildingElement) => {
+    logDebug('🔍 [INVENTORY] User action: Edit from details panel', { elementId: element.id });
+    setShowDetailsPanel(false);
+    setSelectedElement(element);
+    setElementFormMode('edit');
     setShowElementForm(true);
   }, []);
 
@@ -225,10 +239,11 @@ function InventoryPageContent(props: InventoryPageContentProps) {
 
   const handleDeleteElement = useCallback((element: BuildingElement) => {
     logDebug('🔍 [INVENTORY] User action: Delete element', { elementId: element.id, elementName: element.name });
-    // Close the element form first
+    // Close any open element views first
     setShowElementForm(false);
+    setShowDetailsPanel(false);
     setSelectedElement(null);
-    
+
     // Show success message
     toast({
       title: t('elementDeleted'),
@@ -577,6 +592,17 @@ function InventoryPageContent(props: InventoryPageContentProps) {
           setShowElementForm(false);
           setSelectedElement(null);
         }}
+      />
+
+      {/* Element Details Panel - View Mode */}
+      <ElementDetailsPanel
+        element={selectedElement}
+        isOpen={showDetailsPanel}
+        onClose={handleCloseDetailsPanel}
+        onEdit={canEdit ? handleEditFromDetails : undefined}
+        onUploadDocuments={canManageDocuments ? handleViewDocuments : undefined}
+        onScheduleEvaluation={handleScheduleEvaluation}
+        onDelete={canEdit ? handleDeleteElement : undefined}
       />
 
       {/* Modals and Dialogs */}
