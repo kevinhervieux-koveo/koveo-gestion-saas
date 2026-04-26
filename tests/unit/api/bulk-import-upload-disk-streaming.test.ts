@@ -90,6 +90,7 @@ jest.mock('../../../server/db', () => {
       | 'select-session'
       | 'select-item'
       | 'select-empty'
+      | 'select-fingerprints'
       | 'insert-item'
       | 'unknown' = 'unknown';
 
@@ -108,6 +109,27 @@ jest.mock('../../../server/db', () => {
           (table && table.name);
         if (sym === 'bulk_import_sessions') mode = 'select-session';
         else if (sym === 'bulk_import_items') mode = 'select-item';
+        // Task #1187 — the upload route runs three queries off the
+        // org-scoped fingerprint cache (Task #1002 added the third):
+        //   1. `select().from(clientDocumentFingerprints).where(...).limit(1)`
+        //      — per-file dedup against committed fingerprints.
+        //   2. `select().from(clientExcludedFingerprints).where(...).limit(1)`
+        //      — per-file check against the prior-session exclusion store.
+        //   3. `select({...}).from(clientDocumentFingerprints)
+        //         .leftJoin(documents).leftJoin(buildings).leftJoin(residences)
+        //         .where(...)` — duplicate-document enrichment so the upload
+        //      response already carries the "Already in Koveo" context.
+        // None of those queries should match a row in this fixture's
+        // fake DB (no organization-wide fingerprints have been
+        // committed), so all three resolve to `[]` here. Recognising
+        // this branch explicitly — instead of letting it fall through
+        // to `select-empty` — keeps the mock honest and makes future
+        // failures land on a named mode rather than a silent default.
+        else if (
+          sym === 'client_document_fingerprints' ||
+          sym === 'client_excluded_fingerprints'
+        )
+          mode = 'select-fingerprints';
         else mode = 'select-empty';
         return api;
       },
@@ -177,6 +199,11 @@ jest.mock('../../../server/db', () => {
         } else if (mode === 'select-item' && pendingIdFilter) {
           const found = insertedItems.find((r) => r.id === pendingIdFilter);
           result = found ? [found] : [];
+        } else if (mode === 'select-fingerprints') {
+          // No org-wide fingerprints have been committed in this
+          // fixture, so every per-file dedup / exclusion lookup and the
+          // duplicate-enrichment LEFT JOIN should resolve to no rows.
+          result = [];
         } else {
           result = [];
         }
