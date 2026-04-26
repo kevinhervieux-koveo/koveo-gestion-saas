@@ -44,6 +44,9 @@ type PgClient = pg.Client;
 import { getTableConfig, PgTable } from 'drizzle-orm/pg-core';
 import { is } from 'drizzle-orm';
 import * as schema from '../shared/schema';
+// Task #1211: shared with `jest.global-setup.cjs` so the two
+// production-URL safety guards can never silently drift apart.
+import { maskDbUrl, looksLikeProductionUrl } from './lib/production-url-guard.cjs';
 
 export type OnDelete = 'cascade' | 'restrict' | 'no action' | 'set null' | 'set default' | undefined;
 
@@ -59,25 +62,6 @@ export interface OrphanReport {
   fk: FkInfo;
   orphanCount: number;
   sampleIds: string[];
-}
-
-function maskDbUrl(url: string): string {
-  try {
-    const u = new URL(url);
-    return `${u.protocol}//${u.username ? '***@' : ''}${u.host}${u.pathname}`;
-  } catch {
-    return '<invalid url>';
-  }
-}
-
-function looksLikeProductionUrl(rawUrl: string): boolean {
-  try {
-    const u = new URL(rawUrl);
-    const haystack = `${u.hostname} ${u.pathname}`.toLowerCase();
-    return /(^|[._-])(prod|production|live)([._-]|$)/.test(haystack);
-  } catch {
-    return false;
-  }
 }
 
 function quoteIdent(name: string): string {

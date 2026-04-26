@@ -10,17 +10,11 @@
 // `SKIP_INTEGRATION_DB_SYNC=1`.
 
 const { spawn } = require('child_process');
+// Task #1211: shared with `scripts/clean-orphan-fk-rows.ts` so the two
+// production-URL guards can never silently drift apart.
+const { maskDbUrl, looksLikeProductionUrl } = require('./scripts/lib/production-url-guard.cjs');
 
 const PUSH_TIMEOUT_MS = 120_000;
-
-function maskDbUrl(url) {
-  try {
-    const u = new URL(url);
-    return `${u.protocol}//${u.username ? '***@' : ''}${u.host}${u.pathname}`;
-  } catch {
-    return '<invalid url>';
-  }
-}
 
 function runOrphanFkCleanup(databaseUrl) {
   return new Promise((resolve, reject) => {
@@ -223,12 +217,3 @@ async function applyTriggerOnlyMigrations(databaseUrl, filenames) {
   }
 }
 
-function looksLikeProductionUrl(rawUrl) {
-  try {
-    const u = new URL(rawUrl);
-    const haystack = `${u.hostname} ${u.pathname}`.toLowerCase();
-    return /(^|[._-])(prod|production|live)([._-]|$)/.test(haystack);
-  } catch {
-    return false;
-  }
-}
