@@ -126,17 +126,13 @@ function extractScreeningQuickAnalysisFields(
   };
 }
 
-/**
- * Sessions that currently have a fire-and-forget `screen-all` loop
- * running on this process. Prevents the wizard's auto-trigger from
- * stacking up duplicate background passes when polling refreshes the
- * page (Task #575). Also doubles as the cancellation signal for
- * Task #593: the DELETE handler removes the session id from the set,
- * which the loop checks between iterations and bails on so a clear
- * stops the work immediately. Cleared inside the background job's
- * `finally`. Exported so integration tests can assert prompt cleanup.
- */
-export const screenAllInProgress = new Set<string>();
+// Task #1098: the legacy single-step `screenAllInProgress` set was
+// superseded by the multi-step `inFlightRunAll` set defined further
+// below (introduced in Task #592 when screen-all was generalized
+// into the run-all worker pool). The dedupe and cancellation
+// signals all live there now; the old export had no remaining
+// readers and was removed to avoid implying it still tracked
+// anything.
 
 function stagingDirFor(sessionId: string): string {
   const dir = path.join(getBulkImportStagingRoot(), sessionId);

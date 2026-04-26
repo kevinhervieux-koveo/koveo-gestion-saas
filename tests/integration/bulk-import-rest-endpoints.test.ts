@@ -65,7 +65,14 @@ describeIfDb('bulk-import REST endpoints — Task #456', () => {
   let db: any;
   let schema: any;
   let bulkImportAnalyzer: typeof import('../../server/services/bulk-import-analyzer').bulkImportAnalyzer;
-  let screenAllInProgress: Set<string>;
+  // Task #1098 — the screen-all loop is now the screening leg of the
+  // generalized run-all loop (Task #592). The cancellation/dedupe set
+  // exported by the bulk-import module is `inFlightRunAll`, keyed by
+  // `${sessionId}:${step}`; the legacy `screenAllInProgress` Set is
+  // dead code. We reach into `inFlightRunAll` so the cancel/dedupe
+  // assertions actually observe the real loop.
+  let inFlightRunAll: Set<string>;
+  const screeningRunAllKey = (sid: string) => `${sid}:screening`;
 
   const ids = {
     org: crypto.randomUUID(),
@@ -107,7 +114,7 @@ describeIfDb('bulk-import REST endpoints — Task #456', () => {
     schema = require('@shared/schema');
     const bulkImportModule = require('../../server/api/bulk-import');
     const { registerBulkImportRoutes } = bulkImportModule;
-    screenAllInProgress = bulkImportModule.screenAllInProgress;
+    inFlightRunAll = bulkImportModule.inFlightRunAll;
     bulkImportAnalyzer =
       require('../../server/services/bulk-import-analyzer').bulkImportAnalyzer;
 
@@ -516,7 +523,7 @@ describeIfDb('bulk-import REST endpoints — Task #456', () => {
     trackedItems.delete(item.id);
   });
 
-  it('auto-screens every pending item via POST /screen-all and is idempotent (Task #575)', async () => {
+  it('auto-screens every pending item via POST /run-all (step=screening) and is idempotent (Task #575)', async () => {
     const sid = await createSession();
     const upload = await request(app)
       .post(`/api/admin/bulk-import/sessions/${sid}/items`)
@@ -532,59 +539,117 @@ describeIfDb('bulk-import REST endpoints — Task #456', () => {
     expect(upload.status).toBe(201);
     upload.body.forEach((row: any) => trackedItems.add(row.id));
 
-    // First call kicks off the fire-and-forget loop and must respond
-    // immediately without blocking on the AI work.
-    const start = Date.now();
-    const trigger = await request(app)
-      .post(`/api/admin/bulk-import/sessions/${sid}/screen-all`)
-      .set('x-test-user-id', ids.admin);
-    expect(trigger.status).toBe(202);
-    expect(trigger.body.status).toBe('started');
-    expect(Date.now() - start).toBeLessThan(2000);
+    // Task #1098 — wire a deterministic fake Anthropic client BEFORE
+    // kicking off the loop so the test never depends on a live
+    // network call. The previous version assumed a 401 from the real
+    // Anthropic API would let the analyzer fall through to its
+    // 20%-confidence stub fast enough; in practice that depended on
+    // outbound connectivity from CI and added 1–2 s of latency per
+    // item, which was the root cause of the flake.
+    const fastSpy = jest.fn().mockImplementation(async () => ({
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({
+            isComplete: true,
+            isMultiDocument: false,
+            pageOrderHint: null,
+            rotationDegrees: 0,
+            suggestedFilename: 'auto.pdf',
+            description: 'fake',
+            confidence: 0.85,
+          }),
+        },
+      ],
+    }));
+    bulkImportAnalyzer.__setClientForTests({
+      messages: { create: fastSpy },
+    } as unknown as Parameters<
+      typeof bulkImportAnalyzer.__setClientForTests
+    >[0]);
 
-    // A second call while the loop is still running must be reported
-    // as already in progress so the wizard does not stack duplicates.
-    const again = await request(app)
-      .post(`/api/admin/bulk-import/sessions/${sid}/screen-all`)
-      .set('x-test-user-id', ids.admin);
-    expect(again.status).toBe(202);
-    expect(['started', 'in-progress']).toContain(again.body.status);
+    try {
+      // First call kicks off the fire-and-forget loop and must respond
+      // immediately without blocking on the AI work.
+      const start = Date.now();
+      const trigger = await request(app)
+        .post(`/api/admin/bulk-import/sessions/${sid}/run-all`)
+        .set('x-test-user-id', ids.admin)
+        .send({ step: 'screening' });
+      expect(trigger.status).toBe(200);
+      expect(trigger.body.step).toBe('screening');
+      expect(trigger.body.alreadyRunning).toBe(false);
+      expect(Date.now() - start).toBeLessThan(2000);
 
-    // Wait for the background loop to finish — every item should land
-    // in `screened` (or downstream status) with a screening payload.
-    const deadline = Date.now() + 30_000;
-    let finalRows: any[] = [];
-    while (Date.now() < deadline) {
-      finalRows = await db
-        .select()
-        .from(schema.bulkImportItems)
-        .where(eq(schema.bulkImportItems.sessionId, sid));
-      if (
-        finalRows.length === upload.body.length &&
-        finalRows.every((r) => r.status !== 'pending' && r.status !== 'screening')
-      ) {
-        break;
+      // A second call while the loop is still running must be reported
+      // as already in progress so the wizard does not stack duplicates.
+      // Note we do NOT assert `alreadyRunning=true` deterministically
+      // because the first loop may have drained between the two
+      // requests on a fast machine; the strict idempotency check is
+      // covered by the dedicated "does not start a second loop" test
+      // below where the loop is artificially slowed.
+      const again = await request(app)
+        .post(`/api/admin/bulk-import/sessions/${sid}/run-all`)
+        .set('x-test-user-id', ids.admin)
+        .send({ step: 'screening' });
+      expect(again.status).toBe(200);
+      expect(again.body.step).toBe('screening');
+      expect(typeof again.body.alreadyRunning).toBe('boolean');
+
+      // Wait for the background loop to finish — every item should land
+      // in `screened` (or downstream status) with a screening payload.
+      const deadline = Date.now() + 30_000;
+      let finalRows: any[] = [];
+      while (Date.now() < deadline) {
+        finalRows = await db
+          .select()
+          .from(schema.bulkImportItems)
+          .where(eq(schema.bulkImportItems.sessionId, sid));
+        if (
+          finalRows.length === upload.body.length &&
+          finalRows.every((r) => r.status !== 'pending' && r.status !== 'screening')
+        ) {
+          break;
+        }
+        await new Promise((r) => setTimeout(r, 100));
       }
-      await new Promise((r) => setTimeout(r, 200));
+      expect(finalRows).toHaveLength(upload.body.length);
+      finalRows.forEach((row) => {
+        expect(['screened']).toContain(row.status);
+        expect(row.screening).toBeTruthy();
+        expect(typeof row.screening.confidence).toBe('number');
+      });
+
+      // Wait for the run-all key to drop so a sibling test cannot see
+      // a stale in-flight marker on this session.
+      const keyDeadline = Date.now() + 2_000;
+      while (
+        inFlightRunAll.has(screeningRunAllKey(sid)) &&
+        Date.now() < keyDeadline
+      ) {
+        await new Promise((resolve) => setTimeout(resolve, 25));
+      }
+      expect(inFlightRunAll.has(screeningRunAllKey(sid))).toBe(false);
+    } finally {
+      bulkImportAnalyzer.__setClientForTests(null);
+      // Defensive: clear the in-flight key in case the loop crashed
+      // before the natural cleanup ran.
+      inFlightRunAll.delete(screeningRunAllKey(sid));
     }
-    expect(finalRows).toHaveLength(upload.body.length);
-    finalRows.forEach((row) => {
-      expect(['screened']).toContain(row.status);
-      expect(row.screening).toBeTruthy();
-      expect(typeof row.screening.confidence).toBe('number');
-    });
   }, 45_000);
 
-  it('screen-all returns 404 for an unknown session and rejects non-admins', async () => {
+  it('run-all (step=screening) returns 404 for an unknown session and rejects non-admins', async () => {
     const missing = await request(app)
-      .post(`/api/admin/bulk-import/sessions/${crypto.randomUUID()}/screen-all`)
-      .set('x-test-user-id', ids.admin);
+      .post(`/api/admin/bulk-import/sessions/${crypto.randomUUID()}/run-all`)
+      .set('x-test-user-id', ids.admin)
+      .send({ step: 'screening' });
     expect(missing.status).toBe(404);
 
     const sid = await createSession();
     const forbidden = await request(app)
-      .post(`/api/admin/bulk-import/sessions/${sid}/screen-all`)
-      .set('x-test-user-id', ids.nonAdmin);
+      .post(`/api/admin/bulk-import/sessions/${sid}/run-all`)
+      .set('x-test-user-id', ids.nonAdmin)
+      .send({ step: 'screening' });
     expect([401, 403]).toContain(forbidden.status);
   });
 
@@ -640,27 +705,47 @@ describeIfDb('bulk-import REST endpoints — Task #456', () => {
   it('cancels the screen-all loop when the session is cleared mid-flight', async () => {
     const sid = await createSession();
 
-    // Stage four pending items so the loop has to make several
-    // sequential Anthropic calls; the DELETE in the middle should
-    // interrupt processing well before the queue drains.
-    const filenames = ['a.pdf', 'b.pdf', 'c.pdf', 'd.pdf'];
+    // Stage enough pending items that the run-all worker pool
+    // (RUN_ALL_CONCURRENCY=4) cannot grab the whole queue in its first
+    // batch — otherwise cancellation would have nothing left to skip
+    // and the "loop stopped before screening every item" assertion
+    // below would be physically unprovable. With 8 items + 4 workers
+    // the loop processes the first 4 in parallel and only reaches
+    // items 5–8 after the first batch resolves; cancelling between
+    // those two waves is what we are checking.
+    // Task #1098 — per-run nonce keeps the analyzer's persistent
+    // `ai_suggestion_cache` from short-circuiting screen() with a
+    // cached result from a prior suite run. If the cache hits, the
+    // worker pool would drain the queue in microseconds and the
+    // `inFlightRunAll.has(key)` poll below would never observe `true`.
+    const nonce = crypto.randomBytes(16).toString('hex');
+    const filenames = [
+      'a.pdf', 'b.pdf', 'c.pdf', 'd.pdf',
+      'e.pdf', 'f.pdf', 'g.pdf', 'h.pdf',
+    ];
     for (const name of filenames) {
       const upload = await request(app)
         .post(`/api/admin/bulk-import/sessions/${sid}/items`)
         .set('x-test-user-id', ids.admin)
-        .attach('files', Buffer.concat([PDF_BODY, Buffer.from(name)]), {
-          filename: name,
-          contentType: 'application/pdf',
-        });
+        .attach(
+          'files',
+          Buffer.concat([PDF_BODY, Buffer.from(`${nonce}-${name}`)]),
+          {
+            filename: name,
+            contentType: 'application/pdf',
+          },
+        );
       expect(upload.status).toBe(201);
       upload.body.forEach((row: any) => trackedItems.add(row.id));
     }
 
-    // Slow fake Anthropic transport: every screen() takes ~150 ms so
-    // four items would need ~600 ms total. We will DELETE after the
-    // first one or two complete and assert the rest are skipped.
+    // Slow fake Anthropic transport: every screen() takes ~500 ms so
+    // even with concurrency 4 the first batch is still in flight when
+    // the DELETE lands at ~300 ms. After the first batch settles,
+    // workers re-check the cancellation flag and exit before grabbing
+    // any of items 5–8 from the queue.
     const slowSpy = jest.fn().mockImplementation(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 150));
+      await new Promise((resolve) => setTimeout(resolve, 500));
       return {
         content: [
           {
@@ -686,39 +771,74 @@ describeIfDb('bulk-import REST endpoints — Task #456', () => {
 
     try {
       const start = await request(app)
-        .post(`/api/admin/bulk-import/sessions/${sid}/screen-all`)
-        .set('x-test-user-id', ids.admin);
-      expect(start.status).toBe(202);
-      expect(start.body.status).toBe('started');
-      // The loop is scheduled fire-and-forget; give it a moment to
-      // start the first item and then clear before the queue drains.
-      await new Promise((resolve) => setTimeout(resolve, 200));
-      expect(screenAllInProgress.has(sid)).toBe(true);
+        .post(`/api/admin/bulk-import/sessions/${sid}/run-all`)
+        .set('x-test-user-id', ids.admin)
+        .send({ step: 'screening' });
+      expect(start.status).toBe(200);
+      expect(start.body.step).toBe('screening');
+      expect(start.body.alreadyRunning).toBe(false);
+
+      // Task #1098 — wait for the loop to actually start (i.e. the
+      // worker has added the run-all key to the in-flight set) before
+      // sending the DELETE. Polling with a deadline beats a fixed
+      // sleep because the run-all loop runs `await loadSession`,
+      // `await db.select(...)` and `await patchRunAllProgress(...)`
+      // before its first `processItemForStep`, and on a slow CI host
+      // those can outlast a 200 ms sleep — at which point the DELETE
+      // would land before the loop even started and the
+      // `inFlightRunAll.has(sid)` assertion would fail spuriously.
+      const startDeadline = Date.now() + 2_000;
+      while (
+        !inFlightRunAll.has(screeningRunAllKey(sid)) &&
+        Date.now() < startDeadline
+      ) {
+        await new Promise((resolve) => setTimeout(resolve, 10));
+      }
+      expect(inFlightRunAll.has(screeningRunAllKey(sid))).toBe(true);
 
       const del = await request(app)
         .delete(`/api/admin/bulk-import/sessions/${sid}`)
         .set('x-test-user-id', ids.admin);
       expect(del.status).toBe(200);
 
-      // The DELETE handler removes the session id synchronously, so
-      // the next iteration of the loop will see an empty set and
-      // exit. After that finally block runs, the set must be empty.
-      const deadline = Date.now() + 2_000;
-      while (screenAllInProgress.has(sid) && Date.now() < deadline) {
+      // The DELETE handler removes the run-all key synchronously, but
+      // that only signals cancellation — workers that already grabbed
+      // an item before the signal will keep awaiting their in-flight
+      // spy call (500 ms each) and only re-check the cancellation
+      // flag at the top of their NEXT iteration. So
+      // `inFlightRunAll.has(key) === false` is NOT sufficient
+      // evidence that the loop has fully drained. We instead poll for
+      // the spy call count to stabilize: once it has not changed for
+      // 300 ms, every in-flight worker has either finished its
+      // current item or exited, and no new items will be picked up.
+      let stableCount = -1;
+      let stableSince = 0;
+      const stabilityDeadline = Date.now() + 5_000;
+      while (Date.now() < stabilityDeadline) {
+        const current = slowSpy.mock.calls.length;
+        if (current === stableCount) {
+          if (Date.now() - stableSince >= 300) break;
+        } else {
+          stableCount = current;
+          stableSince = Date.now();
+        }
         await new Promise((resolve) => setTimeout(resolve, 25));
       }
-      expect(screenAllInProgress.has(sid)).toBe(false);
+      // Once stable, the run-all key must have been dropped too —
+      // either by the DELETE handler (sync) or by the run-all loop's
+      // own `finally` block when the worker pool emptied.
+      expect(inFlightRunAll.has(screeningRunAllKey(sid))).toBe(false);
 
-      // Snapshot the call count right after cancellation, then wait
-      // long enough that any uncancelled loop would have made several
-      // more screen() calls. The count must not grow.
+      // Snapshot the (now-stable) call count and wait further to
+      // confirm no late-starting iteration sneaks in past cancellation.
       const callsAtCancel = slowSpy.mock.calls.length;
       await new Promise((resolve) => setTimeout(resolve, 500));
       expect(slowSpy.mock.calls.length).toBe(callsAtCancel);
 
-      // And we must have stopped early: with 4 items @150 ms each the
-      // unbounded loop would call screen() 4 times. Cancellation should
-      // hold this strictly below the queue length.
+      // And we must have stopped early: with 8 items @500 ms each and
+      // RUN_ALL_CONCURRENCY=4, the unbounded loop would have called
+      // screen() 8 times. Cancellation between the first and second
+      // batch must hold this strictly below the queue length.
       expect(slowSpy.mock.calls.length).toBeLessThan(filenames.length);
 
       // Items got deleted by the cascade DELETE — the screen-all loop
@@ -734,9 +854,9 @@ describeIfDb('bulk-import REST endpoints — Task #456', () => {
       }
     } finally {
       bulkImportAnalyzer.__setClientForTests(null);
-      // Defensive: drop the session id from the cancellation set in
+      // Defensive: drop the run-all key from the cancellation set in
       // case the test failed before the natural cleanup ran.
-      screenAllInProgress.delete(sid);
+      inFlightRunAll.delete(screeningRunAllKey(sid));
     }
   }, 15_000);
 
@@ -747,13 +867,23 @@ describeIfDb('bulk-import REST endpoints — Task #456', () => {
    */
   it('does not start a second screen-all loop when one is already running', async () => {
     const sid = await createSession();
+    // Task #1098 — append a per-run nonce so the analyzer's persistent
+    // `ai_suggestion_cache` table (keyed by SHA-256 of the file
+    // content) does not return a cached screening result from a prior
+    // suite run. Without this, the slow Anthropic spy is never called
+    // and `slowSpy.mock.calls.length` is 0 instead of 1.
+    const nonce = crypto.randomBytes(16).toString('hex');
     await request(app)
       .post(`/api/admin/bulk-import/sessions/${sid}/items`)
       .set('x-test-user-id', ids.admin)
-      .attach('files', Buffer.concat([PDF_BODY, Buffer.from('once.pdf')]), {
-        filename: 'once.pdf',
-        contentType: 'application/pdf',
-      })
+      .attach(
+        'files',
+        Buffer.concat([PDF_BODY, Buffer.from(`once-${nonce}.pdf`)]),
+        {
+          filename: 'once.pdf',
+          contentType: 'application/pdf',
+        },
+      )
       .then((res) => res.body.forEach((r: any) => trackedItems.add(r.id)));
 
     const slowSpy = jest.fn().mockImplementation(async () => {
@@ -783,31 +913,52 @@ describeIfDb('bulk-import REST endpoints — Task #456', () => {
 
     try {
       const first = await request(app)
-        .post(`/api/admin/bulk-import/sessions/${sid}/screen-all`)
-        .set('x-test-user-id', ids.admin);
-      expect(first.status).toBe(202);
-      expect(first.body.status).toBe('started');
+        .post(`/api/admin/bulk-import/sessions/${sid}/run-all`)
+        .set('x-test-user-id', ids.admin)
+        .send({ step: 'screening' });
+      expect(first.status).toBe(200);
+      expect(first.body.step).toBe('screening');
+      expect(first.body.alreadyRunning).toBe(false);
 
-      // While the first loop is still on its first item, fire a
-      // duplicate request: it must short-circuit with `in-progress`.
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      // Task #1098 — wait for the loop to actually register itself in
+      // `inFlightRunAll` (one or two awaits inside `runAllForStep`
+      // happen before the worker pool starts) before firing the
+      // duplicate request. A fixed 50 ms sleep raced with `await
+      // loadSession()` + `await db.select(...)` on slow CI hosts.
+      const startDeadline = Date.now() + 2_000;
+      while (
+        !inFlightRunAll.has(screeningRunAllKey(sid)) &&
+        Date.now() < startDeadline
+      ) {
+        await new Promise((resolve) => setTimeout(resolve, 10));
+      }
+      expect(inFlightRunAll.has(screeningRunAllKey(sid))).toBe(true);
+
+      // Fire the duplicate request: it must short-circuit with
+      // `alreadyRunning=true` so the wizard does not stack a second
+      // background loop on top of the first.
       const second = await request(app)
-        .post(`/api/admin/bulk-import/sessions/${sid}/screen-all`)
-        .set('x-test-user-id', ids.admin);
-      expect(second.status).toBe(202);
-      expect(second.body.status).toBe('in-progress');
+        .post(`/api/admin/bulk-import/sessions/${sid}/run-all`)
+        .set('x-test-user-id', ids.admin)
+        .send({ step: 'screening' });
+      expect(second.status).toBe(200);
+      expect(second.body.step).toBe('screening');
+      expect(second.body.alreadyRunning).toBe(true);
 
       // Wait for the (single) loop to finish and verify only one
       // Anthropic call was made for the one staged item.
-      const deadline = Date.now() + 2_000;
-      while (screenAllInProgress.has(sid) && Date.now() < deadline) {
+      const deadline = Date.now() + 5_000;
+      while (
+        inFlightRunAll.has(screeningRunAllKey(sid)) &&
+        Date.now() < deadline
+      ) {
         await new Promise((resolve) => setTimeout(resolve, 25));
       }
-      expect(screenAllInProgress.has(sid)).toBe(false);
+      expect(inFlightRunAll.has(screeningRunAllKey(sid))).toBe(false);
       expect(slowSpy.mock.calls.length).toBe(1);
     } finally {
       bulkImportAnalyzer.__setClientForTests(null);
-      screenAllInProgress.delete(sid);
+      inFlightRunAll.delete(screeningRunAllKey(sid));
     }
   }, 15_000);
 
