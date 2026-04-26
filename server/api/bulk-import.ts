@@ -1297,6 +1297,40 @@ export async function resolveTagNamesToIds(
 }
 
 /**
+ * Load every `document_tags` row visible to a given organisation: system
+ * tags (or system+orgless rows) plus any tags the org owns. Used by the
+ * identification step to seed the AI prompt with a constrained tag
+ * vocabulary so Claude's `tags: string[]` output can actually be mapped
+ * back to UUIDs by `resolveTagNamesToIds`. Mirrors that helper's org
+ * condition so what the AI sees is exactly what can be resolved.
+ */
+export async function loadAvailableTagsForOrganization(
+  organizationId: string | null | undefined,
+): Promise<{ id: string; name: string; scope: string | null }[]> {
+  const orgCondition = organizationId
+    ? or(
+        eq(schema.documentTags.isSystem, true),
+        isNull(schema.documentTags.organizationId),
+        eq(schema.documentTags.organizationId, organizationId),
+      )
+    : or(
+        eq(schema.documentTags.isSystem, true),
+        isNull(schema.documentTags.organizationId),
+      );
+
+  const rows = await db
+    .select({
+      id: schema.documentTags.id,
+      name: schema.documentTags.name,
+      scope: schema.documentTags.scope,
+    })
+    .from(schema.documentTags)
+    .where(orgCondition);
+
+  return rows.map((r) => ({ id: r.id, name: r.name, scope: r.scope ?? null }));
+}
+
+/**
  * Run a single AI step against one staged item and persist the result.
  * Centralised so per-item endpoints and the run-all loop share the
  * exact same behaviour (and therefore the per-item "Retry" button is
@@ -1322,6 +1356,16 @@ async function processItemForStep(
    * without an org fall back to system-tags-only resolution.
    */
   organizationId?: string | null,
+  /**
+   * Catalogue of `{ id, name, scope }` rows from `document_tags` visible to
+   * the session's org (system + org-owned). Passed to the analyzer so the
+   * identification prompt constrains Claude to pick from real tag names —
+   * generic English fallbacks like "insurance" never matched the French
+   * Quebec catalogue, so the AI was producing zero usable tags. Caller
+   * resolves this once per session and passes it here; the per-item retry
+   * route resolves it once per call.
+   */
+  availableTags?: { id: string; name: string; scope: string | null }[] | null,
 ): Promise<schema.BulkImportItem> {
   if (step === 'screening') {
     const result = await bulkImportAnalyzer.screen({
@@ -1501,6 +1545,17 @@ async function processItemForStep(
     // periodHint like "FY 2022-2023" on a building with an April fiscal
     // year resolves to 2022-04-01 instead of 2022-01-01.
     const periodHintDate = parsePeriodHint(rawPeriodHint, fiscalYearStartMonth);
+    // Filter the org's tag catalogue to ONLY rows whose scope matches this
+    // item's branch (residence_documents → residence/any; everything else →
+    // building/any). This mirrors the scope filter inside
+    // `resolveTagNamesToIds` so the AI can never pick a tag that would be
+    // dropped during resolution.
+    const scopedAvailableTags = Array.isArray(availableTags)
+      ? availableTags.filter((t) => {
+          if (branch === 'residence_documents') return t.scope !== 'building';
+          return t.scope !== 'residence';
+        })
+      : null;
     const result = await bulkImportAnalyzer.identify({
       originalName: item.originalName,
       description,
@@ -1510,6 +1565,7 @@ async function processItemForStep(
       itemId: item.id,
       sessionId: item.sessionId,
       periodHintDate,
+      availableTags: scopedAvailableTags,
     });
     logPerFileAiFailure(step, item, result.fallbackReason);
 
@@ -1633,12 +1689,21 @@ async function runAllForStep(sessionId: string, step: AutoStep): Promise<void> {
     // real `document_tags` UUIDs without re-fetching the session per item.
     let sessionFiscalYearStartMonth: number | undefined;
     let sessionOrganizationId: string | null | undefined;
+    let sessionAvailableTags:
+      | { id: string; name: string; scope: string | null }[]
+      | undefined;
     if (step === 'identification') {
       const session = await loadSession(sessionId);
       sessionFiscalYearStartMonth = await getFiscalYearStartMonthForBuilding(
         session?.buildingId ?? null,
       );
       sessionOrganizationId = session?.organizationId ?? null;
+      // Resolve the org's tag catalogue once so each per-item identification
+      // call can constrain Claude to picking from real tag names instead of
+      // returning generic English strings that never match.
+      sessionAvailableTags = await loadAvailableTagsForOrganization(
+        sessionOrganizationId,
+      );
     }
 
     await patchRunAllProgress(sessionId, step, {
@@ -1723,6 +1788,7 @@ async function runAllForStep(sessionId: string, step: AutoStep): Promise<void> {
           sessionResidences,
           sessionFiscalYearStartMonth,
           sessionOrganizationId,
+          sessionAvailableTags,
         );
         void workPromise
           .finally(() => { rawInFlight--; })
@@ -5390,11 +5456,20 @@ export function registerBulkImportRoutes(app: Express): void {
           // `document_tags` UUIDs the same way the run-all loop does.
           let fiscalYearStartMonth: number | undefined;
           let identifyOrganizationId: string | undefined;
+          let identifyAvailableTags:
+            | { id: string; name: string; scope: string | null }[]
+            | undefined;
           if (step === 'identification') {
             fiscalYearStartMonth = await getFiscalYearStartMonthForBuilding(
               session?.buildingId ?? null,
             );
             identifyOrganizationId = session?.organizationId ?? undefined;
+            // Same constraint as the run-all loop: feed the org's real tag
+            // catalogue into the prompt so Claude can't return generic
+            // English names that won't resolve to UUIDs.
+            identifyAvailableTags = await loadAvailableTagsForOrganization(
+              session?.organizationId ?? null,
+            );
           }
 
           // Surface the in-flight state via the same `runAll[step].inFlight`
@@ -5424,6 +5499,7 @@ export function registerBulkImportRoutes(app: Express): void {
                   residences,
                   fiscalYearStartMonth,
                   identifyOrganizationId,
+                  identifyAvailableTags,
                 ),
                 RUN_ALL_ITEM_TIMEOUT_MS,
                 item.originalName,

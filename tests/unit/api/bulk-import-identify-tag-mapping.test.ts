@@ -150,21 +150,37 @@ const mockDb: any = {
             return Promise.resolve(row ? [row] : []);
           }
           if (tableName === 'document_tags') {
-            // resolveTagNamesToIds query — `lower(name) IN (lowerNames)`
-            // AND (isSystem OR organizationId IS NULL OR organizationId =
-            // $org). The lowered names live on the inArray clause's
-            // `values`; the org id sits inside the `or(…)` branch.
-            const lowerNames = findInArrayValues(cond) ?? [];
+            // Two queries land here:
+            //   (A) resolveTagNamesToIds — has an `inArray(lower(name),
+            //       lowerNames)` clause AND the org `or(…)` branch.
+            //   (B) loadAvailableTagsForOrganization — just the org
+            //       `or(…)` branch (no inArray), used to seed the AI
+            //       prompt with the org's full tag catalogue.
+            const lowerNames = findInArrayValues(cond);
             const orgId = findEqValue(cond, 'organization_id') as
               | string
               | undefined;
-            const lowerSet = new Set(lowerNames.map((n) => n.toLowerCase()));
-            const matches = tagStore.filter((t) => {
-              if (!lowerSet.has(t.name.toLowerCase())) return false;
+            const matchesOrg = (t: TagRow): boolean => {
               if (t.isSystem) return true;
               if (t.organizationId === null) return true;
               if (orgId && t.organizationId === orgId) return true;
               return false;
+            };
+            if (lowerNames === undefined) {
+              // Catalogue load (B) — return every visible tag.
+              const matches = tagStore.filter(matchesOrg);
+              return Promise.resolve(
+                matches.map((m) => ({
+                  id: m.id,
+                  name: m.name,
+                  scope: m.scope,
+                })),
+              );
+            }
+            const lowerSet = new Set(lowerNames.map((n) => n.toLowerCase()));
+            const matches = tagStore.filter((t) => {
+              if (!lowerSet.has(t.name.toLowerCase())) return false;
+              return matchesOrg(t);
             });
             // Project to the columns the helper selects.
             return Promise.resolve(
@@ -442,6 +458,109 @@ describe('Identification step — AI tag-name → UUID mapping (Task #1105)', ()
     // No free-form strings ever leak into `tags`.
     expect(ident.tags).toEqual([]);
     expect(ident.aiSuggestedTagIds).toEqual([]);
+  });
+
+  it("passes the org's tag catalogue into bulkImportAnalyzer.identify so the AI prompt can be constrained to real tag names", async () => {
+    seedSession('sess-1', { organizationId: 'org-1' });
+    seedItem('it-prompt', {
+      branchDecision: { branch: 'building_documents' } as Record<string, unknown>,
+    });
+    seedTag({
+      id: 'uuid-bldg',
+      organizationId: null,
+      name: 'Procès-verbaux',
+      scope: 'building',
+      isSystem: true,
+    });
+    seedTag({
+      id: 'uuid-any',
+      organizationId: null,
+      name: "Police d'assurance du syndicat",
+      scope: 'any',
+      isSystem: true,
+    });
+    seedTag({
+      id: 'uuid-res',
+      organizationId: null,
+      name: 'Bail',
+      scope: 'residence',
+      isSystem: true,
+    });
+    seedTag({
+      id: 'uuid-org',
+      organizationId: 'org-1',
+      name: 'Custom Tag',
+      scope: 'any',
+      isSystem: false,
+    });
+
+    analyzerIdentify.mockResolvedValueOnce({
+      name: 'AI',
+      description: '',
+      tags: [],
+      confidence: 0.5,
+    });
+
+    await request(buildApp()).post(URL_IDENTIFY('it-prompt')).expect(200);
+    await waitForRetryToSettle('it-prompt');
+
+    expect(analyzerIdentify).toHaveBeenCalledTimes(1);
+    const callArg = analyzerIdentify.mock.calls[0]![0] as {
+      availableTags?: { name: string }[] | null;
+    };
+    const passedNames = (callArg.availableTags ?? []).map((t) => t.name).sort();
+    // Building-branch items get the building/any/org tags but NOT residence-only tags.
+    expect(passedNames).toEqual(
+      ["Custom Tag", "Police d'assurance du syndicat", 'Procès-verbaux'].sort(),
+    );
+  });
+
+  it("filters the available-tags catalogue by branch scope (residence_documents drops building-only tags)", async () => {
+    seedSession('sess-1', { organizationId: 'org-1' });
+    seedItem('it-prompt-res', {
+      branchDecision: {
+        branch: 'residence_documents',
+      } as Record<string, unknown>,
+    });
+    seedTag({
+      id: 'uuid-bldg',
+      organizationId: null,
+      name: 'Procès-verbaux',
+      scope: 'building',
+      isSystem: true,
+    });
+    seedTag({
+      id: 'uuid-res',
+      organizationId: null,
+      name: 'Bail',
+      scope: 'residence',
+      isSystem: true,
+    });
+    seedTag({
+      id: 'uuid-any',
+      organizationId: null,
+      name: 'Misc',
+      scope: 'any',
+      isSystem: true,
+    });
+
+    analyzerIdentify.mockResolvedValueOnce({
+      name: 'AI',
+      description: '',
+      tags: [],
+      confidence: 0.5,
+    });
+
+    await request(buildApp()).post(URL_IDENTIFY('it-prompt-res')).expect(200);
+    await waitForRetryToSettle('it-prompt-res');
+
+    expect(analyzerIdentify).toHaveBeenCalledTimes(1);
+    const callArg = analyzerIdentify.mock.calls[0]![0] as {
+      availableTags?: { name: string }[] | null;
+    };
+    const passedNames = (callArg.availableTags ?? []).map((t) => t.name).sort();
+    // Residence-branch items get residence/any tags only — building-only is hidden.
+    expect(passedNames).toEqual(['Bail', 'Misc']);
   });
 
   it('skips tags from other organizations even when the name matches', async () => {

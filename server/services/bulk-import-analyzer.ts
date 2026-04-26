@@ -1014,15 +1014,39 @@ Return JSON: { branch: string, subCategory: string, residenceHint?: string, reas
     sessionId?: string;
     /** Parsed date from the screening AI's periodHint, when available. */
     periodHintDate?: Date | null;
+    /**
+     * Catalogue of tag names the Quebec property-management organisation
+     * actually has in `document_tags` for this branch's scope. When provided
+     * (and non-empty), the prompt instructs Claude to pick `tags` ONLY from
+     * this list — exact, case-sensitive copies of the names — so the
+     * downstream `resolveTagNamesToIds` step can map them to real UUIDs
+     * instead of dropping every free-form suggestion. Names usually contain
+     * accented French characters (e.g. "Police d'assurance du syndicat"),
+     * which is why generic English fallbacks like "insurance" never match.
+     */
+    availableTags?: { name: string }[] | null;
   }): Promise<IdentificationResult> {
     const periodHintLine = input.periodHintDate
       ? `Screening suggested effective date: ${input.periodHintDate.toISOString().slice(0, 10)} — keep this date unless the document content clearly indicates a different effective date.`
       : '';
+    // Constrain the AI's tag picks to the org's actual catalogue when we
+    // know it. Without this list Claude returns generic English names
+    // ("insurance", "contract") that never match the French Quebec
+    // property-management tag names stored in `document_tags`, so the
+    // identification step would silently produce zero tags.
+    const tagCatalogueLine =
+      Array.isArray(input.availableTags) && input.availableTags.length > 0
+        ? `Available tag names (choose 0-5, copy each EXACTLY as written, do not invent new names): ${JSON.stringify(input.availableTags.map((t) => t.name))}`
+        : '';
     const prompt = `Extract metadata for a document being filed under "${input.branch ?? 'building_documents'}".
 Filename: ${input.originalName}
-Description: ${input.description ?? ''}${periodHintLine ? `\n${periodHintLine}` : ''}
+Description: ${input.description ?? ''}${periodHintLine ? `\n${periodHintLine}` : ''}${tagCatalogueLine ? `\n${tagCatalogueLine}` : ''}
 Return JSON: { name: string, description: string, tags: string[],
-effectiveDate?: 'YYYY-MM-DD', metadata: object, confidence: number }.`;
+effectiveDate?: 'YYYY-MM-DD', metadata: object, confidence: number }.${
+      tagCatalogueLine
+        ? ' The "tags" array MUST contain only names from the Available tag names list above (verbatim).'
+        : ''
+    }`;
     const { data: raw, fallbackReason, retryCount } = await callClaudeJson<Partial<IdentificationResult>>(
       prompt,
       {
