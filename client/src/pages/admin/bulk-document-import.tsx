@@ -2389,6 +2389,17 @@ export default function BulkDocumentImportPage() {
    */
   const bulkRetryTotalRef = useRef(0);
   const bulkRetryProcessedRef = useRef(0);
+  /**
+   * Task #1238 — render-visible mirror of the two refs above so the
+   * spinner-bearing button (and the cancel-confirm dialog title) can
+   * tick "Retrying X of N…" as each per-item retry completes. Refs
+   * stay the source of truth for the synchronous Cancel handler;
+   * this state is just a re-render trigger updated alongside them.
+   */
+  const [bulkRetryProgress, setBulkRetryProgress] = useState<{
+    processed: number;
+    total: number;
+  }>({ processed: 0, total: 0 });
   const retryAllAiFailedItems = useCallback(
     async (
       step: AutoStep,
@@ -2399,6 +2410,7 @@ export default function BulkDocumentImportPage() {
       bulkRetryAbortedRef.current = false;
       bulkRetryTotalRef.current = itemIds.length;
       bulkRetryProcessedRef.current = 0;
+      setBulkRetryProgress({ processed: 0, total: itemIds.length });
       setBulkRetryStep(step);
       try {
         for (const id of itemIds) {
@@ -2410,6 +2422,10 @@ export default function BulkDocumentImportPage() {
             // so a single 500 doesn't block the rest of the batch.
           }
           bulkRetryProcessedRef.current += 1;
+          setBulkRetryProgress({
+            processed: bulkRetryProcessedRef.current,
+            total: bulkRetryTotalRef.current,
+          });
           // Cooperative stagger between requests. ~200ms is large
           // enough for the server to persist the in-flight marker
           // before the next per-item retry endpoint call hits the
@@ -2423,6 +2439,7 @@ export default function BulkDocumentImportPage() {
         setBulkRetryStep(null);
         bulkRetryTotalRef.current = 0;
         bulkRetryProcessedRef.current = 0;
+        setBulkRetryProgress({ processed: 0, total: 0 });
       }
     },
     [runStep],
@@ -4051,7 +4068,11 @@ export default function BulkDocumentImportPage() {
                                   ) : (
                                     <RotateCw className="h-3 w-3" />
                                   )}
-                                  {isFr
+                                  {stepBulkRetryRunning
+                                    ? isFr
+                                      ? `Réessai de ${bulkRetryProgress.processed} sur ${bulkRetryProgress.total}…`
+                                      : `Retrying ${bulkRetryProgress.processed} of ${bulkRetryProgress.total}…`
+                                    : isFr
                                     ? `Réessayer les fichiers en échec IA (${aiFailedCount})`
                                     : `Retry AI-failed items (${aiFailedCount})`}
                                 </button>
@@ -4139,7 +4160,11 @@ export default function BulkDocumentImportPage() {
                                     ) : (
                                       <RotateCw className="h-3 w-3" />
                                     )}
-                                    {isFr
+                                    {stepBulkRetryRunning
+                                      ? isFr
+                                        ? `Réessai de ${bulkRetryProgress.processed} sur ${bulkRetryProgress.total}…`
+                                        : `Retrying ${bulkRetryProgress.processed} of ${bulkRetryProgress.total}…`
+                                      : isFr
                                       ? `Réessayer les fichiers en échec IA (${aiFailedCount})`
                                       : `Retry AI-failed items (${aiFailedCount})`}
                                   </button>
@@ -8119,10 +8144,10 @@ export default function BulkDocumentImportPage() {
       >
         <AlertDialogContent data-testid="cancel-bulk-retry-dialog">
           <AlertDialogHeader>
-            <AlertDialogTitle>
+            <AlertDialogTitle data-testid="cancel-bulk-retry-title">
               {isFr
-                ? 'Annuler la relance groupée ?'
-                : 'Cancel the bulk retry?'}
+                ? `Annuler la relance groupée (${bulkRetryProgress.processed} sur ${bulkRetryProgress.total}) ?`
+                : `Cancel the bulk retry (${bulkRetryProgress.processed} of ${bulkRetryProgress.total})?`}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {isFr
