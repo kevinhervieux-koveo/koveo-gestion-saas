@@ -4403,6 +4403,40 @@ export default function BulkDocumentImportPage() {
                                     {isFr ? 'Annuler' : 'Cancel'}
                                   </button>
                                 )}
+                                {/* Task #1243: explicit "Run All" trigger so
+                                    admins can manually kick the run-all loop
+                                    for the current auto step. The loop is
+                                    auto-fired once per (session, step) visit
+                                    via the useEffect at line ~2529, but items
+                                    can become eligible after that initial
+                                    trigger (e.g. identification just finished,
+                                    or transient AI failures rolled back to a
+                                    pre-step status). The Linking step
+                                    especially benefits because items finish
+                                    identification asynchronously and can land
+                                    in `identified` after the auto-trigger has
+                                    already fired. The endpoint is idempotent
+                                    — calling it while a loop is in flight is
+                                    a server-side no-op — so the button stays
+                                    safe to click. Disabled while the run-all
+                                    loop is already in flight (`isRunning`) or
+                                    a reset is being applied. */}
+                                <button
+                                  type="button"
+                                  className="inline-flex items-center gap-1 text-xs text-muted-foreground underline hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
+                                  data-testid={`auto-run-trigger-${currentStep}`}
+                                  disabled={isRunning || resetStep.isPending}
+                                  onClick={() => {
+                                    if (isAutoStep(currentStep)) {
+                                      runAll.mutate(currentStep);
+                                    }
+                                  }}
+                                >
+                                  <Play
+                                    className={`h-3 w-3 ${runAll.isPending ? 'animate-pulse' : ''}`}
+                                  />
+                                  {isFr ? 'Tout exécuter' : 'Run all'}
+                                </button>
                                 <button
                                   type="button"
                                   className="inline-flex items-center gap-1 text-xs text-muted-foreground underline hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
