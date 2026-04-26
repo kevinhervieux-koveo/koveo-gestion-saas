@@ -5,6 +5,7 @@
 import express from 'express';
 import path from 'path';
 import { createFastHealthCheck, createStatusCheck, createRootHandler, setFrontendReady, createStartupMiddleware, renderMaintenancePage, createMaintenanceEventsHandler } from './health-check';
+import { createApiHealthHandler } from './api/health-handler';
 import { log } from './vite';
 import { registerRoutes, HEAVY_LAZY_MOUNTS } from './routes';
 import { sanitizeInputMiddleware, buildLegacyBypassFromApp, LEGACY_BYPASS_RESOURCE_ROOTS } from './middleware/input-sanitization';
@@ -182,37 +183,14 @@ app.get('/ping', healthCheckErrorHandler((req: any, res: any) => {
 }));
 app.get('/status', healthCheckErrorHandler(createStatusCheck()));
 
-// API health endpoint with error protection
-app.get('/api/health', healthCheckErrorHandler(async (req: any, res: any) => {
-  // Drift healthcheck: count demand rows whose residence belongs to a
-  // different building (cross-org leak). Should always be 0 after
-  // migration 0015 runs on boot. Non-zero means a new row slipped past
-  // the trigger guard and warrants investigation.
-  let crossOrgDemands: number | null = null;
-  try {
-    const { db } = await import('./db');
-    const { sql } = await import('drizzle-orm');
-    const result = await db.execute(sql`
-      SELECT count(*)::int AS cross_org_demands
-      FROM demands d
-      JOIN residences r ON r.id = d.residence_id
-      WHERE r.building_id <> d.building_id
-    `);
-    crossOrgDemands = (result.rows[0] as { cross_org_demands: number }).cross_org_demands;
-  } catch {
-    // DB not yet reachable during early boot — omit the field rather
-    // than failing the health check entirely.
-  }
-  res.json({
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    environment: process.env.NODE_ENV || 'development',
-    port: port,
-    host: host,
-    ...(crossOrgDemands !== null ? { crossOrgDemands } : {}),
-  });
-}));
+// API health endpoint with error protection. The handler itself lives
+// in `server/api/health-handler.ts` so its response shape can be
+// pinned by an integration test (Task #1095) without booting the full
+// server.
+app.get(
+  '/api/health',
+  healthCheckErrorHandler(createApiHealthHandler({ port, host })),
+);
 
 // Branded maintenance page — served during deploys while the app is not yet ready.
 // Also accessible after startup as a permanent URL (useful for linking from docs).

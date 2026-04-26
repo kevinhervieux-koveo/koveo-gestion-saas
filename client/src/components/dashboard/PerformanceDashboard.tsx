@@ -14,7 +14,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { chartColors, buildChartConfig } from '@/lib/chart-colors';
-import { AlertTriangle, Activity, Zap, Timer, Database, Cpu, MemoryStick, TrendingUp, TrendingDown, RefreshCw } from 'lucide-react';
+import { AlertTriangle, Activity, Zap, Timer, Database, Cpu, MemoryStick, TrendingUp, TrendingDown, RefreshCw, HardDrive } from 'lucide-react';
 import { useWebVitals, WebVitalsMetrics } from '@/utils/web-vitals-monitor';
 import { complexityAnalyzer } from '@/utils/component-complexity-analyzer';
 import { performanceMonitor } from '@/utils/performance-monitor';
@@ -64,6 +64,24 @@ interface WebVitalsData {
   url: string;
 }
 
+/**
+ * Render a byte count in the largest sensible unit (Task #1095). Used
+ * by the bulk-import staging-disk card so admins see "12.4 GB" instead
+ * of "13297844224 bytes".
+ */
+function formatBytes(bytes: number): string {
+  if (!Number.isFinite(bytes) || bytes <= 0) return '0 B';
+  const units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
+  const exp = Math.min(
+    units.length - 1,
+    Math.floor(Math.log(bytes) / Math.log(1024)),
+  );
+  const value = bytes / Math.pow(1024, exp);
+  // Two decimals up to GB, one for larger units to keep the number compact.
+  const fixed = exp >= 4 ? 1 : 2;
+  return `${value.toFixed(fixed)} ${units[exp]}`;
+}
+
 export function PerformanceDashboard() {
   const { t } = useLanguage();
   const [refreshInterval, setRefreshInterval] = useState(30000); // 30 seconds
@@ -82,6 +100,25 @@ export function PerformanceDashboard() {
     queryKey: ['/api/performance/trends'],
     refetchInterval: isAutoRefresh ? refreshInterval : false,
   });
+
+  // Task #1095: surface the bulk-import staging disk-usage snapshot
+  // exposed by `/api/health` so an admin can see free/total bytes and
+  // a clear LOW indicator without ssh-ing in to grep the janitor logs.
+  // Refreshes on the same cadence as the rest of the dashboard.
+  const { data: healthData, isLoading: isLoadingHealth } = useQuery<{
+    status?: string;
+    bulkImportStaging?: {
+      root: string;
+      freeBytes: number;
+      totalBytes: number;
+      freePercent: number;
+      isLow: boolean;
+    } | null;
+  }>({
+    queryKey: ['/api/health'],
+    refetchInterval: isAutoRefresh ? refreshInterval : false,
+  });
+  const staging = healthData?.bulkImportStaging ?? null;
 
   // Component complexity data
   const [complexityData, setComplexityData] = useState(complexityAnalyzer.generateOptimizationReport());
@@ -356,6 +393,115 @@ export function PerformanceDashboard() {
                         </p>
                       </div>
                     </div>
+                  </>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Bulk-import staging volume (Task #1095). Mirrors the
+                snapshot the Task #1088 janitor logs every pass so an
+                admin can spot a filling-up staging disk without ssh. */}
+            <Card data-testid="card-bulk-import-staging-disk">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <HardDrive className="h-5 w-5" />
+                  Bulk-Import Staging Disk
+                  {staging?.isLow && (
+                    <Badge
+                      variant="destructive"
+                      className="ml-2 uppercase tracking-wide"
+                      data-testid="badge-bulk-import-staging-low"
+                    >
+                      Low
+                    </Badge>
+                  )}
+                </CardTitle>
+                <CardDescription>
+                  Free space on the volume that holds in-progress bulk
+                  document imports.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {isLoadingHealth && !staging && (
+                  <p
+                    className="text-sm text-muted-foreground"
+                    data-testid="text-bulk-import-staging-loading"
+                  >
+                    Loading…
+                  </p>
+                )}
+                {!isLoadingHealth && !staging && (
+                  <p
+                    className="text-sm text-muted-foreground"
+                    data-testid="text-bulk-import-staging-unavailable"
+                  >
+                    Staging disk usage is unavailable. Check the server
+                    logs for the most recent janitor probe.
+                  </p>
+                )}
+                {staging && (
+                  <>
+                    <div>
+                      <p className="text-sm font-medium">Mount</p>
+                      <p
+                        className="text-xs font-mono break-all text-muted-foreground"
+                        data-testid="text-bulk-import-staging-root"
+                      >
+                        {staging.root}
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm font-medium">Free</p>
+                        <p
+                          className={`text-2xl font-bold ${
+                            staging.isLow ? 'text-red-600' : 'text-green-600'
+                          }`}
+                          data-testid="text-bulk-import-staging-free"
+                        >
+                          {formatBytes(staging.freeBytes)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">Total</p>
+                        <p
+                          className="text-2xl font-bold"
+                          data-testid="text-bulk-import-staging-total"
+                        >
+                          {formatBytes(staging.totalBytes)}
+                        </p>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="text-sm font-medium">Free %</p>
+                        <span
+                          className={`text-sm font-bold ${
+                            staging.isLow ? 'text-red-600' : ''
+                          }`}
+                          data-testid="text-bulk-import-staging-free-percent"
+                        >
+                          {staging.freePercent.toFixed(1)}%
+                        </span>
+                      </div>
+                      <Progress value={staging.freePercent} />
+                    </div>
+                    {staging.isLow && (
+                      <Alert
+                        variant="destructive"
+                        data-testid="alert-bulk-import-staging-low"
+                      >
+                        <AlertTriangle className="h-4 w-4" />
+                        <AlertTitle>Staging disk free space is LOW</AlertTitle>
+                        <AlertDescription>
+                          Expand the volume or repoint
+                          <code className="mx-1 px-1 rounded bg-muted text-xs">
+                            BULK_IMPORT_STAGING_ROOT
+                          </code>
+                          at a larger disk before the next bulk upload.
+                        </AlertDescription>
+                      </Alert>
+                    )}
                   </>
                 )}
               </CardContent>
