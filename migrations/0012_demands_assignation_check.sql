@@ -124,13 +124,21 @@ BEGIN
 END;
 $$;
 
-DROP TRIGGER IF EXISTS demands_assignation_check ON demands;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.tables
+    WHERE table_schema = 'public' AND table_name = 'demands'
+  ) THEN
+    DROP TRIGGER IF EXISTS demands_assignation_check ON demands;
 
-CREATE TRIGGER demands_assignation_check
-  BEFORE INSERT OR UPDATE OF
-    assignation_residence_id,
-    assignation_building_id,
-    building_id
-  ON demands
-  FOR EACH ROW
-  EXECUTE FUNCTION demands_check_assignation();
+    CREATE TRIGGER demands_assignation_check
+      BEFORE INSERT OR UPDATE OF
+        assignation_residence_id,
+        assignation_building_id,
+        building_id
+      ON demands
+      FOR EACH ROW
+      EXECUTE FUNCTION demands_check_assignation();
+  END IF;
+END $$;

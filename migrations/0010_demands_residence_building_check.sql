@@ -63,10 +63,18 @@ BEGIN
 END;
 $$;
 
-DROP TRIGGER IF EXISTS demands_residence_building_check ON demands;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.tables
+    WHERE table_schema = 'public' AND table_name = 'demands'
+  ) THEN
+    DROP TRIGGER IF EXISTS demands_residence_building_check ON demands;
 
-CREATE TRIGGER demands_residence_building_check
-  BEFORE INSERT OR UPDATE OF residence_id, building_id
-  ON demands
-  FOR EACH ROW
-  EXECUTE FUNCTION demands_check_residence_building();
+    CREATE TRIGGER demands_residence_building_check
+      BEFORE INSERT OR UPDATE OF residence_id, building_id
+      ON demands
+      FOR EACH ROW
+      EXECUTE FUNCTION demands_check_residence_building();
+  END IF;
+END $$;

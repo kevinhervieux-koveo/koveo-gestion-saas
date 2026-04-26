@@ -33,22 +33,28 @@
 --   building_id; only the dangling residence pointer is removed.
 -- • Modifying existing triggers — 0010 is left unchanged.
 
-UPDATE demands
-SET    residence_id = NULL
-WHERE  residence_id IS NOT NULL
-  AND  building_id <> (
-         SELECT r.building_id
-         FROM   residences r
-         WHERE  r.id = demands.residence_id
-       );
-
--- Post-condition: assert no cross-org demand rows remain.
--- Raises check_violation (SQLSTATE 23514) on failure so the server's
--- boot sequence aborts loudly rather than continuing with dirty data.
+-- Entire migration is conditional on demands existing in this DB state.
 DO $$
 DECLARE
   remaining int;
 BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.tables
+    WHERE table_schema = 'public' AND table_name = 'demands'
+  ) THEN
+    RETURN;
+  END IF;
+
+  UPDATE demands
+  SET    residence_id = NULL
+  WHERE  residence_id IS NOT NULL
+    AND  building_id <> (
+           SELECT r.building_id
+           FROM   residences r
+           WHERE  r.id = demands.residence_id
+         );
+
+  -- Post-condition: assert no cross-org demand rows remain.
   SELECT count(*)::int
     INTO remaining
     FROM demands d

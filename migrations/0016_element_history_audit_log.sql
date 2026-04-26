@@ -19,25 +19,32 @@
 --
 -- Both changes land in a single migration transaction so the schema is
 -- always consistent.
+--
+-- Note: inline FK references to users(id) are deferred to migration 0018's
+-- FK phase, because users.id may still be uuid at this point in the chain
+-- and the type reconciliation happens in 0018_schema_baseline.sql. The FKs
+-- (element_history_updated_by_users_id_fk and
+--  element_history_audit_log_performed_by_users_id_fk) are added there
+-- with proper IF NOT EXISTS guards once column types are aligned.
 
 -- 1a. Add updated_at column to element_history (nullable = never-edited rows stay NULL)
 ALTER TABLE element_history
-  ADD COLUMN IF NOT EXISTS updated_at timestamptz;
+  ADD COLUMN IF NOT EXISTS updated_at timestamp;
 
--- 1b. Add updated_by FK to element_history
+-- 1b. Add updated_by column to element_history (FK deferred to 0018; see header note)
 ALTER TABLE element_history
-  ADD COLUMN IF NOT EXISTS updated_by text REFERENCES users(id) ON DELETE SET NULL;
+  ADD COLUMN IF NOT EXISTS updated_by text;
 
--- 2. Create the audit log table
+-- 2. Create the audit log table (performed_by FK deferred to 0018; see header note)
 CREATE TABLE IF NOT EXISTS element_history_audit_log (
   id            uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
   history_id    uuid        NOT NULL REFERENCES element_history(id) ON DELETE CASCADE,
   -- NULL when the edit was made via a legacy MCP_API_KEY session (no bound user).
-  performed_by  text        REFERENCES users(id) ON DELETE SET NULL,
+  performed_by  text,
   -- Structured diff: { "fieldName": { "before": ..., "after": ... }, ... }
   -- May also carry a top-level "meta" key for non-field audit metadata.
   changes       jsonb       NOT NULL,
-  created_at    timestamptz NOT NULL DEFAULT now()
+  created_at    timestamp   DEFAULT now()
 );
 
 CREATE INDEX IF NOT EXISTS element_history_audit_log_history_id_idx

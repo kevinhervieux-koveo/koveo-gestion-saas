@@ -8,26 +8,37 @@
 --
 -- Idempotent: re-running leaves data in the same correct state.
 
--- Advance (or correct) last_inspection_date to the true maximum.
-UPDATE building_elements AS be
-SET    last_inspection_date = subq.max_event_date
-FROM   (
-    SELECT element_id, MAX(event_date) AS max_event_date
-    FROM   element_history
-    WHERE  event_type IN ('repair', 'minor_rehab')
-    GROUP  BY element_id
-) AS subq
-WHERE  be.id = subq.element_id
-  AND  be.last_inspection_date IS DISTINCT FROM subq.max_event_date;
+-- Entire migration is conditional on building_elements existing in this DB state.
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.tables
+    WHERE table_schema = 'public' AND table_name = 'building_elements'
+  ) THEN
+    RETURN;
+  END IF;
 
--- NULL out last_inspection_date for elements whose inspection history rows
--- were deleted after the date was originally set.
-UPDATE building_elements AS be
-SET    last_inspection_date = NULL
-WHERE  be.last_inspection_date IS NOT NULL
-  AND  NOT EXISTS (
-        SELECT 1
-        FROM   element_history eh
-        WHERE  eh.element_id = be.id
-          AND  eh.event_type IN ('repair', 'minor_rehab')
-       );
+  -- Advance (or correct) last_inspection_date to the true maximum.
+  UPDATE building_elements AS be
+  SET    last_inspection_date = subq.max_event_date
+  FROM   (
+      SELECT element_id, MAX(event_date) AS max_event_date
+      FROM   element_history
+      WHERE  event_type IN ('repair', 'minor_rehab')
+      GROUP  BY element_id
+  ) AS subq
+  WHERE  be.id = subq.element_id
+    AND  be.last_inspection_date IS DISTINCT FROM subq.max_event_date;
+
+  -- NULL out last_inspection_date for elements whose inspection history rows
+  -- were deleted after the date was originally set.
+  UPDATE building_elements AS be
+  SET    last_inspection_date = NULL
+  WHERE  be.last_inspection_date IS NOT NULL
+    AND  NOT EXISTS (
+          SELECT 1
+          FROM   element_history eh
+          WHERE  eh.element_id = be.id
+            AND  eh.event_type IN ('repair', 'minor_rehab')
+         );
+END $$;

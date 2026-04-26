@@ -36,29 +36,35 @@
 -- exist. The migration can therefore be safely re-applied on every
 -- boot via `ensureTriggerOnlyMigrations()`.
 
--- Step 1: Sever orphan residence_id pointers so the FK can be added.
-UPDATE building_elements
-SET    residence_id = NULL
-WHERE  residence_id IS NOT NULL
-  AND  NOT EXISTS (
-    SELECT 1 FROM residences r WHERE r.id = building_elements.residence_id
-  );
-
--- Step 2: Add the FK constraint if it isn't already present.
+-- Entire migration is conditional on building_elements existing in this DB state.
 DO $$
 BEGIN
-  IF NOT EXISTS (
-    SELECT 1
-    FROM   pg_constraint c
-    JOIN   pg_class t ON t.oid = c.conrelid
-    WHERE  t.relname = 'building_elements'
-      AND  c.conname = 'building_elements_residence_id_residences_id_fk'
+  IF EXISTS (
+    SELECT 1 FROM information_schema.tables
+    WHERE table_schema = 'public' AND table_name = 'building_elements'
   ) THEN
-    ALTER TABLE building_elements
-      ADD CONSTRAINT building_elements_residence_id_residences_id_fk
-      FOREIGN KEY (residence_id)
-      REFERENCES residences (id)
-      ON DELETE SET NULL;
+    -- Step 1: Sever orphan residence_id pointers so the FK can be added.
+    UPDATE building_elements
+    SET    residence_id = NULL
+    WHERE  residence_id IS NOT NULL
+      AND  NOT EXISTS (
+        SELECT 1 FROM residences r WHERE r.id = building_elements.residence_id
+      );
+
+    -- Step 2: Add the FK constraint if it isn't already present.
+    IF NOT EXISTS (
+      SELECT 1
+      FROM   pg_constraint c
+      JOIN   pg_class t ON t.oid = c.conrelid
+      WHERE  t.relname = 'building_elements'
+        AND  c.conname = 'building_elements_residence_id_residences_id_fk'
+    ) THEN
+      ALTER TABLE building_elements
+        ADD CONSTRAINT building_elements_residence_id_residences_id_fk
+        FOREIGN KEY (residence_id)
+        REFERENCES residences (id)
+        ON DELETE SET NULL;
+    END IF;
   END IF;
 END;
 $$;

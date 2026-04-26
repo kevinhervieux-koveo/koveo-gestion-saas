@@ -33,6 +33,19 @@ ALTER TABLE maintenance_requests
   ADD CONSTRAINT maintenance_requests_description_length_check
   CHECK (char_length(btrim(description)) <= 5000);
 
-ALTER TABLE demands
-  ADD CONSTRAINT demands_description_length_check
-  CHECK (char_length(btrim(description)) <= 5000);
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.tables
+    WHERE table_schema = 'public' AND table_name = 'demands'
+  ) THEN
+    IF NOT EXISTS (
+      SELECT 1 FROM pg_constraint
+      WHERE conname = 'demands_description_length_check'
+    ) THEN
+      ALTER TABLE demands
+        ADD CONSTRAINT demands_description_length_check
+        CHECK (char_length(btrim(description)) <= 5000);
+    END IF;
+  END IF;
+END $$;
