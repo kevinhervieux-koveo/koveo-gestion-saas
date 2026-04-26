@@ -1467,7 +1467,11 @@ describeIfDb('MCP inventory tools — real Postgres', () => {
           vendorId: string | null;
           workDescription: string;
         };
-        updatedElement: { id: string; currentLifespan: number | null } | null;
+        updatedElement: {
+          id: string;
+          currentLifespan: number | null;
+          lastInspectionDate: string | null;
+        } | null;
       };
       expect(parsed.event.id).toBe(historyId);
       expect(parsed.event.eventType).toBe('major_rehab');
@@ -1477,8 +1481,13 @@ describeIfDb('MCP inventory tools — real Postgres', () => {
       expect(parsed.event.vendorId).toBe(vendorId);
       // Untouched fields are preserved (the seed value).
       expect(parsed.event.workDescription).toBe('edit-test seed event');
-      // No `lifespanImpact` change → tool must skip the element write.
-      expect(parsed.updatedElement).toBeNull();
+      // The eventType change shifted the row out of inspection scope, so the
+      // post-edit MAX(eventDate) over inspection rows recomputes to NULL —
+      // updatedElement reflects the recomputed (now-cleared) date and the
+      // unchanged currentLifespan (Task #1135).
+      expect(parsed.updatedElement).not.toBeNull();
+      expect(parsed.updatedElement!.currentLifespan).toBe(20);
+      expect(parsed.updatedElement!.lastInspectionDate).toBeNull();
 
       // DB read-back confirms the columns moved.
       const [row] = await db
@@ -1749,6 +1758,159 @@ describeIfDb('MCP inventory tools — real Postgres', () => {
         .where(eq(schema.elementHistoryAuditLog.historyId, historyId));
       expect(auditRows).toHaveLength(0);
     }, 30000);
+
+    // -----------------------------------------------------------------
+    // lastInspectionDate recompute on edit (Task #1135)
+    //
+    // The update path must recompute `lastInspectionDate = MAX(eventDate)`
+    // over inspection-type rows whenever the edit could shift the MAX —
+    // i.e. when `eventDate` or `eventType` changed. These tests cover the
+    // edit-newer, edit-older (regression), and inspection→non-inspection
+    // re-typing paths against a real Postgres DB.
+    // -----------------------------------------------------------------
+    it('advances lastInspectionDate when an inspection event is edited to a newer date', async () => {
+      const [el] = await db
+        .insert(schema.buildingElements)
+        .values({
+          buildingId: inScopeBuildingId,
+          uniformatCode: TEST_LEVEL3_CODE,
+          name: `inv-it-lid-edit-newer-${randomUUID().slice(0, 8)}`,
+          currentCondition: 'good',
+          lastInspectionDate: '2024-06-01',
+        })
+        .returning({ id: schema.buildingElements.id });
+      createdElementIds.push(el.id);
+      const [hist] = await db
+        .insert(schema.elementHistory)
+        .values({
+          elementId: el.id,
+          eventType: 'repair',
+          eventDate: '2024-06-01',
+          workDescription: 'edit-newer seed',
+          createdBy: adminUserId,
+        })
+        .returning({ id: schema.elementHistory.id });
+      createdHistoryIds.push(hist.id);
+
+      const handler = getToolHandler(server, 'update_element_history_event');
+      const result = await handler(
+        { role: 'admin', historyId: hist.id, eventDate: '2025-12-15' },
+        {},
+      );
+      const parsed = JSON.parse(parseToolText(result)) as {
+        updatedElement: { lastInspectionDate: string | null } | null;
+      };
+      expect(parsed.updatedElement).not.toBeNull();
+      expect(parsed.updatedElement!.lastInspectionDate).toBe('2025-12-15');
+
+      const [row] = await db
+        .select({ lastInspectionDate: schema.buildingElements.lastInspectionDate })
+        .from(schema.buildingElements)
+        .where(eq(schema.buildingElements.id, el.id));
+      expect(row!.lastInspectionDate).toBe('2025-12-15');
+    }, 30000);
+
+    it('regresses lastInspectionDate when the MAX-holding inspection event is edited to an older date', async () => {
+      // Two inspection events; lastInspectionDate currently sits on the
+      // newer one. Editing that newer event back to a date older than the
+      // other inspection event must drop the stored MAX onto the OTHER
+      // event's date — not leave it stale at the original (now non-existent)
+      // value.
+      const [el] = await db
+        .insert(schema.buildingElements)
+        .values({
+          buildingId: inScopeBuildingId,
+          uniformatCode: TEST_LEVEL3_CODE,
+          name: `inv-it-lid-edit-older-${randomUUID().slice(0, 8)}`,
+          currentCondition: 'good',
+          lastInspectionDate: '2025-09-15',
+        })
+        .returning({ id: schema.buildingElements.id });
+      createdElementIds.push(el.id);
+      const [olderHist] = await db
+        .insert(schema.elementHistory)
+        .values({
+          elementId: el.id,
+          eventType: 'minor_rehab',
+          eventDate: '2024-03-10',
+          workDescription: 'older inspection seed',
+          createdBy: adminUserId,
+        })
+        .returning({ id: schema.elementHistory.id });
+      createdHistoryIds.push(olderHist.id);
+      const [newerHist] = await db
+        .insert(schema.elementHistory)
+        .values({
+          elementId: el.id,
+          eventType: 'repair',
+          eventDate: '2025-09-15',
+          workDescription: 'newer inspection seed (currently holds MAX)',
+          createdBy: adminUserId,
+        })
+        .returning({ id: schema.elementHistory.id });
+      createdHistoryIds.push(newerHist.id);
+
+      const handler = getToolHandler(server, 'update_element_history_event');
+      const result = await handler(
+        // Push the MAX-holding event back to a date older than the other
+        // inspection event. The recompute must land on '2024-03-10'.
+        { role: 'admin', historyId: newerHist.id, eventDate: '2023-01-05' },
+        {},
+      );
+      const parsed = JSON.parse(parseToolText(result)) as {
+        updatedElement: { lastInspectionDate: string | null } | null;
+      };
+      expect(parsed.updatedElement).not.toBeNull();
+      expect(parsed.updatedElement!.lastInspectionDate).toBe('2024-03-10');
+
+      const [row] = await db
+        .select({ lastInspectionDate: schema.buildingElements.lastInspectionDate })
+        .from(schema.buildingElements)
+        .where(eq(schema.buildingElements.id, el.id));
+      expect(row!.lastInspectionDate).toBe('2024-03-10');
+    }, 30000);
+
+    it('clears lastInspectionDate when the only inspection event is re-typed to a non-inspection event', async () => {
+      const [el] = await db
+        .insert(schema.buildingElements)
+        .values({
+          buildingId: inScopeBuildingId,
+          uniformatCode: TEST_LEVEL3_CODE,
+          name: `inv-it-lid-retype-${randomUUID().slice(0, 8)}`,
+          currentCondition: 'good',
+          lastInspectionDate: '2024-08-20',
+        })
+        .returning({ id: schema.buildingElements.id });
+      createdElementIds.push(el.id);
+      const [hist] = await db
+        .insert(schema.elementHistory)
+        .values({
+          elementId: el.id,
+          eventType: 'repair',
+          eventDate: '2024-08-20',
+          workDescription: 'retype seed',
+          createdBy: adminUserId,
+        })
+        .returning({ id: schema.elementHistory.id });
+      createdHistoryIds.push(hist.id);
+
+      const handler = getToolHandler(server, 'update_element_history_event');
+      const result = await handler(
+        { role: 'admin', historyId: hist.id, eventType: 'replacement' },
+        {},
+      );
+      const parsed = JSON.parse(parseToolText(result)) as {
+        updatedElement: { lastInspectionDate: string | null } | null;
+      };
+      expect(parsed.updatedElement).not.toBeNull();
+      expect(parsed.updatedElement!.lastInspectionDate).toBeNull();
+
+      const [row] = await db
+        .select({ lastInspectionDate: schema.buildingElements.lastInspectionDate })
+        .from(schema.buildingElements)
+        .where(eq(schema.buildingElements.id, el.id));
+      expect(row!.lastInspectionDate).toBeNull();
+    }, 30000);
   });
 
   describe('delete_element_history_event', () => {
@@ -1918,6 +2080,111 @@ describeIfDb('MCP inventory tools — real Postgres', () => {
         .from(schema.elementHistory)
         .where(eq(schema.elementHistory.id, historyId));
       expect(stillThere).toHaveLength(1);
+    }, 30000);
+
+    // -----------------------------------------------------------------
+    // lastInspectionDate recompute on delete (Task #1135)
+    //
+    // Deleting the inspection event that holds the current MAX(eventDate)
+    // must drop lastInspectionDate onto the next-newest inspection event
+    // (or NULL when none remain) — never leave it pointing at the value
+    // established by the now-deleted row.
+    // -----------------------------------------------------------------
+    it('regresses lastInspectionDate to the next-newest inspection event when the MAX-holder is deleted', async () => {
+      const [el] = await db
+        .insert(schema.buildingElements)
+        .values({
+          buildingId: inScopeBuildingId,
+          uniformatCode: TEST_LEVEL3_CODE,
+          name: `inv-it-lid-del-max-${randomUUID().slice(0, 8)}`,
+          currentCondition: 'good',
+          lastInspectionDate: '2025-09-15',
+        })
+        .returning({ id: schema.buildingElements.id });
+      createdElementIds.push(el.id);
+      const [olderHist] = await db
+        .insert(schema.elementHistory)
+        .values({
+          elementId: el.id,
+          eventType: 'minor_rehab',
+          eventDate: '2024-03-10',
+          workDescription: 'older inspection (next-newest after delete)',
+          createdBy: adminUserId,
+        })
+        .returning({ id: schema.elementHistory.id });
+      createdHistoryIds.push(olderHist.id);
+      const [newerHist] = await db
+        .insert(schema.elementHistory)
+        .values({
+          elementId: el.id,
+          eventType: 'repair',
+          eventDate: '2025-09-15',
+          workDescription: 'MAX-holder — to be deleted',
+          createdBy: adminUserId,
+        })
+        .returning({ id: schema.elementHistory.id });
+      createdHistoryIds.push(newerHist.id);
+
+      const handler = getToolHandler(server, 'delete_element_history_event');
+      const result = await handler(
+        { role: 'admin', historyId: newerHist.id },
+        {},
+      );
+      const parsed = JSON.parse(parseToolText(result)) as {
+        deleted: { id: string };
+        updatedElement: { lastInspectionDate: string | null } | null;
+      };
+      expect(parsed.deleted.id).toBe(newerHist.id);
+      expect(parsed.updatedElement).not.toBeNull();
+      expect(parsed.updatedElement!.lastInspectionDate).toBe('2024-03-10');
+
+      const [row] = await db
+        .select({ lastInspectionDate: schema.buildingElements.lastInspectionDate })
+        .from(schema.buildingElements)
+        .where(eq(schema.buildingElements.id, el.id));
+      expect(row!.lastInspectionDate).toBe('2024-03-10');
+    }, 30000);
+
+    it('clears lastInspectionDate to NULL when the last remaining inspection event is deleted', async () => {
+      const [el] = await db
+        .insert(schema.buildingElements)
+        .values({
+          buildingId: inScopeBuildingId,
+          uniformatCode: TEST_LEVEL3_CODE,
+          name: `inv-it-lid-del-only-${randomUUID().slice(0, 8)}`,
+          currentCondition: 'good',
+          lastInspectionDate: '2024-08-20',
+        })
+        .returning({ id: schema.buildingElements.id });
+      createdElementIds.push(el.id);
+      const [hist] = await db
+        .insert(schema.elementHistory)
+        .values({
+          elementId: el.id,
+          eventType: 'repair',
+          eventDate: '2024-08-20',
+          workDescription: 'sole inspection — to be deleted',
+          createdBy: adminUserId,
+        })
+        .returning({ id: schema.elementHistory.id });
+      createdHistoryIds.push(hist.id);
+
+      const handler = getToolHandler(server, 'delete_element_history_event');
+      const result = await handler(
+        { role: 'admin', historyId: hist.id },
+        {},
+      );
+      const parsed = JSON.parse(parseToolText(result)) as {
+        updatedElement: { lastInspectionDate: string | null } | null;
+      };
+      expect(parsed.updatedElement).not.toBeNull();
+      expect(parsed.updatedElement!.lastInspectionDate).toBeNull();
+
+      const [row] = await db
+        .select({ lastInspectionDate: schema.buildingElements.lastInspectionDate })
+        .from(schema.buildingElements)
+        .where(eq(schema.buildingElements.id, el.id));
+      expect(row!.lastInspectionDate).toBeNull();
     }, 30000);
   });
 

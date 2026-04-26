@@ -4295,8 +4295,9 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
           // Forward-only guard: only advance lastInspectionDate, never regress it.
           // Mirrors the WHERE predicate used by POST /api/maintenance/elements/:elementId/history
           // so out-of-order backdated repair/minor_rehab events cannot clobber a newer date.
-          // NOTE: update_element_history_event / delete_element_history_event do not recompute
-          // lastInspectionDate (same gap as the REST PUT/DELETE paths — tracked separately).
+          // The update_element_history_event / delete_element_history_event handlers
+          // recompute lastInspectionDate from MAX(eventDate) after their write so that
+          // edits and deletions of inspection events stay accurate (Task #1135).
           if (eventType === "repair" || eventType === "minor_rehab") {
             await tx
               .update(schema.buildingElements)
@@ -4489,6 +4490,12 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
         eventUpdate.updatedBy = actingUserId;
       }
 
+      // Recompute lastInspectionDate when the edit could shift the MAX over
+      // inspection-type events for this element — i.e. when the event date or
+      // event type changed. The recompute runs after the row update so the
+      // SELECT MAX sees the new state. (Task #1135.)
+      const inspectionRecomputeNeeded = 'eventDate' in diffFields || 'eventType' in diffFields;
+
       try {
         const result = await withRetryableDbCall(() => db.transaction(async (tx) => {
           let updatedEvent = existing;
@@ -4513,14 +4520,34 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
               changes: auditChanges,
             });
           }
-          let updatedElement: { id: string; currentLifespan: number | null } | null = null;
+          let lifespanWriteHappened = false;
           if (lifespanProvided && lifespanDelta !== 0) {
             const newCurrentLifespan = Math.max(0, (element.currentLifespan ?? 0) + lifespanDelta);
-            const [el] = await tx
+            await tx
               .update(schema.buildingElements)
               .set({ currentLifespan: newCurrentLifespan, updatedAt: new Date() })
-              .where(eq(schema.buildingElements.id, element.id))
-              .returning({ id: schema.buildingElements.id, currentLifespan: schema.buildingElements.currentLifespan });
+              .where(eq(schema.buildingElements.id, element.id));
+            lifespanWriteHappened = true;
+          }
+          if (inspectionRecomputeNeeded) {
+            await tx
+              .update(schema.buildingElements)
+              .set({
+                lastInspectionDate: sql`(SELECT MAX(eh.event_date) FROM element_history eh WHERE eh.element_id = ${element.id} AND eh.event_type IN ('repair', 'minor_rehab'))`,
+                updatedAt: new Date(),
+              })
+              .where(eq(schema.buildingElements.id, element.id));
+          }
+          let updatedElement: { id: string; currentLifespan: number | null; lastInspectionDate: string | null } | null = null;
+          if (lifespanWriteHappened || inspectionRecomputeNeeded) {
+            const [el] = await tx
+              .select({
+                id: schema.buildingElements.id,
+                currentLifespan: schema.buildingElements.currentLifespan,
+                lastInspectionDate: schema.buildingElements.lastInspectionDate,
+              })
+              .from(schema.buildingElements)
+              .where(eq(schema.buildingElements.id, element.id));
             updatedElement = el ?? null;
           }
           return { event: updatedEvent, updatedElement };
@@ -4569,17 +4596,35 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
             .delete(schema.elementHistory)
             .where(eq(schema.elementHistory.id, historyId))
             .returning({ id: schema.elementHistory.id });
-          let updatedElement: { id: string; currentLifespan: number | null } | null = null;
           const refund = existing.lifespanImpact ?? 0;
           if (refund !== 0) {
             const newCurrentLifespan = Math.max(0, (element.currentLifespan ?? 0) - refund);
-            const [el] = await tx
+            await tx
               .update(schema.buildingElements)
               .set({ currentLifespan: newCurrentLifespan, updatedAt: new Date() })
-              .where(eq(schema.buildingElements.id, element.id))
-              .returning({ id: schema.buildingElements.id, currentLifespan: schema.buildingElements.currentLifespan });
-            updatedElement = el ?? null;
+              .where(eq(schema.buildingElements.id, element.id));
           }
+          // Always recompute lastInspectionDate after delete so removing the
+          // event that held the current MAX(eventDate) doesn't leave the
+          // element pointing at a date it no longer has any evidence for
+          // (Task #1135). When no inspection events remain the subquery
+          // returns NULL, which correctly clears the column.
+          await tx
+            .update(schema.buildingElements)
+            .set({
+              lastInspectionDate: sql`(SELECT MAX(eh.event_date) FROM element_history eh WHERE eh.element_id = ${element.id} AND eh.event_type IN ('repair', 'minor_rehab'))`,
+              updatedAt: new Date(),
+            })
+            .where(eq(schema.buildingElements.id, element.id));
+          const [el] = await tx
+            .select({
+              id: schema.buildingElements.id,
+              currentLifespan: schema.buildingElements.currentLifespan,
+              lastInspectionDate: schema.buildingElements.lastInspectionDate,
+            })
+            .from(schema.buildingElements)
+            .where(eq(schema.buildingElements.id, element.id));
+          const updatedElement: { id: string; currentLifespan: number | null; lastInspectionDate: string | null } | null = el ?? null;
           return { deleted: deleted ?? { id: historyId }, updatedElement };
         }));
         return { content: [{ type: "text" as const, text: JSON.stringify(result, null, 2) }] };

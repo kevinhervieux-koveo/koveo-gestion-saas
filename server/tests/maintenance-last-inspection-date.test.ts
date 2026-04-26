@@ -14,7 +14,7 @@
  */
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { randomUUID } from 'crypto';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import supertest from 'supertest';
 import express from 'express';
 import type { NeonDatabase } from 'drizzle-orm/neon-serverless';
@@ -237,6 +237,33 @@ describeIfDb('lastInspectionDate forward-only guard — integration (real Postgr
       .send({ eventType, eventDate, description: 'Integration test history entry' });
   }
 
+  async function fetchHistoryIdByDate(elementId: string, eventDate: string): Promise<string> {
+    const [row] = await db
+      .select({ id: schema.elementHistory.id })
+      .from(schema.elementHistory)
+      .where(
+        and(
+          eq(schema.elementHistory.elementId, elementId),
+          eq(schema.elementHistory.eventDate, eventDate),
+        ),
+      )
+      .limit(1);
+    return row.id;
+  }
+
+  async function putHistory(historyId: string, body: Record<string, unknown>) {
+    return request
+      .put(`/api/maintenance/history/${historyId}`)
+      .set('x-test-user-id', adminUserId)
+      .send(body);
+  }
+
+  async function deleteHistory(historyId: string) {
+    return request
+      .delete(`/api/maintenance/history/${historyId}`)
+      .set('x-test-user-id', adminUserId);
+  }
+
   it('sets lastInspectionDate to MAX(eventDate) after non-chronological inspection events', async () => {
     const elementId = await seedElement('ooo');
     try {
@@ -278,6 +305,93 @@ describeIfDb('lastInspectionDate forward-only guard — integration (real Postgr
       const majorRes = await postHistory(elementId, 'major_rehab', '2026-06-15');
       expect(majorRes.status).toBe(201);
       expect(await fetchLastInspectionDate(elementId)).toBe('2024-09-01');
+    } finally {
+      await db.delete(schema.elementHistory).where(eq(schema.elementHistory.elementId, elementId));
+      await db.delete(schema.buildingElements).where(eq(schema.buildingElements.id, elementId));
+    }
+  });
+
+  // ---------------------------------------------------------------------
+  // PUT /api/maintenance/history/:id — recompute on edit (Task #1135)
+  //
+  // The edit path must recompute lastInspectionDate = MAX(eventDate) over
+  // inspection-type rows whenever the event date or event type changes.
+  // ---------------------------------------------------------------------
+  it('PUT /history/:id advances lastInspectionDate when editing an inspection event to a newer date', async () => {
+    const elementId = await seedElement('put-newer');
+    try {
+      const createRes = await postHistory(elementId, 'repair', '2024-06-01');
+      expect(createRes.status).toBe(201);
+      expect(await fetchLastInspectionDate(elementId)).toBe('2024-06-01');
+
+      const historyId = await fetchHistoryIdByDate(elementId, '2024-06-01');
+      const putRes = await putHistory(historyId, { eventDate: '2025-12-15' });
+      expect(putRes.status).toBe(200);
+
+      expect(await fetchLastInspectionDate(elementId)).toBe('2025-12-15');
+    } finally {
+      // element_history_audit_log.history_id has ON DELETE CASCADE → deleting
+      // history rows clears the audit-log children for free.
+      await db.delete(schema.elementHistory).where(eq(schema.elementHistory.elementId, elementId));
+      await db.delete(schema.buildingElements).where(eq(schema.buildingElements.id, elementId));
+    }
+  });
+
+  it('PUT /history/:id regresses lastInspectionDate when the MAX-holding event is edited to an older date', async () => {
+    const elementId = await seedElement('put-older');
+    try {
+      // Two inspection events; the newer one establishes the current MAX.
+      expect((await postHistory(elementId, 'minor_rehab', '2024-03-10')).status).toBe(201);
+      expect((await postHistory(elementId, 'repair', '2025-09-15')).status).toBe(201);
+      expect(await fetchLastInspectionDate(elementId)).toBe('2025-09-15');
+
+      // Push the MAX-holding event back behind the other inspection event.
+      const maxHolderId = await fetchHistoryIdByDate(elementId, '2025-09-15');
+      const putRes = await putHistory(maxHolderId, { eventDate: '2023-01-05' });
+      expect(putRes.status).toBe(200);
+
+      // lastInspectionDate must drop to the next-newest inspection date.
+      expect(await fetchLastInspectionDate(elementId)).toBe('2024-03-10');
+    } finally {
+      await db.delete(schema.elementHistory).where(eq(schema.elementHistory.elementId, elementId));
+      await db.delete(schema.buildingElements).where(eq(schema.buildingElements.id, elementId));
+    }
+  });
+
+  // ---------------------------------------------------------------------
+  // DELETE /api/maintenance/history/:id — recompute on delete (Task #1135)
+  // ---------------------------------------------------------------------
+  it('DELETE /history/:id regresses lastInspectionDate to the next-newest inspection event', async () => {
+    const elementId = await seedElement('del-max');
+    try {
+      expect((await postHistory(elementId, 'minor_rehab', '2024-03-10')).status).toBe(201);
+      expect((await postHistory(elementId, 'repair', '2025-09-15')).status).toBe(201);
+      expect(await fetchLastInspectionDate(elementId)).toBe('2025-09-15');
+
+      const maxHolderId = await fetchHistoryIdByDate(elementId, '2025-09-15');
+      const delRes = await deleteHistory(maxHolderId);
+      expect(delRes.status).toBe(200);
+
+      // The MAX-holder is gone — lastInspectionDate must drop onto the
+      // next-newest inspection event.
+      expect(await fetchLastInspectionDate(elementId)).toBe('2024-03-10');
+    } finally {
+      await db.delete(schema.elementHistory).where(eq(schema.elementHistory.elementId, elementId));
+      await db.delete(schema.buildingElements).where(eq(schema.buildingElements.id, elementId));
+    }
+  });
+
+  it('DELETE /history/:id clears lastInspectionDate to NULL when the last inspection event is deleted', async () => {
+    const elementId = await seedElement('del-only');
+    try {
+      expect((await postHistory(elementId, 'repair', '2024-08-20')).status).toBe(201);
+      expect(await fetchLastInspectionDate(elementId)).toBe('2024-08-20');
+
+      const onlyId = await fetchHistoryIdByDate(elementId, '2024-08-20');
+      const delRes = await deleteHistory(onlyId);
+      expect(delRes.status).toBe(200);
+
+      expect(await fetchLastInspectionDate(elementId)).toBeNull();
     } finally {
       await db.delete(schema.elementHistory).where(eq(schema.elementHistory.elementId, elementId));
       await db.delete(schema.buildingElements).where(eq(schema.buildingElements.id, elementId));

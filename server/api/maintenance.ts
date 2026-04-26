@@ -1922,6 +1922,12 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         updatedBy: user.id,
       };
 
+      // Recompute lastInspectionDate when the edit could shift MAX(eventDate)
+      // over inspection-type events for this element — i.e. when the event
+      // date or event type changed. Mirrors the MCP path (Task #1135).
+      const inspectionRecomputeNeeded = 'eventDate' in diffFields || 'eventType' in diffFields;
+      const elementId = existing.elementId;
+
       const [updatedHistory] = await db.transaction(async (tx) => {
         const [row] = await tx
           .update(elementHistory)
@@ -1934,6 +1940,16 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
           performedBy: user.id,
           changes: diffFields,
         });
+
+        if (inspectionRecomputeNeeded) {
+          await tx
+            .update(buildingElements)
+            .set({
+              lastInspectionDate: sql`(SELECT MAX(eh.event_date) FROM element_history eh WHERE eh.element_id = ${elementId} AND eh.event_type IN ('repair', 'minor_rehab'))`,
+              updatedAt: new Date(),
+            })
+            .where(eq(buildingElements.id, elementId));
+        }
 
         return [row];
       });
@@ -2088,10 +2104,25 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
           error: 'No access to this history entry'
         });
       }
-      
-      await db
-        .delete(elementHistory)
-        .where(eq(elementHistory.id, id));
+
+      // Delete + recompute lastInspectionDate in a single transaction so the
+      // element's stored MAX(eventDate) over inspection-type rows can never
+      // outlive the row that established it (Task #1135). When no inspection
+      // events remain the subquery returns NULL, which correctly clears the
+      // column.
+      const elementId = historyResult[0].elementId;
+      await db.transaction(async (tx) => {
+        await tx
+          .delete(elementHistory)
+          .where(eq(elementHistory.id, id));
+        await tx
+          .update(buildingElements)
+          .set({
+            lastInspectionDate: sql`(SELECT MAX(eh.event_date) FROM element_history eh WHERE eh.element_id = ${elementId} AND eh.event_type IN ('repair', 'minor_rehab'))`,
+            updatedAt: new Date(),
+          })
+          .where(eq(buildingElements.id, elementId));
+      });
 
       res.json({
         success: true,
