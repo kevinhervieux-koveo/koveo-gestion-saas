@@ -4017,9 +4017,13 @@ export default function BulkDocumentImportPage() {
                                   const isAuto = isAutoStep(currentStep);
                                   const retryAction = isAuto ? stepRetryAction[currentStep as AutoStep] : null;
                                   const branchProgress = isAuto ? readRunAllProgress(session, currentStep as AutoStep) : null;
-                                  const stillEligible = isAuto && item.status === STEP_PRE_STATUS[currentStep as AutoStep];
                                   const isExcluded = item.status === 'rejected';
-                                  const showRetry = !isExcluded && !!retryAction && ((!!decision?.fallbackReason) || (stillEligible && !!branchProgress?.finishedAt));
+                                  // Task #1194: inline Retry is available on every
+                                  // non-excluded row that has a retry action for the
+                                  // current auto step, regardless of fallback/run-all
+                                  // state. Per-step manual-override guards still hide
+                                  // the button at the usage site below.
+                                  const showRetry = !isExcluded && !!retryAction;
                                   // Task #1047: the per-item retry endpoint is now
                                   // fire-and-forget on the server, so `runStep.isPending`
                                   // drops within milliseconds. The polled session payload
@@ -4559,19 +4563,9 @@ export default function BulkDocumentImportPage() {
                         const retryAction = isAuto
                           ? stepRetryAction[currentStep as AutoStep]
                           : null;
-                        // Retry surfaces when this item is still
-                        // sitting in the pre-step status after the
-                        // run-all loop has finished, OR when the AI
-                        // came back with a fallback reason for the
-                        // current step. Generalizes Task #575's
-                        // screening-only auto behaviour to all five
-                        // AI steps.
                         const progress = isAuto
                           ? readRunAllProgress(session, currentStep as AutoStep)
                           : null;
-                        const stillEligible =
-                          isAuto &&
-                          item.status === STEP_PRE_STATUS[currentStep as AutoStep];
                         // Draft-split leads have status='rejected' but are kept
                         // visible so the admin can adjust or revert the split.
                         const isDraftSplitLead =
@@ -4580,12 +4574,16 @@ export default function BulkDocumentImportPage() {
                           !!item.sortingDecisionSplitIntoItemIds?.length &&
                           item.preExcludeStatus == null;
                         const isExcluded = item.status === 'rejected' && !isDraftSplitLead;
+                        // Task #1194: inline Retry is available on every
+                        // non-excluded, non-draft-split-lead row that has a
+                        // retry action for the current auto step, regardless
+                        // of fallback/run-all state. Per-step manual-override
+                        // guards still hide the button at the usage sites
+                        // below (identification / sorting).
                         const showRetry =
                           !isExcluded &&
                           !isDraftSplitLead &&
-                          !!retryAction &&
-                          ((!!decision?.fallbackReason) ||
-                            (stillEligible && !!progress?.finishedAt));
+                          !!retryAction;
                         // Task #1047: keep the spinner up while the
                         // background per-item retry is in flight on the
                         // server (signal lives in `runAll[step].inFlight`
