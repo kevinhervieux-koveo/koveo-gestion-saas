@@ -660,6 +660,71 @@ describeIfDb('orphan FK cleanup script — real Postgres (Task #1164)', () => {
     ).resolves.toBeDefined();
   }, 60000);
 
+  it('reportOnly: true never writes — counts orphans behind cascade AND set-null FKs but leaves both rows untouched (Task #1203)', async () => {
+    // `--report-only` (and the `ORPHAN_CLEANUP_REPORT_ONLY=1` env var)
+    // is one of the script's documented safety knobs: operators flip
+    // it on in CI to see what *would* be cleaned before letting the
+    // script actually mutate data. A regression that let `reportOnly`
+    // fall through to the DELETE / UPDATE branch in `cleanOrphans`
+    // would silently destroy data the next time someone reached for
+    // the "safe" mode, so we lock in the contract here against both
+    // auto-cleanable branches at once: the cascade DELETE path and
+    // the set-null UPDATE path. If either branch ever started writing
+    // in report-only mode, the surviving-row assertion below would
+    // catch it.
+    const cascadeOrphanId = await plantOrphanWithCascadeFk();
+    const setNullOrphanId = await plantOrphanWithSetNullFk();
+
+    // Capture the set-null orphan's pre-cleanup `parent_id` so we can
+    // assert it's still pointing at the same ghost parent afterwards
+    // (i.e. the UPDATE ... SET parent_id = NULL branch never ran).
+    const setNullBefore = await client.query<{ parent_id: string | null }>(
+      `SELECT parent_id::text AS parent_id FROM "${CHILD_SETNULL}" WHERE id = $1`,
+      [setNullOrphanId],
+    );
+    expect(setNullBefore.rows[0].parent_id).not.toBeNull();
+    const ghostParentBefore = setNullBefore.rows[0].parent_id;
+
+    const result = await runCleanup({
+      client,
+      fks: [cascadeFk(), setNullFk()],
+      reportOnly: true,
+      log: () => undefined,
+    });
+
+    // No fatals (both FKs are auto-cleanable shapes), nothing cleaned,
+    // and BOTH per-FK entries report `action: 'reported'` with the
+    // orphan count surfaced for triage.
+    expect(result.fatalReports).toEqual([]);
+    expect(result.cleanedTotal).toBe(0);
+    expect(result.perFk).toHaveLength(2);
+    for (const entry of result.perFk) {
+      expect(entry.action).toBe('reported');
+      expect(entry.rows).toBe(1);
+    }
+
+    // The cascade orphan must still be in place — proof the DELETE
+    // branch never ran.
+    const cascadeStill = await client.query<{ n: number }>(
+      `SELECT count(*)::int AS n FROM "${CHILD_CASCADE}" WHERE id = $1`,
+      [cascadeOrphanId],
+    );
+    expect(cascadeStill.rows[0].n).toBe(1);
+
+    // The set-null orphan must still be in place AND its FK column
+    // must still point at the same ghost parent — proof the UPDATE
+    // branch never ran. Asserting the value (not just non-NULL) catches
+    // a regression where report-only somehow re-NULLed and re-set the
+    // column to a different value.
+    const setNullStill = await client.query<{ n: number; parent_id: string | null }>(
+      `SELECT count(*)::int AS n, max(parent_id::text) AS parent_id
+         FROM "${CHILD_SETNULL}" WHERE id = $1`,
+      [setNullOrphanId],
+    );
+    expect(setNullStill.rows[0].n).toBe(1);
+    expect(setNullStill.rows[0].parent_id).toBe(ghostParentBefore);
+  }, 60000);
+
   it('collectForeignKeys discovers at least one Drizzle-modeled FK so the introspection step still works', () => {
     // Lightweight regression guard: if a future schema refactor breaks
     // the introspection (e.g. a tables export change drops the FK
