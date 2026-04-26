@@ -38,7 +38,12 @@ describeIfDb('bulk-import staging janitor — Task #1066', () => {
   let db: any;
   let schema: any;
   let sweepStagingOrphans: typeof import('../../server/api/bulk-import').sweepStagingOrphans;
+  // Keep this test pinned to the project's `.staging/bulk-import` so it
+  // matches the default `getBulkImportStagingRoot()` (Task #1080) — and
+  // explicitly clear `BULK_IMPORT_STAGING_ROOT` in beforeAll so an
+  // operator-set value in CI cannot misroute the sweep.
   const stagingRoot = nodePath.join(process.cwd(), '.staging', 'bulk-import');
+  const PREV_STAGING_ROOT_ENV = process.env.BULK_IMPORT_STAGING_ROOT;
 
   const ids = {
     org: crypto.randomUUID(),
@@ -57,6 +62,10 @@ describeIfDb('bulk-import staging janitor — Task #1066', () => {
     process.env.SESSION_SECRET =
       process.env.SESSION_SECRET || 'test-session-secret-task1066';
     process.env.NODE_ENV = process.env.NODE_ENV || 'test';
+    // Task #1080 — make sure an operator-set staging root in the CI
+    // env cannot misdirect this test's sweep. Pin to the default,
+    // which equals the `stagingRoot` we write our fixtures into.
+    delete process.env.BULK_IMPORT_STAGING_ROOT;
 
     db = require('../../server/db').db;
     schema = require('@shared/schema');
@@ -122,6 +131,11 @@ describeIfDb('bulk-import staging janitor — Task #1066', () => {
     await db
       .delete(schema.organizations)
       .where(eq(schema.organizations.id, ids.org));
+    if (PREV_STAGING_ROOT_ENV === undefined) {
+      delete process.env.BULK_IMPORT_STAGING_ROOT;
+    } else {
+      process.env.BULK_IMPORT_STAGING_ROOT = PREV_STAGING_ROOT_ENV;
+    }
   }, 30_000);
 
   it('removes whole orphan session dirs and stale tmp files in live dirs in a single pass', async () => {

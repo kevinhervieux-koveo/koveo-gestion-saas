@@ -2,10 +2,12 @@
  * Admin Bulk Document Import REST API (Task #451).
  *
  * Every endpoint here is gated to `admin`. Files are streamed onto disk
- * inside a per-session staging directory (under
- * `process.cwd()/.staging/bulk-import/<sessionId>/`) so the user can
- * leave the page and resume — nothing is committed to the real
- * `documents` table until the final "Linking" step accepts the item.
+ * inside a per-session staging directory under the configured
+ * bulk-import staging root (see `getBulkImportStagingRoot()` — the
+ * `BULK_IMPORT_STAGING_ROOT` env var, defaulting to
+ * `process.cwd()/.staging/bulk-import/`) so the user can leave the page
+ * and resume — nothing is committed to the real `documents` table
+ * until the final "Linking" step accepts the item.
  */
 import type { Express, NextFunction, Request, Response } from 'express';
 import multer from 'multer';
@@ -37,7 +39,35 @@ import type { BulkImportFallbackReason } from '@shared/schemas/bulk-import';
 import { fixLatin1MisdecodeFilename } from '../utils/filenameNormalization';
 import { buildContentDisposition } from '../utils/content-disposition';
 
-const STAGING_ROOT = path.join(process.cwd(), '.staging', 'bulk-import');
+/**
+ * Default staging root used when `BULK_IMPORT_STAGING_ROOT` is not set
+ * (Task #1080). Lives under `process.cwd()` so a fresh dev workspace
+ * works without any extra configuration.
+ */
+const DEFAULT_STAGING_ROOT = path.join(process.cwd(), '.staging', 'bulk-import');
+
+/**
+ * Resolve the bulk-import staging root (Task #1080). All on-disk
+ * helpers — the upload route's multer destination, `stagingDirFor`,
+ * `safeRmSession`, `sweepStagingOrphans`, and the per-request path
+ * traversal guards — funnel through this one getter so a single
+ * `BULK_IMPORT_STAGING_ROOT` env var moves the entire staging tree:
+ *
+ *   - Ops can point staging at a faster volume (or a tmpfs) without
+ *     touching code.
+ *   - Tests can point staging at an isolated `mkdtempSync` directory
+ *     so a parallel test run cannot have its real staging files swept
+ *     by a unit test.
+ *
+ * Read lazily (per call) instead of cached at module load so a test
+ * that flips the env var between cases takes effect immediately
+ * without the cost of re-`require()`-ing this large module.
+ */
+export function getBulkImportStagingRoot(): string {
+  const envRoot = process.env.BULK_IMPORT_STAGING_ROOT;
+  if (envRoot && envRoot.length > 0) return envRoot;
+  return DEFAULT_STAGING_ROOT;
+}
 
 /**
  * Pull the Screening AI's quickAnalysis fields (typeGuess, bucketGuess,
@@ -109,13 +139,13 @@ function extractScreeningQuickAnalysisFields(
 export const screenAllInProgress = new Set<string>();
 
 function stagingDirFor(sessionId: string): string {
-  const dir = path.join(STAGING_ROOT, sessionId);
+  const dir = path.join(getBulkImportStagingRoot(), sessionId);
   fs.mkdirSync(dir, { recursive: true });
   return dir;
 }
 
 function safeRmSession(sessionId: string): void {
-  const dir = path.join(STAGING_ROOT, sessionId);
+  const dir = path.join(getBulkImportStagingRoot(), sessionId);
   try {
     fs.rmSync(dir, { recursive: true, force: true });
   } catch (err) {
@@ -146,12 +176,13 @@ export const STAGING_TMP_MAX_AGE_MS = 60 * 60 * 1000;
 export const STAGING_JANITOR_INTERVAL_MS = 15 * 60 * 1000;
 
 /**
- * Walk `STAGING_ROOT` once and remove orphan files left behind by
- * harder-than-graceful failures (Task #1066). The upload route already
- * cleans up after multer errors, missing-session 404s, and per-file
- * insert failures; this sweep covers the cases the request handler
- * cannot see — the Node process being killed mid-upload, an admin
- * deleting the session row out from under an in-flight upload, etc.
+ * Walk the bulk-import staging root once and remove orphan files left
+ * behind by harder-than-graceful failures (Task #1066). The upload
+ * route already cleans up after multer errors, missing-session 404s,
+ * and per-file insert failures; this sweep covers the cases the
+ * request handler cannot see — the Node process being killed
+ * mid-upload, an admin deleting the session row out from under an
+ * in-flight upload, etc.
  *
  * Two classes of orphan are removed:
  *   1. `.upload-tmp-*` files older than `maxTmpAgeMs` (default 1 hour).
@@ -168,17 +199,15 @@ export const STAGING_JANITOR_INTERVAL_MS = 15 * 60 * 1000;
  *
  * Best-effort throughout: any per-file or per-dir error is logged and
  * skipped so a single bad inode never aborts the whole pass.
+ *
+ * Reads the staging root via `getBulkImportStagingRoot()` so tests can
+ * isolate the sweep by setting `BULK_IMPORT_STAGING_ROOT` to a
+ * `mkdtempSync` directory (Task #1080). The previous per-call
+ * `stagingRoot` opt is no longer needed and has been removed.
  */
 export async function sweepStagingOrphans(opts?: {
   maxTmpAgeMs?: number;
   now?: number;
-  /**
-   * Optional override for the staging root. Defaults to the
-   * production `STAGING_ROOT`. Tests use this to point the sweep at
-   * an isolated temp directory so a parallel test run cannot have its
-   * real staging files swept by the test pass.
-   */
-  stagingRoot?: string;
 }): Promise<{
   removedTmp: number;
   removedSessionDirs: number;
@@ -186,7 +215,7 @@ export async function sweepStagingOrphans(opts?: {
 }> {
   const maxTmpAgeMs = opts?.maxTmpAgeMs ?? STAGING_TMP_MAX_AGE_MS;
   const now = opts?.now ?? Date.now();
-  const stagingRoot = opts?.stagingRoot ?? STAGING_ROOT;
+  const stagingRoot = getBulkImportStagingRoot();
   let removedTmp = 0;
   let removedSessionDirs = 0;
   let inspectedDirs = 0;
@@ -2551,7 +2580,7 @@ export function registerBulkImportRoutes(app: Express): void {
         // when the prior path is different from the new one (uploading
         // the exact same file would collide on hash+name) AND lived
         // under THIS session's staging directory. Constraining to the
-        // session dir (not just `STAGING_ROOT`) means a poisoned
+        // session dir (not just the bulk-import staging root) means a poisoned
         // `stagedPath` row from a different session — or one that
         // somehow points elsewhere on disk — can never coax us into
         // removing files outside the affected session's sandbox.
@@ -2600,7 +2629,7 @@ export function registerBulkImportRoutes(app: Express): void {
       if (!item) return res.status(404).json({ error: 'Item not found' });
 
       const resolved = path.resolve(item.stagedPath);
-      const stagingRoot = path.resolve(STAGING_ROOT);
+      const stagingRoot = path.resolve(getBulkImportStagingRoot());
       if (!resolved.startsWith(stagingRoot + path.sep)) {
         return res.status(400).json({ error: 'Invalid staged path' });
       }
@@ -2628,9 +2657,9 @@ export function registerBulkImportRoutes(app: Express): void {
    *
    * Non-PDF items return a 400 because the picker only shows the
    * split control for PDFs anyway. The staged path is resolved and
-   * validated against `STAGING_ROOT` exactly like the `/file`
-   * endpoint above so a poisoned `stagedPath` row can never coax us
-   * into reading arbitrary files off disk.
+   * validated against the configured staging root exactly like the
+   * `/file` endpoint above so a poisoned `stagedPath` row can never
+   * coax us into reading arbitrary files off disk.
    */
   app.get(
     '/api/admin/bulk-import/items/:id/page-count',
@@ -2654,7 +2683,7 @@ export function registerBulkImportRoutes(app: Express): void {
       }
 
       const resolved = path.resolve(item.stagedPath);
-      const stagingRoot = path.resolve(STAGING_ROOT);
+      const stagingRoot = path.resolve(getBulkImportStagingRoot());
       if (!resolved.startsWith(stagingRoot + path.sep)) {
         return res.status(400).json({ error: 'Invalid staged path' });
       }

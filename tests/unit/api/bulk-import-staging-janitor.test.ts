@@ -58,9 +58,16 @@ jest.mock('drizzle-orm', () => {
 // touch the real `<cwd>/.staging/bulk-import` so parallel test runs
 // (or a real dev server staging files into the project) cannot have
 // their state damaged by this suite.
+//
+// Task #1080: the production code reads its staging root from
+// `BULK_IMPORT_STAGING_ROOT`, so we set the env var to TMP_ROOT
+// before requiring the module. The previous per-call `stagingRoot`
+// opt has been removed.
 const TMP_ROOT = nodeFs.mkdtempSync(
   nodePath.join(nodeOs.tmpdir(), 'bulk-import-janitor-test-'),
 );
+const PREV_STAGING_ROOT_ENV = process.env.BULK_IMPORT_STAGING_ROOT;
+process.env.BULK_IMPORT_STAGING_ROOT = TMP_ROOT;
 
 // Session ids the mocked db should report as alive. Anything not in
 // this set is treated as an orphan whose row has been deleted.
@@ -165,6 +172,11 @@ describe('Task #1066 — bulk-import staging janitor', () => {
     } catch {
       /* best-effort */
     }
+    if (PREV_STAGING_ROOT_ENV === undefined) {
+      delete process.env.BULK_IMPORT_STAGING_ROOT;
+    } else {
+      process.env.BULK_IMPORT_STAGING_ROOT = PREV_STAGING_ROOT_ENV;
+    }
   });
 
   it('removes a whole orphan session directory whose id has no row in bulk_import_sessions', async () => {
@@ -182,7 +194,6 @@ describe('Task #1066 — bulk-import staging janitor', () => {
 
     const result = await sweepStagingOrphans({
       now: Date.now(),
-      stagingRoot: TMP_ROOT,
     });
 
     expect(result.removedSessionDirs).toBe(1);
@@ -207,7 +218,6 @@ describe('Task #1066 — bulk-import staging janitor', () => {
     const result = await sweepStagingOrphans({
       now: Date.now(),
       maxTmpAgeMs: 60 * 60 * 1000,
-      stagingRoot: TMP_ROOT,
     });
 
     expect(result.removedSessionDirs).toBe(0);
@@ -237,7 +247,6 @@ describe('Task #1066 — bulk-import staging janitor', () => {
 
     const result = await sweepStagingOrphans({
       now: Date.now(),
-      stagingRoot: TMP_ROOT,
     });
 
     expect(result.removedSessionDirs).toBe(1);
@@ -248,12 +257,21 @@ describe('Task #1066 — bulk-import staging janitor', () => {
 
   it('returns zero counters and does not throw when the staging root does not exist', async () => {
     const missingRoot = nodePath.join(TMP_ROOT, 'does-not-exist-yet');
-    const result = await sweepStagingOrphans({
-      now: Date.now(),
-      stagingRoot: missingRoot,
-    });
-    expect(result.removedTmp).toBe(0);
-    expect(result.removedSessionDirs).toBe(0);
-    expect(result.inspectedDirs).toBe(0);
+    const previous = process.env.BULK_IMPORT_STAGING_ROOT;
+    process.env.BULK_IMPORT_STAGING_ROOT = missingRoot;
+    try {
+      const result = await sweepStagingOrphans({
+        now: Date.now(),
+      });
+      expect(result.removedTmp).toBe(0);
+      expect(result.removedSessionDirs).toBe(0);
+      expect(result.inspectedDirs).toBe(0);
+    } finally {
+      if (previous === undefined) {
+        delete process.env.BULK_IMPORT_STAGING_ROOT;
+      } else {
+        process.env.BULK_IMPORT_STAGING_ROOT = previous;
+      }
+    }
   });
 });
