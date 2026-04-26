@@ -692,6 +692,26 @@ async function loadFullApplication(): Promise<void> {
           log(`⚠️ Failed to initialize background jobs: ${jobError.message}`, 'error');
         }
       }, jobDelay);
+
+      // Task #1066: bulk-import staging janitor. Runs once on startup
+      // and then on a recurring interval to remove stale `.upload-tmp-*`
+      // files and orphan session directories the upload route's own
+      // cleanup can't see (process-killed mid-upload, session row
+      // deleted while files were still in flight, etc.). Same
+      // Autoscale skip as the rest of the persistent jobs above —
+      // stateless instances can't sustain the timer anyway.
+      setTimeout(async () => {
+        try {
+          const { startStagingJanitor } = await import('./api/bulk-import');
+          startStagingJanitor();
+          log('✅ Bulk-import staging janitor started');
+        } catch (janitorErr: any) {
+          log(
+            `⚠️ Failed to start bulk-import staging janitor: ${janitorErr?.message || janitorErr}`,
+            'error',
+          );
+        }
+      }, jobDelay);
     }
 
     // Start heavy database work in background AFTER routes are ready

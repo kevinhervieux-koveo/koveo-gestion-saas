@@ -123,6 +123,215 @@ function safeRmSession(sessionId: string): void {
   }
 }
 
+/**
+ * Default age cutoff for the staging janitor's `.upload-tmp-*` sweep
+ * (Task #1066). The upload route names every multer temp file
+ * `.upload-tmp-<ts>-<pid>-<rand>` and renames it to
+ * `<hash>_<originalName>` on success. A temp file older than this
+ * cutoff therefore could not belong to any in-flight upload — the route
+ * either renamed it long ago or the writer crashed mid-upload — so it
+ * is safe to delete. One hour is comfortably longer than the worst-case
+ * upload of the 100MB-per-file limit on Replit's network and longer
+ * than any HTTP timeout in front of the route.
+ */
+export const STAGING_TMP_MAX_AGE_MS = 60 * 60 * 1000;
+
+/**
+ * Default interval between staging-janitor passes (Task #1066). We run
+ * once at startup and then on this cadence forever. 15 minutes is
+ * frequent enough that even an aggressive misbehaving client cannot let
+ * gigabytes accumulate between passes, but rare enough that the
+ * `bulk_import_sessions` lookup never adds meaningful load.
+ */
+export const STAGING_JANITOR_INTERVAL_MS = 15 * 60 * 1000;
+
+/**
+ * Walk `STAGING_ROOT` once and remove orphan files left behind by
+ * harder-than-graceful failures (Task #1066). The upload route already
+ * cleans up after multer errors, missing-session 404s, and per-file
+ * insert failures; this sweep covers the cases the request handler
+ * cannot see — the Node process being killed mid-upload, an admin
+ * deleting the session row out from under an in-flight upload, etc.
+ *
+ * Two classes of orphan are removed:
+ *   1. `.upload-tmp-*` files older than `maxTmpAgeMs` (default 1 hour).
+ *      These are multer temp files whose route handler never got the
+ *      chance to rename them to `<hash>_<originalName>`. The age
+ *      cutoff is the "no live writer" proxy: no normal upload runs
+ *      that long, so a stale temp file means its writer is gone.
+ *   2. Whole session directories whose `<sessionId>` has no row in
+ *      `bulk_import_sessions`. These accumulate when a session row is
+ *      deleted (or never committed) but the staged files outlive it.
+ *
+ * Returns counters so the caller can decide whether to log the result
+ * and so the integration test can assert the sweep did the right work.
+ *
+ * Best-effort throughout: any per-file or per-dir error is logged and
+ * skipped so a single bad inode never aborts the whole pass.
+ */
+export async function sweepStagingOrphans(opts?: {
+  maxTmpAgeMs?: number;
+  now?: number;
+  /**
+   * Optional override for the staging root. Defaults to the
+   * production `STAGING_ROOT`. Tests use this to point the sweep at
+   * an isolated temp directory so a parallel test run cannot have its
+   * real staging files swept by the test pass.
+   */
+  stagingRoot?: string;
+}): Promise<{
+  removedTmp: number;
+  removedSessionDirs: number;
+  inspectedDirs: number;
+}> {
+  const maxTmpAgeMs = opts?.maxTmpAgeMs ?? STAGING_TMP_MAX_AGE_MS;
+  const now = opts?.now ?? Date.now();
+  const stagingRoot = opts?.stagingRoot ?? STAGING_ROOT;
+  let removedTmp = 0;
+  let removedSessionDirs = 0;
+  let inspectedDirs = 0;
+
+  let entries: fs.Dirent[];
+  try {
+    entries = await fs.promises.readdir(stagingRoot, { withFileTypes: true });
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException)?.code === 'ENOENT') {
+      return { removedTmp, removedSessionDirs, inspectedDirs };
+    }
+    logError('[bulk-import] janitor failed to list staging root', err as Error);
+    return { removedTmp, removedSessionDirs, inspectedDirs };
+  }
+
+  const sessionDirs = entries
+    .filter((e) => e.isDirectory())
+    .map((e) => e.name);
+  if (sessionDirs.length === 0) {
+    return { removedTmp, removedSessionDirs, inspectedDirs };
+  }
+
+  // Look up which session ids still have a live row. We do a single
+  // `IN (...)` query so the janitor's DB cost is O(1) per pass even on
+  // a host with hundreds of leftover dirs.
+  let liveSessionIds = new Set<string>();
+  try {
+    const rows = await db
+      .select({ id: schema.bulkImportSessions.id })
+      .from(schema.bulkImportSessions)
+      .where(inArray(schema.bulkImportSessions.id, sessionDirs));
+    liveSessionIds = new Set(rows.map((r) => r.id));
+  } catch (err) {
+    logError(
+      '[bulk-import] janitor failed to look up live session ids; skipping pass',
+      err as Error,
+    );
+    return { removedTmp, removedSessionDirs, inspectedDirs };
+  }
+
+  for (const dirName of sessionDirs) {
+    inspectedDirs++;
+    const sessionDir = path.join(stagingRoot, dirName);
+
+    if (!liveSessionIds.has(dirName)) {
+      // Whole-session orphan: the session row is gone, so no future
+      // request can reference these files. Drop the dir wholesale.
+      try {
+        await fs.promises.rm(sessionDir, { recursive: true, force: true });
+        removedSessionDirs++;
+      } catch (err) {
+        logError(
+          `[bulk-import] janitor failed to remove orphan session dir ${dirName}`,
+          err as Error,
+        );
+      }
+      continue;
+    }
+
+    // Live session: only sweep stale `.upload-tmp-*` files. Anything
+    // named `<hash>_<originalName>` is, by definition, a successfully
+    // staged file referenced from a `bulk_import_items` row.
+    let files: string[];
+    try {
+      files = await fs.promises.readdir(sessionDir);
+    } catch (err) {
+      if ((err as NodeJS.ErrnoException)?.code === 'ENOENT') continue;
+      logError(
+        `[bulk-import] janitor failed to list session dir ${dirName}`,
+        err as Error,
+      );
+      continue;
+    }
+    for (const fname of files) {
+      if (!fname.startsWith('.upload-tmp-')) continue;
+      const filePath = path.join(sessionDir, fname);
+      try {
+        const stat = await fs.promises.stat(filePath);
+        if (now - stat.mtimeMs >= maxTmpAgeMs) {
+          await fs.promises.unlink(filePath);
+          removedTmp++;
+        }
+      } catch (err) {
+        if ((err as NodeJS.ErrnoException)?.code === 'ENOENT') continue;
+        logError(
+          `[bulk-import] janitor failed to remove stale temp file ${filePath}`,
+          err as Error,
+        );
+      }
+    }
+  }
+
+  return { removedTmp, removedSessionDirs, inspectedDirs };
+}
+
+let stagingJanitorTimer: ReturnType<typeof setInterval> | null = null;
+
+/**
+ * Start the staging janitor (Task #1066): runs `sweepStagingOrphans`
+ * once on startup and then on a recurring interval. Idempotent — a
+ * second call is a no-op so a hot-reload during development cannot
+ * stack timers. Uses `unref()` so the timer never keeps the Node
+ * process alive on its own.
+ */
+export function startStagingJanitor(
+  intervalMs: number = STAGING_JANITOR_INTERVAL_MS,
+): void {
+  void runStagingJanitorOnce();
+  if (stagingJanitorTimer) return;
+  stagingJanitorTimer = setInterval(() => {
+    void runStagingJanitorOnce();
+  }, intervalMs);
+  if (typeof stagingJanitorTimer.unref === 'function') {
+    stagingJanitorTimer.unref();
+  }
+}
+
+/**
+ * Stop the staging janitor. Used on graceful shutdown and by tests
+ * that need a deterministic teardown.
+ */
+export function stopStagingJanitor(): void {
+  if (stagingJanitorTimer) {
+    clearInterval(stagingJanitorTimer);
+    stagingJanitorTimer = null;
+  }
+}
+
+async function runStagingJanitorOnce(): Promise<void> {
+  try {
+    const r = await sweepStagingOrphans();
+    if (r.removedTmp > 0 || r.removedSessionDirs > 0) {
+      logInfo('[bulk-import] staging janitor swept orphan files', {
+        metadata: {
+          removedTmp: r.removedTmp,
+          removedSessionDirs: r.removedSessionDirs,
+          inspectedDirs: r.inspectedDirs,
+        },
+      });
+    }
+  } catch (err) {
+    logError('[bulk-import] staging janitor crashed', err as Error);
+  }
+}
+
 function sha256(buffer: Buffer): string {
   return crypto.createHash('sha256').update(buffer).digest('hex');
 }
