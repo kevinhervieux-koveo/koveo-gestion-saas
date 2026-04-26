@@ -44,11 +44,11 @@ args = "Fast unit tests"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Full unit tests"
+args = "Type check"
 
 [[workflows.workflow.tasks]]
 task = "workflow.run"
-args = "Type checking"
+args = "Full unit tests"
 
 [[workflows.workflow]]
 name = "Start application"
@@ -63,20 +63,31 @@ waitForPort = 5000
 name = "Build verification"
 author = "agent"
 
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npm run build"
-
 [workflows.workflow.metadata]
 isValidation = true
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "bash scripts/build-check.sh"
 
 [[workflows.workflow]]
 name = "Fast unit tests"
 author = "agent"
 
+[workflows.workflow.metadata]
+isValidation = true
+
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "bash scripts/run-unit-tests.sh fast"
+args = "bash scripts/run-unit-tests.sh affected"
+
+[[workflows.workflow]]
+name = "Type check"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npx tsc --noEmit"
 
 [workflows.workflow.metadata]
 isValidation = true
@@ -88,17 +99,6 @@ author = "agent"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "bash scripts/run-unit-tests.sh full"
-
-[workflows.workflow.metadata]
-isValidation = true
-
-[[workflows.workflow]]
-name = "Type checking"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "npx tsc --noEmit"
 
 [workflows.workflow.metadata]
 outputType = "console"
