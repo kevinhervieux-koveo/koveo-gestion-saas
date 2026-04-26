@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback } from 'react';
+import { memo, useMemo, useState, useCallback, useDeferredValue } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { ColumnDef, Row } from '@tanstack/react-table';
 import { format, differenceInYears, isAfter } from 'date-fns';
@@ -56,7 +56,7 @@ interface ElementTableProps {
  * ElementTable component for displaying building elements inventory
  * Features comprehensive filtering, sorting, and bulk operations
  */
-export function ElementTable({
+function ElementTableImpl({
   className,
   buildingId,
   organizationId,
@@ -73,6 +73,15 @@ export function ElementTable({
   showOverdueOnly = false,
 }: ElementTableProps) {
   const { t } = useLanguage();
+  // Mirror filter inputs through useDeferredValue so the (potentially heavy)
+  // client-side filter pass over `allElements` runs at lower priority. Without
+  // this, every keystroke / filter toggle synchronously re-runs the filter +
+  // re-renders the DataTable inside the same input/click handler, producing
+  // "[Violation] handler took N ms" warnings in the console.
+  const deferredSearchTerm = useDeferredValue(searchTerm);
+  const deferredConditionFilter = useDeferredValue(conditionFilter);
+  const deferredUniformatFilter = useDeferredValue(uniformatFilter);
+  const deferredShowOverdueOnly = useDeferredValue(showOverdueOnly);
   // const { buildingId, hasPermission } = useBuildingContext();
   // Simple permission check - in real implementation this would use proper role-based permissions
   const hasPermission = (permission: string) => true;
@@ -173,13 +182,15 @@ export function ElementTable({
     return 'scheduled';
   }, []);
 
-  // Apply filtering logic
+  // Apply filtering logic. Uses the deferred filter values so the filter
+  // pass + downstream DataTable re-render run at lower priority (see the
+  // useDeferredValue mirrors above).
   const elements = useMemo(() => {
     let filteredElements = allElements;
 
     // Search filter - includes element name, code, description, and UNIFORMAT synonyms
-    if (searchTerm.trim()) {
-      const searchLower = searchTerm.toLowerCase();
+    if (deferredSearchTerm.trim()) {
+      const searchLower = deferredSearchTerm.toLowerCase();
       filteredElements = filteredElements.filter(element => {
         // Direct matches on element properties
         if (element.name.toLowerCase().includes(searchLower) ||
@@ -207,21 +218,21 @@ export function ElementTable({
     }
 
     // Condition filter
-    if (conditionFilter && conditionFilter !== 'all') {
+    if (deferredConditionFilter && deferredConditionFilter !== 'all') {
       filteredElements = filteredElements.filter(element => 
-        element.currentCondition === conditionFilter
+        element.currentCondition === deferredConditionFilter
       );
     }
 
     // UNIFORMAT filter
-    if (uniformatFilter && uniformatFilter !== 'all') {
+    if (deferredUniformatFilter && deferredUniformatFilter !== 'all') {
       filteredElements = filteredElements.filter(element => 
-        element.uniformatCode.startsWith(uniformatFilter)
+        element.uniformatCode.startsWith(deferredUniformatFilter)
       );
     }
 
     // Overdue evaluation filter
-    if (showOverdueOnly) {
+    if (deferredShowOverdueOnly) {
       filteredElements = filteredElements.filter(element => {
         if (!element.nextEvaluationDate) return false;
         const urgency = getEvaluationUrgency(element.nextEvaluationDate);
@@ -230,7 +241,7 @@ export function ElementTable({
     }
 
     return filteredElements;
-  }, [allElements, searchTerm, conditionFilter, uniformatFilter, showOverdueOnly, getEvaluationUrgency, uniformatSynonymsMap]);
+  }, [allElements, deferredSearchTerm, deferredConditionFilter, deferredUniformatFilter, deferredShowOverdueOnly, getEvaluationUrgency, uniformatSynonymsMap]);
 
   // Row selection handling
   const handleRowSelection = useCallback((updater: any) => {
@@ -592,7 +603,10 @@ export function ElementTable({
         </div>
       </div>
     );
-  }, [enableBulkActions, selectedElementsCount, selectedElementIds, elements]);
+    // Note: `elements` is intentionally NOT in the dep list — it's not read
+    // inside this memo, and including it caused bulkActions (and its child
+    // dropdown) to be rebuilt on every filter change.
+  }, [enableBulkActions, selectedElementsCount, selectedElementIds, deleteElementMutation, t, toast]);
 
   // Error state
   if (error) {
@@ -673,5 +687,12 @@ export function ElementTable({
     </div>
   );
 }
+
+// Wrap in React.memo so the heavy table doesn't re-render when an unrelated
+// piece of parent state changes (e.g. opening the element form modal in
+// InventoryPage). All callbacks passed in from InventoryPage are wrapped in
+// useCallback so prop identity is stable.
+export const ElementTable = memo(ElementTableImpl);
+ElementTable.displayName = 'ElementTable';
 
 export type { ElementTableProps };

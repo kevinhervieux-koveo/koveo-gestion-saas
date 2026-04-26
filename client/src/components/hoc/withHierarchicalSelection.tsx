@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, { startTransition, useCallback, useMemo, useRef } from 'react';
 import { logDebug, logError } from '@/lib/logger';
 import { useLocation, useSearch } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
@@ -174,7 +174,15 @@ function AdminManagerHierarchyFlow<T extends object>({
     // driven entirely by `useResidentFlatFlow` + `userResidences` below.
     const currentLevel = getCurrentLevel(config.hierarchy, { organizationId, buildingId, residenceId });
     
-    // Navigate to update URL parameters - wrapped in useCallback to prevent stale closures
+    // Navigate to update URL parameters - wrapped in useCallback to prevent stale closures.
+    //
+    // The `setLocation` call is wrapped in `startTransition` so the URL
+    // change (and the resulting cascade of HOC + wrapped-page re-renders)
+    // doesn't run synchronously inside the click handler that triggered it.
+    // Without this, picking an org / building / residence in the
+    // hierarchical picker emits "[Violation] 'click' handler took N ms"
+    // warnings on slower devices because the wrapped manager page (e.g. the
+    // Inventory table) mounts during the same task.
     const navigate = useCallback((updates: Record<string, string | null>) => {
       // Decode the location first to handle any URL-encoded characters (e.g., %3F for ?)
       const decodedLocation = decodeURIComponent(location);
@@ -195,7 +203,7 @@ function AdminManagerHierarchyFlow<T extends object>({
       const basePath = decodedLocation.split('?')[0];
       const newUrl = newSearch ? `${basePath}?${newSearch}` : basePath;
       
-      setLocation(newUrl);
+      startTransition(() => setLocation(newUrl));
     }, [location, setLocation]);
 
     // Fetch organizations
@@ -485,7 +493,10 @@ function AdminManagerHierarchyFlow<T extends object>({
       isFetchingUserResidences,
     ]);
 
-    // Handle selection
+    // Handle selection. Direct `setLocation` calls (custom residence
+    // navigation) are wrapped in `startTransition` for the same reason as
+    // the `navigate` helper above — keep the click handler responsive while
+    // the wrapped page mounts.
     const handleSelection = (id: string) => {      
       if (currentLevel === 'organization') {
         navigate({ organization: id });
@@ -496,7 +507,7 @@ function AdminManagerHierarchyFlow<T extends object>({
         // Check if custom residence navigation is provided
         if (config.onResidenceSelect) {
           const navigationPath = config.onResidenceSelect(id, buildingId || undefined, organizationId || undefined);
-          setLocation(navigationPath);
+          startTransition(() => setLocation(navigationPath));
         } else {
           // Preserve organization and building when selecting residence
           navigate({ organization: organizationId, building: buildingId, residence: id });
@@ -776,7 +787,7 @@ function AdminManagerHierarchyFlow<T extends object>({
           onBack: () => {
             const basePath = location.split('?')[0];
             window.history.pushState(null, '', basePath);
-            setLocation(basePath);
+            startTransition(() => setLocation(basePath));
           }
         };
       }
@@ -928,7 +939,11 @@ function ResidentBypassFlow<T extends object>({
     });
     const newSearch = newParams.toString();
     const basePath = decodedLocation.split('?')[0];
-    setLocation(newSearch ? `${basePath}?${newSearch}` : basePath);
+    // Mirror the AdminManagerHierarchyFlow `navigate` helper: defer the URL
+    // change so the wrapped page mount doesn't run inside the click handler.
+    startTransition(() => {
+      setLocation(newSearch ? `${basePath}?${newSearch}` : basePath);
+    });
   }, [location, setLocation]);
 
   const {
@@ -965,7 +980,10 @@ function ResidentBypassFlow<T extends object>({
   React.useEffect(() => {
     if (autoForwardTarget && lastAutoForwardRef.current !== autoForwardTarget) {
       lastAutoForwardRef.current = autoForwardTarget;
-      setLocation(autoForwardTarget);
+      // Defer the navigation so the wrapped page mount happens at lower
+      // priority than the resident-residences query settling — keeps the UI
+      // from "freezing" for residents with a single residence link.
+      startTransition(() => setLocation(autoForwardTarget));
     }
   }, [autoForwardTarget, setLocation]);
 
@@ -1054,7 +1072,7 @@ function ResidentBypassFlow<T extends object>({
         const picked = userResidences.find((r) => r.id === residenceId);
         if (!picked || !config.onResidenceSelect) return;
         const destination = config.onResidenceSelect(picked.id, picked.buildingId);
-        setLocation(destination);
+        startTransition(() => setLocation(destination));
       };
 
       return (

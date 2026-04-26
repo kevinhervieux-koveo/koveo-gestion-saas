@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect, startTransition } from 'react';
 import { logDebug } from '@/lib/logger';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -33,11 +33,20 @@ import { withHierarchicalSelection } from '@/components/hoc/withHierarchicalSele
 import { InventoryOverview } from './InventoryOverview';
 // import { ElementDetailsPanel } from './ElementDetailsPanel'; // Replaced with ElementForm
 
-// Import existing maintenance components
-import { ElementTable } from '@/components/maintenance/inventory/ElementTable';
+// Import existing maintenance components.
+//
+// ElementTable / ElementForm / UniformatBrowser are pulled in through the
+// lazy-loading wrappers in `lazy-components.tsx` so the heavy table + form
+// bundles aren't part of the initial inventory page load. The HOC-driven
+// manager pages used to render the entire ElementTable synchronously the
+// first time the user expanded the "Building Elements" collapsible, which
+// produced "[Violation] 'click' handler took N ms" warnings. Lazy-loading
+// puts the heavy module work behind a Suspense boundary so the click handler
+// itself returns immediately.
+import { ElementTable } from '@/components/maintenance/inventory/lazy-components';
 import { ElementDocumentViewer } from '@/components/maintenance/inventory/ElementDocumentViewer';
-import { UniformatBrowser } from '@/components/maintenance/inventory/UniformatBrowser';
-import { ElementForm } from '@/components/maintenance/inventory/ElementForm';
+import { UniformatBrowser } from '@/components/maintenance/inventory/lazy-components';
+import { ElementForm } from '@/components/maintenance/inventory/lazy-components';
 
 import { 
   AlertTriangle, 
@@ -147,7 +156,10 @@ function InventoryPageContent(props: InventoryPageContentProps) {
     }
   }, [showUniformatBrowser]);
 
-  // State for filtering and search
+  // State for filtering and search. The controlled input value (`searchTerm`)
+  // is updated synchronously so typing always feels instant; ElementTable
+  // mirrors it through its own `useDeferredValue` to keep the heavy filter
+  // recomputation at lower priority.
   const [searchTerm, setSearchTerm] = useState('');
   const [conditionFilter, setConditionFilter] = useState('');
   const [uniformatFilter, setUniformatFilter] = useState('');
@@ -269,7 +281,14 @@ function InventoryPageContent(props: InventoryPageContentProps) {
 
 
 
-  // Filter and search handlers
+  // Filter and search handlers. The non-text filters wrap their setter in
+  // startTransition so the heavy ElementTable re-render does not run inside
+  // the synchronous click handler — eliminating the
+  // "[Violation] 'click' handler took N ms" warnings on the filter controls.
+  // The search input updates `searchTerm` urgently so the input itself stays
+  // perfectly responsive while typing; ElementTable derives the filter from a
+  // `useDeferredValue` mirror, so the heavy recompute still happens at lower
+  // priority without making typing feel laggy.
   const handleSearchChange = useCallback((term: string) => {
     logDebug('🔍 [INVENTORY] Filter changed: Search term', { searchTerm: term });
     setSearchTerm(term);
@@ -277,17 +296,17 @@ function InventoryPageContent(props: InventoryPageContentProps) {
 
   const handleConditionFilterChange = useCallback((condition: string) => {
     logDebug('🔍 [INVENTORY] Filter changed: Condition', { condition });
-    setConditionFilter(condition);
+    startTransition(() => setConditionFilter(condition));
   }, []);
 
   const handleUniformatFilterChange = useCallback((uniformat: string) => {
     logDebug('🔍 [INVENTORY] Filter changed: Uniformat category', { uniformat });
-    setUniformatFilter(uniformat);
+    startTransition(() => setUniformatFilter(uniformat));
   }, []);
 
   const handleShowOverdueChange = useCallback((overdue: boolean) => {
     logDebug('🔍 [INVENTORY] Filter changed: Show overdue only', { showOverdueOnly: overdue });
-    setShowOverdueOnly(overdue);
+    startTransition(() => setShowOverdueOnly(overdue));
   }, []);
 
   // Selection handlers
@@ -359,7 +378,12 @@ function InventoryPageContent(props: InventoryPageContentProps) {
             <Collapsible 
               open={buildingElementsExpanded} 
               onOpenChange={(expanded) => {
-                setBuildingElementsExpanded(expanded);
+                // First-open mounts the heavyweight ElementTable + DataTable.
+                // `startTransition` lets React keep the click responsive and
+                // run the mount at lower priority — eliminating the
+                // "[Violation] 'click' handler took N ms" warning emitted on
+                // every first expand of this section.
+                startTransition(() => setBuildingElementsExpanded(expanded));
               }} 
               className="space-y-4" 
               data-testid="building-elements-section"
