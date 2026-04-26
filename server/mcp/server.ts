@@ -4200,7 +4200,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
 
   server.tool(
     "create_element_history_event",
-    "Log a work-history event (construction / repair / minor_rehab / major_rehab / replacement) on a building inventory element. Admin/manager only. The element's organization is resolved from its building, and writes are attributed to the OAuth-bound MCP user. When a non-null `lifespanImpact` is supplied, the element's `currentLifespan` is increased by that many years (mirroring the inventory maintenance API). When `eventType` is `repair` or `minor_rehab`, the element's `lastInspectionDate` is also bumped to the supplied `eventDate` (matching the REST behaviour of `POST /api/maintenance/elements/:elementId/history`).",
+    "Log a work-history event (construction / repair / minor_rehab / major_rehab / replacement) on a building inventory element. Admin/manager only. The element's organization is resolved from its building, and writes are attributed to the OAuth-bound MCP user. When a non-null `lifespanImpact` is supplied, the element's `currentLifespan` is increased by that many years (mirroring the inventory maintenance API). When `eventType` is `repair` or `minor_rehab`, the element's `lastInspectionDate` is advanced to `eventDate` only if `eventDate` is strictly later than the current stored value (or the element has no prior inspection date) — matching the forward-only guard in `POST /api/maintenance/elements/:elementId/history`. A backdated event will not regress `lastInspectionDate`.",
     {
       role: roleParam,
       elementId: z.string().describe("Building element ID the event applies to"),
@@ -4281,23 +4281,49 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
             })
             .returning();
           let updatedElement: { id: string; currentLifespan: number | null; lastInspectionDate: string | null } | null = null;
-          const elementUpdates: { currentLifespan?: number; lastInspectionDate?: string; updatedAt: Date } = { updatedAt: new Date() };
+          let needsReadBack = false;
+
+          // Bump currentLifespan unconditionally when a lifespanImpact is provided.
           if (lifespanImpact !== undefined && lifespanImpact !== null) {
-            elementUpdates.currentLifespan = (element.currentLifespan ?? 0) + lifespanImpact;
-          }
-          if (eventType === "repair" || eventType === "minor_rehab") {
-            elementUpdates.lastInspectionDate = eventDate;
-          }
-          if (elementUpdates.currentLifespan !== undefined || elementUpdates.lastInspectionDate !== undefined) {
-            const [el] = await tx
+            await tx
               .update(schema.buildingElements)
-              .set(elementUpdates)
-              .where(eq(schema.buildingElements.id, elementId))
-              .returning({
+              .set({ currentLifespan: (element.currentLifespan ?? 0) + lifespanImpact, updatedAt: new Date() })
+              .where(eq(schema.buildingElements.id, elementId));
+            needsReadBack = true;
+          }
+
+          // Forward-only guard: only advance lastInspectionDate, never regress it.
+          // Mirrors the WHERE predicate used by POST /api/maintenance/elements/:elementId/history
+          // so out-of-order backdated repair/minor_rehab events cannot clobber a newer date.
+          // NOTE: update_element_history_event / delete_element_history_event do not recompute
+          // lastInspectionDate (same gap as the REST PUT/DELETE paths — tracked separately).
+          if (eventType === "repair" || eventType === "minor_rehab") {
+            await tx
+              .update(schema.buildingElements)
+              .set({ lastInspectionDate: eventDate, updatedAt: new Date() })
+              .where(
+                and(
+                  eq(schema.buildingElements.id, elementId),
+                  or(
+                    isNull(schema.buildingElements.lastInspectionDate),
+                    sql`${schema.buildingElements.lastInspectionDate} < ${eventDate}::date`,
+                  ),
+                ),
+              );
+            needsReadBack = true;
+          }
+
+          // Re-read the element so the returned snapshot reflects the actual stored values,
+          // including the case where the lastInspectionDate guard skipped the write.
+          if (needsReadBack) {
+            const [el] = await tx
+              .select({
                 id: schema.buildingElements.id,
                 currentLifespan: schema.buildingElements.currentLifespan,
                 lastInspectionDate: schema.buildingElements.lastInspectionDate,
-              });
+              })
+              .from(schema.buildingElements)
+              .where(eq(schema.buildingElements.id, elementId));
             updatedElement = el ?? null;
           }
           return { event, updatedElement };

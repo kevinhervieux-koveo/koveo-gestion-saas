@@ -1252,6 +1252,79 @@ describeIfDb('MCP inventory tools — real Postgres', () => {
       expect(row!.currentLifespan).toBe(initialLifespan + lifespanImpact);
       expect(row!.lastInspectionDate).toBe(initialInspection);
     }, 30000);
+
+    it('non-chronological inspection events: lastInspectionDate equals MAX(eventDate) and non-inspection events leave it untouched', async () => {
+      // Drives create_element_history_event with several repair/minor_rehab events
+      // inserted out of chronological order (including at least one event older
+      // than a previously inserted one) and asserts the element's final
+      // lastInspectionDate equals the MAX of all those eventDates.
+      // Also verifies that a subsequent non-inspection event does not change
+      // lastInspectionDate, matching the "done looks like" criteria for task #1130.
+      const elementId = await seedFreshHistoryElement({
+        initialInspection: '2019-01-01',
+        initialLifespan: 20,
+      });
+      const handler = getToolHandler(server, 'create_element_history_event');
+
+      const inspectionEvents: Array<{ eventType: 'repair' | 'minor_rehab'; eventDate: string }> = [
+        { eventType: 'repair',      eventDate: '2024-06-15' },
+        { eventType: 'minor_rehab', eventDate: '2023-01-10' }, // older — must NOT clobber 2024-06-15
+        { eventType: 'repair',      eventDate: '2025-11-20' }, // newer — must advance to this
+        { eventType: 'minor_rehab', eventDate: '2022-03-05' }, // oldest of all — must NOT clobber 2025-11-20
+      ];
+
+      for (const ev of inspectionEvents) {
+        const result = await handler(
+          {
+            role: 'admin',
+            elementId,
+            eventType: ev.eventType,
+            eventDate: ev.eventDate,
+            workDescription: `non-chronological test — ${ev.eventDate}`,
+          },
+          {},
+        );
+        const text = parseToolText(result);
+        expect(text).not.toMatch(/access denied|not found|failed to create/i);
+        const parsed = JSON.parse(text) as { event: { id: string } };
+        createdHistoryIds.push(parsed.event.id);
+      }
+
+      const [row] = await db
+        .select({ lastInspectionDate: schema.buildingElements.lastInspectionDate })
+        .from(schema.buildingElements)
+        .where(eq(schema.buildingElements.id, elementId));
+      // Must equal MAX(eventDate) of all inspection-type events.
+      expect(row!.lastInspectionDate).toBe('2025-11-20');
+
+      // A subsequent non-inspection event must not change lastInspectionDate.
+      const nonInspectionResult = await handler(
+        {
+          role: 'admin',
+          elementId,
+          eventType: 'major_rehab',
+          eventDate: '2026-08-01', // even a future date must not touch lastInspectionDate
+          workDescription: 'non-inspection event — must not change lastInspectionDate',
+        },
+        {},
+      );
+      const nonInspectionText = parseToolText(nonInspectionResult);
+      expect(nonInspectionText).not.toMatch(/access denied|not found|failed to create/i);
+      const nonInspectionParsed = JSON.parse(nonInspectionText) as {
+        event: { id: string };
+        updatedElement: null;
+      };
+      createdHistoryIds.push(nonInspectionParsed.event.id);
+
+      // updatedElement must be null — no element write for non-inspection types without lifespanImpact.
+      expect(nonInspectionParsed.updatedElement).toBeNull();
+
+      const [rowAfter] = await db
+        .select({ lastInspectionDate: schema.buildingElements.lastInspectionDate })
+        .from(schema.buildingElements)
+        .where(eq(schema.buildingElements.id, elementId));
+      expect(rowAfter!.lastInspectionDate).toBe('2025-11-20');
+    }, 30000);
   });
 
   // -------------------------------------------------------------------
