@@ -97,6 +97,7 @@ const ITEM_DESTINATION_TOGGLE = 'item-destination-toggle';
 const ITEM_AI_HINT_OVERRIDE = 'item-ai-hint-override';
 const ITEM_SAVE_DISABLED = 'item-save-disabled';
 const ITEM_SAVE_NON_RESIDENCE = 'item-save-non-residence';
+const ITEM_AI_CONFIRMED = 'item-ai-confirmed';
 
 const RESIDENCES = [
   { id: 'res-101', unitNumber: '101' },
@@ -720,5 +721,119 @@ describe('BulkDocumentImportPage — reassign residence dropdown pre-fill (Task 
     // Save must be enabled even though no residence is selected.
     const saveBtn = screen.getByTestId(`button-reassign-save-${ITEM_SAVE_NON_RESIDENCE}`);
     expect(saveBtn).not.toBeDisabled();
+  });
+
+  // ===========================================================================
+  // 7. Once the admin has accepted the AI's residence (residenceAiConfirmed
+  //    === true on the persisted item), the violet hint must STAY hidden,
+  //    even though the picker value still equals residenceAiSuggestedId.
+  //    (Task #1097)
+  // ===========================================================================
+  //
+  // The hint's gating condition is
+  //
+  //   item.residenceAiSuggestedId
+  //     && reassignResidenceId === item.residenceAiSuggestedId
+  //     && !item.residenceAiConfirmed
+  //
+  // (see ~line 3895 of `client/src/pages/admin/bulk-document-import.tsx`).
+  // Tasks #1085 and #1090 already pin the first two clauses. Without this
+  // test, a refactor that drops the `!item.residenceAiConfirmed` guard
+  // would silently re-show the violet "AI suggestion" hint on rows the
+  // admin has already accepted, making them think the confirmation didn't
+  // stick.
+
+  it('keeps the violet AI hint hidden on a row whose AI residence has already been confirmed', async () => {
+    setupTest([
+      buildItem({
+        id: ITEM_AI_CONFIRMED,
+        originalName: 'lease-confirmed.pdf',
+        // The row is already branched and a residence is saved that
+        // happens to equal the AI's original suggestion. The admin
+        // has clicked "confirm AI" so `residenceAiConfirmed === true`.
+        status: 'branched',
+        branch: 'residence_documents',
+        residenceId: 'res-202',
+        residenceAiSuggestedId: 'res-202',
+        residenceAiSuggested: true,
+        residenceAiConfirmed: true,
+        residenceManualOverride: false,
+        residenceReason: 'AI guessed unit 202 — confirmed by admin',
+      }),
+    ]);
+    renderPage();
+
+    const reassignBtn = await screen.findByTestId(
+      `button-reassign-${ITEM_AI_CONFIRMED}`,
+      undefined,
+      { timeout: 4000 },
+    );
+    await act(async () => {
+      fireEvent.click(reassignBtn);
+    });
+
+    await screen.findByTestId(`reassign-picker-${ITEM_AI_CONFIRMED}`);
+
+    // 1. Initial render — the picker pre-fills with the saved
+    //    residence (unit 202), which also equals the AI suggestion.
+    //    The first two gating clauses (`residenceAiSuggestedId` set
+    //    and `reassignResidenceId === residenceAiSuggestedId`) hold,
+    //    but `residenceAiConfirmed` is true, so the violet hint must
+    //    NOT be shown.
+    let trigger = getResidenceTrigger(ITEM_AI_CONFIRMED);
+    expect(trigger).toHaveTextContent('202');
+    expect(
+      screen.queryByTestId(`reassign-residence-ai-hint-${ITEM_AI_CONFIRMED}`),
+    ).not.toBeInTheDocument();
+
+    // 2. Re-select the AI residence to prove that the hint stays
+    //    hidden through a value-change round-trip on a confirmed row.
+    //    First override to a different residence (unit 303) so the
+    //    Select fires onValueChange when we re-pick 202; without the
+    //    override step, clicking the same value is a no-op in radix.
+    await act(async () => {
+      fireEvent.pointerDown(trigger, { button: 0 });
+      fireEvent.click(trigger);
+    });
+    const overrideOption = await screen.findByRole(
+      'option',
+      { name: /^303$/ },
+      { timeout: 4000 },
+    );
+    await act(async () => {
+      fireEvent.click(overrideOption);
+    });
+    await waitFor(() => {
+      expect(getResidenceTrigger(ITEM_AI_CONFIRMED)).toHaveTextContent('303');
+    });
+    // Sanity check: with the picker on a non-AI residence, the hint
+    // is hidden via the equality clause (and would still be gated by
+    // residenceAiConfirmed anyway).
+    expect(
+      screen.queryByTestId(`reassign-residence-ai-hint-${ITEM_AI_CONFIRMED}`),
+    ).not.toBeInTheDocument();
+
+    // Re-select the AI's original pick (unit 202). The equality
+    // clause now holds again — but residenceAiConfirmed is still
+    // true on the underlying item, so the hint must stay hidden.
+    trigger = getResidenceTrigger(ITEM_AI_CONFIRMED);
+    await act(async () => {
+      fireEvent.pointerDown(trigger, { button: 0 });
+      fireEvent.click(trigger);
+    });
+    const aiOption = await screen.findByRole(
+      'option',
+      { name: /^202$/ },
+      { timeout: 4000 },
+    );
+    await act(async () => {
+      fireEvent.click(aiOption);
+    });
+    await waitFor(() => {
+      expect(getResidenceTrigger(ITEM_AI_CONFIRMED)).toHaveTextContent('202');
+    });
+    expect(
+      screen.queryByTestId(`reassign-residence-ai-hint-${ITEM_AI_CONFIRMED}`),
+    ).not.toBeInTheDocument();
   });
 });
