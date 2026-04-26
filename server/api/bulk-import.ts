@@ -34,7 +34,7 @@ import {
 import { rotateAndRewriteStagedFile } from '../services/bulk-import-rotation';
 import { parsePeriodHint } from '../services/period-hint-parser';
 import { documentService } from '../services/document-service';
-import { logError, logInfo, logWarn } from '../utils/logger';
+import { logDebug, logError, logInfo, logWarn } from '../utils/logger';
 import type { BulkImportFallbackReason } from '@shared/schemas/bulk-import';
 import { fixLatin1MisdecodeFilename } from '../utils/filenameNormalization';
 import { buildContentDisposition } from '../utils/content-disposition';
@@ -216,11 +216,18 @@ export async function sweepStagingOrphans(opts?: {
   let removedSessionDirs = 0;
   let inspectedDirs = 0;
 
+  logDebug('[bulk-import] janitor sweep scan start', {
+    metadata: { stagingRoot, maxTmpAgeMs },
+  });
+
   let entries: fs.Dirent[];
   try {
     entries = await fs.promises.readdir(stagingRoot, { withFileTypes: true });
   } catch (err) {
     if ((err as NodeJS.ErrnoException)?.code === 'ENOENT') {
+      logDebug('[bulk-import] janitor staging root does not exist yet; skipping', {
+        metadata: { stagingRoot },
+      });
       return { removedTmp, removedSessionDirs, inspectedDirs };
     }
     logError('[bulk-import] janitor failed to list staging root', err as Error);
@@ -231,6 +238,9 @@ export async function sweepStagingOrphans(opts?: {
     .filter((e) => e.isDirectory())
     .map((e) => e.name);
   if (sessionDirs.length === 0) {
+    logDebug('[bulk-import] janitor no session dirs found; nothing to sweep', {
+      metadata: { stagingRoot },
+    });
     return { removedTmp, removedSessionDirs, inspectedDirs };
   }
 
@@ -259,6 +269,9 @@ export async function sweepStagingOrphans(opts?: {
     if (!liveSessionIds.has(dirName)) {
       // Whole-session orphan: the session row is gone, so no future
       // request can reference these files. Drop the dir wholesale.
+      logDebug('[bulk-import] janitor sweeping orphan session dir', {
+        metadata: { sessionId: dirName, reason: 'no_live_session_row' },
+      });
       try {
         await fs.promises.rm(sessionDir, { recursive: true, force: true });
         removedSessionDirs++;
@@ -270,6 +283,10 @@ export async function sweepStagingOrphans(opts?: {
       }
       continue;
     }
+
+    logDebug('[bulk-import] janitor keeping live session dir', {
+      metadata: { sessionId: dirName },
+    });
 
     // Live session: only sweep stale `.upload-tmp-*` files. Anything
     // named `<hash>_<originalName>` is, by definition, a successfully
@@ -291,6 +308,9 @@ export async function sweepStagingOrphans(opts?: {
       try {
         const stat = await fs.promises.stat(filePath);
         if (now - stat.mtimeMs >= maxTmpAgeMs) {
+          logDebug('[bulk-import] janitor removing stale tmp file', {
+            metadata: { sessionId: dirName, ageMs: Math.round(now - stat.mtimeMs) },
+          });
           await fs.promises.unlink(filePath);
           removedTmp++;
         }
@@ -304,6 +324,9 @@ export async function sweepStagingOrphans(opts?: {
     }
   }
 
+  logDebug('[bulk-import] janitor sweep complete', {
+    metadata: { inspectedDirs, removedSessionDirs, removedTmp },
+  });
   return { removedTmp, removedSessionDirs, inspectedDirs };
 }
 
@@ -356,6 +379,7 @@ export type StagingDiskUsage = {
  * just skips the report and tries again next pass.
  */
 export async function getStagingDiskUsage(): Promise<StagingDiskUsage | null> {
+  logDebug('[bulk-import] staging disk usage probe start');
   const root = getBulkImportStagingRoot();
   let probe = root;
   // Walk up to the nearest existing ancestor when the staging dir
@@ -400,9 +424,15 @@ export async function getStagingDiskUsage(): Promise<StagingDiskUsage | null> {
 export function startStagingJanitor(
   intervalMs: number = STAGING_JANITOR_INTERVAL_MS,
 ): void {
+  logDebug('[bulk-import] staging janitor starting', {
+    metadata: { intervalMs },
+  });
   void runStagingJanitorOnce();
   if (stagingJanitorTimer) return;
   stagingJanitorTimer = setInterval(() => {
+    logDebug('[bulk-import] staging janitor scheduled pass', {
+      metadata: { nextRunAt: new Date(Date.now() + intervalMs).toISOString() },
+    });
     void runStagingJanitorOnce();
   }, intervalMs);
   if (typeof stagingJanitorTimer.unref === 'function') {
@@ -432,8 +462,16 @@ export function stopStagingJanitor(): void {
  * actually fires when the probe reports `isLow=true`.
  */
 export async function runStagingJanitorOnce(): Promise<void> {
+  logDebug('[bulk-import] staging janitor pass begin');
   try {
     const r = await sweepStagingOrphans();
+    logDebug('[bulk-import] staging janitor pass sweep result', {
+      metadata: {
+        inspectedDirs: r.inspectedDirs,
+        removedSessionDirs: r.removedSessionDirs,
+        removedTmp: r.removedTmp,
+      },
+    });
     if (r.removedTmp > 0 || r.removedSessionDirs > 0) {
       logInfo('[bulk-import] staging janitor swept orphan files', {
         metadata: {
@@ -532,7 +570,7 @@ export function isZipFile(file: Pick<Express.Multer.File, 'mimetype' | 'original
  */
 const upload = multer({
   storage: multer.diskStorage({
-    destination: (req, _file, cb) => {
+    destination: (req, file, cb) => {
       try {
         // `req.params` is populated by Express before any middleware in
         // the route chain runs, so the session id from
@@ -542,6 +580,15 @@ const upload = multer({
           return cb(new Error('Missing session id for upload destination'), '');
         }
         const dir = stagingDirFor(sessionId);
+        logDebug('[bulk-import] multer destination chosen', {
+          metadata: {
+            sessionId,
+            originalName: file.originalname,
+            mime: file.mimetype,
+            size: file.size,
+            dir,
+          },
+        });
         cb(null, dir);
       } catch (err) {
         cb(err as Error, '');
@@ -1406,6 +1453,16 @@ async function processItemForStep(
    */
   availableTags?: { id: string; name: string; scope: string | null }[] | null,
 ): Promise<schema.BulkImportItem> {
+  logDebug('[bulk-import] processItemForStep dispatch', {
+    metadata: {
+      step,
+      itemId: item.id,
+      sessionId: item.sessionId,
+      mime: item.mimeType,
+      sizeBytes: item.fileSize,
+      siblingCount: sessionItems.length - 1,
+    },
+  });
   if (step === 'screening') {
     const result = await bulkImportAnalyzer.screen({
       originalName: item.originalName,
@@ -1454,6 +1511,18 @@ async function processItemForStep(
       })
       .where(eq(schema.bulkImportItems.id, item.id))
       .returning();
+    logDebug('[bulk-import] processItemForStep decision', {
+      metadata: {
+        step: 'screening',
+        itemId: item.id,
+        sessionId: item.sessionId,
+        conf: result.confidence,
+        fallback: result.fallbackReason ?? null,
+        isMultiDocument: result.isMultiDocument,
+        rotationDegrees: result.rotationDegrees,
+        rotationApplied,
+      },
+    });
     return updated;
   }
   if (step === 'sorting') {
@@ -1496,6 +1565,16 @@ async function processItemForStep(
         })
         .where(eq(schema.bulkImportItems.id, item.id))
         .returning();
+      logDebug('[bulk-import] processItemForStep decision', {
+        metadata: {
+          step: 'sorting',
+          itemId: item.id,
+          sessionId: item.sessionId,
+          decision: 'keep',
+          source: 'trivially_keep_short_circuit',
+          conf: 1,
+        },
+      });
       return updated;
     }
 
@@ -1524,6 +1603,18 @@ async function processItemForStep(
       })
       .where(eq(schema.bulkImportItems.id, item.id))
       .returning();
+    logDebug('[bulk-import] processItemForStep decision', {
+      metadata: {
+        step: 'sorting',
+        itemId: item.id,
+        sessionId: item.sessionId,
+        decision: result.decision,
+        mergeWithItemId: result.mergeWithItemId ?? null,
+        splitAtPage: result.splitAtPage ?? null,
+        conf: result.confidence,
+        fallback: result.fallbackReason ?? null,
+      },
+    });
     return updated;
   }
   if (step === 'branching') {
@@ -1571,6 +1662,18 @@ async function processItemForStep(
       })
       .where(eq(schema.bulkImportItems.id, item.id))
       .returning();
+    logDebug('[bulk-import] processItemForStep decision', {
+      metadata: {
+        step: 'branching',
+        itemId: item.id,
+        sessionId: item.sessionId,
+        branch: result.branch,
+        residenceId: result.residenceId ?? null,
+        advanceToBranched,
+        conf: result.confidence,
+        fallback: result.fallbackReason ?? null,
+      },
+    });
     return updated;
   }
   if (step === 'identification') {
@@ -1651,6 +1754,17 @@ async function processItemForStep(
       })
       .where(eq(schema.bulkImportItems.id, item.id))
       .returning();
+    logDebug('[bulk-import] processItemForStep decision', {
+      metadata: {
+        step: 'identification',
+        itemId: item.id,
+        sessionId: item.sessionId,
+        effectiveDate: result.effectiveDate ?? null,
+        tagCount: resolvedTagIds.length,
+        conf: result.confidence,
+        fallback: result.fallbackReason ?? null,
+      },
+    });
     return updated;
   }
   // linking
@@ -1672,6 +1786,18 @@ async function processItemForStep(
     })
     .where(eq(schema.bulkImportItems.id, item.id))
     .returning();
+  logDebug('[bulk-import] processItemForStep decision', {
+    metadata: {
+      step: 'linking',
+      itemId: item.id,
+      sessionId: item.sessionId,
+      beforeItemId: result.beforeItemId ?? null,
+      afterItemId: result.afterItemId ?? null,
+      relatedCount: result.relatedItemIds?.length ?? 0,
+      conf: result.confidence,
+      fallback: result.fallbackReason ?? null,
+    },
+  });
   return updated;
 }
 
@@ -1687,6 +1813,8 @@ async function runAllForStep(sessionId: string, step: AutoStep): Promise<void> {
   if (inFlightRunAll.has(key)) return;
   inFlightRunAll.add(key);
 
+  const poolStartMs = Date.now();
+
   try {
     const items = await db
       .select()
@@ -1700,6 +1828,17 @@ async function runAllForStep(sessionId: string, step: AutoStep): Promise<void> {
       name: i.originalName,
       screening: i.screening as Record<string, unknown> | null,
     }));
+
+    const concurrencyForLog = Math.min(RUN_ALL_CONCURRENCY, eligible.length);
+    logDebug('[bulk-import] run-all pool start', {
+      metadata: {
+        sessionId,
+        step,
+        totalItems: items.length,
+        eligibleItems: eligible.length,
+        concurrency: concurrencyForLog,
+      },
+    });
 
     // Fetch the session's building residences once so every item in the
     // branching loop can receive the same list without N extra queries.
@@ -1766,6 +1905,10 @@ async function runAllForStep(sessionId: string, step: AutoStep): Promise<void> {
     // done synchronously between await-points, so no mutex is needed.
     let processed = 0;
     let failed = 0;
+    let okCount = 0;
+    let timeoutCount = 0;
+    let errorCount = 0;
+    let fallbackCount = 0;
     const currentInFlight = new Map<string, string>(); // itemId → originalName
     const queue = [...eligible];
     let lastFlushTime = 0;
@@ -1815,6 +1958,16 @@ async function runAllForStep(sessionId: string, step: AutoStep): Promise<void> {
         if (!item) break;
         rawInFlight++;
         currentInFlight.set(item.id, item.originalName);
+        const itemPickMs = Date.now();
+        logDebug('[bulk-import] run-all worker picked item', {
+          metadata: {
+            sessionId,
+            step,
+            itemId: item.id,
+            rawInFlight,
+            queueRemaining: queue.length,
+          },
+        });
         await flushHeartbeat();
 
         // workPromise runs the real AI call. Its .finally() decrements
@@ -1835,11 +1988,14 @@ async function runAllForStep(sessionId: string, step: AutoStep): Promise<void> {
             logError('[bulk-import] background work error after timeout', e as Error),
           );
 
+        let itemOutcome = 'ok';
+        let stepResult: schema.BulkImportItem | undefined;
         try {
-          await withItemTimeout(workPromise, RUN_ALL_ITEM_TIMEOUT_MS, item.originalName);
+          stepResult = await withItemTimeout(workPromise, RUN_ALL_ITEM_TIMEOUT_MS, item.originalName);
         } catch (err) {
           failed += 1;
           const isTimeout = (err as Error).message?.includes('timed out');
+          itemOutcome = isTimeout ? 'timeout' : 'error';
           logError(
             `[bulk-import] run-all ${step} ${isTimeout ? 'timeout' : 'error'} for item ${item.id}`,
             err as Error,
@@ -1853,8 +2009,38 @@ async function runAllForStep(sessionId: string, step: AutoStep): Promise<void> {
             );
           }
         }
+        // Detect AI fallback: when the step resolved successfully but the
+        // AI returned a non-null fallbackReason (low-confidence or file
+        // format issue), the step column on the returned item carries it.
+        if (itemOutcome === 'ok' && stepResult) {
+          const stepCol =
+            step === 'screening' ? (stepResult as unknown as { screening?: unknown }).screening
+            : step === 'sorting' ? (stepResult as unknown as { sortingDecision?: unknown }).sortingDecision
+            : step === 'branching' ? (stepResult as unknown as { branchDecision?: unknown }).branchDecision
+            : step === 'identification' ? (stepResult as unknown as { identification?: unknown }).identification
+            : (stepResult as unknown as { linkDecisions?: unknown }).linkDecisions;
+          if (stepCol && typeof stepCol === 'object' &&
+              (stepCol as Record<string, unknown>).fallbackReason != null) {
+            fallbackCount++;
+          }
+        }
         processed += 1;
+        if (itemOutcome === 'ok') okCount++;
+        else if (itemOutcome === 'timeout') timeoutCount++;
+        else errorCount++;
         currentInFlight.delete(item.id);
+        logDebug('[bulk-import] run-all worker released item', {
+          metadata: {
+            sessionId,
+            step,
+            itemId: item.id,
+            outcome: itemOutcome,
+            durationMs: Date.now() - itemPickMs,
+            processed,
+            failed,
+            fallbackCount,
+          },
+        });
         await flushHeartbeat();
 
         // Inter-call settle delay (Task #1191). Pause briefly before
@@ -1901,6 +2087,19 @@ async function runAllForStep(sessionId: string, step: AutoStep): Promise<void> {
       finishedAt: new Date().toISOString(),
       inFlight: [],
     });
+    logDebug('[bulk-import] run-all pool finish', {
+      metadata: {
+        sessionId,
+        step,
+        processed,
+        failed,
+        ok: okCount,
+        timeout: timeoutCount,
+        error: errorCount,
+        fallback: fallbackCount,
+        durationMs: Date.now() - poolStartMs,
+      },
+    });
     logInfo('[bulk-import] run-all finished', {
       metadata: { sessionId, step, processed, failed },
     });
@@ -1935,8 +2134,16 @@ export function registerBulkImportRoutes(app: Express): void {
     '/api/admin/bulk-import/ai-status',
     requireAuth,
     requireRole(['admin']),
-    async (_req: AuthenticatedRequest, res: Response) => {
-      return res.json({ available: isBulkImportAiAvailable() });
+    async (req: AuthenticatedRequest, res: Response) => {
+      const t0 = Date.now();
+      logDebug('[bulk-import] route entry GET /api/admin/bulk-import/ai-status', {
+        metadata: { userId: req.user?.id },
+      });
+      const available = isBulkImportAiAvailable();
+      logDebug('[bulk-import] route exit GET /api/admin/bulk-import/ai-status ok', {
+        metadata: { available, status: 200, durationMs: Date.now() - t0 },
+      });
+      return res.json({ available });
     },
   );
 
@@ -1946,10 +2153,17 @@ export function registerBulkImportRoutes(app: Express): void {
     requireAuth,
     requireRole(['admin']),
     async (req: AuthenticatedRequest, res: Response) => {
+      const t0 = Date.now();
+      logDebug('[bulk-import] route entry POST /api/admin/bulk-import/sessions', {
+        metadata: { userId: req.user?.id },
+      });
       try {
         const { buildingId } = createSessionSchema.parse(req.body);
         const building = await storage.getBuilding(buildingId);
-        if (!building) return res.status(404).json({ error: 'Building not found' });
+        if (!building) {
+          logDebug('[bulk-import] route exit POST /api/admin/bulk-import/sessions status 404', { metadata: { buildingId, status: 404, durationMs: Date.now() - t0 } });
+          return res.status(404).json({ error: 'Building not found' });
+        }
 
         const [existing] = await db
           .select()
@@ -1962,7 +2176,10 @@ export function registerBulkImportRoutes(app: Express): void {
             ),
           )
           .limit(1);
-        if (existing) return res.json(existing);
+        if (existing) {
+          logDebug('[bulk-import] route exit POST /api/admin/bulk-import/sessions status 200 existing', { metadata: { sessionId: existing.id, status: 200, durationMs: Date.now() - t0 } });
+          return res.json(existing);
+        }
 
         const [created] = await db
           .insert(schema.bulkImportSessions)
@@ -1976,10 +2193,17 @@ export function registerBulkImportRoutes(app: Express): void {
           })
           .returning();
         stagingDirFor(created.id);
+        logDebug('[bulk-import] route exit POST /api/admin/bulk-import/sessions created', {
+          metadata: { sessionId: created.id, buildingId, status: 201, durationMs: Date.now() - t0 },
+        });
         return res.status(201).json(created);
       } catch (err) {
         logError('[bulk-import] create session failed', err as Error);
-        if (err instanceof z.ZodError) return res.status(400).json({ error: err.errors });
+        if (err instanceof z.ZodError) {
+          logDebug('[bulk-import] route exit POST /api/admin/bulk-import/sessions status 400', { metadata: { status: 400, durationMs: Date.now() - t0 } });
+          return res.status(400).json({ error: err.errors });
+        }
+        logDebug('[bulk-import] route exit POST /api/admin/bulk-import/sessions status 500', { metadata: { status: 500, durationMs: Date.now() - t0 } });
         return res.status(500).json({ error: 'Failed to create session' });
       }
     },
@@ -2000,6 +2224,10 @@ export function registerBulkImportRoutes(app: Express): void {
     requireAuth,
     requireRole(['admin']),
     async (req: AuthenticatedRequest, res: Response) => {
+      const t0 = Date.now();
+      logDebug('[bulk-import] route entry GET /api/admin/bulk-import/sessions', {
+        metadata: { userId: req.user?.id },
+      });
       try {
         const limit = Math.min(Math.max(Number(req.query.limit) || 20, 1), 100);
         const offset = Math.max(Number(req.query.offset) || 0, 0);
@@ -2045,9 +2273,15 @@ export function registerBulkImportRoutes(app: Express): void {
 
         const hasMore = rows.length > limit;
         const sessions = hasMore ? rows.slice(0, limit) : rows;
+        logDebug('[bulk-import] route exit GET /api/admin/bulk-import/sessions ok', {
+          metadata: { count: sessions.length, hasMore, status: 200, durationMs: Date.now() - t0 },
+        });
         return res.json({ sessions, limit, offset, hasMore });
       } catch (err) {
         logError('[bulk-import] list sessions failed', err as Error);
+        logDebug('[bulk-import] route exit GET /api/admin/bulk-import/sessions status 500', {
+          metadata: { status: 500, durationMs: Date.now() - t0 },
+        });
         return res.status(500).json({ error: 'Failed to list sessions' });
       }
     },
@@ -2066,8 +2300,16 @@ export function registerBulkImportRoutes(app: Express): void {
     requireAuth,
     requireRole(['admin']),
     async (req: AuthenticatedRequest, res: Response) => {
-      const session = await loadSession(req.params.id);
-      if (!session) return res.status(404).json({ error: 'Session not found' });
+      const t0 = Date.now();
+      const sessionId = req.params.id;
+      logDebug('[bulk-import] route entry GET /api/admin/bulk-import/sessions/:id/lite', {
+        metadata: { sessionId, userId: req.user?.id },
+      });
+      const session = await loadSession(sessionId);
+      if (!session) {
+        logDebug('[bulk-import] route exit GET /api/admin/bulk-import/sessions/:id/lite status 404', { metadata: { sessionId, status: 404, durationMs: Date.now() - t0 } });
+        return res.status(404).json({ error: 'Session not found' });
+      }
 
       const rows = await db
         .select({
@@ -2441,6 +2683,9 @@ export function registerBulkImportRoutes(app: Express): void {
         };
       });
 
+      logDebug('[bulk-import] route exit GET /api/admin/bulk-import/sessions/:id/lite ok', {
+        metadata: { sessionId, itemCount: items.length, durationMs: Date.now() - t0 },
+      });
       return res.json({ session, items });
     },
   );
@@ -2459,6 +2704,10 @@ export function registerBulkImportRoutes(app: Express): void {
     requireAuth,
     requireRole(['admin']),
     async (req: AuthenticatedRequest, res: Response) => {
+      const t0 = Date.now();
+      logDebug('[bulk-import] route entry GET /api/admin/bulk-import/buildings-lite', {
+        metadata: { userId: req.user?.id },
+      });
       try {
         const userOrgs = await db
           .select({
@@ -2519,9 +2768,15 @@ export function registerBulkImportRoutes(app: Express): void {
             .orderBy(schema.buildings.name);
         }
 
+        logDebug('[bulk-import] route exit GET /api/admin/bulk-import/buildings-lite ok', {
+          metadata: { count: rows.length, status: 200, durationMs: Date.now() - t0 },
+        });
         return res.json(rows);
       } catch (err) {
         logError('[bulk-import] buildings-lite failed', err as Error);
+        logDebug('[bulk-import] route exit GET /api/admin/bulk-import/buildings-lite status 500', {
+          metadata: { status: 500, durationMs: Date.now() - t0 },
+        });
         return res.status(500).json({ error: 'Failed to fetch buildings' });
       }
     },
@@ -2539,8 +2794,16 @@ export function registerBulkImportRoutes(app: Express): void {
     requireAuth,
     requireRole(['admin']),
     async (req: AuthenticatedRequest, res: Response) => {
-      const session = await loadSession(req.params.id);
-      if (!session) return res.status(404).json({ error: 'Session not found' });
+      const t0 = Date.now();
+      const sessionId = req.params.id;
+      logDebug('[bulk-import] route entry GET /api/admin/bulk-import/sessions/:id', {
+        metadata: { sessionId, userId: req.user?.id },
+      });
+      const session = await loadSession(sessionId);
+      if (!session) {
+        logDebug('[bulk-import] route exit GET /api/admin/bulk-import/sessions/:id status 404', { metadata: { sessionId, status: 404, durationMs: Date.now() - t0 } });
+        return res.status(404).json({ error: 'Session not found' });
+      }
       const rows = await db
         .select()
         .from(schema.bulkImportItems)
@@ -2551,6 +2814,9 @@ export function registerBulkImportRoutes(app: Express): void {
           row.screening as Record<string, unknown> | null | undefined,
         ),
       }));
+      logDebug('[bulk-import] route exit GET /api/admin/bulk-import/sessions/:id ok', {
+        metadata: { sessionId, itemCount: items.length, status: 200, durationMs: Date.now() - t0 },
+      });
       return res.json({ session, items });
     },
   );
@@ -2561,6 +2827,11 @@ export function registerBulkImportRoutes(app: Express): void {
     requireAuth,
     requireRole(['admin']),
     async (req: AuthenticatedRequest, res: Response) => {
+      const t0 = Date.now();
+      const sessionId = req.params.id;
+      logDebug('[bulk-import] route entry PATCH /api/admin/bulk-import/sessions/:id', {
+        metadata: { sessionId, userId: req.user?.id },
+      });
       try {
         const data = updateStepSchema.partial().extend({
           status: z.enum(['active', 'paused', 'completed', 'cleared']).optional(),
@@ -2568,13 +2839,23 @@ export function registerBulkImportRoutes(app: Express): void {
         const [updated] = await db
           .update(schema.bulkImportSessions)
           .set({ ...data, updatedAt: new Date() })
-          .where(eq(schema.bulkImportSessions.id, req.params.id))
+          .where(eq(schema.bulkImportSessions.id, sessionId))
           .returning();
-        if (!updated) return res.status(404).json({ error: 'Session not found' });
+        if (!updated) {
+          logDebug('[bulk-import] route exit PATCH /api/admin/bulk-import/sessions/:id status 404', { metadata: { sessionId, status: 404, durationMs: Date.now() - t0 } });
+          return res.status(404).json({ error: 'Session not found' });
+        }
+        logDebug('[bulk-import] route exit PATCH /api/admin/bulk-import/sessions/:id ok', {
+          metadata: { sessionId, status: 200, durationMs: Date.now() - t0 },
+        });
         return res.json(updated);
       } catch (err) {
-        if (err instanceof z.ZodError) return res.status(400).json({ error: err.errors });
+        if (err instanceof z.ZodError) {
+          logDebug('[bulk-import] route exit PATCH /api/admin/bulk-import/sessions/:id status 400', { metadata: { sessionId, status: 400, durationMs: Date.now() - t0 } });
+          return res.status(400).json({ error: err.errors });
+        }
         logError('[bulk-import] update session failed', err as Error);
+        logDebug('[bulk-import] route exit PATCH /api/admin/bulk-import/sessions/:id status 500', { metadata: { sessionId, status: 500, durationMs: Date.now() - t0 } });
         return res.status(500).json({ error: 'Failed to update session' });
       }
     },
@@ -2586,8 +2867,15 @@ export function registerBulkImportRoutes(app: Express): void {
     requireAuth,
     requireRole(['admin']),
     async (req: AuthenticatedRequest, res: Response) => {
+      const t0 = Date.now();
+      logDebug('[bulk-import] route entry DELETE /api/admin/bulk-import/sessions/:id', {
+        metadata: { sessionId: req.params.id, userId: req.user?.id },
+      });
       const session = await loadSession(req.params.id);
-      if (!session) return res.status(404).json({ error: 'Session not found' });
+      if (!session) {
+        logDebug('[bulk-import] route exit DELETE /api/admin/bulk-import/sessions/:id status 404', { metadata: { sessionId: req.params.id, status: 404, durationMs: Date.now() - t0 } });
+        return res.status(404).json({ error: 'Session not found' });
+      }
       // Cancel any in-flight run-all loop FIRST so it stops on its
       // next iteration instead of racing with the row/file cleanup
       // below (Task #593, generalized from screening-only to all five
@@ -2624,6 +2912,9 @@ export function registerBulkImportRoutes(app: Express): void {
         .where(eq(schema.bulkImportItems.sessionId, session.id));
       safeRmSession(session.id);
       logInfo('[bulk-import] session cleared', { metadata: { sessionId: session.id } });
+      logDebug('[bulk-import] route exit DELETE /api/admin/bulk-import/sessions/:id ok', {
+        metadata: { sessionId: session.id, status: 200, durationMs: Date.now() - t0 },
+      });
       return res.json({ ok: true });
     },
   );
@@ -2642,8 +2933,15 @@ export function registerBulkImportRoutes(app: Express): void {
     requireAuth,
     requireRole(['admin']),
     async (req: AuthenticatedRequest, res: Response) => {
+      const t0 = Date.now();
+      logDebug('[bulk-import] route entry DELETE /api/admin/bulk-import/sessions/:id/hard', {
+        metadata: { sessionId: req.params.id, userId: req.user?.id },
+      });
       const session = await loadSession(req.params.id);
-      if (!session) return res.status(404).json({ error: 'Session not found' });
+      if (!session) {
+        logDebug('[bulk-import] route exit DELETE /api/admin/bulk-import/sessions/:id/hard status 404', { metadata: { sessionId: req.params.id, status: 404, durationMs: Date.now() - t0 } });
+        return res.status(404).json({ error: 'Session not found' });
+      }
       for (const key of inFlightRunAll) {
         if (key.startsWith(`${session.id}:`)) {
           inFlightRunAll.delete(key);
@@ -2670,6 +2968,9 @@ export function registerBulkImportRoutes(app: Express): void {
       logInfo('[bulk-import] session hard-deleted', {
         metadata: { sessionId: session.id },
       });
+      logDebug('[bulk-import] route exit DELETE /api/admin/bulk-import/sessions/:id/hard ok', {
+        metadata: { sessionId: session.id, status: 200, durationMs: Date.now() - t0 },
+      });
       return res.json({ ok: true });
     },
   );
@@ -2681,8 +2982,14 @@ export function registerBulkImportRoutes(app: Express): void {
     requireRole(['admin']),
     uploadBulkImportFiles,
     async (req: AuthenticatedRequest, res: Response) => {
+      const t0 = Date.now();
+      const sessionId = req.params.id;
+      const uploadedFileCount = ((req.files as Express.Multer.File[] | undefined) ?? []).length;
+      logDebug('[bulk-import] route entry POST /api/admin/bulk-import/sessions/:id/items', {
+        metadata: { sessionId, fileCount: uploadedFileCount, userId: req.user?.id },
+      });
       try {
-        const session = await loadSession(req.params.id);
+        const session = await loadSession(sessionId);
         if (!session) {
           // Multer already streamed every accepted file to the staging
           // directory. If the session itself does not exist, drop those
@@ -2700,10 +3007,14 @@ export function registerBulkImportRoutes(app: Express): void {
               }
             }
           }
+          logDebug('[bulk-import] route exit POST /api/admin/bulk-import/sessions/:id/items status 404', { metadata: { sessionId, status: 404, durationMs: Date.now() - t0 } });
           return res.status(404).json({ error: 'Session not found' });
         }
         const files = (req.files as Express.Multer.File[] | undefined) ?? [];
-        if (files.length === 0) return res.status(400).json({ error: 'No files uploaded' });
+        if (files.length === 0) {
+          logDebug('[bulk-import] route exit POST /api/admin/bulk-import/sessions/:id/items status 400', { metadata: { sessionId, status: 400, reason: 'no-files', durationMs: Date.now() - t0 } });
+          return res.status(400).json({ error: 'No files uploaded' });
+        }
 
         const dir = stagingDirFor(session.id);
         const created: schema.BulkImportItem[] = [];
@@ -2722,8 +3033,19 @@ export function registerBulkImportRoutes(app: Express): void {
             // `sha256(file.buffer)` path produced for the same bytes.
             const hash = await sha256File(file.path);
             const stagedPath = path.join(dir, `${hash}_${file.originalname}`);
+            const isDup = fs.existsSync(stagedPath);
+            logDebug('[bulk-import] upload file staged', {
+              metadata: {
+                sessionId: session.id,
+                originalName: file.originalname,
+                sha256: hash,
+                stagedPath,
+                branch: isDup ? 'dedup-skipped' : 'renamed',
+                fileSize: file.size,
+              },
+            });
 
-            if (fs.existsSync(stagedPath)) {
+            if (isDup) {
               // Same content was already staged inside this session
               // (re-upload of an identical file). Drop the freshly
               // streamed temp copy and let the existing staged file
@@ -2924,9 +3246,15 @@ export function registerBulkImportRoutes(app: Express): void {
           };
         });
 
+        logDebug('[bulk-import] route exit POST /api/admin/bulk-import/sessions/:id/items ok', {
+          metadata: { sessionId, createdCount: enriched.length, status: 201, durationMs: Date.now() - t0 },
+        });
         return res.status(201).json(enriched);
       } catch (err) {
         logError('[bulk-import] upload failed', err as Error);
+        logDebug('[bulk-import] route exit POST /api/admin/bulk-import/sessions/:id/items status 500', {
+          metadata: { sessionId, status: 500, durationMs: Date.now() - t0 },
+        });
         return res.status(500).json({ error: 'Failed to upload files' });
       }
     },
@@ -2960,6 +3288,10 @@ export function registerBulkImportRoutes(app: Express): void {
     requireRole(['admin']),
     uploadBulkImportReplaceFile,
     async (req: AuthenticatedRequest, res: Response) => {
+      const t0 = Date.now();
+      logDebug('[bulk-import] route entry POST /api/admin/bulk-import/items/:id/replace-file', {
+        metadata: { itemId: req.params.id, userId: req.user?.id },
+      });
       try {
         const [item] = await db
           .select()
@@ -2967,12 +3299,14 @@ export function registerBulkImportRoutes(app: Express): void {
           .where(eq(schema.bulkImportItems.id, req.params.id));
         if (!item) {
           cleanupMulterTempFiles(req);
+          logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/replace-file status 404 item', { metadata: { itemId: req.params.id, status: 404, durationMs: Date.now() - t0 } });
           return res.status(404).json({ error: 'Item not found' });
         }
 
         const session = await loadSession(item.sessionId);
         if (!session) {
           cleanupMulterTempFiles(req);
+          logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/replace-file status 404 session', { metadata: { itemId: req.params.id, status: 404, durationMs: Date.now() - t0 } });
           return res.status(404).json({ error: 'Session not found' });
         }
 
@@ -2982,6 +3316,7 @@ export function registerBulkImportRoutes(app: Express): void {
         );
         if (!allowed) {
           cleanupMulterTempFiles(req);
+          logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/replace-file status 403', { metadata: { itemId: req.params.id, status: 403, durationMs: Date.now() - t0 } });
           return res
             .status(403)
             .json({ error: 'You do not have access to this session' });
@@ -3006,6 +3341,7 @@ export function registerBulkImportRoutes(app: Express): void {
           item.status === 'duplicate'
         ) {
           cleanupMulterTempFiles(req);
+          logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/replace-file status 400 terminal-state', { metadata: { itemId: req.params.id, itemStatus: item.status, status: 400, durationMs: Date.now() - t0 } });
           return res.status(400).json({
             error: `Cannot replace a ${item.status} item`,
           });
@@ -3013,6 +3349,7 @@ export function registerBulkImportRoutes(app: Express): void {
 
         const files = (req.files as Express.Multer.File[] | undefined) ?? [];
         if (files.length === 0) {
+          logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/replace-file status 400 no-file', { metadata: { itemId: req.params.id, status: 400, durationMs: Date.now() - t0 } });
           return res.status(400).json({ error: 'No file uploaded' });
         }
         // multer's `array('files', 1)` cap means anything past one file
@@ -3021,6 +3358,7 @@ export function registerBulkImportRoutes(app: Express): void {
         // swapped out.
         if (files.length > 1) {
           cleanupMulterTempFiles(req);
+          logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/replace-file status 400 multi-file', { metadata: { itemId: req.params.id, status: 400, durationMs: Date.now() - t0 } });
           return res.status(400).json({ error: 'Replace accepts a single file' });
         }
         const file = files[0];
@@ -3111,6 +3449,14 @@ export function registerBulkImportRoutes(app: Express): void {
             }
           }
 
+          logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/replace-file ok', {
+            metadata: {
+              itemId: item.id,
+              sessionId: session.id,
+              fileSize: file.size,
+              durationMs: Date.now() - t0,
+            },
+          });
           return res.json(updated);
         } finally {
           // If we failed between multer streaming the temp file to
@@ -3138,6 +3484,9 @@ export function registerBulkImportRoutes(app: Express): void {
         logError('[bulk-import] replace-file failed', err as Error, {
           metadata: { itemId: req.params.id },
         });
+        logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/replace-file status 500', {
+          metadata: { itemId: req.params.id, status: 500, durationMs: Date.now() - t0 },
+        });
         return res.status(500).json({ error: 'Failed to replace file' });
       }
     },
@@ -3154,18 +3503,27 @@ export function registerBulkImportRoutes(app: Express): void {
     requireAuth,
     requireRole(['admin']),
     async (req: AuthenticatedRequest, res: Response) => {
+      const t0 = Date.now();
+      logDebug('[bulk-import] route entry GET /api/admin/bulk-import/items/:id/file', {
+        metadata: { itemId: req.params.id, userId: req.user?.id },
+      });
       const [item] = await db
         .select()
         .from(schema.bulkImportItems)
         .where(eq(schema.bulkImportItems.id, req.params.id));
-      if (!item) return res.status(404).json({ error: 'Item not found' });
+      if (!item) {
+        logDebug('[bulk-import] route exit GET /api/admin/bulk-import/items/:id/file status 404 item', { metadata: { itemId: req.params.id, status: 404, durationMs: Date.now() - t0 } });
+        return res.status(404).json({ error: 'Item not found' });
+      }
 
       const resolved = path.resolve(item.stagedPath);
       const stagingRoot = path.resolve(getBulkImportStagingRoot());
       if (!resolved.startsWith(stagingRoot + path.sep)) {
+        logDebug('[bulk-import] route exit GET /api/admin/bulk-import/items/:id/file status 400 invalid-path', { metadata: { itemId: item.id, status: 400, durationMs: Date.now() - t0 } });
         return res.status(400).json({ error: 'Invalid staged path' });
       }
       if (!fs.existsSync(resolved)) {
+        logDebug('[bulk-import] route exit GET /api/admin/bulk-import/items/:id/file status 404 missing', { metadata: { itemId: item.id, status: 404, durationMs: Date.now() - t0 } });
         return res.status(404).json({ error: 'Staged file missing' });
       }
 
@@ -3175,6 +3533,15 @@ export function registerBulkImportRoutes(app: Express): void {
         'Content-Disposition',
         buildContentDisposition(item.originalName, { type: 'inline' }),
       );
+      logDebug('[bulk-import] route exit GET /api/admin/bulk-import/items/:id/file ok (streaming)', {
+        metadata: {
+          itemId: item.id,
+          sessionId: item.sessionId,
+          mimeType: item.mimeType,
+          status: 200,
+          durationMs: Date.now() - t0,
+        },
+      });
       fs.createReadStream(resolved).pipe(res);
     },
   );
@@ -3198,37 +3565,54 @@ export function registerBulkImportRoutes(app: Express): void {
     requireAuth,
     requireRole(['admin']),
     async (req: AuthenticatedRequest, res: Response) => {
+      const t0 = Date.now();
+      const itemId = req.params.id;
+      logDebug('[bulk-import] route entry GET /api/admin/bulk-import/items/:id/page-count', {
+        metadata: { itemId, userId: req.user?.id },
+      });
       const [item] = await db
         .select()
         .from(schema.bulkImportItems)
-        .where(eq(schema.bulkImportItems.id, req.params.id));
-      if (!item) return res.status(404).json({ error: 'Item not found' });
+        .where(eq(schema.bulkImportItems.id, itemId));
+      if (!item) {
+        logDebug('[bulk-import] route exit GET /api/admin/bulk-import/items/:id/page-count status 404 item', { metadata: { itemId, status: 404, durationMs: Date.now() - t0 } });
+        return res.status(404).json({ error: 'Item not found' });
+      }
 
       const isPdf = (item.mimeType ?? '').toLowerCase() === 'application/pdf';
       if (!isPdf) {
+        logDebug('[bulk-import] route exit GET /api/admin/bulk-import/items/:id/page-count status 400 not-pdf', { metadata: { itemId, mimeType: item.mimeType, status: 400, durationMs: Date.now() - t0 } });
         return res
           .status(400)
           .json({ error: 'Page count is only available for PDF items' });
       }
       if (!item.stagedPath) {
+        logDebug('[bulk-import] route exit GET /api/admin/bulk-import/items/:id/page-count status 404 no-staged-path', { metadata: { itemId, status: 404, durationMs: Date.now() - t0 } });
         return res.status(404).json({ error: 'Staged file missing' });
       }
 
       const resolved = path.resolve(item.stagedPath);
       const stagingRoot = path.resolve(getBulkImportStagingRoot());
       if (!resolved.startsWith(stagingRoot + path.sep)) {
+        logDebug('[bulk-import] route exit GET /api/admin/bulk-import/items/:id/page-count status 400 invalid-path', { metadata: { itemId, status: 400, durationMs: Date.now() - t0 } });
         return res.status(400).json({ error: 'Invalid staged path' });
       }
       if (!fs.existsSync(resolved)) {
+        logDebug('[bulk-import] route exit GET /api/admin/bulk-import/items/:id/page-count status 404 missing', { metadata: { itemId, status: 404, durationMs: Date.now() - t0 } });
         return res.status(404).json({ error: 'Staged file missing' });
       }
 
       try {
         const doc = await loadPdfForBulkImport(resolved);
-        return res.json({ totalPages: doc.getPageCount() });
+        const totalPages = doc.getPageCount();
+        logDebug('[bulk-import] route exit GET /api/admin/bulk-import/items/:id/page-count ok', {
+          metadata: { itemId, totalPages, status: 200, durationMs: Date.now() - t0 },
+        });
+        return res.json({ totalPages });
       } catch (err) {
         const errMsg = err instanceof Error ? err.message : String(err);
-        logError('[bulk-import] page-count failed', err as Error, { metadata: { itemId: req.params.id } });
+        logError('[bulk-import] page-count failed', err as Error, { metadata: { itemId } });
+        logDebug('[bulk-import] route exit GET /api/admin/bulk-import/items/:id/page-count status 400 pdf-invalid', { metadata: { itemId, status: 400, durationMs: Date.now() - t0 } });
         return res.status(400).json({
           error: 'Failed to read PDF page count: the file may have a corrupted page structure',
           code: 'PAGE_COUNT_PDF_INVALID',
@@ -3244,17 +3628,32 @@ export function registerBulkImportRoutes(app: Express): void {
     requireAuth,
     requireRole(['admin']),
     async (req: AuthenticatedRequest, res: Response) => {
+      const t0 = Date.now();
+      const itemId = req.params.id;
+      logDebug('[bulk-import] route entry PATCH /api/admin/bulk-import/items/:id', {
+        metadata: { itemId, userId: req.user?.id },
+      });
       try {
         const data = updateItemSchema.parse(req.body);
         const [updated] = await db
           .update(schema.bulkImportItems)
           .set({ ...data, updatedAt: new Date() })
-          .where(eq(schema.bulkImportItems.id, req.params.id))
+          .where(eq(schema.bulkImportItems.id, itemId))
           .returning();
-        if (!updated) return res.status(404).json({ error: 'Item not found' });
+        if (!updated) {
+          logDebug('[bulk-import] route exit PATCH /api/admin/bulk-import/items/:id status 404', { metadata: { itemId, status: 404, durationMs: Date.now() - t0 } });
+          return res.status(404).json({ error: 'Item not found' });
+        }
+        logDebug('[bulk-import] route exit PATCH /api/admin/bulk-import/items/:id ok', {
+          metadata: { itemId, status: 200, durationMs: Date.now() - t0 },
+        });
         return res.json(updated);
       } catch (err) {
-        if (err instanceof z.ZodError) return res.status(400).json({ error: err.errors });
+        if (err instanceof z.ZodError) {
+          logDebug('[bulk-import] route exit PATCH /api/admin/bulk-import/items/:id status 400', { metadata: { itemId, status: 400, durationMs: Date.now() - t0 } });
+          return res.status(400).json({ error: err.errors });
+        }
+        logDebug('[bulk-import] route exit PATCH /api/admin/bulk-import/items/:id status 500', { metadata: { itemId, status: 500, durationMs: Date.now() - t0 } });
         return res.status(500).json({ error: 'Failed to update item' });
       }
     },
@@ -3281,22 +3680,34 @@ export function registerBulkImportRoutes(app: Express): void {
     requireAuth,
     requireRole(['admin']),
     async (req: AuthenticatedRequest, res: Response) => {
+      const t0 = Date.now();
+      const itemId = req.params.itemId;
+      logDebug('[bulk-import] route entry PATCH /api/admin/bulk-import/items/:itemId/exclude', {
+        metadata: { itemId, userId: req.user?.id },
+      });
       try {
         const { excluded } = excludeItemSchema.parse(req.body);
         const [item] = await db
           .select()
           .from(schema.bulkImportItems)
-          .where(eq(schema.bulkImportItems.id, req.params.itemId));
-        if (!item) return res.status(404).json({ error: 'Item not found' });
+          .where(eq(schema.bulkImportItems.id, itemId));
+        if (!item) {
+          logDebug('[bulk-import] route exit PATCH /api/admin/bulk-import/items/:itemId/exclude status 404 item', { metadata: { itemId, status: 404, durationMs: Date.now() - t0 } });
+          return res.status(404).json({ error: 'Item not found' });
+        }
 
         const session = await loadSession(item.sessionId);
-        if (!session) return res.status(404).json({ error: 'Session not found' });
+        if (!session) {
+          logDebug('[bulk-import] route exit PATCH /api/admin/bulk-import/items/:itemId/exclude status 404 session', { metadata: { itemId, status: 404, durationMs: Date.now() - t0 } });
+          return res.status(404).json({ error: 'Session not found' });
+        }
 
         const allowed = await canUserAccessOrganization(
           req.user!.id,
           session.organizationId,
         );
         if (!allowed) {
+          logDebug('[bulk-import] route exit PATCH /api/admin/bulk-import/items/:itemId/exclude status 403', { metadata: { itemId, status: 403, durationMs: Date.now() - t0 } });
           return res
             .status(403)
             .json({ error: 'You do not have access to this session' });
@@ -3307,6 +3718,7 @@ export function registerBulkImportRoutes(app: Express): void {
         // dedup check on upload — neither needs (or should support) an
         // exclusion toggle.
         if (item.status === 'committed' || item.status === 'duplicate') {
+          logDebug('[bulk-import] route exit PATCH /api/admin/bulk-import/items/:itemId/exclude status 400 terminal', { metadata: { itemId, itemStatus: item.status, status: 400, durationMs: Date.now() - t0 } });
           return res.status(400).json({
             error: `Cannot change exclusion of a ${item.status} item`,
           });
@@ -3329,6 +3741,7 @@ export function registerBulkImportRoutes(app: Express): void {
                   schema.clientExcludedFingerprints.contentHash,
                 ],
               });
+            logDebug('[bulk-import] route exit PATCH /api/admin/bulk-import/items/:itemId/exclude status 200 idempotent', { metadata: { itemId, status: 200, durationMs: Date.now() - t0 } });
             return res.json(item);
           }
           // Exclude the item and persist the fingerprint in a single
@@ -3360,11 +3773,17 @@ export function registerBulkImportRoutes(app: Express): void {
               });
             return rows;
           });
+          logDebug('[bulk-import] route exit PATCH /api/admin/bulk-import/items/:itemId/exclude ok', {
+            metadata: { itemId, sessionId: session.id, excluded: true, status: 200, durationMs: Date.now() - t0 },
+          });
           return res.json(updated);
         }
 
         // Un-exclude: only meaningful if the item is currently rejected.
-        if (item.status !== 'rejected') return res.json(item);
+        if (item.status !== 'rejected') {
+          logDebug('[bulk-import] route exit PATCH /api/admin/bulk-import/items/:itemId/exclude status 200 not-rejected', { metadata: { itemId, status: 200, durationMs: Date.now() - t0 } });
+          return res.json(item);
+        }
         // Fall back to `pending` if we don't have a recorded
         // pre-exclusion status (e.g. items rejected by an older code
         // path before this column existed).
@@ -3392,12 +3811,21 @@ export function registerBulkImportRoutes(app: Express): void {
             );
           return rows;
         });
+        logDebug('[bulk-import] route exit PATCH /api/admin/bulk-import/items/:itemId/exclude ok', {
+          metadata: { itemId, sessionId: session.id, excluded: false, restoredStatus: restored, durationMs: Date.now() - t0 },
+        });
         return res.json(updated);
       } catch (err) {
         if (err instanceof z.ZodError) {
+          logDebug('[bulk-import] route exit PATCH /api/admin/bulk-import/items/:itemId/exclude status 400 zod', {
+            metadata: { itemId, status: 400, durationMs: Date.now() - t0 },
+          });
           return res.status(400).json({ error: err.errors });
         }
         logError('[bulk-import] exclude/unexclude failed', err as Error);
+        logDebug('[bulk-import] route exit PATCH /api/admin/bulk-import/items/:itemId/exclude status 500', {
+          metadata: { itemId, status: 500, durationMs: Date.now() - t0 },
+        });
         return res.status(500).json({ error: 'Failed to update exclusion' });
       }
     },
@@ -3429,10 +3857,16 @@ export function registerBulkImportRoutes(app: Express): void {
     requireAuth,
     requireRole(['admin']),
     async (req: AuthenticatedRequest, res: Response) => {
+      const t0 = Date.now();
+      const itemId = req.params.id;
+      logDebug('[bulk-import] route entry POST /api/admin/bulk-import/items/:id/reassign', {
+        metadata: { itemId, userId: req.user?.id },
+      });
       try {
         const { branch, subCategory, residenceId } = reassignSchema.parse(req.body);
         const allowedSubCats = BRANCH_SUB_CATEGORIES[branch as BranchDestination] as readonly string[];
         if (!allowedSubCats.includes(subCategory)) {
+          logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/reassign status 400 bad-subcat', { metadata: { itemId, branch, subCategory, status: 400, durationMs: Date.now() - t0 } });
           return res.status(400).json({
             error: `subCategory "${subCategory}" is not valid for branch "${branch}". Allowed: ${allowedSubCats.join(', ')}`,
           });
@@ -3441,7 +3875,10 @@ export function registerBulkImportRoutes(app: Express): void {
           .select()
           .from(schema.bulkImportItems)
           .where(eq(schema.bulkImportItems.id, req.params.id));
-        if (!item) return res.status(404).json({ error: 'Item not found' });
+        if (!item) {
+          logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/reassign status 404 item', { metadata: { itemId, status: 404, durationMs: Date.now() - t0 } });
+          return res.status(404).json({ error: 'Item not found' });
+        }
         const existing = (item.branchDecision ?? {}) as Record<string, unknown>;
         const oldBranch = existing.branch as string | null | undefined;
         const updated_decision: Record<string, unknown> = {
@@ -3468,15 +3905,25 @@ export function registerBulkImportRoutes(app: Express): void {
         let newStatus: string | undefined;
         if (branch === 'residence_documents' && residenceId) {
           const session = await loadSession(item.sessionId);
-          if (!session) return res.status(404).json({ error: 'Session not found' });
+          if (!session) {
+            logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/reassign status 404 session', { metadata: { itemId, status: 404, durationMs: Date.now() - t0 } });
+            return res.status(404).json({ error: 'Session not found' });
+          }
           const canAccess = await canUserAccessOrganization(req.user!.id, session.organizationId);
-          if (!canAccess) return res.status(403).json({ error: 'Forbidden' });
+          if (!canAccess) {
+            logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/reassign status 403', { metadata: { itemId, status: 403, durationMs: Date.now() - t0 } });
+            return res.status(403).json({ error: 'Forbidden' });
+          }
           const [residence] = await db
             .select({ id: schema.residences.id, buildingId: schema.residences.buildingId })
             .from(schema.residences)
             .where(eq(schema.residences.id, residenceId));
-          if (!residence) return res.status(404).json({ error: 'Residence not found' });
+          if (!residence) {
+            logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/reassign status 404 residence', { metadata: { itemId, residenceId, status: 404, durationMs: Date.now() - t0 } });
+            return res.status(404).json({ error: 'Residence not found' });
+          }
           if (residence.buildingId !== session.buildingId) {
+            logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/reassign status 400 wrong-building', { metadata: { itemId, residenceId, status: 400, durationMs: Date.now() - t0 } });
             return res.status(400).json({
               error: "Residence does not belong to this session's building",
             });
@@ -3502,10 +3949,17 @@ export function registerBulkImportRoutes(app: Express): void {
           })
           .where(eq(schema.bulkImportItems.id, item.id))
           .returning();
+        logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/reassign ok', {
+          metadata: { itemId, branch, subCategory, status: 200, durationMs: Date.now() - t0 },
+        });
         return res.json(updated);
       } catch (err) {
-        if (err instanceof z.ZodError) return res.status(400).json({ error: err.errors });
+        if (err instanceof z.ZodError) {
+          logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/reassign status 400 zod', { metadata: { itemId, status: 400, durationMs: Date.now() - t0 } });
+          return res.status(400).json({ error: err.errors });
+        }
         logError('[bulk-import] reassign failed', err as Error);
+        logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/reassign status 500', { metadata: { itemId, status: 500, durationMs: Date.now() - t0 } });
         return res.status(500).json({ error: 'Failed to reassign item' });
       }
     },
@@ -3561,16 +4015,25 @@ export function registerBulkImportRoutes(app: Express): void {
     requireAuth,
     requireRole(['admin']),
     async (req: AuthenticatedRequest, res: Response) => {
+      const t0 = Date.now();
+      const sessionId = req.params.id;
+      logDebug('[bulk-import] route entry POST /api/admin/bulk-import/sessions/:id/items/reassign-bulk', {
+        metadata: { sessionId, userId: req.user?.id },
+      });
       try {
         const { branch, subCategory, itemIds, residenceId } = bulkReassignSchema.parse(req.body);
         const allowedSubCats = BRANCH_SUB_CATEGORIES[branch as BranchDestination] as readonly string[];
         if (!allowedSubCats.includes(subCategory)) {
+          logDebug('[bulk-import] route exit POST /api/admin/bulk-import/sessions/:id/items/reassign-bulk status 400 bad-subcat', { metadata: { sessionId, status: 400, durationMs: Date.now() - t0 } });
           return res.status(400).json({
             error: `subCategory "${subCategory}" is not valid for branch "${branch}". Allowed: ${allowedSubCats.join(', ')}`,
           });
         }
         const session = await loadSession(req.params.id);
-        if (!session) return res.status(404).json({ error: 'Session not found' });
+        if (!session) {
+          logDebug('[bulk-import] route exit POST /api/admin/bulk-import/sessions/:id/items/reassign-bulk status 404', { metadata: { sessionId, status: 404, durationMs: Date.now() - t0 } });
+          return res.status(404).json({ error: 'Session not found' });
+        }
 
         // Task #1084: when an explicit residenceId is supplied AND the
         // destination is residence_documents, validate it once up-front
@@ -3579,13 +4042,20 @@ export function registerBulkImportRoutes(app: Express): void {
         const applyResidence = branch === 'residence_documents' && !!residenceId;
         if (applyResidence) {
           const canAccess = await canUserAccessOrganization(req.user!.id, session.organizationId);
-          if (!canAccess) return res.status(403).json({ error: 'Forbidden' });
+          if (!canAccess) {
+            logDebug('[bulk-import] route exit POST /api/admin/bulk-import/sessions/:id/items/reassign-bulk status 403', { metadata: { sessionId, status: 403, durationMs: Date.now() - t0 } });
+            return res.status(403).json({ error: 'Forbidden' });
+          }
           const [residence] = await db
             .select({ id: schema.residences.id, buildingId: schema.residences.buildingId })
             .from(schema.residences)
             .where(eq(schema.residences.id, residenceId!));
-          if (!residence) return res.status(404).json({ error: 'Residence not found' });
+          if (!residence) {
+            logDebug('[bulk-import] route exit POST /api/admin/bulk-import/sessions/:id/items/reassign-bulk status 404 residence', { metadata: { sessionId, status: 404, durationMs: Date.now() - t0 } });
+            return res.status(404).json({ error: 'Residence not found' });
+          }
           if (residence.buildingId !== session.buildingId) {
+            logDebug('[bulk-import] route exit POST /api/admin/bulk-import/sessions/:id/items/reassign-bulk status 400 wrong-building', { metadata: { sessionId, status: 400, durationMs: Date.now() - t0 } });
             return res.status(400).json({
               error: "Residence does not belong to this session's building",
             });
@@ -3664,10 +4134,17 @@ export function registerBulkImportRoutes(app: Express): void {
             .returning();
           if (u) updated.push(u);
         }
+        logDebug('[bulk-import] route exit POST /api/admin/bulk-import/sessions/:id/items/reassign-bulk ok', {
+          metadata: { sessionId, branch, subCategory, updatedCount: updated.length, status: 200, durationMs: Date.now() - t0 },
+        });
         return res.json({ updated: updated.length, items: updated });
       } catch (err) {
-        if (err instanceof z.ZodError) return res.status(400).json({ error: err.errors });
+        if (err instanceof z.ZodError) {
+          logDebug('[bulk-import] route exit POST /api/admin/bulk-import/sessions/:id/items/reassign-bulk status 400', { metadata: { sessionId, status: 400, durationMs: Date.now() - t0 } });
+          return res.status(400).json({ error: err.errors });
+        }
         logError('[bulk-import] bulk reassign failed', err as Error);
+        logDebug('[bulk-import] route exit POST /api/admin/bulk-import/sessions/:id/items/reassign-bulk status 500', { metadata: { sessionId, status: 500, durationMs: Date.now() - t0 } });
         return res.status(500).json({ error: 'Failed to bulk reassign items' });
       }
     },
@@ -3690,15 +4167,24 @@ export function registerBulkImportRoutes(app: Express): void {
     requireAuth,
     requireRole(['admin']),
     async (req: AuthenticatedRequest, res: Response) => {
+      const t0 = Date.now();
+      const itemId = req.params.id;
+      logDebug('[bulk-import] route entry POST /api/admin/bulk-import/items/:id/set-residence', {
+        metadata: { itemId, userId: req.user?.id },
+      });
       try {
         const { residenceId } = setResidenceSchema.parse(req.body);
         const [item] = await db
           .select()
           .from(schema.bulkImportItems)
-          .where(eq(schema.bulkImportItems.id, req.params.id));
-        if (!item) return res.status(404).json({ error: 'Item not found' });
+          .where(eq(schema.bulkImportItems.id, itemId));
+        if (!item) {
+          logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/set-residence status 404 item', { metadata: { itemId, status: 404, durationMs: Date.now() - t0 } });
+          return res.status(404).json({ error: 'Item not found' });
+        }
         const existing = (item.branchDecision ?? {}) as Record<string, unknown>;
         if (existing.branch !== 'residence_documents') {
+          logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/set-residence status 400 wrong-branch', { metadata: { itemId, branch: existing.branch, status: 400, durationMs: Date.now() - t0 } });
           return res.status(400).json({
             error: 'Residence can only be set on items routed to residence_documents',
           });
@@ -3707,15 +4193,25 @@ export function registerBulkImportRoutes(app: Express): void {
         // Validate residenceId belongs to the session's building and org.
         if (residenceId !== null) {
           const session = await loadSession(item.sessionId);
-          if (!session) return res.status(404).json({ error: 'Session not found' });
+          if (!session) {
+            logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/set-residence status 404 session', { metadata: { itemId, status: 404, durationMs: Date.now() - t0 } });
+            return res.status(404).json({ error: 'Session not found' });
+          }
           const canAccess = await canUserAccessOrganization(req.user!.id, session.organizationId);
-          if (!canAccess) return res.status(403).json({ error: 'Forbidden' });
+          if (!canAccess) {
+            logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/set-residence status 403', { metadata: { itemId, status: 403, durationMs: Date.now() - t0 } });
+            return res.status(403).json({ error: 'Forbidden' });
+          }
           const [residence] = await db
             .select({ id: schema.residences.id, buildingId: schema.residences.buildingId })
             .from(schema.residences)
             .where(eq(schema.residences.id, residenceId));
-          if (!residence) return res.status(404).json({ error: 'Residence not found' });
+          if (!residence) {
+            logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/set-residence status 404 residence', { metadata: { itemId, residenceId, status: 404, durationMs: Date.now() - t0 } });
+            return res.status(404).json({ error: 'Residence not found' });
+          }
           if (residence.buildingId !== session.buildingId) {
+            logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/set-residence status 400 wrong-building', { metadata: { itemId, residenceId, status: 400, durationMs: Date.now() - t0 } });
             return res.status(400).json({
               error: 'Residence does not belong to this session\'s building',
             });
@@ -3758,10 +4254,17 @@ export function registerBulkImportRoutes(app: Express): void {
           })
           .where(eq(schema.bulkImportItems.id, item.id))
           .returning();
+        logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/set-residence ok', {
+          metadata: { itemId, newStatus, status: 200, durationMs: Date.now() - t0 },
+        });
         return res.json(updated);
       } catch (err) {
-        if (err instanceof z.ZodError) return res.status(400).json({ error: err.errors });
+        if (err instanceof z.ZodError) {
+          logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/set-residence status 400', { metadata: { itemId, status: 400, durationMs: Date.now() - t0 } });
+          return res.status(400).json({ error: err.errors });
+        }
         logError('[bulk-import] set-residence failed', err as Error);
+        logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/set-residence status 500', { metadata: { itemId, status: 500, durationMs: Date.now() - t0 } });
         return res.status(500).json({ error: 'Failed to set residence' });
       }
     },
@@ -4025,11 +4528,22 @@ export function registerBulkImportRoutes(app: Express): void {
     requireAuth,
     requireRole(['admin']),
     async (req: AuthenticatedRequest, res: Response) => {
+      const t0 = Date.now();
+      const sessionId = req.params.id;
+      logDebug('[bulk-import] route entry POST /api/admin/bulk-import/sessions/:id/items/confirm-ai-residences', {
+        metadata: { sessionId, userId: req.user?.id },
+      });
       try {
-        const session = await loadSession(req.params.id);
-        if (!session) return res.status(404).json({ error: 'Session not found' });
+        const session = await loadSession(sessionId);
+        if (!session) {
+          logDebug('[bulk-import] route exit POST /api/admin/bulk-import/sessions/:id/items/confirm-ai-residences status 404', { metadata: { sessionId, status: 404, durationMs: Date.now() - t0 } });
+          return res.status(404).json({ error: 'Session not found' });
+        }
         const canAccess = await canUserAccessOrganization(req.user!.id, session.organizationId);
-        if (!canAccess) return res.status(403).json({ error: 'Forbidden' });
+        if (!canAccess) {
+          logDebug('[bulk-import] route exit POST /api/admin/bulk-import/sessions/:id/items/confirm-ai-residences status 403', { metadata: { sessionId, status: 403, durationMs: Date.now() - t0 } });
+          return res.status(403).json({ error: 'Forbidden' });
+        }
 
         const rows = await db
           .select()
@@ -4064,9 +4578,15 @@ export function registerBulkImportRoutes(app: Express): void {
             .returning();
           if (u) updated.push(u);
         }
+        logDebug('[bulk-import] route exit POST /api/admin/bulk-import/sessions/:id/items/confirm-ai-residences ok', {
+          metadata: { sessionId, updatedCount: updated.length, status: 200, durationMs: Date.now() - t0 },
+        });
         return res.json({ updated: updated.length, items: updated });
       } catch (err) {
         logError('[bulk-import] confirm-ai-residences failed', err as Error);
+        logDebug('[bulk-import] route exit POST /api/admin/bulk-import/sessions/:id/items/confirm-ai-residences status 500', {
+          metadata: { sessionId, status: 500, durationMs: Date.now() - t0 },
+        });
         return res.status(500).json({ error: 'Failed to confirm AI residences' });
       }
     },
@@ -4095,14 +4615,25 @@ export function registerBulkImportRoutes(app: Express): void {
     requireAuth,
     requireRole(['admin']),
     async (req: AuthenticatedRequest, res: Response) => {
+      const t0 = Date.now();
+      const sessionId = req.params.id;
+      logDebug('[bulk-import] route entry POST /api/admin/bulk-import/sessions/:id/items/accept-all-pending-sorting', {
+        metadata: { sessionId, userId: req.user?.id },
+      });
       try {
         const { skipItemIds } = acceptAllPendingSortingSchema.parse(req.body);
         const skipSet = new Set(skipItemIds ?? []);
 
-        const session = await loadSession(req.params.id);
-        if (!session) return res.status(404).json({ error: 'Session not found' });
+        const session = await loadSession(sessionId);
+        if (!session) {
+          logDebug('[bulk-import] route exit POST /api/admin/bulk-import/sessions/:id/items/accept-all-pending-sorting status 404', { metadata: { sessionId, status: 404, durationMs: Date.now() - t0 } });
+          return res.status(404).json({ error: 'Session not found' });
+        }
         const canAccess = await canUserAccessOrganization(req.user!.id, session.organizationId);
-        if (!canAccess) return res.status(403).json({ error: 'Forbidden' });
+        if (!canAccess) {
+          logDebug('[bulk-import] route exit POST /api/admin/bulk-import/sessions/:id/items/accept-all-pending-sorting status 403', { metadata: { sessionId, status: 403, durationMs: Date.now() - t0 } });
+          return res.status(403).json({ error: 'Forbidden' });
+        }
 
         const rows = await db
           .select()
@@ -4324,9 +4855,15 @@ export function registerBulkImportRoutes(app: Express): void {
           accepted++;
         }
 
+        logDebug('[bulk-import] route exit POST /api/admin/bulk-import/sessions/:id/items/accept-all-pending-sorting ok', {
+          metadata: { sessionId, accepted, status: 200, durationMs: Date.now() - t0 },
+        });
         return res.json({ accepted });
       } catch (err) {
         logError('[bulk-import] accept-all-pending-sorting failed', err as Error);
+        logDebug('[bulk-import] route exit POST /api/admin/bulk-import/sessions/:id/items/accept-all-pending-sorting status 500', {
+          metadata: { sessionId, status: 500, durationMs: Date.now() - t0 },
+        });
         return res.status(500).json({ error: 'Failed to accept all pending sorting decisions' });
       }
     },
@@ -4385,6 +4922,11 @@ export function registerBulkImportRoutes(app: Express): void {
     requireAuth,
     requireRole(['admin']),
     async (req: AuthenticatedRequest, res: Response) => {
+      const t0 = Date.now();
+      const itemId = req.params.id;
+      logDebug('[bulk-import] route entry POST /api/admin/bulk-import/items/:id/set-sorting-decision', {
+        metadata: { itemId, userId: req.user?.id },
+      });
       // Capture for structured error logging in the catch block (item is in scope only inside try).
       let _capturedSessionId: string | undefined;
       try {
@@ -4403,7 +4945,10 @@ export function registerBulkImportRoutes(app: Express): void {
           .select()
           .from(schema.bulkImportItems)
           .where(eq(schema.bulkImportItems.id, req.params.id));
-        if (!item) return res.status(404).json({ error: 'Item not found' });
+        if (!item) {
+          logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/set-sorting-decision status 404', { metadata: { itemId, status: 404, durationMs: Date.now() - t0 } });
+          return res.status(404).json({ error: 'Item not found' });
+        }
         _capturedSessionId = item.sessionId ?? undefined;
 
         const existing = (item.sortingDecision ?? {}) as Record<string, unknown>;
@@ -4415,6 +4960,7 @@ export function registerBulkImportRoutes(app: Express): void {
         if (rawFinalFileName !== undefined) {
           const cleaned = sanitizeFileNameStem(rawFinalFileName);
           if (cleaned === null) {
+            logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/set-sorting-decision status 400 bad-filename', { metadata: { itemId, status: 400, durationMs: Date.now() - t0 } });
             return res.status(400).json({ error: 'Invalid filename: remove leading dots or path separators' });
           }
           sanitizedFinalFileName = cleaned || null; // empty string → null (clear override)
@@ -4424,6 +4970,7 @@ export function registerBulkImportRoutes(app: Express): void {
           const c0 = sanitizeFileNameStem(rawSplitFinalNames[0]);
           const c1 = sanitizeFileNameStem(rawSplitFinalNames[1]);
           if (c0 === null || c1 === null) {
+            logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/set-sorting-decision status 400 bad-split-filename', { metadata: { itemId, status: 400, durationMs: Date.now() - t0 } });
             return res.status(400).json({ error: 'Invalid split filename: remove leading dots or path separators' });
           }
           sanitizedSplitFinalNames = [c0 || '', c1 || ''];
@@ -4642,6 +5189,16 @@ export function registerBulkImportRoutes(app: Express): void {
             })
             .where(eq(schema.bulkImportItems.id, item.id))
             .returning();
+          logDebug('[bulk-import] route exit POST set-sorting-decision ok (draft)', {
+            metadata: {
+              itemId: item.id,
+              sessionId: _capturedSessionId,
+              decision: draftDecision,
+              splitPartCount: splitPartIds.length,
+              status: 200,
+              durationMs: Date.now() - t0,
+            },
+          });
           return res.json({ item: draftUpdated, splitPartIds });
         }
 
@@ -4699,6 +5256,9 @@ export function registerBulkImportRoutes(app: Express): void {
             .set({ sortingDecision: updated_decision, updatedAt: new Date() })
             .where(eq(schema.bulkImportItems.id, item.id))
             .returning();
+          logDebug('[bulk-import] route exit POST set-sorting-decision ok (reject)', {
+            metadata: { itemId: item.id, sessionId: _capturedSessionId, action, status: 200, durationMs: Date.now() - t0 },
+          });
           return res.json(updated);
         }
 
@@ -4889,6 +5449,16 @@ export function registerBulkImportRoutes(app: Express): void {
             }
           }
 
+          logDebug('[bulk-import] route exit POST set-sorting-decision ok (merge)', {
+            metadata: {
+              itemId: item.id,
+              sessionId: _capturedSessionId,
+              action,
+              siblingCount: siblingItems.length,
+              status: 200,
+              durationMs: Date.now() - t0,
+            },
+          });
           return res.json(updatedItem);
         }
 
@@ -4983,6 +5553,9 @@ export function registerBulkImportRoutes(app: Express): void {
               })
               .where(eq(schema.bulkImportItems.id, item.id))
               .returning();
+            logDebug('[bulk-import] route exit POST set-sorting-decision ok (split/re-slice)', {
+              metadata: { itemId: item.id, sessionId: _capturedSessionId, action, splitAtPage: splitPage, status: 200, durationMs: Date.now() - t0 },
+            });
             return res.json(updatedItem);
           } else {
             // No prior draft parts: lead becomes part1, create new sibling for part2.
@@ -5011,6 +5584,9 @@ export function registerBulkImportRoutes(app: Express): void {
                 finalFileName: part2FinalFileName || null,
                 sortingDecision: { ...partDecisionBase },
               });
+            logDebug('[bulk-import] route exit POST set-sorting-decision ok (split/new-parts)', {
+              metadata: { itemId: item.id, sessionId: _capturedSessionId, action, splitAtPage: splitPage, status: 200, durationMs: Date.now() - t0 },
+            });
             return res.json(updatedItem);
           }
         }
@@ -5025,10 +5601,16 @@ export function registerBulkImportRoutes(app: Express): void {
           })
           .where(eq(schema.bulkImportItems.id, item.id))
           .returning();
+        logDebug('[bulk-import] route exit POST set-sorting-decision ok (keep)', {
+          metadata: { itemId: item.id, sessionId: _capturedSessionId, action, decision: effectiveDecision, status: 200, durationMs: Date.now() - t0 },
+        });
         return res.json(updated);
 
       } catch (err) {
-        if (err instanceof z.ZodError) return res.status(400).json({ error: err.errors });
+        if (err instanceof z.ZodError) {
+          logDebug('[bulk-import] route exit POST set-sorting-decision status 400 zod', { metadata: { itemId, status: 400, durationMs: Date.now() - t0 } });
+          return res.status(400).json({ error: err.errors });
+        }
         const errMsg = err instanceof Error ? err.message : String(err);
         const errCtx: Record<string, unknown> = {
           itemId: req.params.id,
@@ -5040,6 +5622,7 @@ export function registerBulkImportRoutes(app: Express): void {
           originalError: errMsg,
           code: 'SORTING_DECISION_INTERNAL_ERROR',
         };
+        logDebug('[bulk-import] route exit POST set-sorting-decision status 500', { metadata: { itemId, status: 500, durationMs: Date.now() - t0 } });
         logError('[bulk-import] accept failed', err as Error, errCtx);
         const userMessage = 'Internal error while processing sorting decision';
         return res.status(500).json({
@@ -5091,6 +5674,11 @@ export function registerBulkImportRoutes(app: Express): void {
     requireAuth,
     requireRole(['admin']),
     async (req: AuthenticatedRequest, res: Response) => {
+      const t0 = Date.now();
+      const itemId = req.params.id;
+      logDebug('[bulk-import] route entry POST /api/admin/bulk-import/items/:id/set-period-hint', {
+        metadata: { itemId, userId: req.user?.id },
+      });
       try {
         const { periodHint: rawPeriodHint } = setPeriodHintSchema.parse(req.body);
         const trimmed = typeof rawPeriodHint === 'string' ? rawPeriodHint.trim() : null;
@@ -5099,10 +5687,14 @@ export function registerBulkImportRoutes(app: Express): void {
         const [item] = await db
           .select()
           .from(schema.bulkImportItems)
-          .where(eq(schema.bulkImportItems.id, req.params.id));
-        if (!item) return res.status(404).json({ error: 'Item not found' });
+          .where(eq(schema.bulkImportItems.id, itemId));
+        if (!item) {
+          logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/set-period-hint status 404 item', { metadata: { itemId, status: 404, durationMs: Date.now() - t0 } });
+          return res.status(404).json({ error: 'Item not found' });
+        }
 
         if (item.status !== 'screened' && item.status !== 'sorted') {
+          logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/set-period-hint status 400 wrong-status', { metadata: { itemId, itemStatus: item.status, status: 400, durationMs: Date.now() - t0 } });
           return res.status(400).json({
             error: 'Period hint can only be edited while the item is on the Sorting step',
           });
@@ -5117,6 +5709,7 @@ export function registerBulkImportRoutes(app: Express): void {
           | null
           | undefined;
         if (existingDecisionState === 'accepted') {
+          logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/set-period-hint status 400 already-accepted', { metadata: { itemId, status: 400, durationMs: Date.now() - t0 } });
           return res.status(400).json({
             error:
               'Sorting decision has already been accepted; reset the decision before changing the period',
@@ -5144,6 +5737,7 @@ export function registerBulkImportRoutes(app: Express): void {
           .from(schema.bulkImportItems)
           .where(eq(schema.bulkImportItems.id, item.id));
         if (!refreshedItem) {
+          logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/set-period-hint status 404 disappeared', { metadata: { itemId, status: 404, durationMs: Date.now() - t0 } });
           return res.status(404).json({ error: 'Item disappeared during update' });
         }
 
@@ -5203,13 +5797,20 @@ export function registerBulkImportRoutes(app: Express): void {
           }
         }
 
+        logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/set-period-hint ok', {
+          metadata: { itemId, resortedSiblingCount: resortedSiblingIds.length, status: 200, durationMs: Date.now() - t0 },
+        });
         return res.json({
           item: updatedTarget,
           resortedSiblingIds,
         });
       } catch (err) {
-        if (err instanceof z.ZodError) return res.status(400).json({ error: err.errors });
-        logError(`[bulk-import] set-period-hint failed for item ${req.params.id}`, err as Error);
+        if (err instanceof z.ZodError) {
+          logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/set-period-hint status 400 zod', { metadata: { itemId, status: 400, durationMs: Date.now() - t0 } });
+          return res.status(400).json({ error: err.errors });
+        }
+        logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/set-period-hint status 500', { metadata: { itemId, status: 500, durationMs: Date.now() - t0 } });
+        logError(`[bulk-import] set-period-hint failed for item ${itemId}`, err as Error);
         return res.status(500).json({ error: 'Failed to update period hint' });
       }
     },
@@ -5258,6 +5859,11 @@ export function registerBulkImportRoutes(app: Express): void {
     requireAuth,
     requireRole(['admin']),
     async (req: AuthenticatedRequest, res: Response) => {
+      const t0 = Date.now();
+      const itemId = req.params.id;
+      logDebug('[bulk-import] route entry POST /api/admin/bulk-import/items/:id/set-effective-date', {
+        metadata: { itemId, userId: req.user?.id },
+      });
       try {
         const { effectiveDate: rawEffectiveDate } = setEffectiveDateSchema.parse(req.body);
         const trimmed = typeof rawEffectiveDate === 'string' ? rawEffectiveDate.trim() : null;
@@ -5277,6 +5883,7 @@ export function registerBulkImportRoutes(app: Express): void {
             || probe.getUTCMonth() !== m - 1
             || probe.getUTCDate() !== d
           ) {
+            logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/set-effective-date status 400 bad-date', { metadata: { itemId, status: 400, durationMs: Date.now() - t0 } });
             return res.status(400).json({ error: 'effectiveDate is not a valid calendar date' });
           }
         }
@@ -5285,16 +5892,23 @@ export function registerBulkImportRoutes(app: Express): void {
           .select()
           .from(schema.bulkImportItems)
           .where(eq(schema.bulkImportItems.id, req.params.id));
-        if (!item) return res.status(404).json({ error: 'Item not found' });
+        if (!item) {
+          logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/set-effective-date status 404 item', { metadata: { itemId, status: 404, durationMs: Date.now() - t0 } });
+          return res.status(404).json({ error: 'Item not found' });
+        }
 
         const session = await loadSession(item.sessionId);
-        if (!session) return res.status(404).json({ error: 'Session not found' });
+        if (!session) {
+          logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/set-effective-date status 404 session', { metadata: { itemId, status: 404, durationMs: Date.now() - t0 } });
+          return res.status(404).json({ error: 'Session not found' });
+        }
 
         const allowed = await canUserAccessOrganization(
           req.user!.id,
           session.organizationId,
         );
         if (!allowed) {
+          logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/set-effective-date status 403', { metadata: { itemId, status: 403, durationMs: Date.now() - t0 } });
           return res
             .status(403)
             .json({ error: 'You do not have access to this session' });
@@ -5319,11 +5933,21 @@ export function registerBulkImportRoutes(app: Express): void {
           .set({ identification: nextIdentification, updatedAt: new Date() })
           .where(eq(schema.bulkImportItems.id, item.id))
           .returning();
-        if (!updated) return res.status(404).json({ error: 'Item not found' });
+        if (!updated) {
+          logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/set-effective-date status 404', { metadata: { itemId, status: 404, durationMs: Date.now() - t0 } });
+          return res.status(404).json({ error: 'Item not found' });
+        }
+        logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/set-effective-date ok', {
+          metadata: { itemId, status: 200, durationMs: Date.now() - t0 },
+        });
         return res.json(updated);
       } catch (err) {
-        if (err instanceof z.ZodError) return res.status(400).json({ error: err.errors });
-        logError(`[bulk-import] set-effective-date failed for item ${req.params.id}`, err as Error);
+        if (err instanceof z.ZodError) {
+          logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/set-effective-date status 400 zod', { metadata: { itemId, status: 400, durationMs: Date.now() - t0 } });
+          return res.status(400).json({ error: err.errors });
+        }
+        logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/set-effective-date status 500', { metadata: { itemId, status: 500, durationMs: Date.now() - t0 } });
+        logError(`[bulk-import] set-effective-date failed for item ${itemId}`, err as Error);
         return res.status(500).json({ error: 'Failed to update effective date' });
       }
     },
@@ -5352,23 +5976,35 @@ export function registerBulkImportRoutes(app: Express): void {
     requireAuth,
     requireRole(['admin']),
     async (req: AuthenticatedRequest, res: Response) => {
+      const t0 = Date.now();
+      const itemId = req.params.id;
+      logDebug('[bulk-import] route entry POST /api/admin/bulk-import/items/:id/set-tags', {
+        metadata: { itemId, userId: req.user?.id },
+      });
       try {
         const { tagIds } = setTagsSchema.parse(req.body);
 
         const [item] = await db
           .select()
           .from(schema.bulkImportItems)
-          .where(eq(schema.bulkImportItems.id, req.params.id));
-        if (!item) return res.status(404).json({ error: 'Item not found' });
+          .where(eq(schema.bulkImportItems.id, itemId));
+        if (!item) {
+          logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/set-tags status 404 item', { metadata: { itemId, status: 404, durationMs: Date.now() - t0 } });
+          return res.status(404).json({ error: 'Item not found' });
+        }
 
         const session = await loadSession(item.sessionId);
-        if (!session) return res.status(404).json({ error: 'Session not found' });
+        if (!session) {
+          logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/set-tags status 404 session', { metadata: { itemId, status: 404, durationMs: Date.now() - t0 } });
+          return res.status(404).json({ error: 'Session not found' });
+        }
 
         const allowed = await canUserAccessOrganization(
           req.user!.id,
           session.organizationId,
         );
         if (!allowed) {
+          logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/set-tags status 403', { metadata: { itemId, status: 403, durationMs: Date.now() - t0 } });
           return res
             .status(403)
             .json({ error: 'You do not have access to this session' });
@@ -5397,6 +6033,7 @@ export function registerBulkImportRoutes(app: Express): void {
           const foundIds = new Set(tagRows.map((t) => t.id));
           const missing = tagIds.filter((id) => !foundIds.has(id));
           if (missing.length > 0) {
+            logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/set-tags status 400 missing-tags', { metadata: { itemId, missingCount: missing.length, status: 400, durationMs: Date.now() - t0 } });
             return res.status(400).json({ error: `Unknown or inaccessible tag IDs: ${missing.join(', ')}` });
           }
 
@@ -5406,11 +6043,13 @@ export function registerBulkImportRoutes(app: Express): void {
 
           for (const tag of tagRows) {
             if (tag.scope === 'building' && isResidence) {
+              logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/set-tags status 400 building-scope', { metadata: { itemId, tagId: tag.id, status: 400, durationMs: Date.now() - t0 } });
               return res.status(400).json({
                 error: `Tag ${tag.id} has scope 'building' but this item is residence-scoped`,
               });
             }
             if (tag.scope === 'residence' && !isResidence) {
+              logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/set-tags status 400 residence-scope', { metadata: { itemId, tagId: tag.id, status: 400, durationMs: Date.now() - t0 } });
               return res.status(400).json({
                 error: `Tag ${tag.id} has scope 'residence' but this item is building-scoped`,
               });
@@ -5429,11 +6068,21 @@ export function registerBulkImportRoutes(app: Express): void {
           .set({ identification: nextIdentification, updatedAt: new Date() })
           .where(eq(schema.bulkImportItems.id, item.id))
           .returning();
-        if (!updated) return res.status(404).json({ error: 'Item not found' });
+        if (!updated) {
+          logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/set-tags status 404', { metadata: { itemId, status: 404, durationMs: Date.now() - t0 } });
+          return res.status(404).json({ error: 'Item not found' });
+        }
+        logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/set-tags ok', {
+          metadata: { itemId, tagCount: tagIds.length, status: 200, durationMs: Date.now() - t0 },
+        });
         return res.json(updated);
       } catch (err) {
-        if (err instanceof z.ZodError) return res.status(400).json({ error: err.errors });
-        logError(`[bulk-import] set-tags failed for item ${req.params.id}`, err as Error);
+        if (err instanceof z.ZodError) {
+          logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/set-tags status 400 zod', { metadata: { itemId, status: 400, durationMs: Date.now() - t0 } });
+          return res.status(400).json({ error: err.errors });
+        }
+        logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/set-tags status 500', { metadata: { itemId, status: 500, durationMs: Date.now() - t0 } });
+        logError(`[bulk-import] set-tags failed for item ${itemId}`, err as Error);
         return res.status(500).json({ error: 'Failed to update tags' });
       }
     },
@@ -5453,12 +6102,20 @@ export function registerBulkImportRoutes(app: Express): void {
       requireAuth,
       requireRole(['admin']),
       async (req: AuthenticatedRequest, res: Response) => {
+        const t0 = Date.now();
+        const itemId = req.params.id;
+        logDebug(`[bulk-import] route entry POST /api/admin/bulk-import/items/:id/${action}`, {
+          metadata: { itemId, action, step, userId: req.user?.id },
+        });
         try {
           const [item] = await db
             .select()
             .from(schema.bulkImportItems)
-            .where(eq(schema.bulkImportItems.id, req.params.id));
-          if (!item) return res.status(404).json({ error: 'Item not found' });
+            .where(eq(schema.bulkImportItems.id, itemId));
+          if (!item) {
+            logDebug(`[bulk-import] route exit POST /api/admin/bulk-import/items/:id/${action} status 404`, { metadata: { itemId, action, step, status: 404, durationMs: Date.now() - t0 } });
+            return res.status(404).json({ error: 'Item not found' });
+          }
 
           // Task #1047: short-circuit when *this specific item* is
           // already being processed. Two cases:
@@ -5484,6 +6141,7 @@ export function registerBulkImportRoutes(app: Express): void {
             (e) => e.itemId === item.id,
           );
           if (inFlightPerItemRetry.has(itemKey) || itemAlreadyInFlight) {
+            logDebug(`[bulk-import] route exit POST /api/admin/bulk-import/items/:id/${action} status 200 already-in-flight`, { metadata: { itemId, action, step, status: 200, durationMs: Date.now() - t0 } });
             return res.json(item);
           }
 
@@ -5559,6 +6217,10 @@ export function registerBulkImportRoutes(app: Express): void {
           // bursts. Per-item retries deliberately bypass that pacing —
           // they are one-off manual actions that should feel instant.
           const work = (async () => {
+            const bgT0 = Date.now();
+            logDebug(`[bulk-import] per-item retry background start`, {
+              metadata: { itemId: item.id, sessionId: item.sessionId, step, action },
+            });
             try {
               await withItemTimeout(
                 processItemForStep(
@@ -5577,8 +6239,14 @@ export function registerBulkImportRoutes(app: Express): void {
                 RUN_ALL_ITEM_TIMEOUT_MS,
                 item.originalName,
               );
+              logDebug(`[bulk-import] per-item retry background success`, {
+                metadata: { itemId: item.id, sessionId: item.sessionId, step, outcome: 'success', durationMs: Date.now() - bgT0 },
+              });
             } catch (err) {
               const isTimeout = (err as Error).message?.includes('timed out');
+              logDebug(`[bulk-import] per-item retry background failure`, {
+                metadata: { itemId: item.id, sessionId: item.sessionId, step, outcome: isTimeout ? 'timeout' : 'error', durationMs: Date.now() - bgT0 },
+              });
               logError(
                 `[bulk-import] per-item ${step} ${isTimeout ? 'timeout' : 'error'} for item ${item.id}`,
                 err as Error,
@@ -5615,6 +6283,16 @@ export function registerBulkImportRoutes(app: Express): void {
             logError('[bulk-import] per-item background task crashed', e as Error),
           );
 
+          logDebug('[bulk-import] route exit POST per-item step dispatched', {
+            metadata: {
+              itemId: item.id,
+              sessionId: item.sessionId,
+              action,
+              step,
+              status: 200,
+              durationMs: Date.now() - t0,
+            },
+          });
           return res.json(item);
         } catch (err) {
           // Defensive: ensure we don't leak the in-flight marker if the
@@ -5626,6 +6304,7 @@ export function registerBulkImportRoutes(app: Express): void {
           } catch {
             /* noop */
           }
+          logDebug(`[bulk-import] route exit POST /api/admin/bulk-import/items/:id/${action} status 500`, { metadata: { itemId, action, step, status: 500, durationMs: Date.now() - t0 } });
           logError(`[bulk-import] per-item ${step} failed`, err as Error);
           return res.status(500).json({ error: `Failed to run ${step}` });
         }
@@ -5656,10 +6335,18 @@ export function registerBulkImportRoutes(app: Express): void {
     requireAuth,
     requireRole(['admin']),
     async (req: AuthenticatedRequest, res: Response) => {
+      const t0 = Date.now();
+      const sessionId = req.params.id;
       try {
         const { step } = runAllSchema.parse(req.body);
-        const session = await loadSession(req.params.id);
-        if (!session) return res.status(404).json({ error: 'Session not found' });
+        logDebug('[bulk-import] route entry POST /api/admin/bulk-import/sessions/:id/run-all', {
+          metadata: { sessionId, step, userId: req.user?.id },
+        });
+        const session = await loadSession(sessionId);
+        if (!session) {
+          logDebug('[bulk-import] route exit POST /api/admin/bulk-import/sessions/:id/run-all status 404', { metadata: { sessionId, status: 404, durationMs: Date.now() - t0 } });
+          return res.status(404).json({ error: 'Session not found' });
+        }
 
         const key = runAllKey(session.id, step);
         const alreadyRunning = inFlightRunAll.has(key);
@@ -5677,13 +6364,20 @@ export function registerBulkImportRoutes(app: Express): void {
         // a stale `null`).
         const fresh = await loadSession(session.id);
         const runAll = getRunAllMap(fresh?.progress);
+        logDebug('[bulk-import] route exit POST /api/admin/bulk-import/sessions/:id/run-all', {
+          metadata: { sessionId, step, alreadyRunning, status: 200, durationMs: Date.now() - t0 },
+        });
         return res.json({
           step,
           alreadyRunning,
           progress: runAll[step] ?? null,
         });
       } catch (err) {
-        if (err instanceof z.ZodError) return res.status(400).json({ error: err.errors });
+        if (err instanceof z.ZodError) {
+          logDebug('[bulk-import] route exit POST /api/admin/bulk-import/sessions/:id/run-all status 400 zod', { metadata: { sessionId, status: 400, durationMs: Date.now() - t0 } });
+          return res.status(400).json({ error: err.errors });
+        }
+        logDebug('[bulk-import] route exit POST /api/admin/bulk-import/sessions/:id/run-all status 500', { metadata: { sessionId, status: 500, durationMs: Date.now() - t0 } });
         logError('[bulk-import] run-all failed', err as Error);
         return res.status(500).json({ error: 'Failed to start run-all' });
       }
@@ -5716,10 +6410,18 @@ export function registerBulkImportRoutes(app: Express): void {
     requireAuth,
     requireRole(['admin']),
     async (req: AuthenticatedRequest, res: Response) => {
+      const t0 = Date.now();
+      const sessionId = req.params.id;
       try {
         const { step } = resetStepSchema.parse(req.body);
-        const session = await loadSession(req.params.id);
-        if (!session) return res.status(404).json({ error: 'Session not found' });
+        logDebug('[bulk-import] route entry POST /api/admin/bulk-import/sessions/:id/reset-step', {
+          metadata: { sessionId, step, userId: req.user?.id },
+        });
+        const session = await loadSession(sessionId);
+        if (!session) {
+          logDebug('[bulk-import] route exit POST /api/admin/bulk-import/sessions/:id/reset-step status 404', { metadata: { sessionId, status: 404, durationMs: Date.now() - t0 } });
+          return res.status(404).json({ error: 'Session not found' });
+        }
 
         // Cooperative cancellation, same pattern as session-clear:
         // dropping the key signals the worker loop to break on its
@@ -5800,12 +6502,19 @@ export function registerBulkImportRoutes(app: Express): void {
         void runAllForStep(session.id, step);
 
         const updated = await loadSession(session.id);
+        logDebug('[bulk-import] route exit POST /api/admin/bulk-import/sessions/:id/reset-step', {
+          metadata: { sessionId, step, status: 200, durationMs: Date.now() - t0 },
+        });
         return res.json({
           step,
           session: updated,
         });
       } catch (err) {
-        if (err instanceof z.ZodError) return res.status(400).json({ error: err.errors });
+        if (err instanceof z.ZodError) {
+          logDebug('[bulk-import] route exit POST /api/admin/bulk-import/sessions/:id/reset-step status 400 zod', { metadata: { sessionId, status: 400, durationMs: Date.now() - t0 } });
+          return res.status(400).json({ error: err.errors });
+        }
+        logDebug('[bulk-import] route exit POST /api/admin/bulk-import/sessions/:id/reset-step status 500', { metadata: { sessionId, status: 500, durationMs: Date.now() - t0 } });
         logError('[bulk-import] reset-step failed', err as Error);
         return res.status(500).json({ error: 'Failed to reset step' });
       }
@@ -5824,14 +6533,25 @@ export function registerBulkImportRoutes(app: Express): void {
     requireAuth,
     requireRole(['admin']),
     async (req: AuthenticatedRequest, res: Response) => {
+      const t0 = Date.now();
+      const itemId = req.params.id;
+      logDebug('[bulk-import] route entry POST /api/admin/bulk-import/items/:id/commit', {
+        metadata: { itemId, userId: req.user?.id },
+      });
       try {
         const [item] = await db
           .select()
           .from(schema.bulkImportItems)
-          .where(eq(schema.bulkImportItems.id, req.params.id));
-        if (!item) return res.status(404).json({ error: 'Item not found' });
+          .where(eq(schema.bulkImportItems.id, itemId));
+        if (!item) {
+          logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/commit status 404 item', { metadata: { itemId, status: 404, durationMs: Date.now() - t0 } });
+          return res.status(404).json({ error: 'Item not found' });
+        }
         const session = await loadSession(item.sessionId);
-        if (!session) return res.status(404).json({ error: 'Session not found' });
+        if (!session) {
+          logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/commit status 404 session', { metadata: { itemId, status: 404, durationMs: Date.now() - t0 } });
+          return res.status(404).json({ error: 'Session not found' });
+        }
 
         const ident =
           (item.identification as {
@@ -5895,6 +6615,9 @@ export function registerBulkImportRoutes(app: Express): void {
           ),
         );
 
+        logDebug('[bulk-import] commit phase saveDocument start', {
+          metadata: { itemId: item.id, sessionId: item.sessionId, branch, filePath },
+        });
         const [doc] = await db
           .insert(schema.documents)
           .values({
@@ -5915,11 +6638,17 @@ export function registerBulkImportRoutes(app: Express): void {
             ...(residenceId ? { residenceId } : {}),
           })
           .returning();
+        logDebug('[bulk-import] commit phase saveDocument done', {
+          metadata: { itemId: item.id, sessionId: item.sessionId, documentId: doc.id },
+        });
 
         // Idempotent fingerprint upsert. On conflict (same org + content hash)
         // we do nothing so the first-committed document's finalDocumentId is
         // preserved. The new Task #1002 source fields are also only written on
         // first insert; subsequent commits of the same file are no-ops.
+        logDebug('[bulk-import] commit phase fingerprint upsert start', {
+          metadata: { itemId: item.id, sessionId: item.sessionId, contentHash: item.contentHash },
+        });
         await db
           .insert(schema.clientDocumentFingerprints)
           .values({
@@ -5936,6 +6665,9 @@ export function registerBulkImportRoutes(app: Express): void {
               schema.clientDocumentFingerprints.contentHash,
             ],
           });
+        logDebug('[bulk-import] commit phase fingerprint upsert done', {
+          metadata: { itemId: item.id, sessionId: item.sessionId },
+        });
 
         // Write admin-chosen tag assignments (Task #1103). The tags array
         // stored on identification at this point should be UUIDs set via
@@ -5944,11 +6676,26 @@ export function registerBulkImportRoutes(app: Express): void {
         const rawTagIds = Array.isArray(ident.tags)
           ? (ident.tags as string[]).filter((t) => typeof t === 'string' && t.length > 0)
           : [];
+        logDebug('[bulk-import] commit phase tag resolution', {
+          metadata: {
+            itemId: item.id,
+            sessionId: item.sessionId,
+            rawTagCount: rawTagIds.length,
+          },
+        });
         if (rawTagIds.length > 0) {
           const validTagRows = await db
             .select({ id: schema.documentTags.id })
             .from(schema.documentTags)
             .where(inArray(schema.documentTags.id, rawTagIds));
+          logDebug('[bulk-import] commit phase tag resolution done', {
+            metadata: {
+              itemId: item.id,
+              sessionId: item.sessionId,
+              rawTagCount: rawTagIds.length,
+              validTagCount: validTagRows.length,
+            },
+          });
           if (validTagRows.length > 0) {
             await db
               .insert(schema.documentTagAssignments)
@@ -5966,8 +6713,18 @@ export function registerBulkImportRoutes(app: Express): void {
           })
           .where(eq(schema.bulkImportItems.id, item.id))
           .returning();
+        logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/commit ok', {
+          metadata: {
+            itemId: item.id,
+            sessionId: item.sessionId,
+            documentId: doc.id,
+            status: 200,
+            durationMs: Date.now() - t0,
+          },
+        });
         return res.json({ item: updated, document: doc });
       } catch (err) {
+        logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/commit status 500', { metadata: { itemId, status: 500, durationMs: Date.now() - t0 } });
         logError('[bulk-import] commit failed', err as Error);
         return res.status(500).json({ error: 'Failed to commit item' });
       }

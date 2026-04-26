@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
+import { debugLog } from '@/lib/debug-log';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Header } from '@/components/layout/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -1212,6 +1213,7 @@ function HistoryCard({
 
   const hardDeleteSession = useMutation({
     mutationFn: async (id: string) => {
+      debugLog('hardDeleteSession start', { sessionId: id });
       await apiRequest(
         'DELETE',
         `/api/admin/bulk-import/sessions/${id}/hard`,
@@ -1219,7 +1221,8 @@ function HistoryCard({
       );
       return id;
     },
-    onSuccess: () => {
+    onSuccess: (id) => {
+      debugLog('hardDeleteSession success', { sessionId: id });
       setAllSessions([]);
       setFetchOffset(0);
       setNextOffset(0);
@@ -1232,7 +1235,8 @@ function HistoryCard({
         title: isFr ? 'Session supprimée' : 'Session deleted',
       });
     },
-    onError: () => {
+    onError: (err, id) => {
+      debugLog('hardDeleteSession error', { sessionId: id, error: err instanceof Error ? err.message : String(err) });
       toast({
         variant: 'destructive',
         title: isFr
@@ -1873,12 +1877,14 @@ export default function BulkDocumentImportPage() {
 
   const createSession = useMutation({
     mutationFn: async (targetBuildingId: string) => {
+      debugLog('createSession start', { buildingId: targetBuildingId });
       const res = await apiRequest('POST', '/api/admin/bulk-import/sessions', {
         buildingId: targetBuildingId,
       });
       return res.json() as Promise<BulkImportSession>;
     },
     onSuccess: (s) => {
+      debugLog('createSession success', { sessionId: s.id });
       setSessionId(s.id);
       // Invalidate the history list (all paginated variants).
       queryClient.invalidateQueries({ queryKey: ['/api/admin/bulk-import/sessions'] });
@@ -1888,6 +1894,7 @@ export default function BulkDocumentImportPage() {
       });
     },
     onError: (err: unknown) => {
+      debugLog('createSession error', { error: err instanceof Error ? err.message : String(err) });
       setBuildingId('');
       const rawDetail = err instanceof Error ? err.message : '';
       // Keep the toast clean: drop HTML-ish noise from proxy/error pages and
@@ -1910,15 +1917,21 @@ export default function BulkDocumentImportPage() {
 
   const updateStep = useMutation({
     mutationFn: async (next: BulkImportStep) => {
+      debugLog('updateStep start', { sessionId, step: next });
       const res = await apiRequest('PATCH', `/api/admin/bulk-import/sessions/${sessionId}`, {
         currentStep: next,
       });
       return res.json();
     },
-    onSuccess: () =>
-      queryClient.invalidateQueries({
+    onSuccess: (_data, next) => {
+      debugLog('updateStep success', { sessionId, step: next });
+      return queryClient.invalidateQueries({
         queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
-      }),
+      });
+    },
+    onError: (err, next) => {
+      debugLog('updateStep error', { sessionId, step: next, error: err instanceof Error ? err.message : String(err) });
+    },
   });
 
   const ZIP_MIMES_CLIENT = new Set([
@@ -1937,6 +1950,7 @@ export default function BulkDocumentImportPage() {
   const uploadFiles = useMutation({
     mutationFn: async (files: FileList) => {
       const allFiles = Array.from(files);
+      debugLog('uploadFiles start', { sessionId, fileCount: allFiles.length });
       const skipped = allFiles.filter(isZipFile);
       const allowed = allFiles.filter((f) => !isZipFile(f));
 
@@ -1963,11 +1977,16 @@ export default function BulkDocumentImportPage() {
       return res.json();
     },
     onSuccess: (data) => {
+      const count = Array.isArray(data) ? data.length : 0;
+      debugLog('uploadFiles success', { sessionId, count });
       if (!data || data.length === 0) return;
       queryClient.invalidateQueries({
         queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
       });
       toast({ title: isFr ? 'Téléversement réussi' : 'Files uploaded' });
+    },
+    onError: (err) => {
+      debugLog('uploadFiles error', { sessionId, error: err instanceof Error ? err.message : String(err) });
     },
   });
 
@@ -1983,6 +2002,7 @@ export default function BulkDocumentImportPage() {
    */
   const replaceFile = useMutation({
     mutationFn: async ({ itemId, file }: { itemId: string; file: File }) => {
+      debugLog('replaceFile start', { itemId, sessionId, fileSize: file.size, mimeType: file.type });
       const fd = new FormData();
       fd.append('files', file);
       const res = await fetch(
@@ -2002,6 +2022,7 @@ export default function BulkDocumentImportPage() {
       return res.json();
     },
     onSuccess: (_data, variables) => {
+      debugLog('replaceFile success', { itemId: variables.itemId, sessionId });
       setSortingDecisionErrors((prev) => {
         if (!prev.has(variables.itemId)) return prev;
         const next = new Map(prev);
@@ -2013,7 +2034,8 @@ export default function BulkDocumentImportPage() {
       });
       toast({ title: isFr ? 'Fichier remplacé' : 'File replaced' });
     },
-    onError: (error) => {
+    onError: (error, variables) => {
+      debugLog('replaceFile error', { itemId: variables.itemId, sessionId, error: error instanceof Error ? error.message : String(error) });
       toast({
         variant: 'destructive',
         title: isFr ? 'Échec du remplacement' : 'Failed to replace file',
@@ -2032,6 +2054,7 @@ export default function BulkDocumentImportPage() {
       itemId: string;
       action: 'screen' | 'sort' | 'branch' | 'identify' | 'link' | 'commit';
     }) => {
+      debugLog('runStep start', { itemId, action, sessionId });
       const res = await apiRequest(
         'POST',
         `/api/admin/bulk-import/items/${itemId}/${action}`,
@@ -2039,10 +2062,15 @@ export default function BulkDocumentImportPage() {
       );
       return res.json();
     },
-    onSuccess: () =>
+    onSuccess: (_data, { itemId, action }) => {
+      debugLog('runStep success', { itemId, action, sessionId });
       queryClient.invalidateQueries({
         queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
-      }),
+      });
+    },
+    onError: (err, { itemId, action }) => {
+      debugLog('runStep error', { itemId, action, sessionId, error: err instanceof Error ? err.message : String(err) });
+    },
   });
 
   /**
@@ -2054,6 +2082,7 @@ export default function BulkDocumentImportPage() {
    */
   const runAll = useMutation({
     mutationFn: async (step: AutoStep) => {
+      debugLog('runAll start', { sessionId, step });
       const res = await apiRequest(
         'POST',
         `/api/admin/bulk-import/sessions/${sessionId}/run-all`,
@@ -2061,10 +2090,15 @@ export default function BulkDocumentImportPage() {
       );
       return res.json();
     },
-    onSuccess: () =>
+    onSuccess: (_data, step) => {
+      debugLog('runAll success', { sessionId, step });
       queryClient.invalidateQueries({
         queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
-      }),
+      });
+    },
+    onError: (err, step) => {
+      debugLog('runAll error', { sessionId, step, error: err instanceof Error ? err.message : String(err) });
+    },
   });
 
   const triggeredAutoRunRef = useRef<Set<string>>(new Set());
@@ -2080,6 +2114,7 @@ export default function BulkDocumentImportPage() {
   const [pendingResetStep, setPendingResetStep] = useState<AutoStep | null>(null);
   const resetStep = useMutation({
     mutationFn: async (step: AutoStep) => {
+      debugLog('resetStep start', { sessionId, step });
       const res = await apiRequest(
         'POST',
         `/api/admin/bulk-import/sessions/${sessionId}/reset-step`,
@@ -2088,6 +2123,7 @@ export default function BulkDocumentImportPage() {
       return res.json();
     },
     onSuccess: (_data, step) => {
+      debugLog('resetStep success', { sessionId, step });
       // Clear the once-per-(session, step) auto-trigger guard so the
       // useEffect above will re-fire if the wizard remounts on this
       // same step. The server already kicked off a fresh run-all
@@ -2103,7 +2139,8 @@ export default function BulkDocumentImportPage() {
           : 'Step reset — analysis restarted',
       });
     },
-    onError: () => {
+    onError: (err: unknown, step) => {
+      debugLog('resetStep error', { sessionId, step, error: err instanceof Error ? err.message : String(err) });
       setPendingResetStep(null);
       toast({
         variant: 'destructive',
@@ -2169,6 +2206,44 @@ export default function BulkDocumentImportPage() {
     stallRef.current.step === currentStep &&
     Date.now() - stallRef.current.since > STALL_THRESHOLD_MS;
 
+  const runAllTransitionRef = useRef<{
+    step: string | null;
+    startedAt: string | null;
+    finishedAt: string | null;
+  }>({ step: null, startedAt: null, finishedAt: null });
+  useEffect(() => {
+    if (!isAutoStep(currentStep)) return;
+    const prev = runAllTransitionRef.current;
+    const next = {
+      step: currentStep,
+      startedAt: currentProgress?.startedAt ?? null,
+      finishedAt: currentProgress?.finishedAt ?? null,
+    };
+    if (prev.step !== next.step) {
+      runAllTransitionRef.current = next;
+      return;
+    }
+    if (!prev.startedAt && next.startedAt) {
+      debugLog('run-all transition pending→running', {
+        sessionId,
+        step: currentStep,
+        startedAt: next.startedAt,
+        total: currentProgress?.total ?? null,
+      });
+    }
+    if (!prev.finishedAt && next.finishedAt) {
+      debugLog('run-all transition running→done', {
+        sessionId,
+        step: currentStep,
+        finishedAt: next.finishedAt,
+        processed: currentProgress?.processed ?? null,
+        failed: currentProgress?.failed ?? null,
+        total: currentProgress?.total ?? null,
+      });
+    }
+    runAllTransitionRef.current = next;
+  }, [currentStep, currentProgress?.startedAt, currentProgress?.finishedAt, sessionId]);
+
   /**
    * Toggle the exclusion of a single staged item (Task #717).
    * Optimistically flips the status in the cached payload so the row's
@@ -2192,6 +2267,7 @@ export default function BulkDocumentImportPage() {
       return res.json() as Promise<BulkImportItem>;
     },
     onMutate: async ({ itemId, excluded }) => {
+      debugLog('toggleExclude start', { itemId, sessionId, excluded });
       const queryKey = ['/api/admin/bulk-import/sessions', sessionId, 'lite'];
       await queryClient.cancelQueries({ queryKey });
       const previous = queryClient.getQueryData<SessionPayloadLite>(queryKey);
@@ -2229,10 +2305,12 @@ export default function BulkDocumentImportPage() {
         title: isFr ? "Échec de l'exclusion" : 'Failed to update exclusion',
       });
     },
-    onSettled: () =>
-      queryClient.invalidateQueries({
+    onSettled: (_data, err, vars) => {
+      if (!err) debugLog('toggleExclude success', { itemId: vars.itemId, sessionId, excluded: vars.excluded });
+      return queryClient.invalidateQueries({
         queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
-      }),
+      });
+    },
   });
 
   const reassignItem = useMutation({
@@ -2247,6 +2325,7 @@ export default function BulkDocumentImportPage() {
       subCategory: string;
       residenceId?: string | null;
     }) => {
+      debugLog('reassignItem start', { itemId, sessionId, branch, subCategory });
       const body: Record<string, unknown> = { branch, subCategory };
       if (branch === 'residence_documents' && residenceId) {
         body.residenceId = residenceId;
@@ -2258,7 +2337,8 @@ export default function BulkDocumentImportPage() {
       );
       return res.json() as Promise<BulkImportItem>;
     },
-    onSuccess: () => {
+    onSuccess: (_data, vars) => {
+      debugLog('reassignItem success', { itemId: vars.itemId, sessionId, branch: vars.branch });
       setReassignPickerItemId(null);
       queryClient.invalidateQueries({
         queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
@@ -2267,7 +2347,8 @@ export default function BulkDocumentImportPage() {
         title: isFr ? 'Fichier réaffecté' : 'File reassigned',
       });
     },
-    onError: () => {
+    onError: (_err, vars) => {
+      debugLog('reassignItem error', { itemId: vars.itemId, sessionId, branch: vars.branch });
       toast({
         variant: 'destructive',
         title: isFr ? 'Échec de la réaffectation' : 'Failed to reassign item',

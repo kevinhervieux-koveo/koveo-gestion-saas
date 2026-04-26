@@ -8,6 +8,7 @@ const config = {
   
   moduleNameMapper: {
     '^@/lib/logger$': '<rootDir>/__mocks__/client/src/lib/logger.ts',
+    '^@/lib/debug-log$': '<rootDir>/__mocks__/client/src/lib/debug-log.ts',
     '^@/(.*)$': '<rootDir>/client/src/$1',
     '^@shared/(.*)$': '<rootDir>/shared/$1',
     '^@assets/(.*)$': '<rootDir>/__mocks__/fileMock.js',

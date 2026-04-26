@@ -20,7 +20,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { createHash } from 'crypto';
 import * as fs from 'fs';
-import { logError, logInfo, logWarn } from '../utils/logger';
+import { logDebug, logError, logInfo, logWarn } from '../utils/logger';
 import type { BulkImportFallbackReason } from '../../shared/schemas/bulk-import';
 import {
   getCachedSuggestion,
@@ -544,8 +544,14 @@ async function callClaudeJson<T>(
         retryCount?: number;
       }>(cacheKey);
       if (hit !== null) {
-        logInfo('[bulkImportAnalyzer] cache hit', {
-          metadata: { step, contentHash: contentHash ?? 'no-file' },
+        logDebug('[bulk-import] cache hit', {
+          metadata: {
+            step,
+            contentHash: contentHash ?? 'no-file',
+            itemId: logContext?.itemId ?? null,
+            sessionId: logContext?.sessionId ?? null,
+            cachedRetryCount: hit.retryCount ?? 0,
+          },
         });
         // Replay the original `retryCount` recorded when the cache row
         // was written so a cache hit is observationally identical to
@@ -560,6 +566,9 @@ async function callClaudeJson<T>(
           retryCount: hit.retryCount ?? 0,
         };
       }
+      logDebug('[bulk-import] cache miss', {
+        metadata: { step, contentHash: contentHash ?? 'no-file' },
+      });
     }
 
     const userContent: AnthropicContentBlock[] = [
@@ -584,7 +593,27 @@ async function callClaudeJson<T>(
     // immediately so we don't waste time retrying permanent failures.
     let lastErr: unknown = null;
     let attemptsMade = 0;
+    const callStartMs = Date.now();
+    logDebug('[bulk-import] callClaudeJson start', {
+      metadata: {
+        step: step ?? null,
+        itemId: logContext?.itemId ?? null,
+        sessionId: logContext?.sessionId ?? null,
+        hasFile: !!source,
+        fileMimeType: source?.mimeType ?? null,
+        fileSizeBytes: source?.buffer?.length ?? null,
+      },
+    });
     for (let attempt = 1; attempt <= MAX_RETRY_ATTEMPTS; attempt++) {
+      logDebug('[bulk-import] callClaudeJson attempt start', {
+        metadata: {
+          step: step ?? null,
+          itemId: logContext?.itemId ?? null,
+          sessionId: logContext?.sessionId ?? null,
+          attempt,
+          model: requestParams.model,
+        },
+      });
       try {
         const res = await c.messages.create(requestParams);
         attemptsMade = attempt;
@@ -600,12 +629,16 @@ async function callClaudeJson<T>(
           // unreadable" rather than a generic low-confidence badge, and
           // preserve any earlier per-file reason set during file loading.
           const noMatchReason = fallbackReason ?? 'unreadable_response';
-          logWarn('[bulkImportAnalyzer] per-file AI response contained no JSON', {
+          logWarn('[bulk-import] callClaudeJson no-json-response', {
             metadata: {
               step,
               originalName: logContext?.originalName,
               itemId: logContext?.itemId,
               sessionId: logContext?.sessionId,
+              attempt,
+              outcome: 'failure-no-json',
+              model: requestParams.model,
+              durationMs: Date.now() - callStartMs,
             },
           });
           return { data: null, fallbackReason: noMatchReason, retryCount: attemptsMade };
@@ -625,17 +658,75 @@ async function callClaudeJson<T>(
           // warnings in unit suites without a database.
           await setCachedSuggestion(cacheKey, cachePayload, ANALYZER_CACHE_TTL_MS);
         }
+        logDebug('[bulk-import] callClaudeJson success', {
+          metadata: {
+            step: step ?? null,
+            itemId: logContext?.itemId ?? null,
+            sessionId: logContext?.sessionId ?? null,
+            attempt: attemptsMade,
+            outcome: 'success',
+            durationMs: Date.now() - callStartMs,
+            fallback: fallbackReason ?? null,
+            inputTokens: res.usage?.input_tokens ?? null,
+            outputTokens: res.usage?.output_tokens ?? null,
+          },
+        });
         return { data: parsed, fallbackReason, retryCount: attemptsMade };
       } catch (err) {
         lastErr = err;
         attemptsMade = attempt;
         // Only retry on transient failures. Bail immediately on terminal ones.
-        if (!isRetryableAnthropicError(err)) break;
+        if (!isRetryableAnthropicError(err)) {
+          logDebug('[bulk-import] callClaudeJson attempt terminal failure', {
+            metadata: {
+              step: step ?? null,
+              itemId: logContext?.itemId ?? null,
+              sessionId: logContext?.sessionId ?? null,
+              attempt,
+              outcome: 'failure-terminal',
+              retryable: false,
+              httpStatus: (err as { status?: number })?.status ?? null,
+              errorType: (err as { error?: { type?: string } })?.error?.type ?? null,
+              errorClass: (err as Error)?.constructor?.name ?? null,
+              durationMs: Date.now() - callStartMs,
+            },
+          });
+          break;
+        }
         if (attempt < MAX_RETRY_ATTEMPTS) {
           // Exponential backoff with ±10 % jitter, capped at RETRY_MAX_DELAY_MS.
           const base = Math.min(RETRY_BASE_DELAY_MS * 2 ** (attempt - 1), RETRY_MAX_DELAY_MS);
           const jitter = Math.floor(base * 0.1 * Math.random());
+          logDebug('[bulk-import] callClaudeJson retry', {
+            metadata: {
+              step: step ?? null,
+              itemId: logContext?.itemId ?? null,
+              sessionId: logContext?.sessionId ?? null,
+              attempt,
+              outcome: 'failure-retryable',
+              delayMs: base + jitter,
+              httpStatus: (err as { status?: number })?.status ?? null,
+              errorType: (err as { error?: { type?: string } })?.error?.type ?? null,
+              errorClass: (err as Error)?.constructor?.name ?? null,
+            },
+          });
           await sleepFn(base + jitter);
+        } else {
+          // All retry attempts exhausted with a retryable error.
+          logDebug('[bulk-import] callClaudeJson attempts exhausted', {
+            metadata: {
+              step: step ?? null,
+              itemId: logContext?.itemId ?? null,
+              sessionId: logContext?.sessionId ?? null,
+              attempt,
+              outcome: 'failure-exhausted',
+              retryable: true,
+              httpStatus: (err as { status?: number })?.status ?? null,
+              errorType: (err as { error?: { type?: string } })?.error?.type ?? null,
+              errorClass: (err as Error)?.constructor?.name ?? null,
+              durationMs: Date.now() - callStartMs,
+            },
+          });
         }
       }
     }

@@ -31,6 +31,7 @@ jest.mock('../../../server/rbac', () => ({
 jest.mock('../../../server/utils/logger', () => ({
   logError: jest.fn(),
   logInfo: jest.fn(),
+  logDebug: jest.fn(),
   logWarn: jest.fn(),
 }));
 
