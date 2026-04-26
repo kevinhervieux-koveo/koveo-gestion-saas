@@ -94,6 +94,7 @@ const BUILDING_ID = 'building-1';
 const ITEM_HAS_RESIDENCE = 'item-has-residence';
 const ITEM_AI_FALLBACK = 'item-ai-fallback';
 const ITEM_DESTINATION_TOGGLE = 'item-destination-toggle';
+const ITEM_AI_HINT_OVERRIDE = 'item-ai-hint-override';
 
 const RESIDENCES = [
   { id: 'res-101', unitNumber: '101' },
@@ -500,6 +501,111 @@ describe('BulkDocumentImportPage — reassign residence dropdown pre-fill (Task 
     expect(trigger).not.toHaveTextContent('303');
     expect(
       screen.getByTestId(`reassign-residence-ai-hint-${ITEM_DESTINATION_TOGGLE}`),
+    ).toBeInTheDocument();
+  });
+
+  // ===========================================================================
+  // 4. Picking a residence other than the AI suggestion hides the violet hint;
+  //    re-selecting the AI's pick brings it back. (Task #1090)
+  // ===========================================================================
+  //
+  // Task #1085 covers the AI hint *appearing* when the panel pre-fills with
+  // the AI suggestion, but does not exercise the override path. The hint's
+  // gating condition is
+  //
+  //   item.residenceAiSuggestedId
+  //     && reassignResidenceId === item.residenceAiSuggestedId
+  //     && !item.residenceAiConfirmed
+  //
+  // (see ~line 3809 of `client/src/pages/admin/bulk-document-import.tsx`).
+  // A refactor that drops the equality guard would silently leave the hint
+  // pinned to every row regardless of what the admin picks. This test pins
+  // the round-trip: shown → hidden on override → shown again on re-select.
+
+  it('hides the violet AI hint when the admin picks a different residence and shows it again when the AI pick is re-selected', async () => {
+    setupTest([
+      buildItem({
+        id: ITEM_AI_HINT_OVERRIDE,
+        originalName: 'lease-hint-override.pdf',
+        // Branching gate keeps these on `sorted` until a residence is
+        // chosen. Only `residenceAiSuggestedId` is set so the panel
+        // opens pre-filled with the AI's pick and the hint visible.
+        status: 'sorted',
+        branch: 'residence_documents',
+        residenceId: null,
+        residenceAiSuggestedId: 'res-202',
+        residenceAiSuggested: true,
+        residenceAiConfirmed: false,
+        residenceManualOverride: false,
+        residenceReason: 'AI guessed unit 202',
+      }),
+    ]);
+    renderPage();
+
+    const reassignBtn = await screen.findByTestId(
+      `button-reassign-${ITEM_AI_HINT_OVERRIDE}`,
+      undefined,
+      { timeout: 4000 },
+    );
+    await act(async () => {
+      fireEvent.click(reassignBtn);
+    });
+
+    await screen.findByTestId(`reassign-picker-${ITEM_AI_HINT_OVERRIDE}`);
+
+    // 1. Initial state — the panel pre-fills with the AI suggestion
+    //    (unit 202) and the violet hint is visible.
+    let trigger = getResidenceTrigger(ITEM_AI_HINT_OVERRIDE);
+    expect(trigger).toHaveTextContent('202');
+    expect(
+      screen.getByTestId(`reassign-residence-ai-hint-${ITEM_AI_HINT_OVERRIDE}`),
+    ).toBeInTheDocument();
+
+    // 2. Admin overrides the AI pick by choosing a different residence
+    //    (unit 303). The equality guard
+    //    `reassignResidenceId === item.residenceAiSuggestedId` no longer
+    //    holds, so the violet hint must disappear immediately.
+    await act(async () => {
+      fireEvent.pointerDown(trigger, { button: 0 });
+      fireEvent.click(trigger);
+    });
+    const overrideOption = await screen.findByRole(
+      'option',
+      { name: /^303$/ },
+      { timeout: 4000 },
+    );
+    await act(async () => {
+      fireEvent.click(overrideOption);
+    });
+    await waitFor(() => {
+      expect(getResidenceTrigger(ITEM_AI_HINT_OVERRIDE)).toHaveTextContent('303');
+    });
+    expect(
+      screen.queryByTestId(`reassign-residence-ai-hint-${ITEM_AI_HINT_OVERRIDE}`),
+    ).not.toBeInTheDocument();
+
+    // 3. Admin re-selects the AI's original pick (unit 202). The
+    //    equality guard holds again — and `residenceAiConfirmed` is
+    //    still false on the underlying item — so the violet hint must
+    //    reappear.
+    trigger = getResidenceTrigger(ITEM_AI_HINT_OVERRIDE);
+    await act(async () => {
+      fireEvent.pointerDown(trigger, { button: 0 });
+      fireEvent.click(trigger);
+    });
+    const aiOption = await screen.findByRole(
+      'option',
+      { name: /^202$/ },
+      { timeout: 4000 },
+    );
+    await act(async () => {
+      fireEvent.click(aiOption);
+    });
+    await waitFor(() => {
+      expect(getResidenceTrigger(ITEM_AI_HINT_OVERRIDE)).toHaveTextContent('202');
+    });
+    expect(
+      screen.getByTestId(`reassign-residence-ai-hint-${ITEM_AI_HINT_OVERRIDE}`),
     ).toBeInTheDocument();
   });
 });
