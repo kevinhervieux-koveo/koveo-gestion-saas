@@ -1,6 +1,6 @@
 // @ts-nocheck — Pre-existing type errors tracked in TYPE_CHECK_DEBT.md (task #769)
 // BUILD_TIMESTAMP: 2025-12-24T03:08:00Z - Force Vite rebuild v2
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useRef, startTransition } from 'react';
 import { logDebug, logError } from '@/lib/logger';
 import { loadPdfLibs } from '@/lib/pdf-export';
 import { isOverduePayment } from '@/utils/bill-helpers';
@@ -1014,7 +1014,7 @@ export default function FinancialOverview() {
                         <div>
                           <Select
                             value={startingFiscalYear.toString()}
-                            onValueChange={(value) => setStartingFiscalYear(parseInt(value))}
+                            onValueChange={(value) => startTransition(() => setStartingFiscalYear(parseInt(value)))}
                             data-testid="select-starting-year"
                           >
                             <SelectTrigger id="starting-year" aria-describedby="starting-year-help">
@@ -1049,7 +1049,7 @@ export default function FinancialOverview() {
                   <Label htmlFor="future-projection">{t('futureProjections')}</Label>
                   <Select
                     value={futureProjection}
-                    onValueChange={setFutureProjection}
+                    onValueChange={(value) => startTransition(() => setFutureProjection(value))}
                     data-testid="select-future-projection"
                   >
                     <SelectTrigger id="future-projection">
@@ -1089,7 +1089,7 @@ export default function FinancialOverview() {
                   <div className="flex items-center gap-2">
                     <Select
                       value={billsFilterMonth.toString()}
-                      onValueChange={(value) => setBillsFilterMonth(parseInt(value))}
+                      onValueChange={(value) => startTransition(() => setBillsFilterMonth(parseInt(value)))}
                       data-testid="select-bills-month"
                     >
                       <SelectTrigger className="w-[130px]">
@@ -1112,7 +1112,7 @@ export default function FinancialOverview() {
                     </Select>
                     <Select
                       value={billsFilterYear.toString()}
-                      onValueChange={(value) => setBillsFilterYear(parseInt(value))}
+                      onValueChange={(value) => startTransition(() => setBillsFilterYear(parseInt(value)))}
                       data-testid="select-bills-year"
                     >
                       <SelectTrigger className="w-[90px]">
