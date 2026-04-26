@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { format, differenceInYears, parseISO } from 'date-fns';
+import { parseDateOnly } from '@/lib/utils';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -182,9 +183,12 @@ export function ElementDetailsPanel({
   }
 
   // Calculate element metrics
-  const age = element.originalConstructionDate 
-    ? differenceInYears(new Date(), parseISO(element.originalConstructionDate))
+  // parseDateOnly reads YYYY-MM-DD in local time to avoid UTC-midnight off-by-one in
+  // negative-offset zones (e.g. America/Montreal). Falls back to null when date is absent.
+  const parsedConstructionDate = element.originalConstructionDate
+    ? parseDateOnly(element.originalConstructionDate)
     : null;
+  const age = parsedConstructionDate ? differenceInYears(new Date(), parsedConstructionDate) : null;
   
   const originalLifespan = element.originalLifespan;
   const currentLifespan = element.currentLifespan || originalLifespan;
@@ -193,7 +197,9 @@ export function ElementDetailsPanel({
   const getUrgencyStatus = () => {
     if (!element.nextEvaluationDate) return 'not-scheduled';
     
-    const evaluationDate = parseISO(element.nextEvaluationDate);
+    // parseDateOnly prevents UTC-midnight rollback for date-only fields; null means no valid date
+    const evaluationDate = parseDateOnly(element.nextEvaluationDate);
+    if (!evaluationDate) return 'not-scheduled';
     const today = new Date();
     const daysUntil = Math.ceil((evaluationDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
     
@@ -332,7 +338,11 @@ export function ElementDetailsPanel({
                   <span className="text-sm text-muted-foreground">{t('edpNextEvaluationLabel')}</span>
                   <div className={cn('flex items-center gap-2 px-2 py-1 rounded-full text-xs', urgency.bg, urgency.color)}>
                     <urgency.icon className="h-3 w-3" />
-                    {element.nextEvaluationDate ? format(parseISO(element.nextEvaluationDate), 'MMM d, yyyy') : urgency.label}
+                    {element.nextEvaluationDate
+                      ? (parseDateOnly(element.nextEvaluationDate)
+                          ? format(parseDateOnly(element.nextEvaluationDate)!, 'MMM d, yyyy')
+                          : '—')
+                      : urgency.label}
                   </div>
                 </div>
 
@@ -388,10 +398,11 @@ export function ElementDetailsPanel({
                     </div>
                   </div>
 
-                  {element.originalConstructionDate && (
-                    <div>
+                  {parsedConstructionDate && (
+                    <div data-testid="element-construction-date">
                       <div className="text-muted-foreground text-sm">{t('edpConstructionDateLabel')}</div>
-                      <div className="font-medium">{format(parseISO(element.originalConstructionDate), 'MMMM d, yyyy')}</div>
+                      {/* parseDateOnly prevents UTC-midnight off-by-one in negative-offset zones. Do not replace with parseISO. */}
+                      <div className="font-medium">{format(parsedConstructionDate, 'MMMM d, yyyy')}</div>
                     </div>
                   )}
                 </CardContent>
@@ -508,7 +519,10 @@ export function ElementDetailsPanel({
                       </div>
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      {project.type} • {project.plannedStartDate && format(parseISO(project.plannedStartDate), 'MMM yyyy')}
+                      {/* parseDateOnly prevents UTC-midnight off-by-one for date-only plannedStartDate. Do not replace with parseISO. */}
+                      {project.type}{project.plannedStartDate && parseDateOnly(project.plannedStartDate)
+                        ? ` • ${format(parseDateOnly(project.plannedStartDate)!, 'MMM yyyy')}`
+                        : ''}
                     </div>
                   </Card>
                 ))}

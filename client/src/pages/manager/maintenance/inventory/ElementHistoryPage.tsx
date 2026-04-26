@@ -1,10 +1,13 @@
 import { useParams } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
+import { format } from 'date-fns';
+import { fr as frLocale, enUS } from 'date-fns/locale';
 import { apiRequest } from '@/lib/queryClient';
+import { parseDateOnly } from '@/lib/utils';
 import { HistoryTable } from '@/components/maintenance/inventory/HistoryTable';
 import { useLanguage } from '@/hooks/use-language';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertTriangle, ArrowLeft } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useLocation } from 'wouter';
 
@@ -16,7 +19,8 @@ import { useLocation } from 'wouter';
 export default function ElementHistoryPage() {
   const { elementId } = useParams<{ elementId: string }>();
   const [, setLocation] = useLocation();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+  const dateFnsLocale = language === 'fr' ? frLocale : enUS;
 
   const {
     data: elementRes,
@@ -65,6 +69,13 @@ export default function ElementHistoryPage() {
     );
   }
 
+  // parseDateOnly parses YYYY-MM-DD in local time to avoid UTC-midnight off-by-one
+  // in negative-offset timezones (e.g. America/Montreal). Do not replace with parseISO.
+  const constructionDate = element.originalConstructionDate
+    ? parseDateOnly(element.originalConstructionDate)
+    : null;
+  const datePattern = language === 'fr' ? 'd MMMM yyyy' : 'MMMM d, yyyy';
+
   return (
     <div className="p-6 space-y-4" data-testid="element-history-page">
       <div className="flex items-center gap-3">
@@ -81,6 +92,19 @@ export default function ElementHistoryPage() {
           {element.name}
         </h1>
       </div>
+
+      {constructionDate && (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Calendar className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+          <span>
+            {language === 'fr' ? 'Construction\u00a0: ' : 'Constructed: '}
+            <span data-testid="element-construction-date">
+              {format(constructionDate, datePattern, { locale: dateFnsLocale })}
+            </span>
+          </span>
+        </div>
+      )}
+
       <HistoryTable element={element} showSummary={true} compact={false} />
     </div>
   );

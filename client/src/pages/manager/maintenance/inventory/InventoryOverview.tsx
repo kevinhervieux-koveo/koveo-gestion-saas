@@ -14,8 +14,8 @@ import { useLanguage } from '@/hooks/use-language';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { handleApiError } from '@/lib/demo-error-handler';
 import { BuildingElement } from '@shared/schemas/maintenance';
-import { differenceInDays, parseISO, isAfter, format } from 'date-fns';
-import { cn } from '@/lib/utils';
+import { differenceInDays, isAfter, format } from 'date-fns';
+import { cn, parseDateOnly } from '@/lib/utils';
 import {
   Package,
   AlertTriangle,
@@ -60,14 +60,16 @@ export function InventoryOverview({ className, buildingId, organizationId, build
   
   // Construction date editing state
   const [isEditingDate, setIsEditingDate] = useState(false);
+  // parseDateOnly ensures YYYY-MM-DD is parsed in local time, not UTC midnight,
+  // preventing an off-by-one shift in negative-offset timezones (e.g. America/Montreal).
   const [editingDate, setEditingDate] = useState<Date | undefined>(
-    building?.constructionDate ? new Date(building.constructionDate) : undefined
+    building?.constructionDate ? (parseDateOnly(building.constructionDate as string) ?? undefined) : undefined
   );
 
   // Sync editingDate with building prop changes
   useEffect(() => {
     if (building?.constructionDate && !isEditingDate) {
-      setEditingDate(new Date(building.constructionDate));
+      setEditingDate(parseDateOnly(building.constructionDate as string) ?? undefined);
     }
   }, [building?.constructionDate, isEditingDate]);
   
@@ -152,7 +154,7 @@ export function InventoryOverview({ className, buildingId, organizationId, build
   };
 
   const handleCancelEdit = () => {
-    setEditingDate(building?.constructionDate ? new Date(building.constructionDate) : undefined);
+    setEditingDate(building?.constructionDate ? (parseDateOnly(building.constructionDate as string) ?? undefined) : undefined);
     setIsEditingDate(false);
   };
   
@@ -180,15 +182,19 @@ export function InventoryOverview({ className, buildingId, organizationId, build
     }, {} as Record<string, number>);
 
     // Evaluation status
+    // parseDateOnly is used for date-only fields to avoid UTC-midnight off-by-one
+    // in negative-offset timezones (e.g. America/Montreal). Do not replace with parseISO.
     const today = new Date();
     const overdueElements = elements.filter(element => {
       if (!element.nextEvaluationDate) return false;
-      return isAfter(today, parseISO(element.nextEvaluationDate));
+      const d = parseDateOnly(element.nextEvaluationDate);
+      return d ? isAfter(today, d) : false;
     });
 
     const dueSoonElements = elements.filter(element => {
       if (!element.nextEvaluationDate) return false;
-      const evaluationDate = parseISO(element.nextEvaluationDate);
+      const evaluationDate = parseDateOnly(element.nextEvaluationDate);
+      if (!evaluationDate) return false;
       const daysUntil = differenceInDays(evaluationDate, today);
       return daysUntil >= 0 && daysUntil <= 30;
     });
@@ -199,10 +205,12 @@ export function InventoryOverview({ className, buildingId, organizationId, build
     );
 
     // Average age calculation
+    // parseDateOnly prevents UTC-midnight off-by-one for originalConstructionDate
     const elementsWithAge = elements.filter(element => element.originalConstructionDate);
     const averageAge = elementsWithAge.length > 0 
       ? elementsWithAge.reduce((sum, element) => {
-          const age = differenceInDays(today, parseISO(element.originalConstructionDate!)) / 365.25;
+          const d = parseDateOnly(element.originalConstructionDate!);
+          const age = d ? differenceInDays(today, d) / 365.25 : 0;
           return sum + age;
         }, 0) / elementsWithAge.length
       : 0;
@@ -382,8 +390,13 @@ export function InventoryOverview({ className, buildingId, organizationId, build
                 </div>
               ) : (
                 <div className="flex items-center justify-between w-full">
-                  <div className="text-2xl font-bold">
-                    {building?.constructionDate ? format(new Date(building.constructionDate), 'MMM dd, yyyy') : '—'}
+                  <div className="text-2xl font-bold" data-testid="building-construction-date-display">
+                    {/* parseDateOnly prevents UTC-midnight off-by-one in negative-offset zones. Do not replace with parseISO. */}
+                    {building?.constructionDate
+                      ? (parseDateOnly(building.constructionDate as string)
+                          ? format(parseDateOnly(building.constructionDate as string)!, 'MMM dd, yyyy')
+                          : '—')
+                      : '—'}
                   </div>
                   <Button
                     size="sm"

@@ -1,13 +1,14 @@
 /**
  * @jest-environment node
  *
- * Regression guard for the fr-CA date-shift bug in the element history table.
+ * Regression guard for the fr-CA date-shift bug in the element history table
+ * and element details panel construction-date display.
  *
- * Root cause: HistoryTable.tsx previously used `parseISO(eventDate)` which
- * interprets a date-only string (`YYYY-MM-DD`) as UTC midnight. In a
- * negative-offset timezone (e.g. America/Montreal, UTC-4/UTC-5) that midnight
- * rolls back to the previous calendar day, so `2026-04-25` was displayed as
- * `24 avril 2026`.
+ * Root cause: HistoryTable.tsx and ElementDetailsPanel.tsx previously used
+ * `parseISO(eventDate)` / `parseISO(originalConstructionDate)` which interpret
+ * a date-only string (`YYYY-MM-DD`) as UTC midnight. In a negative-offset
+ * timezone (e.g. America/Montreal, UTC-4/UTC-5) that midnight rolls back to the
+ * previous calendar day, so `2026-04-25` was displayed as `24 avril 2026`.
  *
  * The fix replaces `parseISO` with `parseDateOnly` (from
  * `client/src/lib/utils.ts`) which constructs the Date using
@@ -19,16 +20,21 @@
  *   1. Seeds a real history entry with `eventDate = 2026-04-25` via the
  *      admin REST API and records the `eventDate` string returned by the
  *      GET history endpoint (cross-check anchor).
- *   2. Launches Chromium with `TZ=America/Montreal` and `--lang=fr-CA` so
+ *   2. Seeds `originalConstructionDate = 2026-04-25` on the element via
+ *      the admin REST API.
+ *   3. Launches Chromium with `TZ=America/Montreal` and `--lang=fr-CA` so
  *      the fix must hold for both date parsing and French locale lookup.
- *   3. Logs in as the demo manager, navigates to the real element history
+ *   4. Logs in as the demo manager, navigates to the real element history
  *      page at `/manager/maintenance/elements/:elementId/history`.
- *   4. Asserts the rendered date cell identified by
+ *   5. Asserts the rendered date cell identified by
  *      `[data-testid="history-date-<id>"]` contains `25 avril 2026` and
  *      does NOT contain `24 avril` — directly catching the UTC midnight
  *      roll-back regression if `parseISO` is reintroduced.
- *   5. Cross-checks the rendered string against the `eventDate` returned
- *      by the API so any future UTC regression fails the test.
+ *   6. Asserts the construction-date display identified by
+ *      `[data-testid="element-construction-date"]` also contains
+ *      `25 avril 2026` — catching the same off-by-one for originalConstructionDate.
+ *   7. Cross-checks both rendered strings against the API-returned values so
+ *      any future UTC regression fails the test.
  *
  * Fails loudly (no silent skip) when Chromium or the dev server is missing,
  * matching the conventions of the existing e2e suite.
@@ -66,7 +72,7 @@ function findChromium(): string | null {
 
 interface SeededOrg { id: string }
 interface SeededBuilding { id: string; organizationId?: string }
-interface SeededElement { id: string }
+interface SeededElement { id: string; originalConstructionDate?: string | null }
 interface HistoryEntry { id: string; eventDate: string }
 
 class CookieClient {
@@ -123,6 +129,20 @@ class CookieClient {
     return (await res.json()) as T;
   }
 
+  async putJson<T>(url: string, body: unknown): Promise<T> {
+    const res = await fetch(`${BASE_URL}${url}`, {
+      method: 'PUT',
+      headers: { Cookie: this.cookie, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      throw new Error(
+        `${this.label} PUT ${url} failed: ${res.status} ${await res.text().catch(() => '')}`
+      );
+    }
+    return (await res.json()) as T;
+  }
+
   async deleteRequest(url: string): Promise<void> {
     await fetch(`${BASE_URL}${url}`, {
       method: 'DELETE',
@@ -138,11 +158,12 @@ let adminApi: CookieClient;
 let seededElementId: string | null = null;
 let seededHistoryId: string | null = null;
 let seededHistoryEventDate: string | null = null;
+let originalConstructionDate: string | null = null;
 
 async function pickFirstAccessibleElement(
   managerApiClient: CookieClient,
   adminApiClient: CookieClient,
-): Promise<{ elementId: string } | null> {
+): Promise<{ elementId: string; element: SeededElement } | null> {
   const orgs = await managerApiClient.getJson<SeededOrg[]>('/api/users/me/organizations');
   if (!Array.isArray(orgs) || orgs.length === 0) return null;
 
@@ -159,7 +180,7 @@ async function pickFirstAccessibleElement(
       }>(`/api/maintenance/buildings/${building.id}/elements?limit=1`);
       const elements: SeededElement[] = elementsRes?.data ?? elementsRes?.elements ?? [];
       if (Array.isArray(elements) && elements.length > 0) {
-        return { elementId: elements[0].id };
+        return { elementId: elements[0].id, element: elements[0] };
       }
     }
   }
@@ -206,6 +227,16 @@ beforeAll(async () => {
     );
   }
   seededElementId = target.elementId;
+
+  // Record the original construction date so we can restore it in afterAll
+  originalConstructionDate = target.element.originalConstructionDate ?? null;
+
+  // Seed originalConstructionDate on the element to EVENT_DATE so the
+  // element details panel construction-date display can be asserted below.
+  await adminApi.putJson<unknown>(
+    `/api/maintenance/elements/${seededElementId}`,
+    { originalConstructionDate: EVENT_DATE }
+  );
 
   // Seed a history entry with the fixed test date
   const historyRes = await adminApi.postJson<{ success?: boolean; data?: HistoryEntry }>(
@@ -262,6 +293,14 @@ afterAll(async () => {
     await adminApi.deleteRequest(
       `/api/maintenance/elements/${seededElementId}/history/${seededHistoryId}`
     );
+  }
+  // Restore the original construction date on the element (null means remove)
+  if (adminApi && seededElementId) {
+    await adminApi
+      .putJson<unknown>(`/api/maintenance/elements/${seededElementId}`, {
+        originalConstructionDate: originalConstructionDate ?? null,
+      })
+      .catch(() => undefined);
   }
 }, 30_000);
 
@@ -332,7 +371,7 @@ describe('Element history date rendering in fr-CA / America/Montreal timezone', 
           return el ? el.textContent ?? '' : '';
         }, dateCellSel);
 
-        // ── Primary assertion ───────────────────────────────────────────────
+        // ── Primary assertion: eventDate ────────────────────────────────────
         // The fixed HistoryTable (using parseDateOnly + fr locale) must show
         // the correct calendar day, never the UTC-midnight rollback to the 24th.
         expect(dateCellText).toContain('25');
@@ -342,7 +381,7 @@ describe('Element history date rendering in fr-CA / America/Montreal timezone', 
         // Must NOT display the off-by-one day that parseISO causes
         expect(dateCellText).not.toContain('24 avril');
 
-        // ── Cross-check against the API ─────────────────────────────────────
+        // ── Cross-check eventDate against the API ───────────────────────────
         // The eventDate that the API returned must be EVENT_DATE, and the
         // rendered string must match that date in the fr-CA calendar.
         expect(seededHistoryEventDate).toBe(EVENT_DATE);
@@ -386,11 +425,34 @@ describe('Element history date rendering in fr-CA / America/Montreal timezone', 
         expect(summaryText.toLowerCase()).toMatch(/avr/);
         expect(summaryText).not.toMatch(/\bApr\b/);
 
+        // ── Construction date assertion ─────────────────────────────────────
+        // The element details panel on the history page must render the
+        // originalConstructionDate (2026-04-25) as "25 avril 2026" — not
+        // "24 avril" — proving parseDateOnly is used for that field too.
+        const constructionDateSel = '[data-testid="element-construction-date"]';
+        await page.waitForSelector(constructionDateSel, { visible: true, timeout: 15_000 });
+
+        const constructionDateText = await page.evaluate((sel: string) => {
+          const el = document.querySelector(sel);
+          return el ? el.textContent ?? '' : '';
+        }, constructionDateSel);
+
+        // Must show the correct day '25 avril 2026', never '24 avril'
+        expect(constructionDateText).toContain('25');
+        expect(constructionDateText).toContain('avril');
+        expect(constructionDateText).toContain('2026');
+        expect(constructionDateText).not.toContain('24 avril');
+
+        // Cross-check: rendered day must match API's EVENT_DATE day component
+        expect(constructionDateText).toContain(apiDay);
+
         if (process.env.CI) {
           // eslint-disable-next-line no-console
           console.log('[diag] dateCellText:', JSON.stringify(dateCellText));
           // eslint-disable-next-line no-console
           console.log('[diag] weekdayText:', JSON.stringify(weekdayText));
+          // eslint-disable-next-line no-console
+          console.log('[diag] constructionDateText:', JSON.stringify(constructionDateText));
         }
       } finally {
         await page.close().catch(() => undefined);

@@ -160,8 +160,12 @@ export function HistoryTable({
     }, {} as Record<string, number>);
 
     const latestEntry = history.length > 0 ? history[0] : null; // Assuming sorted by date desc
-    const averageCostPerYear = history.length > 0 && element.originalConstructionDate 
-      ? totalCost / (new Date().getFullYear() - new Date(element.originalConstructionDate).getFullYear() || 1)
+    // Use parseDateOnly so the construction year is read in local time, not UTC midnight
+    const constructionYear = element.originalConstructionDate
+      ? (parseDateOnly(element.originalConstructionDate)?.getFullYear() ?? new Date().getFullYear())
+      : null;
+    const averageCostPerYear = history.length > 0 && constructionYear
+      ? totalCost / (new Date().getFullYear() - constructionYear || 1)
       : 0;
 
     return {
@@ -200,6 +204,8 @@ export function HistoryTable({
       accessorKey: 'eventDate',
       header: t('htDateColumn'),
       cell: ({ row }) => {
+        // parseDateOnly parses YYYY-MM-DD in local time (not UTC midnight) to avoid
+        // the off-by-one day shift in negative-offset timezones like America/Montreal.
         const date = parseDateOnly(row.original.eventDate);
         if (!date) {
           return (
@@ -491,6 +497,7 @@ export function HistoryTable({
                   <p className="text-2xl font-bold" data-testid="latest-entry-date-summary">
                     {summaryMetrics.latestEntry 
                       ? (() => {
+                          // parseDateOnly prevents UTC-midnight rollback in negative-offset zones
                           const d = parseDateOnly(summaryMetrics.latestEntry.eventDate);
                           return d
                             ? format(d, 'MMM yyyy', { locale: dateFnsLocale })

@@ -735,7 +735,8 @@ export function ProjectBudget({
                           <div>
                             <div className="font-medium">{entry.vendorName || t('pbUnknownVendor')}</div>
                             <div className="text-sm text-muted-foreground">
-                              {entry.eventType} - {(parseDateOnly(entry.eventDate) ?? new Date(entry.eventDate)).toLocaleDateString()}
+                              {/* parseDateOnly prevents UTC-midnight off-by-one; em-dash when value is not YYYY-MM-DD */}
+                              {entry.eventType} - {parseDateOnly(entry.eventDate)?.toLocaleDateString() ?? '—'}
                             </div>
                           </div>
                           <div className="font-medium">
