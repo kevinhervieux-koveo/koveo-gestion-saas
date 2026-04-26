@@ -3557,7 +3557,7 @@ export default function BulkDocumentImportPage() {
                                               </Badge>
                                             )
                                           )}
-                                          {!isExcluded && (
+                                          {!isExcluded && !item.branchManualOverride && (
                                             <>
                                               <FallbackReasonBadge reason={decision?.fallbackReason} isFr={isFr} />
                                               <ConfidenceBadge value={decision?.confidence} fallbackReason={decision?.fallbackReason} isFr={isFr} />
@@ -3589,7 +3589,7 @@ export default function BulkDocumentImportPage() {
                                           >
                                             {isFr ? 'Réaffecter' : 'Reassign'}
                                           </Button>
-                                          {showRetry && retryAction && (
+                                          {showRetry && retryAction && !item.branchManualOverride && (
                                             <Button
                                               size="sm"
                                               variant="outline"
@@ -5131,7 +5131,8 @@ export default function BulkDocumentImportPage() {
                                       {item.screeningPeriodHint}
                                     </Badge>
                                   )}
-                                  {currentStep !== 'sorting' && (
+                                  {currentStep !== 'sorting' &&
+                                    !(currentStep === 'identification' && item.identificationEffectiveDateManualOverride) && (
                                     <>
                                       <FallbackReasonBadge
                                         reason={decision?.fallbackReason}
@@ -5330,7 +5331,9 @@ export default function BulkDocumentImportPage() {
                                   )}
                                 </>
                               )}
-                              {showRetry && retryAction && (
+                              {showRetry && retryAction &&
+                                !(currentStep === 'sorting' && item.sortingManualOverride) &&
+                                !(currentStep === 'identification' && item.identificationEffectiveDateManualOverride) && (
                                 <Button
                                   size="sm"
                                   variant="outline"
