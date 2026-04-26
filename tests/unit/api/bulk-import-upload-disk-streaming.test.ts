@@ -32,6 +32,7 @@ import { describe, it, expect, beforeAll, afterAll, beforeEach, jest } from '@je
 import express from 'express';
 import request from 'supertest';
 import * as nodeFs from 'fs';
+import * as nodeOs from 'os';
 import * as nodePath from 'path';
 import * as nodeCrypto from 'crypto';
 
@@ -41,7 +42,18 @@ jest.mock('drizzle-orm/pg-core', () => require('../../manual-mocks/drizzle-orm/p
 const SESSION_ID = 'sess-disk-streaming-test';
 const ORG_ID = 'org-disk-streaming';
 const ADMIN_ID = 'admin-disk-streaming';
-const STAGING_ROOT = nodePath.join(process.cwd(), '.staging', 'bulk-import');
+// Task #1086 — point this suite at a per-test `mkdtempSync` directory
+// instead of writing fixtures into the project tree's
+// `.staging/bulk-import`. The route reads its staging root from
+// `getBulkImportStagingRoot()` (Task #1080), so setting
+// `BULK_IMPORT_STAGING_ROOT` before the route module is required keeps
+// fixtures and the production path in lockstep regardless of any
+// operator-set value in CI.
+const STAGING_ROOT = nodeFs.mkdtempSync(
+  nodePath.join(nodeOs.tmpdir(), 'bulk-import-disk-streaming-test-'),
+);
+const PREV_STAGING_ROOT_ENV = process.env.BULK_IMPORT_STAGING_ROOT;
+process.env.BULK_IMPORT_STAGING_ROOT = STAGING_ROOT;
 const SESSION_DIR = nodePath.join(STAGING_ROOT, SESSION_ID);
 
 const FAKE_SESSION = {
@@ -223,9 +235,16 @@ describe('Task #1061 — bulk-import upload streams files off disk', () => {
 
   afterAll(() => {
     try {
-      nodeFs.rmSync(SESSION_DIR, { recursive: true, force: true });
+      // Drop the entire per-test staging root, not just the session
+      // dir, so the `mkdtempSync` directory does not linger across runs.
+      nodeFs.rmSync(STAGING_ROOT, { recursive: true, force: true });
     } catch {
       /* best-effort */
+    }
+    if (PREV_STAGING_ROOT_ENV === undefined) {
+      delete process.env.BULK_IMPORT_STAGING_ROOT;
+    } else {
+      process.env.BULK_IMPORT_STAGING_ROOT = PREV_STAGING_ROOT_ENV;
     }
   });
 

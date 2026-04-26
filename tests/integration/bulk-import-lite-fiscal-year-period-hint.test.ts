@@ -87,7 +87,12 @@ describeIfDb('Lite endpoint surfaces fiscal-year-aware periodHint — Task #1063
 
   const trackedSessions = new Set<string>();
   const trackedItems = new Set<string>();
+  // Task #1086 — pin this suite to the project's `.staging/bulk-import`
+  // so it matches the default `getBulkImportStagingRoot()` (Task #1080).
+  // We explicitly clear `BULK_IMPORT_STAGING_ROOT` in beforeAll so an
+  // operator-set value in CI cannot misroute the per-session cleanup.
   const stagingRoot = nodePath.join(process.cwd(), '.staging', 'bulk-import');
+  const PREV_STAGING_ROOT_ENV = process.env.BULK_IMPORT_STAGING_ROOT;
 
   beforeAll(async () => {
     if (!REAL_DB_URL) return;
@@ -96,6 +101,8 @@ describeIfDb('Lite endpoint surfaces fiscal-year-aware periodHint — Task #1063
     process.env.SESSION_SECRET =
       process.env.SESSION_SECRET || 'test-session-secret-task1063';
     process.env.NODE_ENV = process.env.NODE_ENV || 'test';
+    // Task #1086 — match the default staging root we point fixtures at.
+    delete process.env.BULK_IMPORT_STAGING_ROOT;
 
     db = require('../../server/db').db;
     schema = require('@shared/schema');
@@ -180,7 +187,20 @@ describeIfDb('Lite endpoint surfaces fiscal-year-aware periodHint — Task #1063
   }, 30_000);
 
   afterAll(async () => {
-    if (!REAL_DB_URL || !db) return;
+    // Restore the staging-root env var unconditionally so a partial
+    // beforeAll failure (e.g. db setup threw before `db` was assigned)
+    // cannot leak a cleared env var into sibling suites.
+    const restoreStagingRootEnv = () => {
+      if (PREV_STAGING_ROOT_ENV === undefined) {
+        delete process.env.BULK_IMPORT_STAGING_ROOT;
+      } else {
+        process.env.BULK_IMPORT_STAGING_ROOT = PREV_STAGING_ROOT_ENV;
+      }
+    };
+    if (!REAL_DB_URL || !db) {
+      restoreStagingRootEnv();
+      return;
+    }
     if (trackedItems.size > 0) {
       await db
         .delete(schema.bulkImportItems)
@@ -207,6 +227,7 @@ describeIfDb('Lite endpoint surfaces fiscal-year-aware periodHint — Task #1063
       .delete(schema.buildings)
       .where(inArray(schema.buildings.id, [ids.aprilBuilding, ids.janBuilding]));
     await db.delete(schema.organizations).where(eq(schema.organizations.id, ids.org));
+    restoreStagingRootEnv();
   }, 30_000);
 
   beforeEach(async () => {
