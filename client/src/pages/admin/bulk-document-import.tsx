@@ -3465,7 +3465,7 @@ export default function BulkDocumentImportPage() {
                                   return (
                                     <div key={item.id} className="rounded-md border">
                                       <div
-                                        className={`flex items-center justify-between gap-3 p-3 transition ${isExcluded ? 'bg-muted/40 opacity-60' : ''}`}
+                                        className={`flex flex-wrap items-center gap-3 p-3 transition ${isExcluded ? 'bg-muted/40 opacity-60' : ''}`}
                                         data-testid={`item-row-${item.id}`}
                                         data-excluded={isExcluded ? 'true' : 'false'}
                                       >
@@ -3496,7 +3496,63 @@ export default function BulkDocumentImportPage() {
                                             </span>
                                           </div>
                                         </div>
-                                        <div className="flex items-center gap-2 flex-wrap justify-end" onClick={(e) => e.stopPropagation()}>
+                                        <div className="flex items-center gap-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                                          <Button
+                                            size="sm"
+                                            variant="outline"
+                                            className="text-xs h-7 px-2"
+                                            onClick={() => {
+                                              if (isPickerOpen) {
+                                                setReassignPickerItemId(null);
+                                              } else {
+                                                setGroupReassignKey(null);
+                                                setReassignPickerItemId(item.id);
+                                                setReassignBranch((item.branch as BranchDestination) ?? 'building_documents');
+                                                setReassignSubCategory(item.subCategory ?? 'other');
+                                              }
+                                            }}
+                                            data-testid={`button-reassign-${item.id}`}
+                                          >
+                                            {isFr ? 'Réaffecter' : 'Reassign'}
+                                          </Button>
+                                          {showRetry && retryAction && !item.branchManualOverride && (
+                                            <Button
+                                              size="sm"
+                                              variant="outline"
+                                              onClick={() => runStep.mutate({ itemId: item.id, action: retryAction })}
+                                              disabled={retryPending}
+                                              data-testid={`button-retry-${currentStep}-${item.id}`}
+                                            >
+                                              {retryPending ? (
+                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                              ) : (
+                                                <RotateCw className="mr-2 h-4 w-4" />
+                                              )}
+                                              {isFr ? 'Réessayer' : 'Retry'}
+                                            </Button>
+                                          )}
+                                          {canToggleExclude && (
+                                            <Button
+                                              size="sm"
+                                              variant="ghost"
+                                              onClick={() => toggleExclude.mutate({ itemId: item.id, excluded: !isExcluded })}
+                                              disabled={togglePending}
+                                              aria-pressed={isExcluded}
+                                              aria-label={isExcluded ? (isFr ? 'Réinclure le fichier' : 'Re-include file') : (isFr ? 'Exclure le fichier' : 'Exclude file')}
+                                              title={isExcluded ? (isFr ? 'Réinclure' : 'Re-include') : (isFr ? 'Exclure' : 'Exclude')}
+                                              data-testid={`button-toggle-exclude-${item.id}`}
+                                            >
+                                              {togglePending ? (
+                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                              ) : isExcluded ? (
+                                                <Eye className="h-4 w-4" />
+                                              ) : (
+                                                <EyeOff className="h-4 w-4 text-muted-foreground" />
+                                              )}
+                                            </Button>
+                                          )}
+                                        </div>
+                                        <div className="flex flex-wrap items-center gap-1.5 w-full pl-10" onClick={(e) => e.stopPropagation()}>
                                           {isExcluded && (
                                             <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-900" data-testid={`badge-excluded-${item.id}`}>
                                               {item.excludeSource === 'prior_session'
@@ -3593,60 +3649,6 @@ export default function BulkDocumentImportPage() {
                                                 </span>
                                               )}
                                             </>
-                                          )}
-                                          <Button
-                                            size="sm"
-                                            variant="outline"
-                                            className="text-xs h-7 px-2"
-                                            onClick={() => {
-                                              if (isPickerOpen) {
-                                                setReassignPickerItemId(null);
-                                              } else {
-                                                setGroupReassignKey(null);
-                                                setReassignPickerItemId(item.id);
-                                                setReassignBranch((item.branch as BranchDestination) ?? 'building_documents');
-                                                setReassignSubCategory(item.subCategory ?? 'other');
-                                              }
-                                            }}
-                                            data-testid={`button-reassign-${item.id}`}
-                                          >
-                                            {isFr ? 'Réaffecter' : 'Reassign'}
-                                          </Button>
-                                          {showRetry && retryAction && !item.branchManualOverride && (
-                                            <Button
-                                              size="sm"
-                                              variant="outline"
-                                              onClick={() => runStep.mutate({ itemId: item.id, action: retryAction })}
-                                              disabled={retryPending}
-                                              data-testid={`button-retry-${currentStep}-${item.id}`}
-                                            >
-                                              {retryPending ? (
-                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                              ) : (
-                                                <RotateCw className="mr-2 h-4 w-4" />
-                                              )}
-                                              {isFr ? 'Réessayer' : 'Retry'}
-                                            </Button>
-                                          )}
-                                          {canToggleExclude && (
-                                            <Button
-                                              size="sm"
-                                              variant="ghost"
-                                              onClick={() => toggleExclude.mutate({ itemId: item.id, excluded: !isExcluded })}
-                                              disabled={togglePending}
-                                              aria-pressed={isExcluded}
-                                              aria-label={isExcluded ? (isFr ? 'Réinclure le fichier' : 'Re-include file') : (isFr ? 'Exclure le fichier' : 'Exclude file')}
-                                              title={isExcluded ? (isFr ? 'Réinclure' : 'Re-include') : (isFr ? 'Exclure' : 'Exclude')}
-                                              data-testid={`button-toggle-exclude-${item.id}`}
-                                            >
-                                              {togglePending ? (
-                                                <Loader2 className="h-4 w-4 animate-spin" />
-                                              ) : isExcluded ? (
-                                                <Eye className="h-4 w-4" />
-                                              ) : (
-                                                <EyeOff className="h-4 w-4 text-muted-foreground" />
-                                              )}
-                                            </Button>
                                           )}
                                         </div>
                                       </div>
@@ -4951,7 +4953,7 @@ export default function BulkDocumentImportPage() {
                                 );
                               })}
                             >
-                            <div className={`flex items-center gap-3 p-3${currentStep === 'sorting' ? ' flex-wrap' : ' justify-between'}`}>
+                            <div className="flex items-center gap-3 p-3 flex-wrap">
                             {hasAnalysis && !(currentStep === 'sorting' && (sortingIsPending || sortingIsRejected || isDraftSplitLead || _mergeGroupAnyNonAccepted)) ? (
                               <button
                                 type="button"
@@ -5018,7 +5020,90 @@ export default function BulkDocumentImportPage() {
                                 </span>
                               </div>
                             </div>
-                            <div className={`flex items-center gap-3 flex-wrap${currentStep === 'sorting' ? ' w-full pl-10' : ''}`} onClick={(e) => e.stopPropagation()}>
+                            {currentStep !== 'sorting' && (
+                              <div className="flex items-center gap-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                                {showRetry && retryAction && !(currentStep === 'identification' && item.identificationEffectiveDateManualOverride) && (
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() =>
+                                      runStep.mutate({
+                                        itemId: item.id,
+                                        action: retryAction,
+                                      })
+                                    }
+                                    disabled={retryPending}
+                                    data-testid={`button-retry-${currentStep}-${item.id}`}
+                                  >
+                                    {retryPending ? (
+                                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    ) : (
+                                      <RotateCw className="mr-2 h-4 w-4" />
+                                    )}
+                                    {isFr ? 'Réessayer' : 'Retry'}
+                                  </Button>
+                                )}
+                                {!isExcluded &&
+                                  currentStep === 'linking' &&
+                                  item.status === 'linked' && (
+                                    <Button
+                                      size="sm"
+                                      variant="default"
+                                      onClick={() =>
+                                        runStep.mutate({
+                                          itemId: item.id,
+                                          action: 'commit',
+                                        })
+                                      }
+                                      data-testid={`button-commit-${item.id}`}
+                                    >
+                                      {isFr ? 'Sauvegarder' : 'Commit'}
+                                    </Button>
+                                  )}
+                                {canToggleExclude && (
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() =>
+                                      toggleExclude.mutate({
+                                        itemId: item.id,
+                                        excluded: !isExcluded,
+                                      })
+                                    }
+                                    disabled={togglePending}
+                                    aria-pressed={isExcluded}
+                                    aria-label={
+                                      isExcluded
+                                        ? isFr
+                                          ? 'Réinclure le fichier'
+                                          : 'Re-include file'
+                                        : isFr
+                                          ? 'Exclure le fichier'
+                                          : 'Exclude file'
+                                    }
+                                    title={
+                                      isExcluded
+                                        ? isFr
+                                          ? 'Réinclure'
+                                          : 'Re-include'
+                                        : isFr
+                                          ? 'Exclure'
+                                          : 'Exclude'
+                                    }
+                                    data-testid={`button-toggle-exclude-${item.id}`}
+                                  >
+                                    {togglePending ? (
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : isExcluded ? (
+                                      <Eye className="h-4 w-4" />
+                                    ) : (
+                                      <EyeOff className="h-4 w-4 text-muted-foreground" />
+                                    )}
+                                  </Button>
+                                )}
+                              </div>
+                            )}
+                            <div className="flex items-center gap-3 flex-wrap w-full pl-10" onClick={(e) => e.stopPropagation()}>
                               {isExcluded && (
                                 <Badge
                                   variant="outline"
@@ -5354,9 +5439,7 @@ export default function BulkDocumentImportPage() {
                                   )}
                                 </>
                               )}
-                              {showRetry && retryAction &&
-                                !(currentStep === 'sorting' && item.sortingManualOverride) &&
-                                !(currentStep === 'identification' && item.identificationEffectiveDateManualOverride) && (
+                              {currentStep === 'sorting' && showRetry && retryAction && !item.sortingManualOverride && (
                                 <Button
                                   size="sm"
                                   variant="outline"
@@ -5377,24 +5460,7 @@ export default function BulkDocumentImportPage() {
                                   {isFr ? 'Réessayer' : 'Retry'}
                                 </Button>
                               )}
-                              {!isExcluded &&
-                                currentStep === 'linking' &&
-                                item.status === 'linked' && (
-                                  <Button
-                                    size="sm"
-                                    variant="default"
-                                    onClick={() =>
-                                      runStep.mutate({
-                                        itemId: item.id,
-                                        action: 'commit',
-                                      })
-                                    }
-                                    data-testid={`button-commit-${item.id}`}
-                                  >
-                                    {isFr ? 'Sauvegarder' : 'Commit'}
-                                  </Button>
-                                )}
-                              {canToggleExclude && (
+                              {currentStep === 'sorting' && canToggleExclude && (
                                 <Button
                                   size="sm"
                                   variant="ghost"
