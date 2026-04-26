@@ -1,0 +1,184 @@
+Run set +e
+[drift-check] Comparing shared/schema.ts against cumulative migrations...
+[drift-check] 53 statement(s) in migrations/ failed against an empty database (likely missing prerequisite tables):
+    - 0010_demands_residence_building_check.sql: relation "demands" does not exist
+        SQL: CREATE TRIGGER demands_residence_building_check BEFORE INSERT OR UPDATE OF residence_id, building_id ON demands FOR EACH
+    - 0011_residences_demand_building_check.sql: relation "residences" does not exist
+        SQL: CREATE TRIGGER residences_demand_building_check BEFORE UPDATE OF building_id ON residences FOR EACH ROW EXECUTE FUNCTION
+    - 0012_building_elements_residence_id_fk.sql: relation "building_elements" does not exist
+        SQL: -- 0012_building_elements_residence_id_fk.sql -- -- Promotes building_elements.residence_id to a real foreign key -- (Ta
+    - 0012_building_elements_residence_id_fk.sql: relation "building_elements" does not exist
+        SQL: -- Step 2: Add the FK constraint if it isn't already present. DO $$ BEGIN IF NOT EXISTS ( SELECT 1 FROM pg_constraint c 
+    - 0012_demands_assignation_check.sql: relation "demands" does not exist
+        SQL: CREATE TRIGGER demands_assignation_check BEFORE INSERT OR UPDATE OF assignation_residence_id, assignation_building_id, b
+    - 0013_residences_demand_assignation_check.sql: relation "residences" does not exist
+        SQL: CREATE TRIGGER residences_demand_assignation_check BEFORE UPDATE OF building_id ON residences FOR EACH ROW EXECUTE FUNCT
+    - 0014_invitations_residence_building_check.sql: relation "invitations" does not exist
+        SQL: CREATE TRIGGER invitations_residence_building_check BEFORE INSERT OR UPDATE OF residence_id, building_id ON invitations 
+    - 0015_cap_title_description_lengths.sql: relation "maintenance_requests" does not exist
+        SQL: -- 0015_cap_title_description_lengths.sql -- -- Enforces maximum lengths on title/description columns for -- maintenance
+    - 0015_cap_title_description_lengths.sql: relation "maintenance_requests" does not exist
+        SQL: ALTER TABLE maintenance_requests ADD CONSTRAINT maintenance_requests_description_length_check CHECK (char_length(btrim(d
+    - 0015_cap_title_description_lengths.sql: relation "demands" does not exist
+        SQL: ALTER TABLE demands ADD CONSTRAINT demands_description_length_check CHECK (char_length(btrim(description)) <= 5000)
+    - 0015_fix_cross_org_demand_residence_ids.sql: relation "demands" does not exist
+        SQL: -- 0015_fix_cross_org_demand_residence_ids.sql -- -- Auto-fix legacy cross-org demand rows. -- -- Background -- --------
+    - 0015_fix_cross_org_demand_residence_ids.sql: relation "demands" does not exist
+        SQL: -- Post-condition: assert no cross-org demand rows remain. -- Raises check_violation (SQLSTATE 23514) on failure so the 
+    - 0015_fix_last_inspection_date.sql: relation "building_elements" does not exist
+        SQL: -- 0015_fix_last_inspection_date.sql -- -- Repair building_elements.last_inspection_date rows that were corrupted by the
+    - 0015_fix_last_inspection_date.sql: relation "building_elements" does not exist
+        SQL: -- NULL out last_inspection_date for elements whose inspection history rows -- were deleted after the date was originall
+    - 0016_bills_schema_drift.sql: type "bill_type" does not exist
+        SQL: -- bill_type already exists (migration 0000) with legacy values. -- Add 'unique' and 'recurrent' which the current schem
+    - 0016_bills_schema_drift.sql: type "bill_type" does not exist
+        SQL: ALTER TYPE bill_type ADD VALUE IF NOT EXISTS 'recurrent'
+    - 0016_bills_schema_drift.sql: relation "bills" does not exist
+        SQL: -- --------------------------------------------------------------------------- -- Step 2: Missing columns on `bills` -- 
+    - 0016_bills_schema_drift.sql: relation "bills" does not exist
+        SQL: -- --------------------------------------------------------------------------- -- Step 3: Indexes (idempotent via IF NOT
+    - 0016_bills_schema_drift.sql: relation "bills" does not exist
+        SQL: CREATE INDEX IF NOT EXISTS bills_created_by_idx ON bills(created_by)
+    - 0016_bills_schema_drift.sql: relation "bills" does not exist
+        SQL: CREATE INDEX IF NOT EXISTS bills_source_template_id_idx ON bills(source_template_id)
+    ... and 33 more.
+[drift-check] Schema drift detected:
+  Tables in shared/schema.ts but missing from migrations:
+    - actionable_items
+    - ai_suggestion_cache
+    - auto_generated_projects
+    - bills
+    - bookings
+    - budgets
+    - building_elements
+    - buildings
+    - bulk_import_items
+    - bulk_import_sessions
+    - capital_investments
+    - client_document_fingerprints
+    - client_excluded_fingerprints
+    - common_spaces
+    - contacts
+    - demands
+    - demands_comments
+    - development_pillars
+    - document_links
+    - document_tag_assignments
+    - document_tags
+    - documents
+    - element_documents
+    - element_history
+    - element_history_audit_log
+    - element_project_updates
+    - evaluation_suggestions
+    - features
+    - financial_cache
+    - framework_configuration
+    - general_communications
+    - improvement_suggestions
+    - invitation_audit_log
+    - invitations
+    - invoices
+    - maintenance_projects
+    - maintenance_requests
+    - mcp_assume_user_log
+    - meetings
+    - metric_calibration_data
+    - metric_effectiveness_tracking
+    - metric_predictions
+    - monthly_budgets
+    - notification_configurations
+    - notification_dispatch_log
+    - notifications
+    - oauth_auth_codes
+    - oauth_clients
+    - oauth_tokens
+    - organizations
+    - password_reset_tokens
+    - payments
+    - permissions
+    - prediction_validations
+    - project_elements
+    - project_notifications
+    - project_steps
+    - quality_issues
+    - quality_metrics
+    - residences
+    - role_permissions
+    - schema_migrations
+    - session
+    - ssl_certificates
+    - submission_vendors
+    - uniformat_codes
+    - user_booking_restrictions
+    - user_buildings
+    - user_notification_preferences
+    - user_organizations
+    - user_permissions
+    - user_residences
+    - user_time_limits
+    - users
+    - vendors
+    - workflow_tasks
+    - workspace_status
+  Enums missing from migrations:
+    - action
+    - actionable_item_status
+    - auto_project_status
+    - bill_status
+    - bill_type
+    - booking_status
+    - building_type
+    - bulk_import_item_status
+    - bulk_import_status
+    - bulk_import_step
+    - contact_category
+    - contact_entity
+    - demand_status
+    - demand_type
+    - document_link_position
+    - document_tag_importance
+    - document_tag_scope
+    - document_type
+    - element_access
+    - element_charge
+    - element_condition
+    - element_update_status
+    - evaluation_status
+    - event_type
+    - feature_category
+    - feature_priority
+    - feature_status
+    - frequency
+    - investment_ownership
+    - investment_type
+    - investment_urgency
+    - invitation_status
+    - invoice_frequency
+    - invoice_payment_type
+    - issue_severity
+    - maintenance_priority
+    - maintenance_status
+    - metric_type
+    - notification_type
+    - payment_status
+    - priority
+    - project_origin
+    - project_status
+    - project_type
+    - resource_type
+    - ssl_status
+    - step_status
+    - step_type
+    - suggestion_category
+    - suggestion_priority
+    - suggestion_status
+    - suggestion_type
+    - timing_type
+    - user_role
+    - validation_status
+    - workflow_phase
+
+[drift-check] Add a numbered migration in migrations/ to bring the deployed schema in line with shared/schema.ts.
+[drift-check] See docs/migrations.md for the supported workflow (drizzle-kit generate + npm run migrate).
+Error: Process completed with exit code 1.
