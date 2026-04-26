@@ -1827,6 +1827,22 @@ function InlineFallbackRetryButton({
 const RETRYABLE_AI_FALLBACK_REASON_SET: ReadonlySet<BulkImportFallbackReason> =
   new Set(RETRYABLE_AI_FALLBACK_REASONS);
 
+/**
+ * Task #1213 — confirmation threshold for the in-page Cancel
+ * button. Below this size the admin gets the snappy
+ * immediate-cancel from Task #1208; at or above it we open an
+ * AlertDialog so an accidental click while scanning a long
+ * failure list doesn't kill the whole batch with no undo.
+ *
+ * Task #1241 — exported so the bulk-retry test fixtures size
+ * themselves relative to this constant (THRESHOLD - 2 for the
+ * sub-threshold case, THRESHOLD for the at-threshold case,
+ * THRESHOLD + 1 for the above-threshold case) instead of
+ * hard-coding 3 / 5 / 6 and silently breaking when the
+ * threshold is tuned.
+ */
+export const BULK_RETRY_CONFIRM_THRESHOLD = 5;
+
 export default function BulkDocumentImportPage() {
   const { language } = useLanguage();
   const { toast } = useToast();
@@ -2505,15 +2521,6 @@ export default function BulkDocumentImportPage() {
     },
     [runStep],
   );
-
-  /**
-   * Task #1213 — confirmation threshold for the in-page Cancel
-   * button. Below this size the admin gets the snappy
-   * immediate-cancel from Task #1208; at or above it we open an
-   * AlertDialog so an accidental click while scanning a long
-   * failure list doesn't kill the whole batch with no undo.
-   */
-  const BULK_RETRY_CONFIRM_THRESHOLD = 5;
 
   /**
    * Snapshot used by the confirm-cancel AlertDialog. Captured at the

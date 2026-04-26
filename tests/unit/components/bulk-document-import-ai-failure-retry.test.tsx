@@ -80,7 +80,9 @@ jest.mock('@/components/common/DocumentInlineViewer', () => ({
     isOpen ? <div data-testid="mock-inline-viewer" /> : null,
 }));
 
-import BulkDocumentImportPage from '@/pages/admin/bulk-document-import';
+import BulkDocumentImportPage, {
+  BULK_RETRY_CONFIRM_THRESHOLD,
+} from '@/pages/admin/bulk-document-import';
 import { queryClient } from '@/lib/queryClient';
 import {
   nextSessionId,
@@ -438,13 +440,19 @@ describe('BulkDocumentImportPage — Task #1202 AI failure retry surfaces', () =
    *      idle "Retry AI-failed items (N)" affordance.
    */
   describe('Task #1208 — Cancel button for the in-flight bulk retry loop', () => {
-    const BULK_RETRY_IDS = [
-      'item-1208-bulk-1',
-      'item-1208-bulk-2',
-      'item-1208-bulk-3',
-    ] as const;
+    // Task #1241 — size the small-batch fixture relative to
+    // BULK_RETRY_CONFIRM_THRESHOLD so the test still exercises the
+    // immediate-cancel path (no AlertDialog) no matter what value
+    // the threshold is tuned to. THRESHOLD - 2 keeps it strictly
+    // below the threshold while leaving at least one row to act as
+    // "the next iteration" the cancel must prevent.
+    const BULK_RETRY_ROW_COUNT = BULK_RETRY_CONFIRM_THRESHOLD - 2;
+    const BULK_RETRY_IDS = Array.from(
+      { length: BULK_RETRY_ROW_COUNT },
+      (_, idx) => `item-1208-bulk-${idx + 1}`,
+    ) as readonly string[];
 
-    function buildPayloadWithThreeRetryableRows() {
+    function buildPayloadWithSubThresholdRetryableRows() {
       const sortedDefaults = {
         status: 'sorted' as const,
         screeningTypeGuess: 'invoice',
@@ -473,9 +481,9 @@ describe('BulkDocumentImportPage — Task #1202 AI failure retry surfaces', () =
           progress: {
             runAll: {
               sorting: {
-                total: 3,
-                processed: 3,
-                failed: 3,
+                total: BULK_RETRY_ROW_COUNT,
+                processed: BULK_RETRY_ROW_COUNT,
+                failed: BULK_RETRY_ROW_COUNT,
                 startedAt: '2024-01-01T00:00:00.000Z',
                 finishedAt: '2024-01-01T00:01:00.000Z',
                 inFlight: [],
@@ -494,7 +502,7 @@ describe('BulkDocumentImportPage — Task #1202 AI failure retry surfaces', () =
       // stopped firing after Cancel. The loop's per-item endpoint on
       // the SORTING step is `/api/admin/bulk-import/items/:id/sort`.
       const perItemSortPosts: string[] = [];
-      const payload = buildPayloadWithThreeRetryableRows();
+      const payload = buildPayloadWithSubThresholdRetryableRows();
 
       fetchMock.mockImplementation(async (input, init) => {
         const url =
@@ -538,7 +546,9 @@ describe('BulkDocumentImportPage — Task #1202 AI failure retry surfaces', () =
       await waitForRow(BULK_RETRY_IDS[0]);
 
       const bulkBtn = await screen.findByTestId('auto-run-retry-failed-sorting');
-      expect(bulkBtn).toHaveTextContent('Retry AI-failed items (3)');
+      expect(bulkBtn).toHaveTextContent(
+        `Retry AI-failed items (${BULK_RETRY_ROW_COUNT})`,
+      );
 
       // Cancel must NOT be visible before the loop is kicked off.
       expect(
@@ -594,8 +604,9 @@ describe('BulkDocumentImportPage — Task #1202 AI failure retry surfaces', () =
         ).not.toBeInTheDocument();
       });
 
-      // Task #1213 — small-batch path: 3 retryable rows is below the
-      // confirmation threshold (5) so Cancel must abort immediately
+      // Task #1213 — small-batch path: this fixture's row count is
+      // BULK_RETRY_CONFIRM_THRESHOLD - 2 so it stays below the
+      // confirmation threshold and Cancel must abort immediately
       // without ever opening the confirm-cancel AlertDialog.
       expect(
         screen.queryByTestId('cancel-bulk-retry-dialog'),
@@ -613,29 +624,28 @@ describe('BulkDocumentImportPage — Task #1202 AI failure retry surfaces', () =
    * the existing `pendingResetStep` confirmation pattern) on top of
    * the existing cooperative-abort path:
    *
-   *   - Batches < 5 rows keep the Task #1208 immediate-cancel
-   *     behaviour so trivial cases stay friction-free (covered by
-   *     the `BULK_RETRY_IDS` test above which uses 3 rows).
-   *   - Batches >= 5 rows open the AlertDialog. Confirming flips
-   *     `bulkRetryAbortedRef.current = true` (the same cooperative
-   *     path) and the loop stops dispatching new per-item retries.
-   *     Dismissing the dialog leaves the loop running so a
-   *     mis-click costs nothing.
+   *   - Batches strictly below BULK_RETRY_CONFIRM_THRESHOLD keep
+   *     the Task #1208 immediate-cancel behaviour so trivial cases
+   *     stay friction-free (covered by the `BULK_RETRY_IDS` test
+   *     above, which uses BULK_RETRY_CONFIRM_THRESHOLD - 2 rows).
+   *   - Batches at or above the threshold open the AlertDialog.
+   *     Confirming flips `bulkRetryAbortedRef.current = true` (the
+   *     same cooperative path) and the loop stops dispatching new
+   *     per-item retries. Dismissing the dialog leaves the loop
+   *     running so a mis-click costs nothing.
    *
-   * The fixture below renders 6 retryable rows to land just over
-   * the threshold and asserts both paths.
+   * Task #1241 — the fixture below sizes the "above threshold" row
+   * count to BULK_RETRY_CONFIRM_THRESHOLD + 1 so it lands just over
+   * the threshold no matter what the threshold is tuned to.
    */
   describe('Task #1213 — Confirm before canceling a long bulk retry', () => {
-    const LONG_BULK_RETRY_IDS = [
-      'item-1213-bulk-1',
-      'item-1213-bulk-2',
-      'item-1213-bulk-3',
-      'item-1213-bulk-4',
-      'item-1213-bulk-5',
-      'item-1213-bulk-6',
-    ] as const;
+    const LONG_BULK_RETRY_ROW_COUNT = BULK_RETRY_CONFIRM_THRESHOLD + 1;
+    const LONG_BULK_RETRY_IDS = Array.from(
+      { length: LONG_BULK_RETRY_ROW_COUNT },
+      (_, idx) => `item-1213-bulk-${idx + 1}`,
+    ) as readonly string[];
 
-    function buildPayloadWithSixRetryableRows() {
+    function buildPayloadWithAboveThresholdRetryableRows() {
       const sortedDefaults = {
         status: 'sorted' as const,
         screeningTypeGuess: 'invoice',
@@ -664,9 +674,9 @@ describe('BulkDocumentImportPage — Task #1202 AI failure retry surfaces', () =
           progress: {
             runAll: {
               sorting: {
-                total: 6,
-                processed: 6,
-                failed: 6,
+                total: LONG_BULK_RETRY_ROW_COUNT,
+                processed: LONG_BULK_RETRY_ROW_COUNT,
+                failed: LONG_BULK_RETRY_ROW_COUNT,
                 startedAt: '2024-01-01T00:00:00.000Z',
                 finishedAt: '2024-01-01T00:01:00.000Z',
                 inFlight: [],
@@ -681,14 +691,14 @@ describe('BulkDocumentImportPage — Task #1202 AI failure retry surfaces', () =
     }
 
     /**
-     * Wire the suite-default fetch responder to serve the 6-row
-     * payload AND record every per-item sort POST so each test can
-     * assert on whether the loop kept dispatching after Cancel was
-     * clicked (or after the confirm-dialog was dismissed).
+     * Wire the suite-default fetch responder to serve the above-
+     * threshold payload AND record every per-item sort POST so each
+     * test can assert on whether the loop kept dispatching after
+     * Cancel was clicked (or after the confirm-dialog was dismissed).
      */
-    function installSixRowFetchMock() {
+    function installAboveThresholdFetchMock() {
       const perItemSortPosts: string[] = [];
-      const payload = buildPayloadWithSixRetryableRows();
+      const payload = buildPayloadWithAboveThresholdRetryableRows();
       fetchMock.mockImplementation(async (input, init) => {
         const url =
           typeof input === 'string'
@@ -729,13 +739,15 @@ describe('BulkDocumentImportPage — Task #1202 AI failure retry surfaces', () =
       return perItemSortPosts;
     }
 
-    it('opens the confirm-cancel AlertDialog (instead of aborting immediately) when Cancel is clicked on a >=5-row batch, and confirming the dialog halts the loop', async () => {
-      const perItemSortPosts = installSixRowFetchMock();
+    it('opens the confirm-cancel AlertDialog (instead of aborting immediately) when Cancel is clicked on an at-or-above-threshold batch, and confirming the dialog halts the loop', async () => {
+      const perItemSortPosts = installAboveThresholdFetchMock();
       renderPage();
       await waitForRow(LONG_BULK_RETRY_IDS[0]);
 
       const bulkBtn = await screen.findByTestId('auto-run-retry-failed-sorting');
-      expect(bulkBtn).toHaveTextContent('Retry AI-failed items (6)');
+      expect(bulkBtn).toHaveTextContent(
+        `Retry AI-failed items (${LONG_BULK_RETRY_ROW_COUNT})`,
+      );
 
       // Dialog must NOT be present before Cancel is clicked.
       expect(
@@ -778,7 +790,9 @@ describe('BulkDocumentImportPage — Task #1202 AI failure retry surfaces', () =
       );
       expect(dialog).toBeInTheDocument();
       expect(dialog).toHaveTextContent(/Stop retrying/);
-      expect(dialog).toHaveTextContent(/of 6/);
+      expect(dialog).toHaveTextContent(
+        new RegExp(`of ${LONG_BULK_RETRY_ROW_COUNT}`),
+      );
 
       // The Cancel button is still mounted (loop is still active
       // because the abort ref hasn't been flipped yet).
@@ -816,12 +830,14 @@ describe('BulkDocumentImportPage — Task #1202 AI failure retry surfaces', () =
     });
 
     it('lets the bulk retry continue when the admin dismisses the confirm-cancel dialog', async () => {
-      const perItemSortPosts = installSixRowFetchMock();
+      const perItemSortPosts = installAboveThresholdFetchMock();
       renderPage();
       await waitForRow(LONG_BULK_RETRY_IDS[0]);
 
       const bulkBtn = await screen.findByTestId('auto-run-retry-failed-sorting');
-      expect(bulkBtn).toHaveTextContent('Retry AI-failed items (6)');
+      expect(bulkBtn).toHaveTextContent(
+        `Retry AI-failed items (${LONG_BULK_RETRY_ROW_COUNT})`,
+      );
 
       await act(async () => {
         fireEvent.click(bulkBtn);
@@ -877,19 +893,23 @@ describe('BulkDocumentImportPage — Task #1202 AI failure retry surfaces', () =
      * on a batch that started large. Asking "Stop retrying 1 of 6?"
      * is more friction than safety at that point.
      *
-     * Setup: 6 retryable rows (above the threshold of 5). Wait for
-     * the loop to dispatch enough per-item retries that `processed`
-     * is >= 2 — i.e., remaining is at most 4 (< threshold). Then
-     * click Cancel and assert no dialog opens and the spinner state
-     * clears immediately.
+     * Setup: BULK_RETRY_CONFIRM_THRESHOLD + 1 retryable rows
+     * (strictly above the threshold, so the Task #1237 carve-out
+     * applies). Wait for the loop to dispatch enough per-item
+     * retries that `processed` is >= 2 — i.e., remaining is at most
+     * (THRESHOLD - 1), which is below the confirmation threshold.
+     * Then click Cancel and assert no dialog opens and the spinner
+     * state clears immediately.
      */
     it('skips the confirm dialog and aborts immediately when the batch started large but only a handful of items remain', async () => {
-      const perItemSortPosts = installSixRowFetchMock();
+      const perItemSortPosts = installAboveThresholdFetchMock();
       renderPage();
       await waitForRow(LONG_BULK_RETRY_IDS[0]);
 
       const bulkBtn = await screen.findByTestId('auto-run-retry-failed-sorting');
-      expect(bulkBtn).toHaveTextContent('Retry AI-failed items (6)');
+      expect(bulkBtn).toHaveTextContent(
+        `Retry AI-failed items (${LONG_BULK_RETRY_ROW_COUNT})`,
+      );
 
       await act(async () => {
         fireEvent.click(bulkBtn);

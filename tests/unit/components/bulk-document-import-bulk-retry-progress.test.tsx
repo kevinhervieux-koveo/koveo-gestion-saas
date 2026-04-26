@@ -29,15 +29,18 @@
  * file adds:
  *
  *   1. A multi-row English-copy run that observes the button label
- *      transitioning through `Retrying 1 of 3…` AND `Retrying 2 of 3…`
- *      before settling back to `Retry AI-failed items (3)`.
- *   2. The same assertion in French (`Réessai de X sur 3…` →
- *      `Réessayer les fichiers en échec IA (3)`).
- *   3. A cancel-confirm dialog assertion: with a 5-row batch (above
- *      `BULK_RETRY_CONFIRM_THRESHOLD`), clicking Cancel mid-loop opens
- *      the AlertDialog and the title contains the live `X of 5`
- *      progress (X >= 1 — i.e. NOT the frozen `0 of 5` a regression
- *      would produce).
+ *      transitioning through `Retrying 1 of N…` AND `Retrying 2 of N…`
+ *      before settling back to `Retry AI-failed items (N)`. N is
+ *      sized to BULK_RETRY_CONFIRM_THRESHOLD - 2 so the loop runs
+ *      the immediate-cancel path and the count is small enough that
+ *      both intermediate labels are observable (Task #1241).
+ *   2. The same assertion in French (`Réessai de X sur N…` →
+ *      `Réessayer les fichiers en échec IA (N)`).
+ *   3. A cancel-confirm dialog assertion: with a batch sized to
+ *      `BULK_RETRY_CONFIRM_THRESHOLD` (the smallest size that opens
+ *      the dialog), clicking Cancel mid-loop opens the AlertDialog
+ *      and the title contains the live `X of N` progress (X >= 1 —
+ *      i.e. NOT the frozen `0 of N` a regression would produce).
  *   4. The French copy of (3) for completeness.
  */
 
@@ -83,7 +86,9 @@ jest.mock('@/components/common/DocumentInlineViewer', () => ({
     isOpen ? <div data-testid="mock-inline-viewer" /> : null,
 }));
 
-import BulkDocumentImportPage from '@/pages/admin/bulk-document-import';
+import BulkDocumentImportPage, {
+  BULK_RETRY_CONFIRM_THRESHOLD,
+} from '@/pages/admin/bulk-document-import';
 import { queryClient } from '@/lib/queryClient';
 import {
   nextSessionId,
@@ -352,19 +357,27 @@ function captureBulkRetryButtonLabels(button: HTMLElement): {
 // -----------------------------------------------------------------------------
 
 describe('BulkDocumentImportPage — Task #1240 live "Retrying X of N…" progress', () => {
-  const THREE_ROW_IDS = [
-    'item-1240-tick-1',
-    'item-1240-tick-2',
-    'item-1240-tick-3',
-  ] as const;
+  // Task #1241 — size the sub-threshold "tick the counter" fixture
+  // relative to BULK_RETRY_CONFIRM_THRESHOLD so the test still
+  // exercises the immediate-cancel (no-dialog) path no matter what
+  // value the threshold is tuned to. THRESHOLD - 2 keeps the count
+  // small enough that BOTH "Retrying 1 of N…" and "Retrying 2 of N…"
+  // intermediate labels appear before the loop settles.
+  const SUB_THRESHOLD_ROW_COUNT = BULK_RETRY_CONFIRM_THRESHOLD - 2;
+  const SUB_THRESHOLD_ROW_IDS = Array.from(
+    { length: SUB_THRESHOLD_ROW_COUNT },
+    (_, idx) => `item-1240-tick-${idx + 1}`,
+  ) as readonly string[];
 
-  it('ticks the bulk-retry button label through Retrying 1 of 3… and Retrying 2 of 3… before settling back to idle (English)', async () => {
-    installFetchMockForRows(THREE_ROW_IDS);
+  it('ticks the bulk-retry button label through Retrying 1 of N… and Retrying 2 of N… before settling back to idle (English)', async () => {
+    installFetchMockForRows(SUB_THRESHOLD_ROW_IDS);
     renderPage();
-    await waitForRow(THREE_ROW_IDS[0]);
+    await waitForRow(SUB_THRESHOLD_ROW_IDS[0]);
 
     const bulkBtn = await screen.findByTestId('auto-run-retry-failed-sorting');
-    expect(bulkBtn).toHaveTextContent('Retry AI-failed items (3)');
+    expect(bulkBtn).toHaveTextContent(
+      `Retry AI-failed items (${SUB_THRESHOLD_ROW_COUNT})`,
+    );
 
     const capture = captureBulkRetryButtonLabels(bulkBtn);
 
@@ -376,10 +389,12 @@ describe('BulkDocumentImportPage — Task #1240 live "Retrying X of N…" progre
     // its idle copy. This both gives the MutationObserver enough time
     // to record every intermediate value and asserts the final
     // resting state — a regression that left the spinner stuck on
-    // "Retrying X of 3…" would fail right here.
+    // "Retrying X of N…" would fail right here.
     await waitFor(
       () => {
-        expect(bulkBtn).toHaveTextContent('Retry AI-failed items (3)');
+        expect(bulkBtn).toHaveTextContent(
+          `Retry AI-failed items (${SUB_THRESHOLD_ROW_COUNT})`,
+        );
       },
       { timeout: 6000 },
     );
@@ -390,26 +405,26 @@ describe('BulkDocumentImportPage — Task #1240 live "Retrying X of N…" progre
     // on each value individually (rather than e.g. "saw at least one
     // intermediate label") is what catches a regression that froze
     // the count at the loop's initial 0 of N: in that broken world
-    // the only label seen during the loop would be "Retrying 0 of 3…"
+    // the only label seen during the loop would be "Retrying 0 of N…"
     // and neither of these assertions would pass.
     const labels = [...capture.seen];
     expect(
-      labels.some((l) => l.includes('Retrying 1 of 3')),
+      labels.some((l) => l.includes(`Retrying 1 of ${SUB_THRESHOLD_ROW_COUNT}`)),
     ).toBe(true);
     expect(
-      labels.some((l) => l.includes('Retrying 2 of 3')),
+      labels.some((l) => l.includes(`Retrying 2 of ${SUB_THRESHOLD_ROW_COUNT}`)),
     ).toBe(true);
   });
 
-  it('ticks the bulk-retry button label through Réessai de 1 sur 3… and Réessai de 2 sur 3… before settling back to idle (French)', async () => {
+  it('ticks the bulk-retry button label through Réessai de 1 sur N… and Réessai de 2 sur N… before settling back to idle (French)', async () => {
     mockLanguage = 'fr';
-    installFetchMockForRows(THREE_ROW_IDS);
+    installFetchMockForRows(SUB_THRESHOLD_ROW_IDS);
     renderPage();
-    await waitForRow(THREE_ROW_IDS[0]);
+    await waitForRow(SUB_THRESHOLD_ROW_IDS[0]);
 
     const bulkBtn = await screen.findByTestId('auto-run-retry-failed-sorting');
     expect(bulkBtn).toHaveTextContent(
-      'Réessayer les fichiers en échec IA (3)',
+      `Réessayer les fichiers en échec IA (${SUB_THRESHOLD_ROW_COUNT})`,
     );
 
     const capture = captureBulkRetryButtonLabels(bulkBtn);
@@ -421,7 +436,7 @@ describe('BulkDocumentImportPage — Task #1240 live "Retrying X of N…" progre
     await waitFor(
       () => {
         expect(bulkBtn).toHaveTextContent(
-          'Réessayer les fichiers en échec IA (3)',
+          `Réessayer les fichiers en échec IA (${SUB_THRESHOLD_ROW_COUNT})`,
         );
       },
       { timeout: 6000 },
@@ -431,32 +446,36 @@ describe('BulkDocumentImportPage — Task #1240 live "Retrying X of N…" progre
 
     const labels = [...capture.seen];
     expect(
-      labels.some((l) => l.includes('Réessai de 1 sur 3')),
+      labels.some((l) => l.includes(`Réessai de 1 sur ${SUB_THRESHOLD_ROW_COUNT}`)),
     ).toBe(true);
     expect(
-      labels.some((l) => l.includes('Réessai de 2 sur 3')),
+      labels.some((l) => l.includes(`Réessai de 2 sur ${SUB_THRESHOLD_ROW_COUNT}`)),
     ).toBe(true);
   });
 
-  // Five rows is the smallest batch that crosses
-  // BULK_RETRY_CONFIRM_THRESHOLD (5), so Cancel opens the
-  // AlertDialog instead of aborting immediately. That dialog is the
-  // second surface Task #1238 mirrors `bulkRetryProgress` into.
-  const FIVE_ROW_IDS = [
-    'item-1240-dialog-1',
-    'item-1240-dialog-2',
-    'item-1240-dialog-3',
-    'item-1240-dialog-4',
-    'item-1240-dialog-5',
-  ] as const;
+  // Task #1241 — size the at-threshold cancel-confirm fixture
+  // relative to BULK_RETRY_CONFIRM_THRESHOLD. A batch exactly at the
+  // threshold is the smallest one that opens the AlertDialog instead
+  // of aborting immediately (Task #1213), which is the second
+  // surface Task #1238 mirrors `bulkRetryProgress` into. The
+  // Task #1237 carve-out only fires when the batch started STRICTLY
+  // larger than the threshold, so a batch at exactly threshold keeps
+  // the dialog regardless of progress.
+  const AT_THRESHOLD_ROW_COUNT = BULK_RETRY_CONFIRM_THRESHOLD;
+  const AT_THRESHOLD_ROW_IDS = Array.from(
+    { length: AT_THRESHOLD_ROW_COUNT },
+    (_, idx) => `item-1240-dialog-${idx + 1}`,
+  ) as readonly string[];
 
-  it('opens the cancel-confirm dialog mid-loop with a live X of 5 title (English)', async () => {
-    const perItemSortPosts = installFetchMockForRows(FIVE_ROW_IDS);
+  it('opens the cancel-confirm dialog mid-loop with a live X of N title (English)', async () => {
+    const perItemSortPosts = installFetchMockForRows(AT_THRESHOLD_ROW_IDS);
     renderPage();
-    await waitForRow(FIVE_ROW_IDS[0]);
+    await waitForRow(AT_THRESHOLD_ROW_IDS[0]);
 
     const bulkBtn = await screen.findByTestId('auto-run-retry-failed-sorting');
-    expect(bulkBtn).toHaveTextContent('Retry AI-failed items (5)');
+    expect(bulkBtn).toHaveTextContent(
+      `Retry AI-failed items (${AT_THRESHOLD_ROW_COUNT})`,
+    );
 
     await act(async () => {
       fireEvent.click(bulkBtn);
@@ -471,7 +490,7 @@ describe('BulkDocumentImportPage — Task #1240 live "Retrying X of N…" progre
     // Wait until the loop has dispatched at least one per-item retry
     // so the live count is GUARANTEED to have moved past zero before
     // we open the dialog. Without this anchor the dialog could open
-    // while the count is still at the loop's initial 0/5 and the
+    // while the count is still at the loop's initial 0/N and the
     // assertion below could pass on a regression that never ticks
     // the counter.
     await waitFor(
@@ -494,16 +513,23 @@ describe('BulkDocumentImportPage — Task #1240 live "Retrying X of N…" progre
     // The denominator is fixed by the batch size; the numerator MUST
     // be >= 1 because at least one per-item retry already resolved
     // before we clicked Cancel. A regression that froze the count
-    // would render "(0 of 5)" here — the assertions below catch that.
+    // would render "(0 of N)" here — the explicit `not.toContain`
+    // assertion below catches that. We match the numerator with
+    // `\d+` (threshold-safe — works for any THRESHOLD value, including
+    // multi-digit ones) rather than a `[1-N]` character class, which
+    // would silently break for THRESHOLD >= 10 (Task #1241).
+    const enLiveTitle = new RegExp(
+      `Cancel the bulk retry \\(\\d+ of ${AT_THRESHOLD_ROW_COUNT}\\)\\?`,
+    );
     await waitFor(
       () => {
-        expect(title.textContent || '').toMatch(
-          /Cancel the bulk retry \([1-5] of 5\)\?/,
-        );
+        expect(title.textContent || '').toMatch(enLiveTitle);
       },
       { timeout: 4000 },
     );
-    expect(title.textContent || '').not.toContain('(0 of 5)');
+    expect(title.textContent || '').not.toContain(
+      `(0 of ${AT_THRESHOLD_ROW_COUNT})`,
+    );
 
     // Dismiss the dialog so the loop's `finally` can clean up the
     // bulkRetryStep state before the test exits. (The `keep
@@ -515,15 +541,15 @@ describe('BulkDocumentImportPage — Task #1240 live "Retrying X of N…" progre
     });
   });
 
-  it('opens the cancel-confirm dialog mid-loop with a live X sur 5 title (French)', async () => {
+  it('opens the cancel-confirm dialog mid-loop with a live X sur N title (French)', async () => {
     mockLanguage = 'fr';
-    const perItemSortPosts = installFetchMockForRows(FIVE_ROW_IDS);
+    const perItemSortPosts = installFetchMockForRows(AT_THRESHOLD_ROW_IDS);
     renderPage();
-    await waitForRow(FIVE_ROW_IDS[0]);
+    await waitForRow(AT_THRESHOLD_ROW_IDS[0]);
 
     const bulkBtn = await screen.findByTestId('auto-run-retry-failed-sorting');
     expect(bulkBtn).toHaveTextContent(
-      'Réessayer les fichiers en échec IA (5)',
+      `Réessayer les fichiers en échec IA (${AT_THRESHOLD_ROW_COUNT})`,
     );
 
     await act(async () => {
@@ -553,15 +579,21 @@ describe('BulkDocumentImportPage — Task #1240 live "Retrying X of N…" progre
       { timeout: 4000 },
     );
 
+    // Same threshold-safe `\d+` numerator pattern as the English
+    // case above (Task #1241). The explicit `not.toContain` guard
+    // below catches the frozen-at-zero regression.
+    const frLiveTitle = new RegExp(
+      `Annuler la relance groupée \\(\\d+ sur ${AT_THRESHOLD_ROW_COUNT}\\) \\?`,
+    );
     await waitFor(
       () => {
-        expect(title.textContent || '').toMatch(
-          /Annuler la relance groupée \([1-5] sur 5\) \?/,
-        );
+        expect(title.textContent || '').toMatch(frLiveTitle);
       },
       { timeout: 4000 },
     );
-    expect(title.textContent || '').not.toContain('(0 sur 5)');
+    expect(title.textContent || '').not.toContain(
+      `(0 sur ${AT_THRESHOLD_ROW_COUNT})`,
+    );
 
     const dismissBtn = screen.getByTestId('cancel-bulk-retry-dismiss');
     await act(async () => {
