@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, startTransition } from 'react';
 import { logDebug } from '@/lib/logger';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/use-auth';
@@ -1145,7 +1145,7 @@ function CommonSpacesStatsPageInner({ organizationId, buildingId, showBackButton
                 </label>
                 <Select
                   value={selectedSpaceId}
-                  onValueChange={setSelectedSpaceId}
+                  onValueChange={(value) => startTransition(() => setSelectedSpaceId(value))}
                   disabled={!selectedBuildingId || spacesLoading}
                 >
                   <SelectTrigger data-testid='space-select'>

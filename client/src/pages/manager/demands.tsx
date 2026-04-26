@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, startTransition, useDeferredValue } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Search, Trash2, Edit2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -91,6 +91,12 @@ export default function ManagerDemandsPage() {
   const [showBulkStatusDialog, setShowBulkStatusDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Mirror the search box through useDeferredValue so the heavy
+  // `filteredDemands` recompute (which scans every demand) runs at lower
+  // priority — keeping typing in the search input snappy and silencing the
+  // "[Violation] 'input' handler took N ms" warnings on this page.
+  const deferredSearch = useDeferredValue(search);
 
   useEffect(() => {
     logDebug('[DEMANDS] Component mounted');
@@ -195,14 +201,17 @@ export default function ManagerDemandsPage() {
   const demandsArray = Array.isArray(demands) ? demands : [];
 
   // Cascading filter options - each filter only shows values available in the current filtered set
-  // Buildings: filtered by search, status, type only
+  // Buildings: filtered by search, status, type only.
+  // We read from `deferredSearch` (not the urgent `search`) so the per-keystroke
+  // O(n) scans below run at lower priority and don't block the controlled
+  // search input — same defer pattern as the `filteredDemands` memo.
   const uniqueBuildings = useMemo(() => {
     let filtered = demandsArray.filter((d: Demand) =>
       ['submitted', 'in_progress', 'completed', 'cancelled'].includes(d.status)
     );
 
-    if (search) {
-      const searchLower = search.toLowerCase();
+    if (deferredSearch) {
+      const searchLower = deferredSearch.toLowerCase();
       filtered = filtered.filter((d: Demand) =>
         d.description?.toLowerCase().includes(searchLower) ||
         d.type?.toLowerCase().includes(searchLower) ||
@@ -227,16 +236,17 @@ export default function ManagerDemandsPage() {
       }
     });
     return Array.from(buildingsMap.values()).sort((a, b) => a.name.localeCompare(b.name));
-  }, [demandsArray, search, statusFilter, typeFilter]);
+  }, [demandsArray, deferredSearch, statusFilter, typeFilter]);
 
-  // Residences: filtered by search, status, type, and building
+  // Residences: filtered by search, status, type, and building.
+  // Uses `deferredSearch` for the same reason as `uniqueBuildings` above.
   const uniqueResidences = useMemo(() => {
     let filtered = demandsArray.filter((d: Demand) =>
       ['submitted', 'in_progress', 'completed', 'cancelled'].includes(d.status)
     );
 
-    if (search) {
-      const searchLower = search.toLowerCase();
+    if (deferredSearch) {
+      const searchLower = deferredSearch.toLowerCase();
       filtered = filtered.filter((d: Demand) =>
         d.description?.toLowerCase().includes(searchLower) ||
         d.type?.toLowerCase().includes(searchLower) ||
@@ -265,16 +275,17 @@ export default function ManagerDemandsPage() {
       }
     });
     return Array.from(residencesMap.values()).sort((a, b) => a.name.localeCompare(b.name));
-  }, [demandsArray, search, statusFilter, typeFilter, buildingFilter]);
+  }, [demandsArray, deferredSearch, statusFilter, typeFilter, buildingFilter]);
 
-  // Creators: filtered by search, status, type, building, and residence
+  // Creators: filtered by search, status, type, building, and residence.
+  // Uses `deferredSearch` for the same reason as `uniqueBuildings` above.
   const uniqueCreators = useMemo(() => {
     let filtered = demandsArray.filter((d: Demand) =>
       ['submitted', 'in_progress', 'completed', 'cancelled'].includes(d.status)
     );
 
-    if (search) {
-      const searchLower = search.toLowerCase();
+    if (deferredSearch) {
+      const searchLower = deferredSearch.toLowerCase();
       filtered = filtered.filter((d: Demand) =>
         d.description?.toLowerCase().includes(searchLower) ||
         d.type?.toLowerCase().includes(searchLower) ||
@@ -308,15 +319,18 @@ export default function ManagerDemandsPage() {
       }
     });
     return Array.from(creatorsMap.values()).sort((a, b) => a.name.localeCompare(b.name));
-  }, [demandsArray, search, statusFilter, typeFilter, buildingFilter, residenceFilter]);
+  }, [demandsArray, deferredSearch, statusFilter, typeFilter, buildingFilter, residenceFilter]);
 
   const filteredDemands = useMemo(() => {
     let filtered = demandsArray.filter((d: Demand) =>
       ['submitted', 'in_progress', 'completed', 'cancelled'].includes(d.status)
     );
 
-    if (search) {
-      const searchLower = search.toLowerCase();
+    // Use the deferred search term here so the heavy filter+sort runs at
+    // lower priority. The input above stays bound to the urgent `search`
+    // state, so it keeps updating instantly while the user types.
+    if (deferredSearch) {
+      const searchLower = deferredSearch.toLowerCase();
       filtered = filtered.filter((d: Demand) =>
         d.description?.toLowerCase().includes(searchLower) ||
         d.type?.toLowerCase().includes(searchLower) ||
@@ -349,7 +363,7 @@ export default function ManagerDemandsPage() {
     return filtered.sort((a, b) =>
       new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
-  }, [demandsArray, search, statusFilter, typeFilter, buildingFilter, residenceFilter, creatorFilter]);
+  }, [demandsArray, deferredSearch, statusFilter, typeFilter, buildingFilter, residenceFilter, creatorFilter]);
 
   const totalPages = Math.ceil(filteredDemands.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -580,7 +594,10 @@ export default function ManagerDemandsPage() {
                 label: t('status'),
                 type: 'custom',
                 customComponent: (
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <Select
+                    value={statusFilter}
+                    onValueChange={(value) => startTransition(() => setStatusFilter(value))}
+                  >
                     <SelectTrigger data-testid='select-status-filter'>
                       <SelectValue placeholder={t('allStatus')} />
                     </SelectTrigger>
@@ -601,7 +618,10 @@ export default function ManagerDemandsPage() {
                 label: t('type'),
                 type: 'custom',
                 customComponent: (
-                  <Select value={typeFilter} onValueChange={setTypeFilter}>
+                  <Select
+                    value={typeFilter}
+                    onValueChange={(value) => startTransition(() => setTypeFilter(value))}
+                  >
                     <SelectTrigger data-testid='select-type-filter'>
                       <SelectValue placeholder={t('allTypes')} />
                     </SelectTrigger>
@@ -622,7 +642,10 @@ export default function ManagerDemandsPage() {
                 label: t('building'),
                 type: 'custom',
                 customComponent: (
-                  <Select value={buildingFilter} onValueChange={setBuildingFilter}>
+                  <Select
+                    value={buildingFilter}
+                    onValueChange={(value) => startTransition(() => setBuildingFilter(value))}
+                  >
                     <SelectTrigger data-testid='select-building-filter'>
                       <SelectValue placeholder={t('allBuildings')} />
                     </SelectTrigger>
@@ -644,7 +667,10 @@ export default function ManagerDemandsPage() {
                 label: t('residence'),
                 type: 'custom',
                 customComponent: (
-                  <Select value={residenceFilter} onValueChange={setResidenceFilter}>
+                  <Select
+                    value={residenceFilter}
+                    onValueChange={(value) => startTransition(() => setResidenceFilter(value))}
+                  >
                     <SelectTrigger data-testid='select-residence-filter'>
                       <SelectValue placeholder={t('allResidences')} />
                     </SelectTrigger>
@@ -666,7 +692,10 @@ export default function ManagerDemandsPage() {
                 label: t('creator'),
                 type: 'custom',
                 customComponent: (
-                  <Select value={creatorFilter} onValueChange={setCreatorFilter}>
+                  <Select
+                    value={creatorFilter}
+                    onValueChange={(value) => startTransition(() => setCreatorFilter(value))}
+                  >
                     <SelectTrigger data-testid='select-creator-filter'>
                       <SelectValue placeholder={t('allCreators')} />
                     </SelectTrigger>
@@ -723,12 +752,19 @@ export default function ManagerDemandsPage() {
               }] : []),
             ]}
             onReset={() => {
+              // Keep the controlled search input update urgent so the field
+              // clears instantly, but defer the heavy non-text filter resets
+              // (which trigger refiltering of the demands table + the three
+              // cascading option memos) — same pattern as the per-filter
+              // Select handlers above.
               setSearch('');
-              setStatusFilter('all');
-              setTypeFilter('all');
-              setBuildingFilter('all');
-              setResidenceFilter('all');
-              setCreatorFilter('all');
+              startTransition(() => {
+                setStatusFilter('all');
+                setTypeFilter('all');
+                setBuildingFilter('all');
+                setResidenceFilter('all');
+                setCreatorFilter('all');
+              });
             }}
             resetLabel={t('clearFilters')}
           />
@@ -771,7 +807,7 @@ export default function ManagerDemandsPage() {
                   <Button
                     variant='outline'
                     size='sm'
-                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    onClick={() => startTransition(() => setCurrentPage(p => Math.max(1, p - 1)))}
                     disabled={currentPage === 1}
                     data-testid='button-previous-page'
                   >
@@ -784,7 +820,7 @@ export default function ManagerDemandsPage() {
                   <Button
                     variant='outline'
                     size='sm'
-                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    onClick={() => startTransition(() => setCurrentPage(p => Math.min(totalPages, p + 1)))}
                     disabled={currentPage === totalPages}
                     data-testid='button-next-page'
                   >

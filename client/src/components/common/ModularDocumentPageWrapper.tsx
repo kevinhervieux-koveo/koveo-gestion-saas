@@ -1,5 +1,5 @@
 // @ts-nocheck — Pre-existing type errors tracked in TYPE_CHECK_DEBT.md (task #769)
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, startTransition, useDeferredValue } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useLocation, useParams } from 'wouter';
 import { Grid, List, ArrowLeft, Plus, Search, Filter, Building, Home, ChevronDown, ChevronRight, Eye, CheckSquare, Trash2, X } from 'lucide-react';
@@ -438,6 +438,14 @@ export default function ModularDocumentPageWrapper({
   const [showOnlyLinked, setShowOnlyLinked] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
+  // Mirror the urgent search box value through useDeferredValue so the
+  // (potentially heavy) document filter+group recompute below runs at
+  // lower priority. The Input keeps using the urgent `searchTerm` so the
+  // typed characters appear instantly while large document lists silently
+  // re-filter in the background — eliminating the "[Violation] 'input'
+  // handler took N ms" warnings on this page.
+  const deferredSearchTerm = useDeferredValue(searchTerm);
+
   // Mirror the active filter state into the URL search params so reloads
   // and shared links keep the same filtered view. We use replaceState to
   // avoid polluting browser history while typing in the search box and to
@@ -487,7 +495,10 @@ export default function ModularDocumentPageWrapper({
     return new Set(categories.map(cat => cat.value).filter(val => val !== 'all'));
   });
 
-  // Toggle category expansion
+  // Toggle category expansion. Wrap the state update in startTransition so
+  // the click handler returns immediately — expanding a section that
+  // contains many DocumentCards no longer trips the "[Violation] 'click'
+  // handler took N ms" warning.
   const toggleCategory = (category: string) => {
     const newExpanded = new Set(expandedCategories);
     if (newExpanded.has(category)) {
@@ -495,7 +506,9 @@ export default function ModularDocumentPageWrapper({
     } else {
       newExpanded.add(category);
     }
-    setExpandedCategories(newExpanded);
+    startTransition(() => {
+      setExpandedCategories(newExpanded);
+    });
   };
 
   // Get entityId from URL (both path param and query param)
@@ -607,8 +620,8 @@ export default function ModularDocumentPageWrapper({
 
   // Filter and search documents
   const filteredDocuments = Array.isArray(documents) ? documents.filter(doc => {
-    const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         doc.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = doc.name.toLowerCase().includes(deferredSearchTerm.toLowerCase()) ||
+                         doc.description?.toLowerCase().includes(deferredSearchTerm.toLowerCase());
     
     const matchesCategory = selectedCategory === 'all' || doc.category === selectedCategory || doc.documentType === selectedCategory;
 
@@ -755,12 +768,18 @@ export default function ModularDocumentPageWrapper({
   };
 
   const clearFilters = () => {
+    // Keep the controlled search input update urgent so the field clears
+    // instantly, but defer the heavy non-text filter resets (which trigger
+    // refiltering of the documents list) — same pattern as the per-filter
+    // Select / Checkbox handlers below.
     setSearchTerm('');
-    setSelectedCategory('all');
-    setSelectedYear('all');
-    setSelectedMonth('all');
-    setShowOnlyManagerOnly(false);
-    setShowOnlyLinked(false);
+    startTransition(() => {
+      setSelectedCategory('all');
+      setSelectedYear('all');
+      setSelectedMonth('all');
+      setShowOnlyManagerOnly(false);
+      setShowOnlyLinked(false);
+    });
   };
 
   // Bulk delete handlers
@@ -955,7 +974,10 @@ export default function ModularDocumentPageWrapper({
                 {/* Category Filter */}
                 <div className="space-y-2">
                   <label className="text-sm font-medium">{t('category')}</label>
-                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                  <Select
+                    value={selectedCategory}
+                    onValueChange={(value) => startTransition(() => setSelectedCategory(value))}
+                  >
                     <SelectTrigger data-testid="select-category-filter">
                       <SelectValue placeholder={t('allCategories')} />
                     </SelectTrigger>
@@ -973,21 +995,23 @@ export default function ModularDocumentPageWrapper({
                 <div className="space-y-2">
                   <label className="text-sm font-medium">{t('year')}</label>
                   <Select value={selectedYear} onValueChange={(value) => {
-                    setSelectedYear(value);
-                    // Reset month if selected month is not available for the new year
-                    if (value !== 'all') {
-                      const yearDocs = documents.filter(doc => {
-                        const d = filterDateOf(doc);
-                        return d ? d.getFullYear().toString() === value : false;
-                      });
-                      const yearMonths = Array.from(new Set(yearDocs.map(doc => {
-                        const d = filterDateOf(doc);
-                        return d ? d.getMonth() + 1 : null;
-                      }).filter(m => m !== null)));
-                      if (selectedMonth !== 'all' && !yearMonths.includes(parseInt(selectedMonth))) {
-                        setSelectedMonth('all');
+                    startTransition(() => {
+                      setSelectedYear(value);
+                      // Reset month if selected month is not available for the new year
+                      if (value !== 'all') {
+                        const yearDocs = documents.filter(doc => {
+                          const d = filterDateOf(doc);
+                          return d ? d.getFullYear().toString() === value : false;
+                        });
+                        const yearMonths = Array.from(new Set(yearDocs.map(doc => {
+                          const d = filterDateOf(doc);
+                          return d ? d.getMonth() + 1 : null;
+                        }).filter(m => m !== null)));
+                        if (selectedMonth !== 'all' && !yearMonths.includes(parseInt(selectedMonth))) {
+                          setSelectedMonth('all');
+                        }
                       }
-                    }
+                    });
                   }}>
                     <SelectTrigger data-testid="select-year-filter">
                       <SelectValue placeholder={t('allYears')} />
@@ -1006,7 +1030,10 @@ export default function ModularDocumentPageWrapper({
                 {/* Month Filter */}
                 <div className="space-y-2">
                   <label className="text-sm font-medium">{t('month')}</label>
-                  <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                  <Select
+                    value={selectedMonth}
+                    onValueChange={(value) => startTransition(() => setSelectedMonth(value))}
+                  >
                     <SelectTrigger data-testid="select-month-filter">
                       <SelectValue placeholder={t('allMonths')} />
                     </SelectTrigger>
@@ -1028,7 +1055,7 @@ export default function ModularDocumentPageWrapper({
                   <label className="text-sm font-medium">{t('tags')}</label>
                   <TagPicker
                     value={selectedTagIds}
-                    onChange={setSelectedTagIds}
+                    onChange={(ids) => startTransition(() => setSelectedTagIds(ids))}
                     placeholder={t('filterByTags')}
                   />
                 </div>
@@ -1085,7 +1112,7 @@ export default function ModularDocumentPageWrapper({
                       <Button
                         variant={viewMode === 'grid' ? 'default' : 'outline'}
                         size="sm"
-                        onClick={() => setViewMode('grid')}
+                        onClick={() => startTransition(() => setViewMode('grid'))}
                         data-testid="button-grid-view"
                       >
                         <Grid className="w-4 h-4" />
@@ -1093,7 +1120,7 @@ export default function ModularDocumentPageWrapper({
                       <Button
                         variant={viewMode === 'list' ? 'default' : 'outline'}
                         size="sm"
-                        onClick={() => setViewMode('list')}
+                        onClick={() => startTransition(() => setViewMode('list'))}
                         data-testid="button-list-view"
                       >
                         <List className="w-4 h-4" />
@@ -1126,7 +1153,9 @@ export default function ModularDocumentPageWrapper({
                   <Checkbox
                     id="filter-manager-only"
                     checked={showOnlyManagerOnly}
-                    onCheckedChange={(checked) => setShowOnlyManagerOnly(checked === true)}
+                    onCheckedChange={(checked) =>
+                      startTransition(() => setShowOnlyManagerOnly(checked === true))
+                    }
                     data-testid="checkbox-filter-manager-only"
                   />
                   <Label
@@ -1142,7 +1171,9 @@ export default function ModularDocumentPageWrapper({
                 <Checkbox
                   id="filter-has-links"
                   checked={showOnlyLinked}
-                  onCheckedChange={(checked) => setShowOnlyLinked(checked === true)}
+                  onCheckedChange={(checked) =>
+                    startTransition(() => setShowOnlyLinked(checked === true))
+                  }
                   data-testid="checkbox-filter-has-links"
                 />
                 <Label

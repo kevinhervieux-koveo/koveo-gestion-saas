@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, startTransition, useDeferredValue } from 'react';
 import { format as formatDate } from 'date-fns';
 import { Header } from '@/components/layout/header';
 import { AiUnavailableBanner } from '@/components/common/AiUnavailableBanner';
@@ -280,9 +280,19 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
     enabled: !!buildingId
   });
 
+  // Mirror the active filters through useDeferredValue so React can keep
+  // the urgent text inputs (search / vendor / issue-date) snappy: the
+  // controlled inputs read from the urgent `filters` object and update
+  // instantly, while the heavy `/api/bills` refetch + grouped category
+  // re-render run against `deferredFilters` at lower priority. This is
+  // the same defer pattern adopted on InventoryPage (task #1147) and
+  // eliminates the "[Violation] 'input'/'click' handler took N ms"
+  // warnings on the bills manager page.
+  const deferredFilters = useDeferredValue(filters);
+
   // Fetch bills based on filters
   const { data: bills = [], isLoading } = useQuery<Bill[]>({
-    queryKey: ['/api/bills', buildingId, filters],
+    queryKey: ['/api/bills', buildingId, deferredFilters],
     queryFn: async () => {
       const params = new URLSearchParams(); /**
        * If function.
@@ -302,8 +312,8 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
        * @param filters.category && filters.category !== 'all' - filters.category && filters.category !== 'all' parameter.
        */
 
-      if (filters.category && filters.category !== 'all') {
-        params.set('category', filters.category);
+      if (deferredFilters.category && deferredFilters.category !== 'all') {
+        params.set('category', deferredFilters.category);
       } /**
        * If function.
        * @param filters.year - Filters.year parameter.
@@ -312,8 +322,8 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
        * @param filters.year - Filters.year parameter.
        */
 
-      if (filters.year) {
-        params.set('year', filters.year);
+      if (deferredFilters.year) {
+        params.set('year', deferredFilters.year);
       } /**
        * If function.
        * @param filters.months.length > 0 - filters.months.length > 0 parameter.
@@ -322,36 +332,36 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
        * @param filters.months.length > 0 - filters.months.length > 0 parameter.
        */
 
-      if (filters.months.length > 0) {
-        params.set('months', filters.months.join(','));
+      if (deferredFilters.months.length > 0) {
+        params.set('months', deferredFilters.months.join(','));
       }
 
-      if (filters.billType && filters.billType !== 'all') {
-        params.set('billType', filters.billType);
+      if (deferredFilters.billType && deferredFilters.billType !== 'all') {
+        params.set('billType', deferredFilters.billType);
       }
 
-      if (filters.paymentStructure && filters.paymentStructure !== 'all') {
-        params.set('paymentStructure', filters.paymentStructure);
+      if (deferredFilters.paymentStructure && deferredFilters.paymentStructure !== 'all') {
+        params.set('paymentStructure', deferredFilters.paymentStructure);
       }
 
-      if (filters.status && filters.status !== 'all') {
-        params.set('status', filters.status);
+      if (deferredFilters.status && deferredFilters.status !== 'all') {
+        params.set('status', deferredFilters.status);
       }
 
-      if (filters.vendor && filters.vendor.trim()) {
-        params.set('vendor', filters.vendor.trim());
+      if (deferredFilters.vendor && deferredFilters.vendor.trim()) {
+        params.set('vendor', deferredFilters.vendor.trim());
       }
 
-      if (filters.search && filters.search.trim()) {
-        params.set('search', filters.search.trim());
+      if (deferredFilters.search && deferredFilters.search.trim()) {
+        params.set('search', deferredFilters.search.trim());
       }
 
-      if (filters.issueDateFrom) {
-        params.set('issueDateFrom', filters.issueDateFrom);
+      if (deferredFilters.issueDateFrom) {
+        params.set('issueDateFrom', deferredFilters.issueDateFrom);
       }
 
-      if (filters.issueDateTo) {
-        params.set('issueDateTo', filters.issueDateTo);
+      if (deferredFilters.issueDateTo) {
+        params.set('issueDateTo', deferredFilters.issueDateTo);
       }
 
       const url = `/api/bills${params.toString() ? '?' + params.toString() : ''}`;
@@ -411,25 +421,50 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
     return acc;
   }, {});
 
+  // Filter keys backed by free-form text inputs. Updating these must stay
+  // synchronous so the controlled <Input>s feel instant as the user
+  // types — only Select/Checkbox-style filters get dispatched through
+  // startTransition below.
+  const TEXT_FILTER_KEYS = new Set<keyof BillFilters>([
+    'search',
+    'vendor',
+    'issueDateFrom',
+    'issueDateTo',
+  ]);
+
   const handleFilterChange = (key: keyof BillFilters, value: string | string[]) => {
-    setFilters((prev) => ({ ...prev, [key]: value }));
+    if (TEXT_FILTER_KEYS.has(key)) {
+      // Urgent: keep the controlled text input snappy.
+      setFilters((prev) => ({ ...prev, [key]: value }));
+    } else {
+      // Defer category/year/month/billType/paymentStructure/status changes
+      // so the heavy refetch + grouped category re-render runs at lower
+      // priority and the click handler returns immediately.
+      startTransition(() => {
+        setFilters((prev) => ({ ...prev, [key]: value }));
+      });
+    }
   };
 
   const clearAllFilters = () => {
-    setFilters({
-      category: '',
-      year: currentFinancialYear.label,
-      months: [],
-      billType: '',
-      paymentStructure: '',
-      status: '',
-      vendor: '',
-      search: '',
-      issueDateFrom: '',
-      issueDateTo: '',
+    // Resetting every filter at once is heavy — wrap the whole reset in a
+    // transition so the click on the "clear" button stays responsive.
+    startTransition(() => {
+      setFilters({
+        category: '',
+        year: currentFinancialYear.label,
+        months: [],
+        billType: '',
+        paymentStructure: '',
+        status: '',
+        vendor: '',
+        search: '',
+        issueDateFrom: '',
+        issueDateTo: '',
+      });
+      setSortField('');
+      setSortDirection('asc');
     });
-    setSortField('');
-    setSortDirection('asc');
     // The shared `urlSync` writers in useTableState/useSearchFilter clean
     // up the bill-related query params automatically because the year
     // now matches its default and every other filter is empty.
@@ -450,20 +485,26 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
   };
 
   const handleMonthToggle = (monthValue: string) => {
-    setFilters((prev) => ({
-      ...prev,
-      months: prev.months.includes(monthValue)
-        ? prev.months.filter((m) => m !== monthValue)
-        : [...prev.months, monthValue],
-    }));
+    // Wrapped in startTransition so toggling a month checkbox doesn't
+    // block the click while the bills list re-fetches and re-groups.
+    startTransition(() => {
+      setFilters((prev) => ({
+        ...prev,
+        months: prev.months.includes(monthValue)
+          ? prev.months.filter((m) => m !== monthValue)
+          : [...prev.months, monthValue],
+      }));
+    });
   };
 
   const handleAllMonthsToggle = () => {
     const allMonthValues = getMonths(t).map((m) => m.value);
-    setFilters((prev) => ({
-      ...prev,
-      months: prev.months.length === allMonthValues.length ? [] : allMonthValues,
-    }));
+    startTransition(() => {
+      setFilters((prev) => ({
+        ...prev,
+        months: prev.months.length === allMonthValues.length ? [] : allMonthValues,
+      }));
+    });
   };
 
   const getMonthsDisplayText = () => {
@@ -658,7 +699,7 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
                             onMouseDown={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
-                              setShowAllFutureYears(true);
+                              startTransition(() => setShowAllFutureYears(true));
                             }}
                             className='w-full text-left text-xs text-blue-600 hover:bg-blue-50 px-2 py-1.5 border-t mt-1'
                             data-testid='button-load-25-years'
@@ -923,7 +964,7 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
               <Button
                 variant={sortField === 'issueDate' ? 'default' : 'outline'}
                 size='sm'
-                onClick={() => handleSort('issueDate')}
+                onClick={() => startTransition(() => handleSort('issueDate'))}
                 className='h-8'
                 data-testid='button-sort-issue-date'
               >
@@ -939,7 +980,7 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
               <Button
                 variant={sortField === 'dueDate' ? 'default' : 'outline'}
                 size='sm'
-                onClick={() => handleSort('dueDate')}
+                onClick={() => startTransition(() => handleSort('dueDate'))}
                 className='h-8'
                 data-testid='button-sort-due-date'
               >
@@ -955,7 +996,7 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
               <Button
                 variant={sortField === 'amount' ? 'default' : 'outline'}
                 size='sm'
-                onClick={() => handleSort('amount')}
+                onClick={() => startTransition(() => handleSort('amount'))}
                 className='h-8'
                 data-testid='button-sort-amount'
               >

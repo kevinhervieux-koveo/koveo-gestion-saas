@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, startTransition, useDeferredValue } from 'react';
 import { logDebug } from '@/lib/logger';
 import { useTableState } from '@/lib/common-hooks';
 import { useQuery } from '@tanstack/react-query';
@@ -123,6 +123,13 @@ function ManagerResidences({ organizationId, buildingId, showBackButton, backBut
   } = tableState;
   const selectedFloor = filters.floor;
 
+  // Defer the search term for the (potentially heavy) residences query so
+  // typing in the search box stays responsive even while the network
+  // refetch + grid re-render run at lower priority. The controlled input
+  // still uses `searchTerm` so the value updates urgently as the user
+  // types.
+  const deferredSearchTerm = useDeferredValue(searchTerm);
+
   // Component initialization logging
   useEffect(() => {
     logDebug('🔍 [RESIDENCES] Component mounted', { organizationId, buildingId });
@@ -145,9 +152,9 @@ function ManagerResidences({ organizationId, buildingId, showBackButton, backBut
     isLoading: residencesLoading,
     refetch,
   } = useQuery({
-    queryKey: ['/api/residences', searchTerm, selectedFloor, buildingId],
+    queryKey: ['/api/residences', deferredSearchTerm, selectedFloor, buildingId],
     queryFn: async () => {
-      logDebug('🔍 [RESIDENCES] Fetching residences with params:', { searchTerm, selectedFloor, buildingId });
+      logDebug('🔍 [RESIDENCES] Fetching residences with params:', { searchTerm: deferredSearchTerm, selectedFloor, buildingId });
       const params = new URLSearchParams(); /**
        * If function.
        * @param searchTerm - SearchTerm parameter.
@@ -156,8 +163,8 @@ function ManagerResidences({ organizationId, buildingId, showBackButton, backBut
        * @param searchTerm - SearchTerm parameter.
        */
 
-      if (searchTerm) {
-        params.append('search', searchTerm);
+      if (deferredSearchTerm) {
+        params.append('search', deferredSearchTerm);
       }
       
       // Filter by the selected building from hierarchy
@@ -232,8 +239,14 @@ function ManagerResidences({ organizationId, buildingId, showBackButton, backBut
 
   const handleFloorChange = (value: string) => {
     logDebug('🔍 [RESIDENCES] User action: Floor filter changed', { floor: value });
-    updateFilter('floor', value);
-    setCurrentPage(1);
+    // Wrap the non-text filter setter in startTransition so the click on
+    // the Select trigger returns immediately — the residences refetch +
+    // grid re-render run at lower priority and no longer trip the
+    // "[Violation] 'click' handler took N ms" warning.
+    startTransition(() => {
+      updateFilter('floor', value);
+      setCurrentPage(1);
+    });
   };
 
   const handleSearchChange = (value: string) => {
