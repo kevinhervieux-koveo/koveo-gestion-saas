@@ -96,9 +96,53 @@ place to put potentially large, short-lived files. Common reasons:
   files vanish on reboot. That is safe (nothing is committed until the
   admin links the item) but admins with an in-flight session at the time
   of a restart will need to re-upload.
+- **Watch for the disk-usage signal (Task #1088).** Every staging-janitor
+  pass (once at startup and then every 15 minutes) probes the volume that
+  holds the resolved staging root and emits a log line:
+
+  - At healthy levels, an `INFO` line:
+
+    ```
+    [bulk-import] staging disk usage
+      stagingRoot=<resolved path>
+      freeBytes=<bytes>  totalBytes=<bytes>  freePercent=<%>
+    ```
+
+  - When free space drops below **either** 1 GiB **or** 10 % of the
+    volume, a `WARN` line:
+
+    ```
+    [bulk-import] staging disk free space is LOW —
+      expand the volume or repoint BULK_IMPORT_STAGING_ROOT at a larger disk
+    ```
+
+  Either threshold can fire — small disks are caught by the percentage
+  rule and large disks are caught by the absolute rule, so neither
+  shape gets a false sense of security. Wire your alerting on the
+  `WARN` line (the literal phrase `staging disk free space is LOW` is
+  stable and safe to grep). Two reasonable responses to the alert:
+
+  1. Expand the underlying volume in place (preferred when staging
+     already lives on its own disk), or
+  2. Set `BULK_IMPORT_STAGING_ROOT` to a path on a larger volume and
+     restart the app — the next pass will probe the new volume and
+     the warning will clear.
+
+  **Log-level note.** The recurring healthy `INFO` line is only
+  visible when the app is configured at INFO or below. In production
+  the logger defaults to `WARN` (see `server/utils/logger.ts`), so by
+  default ops will only see the `WARN` low-space line and not the
+  routine gauge. To turn on the recurring gauge in a production
+  deployment, set `LOG_LEVEL=INFO` in the deployment environment. The
+  `WARN` low-space line fires at the default level either way, so
+  alert rules need no extra configuration.
 
 ## Related code
 
 - `server/api/bulk-import.ts` — `getBulkImportStagingRoot()` and
   `DEFAULT_STAGING_ROOT`, plus every caller (upload route, `stagingDirFor`,
-  `safeRmSession`, `sweepStagingOrphans`).
+  `safeRmSession`, `sweepStagingOrphans`). The disk-usage signal lives
+  alongside the janitor: `getStagingDiskUsage()` does the `statfs` probe
+  and `runStagingJanitorOnce()` emits the `INFO` / `WARN` log lines on
+  every pass. Thresholds are exported as `STAGING_LOW_FREE_BYTES` and
+  `STAGING_LOW_FREE_RATIO` so any future tweak is one place.

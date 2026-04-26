@@ -314,6 +314,87 @@ export async function sweepStagingOrphans(opts?: {
 let stagingJanitorTimer: ReturnType<typeof setInterval> | null = null;
 
 /**
+ * Free-space thresholds for the staging-disk health probe (Task #1088).
+ * The janitor logs a `WARN` when **either** is breached so an alerting
+ * rule can fire on the warn line:
+ *   - `STAGING_LOW_FREE_BYTES` covers small disks where 10 % is still a
+ *     lot of headroom (a 200 GB volume with 19 GB free should not warn).
+ *   - `STAGING_LOW_FREE_RATIO` covers large disks where 1 GB free is
+ *     dangerously little even though the absolute number sounds fine
+ *     (a 4 TB volume with 800 MB free is one big upload from full).
+ *
+ * Exported so tests can drive the threshold logic without hard-coding
+ * the same numbers in two places.
+ */
+export const STAGING_LOW_FREE_BYTES = 1024 * 1024 * 1024;
+export const STAGING_LOW_FREE_RATIO = 0.1;
+
+/**
+ * Snapshot of the staging volume's free / total space (Task #1088).
+ * Returned by `getStagingDiskUsage()` so the janitor can both log a
+ * routine info line every pass and warn when either threshold above is
+ * breached. Surfaced as a typed shape so the same struct can later feed
+ * a `/api/health` field or a Prometheus gauge without re-deriving it.
+ */
+export type StagingDiskUsage = {
+  root: string;
+  freeBytes: number;
+  totalBytes: number;
+  freeRatio: number;
+  isLow: boolean;
+};
+
+/**
+ * Probe the volume that holds the bulk-import staging tree and report
+ * its free / total space (Task #1088). Resolves the staging root via
+ * `getBulkImportStagingRoot()` so a `BULK_IMPORT_STAGING_ROOT`
+ * pointing at a separate volume is reflected here too.
+ *
+ * If the staging root has not been created yet (a brand-new install
+ * where no upload has run), we `statfs` the nearest existing ancestor
+ * instead — the disk numbers we want describe the *volume*, not the
+ * directory entry, so the parent answer is correct.
+ *
+ * Returns `null` (and logs an error) if `statfs` itself fails so the
+ * caller can decide whether that should be fatal. Today the janitor
+ * just skips the report and tries again next pass.
+ */
+export async function getStagingDiskUsage(): Promise<StagingDiskUsage | null> {
+  const root = getBulkImportStagingRoot();
+  let probe = root;
+  // Walk up to the nearest existing ancestor when the staging dir
+  // itself does not exist yet. Bounded by `path.dirname` reaching the
+  // filesystem root (where dirname returns the same path).
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    try {
+      await fs.promises.access(probe);
+      break;
+    } catch {
+      const parent = path.dirname(probe);
+      if (parent === probe) break;
+      probe = parent;
+    }
+  }
+  try {
+    const s = await fs.promises.statfs(probe);
+    const bsize = Number(s.bsize);
+    const freeBytes = Number(s.bavail) * bsize;
+    const totalBytes = Number(s.blocks) * bsize;
+    const freeRatio = totalBytes > 0 ? freeBytes / totalBytes : 0;
+    const isLow =
+      freeBytes < STAGING_LOW_FREE_BYTES || freeRatio < STAGING_LOW_FREE_RATIO;
+    return { root, freeBytes, totalBytes, freeRatio, isLow };
+  } catch (err) {
+    logError(
+      '[bulk-import] failed to read staging disk usage',
+      err as Error,
+    );
+    return null;
+  }
+}
+
+/**
  * Start the staging janitor (Task #1066): runs `sweepStagingOrphans`
  * once on startup and then on a recurring interval. Idempotent — a
  * second call is a no-op so a hot-reload during development cannot
@@ -344,6 +425,12 @@ export function stopStagingJanitor(): void {
   }
 }
 
+/**
+ * One janitor pass: sweep orphans (Task #1066) and report disk usage
+ * (Task #1088). The two checks are independent — a failure in one is
+ * logged but never aborts the other — so a transient `statfs` error
+ * cannot stop the orphan sweep from running, and vice versa.
+ */
 async function runStagingJanitorOnce(): Promise<void> {
   try {
     const r = await sweepStagingOrphans();
@@ -358,6 +445,37 @@ async function runStagingJanitorOnce(): Promise<void> {
     }
   } catch (err) {
     logError('[bulk-import] staging janitor crashed', err as Error);
+  }
+
+  // Disk-usage probe (Task #1088). Runs every janitor pass — a recurring
+  // info line gives ops a periodic gauge they can scrape, and a warn
+  // line fires when the volume is filling up so an alert rule has
+  // something to match on.
+  try {
+    const usage = await getStagingDiskUsage();
+    if (usage) {
+      const metadata = {
+        stagingRoot: usage.root,
+        freeBytes: usage.freeBytes,
+        totalBytes: usage.totalBytes,
+        freePercent: Math.round(usage.freeRatio * 1000) / 10,
+        lowFreeBytesThreshold: STAGING_LOW_FREE_BYTES,
+        lowFreeRatioThreshold: STAGING_LOW_FREE_RATIO,
+      };
+      if (usage.isLow) {
+        logWarn(
+          '[bulk-import] staging disk free space is LOW — expand the volume or repoint BULK_IMPORT_STAGING_ROOT at a larger disk',
+          { metadata },
+        );
+      } else {
+        logInfo('[bulk-import] staging disk usage', { metadata });
+      }
+    }
+  } catch (err) {
+    logError(
+      '[bulk-import] staging disk usage probe crashed',
+      err as Error,
+    );
   }
 }
 
