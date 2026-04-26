@@ -42,6 +42,16 @@ Ensure these environment variables are set in production:
 - `NODE_ENV=production`
 - `PORT` (usually 5000)
 
+Optional runtime knobs that operators commonly want to tune:
+
+- `BULK_IMPORT_STAGING_ROOT` - Where the admin Bulk Document Import wizard
+  streams uploaded files before they are linked. Defaults to
+  `<cwd>/.staging/bulk-import`. Point this at a faster disk, a larger
+  data volume, or a tmpfs mount when the default location is too slow or
+  too small. See [`bulk-import-staging.md`](./bulk-import-staging.md) for
+  the full runbook and an example value (also commented out in
+  `.env.deployment.example`).
+
 ## Testing After Deployment
 
 1. **Test Document Upload:**
