@@ -1,15 +1,19 @@
 /**
- * Task #804 — Excluded files hidden from step 3+ in Bulk Document Import.
+ * Task #804 / Task #1225 — Excluded file visibility in Bulk Document Import.
  *
- * Files marked as `rejected` (Excluded) must:
- *   - Still appear on the Screening step (step 2) so admins can re-include them.
- *   - Be completely hidden (no row, no badge, no placeholder) on every later
- *     step: Branching (step 3), Sorting (step 4), Identification (step 5),
- *     Linking (step 6), and Complete (step 7).
- *   - Not count in Branching section item badges.
- *   - Cause empty Branching groups to disappear.
+ * Task #804 originally hid excluded (`rejected`) files from step 3+ so later
+ * steps stayed uncluttered. Task #1225 reverses this for every AI auto-step
+ * (Branching, Sorting, Identification, Linking) so that admins can click the
+ * per-row Retry button on excluded rows without first un-excluding the row.
  *
- * Without this suite the hiding logic could silently regress.
+ * The updated rules are:
+ *   - Screening step (step 2): excluded rows still appear (unchanged).
+ *   - AI auto-steps (Branching, Sorting, Identification, Linking): excluded
+ *     rows are NOW VISIBLE with strikethrough styling and a Retry button that
+ *     carries the "this row will remain excluded" warning aria-label.
+ *   - Complete step (step 7): excluded rows still hidden (non-auto-step).
+ *
+ * Without this suite the visibility behaviour could silently regress.
  */
 
 import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
@@ -257,6 +261,9 @@ describe('BulkDocumentImportPage — excluded file visibility (Task #804)', () =
 
   // ---------------------------------------------------------------------------
   // Flat list steps: Sorting, Identification, Linking
+  // Task #1225 reversed Task #804 for AI auto-steps: excluded rows ARE now
+  // visible so admins can reach the per-row Retry button without first
+  // un-excluding the file.
   // ---------------------------------------------------------------------------
 
   describe.each([
@@ -264,7 +271,7 @@ describe('BulkDocumentImportPage — excluded file visibility (Task #804)', () =
     ['identification', 'branched'],
     ['linking', 'identified'],
   ] as const)('on the %s step', (step, includedStatus) => {
-    it('hides the excluded file row', async () => {
+    it('shows the excluded file row with strikethrough styling (Task #1225)', async () => {
       const items = [
         buildItem(INCLUDED_ITEM_ID, includedStatus),
         buildItem(EXCLUDED_ITEM_ID, 'rejected'),
@@ -275,20 +282,19 @@ describe('BulkDocumentImportPage — excluded file visibility (Task #804)', () =
 
       await waitForRowEither(INCLUDED_ITEM_ID);
 
-      expect(screen.queryByTestId(`item-row-${EXCLUDED_ITEM_ID}`)).not.toBeInTheDocument();
-      expect(screen.queryByTestId(`linking-row-${EXCLUDED_ITEM_ID}`)).not.toBeInTheDocument();
-      expect(screen.queryByTestId(`badge-excluded-${EXCLUDED_ITEM_ID}`)).not.toBeInTheDocument();
+      // Task #1225: excluded rows are now visible on every AI auto-step.
+      expect(screen.getByTestId(`item-row-${EXCLUDED_ITEM_ID}`)).toBeInTheDocument();
     });
 
-    it('shows "No items" empty state when every item is excluded', async () => {
+    it('shows the excluded file row even when it is the only item (Task #1225)', async () => {
       const items = [buildItem(EXCLUDED_ITEM_ID, 'rejected')];
       setupTest(step, items);
 
       renderPage();
 
-      const noItems = await screen.findByText('No items', undefined, { timeout: 4000 });
-      expect(noItems).toBeInTheDocument();
-      expect(screen.queryByTestId(`item-row-${EXCLUDED_ITEM_ID}`)).not.toBeInTheDocument();
+      // Excluded item is now rendered (not hidden) on AI auto-steps.
+      const row = await screen.findByTestId(`item-row-${EXCLUDED_ITEM_ID}`, undefined, { timeout: 4000 });
+      expect(row).toBeInTheDocument();
     });
   });
 
@@ -296,7 +302,7 @@ describe('BulkDocumentImportPage — excluded file visibility (Task #804)', () =
   // Branching step: grouped renderer
   // ---------------------------------------------------------------------------
 
-  it('hides the excluded file from the Branching grouped renderer', async () => {
+  it('shows the excluded file in the Branching grouped renderer with strikethrough styling (Task #1225)', async () => {
     const items = [
       buildItem(INCLUDED_ITEM_ID, 'branched', 'building_documents'),
       buildItem(EXCLUDED_ITEM_ID, 'rejected', 'building_documents'),
@@ -307,11 +313,12 @@ describe('BulkDocumentImportPage — excluded file visibility (Task #804)', () =
 
     await screen.findByTestId(`item-row-${INCLUDED_ITEM_ID}`, undefined, { timeout: 4000 });
 
-    expect(screen.queryByTestId(`item-row-${EXCLUDED_ITEM_ID}`)).not.toBeInTheDocument();
+    // Task #1225: excluded rows are now visible in the Branching grouped view.
+    expect(screen.getByTestId(`item-row-${EXCLUDED_ITEM_ID}`)).toBeInTheDocument();
     expect(screen.getByTestId(`item-row-${INCLUDED_ITEM_ID}`)).toBeInTheDocument();
   });
 
-  it('reflects only non-excluded items in the Branching section count badge', async () => {
+  it('Branching section count badge includes excluded items (Task #1225)', async () => {
     const items = [
       buildItem(INCLUDED_ITEM_ID, 'branched', 'building_documents'),
       buildItem(EXCLUDED_ITEM_ID, 'rejected', 'building_documents'),
@@ -320,14 +327,18 @@ describe('BulkDocumentImportPage — excluded file visibility (Task #804)', () =
 
     renderPage();
 
+    // Task #1225: excluded items are now included in branchingItems so the
+    // section count badge reflects both items (not just the non-excluded one).
     const countBadge = await screen.findByTestId('branching-section-count-building_documents', undefined, { timeout: 4000 });
-    expect(countBadge).toHaveTextContent('1');
+    expect(countBadge).toHaveTextContent('2');
   });
 
-  it('hides a Branching group entirely when all its items are excluded', async () => {
+  it('shows a Branching group even when all its items are excluded (Task #1225)', async () => {
+    // Note: 'other' is used for the excluded item because branch destinations
+    // must be in BRANCH_DESTINATION_ORDER (financial_documents is not valid).
     const items = [
       buildItem(INCLUDED_ITEM_ID, 'branched', 'building_documents'),
-      buildItem(EXCLUDED_ITEM_ID, 'rejected', 'financial_documents'),
+      buildItem(EXCLUDED_ITEM_ID, 'rejected', 'other'),
     ];
     setupTest('branching', items);
 
@@ -335,21 +346,11 @@ describe('BulkDocumentImportPage — excluded file visibility (Task #804)', () =
 
     await screen.findByTestId(`item-row-${INCLUDED_ITEM_ID}`, undefined, { timeout: 4000 });
 
-    expect(screen.queryByTestId('branching-section-financial_documents')).not.toBeInTheDocument();
-    expect(screen.queryByTestId(`item-row-${EXCLUDED_ITEM_ID}`)).not.toBeInTheDocument();
+    // Task #1225: excluded items are now visible, so the 'other' group still
+    // renders even though its only item is excluded.
+    expect(screen.getByTestId('branching-section-other')).toBeInTheDocument();
+    expect(screen.getByTestId(`item-row-${EXCLUDED_ITEM_ID}`)).toBeInTheDocument();
     expect(screen.getByTestId(`item-row-${INCLUDED_ITEM_ID}`)).toBeInTheDocument();
-  });
-
-  it('shows "No items" on the Branching step when every file is excluded', async () => {
-    const items = [buildItem(EXCLUDED_ITEM_ID, 'rejected', 'building_documents')];
-    setupTest('branching', items);
-
-    renderPage();
-
-    await waitFor(() => {
-      expect(screen.getByText('No items')).toBeInTheDocument();
-      expect(screen.queryByTestId('branching-grouped-sections')).not.toBeInTheDocument();
-    }, { timeout: 10000 });
   });
 
   // ---------------------------------------------------------------------------

@@ -725,8 +725,8 @@ function setupExcludedAndNormalSortingItems() {
   ];
 }
 
-describe('BulkDocumentImportPage — excluded files hidden in Branching step (Task #901)', () => {
-  it('hides an admin-excluded item that has sortingDecisionSplitIntoItemIds set', async () => {
+describe('BulkDocumentImportPage — excluded file visibility in Sorting/Branching step (Task #901 / Task #1225)', () => {
+  it('shows admin-excluded item with sortingDecisionSplitIntoItemIds on AI auto-step (Task #1225)', async () => {
     setupExcludedAndNormalSortingItems();
 
     renderPage();
@@ -736,14 +736,15 @@ describe('BulkDocumentImportPage — excluded files hidden in Branching step (Ta
       timeout: 4000,
     });
 
-    // The excluded item must be completely absent from the DOM — neither the
-    // row wrapper nor the preview trigger should be rendered.
+    // Task #1225 reversed Task #804 for AI auto-steps: admin-excluded rows
+    // are now visible on the sorting step so admins can click Retry without
+    // first un-excluding the file. The row renders with strikethrough styling.
     expect(
-      screen.queryByTestId(`item-row-${SORTING_EXCLUDED_ID}`),
-    ).not.toBeInTheDocument();
+      screen.getByTestId(`item-row-${SORTING_EXCLUDED_ID}`),
+    ).toBeInTheDocument();
     expect(
-      screen.queryByTestId(`item-preview-trigger-${SORTING_EXCLUDED_ID}`),
-    ).not.toBeInTheDocument();
+      screen.getByTestId(`item-preview-trigger-${SORTING_EXCLUDED_ID}`),
+    ).toBeInTheDocument();
   });
 
   it('keeps a genuine draft-split lead (preExcludeStatus null) visible in the Branching step', async () => {
@@ -1199,9 +1200,10 @@ describe('BulkDocumentImportPage — hide-ready toggle (Task #1045)', () => {
   }, 10_000);
 
   // ---------------------------------------------------------------------------
-  // Excluded items remain hidden regardless of toggle state (steps 3+)
+  // Excluded items are NOW visible on AI auto-steps (Task #1225 reversed
+  // Task #804 for Branching / Sorting / Identification / Linking steps).
   // ---------------------------------------------------------------------------
-  it('excluded items stay hidden on the branching step regardless of toggle state', async () => {
+  it('excluded items are visible on the branching step (Task #1225)', async () => {
     currentStep = 'branching';
     items = [
       makeItem('excluded-br', 'rejected', {
@@ -1213,12 +1215,16 @@ describe('BulkDocumentImportPage — hide-ready toggle (Task #1045)', () => {
     renderPage();
     await screen.findByTestId('item-preview-trigger-visible-br', undefined, { timeout: 4000 });
 
-    expect(screen.queryByTestId('item-preview-trigger-excluded-br')).not.toBeInTheDocument();
+    // Task #1225: excluded rows are now rendered on the branching step so
+    // the admin can click Retry without first un-excluding the file.
+    expect(screen.getByTestId('item-preview-trigger-excluded-br')).toBeInTheDocument();
 
     await clickToggle();
 
+    // Even with hide-ready toggle ON, the excluded row stays visible because
+    // it is not "ready for the next step" in the branching sense.
     await waitFor(() => {
-      expect(screen.queryByTestId('item-preview-trigger-excluded-br')).not.toBeInTheDocument();
+      expect(screen.getByTestId('item-preview-trigger-excluded-br')).toBeInTheDocument();
     }, { timeout: 4000 });
   }, 10_000);
 

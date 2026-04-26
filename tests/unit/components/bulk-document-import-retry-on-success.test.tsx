@@ -1,38 +1,37 @@
 /**
- * Task #1199 — Inline Retry surfaces on succeeded bulk-import rows.
+ * Task #1199 / Task #1225 — Inline Retry surfaces on every bulk-import row.
  *
  * Background
  * ----------
  * Task #1194 simplified the inline Retry button on the Bulk Document
  * Import wizard so it appears on every non-excluded row that has a
- * retry action — including rows that succeeded normally (no
- * `*Fallback`, no manual override, not in the step's pre-status). The
- * existing retry coverage (`bulk-document-import-retry-isolation`,
- * `bulk-document-import-polled-retry-spinner`,
- * `bulk-document-import-fallback-hint`) only exercises rows that have
- * a step-specific fallback set or rows in a stalled run-all state, so
- * a regression that re-introduced the old `fallbackReason || stalled`
- * gate would silently drop Retry from vanilla succeeded rows again.
+ * retry action. Task #1225 removed the remaining gates: Retry now
+ * appears on excluded rows, rows with manual overrides, and rows that
+ * already succeeded — with a warning title/aria-label when the admin's
+ * manual choice could be overwritten.
  *
  * Coverage
  * --------
  * The page has three usage sites for the inline Retry button (see
  * `bulk-document-import.tsx`):
  *
- *   1. Branching grouped section (~line 4104)
- *      gate: `!item.branchManualOverride`
- *   2. Identification / Linking flat list (~line 5688)
- *      gate: `!(currentStep === 'identification' && item.identificationEffectiveDateManualOverride)`
- *   3. Sorting flat list (~line 6101)
- *      gate: `!item.sortingManualOverride`
+ *   1. Branching grouped section (~line 4619)
+ *      no longer gated on `!item.branchManualOverride` (Task #1225)
+ *   2. Identification / Linking flat list (~line 6306)
+ *      no longer gated on `identificationEffectiveDateManualOverride` (Task #1225)
+ *   3. Sorting flat list (~line 6785)
+ *      no longer gated on `!item.sortingManualOverride` (Task #1225)
  *
  * For each site we assert:
  *   - A vanilla succeeded row (no fallback, no override, not in
  *     pre-status) renders `button-retry-{step}-{itemId}`.
- *   - An excluded row (`status: 'rejected'`) does NOT render the
- *     inline Retry button on that step.
- *   - A row with the relevant manual-override flag does NOT render
- *     the inline Retry button on that step.
+ *   - An excluded row (`status: 'rejected'`) now DOES render the
+ *     inline Retry button on every AI auto-step (Task #1225 reversed
+ *     the Task #804 visibility filter for AI steps) and the button
+ *     carries the "this row will remain excluded" warning aria-label.
+ *   - A row with a manual-override flag DOES render the inline Retry
+ *     button (Task #1225 flip), and the button carries a warning
+ *     title / aria-label.
  */
 
 import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
@@ -134,7 +133,7 @@ const STEP_CONFIG: Record<
   branching: {
     successStatus: 'branched',
     // Items must share a branch so they land in the SAME grouped
-    // section (line ~4104 — `section.items.map`).
+    // section (line ~4619 — `section.items.map`).
     branch: 'building_documents',
     overrideField: 'branchManualOverride',
   },
@@ -207,9 +206,8 @@ function buildSessionPayload() {
   const cfg = STEP_CONFIG[scenarioStep];
 
   // Every scenario also includes a sibling vanilla-succeeded row so
-  // the page reliably has at least one row to render even when the
-  // primary fixture row is filtered out (e.g. the excluded variant on
-  // a non-screening step is dropped from `visibleItems`).
+  // the page reliably has at least one row to render and so there is
+  // always a clear anchor for waitForRow in multi-row scenarios.
   const siblingItem = {
     ...baseItemDefaults,
     id: SUCCESS_ID,
@@ -388,11 +386,10 @@ async function waitForRow(id: string) {
 }
 
 /**
- * Wait until the page has settled past its initial loading state.
- * Used for scenarios where the row of interest is filtered out of
- * `visibleItems` (e.g. excluded rows on non-screening steps) — we
- * still need a render anchor so the assertions don't fire before the
- * lite payload is processed.
+ * Wait until the page has settled past its initial loading state by
+ * confirming at least one item-row is rendered. Used as a lighter
+ * anchor when the specific row under test may not be the first to
+ * appear.
  */
 async function waitForAnyRow() {
   await waitFor(
@@ -410,7 +407,7 @@ async function waitForAnyRow() {
 // Tests
 // -----------------------------------------------------------------------------
 
-describe('BulkDocumentImportPage — inline Retry on succeeded rows (Task #1199)', () => {
+describe('BulkDocumentImportPage — inline Retry on succeeded rows (Task #1199 / Task #1225)', () => {
   describe('vanilla succeeded row renders the inline Retry button', () => {
     it('linking flat-list: succeeded row (status="linked", no fallback, no override) shows Retry', async () => {
       scenarioStep = 'linking';
@@ -433,7 +430,7 @@ describe('BulkDocumentImportPage — inline Retry on succeeded rows (Task #1199)
       renderPage();
       await waitForRow(SUCCESS_ID);
 
-      // The grouped iteration site (line ~4104) lives inside
+      // The grouped iteration site (~line 4619) lives inside
       // `branching-section-${branch}`. Confirm the button is rendered
       // by that path so a future refactor that moves the branching
       // view back into the flat list fails this assertion explicitly.
@@ -448,67 +445,90 @@ describe('BulkDocumentImportPage — inline Retry on succeeded rows (Task #1199)
     });
   });
 
-  describe('excluded row does NOT render the inline Retry button', () => {
-    it('linking flat-list: excluded row (status="rejected") has no inline Retry', async () => {
+  describe('excluded row DOES render the inline Retry button (Task #1225 reversed Task #804 for AI steps)', () => {
+    it('linking flat-list: excluded row (status="rejected") shows Retry with "will remain excluded" warning', async () => {
       scenarioStep = 'linking';
       scenarioVariant = 'excluded';
 
       renderPage();
-      // The sibling success row anchors the page render. The excluded
-      // row itself is dropped from `visibleItems` on every non-
-      // screening step (Task #804), which is exactly the contract we
-      // want to lock in: regardless of WHERE the guard sits — at the
-      // visibility filter or at the per-row `!isExcluded` check in
-      // `showRetry` — Retry must not surface on a rejected row.
+      // The sibling success row anchors the page render. Task #1225
+      // reversed the Task #804 `visibleItems` filter for AI auto-steps,
+      // so the excluded row IS now rendered and its Retry button carries
+      // the "this row will remain excluded" warning aria-label.
       await waitForRow(SUCCESS_ID);
 
-      expect(
-        screen.queryByTestId(`button-retry-linking-${EXCLUDED_ID}`),
-      ).not.toBeInTheDocument();
+      const excludedRetry = await screen.findByTestId(
+        `button-retry-linking-${EXCLUDED_ID}`,
+      );
+      expect(excludedRetry).toBeInTheDocument();
+      expect(excludedRetry).toBeEnabled();
+      expect(excludedRetry.getAttribute('aria-label')).toBe(
+        'Re-run AI — this row will remain excluded',
+      );
+      expect(excludedRetry.getAttribute('title')).toBe(
+        'Re-run AI — this row will remain excluded',
+      );
     });
 
-    it('branching grouped section: excluded row (status="rejected") has no inline Retry', async () => {
+    it('branching grouped section: excluded row (status="rejected") shows Retry with "will remain excluded" warning', async () => {
       scenarioStep = 'branching';
       scenarioVariant = 'excluded';
 
       renderPage();
       await waitForRow(SUCCESS_ID);
 
-      expect(
-        screen.queryByTestId(`button-retry-branching-${EXCLUDED_ID}`),
-      ).not.toBeInTheDocument();
+      const section = await screen.findByTestId(
+        'branching-section-building_documents',
+      );
+      const excludedRetry = section.querySelector(
+        `[data-testid="button-retry-branching-${EXCLUDED_ID}"]`,
+      ) as HTMLButtonElement | null;
+      expect(excludedRetry).not.toBeNull();
+      expect(excludedRetry!).toBeEnabled();
+      expect(excludedRetry!.getAttribute('aria-label')).toBe(
+        'Re-run AI — this row will remain excluded',
+      );
+      expect(excludedRetry!.getAttribute('title')).toBe(
+        'Re-run AI — this row will remain excluded',
+      );
     });
   });
 
-  describe('manual-override row does NOT render the inline Retry button', () => {
-    it('branching grouped section: branchManualOverride hides Retry on that row', async () => {
+  describe('manual-override row DOES render the inline Retry button (Task #1225)', () => {
+    it('branching grouped section: branchManualOverride row shows Retry with warning aria-label', async () => {
       scenarioStep = 'branching';
       scenarioVariant = 'override';
 
       renderPage();
-      // Both rows must render so the assertion is meaningful: the
-      // sibling without override proves the page did reach the
-      // grouped retry render path; the primary row proves the gate
-      // hides Retry only on the manual-override row.
       await waitForRow(OVERRIDE_ID);
       await waitForRow(SUCCESS_ID);
 
       const section = await screen.findByTestId(
         'branching-section-building_documents',
       );
-      expect(
-        section.querySelector(
-          `[data-testid="button-retry-branching-${SUCCESS_ID}"]`,
-        ),
-      ).not.toBeNull();
-      expect(
-        section.querySelector(
-          `[data-testid="button-retry-branching-${OVERRIDE_ID}"]`,
-        ),
-      ).toBeNull();
+
+      // Sibling without override should also have Retry (plain label).
+      const siblingRetry = section.querySelector(
+        `[data-testid="button-retry-branching-${SUCCESS_ID}"]`,
+      ) as HTMLButtonElement | null;
+      expect(siblingRetry).not.toBeNull();
+      expect(siblingRetry!.getAttribute('aria-label')).toBe('Retry');
+
+      // Override row must now also show Retry — with the warning label.
+      const overrideRetry = section.querySelector(
+        `[data-testid="button-retry-branching-${OVERRIDE_ID}"]`,
+      ) as HTMLButtonElement | null;
+      expect(overrideRetry).not.toBeNull();
+      expect(overrideRetry!).toBeEnabled();
+      expect(overrideRetry!.getAttribute('aria-label')).toBe(
+        'Re-run AI — this may overwrite your manual choice',
+      );
+      expect(overrideRetry!.getAttribute('title')).toBe(
+        'Re-run AI — this may overwrite your manual choice',
+      );
     });
 
-    it('identification flat-list: identificationEffectiveDateManualOverride hides Retry on that row', async () => {
+    it('identification flat-list: identificationEffectiveDateManualOverride row shows Retry with warning aria-label', async () => {
       scenarioStep = 'identification';
       scenarioVariant = 'override';
 
@@ -516,20 +536,28 @@ describe('BulkDocumentImportPage — inline Retry on succeeded rows (Task #1199)
       await waitForRow(OVERRIDE_ID);
       await waitForRow(SUCCESS_ID);
 
-      // Sibling without override proves the identification flat list
-      // reached the retry render path …
-      expect(
-        screen.getByTestId(`button-retry-identification-${SUCCESS_ID}`),
-      ).toBeInTheDocument();
-      // … and the override row is the only one whose Retry button is
-      // hidden by the `identificationEffectiveDateManualOverride`
-      // gate at line ~5688.
-      expect(
-        screen.queryByTestId(`button-retry-identification-${OVERRIDE_ID}`),
-      ).not.toBeInTheDocument();
+      // Sibling without override shows Retry with the plain label …
+      const siblingRetry = screen.getByTestId(
+        `button-retry-identification-${SUCCESS_ID}`,
+      );
+      expect(siblingRetry).toBeInTheDocument();
+      expect(siblingRetry.getAttribute('aria-label')).toBe('Retry');
+
+      // … and the override row is now also visible (Task #1225 flip).
+      const overrideRetry = screen.getByTestId(
+        `button-retry-identification-${OVERRIDE_ID}`,
+      );
+      expect(overrideRetry).toBeInTheDocument();
+      expect(overrideRetry).toBeEnabled();
+      expect(overrideRetry.getAttribute('aria-label')).toBe(
+        'Re-run AI — this may overwrite your manual choice',
+      );
+      expect(overrideRetry.getAttribute('title')).toBe(
+        'Re-run AI — this may overwrite your manual choice',
+      );
     });
 
-    it('sorting flat-list: sortingManualOverride hides Retry on that row', async () => {
+    it('sorting flat-list: sortingManualOverride row shows Retry with warning aria-label', async () => {
       scenarioStep = 'sorting';
       scenarioVariant = 'override';
 
@@ -537,12 +565,23 @@ describe('BulkDocumentImportPage — inline Retry on succeeded rows (Task #1199)
       await waitForRow(OVERRIDE_ID);
       await waitForRow(SUCCESS_ID);
 
-      expect(
-        screen.getByTestId(`button-retry-sorting-${SUCCESS_ID}`),
-      ).toBeInTheDocument();
-      expect(
-        screen.queryByTestId(`button-retry-sorting-${OVERRIDE_ID}`),
-      ).not.toBeInTheDocument();
+      const siblingRetry = screen.getByTestId(
+        `button-retry-sorting-${SUCCESS_ID}`,
+      );
+      expect(siblingRetry).toBeInTheDocument();
+      expect(siblingRetry.getAttribute('aria-label')).toBe('Retry');
+
+      const overrideRetry = screen.getByTestId(
+        `button-retry-sorting-${OVERRIDE_ID}`,
+      );
+      expect(overrideRetry).toBeInTheDocument();
+      expect(overrideRetry).toBeEnabled();
+      expect(overrideRetry.getAttribute('aria-label')).toBe(
+        'Re-run AI — this may overwrite your manual choice',
+      );
+      expect(overrideRetry.getAttribute('title')).toBe(
+        'Re-run AI — this may overwrite your manual choice',
+      );
     });
   });
 });

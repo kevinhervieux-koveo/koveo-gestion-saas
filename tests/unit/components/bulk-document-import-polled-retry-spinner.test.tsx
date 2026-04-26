@@ -342,6 +342,11 @@ describe('BulkDocumentImportPage — polled retry spinner persists for in-flight
     // free for a new retry click.
     expect(idleBtn).toBeEnabled();
     expect(hasSpinner(idleBtn)).toBe(false);
+
+    // Task #1225: rows without a manual override or exclusion carry the
+    // plain "Retry" aria-label and no warning title attribute.
+    expect(idleBtn.getAttribute('aria-label')).toBe('Retry');
+    expect(idleBtn.getAttribute('title')).toBeNull();
   });
 
   it('grouped branching view: row in `runAll.branching.inFlight` keeps its spinner; sibling row stays clickable', async () => {
@@ -379,5 +384,10 @@ describe('BulkDocumentImportPage — polled retry spinner persists for in-flight
 
     expect(idleBtn).toBeEnabled();
     expect(hasSpinner(idleBtn)).toBe(false);
+
+    // Task #1225: rows without a manual override or exclusion carry the
+    // plain "Retry" aria-label and no warning title attribute.
+    expect(idleBtn.getAttribute('aria-label')).toBe('Retry');
+    expect(idleBtn.getAttribute('title')).toBeNull();
   });
 });

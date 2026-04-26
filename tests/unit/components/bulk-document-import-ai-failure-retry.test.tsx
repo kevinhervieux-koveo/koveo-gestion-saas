@@ -1,6 +1,6 @@
 /**
- * Task #1202 — Inline & step-level Retry surface for AI-failed bulk
- * import rows.
+ * Task #1202 / Task #1225 — Inline & step-level Retry surface for
+ * AI-failed bulk import rows.
  *
  * Background
  * ----------
@@ -9,18 +9,20 @@
  *
  *   1. Each yellow "AI service error" alert (the
  *      `detail-fallback-explanation-${id}` block) renders an inline
- *      Retry button (`button-fallback-retry-${id}`) — but only when
- *      the fallback reason is one the per-item endpoint can actually
- *      recover from (`api_error` or `unreadable_response`). Other
- *      reasons (`oversize`, `unsupported_mime`, …) describe permanent
- *      file-side problems and must NOT show the inline Retry.
+ *      Retry button (`button-fallback-retry-${id}`). Task #1202
+ *      originally restricted this to `api_error` / `unreadable_response`
+ *      fallback reasons; Task #1225 removed that gate — the button now
+ *      renders for ALL fallback reasons because the backend per-item
+ *      endpoint runs unconditionally.
  *
  *   2. The auto-run progress banner gets a step-level
  *      "Retry AI-failed items (N)" button
  *      (`auto-run-retry-failed-${currentStep}`) whenever there is at
  *      least one row in the current step with a retryable fallback.
  *      The count must equal the number of retryable AI-failed rows
- *      (excluding rejected / excluded rows).
+ *      (excluding rejected / excluded rows). The step-level bulk
+ *      button retains its original RETRYABLE_AI_FALLBACK_REASONS scope
+ *      (Task #1225 out-of-scope: only the per-row surfaces changed).
  *
  * Coverage
  * --------
@@ -29,9 +31,11 @@
  *   - permanentFailRow : status=screened, sortingFallback=oversize
  *   - excludedFailRow  : status=rejected,  sortingFallback=api_error
  *
- * We assert that the inline button shows up only on retryRow, that
- * the step-level button shows the count "1" (only retryRow qualifies)
- * and that the French copy is correct when the language switches.
+ * We assert that the inline button shows up on BOTH retryRow and
+ * permanentFailRow (Task #1225), that the step-level button shows the
+ * count "1" (only retryRow's api_error reason qualifies — the step-
+ * level scope is unchanged), and that the French copy is correct when
+ * the language switches.
  */
 
 import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
@@ -320,8 +324,8 @@ function renderPage() {
   );
 }
 
-async function waitForRow(id: string) {
-  await screen.findByTestId(`item-row-${id}`, undefined, { timeout: 4000 });
+async function waitForRow(id: string, timeout = 4000) {
+  await screen.findByTestId(`item-row-${id}`, undefined, { timeout });
 }
 
 /**
@@ -368,33 +372,45 @@ describe('BulkDocumentImportPage — Task #1202 AI failure retry surfaces', () =
       expect(inlineRetry).toBeEnabled();
     });
 
-    it('does NOT render inline Retry on rows whose sortingFallback is permanent (oversize)', async () => {
+    it('renders inline Retry on rows whose sortingFallback is permanent (oversize) — Task #1225', async () => {
       renderPage();
       await waitForRow(PERMANENT_ID);
       await expandPanel(PERMANENT_ID);
 
-      // The alert STILL renders for permanent reasons (it explains
-      // *why* the row failed) — but the inline Retry button must
-      // stay hidden because the per-item endpoint cannot recover
-      // from a permanent file-side problem.
+      // Task #1225: InlineFallbackRetryButton no longer gates on the
+      // fallback reason. The per-item backend endpoint runs
+      // unconditionally so admins should always be able to retry from
+      // the yellow alert, even for permanent file-side failures like
+      // `oversize` — the admin may e.g. have replaced the file
+      // out-of-band and wants to rerun the step.
       expect(
         screen.getByTestId(`detail-fallback-explanation-${PERMANENT_ID}`),
       ).toBeInTheDocument();
-      expect(
-        screen.queryByTestId(`button-fallback-retry-${PERMANENT_ID}`),
-      ).not.toBeInTheDocument();
+      const inlineRetry = screen.getByTestId(
+        `button-fallback-retry-${PERMANENT_ID}`,
+      );
+      expect(inlineRetry).toBeInTheDocument();
+      expect(inlineRetry).toBeEnabled();
     });
 
-    it('does NOT render inline Retry on excluded (rejected) rows even when fallback is api_error', async () => {
+    it('renders inline Retry inside detail panel on excluded (rejected) rows — Task #1225', async () => {
       renderPage();
-      // Excluded rows are dropped from `visibleItems` on non-
-      // screening steps (sorting included). Wait on a sibling row
-      // so we know the lite payload landed before asserting absence.
-      await waitForRow(RETRY_ID);
+      // Task #1225: sorting is an AI auto-step, so excluded rows are now
+      // included in visibleItems and the admin can reach their detail panel
+      // without first un-excluding the file.
+      await waitForRow(EXCLUDED_ID);
+      await expandPanel(EXCLUDED_ID);
 
+      // The fallback alert and its inline Retry button should both appear
+      // because InlineFallbackRetryButton no longer gates on exclusion status.
       expect(
-        screen.queryByTestId(`button-fallback-retry-${EXCLUDED_ID}`),
-      ).not.toBeInTheDocument();
+        screen.getByTestId(`detail-fallback-explanation-${EXCLUDED_ID}`),
+      ).toBeInTheDocument();
+      const inlineRetry = screen.getByTestId(
+        `button-fallback-retry-${EXCLUDED_ID}`,
+      );
+      expect(inlineRetry).toBeInTheDocument();
+      expect(inlineRetry).toBeEnabled();
     });
   });
 
@@ -939,11 +955,15 @@ describe('BulkDocumentImportPage — Task #1202 AI failure retry surfaces', () =
       // so the banner must appear with English copy that includes
       // both the failed count and the visible step label
       // ("Branching" — STEP_LABEL_EN['sorting'] swap from Task #543).
+      // Timeout raised to 10 s: Task #1225 makes the sorting step show the
+      // excluded row too (3 items rendered instead of 2), adding render time.
       renderPage();
-      await waitForRow(RETRY_ID);
+      await waitForRow(RETRY_ID, 10000);
 
       const banner = await screen.findByTestId(
         'auto-run-ai-degraded-banner-sorting',
+        undefined,
+        { timeout: 10000 },
       );
       expect(banner).toBeInTheDocument();
 
@@ -962,15 +982,17 @@ describe('BulkDocumentImportPage — Task #1202 AI failure retry surfaces', () =
       );
       expect(bannerRetry).toHaveTextContent('Retry AI-failed items (1)');
       expect(bannerRetry).toBeEnabled();
-    });
+    }, 15000);
 
     it('renders the French copy when the language is fr', async () => {
       mockLanguage = 'fr';
       renderPage();
-      await waitForRow(RETRY_ID);
+      await waitForRow(RETRY_ID, 10000);
 
       const message = await screen.findByTestId(
         'auto-run-ai-degraded-message-sorting',
+        undefined,
+        { timeout: 10000 },
       );
       expect(message).toHaveTextContent(
         "Anthropic a retourné des erreurs pour 1 des 3 fichiers de l'étape « Aiguillage » — le service est peut-être dégradé en ce moment.",
@@ -982,7 +1004,7 @@ describe('BulkDocumentImportPage — Task #1202 AI failure retry surfaces', () =
       expect(bannerRetry).toHaveTextContent(
         'Réessayer les fichiers en échec IA (1)',
       );
-    });
+    }, 15000);
 
     // The "no retryable failures => no banner" case is exercised
     // implicitly by the step-level "no retry button" test above,
@@ -1030,20 +1052,20 @@ describe('BulkDocumentImportPage — Task #1202 AI failure retry surfaces', () =
       });
 
       renderPage();
-      await waitForRow(PERMANENT_ID);
+      await waitForRow(PERMANENT_ID, 10000);
       await waitFor(
         () => {
           expect(
             screen.getByTestId('auto-run-progress-sorting'),
           ).toBeInTheDocument();
         },
-        { timeout: 4000 },
+        { timeout: 10000 },
       );
 
       expect(
         screen.queryByTestId('auto-run-ai-degraded-banner-sorting'),
       ).not.toBeInTheDocument();
-    });
+    }, 15000);
   });
 });
 
@@ -1186,35 +1208,158 @@ describe('BulkDocumentImportPage — Task #1207 inline Retry on non-sorting auto
     expect(inlineRetry).toBeEnabled();
   });
 
-  it('hides inline Retry when the admin has already manually overridden the identification effective date', async () => {
+  it('shows inline Retry when the admin has already manually overridden the identification effective date — Task #1225', async () => {
     installIdentificationFetchMock();
     renderPage();
     await waitForRow(ID_OVERRIDE_ID);
     await expandPanel(ID_OVERRIDE_ID);
 
-    // The alert still renders to explain why the AI failed, but the
-    // Retry button must stay hidden because the row is already
-    // human-corrected and re-running the AI would risk overwriting
-    // the admin's edit.
+    // Task #1225: the inline Retry button is no longer hidden for
+    // manual-override rows. The backend endpoint runs unconditionally,
+    // so the admin can always re-run the AI step from the yellow alert.
+    // The row-toolbar Retry button carries a warning aria-label in this
+    // case; the inline alert button follows the same always-visible
+    // policy.
     expect(
       screen.getByTestId(`detail-fallback-explanation-${ID_OVERRIDE_ID}`),
     ).toBeInTheDocument();
-    expect(
-      screen.queryByTestId(`button-fallback-retry-${ID_OVERRIDE_ID}`),
-    ).not.toBeInTheDocument();
+    const inlineRetry = screen.getByTestId(
+      `button-fallback-retry-${ID_OVERRIDE_ID}`,
+    );
+    expect(inlineRetry).toBeInTheDocument();
+    expect(inlineRetry).toBeEnabled();
   });
 
-  it('hides inline Retry on rows whose identificationFallback is permanent (oversize)', async () => {
+  it('shows inline Retry on rows whose identificationFallback is permanent (oversize) — Task #1225', async () => {
     installIdentificationFetchMock();
     renderPage();
     await waitForRow(ID_PERMANENT_ID);
     await expandPanel(ID_PERMANENT_ID);
 
+    // Task #1225: the fallback-reason gate on InlineFallbackRetryButton
+    // is removed. The button now renders for all fallback reasons.
     expect(
       screen.getByTestId(`detail-fallback-explanation-${ID_PERMANENT_ID}`),
     ).toBeInTheDocument();
-    expect(
-      screen.queryByTestId(`button-fallback-retry-${ID_PERMANENT_ID}`),
-    ).not.toBeInTheDocument();
+    const inlineRetryPerm = screen.getByTestId(
+      `button-fallback-retry-${ID_PERMANENT_ID}`,
+    );
+    expect(inlineRetryPerm).toBeInTheDocument();
+    expect(inlineRetryPerm).toBeEnabled();
+  });
+
+});
+
+// -----------------------------------------------------------------------------
+// Task #1225 — Retry must also show on sorting-step draft-split-lead rows.
+//
+// A draft-split lead has status='rejected' and sortingDecisionSplitIntoItemIds
+// populated. Before Task #1225, the per-row Retry button in the flat-list path
+// was gated by `!isDraftSplitLead`. That gate was dead code in practice (the
+// flat list only runs for non-sorting steps) but was removed for correctness.
+// The branching IIFE (which renders sorting-step items) never had the gate.
+// This test confirms the button renders for a draft-split lead row.
+// -----------------------------------------------------------------------------
+
+const SPLIT_LEAD_ID = 'item-sorting-draft-split-lead-1225';
+
+describe('BulkDocumentImportPage — Task #1225 draft-split-lead Retry visibility', () => {
+  it('shows Retry on a sorting-step draft-split-lead row', async () => {
+    const normalItemId = 'item-sorting-normal-1225';
+    fetchMock.mockImplementation(async (input, init) => {
+      const url =
+        typeof input === 'string'
+          ? input
+          : input instanceof URL
+            ? input.toString()
+            : (input as Request).url;
+      const method = (init?.method || 'GET').toUpperCase();
+      const [pathname] = url.split('?');
+      if (method === 'GET') {
+        if (pathname === '/api/admin/bulk-import/buildings-lite')
+          return jsonResponse([]);
+        if (pathname === '/api/admin/bulk-import/ai-status')
+          return jsonResponse({ available: true });
+        if (pathname === '/api/organizations') return jsonResponse([]);
+        if (pathname === `/api/admin/bulk-import/sessions/${SESSION_ID}/lite`) {
+          return jsonResponse({
+            session: {
+              id: SESSION_ID,
+              buildingId: 'building-1',
+              organizationId: 'org-1',
+              adminUserId: 'admin-1',
+              currentStep: 'sorting' as const,
+              status: 'active' as const,
+              progress: {
+                runAll: {
+                  sorting: {
+                    total: 2,
+                    processed: 2,
+                    failed: 0,
+                    startedAt: '2024-01-01T00:00:00.000Z',
+                    finishedAt: '2024-01-01T00:01:00.000Z',
+                    inFlight: [],
+                  },
+                },
+              },
+              createdAt: '2024-01-01T00:00:00.000Z',
+              updatedAt: '2024-01-01T00:00:00.000Z',
+            },
+            items: [
+              {
+                ...baseItemDefaults,
+                id: normalItemId,
+                originalName: 'doc-normal-1225.pdf',
+                status: 'sorted' as const,
+                sortingDecision: 'keep' as const,
+                sortingDecisionState: 'accepted' as const,
+                sortingConfidence: 0.9,
+              },
+              {
+                // Draft-split lead: rejected by the SPLIT action,
+                // not by the admin — preExcludeStatus is null so
+                // isExcluded = false and isDraftSplitLead = true.
+                ...baseItemDefaults,
+                id: SPLIT_LEAD_ID,
+                originalName: 'doc-split-lead-1225.pdf',
+                status: 'rejected' as const,
+                preExcludeStatus: null,
+                sortingDecision: 'split' as const,
+                sortingDecisionState: 'accepted' as const,
+                sortingDecisionSplitIntoItemIds: ['child-item-1225'],
+                sortingDecisionDraft: true,
+                sortingConfidence: 0.85,
+              },
+            ],
+          });
+        }
+        if (pathname === '/api/admin/bulk-import/sessions')
+          return jsonResponse({
+            sessions: [],
+            limit: 20,
+            offset: 0,
+            hasMore: false,
+          });
+      }
+      if (method === 'POST') return jsonResponse({ ok: true });
+      return jsonResponse({ unmocked: true, url, method }, 404);
+    });
+
+    renderPage();
+
+    // Wait for the draft-split lead row to appear in the DOM —
+    // confirms the branching IIFE keeps it visible.
+    await screen.findByTestId(`item-row-${SPLIT_LEAD_ID}`, undefined, {
+      timeout: 4000,
+    });
+
+    // The per-row Retry button must be present. The branching IIFE's
+    // showRetry = !!retryAction (no isDraftSplitLead gate), so any row
+    // with a retryAction shows Retry.
+    const retryBtn = screen.getByTestId(
+      `button-retry-sorting-${SPLIT_LEAD_ID}`,
+    );
+    expect(retryBtn).toBeInTheDocument();
+    expect(retryBtn).toBeEnabled();
   });
 });

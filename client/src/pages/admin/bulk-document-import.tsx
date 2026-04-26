@@ -1743,6 +1743,11 @@ function IdentificationTagEditor({
  * Retry inline in the alert so the recovery action lives next to the
  * explanation that motivates it.
  *
+ * Task #1225: rendered for ALL fallback reasons, not just `api_error` /
+ * `unreadable_response`. The backend per-item endpoint runs
+ * unconditionally, so the admin should always be able to retry from
+ * the inline alert.
+ *
  * The button shares its in-flight tracking with the existing per-row
  * Retry button so a single retry in flight (manual click, run-all
  * loop, or step-level "Retry AI-failed items") shows exactly one
@@ -1750,13 +1755,9 @@ function IdentificationTagEditor({
  *
  * Hidden when:
  *   - `retryAction` is null (non-AI step like Upload / Complete)
- *   - `hideRetry` is true (per-step manual-override gates from the
- *     row's action toolbar — surfacing inline Retry on a row whose
- *     toolbar Retry is gated would be inconsistent)
- *   - `fallbackReason` is something other than `api_error` /
- *     `unreadable_response` (other reasons like `oversize` or
- *     `missing_file` describe permanent file-side problems that
- *     retrying cannot fix)
+ *   - `hideRetry` is true (caller-supplied; Task #1225 removed all
+ *     status/override/fallback-reason gates — see `showRetry` at each
+ *     call site for what, if anything, sets this to `true` now)
  */
 function InlineFallbackRetryButton({
   itemId,
@@ -1772,18 +1773,16 @@ function InlineFallbackRetryButton({
   fallbackReason: BulkImportFallbackReason | null | undefined;
   retryAction: 'screen' | 'sort' | 'branch' | 'identify' | 'link' | null;
   retryPending: boolean;
+  /** Hide the button regardless of fallback reason — use for draft-split
+   *  leads (whose AI step is already resolved) or when no retry action
+   *  exists for the current step. Manual overrides and exclusions no
+   *  longer hide the inline Retry (Task #1225). */
   hideRetry: boolean;
   isFr: boolean;
   onRetry: () => void;
   testIdPrefix?: string;
 }) {
   if (!retryAction || hideRetry) return null;
-  if (
-    fallbackReason !== 'api_error' &&
-    fallbackReason !== 'unreadable_response'
-  ) {
-    return null;
-  }
   return (
     <div className="mt-2">
       <Button
@@ -4554,17 +4553,26 @@ export default function BulkDocumentImportPage() {
                       // Group items by destination branch. Items without a
                       // branch (old sessions or not-yet-routed) go under
                       // "Unsorted" at the top (Task #768).
-                      // Excluded (rejected) files are hidden from step 3+
-                      // so they are filtered out before grouping (Task #804).
-                      const branchingItems = items.filter((item) => item.status !== 'rejected');
+                      // Task #804 filtered out excluded (rejected) files from
+                      // the branching view. Task #1225 reverses this: branching
+                      // is always an AI auto-step so every row — including
+                      // excluded ones — must be reachable so admins can click
+                      // Retry without first un-excluding the row.
+                      const branchingItems = items;
                       // Task #1045: when the hide-ready toggle is ON, filter
                       // out items that are already ready for the next step
                       // before grouping so group counts and empty groups stay
                       // consistent with the rendered rows. Bulk-action banners
                       // (Accept all / Review AI suggestions) still read the
                       // unfiltered branchingItems so they remain accurate.
+                      // Task #1225: excluded (rejected) items are always kept
+                      // in displayedBranchingItems even when hideReady is ON.
+                      // isItemReadyForNextStep returns true for rejected rows
+                      // because their status clears the branching status gates,
+                      // but we must keep them visible so the Retry button is
+                      // reachable without first un-excluding the file.
                       const displayedBranchingItems = hideReady
-                        ? branchingItems.filter((item) => !isItemReadyForNextStep(item, 'branching'))
+                        ? branchingItems.filter((item) => item.status === 'rejected' || !isItemReadyForNextStep(item, 'branching'))
                         : branchingItems;
                       const grouped = new Map<string, BulkImportItemLite[]>();
                       for (const item of displayedBranchingItems) {
@@ -4932,12 +4940,13 @@ export default function BulkDocumentImportPage() {
                                   const retryAction = isAuto ? stepRetryAction[currentStep as AutoStep] : null;
                                   const branchProgress = isAuto ? readRunAllProgress(session, currentStep as AutoStep) : null;
                                   const isExcluded = item.status === 'rejected';
-                                  // Task #1194: inline Retry is available on every
-                                  // non-excluded row that has a retry action for the
-                                  // current auto step, regardless of fallback/run-all
-                                  // state. Per-step manual-override guards still hide
-                                  // the button at the usage site below.
-                                  const showRetry = !isExcluded && !!retryAction;
+                                  // Task #1225: inline Retry is available on every
+                                  // row that has a retry action for the current auto
+                                  // step, regardless of fallback/run-all state,
+                                  // exclusion, or manual overrides. Warning
+                                  // title/aria-label hints are shown on excluded /
+                                  // overridden rows so the admin knows what will happen.
+                                  const showRetry = !!retryAction;
                                   // Task #1047: the per-item retry endpoint is now
                                   // fire-and-forget on the server, so `runStep.isPending`
                                   // drops within milliseconds. The polled session payload
@@ -5015,13 +5024,27 @@ export default function BulkDocumentImportPage() {
                                           >
                                             {isFr ? 'Réaffecter' : 'Reassign'}
                                           </Button>
-                                          {showRetry && retryAction && !item.branchManualOverride && (
+                                          {showRetry && retryAction && (
                                             <Button
                                               size="sm"
                                               variant="outline"
                                               onClick={() => runStep.mutate({ itemId: item.id, action: retryAction })}
                                               disabled={retryPending}
                                               data-testid={`button-retry-${currentStep}-${item.id}`}
+                                              title={
+                                                isExcluded
+                                                  ? (isFr ? 'Relancer l\'IA — cette ligne restera exclue' : 'Re-run AI — this row will remain excluded')
+                                                  : item.branchManualOverride
+                                                  ? (isFr ? 'Relancer l\'IA — votre choix manuel sera peut-être écrasé' : 'Re-run AI — this may overwrite your manual choice')
+                                                  : undefined
+                                              }
+                                              aria-label={
+                                                isExcluded
+                                                  ? (isFr ? 'Relancer l\'IA — cette ligne restera exclue' : 'Re-run AI — this row will remain excluded')
+                                                  : item.branchManualOverride
+                                                  ? (isFr ? 'Relancer l\'IA — votre choix manuel sera peut-être écrasé' : 'Re-run AI — this may overwrite your manual choice')
+                                                  : (isFr ? 'Réessayer' : 'Retry')
+                                              }
                                             >
                                               {retryPending ? (
                                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -5177,12 +5200,12 @@ export default function BulkDocumentImportPage() {
                                           alert (with inline Retry) on branching rows so
                                           recovery is one click away — matches what the
                                           sorting and screening step rows already offer.
-                                          Hidden when the admin manually re-routed the
-                                          file (`branchManualOverride`) so the override
-                                          is preserved, and skipped on excluded rows. */}
-                                      {!isExcluded
-                                        && !item.branchManualOverride
-                                        && decision?.fallbackReason && (
+                                          Task #1225: no longer suppressed for excluded
+                                          rows or branchManualOverride rows — the backend
+                                          endpoint runs unconditionally and Retry is always
+                                          available (with a hover/focus warning when the
+                                          row has a manual override). */}
+                                      {decision?.fallbackReason && (
                                         <div
                                           className="border-t bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:bg-amber-950/40 dark:text-amber-300"
                                           data-testid={`detail-fallback-explanation-${item.id}`}
@@ -5209,7 +5232,7 @@ export default function BulkDocumentImportPage() {
                                             fallbackReason={decision.fallbackReason}
                                             retryAction={retryAction}
                                             retryPending={retryPending}
-                                            hideRetry={!showRetry || item.branchManualOverride}
+                                            hideRetry={!showRetry}
                                             isFr={isFr}
                                             onRetry={() =>
                                               retryAction &&
@@ -5460,26 +5483,18 @@ export default function BulkDocumentImportPage() {
                       );
                     })() : (
                     <div className="space-y-2">
-                      {/* Excluded (rejected) files are hidden from step 3+.
-                          Screening keeps them visible so admins can re-include
-                          them; all later steps filter them out (Task #804).
-                          Exception: in the sorting step, draft-split leads are
-                          kept visible so the admin can still adjust or revert. */}
+                      {/* Task #804: excluded (rejected) files were hidden from
+                          step 3+ so later steps stayed uncluttered. Task #1225
+                          reverses this for AI auto-steps: every row — including
+                          excluded ones — must be reachable so admins can click
+                          Retry without first un-excluding the row. The Retry
+                          button for excluded rows carries a warning aria-label
+                          ("this row will remain excluded"). For non-auto steps
+                          (Upload, Complete) the old hide behaviour is kept. */}
                       {(() => {
-                        const visibleItems = currentStep !== 'screening'
-                          ? items.filter((item) =>
-                              item.status !== 'rejected' ||
-                              // Split-draft leads: keep visible in sorting step so
-                              // the admin can adjust or revert. Guard with
-                              // preExcludeStatus == null so that an item the admin
-                              // explicitly excluded (preExcludeStatus is set) is
-                              // always hidden — even if it previously had split
-                              // children recorded (Task #804 regression fix).
-                              (currentStep === 'sorting' &&
-                                !!item.sortingDecisionSplitIntoItemIds?.length &&
-                                item.preExcludeStatus == null),
-                            )
-                          : items;
+                        const visibleItems = isAutoStep(currentStep)
+                          ? items
+                          : items.filter((item) => item.status !== 'rejected');
                         // Sorting step: build the set of sibling item IDs that
                         // belong to a merge group but are not the lead. Siblings
                         // are hidden at the top level and rendered inside their
@@ -5543,8 +5558,13 @@ export default function BulkDocumentImportPage() {
                         // out items that are already ready for the next step.
                         // Applied after sibling removal so lead–sibling grouping
                         // is unaffected (hidden leads take their siblings with them).
+                        // Task #1225: excluded (rejected) items are always kept
+                        // visible even when hideReady is ON — isItemReadyForNextStep
+                        // returns true for rejected rows on identification and
+                        // linking (status passes all status-gate checks) but we
+                        // need them visible so the Retry button is reachable.
                         const displayedTopLevelItems = hideReady
-                          ? topLevelItems.filter((item) => !isItemReadyForNextStep(item, currentStep))
+                          ? topLevelItems.filter((item) => item.status === 'rejected' || !isItemReadyForNextStep(item, currentStep))
                           : topLevelItems;
                         return (
                           <>
@@ -5852,16 +5872,13 @@ export default function BulkDocumentImportPage() {
                           !!item.sortingDecisionSplitIntoItemIds?.length &&
                           item.preExcludeStatus == null;
                         const isExcluded = item.status === 'rejected' && !isDraftSplitLead;
-                        // Task #1194: inline Retry is available on every
-                        // non-excluded, non-draft-split-lead row that has a
-                        // retry action for the current auto step, regardless
-                        // of fallback/run-all state. Per-step manual-override
-                        // guards still hide the button at the usage sites
-                        // below (identification / sorting).
-                        const showRetry =
-                          !isExcluded &&
-                          !isDraftSplitLead &&
-                          !!retryAction;
+                        // Task #1225: inline Retry is available on every
+                        // row that has a retry action for the current auto
+                        // step, regardless of fallback/run-all state,
+                        // exclusion, or manual overrides. Warning
+                        // title/aria-label hints are shown on excluded /
+                        // overridden rows so the admin knows what will happen.
+                        const showRetry = !!retryAction;
                         // Task #1047: keep the spinner up while the
                         // background per-item retry is in flight on the
                         // server (signal lives in `runAll[step].inFlight`
@@ -6980,10 +6997,7 @@ export default function BulkDocumentImportPage() {
                                                             (e) => e.itemId === sibling.id,
                                                           ))
                                                       }
-                                                      hideRetry={
-                                                        sibIsExcluded ||
-                                                        sibling.sortingManualOverride
-                                                      }
+                                                      hideRetry={false}
                                                       isFr={isFr}
                                                       onRetry={() =>
                                                         retryAction &&
@@ -7074,7 +7088,7 @@ export default function BulkDocumentImportPage() {
                             </div>
                             {currentStep !== 'sorting' && (
                               <div className="flex items-center gap-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                                {showRetry && retryAction && !(currentStep === 'identification' && item.identificationEffectiveDateManualOverride) && (
+                                {showRetry && retryAction && (
                                   <Button
                                     size="sm"
                                     variant="outline"
@@ -7086,6 +7100,20 @@ export default function BulkDocumentImportPage() {
                                     }
                                     disabled={retryPending}
                                     data-testid={`button-retry-${currentStep}-${item.id}`}
+                                    title={
+                                      isExcluded
+                                        ? (isFr ? 'Relancer l\'IA — cette ligne restera exclue' : 'Re-run AI — this row will remain excluded')
+                                        : (currentStep === 'identification' && item.identificationEffectiveDateManualOverride)
+                                        ? (isFr ? 'Relancer l\'IA — votre choix manuel sera peut-être écrasé' : 'Re-run AI — this may overwrite your manual choice')
+                                        : undefined
+                                    }
+                                    aria-label={
+                                      isExcluded
+                                        ? (isFr ? 'Relancer l\'IA — cette ligne restera exclue' : 'Re-run AI — this row will remain excluded')
+                                        : (currentStep === 'identification' && item.identificationEffectiveDateManualOverride)
+                                        ? (isFr ? 'Relancer l\'IA — votre choix manuel sera peut-être écrasé' : 'Re-run AI — this may overwrite your manual choice')
+                                        : (isFr ? 'Réessayer' : 'Retry')
+                                    }
                                   >
                                     {retryPending ? (
                                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -7539,7 +7567,7 @@ export default function BulkDocumentImportPage() {
                                   )}
                                 </>
                               )}
-                              {currentStep === 'sorting' && showRetry && retryAction && !item.sortingManualOverride && (
+                              {currentStep === 'sorting' && showRetry && retryAction && (
                                 <Button
                                   size="sm"
                                   variant="outline"
@@ -7551,6 +7579,20 @@ export default function BulkDocumentImportPage() {
                                   }
                                   disabled={retryPending}
                                   data-testid={`button-retry-${currentStep}-${item.id}`}
+                                  title={
+                                    isExcluded
+                                      ? (isFr ? 'Relancer l\'IA — cette ligne restera exclue' : 'Re-run AI — this row will remain excluded')
+                                      : item.sortingManualOverride
+                                      ? (isFr ? 'Relancer l\'IA — votre choix manuel sera peut-être écrasé' : 'Re-run AI — this may overwrite your manual choice')
+                                      : undefined
+                                  }
+                                  aria-label={
+                                    isExcluded
+                                      ? (isFr ? 'Relancer l\'IA — cette ligne restera exclue' : 'Re-run AI — this row will remain excluded')
+                                      : item.sortingManualOverride
+                                      ? (isFr ? 'Relancer l\'IA — votre choix manuel sera peut-être écrasé' : 'Re-run AI — this may overwrite your manual choice')
+                                      : (isFr ? 'Réessayer' : 'Retry')
+                                  }
                                 >
                                   {retryPending ? (
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -8487,9 +8529,7 @@ export default function BulkDocumentImportPage() {
                                                 fallbackReason={decision.fallbackReason}
                                                 retryAction={retryAction}
                                                 retryPending={retryPending}
-                                                hideRetry={
-                                                  !showRetry || item.sortingManualOverride
-                                                }
+                                                hideRetry={!showRetry}
                                                 isFr={isFr}
                                                 onRetry={() =>
                                                   retryAction &&
@@ -8578,24 +8618,12 @@ export default function BulkDocumentImportPage() {
                                           fallbackReason={decision.fallbackReason}
                                           retryAction={retryAction}
                                           retryPending={retryPending}
-                                          // Task #1207: honour each step's
-                                          // per-item manual-override gate so a
-                                          // row the admin already corrected by
-                                          // hand doesn't re-offer Retry. Mirrors
-                                          // the same gates used by the row's
-                                          // toolbar Retry button on each step.
-                                          // - identification → identificationEffectiveDateManualOverride
-                                          // - linking        → no manual-override field exists
-                                          // The branching step (which also owns
-                                          // the residence sub-step and its
-                                          // residenceManualOverride gate) is
-                                          // handled in its own IIFE above and
-                                          // never reaches this branch, so no
-                                          // extra clause is needed here.
-                                          hideRetry={
-                                            !showRetry
-                                            || (currentStep === 'identification' && item.identificationEffectiveDateManualOverride)
-                                          }
+                                          // Task #1225: manual overrides no longer
+                                          // suppress the inline Retry button.
+                                          // Only draft-split leads (isDraftSplitLead
+                                          // → !showRetry) and non-AI steps
+                                          // (!retryAction) hide the button.
+                                          hideRetry={!showRetry}
                                           isFr={isFr}
                                           onRetry={() =>
                                             retryAction &&

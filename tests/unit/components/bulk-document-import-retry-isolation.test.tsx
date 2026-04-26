@@ -329,6 +329,13 @@ async function assertRetryIsolation(step: 'linking' | 'branching') {
   expect(hasSpinner(buttonA)).toBe(false);
   expect(hasSpinner(buttonB)).toBe(false);
 
+  // Task #1225: rows without a manual override or exclusion carry the
+  // plain "Retry" aria-label and no warning title attribute.
+  expect(buttonA.getAttribute('aria-label')).toBe('Retry');
+  expect(buttonA.getAttribute('title')).toBeNull();
+  expect(buttonB.getAttribute('aria-label')).toBe('Retry');
+  expect(buttonB.getAttribute('title')).toBeNull();
+
   await act(async () => {
     fireEvent.click(buttonA);
   });
