@@ -573,6 +573,35 @@ const upload = multer({
 });
 
 /**
+ * Best-effort cleanup of every multer-staged temp file on a request.
+ * Used by both the batch and the single-file (replace) upload paths
+ * so that a request which is going to reject (multer error, session
+ * not found, item not found, item in a terminal state, validation
+ * failure, or unexpected throw) does not leak the on-disk temp copy
+ * multer streamed to the staging directory before our handler ran.
+ *
+ * Safe to call multiple times: an `unlinkSync` on a missing file is
+ * silently swallowed, and entries with no `.path` (which would only
+ * happen if multer was swapped back to memoryStorage somewhere) are
+ * skipped instead of throwing.
+ */
+function cleanupMulterTempFiles(req: Request): void {
+  const partial = (req.files as Express.Multer.File[] | undefined) ?? [];
+  for (const f of partial) {
+    if (f && typeof f.path === 'string') {
+      try {
+        if (fs.existsSync(f.path)) fs.unlinkSync(f.path);
+      } catch (cleanupErr) {
+        logError(
+          '[bulk-import] failed to remove temp upload during cleanup',
+          cleanupErr as Error,
+        );
+      }
+    }
+  }
+}
+
+/**
  * Wraps the bulk-import `upload.array(...)` middleware so that any
  * multer error (file too large, disk write failure, missing session id)
  * cleans up partial files multer wrote to the staging dir before
@@ -584,19 +613,31 @@ const upload = multer({
 function uploadBulkImportFiles(req: Request, res: Response, next: NextFunction): void {
   upload.array('files', 200)(req, res, (err: unknown) => {
     if (err) {
-      const partial = (req.files as Express.Multer.File[] | undefined) ?? [];
-      for (const f of partial) {
-        if (f && typeof f.path === 'string') {
-          try {
-            if (fs.existsSync(f.path)) fs.unlinkSync(f.path);
-          } catch (cleanupErr) {
-            logError(
-              '[bulk-import] failed to remove partial upload after multer error',
-              cleanupErr as Error,
-            );
-          }
-        }
-      }
+      cleanupMulterTempFiles(req);
+      return next(err);
+    }
+    next();
+  });
+}
+
+/**
+ * Single-file companion to `uploadBulkImportFiles` for the inline
+ * "Replace file" route (Task #1051). Same disk-streaming multer
+ * config, capped at one file, with the same multer-error cleanup so
+ * a rejected replace upload (e.g. > 100MB, the staging dir cannot be
+ * created) does not leak its temp copy. Sized at one to enforce the
+ * single-file contract at the multer layer rather than relying on
+ * the route handler to 400 after multer has already streamed extras
+ * to disk.
+ */
+function uploadBulkImportReplaceFile(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): void {
+  upload.array('files', 1)(req, res, (err: unknown) => {
+    if (err) {
+      cleanupMulterTempFiles(req);
       return next(err);
     }
     next();
@@ -2612,23 +2653,30 @@ export function registerBulkImportRoutes(app: Express): void {
     '/api/admin/bulk-import/items/:id/replace-file',
     requireAuth,
     requireRole(['admin']),
-    upload.array('files', 1),
+    uploadBulkImportReplaceFile,
     async (req: AuthenticatedRequest, res: Response) => {
       try {
         const [item] = await db
           .select()
           .from(schema.bulkImportItems)
           .where(eq(schema.bulkImportItems.id, req.params.id));
-        if (!item) return res.status(404).json({ error: 'Item not found' });
+        if (!item) {
+          cleanupMulterTempFiles(req);
+          return res.status(404).json({ error: 'Item not found' });
+        }
 
         const session = await loadSession(item.sessionId);
-        if (!session) return res.status(404).json({ error: 'Session not found' });
+        if (!session) {
+          cleanupMulterTempFiles(req);
+          return res.status(404).json({ error: 'Session not found' });
+        }
 
         const allowed = await canUserAccessOrganization(
           req.user!.id,
           session.organizationId,
         );
         if (!allowed) {
+          cleanupMulterTempFiles(req);
           return res
             .status(403)
             .json({ error: 'You do not have access to this session' });
@@ -2652,6 +2700,7 @@ export function registerBulkImportRoutes(app: Express): void {
           item.status === 'linked' ||
           item.status === 'duplicate'
         ) {
+          cleanupMulterTempFiles(req);
           return res.status(400).json({
             error: `Cannot replace a ${item.status} item`,
           });
@@ -2661,126 +2710,126 @@ export function registerBulkImportRoutes(app: Express): void {
         if (files.length === 0) {
           return res.status(400).json({ error: 'No file uploaded' });
         }
+        // multer's `array('files', 1)` cap means anything past one file
+        // already errored out in `uploadBulkImportReplaceFile`; this
+        // guard is purely defensive in case the wrapper is ever
+        // swapped out.
         if (files.length > 1) {
-          // Multer wrote up to `files.length` temp copies to disk before
-          // we noticed the over-count. Sweep them so the staging dir
-          // doesn't accumulate orphans on a malformed request.
-          for (const f of files) {
-            if (f && typeof f.path === 'string') {
+          cleanupMulterTempFiles(req);
+          return res.status(400).json({ error: 'Replace accepts a single file' });
+        }
+        const file = files[0];
+        // Track the temp file we still own so we can unlink it on any
+        // post-multer failure path that happens before we either
+        // rename it into place or decide to drop it as a redundant
+        // copy.
+        let tempPathToCleanup: string | null = file.path;
+
+        try {
+          const dir = stagingDirFor(session.id);
+          const correctedName = fixLatin1MisdecodeFilename(file.originalname);
+          // Stream-hash the multer temp file straight off disk so we
+          // never load the full replacement bytes into the Node heap
+          // (Task #1097). Same digest the previous `sha256(file.buffer)`
+          // path produced for the same bytes, so contentHash stays a
+          // drop-in equivalent for the dedup / fingerprint cache.
+          const hash = await sha256File(file.path);
+          const newStagedPath = path.join(dir, `${hash}_${correctedName}`);
+
+          // Sanity check: the resolved path must stay inside the
+          // session's staging directory. `correctedName` came from a
+          // multer-parsed header so a malicious filename like
+          // `../../etc/passwd` should be neutralised by the path.join
+          // above, but we re-verify before touching disk.
+          const resolvedNew = path.resolve(newStagedPath);
+          const resolvedDir = path.resolve(dir);
+          if (!resolvedNew.startsWith(resolvedDir + path.sep)) {
+            return res.status(400).json({ error: 'Invalid filename' });
+          }
+
+          if (fs.existsSync(resolvedNew)) {
+            // The same content (hash + name) is already staged for
+            // this session — either this item's own current bytes,
+            // or another item that beat us to that exact pair. Drop
+            // the temp copy and point the row at the existing staged
+            // file; this matches the batch route's behavior.
+            try {
+              fs.unlinkSync(file.path);
+            } catch (rmErr) {
+              logError(
+                '[bulk-import] failed to remove redundant replace temp upload',
+                rmErr as Error,
+              );
+            }
+            tempPathToCleanup = null;
+          } else {
+            fs.renameSync(file.path, resolvedNew);
+            tempPathToCleanup = null;
+          }
+
+          const [updated] = await db
+            .update(schema.bulkImportItems)
+            .set({
+              originalPath: correctedName,
+              originalName: correctedName,
+              stagedPath: resolvedNew,
+              contentHash: hash,
+              mimeType: file.mimetype,
+              fileSize: file.size,
+              updatedAt: new Date(),
+            })
+            .where(eq(schema.bulkImportItems.id, item.id))
+            .returning();
+
+          // Best-effort cleanup of the old staged bytes. We only delete
+          // when the prior path is different from the new one (uploading
+          // the exact same file would collide on hash+name) AND lived
+          // under THIS session's staging directory. Constraining to the
+          // session dir (not just the bulk-import staging root) means a poisoned
+          // `stagedPath` row from a different session — or one that
+          // somehow points elsewhere on disk — can never coax us into
+          // removing files outside the affected session's sandbox.
+          if (item.stagedPath && item.stagedPath !== resolvedNew) {
+            const resolvedOld = path.resolve(item.stagedPath);
+            if (resolvedOld.startsWith(resolvedDir + path.sep)) {
               try {
-                if (fs.existsSync(f.path)) fs.unlinkSync(f.path);
-              } catch (rmErr) {
-                logWarn('[bulk-import] failed to remove extra replace upload', {
+                fs.rmSync(resolvedOld, { force: true });
+              } catch (cleanupErr) {
+                logWarn('[bulk-import] failed to remove replaced staged file', {
                   metadata: {
                     itemId: item.id,
-                    tempPath: f.path,
-                    error: (rmErr as Error).message,
+                    oldPath: resolvedOld,
+                    error: (cleanupErr as Error).message,
                   },
                 });
               }
             }
           }
-          return res.status(400).json({ error: 'Replace accepts a single file' });
-        }
-        const file = files[0];
 
-        const dir = stagingDirFor(session.id);
-        const correctedName = fixLatin1MisdecodeFilename(file.originalname);
-        // Multer is configured with disk storage (Task #1061) so the
-        // upload is already streamed to `file.path`; `file.buffer` is
-        // undefined. Stream-hash the temp file the same way the
-        // upload route does so we never hold the full bytes in memory.
-        const hash = await sha256File(file.path);
-        const newStagedPath = path.join(dir, `${hash}_${correctedName}`);
-
-        // Sanity check: the resolved path must stay inside the session's
-        // staging directory. `correctedName` came from a multer-parsed
-        // header so a malicious filename like `../../etc/passwd` should
-        // be neutralised by the path.join above, but we re-verify before
-        // writing to disk.
-        const resolvedNew = path.resolve(newStagedPath);
-        const resolvedDir = path.resolve(dir);
-        if (!resolvedNew.startsWith(resolvedDir + path.sep)) {
-          // Drop the temp file multer streamed to disk — it would
-          // otherwise linger inside the staging dir under the
-          // `.upload-tmp-*` name forever.
-          try {
-            if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
-          } catch (rmErr) {
-            logWarn('[bulk-import] failed to remove rejected replace upload', {
-              metadata: {
-                itemId: item.id,
-                tempPath: file.path,
-                error: (rmErr as Error).message,
-              },
-            });
-          }
-          return res.status(400).json({ error: 'Invalid filename' });
-        }
-
-        // Move the multer temp file into place under the final
-        // `<hash>_<name>` path. If a file with that exact hash and
-        // name is already staged for this session (e.g. the admin
-        // re-uploaded byte-identical content), drop the redundant
-        // temp copy and reuse the existing staged file instead of
-        // failing the rename.
-        if (fs.existsSync(resolvedNew)) {
-          try {
-            fs.unlinkSync(file.path);
-          } catch (rmErr) {
-            logWarn('[bulk-import] failed to remove redundant replace temp', {
-              metadata: {
-                itemId: item.id,
-                tempPath: file.path,
-                error: (rmErr as Error).message,
-              },
-            });
-          }
-        } else {
-          fs.renameSync(file.path, resolvedNew);
-        }
-
-        const [updated] = await db
-          .update(schema.bulkImportItems)
-          .set({
-            originalPath: correctedName,
-            originalName: correctedName,
-            stagedPath: resolvedNew,
-            contentHash: hash,
-            mimeType: file.mimetype,
-            fileSize: file.size,
-            updatedAt: new Date(),
-          })
-          .where(eq(schema.bulkImportItems.id, item.id))
-          .returning();
-
-        // Best-effort cleanup of the old staged bytes. We only delete
-        // when the prior path is different from the new one (uploading
-        // the exact same file would collide on hash+name) AND lived
-        // under THIS session's staging directory. Constraining to the
-        // session dir (not just the bulk-import staging root) means a poisoned
-        // `stagedPath` row from a different session — or one that
-        // somehow points elsewhere on disk — can never coax us into
-        // removing files outside the affected session's sandbox.
-        if (item.stagedPath && item.stagedPath !== resolvedNew) {
-          const resolvedOld = path.resolve(item.stagedPath);
-          if (resolvedOld.startsWith(resolvedDir + path.sep)) {
+          return res.json(updated);
+        } finally {
+          // If we failed between multer streaming the temp file to
+          // disk and renaming it into the staged path (e.g. hashing
+          // threw, the path-traversal check rejected it, or the DB
+          // update threw), we still own that temp file — don't leak
+          // it into the staging dir.
+          if (tempPathToCleanup) {
             try {
-              fs.rmSync(resolvedOld, { force: true });
-            } catch (cleanupErr) {
-              logWarn('[bulk-import] failed to remove replaced staged file', {
-                metadata: {
-                  itemId: item.id,
-                  oldPath: resolvedOld,
-                  error: (cleanupErr as Error).message,
-                },
-              });
+              if (fs.existsSync(tempPathToCleanup)) fs.unlinkSync(tempPathToCleanup);
+            } catch (rmErr) {
+              logError(
+                '[bulk-import] failed to remove replace temp after error',
+                rmErr as Error,
+              );
             }
           }
         }
-
-        return res.json(updated);
       } catch (err) {
+        // Outer catch covers throws from the pre-multer-cleanup
+        // section (DB selects, loadSession, canUserAccessOrganization).
+        // The inner finally above already swept any temp file owned
+        // by the success path, so this is just a final safety net.
+        cleanupMulterTempFiles(req);
         logError('[bulk-import] replace-file failed', err as Error, {
           metadata: { itemId: req.params.id },
         });
