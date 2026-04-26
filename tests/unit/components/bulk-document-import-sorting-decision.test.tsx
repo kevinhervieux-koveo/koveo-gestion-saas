@@ -175,6 +175,7 @@ function buildSessionPayload() {
       identificationName: null,
       identificationDescription: null,
       identificationTags: null,
+      identificationAiSuggestedTagIds: null,
       identificationEffectiveDate: null,
       linkingConfidence: null,
       linkingFallback: null,

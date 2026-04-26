@@ -328,6 +328,15 @@ interface BulkImportItemLite {
   identificationName: string | null;
   identificationDescription: string | null;
   identificationTags: string[] | null;
+  /**
+   * Task #1105: real `document_tags` UUIDs the run-all loop matched
+   * against the AI's free-form tag-name suggestions at identification
+   * time. Used to drive the AI sparkle in the TagPicker even after the
+   * admin tweaks the selection. Null on legacy sessions whose
+   * identification ran before this field existed (the editor falls
+   * back to client-side string matching in that case).
+   */
+  identificationAiSuggestedTagIds: string[] | null;
   identificationEffectiveDate: string | null;
   /**
    * True when the admin manually typed a date into the identification
@@ -1419,11 +1428,23 @@ const TAG_UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{1
 /**
  * Inline tag editor rendered on every Identification-step row (Task #1103).
  *
- * Fetches the tag list (shared TanStack Query cache — same key as TagPicker so
- * no extra round-trips) to map AI-suggested free-form strings in
- * `identificationTags` to real tag IDs so they appear highlighted as
- * suggestions in the picker dropdown. Admin-selected IDs (valid UUIDs) are
- * pre-filled as `value`.
+ * Pre-selects the tag UUIDs already stored on `identificationTags` and
+ * surfaces the AI's matched suggestions (sparkle icon) via the picker's
+ * `suggestedTagIds` prop.
+ *
+ * Where the suggestions come from (Task #1105):
+ *   - On freshly-identified items the server resolves the AI's free-form
+ *     tag-name suggestions (e.g. "insurance") to real UUIDs at
+ *     identification time and exposes them as
+ *     `identificationAiSuggestedTagIds`. We prefer that list so the
+ *     sparkle keeps showing even after the admin tweaks the picker
+ *     through set-tags (which only mutates `tags`, never the AI-suggest
+ *     stash).
+ *   - For legacy items whose identification ran before that field
+ *     existed (`identificationAiSuggestedTagIds` is null), we fall back
+ *     to the original client-side string-matching path: any non-UUID
+ *     entries in `identificationTags` are matched against the loaded
+ *     tag list by lowercase name.
  *
  * Debounces each toggle 300 ms so rapid add/remove operations are coalesced
  * into a single network request instead of racing.
@@ -1445,22 +1466,32 @@ function IdentificationTagEditor({
   const allTags = tagData?.tags ?? [];
 
   const rawTags = item.identificationTags ?? [];
+  // Defensive UUID filter: post-Task-#1105 sessions only ever store
+  // UUIDs in `tags` (the server drops free-form names), but legacy
+  // sessions may still carry AI name strings here. Filtering keeps the
+  // editor robust either way without surfacing invalid pre-selections.
   const storedTagIds = useMemo(
     () => rawTags.filter((t) => TAG_UUID_RE.test(t)),
     [rawTags],
   );
-  const aiNameSuggestions = useMemo(
-    () => rawTags.filter((t) => !TAG_UUID_RE.test(t)),
-    [rawTags],
-  );
   const suggestedTagIds = useMemo(() => {
+    // Prefer the server-resolved AI suggestions when available so the
+    // sparkle persists across admin edits.
+    if (item.identificationAiSuggestedTagIds !== null) {
+      return item.identificationAiSuggestedTagIds;
+    }
+    // Legacy path: match any free-form AI strings still stored in
+    // `identificationTags` against the tag list client-side. Keeps the
+    // sparkle working for sessions whose identification predates the
+    // server-side mapping.
+    const aiNameSuggestions = rawTags.filter((t) => !TAG_UUID_RE.test(t));
     if (aiNameSuggestions.length === 0) return [];
     const nameMap = new Map(allTags.map((t) => [t.name.toLowerCase(), t.id]));
     return aiNameSuggestions.flatMap((name) => {
       const id = nameMap.get(name.toLowerCase());
       return id ? [id] : [];
     });
-  }, [allTags, aiNameSuggestions]);
+  }, [allTags, rawTags, item.identificationAiSuggestedTagIds]);
 
   const [localTags, setLocalTags] = useState<string[]>(storedTagIds);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);

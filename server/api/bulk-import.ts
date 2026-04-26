@@ -15,7 +15,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as crypto from 'crypto';
 import { z } from 'zod';
-import { and, desc, eq, inArray, or, isNull } from 'drizzle-orm';
+import { and, desc, eq, inArray, or, isNull, sql } from 'drizzle-orm';
 import { requireAuth, requireRole } from '../auth';
 import { canUserAccessOrganization } from '../rbac';
 
@@ -1196,20 +1196,52 @@ async function persistTimeoutFallback(step: AutoStep, item: schema.BulkImportIte
 }
 
 /**
- * Resolve a list of AI-returned tag name strings to real document-tag UUIDs,
- * scoped to the tags visible to the given organization (Task #1112).
+ * Resolve free-form AI tag-name suggestions to real `document_tags` UUIDs
+ * (Task #1112 + Task #1105 — unified during rebase).
  *
- * Matches are case-insensitive and exact. Names that do not match any
- * existing tag are silently dropped. When `organizationId` is null/undefined
- * only system tags are considered (safe fallback for sessions with no org).
+ * The Identification AI returns short strings like "insurance" or
+ * "Procès-verbaux". Those strings cannot be persisted as
+ * `identification.tags` directly because the wizard's set-tags endpoint
+ * (and the eventual document tag-assignment FK) only accepts tag UUIDs.
+ * Resolving them here lets the picker start pre-filled with the AI's
+ * picks instead of empty so the admin only needs to accept/tweak.
  *
- * Exported so the integration test suite can import it directly.
+ * Matching rules:
+ *   - Case-insensitive `name` equality (`lower(documentTags.name) = lower($1)`).
+ *   - Restricted to tags the session's organisation can see: system tags
+ *     (`isSystem = true`), tags with `organizationId IS NULL`, and (when
+ *     `organizationId` is provided) tags belonging to that organisation.
+ *     When `organizationId` is null/undefined only system + null-org tags
+ *     are considered. Mirrors the access scope used by `set-tags` so the
+ *     picker never pre-selects an inaccessible tag.
+ *   - Optionally scope-filtered to the item's branch (Task #1105): when
+ *     `branch === 'residence_documents'` `building`-scoped tags are
+ *     dropped; when `branch` is any other building branch
+ *     `residence`-scoped tags are dropped; `any`-scoped tags are always
+ *     kept. Pass `branch = null` (the default) to skip scope filtering
+ *     entirely (Task #1112 callers / direct integration-test usage).
+ *
+ * Non-matching strings are dropped entirely. Returns the de-duplicated
+ * list of UUIDs, preserving the AI's original ordering for the first
+ * occurrence so the wizard's "apply suggestions" button shows tags in
+ * the order the AI proposed them.
+ *
+ * Exported so the Task #1112 integration test suite can import it
+ * directly; the production identification call-site uses it via the
+ * branch-aware overload below.
  */
 export async function resolveTagNamesToIds(
   tagNames: string[],
   organizationId: string | null | undefined,
+  branch: string | null = null,
 ): Promise<string[]> {
-  if (tagNames.length === 0) return [];
+  const cleanNames = tagNames
+    .filter((n): n is string => typeof n === 'string')
+    .map((n) => n.trim())
+    .filter((n) => n.length > 0);
+  if (cleanNames.length === 0) return [];
+
+  const lowerNames = Array.from(new Set(cleanNames.map((n) => n.toLowerCase())));
 
   const orgCondition = organizationId
     ? or(
@@ -1223,18 +1255,45 @@ export async function resolveTagNamesToIds(
       );
 
   const rows = await db
-    .select({ id: schema.documentTags.id, name: schema.documentTags.name })
+    .select({
+      id: schema.documentTags.id,
+      name: schema.documentTags.name,
+      scope: schema.documentTags.scope,
+    })
     .from(schema.documentTags)
-    .where(orgCondition);
+    .where(
+      and(
+        inArray(sql`lower(${schema.documentTags.name})`, lowerNames),
+        orgCondition,
+      ),
+    );
 
-  const nameToId = new Map(rows.map((r) => [r.name.toLowerCase(), r.id]));
-
-  const resolved: string[] = [];
-  for (const name of tagNames) {
-    const id = nameToId.get(name.toLowerCase());
-    if (id) resolved.push(id);
+  const skipScopeFilter = branch === null;
+  const isResidence = branch === 'residence_documents';
+  const nameToId = new Map<string, string>();
+  for (const row of rows) {
+    if (!skipScopeFilter) {
+      if (row.scope === 'building' && isResidence) continue;
+      if (row.scope === 'residence' && !isResidence) continue;
+    }
+    const key = row.name.toLowerCase();
+    // First match wins so duplicate-named tags across orgs/scopes resolve
+    // deterministically (org-scoped row will win over a system row only
+    // if it sorts first, which is fine — the picker still surfaces the
+    // chosen UUID and the admin can swap it).
+    if (!nameToId.has(key)) nameToId.set(key, row.id);
   }
-  return resolved;
+
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const original of cleanNames) {
+    const id = nameToId.get(original.toLowerCase());
+    if (!id) continue;
+    if (seen.has(id)) continue;
+    seen.add(id);
+    out.push(id);
+  }
+  return out;
 }
 
 /**
@@ -1256,9 +1315,11 @@ async function processItemForStep(
    */
   fiscalYearStartMonth?: number,
   /**
-   * The session's organization ID, used by the identification step to resolve
-   * AI-returned tag name strings to real tag UUIDs (Task #1112). When omitted
-   * only system tags are considered during resolution.
+   * The session's organisation id, used by the identification step to map
+   * AI tag-name suggestions to real `document_tags` UUIDs (Task #1112 +
+   * Task #1105). Optional so callers that only run non-identification steps
+   * (sorting, screening, …) don't need to fetch it; nullable so sessions
+   * without an org fall back to system-tags-only resolution.
    */
   organizationId?: string | null,
 ): Promise<schema.BulkImportItem> {
@@ -1451,18 +1512,45 @@ async function processItemForStep(
       periodHintDate,
     });
     logPerFileAiFailure(step, item, result.fallbackReason);
-    // Task #1112: resolve AI tag name strings to real UUIDs so the picker
-    // renders them as already-selected on first load without any manual click.
-    // Names that don't match an existing org-visible tag are dropped.
-    const resolvedTagIds = await resolveTagNamesToIds(result.tags, organizationId);
-    const identificationWithResolvedTags = {
+
+    // Task #1112 + Task #1105 — Resolve AI's free-form tag-name suggestions
+    // to real `document_tags` UUIDs accessible to the session's organisation
+    // and scope-compatible with this item's branch, so the wizard's
+    // TagPicker starts pre-filled. Names that don't match a real tag are
+    // dropped, leaving only valid UUIDs in `identification.tags`. The same
+    // UUIDs are also stashed in `aiSuggestedTagIds` so the picker can keep
+    // rendering the AI sparkle on each one even after the admin tweaks the
+    // selection through the set-tags endpoint (which only mutates `tags`).
+    let resolvedTagIds: string[] = [];
+    if (Array.isArray(result.tags) && result.tags.length > 0) {
+      try {
+        resolvedTagIds = await resolveTagNamesToIds(
+          result.tags,
+          organizationId,
+          branch,
+        );
+      } catch (e) {
+        // A tag-lookup failure must not block the entire identification
+        // step — log and fall back to dropping all AI tag names so we
+        // never persist invalid free-form strings.
+        logError(
+          `[bulk-import] resolveTagNamesToIds failed for item ${item.id}`,
+          e as Error,
+        );
+        resolvedTagIds = [];
+      }
+    }
+
+    const identificationToStore: Record<string, unknown> = {
       ...(result as unknown as Record<string, unknown>),
       tags: resolvedTagIds,
+      aiSuggestedTagIds: resolvedTagIds,
     };
+
     const [updated] = await db
       .update(schema.bulkImportItems)
       .set({
-        identification: identificationWithResolvedTags,
+        identification: identificationToStore,
         status: 'identified',
         updatedAt: new Date(),
       })
@@ -1540,8 +1628,9 @@ async function runAllForStep(sessionId: string, step: AutoStep): Promise<void> {
     // Task #1030: resolve the building's fiscal-year-start month once for
     // the identification loop, so every periodHint that names a fiscal-year
     // range is parsed against the building's actual fiscal calendar.
-    // Task #1112: also capture the session's organizationId so AI tag names
-    // can be resolved to real UUIDs before being persisted.
+    // Task #1112 + Task #1105: also capture the session's organisation id
+    // once so the identification loop can map AI tag-name suggestions to
+    // real `document_tags` UUIDs without re-fetching the session per item.
     let sessionFiscalYearStartMonth: number | undefined;
     let sessionOrganizationId: string | null | undefined;
     if (step === 'identification') {
@@ -1991,6 +2080,7 @@ export function registerBulkImportRoutes(app: Express): void {
           name: null,
           description: null,
           tags: null,
+          aiSuggestedTagIds: null,
           effectiveDate: null,
           effectiveDateManualOverride: false,
         };
@@ -1999,6 +2089,15 @@ export function registerBulkImportRoutes(app: Express): void {
           name: (json.name as string | null | undefined) ?? null,
           description: (json.description as string | null | undefined) ?? null,
           tags: Array.isArray(json.tags) ? (json.tags as string[]) : null,
+          // Task #1105: the run-all loop maps AI tag-name suggestions to
+          // real `document_tags` UUIDs at identification time and stashes
+          // them here so the wizard's TagPicker can keep rendering the AI
+          // sparkle on each one even after the admin tweaks the selection
+          // through the set-tags endpoint. Null on legacy sessions whose
+          // identification ran before this field existed.
+          aiSuggestedTagIds: Array.isArray(json.aiSuggestedTagIds)
+            ? (json.aiSuggestedTagIds as string[])
+            : null,
           effectiveDate: (json.effectiveDate as string | null | undefined) ?? null,
           // Task #1031: surface the manual-override marker so the UI can
           // hide the "from screening" annotation once the admin has
@@ -2181,6 +2280,7 @@ export function registerBulkImportRoutes(app: Express): void {
               identificationName: id.name,
               identificationDescription: id.description,
               identificationTags: id.tags,
+              identificationAiSuggestedTagIds: id.aiSuggestedTagIds,
               identificationEffectiveDate: id.effectiveDate,
               identificationEffectiveDateManualOverride: id.effectiveDateManualOverride,
               linkingConfidence: lk.confidence,
@@ -5271,11 +5371,16 @@ export function registerBulkImportRoutes(app: Express): void {
           // Task #1030: identification retries also need the building's
           // fiscal-year-start month so periodHint fiscal ranges line up
           // with the bulk run-all path.
+          // Task #1105: identification retries also need the session's
+          // organisation id so AI tag-name suggestions are mapped to real
+          // `document_tags` UUIDs the same way the run-all loop does.
           let fiscalYearStartMonth: number | undefined;
+          let identifyOrganizationId: string | undefined;
           if (step === 'identification') {
             fiscalYearStartMonth = await getFiscalYearStartMonthForBuilding(
               session?.buildingId ?? null,
             );
+            identifyOrganizationId = session?.organizationId ?? undefined;
           }
 
           // Surface the in-flight state via the same `runAll[step].inFlight`
@@ -5304,7 +5409,7 @@ export function registerBulkImportRoutes(app: Express): void {
                   })),
                   residences,
                   fiscalYearStartMonth,
-                  session?.organizationId ?? null,
+                  identifyOrganizationId,
                 ),
                 RUN_ALL_ITEM_TIMEOUT_MS,
                 item.originalName,
