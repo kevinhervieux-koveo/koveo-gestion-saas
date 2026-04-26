@@ -121,6 +121,7 @@ npm test                # Run all tests
 npm run test:unit       # Run unit tests
 npm run test:e2e        # Run end-to-end tests
 npm run test:coverage   # Generate coverage report
+npm run test:perf       # Run heavy perf regression tests (opt-in, see Testing > Performance regression tests)
 
 # Code Quality
 npm run lint            # Run ESLint
@@ -280,6 +281,36 @@ __tests__/
 - **Core Test Success**: Dashboard Components (15/15), Form Validation (12/12), API Routes (15/15)
 - **Quebec Compliance**: Bilingual form validation and Law 25 compliance testing
 - **Mock Architecture**: Comprehensive server import mocking for reliable test isolation
+
+### Performance regression tests
+
+Some regression guards (e.g. the bulk-import upload memory test added in
+Task #1067 at
+`tests/integration/bulk-import-upload-large-batch-memory.test.ts`) move
+hundreds of MB of synthetic data through the full HTTP / multipart / disk
+pipeline and would slow down every PR if they ran by default. They are
+gated on the `RUN_PERF_TESTS=1` environment variable and use the
+`SKIP_INTEGRATION_DB_SYNC=1` flag to bypass the heavyweight Postgres
+integration setup.
+
+Run them locally with:
+
+```bash
+npm run test:perf
+```
+
+The script wires up `RUN_PERF_TESTS=1`, `SKIP_INTEGRATION_DB_SYNC=1`, and
+`NODE_OPTIONS=--expose-gc` (so the test can take a clean memory baseline
+before sampling peaks).
+
+In CI they run as a dedicated **Performance Regression Tests** job
+(`.github/workflows/perf-tests.yml`) on a nightly schedule (07:00 UTC) on
+the default branch and on any PR that touches the perf test file, the
+workflow itself, or the bulk-import upload route. A scheduled-run failure
+opens a tracking issue labeled `perf-regression` so the regression is
+visible even when no one is watching the Actions tab. Anyone investigating
+a suspected memory regression can also re-run the workflow manually from
+the Actions tab (with optional `file_count` / `file_size_mb` overrides).
 
 ### Quality Metrics
 

@@ -85,7 +85,8 @@
     "backfill:cross-residence-demands": "npx tsx server/scripts/backfill-cross-residence-demands.ts",
     "backfill:cross-assignation-demands": "npx tsx server/scripts/backfill-cross-assignation-demands.ts",
     "db:push:danger": "npx drizzle-kit push",
-    "db:push:danger:force": "npx drizzle-kit push --force"
+    "db:push:danger:force": "npx drizzle-kit push --force",
+    "test:perf": "RUN_PERF_TESTS=1 SKIP_INTEGRATION_DB_SYNC=1 NODE_OPTIONS='--expose-gc' npx jest tests/integration/bulk-import-upload-large-batch-memory.test.ts --runInBand --testTimeout=300000 --forceExit"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.37.0",

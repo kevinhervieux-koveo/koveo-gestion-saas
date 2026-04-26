@@ -256,6 +256,45 @@ describe('Building Management API', () => {
 });
 ```
 
+### Performance Regression Tests
+
+Heavy resource-property regression guards (memory ceilings, latency
+budgets) are gated on `RUN_PERF_TESTS=1` so they don't slow down the
+default `npm test` run on every PR. The first one is the bulk-import
+upload memory test
+(`tests/integration/bulk-import-upload-large-batch-memory.test.ts`,
+Task #1067), which streams ~150MB through the real upload route to
+prove a future PR cannot re-introduce `multer.memoryStorage()` without
+the regression being caught.
+
+Run them locally with:
+
+```bash
+npm run test:perf
+```
+
+That script sets the required env vars (`RUN_PERF_TESTS=1`,
+`SKIP_INTEGRATION_DB_SYNC=1`, `NODE_OPTIONS=--expose-gc`) and runs the
+gated tests in band.
+
+These tests are **not** part of the default PR pipeline. They are
+executed by the dedicated **Performance Regression Tests** GitHub
+Actions workflow (`.github/workflows/perf-tests.yml`):
+
+- **Nightly** (07:00 UTC) on the default branch — a failure opens a
+  tracking issue labeled `perf-regression` so the regression is visible
+  the next morning.
+- **On every PR** that touches the perf test file, the workflow itself,
+  or the bulk-import upload route — so a PR that intentionally changes
+  the guard cannot merge without demonstrating it still passes.
+- **On demand** via `workflow_dispatch` — anyone investigating a
+  suspected memory regression can re-run the suite from the Actions tab
+  (optionally overriding `file_count` / `file_size_mb`).
+
+If you are adding a new perf-class regression guard, gate it on the same
+`RUN_PERF_TESTS` flag and add it to `npm run test:perf` so the nightly
+job picks it up automatically.
+
 ### Coverage Requirements
 
 - **Minimum Coverage**: 80% overall
