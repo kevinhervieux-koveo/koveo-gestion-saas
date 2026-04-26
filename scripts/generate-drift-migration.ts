@@ -429,6 +429,38 @@ END $$;
 
 const COLUMN_TYPE_FIXES = `
 -- ---------------------------------------------------------------------------
+-- Cleanup phase 3.5: drop triggers that reference columns we're about to
+-- change type. In PGlite (and Postgres) you cannot ALTER COLUMN TYPE on a
+-- column that is named in a trigger's OF list. The triggers are recreated
+-- in TRIGGER_RECREATE below after the type changes complete.
+-- ---------------------------------------------------------------------------
+DROP TRIGGER IF EXISTS residences_demand_building_check ON residences;
+DROP TRIGGER IF EXISTS residences_demand_assignation_check ON residences;
+DROP TRIGGER IF EXISTS demands_residence_building_check ON demands;
+DROP TRIGGER IF EXISTS demands_assignation_check ON demands;
+DROP TRIGGER IF EXISTS invitations_residence_building_check ON invitations;
+-- Defensive cleanup: 'invitations_building_check' is a legacy short name
+-- never created by any migration in this repo; the active trigger is
+-- 'invitations_residence_building_check' (recreated below in TRIGGER_RECREATE).
+-- IF EXISTS makes this a no-op when the legacy name is absent.
+DROP TRIGGER IF EXISTS invitations_building_check ON invitations;
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='documents') THEN
+    DROP TRIGGER IF EXISTS documents_residence_building_check ON documents;
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='building_elements') THEN
+    DROP TRIGGER IF EXISTS building_elements_residence_building_check ON building_elements;
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='invoices') THEN
+    DROP TRIGGER IF EXISTS invoices_residence_building_check ON invoices;
+  END IF;
+END $$;
+
+-- ---------------------------------------------------------------------------
 -- Cleanup phase 4: reconcile column types between hand-written migrations
 -- (which used uuid/varchar) and the Drizzle schema (which uses
 -- text/varchar). Foreign keys were dropped above, so these ALTERs no
@@ -575,6 +607,155 @@ END $$;
 
 `;
 
+const TRIGGER_RECREATE = `
+-- ---------------------------------------------------------------------------
+-- Recreate triggers that were dropped in Cleanup phase 3.5 so they remain
+-- active going forward (their logic is unchanged; only the column types
+-- they reference may have shifted from uuid → varchar/text).
+-- ---------------------------------------------------------------------------
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_trigger t
+    JOIN pg_class c ON c.oid = t.tgrelid
+    WHERE c.relname = 'residences' AND t.tgname = 'residences_demand_building_check'
+  ) AND EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'residences_check_demand_building') THEN
+    EXECUTE $trig$
+      CREATE TRIGGER residences_demand_building_check
+        BEFORE UPDATE OF building_id
+        ON residences
+        FOR EACH ROW
+        EXECUTE FUNCTION residences_check_demand_building()
+    $trig$;
+  END IF;
+END $$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_trigger t
+    JOIN pg_class c ON c.oid = t.tgrelid
+    WHERE c.relname = 'residences' AND t.tgname = 'residences_demand_assignation_check'
+  ) AND EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'residences_check_demand_assignation') THEN
+    EXECUTE $trig$
+      CREATE TRIGGER residences_demand_assignation_check
+        BEFORE UPDATE OF building_id
+        ON residences
+        FOR EACH ROW
+        EXECUTE FUNCTION residences_check_demand_assignation()
+    $trig$;
+  END IF;
+END $$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_trigger t
+    JOIN pg_class c ON c.oid = t.tgrelid
+    WHERE c.relname = 'demands' AND t.tgname = 'demands_residence_building_check'
+  ) AND EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'demands_check_residence_building') THEN
+    EXECUTE $trig$
+      CREATE TRIGGER demands_residence_building_check
+        BEFORE INSERT OR UPDATE OF residence_id, building_id
+        ON demands
+        FOR EACH ROW
+        EXECUTE FUNCTION demands_check_residence_building()
+    $trig$;
+  END IF;
+END $$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_trigger t
+    JOIN pg_class c ON c.oid = t.tgrelid
+    WHERE c.relname = 'demands' AND t.tgname = 'demands_assignation_check'
+  ) AND EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'demands_check_assignation') THEN
+    EXECUTE $trig$
+      CREATE TRIGGER demands_assignation_check
+        BEFORE INSERT OR UPDATE OF
+          assignation_residence_id,
+          assignation_building_id,
+          building_id
+        ON demands
+        FOR EACH ROW
+        EXECUTE FUNCTION demands_check_assignation()
+    $trig$;
+  END IF;
+END $$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_trigger t
+    JOIN pg_class c ON c.oid = t.tgrelid
+    WHERE c.relname = 'invitations' AND t.tgname = 'invitations_residence_building_check'
+  ) AND EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'invitations_check_residence_building') THEN
+    EXECUTE $trig$
+      CREATE TRIGGER invitations_residence_building_check
+        BEFORE INSERT OR UPDATE OF residence_id, building_id
+        ON invitations
+        FOR EACH ROW
+        EXECUTE FUNCTION invitations_check_residence_building()
+    $trig$;
+  END IF;
+END $$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_trigger t
+    JOIN pg_class c ON c.oid = t.tgrelid
+    WHERE c.relname = 'documents' AND t.tgname = 'documents_residence_building_check'
+  ) AND EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'documents_check_residence_building')
+    AND EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='documents') THEN
+    EXECUTE $trig$
+      CREATE TRIGGER documents_residence_building_check
+        BEFORE INSERT OR UPDATE OF residence_id, building_id
+        ON documents
+        FOR EACH ROW
+        EXECUTE FUNCTION documents_check_residence_building()
+    $trig$;
+  END IF;
+END $$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_trigger t
+    JOIN pg_class c ON c.oid = t.tgrelid
+    WHERE c.relname = 'building_elements' AND t.tgname = 'building_elements_residence_building_check'
+  ) AND EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'building_elements_check_residence_building')
+    AND EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='building_elements') THEN
+    EXECUTE $trig$
+      CREATE TRIGGER building_elements_residence_building_check
+        BEFORE INSERT OR UPDATE OF residence_id, building_id
+        ON building_elements
+        FOR EACH ROW
+        EXECUTE FUNCTION building_elements_check_residence_building()
+    $trig$;
+  END IF;
+END $$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_trigger t
+    JOIN pg_class c ON c.oid = t.tgrelid
+    WHERE c.relname = 'invoices' AND t.tgname = 'invoices_residence_building_check'
+  ) AND EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'invoices_check_residence_building')
+    AND EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema='public' AND table_name='invoices') THEN
+    EXECUTE $trig$
+      CREATE TRIGGER invoices_residence_building_check
+        BEFORE INSERT OR UPDATE OF residence_id, building_id
+        ON invoices
+        FOR EACH ROW
+        EXECUTE FUNCTION invoices_check_residence_building()
+    $trig$;
+  END IF;
+END $$;
+`;
+
 function main() {
   const sql = exportSchema();
   const stmts = splitStatements(sql);
@@ -616,6 +797,8 @@ function main() {
   for (const i of idxs) {
     out += emitIndex(i);
   }
+
+  out += TRIGGER_RECREATE;
 
   process.stdout.write(out);
 }
