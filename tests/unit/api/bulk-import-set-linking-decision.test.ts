@@ -329,3 +329,161 @@ describe('POST /api/admin/bulk-import/sessions/:id/batch-set-linking-decisions (
     expect(res.body.error).toMatch(/session not found/i);
   });
 });
+
+/**
+ * Task #1251 — End-to-end coverage for the dual-side updates the new
+ * client helpers `computeLinkingDropChanges` and
+ * `computeLinkingMakeStandaloneChanges` emit.
+ *
+ * The batch endpoint is the contract surface the wizard actually hits
+ * when the admin drags rows around or detaches them. Each scenario
+ * below mirrors the LinkingChange[] payload one of those helpers would
+ * produce, then asserts the on-disk row state so a server regression
+ * cannot silently persist a malformed chain (cycles, dangling
+ * pointers, neighbor-out-of-sync) and force the client to recover.
+ */
+describe('Task #1251 — set-linking-decision dual-side updates and shape integrity', () => {
+  /**
+   * Helper: assert a row's persisted (beforeItemId, afterItemId) tuple
+   * and the manualOverride stamp set by the endpoint.
+   */
+  function expectChain(
+    id: string,
+    before: string | null,
+    after: string | null,
+  ): void {
+    const ld = itemStore.get(id)!.linkDecisions;
+    expect(ld).not.toBeNull();
+    expect(ld!.beforeItemId).toBe(before);
+    expect(ld!.afterItemId).toBe(after);
+    expect(ld!.manualOverride).toBe(true);
+  }
+
+  it('(a) clean intra-chain reorder: moving B after C in A→B→C→D yields A→C→B→D atomically', async () => {
+    // Seed chain A→B→C→D.
+    seedItem('a', SESSION, { beforeItemId: null, afterItemId: 'b', manualOverride: true });
+    seedItem('b', SESSION, { beforeItemId: 'a', afterItemId: 'c', manualOverride: true });
+    seedItem('c', SESSION, { beforeItemId: 'b', afterItemId: 'd', manualOverride: true });
+    seedItem('d', SESSION, { beforeItemId: 'c', afterItemId: null, manualOverride: true });
+
+    // Payload mirrors what computeLinkingDropChanges('b', 'c', 'after', ...)
+    // would produce for the chain above: every row whose effective
+    // before/after actually changes is included, on both sides of the
+    // splice (A's after, C's before/after, B's before/after, D's before).
+    const res = await request(buildApp())
+      .post(BATCH_URL(SESSION))
+      .send({
+        decisions: [
+          { itemId: 'a', beforeItemId: null, afterItemId: 'c' },
+          { itemId: 'c', beforeItemId: 'a', afterItemId: 'b' },
+          { itemId: 'b', beforeItemId: 'c', afterItemId: 'd' },
+          { itemId: 'd', beforeItemId: 'b', afterItemId: null },
+        ],
+      })
+      .expect(200);
+
+    expect(res.body.updated).toEqual(expect.arrayContaining(['a', 'b', 'c', 'd']));
+    // Final on-disk shape is A→C→B→D with no dangling or duplicate pointers.
+    expectChain('a', null, 'c');
+    expectChain('c', 'a', 'b');
+    expectChain('b', 'c', 'd');
+    expectChain('d', 'b', null);
+  });
+
+  it('(b) cross-chain move: moving B from A→B→C into X→Y→Z heals the source neighbors', async () => {
+    // Source chain A→B→C.
+    seedItem('a', SESSION, { beforeItemId: null, afterItemId: 'b', manualOverride: true });
+    seedItem('b', SESSION, { beforeItemId: 'a', afterItemId: 'c', manualOverride: true });
+    seedItem('c', SESSION, { beforeItemId: 'b', afterItemId: null, manualOverride: true });
+    // Target chain X→Y→Z.
+    seedItem('x', SESSION, { beforeItemId: null, afterItemId: 'y', manualOverride: true });
+    seedItem('y', SESSION, { beforeItemId: 'x', afterItemId: 'z', manualOverride: true });
+    seedItem('z', SESSION, { beforeItemId: 'y', afterItemId: null, manualOverride: true });
+
+    // Payload mirrors computeLinkingDropChanges('b', 'y', 'after', ...).
+    // Crucially, it includes A and C — the source neighbors that must be
+    // stitched together so the source chain doesn't keep dangling
+    // pointers to B once B has moved into the target chain.
+    const res = await request(buildApp())
+      .post(BATCH_URL(SESSION))
+      .send({
+        decisions: [
+          { itemId: 'y', beforeItemId: 'x', afterItemId: 'b' },
+          { itemId: 'b', beforeItemId: 'y', afterItemId: 'z' },
+          { itemId: 'z', beforeItemId: 'b', afterItemId: null },
+          { itemId: 'a', beforeItemId: null, afterItemId: 'c' },
+          { itemId: 'c', beforeItemId: 'a', afterItemId: null },
+        ],
+      })
+      .expect(200);
+
+    expect(res.body.updated).toEqual(
+      expect.arrayContaining(['a', 'b', 'c', 'y', 'z']),
+    );
+    // Source chain healed to A→C with no leftover reference to B.
+    expectChain('a', null, 'c');
+    expectChain('c', 'a', null);
+    // Target chain became X→Y→B→Z with B stitched in at both sides.
+    const xLd = itemStore.get('x')!.linkDecisions!;
+    expect(xLd.afterItemId).toBe('y');
+    expectChain('y', 'x', 'b');
+    expectChain('b', 'y', 'z');
+    expectChain('z', 'b', null);
+  });
+
+  it('(c) make-standalone: detaching B from A→B→C nulls both pointers and reconnects A↔C atomically', async () => {
+    seedItem('a', SESSION, { beforeItemId: null, afterItemId: 'b', manualOverride: true });
+    seedItem('b', SESSION, { beforeItemId: 'a', afterItemId: 'c', manualOverride: true });
+    seedItem('c', SESSION, { beforeItemId: 'b', afterItemId: null, manualOverride: true });
+
+    // Payload mirrors computeLinkingMakeStandaloneChanges('b', ...).
+    // Both pointers on B are cleared in the same request that re-wires
+    // A.after and C.before so A→C survives intact.
+    const res = await request(buildApp())
+      .post(BATCH_URL(SESSION))
+      .send({
+        decisions: [
+          { itemId: 'a', beforeItemId: null, afterItemId: 'c' },
+          { itemId: 'c', beforeItemId: 'a', afterItemId: null },
+          { itemId: 'b', beforeItemId: null, afterItemId: null },
+        ],
+      })
+      .expect(200);
+
+    expect(res.body.updated).toEqual(expect.arrayContaining(['a', 'b', 'c']));
+    // B is fully standalone — both sides nulled in the same atomic write.
+    expectChain('b', null, null);
+    // Former neighbors reconnect into a 2-item chain A→C.
+    expectChain('a', null, 'c');
+    expectChain('c', 'a', null);
+  });
+
+  it('(d) cycle attempt across three rows is rejected and no row is mutated', async () => {
+    // Three independent items; nothing wired up yet.
+    seedItem('a', SESSION, null);
+    seedItem('b', SESSION, null);
+    seedItem('c', SESSION, null);
+
+    // A malicious / buggy client tries to persist A→B→C→A. The server
+    // must walk the proposed forward-link graph, detect that A is
+    // reachable from itself, and refuse the entire batch.
+    const res = await request(buildApp())
+      .post(BATCH_URL(SESSION))
+      .send({
+        decisions: [
+          { itemId: 'a', beforeItemId: 'c', afterItemId: 'b' },
+          { itemId: 'b', beforeItemId: 'a', afterItemId: 'c' },
+          { itemId: 'c', beforeItemId: 'b', afterItemId: 'a' },
+        ],
+      })
+      .expect(400);
+
+    expect(res.body.error).toMatch(/cycle/i);
+    // Critically, none of the rows were touched — the transaction is
+    // all-or-nothing and the contract with the client helpers is that
+    // a rejected payload leaves storage exactly as it was.
+    expect(itemStore.get('a')!.linkDecisions).toBeNull();
+    expect(itemStore.get('b')!.linkDecisions).toBeNull();
+    expect(itemStore.get('c')!.linkDecisions).toBeNull();
+  });
+});
