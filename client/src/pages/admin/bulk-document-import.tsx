@@ -4244,10 +4244,12 @@ export default function BulkDocumentImportPage() {
                         warning tells the admin the status updates have
                         paused so they don't mistake a stalled connection
                         for a stalled job. It auto-clears as soon as a
-                        successful poll comes back. Scoped to the linking
-                        step per the task brief — the wider fix can come
-                        later if other steps prove similarly flaky. */}
-                    {currentStep === 'linking' && litePollInterrupted && (
+                        successful poll comes back. Task #1234 introduced
+                        this banner scoped to the linking step; Task #1247
+                        widened the gate to every auto step (screening,
+                        sorting, branching, identification, linking) since
+                        they all rely on the same /sessions/:id/lite poll. */}
+                    {isAutoStep(currentStep) && litePollInterrupted && (
                       <div
                         className="mb-3 flex items-center gap-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200"
                         data-testid="lite-poll-interrupted-banner"
