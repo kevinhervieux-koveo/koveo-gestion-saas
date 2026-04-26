@@ -171,6 +171,22 @@ function renderPage() {
   );
 }
 
+/**
+ * Wait for a row to appear in the DOM.  Non-linking steps use
+ * `item-row-${id}`; the linking step uses `linking-row-${id}` (Task #1233).
+ */
+async function waitForRowEither(id: string) {
+  await waitFor(
+    () => {
+      const el =
+        document.querySelector(`[data-testid="item-row-${id}"]`) ??
+        document.querySelector(`[data-testid="linking-row-${id}"]`);
+      expect(el).not.toBeNull();
+    },
+    { timeout: 4000 },
+  );
+}
+
 let originalFetch: typeof fetch | undefined;
 
 beforeEach(() => {
@@ -257,9 +273,10 @@ describe('BulkDocumentImportPage — excluded file visibility (Task #804)', () =
 
       renderPage();
 
-      await screen.findByTestId(`item-row-${INCLUDED_ITEM_ID}`, undefined, { timeout: 4000 });
+      await waitForRowEither(INCLUDED_ITEM_ID);
 
       expect(screen.queryByTestId(`item-row-${EXCLUDED_ITEM_ID}`)).not.toBeInTheDocument();
+      expect(screen.queryByTestId(`linking-row-${EXCLUDED_ITEM_ID}`)).not.toBeInTheDocument();
       expect(screen.queryByTestId(`badge-excluded-${EXCLUDED_ITEM_ID}`)).not.toBeInTheDocument();
     });
 

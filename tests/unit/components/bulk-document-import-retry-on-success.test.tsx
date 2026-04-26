@@ -370,13 +370,21 @@ function renderPage() {
 }
 
 /**
- * Wait until the page has rendered the row whose id is supplied. The
- * page renders an `item-row-${id}` wrapper around every visible row,
- * so seeing it means the lite payload landed and the row passed the
- * `visibleItems` filter.
+ * Wait until the page has rendered the row whose id is supplied.
+ * Non-linking steps use `item-row-${id}`; the linking step uses
+ * `linking-row-${id}` (Task #1233). We try the legacy testid first
+ * (fast path for other steps) then fall back to the linking testid.
  */
 async function waitForRow(id: string) {
-  await screen.findByTestId(`item-row-${id}`, undefined, { timeout: 4000 });
+  await waitFor(
+    () => {
+      const el =
+        document.querySelector(`[data-testid="item-row-${id}"]`) ??
+        document.querySelector(`[data-testid="linking-row-${id}"]`);
+      expect(el).not.toBeNull();
+    },
+    { timeout: 4000 },
+  );
 }
 
 /**
@@ -389,9 +397,10 @@ async function waitForRow(id: string) {
 async function waitForAnyRow() {
   await waitFor(
     () => {
-      expect(
-        document.querySelector('[data-testid^="item-row-"]'),
-      ).not.toBeNull();
+      const found =
+        document.querySelector('[data-testid^="item-row-"]') ??
+        document.querySelector('[data-testid^="linking-row-"]');
+      expect(found).not.toBeNull();
     },
     { timeout: 4000 },
   );

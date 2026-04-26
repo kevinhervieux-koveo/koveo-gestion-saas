@@ -2697,12 +2697,13 @@ export function registerBulkImportRoutes(app: Express): void {
 
       function extractLinkingStep(json: Record<string, unknown> | null | undefined) {
         const base = extractStep(json);
-        if (!json) return { ...base, linkingReason: null, beforeItemId: null, afterItemId: null };
+        if (!json) return { ...base, linkingReason: null, beforeItemId: null, afterItemId: null, manualOverride: false };
         return {
           ...base,
           linkingReason: (json.reason as string | null | undefined) ?? null,
           beforeItemId: (json.beforeItemId as string | null | undefined) ?? null,
           afterItemId: (json.afterItemId as string | null | undefined) ?? null,
+          manualOverride: json.manualOverride === true,
         };
       }
 
@@ -2896,6 +2897,8 @@ export function registerBulkImportRoutes(app: Express): void {
               linkingReason: lk.linkingReason,
               linkingBeforeItemId: lk.beforeItemId,
               linkingAfterItemId: lk.afterItemId,
+              // Task #1233: admin-override marker for the linking step.
+              linkingManualOverride: lk.manualOverride,
             };
           })(),
         };
@@ -5855,6 +5858,272 @@ export function registerBulkImportRoutes(app: Express): void {
           message: userMessage,
           code: 'SORTING_DECISION_INTERNAL_ERROR',
         });
+      }
+    },
+  );
+
+  /**
+   * Task #1233 — Admin override for the Linking step.
+   *
+   * Lets an admin set or clear the `beforeItemId` / `afterItemId` for a
+   * single item, persisting the change with `manualOverride: true` in the
+   * `linkDecisions` JSON so the wizard can show the "Manual" badge.
+   *
+   * Validation:
+   *   - beforeItemId / afterItemId (each nullable) must belong to the same
+   *     session when non-null.
+   *   - Neither may equal the item's own ID (no self-links).
+   *   - The resulting chain must be acyclic; a cycle is detected by walking
+   *     forward from the proposed afterItemId and checking whether it
+   *     eventually reaches the item being updated.
+   */
+  const setLinkingDecisionSchema = z.object({
+    beforeItemId: z.string().nullable(),
+    afterItemId: z.string().nullable(),
+  });
+  app.post(
+    '/api/admin/bulk-import/items/:id/set-linking-decision',
+    requireAuth,
+    requireRole(['admin']),
+    async (req: AuthenticatedRequest, res: Response) => {
+      const t0 = Date.now();
+      const itemId = req.params.id;
+      logDebug('[bulk-import] route entry POST /api/admin/bulk-import/items/:id/set-linking-decision', {
+        metadata: { itemId, userId: req.user?.id },
+      });
+      try {
+        const { beforeItemId, afterItemId } = setLinkingDecisionSchema.parse(req.body);
+
+        const [item] = await db
+          .select()
+          .from(schema.bulkImportItems)
+          .where(eq(schema.bulkImportItems.id, itemId));
+        if (!item) {
+          logDebug('[bulk-import] route exit POST set-linking-decision status 404', { metadata: { itemId, status: 404, durationMs: Date.now() - t0 } });
+          return res.status(404).json({ error: 'Item not found' });
+        }
+
+        // Load all items in the session for validation and cycle detection.
+        const sessionItems = await db
+          .select({ id: schema.bulkImportItems.id, linkDecisions: schema.bulkImportItems.linkDecisions })
+          .from(schema.bulkImportItems)
+          .where(eq(schema.bulkImportItems.sessionId, item.sessionId));
+
+        const sessionItemIds = new Set(sessionItems.map((i) => i.id));
+
+        // Self-link guard.
+        if (beforeItemId !== null && beforeItemId === itemId) {
+          logDebug('[bulk-import] route exit POST set-linking-decision status 400 self-link-before', { metadata: { itemId, status: 400, durationMs: Date.now() - t0 } });
+          return res.status(400).json({ error: 'beforeItemId cannot equal the item id (self-link)' });
+        }
+        if (afterItemId !== null && afterItemId === itemId) {
+          logDebug('[bulk-import] route exit POST set-linking-decision status 400 self-link-after', { metadata: { itemId, status: 400, durationMs: Date.now() - t0 } });
+          return res.status(400).json({ error: 'afterItemId cannot equal the item id (self-link)' });
+        }
+
+        // Session membership guard.
+        if (beforeItemId !== null && !sessionItemIds.has(beforeItemId)) {
+          logDebug('[bulk-import] route exit POST set-linking-decision status 400 before-not-in-session', { metadata: { itemId, beforeItemId, status: 400, durationMs: Date.now() - t0 } });
+          return res.status(400).json({ error: 'beforeItemId does not belong to this session' });
+        }
+        if (afterItemId !== null && !sessionItemIds.has(afterItemId)) {
+          logDebug('[bulk-import] route exit POST set-linking-decision status 400 after-not-in-session', { metadata: { itemId, afterItemId, status: 400, durationMs: Date.now() - t0 } });
+          return res.status(400).json({ error: 'afterItemId does not belong to this session' });
+        }
+
+        // Cycle detection: build the prospective forward-link map and walk
+        // it starting from `afterItemId`.  If we ever reach `itemId` again
+        // the proposed change would create a cycle.
+        if (afterItemId !== null) {
+          const afterMap = new Map<string, string>();
+          for (const si of sessionItems) {
+            const ld = (si.linkDecisions ?? {}) as Record<string, unknown>;
+            const siAfter = (ld.afterItemId as string | null | undefined) ?? null;
+            if (siAfter && si.id !== itemId) afterMap.set(si.id, siAfter);
+          }
+          afterMap.set(itemId, afterItemId);
+
+          const visited = new Set<string>([itemId]);
+          let cursor: string | undefined = afterItemId;
+          while (cursor) {
+            if (visited.has(cursor)) {
+              logDebug('[bulk-import] route exit POST set-linking-decision status 400 cycle', { metadata: { itemId, afterItemId, cycle: cursor, status: 400, durationMs: Date.now() - t0 } });
+              return res.status(400).json({ error: 'Cycle detected: this change would create a circular chain' });
+            }
+            visited.add(cursor);
+            cursor = afterMap.get(cursor);
+          }
+        }
+
+        // Persist the override.
+        const existing = (item.linkDecisions ?? {}) as Record<string, unknown>;
+        const nextLinkDecisions: Record<string, unknown> = {
+          ...existing,
+          beforeItemId: beforeItemId ?? null,
+          afterItemId: afterItemId ?? null,
+          manualOverride: true,
+        };
+
+        const [updated] = await db
+          .update(schema.bulkImportItems)
+          .set({ linkDecisions: nextLinkDecisions, updatedAt: new Date() })
+          .where(eq(schema.bulkImportItems.id, itemId))
+          .returning();
+
+        logDebug('[bulk-import] route exit POST set-linking-decision ok', {
+          metadata: { itemId, beforeItemId, afterItemId, status: 200, durationMs: Date.now() - t0 },
+        });
+        return res.json(updated);
+      } catch (err) {
+        if (err instanceof z.ZodError) {
+          logDebug('[bulk-import] route exit POST set-linking-decision status 400 zod', { metadata: { itemId, status: 400, durationMs: Date.now() - t0 } });
+          return res.status(400).json({ error: err.errors });
+        }
+        logDebug('[bulk-import] route exit POST set-linking-decision status 500', { metadata: { itemId, status: 500, durationMs: Date.now() - t0 } });
+        logError('[bulk-import] set-linking-decision failed', err as Error);
+        return res.status(500).json({ error: 'Failed to update linking decision' });
+      }
+    },
+  );
+
+  /**
+   * Task #1233: Batch-set linking decisions for multiple items atomically.
+   * All writes are wrapped in a single DB transaction so the operation is
+   * all-or-nothing; if any validation fails, no DB row is touched.
+   *
+   * POST /api/admin/bulk-import/sessions/:id/batch-set-linking-decisions
+   * Body: { decisions: Array<{itemId, beforeItemId, afterItemId}> }
+   */
+  const batchSetLinkingDecisionsSchema = z.object({
+    decisions: z.array(
+      z.object({
+        itemId: z.string(),
+        beforeItemId: z.string().nullable(),
+        afterItemId: z.string().nullable(),
+      }),
+    ).min(1),
+  });
+  app.post(
+    '/api/admin/bulk-import/sessions/:id/batch-set-linking-decisions',
+    requireAuth,
+    requireRole(['admin']),
+    async (req: AuthenticatedRequest, res: Response) => {
+      const t0 = Date.now();
+      const sessionId = req.params.id;
+      logDebug('[bulk-import] route entry POST batch-set-linking-decisions', {
+        metadata: { sessionId, userId: req.user?.id },
+      });
+      try {
+        const { decisions } = batchSetLinkingDecisionsSchema.parse(req.body);
+
+        // Load all items in this session.
+        const sessionItems = await db
+          .select({ id: schema.bulkImportItems.id, linkDecisions: schema.bulkImportItems.linkDecisions, sessionId: schema.bulkImportItems.sessionId })
+          .from(schema.bulkImportItems)
+          .where(eq(schema.bulkImportItems.sessionId, sessionId));
+
+        if (!sessionItems.length) {
+          return res.status(404).json({ error: 'Session not found or has no items' });
+        }
+
+        const sessionItemIds = new Set(sessionItems.map((i) => i.id));
+
+        // Validate all items and build proposed forward-link graph.
+        for (const { itemId, beforeItemId, afterItemId } of decisions) {
+          if (!sessionItemIds.has(itemId)) {
+            return res.status(400).json({ error: `Item ${itemId} does not belong to session ${sessionId}` });
+          }
+          if (beforeItemId !== null && beforeItemId === itemId) {
+            return res.status(400).json({ error: `Self-link (beforeItemId) on item ${itemId}` });
+          }
+          if (afterItemId !== null && afterItemId === itemId) {
+            return res.status(400).json({ error: `Self-link (afterItemId) on item ${itemId}` });
+          }
+          if (beforeItemId !== null && !sessionItemIds.has(beforeItemId)) {
+            return res.status(400).json({ error: `beforeItemId ${beforeItemId} not in session` });
+          }
+          if (afterItemId !== null && !sessionItemIds.has(afterItemId)) {
+            return res.status(400).json({ error: `afterItemId ${afterItemId} not in session` });
+          }
+        }
+
+        // Build the proposed forward-link graph: start from server state,
+        // then overlay proposed changes.
+        const proposedDecisionMap = new Map(decisions.map((d) => [d.itemId, d]));
+        const afterMap = new Map<string, string>();
+        for (const si of sessionItems) {
+          const ld = (si.linkDecisions ?? {}) as Record<string, unknown>;
+          const override = proposedDecisionMap.get(si.id);
+          const siAfter = override !== undefined
+            ? override.afterItemId
+            : ((ld.afterItemId as string | null | undefined) ?? null);
+          if (siAfter) afterMap.set(si.id, siAfter);
+        }
+        // Add proposed items that may not yet be in sessionItems.
+        for (const d of decisions) {
+          if (d.afterItemId) afterMap.set(d.itemId, d.afterItemId);
+          else afterMap.delete(d.itemId);
+        }
+
+        // Cycle detection on the proposed graph.
+        // We separate "nodes in the current exploration path" from "globally
+        // visited nodes" so that revisiting a node from the current path is
+        // correctly identified as a cycle even when the cycle starts at the
+        // very first node walked.
+        const globalVisited = new Set<string>();
+        for (const startId of sessionItemIds) {
+          if (globalVisited.has(startId)) continue;
+          const path = new Set<string>();
+          let cursor: string | undefined = startId;
+          while (cursor) {
+            if (globalVisited.has(cursor)) break; // safe — already explored from another start
+            if (path.has(cursor)) {
+              logDebug('[bulk-import] batch-set-linking-decisions: cycle detected', {
+                metadata: { sessionId, cycle: cursor, status: 400, durationMs: Date.now() - t0 },
+              });
+              return res.status(400).json({ error: 'Cycle detected in proposed linking graph' });
+            }
+            path.add(cursor);
+            cursor = afterMap.get(cursor);
+          }
+          for (const id of path) globalVisited.add(id);
+        }
+
+        // Apply all changes in a single transaction.
+        const updatedItems = await db.transaction(async (tx) => {
+          const results = [];
+          for (const { itemId, beforeItemId, afterItemId } of decisions) {
+            const si = sessionItems.find((s) => s.id === itemId);
+            const existing = ((si?.linkDecisions ?? {}) as Record<string, unknown>);
+            const nextLinkDecisions: Record<string, unknown> = {
+              ...existing,
+              beforeItemId: beforeItemId ?? null,
+              afterItemId: afterItemId ?? null,
+              manualOverride: true,
+            };
+            const [updated] = await tx
+              .update(schema.bulkImportItems)
+              .set({ linkDecisions: nextLinkDecisions, updatedAt: new Date() })
+              .where(eq(schema.bulkImportItems.id, itemId))
+              .returning({ id: schema.bulkImportItems.id });
+            results.push(updated);
+          }
+          return results;
+        });
+
+        logDebug('[bulk-import] route exit POST batch-set-linking-decisions ok', {
+          metadata: { sessionId, count: updatedItems.length, status: 200, durationMs: Date.now() - t0 },
+        });
+        return res.json({ updated: updatedItems.map((i) => i.id) });
+      } catch (err) {
+        if (err instanceof z.ZodError) {
+          return res.status(400).json({ error: err.errors });
+        }
+        logDebug('[bulk-import] route exit POST batch-set-linking-decisions status 500', {
+          metadata: { sessionId, status: 500, durationMs: Date.now() - t0 },
+        });
+        logError('[bulk-import] batch-set-linking-decisions failed', err as Error);
+        return res.status(500).json({ error: 'Failed to update linking decisions' });
       }
     },
   );

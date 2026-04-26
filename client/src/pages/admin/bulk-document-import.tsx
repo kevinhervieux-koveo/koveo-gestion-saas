@@ -68,6 +68,8 @@ import {
   ExternalLink,
   CalendarIcon,
   RefreshCw,
+  GripVertical,
+  Link2,
 } from 'lucide-react';
 import { format, parseISO, isValid } from 'date-fns';
 import { StandaloneDatePicker } from '@/components/common/DatePickerField';
@@ -82,6 +84,8 @@ import {
 } from '@shared/schemas/bulk-import';
 import { ConfidenceBadge } from './bulk-import-confidence-badge';
 import { FallbackReasonBadge, TextOnlyDegradedBadge, FALLBACK_REASON_LABELS, FALLBACK_REASON_EXPLANATIONS, formatRetryAttempts } from './bulk-import-fallback-reason-badge';
+import { resolveLinkingGroups } from './bulk-import-linking-groups';
+import type { LinkingGroup } from './bulk-import-linking-groups';
 import {
   AUTO_STEPS,
   NextStepBlock,
@@ -395,6 +399,8 @@ interface BulkImportItemLite {
   linkingReason: string | null;
   linkingBeforeItemId: string | null;
   linkingAfterItemId: string | null;
+  /** Task #1233: true when an admin manually edited the linking chain for this item. */
+  linkingManualOverride: boolean;
   /**
    * Task #1002: enriched duplicate info — null for non-duplicate items.
    * When status === 'duplicate', these fields carry info about the
@@ -498,6 +504,8 @@ function getItemStepDecision(
       return null;
   }
 }
+
+// LinkingGroup and resolveLinkingGroups are imported from ./bulk-import-linking-groups
 
 function iconForMime(mime: string | null | undefined) {
   const m = (mime ?? '').toLowerCase();
@@ -3408,6 +3416,79 @@ export default function BulkDocumentImportPage() {
     }
   }
 
+  // ---------------------------------------------------------------------------
+  // Task #1233 — Linking step drag-and-drop state
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Optimistic link overrides keyed by itemId.  Applied on top of the
+   * server-persisted values so the UI reflects drops immediately without
+   * waiting for a query invalidation round-trip.  Cleared on successful
+   * mutation (the refetch takes over) or rolled back on error.
+   */
+  const [linkingOverrides, setLinkingOverrides] = useState<
+    Map<string, { beforeItemId: string | null; afterItemId: string | null }>
+  >(new Map());
+
+  /** ID of the item currently being dragged (linking step only). */
+  const [linkingDragId, setLinkingDragId] = useState<string | null>(null);
+
+  /**
+   * Drop indicator state: which item the dragged item would land relative to,
+   * and whether above or below it.  Used to render the insertion line.
+   */
+  const [linkingDropTarget, setLinkingDropTarget] = useState<{
+    targetId: string;
+    position: 'before' | 'after';
+  } | null>(null);
+
+  /** aria-live announcement updated after each keyboard or mouse drop. */
+  const [linkingAnnouncement, setLinkingAnnouncement] = useState('');
+
+  /**
+   * Task #1233: Persist admin-curated linking chain positions via the new
+   * set-linking-decision endpoint.  Fires one call per changed item in
+   * parallel and waits for all to settle.  On any error, rolls back the
+   * optimistic override and shows a destructive toast.
+   */
+  const setLinkingDecision = useMutation({
+    mutationFn: async (
+      changes: Array<{ itemId: string; beforeItemId: string | null; afterItemId: string | null }>,
+    ) => {
+      debugLog('setLinkingDecision start', { count: changes.length, sessionId });
+      // Use the batch endpoint so all writes are wrapped in a single DB
+      // transaction — either all succeed or none are applied (all-or-rollback).
+      await apiRequest(
+        'POST',
+        `/api/admin/bulk-import/sessions/${sessionId}/batch-set-linking-decisions`,
+        { decisions: changes },
+      );
+    },
+    onSuccess: () => {
+      debugLog('setLinkingDecision success', { sessionId });
+      setLinkingOverrides(new Map()); // clear optimistic state — server is now source of truth
+      queryClient.invalidateQueries({
+        queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
+      });
+    },
+    onError: (err: unknown, _changes) => {
+      debugLog('setLinkingDecision error', { sessionId, error: err instanceof Error ? err.message : String(err) });
+      // The batch endpoint is transactional; on error nothing was written.
+      // Simply reset the optimistic overrides so the UI reverts to server state.
+      setLinkingOverrides(new Map());
+      queryClient.invalidateQueries({
+        queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
+      });
+      toast({
+        variant: 'destructive',
+        title: isFr
+          ? 'Erreur lors de la mise à jour des liaisons'
+          : 'Failed to update linking chain',
+        description: err instanceof Error ? err.message : undefined,
+      });
+    },
+  });
+
   const clearAll = useMutation({
     mutationFn: async () => {
       await apiRequest('DELETE', `/api/admin/bulk-import/sessions/${sessionId}`, {});
@@ -3421,6 +3502,223 @@ export default function BulkDocumentImportPage() {
       toast({ title: isFr ? 'Session effacée' : 'Session cleared' });
     },
   });
+
+  // ---------------------------------------------------------------------------
+  // Task #1233 — Linking step DnD helper functions
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Returns the effective before/after IDs for an item, preferring any
+   * optimistic override over the server-persisted value.
+   */
+  function getLinkingEffective(id: string) {
+    const ov = linkingOverrides.get(id);
+    const it = items.find((i) => i.id === id);
+    return {
+      before: ov !== undefined ? ov.beforeItemId : (it?.linkingBeforeItemId ?? null),
+      after: ov !== undefined ? ov.afterItemId : (it?.linkingAfterItemId ?? null),
+    };
+  }
+
+  /**
+   * Apply computed changes optimistically and fire the persistence mutation.
+   * Each entry in `changes` replaces that item's before/after values.
+   */
+  function applyLinkingChanges(
+    changes: Array<{ itemId: string; beforeItemId: string | null; afterItemId: string | null }>,
+  ) {
+    if (!changes.length) return;
+    setLinkingOverrides((prev) => {
+      const next = new Map(prev);
+      for (const { itemId, beforeItemId, afterItemId } of changes) {
+        next.set(itemId, { beforeItemId, afterItemId });
+      }
+      return next;
+    });
+    debugLog('linking: apply changes', { sessionId, count: changes.length });
+    setLinkingDecision.mutate(changes);
+  }
+
+  /**
+   * Core drop handler: inserts `dragId` immediately before or after `targetId`.
+   *
+   * Instead of patching neighbors incrementally (which leaves stale pointers
+   * when the moved item was adjacent to the target), we derive the full
+   * ordered sequence for every affected chain, perform the reorder in the
+   * array, and then regenerate consistent before/after pairs for every item
+   * in those sequences.  This guarantees the resulting topology is correct
+   * regardless of where in the chain the drag starts or ends.
+   */
+  function handleLinkingDrop(dragId: string, targetId: string, position: 'before' | 'after') {
+    if (dragId === targetId) return;
+
+    /**
+     * Walk backwards to the chain head, then forward to collect the full
+     * ordered sequence.  Cycle-guards prevent infinite loops if the
+     * persisted or optimistic state is somehow corrupt.
+     */
+    function getChainOrder(startId: string): string[] {
+      const backSeen = new Set<string>();
+      let headId = startId;
+      while (true) {
+        const eff = getLinkingEffective(headId);
+        if (!eff.before || backSeen.has(eff.before)) break;
+        backSeen.add(headId);
+        headId = eff.before;
+      }
+      const chain: string[] = [];
+      const fwdSeen = new Set<string>();
+      let cur: string | null = headId;
+      while (cur && !fwdSeen.has(cur)) {
+        fwdSeen.add(cur);
+        chain.push(cur);
+        cur = getLinkingEffective(cur).after;
+      }
+      return chain;
+    }
+
+    const dragChain = getChainOrder(dragId);
+    const targetChain = getChainOrder(targetId);
+    const dragChainSet = new Set(dragChain);
+
+    const srcWithoutDrag = dragChain.filter((id) => id !== dragId);
+    const isIntraChain = dragChainSet.has(targetId);
+
+    let newSequence: string[];
+    if (isIntraChain) {
+      const idx = srcWithoutDrag.indexOf(targetId);
+      const insertAt = position === 'before' ? idx : idx + 1;
+      srcWithoutDrag.splice(insertAt, 0, dragId);
+      newSequence = srcWithoutDrag;
+    } else {
+      const targetSeq = [...targetChain];
+      const idx = targetSeq.indexOf(targetId);
+      const insertAt = position === 'before' ? idx : idx + 1;
+      targetSeq.splice(insertAt, 0, dragId);
+      newSequence = targetSeq;
+    }
+
+    function sequenceToChanges(
+      seq: string[],
+      out: Map<string, { beforeItemId: string | null; afterItemId: string | null }>,
+    ) {
+      for (let i = 0; i < seq.length; i++) {
+        out.set(seq[i], {
+          beforeItemId: i > 0 ? seq[i - 1] : null,
+          afterItemId: i < seq.length - 1 ? seq[i + 1] : null,
+        });
+      }
+    }
+
+    const changes = new Map<string, { beforeItemId: string | null; afterItemId: string | null }>();
+    sequenceToChanges(newSequence, changes);
+    if (!isIntraChain) {
+      sequenceToChanges(srcWithoutDrag, changes);
+    }
+
+    let anyChanged = false;
+    for (const [id, v] of changes) {
+      const eff = getLinkingEffective(id);
+      if (eff.before !== v.beforeItemId || eff.after !== v.afterItemId) {
+        anyChanged = true;
+        break;
+      }
+    }
+    if (!anyChanged) return;
+
+    applyLinkingChanges(
+      Array.from(changes.entries()).map(([itemId, v]) => ({ itemId, ...v })),
+    );
+  }
+
+  /**
+   * Detaches `dragId` from whatever chain it belongs to, making it standalone
+   * (before = null, after = null) and reconnecting its former neighbors.
+   */
+  function handleLinkingMakeStandalone(dragId: string) {
+    const eff = getLinkingEffective(dragId);
+    if (!eff.before && !eff.after) return; // already standalone
+
+    const changes = new Map<string, { beforeItemId: string | null; afterItemId: string | null }>();
+    const set = (id: string, b: string | null, a: string | null) =>
+      changes.set(id, { beforeItemId: b, afterItemId: a });
+    const cur = (id: string) => changes.get(id) ?? { beforeItemId: getLinkingEffective(id).before, afterItemId: getLinkingEffective(id).after };
+
+    if (eff.before) {
+      const c = cur(eff.before);
+      set(eff.before, c.beforeItemId, eff.after);
+    }
+    if (eff.after) {
+      const c = cur(eff.after);
+      set(eff.after, eff.before, c.afterItemId);
+    }
+    set(dragId, null, null);
+
+    applyLinkingChanges(
+      Array.from(changes.entries()).map(([itemId, v]) => ({ itemId, ...v })),
+    );
+  }
+
+  /**
+   * Keyboard DnD for linking rows: ArrowUp/Down moves within a group,
+   * ArrowLeft makes the item standalone, ArrowRight joins the next group.
+   */
+  function handleLinkingKeyDown(
+    e: React.KeyboardEvent,
+    itemId: string,
+    _groupId: string | null,
+  ) {
+    const { groups } = resolveLinkingGroups(items, linkingOverrides);
+    const currentGroup = groups.find((g) => g.items.some((i) => i.id === itemId));
+    const currentIdx = currentGroup?.items.findIndex((i) => i.id === itemId) ?? -1;
+
+    if (e.key === 'ArrowUp' && currentGroup && currentIdx > 0) {
+      e.preventDefault();
+      handleLinkingDrop(itemId, currentGroup.items[currentIdx - 1].id, 'before');
+      setLinkingAnnouncement(
+        isFr
+          ? `Position ${currentIdx} sur ${currentGroup.items.length}`
+          : `Position ${currentIdx} of ${currentGroup.items.length}`,
+      );
+    } else if (e.key === 'ArrowDown' && currentGroup && currentIdx < currentGroup.items.length - 1) {
+      e.preventDefault();
+      handleLinkingDrop(itemId, currentGroup.items[currentIdx + 1].id, 'after');
+      setLinkingAnnouncement(
+        isFr
+          ? `Position ${currentIdx + 2} sur ${currentGroup.items.length}`
+          : `Position ${currentIdx + 2} of ${currentGroup.items.length}`,
+      );
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      handleLinkingMakeStandalone(itemId);
+      setLinkingAnnouncement(isFr ? 'Fichier dissocié du groupe' : 'File removed from group');
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      // Find the next group *below* the current item in visual order.
+      // Groups are ordered by the position of their head item in `items`.
+      let nextGroup: LinkingGroup<BulkImportItemLite> | undefined;
+      if (currentGroup) {
+        // Grouped item: join the group immediately after the current one.
+        const currentGroupIdx = groups.findIndex((g) => g.id === currentGroup.id);
+        nextGroup = groups[currentGroupIdx + 1];
+      } else {
+        // Standalone item: join the first group whose head appears after this
+        // item in the flat items list, falling back to the first group overall.
+        const itemIdx = items.findIndex((i) => i.id === itemId);
+        nextGroup =
+          groups.find((g) => items.findIndex((vi) => vi.id === g.items[0].id) > itemIdx) ??
+          groups[0];
+      }
+      if (nextGroup) {
+        handleLinkingDrop(itemId, nextGroup.items[nextGroup.items.length - 1].id, 'after');
+        setLinkingAnnouncement(
+          isFr
+            ? `Déplacé dans le groupe suivant, position ${nextGroup.items.length + 1}`
+            : `Moved to next group, position ${nextGroup.items.length + 1}`,
+        );
+      }
+    }
+  }
 
   const stepIndex = useMemo(() => STEP_ORDER.indexOf(currentStep), [currentStep]);
 
@@ -5185,6 +5483,19 @@ export default function BulkDocumentImportPage() {
                             }
                           }
                         }
+                        // Task #1233: For the linking step, compute AI-suggested /
+                        // admin-curated document chains so non-head group members
+                        // can be hidden from the flat list and rendered inside
+                        // their group card instead.
+                        const linkingGroupsData = currentStep === 'linking'
+                          ? resolveLinkingGroups(visibleItems, linkingOverrides)
+                          : { groups: [] as LinkingGroup<BulkImportItemLite>[], standaloneIds: new Set<string>() };
+                        const linkingGroupAllMemberIds = new Set<string>();
+                        if (currentStep === 'linking') {
+                          for (const grp of linkingGroupsData.groups) {
+                            for (const it of grp.items) linkingGroupAllMemberIds.add(it.id);
+                          }
+                        }
                         const topLevelItems = currentStep === 'sorting'
                           ? (() => {
                               const filtered = visibleItems.filter((item) => !siblingItemIds.has(item.id));
@@ -5206,7 +5517,9 @@ export default function BulkDocumentImportPage() {
                                 return aAcc ? 1 : -1;
                               });
                             })()
-                          : visibleItems;
+                          : currentStep === 'linking'
+                            ? visibleItems.filter((item) => !linkingGroupAllMemberIds.has(item.id))
+                            : visibleItems;
                         // Task #1045: when the hide-ready toggle is ON, filter
                         // out items that are already ready for the next step.
                         // Applied after sibling removal so lead–sibling grouping
@@ -5216,11 +5529,291 @@ export default function BulkDocumentImportPage() {
                           : topLevelItems;
                         return (
                           <>
-                      {displayedTopLevelItems.length === 0 && (
+                      {/* Task #1233 — accessibility: live region for keyboard DnD announcements */}
+                      {currentStep === 'linking' && (
+                        <div
+                          role="status"
+                          aria-live="polite"
+                          aria-atomic="true"
+                          className="sr-only"
+                        >
+                          {linkingAnnouncement}
+                        </div>
+                      )}
+
+                      {/* Task #1233 — Linking step: render AI-suggested / admin-curated document chains */}
+                      {currentStep === 'linking' && linkingGroupsData.groups.map((group) => (
+                        <div
+                          key={group.id}
+                          data-testid={`linking-group-${group.id}`}
+                          className="rounded-lg border-2 border-primary/30 bg-primary/5 dark:bg-primary/10 space-y-1.5 p-2 mb-2"
+                          onDragOver={(e) => {
+                            // Accept drops from any dragged item (including those in
+                            // other groups) so cross-group moves are possible.
+                            if (!linkingDragId) return;
+                            e.preventDefault();
+                          }}
+                          onDrop={(e) => {
+                            const srcId = linkingDragId ?? e.dataTransfer.getData('text/plain');
+                            if (!srcId) return;
+                            // No-op: item is already the last in this group.
+                            const lastItem = group.items[group.items.length - 1];
+                            if (srcId === lastItem.id) return;
+                            e.preventDefault();
+                            handleLinkingDrop(srcId, lastItem.id, 'after');
+                            setLinkingDragId(null);
+                            setLinkingDropTarget(null);
+                          }}
+                        >
+                          {/* Group header */}
+                          <div className="flex items-center gap-2 px-1 pb-0.5">
+                            <Link2 className="h-3.5 w-3.5 text-primary flex-shrink-0" />
+                            <span className="text-xs font-semibold text-primary">
+                              {isFr
+                                ? `Chaîne · ${group.items.length} fichier${group.items.length > 1 ? 's' : ''}`
+                                : `Chain · ${group.items.length} file${group.items.length > 1 ? 's' : ''}`}
+                            </span>
+                            {group.isManual && (
+                              <Badge
+                                variant="outline"
+                                className="text-[10px] border-slate-300 bg-slate-50 text-slate-700 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-300 ml-1"
+                              >
+                                {isFr ? 'Manuel' : 'Manual'}
+                              </Badge>
+                            )}
+                          </div>
+
+                          {/* Group item rows */}
+                          {group.items.map((groupItem, groupIdx) => {
+                            const grpDecision = getItemStepDecision(groupItem, 'linking');
+                            const grpIsExcluded = groupItem.status === 'rejected';
+                            const grpRetryPending =
+                              (runStep.isPending && runStep.variables?.itemId === groupItem.id);
+                            const grpTogglePending =
+                              (toggleExclude.isPending && toggleExclude.variables?.itemId === groupItem.id);
+                            const grpCanToggleExclude =
+                              groupItem.status !== 'committed' && groupItem.status !== 'duplicate';
+                            const GrpItemIcon = iconForMime(groupItem.mimeType);
+                            const grpIsDragging = linkingDragId === groupItem.id;
+                            const grpIsDropTarget = linkingDropTarget?.targetId === groupItem.id;
+                            return (
+                              <div
+                                key={groupItem.id}
+                                data-testid={`linking-row-${groupItem.id}`}
+                                draggable={!grpIsExcluded}
+                                className={[
+                                  'rounded border bg-background flex flex-col gap-1 p-2 transition-opacity',
+                                  grpIsDragging ? 'opacity-40' : '',
+                                  grpIsDropTarget && linkingDropTarget?.position === 'before'
+                                    ? 'border-t-2 border-t-primary'
+                                    : grpIsDropTarget && linkingDropTarget?.position === 'after'
+                                      ? 'border-b-2 border-b-primary'
+                                      : '',
+                                ].join(' ')}
+                                onDragStart={!grpIsExcluded ? (e) => {
+                                  setLinkingDragId(groupItem.id);
+                                  e.dataTransfer.effectAllowed = 'move';
+                                  e.dataTransfer.setData('text/plain', groupItem.id);
+                                  debugLog('linking: drag start (group)', { itemId: groupItem.id, sessionId });
+                                } : undefined}
+                                onDragEnd={() => {
+                                  setLinkingDragId(null);
+                                  setLinkingDropTarget(null);
+                                }}
+                                onDragOver={(e) => {
+                                  if (!linkingDragId || linkingDragId === groupItem.id || grpIsExcluded) return;
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  e.dataTransfer.dropEffect = 'move';
+                                  const rect = e.currentTarget.getBoundingClientRect();
+                                  const pos: 'before' | 'after' =
+                                    e.clientY < rect.top + rect.height / 2 ? 'before' : 'after';
+                                  if (
+                                    linkingDropTarget?.targetId !== groupItem.id ||
+                                    linkingDropTarget.position !== pos
+                                  ) {
+                                    setLinkingDropTarget({ targetId: groupItem.id, position: pos });
+                                  }
+                                }}
+                                onDragLeave={(e) => {
+                                  if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                                    if (linkingDropTarget?.targetId === groupItem.id)
+                                      setLinkingDropTarget(null);
+                                  }
+                                }}
+                                onDrop={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  if (grpIsExcluded) return;
+                                  const srcId = linkingDragId ?? e.dataTransfer.getData('text/plain');
+                                  const pos = linkingDropTarget?.position ?? 'after';
+                                  setLinkingDragId(null);
+                                  setLinkingDropTarget(null);
+                                  if (!srcId || srcId === groupItem.id) return;
+                                  handleLinkingDrop(srcId, groupItem.id, pos);
+                                }}
+                              >
+                                <div className="flex items-center gap-2 min-w-0">
+                                  {/* Keyboard-accessible drag handle */}
+                                  <button
+                                    type="button"
+                                    className={[
+                                      'flex-shrink-0 text-muted-foreground hover:text-foreground focus:outline-none focus-visible:ring-1 focus-visible:ring-ring rounded',
+                                      grpIsExcluded ? 'opacity-40 cursor-not-allowed' : 'cursor-grab active:cursor-grabbing',
+                                    ].join(' ')}
+                                    data-testid={`linking-drag-handle-${groupItem.id}`}
+                                    aria-label={isFr ? 'Déplacer (flèches clavier)' : 'Drag to reorder (arrow keys)'}
+                                    tabIndex={grpIsExcluded ? -1 : 0}
+                                    onKeyDown={!grpIsExcluded ? (e) => handleLinkingKeyDown(e, groupItem.id, group.id) : undefined}
+                                    aria-grabbed={grpIsDragging}
+                                  >
+                                    <GripVertical className="h-4 w-4" />
+                                  </button>
+                                  {/* Position indicator */}
+                                  <span
+                                    className="text-xs tabular-nums text-muted-foreground w-8 flex-shrink-0 text-right"
+                                    data-testid={`linking-row-position-${groupItem.id}`}
+                                    aria-label={`${groupIdx + 1} / ${group.items.length}`}
+                                  >
+                                    {groupIdx + 1}/{group.items.length}
+                                  </span>
+                                  {/* File icon */}
+                                  <GrpItemIcon className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+                                  {/* Filename */}
+                                  <span className="text-sm truncate flex-1 min-w-0">
+                                    {groupItem.originalName}
+                                  </span>
+                                  {/* Action buttons */}
+                                  <div
+                                    className="flex items-center gap-1 flex-shrink-0 ml-auto"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    {!grpIsExcluded && groupItem.status === 'linked' && (
+                                      <Button
+                                        size="sm"
+                                        variant="default"
+                                        className="h-7 text-xs"
+                                        onClick={() => runStep.mutate({ itemId: groupItem.id, action: 'commit' })}
+                                        disabled={grpRetryPending}
+                                        data-testid={`button-commit-${groupItem.id}`}
+                                      >
+                                        {isFr ? 'Sauvegarder' : 'Commit'}
+                                      </Button>
+                                    )}
+                                    {!grpIsExcluded && (
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="h-7 text-xs"
+                                        onClick={() => runStep.mutate({ itemId: groupItem.id, action: 'link' })}
+                                        disabled={grpRetryPending}
+                                        data-testid={`button-retry-linking-${groupItem.id}`}
+                                      >
+                                        {grpRetryPending
+                                          ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                          : <RotateCw className="h-3.5 w-3.5" />}
+                                        <span className="ml-1">{isFr ? 'Réessayer' : 'Retry'}</span>
+                                      </Button>
+                                    )}
+                                    {grpCanToggleExclude && (
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        className="h-7 w-7 p-0"
+                                        onClick={() => toggleExclude.mutate({ itemId: groupItem.id, excluded: !grpIsExcluded })}
+                                        disabled={grpTogglePending}
+                                        aria-pressed={grpIsExcluded}
+                                        data-testid={`button-toggle-exclude-${groupItem.id}`}
+                                        title={grpIsExcluded ? (isFr ? 'Réinclure' : 'Re-include') : (isFr ? 'Exclure' : 'Exclude')}
+                                      >
+                                        {grpTogglePending
+                                          ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                          : grpIsExcluded
+                                            ? <Eye className="h-3.5 w-3.5" />
+                                            : <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />}
+                                      </Button>
+                                    )}
+                                  </div>
+                                </div>
+                                {/* Badges row */}
+                                <div className="flex items-center gap-2 flex-wrap pl-[5.5rem]">
+                                  {grpIsExcluded ? (
+                                    <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200">
+                                      {isFr ? 'Exclu' : 'Excluded'}
+                                    </Badge>
+                                  ) : (
+                                    <>
+                                      <FallbackReasonBadge
+                                        reason={grpDecision?.fallbackReason}
+                                        isFr={isFr}
+                                        retryCount={grpDecision?.retryCount}
+                                      />
+                                      {!grpDecision?.fallbackReason && (
+                                        <TextOnlyDegradedBadge
+                                          degraded={groupItem.linkingDegraded}
+                                          isFr={isFr}
+                                        />
+                                      )}
+                                      <ConfidenceBadge
+                                        value={grpDecision?.confidence}
+                                        fallbackReason={grpDecision?.fallbackReason}
+                                        isFr={isFr}
+                                      />
+                                      {groupItem.linkingManualOverride && (
+                                        <Badge
+                                          variant="outline"
+                                          className="text-[10px] border-slate-300 bg-slate-50 text-slate-700 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-300"
+                                          data-testid={`linking-manual-tag-${groupItem.id}`}
+                                        >
+                                          {isFr ? 'Manuel' : 'Manual'}
+                                        </Badge>
+                                      )}
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ))}
+
+                      {/* Task #1233 — Standalone drop zone: visible while dragging to allow
+                          ungrouping an item by dropping it in the empty area between groups
+                          and standalone items. */}
+                      {currentStep === 'linking' && linkingDragId !== null && (
+                        <div
+                          data-testid="linking-standalone-dropzone"
+                          className={[
+                            'rounded-lg border-2 border-dashed border-muted-foreground/40 py-3 text-center text-xs text-muted-foreground transition-colors mb-1',
+                            'hover:border-primary hover:bg-primary/5 hover:text-primary',
+                          ].join(' ')}
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            e.dataTransfer.dropEffect = 'move';
+                          }}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            const srcId = linkingDragId ?? e.dataTransfer.getData('text/plain');
+                            setLinkingDragId(null);
+                            setLinkingDropTarget(null);
+                            if (!srcId) return;
+                            handleLinkingMakeStandalone(srcId);
+                          }}
+                        >
+                          {isFr ? 'Déposer ici pour dissocier du groupe' : 'Drop here to make standalone'}
+                        </div>
+                      )}
+
+                      {displayedTopLevelItems.length === 0 && linkingGroupsData.groups.length === 0 && (
                         <p className="text-sm text-muted-foreground" data-testid={`empty-state-${currentStep}`}>
                           {hideReady && topLevelItems.length > 0
                             ? (isFr ? "Tous les fichiers sont prêts pour l'étape suivante." : 'All files are ready for the next step.')
                             : (isFr ? 'Aucun fichier' : 'No items')}
+                        </p>
+                      )}
+                      {displayedTopLevelItems.length === 0 && linkingGroupsData.groups.length > 0 && currentStep === 'linking' && (
+                        <p className="text-sm text-muted-foreground" data-testid={`empty-state-${currentStep}-standalone`}>
+                          {isFr ? 'Aucun fichier autonome' : 'No standalone files'}
                         </p>
                       )}
                       {displayedTopLevelItems.map((item) => {
@@ -5371,15 +5964,101 @@ export default function BulkDocumentImportPage() {
                               ? ` · ${mergeGroupTotalCount} fichiers`
                               : ` · ${mergeGroupTotalCount} files`
                             : '';
+                        // Task #1233: drag props for standalone linking items
+                        const isLinkingStandalone = currentStep === 'linking';
+                        const isLinkingDragging = isLinkingStandalone && linkingDragId === item.id;
+                        const isLinkingDropTgt = isLinkingStandalone && linkingDropTarget?.targetId === item.id;
                         return (
                           <div
                             key={item.id}
-                            className={`rounded-md border transition ${
-                              isExcluded ? 'bg-muted/40 opacity-60' : ''
-                            }`}
-                            data-testid={`item-row-${item.id}`}
+                            className={[
+                              'rounded-md border transition',
+                              isExcluded ? 'bg-muted/40 opacity-60' : '',
+                              isLinkingDragging ? 'opacity-40' : '',
+                              isLinkingDropTgt && linkingDropTarget?.position === 'before'
+                                ? 'border-t-2 border-t-primary'
+                                : isLinkingDropTgt && linkingDropTarget?.position === 'after'
+                                  ? 'border-b-2 border-b-primary'
+                                  : '',
+                              isLinkingStandalone && !isExcluded ? 'cursor-grab active:cursor-grabbing' : '',
+                            ].join(' ')}
+                            data-testid={isLinkingStandalone ? `linking-row-${item.id}` : `item-row-${item.id}`}
                             data-excluded={isExcluded ? 'true' : 'false'}
+                            draggable={isLinkingStandalone && !isExcluded}
+                            onDragStart={isLinkingStandalone && !isExcluded ? (e) => {
+                              setLinkingDragId(item.id);
+                              e.dataTransfer.effectAllowed = 'move';
+                              e.dataTransfer.setData('text/plain', item.id);
+                              debugLog('linking: drag start (standalone)', { itemId: item.id, sessionId });
+                            } : undefined}
+                            onDragEnd={isLinkingStandalone ? () => {
+                              setLinkingDragId(null);
+                              setLinkingDropTarget(null);
+                            } : undefined}
+                            onDragOver={isLinkingStandalone && !isExcluded ? (e) => {
+                              if (!linkingDragId || linkingDragId === item.id) return;
+                              e.preventDefault();
+                              e.stopPropagation();
+                              e.dataTransfer.dropEffect = 'move';
+                              const rect = e.currentTarget.getBoundingClientRect();
+                              const pos: 'before' | 'after' =
+                                e.clientY < rect.top + rect.height / 2 ? 'before' : 'after';
+                              if (
+                                linkingDropTarget?.targetId !== item.id ||
+                                linkingDropTarget.position !== pos
+                              ) {
+                                setLinkingDropTarget({ targetId: item.id, position: pos });
+                              }
+                            } : undefined}
+                            onDragLeave={isLinkingStandalone ? (e) => {
+                              if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                                if (linkingDropTarget?.targetId === item.id) setLinkingDropTarget(null);
+                              }
+                            } : undefined}
+                            onDrop={isLinkingStandalone && !isExcluded ? (e) => {
+                              e.preventDefault();
+                              const srcId = linkingDragId ?? e.dataTransfer.getData('text/plain');
+                              const pos = linkingDropTarget?.position ?? 'after';
+                              setLinkingDragId(null);
+                              setLinkingDropTarget(null);
+                              if (!srcId || srcId === item.id) return;
+                              handleLinkingDrop(srcId, item.id, pos);
+                            } : undefined}
                           >
+                            {/* Task #1233: linking-step drag handle bar for standalone rows */}
+                            {isLinkingStandalone && (
+                              <div className="flex items-center gap-2 px-2 pt-2">
+                                <button
+                                  type="button"
+                                  className={[
+                                    'flex-shrink-0 text-muted-foreground hover:text-foreground focus:outline-none focus-visible:ring-1 focus-visible:ring-ring rounded',
+                                    isExcluded ? 'opacity-40 cursor-not-allowed' : 'cursor-grab active:cursor-grabbing',
+                                  ].join(' ')}
+                                  data-testid={`linking-drag-handle-${item.id}`}
+                                  aria-label={isFr ? 'Déplacer (flèches clavier)' : 'Drag to reorder (arrow keys)'}
+                                  tabIndex={isExcluded ? -1 : 0}
+                                  onKeyDown={!isExcluded ? (e) => handleLinkingKeyDown(e, item.id, null) : undefined}
+                                  aria-grabbed={isLinkingDragging}
+                                >
+                                  <GripVertical className="h-4 w-4" />
+                                </button>
+                                <span
+                                  data-testid={`linking-row-position-${item.id}`}
+                                  className="text-xs text-muted-foreground"
+                                >
+                                  {isFr ? 'Autonome' : 'Standalone'}
+                                </span>
+                                {(item.linkingManualOverride || linkingOverrides.has(item.id)) && (
+                                  <Badge
+                                    data-testid={`linking-manual-tag-${item.id}`}
+                                    variant="outline"
+                                    className="border-amber-300 bg-amber-50 text-amber-900 text-xs"
+                                  >
+                                    {isFr ? 'Manuel' : 'Manual'}
+                                  </Badge>
+                                )}
+                              </div>
+                            )}
                             {currentStep === 'sorting' && mergeGroupSiblingItems.length > 0 && (
                               <div className="flex items-center gap-2 px-3 pt-3 pb-1 border-b border-border" data-testid={`branching-merge-group-header-${item.id}`}>
                                 <GitMerge className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
