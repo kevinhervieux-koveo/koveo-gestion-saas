@@ -15,6 +15,14 @@ import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import '@testing-library/jest-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
+// The bills page is heavy to render in jsdom (full table + filter controls +
+// hierarchical-selection HOC) and several cases drive multiple `fireEvent`
+// interactions plus `waitFor` loops. Under the parallel `maxWorkers: 50%`
+// pool the repo-wide 3 s `testTimeout` (see `jest.config.cjs`) is too tight
+// and flakes intermittently. Mirror the fix used in
+// `bills-template-workflow.test.tsx` and give this file headroom.
+jest.setTimeout(20_000);
+
 interface BillsPageProps {
   buildingId?: string;
   organizationId?: string;
