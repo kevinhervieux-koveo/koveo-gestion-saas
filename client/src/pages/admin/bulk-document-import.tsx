@@ -77,7 +77,7 @@ import {
   type BulkImportStep,
 } from '@shared/schemas/bulk-import';
 import { ConfidenceBadge } from './bulk-import-confidence-badge';
-import { FallbackReasonBadge, FALLBACK_REASON_LABELS, FALLBACK_REASON_EXPLANATIONS } from './bulk-import-fallback-reason-badge';
+import { FallbackReasonBadge, FALLBACK_REASON_LABELS, FALLBACK_REASON_EXPLANATIONS, formatRetryAttempts } from './bulk-import-fallback-reason-badge';
 import {
   AUTO_STEPS,
   NextStepBlock,
@@ -233,6 +233,13 @@ interface BulkImportItemLite {
   excludeSource: string | null;
   screeningConfidence: number | null;
   screeningFallback: BulkImportFallbackReason | null;
+  /**
+   * Task #1157: number of Anthropic attempts the worker made for the
+   * Screening step on this item. 1 = first-try success, 2-3 = retried,
+   * 0 = no API call (cache hit / no_api_key), null = legacy session
+   * persisted before this field was added.
+   */
+  screeningRetryCount: number | null;
   /** quickAnalysis fields from Screening (Task #767). Null for old sessions. */
   screeningTypeGuess: string | null;
   screeningBucketGuess: string | null;
@@ -272,6 +279,8 @@ interface BulkImportItemLite {
   screeningRotationApplied: boolean;
   sortingConfidence: number | null;
   sortingFallback: BulkImportFallbackReason | null;
+  /** Task #1157: Anthropic attempts for the Sorting step. See screeningRetryCount. */
+  sortingRetryCount: number | null;
   sortingDecision: 'keep' | 'merge' | 'split' | null;
   sortingReason: string | null;
   /** id of the sibling item this one should merge with (Task #767). */
@@ -298,6 +307,8 @@ interface BulkImportItemLite {
   finalFileName: string | null;
   branchingConfidence: number | null;
   branchingFallback: BulkImportFallbackReason | null;
+  /** Task #1157: Anthropic attempts for the Branching step. See screeningRetryCount. */
+  branchingRetryCount: number | null;
   branch: BranchDestination | null;
   subCategory: string | null;
   branchReason: string | null;
@@ -325,6 +336,8 @@ interface BulkImportItemLite {
   residenceAiConfirmed: boolean;
   identificationConfidence: number | null;
   identificationFallback: BulkImportFallbackReason | null;
+  /** Task #1157: Anthropic attempts for the Identification step. See screeningRetryCount. */
+  identificationRetryCount: number | null;
   identificationName: string | null;
   identificationDescription: string | null;
   identificationTags: string[] | null;
@@ -349,6 +362,8 @@ interface BulkImportItemLite {
   identificationEffectiveDateManualOverride: boolean;
   linkingConfidence: number | null;
   linkingFallback: BulkImportFallbackReason | null;
+  /** Task #1157: Anthropic attempts for the Linking step. See screeningRetryCount. */
+  linkingRetryCount: number | null;
   linkingReason: string | null;
   linkingBeforeItemId: string | null;
   linkingAfterItemId: string | null;
@@ -386,6 +401,13 @@ function getItemStepDecision(
 ): {
   confidence: number | null;
   fallbackReason: BulkImportFallbackReason | null;
+  /**
+   * Task #1157: how many Anthropic attempts the worker made for this
+   * step. Null on legacy items persisted before retryCount tracking.
+   * Surfaced so the detail panel can show "AI failed after N attempts"
+   * when a fallback was produced after multiple retries.
+   */
+  retryCount: number | null;
   decision?: 'keep' | 'merge' | 'split' | null;
   reason?: string | null;
   mergeWithItemId?: string | null;
@@ -393,22 +415,39 @@ function getItemStepDecision(
 } | null {
   switch (step) {
     case 'screening':
-      return { confidence: item.screeningConfidence, fallbackReason: item.screeningFallback };
+      return {
+        confidence: item.screeningConfidence,
+        fallbackReason: item.screeningFallback,
+        retryCount: item.screeningRetryCount,
+      };
     case 'sorting':
       return {
         confidence: item.sortingConfidence,
         fallbackReason: item.sortingFallback,
+        retryCount: item.sortingRetryCount,
         decision: item.sortingDecision,
         reason: item.sortingReason,
         mergeWithItemId: item.sortingMergeWithItemId,
         splitAtPage: item.sortingSplitAtPage,
       };
     case 'branching':
-      return { confidence: item.branchingConfidence, fallbackReason: item.branchingFallback };
+      return {
+        confidence: item.branchingConfidence,
+        fallbackReason: item.branchingFallback,
+        retryCount: item.branchingRetryCount,
+      };
     case 'identification':
-      return { confidence: item.identificationConfidence, fallbackReason: item.identificationFallback };
+      return {
+        confidence: item.identificationConfidence,
+        fallbackReason: item.identificationFallback,
+        retryCount: item.identificationRetryCount,
+      };
     case 'linking':
-      return { confidence: item.linkingConfidence, fallbackReason: item.linkingFallback };
+      return {
+        confidence: item.linkingConfidence,
+        fallbackReason: item.linkingFallback,
+        retryCount: item.linkingRetryCount,
+      };
     default:
       return null;
   }
@@ -4181,7 +4220,7 @@ export default function BulkDocumentImportPage() {
                                           )}
                                           {!isExcluded && !item.branchManualOverride && (
                                             <>
-                                              <FallbackReasonBadge reason={decision?.fallbackReason} isFr={isFr} />
+                                              <FallbackReasonBadge reason={decision?.fallbackReason} isFr={isFr} retryCount={decision?.retryCount} />
                                               <ConfidenceBadge value={decision?.confidence} fallbackReason={decision?.fallbackReason} isFr={isFr} />
                                               {decision?.fallbackReason && (
                                                 <span
@@ -5556,6 +5595,17 @@ export default function BulkDocumentImportPage() {
                                                     <p className="mt-0.5 text-amber-700 dark:text-amber-400">
                                                       {(isFr ? FALLBACK_REASON_EXPLANATIONS.fr : FALLBACK_REASON_EXPLANATIONS.en)[sibDecision.fallbackReason]}
                                                     </p>
+                                                    {(() => {
+                                                      const retryLine = formatRetryAttempts(sibDecision.retryCount, isFr);
+                                                      return retryLine ? (
+                                                        <p
+                                                          className="mt-0.5 text-amber-700 dark:text-amber-400"
+                                                          data-testid={`detail-fallback-retry-${sibling.id}`}
+                                                        >
+                                                          {retryLine}
+                                                        </p>
+                                                      ) : null;
+                                                    })()}
                                                   </div>
                                                 )}
                                               </div>
@@ -5860,6 +5910,7 @@ export default function BulkDocumentImportPage() {
                                       <FallbackReasonBadge
                                         reason={decision?.fallbackReason}
                                         isFr={isFr}
+                                        retryCount={decision?.retryCount}
                                       />
                                       <ConfidenceBadge
                                         value={decision?.confidence}
@@ -6981,6 +7032,17 @@ export default function BulkDocumentImportPage() {
                                               <p className="mt-0.5 text-amber-700 dark:text-amber-400">
                                                 {(isFr ? FALLBACK_REASON_EXPLANATIONS.fr : FALLBACK_REASON_EXPLANATIONS.en)[decision.fallbackReason]}
                                               </p>
+                                              {(() => {
+                                                const retryLine = formatRetryAttempts(decision.retryCount, isFr);
+                                                return retryLine ? (
+                                                  <p
+                                                    className="mt-0.5 text-amber-700 dark:text-amber-400"
+                                                    data-testid={`detail-fallback-retry-${item.id}`}
+                                                  >
+                                                    {retryLine}
+                                                  </p>
+                                                ) : null;
+                                              })()}
                                             </div>
                                           )}
                                         </div>
@@ -7044,6 +7106,17 @@ export default function BulkDocumentImportPage() {
                                         <p className="mt-0.5 text-amber-700 dark:text-amber-400">
                                           {(isFr ? FALLBACK_REASON_EXPLANATIONS.fr : FALLBACK_REASON_EXPLANATIONS.en)[decision.fallbackReason]}
                                         </p>
+                                        {(() => {
+                                          const retryLine = formatRetryAttempts(decision.retryCount, isFr);
+                                          return retryLine ? (
+                                            <p
+                                              className="mt-0.5 text-amber-700 dark:text-amber-400"
+                                              data-testid={`detail-fallback-retry-${item.id}`}
+                                            >
+                                              {retryLine}
+                                            </p>
+                                          ) : null;
+                                        })()}
                                       </div>
                                     ) : item.screeningQaReason && (
                                       <p

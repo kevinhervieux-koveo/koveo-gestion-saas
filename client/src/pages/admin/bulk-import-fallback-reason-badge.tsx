@@ -64,20 +64,49 @@ export const FALLBACK_REASON_EXPLANATIONS = {
   fr: FALLBACK_REASON_EXPLANATION_FR,
 } as const;
 
+/**
+ * Task #1157: build a localized "AI failed after N attempts" suffix when
+ * the worker actually retried the Anthropic call (retryCount > 1).
+ * Returns null for retryCount <= 1, null/undefined retryCount, or
+ * legacy items where the field was not persisted — keeping the existing
+ * badge tooltip behaviour unchanged in those cases.
+ */
+export function formatRetryAttempts(
+  retryCount: number | null | undefined,
+  isFr: boolean,
+): string | null {
+  if (typeof retryCount !== 'number' || !Number.isFinite(retryCount) || retryCount <= 1) {
+    return null;
+  }
+  return isFr
+    ? `IA en \u00e9chec apr\u00e8s ${retryCount} tentatives`
+    : `AI failed after ${retryCount} attempts`;
+}
+
 export function FallbackReasonBadge({
   reason,
   isFr,
+  retryCount,
 }: {
   reason: BulkImportFallbackReason | null | undefined;
   isFr: boolean;
+  /**
+   * Task #1157: when present and > 1, the tooltip is augmented with a
+   * second line "AI failed after N attempts" so admins know the worker
+   * exhausted retries before producing this fallback. Visible badge
+   * text and the existing fallbackReason logic stay untouched.
+   */
+  retryCount?: number | null;
 }) {
   if (!reason) return null;
   const labels = isFr ? FALLBACK_REASON_LABEL_FR : FALLBACK_REASON_LABEL_EN;
+  const retryLine = formatRetryAttempts(retryCount, isFr);
+  const title = retryLine ? `${labels[reason]}\n${retryLine}` : labels[reason];
   return (
     <span
       className="inline-flex items-center rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-900 ring-1 ring-amber-200"
       data-testid={`badge-fallback-${reason}`}
-      title={labels[reason]}
+      title={title}
     >
       {labels[reason]}
     </span>

@@ -2026,10 +2026,19 @@ export function registerBulkImportRoutes(app: Express): void {
       // Pre-extract confidence + fallbackReason from each step's JSON so
       // the client never has to download or parse the full AI decision blob.
       function extractStep(json: Record<string, unknown> | null | undefined) {
-        if (!json) return { confidence: null, fallbackReason: null };
+        if (!json) return { confidence: null, fallbackReason: null, retryCount: null };
+        // `retryCount` reflects how many Anthropic attempts the worker made
+        // for this step (1 = first-try success, 2-3 = retried, 0 = no API
+        // call e.g. cache hit / no_api_key). Surfaced so the admin detail
+        // panel can show "AI failed after N attempts" when a fallback was
+        // produced after multiple retries. May be missing on rows persisted
+        // before Task #1157 — coerce to null so the client can detect that.
+        const rawRetry = json.retryCount;
+        const retryCount = typeof rawRetry === 'number' && Number.isFinite(rawRetry) ? rawRetry : null;
         return {
           confidence: (json.confidence as number | null | undefined) ?? null,
           fallbackReason: (json.fallbackReason as string | null | undefined) ?? null,
+          retryCount,
         };
       }
 
@@ -2245,12 +2254,14 @@ export function registerBulkImportRoutes(app: Express): void {
             return {
               screeningConfidence: sc.confidence,
               screeningFallback: sc.fallbackReason,
+              screeningRetryCount: sc.retryCount,
               ...sqaFields,
               screeningParsedPeriodHintDate,
               screeningRotationDegrees: srot.rotationDegrees,
               screeningRotationApplied: srot.rotationApplied,
               sortingConfidence: so.confidence,
               sortingFallback: so.fallbackReason,
+              sortingRetryCount: so.retryCount,
               sortingDecision: so.decision,
               sortingReason: so.reason,
               sortingMergeWithItemId: so.mergeWithItemId,
@@ -2263,6 +2274,7 @@ export function registerBulkImportRoutes(app: Express): void {
               sortingDecisionSplitFinalNames: so.splitFinalNames,
               branchingConfidence: br.confidence,
               branchingFallback: br.fallbackReason,
+              branchingRetryCount: br.retryCount,
               branch: br.branch,
               subCategory: br.subCategory,
               branchReason: br.branchReason,
@@ -2277,6 +2289,7 @@ export function registerBulkImportRoutes(app: Express): void {
               residenceAiConfirmed: br.residenceAiConfirmed,
               identificationConfidence: id.confidence,
               identificationFallback: id.fallbackReason,
+              identificationRetryCount: id.retryCount,
               identificationName: id.name,
               identificationDescription: id.description,
               identificationTags: id.tags,
@@ -2285,6 +2298,7 @@ export function registerBulkImportRoutes(app: Express): void {
               identificationEffectiveDateManualOverride: id.effectiveDateManualOverride,
               linkingConfidence: lk.confidence,
               linkingFallback: lk.fallbackReason,
+              linkingRetryCount: lk.retryCount,
               linkingReason: lk.linkingReason,
               linkingBeforeItemId: lk.beforeItemId,
               linkingAfterItemId: lk.afterItemId,

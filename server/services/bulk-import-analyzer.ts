@@ -72,6 +72,17 @@ export interface AnalyzerConfidence {
    * at all, which isn't a fallback).
    */
   fallbackReason?: BulkImportFallbackReason | null;
+  /**
+   * Number of Anthropic API attempts made for this call (Task #1157),
+   * including the final failed attempt. Bounded by `MAX_RETRY_ATTEMPTS`
+   * (currently 3). Zero when no call was made (no API key, pre-call
+   * file-load throw) or when the result was returned from the analyzer
+   * cache without re-uploading. Surfaced so the admin Bulk Import
+   * detail panel can distinguish a momentary blip ("tried 1×") from a
+   * persistent problem ("tried 3×") without changing the
+   * `fallbackReason` badge logic itself.
+   */
+  retryCount?: number;
 }
 
 export type QuickAnalysisTypeGuess =
@@ -507,13 +518,14 @@ async function callClaudeJson<T>(
   source?: AnalyzerFileSource,
   step?: AnalyzerStep,
   logContext?: { originalName?: string; itemId?: string; sessionId?: string },
-): Promise<{ data: T | null; fallbackReason: BulkImportFallbackReason | null }> {
+): Promise<{ data: T | null; fallbackReason: BulkImportFallbackReason | null; retryCount: number }> {
   const c = getClient();
   // No Anthropic client = no AI run at all. Tag the result with
   // `no_api_key` so the UI can show "AI unavailable" alongside the
   // 20% stub instead of a generic low-confidence badge that makes
   // admins think the AI ran and disagreed with the document.
-  if (!c) return { data: null, fallbackReason: 'no_api_key' };
+  // `retryCount` is 0 because no Anthropic call was ever attempted.
+  if (!c) return { data: null, fallbackReason: 'no_api_key', retryCount: 0 };
   let fallbackReason: BulkImportFallbackReason | null = null;
   try {
     const loaded = await loadFileForClaude(source);
@@ -529,12 +541,24 @@ async function callClaudeJson<T>(
       const hit = await getCachedSuggestion<{
         data: T | null;
         fallbackReason: BulkImportFallbackReason | null;
+        retryCount?: number;
       }>(cacheKey);
       if (hit !== null) {
         logInfo('[bulkImportAnalyzer] cache hit', {
           metadata: { step, contentHash: contentHash ?? 'no-file' },
         });
-        return hit;
+        // Replay the original `retryCount` recorded when the cache row
+        // was written so a cache hit is observationally identical to
+        // the original call. This keeps the admin UI accurate ("AI
+        // failed after N attempts" still applies even when served from
+        // cache, since those attempts really happened) and preserves
+        // the cache-hit invariant that callers rely on. Older entries
+        // persisted before Task #1157 lack the field — default to 0.
+        return {
+          data: hit.data,
+          fallbackReason: hit.fallbackReason,
+          retryCount: hit.retryCount ?? 0,
+        };
       }
     }
 
@@ -563,6 +587,7 @@ async function callClaudeJson<T>(
     for (let attempt = 1; attempt <= MAX_RETRY_ATTEMPTS; attempt++) {
       try {
         const res = await c.messages.create(requestParams);
+        attemptsMade = attempt;
         const text = res.content
           .filter((b) => b.type === 'text')
           .map((b) => (b as { text: string }).text)
@@ -583,10 +608,14 @@ async function callClaudeJson<T>(
               sessionId: logContext?.sessionId,
             },
           });
-          return { data: null, fallbackReason: noMatchReason };
+          return { data: null, fallbackReason: noMatchReason, retryCount: attemptsMade };
         }
         const parsed = JSON.parse(match[0]) as T;
-        const result = { data: parsed, fallbackReason };
+        // The cached payload mirrors what we return on a fresh call so a
+        // subsequent cache hit can replay the original `retryCount` if
+        // any callers ever choose to read it. The hit path itself reports
+        // `retryCount: 0` since no new Anthropic call was made.
+        const cachePayload = { data: parsed, fallbackReason, retryCount: attemptsMade };
         if (cacheKey) {
           // Awaited so the cache row is durable before we return — the
           // write is a single upsert and `setCachedSuggestion` already
@@ -594,9 +623,9 @@ async function callClaudeJson<T>(
           // Awaiting also avoids a pending promise outliving the request,
           // which previously surfaced as "Cannot log after tests are done"
           // warnings in unit suites without a database.
-          await setCachedSuggestion(cacheKey, result, ANALYZER_CACHE_TTL_MS);
+          await setCachedSuggestion(cacheKey, cachePayload, ANALYZER_CACHE_TTL_MS);
         }
-        return result;
+        return { data: parsed, fallbackReason, retryCount: attemptsMade };
       } catch (err) {
         lastErr = err;
         attemptsMade = attempt;
@@ -640,7 +669,7 @@ async function callClaudeJson<T>(
         attempts: attemptsMade,
       },
     });
-    return { data: null, fallbackReason: apiErrReason };
+    return { data: null, fallbackReason: apiErrReason, retryCount: attemptsMade };
   } catch (err) {
     // The file-loading path (loadFileForClaude) or cache lookup threw —
     // these are not Anthropic errors and should not be retried.
@@ -660,7 +689,7 @@ async function callClaudeJson<T>(
         attempts: 0,
       },
     });
-    return { data: null, fallbackReason: apiErrReason };
+    return { data: null, fallbackReason: apiErrReason, retryCount: 0 };
   }
 }
 
@@ -685,6 +714,7 @@ function fallbackQuickAnalysis(
 function fallbackScreening(
   originalName: string,
   fallbackReason: BulkImportFallbackReason | null = null,
+  retryCount = 0,
 ): ScreeningResult {
   return {
     isComplete: true,
@@ -695,6 +725,7 @@ function fallbackScreening(
     description: 'Auto-stub description (Anthropic unavailable).',
     confidence: 0.2,
     fallbackReason,
+    retryCount,
     periodHint: null,
     quickAnalysis: fallbackQuickAnalysis(fallbackReason),
   };
@@ -760,7 +791,7 @@ Return JSON with keys:
   and bucketGuess is one of: building_documents|residence_documents|demand|bill|maintenance|other|unknown
   and reason is a one-sentence explanation of your guess
   and confidence is 0..1 for this quick-analysis guess specifically`;
-    const { data: raw, fallbackReason } = await callClaudeJson<Record<string, unknown>>(
+    const { data: raw, fallbackReason, retryCount } = await callClaudeJson<Record<string, unknown>>(
       prompt,
       {
         stagedPath: input.stagedPath,
@@ -770,7 +801,7 @@ Return JSON with keys:
       'screen',
       { originalName: input.originalName, itemId: input.itemId, sessionId: input.sessionId },
     );
-    if (!raw) return fallbackScreening(input.originalName, fallbackReason);
+    if (!raw) return fallbackScreening(input.originalName, fallbackReason, retryCount);
     return {
       isComplete: !!raw.isComplete,
       isMultiDocument: !!raw.isMultiDocument,
@@ -784,6 +815,7 @@ Return JSON with keys:
       description: typeof raw.description === 'string' ? raw.description : '',
       confidence: clampConfidence(raw.confidence),
       fallbackReason,
+      retryCount,
       periodHint: typeof raw.periodHint === 'string' && raw.periodHint ? raw.periodHint : null,
       quickAnalysis: parseQuickAnalysis(raw.quickAnalysis, fallbackReason),
     };
@@ -838,7 +870,7 @@ Decision rules:
 - Otherwise decide 'keep'.
 
 Return JSON: { decision: 'keep'|'merge'|'split', reason: string, mergeWithItemId?: string, splitAtPage?: number, confidence: number }.`;
-    const { data: raw, fallbackReason } = await callClaudeJson<Partial<MergeOrSplitResult>>(
+    const { data: raw, fallbackReason, retryCount } = await callClaudeJson<Partial<MergeOrSplitResult>>(
       prompt,
       {
         stagedPath: input.stagedPath,
@@ -849,7 +881,7 @@ Return JSON: { decision: 'keep'|'merge'|'split', reason: string, mergeWithItemId
       { originalName: input.originalName, itemId: input.itemId, sessionId: input.sessionId },
     );
     if (!raw) {
-      return { decision: 'keep', reason: 'fallback', confidence: 0.2, fallbackReason };
+      return { decision: 'keep', reason: 'fallback', confidence: 0.2, fallbackReason, retryCount };
     }
     return {
       decision:
@@ -861,6 +893,7 @@ Return JSON: { decision: 'keep'|'merge'|'split', reason: string, mergeWithItemId
         typeof raw.splitAtPage === 'number' ? raw.splitAtPage : undefined,
       confidence: clampConfidence(raw.confidence),
       fallbackReason,
+      retryCount,
     };
   },
 
@@ -897,7 +930,7 @@ Sub-categories per destination:
   other: other
 
 Return JSON: { branch: string, subCategory: string, residenceHint?: string, reason: string, confidence: number${residenceJsonNote} }.`;
-    const { data: raw, fallbackReason } = await callClaudeJson<Partial<BranchResult & { subCategory: string }>>(
+    const { data: raw, fallbackReason, retryCount } = await callClaudeJson<Partial<BranchResult & { subCategory: string }>>(
       prompt,
       {
         stagedPath: input.stagedPath,
@@ -916,7 +949,7 @@ Return JSON: { branch: string, subCategory: string, residenceHint?: string, reas
       'other',
     ];
     if (!raw) {
-      return { branch: 'building_documents', subCategory: 'other', reason: 'fallback', confidence: 0.2, fallbackReason, residenceId: null, residenceConfidence: null, residenceReason: null, residenceFallbackReason: null };
+      return { branch: 'building_documents', subCategory: 'other', reason: 'fallback', confidence: 0.2, fallbackReason, retryCount, residenceId: null, residenceConfidence: null, residenceReason: null, residenceFallbackReason: null };
     }
     const branch: BranchDestination = allowed.includes(raw.branch as BranchDestination)
       ? (raw.branch as BranchDestination)
@@ -962,6 +995,7 @@ Return JSON: { branch: string, subCategory: string, residenceHint?: string, reas
       reason: typeof raw.reason === 'string' ? raw.reason : '',
       confidence: clampConfidence(raw.confidence),
       fallbackReason,
+      retryCount,
       residenceId,
       residenceConfidence,
       residenceReason,
@@ -989,7 +1023,7 @@ Filename: ${input.originalName}
 Description: ${input.description ?? ''}${periodHintLine ? `\n${periodHintLine}` : ''}
 Return JSON: { name: string, description: string, tags: string[],
 effectiveDate?: 'YYYY-MM-DD', metadata: object, confidence: number }.`;
-    const { data: raw, fallbackReason } = await callClaudeJson<Partial<IdentificationResult>>(
+    const { data: raw, fallbackReason, retryCount } = await callClaudeJson<Partial<IdentificationResult>>(
       prompt,
       {
         stagedPath: input.stagedPath,
@@ -1007,6 +1041,7 @@ effectiveDate?: 'YYYY-MM-DD', metadata: object, confidence: number }.`;
         metadata: {},
         confidence: 0.2,
         fallbackReason,
+        retryCount,
       };
     }
     return {
@@ -1021,6 +1056,7 @@ effectiveDate?: 'YYYY-MM-DD', metadata: object, confidence: number }.`;
           : {},
       confidence: clampConfidence(raw.confidence),
       fallbackReason,
+      retryCount,
     };
   },
 
@@ -1037,7 +1073,7 @@ effectiveDate?: 'YYYY-MM-DD', metadata: object, confidence: number }.`;
       input.candidates,
     )}. Return JSON: { beforeItemId?: string, afterItemId?: string,
 relatedItemIds: string[], reason: string, confidence: number }.`;
-    const { data: raw, fallbackReason } = await callClaudeJson<Partial<LinkSuggestion>>(
+    const { data: raw, fallbackReason, retryCount } = await callClaudeJson<Partial<LinkSuggestion>>(
       prompt,
       {
         stagedPath: input.stagedPath,
@@ -1048,7 +1084,7 @@ relatedItemIds: string[], reason: string, confidence: number }.`;
       { originalName: input.originalName, itemId: input.itemId, sessionId: input.sessionId },
     );
     if (!raw) {
-      return { relatedItemIds: [], reason: 'fallback', confidence: 0.2, fallbackReason };
+      return { relatedItemIds: [], reason: 'fallback', confidence: 0.2, fallbackReason, retryCount };
     }
     return {
       beforeItemId: typeof raw.beforeItemId === 'string' ? raw.beforeItemId : undefined,
@@ -1059,6 +1095,7 @@ relatedItemIds: string[], reason: string, confidence: number }.`;
       reason: typeof raw.reason === 'string' ? raw.reason : '',
       confidence: clampConfidence(raw.confidence),
       fallbackReason,
+      retryCount,
     };
   },
 
