@@ -4040,27 +4040,29 @@ export default function BulkDocumentImportPage() {
             <>
               {/* Stepper */}
               <Card>
-                <CardContent className="flex flex-wrap items-center gap-3 pt-6">
-                  {STEP_ORDER.map((s, i) => (
-                    <div key={s} className="flex items-center gap-2">
-                      <button
-                        onClick={() => updateStep.mutate(s)}
-                        className={`rounded-md px-3 py-1 text-sm transition ${
-                          i === stepIndex
-                            ? 'bg-primary text-primary-foreground'
-                            : i < stepIndex
-                            ? 'bg-emerald-100 text-emerald-900'
-                            : 'bg-muted text-muted-foreground'
-                        }`}
-                        data-testid={`step-${s}`}
-                      >
-                        {i + 1}. {stepLabels[s]}
-                      </button>
-                      {i < STEP_ORDER.length - 1 && (
-                        <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                      )}
-                    </div>
-                  ))}
+                <CardContent className="overflow-x-auto pt-6 pb-4">
+                  <div className="flex min-w-max items-center gap-2">
+                    {STEP_ORDER.map((s, i) => (
+                      <div key={s} className="flex items-center gap-2">
+                        <button
+                          onClick={() => updateStep.mutate(s)}
+                          className={`whitespace-nowrap rounded-md px-3 py-1 text-sm transition ${
+                            i === stepIndex
+                              ? 'bg-primary text-primary-foreground'
+                              : i < stepIndex
+                              ? 'bg-emerald-100 text-emerald-900'
+                              : 'bg-muted text-muted-foreground'
+                          }`}
+                          data-testid={`step-${s}`}
+                        >
+                          {i + 1}. {stepLabels[s]}
+                        </button>
+                        {i < STEP_ORDER.length - 1 && (
+                          <ChevronRight className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </CardContent>
               </Card>
 
@@ -4229,7 +4231,7 @@ export default function BulkDocumentImportPage() {
               {/* Items table for AI steps */}
               {currentStep !== 'upload' && currentStep !== 'complete' && (
                 <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                  <CardHeader className="flex flex-col gap-2 pb-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
                     <CardTitle>
                       {isFr ? 'Étape :' : 'Step:'} {stepLabels[currentStep]}
                     </CardTitle>
@@ -4238,6 +4240,7 @@ export default function BulkDocumentImportPage() {
                       size="sm"
                       onClick={() => setHideReady((v) => !v)}
                       data-testid="toggle-hide-ready"
+                      className="self-start sm:self-auto"
                     >
                       {hideReady ? (
                         <Eye className="mr-2 h-4 w-4" />
@@ -4819,7 +4822,7 @@ export default function BulkDocumentImportPage() {
                                   className="mb-2 rounded-md border bg-muted/30 px-3 py-3 flex flex-wrap items-end gap-3"
                                   data-testid={`group-reassign-picker-${section.key}`}
                                 >
-                                  <div className="flex flex-col gap-1">
+                                  <div className="flex flex-col gap-1 w-full sm:w-auto">
                                     <Label className="text-xs">{isFr ? 'Destination' : 'Destination'}</Label>
                                     <Select
                                       value={groupReassignBranch}
@@ -4840,7 +4843,7 @@ export default function BulkDocumentImportPage() {
                                       }}
                                     >
                                       <SelectTrigger
-                                        className="h-8 w-[200px] text-xs"
+                                        className="h-8 w-full sm:w-[200px] text-xs"
                                         data-testid={`group-reassign-branch-select-${section.key}`}
                                       >
                                         <SelectValue />
@@ -4854,14 +4857,14 @@ export default function BulkDocumentImportPage() {
                                       </SelectContent>
                                     </Select>
                                   </div>
-                                  <div className="flex flex-col gap-1">
+                                  <div className="flex flex-col gap-1 w-full sm:w-auto">
                                     <Label className="text-xs">{isFr ? 'Sous-catégorie' : 'Sub-category'}</Label>
                                     <Select
                                       value={groupReassignSubCategory}
                                       onValueChange={setGroupReassignSubCategory}
                                     >
                                       <SelectTrigger
-                                        className="h-8 w-[200px] text-xs"
+                                        className="h-8 w-full sm:w-[200px] text-xs"
                                         data-testid={`group-reassign-subcategory-select-${section.key}`}
                                       >
                                         <SelectValue />
@@ -4876,7 +4879,7 @@ export default function BulkDocumentImportPage() {
                                     </Select>
                                   </div>
                                   {groupReassignBranch === 'residence_documents' && (
-                                    <div className="flex flex-col gap-1">
+                                    <div className="flex flex-col gap-1 w-full sm:w-auto">
                                       <Label className="text-xs">
                                         {isFr ? 'Résidence' : 'Residence'}
                                       </Label>
@@ -4885,7 +4888,7 @@ export default function BulkDocumentImportPage() {
                                         onValueChange={setGroupReassignResidenceId}
                                       >
                                         <SelectTrigger
-                                          className="h-8 w-[220px] text-xs"
+                                          className="h-8 w-full sm:w-[220px] text-xs"
                                           data-testid={`group-reassign-residence-select-${section.key}`}
                                         >
                                           <SelectValue
@@ -5271,7 +5274,7 @@ export default function BulkDocumentImportPage() {
                                           className="border-t bg-muted/30 px-3 py-3 flex flex-wrap items-end gap-3"
                                           data-testid={`reassign-picker-${item.id}`}
                                         >
-                                          <div className="flex flex-col gap-1">
+                                          <div className="flex flex-col gap-1 w-full sm:w-auto">
                                             <Label className="text-xs">{isFr ? 'Destination' : 'Destination'}</Label>
                                             <Select
                                               value={reassignBranch}
@@ -5291,7 +5294,7 @@ export default function BulkDocumentImportPage() {
                                                 }
                                               }}
                                             >
-                                              <SelectTrigger className="h-8 w-[200px] text-xs" data-testid={`reassign-branch-select-${item.id}`}>
+                                              <SelectTrigger className="h-8 w-full sm:w-[200px] text-xs" data-testid={`reassign-branch-select-${item.id}`}>
                                                 <SelectValue />
                                               </SelectTrigger>
                                               <SelectContent>
@@ -5303,13 +5306,13 @@ export default function BulkDocumentImportPage() {
                                               </SelectContent>
                                             </Select>
                                           </div>
-                                          <div className="flex flex-col gap-1">
+                                          <div className="flex flex-col gap-1 w-full sm:w-auto">
                                             <Label className="text-xs">{isFr ? 'Sous-catégorie' : 'Sub-category'}</Label>
                                             <Select
                                               value={reassignSubCategory}
                                               onValueChange={setReassignSubCategory}
                                             >
-                                              <SelectTrigger className="h-8 w-[200px] text-xs" data-testid={`reassign-subcategory-select-${item.id}`}>
+                                              <SelectTrigger className="h-8 w-full sm:w-[200px] text-xs" data-testid={`reassign-subcategory-select-${item.id}`}>
                                                 <SelectValue />
                                               </SelectTrigger>
                                               <SelectContent>
@@ -5322,7 +5325,7 @@ export default function BulkDocumentImportPage() {
                                             </Select>
                                           </div>
                                           {reassignBranch === 'residence_documents' && (
-                                            <div className="flex flex-col gap-1">
+                                            <div className="flex flex-col gap-1 w-full sm:w-auto">
                                               <Label className="text-xs">
                                                 {isFr ? 'Résidence' : 'Residence'}
                                               </Label>
@@ -5344,7 +5347,7 @@ export default function BulkDocumentImportPage() {
                                                 onValueChange={setReassignResidenceId}
                                               >
                                                 <SelectTrigger
-                                                  className="h-8 w-[220px] text-xs"
+                                                  className="h-8 w-full sm:w-[220px] text-xs"
                                                   data-testid={`reassign-residence-select-${item.id}`}
                                                 >
                                                   <SelectValue placeholder={isFr ? 'Choisir une résidence…' : 'Choose a residence…'} />
@@ -5407,7 +5410,7 @@ export default function BulkDocumentImportPage() {
                                           className="border-t bg-muted/30 px-3 py-3 flex flex-wrap items-end gap-3"
                                           data-testid={`residence-picker-${item.id}`}
                                         >
-                                          <div className="flex flex-col gap-1">
+                                          <div className="flex flex-col gap-1 w-full sm:w-auto">
                                             <Label className="text-xs">
                                               {isFr ? 'Résidence' : 'Residence'}
                                             </Label>
@@ -5428,7 +5431,7 @@ export default function BulkDocumentImportPage() {
                                               value={residencePickerValue}
                                               onValueChange={setResidencePickerValue}
                                             >
-                                              <SelectTrigger className="h-8 w-[220px] text-xs" data-testid={`residence-picker-select-${item.id}`}>
+                                              <SelectTrigger className="h-8 w-full sm:w-[220px] text-xs" data-testid={`residence-picker-select-${item.id}`}>
                                                 <SelectValue placeholder={isFr ? 'Choisir une résidence…' : 'Choose a residence…'} />
                                               </SelectTrigger>
                                               <SelectContent>
@@ -6040,7 +6043,7 @@ export default function BulkDocumentImportPage() {
                                   : '',
                               isLinkingStandalone && !isExcluded ? 'cursor-grab active:cursor-grabbing' : '',
                             ].join(' ')}
-                            data-testid={isLinkingStandalone ? `linking-row-${item.id}` : `item-row-${item.id}`}
+                            data-testid={isLinkingStandalone && !isExcluded ? `linking-row-${item.id}` : `item-row-${item.id}`}
                             data-excluded={isExcluded ? 'true' : 'false'}
                             draggable={isLinkingStandalone && !isExcluded}
                             onDragStart={isLinkingStandalone && !isExcluded ? (e) => {
@@ -7109,7 +7112,7 @@ export default function BulkDocumentImportPage() {
                               </div>
                             </div>
                             {currentStep !== 'sorting' && (
-                              <div className="flex items-center gap-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
+                              <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto sm:shrink-0" onClick={(e) => e.stopPropagation()}>
                                 {showRetry && retryAction && (
                                   <Button
                                     size="sm"
@@ -7452,7 +7455,7 @@ export default function BulkDocumentImportPage() {
                                       && trimmed === (item.screeningParsedPeriodHintDate ?? '');
                                     return (
                                       <div
-                                        className="flex items-center gap-1"
+                                        className="flex flex-wrap items-center gap-1"
                                         data-testid={`identification-effective-date-editor-${item.id}`}
                                       >
                                         <Input
@@ -7484,7 +7487,7 @@ export default function BulkDocumentImportPage() {
                                             });
                                           }}
                                           disabled={setEffectiveDate.isPending}
-                                          className="h-7 w-40 text-xs"
+                                          className="h-7 w-full sm:w-40 text-xs"
                                           aria-label={
                                             isFr ? 'Date d’effet' : 'Effective date'
                                           }
