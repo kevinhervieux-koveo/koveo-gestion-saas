@@ -5896,8 +5896,8 @@ export default function BulkDocumentImportPage() {
                                       ?? '';
                                     const value = pending !== undefined ? pending : fallback;
                                     const trimmed = value.trim();
-                                    // What the server currently has — used to drive
-                                    // the Save button's enabled/disabled state.
+                                    // What the server currently has — used to determine
+                                    // whether the local value is dirty (differs from server).
                                     const serverValue = item.identificationEffectiveDate ?? '';
                                     const dirty = trimmed !== serverValue;
                                     // The "from screening" chip shows whenever the
@@ -5936,6 +5936,13 @@ export default function BulkDocumentImportPage() {
                                               });
                                             }
                                           }}
+                                          onBlur={() => {
+                                            if (!dirty || setEffectiveDate.isPending) return;
+                                            setEffectiveDate.mutate({
+                                              itemId: item.id,
+                                              effectiveDate: trimmed.length > 0 ? trimmed : null,
+                                            });
+                                          }}
                                           disabled={setEffectiveDate.isPending}
                                           className="h-7 w-40 text-xs"
                                           aria-label={
@@ -5943,29 +5950,6 @@ export default function BulkDocumentImportPage() {
                                           }
                                           data-testid={`identification-effective-date-input-${item.id}`}
                                         />
-                                        <Button
-                                          size="sm"
-                                          variant="outline"
-                                          className="h-7 px-2"
-                                          onClick={() => {
-                                            setEffectiveDate.mutate({
-                                              itemId: item.id,
-                                              effectiveDate: trimmed.length > 0 ? trimmed : null,
-                                            });
-                                          }}
-                                          disabled={!dirty || setEffectiveDate.isPending}
-                                          data-testid={`identification-effective-date-save-${item.id}`}
-                                          aria-label={isFr ? 'Enregistrer la date' : 'Save date'}
-                                          title={
-                                            isFr
-                                              ? 'Enregistrer la date d’effet'
-                                              : 'Save effective date'
-                                          }
-                                        >
-                                          {setEffectiveDate.isPending
-                                            ? <Loader2 className="h-3 w-3 animate-spin" />
-                                            : <Check className="h-3 w-3" />}
-                                        </Button>
                                         {showFromScreening && (
                                           <Badge
                                             variant="outline"
