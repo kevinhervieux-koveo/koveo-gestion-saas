@@ -2288,6 +2288,21 @@ export default function BulkDocumentImportPage() {
     [runStep],
   );
 
+  /**
+   * Task #1208: cooperative cancellation handler for the in-page
+   * Cancel button that sits next to the live bulk-retry progress
+   * indicator. We flip the same abort ref the session-change effect
+   * uses so the loop in `retryAllAiFailedItems` exits before
+   * dispatching the next per-item retry, and we eagerly clear
+   * `bulkRetryStep` so the UI returns to its idle state without
+   * waiting for the in-flight `runStep` call to settle (the loop's
+   * `finally` will set it again to the same null and is a no-op).
+   */
+  const cancelBulkRetry = useCallback(() => {
+    bulkRetryAbortedRef.current = true;
+    setBulkRetryStep(null);
+  }, []);
+
   // Cooperative cancellation hook — when the wizard's session changes
   // (admin navigated away / cleared the session) any in-flight bulk
   // retry loop should stop dispatching so we don't keep firing per-
@@ -3881,6 +3896,29 @@ export default function BulkDocumentImportPage() {
                                     {isFr
                                       ? `Réessayer les fichiers en échec IA (${aiFailedCount})`
                                       : `Retry AI-failed items (${aiFailedCount})`}
+                                  </button>
+                                )}
+                                {/* Task #1208: in-page Cancel for the
+                                    bulk retry loop. Sits beside the
+                                    spinner-bearing Retry button so the
+                                    admin has an obvious way to abort a
+                                    long batch (wrong building, AI still
+                                    down, …) without refreshing or
+                                    navigating away. Cooperative —
+                                    flips the same abort ref the
+                                    session-change effect uses, so the
+                                    in-flight per-item runStep call
+                                    completes but no further retries
+                                    are dispatched. */}
+                                {stepBulkRetryRunning && (
+                                  <button
+                                    type="button"
+                                    className="inline-flex items-center gap-1 text-xs text-muted-foreground underline hover:text-foreground"
+                                    data-testid={`auto-run-retry-cancel-${currentStep}`}
+                                    onClick={cancelBulkRetry}
+                                  >
+                                    <X className="h-3 w-3" />
+                                    {isFr ? 'Annuler' : 'Cancel'}
                                   </button>
                                 )}
                                 <button

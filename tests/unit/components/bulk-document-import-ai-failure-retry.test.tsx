@@ -235,40 +235,51 @@ function jsonResponse(body: unknown, status = 200): Response {
   } as unknown as Response;
 }
 
-const fetchMock = jest.fn(
-  async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
-    const url =
-      typeof input === 'string'
-        ? input
-        : input instanceof URL
-          ? input.toString()
-          : (input as Request).url;
-    const method = (init?.method || 'GET').toUpperCase();
-    const [pathname] = url.split('?');
+/**
+ * Default responder for the suite. Pulled out as a standalone
+ * function so individual tests that need a custom payload can call
+ * `fetchMock.mockImplementation(...)` and the per-test `beforeEach`
+ * can restore this one between cases — without that restoration a
+ * custom responder would leak into subsequent tests in the same
+ * file (Task #1208 review feedback).
+ */
+const defaultFetchImpl = async (
+  input: RequestInfo | URL,
+  init?: RequestInit,
+): Promise<Response> => {
+  const url =
+    typeof input === 'string'
+      ? input
+      : input instanceof URL
+        ? input.toString()
+        : (input as Request).url;
+  const method = (init?.method || 'GET').toUpperCase();
+  const [pathname] = url.split('?');
 
-    if (method === 'GET') {
-      if (pathname === '/api/admin/bulk-import/buildings-lite') return jsonResponse([]);
-      if (pathname === '/api/admin/bulk-import/ai-status') return jsonResponse({ available: true });
-      if (pathname === '/api/organizations') return jsonResponse([]);
-      if (pathname === `/api/admin/bulk-import/sessions/${SESSION_ID}/lite`) {
-        return jsonResponse(buildSessionPayload());
-      }
-      if (pathname === '/api/admin/bulk-import/sessions') {
-        return jsonResponse({ sessions: [], limit: 20, offset: 0, hasMore: false });
-      }
+  if (method === 'GET') {
+    if (pathname === '/api/admin/bulk-import/buildings-lite') return jsonResponse([]);
+    if (pathname === '/api/admin/bulk-import/ai-status') return jsonResponse({ available: true });
+    if (pathname === '/api/organizations') return jsonResponse([]);
+    if (pathname === `/api/admin/bulk-import/sessions/${SESSION_ID}/lite`) {
+      return jsonResponse(buildSessionPayload());
     }
-
-    // The page issues `POST /run-all` on mount and may issue a few
-    // other POSTs in passing. Resolving them with `{ ok: true }` is
-    // enough for the assertions here — we never click a button in
-    // this suite.
-    if (method === 'POST') {
-      return jsonResponse({ ok: true });
+    if (pathname === '/api/admin/bulk-import/sessions') {
+      return jsonResponse({ sessions: [], limit: 20, offset: 0, hasMore: false });
     }
+  }
 
-    return jsonResponse({ unmocked: true, url, method }, 404);
-  },
-) as unknown as jest.MockedFunction<typeof fetch>;
+  // The page issues `POST /run-all` on mount and may issue a few
+  // other POSTs in passing. Resolving them with `{ ok: true }` is
+  // enough for the assertions here — we never click a button in
+  // this suite.
+  if (method === 'POST') {
+    return jsonResponse({ ok: true });
+  }
+
+  return jsonResponse({ unmocked: true, url, method }, 404);
+};
+
+const fetchMock = jest.fn(defaultFetchImpl) as unknown as jest.MockedFunction<typeof fetch>;
 
 let originalFetch: typeof fetch | undefined;
 
@@ -278,7 +289,13 @@ beforeEach(async () => {
   mockLanguage = 'en';
   originalFetch = global.fetch;
   global.fetch = fetchMock as unknown as typeof fetch;
-  fetchMock.mockClear();
+  // Reset wipes BOTH the call history AND any per-test
+  // `mockImplementation` overrides applied by an earlier test, so
+  // we then reapply the suite's default responder. Without this
+  // restoration a custom responder set by one test would leak into
+  // every later test in the same file (Task #1208 review feedback).
+  fetchMock.mockReset();
+  fetchMock.mockImplementation(defaultFetchImpl);
   window.localStorage.setItem('bulkImportActiveSessionId', SESSION_ID);
 });
 
@@ -376,6 +393,188 @@ describe('BulkDocumentImportPage — Task #1202 AI failure retry surfaces', () =
       expect(
         screen.queryByTestId(`button-fallback-retry-${EXCLUDED_ID}`),
       ).not.toBeInTheDocument();
+    });
+  });
+
+  /**
+   * Task #1208 — In-page Cancel button for the bulk retry loop.
+   *
+   * The bulk-retry loop in `retryAllAiFailedItems` walks the failed
+   * rows sequentially with a 200 ms stagger between calls. There was
+   * no way for the admin to abort it from inside the page (only
+   * navigating away or refreshing). #1208 wires a Cancel button next
+   * to the spinner-bearing "Retry AI-failed items (N)" button that
+   * flips the same `bulkRetryAbortedRef` the session-change effect
+   * uses, so the loop breaks out cooperatively before dispatching
+   * the next per-item retry.
+   *
+   * This test renders the SORTING step with three retryable rows,
+   * starts the bulk retry, waits for the first per-item POST to fire,
+   * clicks Cancel, and asserts:
+   *   1. The Cancel button is visible while `bulkRetryStep` is set.
+   *   2. Clicking it stops the loop — the per-item retry endpoint is
+   *      NOT called for the remaining rows even after waiting well
+   *      past the 200 ms inter-call stagger.
+   *   3. The Cancel button (and the spinner state) clears once
+   *      `bulkRetryStep` returns to null, so the UI is back to its
+   *      idle "Retry AI-failed items (N)" affordance.
+   */
+  describe('Task #1208 — Cancel button for the in-flight bulk retry loop', () => {
+    const BULK_RETRY_IDS = [
+      'item-1208-bulk-1',
+      'item-1208-bulk-2',
+      'item-1208-bulk-3',
+    ] as const;
+
+    function buildPayloadWithThreeRetryableRows() {
+      const sortedDefaults = {
+        status: 'sorted' as const,
+        screeningTypeGuess: 'invoice',
+        screeningBucketGuess: null as null,
+        screeningConfidence: 0.7,
+        sortingDecisionState: 'accepted' as const,
+        sortingConfidence: 0.05,
+        sortingDecision: 'keep' as const,
+      };
+      const rows = BULK_RETRY_IDS.map((id, idx) => ({
+        ...baseItemDefaults,
+        ...sortedDefaults,
+        id,
+        originalName: `doc-bulk-${idx + 1}.pdf`,
+        sortingFallback: 'api_error' as const,
+        sortingReason: 'AI failed',
+      }));
+      return {
+        session: {
+          id: SESSION_ID,
+          buildingId: 'building-1',
+          organizationId: 'org-1',
+          adminUserId: 'admin-1',
+          currentStep: 'sorting' as const,
+          status: 'active' as const,
+          progress: {
+            runAll: {
+              sorting: {
+                total: 3,
+                processed: 3,
+                failed: 3,
+                startedAt: '2024-01-01T00:00:00.000Z',
+                finishedAt: '2024-01-01T00:01:00.000Z',
+                inFlight: [],
+              },
+            },
+          },
+          createdAt: '2024-01-01T00:00:00.000Z',
+          updatedAt: '2024-01-01T00:00:00.000Z',
+        },
+        items: rows,
+      };
+    }
+
+    it('shows Cancel during bulk retry and halts further runStep calls when clicked', async () => {
+      // Track every per-item retry POST so we can prove the loop
+      // stopped firing after Cancel. The loop's per-item endpoint on
+      // the SORTING step is `/api/admin/bulk-import/items/:id/sort`.
+      const perItemSortPosts: string[] = [];
+      const payload = buildPayloadWithThreeRetryableRows();
+
+      fetchMock.mockImplementation(async (input, init) => {
+        const url =
+          typeof input === 'string'
+            ? input
+            : input instanceof URL
+              ? input.toString()
+              : (input as Request).url;
+        const method = (init?.method || 'GET').toUpperCase();
+        const [pathname] = url.split('?');
+
+        if (method === 'GET') {
+          if (pathname === '/api/admin/bulk-import/buildings-lite') return jsonResponse([]);
+          if (pathname === '/api/admin/bulk-import/ai-status') return jsonResponse({ available: true });
+          if (pathname === '/api/organizations') return jsonResponse([]);
+          if (pathname === `/api/admin/bulk-import/sessions/${SESSION_ID}/lite`) {
+            return jsonResponse(payload);
+          }
+          if (pathname === '/api/admin/bulk-import/sessions') {
+            return jsonResponse({
+              sessions: [],
+              limit: 20,
+              offset: 0,
+              hasMore: false,
+            });
+          }
+        }
+        if (method === 'POST') {
+          if (
+            pathname.startsWith('/api/admin/bulk-import/items/') &&
+            pathname.endsWith('/sort')
+          ) {
+            perItemSortPosts.push(pathname);
+          }
+          return jsonResponse({ ok: true });
+        }
+        return jsonResponse({ unmocked: true, url, method }, 404);
+      });
+
+      renderPage();
+      await waitForRow(BULK_RETRY_IDS[0]);
+
+      const bulkBtn = await screen.findByTestId('auto-run-retry-failed-sorting');
+      expect(bulkBtn).toHaveTextContent('Retry AI-failed items (3)');
+
+      // Cancel must NOT be visible before the loop is kicked off.
+      expect(
+        screen.queryByTestId('auto-run-retry-cancel-sorting'),
+      ).not.toBeInTheDocument();
+
+      await act(async () => {
+        fireEvent.click(bulkBtn);
+      });
+
+      // Cancel surfaces as soon as `bulkRetryStep` flips to the
+      // current step.
+      const cancelBtn = await screen.findByTestId(
+        'auto-run-retry-cancel-sorting',
+        undefined,
+        { timeout: 4000 },
+      );
+      expect(cancelBtn).toBeInTheDocument();
+      expect(cancelBtn).toHaveTextContent('Cancel');
+
+      // Wait until the loop has dispatched at least one per-item
+      // retry. After this point the loop is in its 200 ms inter-call
+      // stagger and Cancel must prevent the next iteration's POST.
+      await waitFor(
+        () => {
+          expect(perItemSortPosts.length).toBeGreaterThanOrEqual(1);
+        },
+        { timeout: 4000 },
+      );
+      const callsBeforeCancel = perItemSortPosts.length;
+      expect(callsBeforeCancel).toBeLessThan(BULK_RETRY_IDS.length);
+
+      await act(async () => {
+        fireEvent.click(cancelBtn);
+      });
+
+      // Wait well past the loop's 200 ms inter-call stagger so any
+      // queued next-iteration POST would have had time to land.
+      await act(async () => {
+        await new Promise<void>((r) => setTimeout(r, 800));
+      });
+
+      // No additional per-item retry POSTs fired after Cancel — the
+      // cooperative abort short-circuited the loop before the next
+      // `runStep.mutateAsync` call.
+      expect(perItemSortPosts.length).toBe(callsBeforeCancel);
+
+      // The Cancel button (and the spinner-bearing state) should
+      // clear once `bulkRetryStep` is reset to null.
+      await waitFor(() => {
+        expect(
+          screen.queryByTestId('auto-run-retry-cancel-sorting'),
+        ).not.toBeInTheDocument();
+      });
     });
   });
 
