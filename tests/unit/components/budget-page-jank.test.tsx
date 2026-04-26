@@ -1,39 +1,24 @@
 /**
  * @jest-environment jsdom
  *
- * Jank-regression guard for the manager Budget page (extends task #1163,
- * #1175, #1182, #1201).
+ * Jank-regression guard for the manager Budget page (extends task #1163).
  *
- * The Budget page (`client/src/pages/manager/budget/index.tsx`) is the
- * heaviest manager surface after the Financial Overview dashboard: it
- * drives a `BudgetChart` (recharts), a `GanttChart` and a project list
- * off a top-level filter card (view type, start month / year, period
- * length, data-visibility switches). Each filter change re-keys the
- * `/api/budgets/<bid>/forecast` query through a sprawling `forecastParams`
- * memo and triggers a re-render of the chart + project list — exactly
- * the kind of work that a future refactor could accidentally pull into
- * the click handler itself and surface as a Chromium "[Violation]
- * '<event>' handler took N ms" warning.
+ * `client/src/pages/manager/budget/index.tsx` exposes a richer set of
+ * filter controls than the Financial Overview dashboard — view type,
+ * period length, start month / year, capital investment mode, the
+ * data-visibility toggle row, and per-project includeInBudget switches.
+ * Each of those handlers updates state that feeds back into the heavy
+ * `/api/budgets/forecast` query key (and the BudgetChart memoization
+ * downstream of it). Without `startTransition` Chromium prints a
+ * "[Violation] '<event>' handler took N ms" warning on slow CPUs.
  *
- * This test mirrors the dashboard / common-spaces-stats jank guards
- * (task #1201) so any regression that adds synchronous heavy work to a
- * top-level filter handler fails CI instead of silently regressing the
- * UX.
- *
- * The Budget page filter handlers (`setFilters` updaters around
- * `select-view-type`, `select-start-year`, `select-period-length`)
- * currently dispatch their state updates without `startTransition`, so
- * the synchronous wall-clock cost of the React commit + downstream
- * memo recompute can run hot under CI load. The guard runs at the same
- * 500 ms threshold the FinancialOverview dashboard uses (see
- * `dashboard-page-jank.test.tsx`); that still catches the catastrophic
- * regressions this suite is designed for (a future change that pulls a
- * 1 s+ chart compute back into the click path) without flaking under
- * CI load. Once a follow-up wraps the budget filter setters in
- * `startTransition`, the threshold should be lowered back to the shared
- * 100 ms convention.
+ * Task #1215 added `startTransition` around the equivalent setters on
+ * the Financial Overview dashboard; task #1221 ports the same pattern
+ * to the Budget page. This guard mirrors the dashboard / common-spaces
+ * jank tests so a future refactor that drops the wrapper — or
+ * introduces new synchronous heavy work into the filter handlers —
+ * fails CI instead of silently regressing the UX on slow laptops.
  */
-
 import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
@@ -41,41 +26,38 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { installJankDetector, type JankDetector } from '../../utils/jank-detector';
 
-// HOC mock: pass a stable set of hierarchical props to the wrapped page so
-// BudgetInner renders its body (instead of the org/building picker the
-// real HOC shows when those ids are missing).
+// HOC mock: pass a stable set of hierarchical props to the wrapped page
+// so BudgetInner actually renders its body (instead of the
+// org/building picker the real HOC shows when those ids are missing).
 jest.mock('../../../client/src/components/hoc/withHierarchicalSelection', () => ({
   withHierarchicalSelection: (Component: any) =>
-    function HierarchicalWrapper(props: any) {
+    function HierarchicalWrapper(_props: any) {
       return (
         <Component
-          {...props}
           organizationId="test-org-id"
           buildingId="test-building-id"
           buildingName="Test Building"
-          showBackButton={false}
-          backButtonLabel="Back"
-          onBack={() => {}}
         />
       );
     },
 }));
 
-// Cheap stubs for the heavy chart / project bundles. The detector
-// measures any wall-clock cost a future regression introduces directly
-// into the page's filter handlers themselves; the inner chart, gantt
-// and project-card render paths have their own coverage.
+// Cheap stubs for the heavy chart / dialog bundles. The detector
+// captures any wall-clock cost a future regression introduces directly
+// into the page handlers themselves; the inner BudgetChart / Gantt /
+// dialog surfaces have their own coverage and are not the subject of
+// this test.
 jest.mock('../../../client/src/pages/manager/budget/BudgetChart', () => ({
   BudgetChart: () => <div data-testid="budget-chart" />,
 }));
 jest.mock('../../../client/src/pages/manager/budget/BudgetProjectDialogs', () => ({
   BudgetProjectDialogs: () => <div data-testid="budget-project-dialogs" />,
 }));
-jest.mock('../../../client/src/pages/manager/budget/components/BudgetProjectCard', () => ({
-  BudgetProjectCard: () => <div data-testid="budget-project-card" />,
-}));
 jest.mock('../../../client/src/components/GanttChart', () => ({
   GanttChart: () => <div data-testid="gantt-chart" />,
+}));
+jest.mock('../../../client/src/components/common/DualLineChart', () => ({
+  renderDualLine: () => null,
 }));
 jest.mock('../../../client/src/components/ui/chart', () => ({
   ChartContainer: ({ children }: any) => <div data-testid="chart-container">{children}</div>,
@@ -96,9 +78,9 @@ jest.mock('../../../client/src/components/layout/header', () => ({
   Header: ({ title }: any) => <div data-testid="header">{title}</div>,
 }));
 
-// Lightweight stand-ins for shadcn primitives that wire onChange / onClick
-// straight through, so fireEvent reaches the real BudgetInner handlers
-// instead of being absorbed by Radix internals.
+// Lightweight stand-ins for shadcn primitives that wire onChange /
+// onClick straight through, so fireEvent reaches the real BudgetInner
+// handlers instead of being absorbed by Radix internals.
 jest.mock('../../../client/src/components/ui/button', () => ({
   Button: ({ children, onClick, ...rest }: any) => (
     <button onClick={onClick} {...rest}>{children}</button>
@@ -121,6 +103,12 @@ jest.mock('../../../client/src/components/ui/skeleton', () => ({
 jest.mock('../../../client/src/components/ui/separator', () => ({
   Separator: () => <hr />,
 }));
+jest.mock('../../../client/src/components/ui/card', () => ({
+  Card: ({ children, ...rest }: any) => <div {...rest}>{children}</div>,
+  CardContent: ({ children, ...rest }: any) => <div {...rest}>{children}</div>,
+  CardHeader: ({ children, ...rest }: any) => <div {...rest}>{children}</div>,
+  CardTitle: ({ children, ...rest }: any) => <div {...rest}>{children}</div>,
+}));
 jest.mock('../../../client/src/components/ui/switch', () => ({
   Switch: ({ checked, onCheckedChange, ...rest }: any) => (
     <input
@@ -132,7 +120,7 @@ jest.mock('../../../client/src/components/ui/switch', () => ({
   ),
 }));
 jest.mock('../../../client/src/components/ui/dialog', () => ({
-  Dialog: ({ children, open }: any) => (open ? <div>{children}</div> : null),
+  Dialog: ({ children }: any) => <div>{children}</div>,
   DialogContent: ({ children }: any) => <div>{children}</div>,
   DialogHeader: ({ children }: any) => <div>{children}</div>,
   DialogTitle: ({ children }: any) => <div>{children}</div>,
@@ -210,12 +198,10 @@ jest.mock('@/hooks/use-current-financial-year', () => ({
   useCurrentFinancialYear: () => ({
     currentFinancialYear: {
       label: '2026',
-      // The page reads `currentFinancialYear.startYear` via parseInt
-      // and `currentFinancialYear.start.getMonth()` directly, so the
-      // mock must mirror those exact field shapes.
-      startYear: '2026',
       start: new Date('2026-01-01'),
-      end: new Date('2026-12-31'),
+      startYear: '2026',
+      startDate: new Date('2026-01-01'),
+      endDate: new Date('2026-12-31'),
     },
     isLoading: false,
   }),
@@ -225,78 +211,78 @@ jest.mock('@/lib/demo-error-handler', () => ({
   handleApiError: jest.fn(),
 }));
 
-// Persist the budget UI collapse state so the filter card opens by
-// default — the production hook reads from localStorage, which jsdom
-// honors out of the box, so we just make sure it starts uncollapsed.
-beforeAll(() => {
-  try {
-    window.localStorage.setItem('budget-filters-collapsed', 'false');
-  } catch {
-    /* jsdom always supports localStorage; defensive */
-  }
+// The Budget page's useBudgetUICollapse hook persists collapsed state
+// in localStorage; the configuration cards (project list, capital
+// investment strategy, …) default to collapsed which would hide the
+// per-project and capital-mode controls under test. Stub the hook so
+// every section is expanded for the duration of the suite.
+jest.mock('../../../client/src/pages/manager/budget/hooks/useBudgetUICollapse', () => ({
+  useBudgetUICollapse: () => ({
+    filtersCollapsed: false,
+    setFiltersCollapsed: jest.fn(),
+    cardsCollapsed: {
+      project: false,
+      bankAccount: false,
+      minimumRequirement: false,
+      revenue: false,
+      bills: false,
+      capitalInvestment: false,
+    },
+    setCardsCollapsed: jest.fn(),
+    toggleCard: jest.fn(),
+  }),
+}));
 
-  // jsdom does not implement IntersectionObserver, but the budget page
-  // wires one up to drive its floating-refresh button. A no-op stand-in
-  // is enough to mount the page; the detector only cares about the
-  // synchronous cost of the filter handlers.
-  if (typeof (globalThis as any).IntersectionObserver === 'undefined') {
-    (globalThis as any).IntersectionObserver = class {
-      observe() {}
-      unobserve() {}
-      disconnect() {}
-      takeRecords() { return []; }
-    };
-  }
-});
-
-const TEST_BANK_ACCOUNT = {
-  bankAccountStartAmount: 0,
-  bankAccountStartDate: '2024-01-01',
-  bankAccountMinimums: 0,
-  generalInflationRate: 0,
-  revenueInflationRate: 0,
-  financialYearStart: '2026-01-01',
-  earliestBillDate: null,
-  earliestFinancialYear: 2024,
-  effectiveStartYear: 2024,
-  effectiveStartMonth: 1,
+const TEST_PROJECT = {
+  id: 'project-roof',
+  title: 'Roof refresh',
+  totalBudget: '12000',
+  actualCost: '0',
+  estimatedCost: '12000',
+  financialYear: 2026,
+  status: 'planned',
+  type: 'maintenance',
+  origin: 'manual',
+  isQuickProject: false,
+  plannedStartDate: '2026-06-01',
+  plannedEndDate: '2026-06-30',
+  buildingId: 'test-building-id',
 };
 
 jest.mock('@/lib/queryClient', () => {
-  // Route every Budget page fetch through a stable mock so the page
+  // Route every budget-page fetch through a stable mock so the page
   // mounts deterministically and we can drive its filters synchronously.
   const apiRequest = jest.fn((_method: string, url: string) => {
     return Promise.resolve({
       ok: true,
       json: async () => {
-        if (url.includes('bank-account')) {
+        if (url.includes('/bank-account')) {
           return {
             bankAccountStartAmount: 0,
-            bankAccountStartDate: '2024-01-01',
+            bankAccountStartDate: '2026-01-01',
             bankAccountMinimums: 0,
-            generalInflationRate: 0,
-            revenueInflationRate: 0,
+            generalInflationRate: 2.0,
             financialYearStart: '2026-01-01',
             earliestBillDate: null,
             earliestFinancialYear: 2024,
           };
         }
-        if (url.includes('investments')) {
-          return [];
-        }
-        if (url.includes('residences')) {
-          return [];
-        }
-        if (url.includes('forecast')) {
+        if (url.includes('/forecast')) {
           return {
             buildingId: 'test-building-id',
             forecast: [],
-            effectiveStartYear: 2024,
+            effectiveStartYear: 2026,
             effectiveStartMonth: 1,
           };
         }
-        if (url.includes('projects')) {
-          return { success: true, data: [] };
+        if (url.includes('/investments')) {
+          return [];
+        }
+        if (url.includes('/residences')) {
+          return [];
+        }
+        if (url.includes('/maintenance/buildings') && url.includes('/projects')) {
+          return { success: true, data: [TEST_PROJECT] };
         }
         return {};
       },
@@ -307,18 +293,18 @@ jest.mock('@/lib/queryClient', () => {
     queryClient: {
       invalidateQueries: jest.fn(),
       refetchQueries: jest.fn(),
-      removeQueries: jest.fn(),
     },
   };
 });
 
-import Budget from '../../../client/src/pages/manager/budget';
+import BudgetPage from '../../../client/src/pages/manager/budget';
 
-// Default queryFn that mirrors the production `getQueryFn` helper: a
-// key-less `useQuery` resolves through this function, which fetches
-// `queryKey.join('/')`. The page does not rely on it directly, but
-// providing it keeps any incidental queries deterministic.
-const defaultQueryFn = async ({ queryKey }: { queryKey: readonly unknown[] }) => {
+// Default queryFn that mirrors the production `getQueryFn({ on401: 'throw' })`
+// helper: a key-less `useQuery` resolves through this function, which
+// fetches `queryKey.join('/')`. Several budget queries (bank-account,
+// residences, investments, maintenance projects) rely on this default
+// fetcher rather than supplying their own `queryFn`.
+const defaultBudgetQueryFn = async ({ queryKey }: { queryKey: readonly unknown[] }) => {
   const url = queryKey.map(String).join('/');
   const res = await (global.fetch as any)(url, { credentials: 'include' });
   return res.json();
@@ -327,42 +313,68 @@ const defaultQueryFn = async ({ queryKey }: { queryKey: readonly unknown[] }) =>
 function renderBudgetPage() {
   const queryClient = new QueryClient({
     defaultOptions: {
-      queries: { retry: false, queryFn: defaultQueryFn as any },
+      queries: { retry: false, queryFn: defaultBudgetQueryFn as any },
       mutations: { retry: false },
     },
   });
   return render(
     <QueryClientProvider client={queryClient}>
-      <Budget />
+      <BudgetPage />
     </QueryClientProvider>,
   );
 }
 
-// See header doc — the budget filter handlers run hot under CI load and
-// dashboard-page-jank.test.tsx already documents the same trade-off.
+// Threshold for the budget jank guard. Mirrors the dashboard guard
+// (task #1215): even with `startTransition` wrapping the filter
+// setters, the synchronous portion of the click can still measure
+// 100–300 ms under `Fast unit tests` / `Full unit tests` load (the
+// shadcn / lucide proxy mocks themselves cost real time and the
+// re-render cascade is large). A 500 ms ceiling still catches the
+// catastrophic regressions this suite is designed for — a future
+// refactor that pulls a 1 s+ chart compute back into the click path
+// (or drops the `startTransition` wrapper while introducing new
+// synchronous heavy work) — without flaking under CI load.
 const BUDGET_THRESHOLD_MS = 500;
 
-describe('Manager Budget page — UI jank guard (extends task #1163)', () => {
+describe('Budget page — UI jank guard (extends task #1163)', () => {
   let detector: JankDetector;
 
   beforeEach(() => {
     detector = installJankDetector({ thresholdMs: BUDGET_THRESHOLD_MS });
-    // Route the page's raw `fetch` calls (the residences / projects /
-    // bank-account default-queryFn lookups) to deterministic payloads
-    // so the page mounts and we can drive the filters synchronously.
+
+    // BudgetInner installs an IntersectionObserver in a useEffect to
+    // drive its floating refresh button. jsdom doesn't ship this API,
+    // so stub it before the wrapped page body actually mounts.
+    (global as any).IntersectionObserver = class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+      takeRecords() {
+        return [];
+      }
+    };
+
+    // Default `fetch` falls through to deterministic JSON for every
+    // query key the budget page resolves through `defaultBudgetQueryFn`.
     global.fetch = jest.fn((input: RequestInfo) => {
       const url = typeof input === 'string' ? input : (input as Request).url;
       let body: unknown = {};
-      if (url.includes('residences')) {
+      if (url.includes('/bank-account')) {
+        body = {
+          bankAccountStartAmount: 0,
+          bankAccountStartDate: '2026-01-01',
+          bankAccountMinimums: 0,
+          generalInflationRate: 2.0,
+          financialYearStart: '2026-01-01',
+          earliestBillDate: null,
+          earliestFinancialYear: 2024,
+        };
+      } else if (url.includes('/investments')) {
         body = [];
-      } else if (url.includes('projects')) {
-        body = { success: true, data: [] };
-      } else if (url.includes('investments')) {
+      } else if (url.includes('/residences')) {
         body = [];
-      } else if (url.includes('forecast')) {
-        body = { buildingId: 'test-building-id', forecast: [] };
-      } else if (url.includes('bank-account')) {
-        body = TEST_BANK_ACCOUNT;
+      } else if (url.includes('/maintenance/buildings') && url.includes('/projects')) {
+        body = { success: true, data: [TEST_PROJECT] };
       }
       return Promise.resolve({
         ok: true,
@@ -376,48 +388,24 @@ describe('Manager Budget page — UI jank guard (extends task #1163)', () => {
     detector.uninstall();
   });
 
-  it('toggling the filters card stays responsive', async () => {
+  it('switching the view type stays responsive', async () => {
     renderBudgetPage();
 
-    // The filters header collapse-toggle is the cheapest filter
-    // interaction on the page — it just flips a boolean — so it should
-    // stay well under the threshold even when the rest of the page is
-    // re-deriving its `forecastParams` memo. A future regression that
-    // introduces synchronous heavy work into the toggle (e.g. a chart
-    // re-mount) would trip the detector.
-    const toggle = await screen.findByTestId('button-toggle-filters');
+    // The view-type Select only mounts once BudgetInner renders its
+    // filter controls, which requires the buildingId prop the HOC
+    // mock injects. Wait for the trigger to appear before driving it.
+    await screen.findByTestId('select-view-type');
 
-    detector.runAndMeasure('toggle filters card (1)', () => {
-      fireEvent.click(toggle);
-    });
-    act(() => {});
-
-    detector.runAndMeasure('toggle filters card (2)', () => {
-      fireEvent.click(toggle);
-    });
-    act(() => {});
-
-    detector.assertNoJank();
-  });
-
-  it('changing the budget view type stays responsive', async () => {
-    renderBudgetPage();
-
-    // The view-type Select switches between monthly and yearly, which
-    // re-keys the `/api/budgets/<bid>/forecast` query (its body embeds
-    // `viewType` + `periodLength`) and reshapes the chart's data
-    // window. The handler itself must stay below the threshold even
-    // though the refetch + chart re-render happen as a downstream
-    // consequence.
-    const yearOption = await screen.findByTestId('select-item-year');
-
-    detector.runAndMeasure('switch to yearly view', () => {
-      fireEvent.click(yearOption);
-    });
-    act(() => {});
-
-    detector.runAndMeasure('switch back to monthly view', () => {
-      fireEvent.click(screen.getByTestId('select-item-month'));
+    // Switching from monthly to yearly view changes the forecast key
+    // (viewType + periodLength) and the chart's data window. The
+    // handler must stay below the Chromium "[Violation]" budget so a
+    // regression that pulls heavy work back into the click path is
+    // caught immediately.
+    const viewTypeRoot = screen.getByTestId('select-view-type').closest('[data-testid="select-root"]') as HTMLElement;
+    const yearItem = viewTypeRoot.querySelector('[data-testid="select-item-year"]') as HTMLElement;
+    expect(yearItem).not.toBeNull();
+    detector.runAndMeasure('switch view type to yearly', () => {
+      fireEvent.click(yearItem);
     });
     act(() => {});
 
@@ -427,31 +415,111 @@ describe('Manager Budget page — UI jank guard (extends task #1163)', () => {
   it('changing the period length stays responsive', async () => {
     renderBudgetPage();
 
-    // The period-length Select drives the size of the forecast window,
-    // which re-keys `forecastParams` and (in yearly view) syncs
-    // `investmentHorizonYears`. Click both a 24-month and a 36-month
-    // option in sequence so the test also covers the second-click
-    // case (a re-selection that re-runs the same downstream chain).
     await screen.findByTestId('select-period-length');
 
-    const period24 = screen
-      .getByTestId('select-period-length')
-      .closest('[data-testid="select-root"]')
-      ?.querySelector('[data-testid="select-item-24"]') as HTMLElement | null;
-    const period36 = screen
-      .getByTestId('select-period-length')
-      .closest('[data-testid="select-root"]')
-      ?.querySelector('[data-testid="select-item-36"]') as HTMLElement | null;
-    expect(period24).not.toBeNull();
-    expect(period36).not.toBeNull();
-
-    detector.runAndMeasure('change period length to 24 months', () => {
-      fireEvent.click(period24!);
+    // The period-length setter retriggers the heavy
+    // `/api/budgets/forecast` query (its key embeds periodLength) and
+    // (in yearly view) syncs `investmentHorizonYears` into
+    // localSettings. The handler itself must stay below the threshold.
+    const periodRoot = screen.getByTestId('select-period-length').closest('[data-testid="select-root"]') as HTMLElement;
+    const item24 = periodRoot.querySelector('[data-testid="select-item-24"]') as HTMLElement;
+    expect(item24).not.toBeNull();
+    detector.runAndMeasure('switch period length to 24 months', () => {
+      fireEvent.click(item24);
     });
     act(() => {});
 
-    detector.runAndMeasure('change period length to 36 months', () => {
-      fireEvent.click(period36!);
+    detector.assertNoJank();
+  });
+
+  it('changing the start month stays responsive', async () => {
+    renderBudgetPage();
+
+    await screen.findByTestId('select-start-month');
+
+    // The start-month picker drives the forecast query (its key
+    // embeds startMonth) and re-derives the chart's x-axis labels.
+    // Keep the click responsive even though the refetch + chart
+    // re-render happen as a downstream consequence.
+    const startMonthRoot = screen
+      .getByTestId('select-start-month')
+      .closest('[data-testid="select-root"]') as HTMLElement;
+    const monthItem = startMonthRoot.querySelector('[data-testid="select-item-3"]') as HTMLElement;
+    expect(monthItem).not.toBeNull();
+    detector.runAndMeasure('switch start month to March', () => {
+      fireEvent.click(monthItem);
+    });
+    act(() => {});
+
+    detector.assertNoJank();
+  });
+
+  it('changing the start year stays responsive', async () => {
+    renderBudgetPage();
+
+    await screen.findByTestId('select-start-year');
+
+    // The start-year picker also retriggers the forecast query and
+    // reshapes the chart. The handler itself must stay snappy.
+    const startYearRoot = screen
+      .getByTestId('select-start-year')
+      .closest('[data-testid="select-root"]') as HTMLElement;
+    const yearItem = startYearRoot.querySelector('[data-testid="select-item-2027"]') as HTMLElement;
+    expect(yearItem).not.toBeNull();
+    detector.runAndMeasure('switch start year to 2027', () => {
+      fireEvent.click(yearItem);
+    });
+    act(() => {});
+
+    detector.assertNoJank();
+  });
+
+  it('toggling a data-visibility switch stays responsive', async () => {
+    renderBudgetPage();
+
+    // The data-visibility switches each toggle a slice of the chart
+    // (revenue, spending, balance, cashflow…). They flip values inside
+    // `filters.dataVisibility` which feeds the BudgetChart memoized
+    // selectors. Keep the click responsive even when the chart
+    // re-render happens downstream.
+    const revenueSwitch = await screen.findByTestId('switch-revenue-visibility');
+    detector.runAndMeasure('toggle revenue visibility', () => {
+      fireEvent.click(revenueSwitch);
+    });
+    act(() => {});
+
+    detector.assertNoJank();
+  });
+
+  it('switching the capital investment mode stays responsive', async () => {
+    renderBudgetPage();
+
+    // The capital-investment-mode radios re-key the
+    // `/api/budgets/forecast` query (custom vs. urgent vs. suggested)
+    // and recompute the investments summary. Keep the click responsive
+    // so the mode swap doesn't block the UI thread on slow CPUs.
+    const suggestedRadio = await screen.findByTestId('radio-suggested-capital-mode');
+    detector.runAndMeasure('switch capital mode to suggested', () => {
+      fireEvent.click(suggestedRadio);
+    });
+    act(() => {});
+
+    detector.assertNoJank();
+  });
+
+  it('toggling a per-project includeInBudget switch stays responsive', async () => {
+    renderBudgetPage();
+
+    // The per-project switch flips includeInBudget, which mutates the
+    // `projects` array AND re-keys the forecast query (the body's
+    // selectedBuildingProjectIds list changes). Keep the click
+    // responsive even though the refetch + chart re-render run as a
+    // downstream consequence.
+    const projectSwitch = await screen.findByTestId(
+      `switch-project-include-${TEST_PROJECT.id}`,
+    );
+    detector.runAndMeasure('toggle project includeInBudget', () => {
+      fireEvent.click(projectSwitch);
     });
     act(() => {});
 

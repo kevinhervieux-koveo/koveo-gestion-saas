@@ -1,5 +1,5 @@
 // @ts-nocheck — Pre-existing type errors tracked in TYPE_CHECK_DEBT.md (task #769)
-import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useMemo, useEffect, useRef, useCallback, startTransition } from 'react';
 import { logDebug, logError } from '@/lib/logger';
 import { loadPdfLibs } from '@/lib/pdf-export';
 import { Header } from '@/components/layout/header';
@@ -3070,23 +3070,25 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
                   value={filters.viewType} 
                   onValueChange={(value: 'month' | 'year') => {
                     const defaultPeriodLength = value === 'month' ? 12 : 5;
-                    setFilters(prev => ({
-                      ...prev,
-                      viewType: value,
-                      periodLength: defaultPeriodLength, // Reset to default
-                    }));
-                    
-                    // CRITICAL FIX: When switching to yearly view, sync periodLength to investmentHorizonYears
-                    if (value === 'year') {
-                      setLocalSettings(prev => ({
+                    startTransition(() => {
+                      setFilters(prev => ({
                         ...prev,
-                        investmentHorizonYears: defaultPeriodLength,
+                        viewType: value,
+                        periodLength: defaultPeriodLength, // Reset to default
                       }));
-                      debugLog('View type changed to yearly, synced periodLength to investmentHorizonYears', { 
-                        viewType: value, 
-                        periodLength: defaultPeriodLength 
-                      });
-                    }
+
+                      // CRITICAL FIX: When switching to yearly view, sync periodLength to investmentHorizonYears
+                      if (value === 'year') {
+                        setLocalSettings(prev => ({
+                          ...prev,
+                          investmentHorizonYears: defaultPeriodLength,
+                        }));
+                        debugLog('View type changed to yearly, synced periodLength to investmentHorizonYears', {
+                          viewType: value,
+                          periodLength: defaultPeriodLength
+                        });
+                      }
+                    });
                   }}
                 >
                   <SelectTrigger data-testid="select-view-type">
@@ -3116,10 +3118,12 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
                       <Select 
                         value={filters.startMonth?.toString() || ''} 
                         onValueChange={(value) => {
-                          setFilters(prev => ({
-                            ...prev,
-                            startMonth: parseInt(value) || 1,
-                          }));
+                          startTransition(() => {
+                            setFilters(prev => ({
+                              ...prev,
+                              startMonth: parseInt(value) || 1,
+                            }));
+                          });
                         }}
                       >
                         <SelectTrigger data-testid="select-start-month">
@@ -3173,10 +3177,12 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
                                 <Select
                                   value={filters.startYear?.toString() || ''}
                                   onValueChange={(value) => {
-                                    setFilters(prev => ({
-                                      ...prev,
-                                      startYear: parseInt(value) || new Date().getFullYear(),
-                                    }));
+                                    startTransition(() => {
+                                      setFilters(prev => ({
+                                        ...prev,
+                                        startYear: parseInt(value) || new Date().getFullYear(),
+                                      }));
+                                    });
                                   }}
                                 >
                                   <SelectTrigger data-testid="select-start-year" aria-describedby="budget-year-picker-help">
@@ -3238,22 +3244,24 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
                       value={filters.periodLength.toString()} 
                       onValueChange={(value) => {
                         const periodLength = parseInt(value);
-                        setFilters(prev => ({
-                          ...prev,
-                          periodLength,
-                        }));
-                        
-                        // CRITICAL FIX: When in yearly view, sync periodLength to investmentHorizonYears for forecast API
-                        if (filters.viewType === 'year') {
-                          setLocalSettings(prev => ({
+                        startTransition(() => {
+                          setFilters(prev => ({
                             ...prev,
-                            investmentHorizonYears: periodLength,
+                            periodLength,
                           }));
-                          debugLog('Period length synced to investmentHorizonYears', { 
-                            periodLength, 
-                            viewType: filters.viewType 
-                          });
-                        }
+
+                          // CRITICAL FIX: When in yearly view, sync periodLength to investmentHorizonYears for forecast API
+                          if (filters.viewType === 'year') {
+                            setLocalSettings(prev => ({
+                              ...prev,
+                              investmentHorizonYears: periodLength,
+                            }));
+                            debugLog('Period length synced to investmentHorizonYears', {
+                              periodLength,
+                              viewType: filters.viewType
+                            });
+                          }
+                        });
                       }}
                     >
                       <SelectTrigger data-testid="select-period-length">
@@ -3307,10 +3315,12 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
                       id="toggle-revenue"
                       checked={filters.dataVisibility.revenue}
                       onCheckedChange={(checked) => {
-                        setFilters(prev => ({
-                          ...prev,
-                          dataVisibility: { ...prev.dataVisibility, revenue: checked },
-                        }));
+                        startTransition(() => {
+                          setFilters(prev => ({
+                            ...prev,
+                            dataVisibility: { ...prev.dataVisibility, revenue: checked },
+                          }));
+                        });
                       }}
                       data-testid="switch-revenue-visibility"
                     />
@@ -3324,10 +3334,12 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
                       id="toggle-spending"
                       checked={filters.dataVisibility.spending}
                       onCheckedChange={(checked) => {
-                        setFilters(prev => ({
-                          ...prev,
-                          dataVisibility: { ...prev.dataVisibility, spending: checked },
-                        }));
+                        startTransition(() => {
+                          setFilters(prev => ({
+                            ...prev,
+                            dataVisibility: { ...prev.dataVisibility, spending: checked },
+                          }));
+                        });
                       }}
                       data-testid="switch-spending-visibility"
                     />
@@ -3341,10 +3353,12 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
                       id="toggle-balance-start"
                       checked={filters.dataVisibility.balanceStart}
                       onCheckedChange={(checked) => {
-                        setFilters(prev => ({
-                          ...prev,
-                          dataVisibility: { ...prev.dataVisibility, balanceStart: checked },
-                        }));
+                        startTransition(() => {
+                          setFilters(prev => ({
+                            ...prev,
+                            dataVisibility: { ...prev.dataVisibility, balanceStart: checked },
+                          }));
+                        });
                       }}
                       data-testid="switch-balance-start-visibility"
                     />
@@ -3358,10 +3372,12 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
                       id="toggle-balance-end"
                       checked={filters.dataVisibility.balanceEnd}
                       onCheckedChange={(checked) => {
-                        setFilters(prev => ({
-                          ...prev,
-                          dataVisibility: { ...prev.dataVisibility, balanceEnd: checked },
-                        }));
+                        startTransition(() => {
+                          setFilters(prev => ({
+                            ...prev,
+                            dataVisibility: { ...prev.dataVisibility, balanceEnd: checked },
+                          }));
+                        });
                       }}
                       data-testid="switch-balance-end-visibility"
                     />
@@ -3375,10 +3391,12 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
                       id="toggle-cashflow"
                       checked={filters.dataVisibility.netCashFlow}
                       onCheckedChange={(checked) => {
-                        setFilters(prev => ({
-                          ...prev,
-                          dataVisibility: { ...prev.dataVisibility, netCashFlow: checked },
-                        }));
+                        startTransition(() => {
+                          setFilters(prev => ({
+                            ...prev,
+                            dataVisibility: { ...prev.dataVisibility, netCashFlow: checked },
+                          }));
+                        });
                       }}
                       data-testid="switch-cashflow-visibility"
                     />
@@ -3392,10 +3410,12 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
                       id="toggle-capital-investments"
                       checked={filters.dataVisibility.capitalInvestments}
                       onCheckedChange={(checked) => {
-                        setFilters(prev => ({
-                          ...prev,
-                          dataVisibility: { ...prev.dataVisibility, capitalInvestments: checked },
-                        }));
+                        startTransition(() => {
+                          setFilters(prev => ({
+                            ...prev,
+                            dataVisibility: { ...prev.dataVisibility, capitalInvestments: checked },
+                          }));
+                        });
                       }}
                       data-testid="switch-capital-investments-visibility"
                     />
@@ -3409,10 +3429,12 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
                       id="toggle-minimum-requirement"
                       checked={filters.dataVisibility.minimumRequirement}
                       onCheckedChange={(checked) => {
-                        setFilters(prev => ({
-                          ...prev,
-                          dataVisibility: { ...prev.dataVisibility, minimumRequirement: checked },
-                        }));
+                        startTransition(() => {
+                          setFilters(prev => ({
+                            ...prev,
+                            dataVisibility: { ...prev.dataVisibility, minimumRequirement: checked },
+                          }));
+                        });
                       }}
                       data-testid="switch-minimum-requirement-visibility"
                     />
@@ -3426,10 +3448,12 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
                       id="toggle-project"
                       checked={filters.dataVisibility.project}
                       onCheckedChange={(checked) => {
-                        setFilters(prev => ({
-                          ...prev,
-                          dataVisibility: { ...prev.dataVisibility, project: checked },
-                        }));
+                        startTransition(() => {
+                          setFilters(prev => ({
+                            ...prev,
+                            dataVisibility: { ...prev.dataVisibility, project: checked },
+                          }));
+                        });
                       }}
                       data-testid="switch-project-visibility"
                     />
@@ -3847,9 +3871,11 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
                             }
                             onToggleInclude={(p, value) => {
                               projectStatesRef.current.set(p.id, value);
-                              setProjects(prev => prev.map(pp =>
-                                pp.id === p.id ? { ...pp, includeInBudget: value } : pp
-                              ));
+                              startTransition(() => {
+                                setProjects(prev => prev.map(pp =>
+                                  pp.id === p.id ? { ...pp, includeInBudget: value } : pp
+                                ));
+                              });
                             }}
                             onEdit={async (p) => {
                               if (p.isQuickProject) {
@@ -5078,7 +5104,10 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
                                 name="capitalInvestmentMode"
                                 value="urgent"
                                 checked={capitalInvestmentMode === 'urgent'}
-                                onChange={(e) => setCapitalInvestmentMode(e.target.value as 'urgent' | 'suggested' | 'custom')}
+                                onChange={(e) => {
+                                  const next = e.target.value as 'urgent' | 'suggested' | 'custom';
+                                  startTransition(() => setCapitalInvestmentMode(next));
+                                }}
                                 className='text-blue-600 focus:ring-blue-500'
                                 data-testid="radio-urgent-capital-mode"
                               />
@@ -5103,7 +5132,10 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
                                 name="capitalInvestmentMode"
                                 value="suggested"
                                 checked={capitalInvestmentMode === 'suggested'}
-                                onChange={(e) => setCapitalInvestmentMode(e.target.value as 'urgent' | 'suggested' | 'custom')}
+                                onChange={(e) => {
+                                  const next = e.target.value as 'urgent' | 'suggested' | 'custom';
+                                  startTransition(() => setCapitalInvestmentMode(next));
+                                }}
                                 className='text-blue-600 focus:ring-blue-500'
                                 data-testid="radio-suggested-capital-mode"
                               />
@@ -5128,7 +5160,10 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
                                 name="capitalInvestmentMode"
                                 value="custom"
                                 checked={capitalInvestmentMode === 'custom'}
-                                onChange={(e) => setCapitalInvestmentMode(e.target.value as 'urgent' | 'suggested' | 'custom')}
+                                onChange={(e) => {
+                                  const next = e.target.value as 'urgent' | 'suggested' | 'custom';
+                                  startTransition(() => setCapitalInvestmentMode(next));
+                                }}
                                 className='text-blue-600 focus:ring-blue-500'
                                 data-testid="radio-custom-capital-mode"
                               />
