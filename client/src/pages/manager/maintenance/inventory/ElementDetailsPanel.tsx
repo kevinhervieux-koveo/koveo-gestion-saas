@@ -359,9 +359,10 @@ export function ElementDetailsPanel({
 
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">{t('edpLastInspectionLabel')}</span>
-                  <span className="text-sm">
-                    {element.lastInspectionDate 
-                      ? format(parseISO(element.lastInspectionDate), shortDatePattern, { locale: dateFnsLocale })
+                  <span className="text-sm" data-testid="element-last-inspection-date">
+                    {/* date-only field — keep parseDateOnly (#1146 / #1151) */}
+                    {element.lastInspectionDate && parseDateOnly(element.lastInspectionDate)
+                      ? format(parseDateOnly(element.lastInspectionDate)!, shortDatePattern, { locale: dateFnsLocale })
                       : t('edpLastInspectionNever')
                     }
                   </span>

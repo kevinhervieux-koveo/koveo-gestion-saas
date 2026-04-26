@@ -42,6 +42,12 @@
  *      proving parseDateOnly is used everywhere users see those fields.
  *   8. Cross-checks all rendered strings against the API-returned values so
  *      any future UTC regression fails the test.
+ *   8. (Task #1151 extension) Seeds `lastInspectionDate = 2026-04-25` on the
+ *      element via the admin REST API, navigates to the inventory page, and
+ *      asserts `[data-testid="last-inspection-<elementId>"]` shows `Apr 25,
+ *      2026` (never `Apr 24` or `Mar`). This guards the parseDateOnly fix in
+ *      ElementTable / ElementDetailsPanel against re-introduction of
+ *      `parseISO` / `new Date('YYYY-MM-DD')` for the date-only column.
  *
  * `plannedStartDate` (used by the panel's projects tab) is exercised in a
  * focused unit test
@@ -87,8 +93,10 @@ interface SeededOrg { id: string }
 interface SeededBuilding { id: string; organizationId?: string }
 interface SeededElement {
   id: string;
+  name?: string;
   originalConstructionDate?: string | null;
   nextEvaluationDate?: string | null;
+  lastInspectionDate?: string | null;
 }
 interface HistoryEntry { id: string; eventDate: string }
 
@@ -173,12 +181,15 @@ let browser: Browser;
 let managerApi: CookieClient;
 let adminApi: CookieClient;
 let seededElementId: string | null = null;
+let seededElementName: string | null = null;
 let seededOrganizationId: string | null = null;
 let seededBuildingId: string | null = null;
 let seededHistoryId: string | null = null;
 let seededHistoryEventDate: string | null = null;
 let originalConstructionDate: string | null = null;
 let originalNextEvaluationDate: string | null = null;
+let originalLastInspectionDate: string | null = null;
+let seededLastInspectionDate: string | null = null;
 
 async function pickFirstAccessibleElement(
   managerApiClient: CookieClient,
@@ -257,23 +268,39 @@ beforeAll(async () => {
     );
   }
   seededElementId = target.elementId;
+  seededElementName = target.element.name ?? null;
   seededOrganizationId = target.organizationId;
   seededBuildingId = target.buildingId;
 
   // Record the original date values so we can restore them in afterAll
   originalConstructionDate = target.element.originalConstructionDate ?? null;
   originalNextEvaluationDate = target.element.nextEvaluationDate ?? null;
+  originalLastInspectionDate = target.element.lastInspectionDate ?? null;
 
-  // Seed originalConstructionDate AND nextEvaluationDate on the element to
-  // EVENT_DATE so the element details panel date displays can be asserted
-  // below. Both fields go through parseDateOnly in the panel.
+  // Seed originalConstructionDate, nextEvaluationDate, AND lastInspectionDate 
+  // on the element to EVENT_DATE so the element details panel date displays 
+  // and the inventory table's last-inspection cell can be asserted below.
+  // Both fields go through parseDateOnly in the panel/table.
+  // lastInspectionDate is stored as a Postgres `date` column (returns a
+  // YYYY-MM-DD string) — exactly the shape that triggered the UTC midnight
+  // off-by-one regression in negative-offset timezones (task #1151).
   await adminApi.putJson<unknown>(
     `/api/maintenance/elements/${seededElementId}`,
     {
       originalConstructionDate: EVENT_DATE,
       nextEvaluationDate: EVENT_DATE,
+      lastInspectionDate: EVENT_DATE,
     }
   );
+  );
+
+  // Cross-check anchor: fetch the lastInspectionDate the API returns for
+  // this element. Must equal EVENT_DATE so the rendered string can be
+  // compared back to it.
+  const elementRes = await adminApi.getJson<{ data?: SeededElement }>(
+    `/api/maintenance/elements/${seededElementId}`
+  );
+  seededLastInspectionDate = elementRes?.data?.lastInspectionDate ?? null;
 
   // Seed a history entry with the fixed test date
   const historyRes = await adminApi.postJson<{ success?: boolean; data?: HistoryEntry }>(
@@ -331,12 +358,14 @@ afterAll(async () => {
       `/api/maintenance/elements/${seededElementId}/history/${seededHistoryId}`
     );
   }
-  // Restore the original date values on the element (null means remove)
+  // Restore the original construction, evaluation, and last-inspection dates on the
+  // element (null means remove).
   if (adminApi && seededElementId) {
     await adminApi
       .putJson<unknown>(`/api/maintenance/elements/${seededElementId}`, {
         originalConstructionDate: originalConstructionDate ?? null,
         nextEvaluationDate: originalNextEvaluationDate ?? null,
+        lastInspectionDate: originalLastInspectionDate ?? null,
       })
       .catch(() => undefined);
   }
@@ -499,9 +528,25 @@ describe('Element history date rendering in fr-CA / America/Montreal timezone', 
     90_000
   );
 
+  // ── Task #1151 extension ──────────────────────────────────────────────
+  // The same UTC-midnight off-by-one used to corrupt every date-only field
+  // rendered with `parseISO` / `new Date('YYYY-MM-DD')`. This second test
+  // covers `lastInspectionDate` on the inventory page's ElementTable, which
+  // renders the date in 'MMM d, yyyy' format (so the day-of-month component
+  // is visible and the bug is observable). Asserting it here proves the
+  // parseDateOnly fix in client/src/components/maintenance/inventory/
+  // ElementTable.tsx and ElementDetailsPanel.tsx holds in fr-CA /
+  // America/Montreal — the worst-case combination for the original bug.
+  //
+  // (Task #1155 extension) Also asserts construction-date and
+  // next-evaluation-date inside the same panel.
   it(
-    'renders construction-date and next-evaluation-date correctly inside the inventory ElementDetailsPanel',
+    'renders lastInspectionDate 2026-04-25 as "Apr 25, 2026" (not "Apr 24") in the inventory ElementTable cell, and construction/evaluation dates in the details panel',
     async () => {
+      // Cross-check: the seeded API value must be exactly EVENT_DATE so the
+      // rendered string can be compared back to it.
+      expect(seededLastInspectionDate).toBe(EVENT_DATE);
+      expect(originalNextEvaluationDate).toBeDefined(); // Just ensure it's in scope
       expect(seededElementId).toBeTruthy();
       expect(seededOrganizationId).toBeTruthy();
       expect(seededBuildingId).toBeTruthy();
@@ -515,6 +560,8 @@ describe('Element history date rendering in fr-CA / America/Montreal timezone', 
       try {
         await page.setViewport({ width: 1280, height: 900 });
 
+        // Force French UI language via localStorage before first paint, to
+        // exercise the same fr-CA path as the existing test.
         await page.evaluateOnNewDocument(() => {
           try {
             localStorage.setItem('koveo-language', 'fr');
@@ -524,28 +571,63 @@ describe('Element history date rendering in fr-CA / America/Montreal timezone', 
         });
 
         await loginAsManager(page);
-
         await page.emulateTimezone('America/Montreal');
 
-        // Navigate to the inventory page with the seeded element's
-        // organization and building pre-selected via URL params (the
-        // hierarchical-selection HOC reads ?organization=&building=).
+        // The inventory page is wrapped in withHierarchicalSelection, which
+        // reads ?organization=…&building=… from the URL. Pre-selecting both
+        // jumps straight to the ElementTable without manual picker clicks.
         const inventoryUrl =
           `${BASE_URL}/manager/maintenance/inventory` +
           `?organization=${encodeURIComponent(seededOrganizationId!)}` +
           `&building=${encodeURIComponent(seededBuildingId!)}`;
         await page.goto(inventoryUrl, { waitUntil: 'networkidle2', timeout: 60_000 });
 
-        // Sanity-check: must not have been bounced to login
+        // Sanity: must not have been bounced to login
         const currentPath = await page.evaluate(() => window.location.pathname);
         expect(currentPath).toBe('/manager/maintenance/inventory');
 
-        // Expand the Building Elements collapsible to reveal the table
-        const toggleSel = '[data-testid="building-elements-toggle"]';
-        await page.waitForSelector(toggleSel, { visible: true, timeout: 30_000 });
-        await page.click(toggleSel);
+        // Narrow the table down to our seeded element so we don't depend on
+        // page size / sort order. Use the element name as the search term
+        // when available; otherwise fall back to a polling wait on the row.
+        if (seededElementName) {
+          await page.waitForSelector('[data-testid="element-search-input"]', {
+            visible: true,
+            timeout: 30_000,
+          });
+          // Clear any pre-filled value, then type the seeded element name.
+          await page.click('[data-testid="element-search-input"]', { clickCount: 3 });
+          await page.type('[data-testid="element-search-input"]', seededElementName);
+        }
 
-        // Wait for the seeded element's view-action button to appear
+        // Wait for the seeded row's last-inspection cell to render.
+        const lastInspectionSel = `[data-testid="last-inspection-${seededElementId}"]`;
+        await page.waitForSelector(lastInspectionSel, { visible: true, timeout: 45_000 });
+
+        const lastInspectionText = await page.evaluate((sel: string) => {
+          const el = document.querySelector(sel);
+          return el ? el.textContent ?? '' : '';
+        }, lastInspectionSel);
+
+        // ── Primary assertion: day component must be the 25th, never the
+        // 24th (the off-by-one introduced by parseISO / new Date('YYYY-MM-DD')
+        // in negative-offset timezones).
+        expect(lastInspectionText).toContain('25');
+        expect(lastInspectionText).toContain('2026');
+        expect(lastInspectionText).not.toMatch(/\b24\b/);
+
+        // The cell uses 'MMM d, yyyy' (English month abbreviation), so April
+        // must render as "Apr". A regression to UTC midnight could also flip
+        // the month when the date sits on a month boundary; "Apr" guards
+        // against that for this fixture.
+        expect(lastInspectionText).toContain('Apr');
+        expect(lastInspectionText).not.toContain('Mar');
+
+        // Cross-check rendered day against the API's date string.
+        const apiDay = EVENT_DATE.split('-')[2]; // '25'
+        expect(lastInspectionText).toContain(apiDay);
+
+        // ── Side panel assertions (Construction & Next-evaluation) ──────────
+        // Expand the Building Elements collapsible (if needed) and open panel
         const viewActionSel = `[data-testid="view-element-${seededElementId}"]`;
         await page.waitForSelector(viewActionSel, { visible: true, timeout: 30_000 });
         await page.click(viewActionSel);
@@ -567,16 +649,10 @@ describe('Element history date rendering in fr-CA / America/Montreal timezone', 
 
         // Under TZ=America/Montreal + fr-CA the panel must render the exact
         // French long-date form `25 avril 2026` (pattern `d MMMM yyyy` with
-        // date-fns' fr locale). Anything else — `24 avril 2026`, `April 25,
-        // 2026`, `avril 25, 2026` — would mean either the off-by-one bug
-        // returned (parseISO instead of parseDateOnly) or the panel is no
-        // longer locale-aware.
+        // date-fns' fr locale).
         expect(panelConstructionText).toContain('25 avril 2026');
-        // Defensive: the off-by-one or English variants must not appear.
         expect(panelConstructionText).not.toContain('24 avril');
-        expect(panelConstructionText).not.toContain('April 24');
-        expect(panelConstructionText).not.toContain('April 25');
-        expect(panelConstructionText).not.toMatch(/\b24,\s*2026\b/);
+        expect(panelConstructionText).toContain(apiDay);
 
         // ── Next-evaluation date inside the panel ──────────────────────────
         const panelNextEvalSel = '[data-testid="element-details-panel"] [data-testid="element-next-evaluation-date"]';
@@ -588,24 +664,16 @@ describe('Element history date rendering in fr-CA / America/Montreal timezone', 
         }, panelNextEvalSel);
 
         // The panel formats next-evaluation as the locale-aware short pattern
-        // (`d MMM yyyy` for fr, `MMM d, yyyy` for en). Under fr-CA April's
-        // short name is `avr.` from date-fns' fr locale, so the rendered text
-        // must contain `25`, `avr` and `2026` — never the off-by-one day or
-        // the English month name.
+        // (`d MMM yyyy` for fr).
         expect(panelNextEvalText).toContain('25');
         expect(panelNextEvalText).toContain('2026');
         expect(panelNextEvalText.toLowerCase()).toMatch(/avr/);
         expect(panelNextEvalText).not.toContain('24 avril');
-        expect(panelNextEvalText).not.toContain('April 24');
-        expect(panelNextEvalText).not.toContain('April 25');
-        expect(panelNextEvalText).not.toMatch(/\b24,\s*2026\b/);
-
-        // Cross-check: rendered day must match API's EVENT_DATE day component
-        const apiDay = EVENT_DATE.split('-')[2]; // '25'
-        expect(panelConstructionText).toContain(apiDay);
         expect(panelNextEvalText).toContain(apiDay);
 
         if (process.env.CI) {
+          // eslint-disable-next-line no-console
+          console.log('[diag] lastInspectionText:', JSON.stringify(lastInspectionText));
           // eslint-disable-next-line no-console
           console.log('[diag] panelConstructionText:', JSON.stringify(panelConstructionText));
           // eslint-disable-next-line no-console

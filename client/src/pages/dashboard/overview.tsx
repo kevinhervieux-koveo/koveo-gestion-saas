@@ -43,6 +43,7 @@ import {
 } from 'lucide-react';
 import { GanttChart } from '@/components/GanttChart';
 import { format, startOfMonth, endOfMonth, addMonths, subMonths } from 'date-fns';
+import { parseDateOnly } from '@/lib/utils';
 import {
   LineChart as RechartsLineChart,
   XAxis as RechartsXAxis,
@@ -1184,7 +1185,7 @@ export default function FinancialOverview() {
                                 <p className="text-xs text-muted-foreground">
                                   {t(bill.category) || bill.category}
                                   {bill.issueDate && (
-                                    <> · {t('bills.issueDate') || 'Issue Date'}: {format(new Date(bill.issueDate), 'MMM d, yyyy')}</>
+                                    <> · {t('bills.issueDate') || 'Issue Date'}: {parseDateOnly(bill.issueDate) ? format(parseDateOnly(bill.issueDate)!, 'MMM d, yyyy') : bill.issueDate}</>
                                   )}
                                   {bill.vendorInvoiceNumber && (
                                     <> · #{bill.vendorInvoiceNumber}</>
@@ -1265,9 +1266,10 @@ export default function FinancialOverview() {
                                   )}
                                 </div>
                                 <p className="text-xs text-muted-foreground">
-                                  {bill.scheduledDate ? format(new Date(bill.scheduledDate), 'MMM d') : ''} - {t(bill.category) || bill.category}
+                                  {/* scheduledDate is date-only — keep parseDateOnly (#1151) */}
+                                  {parseDateOnly(bill.scheduledDate) ? format(parseDateOnly(bill.scheduledDate)!, 'MMM d') : ''} - {t(bill.category) || bill.category}
                                   {bill.issueDate && (
-                                    <> · {t('bills.issueDate') || 'Issue Date'}: {format(new Date(bill.issueDate), 'MMM d, yyyy')}</>
+                                    <> · {t('bills.issueDate') || 'Issue Date'}: {parseDateOnly(bill.issueDate) ? format(parseDateOnly(bill.issueDate)!, 'MMM d, yyyy') : bill.issueDate}</>
                                   )}
                                   {bill.vendorInvoiceNumber && (
                                     <> · #{bill.vendorInvoiceNumber}</>
@@ -1331,7 +1333,7 @@ export default function FinancialOverview() {
                     )}
                     {selectedBill.issueDate && (
                       <p className="text-xs text-muted-foreground mt-1">
-                        {t('bills.issueDate') || 'Issue Date'}: {format(new Date(selectedBill.issueDate), 'MMM d, yyyy')}
+                        {t('bills.issueDate') || 'Issue Date'}: {parseDateOnly(selectedBill.issueDate) ? format(parseDateOnly(selectedBill.issueDate)!, 'MMM d, yyyy') : selectedBill.issueDate}
                       </p>
                     )}
                   </div>
@@ -1370,7 +1372,7 @@ export default function FinancialOverview() {
                       <div>
                         <span className="text-muted-foreground">{t('scheduledDate')}:</span>
                         <p className="font-medium">
-                          {selectedBill.scheduledDate ? format(new Date(selectedBill.scheduledDate), 'MMM d, yyyy') : '-'}
+                          {parseDateOnly(selectedBill.scheduledDate) ? format(parseDateOnly(selectedBill.scheduledDate)!, 'MMM d, yyyy') : '-'}
                         </p>
                       </div>
                       <div>

@@ -335,20 +335,27 @@ export function HistoryTable({
           return <span className="text-xs text-muted-foreground">{t('htWarrantyNoneLabel')}</span>;
         }
         
-        const expiryDate = warranty.expiryDate ? parseISO(warranty.expiryDate) : null;
+        // parseDateOnly parses YYYY-MM-DD in local time, avoiding the
+        // UTC-midnight off-by-one in negative-offset timezones (e.g.
+        // America/Montreal). Do not replace with parseISO — see task
+        // #1146 / #1151.
+        const expiryDate = warranty.expiryDate ? parseDateOnly(warranty.expiryDate) : null;
         const isExpired = expiryDate && expiryDate < new Date();
-        
+
         return (
           <div className="space-y-1" data-testid={`history-warranty-${row.original.id}`}>
-            <Badge 
-              variant={isExpired ? 'outline' : 'secondary'} 
+            <Badge
+              variant={isExpired ? 'outline' : 'secondary'}
               className={cn('text-xs', isExpired && 'text-red-600')}
             >
               {warranty.duration} {warranty.duration === 1 ? t('htWarrantyYearSuffix') : t('htWarrantyYearsSuffix')}
             </Badge>
             {expiryDate && (
-              <div className="text-xs text-muted-foreground">
-                {t('htWarrantyUntilPrefix')} {format(expiryDate, 'MMM yyyy')}
+              <div
+                className="text-xs text-muted-foreground"
+                data-testid={`history-warranty-expiry-${row.original.id}`}
+              >
+                {t('htWarrantyUntilPrefix')} {format(expiryDate, 'MMM yyyy', { locale: dateFnsLocale })}
               </div>
             )}
           </div>

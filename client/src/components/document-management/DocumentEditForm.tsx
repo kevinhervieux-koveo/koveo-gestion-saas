@@ -115,7 +115,15 @@ export function DocumentEditForm({
     name: document.name || '',
     description: document.description || '',
     category: (document.documentType as any) || 'other',
-    effectiveDate: document.effectiveDate ? new Date(document.effectiveDate).toISOString().split('T')[0] : '',
+    effectiveDate: (() => {
+      const ed: any = document.effectiveDate;
+      if (!ed) return '';
+      // Use the UTC date portion: timestamps from the API arrive UTC-midnight
+      // for date-only values, so toISOString() preserves the intended day.
+      if (typeof ed === 'string') return ed.slice(0, 10);
+      const d = ed instanceof Date ? ed : new Date(ed);
+      return isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10);
+    })(),
     isVisible: document.isVisibleToTenants ?? true,
     isManagerOnly: document.isManagerOnly ?? false,
     // Removed tags field as it's not supported by backend

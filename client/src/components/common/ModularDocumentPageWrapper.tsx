@@ -44,6 +44,7 @@ import type { Document } from '@shared/schema';
 import { DocumentLinkPickerDialog } from '@/components/documents/DocumentLinkPickerDialog';
 import { FileText, Download, Link as LinkIcon } from 'lucide-react';
 import type { DocumentWithMetadata, DocumentPermissions } from '@shared/schemas/documents';
+import { parseDateOnlyLoose } from '@/lib/utils';
 
 // Document View Dialog Component
 interface DocumentViewDialogProps {
@@ -167,12 +168,19 @@ export function DocumentViewDialog({ documentId, isOpen, onClose, onEdit, canEdi
                 <Label className="text-sm font-medium">{t('category')}</Label>
                 <p className="text-sm text-gray-600">{getCategoryLabel(document.category || document.documentType, t)}</p>
               </div>
-              {document.effectiveDate && (
-                <div>
-                  <Label className="text-sm font-medium">{t('effectiveDate')}</Label>
-                  <p className="text-sm text-gray-600">{new Date(document.effectiveDate).toLocaleDateString()}</p>
-                </div>
-              )}
+              {(() => {
+                // effectiveDate is date-only — keep parseDateOnlyLoose to avoid the UTC-midnight off-by-one (#1151).
+                const effective = parseDateOnlyLoose(document.effectiveDate);
+                if (!effective) return null;
+                return (
+                  <div>
+                    <Label className="text-sm font-medium">{t('effectiveDate')}</Label>
+                    <p className="text-sm text-gray-600" data-testid="document-effective-date">
+                      {effective.toLocaleDateString()}
+                    </p>
+                  </div>
+                );
+              })()}
               <div>
                 <Label className="text-sm font-medium">{t('uploadDate')}</Label>
                 <p className="text-sm text-gray-600">{new Date(document.createdAt).toLocaleDateString()}</p>
@@ -584,6 +592,19 @@ export default function ModularDocumentPageWrapper({
     { value: '12', label: t('december') },
   ];
 
+  // Resolve a document's filter date as a local-time Date. effectiveDate is a
+  // date-only field (parseDateOnlyLoose handles both YYYY-MM-DD and UTC-midnight
+  // ISO shapes without the negative-offset off-by-one); uploadedAt is a real
+  // timestamp instant and parses normally.
+  const filterDateOf = (doc: { effectiveDate?: string | Date | null; uploadedAt?: string | Date | null }): Date | null => {
+    if (doc.effectiveDate) return parseDateOnlyLoose(doc.effectiveDate);
+    if (doc.uploadedAt) {
+      const d = new Date(doc.uploadedAt as any);
+      return isNaN(d.getTime()) ? null : d;
+    }
+    return null;
+  };
+
   // Filter and search documents
   const filteredDocuments = Array.isArray(documents) ? documents.filter(doc => {
     const matchesSearch = doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -591,18 +612,15 @@ export default function ModularDocumentPageWrapper({
     
     const matchesCategory = selectedCategory === 'all' || doc.category === selectedCategory || doc.documentType === selectedCategory;
 
-    // Date filtering - use effectiveDate if available, otherwise use uploadedAt
-    const dateToFilter = doc.effectiveDate || doc.uploadedAt;
+    const docDate = filterDateOf(doc);
     let matchesYear = true;
     let matchesMonth = true;
-    
-    if (dateToFilter && selectedYear !== 'all') {
-      const docDate = new Date(dateToFilter);
+
+    if (docDate && selectedYear !== 'all') {
       matchesYear = docDate.getFullYear().toString() === selectedYear;
     }
-    
-    if (dateToFilter && selectedMonth !== 'all') {
-      const docDate = new Date(dateToFilter);
+
+    if (docDate && selectedMonth !== 'all') {
       matchesMonth = (docDate.getMonth() + 1).toString() === selectedMonth;
     }
 
@@ -620,10 +638,7 @@ export default function ModularDocumentPageWrapper({
   const availableYears = Array.from(
     new Set(
       documents
-        .map(doc => {
-          const dateToFilter = doc.effectiveDate || doc.uploadedAt;
-          return dateToFilter ? new Date(dateToFilter).getFullYear() : null;
-        })
+        .map(doc => filterDateOf(doc)?.getFullYear() ?? null)
         .filter((year): year is number => year !== null)
     )
   ).sort((a, b) => b - a);
@@ -634,12 +649,12 @@ export default function ModularDocumentPageWrapper({
       documents
         .filter(doc => {
           if (selectedYear === 'all') return true;
-          const dateToFilter = doc.effectiveDate || doc.uploadedAt;
-          return dateToFilter && new Date(dateToFilter).getFullYear().toString() === selectedYear;
+          const d = filterDateOf(doc);
+          return d ? d.getFullYear().toString() === selectedYear : false;
         })
         .map(doc => {
-          const dateToFilter = doc.effectiveDate || doc.uploadedAt;
-          return dateToFilter ? new Date(dateToFilter).getMonth() + 1 : null;
+          const d = filterDateOf(doc);
+          return d ? d.getMonth() + 1 : null;
         })
         .filter((month): month is number => month !== null)
     )
@@ -962,12 +977,12 @@ export default function ModularDocumentPageWrapper({
                     // Reset month if selected month is not available for the new year
                     if (value !== 'all') {
                       const yearDocs = documents.filter(doc => {
-                        const dateToFilter = doc.effectiveDate || doc.uploadedAt;
-                        return dateToFilter && new Date(dateToFilter).getFullYear().toString() === value;
+                        const d = filterDateOf(doc);
+                        return d ? d.getFullYear().toString() === value : false;
                       });
                       const yearMonths = Array.from(new Set(yearDocs.map(doc => {
-                        const dateToFilter = doc.effectiveDate || doc.uploadedAt;
-                        return dateToFilter ? new Date(dateToFilter).getMonth() + 1 : null;
+                        const d = filterDateOf(doc);
+                        return d ? d.getMonth() + 1 : null;
                       }).filter(m => m !== null)));
                       if (selectedMonth !== 'all' && !yearMonths.includes(parseInt(selectedMonth))) {
                         setSelectedMonth('all');

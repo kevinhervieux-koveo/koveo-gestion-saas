@@ -8,6 +8,7 @@ import { Loader2, Sparkles, Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useLanguage } from '@/hooks/use-language';
+import { parseDateOnlyLoose } from '@/lib/utils';
 
 interface SuggestionItem {
   document: {
@@ -151,9 +152,11 @@ export function DocumentLinkPickerDialog({ open, onOpenChange, documentId, posit
                     <div className="font-medium truncate">{s.document.name}</div>
                     <div className="text-xs text-muted-foreground mt-1 flex flex-wrap gap-2">
                       {s.document.documentType && <span>{s.document.documentType}</span>}
-                      {s.document.effectiveDate && (
-                        <span>{new Date(s.document.effectiveDate).toLocaleDateString()}</span>
-                      )}
+                      {(() => {
+                        // effectiveDate is date-only — keep parseDateOnlyLoose to avoid the UTC-midnight off-by-one (#1151).
+                        const eff = parseDateOnlyLoose(s.document.effectiveDate);
+                        return eff ? <span>{eff.toLocaleDateString()}</span> : null;
+                      })()}
                     </div>
                     <div className="flex flex-wrap gap-1 mt-2">
                       {s.explain.sharedCategory && (

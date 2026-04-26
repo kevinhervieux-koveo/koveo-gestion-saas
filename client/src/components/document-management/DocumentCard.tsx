@@ -4,6 +4,7 @@ import { StandardCard } from '@/components/common/StandardCard';
 import { Checkbox } from '@/components/ui/checkbox';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { useLanguage } from '@/hooks/use-language';
+import { parseDateOnlyLoose } from '@/lib/utils';
 
 export interface DocumentLinkSummary {
   previous?: { id: string; name: string };
@@ -98,12 +99,26 @@ export function DocumentCard({
   };
 
   // Format date for display
-  const formatDate = (dateString?: string) => {
+  // Uses parseDateOnlyLoose so date-only fields stored in a Postgres
+  // `timestamp` column (notably `documents.effectiveDate`) are rendered for
+  // the correct calendar day in negative-offset timezones (e.g.
+  // America/Montreal). For real timestamps like `createdAt` we fall back to
+  // `new Date(...)` which preserves the time-of-day-aware formatting.
+  const formatDate = (dateString?: string, treatAsCalendarDay = false) => {
     if (!dateString) return null;
+    if (treatAsCalendarDay) {
+      const cd = parseDateOnlyLoose(dateString);
+      if (!cd) return null;
+      return cd.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      });
+    }
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
-      day: 'numeric'
+      day: 'numeric',
     });
   };
 
@@ -154,9 +169,13 @@ export function DocumentCard({
   // Build metadata array for StandardCard
   // In compact mode: only show minimal metadata (file size, date)
   // In normal mode: show all metadata (date, uploaded by, file size)
-  // Prefer effectiveDate over createdAt for display
+  // Prefer effectiveDate over createdAt for display. effectiveDate is a
+  // user-chosen calendar day (stored in a `timestamp` column at UTC midnight)
+  // so it must be parsed in local time to avoid an off-by-one in negative
+  // timezones; createdAt is a real timestamp.
   const displayDate = effectiveDate || createdAt;
-  
+  const displayDateIsCalendarDay = !!effectiveDate;
+
   const metadata = showMetadata ? (
     compact ? [
       fileSize && {
@@ -164,12 +183,12 @@ export function DocumentCard({
       },
       displayDate && {
         icon: <Calendar className="w-3 h-3" />,
-        value: formatDate(displayDate) || ''
+        value: formatDate(displayDate, displayDateIsCalendarDay) || ''
       }
     ].filter(Boolean) : [
       displayDate && {
         icon: <Calendar className="w-3 h-3" />,
-        value: formatDate(displayDate) || ''
+        value: formatDate(displayDate, displayDateIsCalendarDay) || ''
       },
       uploadedBy && {
         icon: <User className="w-3 h-3" />,

@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/use-language';
 import { DocumentLinkPickerDialog } from '@/components/documents/DocumentLinkPickerDialog';
 import { DocumentSequencePanel } from '@/components/documents/DocumentSequencePanel';
+import { parseDateOnlyLoose } from '@/lib/utils';
 
 interface DocumentInlineViewerProps {
   isOpen: boolean;
@@ -30,9 +31,18 @@ interface NeighborInfo {
 }
 
 function formatNeighborDate(n: NeighborInfo): string {
-  const raw = n.effectiveDate ?? n.createdAt;
-  if (!raw) return '';
-  const d = new Date(raw);
+  // For `effectiveDate` (date-only chosen by the user, stored in a Postgres
+  // `timestamp` column at UTC midnight), parseDateOnlyLoose returns a
+  // local-time Date for the correct calendar day — preventing the UTC
+  // off-by-one that `new Date(raw).toLocaleDateString()` causes in
+  // negative-offset timezones like America/Montreal. `createdAt` is a real
+  // timestamp so it falls back to the regular Date constructor.
+  if (n.effectiveDate) {
+    const eff = parseDateOnlyLoose(n.effectiveDate);
+    if (eff) return eff.toLocaleDateString();
+  }
+  if (!n.createdAt) return '';
+  const d = new Date(n.createdAt);
   if (Number.isNaN(d.getTime())) return '';
   return d.toLocaleDateString();
 }

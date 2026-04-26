@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useLanguage } from '@/hooks/use-language';
+import { parseDateOnlyLoose } from '@/lib/utils';
 
 interface ChainDocument {
   id: string;
@@ -193,11 +194,16 @@ export function DocumentSequencePanel({ documentId, onNavigate, className }: Doc
                 data-testid={`sequence-open-${doc.id}`}
               >
                 <div className="truncate text-sm">{doc.name}</div>
-                {doc.effectiveDate && (
-                  <div className="text-[10px] text-muted-foreground">
-                    {new Date(doc.effectiveDate).toLocaleDateString()}
-                  </div>
-                )}
+                {(() => {
+                  // effectiveDate is date-only — keep parseDateOnlyLoose to avoid the UTC-midnight off-by-one (#1151).
+                  const effective = parseDateOnlyLoose(doc.effectiveDate);
+                  if (!effective) return null;
+                  return (
+                    <div className="text-[10px] text-muted-foreground">
+                      {effective.toLocaleDateString()}
+                    </div>
+                  );
+                })()}
               </button>
               {isCurrent && (
                 <Badge variant="secondary" className="text-[10px]">

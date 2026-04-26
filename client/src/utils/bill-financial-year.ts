@@ -1,4 +1,5 @@
 import { getFinancialYearRange, FinancialYearRange } from '@/utils/financial-year';
+import { parseDateOnly } from '@/lib/utils';
 
 /**
  * Payment object with at minimum a scheduled date
@@ -39,7 +40,9 @@ export function getPaymentsInFinancialYear<T extends PaymentWithDate>(
   }
 
   return payments.filter((payment) => {
-    const paymentDate = new Date(payment.scheduledDate);
+    // scheduledDate is date-only — keep parseDateOnly (#1151)
+    const paymentDate = parseDateOnly(payment.scheduledDate);
+    if (!paymentDate) return false;
     return paymentDate >= financialYearRange.start && paymentDate <= financialYearRange.end;
   });
 }
@@ -75,7 +78,9 @@ export function getPaymentDistributionAcrossYears(
   const distribution: Record<string, number> = {};
 
   payments.forEach((payment) => {
-    const paymentDate = new Date(payment.scheduledDate);
+    // scheduledDate is date-only — keep parseDateOnly (#1151)
+    const paymentDate = parseDateOnly(payment.scheduledDate);
+    if (!paymentDate) return;
     const yearRange = getFinancialYearRange(financialYearStart, paymentDate);
     
     if (!distribution[yearRange.label]) {

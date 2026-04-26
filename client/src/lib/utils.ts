@@ -135,6 +135,54 @@ export function parseDateOnly(value: string | null | undefined): Date | null {
 }
 
 /**
+ * Variant of {@link parseDateOnly} that also accepts UTC-midnight ISO
+ * timestamps (e.g. `2026-05-01T00:00:00.000Z`). This is the shape the API
+ * returns for fields stored in a Postgres `timestamp` column that semantically
+ * represent a calendar day chosen by the user (such as
+ * `documents.effectiveDate`): the backend converts the YYYY-MM-DD input to
+ * `new Date('YYYY-MM-DD')` which lands on UTC midnight, so the leading
+ * 10 characters of the resulting ISO string identify the calendar day.
+ *
+ * Behaviour:
+ * - `null` / `undefined` / non-string-or-Date input → `null`
+ * - `Date` input → uses `toISOString()` then takes the first 10 characters
+ * - String input → takes the first 10 characters and validates them with
+ *   {@link parseDateOnly}
+ *
+ * Use this helper anywhere the source value may arrive as either a strict
+ * `YYYY-MM-DD` string or a UTC-midnight ISO timestamp. For values that are
+ * guaranteed `YYYY-MM-DD`, prefer {@link parseDateOnly} for stricter checks.
+ *
+ * @param value - A `YYYY-MM-DD` string, a UTC-midnight ISO timestamp string,
+ *                a `Date`, or null/undefined.
+ * @returns A local-time `Date` for the calendar day, or `null` for missing
+ *          / invalid input.
+ * @example
+ * ```typescript
+ * parseDateOnlyLoose('2026-05-01'); // May 1, 2026 in local time
+ * parseDateOnlyLoose('2026-05-01T00:00:00.000Z'); // May 1, 2026 in local time
+ * parseDateOnlyLoose(null); // null
+ * parseDateOnlyLoose('not a date'); // null
+ * ```
+ */
+export function parseDateOnlyLoose(
+  value: string | Date | null | undefined,
+): Date | null {
+  if (value == null) {
+    return null;
+  }
+  let source: string;
+  if (typeof value === 'string') {
+    source = value;
+  } else if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    source = value.toISOString();
+  } else {
+    return null;
+  }
+  return parseDateOnly(source.slice(0, 10));
+}
+
+/**
  * Snaps a millisecond timestamp to the nearest local-time midnight.
  *
  * Used by gestures that compute pixel-derived offsets (e.g. the Gantt chart
