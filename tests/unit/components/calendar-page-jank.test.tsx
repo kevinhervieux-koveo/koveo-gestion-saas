@@ -4,13 +4,10 @@
  * Jank-regression guard for the common-space Calendar page (extends task
  * #1163, #1175, #1182, #1201).
  *
- * The "calendar" page named in task #1216 lives at
- * `client/src/pages/residents/my-calendar.tsx`, which renders the shared
- * `<UserCalendar />` → `<CalendarView />` surface. There is no
- * `client/src/pages/manager/calendar.tsx` in the tree today; the
- * common-space calendar (CalendarView) is the actual high-traffic
- * date-navigation surface that ships to managers and residents alike,
- * and it is the surface this guard protects.
+ * The calendar surface under test is `client/src/pages/residents/my-calendar.tsx`,
+ * which renders the shared `<UserCalendar />` → `<CalendarView />` component.
+ * `CalendarView` is the high-traffic date-navigation surface that ships to
+ * managers and residents alike, and it is the surface this guard protects.
  *
  * The page exposes two interactions that historically have been hot
  * targets for "[Violation] '<event>' handler took N ms" warnings:
