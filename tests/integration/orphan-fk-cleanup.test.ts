@@ -66,6 +66,16 @@ const PARENT = `${TAG}_parent`;
 const CHILD_CASCADE = `${TAG}_child_cascade`;
 const CHILD_NOACTION = `${TAG}_child_noaction`;
 const CHILD_SETNULL = `${TAG}_child_setnull`;
+// Composite-FK fixture (Task #1195): a parent with a 2-column primary
+// key and a child with the matching 2 FK columns, so the test exercises
+// the loop over `childColumns` / `parentColumns` in `findOrphans` /
+// `cleanOrphans`. Single-column fixtures above only ever iterate that
+// loop once, so a regression that broke the join/notNullClause
+// construction for composite FKs (e.g. swapped column order, missing
+// `AND`, off-by-one) would slip through the existing suite even though
+// composite FKs do exist in production schemas.
+const PARENT_COMPOSITE = `${TAG}_parent_composite`;
+const CHILD_COMPOSITE = `${TAG}_child_composite`;
 
 describeIfDb('orphan FK cleanup script — real Postgres (Task #1164)', () => {
   let client: pg.Client;
@@ -85,7 +95,9 @@ describeIfDb('orphan FK cleanup script — real Postgres (Task #1164)', () => {
     await client.query(`DROP TABLE IF EXISTS "${CHILD_CASCADE}" CASCADE`);
     await client.query(`DROP TABLE IF EXISTS "${CHILD_NOACTION}" CASCADE`);
     await client.query(`DROP TABLE IF EXISTS "${CHILD_SETNULL}" CASCADE`);
+    await client.query(`DROP TABLE IF EXISTS "${CHILD_COMPOSITE}" CASCADE`);
     await client.query(`DROP TABLE IF EXISTS "${PARENT}" CASCADE`);
+    await client.query(`DROP TABLE IF EXISTS "${PARENT_COMPOSITE}" CASCADE`);
 
     await client.query(`
       CREATE TABLE "${PARENT}" (
@@ -121,6 +133,29 @@ describeIfDb('orphan FK cleanup script — real Postgres (Task #1164)', () => {
           FOREIGN KEY (parent_id) REFERENCES "${PARENT}"(id) ON DELETE SET NULL
       )
     `);
+    // Composite-FK fixture: 2-column primary key on the parent, two
+    // matching FK columns on the child. The composite child gets the FK
+    // enforced from the start, just like the cascade single-column
+    // fixture above; the planting helper drops + re-adds NOT VALID so
+    // the orphan slips past the up-front check.
+    await client.query(`
+      CREATE TABLE "${PARENT_COMPOSITE}" (
+        org_id uuid NOT NULL,
+        item_id uuid NOT NULL,
+        PRIMARY KEY (org_id, item_id)
+      )
+    `);
+    await client.query(`
+      CREATE TABLE "${CHILD_COMPOSITE}" (
+        id uuid PRIMARY KEY,
+        org_id uuid NOT NULL,
+        item_id uuid NOT NULL,
+        CONSTRAINT "${CHILD_COMPOSITE}_parent_fk"
+          FOREIGN KEY (org_id, item_id)
+          REFERENCES "${PARENT_COMPOSITE}"(org_id, item_id)
+          ON DELETE CASCADE
+      )
+    `);
   }, 60000);
 
   afterAll(async () => {
@@ -129,7 +164,9 @@ describeIfDb('orphan FK cleanup script — real Postgres (Task #1164)', () => {
       await client.query(`DROP TABLE IF EXISTS "${CHILD_CASCADE}" CASCADE`);
       await client.query(`DROP TABLE IF EXISTS "${CHILD_NOACTION}" CASCADE`);
       await client.query(`DROP TABLE IF EXISTS "${CHILD_SETNULL}" CASCADE`);
+      await client.query(`DROP TABLE IF EXISTS "${CHILD_COMPOSITE}" CASCADE`);
       await client.query(`DROP TABLE IF EXISTS "${PARENT}" CASCADE`);
+      await client.query(`DROP TABLE IF EXISTS "${PARENT_COMPOSITE}" CASCADE`);
     } finally {
       await client.end().catch(() => undefined);
     }
@@ -141,6 +178,9 @@ describeIfDb('orphan FK cleanup script — real Postgres (Task #1164)', () => {
     // an empty fixture without paying the DDL roundtrip cost.
     await client.query(
       `TRUNCATE TABLE "${CHILD_CASCADE}", "${CHILD_NOACTION}", "${CHILD_SETNULL}", "${PARENT}" RESTART IDENTITY`,
+    );
+    await client.query(
+      `TRUNCATE TABLE "${CHILD_COMPOSITE}", "${PARENT_COMPOSITE}" RESTART IDENTITY`,
     );
   });
 
@@ -249,6 +289,67 @@ describeIfDb('orphan FK cleanup script — real Postgres (Task #1164)', () => {
       parentTable: PARENT,
       parentColumns: ['id'],
       onDelete: 'set null',
+    };
+  }
+
+  /**
+   * Composite-FK fixture (Task #1195). Inserts:
+   *  - one legitimate parent row `(orgA, itemB)` and a matching child
+   *    `(orgA, itemB)` so we can prove the cleanup leaves real rows
+   *    untouched (a swapped-column-order regression in the join would
+   *    fail to find a parent for this row and incorrectly classify it
+   *    as an orphan, deleting it);
+   *  - one orphan child `(orgA, itemX)` whose `(org_id, item_id)` pair
+   *    does NOT exist in the parent (a missing-`AND` regression in the
+   *    join would join purely on `org_id`, find the legitimate parent
+   *    row, and miss this orphan entirely).
+   * The FK is dropped before planting and re-added NOT VALID afterwards
+   * so the orphan slips past the constraint, mirroring the production
+   * shape the cleanup is supposed to fix.
+   */
+  async function plantCompositeFixture(): Promise<{
+    orphanId: string;
+    legitimateId: string;
+  }> {
+    const orgA = crypto.randomUUID();
+    const itemB = crypto.randomUUID();
+    const itemX = crypto.randomUUID();
+    const legitimateId = crypto.randomUUID();
+    const orphanId = crypto.randomUUID();
+
+    await client.query(
+      `INSERT INTO "${PARENT_COMPOSITE}" (org_id, item_id) VALUES ($1, $2)`,
+      [orgA, itemB],
+    );
+    await client.query(
+      `INSERT INTO "${CHILD_COMPOSITE}" (id, org_id, item_id) VALUES ($1, $2, $3)`,
+      [legitimateId, orgA, itemB],
+    );
+    await client.query(
+      `ALTER TABLE "${CHILD_COMPOSITE}" DROP CONSTRAINT "${CHILD_COMPOSITE}_parent_fk"`,
+    );
+    await client.query(
+      `INSERT INTO "${CHILD_COMPOSITE}" (id, org_id, item_id) VALUES ($1, $2, $3)`,
+      [orphanId, orgA, itemX],
+    );
+    await client.query(`
+      ALTER TABLE "${CHILD_COMPOSITE}"
+        ADD CONSTRAINT "${CHILD_COMPOSITE}_parent_fk"
+        FOREIGN KEY (org_id, item_id)
+        REFERENCES "${PARENT_COMPOSITE}"(org_id, item_id)
+        ON DELETE CASCADE
+        NOT VALID
+    `);
+    return { orphanId, legitimateId };
+  }
+
+  function compositeCascadeFk(): FkInfo {
+    return {
+      childTable: CHILD_COMPOSITE,
+      childColumns: ['org_id', 'item_id'],
+      parentTable: PARENT_COMPOSITE,
+      parentColumns: ['org_id', 'item_id'],
+      onDelete: 'cascade',
     };
   }
 
@@ -482,6 +583,79 @@ describeIfDb('orphan FK cleanup script — real Postgres (Task #1164)', () => {
     await expect(
       client.query(
         `ALTER TABLE "${CHILD_SETNULL}" VALIDATE CONSTRAINT "${CHILD_SETNULL}_parent_fk"`,
+      ),
+    ).resolves.toBeDefined();
+  }, 60000);
+
+  it('handles composite (multi-column) CASCADE FKs: deletes only the orphan, preserves the matching child, and validates afterwards (Task #1195)', async () => {
+    // The cleanup script builds its join + IS NOT NULL clauses by
+    // iterating over `fk.childColumns` / `fk.parentColumns`, so it
+    // already supports composite FKs in production. The other tests in
+    // this file only ever exercise that loop once (single-column FKs),
+    // which means a regression in the multi-column construction
+    // (swapped column order, missing `AND` between conditions, off-by-
+    // one indexing into `parentColumns`) would slip through. This test
+    // closes that gap by:
+    //   * planting one legitimate (matching) child row, so a wrong-
+    //     ordering or missing-`AND` bug that mis-identifies it as an
+    //     orphan would be caught by the surviving-row assertion below;
+    //   * planting one true orphan whose `(org_id, item_id)` pair
+    //     does NOT exist in the parent, so a join that drops the
+    //     second condition would erroneously match it against the
+    //     legitimate parent and miss the orphan entirely.
+    const { orphanId, legitimateId } = await plantCompositeFixture();
+
+    // Sanity: both rows present (legitimate + orphan) before cleanup.
+    const before = await client.query<{ n: number }>(
+      `SELECT count(*)::int AS n FROM "${CHILD_COMPOSITE}"`,
+    );
+    expect(before.rows[0].n).toBe(2);
+
+    // The composite FK is currently NOT VALID — validating it right now
+    // must fail with foreign_key_violation, otherwise the test isn't
+    // actually exercising the failure mode the cleanup is supposed to
+    // unblock for composite constraints.
+    await expect(
+      client.query(
+        `ALTER TABLE "${CHILD_COMPOSITE}" VALIDATE CONSTRAINT "${CHILD_COMPOSITE}_parent_fk"`,
+      ),
+    ).rejects.toMatchObject({ code: '23503' });
+
+    const result = await runCleanup({
+      client,
+      fks: [compositeCascadeFk()],
+      log: () => undefined,
+    });
+
+    expect(result.fatalReports).toEqual([]);
+    expect(result.cleanedTotal).toBe(1);
+    expect(result.perFk).toHaveLength(1);
+    expect(result.perFk[0]).toMatchObject({
+      action: 'deleted',
+      rows: 1,
+    });
+
+    // Orphan deleted, legitimate row preserved — the surviving-row
+    // assertion is the regression catch for a swapped-column-order or
+    // missing-`AND` bug in the join construction.
+    const orphanGone = await client.query<{ n: number }>(
+      `SELECT count(*)::int AS n FROM "${CHILD_COMPOSITE}" WHERE id = $1`,
+      [orphanId],
+    );
+    expect(orphanGone.rows[0].n).toBe(0);
+    const legitimateStill = await client.query<{ n: number }>(
+      `SELECT count(*)::int AS n FROM "${CHILD_COMPOSITE}" WHERE id = $1`,
+      [legitimateId],
+    );
+    expect(legitimateStill.rows[0].n).toBe(1);
+
+    // And the previously-NOT VALID composite FK now validates cleanly,
+    // mirroring the single-column cascade case above. This is the
+    // exact precondition `drizzle-kit push --force` needs in CI for
+    // composite constraints.
+    await expect(
+      client.query(
+        `ALTER TABLE "${CHILD_COMPOSITE}" VALIDATE CONSTRAINT "${CHILD_COMPOSITE}_parent_fk"`,
       ),
     ).resolves.toBeDefined();
   }, 60000);
