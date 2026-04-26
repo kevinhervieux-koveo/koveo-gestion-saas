@@ -333,44 +333,41 @@ describeIfDb('Document API Integration Tests', () => {
 
   describe('GET /api/documents/:id/file - Download Document', () => {
     let downloadTestDocId: string;
-    let downloadTestFilePath: string;
 
+    // The download endpoint reads exclusively from Object Storage (no local
+    // filesystem fallback for Autoscale compatibility — see
+    // server/services/document-service.ts). The original orphan vitest
+    // version of this suite seeded a local file under `uploads/` and inserted
+    // the document row directly via Drizzle, which never reached object
+    // storage and would have 404'd had it ever been run. Drive the upload
+    // through the real `POST /api/documents` route so the file actually
+    // lands in object storage and the download path can resolve it.
     beforeEach(async () => {
       const uniqueId = Date.now();
-      const fileName = `test-download-${uniqueId}.pdf`;
-      const testFilePath = path.join(process.cwd(), 'uploads', fileName);
-      const testDir = path.dirname(testFilePath);
+      const stagedFileName = `test-download-${uniqueId}.pdf`;
+      const stagedPath = path.join(TEST_FILES_DIR, stagedFileName);
+      fs.copyFileSync(TEST_PDF_PATH, stagedPath);
 
-      if (!fs.existsSync(testDir)) {
-        fs.mkdirSync(testDir, { recursive: true });
+      try {
+        const uploadRes = await request(app)
+          .post('/api/documents')
+          .set('x-test-user-id', testUser.id)
+          .attach('file', stagedPath)
+          .field('name', 'Download Test Document')
+          .field('documentType', 'legal')
+          .field('buildingId', testBuilding.id)
+          .field('isVisibleToTenants', 'false');
+
+        expect(uploadRes.status).toBe(201);
+        downloadTestDocId = uploadRes.body.id;
+      } finally {
+        if (fs.existsSync(stagedPath)) fs.unlinkSync(stagedPath);
       }
-
-      fs.copyFileSync(TEST_PDF_PATH, testFilePath);
-      downloadTestFilePath = `uploads/${fileName}`;
-
-      const result = await db.insert(documents).values({
-        name: 'Download Test Document',
-        documentType: 'legal',
-        filePath: downloadTestFilePath,
-        fileName: fileName,
-        mimeType: 'application/pdf',
-        fileSize: fs.statSync(testFilePath).size,
-        buildingId: testBuilding.id,
-        uploadedById: testUser.id,
-      }).returning();
-
-      downloadTestDocId = result[0].id;
     });
 
     afterEach(async () => {
       if (downloadTestDocId) {
         await db.delete(documents).where(eq(documents.id, downloadTestDocId));
-      }
-      if (downloadTestFilePath) {
-        const fullPath = path.join(process.cwd(), downloadTestFilePath);
-        if (fs.existsSync(fullPath)) {
-          fs.unlinkSync(fullPath);
-        }
       }
     });
 
@@ -387,13 +384,19 @@ describeIfDb('Document API Integration Tests', () => {
       expect(response.body).toBeDefined();
     });
 
-    it('should allow viewing document inline', async () => {
+    it('should serve view=true requests as attachment for safety', async () => {
+      // The download endpoint pins `inline: false` regardless of the
+      // `view=true` query string to prevent active content (HTML/JS) from
+      // executing in the browser's same-origin context — see
+      // server/api/documents.ts. The orphan vitest version of this test
+      // expected `inline` content-disposition, which predates that
+      // hardening. Assert the current security behaviour instead.
       const response = await request(app)
         .get(`/api/documents/${downloadTestDocId}/file?view=true`)
         .set('x-test-user-id', testUser.id);
 
       expect(response.status).toBe(200);
-      expect(response.headers['content-disposition']).toContain('inline');
+      expect(response.headers['content-disposition']).toContain('attachment');
     });
 
     it('should return 404 for non-existent file', async () => {

@@ -6693,7 +6693,10 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
           }
         })
         .from(submissionVendors)
-        .innerJoin(vendors, eq(vendors.id, submissionVendors.vendorName))
+        // `submission_vendors.vendor_name` is varchar(255) but stores the
+        // vendor UUID. Postgres refuses an implicit `uuid = varchar`
+        // comparison, so cast the varchar side to uuid in the join.
+        .innerJoin(vendors, sql`${vendors.id} = ${submissionVendors.vendorName}::uuid`)
         .where(eq(submissionVendors.projectId, id))
         .orderBy(desc(submissionVendors.createdAt));
 
