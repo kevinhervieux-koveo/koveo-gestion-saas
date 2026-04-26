@@ -196,6 +196,89 @@ const MODEL = 'claude-sonnet-4-6';
 
 /** Anthropic accepts ~32MB / call; we cap well below that to be safe. */
 const MAX_DOCUMENT_BYTES = 25 * 1024 * 1024;
+
+// ── Retry configuration ────────────────────────────────────────────────────
+/** Maximum number of attempts (first try + retries). */
+const MAX_RETRY_ATTEMPTS = 3;
+/** Base delay in ms before the first retry; doubles each attempt. */
+const RETRY_BASE_DELAY_MS = 1_000;
+/** Absolute cap on inter-attempt wait so a single call can't hang forever. */
+const RETRY_MAX_DELAY_MS = 8_000;
+
+/**
+ * Replaceable sleep implementation so unit tests can eliminate wall-clock
+ * delays without touching the retry logic itself.
+ */
+let sleepFn: (ms: number) => Promise<void> = (ms) =>
+  new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * Anthropic SDK errors (APIError subclass) expose:
+ *  - `.request_id` — direct string property (preferred, SDK >= 0.6)
+ *  - `.headers`    — a real `Headers` object (use `.get('request-id')`)
+ *                    OR a plain record in tests (use bracket access)
+ * This interface names only what we actually read.
+ */
+interface AnthropicApiError extends Error {
+  status?: number;
+  request_id?: string | null;
+  error?: { type?: string; message?: string };
+  /** May be a real `Headers` object or a plain record depending on context. */
+  headers?: { get?: (name: string) => string | null | undefined } & Record<string, string | string[] | undefined>;
+}
+
+// Known Node.js network error codes that are transient and safe to retry.
+const RETRYABLE_NODE_ERROR_CODES = new Set([
+  'ECONNRESET', 'ETIMEDOUT', 'ECONNREFUSED', 'ENOTFOUND', 'EPIPE',
+  'ECONNABORTED', 'ENETUNREACH', 'EHOSTUNREACH',
+]);
+
+/**
+ * Return true when the error is transient and retrying has a reasonable
+ * chance of succeeding.  Non-retryable errors (bad request, auth, not-found,
+ * permission) fall through immediately.
+ */
+function isRetryableAnthropicError(err: unknown): boolean {
+  const e = err as AnthropicApiError & { code?: string };
+  const status = e.status;
+
+  if (status === undefined) {
+    // No HTTP status — could be a transport error OR a local runtime/parse
+    // exception.  Only retry when the error looks like a genuine network
+    // failure; local errors (SyntaxError, TypeError, …) must not be retried
+    // so they surface immediately for diagnosis.
+    if (typeof e.code === 'string' && RETRYABLE_NODE_ERROR_CODES.has(e.code)) {
+      return true;
+    }
+    const msg = (e.message ?? '').toLowerCase();
+    return (
+      msg.includes('econnreset') ||
+      msg.includes('etimedout') ||
+      msg.includes('socket hang up') ||
+      msg.includes('socket hangup') ||
+      msg.includes('network timeout') ||
+      msg.includes('connection reset') ||
+      msg.includes('connection refused') ||
+      msg.includes('fetch failed') ||
+      msg.includes('connect etimedout')
+    );
+  }
+
+  // Explicit retryable HTTP statuses.
+  if (status === 429 || status === 529 || status >= 500) return true;
+
+  // Anthropic body-level error types that indicate a transient overload
+  // even when the HTTP status itself is 2xx (rare) or other.
+  const errorType = e.error?.type;
+  if (
+    errorType === 'overloaded_error' ||
+    errorType === 'rate_limit_error' ||
+    errorType === 'api_error'
+  )
+    return true;
+
+  return false;
+}
 /** Cap for extracted Office text so prompts stay within the 1024-token budget. */
 const MAX_EXTRACTED_TEXT = 20_000;
 
@@ -459,58 +542,110 @@ async function callClaudeJson<T>(
       ...blocks,
       { type: 'text', text: fullPrompt },
     ];
-    const res = await c.messages.create({
+    const requestParams = {
       model: MODEL,
       max_tokens: 1024,
       system:
         'You analyze property-management documents for a bulk-ingest pipeline. Respond with one JSON object only — no prose, no markdown.',
       messages: [
         {
-          role: 'user',
+          role: 'user' as const,
           content: userContent as unknown as Anthropic.Messages.MessageParam['content'],
         },
       ],
-    });
-    const text = res.content
-      .filter((b) => b.type === 'text')
-      .map((b) => (b as { text: string }).text)
-      .join('\n')
-      .trim();
-    const match = text.match(/\{[\s\S]*\}/);
-    if (!match) {
-      // Anthropic replied but the response contained no JSON object.
-      // Tag with a distinct per-file reason so the UI shows "AI response
-      // unreadable" rather than a generic low-confidence badge, and
-      // preserve any earlier per-file reason set during file loading.
-      const noMatchReason = fallbackReason ?? 'unreadable_response';
-      logWarn('[bulkImportAnalyzer] per-file AI response contained no JSON', {
-        metadata: {
-          step,
-          originalName: logContext?.originalName,
-          itemId: logContext?.itemId,
-          sessionId: logContext?.sessionId,
-        },
-      });
-      return { data: null, fallbackReason: noMatchReason };
+    };
+
+    // Bounded exponential-backoff retry for transient Anthropic errors.
+    // Non-retryable failures (bad request, auth, not-found) fall through
+    // immediately so we don't waste time retrying permanent failures.
+    let lastErr: unknown = null;
+    let attemptsMade = 0;
+    for (let attempt = 1; attempt <= MAX_RETRY_ATTEMPTS; attempt++) {
+      try {
+        const res = await c.messages.create(requestParams);
+        const text = res.content
+          .filter((b) => b.type === 'text')
+          .map((b) => (b as { text: string }).text)
+          .join('\n')
+          .trim();
+        const match = text.match(/\{[\s\S]*\}/);
+        if (!match) {
+          // Anthropic replied but the response contained no JSON object.
+          // Tag with a distinct per-file reason so the UI shows "AI response
+          // unreadable" rather than a generic low-confidence badge, and
+          // preserve any earlier per-file reason set during file loading.
+          const noMatchReason = fallbackReason ?? 'unreadable_response';
+          logWarn('[bulkImportAnalyzer] per-file AI response contained no JSON', {
+            metadata: {
+              step,
+              originalName: logContext?.originalName,
+              itemId: logContext?.itemId,
+              sessionId: logContext?.sessionId,
+            },
+          });
+          return { data: null, fallbackReason: noMatchReason };
+        }
+        const parsed = JSON.parse(match[0]) as T;
+        const result = { data: parsed, fallbackReason };
+        if (cacheKey) {
+          // Awaited so the cache row is durable before we return — the
+          // write is a single upsert and `setCachedSuggestion` already
+          // swallows transport errors internally, so it cannot throw.
+          // Awaiting also avoids a pending promise outliving the request,
+          // which previously surfaced as "Cannot log after tests are done"
+          // warnings in unit suites without a database.
+          await setCachedSuggestion(cacheKey, result, ANALYZER_CACHE_TTL_MS);
+        }
+        return result;
+      } catch (err) {
+        lastErr = err;
+        attemptsMade = attempt;
+        // Only retry on transient failures. Bail immediately on terminal ones.
+        if (!isRetryableAnthropicError(err)) break;
+        if (attempt < MAX_RETRY_ATTEMPTS) {
+          // Exponential backoff with ±10 % jitter, capped at RETRY_MAX_DELAY_MS.
+          const base = Math.min(RETRY_BASE_DELAY_MS * 2 ** (attempt - 1), RETRY_MAX_DELAY_MS);
+          const jitter = Math.floor(base * 0.1 * Math.random());
+          await sleepFn(base + jitter);
+        }
+      }
     }
-    const parsed = JSON.parse(match[0]) as T;
-    const result = { data: parsed, fallbackReason };
-    if (cacheKey) {
-      // Awaited so the cache row is durable before we return — the
-      // write is a single upsert and `setCachedSuggestion` already
-      // swallows transport errors internally, so it cannot throw.
-      // Awaiting also avoids a pending promise outliving the request,
-      // which previously surfaced as "Cannot log after tests are done"
-      // warnings in unit suites without a database.
-      await setCachedSuggestion(cacheKey, result, ANALYZER_CACHE_TTL_MS);
-    }
-    return result;
-  } catch (err) {
-    // The Anthropic call threw (network, timeout, rate-limit, non-2xx).
-    // Tag with a distinct per-file reason and preserve any earlier
-    // per-file reason set during file loading (e.g. oversize, missing_file).
+
+    // All attempts exhausted (or a terminal error short-circuited the loop).
     const apiErrReason = fallbackReason ?? 'api_error';
-    const e = err as Error & { status?: number };
+    const e = lastErr as AnthropicApiError;
+    // Prefer the SDK's direct `request_id` property (Anthropic SDK APIError).
+    // Fall back to `headers.get('request-id')` for real Headers objects, then
+    // to plain-record bracket access for test mocks / legacy shapes.
+    const requestIdFromHeaders = (() => {
+      const raw = e?.headers?.['request-id'];
+      return Array.isArray(raw) ? (raw[0] ?? null) : (raw ?? null);
+    })();
+    const requestId: string | null =
+      e?.request_id ??
+      e?.headers?.get?.('request-id') ??
+      requestIdFromHeaders ??
+      null;
+    logError('[bulkImportAnalyzer] per-file AI call failed', e ?? new Error('unknown error'), {
+      metadata: {
+        step,
+        originalName: logContext?.originalName,
+        itemId: logContext?.itemId,
+        sessionId: logContext?.sessionId,
+        errorStatus: e?.status ?? null,
+        anthropicErrorType: e?.error?.type ?? null,
+        anthropicErrorMessage: e?.error?.message ?? null,
+        errorMessage: e?.message ?? null,
+        requestId: requestId ?? null,
+        attempts: attemptsMade,
+      },
+    });
+    return { data: null, fallbackReason: apiErrReason };
+  } catch (err) {
+    // The file-loading path (loadFileForClaude) or cache lookup threw —
+    // these are not Anthropic errors and should not be retried.
+    const apiErrReason = fallbackReason ?? 'api_error';
+    const e = err as AnthropicApiError;
     logError('[bulkImportAnalyzer] per-file AI call failed', e, {
       metadata: {
         step,
@@ -518,6 +653,11 @@ async function callClaudeJson<T>(
         itemId: logContext?.itemId,
         sessionId: logContext?.sessionId,
         errorStatus: e.status ?? null,
+        anthropicErrorType: e.error?.type ?? null,
+        anthropicErrorMessage: e.error?.message ?? null,
+        errorMessage: e.message ?? null,
+        requestId: null,
+        attempts: 0,
       },
     });
     return { data: null, fallbackReason: apiErrReason };
@@ -929,6 +1069,15 @@ relatedItemIds: string[], reason: string, confidence: number }.`;
   __setClientForTests(c: Anthropic | null) {
     client = c;
     logInfo('[bulkImportAnalyzer] test client override applied', { metadata: { hasClient: !!c } });
+  },
+
+  /**
+   * Exposed so tests can eliminate real wall-clock delays from the retry
+   * backoff without altering the retry logic itself. Pass `null` or omit to
+   * restore the default `setTimeout`-based sleep.
+   */
+  __setSleepForTests(fn: ((ms: number) => Promise<void>) | null) {
+    sleepFn = fn ?? ((ms) => new Promise((resolve) => setTimeout(resolve, ms)));
   },
 };
 

@@ -1307,11 +1307,18 @@ describe('bulkImportAnalyzer per-file AI failure tagging (Task #801)', () => {
   afterAll(() => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
     bulkImportAnalyzer.__setClientForTests(null);
+    bulkImportAnalyzer.__setSleepForTests(null);
   });
   beforeEach(() => {
     cacheMockStore.clear();
     getCachedMock.mockClear();
     setCachedMock.mockClear();
+    // Suppress the retry backoff so throwing-client tests complete instantly
+    // and don't time out under the default 3000 ms Jest test timeout.
+    bulkImportAnalyzer.__setSleepForTests(async () => {});
+  });
+  afterEach(() => {
+    bulkImportAnalyzer.__setSleepForTests(null);
   });
 
   function makeThrowingClient(error: Error) {
@@ -1639,5 +1646,396 @@ describe('Task #842 — xlsx screening succeeds (no api_error)', () => {
     // None of the blocked control characters must appear in what Claude receives.
     // eslint-disable-next-line no-control-regex
     expect(sentPrompt).not.toMatch(/[\x00-\x08\x0B\x0C\x0E-\x1F]/);
+  });
+});
+
+// ── Task #1143 — Retry logic & enriched failure log ───────────────────────────
+describe('Task #1143 — callClaudeJson retry and enriched failure logging', () => {
+  beforeEach(() => {
+    cacheMockStore.clear();
+    getCachedMock.mockClear();
+    setCachedMock.mockClear();
+    // Replace the real sleep with an instant no-op so tests don't wait.
+    bulkImportAnalyzer.__setSleepForTests(async () => {});
+  });
+
+  afterEach(() => {
+    bulkImportAnalyzer.__setSleepForTests(null);
+    bulkImportAnalyzer.__setClientForTests(null);
+  });
+
+  function makeErrorLike(opts: {
+    status?: number;
+    errorType?: string;
+    errorMessage?: string;
+    requestId?: string;
+    message?: string;
+  }): Error & { status?: number; error?: { type?: string; message?: string }; headers?: Record<string, string> } {
+    const err = new Error(opts.message ?? 'Anthropic error') as Error & {
+      status?: number;
+      error?: { type?: string; message?: string };
+      headers?: Record<string, string>;
+    };
+    if (opts.status !== undefined) err.status = opts.status;
+    if (opts.errorType !== undefined || opts.errorMessage !== undefined) {
+      err.error = { type: opts.errorType, message: opts.errorMessage };
+    }
+    if (opts.requestId !== undefined) {
+      err.headers = { 'request-id': opts.requestId };
+    }
+    return err;
+  }
+
+  it('retries on HTTP 529 and returns the second-attempt response', async () => {
+    const successResponse = {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({
+            isComplete: true,
+            isMultiDocument: false,
+            pageOrderHint: null,
+            rotationDegrees: 0,
+            suggestedFilename: 'retry-ok.pdf',
+            description: 'Success on retry',
+            confidence: 0.85,
+            quickAnalysis: { typeGuess: 'unknown', bucketGuess: 'unknown', reason: 'ok', confidence: 0.85 },
+          }),
+        },
+      ],
+    };
+
+    const create = jest
+      .fn()
+      .mockRejectedValueOnce(makeErrorLike({ status: 529, errorType: 'overloaded_error', requestId: 'req-529' }))
+      .mockResolvedValueOnce(successResponse);
+
+    bulkImportAnalyzer.__setClientForTests({
+      messages: { create },
+    } as unknown as Parameters<typeof bulkImportAnalyzer.__setClientForTests>[0]);
+
+    // No mimeType/stagedPath so loadFileForClaude returns fallbackReason null
+    // and a successful retry propagates it unmasked.
+    const r = await bulkImportAnalyzer.screen({
+      originalName: 'retry-ok.pdf',
+    });
+
+    expect(create).toHaveBeenCalledTimes(2);
+    expect(r.fallbackReason).toBeNull();
+    expect(r.confidence).toBeCloseTo(0.85);
+    expect(r.suggestedFilename).toBe('retry-ok.pdf');
+  });
+
+  it('returns api_error and emits enriched log fields when all attempts fail with 529', async () => {
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    const create = jest
+      .fn()
+      .mockRejectedValue(
+        makeErrorLike({
+          status: 529,
+          errorType: 'overloaded_error',
+          errorMessage: 'Server is overloaded',
+          requestId: 'req-overload-99',
+          message: 'HTTP 529',
+        }),
+      );
+
+    bulkImportAnalyzer.__setClientForTests({
+      messages: { create },
+    } as unknown as Parameters<typeof bulkImportAnalyzer.__setClientForTests>[0]);
+
+    // No mimeType/stagedPath so loadFileForClaude returns fallbackReason null
+    // and the api_error from the retry loop propagates unmasked.
+    const r = await bulkImportAnalyzer.screen({
+      originalName: 'all-fail.pdf',
+    });
+
+    expect(r.fallbackReason).toBe('api_error');
+    expect(create).toHaveBeenCalledTimes(3); // MAX_RETRY_ATTEMPTS
+
+    // The enriched failure log must have been emitted.
+    expect(errorSpy).toHaveBeenCalled();
+    const logged = errorSpy.mock.calls.find((c) => {
+      const s = String(c[0]);
+      return s.includes('[bulkImportAnalyzer] per-file AI call failed');
+    });
+    expect(logged).toBeDefined();
+    const logStr = logged!.map(String).join(' ');
+    // Structured fields must appear in the serialised log line.
+    expect(logStr).toContain('overloaded_error');    // anthropicErrorType value
+    expect(logStr).toContain('req-overload-99');     // requestId value
+    expect(logStr).toContain('Server is overloaded');// anthropicErrorMessage value
+    // All three attempts were made before giving up.
+    expect(logStr).toMatch(/attempts.*3|"attempts":3/);
+
+    errorSpy.mockRestore();
+  });
+
+  it('does not retry on HTTP 400 invalid_request_error — calls create exactly once', async () => {
+    const create = jest
+      .fn()
+      .mockRejectedValue(
+        makeErrorLike({
+          status: 400,
+          errorType: 'invalid_request_error',
+          errorMessage: 'Your request contained invalid JSON',
+          requestId: 'req-400',
+        }),
+      );
+
+    bulkImportAnalyzer.__setClientForTests({
+      messages: { create },
+    } as unknown as Parameters<typeof bulkImportAnalyzer.__setClientForTests>[0]);
+
+    // No mimeType/stagedPath so fallbackReason starts as null and api_error propagates.
+    const r = await bulkImportAnalyzer.screen({
+      originalName: 'bad-request.pdf',
+    });
+
+    expect(r.fallbackReason).toBe('api_error');
+    expect(create).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not retry on HTTP 401 — calls create exactly once', async () => {
+    const create = jest
+      .fn()
+      .mockRejectedValue(
+        makeErrorLike({
+          status: 401,
+          errorType: 'authentication_error',
+          errorMessage: 'Invalid API key',
+          requestId: 'req-401',
+        }),
+      );
+
+    bulkImportAnalyzer.__setClientForTests({
+      messages: { create },
+    } as unknown as Parameters<typeof bulkImportAnalyzer.__setClientForTests>[0]);
+
+    const r = await bulkImportAnalyzer.screen({
+      originalName: 'auth-fail.pdf',
+    });
+
+    expect(r.fallbackReason).toBe('api_error');
+    expect(create).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not retry on HTTP 404 not_found_error — calls create exactly once', async () => {
+    const create = jest
+      .fn()
+      .mockRejectedValue(
+        makeErrorLike({
+          status: 404,
+          errorType: 'not_found_error',
+          errorMessage: 'The requested resource was not found',
+          requestId: 'req-404',
+        }),
+      );
+
+    bulkImportAnalyzer.__setClientForTests({
+      messages: { create },
+    } as unknown as Parameters<typeof bulkImportAnalyzer.__setClientForTests>[0]);
+
+    const r = await bulkImportAnalyzer.screen({
+      originalName: 'not-found.pdf',
+    });
+
+    expect(r.fallbackReason).toBe('api_error');
+    expect(create).toHaveBeenCalledTimes(1);
+  });
+
+  it('retries a pure transport error (no .status) and succeeds on the second attempt', async () => {
+    const successResponse = {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({
+            isComplete: true,
+            isMultiDocument: false,
+            pageOrderHint: null,
+            rotationDegrees: 0,
+            suggestedFilename: 'transport-ok.pdf',
+            description: 'Transport error then success',
+            confidence: 0.8,
+            quickAnalysis: { typeGuess: 'unknown', bucketGuess: 'unknown', reason: 'ok', confidence: 0.8 },
+          }),
+        },
+      ],
+    };
+
+    // Pure network error — no `.status` property.
+    const transportError = new Error('socket hang up');
+    // (deliberately no .status so isRetryableAnthropicError treats it as transient)
+
+    const create = jest
+      .fn()
+      .mockRejectedValueOnce(transportError)
+      .mockResolvedValueOnce(successResponse);
+
+    bulkImportAnalyzer.__setClientForTests({
+      messages: { create },
+    } as unknown as Parameters<typeof bulkImportAnalyzer.__setClientForTests>[0]);
+
+    // No mimeType/stagedPath so fallbackReason starts as null and a successful
+    // retry returns fallbackReason null.
+    const r = await bulkImportAnalyzer.screen({
+      originalName: 'transport-ok.pdf',
+    });
+
+    expect(create).toHaveBeenCalledTimes(2);
+    expect(r.fallbackReason).toBeNull();
+    expect(r.suggestedFilename).toBe('transport-ok.pdf');
+  });
+
+  it('retries on HTTP 429 rate-limit and returns the second-attempt response', async () => {
+    const successResponse = {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({
+            isComplete: true,
+            isMultiDocument: false,
+            pageOrderHint: null,
+            rotationDegrees: 0,
+            suggestedFilename: '429-ok.pdf',
+            description: 'Rate-limit then success',
+            confidence: 0.9,
+            quickAnalysis: { typeGuess: 'unknown', bucketGuess: 'unknown', reason: 'ok', confidence: 0.9 },
+          }),
+        },
+      ],
+    };
+
+    const create = jest
+      .fn()
+      .mockRejectedValueOnce(makeErrorLike({ status: 429, errorType: 'rate_limit_error', requestId: 'req-429' }))
+      .mockResolvedValueOnce(successResponse);
+
+    bulkImportAnalyzer.__setClientForTests({
+      messages: { create },
+    } as unknown as Parameters<typeof bulkImportAnalyzer.__setClientForTests>[0]);
+
+    const r = await bulkImportAnalyzer.screen({ originalName: '429-ok.pdf' });
+
+    expect(create).toHaveBeenCalledTimes(2);
+    expect(r.confidence).toBeCloseTo(0.9);
+    expect(r.suggestedFilename).toBe('429-ok.pdf');
+  });
+
+  it('retries on HTTP 500 server error and returns the second-attempt response', async () => {
+    const successResponse = {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify({
+            isComplete: true,
+            isMultiDocument: false,
+            pageOrderHint: null,
+            rotationDegrees: 0,
+            suggestedFilename: '500-ok.pdf',
+            description: 'Server error then success',
+            confidence: 0.75,
+            quickAnalysis: { typeGuess: 'unknown', bucketGuess: 'unknown', reason: 'ok', confidence: 0.75 },
+          }),
+        },
+      ],
+    };
+
+    const create = jest
+      .fn()
+      .mockRejectedValueOnce(makeErrorLike({ status: 500, errorType: 'api_error', message: 'Internal server error', requestId: 'req-500' }))
+      .mockResolvedValueOnce(successResponse);
+
+    bulkImportAnalyzer.__setClientForTests({
+      messages: { create },
+    } as unknown as Parameters<typeof bulkImportAnalyzer.__setClientForTests>[0]);
+
+    const r = await bulkImportAnalyzer.screen({ originalName: '500-ok.pdf' });
+
+    expect(create).toHaveBeenCalledTimes(2);
+    expect(r.confidence).toBeCloseTo(0.75);
+    expect(r.suggestedFilename).toBe('500-ok.pdf');
+  });
+
+  it('does not retry a local runtime error without .status (non-transport) — calls create exactly once', async () => {
+    // A SyntaxError or similar local exception has no .status and no
+    // transport-related message, so it must not be retried.
+    const localError = new TypeError('Cannot read properties of undefined');
+
+    const create = jest.fn().mockRejectedValue(localError);
+
+    bulkImportAnalyzer.__setClientForTests({
+      messages: { create },
+    } as unknown as Parameters<typeof bulkImportAnalyzer.__setClientForTests>[0]);
+
+    const r = await bulkImportAnalyzer.screen({ originalName: 'runtime-err.pdf' });
+
+    expect(create).toHaveBeenCalledTimes(1);
+    expect(r.fallbackReason).toBe('api_error');
+  });
+
+  it('captures request_id from SDK direct property (not headers) in failure log', async () => {
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    // Simulate a real Anthropic SDK APIError: request_id as a direct property,
+    // no headers object at all.
+    const sdkError = Object.assign(new Error('overloaded'), {
+      status: 529,
+      request_id: 'sdk-req-direct-id',
+      error: { type: 'overloaded_error', message: 'Server busy' },
+    });
+
+    const create = jest.fn().mockRejectedValue(sdkError);
+
+    bulkImportAnalyzer.__setClientForTests({
+      messages: { create },
+    } as unknown as Parameters<typeof bulkImportAnalyzer.__setClientForTests>[0]);
+
+    const r = await bulkImportAnalyzer.screen({ originalName: 'sdk-req-id.pdf' });
+
+    expect(r.fallbackReason).toBe('api_error');
+
+    const logged = errorSpy.mock.calls.find((c) =>
+      String(c[0]).includes('[bulkImportAnalyzer] per-file AI call failed'),
+    );
+    expect(logged).toBeDefined();
+    const logStr = logged!.map(String).join(' ');
+    expect(logStr).toContain('sdk-req-direct-id');
+
+    errorSpy.mockRestore();
+  });
+
+  it('captures request_id via headers.get() (real Headers object) in failure log', async () => {
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    // Simulate a real Headers object (web API) — has .get() but NOT bracket access.
+    const headersObj = {
+      get: (name: string) => (name === 'request-id' ? 'headers-get-id' : null),
+    };
+    const sdkError = Object.assign(new Error('overloaded'), {
+      status: 529,
+      headers: headersObj,
+      error: { type: 'overloaded_error', message: 'Server busy' },
+    });
+
+    const create = jest.fn().mockRejectedValue(sdkError);
+
+    bulkImportAnalyzer.__setClientForTests({
+      messages: { create },
+    } as unknown as Parameters<typeof bulkImportAnalyzer.__setClientForTests>[0]);
+
+    const r = await bulkImportAnalyzer.screen({ originalName: 'sdk-headers-get.pdf' });
+
+    expect(r.fallbackReason).toBe('api_error');
+
+    const logged = errorSpy.mock.calls.find((c) =>
+      String(c[0]).includes('[bulkImportAnalyzer] per-file AI call failed'),
+    );
+    expect(logged).toBeDefined();
+    const logStr = logged!.map(String).join(' ');
+    expect(logStr).toContain('headers-get-id');
+
+    errorSpy.mockRestore();
   });
 });
