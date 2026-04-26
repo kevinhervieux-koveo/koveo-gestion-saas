@@ -72,9 +72,12 @@ import {
 import { format, parseISO, isValid } from 'date-fns';
 import { StandaloneDatePicker } from '@/components/common/DatePickerField';
 import {
+  AI_DEGRADED_FAILURE_RATE_THRESHOLD,
+  RETRYABLE_AI_FALLBACK_REASONS,
   type BulkImportFallbackReason,
   type BulkImportItem,
   type BulkImportSession,
+  type BulkImportSessionAiFailureSummary,
   type BulkImportStep,
 } from '@shared/schemas/bulk-import';
 import { ConfidenceBadge } from './bulk-import-confidence-badge';
@@ -411,9 +414,27 @@ interface SessionPayloadLite {
   items: BulkImportItemLite[];
 }
 
-/** Paginated sessions response (Task #727). */
+/**
+ * Per-row enrichment of `BulkImportSession` returned by the
+ * sessions-list endpoint (Task #1219). The base session row is
+ * extended with an `aiFailureSummary` describing the share of items
+ * in the session's current step whose `fallbackReason` is one of
+ * `RETRYABLE_AI_FALLBACK_REASONS`. Computed server-side so the list
+ * page can render the per-row indicator and aggregated banner without
+ * round-tripping a /lite request for every session.
+ *
+ * The field is `optional` so legacy mock responses in tests (and the
+ * intermediate state while a deploy rolls out a new server alongside
+ * an old client) continue to render the list — they simply skip the
+ * degraded indicator.
+ */
+type BulkImportSessionWithAiSummary = BulkImportSession & {
+  aiFailureSummary?: BulkImportSessionAiFailureSummary;
+};
+
+/** Paginated sessions response (Task #727 / extended in Task #1219). */
 interface SessionsPage {
-  sessions: BulkImportSession[];
+  sessions: BulkImportSessionWithAiSummary[];
   limit: number;
   offset: number;
   hasMore: boolean;
@@ -882,6 +903,7 @@ function HistorySessionRow({
   isDeleting,
   isFr,
   stepLabels,
+  aiFailureSummary,
 }: {
   session: BulkImportSession;
   buildings: HistoryRowBuilding[];
@@ -892,6 +914,14 @@ function HistorySessionRow({
   isDeleting: boolean;
   isFr: boolean;
   stepLabels: Record<BulkImportStep, string>;
+  /**
+   * Task #1219: per-session AI-failure tally computed by the
+   * sessions-list endpoint. Optional so a missing field (older server,
+   * test mock) still renders the row — we just skip the degraded
+   * indicator. The compact "service may be degraded" badge only renders
+   * when `aiDegraded` is true so non-affected rows stay unchanged.
+   */
+  aiFailureSummary?: BulkImportSessionAiFailureSummary;
 }) {
   const buildingName =
     buildings.find((b) => b.id === session.buildingId)?.name ??
@@ -971,6 +1001,35 @@ function HistorySessionRow({
             </div>
           </div>
         </button>
+        {/* Task #1219: per-row "Anthropic looks degraded" indicator.
+            Sibling of the toggle button (not nested) so it can be its
+            own button without producing nested interactive elements.
+            Only renders when the session's current step has a
+            transient AI failure rate above
+            AI_DEGRADED_FAILURE_RATE_THRESHOLD; clicking it opens the
+            session at its current step so the existing in-page banner
+            (Task #1209) takes over with the "Retry AI-failed items"
+            action. We don't gate on `resumable` because a session can
+            be `paused` and still benefit from the indicator, and the
+            wizard's own controls handle non-actionable terminal states. */}
+        {aiFailureSummary?.aiDegraded && aiFailureSummary.step && (
+          <button
+            type="button"
+            onClick={onResume}
+            className="inline-flex items-center gap-1 rounded-md border border-amber-300 bg-amber-50 px-2 py-1 text-xs font-medium text-amber-900 hover:bg-amber-100 hover:text-amber-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200 dark:hover:bg-amber-900"
+            title={
+              isFr
+                ? `Anthropic a retourné des erreurs pour ${aiFailureSummary.aiFailedCount} des ${aiFailureSummary.aiTotalCount} fichiers de l'étape « ${stepLabels[aiFailureSummary.step]} » — ouvrez la session pour réessayer.`
+                : `Anthropic returned errors for ${aiFailureSummary.aiFailedCount} of ${aiFailureSummary.aiTotalCount} ${stepLabels[aiFailureSummary.step]} items — open the session to retry.`
+            }
+            data-testid={`history-ai-degraded-${session.id}`}
+          >
+            <AlertTriangle className="h-3 w-3" aria-hidden="true" />
+            {isFr
+              ? `Anthropic dégradé (${aiFailureSummary.aiFailedCount}/${aiFailureSummary.aiTotalCount})`
+              : `Anthropic degraded (${aiFailureSummary.aiFailedCount}/${aiFailureSummary.aiTotalCount})`}
+          </button>
+        )}
         {resumable && (
           <Button
             size="sm"
@@ -1199,7 +1258,7 @@ function HistoryCard({
 }) {
   const { toast } = useToast();
 
-  const [allSessions, setAllSessions] = useState<BulkImportSession[]>([]);
+  const [allSessions, setAllSessions] = useState<BulkImportSessionWithAiSummary[]>([]);
   const [nextOffset, setNextOffset] = useState(0);
   const [hasMore, setHasMore] = useState(false);
   const [fetchOffset, setFetchOffset] = useState(0);
@@ -1273,8 +1332,17 @@ function HistoryCard({
   });
 
   const pendingSession = pendingDeleteId
-    ? sorted.find((s: BulkImportSession) => s.id === pendingDeleteId) ?? null
+    ? sorted.find((s) => s.id === pendingDeleteId) ?? null
     : null;
+
+  // Task #1219: aggregated "N sessions look degraded" banner. Counted
+  // off the same per-row `aiFailureSummary.aiDegraded` flag the row
+  // indicators use so the count and the highlighted rows always agree.
+  // Hidden when the count is zero so the page stays quiet during
+  // healthy operation.
+  const degradedSessionCount = sorted.filter(
+    (s) => s.aiFailureSummary?.aiDegraded === true,
+  ).length;
   const pendingBuildingName = pendingSession
     ? buildings.find((b) => b.id === pendingSession.buildingId)?.name ??
       pendingSession.buildingId.slice(0, 8)
@@ -1289,6 +1357,31 @@ function HistoryCard({
         </CardTitle>
       </CardHeader>
       <CardContent>
+        {/* Task #1219: aggregated "Anthropic looks degraded" banner.
+            Renders once at the top of the list whenever at least one
+            session in the loaded pages has its current step's AI
+            failure rate above AI_DEGRADED_FAILURE_RATE_THRESHOLD, so
+            admins can spot the problem before they pick a session to
+            open. Mirrors the wizard's in-page degraded banner styling
+            (Task #1209) for consistency. */}
+        {degradedSessionCount > 0 && (
+          <div
+            className="mb-3 flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200"
+            role="status"
+            data-testid="history-ai-degraded-banner"
+          >
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+            <span data-testid="history-ai-degraded-banner-message">
+              {isFr
+                ? degradedSessionCount > 1
+                  ? `${degradedSessionCount} sessions ont un taux d'échec Anthropic élevé — ouvrez-les pour réessayer les fichiers en échec IA.`
+                  : `1 session a un taux d'échec Anthropic élevé — ouvrez-la pour réessayer les fichiers en échec IA.`
+                : degradedSessionCount > 1
+                ? `${degradedSessionCount} sessions have a high Anthropic failure rate — open them to retry AI-failed items.`
+                : `1 session has a high Anthropic failure rate — open it to retry AI-failed items.`}
+            </span>
+          </div>
+        )}
         {isLoading ? (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -1302,7 +1395,7 @@ function HistoryCard({
           </p>
         ) : (
           <div className="space-y-2" data-testid="history-list">
-            {sorted.map((s: BulkImportSession) => (
+            {sorted.map((s) => (
               <HistorySessionRow
                 key={s.id}
                 session={s}
@@ -1317,6 +1410,7 @@ function HistoryCard({
                 }
                 isFr={isFr}
                 stepLabels={stepLabels}
+                aiFailureSummary={s.aiFailureSummary}
               />
             ))}
             {hasMore && (
@@ -1699,30 +1793,24 @@ function InlineFallbackRetryButton({
 }
 
 /**
- * Task #1202: fallback reasons that the per-item Retry endpoint can
- * actually recover from. `api_error` and `unreadable_response` are
- * transient (the Anthropic call failed or returned non-JSON) so the
- * step-level "Retry AI-failed items (N)" button targets exactly these
- * rows. Other reasons (`oversize`, `missing_file`, `unsupported_mime`)
- * describe permanent file-side problems that re-running the analyzer
- * cannot fix.
- */
-const RETRYABLE_AI_FALLBACK_REASONS: ReadonlySet<BulkImportFallbackReason> =
-  new Set(['api_error', 'unreadable_response']);
-
-/**
- * Task #1209 — top-of-step "Anthropic looks degraded" banner.
+ * Task #1202: Set form of `RETRYABLE_AI_FALLBACK_REASONS` (imported
+ * from `@shared/schemas/bulk-import` so the wizard, the sessions-list
+ * page from Task #1219, and the server's `aiFailureSummary` agree on
+ * which reasons count as transient Anthropic-side trouble). Membership
+ * checks happen on every item in the per-row alert loop so the Set is
+ * cheaper than `.includes` on the shared array.
  *
- * When the share of items in the current AI step that failed with a
- * retryable Anthropic-side reason (api_error / unreadable_response)
- * crosses this threshold, the wizard surfaces a single yellow banner
- * above the auto-run progress block summarising the failure rate and
- * linking the existing "Retry AI-failed items (N)" action. Below the
- * threshold the per-row yellow alerts and the step-level retry button
- * already give admins everything they need; the banner only kicks in
- * when scrolling to count alerts becomes painful.
+ * Task #1209 — the top-of-step "Anthropic looks degraded" banner uses
+ * the threshold + this Set together: when the share of items in the
+ * current AI step whose `fallbackReason` is in this Set crosses
+ * `AI_DEGRADED_FAILURE_RATE_THRESHOLD`, the wizard surfaces a single
+ * yellow banner above the auto-run progress block summarising the
+ * failure rate and linking the existing "Retry AI-failed items (N)"
+ * action. Below the threshold the per-row yellow alerts and the
+ * step-level retry button already give admins everything they need.
  */
-const AI_DEGRADED_FAILURE_RATE_THRESHOLD = 0.25;
+const RETRYABLE_AI_FALLBACK_REASON_SET: ReadonlySet<BulkImportFallbackReason> =
+  new Set(RETRYABLE_AI_FALLBACK_REASONS);
 
 export default function BulkDocumentImportPage() {
   const { language } = useLanguage();
@@ -3840,7 +3928,7 @@ export default function BulkDocumentImportPage() {
                             const dec = getItemStepDecision(it, currentStep);
                             return (
                               !!dec?.fallbackReason &&
-                              RETRYABLE_AI_FALLBACK_REASONS.has(dec.fallbackReason)
+                              RETRYABLE_AI_FALLBACK_REASON_SET.has(dec.fallbackReason)
                             );
                           })
                           .map((it) => it.id);

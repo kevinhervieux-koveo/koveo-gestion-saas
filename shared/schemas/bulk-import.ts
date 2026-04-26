@@ -381,3 +381,55 @@ export function bandForConfidence(confidence: number | null | undefined): Confid
   if (confidence >= 0.5) return 'medium';
   return 'low';
 }
+
+/**
+ * Task #1209 / #1219 — shared "Anthropic looks degraded" thresholds.
+ *
+ * Both the in-wizard banner (Task #1209) and the sessions-list per-row
+ * indicator + aggregated banner (Task #1219) rely on the same definition
+ * of "degraded": the share of items in the session's current AI step
+ * that failed with a retryable Anthropic-side reason crosses the
+ * threshold. Centralising the constants here keeps the server's pre-
+ * computed `aiDegraded` flag and the client's local recomputations from
+ * drifting apart.
+ */
+export const AI_DEGRADED_FAILURE_RATE_THRESHOLD = 0.25;
+
+/**
+ * Fallback reasons that the wizard's "Retry AI-failed items" action can
+ * actually recover from. `api_error` and `unreadable_response` are
+ * transient (the Anthropic call failed or returned non-JSON) so the
+ * top-of-step degraded banner only counts these. Other reasons
+ * (`oversize`, `missing_file`, `unsupported_mime`) describe permanent
+ * file-side problems that re-running the analyzer cannot fix.
+ */
+export const RETRYABLE_AI_FALLBACK_REASONS: ReadonlyArray<BulkImportFallbackReason> = [
+  'api_error',
+  'unreadable_response',
+];
+
+/**
+ * Per-session AI-failure summary attached to each row of the
+ * sessions-list endpoint (Task #1219). Computed server-side against
+ * the session's `currentStep` so the client can render a per-row
+ * "service may be degraded" indicator and an aggregated banner without
+ * fetching item-level data for every session in the list.
+ *
+ * - `step` is the session's current step the counts apply to. Null
+ *   when the session is in a non-AI step (`upload` / `complete`) so
+ *   no degraded indicator should ever render for those rows.
+ * - `aiTotalCount` mirrors the wizard's `totalForRate` (every item in
+ *   the session, including rejected/excluded ones) so the rate matches
+ *   the in-wizard banner exactly.
+ * - `aiFailedCount` mirrors the wizard's `aiFailedCount` (items not
+ *   in `rejected` status whose current-step `fallbackReason` is one
+ *   of `RETRYABLE_AI_FALLBACK_REASONS`).
+ * - `aiDegraded` is true iff `aiFailedCount > 0` AND
+ *   `aiFailedCount / aiTotalCount > AI_DEGRADED_FAILURE_RATE_THRESHOLD`.
+ */
+export interface BulkImportSessionAiFailureSummary {
+  step: BulkImportStep | null;
+  aiTotalCount: number;
+  aiFailedCount: number;
+  aiDegraded: boolean;
+}

@@ -35,7 +35,13 @@ import { rotateAndRewriteStagedFile } from '../services/bulk-import-rotation';
 import { parsePeriodHint } from '../services/period-hint-parser';
 import { documentService } from '../services/document-service';
 import { logDebug, logError, logInfo, logWarn } from '../utils/logger';
-import type { BulkImportFallbackReason } from '@shared/schemas/bulk-import';
+import {
+  AI_DEGRADED_FAILURE_RATE_THRESHOLD,
+  RETRYABLE_AI_FALLBACK_REASONS,
+  type BulkImportFallbackReason,
+  type BulkImportSessionAiFailureSummary,
+  type BulkImportStep,
+} from '@shared/schemas/bulk-import';
 import { fixLatin1MisdecodeFilename } from '../utils/filenameNormalization';
 import { buildContentDisposition } from '../utils/content-disposition';
 
@@ -733,6 +739,143 @@ async function loadSession(sessionId: string) {
     .from(schema.bulkImportSessions)
     .where(eq(schema.bulkImportSessions.id, sessionId));
   return row;
+}
+
+/**
+ * Map a session's current step to the JSONB column whose `fallbackReason`
+ * decides whether the row counts as an Anthropic-side failure for the
+ * sessions-list "looks degraded" indicator (Task #1219). Returns null
+ * for `upload` and `complete` (and any future non-AI step) so callers
+ * can short-circuit and report a zero-count summary without touching
+ * the items table.
+ */
+function aiFailureColumnForStep(
+  step: BulkImportStep,
+):
+  | typeof schema.bulkImportItems.screening
+  | typeof schema.bulkImportItems.sortingDecision
+  | typeof schema.bulkImportItems.branchDecision
+  | typeof schema.bulkImportItems.identification
+  | typeof schema.bulkImportItems.linkDecisions
+  | null {
+  switch (step) {
+    case 'screening':
+      return schema.bulkImportItems.screening;
+    case 'sorting':
+      return schema.bulkImportItems.sortingDecision;
+    case 'branching':
+      return schema.bulkImportItems.branchDecision;
+    case 'identification':
+      return schema.bulkImportItems.identification;
+    case 'linking':
+      return schema.bulkImportItems.linkDecisions;
+    default:
+      return null;
+  }
+}
+
+/**
+ * Compute the per-session "Anthropic looks degraded" summary used by
+ * the sessions-list page (Task #1219). Mirrors the wizard's
+ * `aiFailedCount` / `totalForRate` math (Task #1209) so the per-row
+ * indicator and aggregated banner agree with the in-page banner the
+ * admin sees once they open the session.
+ *
+ * For each session we tally:
+ *   - `aiTotalCount`: every staged item in the session, matching the
+ *     wizard's `items.length` denominator.
+ *   - `aiFailedCount`: items not in `rejected` status whose
+ *     current-step `fallbackReason` is one of
+ *     `RETRYABLE_AI_FALLBACK_REASONS` (`api_error` /
+ *     `unreadable_response`). Other fallback reasons describe
+ *     permanent file-side problems and are excluded — the indicator
+ *     should only flag transient Anthropic-side trouble.
+ *
+ * Sessions whose current step has no associated AI step (`upload`,
+ * `complete`) get a zero-count summary with `step: null` so the
+ * client never renders an indicator for them.
+ *
+ * Implementation note: a single grouped SQL query per page would also
+ * work, but the page size is capped at 100 (typically 20) and Drizzle
+ * doesn't expose a portable `jsonb ->> 'fallbackReason'` aggregate
+ * builder. A two-step "fetch matching item rows, group in JS"
+ * approach keeps the code simple and avoids `sql<unknown>\`...\``
+ * stringly-typed expressions in a hot admin path.
+ */
+async function attachAiFailureSummaries<
+  S extends { id: string; currentStep: BulkImportStep },
+>(sessions: ReadonlyArray<S>): Promise<Array<S & { aiFailureSummary: BulkImportSessionAiFailureSummary }>> {
+  if (sessions.length === 0) return [];
+
+  // Group session IDs by their current step so a single per-step query
+  // can pull just the relevant JSONB column for each set of sessions.
+  const sessionsByStep = new Map<BulkImportStep, string[]>();
+  for (const s of sessions) {
+    const list = sessionsByStep.get(s.currentStep);
+    if (list) list.push(s.id);
+    else sessionsByStep.set(s.currentStep, [s.id]);
+  }
+
+  // Per-session running totals. Initialised to zero so sessions with
+  // no items (or sessions on a non-AI step) always get a defined
+  // summary in the response.
+  const totals = new Map<string, { total: number; failed: number }>();
+  for (const s of sessions) totals.set(s.id, { total: 0, failed: 0 });
+
+  for (const [step, sessionIds] of sessionsByStep) {
+    const column = aiFailureColumnForStep(step);
+    if (!column) {
+      // upload / complete — no AI step to score. Counts stay at zero.
+      continue;
+    }
+
+    // Pull only the columns we need: which session, status (so we can
+    // skip rejected rows for the failure tally), and the current
+    // step's JSONB blob (so we can read `fallbackReason`). The
+    // wizard's totalForRate counts every item including rejected
+    // ones, so we keep them in the result and filter only when
+    // incrementing the failed counter.
+    const rows = await db
+      .select({
+        sessionId: schema.bulkImportItems.sessionId,
+        status: schema.bulkImportItems.status,
+        stepJson: column,
+      })
+      .from(schema.bulkImportItems)
+      .where(inArray(schema.bulkImportItems.sessionId, sessionIds));
+
+    const retryableSet = new Set<BulkImportFallbackReason>(RETRYABLE_AI_FALLBACK_REASONS);
+    for (const row of rows) {
+      const t = totals.get(row.sessionId);
+      if (!t) continue;
+      t.total += 1;
+      if (row.status === 'rejected') continue;
+      const fallback = row.stepJson?.fallbackReason as
+        | BulkImportFallbackReason
+        | null
+        | undefined;
+      if (fallback && retryableSet.has(fallback)) {
+        t.failed += 1;
+      }
+    }
+  }
+
+  return sessions.map((s) => {
+    const t = totals.get(s.id) ?? { total: 0, failed: 0 };
+    const stepColumn = aiFailureColumnForStep(s.currentStep);
+    const rate = t.total > 0 ? t.failed / t.total : 0;
+    const aiDegraded =
+      stepColumn !== null &&
+      t.failed > 0 &&
+      rate > AI_DEGRADED_FAILURE_RATE_THRESHOLD;
+    const summary: BulkImportSessionAiFailureSummary = {
+      step: stepColumn === null ? null : s.currentStep,
+      aiTotalCount: t.total,
+      aiFailedCount: t.failed,
+      aiDegraded,
+    };
+    return { ...s, aiFailureSummary: summary };
+  });
 }
 
 /**
@@ -2288,10 +2431,19 @@ export function registerBulkImportRoutes(app: Express): void {
 
         const hasMore = rows.length > limit;
         const sessions = hasMore ? rows.slice(0, limit) : rows;
+
+        // Task #1219: per-session AI-failure summary so the sessions
+        // list page can render the same "Anthropic looks degraded"
+        // signal the wizard already shows once a session is opened.
+        // Computed against the session's `currentStep` only — the
+        // wizard's banner is also step-scoped, so a session paused on
+        // an old step never shows a stale degraded signal here.
+        const sessionsWithSummary = await attachAiFailureSummaries(sessions);
+
         logDebug('[bulk-import] route exit GET /api/admin/bulk-import/sessions ok', {
           metadata: { count: sessions.length, hasMore, status: 200, durationMs: Date.now() - t0 },
         });
-        return res.json({ sessions, limit, offset, hasMore });
+        return res.json({ sessions: sessionsWithSummary, limit, offset, hasMore });
       } catch (err) {
         logError('[bulk-import] list sessions failed', err as Error);
         logDebug('[bulk-import] route exit GET /api/admin/bulk-import/sessions status 500', {
