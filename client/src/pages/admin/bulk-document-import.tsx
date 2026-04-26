@@ -1356,8 +1356,21 @@ function isItemReadyForNextStep(item: BulkImportItemLite, step: BulkImportStep):
     step === 'identification' ||
     step === 'linking'
   ) {
-    const decision = getItemStepDecision(item, step);
-    if (decision?.fallbackReason) return false;
+    // Task #1082: if the admin has manually overridden the AI decision for
+    // this step, skip the fallback gate entirely and fall through to the
+    // regular per-step status / residence checks.  For `screening` and
+    // `linking` there is no manual-override flag so the fallback gate always
+    // applies.  For `sorting`, readiness already keys off
+    // `sortingDecisionState === 'accepted'`, which a manual override sets, so
+    // no change is needed there.
+    const manuallyOverridden =
+      (step === 'branching' && item.branchManualOverride) ||
+      (step === 'identification' && item.identificationEffectiveDateManualOverride);
+
+    if (!manuallyOverridden) {
+      const decision = getItemStepDecision(item, step);
+      if (decision?.fallbackReason) return false;
+    }
   }
   switch (step) {
     case 'screening':

@@ -161,6 +161,9 @@ interface ItemFixture {
   branchingFallback?: string | null;
   identificationFallback?: string | null;
   linkingFallback?: string | null;
+  /** Optional manual-override flags — used by Task #1082 tests. */
+  branchManualOverride?: boolean;
+  identificationEffectiveDateManualOverride?: boolean;
 }
 
 let items: ItemFixture[] = [];
@@ -222,9 +225,11 @@ function buildSessionPayload() {
       branchingConfidence: null,
       branchingFallback: it.branchingFallback ?? null,
       branch: it.branch ?? null,
+      branchManualOverride: it.branchManualOverride ?? false,
       residenceId: it.residenceId ?? null,
       identificationConfidence: null,
       identificationFallback: it.identificationFallback ?? null,
+      identificationEffectiveDateManualOverride: it.identificationEffectiveDateManualOverride ?? false,
       linkingConfidence: null,
       linkingFallback: it.linkingFallback ?? null,
     })),
@@ -1461,5 +1466,139 @@ describe('BulkDocumentImportPage — Next Step blocked by fallback-flagged files
 
     expect(screen.getByTestId('button-next-step')).toBeDisabled();
     expect(screen.getByTestId('fallback-pending-warning')).toBeInTheDocument();
+  }, 10_000);
+});
+
+// =============================================================================
+// Task #1082 — Manual overrides bypass the fallback gate in isItemReadyForNextStep.
+//
+// When an admin manually reclassifies a file (branchManualOverride /
+// identificationEffectiveDateManualOverride), the original AI fallback reason
+// stays recorded on the item.  Before this fix, the hide-ready toggle kept
+// those rows visible because the fallback gate treated any recorded fallback as
+// "needs review", even when the admin had already decided.
+//
+// After the fix:
+//   - branching step: a row with branchingFallback set AND branchManualOverride
+//     true is hidden by the toggle (the admin's decision is authoritative).
+//   - branching step: a row with branchManualOverride false and a recorded
+//     fallback stays visible (existing Task #1069 behavior unchanged).
+//   - branching step: a manually-overridden residence_documents row with no
+//     residenceId is still kept visible (residence gate still applies).
+//   - identification step: a row with identificationFallback set AND
+//     identificationEffectiveDateManualOverride true is hidden by the toggle.
+//   - screening / linking: fallback gate unchanged (no manual-override flag).
+// =============================================================================
+
+describe('BulkDocumentImportPage — manual overrides bypass fallback gate (Task #1082)', () => {
+  it('branching: row with branchingFallback + branchManualOverride=true is hidden by toggle', async () => {
+    currentStep = 'branching';
+    items = [
+      // Manually overridden → should be hidden when toggle is ON.
+      makeItem('br-manual-override', 'branched', {
+        branch: 'building_documents',
+        branchingFallback: 'api_error',
+        branchManualOverride: true,
+      }),
+      // No override → still visible.
+      makeItem('br-fallback-no-override', 'branched', {
+        branch: 'building_documents',
+        branchingFallback: 'api_error',
+        branchManualOverride: false,
+      }),
+    ];
+    renderPage();
+    await screen.findByTestId('item-preview-trigger-br-manual-override', undefined, { timeout: 4000 });
+    await screen.findByTestId('item-preview-trigger-br-fallback-no-override', undefined, { timeout: 4000 });
+
+    await clickToggle();
+
+    await waitFor(() => {
+      // Manually overridden → hidden.
+      expect(screen.queryByTestId('item-preview-trigger-br-manual-override')).not.toBeInTheDocument();
+      // Unresolved fallback with no override → still visible.
+      expect(screen.queryByTestId('item-preview-trigger-br-fallback-no-override')).toBeInTheDocument();
+    }, { timeout: 4000 });
+  }, 10_000);
+
+  it('branching: residence_documents row with branchManualOverride=true but residenceId=null stays visible', async () => {
+    currentStep = 'branching';
+    items = [
+      // Manually overridden + residence branch + no residence selected →
+      // residence gate must still keep the row visible.
+      makeItem('br-manual-no-residence', 'branched', {
+        branch: 'residence_documents',
+        branchingFallback: 'api_error',
+        branchManualOverride: true,
+        residenceId: null,
+      }),
+    ];
+    renderPage();
+    await screen.findByTestId('item-preview-trigger-br-manual-no-residence', undefined, { timeout: 4000 });
+
+    await clickToggle();
+
+    await waitFor(() => {
+      // Residence gate blocks hiding — row must remain visible.
+      expect(screen.queryByTestId('item-preview-trigger-br-manual-no-residence')).toBeInTheDocument();
+    }, { timeout: 4000 });
+  }, 10_000);
+
+  it('identification: row with identificationFallback + identificationEffectiveDateManualOverride=true is hidden by toggle', async () => {
+    currentStep = 'identification';
+    items = [
+      // Manually overridden date → should be hidden when toggle is ON.
+      makeItem('id-manual-override', 'identified', {
+        identificationFallback: 'api_error',
+        identificationEffectiveDateManualOverride: true,
+      }),
+      // No override → still visible.
+      makeItem('id-fallback-no-override', 'identified', {
+        identificationFallback: 'api_error',
+        identificationEffectiveDateManualOverride: false,
+      }),
+    ];
+    renderPage();
+    await screen.findByTestId('item-preview-trigger-id-manual-override', undefined, { timeout: 8000 });
+    await screen.findByTestId('item-preview-trigger-id-fallback-no-override', undefined, { timeout: 4000 });
+
+    await clickToggle();
+
+    await waitFor(() => {
+      // Manually overridden → hidden.
+      expect(screen.queryByTestId('item-preview-trigger-id-manual-override')).not.toBeInTheDocument();
+      // Unresolved fallback with no override → still visible.
+      expect(screen.queryByTestId('item-preview-trigger-id-fallback-no-override')).toBeInTheDocument();
+    }, { timeout: 4000 });
+  }, 15_000);
+
+  it('screening: fallback gate unchanged — screeningFallback row stays visible even without a manual-override flag', async () => {
+    currentStep = 'screening';
+    items = [
+      makeItem('sc-fb-1082', 'screened', { screeningFallback: 'api_error' }),
+    ];
+    renderPage();
+    await screen.findByTestId('item-preview-trigger-sc-fb-1082', undefined, { timeout: 8000 });
+
+    await clickToggle();
+
+    await waitFor(() => {
+      expect(screen.queryByTestId('item-preview-trigger-sc-fb-1082')).toBeInTheDocument();
+    }, { timeout: 4000 });
+  }, 15_000);
+
+  it('linking: fallback gate unchanged — linkingFallback row stays visible even without a manual-override flag', async () => {
+    currentStep = 'linking';
+    items = [
+      makeItem('lk-fb-1082', 'linked', { linkingFallback: 'api_error' }),
+    ];
+    renderPage();
+    await screen.findByTestId('item-preview-trigger-lk-fb-1082', undefined, { timeout: 4000 });
+
+    await clickToggle();
+
+    await waitFor(() => {
+      expect(screen.queryByTestId('item-preview-trigger-lk-fb-1082')).toBeInTheDocument();
+    }, { timeout: 4000 });
   }, 10_000);
 });
