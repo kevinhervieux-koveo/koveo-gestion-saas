@@ -17,17 +17,34 @@ describe('parseDateOnly', () => {
     expect(result!.getDate()).toBe(1);
   });
 
-  it('is timezone-invariant for the documented test date', () => {
+  it('returns the documented calendar day (2026-04-25) without a UTC shift', () => {
+    // Sanity-check the canonical regression input from Task #1153. If anyone
+    // reverts `parseDateOnly` to `new Date(value)`, the day would silently
+    // become April 24 in any timezone west of UTC.
+    const result = parseDateOnly('2026-04-25');
+    expect(result).not.toBeNull();
+    expect(result!.getFullYear()).toBe(2026);
+    expect(result!.getMonth()).toBe(3); // April (0-indexed)
+    expect(result!.getDate()).toBe(25);
+  });
+
+  it('is timezone-invariant in any UTC offset', () => {
     // Original TZ
     const originalTz = process.env.TZ;
 
     try {
-      // Simulate UTC-8 (America/Vancouver)
+      // Simulate UTC-8 (America/Vancouver) — most common regression env.
       process.env.TZ = 'America/Vancouver';
       const vancouver = parseDateOnly('2026-05-01');
       expect(vancouver!.getFullYear()).toBe(2026);
       expect(vancouver!.getMonth()).toBe(4);
       expect(vancouver!.getDate()).toBe(1);
+
+      // The task's documented input must also stay on the same day.
+      const vancouverApril = parseDateOnly('2026-04-25');
+      expect(vancouverApril!.getFullYear()).toBe(2026);
+      expect(vancouverApril!.getMonth()).toBe(3);
+      expect(vancouverApril!.getDate()).toBe(25);
 
       // Simulate UTC+12 (Pacific/Auckland)
       process.env.TZ = 'Pacific/Auckland';
@@ -35,6 +52,11 @@ describe('parseDateOnly', () => {
       expect(auckland!.getFullYear()).toBe(2026);
       expect(auckland!.getMonth()).toBe(4);
       expect(auckland!.getDate()).toBe(1);
+
+      const aucklandApril = parseDateOnly('2026-04-25');
+      expect(aucklandApril!.getFullYear()).toBe(2026);
+      expect(aucklandApril!.getMonth()).toBe(3);
+      expect(aucklandApril!.getDate()).toBe(25);
     } finally {
       process.env.TZ = originalTz;
     }
