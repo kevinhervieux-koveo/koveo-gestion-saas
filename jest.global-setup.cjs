@@ -22,6 +22,36 @@ function maskDbUrl(url) {
   }
 }
 
+function runOrphanFkCleanup(databaseUrl) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(
+      'npx',
+      ['tsx', 'scripts/clean-orphan-fk-rows.ts'],
+      {
+        cwd: __dirname,
+        env: { ...process.env, DATABASE_URL: databaseUrl },
+        stdio: ['ignore', 'inherit', 'inherit'],
+      },
+    );
+    const killTimer = setTimeout(() => {
+      child.kill('SIGKILL');
+      reject(new Error('orphan FK cleanup timed out after 60_000ms'));
+    }, 60_000);
+    child.on('error', (e) => {
+      clearTimeout(killTimer);
+      reject(e);
+    });
+    child.on('exit', (code) => {
+      clearTimeout(killTimer);
+      if (code !== 0) {
+        reject(new Error(`orphan FK cleanup failed (exit ${code}); see output above for details`));
+      } else {
+        resolve();
+      }
+    });
+  });
+}
+
 function runDrizzleKitPush(databaseUrl) {
   return new Promise((resolve, reject) => {
     const child = spawn('npx', ['drizzle-kit', 'push', '--force'], {
@@ -125,6 +155,21 @@ module.exports = async function globalSetup() {
       `[jest.global-setup] Refusing drizzle-kit push against a production-shaped URL ` +
       `(${maskDbUrl(databaseUrl)}). Set ALLOW_DB_PUSH_IN_TESTS=1 to override.`,
     );
+  }
+
+  // Task #1155: clean known orphan rows before drizzle-kit push so a
+  // newly added/strengthened FK constraint cannot silently break the
+  // integration suite for everyone. The script introspects the Drizzle
+  // schema, removes (cascade) or NULLs (set null) orphan FK rows, and
+  // throws a clear error pointing at the offending table/rows for any
+  // FK whose declared policy doesn't permit a safe automatic fix.
+  if (process.env.SKIP_ORPHAN_FK_CLEANUP !== '1') {
+    console.log(
+      `[jest.global-setup] cleaning orphan FK rows → ${maskDbUrl(databaseUrl)}`,
+    );
+    await runOrphanFkCleanup(databaseUrl);
+  } else {
+    console.log('[jest.global-setup] skip orphan FK cleanup: SKIP_ORPHAN_FK_CLEANUP=1');
   }
 
   console.log(
