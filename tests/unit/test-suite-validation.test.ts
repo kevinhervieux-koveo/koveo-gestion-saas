@@ -135,7 +135,7 @@ describe('Test Suite Validation', () => {
     test('should validate test file naming conventions', () => {
       const testFiles = [
         'tests/unit/simple-test.test.ts',
-        'tests/unit/form-validation-fixes.test.ts'
+        'tests/unit/form-validation.test.ts'
       ];
 
       testFiles.forEach(file => {

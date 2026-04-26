@@ -22,12 +22,9 @@
  * synchronous heavy work to a top-level filter or date-range handler
  * fails CI instead of silently regressing the UX.
  *
- * The page references `client/src/pages/manager/dashboard.tsx` in the
- * task description but that file does not exist — `/dashboard/overview`
- * is the actual route managers see, so this guard targets the real
- * file. The guard does not assert that the existing handlers wrap
- * their state updates in `startTransition` (they currently do not);
- * it asserts that the handlers themselves stay below the Chromium
+ * The guard does not assert that the existing handlers wrap their
+ * state updates in `startTransition` (they currently do not); it
+ * asserts that the handlers themselves stay below the Chromium
  * "[Violation]" budget so a future change that introduces heavy
  * synchronous work in `setSelectedBuildingId` / `setStartingFiscalYear`
  * / `setFutureProjection` / `setBillsFilterMonth` / `setBillsFilterYear`
