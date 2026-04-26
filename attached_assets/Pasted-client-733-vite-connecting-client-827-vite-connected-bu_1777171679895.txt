@@ -1,0 +1,166 @@
+client:733 [vite] connecting...
+client:827 [vite] connected.
+bulk-document-import:1 Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner.
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+queryClient.ts:112  POST https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/admin/bulk-import/items/c64ea916-aea4-4b28-8de9-56c856f685cd/set-tags 404 (Not Found)
+(anonymous) @ queryClient.ts:112
+(anonymous) @ bulk-document-import.tsx:2578
+fn @ @tanstack_react-query.js?v=1625281e:1200
+run @ @tanstack_react-query.js?v=1625281e:491
+start @ @tanstack_react-query.js?v=1625281e:533
+execute @ @tanstack_react-query.js?v=1625281e:1235
+await in execute
+mutate @ @tanstack_react-query.js?v=1625281e:2642
+(anonymous) @ @tanstack_react-query.js?v=1625281e:3356
+(anonymous) @ bulk-document-import.tsx:5821
+(anonymous) @ bulk-document-import.tsx:1492
+setTimeout
+handleChange @ bulk-document-import.tsx:1491
+(anonymous) @ TagPicker.tsx:70
+(anonymous) @ TagPicker.tsx:126
+C @ cmdk.js?v=1625281e:266
+executeDispatch @ react-dom_client.js?v=1625281e:11736
+runWithFiberInDEV @ react-dom_client.js?v=1625281e:1485
+processDispatchQueue @ react-dom_client.js?v=1625281e:11772
+(anonymous) @ react-dom_client.js?v=1625281e:12182
+batchedUpdates$1 @ react-dom_client.js?v=1625281e:2628
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1625281e:11877
+dispatchEvent @ react-dom_client.js?v=1625281e:14792
+dispatchDiscreteEvent @ react-dom_client.js?v=1625281e:14773
+<div>
+exports.jsx @ chunk-FNEW3GHX.js?v=1625281e:250
+Primitive.div @ chunk-75FO23HA.js?v=1625281e:48
+react_stack_bottom_frame @ react-dom_client.js?v=1625281e:17424
+renderWithHooks @ react-dom_client.js?v=1625281e:4206
+updateForwardRef @ react-dom_client.js?v=1625281e:6461
+beginWork @ react-dom_client.js?v=1625281e:7864
+runWithFiberInDEV @ react-dom_client.js?v=1625281e:1485
+performUnitOfWork @ react-dom_client.js?v=1625281e:10868
+workLoopSync @ react-dom_client.js?v=1625281e:10728
+renderRootSync @ react-dom_client.js?v=1625281e:10711
+performWorkOnRoot @ react-dom_client.js?v=1625281e:10330
+performSyncWorkOnRoot @ react-dom_client.js?v=1625281e:11635
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=1625281e:11536
+processRootScheduleInMicrotask @ react-dom_client.js?v=1625281e:11558
+(anonymous) @ react-dom_client.js?v=1625281e:11649
+<Primitive.div>
+exports.createElement @ chunk-RK4IZW7T.js?v=1625281e:776
+(anonymous) @ cmdk.js?v=1625281e:273
+react_stack_bottom_frame @ react-dom_client.js?v=1625281e:17424
+renderWithHooks @ react-dom_client.js?v=1625281e:4206
+updateForwardRef @ react-dom_client.js?v=1625281e:6461
+beginWork @ react-dom_client.js?v=1625281e:7864
+runWithFiberInDEV @ react-dom_client.js?v=1625281e:1485
+performUnitOfWork @ react-dom_client.js?v=1625281e:10868
+workLoopSync @ react-dom_client.js?v=1625281e:10728
+renderRootSync @ react-dom_client.js?v=1625281e:10711
+performWorkOnRoot @ react-dom_client.js?v=1625281e:10330
+performSyncWorkOnRoot @ react-dom_client.js?v=1625281e:11635
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=1625281e:11536
+processRootScheduleInMicrotask @ react-dom_client.js?v=1625281e:11558
+(anonymous) @ react-dom_client.js?v=1625281e:11649
+<ForwardRef>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1625281e:250
+_c12 @ command.tsx:109
+react_stack_bottom_frame @ react-dom_client.js?v=1625281e:17424
+renderWithHooks @ react-dom_client.js?v=1625281e:4206
+updateForwardRef @ react-dom_client.js?v=1625281e:6461
+beginWork @ react-dom_client.js?v=1625281e:7864
+runWithFiberInDEV @ react-dom_client.js?v=1625281e:1485
+performUnitOfWork @ react-dom_client.js?v=1625281e:10868
+workLoopSync @ react-dom_client.js?v=1625281e:10728
+renderRootSync @ react-dom_client.js?v=1625281e:10711
+performWorkOnRoot @ react-dom_client.js?v=1625281e:10330
+performSyncWorkOnRoot @ react-dom_client.js?v=1625281e:11635
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=1625281e:11536
+processRootScheduleInMicrotask @ react-dom_client.js?v=1625281e:11558
+(anonymous) @ react-dom_client.js?v=1625281e:11649
+<ForwardRef(_c12)>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1625281e:250
+(anonymous) @ TagPicker.tsx:124
+(anonymous) @ TagPicker.tsx:120
+react_stack_bottom_frame @ react-dom_client.js?v=1625281e:17424
+renderWithHooks @ react-dom_client.js?v=1625281e:4206
+updateFunctionComponent @ react-dom_client.js?v=1625281e:6619
+beginWork @ react-dom_client.js?v=1625281e:7654
+runWithFiberInDEV @ react-dom_client.js?v=1625281e:1485
+performUnitOfWork @ react-dom_client.js?v=1625281e:10868
+workLoopSync @ react-dom_client.js?v=1625281e:10728
+renderRootSync @ react-dom_client.js?v=1625281e:10711
+performWorkOnRoot @ react-dom_client.js?v=1625281e:10330
+performSyncWorkOnRoot @ react-dom_client.js?v=1625281e:11635
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=1625281e:11536
+processRootScheduleInMicrotask @ react-dom_client.js?v=1625281e:11558
+(anonymous) @ react-dom_client.js?v=1625281e:11649
+react-dom_client.js?v=1625281e:16 [Violation] 'message' handler took 187ms
+queryClient.ts:112  POST https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/admin/bulk-import/items/c64ea916-aea4-4b28-8de9-56c856f685cd/set-tags 404 (Not Found)
+(anonymous) @ queryClient.ts:112
+(anonymous) @ bulk-document-import.tsx:2578
+fn @ @tanstack_react-query.js?v=1625281e:1200
+run @ @tanstack_react-query.js?v=1625281e:491
+start @ @tanstack_react-query.js?v=1625281e:533
+execute @ @tanstack_react-query.js?v=1625281e:1235
+await in execute
+mutate @ @tanstack_react-query.js?v=1625281e:2642
+(anonymous) @ @tanstack_react-query.js?v=1625281e:3356
+(anonymous) @ bulk-document-import.tsx:5821
+(anonymous) @ bulk-document-import.tsx:1492
+setTimeout
+handleChange @ bulk-document-import.tsx:1491
+(anonymous) @ TagPicker.tsx:70
+(anonymous) @ TagPicker.tsx:126
+C @ cmdk.js?v=1625281e:266
+executeDispatch @ react-dom_client.js?v=1625281e:11736
+runWithFiberInDEV @ react-dom_client.js?v=1625281e:1485
+processDispatchQueue @ react-dom_client.js?v=1625281e:11772
+(anonymous) @ react-dom_client.js?v=1625281e:12182
+batchedUpdates$1 @ react-dom_client.js?v=1625281e:2628
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1625281e:11877
+dispatchEvent @ react-dom_client.js?v=1625281e:14792
+dispatchDiscreteEvent @ react-dom_client.js?v=1625281e:14773
+react-dom_client.js?v=1625281e:16 [Violation] 'message' handler took 163ms
+queryClient.ts:112  POST https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/admin/bulk-import/items/c64ea916-aea4-4b28-8de9-56c856f685cd/set-tags 404 (Not Found)
+(anonymous) @ queryClient.ts:112
+(anonymous) @ bulk-document-import.tsx:2578
+fn @ @tanstack_react-query.js?v=1625281e:1200
+run @ @tanstack_react-query.js?v=1625281e:491
+start @ @tanstack_react-query.js?v=1625281e:533
+execute @ @tanstack_react-query.js?v=1625281e:1235
+await in execute
+mutate @ @tanstack_react-query.js?v=1625281e:2642
+(anonymous) @ @tanstack_react-query.js?v=1625281e:3356
+(anonymous) @ bulk-document-import.tsx:5821
+(anonymous) @ bulk-document-import.tsx:1492
+setTimeout
+handleChange @ bulk-document-import.tsx:1491
+(anonymous) @ TagPicker.tsx:69
+(anonymous) @ TagPicker.tsx:126
+C @ cmdk.js?v=1625281e:266
+executeDispatch @ react-dom_client.js?v=1625281e:11736
+runWithFiberInDEV @ react-dom_client.js?v=1625281e:1485
+processDispatchQueue @ react-dom_client.js?v=1625281e:11772
+(anonymous) @ react-dom_client.js?v=1625281e:12182
+batchedUpdates$1 @ react-dom_client.js?v=1625281e:2628
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1625281e:11877
+dispatchEvent @ react-dom_client.js?v=1625281e:14792
+dispatchDiscreteEvent @ react-dom_client.js?v=1625281e:14773
+react-dom_client.js?v=1625281e:16 [Violation] 'message' handler took 151ms
+react-dom_client.js?v=1625281e:16 [Violation] 'message' handler took 447ms
