@@ -1,0 +1,385 @@
+/**
+ * @jest-environment node
+ *
+ * Task #1164 — Lock in the behaviour of `scripts/clean-orphan-fk-rows.ts`
+ * (added in Task #1155) against a real Postgres database.
+ *
+ * The cleanup script runs in `jest.global-setup.cjs` before every
+ * `drizzle-kit push --force`. Without it, a single newly-added or
+ * tightened cascade FK that already has stale orphan rows in the
+ * integration DB silently bricks the entire integration suite for
+ * every developer (the original failure mode that motivated #1155).
+ *
+ * The cleanup logic itself was verified manually against the live
+ * integration DB during #1155 but had no automated coverage. This file
+ * fixes that with three real-Postgres cases driven through scoped
+ * fixture tables so we never have to mutate the actual application
+ * schema to exercise the logic:
+ *
+ *   1. CASCADE FK orphan: the script must DELETE the orphan and the
+ *      previously-`NOT VALID` FK constraint must then `VALIDATE`
+ *      cleanly (this is the exact path drizzle-kit push needs to
+ *      succeed after a schema tightening).
+ *
+ *   2. NO ACTION FK orphan: the script must REFUSE to guess and the
+ *      thrown error must name the offending table, columns, and at
+ *      least one sample row id so a developer can fix it by hand.
+ *
+ *   3. `SKIP_ORPHAN_FK_CLEANUP=1` opt-out: the env var is the
+ *      single switch documented in
+ *      `docs/INTEGRATION_DB_ORPHAN_CLEANUP.md` for triaging the
+ *      cleanup itself. With it set, the script must short-circuit
+ *      and leave seeded orphans untouched.
+ *
+ * Skipped cleanly when `_INTEGRATION_DB_URL` is not set so unit-tier
+ * runs stay lightweight, mirroring the convention used by the other
+ * real-DB integration tests in this directory.
+ */
+
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from '@jest/globals';
+import crypto from 'crypto';
+import pg from 'pg';
+
+import {
+  runCleanup,
+  collectForeignKeys,
+  main,
+  type FkInfo,
+} from '../../scripts/clean-orphan-fk-rows';
+
+const REAL_DB_URL = process.env._INTEGRATION_DB_URL || process.env.DATABASE_URL;
+const describeIfDb = REAL_DB_URL ? describe : describe.skip;
+
+// Stable, namespaced table names so a crashed run still cleans up
+// deterministically and the fixtures never collide with application
+// tables in the shared integration DB.
+const TAG = `_t1164_${crypto.randomBytes(3).toString('hex')}`;
+const PARENT = `${TAG}_parent`;
+const CHILD_CASCADE = `${TAG}_child_cascade`;
+const CHILD_NOACTION = `${TAG}_child_noaction`;
+
+describeIfDb('orphan FK cleanup script — real Postgres (Task #1164)', () => {
+  let client: pg.Client;
+
+  beforeAll(async () => {
+    if (!REAL_DB_URL) return;
+    client = new pg.Client({ connectionString: REAL_DB_URL });
+    await client.connect();
+
+    // Drop any leftovers from a previously-crashed run, then create
+    // the fixture tables. The cascade child gets the FK enforced from
+    // the start; we'll temporarily disable the constraint when seeding
+    // the orphan so the planted row survives. The no-action child
+    // mirrors the production failure mode where a strict FK already
+    // exists but contains orphans, so we mark its FK NOT VALID and
+    // assert the cleanup refuses to clear it.
+    await client.query(`DROP TABLE IF EXISTS "${CHILD_CASCADE}" CASCADE`);
+    await client.query(`DROP TABLE IF EXISTS "${CHILD_NOACTION}" CASCADE`);
+    await client.query(`DROP TABLE IF EXISTS "${PARENT}" CASCADE`);
+
+    await client.query(`
+      CREATE TABLE "${PARENT}" (
+        id uuid PRIMARY KEY
+      )
+    `);
+    await client.query(`
+      CREATE TABLE "${CHILD_CASCADE}" (
+        id uuid PRIMARY KEY,
+        parent_id uuid NOT NULL,
+        CONSTRAINT "${CHILD_CASCADE}_parent_fk"
+          FOREIGN KEY (parent_id) REFERENCES "${PARENT}"(id) ON DELETE CASCADE
+      )
+    `);
+    await client.query(`
+      CREATE TABLE "${CHILD_NOACTION}" (
+        id uuid PRIMARY KEY,
+        parent_id uuid NOT NULL,
+        CONSTRAINT "${CHILD_NOACTION}_parent_fk"
+          FOREIGN KEY (parent_id) REFERENCES "${PARENT}"(id) NOT VALID
+      )
+    `);
+  }, 60000);
+
+  afterAll(async () => {
+    if (!REAL_DB_URL || !client) return;
+    try {
+      await client.query(`DROP TABLE IF EXISTS "${CHILD_CASCADE}" CASCADE`);
+      await client.query(`DROP TABLE IF EXISTS "${CHILD_NOACTION}" CASCADE`);
+      await client.query(`DROP TABLE IF EXISTS "${PARENT}" CASCADE`);
+    } finally {
+      await client.end().catch(() => undefined);
+    }
+  }, 60000);
+
+  beforeEach(async () => {
+    if (!REAL_DB_URL) return;
+    // Truncate (rather than drop+recreate) so each test starts from
+    // an empty fixture without paying the DDL roundtrip cost.
+    await client.query(
+      `TRUNCATE TABLE "${CHILD_CASCADE}", "${CHILD_NOACTION}", "${PARENT}" RESTART IDENTITY`,
+    );
+  });
+
+  /**
+   * Seed an orphan row in the cascade child by temporarily dropping
+   * the FK constraint, inserting the row, and re-adding the FK as
+   * `NOT VALID` so it matches the real-world shape the cleanup is
+   * designed to fix: a constraint that was relaxed/added later and
+   * inherited stale rows from before it existed.
+   */
+  async function plantOrphanWithCascadeFk(): Promise<string> {
+    const orphanId = crypto.randomUUID();
+    const ghostParentId = crypto.randomUUID();
+    await client.query(
+      `ALTER TABLE "${CHILD_CASCADE}" DROP CONSTRAINT "${CHILD_CASCADE}_parent_fk"`,
+    );
+    await client.query(
+      `INSERT INTO "${CHILD_CASCADE}" (id, parent_id) VALUES ($1, $2)`,
+      [orphanId, ghostParentId],
+    );
+    await client.query(`
+      ALTER TABLE "${CHILD_CASCADE}"
+        ADD CONSTRAINT "${CHILD_CASCADE}_parent_fk"
+        FOREIGN KEY (parent_id) REFERENCES "${PARENT}"(id)
+        ON DELETE CASCADE
+        NOT VALID
+    `);
+    return orphanId;
+  }
+
+  async function plantOrphanWithNoActionFk(): Promise<string> {
+    const orphanId = crypto.randomUUID();
+    const ghostParentId = crypto.randomUUID();
+    // `NOT VALID` only opts out of the up-front existing-rows check at
+    // constraint-creation time; Postgres still rejects new inserts that
+    // violate the constraint. Drop, insert, re-add NOT VALID — the same
+    // dance as the cascade fixture and the same shape as the real-world
+    // failure the cleanup is supposed to fix.
+    await client.query(
+      `ALTER TABLE "${CHILD_NOACTION}" DROP CONSTRAINT "${CHILD_NOACTION}_parent_fk"`,
+    );
+    await client.query(
+      `INSERT INTO "${CHILD_NOACTION}" (id, parent_id) VALUES ($1, $2)`,
+      [orphanId, ghostParentId],
+    );
+    await client.query(`
+      ALTER TABLE "${CHILD_NOACTION}"
+        ADD CONSTRAINT "${CHILD_NOACTION}_parent_fk"
+        FOREIGN KEY (parent_id) REFERENCES "${PARENT}"(id)
+        NOT VALID
+    `);
+    return orphanId;
+  }
+
+  function cascadeFk(): FkInfo {
+    return {
+      childTable: CHILD_CASCADE,
+      childColumns: ['parent_id'],
+      parentTable: PARENT,
+      parentColumns: ['id'],
+      onDelete: 'cascade',
+    };
+  }
+
+  function noActionFk(): FkInfo {
+    return {
+      childTable: CHILD_NOACTION,
+      childColumns: ['parent_id'],
+      parentTable: PARENT,
+      parentColumns: ['id'],
+      onDelete: 'no action',
+    };
+  }
+
+  it('deletes orphan rows behind a CASCADE FK and lets the constraint validate afterwards', async () => {
+    const orphanId = await plantOrphanWithCascadeFk();
+
+    // Sanity: the orphan really is there before the cleanup runs.
+    const before = await client.query<{ n: number }>(
+      `SELECT count(*)::int AS n FROM "${CHILD_CASCADE}" WHERE id = $1`,
+      [orphanId],
+    );
+    expect(before.rows[0].n).toBe(1);
+
+    // The FK is currently NOT VALID — validating it right now must
+    // fail with a foreign_key_violation, otherwise the test isn't
+    // actually exercising the failure mode the cleanup is supposed to
+    // unblock.
+    await expect(
+      client.query(
+        `ALTER TABLE "${CHILD_CASCADE}" VALIDATE CONSTRAINT "${CHILD_CASCADE}_parent_fk"`,
+      ),
+    ).rejects.toMatchObject({ code: '23503' });
+
+    const result = await runCleanup({
+      client,
+      fks: [cascadeFk()],
+      log: () => undefined,
+    });
+
+    expect(result.fatalReports).toEqual([]);
+    expect(result.cleanedTotal).toBe(1);
+    expect(result.perFk).toHaveLength(1);
+    expect(result.perFk[0]).toMatchObject({
+      action: 'deleted',
+      rows: 1,
+    });
+
+    const after = await client.query<{ n: number }>(
+      `SELECT count(*)::int AS n FROM "${CHILD_CASCADE}" WHERE id = $1`,
+      [orphanId],
+    );
+    expect(after.rows[0].n).toBe(0);
+
+    // Now that the orphan is gone, the FK must validate cleanly —
+    // this is the exact precondition `drizzle-kit push --force`
+    // needs in CI.
+    await expect(
+      client.query(
+        `ALTER TABLE "${CHILD_CASCADE}" VALIDATE CONSTRAINT "${CHILD_CASCADE}_parent_fk"`,
+      ),
+    ).resolves.toBeDefined();
+  }, 60000);
+
+  it('refuses to auto-clean orphans behind a NO ACTION FK and reports table, columns, and a sample id', async () => {
+    const orphanId = await plantOrphanWithNoActionFk();
+
+    const result = await runCleanup({
+      client,
+      fks: [noActionFk()],
+      log: () => undefined,
+    });
+
+    // Must surface the orphan as fatal — that is the contract the
+    // failing CI run is supposed to lean on instead of letting
+    // drizzle-kit push die mysteriously.
+    expect(result.cleanedTotal).toBe(0);
+    expect(result.fatalReports).toHaveLength(1);
+    const report = result.fatalReports[0];
+    expect(report.fk.childTable).toBe(CHILD_NOACTION);
+    expect(report.fk.childColumns).toEqual(['parent_id']);
+    expect(report.fk.parentTable).toBe(PARENT);
+    expect(report.fk.parentColumns).toEqual(['id']);
+    expect(report.orphanCount).toBe(1);
+    expect(report.sampleIds).toContain(orphanId);
+
+    // The script's `main()` wraps the same report list in a fatal
+    // error; `buildFatalMessage` is the function it uses to do so.
+    // Importing it directly lets us assert the operator-facing
+    // message shape without coupling to the CLI exit path.
+    const { buildFatalMessage } = await import('../../scripts/clean-orphan-fk-rows');
+    const msg = buildFatalMessage(result.fatalReports);
+    expect(msg).toContain(CHILD_NOACTION);
+    expect(msg).toContain('parent_id');
+    expect(msg).toContain(PARENT);
+    expect(msg).toContain(orphanId);
+    expect(msg).toContain('orphan row(s)');
+    expect(msg).toContain('docs/INTEGRATION_DB_ORPHAN_CLEANUP.md');
+
+    // The orphan must still be in place — refusing to act is a hard
+    // stop, not a partial fix.
+    const stillThere = await client.query<{ n: number }>(
+      `SELECT count(*)::int AS n FROM "${CHILD_NOACTION}" WHERE id = $1`,
+      [orphanId],
+    );
+    expect(stillThere.rows[0].n).toBe(1);
+  }, 60000);
+
+  it('main() rejects (driving a non-zero CLI exit) when a NO ACTION FK has orphans', async () => {
+    // Repro the same fatal shape, but this time drive the CLI
+    // entrypoint itself. The CLI guard at the bottom of the script
+    // does `main().catch(() => process.exit(1))`, so locking in that
+    // `main()` rejects with the operator-facing message is what
+    // guarantees CI fails loudly rather than continuing silently
+    // when an unsafe orphan is present. Code-review feedback on the
+    // first pass of this suite specifically called for this layer.
+    const orphanId = await plantOrphanWithNoActionFk();
+
+    // Silence the informational `console.log` calls inside `main()`
+    // so the test output stays focused on the failure assertion.
+    const origLog = console.log;
+    console.log = () => undefined;
+    let rejection: Error | undefined;
+    try {
+      await main({ client, fks: [noActionFk()] }).catch((err: unknown) => {
+        rejection = err as Error;
+      });
+    } finally {
+      console.log = origLog;
+    }
+
+    expect(rejection).toBeInstanceOf(Error);
+    const msg = rejection!.message;
+    expect(msg).toContain('Refusing to auto-clean');
+    expect(msg).toContain(CHILD_NOACTION);
+    expect(msg).toContain('parent_id');
+    expect(msg).toContain(PARENT);
+    expect(msg).toContain(orphanId);
+    expect(msg).toContain('docs/INTEGRATION_DB_ORPHAN_CLEANUP.md');
+
+    // And — same as the lower-level test — the orphan must still be
+    // in place. The CLI throwing must NOT also half-clean the row.
+    const stillThere = await client.query<{ n: number }>(
+      `SELECT count(*)::int AS n FROM "${CHILD_NOACTION}" WHERE id = $1`,
+      [orphanId],
+    );
+    expect(stillThere.rows[0].n).toBe(1);
+  }, 60000);
+
+  it('honours SKIP_ORPHAN_FK_CLEANUP=1 and leaves a seeded orphan untouched', async () => {
+    const orphanId = await plantOrphanWithCascadeFk();
+
+    const previous = process.env.SKIP_ORPHAN_FK_CLEANUP;
+    process.env.SKIP_ORPHAN_FK_CLEANUP = '1';
+    try {
+      // Re-import the module fresh so the SKIP gate inside `main()` is
+      // re-evaluated. We deliberately go through `main()` (the
+      // entrypoint that actually reads the env) rather than
+      // `runCleanup` directly, because the documented opt-out lives
+      // at the entrypoint layer.
+      jest.resetModules();
+      const mod = await import('../../scripts/clean-orphan-fk-rows');
+      const logs: string[] = [];
+      const origLog = console.log;
+      console.log = (msg: unknown, ...rest: unknown[]) => {
+        logs.push([msg, ...rest].map(String).join(' '));
+      };
+      try {
+        await mod.main();
+      } finally {
+        console.log = origLog;
+      }
+      expect(logs.some((l) => l.includes('skip: SKIP_ORPHAN_FK_CLEANUP=1'))).toBe(true);
+    } finally {
+      if (previous === undefined) {
+        delete process.env.SKIP_ORPHAN_FK_CLEANUP;
+      } else {
+        process.env.SKIP_ORPHAN_FK_CLEANUP = previous;
+      }
+    }
+
+    // Orphan still present — proof the SKIP path actually short-
+    // circuited instead of silently running the cleanup anyway.
+    const stillThere = await client.query<{ n: number }>(
+      `SELECT count(*)::int AS n FROM "${CHILD_CASCADE}" WHERE id = $1`,
+      [orphanId],
+    );
+    expect(stillThere.rows[0].n).toBe(1);
+  }, 60000);
+
+  it('collectForeignKeys discovers at least one Drizzle-modeled FK so the introspection step still works', () => {
+    // Lightweight regression guard: if a future schema refactor breaks
+    // the introspection (e.g. a tables export change drops the FK
+    // metadata), the rest of the cleanup is silently a no-op. Catching
+    // that here is much cheaper than waiting for the next FK-bearing
+    // schema change to fail in CI.
+    const fks = collectForeignKeys();
+    expect(fks.length).toBeGreaterThan(0);
+    for (const fk of fks) {
+      expect(fk.childTable).toBeTruthy();
+      expect(fk.childColumns.length).toBeGreaterThan(0);
+      expect(fk.parentTable).toBeTruthy();
+      expect(fk.parentColumns.length).toBe(fk.childColumns.length);
+    }
+  });
+});

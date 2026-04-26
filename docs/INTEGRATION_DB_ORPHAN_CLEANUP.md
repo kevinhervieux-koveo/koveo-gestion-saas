@@ -72,5 +72,26 @@ DATABASE_URL=postgres://... npx tsx scripts/clean-orphan-fk-rows.ts
 
 Add `--report-only` (or `ORPHAN_CLEANUP_REPORT_ONLY=1`) to print
 findings without modifying any rows. Set
-`SKIP_ORPHAN_FK_CLEANUP=1` when invoking Jest to skip the pre-push
-cleanup entirely (e.g. when triaging a failure of the cleanup itself).
+`SKIP_ORPHAN_FK_CLEANUP=1` to skip the cleanup entirely — both
+`jest.global-setup.cjs` and a direct `npx tsx
+scripts/clean-orphan-fk-rows.ts` invocation honour this flag, so it is
+the single switch to flip when triaging a failure of the cleanup
+itself.
+
+## Tests
+
+`tests/integration/orphan-fk-cleanup.test.ts` locks the behaviour
+described above against a real Postgres database:
+
+1. A controlled cascade-FK orphan is seeded behind a fixture parent /
+   child table pair, the cleanup is driven against that scoped FK list,
+   and the test asserts the orphan is gone and the FK constraint then
+   `VALIDATE`s.
+2. A controlled `NO ACTION` (restrict-style) orphan is seeded the same
+   way and the test asserts the cleanup throws a fatal error whose
+   message names the offending table, columns, and at least one sample
+   row id — the actionable shape that lets a developer fix it by hand.
+3. The `SKIP_ORPHAN_FK_CLEANUP=1` opt-out is exercised end-to-end:
+   with the env set the cleanup short-circuits and the previously
+   seeded orphan is still present afterwards, so the documented
+   debugging escape hatch keeps working.

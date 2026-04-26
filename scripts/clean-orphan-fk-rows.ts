@@ -25,10 +25,17 @@
  *   `ALLOW_DB_PUSH_IN_TESTS=1` is set (mirrors the global-setup gate).
  * - All cleanup statements run inside a single transaction per FK so
  *   any unexpected failure leaves the table untouched.
+ * - Honours `SKIP_ORPHAN_FK_CLEANUP=1` (same env that gates the call
+ *   inside `jest.global-setup.cjs`) so direct script invocations during
+ *   debugging behave identically to the global-setup wrapper.
  *
  * Manual usage:
  *   DATABASE_URL=postgres://... npx tsx scripts/clean-orphan-fk-rows.ts
  *   DATABASE_URL=... npx tsx scripts/clean-orphan-fk-rows.ts --report-only
+ *
+ * Task #1164 also exports the building blocks below so an integration
+ * test can drive the cleanup against scoped fixture FKs without
+ * spawning a child process.
  */
 
 import pg from 'pg';
@@ -38,9 +45,9 @@ import { getTableConfig, PgTable } from 'drizzle-orm/pg-core';
 import { is } from 'drizzle-orm';
 import * as schema from '../shared/schema';
 
-type OnDelete = 'cascade' | 'restrict' | 'no action' | 'set null' | 'set default' | undefined;
+export type OnDelete = 'cascade' | 'restrict' | 'no action' | 'set null' | 'set default' | undefined;
 
-interface FkInfo {
+export interface FkInfo {
   childTable: string;
   childColumns: string[];
   parentTable: string;
@@ -48,7 +55,7 @@ interface FkInfo {
   onDelete: OnDelete;
 }
 
-interface OrphanReport {
+export interface OrphanReport {
   fk: FkInfo;
   orphanCount: number;
   sampleIds: string[];
@@ -77,7 +84,7 @@ function quoteIdent(name: string): string {
   return '"' + name.replace(/"/g, '""') + '"';
 }
 
-function collectForeignKeys(): FkInfo[] {
+export function collectForeignKeys(): FkInfo[] {
   const out: FkInfo[] = [];
   for (const value of Object.values(schema as Record<string, unknown>)) {
     if (!value || !is(value as object, PgTable)) continue;
@@ -136,7 +143,7 @@ async function tableExists(client: PgClient, tableName: string): Promise<boolean
   return r.rowCount > 0;
 }
 
-async function findOrphans(client: PgClient, fk: FkInfo): Promise<OrphanReport | null> {
+export async function findOrphans(client: PgClient, fk: FkInfo): Promise<OrphanReport | null> {
   // Skip if either table is missing (first-ever push to an empty DB).
   if (!(await tableExists(client, fk.childTable))) return null;
   if (!(await tableExists(client, fk.parentTable))) return null;
@@ -202,7 +209,7 @@ async function findOrphans(client: PgClient, fk: FkInfo): Promise<OrphanReport |
   return { fk, orphanCount, sampleIds };
 }
 
-async function cleanOrphans(
+export async function cleanOrphans(
   client: PgClient,
   report: OrphanReport,
   reportOnly: boolean,
@@ -265,18 +272,124 @@ async function cleanOrphans(
   return { action: 'reported', rows: orphanCount };
 }
 
-function formatFk(fk: FkInfo): string {
+export function formatFk(fk: FkInfo): string {
   return `${fk.childTable}(${fk.childColumns.join(',')}) -> ${fk.parentTable}(${fk.parentColumns.join(',')})`;
 }
 
-async function main(): Promise<void> {
+export interface RunCleanupOptions {
+  /**
+   * Caller-supplied client. The function does NOT open or close it,
+   * so the test harness can keep the connection across calls.
+   */
+  client: PgClient;
+  /** FK list to scan. Defaults to every FK declared in `@shared/schema`. */
+  fks?: FkInfo[];
+  /** When true, never write — just count what would be cleaned. */
+  reportOnly?: boolean;
+  /** Override logging (defaults to `console.log`). */
+  log?: (message: string) => void;
+}
+
+export interface RunCleanupResult {
+  cleanedTotal: number;
+  fatalReports: OrphanReport[];
+  perFk: Array<{ fk: FkInfo; action: 'deleted' | 'nulled' | 'reported'; rows: number }>;
+}
+
+/**
+ * Core cleanup loop, factored out of `main()` so integration tests can
+ * exercise it directly against scoped fixture FKs without spawning a
+ * child process. `main()` itself is just a CLI wrapper around this.
+ */
+export async function runCleanup(opts: RunCleanupOptions): Promise<RunCleanupResult> {
+  const { client, reportOnly = false } = opts;
+  const log = opts.log ?? ((m: string) => console.log(m));
+  const fks = opts.fks ?? collectForeignKeys();
+
+  const fatalReports: OrphanReport[] = [];
+  const perFk: RunCleanupResult['perFk'] = [];
+  let cleanedTotal = 0;
+
+  for (const fk of fks) {
+    const report = await findOrphans(client, fk);
+    if (!report) continue;
+    const result = await cleanOrphans(client, report, reportOnly);
+    perFk.push({ fk, action: result.action, rows: result.rows });
+    if (result.action === 'deleted' || result.action === 'nulled') {
+      cleanedTotal += result.rows;
+      log(
+        `[clean-orphan-fk-rows] ${result.action} ${result.rows} orphan row(s) for ` +
+          `${formatFk(fk)} (onDelete=${fk.onDelete})`,
+      );
+    } else if (fk.onDelete === 'cascade' || fk.onDelete === 'set null') {
+      // Report-only mode for an auto-cleanable FK.
+      log(
+        `[clean-orphan-fk-rows] would clean ${result.rows} orphan row(s) for ` +
+          `${formatFk(fk)} (onDelete=${fk.onDelete})`,
+      );
+    } else {
+      fatalReports.push(report);
+    }
+  }
+
+  return { cleanedTotal, fatalReports, perFk };
+}
+
+/**
+ * Build the human-readable error message for FKs whose orphans we
+ * refuse to auto-clean. Exported so tests can assert that the failure
+ * surfaces the offending table, columns, and at least one sample row
+ * id without depending on whether `main()` was called.
+ */
+export function buildFatalMessage(reports: OrphanReport[]): string {
+  const lines = reports.map((r) => {
+    const ids = r.sampleIds.length > 0 ? ` sample ids: ${r.sampleIds.join(', ')}` : '';
+    return (
+      `  - ${formatFk(r.fk)} (onDelete=${r.fk.onDelete ?? 'no action'}): ` +
+      `${r.orphanCount} orphan row(s).${ids}`
+    );
+  });
+  return (
+    `[clean-orphan-fk-rows] Refusing to auto-clean orphan rows for FKs without a safe ` +
+    `cascade/set-null policy. Resolve manually before re-running drizzle-kit push:\n` +
+    lines.join('\n') +
+    `\n\nSee docs/INTEGRATION_DB_ORPHAN_CLEANUP.md for the recommended procedure.`
+  );
+}
+
+export interface MainOptions {
+  /**
+   * Override the FK list normally collected from `@shared/schema`.
+   * Lets integration tests drive the CLI entrypoint against scoped
+   * fixture FKs without mutating the application schema.
+   */
+  fks?: FkInfo[];
+  /**
+   * Inject a pre-connected `pg.Client`. When provided, `main()` will
+   * NOT open or close the connection — the caller owns its lifecycle.
+   * Used by tests so they can keep the same connection that planted
+   * the fixture rows. When omitted, `main()` connects to
+   * `_INTEGRATION_DB_URL`/`DATABASE_URL` itself, the way the CLI does.
+   */
+  client?: PgClient;
+}
+
+export async function main(opts: MainOptions = {}): Promise<void> {
+  // Honour the same opt-out the global-setup uses. Keeps direct
+  // `npx tsx scripts/clean-orphan-fk-rows.ts` invocations consistent
+  // with the env you'd flip to triage the cleanup itself.
+  if (process.env.SKIP_ORPHAN_FK_CLEANUP === '1') {
+    console.log('[clean-orphan-fk-rows] skip: SKIP_ORPHAN_FK_CLEANUP=1');
+    return;
+  }
+
   const databaseUrl = process.env._INTEGRATION_DB_URL || process.env.DATABASE_URL;
-  if (!databaseUrl) {
+  if (!databaseUrl && !opts.client) {
     console.log('[clean-orphan-fk-rows] skip: no DATABASE_URL/_INTEGRATION_DB_URL configured');
     return;
   }
 
-  if (looksLikeProductionUrl(databaseUrl) && process.env.ALLOW_DB_PUSH_IN_TESTS !== '1') {
+  if (databaseUrl && looksLikeProductionUrl(databaseUrl) && process.env.ALLOW_DB_PUSH_IN_TESTS !== '1') {
     throw new Error(
       `[clean-orphan-fk-rows] Refusing to clean orphans against a production-shaped URL ` +
         `(${maskDbUrl(databaseUrl)}). Set ALLOW_DB_PUSH_IN_TESTS=1 to override.`,
@@ -286,66 +399,51 @@ async function main(): Promise<void> {
   const reportOnly =
     process.argv.includes('--report-only') || process.env.ORPHAN_CLEANUP_REPORT_ONLY === '1';
 
-  const fks = collectForeignKeys();
+  const fks = opts.fks ?? collectForeignKeys();
+  const target = databaseUrl ? maskDbUrl(databaseUrl) : '<injected client>';
   console.log(
-    `[clean-orphan-fk-rows] scanning ${fks.length} FK constraint(s) on ${maskDbUrl(databaseUrl)}` +
+    `[clean-orphan-fk-rows] scanning ${fks.length} FK constraint(s) on ${target}` +
       (reportOnly ? ' (report-only)' : ''),
   );
 
-  const client = new Client({ connectionString: databaseUrl });
-  await client.connect();
+  const ownsClient = !opts.client;
+  const client = opts.client ?? new Client({ connectionString: databaseUrl! });
+  if (ownsClient) await client.connect();
 
-  const fatalReports: OrphanReport[] = [];
-  let cleanedTotal = 0;
+  let result: RunCleanupResult;
   try {
-    for (const fk of fks) {
-      const report = await findOrphans(client, fk);
-      if (!report) continue;
-      const result = await cleanOrphans(client, report, reportOnly);
-      if (result.action === 'deleted' || result.action === 'nulled') {
-        cleanedTotal += result.rows;
-        console.log(
-          `[clean-orphan-fk-rows] ${result.action} ${result.rows} orphan row(s) for ` +
-            `${formatFk(fk)} (onDelete=${fk.onDelete})`,
-        );
-      } else if (fk.onDelete === 'cascade' || fk.onDelete === 'set null') {
-        // Report-only mode for an auto-cleanable FK.
-        console.log(
-          `[clean-orphan-fk-rows] would clean ${result.rows} orphan row(s) for ` +
-            `${formatFk(fk)} (onDelete=${fk.onDelete})`,
-        );
-      } else {
-        fatalReports.push(report);
-      }
-    }
+    result = await runCleanup({ client, fks, reportOnly });
   } finally {
-    await client.end().catch(() => undefined);
+    if (ownsClient) await client.end().catch(() => undefined);
   }
 
-  if (fatalReports.length > 0) {
-    const lines = fatalReports.map((r) => {
-      const ids = r.sampleIds.length > 0 ? ` sample ids: ${r.sampleIds.join(', ')}` : '';
-      return (
-        `  - ${formatFk(r.fk)} (onDelete=${r.fk.onDelete ?? 'no action'}): ` +
-        `${r.orphanCount} orphan row(s).${ids}`
-      );
-    });
-    const msg =
-      `[clean-orphan-fk-rows] Refusing to auto-clean orphan rows for FKs without a safe ` +
-      `cascade/set-null policy. Resolve manually before re-running drizzle-kit push:\n` +
-      lines.join('\n') +
-      `\n\nSee docs/INTEGRATION_DB_ORPHAN_CLEANUP.md for the recommended procedure.`;
-    throw new Error(msg);
+  if (result.fatalReports.length > 0) {
+    // Throwing here is what drives the non-zero CLI exit (the
+    // `isCliEntry()` block below catches and calls `process.exit(1)`).
+    // Tests assert on `.rejects.toThrow(...)` to lock that contract in.
+    throw new Error(buildFatalMessage(result.fatalReports));
   }
 
-  if (cleanedTotal === 0) {
+  if (result.cleanedTotal === 0) {
     console.log('[clean-orphan-fk-rows] no orphan rows found');
   } else {
-    console.log(`[clean-orphan-fk-rows] cleaned ${cleanedTotal} orphan row(s) total`);
+    console.log(`[clean-orphan-fk-rows] cleaned ${result.cleanedTotal} orphan row(s) total`);
   }
 }
 
-main().catch((err) => {
-  console.error(err.message || err);
-  process.exit(1);
-});
+/**
+ * CLI entrypoint guard. Only auto-run `main()` when this file was
+ * invoked directly (e.g. `npx tsx scripts/clean-orphan-fk-rows.ts`),
+ * never when imported by a test or other module.
+ */
+function isCliEntry(): boolean {
+  const entry = process.argv[1] ?? '';
+  return /clean-orphan-fk-rows\.(ts|js|mjs|cjs)$/.test(entry);
+}
+
+if (isCliEntry()) {
+  main().catch((err) => {
+    console.error(err.message || err);
+    process.exit(1);
+  });
+}
