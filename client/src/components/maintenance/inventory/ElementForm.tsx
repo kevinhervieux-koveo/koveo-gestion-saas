@@ -757,7 +757,7 @@ export function ElementForm({
       onSubmit={handleSubmit}
       isSubmitting={mutation.isPending}
       mode={currentMode}
-      size="lg"
+      size="xl"
       data-testid="element-form"
       additionalActions={
         currentMode === 'edit' && element ? (
