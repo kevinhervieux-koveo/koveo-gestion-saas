@@ -392,6 +392,171 @@ describeIfDb('bulk-import REST endpoints — Task #456', () => {
     expect(res.status).toBe(400);
   });
 
+  /**
+   * Task #1223 — GET /api/admin/bulk-import/sessions must attach a
+   * per-session `aiFailureSummary` keyed off the session's
+   * `currentStep`. The shape is consumed by the sessions-list page
+   * (Task #1219) to render an aggregated "Anthropic looks degraded"
+   * banner and a per-row indicator.
+   *
+   * The math the wizard's in-page banner (Task #1209) uses is:
+   *   - aiTotalCount  = every item in the session
+   *   - aiFailedCount = items NOT in `rejected` status whose current-
+   *                     step `fallbackReason` is in
+   *                     RETRYABLE_AI_FALLBACK_REASONS
+   *   - aiDegraded    = aiFailedCount > 0 AND
+   *                     aiFailedCount / aiTotalCount > 0.25
+   *
+   * Below we seed two sessions in parallel:
+   *   - degraded session (currentStep=screening): 4 items total, two
+   *     with retryable fallback reasons (`api_error`,
+   *     `unreadable_response`), one with a permanent reason
+   *     (`oversize`) that must NOT bump the failed counter, and one
+   *     `rejected` row whose retryable fallback must also be ignored
+   *     (excluded items don't count). Failure rate 2/4 = 50% > 25%
+   *     ⇒ aiDegraded should be true.
+   *   - healthy session (currentStep=identification): 3 items, none
+   *     with retryable fallback ⇒ aiDegraded should be false.
+   *
+   * Asserting both shapes in one test (rather than splitting them)
+   * keeps the cleanup deterministic — `beforeEach` already resets
+   * tracked sessions/items between cases — and proves the per-row
+   * indicator agrees with the per-session aggregation in a single
+   * paginated response.
+   */
+  it('attaches aiFailureSummary with the correct aiDegraded flag on the sessions list (Task #1223)', async () => {
+    // --- Degraded session ---------------------------------------------------
+    const degradedSid = await createSession();
+    // Move it onto an AI step so the summary actually scores items.
+    // The default `currentStep` of a fresh session is `upload`, which
+    // would force `step: null` / `aiDegraded: false` regardless of
+    // the items' fallback reasons.
+    const movedDegraded = await request(app)
+      .patch(`/api/admin/bulk-import/sessions/${degradedSid}`)
+      .set('x-test-user-id', ids.admin)
+      .send({ currentStep: 'screening' });
+    expect(movedDegraded.status).toBe(200);
+
+    const seedItem = async (
+      sid: string,
+      overrides: Record<string, unknown>,
+    ) => {
+      const id = crypto.randomUUID();
+      trackedItems.add(id);
+      await db.insert(schema.bulkImportItems).values({
+        id,
+        sessionId: sid,
+        originalPath: `${id}.pdf`,
+        originalName: `${id}.pdf`,
+        stagedPath: `${stagingRoot}/${sid}/${id}.pdf`,
+        contentHash: crypto.createHash('sha256').update(id).digest('hex'),
+        mimeType: 'application/pdf',
+        fileSize: 1,
+        status: 'pending',
+        ...overrides,
+      });
+      return id;
+    };
+
+    // 4 items: two retryable failures, one permanent failure (oversize),
+    // one rejected row that even with a retryable fallback must be
+    // skipped by the failed-counter loop.
+    await seedItem(degradedSid, {
+      status: 'screened',
+      screening: { fallbackReason: 'api_error' },
+    });
+    await seedItem(degradedSid, {
+      status: 'screened',
+      screening: { fallbackReason: 'unreadable_response' },
+    });
+    await seedItem(degradedSid, {
+      status: 'screened',
+      screening: { fallbackReason: 'oversize' },
+    });
+    await seedItem(degradedSid, {
+      status: 'rejected',
+      screening: { fallbackReason: 'api_error' },
+    });
+
+    // --- Healthy session ----------------------------------------------------
+    // Use a different building so the idempotent-resume rule on
+    // POST /sessions doesn't return the degraded session's id again.
+    const otherBuildingId = crypto.randomUUID();
+    await db.insert(schema.buildings).values({
+      id: otherBuildingId,
+      organizationId: ids.org,
+      name: `${TEST_TAG} bldg-1223-healthy`,
+      address: '2 Test',
+      city: 'Montreal',
+      province: 'QC',
+      postalCode: 'H1A1A1',
+      buildingType: 'condo',
+      totalUnits: 1,
+      isActive: true,
+    });
+    const healthyCreate = await request(app)
+      .post('/api/admin/bulk-import/sessions')
+      .set('x-test-user-id', ids.admin)
+      .send({ buildingId: otherBuildingId });
+    expect([200, 201]).toContain(healthyCreate.status);
+    const healthySid = healthyCreate.body.id;
+    trackedSessions.add(healthySid);
+
+    const movedHealthy = await request(app)
+      .patch(`/api/admin/bulk-import/sessions/${healthySid}`)
+      .set('x-test-user-id', ids.admin)
+      .send({ currentStep: 'identification' });
+    expect(movedHealthy.status).toBe(200);
+
+    // 3 items: one with no fallback (already identified) and two
+    // with non-retryable reasons that must NOT bump the failed counter.
+    await seedItem(healthySid, {
+      status: 'identified',
+      identification: { name: 'invoice.pdf' },
+    });
+    await seedItem(healthySid, {
+      status: 'identified',
+      identification: { fallbackReason: 'oversize' },
+    });
+    await seedItem(healthySid, {
+      status: 'identified',
+      identification: { fallbackReason: 'unsupported_mime' },
+    });
+
+    // --- Assertions ---------------------------------------------------------
+    const list = await request(app)
+      .get('/api/admin/bulk-import/sessions')
+      .set('x-test-user-id', ids.admin);
+    expect(list.status).toBe(200);
+    expect(Array.isArray(list.body.sessions)).toBe(true);
+
+    const degradedRow = list.body.sessions.find((s: any) => s.id === degradedSid);
+    expect(degradedRow).toBeDefined();
+    expect(degradedRow.aiFailureSummary).toEqual({
+      step: 'screening',
+      aiTotalCount: 4,
+      aiFailedCount: 2,
+      aiDegraded: true,
+    });
+
+    const healthyRow = list.body.sessions.find((s: any) => s.id === healthySid);
+    expect(healthyRow).toBeDefined();
+    expect(healthyRow.aiFailureSummary).toEqual({
+      step: 'identification',
+      aiTotalCount: 3,
+      aiFailedCount: 0,
+      aiDegraded: false,
+    });
+
+    // --- Cleanup of the extra building seeded for this test ---------------
+    // Sessions/items are torn down by the suite-wide `beforeEach`, but
+    // the extra building is local to this case so we drop it here to
+    // avoid polluting the next test's name lookups.
+    await db
+      .delete(schema.buildings)
+      .where(eq(schema.buildings.id, otherBuildingId));
+  });
+
   it('uploads files into a session, dedupes by content hash, and exposes them for streaming', async () => {
     const sid = await createSession();
 
