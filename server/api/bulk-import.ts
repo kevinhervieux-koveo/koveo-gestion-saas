@@ -430,8 +430,12 @@ export function stopStagingJanitor(): void {
  * (Task #1088). The two checks are independent — a failure in one is
  * logged but never aborts the other — so a transient `statfs` error
  * cannot stop the orphan sweep from running, and vice versa.
+ *
+ * Exported (Task #1096) so a unit test can drive the disk-usage probe
+ * deterministically and assert that the WARN line ops alert on
+ * actually fires when the probe reports `isLow=true`.
  */
-async function runStagingJanitorOnce(): Promise<void> {
+export async function runStagingJanitorOnce(): Promise<void> {
   try {
     const r = await sweepStagingOrphans();
     if (r.removedTmp > 0 || r.removedSessionDirs > 0) {
