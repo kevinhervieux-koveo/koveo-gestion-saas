@@ -40,6 +40,7 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach, jest } from '@jest/globals';
 import express from 'express';
 import * as nodeFs from 'fs';
+import * as nodeOs from 'os';
 import * as nodePath from 'path';
 import * as nodeCrypto from 'crypto';
 import * as nodeHttp from 'http';
@@ -55,8 +56,32 @@ jest.mock('drizzle-orm/pg-core', () => require('../manual-mocks/drizzle-orm/pg-c
 const SESSION_ID = 'sess-large-batch-mem-1067';
 const ORG_ID = 'org-large-batch-mem-1067';
 const ADMIN_ID = 'admin-large-batch-mem-1067';
-const STAGING_ROOT = nodePath.join(process.cwd(), '.staging', 'bulk-import');
-const SESSION_DIR = nodePath.join(STAGING_ROOT, SESSION_ID);
+// Task #1089 — point this perf-gated suite at a per-test `mkdtempSync`
+// directory instead of writing fixtures into the project tree's
+// `.staging/bulk-import`. The route reads its staging root from
+// `getBulkImportStagingRoot()` (Task #1080), so setting
+// `BULK_IMPORT_STAGING_ROOT` before the route module is required keeps
+// fixtures and the production path in lockstep regardless of any
+// operator-set value while running the perf job. Mirrors the pattern
+// Task #1086 applied to `bulk-import-upload-disk-streaming.test.ts`.
+//
+// Both the `mkdtempSync` and the `process.env` mutation are gated on
+// `PERF_ENABLED`. When `RUN_PERF_TESTS!=1` the surrounding
+// `describeIfPerf` is `describe.skip`, so its `beforeAll`/`afterAll`
+// hooks never run — meaning a top-level env mutation here would leak
+// `BULK_IMPORT_STAGING_ROOT` into any later tests in the same Jest
+// worker that import this file. Guarding both keeps non-perf imports
+// completely side-effect-free.
+const STAGING_ROOT = PERF_ENABLED
+  ? nodeFs.mkdtempSync(
+      nodePath.join(nodeOs.tmpdir(), 'bulk-import-large-batch-mem-test-'),
+    )
+  : '';
+const PREV_STAGING_ROOT_ENV = process.env.BULK_IMPORT_STAGING_ROOT;
+if (PERF_ENABLED) {
+  process.env.BULK_IMPORT_STAGING_ROOT = STAGING_ROOT;
+}
+const SESSION_DIR = PERF_ENABLED ? nodePath.join(STAGING_ROOT, SESSION_ID) : '';
 
 // Default knobs sized to make the in-memory regression unmistakable
 // without requiring an enormous CI box. 30 x 5MB = 150MB of payload
@@ -296,9 +321,14 @@ describeIfPerf('Task #1067 — bulk-import large batch keeps memory bounded', ()
 
   afterAll((done) => {
     try {
-      nodeFs.rmSync(SESSION_DIR, { recursive: true, force: true });
+      nodeFs.rmSync(STAGING_ROOT, { recursive: true, force: true });
     } catch {
       /* best-effort */
+    }
+    if (PREV_STAGING_ROOT_ENV === undefined) {
+      delete process.env.BULK_IMPORT_STAGING_ROOT;
+    } else {
+      process.env.BULK_IMPORT_STAGING_ROOT = PREV_STAGING_ROOT_ENV;
     }
     server.close(() => done());
   });
