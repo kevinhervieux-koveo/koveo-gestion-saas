@@ -577,6 +577,281 @@ describe('BulkDocumentImportPage — Task #1202 AI failure retry surfaces', () =
           screen.queryByTestId('auto-run-retry-cancel-sorting'),
         ).not.toBeInTheDocument();
       });
+
+      // Task #1213 — small-batch path: 3 retryable rows is below the
+      // confirmation threshold (5) so Cancel must abort immediately
+      // without ever opening the confirm-cancel AlertDialog.
+      expect(
+        screen.queryByTestId('cancel-bulk-retry-dialog'),
+      ).not.toBeInTheDocument();
+    });
+  });
+
+  /**
+   * Task #1213 — Confirm before canceling a long bulk retry.
+   *
+   * The Task #1208 Cancel button aborts immediately on click, which
+   * is fine for small batches (1-5 rows) but a single accidental
+   * click while scanning a 30-row failure list would halt the whole
+   * batch with no undo. Task #1213 wires an AlertDialog (mirroring
+   * the existing `pendingResetStep` confirmation pattern) on top of
+   * the existing cooperative-abort path:
+   *
+   *   - Batches < 5 rows keep the Task #1208 immediate-cancel
+   *     behaviour so trivial cases stay friction-free (covered by
+   *     the `BULK_RETRY_IDS` test above which uses 3 rows).
+   *   - Batches >= 5 rows open the AlertDialog. Confirming flips
+   *     `bulkRetryAbortedRef.current = true` (the same cooperative
+   *     path) and the loop stops dispatching new per-item retries.
+   *     Dismissing the dialog leaves the loop running so a
+   *     mis-click costs nothing.
+   *
+   * The fixture below renders 6 retryable rows to land just over
+   * the threshold and asserts both paths.
+   */
+  describe('Task #1213 — Confirm before canceling a long bulk retry', () => {
+    const LONG_BULK_RETRY_IDS = [
+      'item-1213-bulk-1',
+      'item-1213-bulk-2',
+      'item-1213-bulk-3',
+      'item-1213-bulk-4',
+      'item-1213-bulk-5',
+      'item-1213-bulk-6',
+    ] as const;
+
+    function buildPayloadWithSixRetryableRows() {
+      const sortedDefaults = {
+        status: 'sorted' as const,
+        screeningTypeGuess: 'invoice',
+        screeningBucketGuess: null as null,
+        screeningConfidence: 0.7,
+        sortingDecisionState: 'accepted' as const,
+        sortingConfidence: 0.05,
+        sortingDecision: 'keep' as const,
+      };
+      const rows = LONG_BULK_RETRY_IDS.map((id, idx) => ({
+        ...baseItemDefaults,
+        ...sortedDefaults,
+        id,
+        originalName: `doc-bulk-${idx + 1}.pdf`,
+        sortingFallback: 'api_error' as const,
+        sortingReason: 'AI failed',
+      }));
+      return {
+        session: {
+          id: SESSION_ID,
+          buildingId: 'building-1',
+          organizationId: 'org-1',
+          adminUserId: 'admin-1',
+          currentStep: 'sorting' as const,
+          status: 'active' as const,
+          progress: {
+            runAll: {
+              sorting: {
+                total: 6,
+                processed: 6,
+                failed: 6,
+                startedAt: '2024-01-01T00:00:00.000Z',
+                finishedAt: '2024-01-01T00:01:00.000Z',
+                inFlight: [],
+              },
+            },
+          },
+          createdAt: '2024-01-01T00:00:00.000Z',
+          updatedAt: '2024-01-01T00:00:00.000Z',
+        },
+        items: rows,
+      };
+    }
+
+    /**
+     * Wire the suite-default fetch responder to serve the 6-row
+     * payload AND record every per-item sort POST so each test can
+     * assert on whether the loop kept dispatching after Cancel was
+     * clicked (or after the confirm-dialog was dismissed).
+     */
+    function installSixRowFetchMock() {
+      const perItemSortPosts: string[] = [];
+      const payload = buildPayloadWithSixRetryableRows();
+      fetchMock.mockImplementation(async (input, init) => {
+        const url =
+          typeof input === 'string'
+            ? input
+            : input instanceof URL
+              ? input.toString()
+              : (input as Request).url;
+        const method = (init?.method || 'GET').toUpperCase();
+        const [pathname] = url.split('?');
+
+        if (method === 'GET') {
+          if (pathname === '/api/admin/bulk-import/buildings-lite') return jsonResponse([]);
+          if (pathname === '/api/admin/bulk-import/ai-status') return jsonResponse({ available: true });
+          if (pathname === '/api/organizations') return jsonResponse([]);
+          if (pathname === `/api/admin/bulk-import/sessions/${SESSION_ID}/lite`) {
+            return jsonResponse(payload);
+          }
+          if (pathname === '/api/admin/bulk-import/sessions') {
+            return jsonResponse({
+              sessions: [],
+              limit: 20,
+              offset: 0,
+              hasMore: false,
+            });
+          }
+        }
+        if (method === 'POST') {
+          if (
+            pathname.startsWith('/api/admin/bulk-import/items/') &&
+            pathname.endsWith('/sort')
+          ) {
+            perItemSortPosts.push(pathname);
+          }
+          return jsonResponse({ ok: true });
+        }
+        return jsonResponse({ unmocked: true, url, method }, 404);
+      });
+      return perItemSortPosts;
+    }
+
+    it('opens the confirm-cancel AlertDialog (instead of aborting immediately) when Cancel is clicked on a >=5-row batch, and confirming the dialog halts the loop', async () => {
+      const perItemSortPosts = installSixRowFetchMock();
+      renderPage();
+      await waitForRow(LONG_BULK_RETRY_IDS[0]);
+
+      const bulkBtn = await screen.findByTestId('auto-run-retry-failed-sorting');
+      expect(bulkBtn).toHaveTextContent('Retry AI-failed items (6)');
+
+      // Dialog must NOT be present before Cancel is clicked.
+      expect(
+        screen.queryByTestId('cancel-bulk-retry-dialog'),
+      ).not.toBeInTheDocument();
+
+      await act(async () => {
+        fireEvent.click(bulkBtn);
+      });
+
+      const cancelBtn = await screen.findByTestId(
+        'auto-run-retry-cancel-sorting',
+        undefined,
+        { timeout: 4000 },
+      );
+
+      // Wait for the loop to dispatch at least one per-item retry so
+      // the abort branch is exercised mid-flight (matching real-world
+      // usage — admins click Cancel once they see the spinner).
+      await waitFor(
+        () => {
+          expect(perItemSortPosts.length).toBeGreaterThanOrEqual(1);
+        },
+        { timeout: 4000 },
+      );
+
+      await act(async () => {
+        fireEvent.click(cancelBtn);
+      });
+
+      // The bulk retry MUST still be running at this point — the
+      // immediate-cancel path was bypassed because the batch is
+      // above the confirmation threshold. The Cancel button stays
+      // visible (the spinner-bearing state isn't cleared until the
+      // admin actually confirms) and the loop keeps dispatching.
+      const dialog = await screen.findByTestId(
+        'cancel-bulk-retry-dialog',
+        undefined,
+        { timeout: 4000 },
+      );
+      expect(dialog).toBeInTheDocument();
+      expect(dialog).toHaveTextContent(/Stop retrying/);
+      expect(dialog).toHaveTextContent(/of 6/);
+
+      // The Cancel button is still mounted (loop is still active
+      // because the abort ref hasn't been flipped yet).
+      expect(
+        screen.getByTestId('auto-run-retry-cancel-sorting'),
+      ).toBeInTheDocument();
+
+      const callsBeforeConfirm = perItemSortPosts.length;
+
+      // Confirm the dialog — this flips the abort ref, dismisses
+      // the dialog, and clears the spinner state.
+      const confirmBtn = screen.getByTestId('cancel-bulk-retry-confirm');
+      await act(async () => {
+        fireEvent.click(confirmBtn);
+      });
+
+      // Wait past the loop's 200 ms inter-call stagger so any
+      // queued next-iteration POST would have had time to land.
+      await act(async () => {
+        await new Promise<void>((r) => setTimeout(r, 800));
+      });
+
+      expect(perItemSortPosts.length).toBe(callsBeforeConfirm);
+
+      await waitFor(() => {
+        expect(
+          screen.queryByTestId('cancel-bulk-retry-dialog'),
+        ).not.toBeInTheDocument();
+      });
+      await waitFor(() => {
+        expect(
+          screen.queryByTestId('auto-run-retry-cancel-sorting'),
+        ).not.toBeInTheDocument();
+      });
+    });
+
+    it('lets the bulk retry continue when the admin dismisses the confirm-cancel dialog', async () => {
+      const perItemSortPosts = installSixRowFetchMock();
+      renderPage();
+      await waitForRow(LONG_BULK_RETRY_IDS[0]);
+
+      const bulkBtn = await screen.findByTestId('auto-run-retry-failed-sorting');
+      expect(bulkBtn).toHaveTextContent('Retry AI-failed items (6)');
+
+      await act(async () => {
+        fireEvent.click(bulkBtn);
+      });
+
+      const cancelBtn = await screen.findByTestId(
+        'auto-run-retry-cancel-sorting',
+        undefined,
+        { timeout: 4000 },
+      );
+
+      await waitFor(
+        () => {
+          expect(perItemSortPosts.length).toBeGreaterThanOrEqual(1);
+        },
+        { timeout: 4000 },
+      );
+
+      await act(async () => {
+        fireEvent.click(cancelBtn);
+      });
+
+      const dismissBtn = await screen.findByTestId(
+        'cancel-bulk-retry-dismiss',
+        undefined,
+        { timeout: 4000 },
+      );
+      const callsBeforeDismiss = perItemSortPosts.length;
+
+      await act(async () => {
+        fireEvent.click(dismissBtn);
+      });
+
+      // Dialog closes but the loop is still alive. Wait long enough
+      // for at least one more per-item POST to land so we prove the
+      // dismiss path did NOT flip the abort ref.
+      await waitFor(
+        () => {
+          expect(perItemSortPosts.length).toBeGreaterThan(callsBeforeDismiss);
+        },
+        { timeout: 4000 },
+      );
+
+      expect(
+        screen.queryByTestId('cancel-bulk-retry-dialog'),
+      ).not.toBeInTheDocument();
     });
   });
 

@@ -2380,6 +2380,15 @@ export default function BulkDocumentImportPage() {
    */
   const [bulkRetryStep, setBulkRetryStep] = useState<AutoStep | null>(null);
   const bulkRetryAbortedRef = useRef(false);
+  /**
+   * Task #1213 — track the size of the current bulk retry batch and
+   * how many items have already been processed so the Cancel handler
+   * can decide whether to ask the admin to confirm. Refs (not state)
+   * because the loop reads them synchronously between iterations and
+   * the dialog snapshots them into state only when it needs to render.
+   */
+  const bulkRetryTotalRef = useRef(0);
+  const bulkRetryProcessedRef = useRef(0);
   const retryAllAiFailedItems = useCallback(
     async (
       step: AutoStep,
@@ -2388,6 +2397,8 @@ export default function BulkDocumentImportPage() {
     ) => {
       if (itemIds.length === 0) return;
       bulkRetryAbortedRef.current = false;
+      bulkRetryTotalRef.current = itemIds.length;
+      bulkRetryProcessedRef.current = 0;
       setBulkRetryStep(step);
       try {
         for (const id of itemIds) {
@@ -2398,6 +2409,7 @@ export default function BulkDocumentImportPage() {
             // Surface failures via the row-level alert; keep iterating
             // so a single 500 doesn't block the rest of the batch.
           }
+          bulkRetryProcessedRef.current += 1;
           // Cooperative stagger between requests. ~200ms is large
           // enough for the server to persist the in-flight marker
           // before the next per-item retry endpoint call hits the
@@ -2409,24 +2421,69 @@ export default function BulkDocumentImportPage() {
         }
       } finally {
         setBulkRetryStep(null);
+        bulkRetryTotalRef.current = 0;
+        bulkRetryProcessedRef.current = 0;
       }
     },
     [runStep],
   );
 
   /**
-   * Task #1208: cooperative cancellation handler for the in-page
-   * Cancel button that sits next to the live bulk-retry progress
-   * indicator. We flip the same abort ref the session-change effect
-   * uses so the loop in `retryAllAiFailedItems` exits before
-   * dispatching the next per-item retry, and we eagerly clear
-   * `bulkRetryStep` so the UI returns to its idle state without
-   * waiting for the in-flight `runStep` call to settle (the loop's
-   * `finally` will set it again to the same null and is a no-op).
+   * Task #1213 — confirmation threshold for the in-page Cancel
+   * button. Below this size the admin gets the snappy
+   * immediate-cancel from Task #1208; at or above it we open an
+   * AlertDialog so an accidental click while scanning a long
+   * failure list doesn't kill the whole batch with no undo.
+   */
+  const BULK_RETRY_CONFIRM_THRESHOLD = 5;
+
+  /**
+   * Snapshot used by the confirm-cancel AlertDialog. Captured at the
+   * moment the admin clicks Cancel so the dialog body can show
+   * "Stop retrying X of N?" with stable numbers even though the loop
+   * keeps advancing while the dialog is open.
+   */
+  const [pendingBulkRetryCancel, setPendingBulkRetryCancel] = useState<
+    { total: number; remaining: number } | null
+  >(null);
+
+  /**
+   * Task #1208 (immediate-cancel path) + Task #1213 (confirmation
+   * path). For batches smaller than `BULK_RETRY_CONFIRM_THRESHOLD`
+   * we keep the original snappy behaviour: flip the same abort ref
+   * the session-change effect uses so the loop in
+   * `retryAllAiFailedItems` exits before dispatching the next
+   * per-item retry, and eagerly clear `bulkRetryStep` so the UI
+   * returns to idle without waiting for the in-flight `runStep`
+   * call to settle (the loop's `finally` will set it again to the
+   * same null and is a no-op). For larger batches we instead open
+   * an AlertDialog and defer the abort until the admin confirms,
+   * so a stray click while scanning a 30-row list doesn't halt the
+   * whole batch.
    */
   const cancelBulkRetry = useCallback(() => {
+    const total = bulkRetryTotalRef.current;
+    const remaining = Math.max(
+      0,
+      total - bulkRetryProcessedRef.current,
+    );
+    if (total >= BULK_RETRY_CONFIRM_THRESHOLD) {
+      setPendingBulkRetryCancel({ total, remaining });
+      return;
+    }
     bulkRetryAbortedRef.current = true;
     setBulkRetryStep(null);
+  }, []);
+
+  /**
+   * Confirm action of the Task #1213 AlertDialog — runs the same
+   * cooperative-abort path the small-batch button uses today and
+   * dismisses the dialog.
+   */
+  const confirmBulkRetryCancel = useCallback(() => {
+    bulkRetryAbortedRef.current = true;
+    setBulkRetryStep(null);
+    setPendingBulkRetryCancel(null);
   }, []);
 
   // Cooperative cancellation hook — when the wizard's session changes
@@ -8047,6 +8104,49 @@ export default function BulkDocumentImportPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Task #1213 — confirm "Cancel bulk retry" for batches at or
+          above BULK_RETRY_CONFIRM_THRESHOLD so an accidental click on
+          the in-page Cancel button (Task #1208) while scanning a long
+          failure list does not abort the whole batch with no undo. */}
+      <AlertDialog
+        open={pendingBulkRetryCancel !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setPendingBulkRetryCancel(null);
+          }
+        }}
+      >
+        <AlertDialogContent data-testid="cancel-bulk-retry-dialog">
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {isFr
+                ? 'Annuler la relance groupée ?'
+                : 'Cancel the bulk retry?'}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {isFr
+                ? `Arrêter la relance de ${pendingBulkRetryCancel?.remaining ?? 0} fichier(s) sur ${pendingBulkRetryCancel?.total ?? 0} ? La relance en cours se terminera mais aucun nouveau fichier ne sera retenté.`
+                : `Stop retrying ${pendingBulkRetryCancel?.remaining ?? 0} of ${pendingBulkRetryCancel?.total ?? 0}? The in-flight retry will finish but no further files will be attempted.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel data-testid="cancel-bulk-retry-dismiss">
+              {isFr ? 'Continuer la relance' : 'Keep retrying'}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                confirmBulkRetryCancel();
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              data-testid="cancel-bulk-retry-confirm"
+            >
+              {isFr ? 'Arrêter la relance' : 'Stop retrying'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Task #1068 — confirm "Retry step from scratch" before wiping
           AI decisions and manual overrides for the current step. */}
