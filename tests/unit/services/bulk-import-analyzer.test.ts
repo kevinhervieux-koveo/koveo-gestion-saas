@@ -34,6 +34,27 @@ jest.mock('mammoth', () => ({
   extractRawText: jest.fn().mockRejectedValue(new Error('forced mammoth failure')),
 }));
 
+// ── Task #1217: mocks for the PDF text-only degradation path ──────────────
+// pdf-parse is mocked so tests can drive the "big PDF" text-extraction path
+// without shipping large fixture files.  The factory is self-contained to
+// avoid jest-hoisting scope issues; use jest.requireMock() to access it.
+jest.mock('pdf-parse', () => {
+  // The analyzer resolves the callable as `module.default ?? module` to
+  // handle CJS/ESM shape ambiguity.  Mirror both exports in the mock.
+  const fn = jest.fn().mockResolvedValue({ text: 'Extracted PDF text content' });
+  (fn as unknown as Record<string, unknown>).default = fn;
+  return fn;
+});
+
+// pdf-lib is mocked so tests can control the page-count check without a
+// valid PDF binary.  By default, load() resolves to a doc with 10 pages
+// (below the 80-page threshold) so existing tests are never degraded.
+jest.mock('pdf-lib', () => ({
+  PDFDocument: {
+    load: jest.fn().mockResolvedValue({ getPageCount: jest.fn().mockReturnValue(10) }),
+  },
+}));
+
 import { bulkImportAnalyzer } from '../../../server/services/bulk-import-analyzer';
 import { bandForConfidence } from '../../../shared/schemas/bulk-import';
 
@@ -2037,5 +2058,224 @@ describe('Task #1143 — callClaudeJson retry and enriched failure logging', () 
     expect(logStr).toContain('headers-get-id');
 
     errorSpy.mockRestore();
+  });
+});
+
+/**
+ * Task #1217: PDF text-only degradation path.
+ *
+ * When a PDF exceeds the per-request body-size limit (15 MB) or the per-PDF
+ * page-count limit (80 pages), the analyzer must:
+ *   1. Extract the PDF's text using pdf-parse.
+ *   2. Send a text-only prompt to Anthropic (no document block).
+ *   3. Return `degraded: 'pdf_text_only'` so the UI can surface the badge.
+ *   4. NOT set `fallbackReason` when the degradation and AI call succeed.
+ *
+ * The tests below use the top-level pdf-parse + pdf-lib mocks so no large
+ * files need to live in the repo.
+ */
+describe('bulkImportAnalyzer text-only PDF degradation (Task #1217)', () => {
+  // Constants copied from the analyzer — keeps tests aligned with the source.
+  const PDF_TEXT_ONLY_SIZE_THRESHOLD_BYTES = 15 * 1024 * 1024;
+  const PDF_TEXT_ONLY_PAGE_THRESHOLD = 80;
+
+  // Access the mocked modules via jest.requireMock (safe with jest hoisting).
+  let pdfParseMock: jest.Mock;
+  let pdfLibLoadMock: jest.Mock;
+
+  function makeFakeClient(jsonPayload: object) {
+    const create = jest.fn().mockResolvedValue({
+      content: [{ type: 'text', text: JSON.stringify(jsonPayload) }],
+    });
+    bulkImportAnalyzer.__setClientForTests({
+      messages: { create },
+    } as unknown as Parameters<typeof bulkImportAnalyzer.__setClientForTests>[0]);
+    return create;
+  }
+
+  beforeEach(() => {
+    // Grab the mock functions from the registry each time so we always have
+    // the same reference regardless of module isolation order.
+    pdfParseMock = jest.requireMock('pdf-parse') as jest.Mock;
+    pdfLibLoadMock = (jest.requireMock('pdf-lib') as { PDFDocument: { load: jest.Mock } })
+      .PDFDocument.load;
+
+    // Reset to defaults — 10 pages (below threshold) and successful text extraction.
+    pdfParseMock.mockClear();
+    pdfParseMock.mockResolvedValue({ text: 'Extracted PDF text content' });
+    pdfLibLoadMock.mockClear();
+    pdfLibLoadMock.mockResolvedValue({ getPageCount: jest.fn().mockReturnValue(10) });
+
+    cacheMockStore.clear();
+    getCachedMock.mockClear();
+    setCachedMock.mockClear();
+  });
+
+  afterAll(() => {
+    bulkImportAnalyzer.__setClientForTests(null);
+  });
+
+  it('degrades to text-only when the buffer exceeds the size threshold', async () => {
+    // Create a buffer exactly one byte over the size threshold.  The
+    // content does not need to be a valid PDF because pdf-parse is mocked.
+    const largeBuffer = Buffer.alloc(PDF_TEXT_ONLY_SIZE_THRESHOLD_BYTES + 1, 0x25); // 0x25 = '%'
+    makeFakeClient({
+      isComplete: true,
+      isMultiDocument: false,
+      pageOrderHint: null,
+      rotationDegrees: 0,
+      suggestedFilename: 'big-report.pdf',
+      confidence: 0.82,
+      periodHint: null,
+      typeGuess: null,
+      bucketGuess: null,
+      qaReason: null,
+    });
+
+    const result = await bulkImportAnalyzer.screen({
+      originalName: 'big-report.pdf',
+      mimeType: 'application/pdf',
+      buffer: largeBuffer,
+    });
+
+    // pdf-parse must have been called (text extraction happened).
+    expect(pdfParseMock).toHaveBeenCalledTimes(1);
+    // The AI call must have been made (not a hard fallback).
+    expect(result.fallbackReason).toBeNull();
+    // The degraded flag must be set.
+    expect(result.degraded).toBe('pdf_text_only');
+    // Basic sanity: confidence should be non-trivial.
+    expect(result.confidence).toBeGreaterThan(0.5);
+  });
+
+  it('degrades to text-only when the PDF page count exceeds the page threshold', async () => {
+    // Mock pdf-lib to report 90 pages (above the 80-page threshold) even
+    // for a small buffer that does not trigger the size threshold.
+    pdfLibLoadMock.mockResolvedValue({
+      getPageCount: jest.fn().mockReturnValue(PDF_TEXT_ONLY_PAGE_THRESHOLD + 10),
+    });
+
+    const smallBuffer = Buffer.from('%PDF-1.4 minimal');
+    makeFakeClient({
+      isComplete: true,
+      isMultiDocument: false,
+      pageOrderHint: null,
+      rotationDegrees: 0,
+      suggestedFilename: 'many-pages.pdf',
+      confidence: 0.75,
+      periodHint: null,
+      typeGuess: null,
+      bucketGuess: null,
+      qaReason: null,
+    });
+
+    const result = await bulkImportAnalyzer.screen({
+      originalName: 'many-pages.pdf',
+      mimeType: 'application/pdf',
+      buffer: smallBuffer,
+    });
+
+    expect(pdfParseMock).toHaveBeenCalledTimes(1);
+    expect(result.fallbackReason).toBeNull();
+    expect(result.degraded).toBe('pdf_text_only');
+  });
+
+  it('does NOT degrade when the buffer is below both thresholds', async () => {
+    // Default pdf-lib mock returns 10 pages (< 80).  Small buffer (< 15 MB).
+    const normalBuffer = Buffer.from('%PDF-1.4 small doc');
+    const create = makeFakeClient({
+      isComplete: true,
+      isMultiDocument: false,
+      pageOrderHint: null,
+      rotationDegrees: 0,
+      suggestedFilename: 'normal.pdf',
+      confidence: 0.88,
+      periodHint: null,
+      typeGuess: null,
+      bucketGuess: null,
+      qaReason: null,
+    });
+
+    const result = await bulkImportAnalyzer.screen({
+      originalName: 'normal.pdf',
+      mimeType: 'application/pdf',
+      buffer: normalBuffer,
+    });
+
+    // pdf-parse must NOT have been called for a normal-sized PDF.
+    expect(pdfParseMock).not.toHaveBeenCalled();
+    expect(result.degraded).toBeNull();
+    expect(result.fallbackReason).toBeNull();
+    // The document block path was used — Anthropic was called.
+    expect(create).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns extraction_failed fallback when pdf-parse throws on a big PDF', async () => {
+    pdfParseMock.mockRejectedValueOnce(new Error('forced pdf-parse failure'));
+
+    const largeBuffer = Buffer.alloc(PDF_TEXT_ONLY_SIZE_THRESHOLD_BYTES + 1, 0x25);
+
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const result = await bulkImportAnalyzer.screen({
+      originalName: 'corrupt-big.pdf',
+      mimeType: 'application/pdf',
+      buffer: largeBuffer,
+    });
+    errorSpy.mockRestore();
+
+    expect(result.fallbackReason).toBe('extraction_failed');
+    // When extraction failed, degraded must stay null (no text-only path succeeded).
+    expect(result.degraded).toBeNull();
+  });
+
+  it('returns extraction_failed when pdf-parse yields only whitespace (image-only PDF)', async () => {
+    // Scanned-image PDFs without OCR have no extractable text.  pdf-parse
+    // succeeds but returns only spaces / newlines.  The analyzer must treat
+    // this as extraction_failed rather than silently proceeding with a
+    // filename-only prompt that would produce an unreliable AI result.
+    pdfParseMock.mockResolvedValueOnce({ text: '   \n\t  ' });
+
+    const largeBuffer = Buffer.alloc(PDF_TEXT_ONLY_SIZE_THRESHOLD_BYTES + 1, 0x25);
+
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const result = await bulkImportAnalyzer.screen({
+      originalName: 'scanned-image.pdf',
+      mimeType: 'application/pdf',
+      buffer: largeBuffer,
+    });
+    errorSpy.mockRestore();
+
+    expect(result.fallbackReason).toBe('extraction_failed');
+    expect(result.degraded).toBeNull();
+  });
+
+  it('propagates degraded through callClaudeJson into the cache payload', async () => {
+    // After a degraded screen() call succeeds, the JSONB payload stored in
+    // the cache must include `degraded: 'pdf_text_only'` so that a cache
+    // hit on a later session correctly replays the flag (Task #1217).
+    const largeBuffer = Buffer.alloc(PDF_TEXT_ONLY_SIZE_THRESHOLD_BYTES + 1, 0x25);
+    makeFakeClient({
+      isComplete: false,
+      isMultiDocument: false,
+      pageOrderHint: null,
+      rotationDegrees: 0,
+      suggestedFilename: 'cached-big.pdf',
+      confidence: 0.70,
+      periodHint: null,
+      typeGuess: null,
+      bucketGuess: null,
+      qaReason: null,
+    });
+
+    await bulkImportAnalyzer.screen({
+      originalName: 'cached-big.pdf',
+      mimeType: 'application/pdf',
+      buffer: largeBuffer,
+    });
+
+    // setCachedMock was called — find its payload argument.
+    expect(setCachedMock).toHaveBeenCalled();
+    const cachedPayload = setCachedMock.mock.calls[0][1] as Record<string, unknown>;
+    expect(cachedPayload).toHaveProperty('degraded', 'pdf_text_only');
   });
 });

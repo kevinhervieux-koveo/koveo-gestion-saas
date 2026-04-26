@@ -78,7 +78,7 @@ import {
   type BulkImportStep,
 } from '@shared/schemas/bulk-import';
 import { ConfidenceBadge } from './bulk-import-confidence-badge';
-import { FallbackReasonBadge, FALLBACK_REASON_LABELS, FALLBACK_REASON_EXPLANATIONS, formatRetryAttempts } from './bulk-import-fallback-reason-badge';
+import { FallbackReasonBadge, TextOnlyDegradedBadge, FALLBACK_REASON_LABELS, FALLBACK_REASON_EXPLANATIONS, formatRetryAttempts } from './bulk-import-fallback-reason-badge';
 import {
   AUTO_STEPS,
   NextStepBlock,
@@ -234,6 +234,13 @@ interface BulkImportItemLite {
   excludeSource: string | null;
   screeningConfidence: number | null;
   screeningFallback: BulkImportFallbackReason | null;
+  /**
+   * Task #1217: set to 'pdf_text_only' when the Screening step degraded a
+   * large PDF to text-only analysis (PDF exceeded size/page-count thresholds).
+   * Null means the PDF was analyzed normally (or the file is not a PDF).
+   * Distinct from screeningFallback — the analysis succeeded but from text.
+   */
+  screeningDegraded: 'pdf_text_only' | null;
   /**
    * Task #1157: number of Anthropic attempts the worker made for the
    * Screening step on this item. 1 = first-try success, 2-3 = retried,
@@ -6383,6 +6390,12 @@ export default function BulkDocumentImportPage() {
                                         isFr={isFr}
                                         retryCount={decision?.retryCount}
                                       />
+                                      {currentStep === 'screening' && !item.screeningFallback && (
+                                        <TextOnlyDegradedBadge
+                                          degraded={item.screeningDegraded}
+                                          isFr={isFr}
+                                        />
+                                      )}
                                       <ConfidenceBadge
                                         value={decision?.confidence}
                                         fallbackReason={decision?.fallbackReason}

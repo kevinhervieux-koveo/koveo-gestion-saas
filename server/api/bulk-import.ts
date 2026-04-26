@@ -2417,7 +2417,7 @@ export function registerBulkImportRoutes(app: Express): void {
       // Pre-extract confidence + fallbackReason from each step's JSON so
       // the client never has to download or parse the full AI decision blob.
       function extractStep(json: Record<string, unknown> | null | undefined) {
-        if (!json) return { confidence: null, fallbackReason: null, retryCount: null };
+        if (!json) return { confidence: null, fallbackReason: null, retryCount: null, degraded: null };
         // `retryCount` reflects how many Anthropic attempts the worker made
         // for this step (1 = first-try success, 2-3 = retried, 0 = no API
         // call e.g. cache hit / no_api_key). Surfaced so the admin detail
@@ -2426,10 +2426,18 @@ export function registerBulkImportRoutes(app: Express): void {
         // before Task #1157 — coerce to null so the client can detect that.
         const rawRetry = json.retryCount;
         const retryCount = typeof rawRetry === 'number' && Number.isFinite(rawRetry) ? rawRetry : null;
+        // `degraded` is set when the analyzer degraded a big PDF to text-only
+        // (Task #1217). Replayed from JSONB so the UI can show the informational
+        // badge even on old sessions persisted before the flag existed — those
+        // sessions always return null here which matches the "not degraded" default.
+        const rawDegraded = json.degraded;
+        const degraded: 'pdf_text_only' | null =
+          rawDegraded === 'pdf_text_only' ? 'pdf_text_only' : null;
         return {
           confidence: (json.confidence as number | null | undefined) ?? null,
           fallbackReason: (json.fallbackReason as string | null | undefined) ?? null,
           retryCount,
+          degraded,
         };
       }
 
@@ -2646,6 +2654,7 @@ export function registerBulkImportRoutes(app: Express): void {
               screeningConfidence: sc.confidence,
               screeningFallback: sc.fallbackReason,
               screeningRetryCount: sc.retryCount,
+              screeningDegraded: sc.degraded,
               ...sqaFields,
               screeningParsedPeriodHintDate,
               screeningRotationDegrees: srot.rotationDegrees,

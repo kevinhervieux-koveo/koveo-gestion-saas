@@ -112,3 +112,32 @@ export function FallbackReasonBadge({
     </span>
   );
 }
+
+/**
+ * Task #1217: neutral informational badge shown when a PDF was too large
+ * to send to the AI as a document block and was degraded to text-only
+ * extraction. The badge is distinct from the error-colored FallbackReasonBadge
+ * and must not appear when fallbackReason is non-null (error takes precedence).
+ */
+export function TextOnlyDegradedBadge({
+  degraded,
+  isFr,
+}: {
+  degraded: 'pdf_text_only' | null | undefined;
+  isFr: boolean;
+}) {
+  if (degraded !== 'pdf_text_only') return null;
+  const label = isFr ? 'Analys\u00e9 \u00e0 partir du texte' : 'Analyzed from text only';
+  const tooltip = isFr
+    ? 'Ce PDF \u00e9tait trop volumineux pour \u00eatre envoy\u00e9 \u00e0 l\u2019IA tel quel ; seul son texte extrait a \u00e9t\u00e9 analys\u00e9. La suggestion peut \u00eatre l\u00e9g\u00e8rement moins pr\u00e9cise.'
+    : 'This PDF was too large to send to the AI as-is, so only its extracted text was analyzed. The suggestion may be slightly less accurate.';
+  return (
+    <span
+      className="inline-flex items-center rounded-md bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 ring-1 ring-blue-200"
+      data-testid="badge-text-only-degraded"
+      title={tooltip}
+    >
+      {label}
+    </span>
+  );
+}

@@ -83,6 +83,15 @@ export interface AnalyzerConfidence {
    * `fallbackReason` badge logic itself.
    */
   retryCount?: number;
+  /**
+   * Set when the analyzer degraded a PDF to text-only because the raw
+   * bytes would have exceeded Anthropic's per-document size or page-count
+   * limit (Task #1217). `'pdf_text_only'` means the AI saw only extracted
+   * text rather than the full PDF document block; suggestions may be
+   * slightly less accurate but are still real AI results — not stubs.
+   * `null` means the document was sent normally.
+   */
+  degraded?: 'pdf_text_only' | null;
 }
 
 export type QuickAnalysisTypeGuess =
@@ -207,6 +216,29 @@ const MODEL = 'claude-sonnet-4-6';
 
 /** Anthropic accepts ~32MB / call; we cap well below that to be safe. */
 const MAX_DOCUMENT_BYTES = 25 * 1024 * 1024;
+
+/**
+ * Task #1217: PDFs at or above this raw size will be degraded to
+ * text-only instead of being shipped as a base64 `document` block.
+ *
+ * Anthropic's per-request body cap is ~32 MB on the wire.  Base64
+ * inflates by ~33 %, so a 20 MB PDF becomes ~26.7 MB encoded — very
+ * close to the limit and consistently slow.  Keeping this well below
+ * `MAX_DOCUMENT_BYTES` means a file that passes the local size guard
+ * may still be sent as text-only when it is likely to be rejected or
+ * timeout in practice.  Tune this constant (alongside
+ * `PDF_TEXT_ONLY_PAGE_THRESHOLD`) as Anthropic's limits evolve.
+ */
+const PDF_TEXT_ONLY_SIZE_THRESHOLD_BYTES = 15 * 1024 * 1024; // 15 MB
+
+/**
+ * Task #1217: PDFs with a page count at or above this value will be
+ * degraded to text-only.  Anthropic currently caps per-document
+ * page count at 100; we use a lower threshold to avoid borderline
+ * timeouts on the full 30 s per-call budget.  Tune alongside
+ * `PDF_TEXT_ONLY_SIZE_THRESHOLD_BYTES` as limits evolve.
+ */
+const PDF_TEXT_ONLY_PAGE_THRESHOLD = 80;
 
 // ── Retry configuration ────────────────────────────────────────────────────
 //
@@ -394,18 +426,20 @@ async function loadFileForClaude(
   textPrefix: string;
   contentHash: string | null;
   fallbackReason: BulkImportFallbackReason | null;
+  /** Task #1217: set when this PDF was degraded to text-only extraction. */
+  degraded: 'pdf_text_only' | null;
 }> {
   if (!source) {
-    return { blocks: [], textPrefix: '', contentHash: null, fallbackReason: null };
+    return { blocks: [], textPrefix: '', contentHash: null, fallbackReason: null, degraded: null };
   }
   const mimeType = (source.mimeType ?? '').toLowerCase();
   // No mimeType + no buffer/path → caller never asked us to attach
   // anything, so this isn't a fallback either.
   if (!mimeType && !source.buffer && !source.stagedPath) {
-    return { blocks: [], textPrefix: '', contentHash: null, fallbackReason: null };
+    return { blocks: [], textPrefix: '', contentHash: null, fallbackReason: null, degraded: null };
   }
   if (!mimeType) {
-    return { blocks: [], textPrefix: '', contentHash: null, fallbackReason: 'unsupported_mime' };
+    return { blocks: [], textPrefix: '', contentHash: null, fallbackReason: 'unsupported_mime', degraded: null };
   }
 
   let buffer: Buffer | null = source.buffer ?? null;
@@ -416,19 +450,19 @@ async function loadFileForClaude(
         logInfo('[bulkImportAnalyzer] skipping oversize staged file', {
           metadata: { stagedPath: source.stagedPath, size: stat.size },
         });
-        return { blocks: [], textPrefix: '', contentHash: null, fallbackReason: 'oversize' };
+        return { blocks: [], textPrefix: '', contentHash: null, fallbackReason: 'oversize', degraded: null };
       }
       buffer = fs.readFileSync(source.stagedPath);
     } catch (err) {
       logError('[bulkImportAnalyzer] failed to read staged file', err as Error);
-      return { blocks: [], textPrefix: '', contentHash: null, fallbackReason: 'missing_file' };
+      return { blocks: [], textPrefix: '', contentHash: null, fallbackReason: 'missing_file', degraded: null };
     }
   }
   if (!buffer) {
-    return { blocks: [], textPrefix: '', contentHash: null, fallbackReason: 'missing_file' };
+    return { blocks: [], textPrefix: '', contentHash: null, fallbackReason: 'missing_file', degraded: null };
   }
   if (buffer.length > MAX_DOCUMENT_BYTES) {
-    return { blocks: [], textPrefix: '', contentHash: null, fallbackReason: 'oversize' };
+    return { blocks: [], textPrefix: '', contentHash: null, fallbackReason: 'oversize', degraded: null };
   }
 
   // Hashing the bytes once here gives downstream callers a stable
@@ -443,6 +477,73 @@ async function loadFileForClaude(
     .digest('hex');
 
   if (mimeType === PDF_MIME) {
+    // ── Task #1217: text-only degradation pre-check ─────────────────────
+    // If the PDF is large enough to risk Anthropic's per-request body-size
+    // limit or its per-PDF page-count cap, extract its text and send a
+    // text-only prompt instead of the full document block.  This prevents
+    // the structural api_error / timeout that previously made big PDFs
+    // permanently fail all AI steps.
+    const needsTextOnly = buffer.length >= PDF_TEXT_ONLY_SIZE_THRESHOLD_BYTES
+      || await (async () => {
+        try {
+          const { PDFDocument } = await import('pdf-lib');
+          const doc = await PDFDocument.load(new Uint8Array(buffer!), {
+            ignoreEncryption: true,
+            throwOnInvalidObject: false,
+            updateMetadata: false,
+          });
+          const pageCount = doc.getPageCount();
+          logDebug('[bulkImportAnalyzer] PDF page count check', {
+            metadata: { pageCount, threshold: PDF_TEXT_ONLY_PAGE_THRESHOLD },
+          });
+          return pageCount >= PDF_TEXT_ONLY_PAGE_THRESHOLD;
+        } catch {
+          // pdf-lib could not parse the PDF for page counting; let the
+          // normal document-block path handle it (or fail) rather than
+          // forcing a degradation based on an unknown page count.
+          return false;
+        }
+      })();
+
+    if (needsTextOnly) {
+      logInfo('[bulkImportAnalyzer] degrading big PDF to text-only', {
+        metadata: {
+          sizeBytes: buffer.length,
+          sizeThreshold: PDF_TEXT_ONLY_SIZE_THRESHOLD_BYTES,
+          pageThreshold: PDF_TEXT_ONLY_PAGE_THRESHOLD,
+        },
+      });
+      try {
+        const pdfParseModule = await import('pdf-parse');
+        // pdf-parse exports its function as `.default` in CJS but the
+        // ESM type declaration may not have that property — access it
+        // safely. Fall back to the module itself if `.default` is absent.
+        const pdfParse = (pdfParseModule as unknown as { default: (buf: Buffer) => Promise<{ text: string }> }).default
+          ?? (pdfParseModule as unknown as (buf: Buffer) => Promise<{ text: string }>);
+        const parsed = await pdfParse(buffer);
+        const text = (parsed.text || '').trim().slice(0, MAX_EXTRACTED_TEXT);
+        if (!text) {
+          // Image-only or otherwise non-OCR-readable PDFs yield no extractable
+          // text.  Sending a filename-only prompt to Claude would produce an
+          // unreliable result, so treat this the same as an extraction error
+          // rather than silently marking it as a successful text-only analysis.
+          logError('[bulkImportAnalyzer] pdf-parse returned empty text for big PDF — treating as extraction_failed',
+            new Error('empty extracted text'));
+          return { blocks: [], textPrefix: '', contentHash, fallbackReason: 'extraction_failed', degraded: null };
+        }
+        return {
+          blocks: [],
+          textPrefix: `Document text:\n${text}\n\n`,
+          contentHash,
+          fallbackReason: null,
+          degraded: 'pdf_text_only',
+        };
+      } catch (err) {
+        logError('[bulkImportAnalyzer] pdf-parse extraction failed for big PDF', err as Error);
+        return { blocks: [], textPrefix: '', contentHash, fallbackReason: 'extraction_failed', degraded: null };
+      }
+    }
+
     return {
       contentHash,
       blocks: [
@@ -457,6 +558,7 @@ async function loadFileForClaude(
       ],
       textPrefix: '',
       fallbackReason: null,
+      degraded: null,
     };
   }
   if (IMAGE_MIMES.has(mimeType)) {
@@ -474,6 +576,7 @@ async function loadFileForClaude(
       ],
       textPrefix: '',
       fallbackReason: null,
+      degraded: null,
     };
   }
   if (PLAIN_TEXT_MIMES.has(mimeType)) {
@@ -483,6 +586,7 @@ async function loadFileForClaude(
       textPrefix: text ? `Document text:\n${text}\n\n` : '',
       contentHash,
       fallbackReason: null,
+      degraded: null,
     };
   }
   if (DOCX_MIMES.has(mimeType)) {
@@ -495,13 +599,14 @@ async function loadFileForClaude(
         textPrefix: text ? `Document text:\n${text}\n\n` : '',
         contentHash,
         fallbackReason: null,
+        degraded: null,
       };
     } catch (err) {
       logError('[bulkImportAnalyzer] mammoth extraction failed', err as Error);
       // Preserve contentHash even on extractor failure so the cache key
       // stays content-aware: two different docx files that both fail
       // extraction must not collide on the same `:no-file` slot.
-      return { blocks: [], textPrefix: '', contentHash, fallbackReason: 'extraction_failed' };
+      return { blocks: [], textPrefix: '', contentHash, fallbackReason: 'extraction_failed', degraded: null };
     }
   }
   if (XLSX_MIMES.has(mimeType)) {
@@ -526,17 +631,18 @@ async function loadFileForClaude(
         textPrefix: text ? `Spreadsheet contents:\n${text}\n\n` : '',
         contentHash,
         fallbackReason: null,
+        degraded: null,
       };
     } catch (err) {
       logError('[bulkImportAnalyzer] xlsx extraction failed', err as Error);
-      return { blocks: [], textPrefix: '', contentHash, fallbackReason: 'extraction_failed' };
+      return { blocks: [], textPrefix: '', contentHash, fallbackReason: 'extraction_failed', degraded: null };
     }
   }
 
   // Unsupported MIME with bytes available: still return contentHash so
   // the analyzer cache distinguishes between two different unknown
   // files that happen to share the same prompt.
-  return { blocks: [], textPrefix: '', contentHash, fallbackReason: 'unsupported_mime' };
+  return { blocks: [], textPrefix: '', contentHash, fallbackReason: 'unsupported_mime', degraded: null };
 }
 
 /**
@@ -550,18 +656,20 @@ async function callClaudeJson<T>(
   source?: AnalyzerFileSource,
   step?: AnalyzerStep,
   logContext?: { originalName?: string; itemId?: string; sessionId?: string },
-): Promise<{ data: T | null; fallbackReason: BulkImportFallbackReason | null; retryCount: number }> {
+): Promise<{ data: T | null; fallbackReason: BulkImportFallbackReason | null; retryCount: number; degraded: 'pdf_text_only' | null }> {
   const c = getClient();
   // No Anthropic client = no AI run at all. Tag the result with
   // `no_api_key` so the UI can show "AI unavailable" alongside the
   // 20% stub instead of a generic low-confidence badge that makes
   // admins think the AI ran and disagreed with the document.
   // `retryCount` is 0 because no Anthropic call was ever attempted.
-  if (!c) return { data: null, fallbackReason: 'no_api_key', retryCount: 0 };
+  if (!c) return { data: null, fallbackReason: 'no_api_key', retryCount: 0, degraded: null };
   let fallbackReason: BulkImportFallbackReason | null = null;
+  let degraded: 'pdf_text_only' | null = null;
   try {
     const loaded = await loadFileForClaude(source);
     fallbackReason = loaded.fallbackReason;
+    degraded = loaded.degraded;
     const { blocks, textPrefix, contentHash } = loaded;
     // Cache lookup: keyed on the full prompt (which already encodes
     // step-specific inputs like sibling filenames or candidate ids) plus
@@ -574,6 +682,7 @@ async function callClaudeJson<T>(
         data: T | null;
         fallbackReason: BulkImportFallbackReason | null;
         retryCount?: number;
+        degraded?: 'pdf_text_only' | null;
       }>(cacheKey);
       if (hit !== null) {
         logDebug('[bulk-import] cache hit', {
@@ -585,17 +694,18 @@ async function callClaudeJson<T>(
             cachedRetryCount: hit.retryCount ?? 0,
           },
         });
-        // Replay the original `retryCount` recorded when the cache row
-        // was written so a cache hit is observationally identical to
-        // the original call. This keeps the admin UI accurate ("AI
-        // failed after N attempts" still applies even when served from
-        // cache, since those attempts really happened) and preserves
-        // the cache-hit invariant that callers rely on. Older entries
-        // persisted before Task #1157 lack the field — default to 0.
+        // Replay the original `retryCount` and `degraded` recorded when
+        // the cache row was written so a cache hit is observationally
+        // identical to the original call. This keeps the admin UI accurate
+        // ("AI failed after N attempts" still applies even when served from
+        // cache, since those attempts really happened) and preserves the
+        // cache-hit invariant that callers rely on. Older entries persisted
+        // before Task #1157/#1217 lack these fields — default to 0/null.
         return {
           data: hit.data,
           fallbackReason: hit.fallbackReason,
           retryCount: hit.retryCount ?? 0,
+          degraded: hit.degraded ?? null,
         };
       }
       logDebug('[bulk-import] cache miss', {
@@ -679,14 +789,13 @@ async function callClaudeJson<T>(
               durationMs: Date.now() - callStartMs,
             },
           });
-          return { data: null, fallbackReason: noMatchReason, retryCount: attemptsMade };
+          return { data: null, fallbackReason: noMatchReason, retryCount: attemptsMade, degraded };
         }
         const parsed = JSON.parse(match[0]) as T;
         // The cached payload mirrors what we return on a fresh call so a
-        // subsequent cache hit can replay the original `retryCount` if
-        // any callers ever choose to read it. The hit path itself reports
-        // `retryCount: 0` since no new Anthropic call was made.
-        const cachePayload = { data: parsed, fallbackReason, retryCount: attemptsMade };
+        // subsequent cache hit can replay the original `retryCount` and
+        // `degraded` fields if any callers ever choose to read them.
+        const cachePayload = { data: parsed, fallbackReason, retryCount: attemptsMade, degraded };
         if (cacheKey) {
           // Awaited so the cache row is durable before we return — the
           // write is a single upsert and `setCachedSuggestion` already
@@ -705,11 +814,12 @@ async function callClaudeJson<T>(
             outcome: 'success',
             durationMs: Date.now() - callStartMs,
             fallback: fallbackReason ?? null,
+            degraded: degraded ?? null,
             inputTokens: res.usage?.input_tokens ?? null,
             outputTokens: res.usage?.output_tokens ?? null,
           },
         });
-        return { data: parsed, fallbackReason, retryCount: attemptsMade };
+        return { data: parsed, fallbackReason, retryCount: attemptsMade, degraded };
       } catch (err) {
         lastErr = err;
         attemptsMade = attempt;
@@ -798,7 +908,7 @@ async function callClaudeJson<T>(
         attempts: attemptsMade,
       },
     });
-    return { data: null, fallbackReason: apiErrReason, retryCount: attemptsMade };
+    return { data: null, fallbackReason: apiErrReason, retryCount: attemptsMade, degraded };
   } catch (err) {
     // The file-loading path (loadFileForClaude) or cache lookup threw —
     // these are not Anthropic errors and should not be retried.
@@ -818,7 +928,7 @@ async function callClaudeJson<T>(
         attempts: 0,
       },
     });
-    return { data: null, fallbackReason: apiErrReason, retryCount: 0 };
+    return { data: null, fallbackReason: apiErrReason, retryCount: 0, degraded };
   }
 }
 
@@ -920,7 +1030,7 @@ Return JSON with keys:
   and bucketGuess is one of: building_documents|residence_documents|demand|bill|maintenance|other|unknown
   and reason is a one-sentence explanation of your guess
   and confidence is 0..1 for this quick-analysis guess specifically`;
-    const { data: raw, fallbackReason, retryCount } = await callClaudeJson<Record<string, unknown>>(
+    const { data: raw, fallbackReason, retryCount, degraded } = await callClaudeJson<Record<string, unknown>>(
       prompt,
       {
         stagedPath: input.stagedPath,
@@ -945,6 +1055,7 @@ Return JSON with keys:
       confidence: clampConfidence(raw.confidence),
       fallbackReason,
       retryCount,
+      degraded,
       periodHint: typeof raw.periodHint === 'string' && raw.periodHint ? raw.periodHint : null,
       quickAnalysis: parseQuickAnalysis(raw.quickAnalysis, fallbackReason),
     };
@@ -999,7 +1110,7 @@ Decision rules:
 - Otherwise decide 'keep'.
 
 Return JSON: { decision: 'keep'|'merge'|'split', reason: string, mergeWithItemId?: string, splitAtPage?: number, confidence: number }.`;
-    const { data: raw, fallbackReason, retryCount } = await callClaudeJson<Partial<MergeOrSplitResult>>(
+    const { data: raw, fallbackReason, retryCount, degraded } = await callClaudeJson<Partial<MergeOrSplitResult>>(
       prompt,
       {
         stagedPath: input.stagedPath,
@@ -1010,7 +1121,7 @@ Return JSON: { decision: 'keep'|'merge'|'split', reason: string, mergeWithItemId
       { originalName: input.originalName, itemId: input.itemId, sessionId: input.sessionId },
     );
     if (!raw) {
-      return { decision: 'keep', reason: 'fallback', confidence: 0.2, fallbackReason, retryCount };
+      return { decision: 'keep', reason: 'fallback', confidence: 0.2, fallbackReason, retryCount, degraded };
     }
     return {
       decision:
@@ -1023,6 +1134,7 @@ Return JSON: { decision: 'keep'|'merge'|'split', reason: string, mergeWithItemId
       confidence: clampConfidence(raw.confidence),
       fallbackReason,
       retryCount,
+      degraded,
     };
   },
 
@@ -1059,7 +1171,7 @@ Sub-categories per destination:
   other: other
 
 Return JSON: { branch: string, subCategory: string, residenceHint?: string, reason: string, confidence: number${residenceJsonNote} }.`;
-    const { data: raw, fallbackReason, retryCount } = await callClaudeJson<Partial<BranchResult & { subCategory: string }>>(
+    const { data: raw, fallbackReason, retryCount, degraded } = await callClaudeJson<Partial<BranchResult & { subCategory: string }>>(
       prompt,
       {
         stagedPath: input.stagedPath,
@@ -1078,7 +1190,7 @@ Return JSON: { branch: string, subCategory: string, residenceHint?: string, reas
       'other',
     ];
     if (!raw) {
-      return { branch: 'building_documents', subCategory: 'other', reason: 'fallback', confidence: 0.2, fallbackReason, retryCount, residenceId: null, residenceConfidence: null, residenceReason: null, residenceFallbackReason: null };
+      return { branch: 'building_documents', subCategory: 'other', reason: 'fallback', confidence: 0.2, fallbackReason, retryCount, degraded, residenceId: null, residenceConfidence: null, residenceReason: null, residenceFallbackReason: null };
     }
     const branch: BranchDestination = allowed.includes(raw.branch as BranchDestination)
       ? (raw.branch as BranchDestination)
@@ -1125,6 +1237,7 @@ Return JSON: { branch: string, subCategory: string, residenceHint?: string, reas
       confidence: clampConfidence(raw.confidence),
       fallbackReason,
       retryCount,
+      degraded,
       residenceId,
       residenceConfidence,
       residenceReason,
@@ -1176,7 +1289,7 @@ effectiveDate?: 'YYYY-MM-DD', metadata: object, confidence: number }.${
         ? ' The "tags" array MUST contain only names from the Available tag names list above (verbatim).'
         : ''
     }`;
-    const { data: raw, fallbackReason, retryCount } = await callClaudeJson<Partial<IdentificationResult>>(
+    const { data: raw, fallbackReason, retryCount, degraded } = await callClaudeJson<Partial<IdentificationResult>>(
       prompt,
       {
         stagedPath: input.stagedPath,
@@ -1195,6 +1308,7 @@ effectiveDate?: 'YYYY-MM-DD', metadata: object, confidence: number }.${
         confidence: 0.2,
         fallbackReason,
         retryCount,
+        degraded,
       };
     }
     return {
@@ -1210,6 +1324,7 @@ effectiveDate?: 'YYYY-MM-DD', metadata: object, confidence: number }.${
       confidence: clampConfidence(raw.confidence),
       fallbackReason,
       retryCount,
+      degraded,
     };
   },
 
@@ -1226,7 +1341,7 @@ effectiveDate?: 'YYYY-MM-DD', metadata: object, confidence: number }.${
       input.candidates,
     )}. Return JSON: { beforeItemId?: string, afterItemId?: string,
 relatedItemIds: string[], reason: string, confidence: number }.`;
-    const { data: raw, fallbackReason, retryCount } = await callClaudeJson<Partial<LinkSuggestion>>(
+    const { data: raw, fallbackReason, retryCount, degraded } = await callClaudeJson<Partial<LinkSuggestion>>(
       prompt,
       {
         stagedPath: input.stagedPath,
@@ -1237,7 +1352,7 @@ relatedItemIds: string[], reason: string, confidence: number }.`;
       { originalName: input.originalName, itemId: input.itemId, sessionId: input.sessionId },
     );
     if (!raw) {
-      return { relatedItemIds: [], reason: 'fallback', confidence: 0.2, fallbackReason, retryCount };
+      return { relatedItemIds: [], reason: 'fallback', confidence: 0.2, fallbackReason, retryCount, degraded };
     }
     return {
       beforeItemId: typeof raw.beforeItemId === 'string' ? raw.beforeItemId : undefined,
@@ -1247,6 +1362,7 @@ relatedItemIds: string[], reason: string, confidence: number }.`;
         : [],
       reason: typeof raw.reason === 'string' ? raw.reason : '',
       confidence: clampConfidence(raw.confidence),
+      degraded,
       fallbackReason,
       retryCount,
     };

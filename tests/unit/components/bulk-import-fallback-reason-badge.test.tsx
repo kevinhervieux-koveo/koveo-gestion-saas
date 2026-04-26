@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { FallbackReasonBadge } from '../../../client/src/pages/admin/bulk-import-fallback-reason-badge';
+import { FallbackReasonBadge, TextOnlyDegradedBadge } from '../../../client/src/pages/admin/bulk-import-fallback-reason-badge';
 import type { BulkImportFallbackReason } from '../../../shared/schemas/bulk-import';
 
 /**
@@ -106,5 +106,50 @@ describe('FallbackReasonBadge (bulk-document-import)', () => {
     for (const key of Object.keys(exhaustive) as BulkImportFallbackReason[]) {
       expect(covered.has(key)).toBe(true);
     }
+  });
+});
+
+/**
+ * Task #1217: TextOnlyDegradedBadge — shown when a large PDF was degraded
+ * to text-only analysis. Distinct (blue, informational) from the amber error
+ * FallbackReasonBadge. Badge MUST NOT appear when degraded is null or undefined.
+ */
+describe('TextOnlyDegradedBadge (Task #1217)', () => {
+  it('renders the English label and tooltip when degraded is pdf_text_only', () => {
+    render(<TextOnlyDegradedBadge degraded="pdf_text_only" isFr={false} />);
+    const badge = screen.getByTestId('badge-text-only-degraded');
+    expect(badge).toHaveTextContent('Analyzed from text only');
+    expect(badge).toHaveAttribute('title');
+    expect(badge.getAttribute('title')).toMatch(/extracted text/i);
+  });
+
+  it('renders the French label and tooltip when degraded is pdf_text_only and isFr is true', () => {
+    render(<TextOnlyDegradedBadge degraded="pdf_text_only" isFr={true} />);
+    const badge = screen.getByTestId('badge-text-only-degraded');
+    expect(badge).toHaveTextContent('Analysé à partir du texte');
+    expect(badge).toHaveAttribute('title');
+    expect(badge.getAttribute('title')).toMatch(/texte extrait/i);
+  });
+
+  it('renders nothing when degraded is null', () => {
+    const { container } = render(
+      <TextOnlyDegradedBadge degraded={null} isFr={false} />,
+    );
+    expect(container).toBeEmptyDOMElement();
+  });
+
+  it('renders nothing when degraded is undefined', () => {
+    const { container } = render(
+      <TextOnlyDegradedBadge degraded={undefined} isFr={false} />,
+    );
+    expect(container).toBeEmptyDOMElement();
+  });
+
+  it('has blue styling (not amber) to convey informational intent', () => {
+    render(<TextOnlyDegradedBadge degraded="pdf_text_only" isFr={false} />);
+    const badge = screen.getByTestId('badge-text-only-degraded');
+    // The badge must carry at least one blue Tailwind class — confirming it
+    // uses a distinct colour from the amber FallbackReasonBadge.
+    expect(badge.className).toMatch(/blue/);
   });
 });
