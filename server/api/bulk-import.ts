@@ -1582,7 +1582,7 @@ export async function loadAvailableTagsForOrganization(
 async function processItemForStep(
   step: AutoStep,
   item: schema.BulkImportItem,
-  sessionItems: { id: string; name: string; screening?: Record<string, unknown> | null }[],
+  sessionItems: { id: string; name: string }[],
   residences?: Array<{ id: string; unitNumber: string }>,
   /**
    * Building's fiscal-year-start month (1-indexed), used by the identification
@@ -1688,7 +1688,10 @@ async function processItemForStep(
     const siblings: SiblingContext[] = sessionItems
       .filter((s) => s.id !== item.id)
       .map((s) => {
-        const sc = s.screening as Record<string, unknown> | null | undefined;
+        const sc = (s as { screening?: Record<string, unknown> | null }).screening as
+          | Record<string, unknown>
+          | null
+          | undefined;
         const qa = sc?.quickAnalysis as QuickAnalysis | null | undefined;
         const periodHint = typeof sc?.periodHint === 'string' ? sc.periodHint : null;
         return { id: s.id, name: s.name, quickAnalysis: qa ?? null, periodHint };
@@ -2010,7 +2013,6 @@ export async function runAllForStep(sessionId: string, step: AutoStep): Promise<
     const sessionItems = items.map((i) => ({
       id: i.id,
       name: i.originalName,
-      screening: i.screening as Record<string, unknown> | null,
     }));
 
     const concurrencyForLog = Math.min(RUN_ALL_CONCURRENCY, eligible.length);
