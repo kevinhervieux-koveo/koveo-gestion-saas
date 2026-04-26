@@ -1357,6 +1357,256 @@ describeIfDb('bulk-import REST endpoints — Task #456', () => {
     });
   });
 
+  /**
+   * Task #1092 — integration coverage for the optional `residenceId`
+   * field on /items/reassign-bulk added in Task #1084. The unit
+   * suite at `tests/unit/api/bulk-import-bulk-reassign-with-
+   * residence.test.ts` mocks `db`; this one runs the same shapes
+   * through the real router, Zod schema, and Postgres.
+   */
+  describe('POST /sessions/:id/items/reassign-bulk — with residenceId (Task #1092)', () => {
+    type BranchDecision = NonNullable<schema.BulkImportItem['branchDecision']>;
+    let goodResidenceId: string;
+    let foreignBuildingId: string;
+    let foreignResidenceId: string;
+
+    beforeAll(async () => {
+      if (!REAL_DB_URL) return;
+      goodResidenceId = crypto.randomUUID();
+      foreignBuildingId = crypto.randomUUID();
+      foreignResidenceId = crypto.randomUUID();
+
+      await db.insert(schema.residences).values({
+        id: goodResidenceId,
+        buildingId: ids.building,
+        unitNumber: '101',
+        isActive: true,
+      });
+      // Second building owned by the same org so canAccess still
+      // passes — drives the 400 "different building" branch.
+      await db.insert(schema.buildings).values({
+        id: foreignBuildingId,
+        organizationId: ids.org,
+        name: `${TEST_TAG} bldg-other`,
+        address: '2 Test',
+        city: 'Montreal',
+        province: 'QC',
+        postalCode: 'H1A1A2',
+        buildingType: 'condo',
+        totalUnits: 1,
+        isActive: true,
+      });
+      await db.insert(schema.residences).values({
+        id: foreignResidenceId,
+        buildingId: foreignBuildingId,
+        unitNumber: '202',
+        isActive: true,
+      });
+    }, 30_000);
+
+    afterAll(async () => {
+      if (!REAL_DB_URL || !db) return;
+      // Drop residences before the foreign building; the primary
+      // `ids.building` is cleaned by the outer afterAll.
+      await db
+        .delete(schema.residences)
+        .where(
+          inArray(schema.residences.id, [goodResidenceId, foreignResidenceId]),
+        );
+      await db
+        .delete(schema.buildings)
+        .where(eq(schema.buildings.id, foreignBuildingId));
+    }, 30_000);
+
+    /**
+     * Stage one PDF and force its status + branchDecision to the
+     * requested seed values. Tracks the row for cleanup.
+     */
+    async function seedItem(
+      sid: string,
+      filename: string,
+      branchDecision: BranchDecision,
+      status: schema.BulkImportItem['status'],
+    ): Promise<string> {
+      const upload = await request(app)
+        .post(`/api/admin/bulk-import/sessions/${sid}/items`)
+        .set('x-test-user-id', ids.admin)
+        .attach(
+          'files',
+          // Salt the body so each filename hashes uniquely and
+          // the upload endpoint's dedupe doesn't drop it.
+          Buffer.concat([PDF_BODY, Buffer.from(filename)]),
+          { filename, contentType: 'application/pdf' },
+        );
+      expect(upload.status).toBe(201);
+      const item = upload.body[0] as schema.BulkImportItem;
+      trackedItems.add(item.id);
+      await db
+        .update(schema.bulkImportItems)
+        .set({ status, branchDecision })
+        .where(eq(schema.bulkImportItems.id, item.id));
+      return item.id;
+    }
+
+    async function loadItems(itemIds: string[]): Promise<schema.BulkImportItem[]> {
+      const rows = await db
+        .select()
+        .from(schema.bulkImportItems)
+        .where(inArray(schema.bulkImportItems.id, itemIds));
+      return rows as schema.BulkImportItem[];
+    }
+
+    it('happy path: stamps the residence on every eligible item, sets per-row override/confirm flags, and promotes them to branched', async () => {
+      const sid = await createSession();
+      // Item A: no AI residence suggestion → manualOverride flips on.
+      const idA = await seedItem(
+        sid,
+        'res-a.pdf',
+        { branch: 'building_documents', subCategory: 'other' } as BranchDecision,
+        'sorted',
+      );
+      // Item B: AI suggestion already matches the chosen residence
+      // → saving counts as confirming the AI's pick.
+      const idB = await seedItem(
+        sid,
+        'res-b.pdf',
+        {
+          branch: 'building_documents',
+          subCategory: 'other',
+          residenceAiSuggestedId: goodResidenceId,
+        } as BranchDecision,
+        'sorted',
+      );
+
+      const res = await request(app)
+        .post(`/api/admin/bulk-import/sessions/${sid}/items/reassign-bulk`)
+        .set('x-test-user-id', ids.admin)
+        .send({
+          branch: 'residence_documents',
+          subCategory: 'lease',
+          itemIds: [idA, idB],
+          residenceId: goodResidenceId,
+        });
+      expect(res.status).toBe(200);
+      expect(res.body.updated).toBe(2);
+      expect(Array.isArray(res.body.items)).toBe(true);
+      expect((res.body.items as Array<schema.BulkImportItem>).map((r) => r.id).sort()).toEqual(
+        [idA, idB].sort(),
+      );
+
+      const rows = await loadItems([idA, idB]);
+      const byId = new Map(rows.map((r) => [r.id, r]));
+
+      const a = byId.get(idA)!;
+      const aBd = a.branchDecision as BranchDecision;
+      expect(aBd.branch).toBe('residence_documents');
+      expect(aBd.subCategory).toBe('lease');
+      expect(aBd.residenceId).toBe(goodResidenceId);
+      expect(aBd.residenceManualOverride).toBe(true);
+      expect(aBd.residenceAiConfirmed).toBe(false);
+      expect(a.status).toBe('branched');
+
+      const b = byId.get(idB)!;
+      const bBd = b.branchDecision as BranchDecision;
+      expect(bBd.residenceId).toBe(goodResidenceId);
+      expect(bBd.residenceManualOverride).toBe(false);
+      expect(bBd.residenceAiConfirmed).toBe(true);
+      expect(b.status).toBe('branched');
+    });
+
+    it('returns 404 when the residenceId does not exist (and never updates any row)', async () => {
+      const sid = await createSession();
+      const seed = {
+        branch: 'building_documents',
+        subCategory: 'other',
+        manualOverride: false,
+      } as BranchDecision;
+      const id = await seedItem(sid, 'missing-res.pdf', seed, 'screened');
+      const [before] = await loadItems([id]);
+
+      const res = await request(app)
+        .post(`/api/admin/bulk-import/sessions/${sid}/items/reassign-bulk`)
+        .set('x-test-user-id', ids.admin)
+        .send({
+          branch: 'residence_documents',
+          subCategory: 'lease',
+          itemIds: [id],
+          residenceId: crypto.randomUUID(),
+        });
+      expect(res.status).toBe(404);
+      expect(String(res.body.error)).toMatch(/Residence not found/i);
+
+      const [after] = await loadItems([id]);
+      expect(after.branchDecision).toEqual(before.branchDecision);
+      expect(after.status).toBe(before.status);
+    });
+
+    it('returns 400 when the residenceId belongs to a different building (and never updates any row)', async () => {
+      const sid = await createSession();
+      const seed = {
+        branch: 'building_documents',
+        subCategory: 'other',
+        manualOverride: false,
+      } as BranchDecision;
+      const id = await seedItem(sid, 'foreign-res.pdf', seed, 'screened');
+      const [before] = await loadItems([id]);
+
+      const res = await request(app)
+        .post(`/api/admin/bulk-import/sessions/${sid}/items/reassign-bulk`)
+        .set('x-test-user-id', ids.admin)
+        .send({
+          branch: 'residence_documents',
+          subCategory: 'lease',
+          itemIds: [id],
+          residenceId: foreignResidenceId,
+        });
+      expect(res.status).toBe(400);
+      expect(String(res.body.error)).toMatch(/building/i);
+
+      const [after] = await loadItems([id]);
+      expect(after.branchDecision).toEqual(before.branchDecision);
+      expect(after.status).toBe(before.status);
+    });
+
+    it('residenceId: null still moves destination/subCategory but leaves the existing residence bookkeeping untouched', async () => {
+      const sid = await createSession();
+      // Item already routed to residence_documents with a real
+      // residence saved against it. Sending residenceId: null must
+      // NOT clear that pick — the residence path is opt-in via a
+      // non-null residenceId.
+      const seed = {
+        branch: 'residence_documents',
+        subCategory: 'other',
+        residenceId: goodResidenceId,
+        residenceManualOverride: true,
+        residenceAiConfirmed: false,
+      } as BranchDecision;
+      const id = await seedItem(sid, 'null-res.pdf', seed, 'branched');
+
+      const res = await request(app)
+        .post(`/api/admin/bulk-import/sessions/${sid}/items/reassign-bulk`)
+        .set('x-test-user-id', ids.admin)
+        .send({
+          branch: 'residence_documents',
+          subCategory: 'lease',
+          itemIds: [id],
+          residenceId: null,
+        });
+      expect(res.status).toBe(200);
+      expect(res.body.updated).toBe(1);
+
+      const [after] = await loadItems([id]);
+      const bd = after.branchDecision as BranchDecision;
+      expect(bd.branch).toBe('residence_documents');
+      expect(bd.subCategory).toBe('lease');
+      expect(bd.residenceId).toBe(goodResidenceId);
+      expect(bd.residenceManualOverride).toBe(true);
+      expect(bd.residenceAiConfirmed).toBe(false);
+      // Status was branched and no residence promotion fired.
+      expect(after.status).toBe('branched');
+    });
+  });
+
   describe('commit — effectiveDate priority (Task #1003)', () => {
     const trackedDocuments = new Set<string>();
 
