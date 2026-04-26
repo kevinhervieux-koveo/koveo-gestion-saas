@@ -539,8 +539,16 @@ export function ProjectTable({
         enableFiltering={false}
         enableSorting={true}
         enableColumnVisibility={false}
-        enablePagination={true}
-        pageSize={compact ? 5 : 10}
+        // Virtualize the row list so the DOM only contains the visible rows
+        // (plus a small overscan). Without this, large project lists rendered
+        // every filtered row on every filter / sort change, making the
+        // commit phase O(n) in the row count and noticeably costly past a
+        // few hundred rows. Virtualization implies pagination is off — the
+        // DataTable handles that internally.
+        enableVirtualization={true}
+        estimatedRowHeight={84}
+        virtualOverscan={8}
+        virtualScrollHeight={compact ? '320px' : '640px'}
         onSelectionChange={setSelectedProjects}
         onRowClick={(row) => onProjectSelect?.(row.original)}
         emptyState={{

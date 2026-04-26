@@ -1,14 +1,21 @@
 import type { ReactNode } from 'react';
-import { useEffect, useMemo, startTransition, useDeferredValue } from 'react';
+import {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  startTransition,
+  useDeferredValue,
+} from 'react';
 import { logDebug } from '@/lib/logger';
 import { useTableState } from '@/lib/common-hooks';
 import { useQuery } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { Header } from '@/components/layout/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -17,37 +24,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import {
-  Home,
-  Search,
-  Edit,
-  Users,
-  Building,
-  MapPin,
-  Car,
-  Package,
-  Bed,
-  Bath,
-  FileText,
-  ArrowLeft,
-} from 'lucide-react';
+import { Home, Search, ArrowLeft } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
-import { ResidenceEditForm } from '@/components/forms/residence-edit-form';
 import { withHierarchicalSelection } from '@/components/hoc/withHierarchicalSelection';
-import { PaginationControls } from '@/components/common/PaginationControls';
 import { SearchInput } from '@/components/common/SearchInput';
 import { ResidenceCard } from '@/components/residences/ResidenceCard';
 
-/**
- *
- */
 interface Residence {
   id: string;
   unitNumber: string;
@@ -79,7 +61,6 @@ interface Residence {
   }>;
 }
 
-
 interface ManagerResidencesProps {
   organizationId?: string;
   buildingId?: string;
@@ -92,12 +73,7 @@ interface ManagerResidencesProps {
 function ManagerResidences({ organizationId, buildingId, showBackButton, backButtonLabel, onBack }: ManagerResidencesProps) {
   const [, navigate] = useLocation();
   const { t } = useLanguage();
-  const itemsPerPage = 10;
 
-  // Mirror the search box + floor filter to the URL so reloads and shared
-  // links restore the same view. Only the bills page used to have this --
-  // the shared `useTableState` urlSync option lets us opt in with a few
-  // lines instead of copy-pasting the parser/serializer.
   const residencesUrlSync = useMemo(
     () => ({
       fields: {
@@ -109,7 +85,6 @@ function ManagerResidences({ organizationId, buildingId, showBackButton, backBut
   );
 
   const tableState = useTableState<{ floor: string }>({
-    initialPageSize: itemsPerPage,
     initialFilters: { floor: 'all' },
     urlSync: residencesUrlSync,
   });
@@ -118,35 +93,23 @@ function ManagerResidences({ organizationId, buildingId, showBackButton, backBut
     setSearchTerm,
     filters,
     updateFilter,
-    currentPage,
-    setCurrentPage,
   } = tableState;
   const selectedFloor = filters.floor;
 
-  // Defer the search term for the (potentially heavy) residences query so
-  // typing in the search box stays responsive even while the network
-  // refetch + grid re-render run at lower priority. The controlled input
-  // still uses `searchTerm` so the value updates urgently as the user
-  // types.
   const deferredSearchTerm = useDeferredValue(searchTerm);
 
-  // Component initialization logging
   useEffect(() => {
     logDebug('🔍 [RESIDENCES] Component mounted', { organizationId, buildingId });
   }, []);
 
-  // Log context changes
   useEffect(() => {
     logDebug('🔍 [RESIDENCES] Context changed:', { organizationId, buildingId });
   }, [organizationId, buildingId]);
 
-  // Log filter changes
   useEffect(() => {
-    logDebug('🔍 [RESIDENCES] Filters updated:', { searchTerm, selectedFloor, currentPage });
-  }, [searchTerm, selectedFloor, currentPage]);
+    logDebug('🔍 [RESIDENCES] Filters updated:', { searchTerm, selectedFloor });
+  }, [searchTerm, selectedFloor]);
 
-
-  // Fetch residences with search and filters
   const {
     data: residences,
     isLoading: residencesLoading,
@@ -155,19 +118,12 @@ function ManagerResidences({ organizationId, buildingId, showBackButton, backBut
     queryKey: ['/api/residences', deferredSearchTerm, selectedFloor, buildingId],
     queryFn: async () => {
       logDebug('🔍 [RESIDENCES] Fetching residences with params:', { searchTerm: deferredSearchTerm, selectedFloor, buildingId });
-      const params = new URLSearchParams(); /**
-       * If function.
-       * @param searchTerm - SearchTerm parameter.
-       */ /**
-       * If function.
-       * @param searchTerm - SearchTerm parameter.
-       */
+      const params = new URLSearchParams();
 
       if (deferredSearchTerm) {
         params.append('search', deferredSearchTerm);
       }
-      
-      // Filter by the selected building from hierarchy
+
       if (buildingId) {
         params.append('buildingId', buildingId);
       }
@@ -176,31 +132,7 @@ function ManagerResidences({ organizationId, buildingId, showBackButton, backBut
         params.append('floor', selectedFloor);
       }
 
-      const response = await fetch(`/api/residences?${params}`); /**
-       * If function.
-       * @param !response.ok - !response.ok parameter.
-       */
-      /**
-       * If function.
-       * @param !response.ok - !response.ok parameter.
-       */
-      /**
-       * If function.
-       * @param !response.ok - !response.ok parameter.
-       */ /**
-       * If function.
-       * @param !response.ok - !response.ok parameter.
-       */
-
-      /**
-       * If function.
-       * @param !response.ok - !response.ok parameter.
-       */
-      /**
-       * If function.
-       * @param !response.ok - !response.ok parameter.
-       */
-
+      const response = await fetch(`/api/residences?${params}`);
       if (!response.ok) {
         throw new Error('Failed to fetch residences');
       }
@@ -210,13 +142,10 @@ function ManagerResidences({ organizationId, buildingId, showBackButton, backBut
     },
   });
 
-
-  // Fetch residences for floor filter (respecting building filter but not floor/search filters)
   const { data: residencesForFloorFilter } = useQuery({
     queryKey: ['/api/residences/for-floor-filter', buildingId],
     queryFn: async () => {
       const params = new URLSearchParams();
-      // Only apply building filter to get floors for the selected building
       if (buildingId) {
         params.append('buildingId', buildingId);
       }
@@ -228,44 +157,82 @@ function ManagerResidences({ organizationId, buildingId, showBackButton, backBut
     },
   });
 
-  // Get unique floors from residences (respecting building filter only)
   const availableFloors = residencesForFloorFilter
     ? [...new Set(residencesForFloorFilter.map((r) => r.floor).filter((floor) => floor != null))].sort(
         (a, b) => a - b
       )
     : [];
 
-  // Reset page when filters change
-
   const handleFloorChange = (value: string) => {
     logDebug('🔍 [RESIDENCES] User action: Floor filter changed', { floor: value });
-    // Wrap the non-text filter setter in startTransition so the click on
-    // the Select trigger returns immediately — the residences refetch +
-    // grid re-render run at lower priority and no longer trip the
-    // "[Violation] 'click' handler took N ms" warning.
     startTransition(() => {
       updateFilter('floor', value);
-      setCurrentPage(1);
     });
   };
 
   const handleSearchChange = (value: string) => {
     logDebug('🔍 [RESIDENCES] User action: Search term changed', { searchTerm: value });
-    // useTableState's setSearchTerm already resets currentPage to 1.
     setSearchTerm(value);
   };
 
-  // Pagination calculations
   const totalItems = residences?.length || 0;
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentResidences = residences?.slice(startIndex, endIndex) || [];
+
+  // Row virtualization for the residences card grid. Each virtual "row"
+  // contains `cols` cards laid out by CSS grid; `cols` tracks the same
+  // breakpoints the grid used before (1 / 2 / 3 columns) so the layout
+  // stays identical to the pre-virtualization version. Without this the
+  // page rendered every filtered residence into the DOM on every search
+  // / floor change — fine for a few units, costly past a few hundred.
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [cols, setCols] = useState<number>(() => {
+    if (typeof window === 'undefined') return 3;
+    const w = window.innerWidth;
+    return w >= 1024 ? 3 : w >= 768 ? 2 : 1;
+  });
+
+  useLayoutEffect(() => {
+    const update = () => {
+      const w = window.innerWidth;
+      const next = w >= 1024 ? 3 : w >= 768 ? 2 : 1;
+      setCols((prev) => (prev === next ? prev : next));
+    };
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
+
+  const rowCount = totalItems > 0 ? Math.ceil(totalItems / cols) : 0;
+
+  // Only virtualize once the list grows past a threshold where the DOM
+  // cost actually matters. Below it (the common case for most buildings)
+  // we render every row directly, which keeps the SSR / jsdom render path
+  // identical to the pre-virtualization version and avoids the headache
+  // of virtualizer measurement in non-browser environments.
+  const VIRTUALIZE_THRESHOLD = 50;
+  const shouldVirtualize = totalItems > VIRTUALIZE_THRESHOLD;
+
+  const rowVirtualizer = useVirtualizer({
+    count: shouldVirtualize ? rowCount : 0,
+    getScrollElement: () => scrollContainerRef.current,
+    // Approximate ResidenceCard height + the 24px row gap. The
+    // virtualizer measures actual heights after mount via
+    // `measureElement`, so the estimate only needs to be in the right
+    // ballpark to avoid initial layout jumps.
+    estimateSize: () => 320,
+    overscan: 4,
+    getItemKey: (index) => {
+      const start = index * cols;
+      return residences?.[start]?.id ?? `row-${index}`;
+    },
+  });
+
+  const virtualRows = rowVirtualizer.getVirtualItems();
+  const totalSize = rowVirtualizer.getTotalSize();
 
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
       <Header title={t('residencesManagement')} subtitle={t('residencesManagementSubtitle')} />
-      
+
       {showBackButton && onBack && (
         <div className='border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
           <div className='flex items-center px-6 py-4'>
@@ -283,9 +250,12 @@ function ManagerResidences({ organizationId, buildingId, showBackButton, backBut
         </div>
       )}
 
-      <div className='flex-1 overflow-auto p-6'>
-        <div className='max-w-7xl mx-auto space-y-6'>
-          {/* Search and Filters */}
+      {/* Search and filter card sits outside the virtualized scroll area
+          so it stays put while the cards scroll. This also keeps the
+          virtualizer's scroll element simple — no scrollMargin offset
+          to maintain. */}
+      <div className='shrink-0 px-6 pt-6'>
+        <div className='max-w-7xl mx-auto'>
           <Card>
             <CardHeader>
               <CardTitle className='flex items-center gap-2'>
@@ -325,12 +295,18 @@ function ManagerResidences({ organizationId, buildingId, showBackButton, backBut
               </div>
             </CardContent>
           </Card>
+        </div>
+      </div>
 
-          {/* Residences Grid */}
-          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
-            {residencesLoading ? (
-              // Loading skeletons
-              Array.from({ length: 6 }).map((_, i) => (
+      <div
+        ref={scrollContainerRef}
+        className='flex-1 overflow-auto px-6 py-6'
+        data-testid='residences-scroll-container'
+      >
+        <div className='max-w-7xl mx-auto'>
+          {residencesLoading ? (
+            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+              {Array.from({ length: 6 }).map((_, i) => (
                 <Card key={i}>
                   <CardContent className='p-6'>
                     <Skeleton className='h-6 w-24 mb-4' />
@@ -342,17 +318,65 @@ function ManagerResidences({ organizationId, buildingId, showBackButton, backBut
                     </div>
                   </CardContent>
                 </Card>
-              ))
-            ) : totalItems === 0 ? (
-              <Card className='col-span-full'>
-                <CardContent className='p-8 text-center'>
-                  <Home className='w-16 h-16 mx-auto text-gray-400 mb-4' />
-                  <h3 className='text-lg font-semibold text-gray-600 mb-2'>{t('noResidencesFound')}</h3>
-                  <p className='text-gray-500'>{t('adjustSearchCriteria')}</p>
-                </CardContent>
-              </Card>
-            ) : (
-              currentResidences.map((residence) => (
+              ))}
+            </div>
+          ) : totalItems === 0 ? (
+            <Card>
+              <CardContent className='p-8 text-center'>
+                <Home className='w-16 h-16 mx-auto text-gray-400 mb-4' />
+                <h3 className='text-lg font-semibold text-gray-600 mb-2'>{t('noResidencesFound')}</h3>
+                <p className='text-gray-500'>{t('adjustSearchCriteria')}</p>
+              </CardContent>
+            </Card>
+          ) : shouldVirtualize ? (
+            <div
+              style={{ height: totalSize, width: '100%', position: 'relative' }}
+              data-testid='residences-virtual-list'
+            >
+              {virtualRows.map((virtualRow) => {
+                const start = virtualRow.index * cols;
+                const end = Math.min(start + cols, totalItems);
+                const rowResidences = (residences ?? []).slice(start, end);
+                return (
+                  <div
+                    key={virtualRow.key}
+                    ref={rowVirtualizer.measureElement}
+                    data-index={virtualRow.index}
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      transform: `translateY(${virtualRow.start}px)`,
+                    }}
+                  >
+                    <div
+                      className='grid gap-6 pb-6'
+                      style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
+                    >
+                      {rowResidences.map((residence) => (
+                        <ResidenceCard
+                          key={residence.id}
+                          residence={residence}
+                          onRefresh={refetch}
+                          onDocumentsClick={(residenceId) =>
+                            navigate(`/manager/residences/documents?residenceId=${residenceId}`)
+                          }
+                          showEditDialog={true}
+                          data-testid={`residence-card-${residence.id}`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div
+              className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
+              data-testid='residences-grid'
+            >
+              {(residences ?? []).map((residence) => (
                 <ResidenceCard
                   key={residence.id}
                   residence={residence}
@@ -363,27 +387,24 @@ function ManagerResidences({ organizationId, buildingId, showBackButton, backBut
                   showEditDialog={true}
                   data-testid={`residence-card-${residence.id}`}
                 />
-              ))
-            )}
-          </div>
+              ))}
+            </div>
+          )}
 
-          {/* Pagination Controls */}
-          <PaginationControls
-            currentPage={currentPage}
-            totalPages={totalPages}
-            totalItems={totalItems}
-            itemsPerPage={itemsPerPage}
-            onPageChange={setCurrentPage}
-            className="mt-6"
-            showInfo={true}
-          />
+          {!residencesLoading && totalItems > 0 && (
+            <div
+              className='mt-2 text-xs text-muted-foreground text-right'
+              data-testid='residences-result-count'
+            >
+              {totalItems}
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 }
 
-// Export with hierarchical selection HOC - Manager residences page uses organization → building hierarchy
 export default withHierarchicalSelection(ManagerResidences, {
   hierarchy: ['organization', 'building'],
   checkResidenceAccess: true,

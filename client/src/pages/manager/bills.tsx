@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useRef, startTransition, useDeferredValue } from 'react';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import { format as formatDate } from 'date-fns';
 import { Header } from '@/components/layout/header';
 import { AiUnavailableBanner } from '@/components/common/AiUnavailableBanner';
@@ -294,43 +295,19 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
   const { data: bills = [], isLoading } = useQuery<Bill[]>({
     queryKey: ['/api/bills', buildingId, deferredFilters],
     queryFn: async () => {
-      const params = new URLSearchParams(); /**
-       * If function.
-       * @param filters.buildingId - Filters.buildingId parameter.
-       */ /**
-       * If function.
-       * @param filters.buildingId - Filters.buildingId parameter.
-       */
+      const params = new URLSearchParams();
 
       if (buildingId) {
         params.set('buildingId', buildingId);
-      } /**
-       * If function.
-       * @param filters.category && filters.category !== 'all' - filters.category && filters.category !== 'all' parameter.
-       */ /**
-       * If function.
-       * @param filters.category && filters.category !== 'all' - filters.category && filters.category !== 'all' parameter.
-       */
+      }
 
       if (deferredFilters.category && deferredFilters.category !== 'all') {
         params.set('category', deferredFilters.category);
-      } /**
-       * If function.
-       * @param filters.year - Filters.year parameter.
-       */ /**
-       * If function.
-       * @param filters.year - Filters.year parameter.
-       */
+      }
 
       if (deferredFilters.year) {
         params.set('year', deferredFilters.year);
-      } /**
-       * If function.
-       * @param filters.months.length > 0 - filters.months.length > 0 parameter.
-       */ /**
-       * If function.
-       * @param filters.months.length > 0 - filters.months.length > 0 parameter.
-       */
+      }
 
       if (deferredFilters.months.length > 0) {
         params.set('months', deferredFilters.months.join(','));
@@ -406,13 +383,7 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
 
   // Group bills by category
   const billsByCategory = bills.reduce((acc: Record<string, Bill[]>, bill: Bill) => {
-    const category = bill.category || 'other'; /**
-     * If function.
-     * @param !acc[category] - !acc[category] parameter.
-     */ /**
-     * If function.
-     * @param !acc[category] - !acc[category] parameter.
-     */
+    const category = bill.category || 'other';
 
     if (!acc[category]) {
       acc[category] = [];
@@ -1143,21 +1114,6 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
 }
 
 // Component for displaying bills in a category
-/**
- *
- * @param root0
- * @param root0.category
- * @param root0.bills
- * @param root0.onBillUpdate
- */
-/**
- * BillCategorySection function.
- * @param root0
- * @param root0.category
- * @param root0.bills
- * @param root0.onBillUpdate
- * @returns Function result.
- */
 function BillCategorySection({
   category,
   bills,
@@ -1181,6 +1137,36 @@ function BillCategorySection({
 }) {
   const sortedBills = sortBills(bills, sortField, sortDirection);
 
+  // Once a single category exceeds this many bills, the cumulative DOM
+  // cost of rendering every BillCard (each one mounts its own building
+  // query, payment computations, dialog state) becomes the dominant
+  // bottleneck on the page. Above the threshold we switch the section
+  // into its own scroll container and virtualize the inner list so only
+  // the visible cards stay mounted. Below the threshold we keep the
+  // original "stack everything in space-y-4" layout — both for visual
+  // parity with small categories and to avoid the extra scroll surface
+  // when it isn't needed.
+  const VIRTUALIZE_THRESHOLD = 30;
+  const shouldVirtualize = sortedBills.length > VIRTUALIZE_THRESHOLD;
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const rowVirtualizer = useVirtualizer({
+    count: shouldVirtualize ? sortedBills.length : 0,
+    getScrollElement: () => scrollRef.current,
+    // BillCard renders at min-h-[180px]; add the 16px space-y-4 gap.
+    estimateSize: () => 196,
+    overscan: 6,
+    measureElement:
+      typeof window !== 'undefined' &&
+      navigator.userAgent.indexOf('Firefox') === -1
+        ? (el) => el?.getBoundingClientRect().height
+        : undefined,
+    getItemKey: (index) => sortedBills[index]?.id ?? `row-${index}`,
+  });
+
+  const virtualRows = rowVirtualizer.getVirtualItems();
+  const totalSize = rowVirtualizer.getTotalSize();
+
   return (
     <Card>
       <CardHeader>
@@ -1193,37 +1179,62 @@ function BillCategorySection({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className='space-y-4'>
-          {sortedBills.map((bill) => (
-            <BillCard 
-              key={bill.id} 
-              bill={bill} 
-              onUpdate={onBillUpdate}
-              onAutoGeneratedClick={onAutoGeneratedClick}
-              selectedYear={selectedYear}
-              financialYearStart={financialYearStart}
-            />
-          ))}
-        </div>
+        {shouldVirtualize ? (
+          <div
+            ref={scrollRef}
+            className='max-h-[640px] overflow-auto pr-2'
+            data-testid={`bill-category-virtual-${category}`}
+          >
+            <div style={{ height: totalSize, width: '100%', position: 'relative' }}>
+              {virtualRows.map((virtualRow) => {
+                const bill = sortedBills[virtualRow.index];
+                if (!bill) return null;
+                return (
+                  <div
+                    key={virtualRow.key}
+                    ref={rowVirtualizer.measureElement}
+                    data-index={virtualRow.index}
+                    style={{
+                      position: 'absolute',
+                      top: 0,
+                      left: 0,
+                      width: '100%',
+                      transform: `translateY(${virtualRow.start}px)`,
+                      paddingBottom: '16px',
+                    }}
+                  >
+                    <BillCard
+                      bill={bill}
+                      onUpdate={onBillUpdate}
+                      onAutoGeneratedClick={onAutoGeneratedClick}
+                      selectedYear={selectedYear}
+                      financialYearStart={financialYearStart}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ) : (
+          <div className='space-y-4'>
+            {sortedBills.map((bill) => (
+              <BillCard
+                key={bill.id}
+                bill={bill}
+                onUpdate={onBillUpdate}
+                onAutoGeneratedClick={onAutoGeneratedClick}
+                selectedYear={selectedYear}
+                financialYearStart={financialYearStart}
+              />
+            ))}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
 }
 
 // Component for individual bill cards
-/**
- *
- * @param root0
- * @param root0.bill
- * @param root0.onUpdate
- */
-/**
- * BillCard function.
- * @param root0
- * @param root0.bill
- * @param root0.onUpdate
- * @returns Function result.
- */
 function BillCard({ 
   bill, 
   onUpdate, 

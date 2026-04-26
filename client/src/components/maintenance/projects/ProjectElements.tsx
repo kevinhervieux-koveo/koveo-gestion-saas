@@ -605,8 +605,14 @@ export function ProjectElements({
         enableFiltering={true}
         enableSorting={true}
         enableColumnVisibility={true}
-        enablePagination={true}
-        pageSize={10}
+        // Virtualize the row list so the DOM only contains the visible rows
+        // (plus a small overscan). A project's element list can run into the
+        // hundreds-thousands; virtualization keeps sort/filter/select snappy.
+        // Pagination is implicitly off when virtualization is on.
+        enableVirtualization={true}
+        estimatedRowHeight={84}
+        virtualOverscan={8}
+        virtualScrollHeight="640px"
         bulkActions={bulkActions}
         onSelectionChange={setSelectedElements}
         onRowClick={(row) => onElementClick?.(row.original.element)}
