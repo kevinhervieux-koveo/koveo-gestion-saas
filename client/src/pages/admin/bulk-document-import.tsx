@@ -1543,6 +1543,12 @@ export default function BulkDocumentImportPage() {
   const [groupReassignKey, setGroupReassignKey] = useState<string | null>(null);
   const [groupReassignBranch, setGroupReassignBranch] = useState<BranchDestination>('building_documents');
   const [groupReassignSubCategory, setGroupReassignSubCategory] = useState<string>('other');
+  // Optional residence to apply to every file in the group when the
+  // destination is `residence_documents` (Task #1084). Empty string
+  // means "leave each item's residence as-is" so admins can still do
+  // a destination-only bulk reassign that lets the per-file residence
+  // picker handle the residenceId individually.
+  const [groupReassignResidenceId, setGroupReassignResidenceId] = useState<string>('');
   const [residencePickerItemId, setResidencePickerItemId] = useState<string | null>(null);
   const [residencePickerValue, setResidencePickerValue] = useState<string>('');
 
@@ -2059,15 +2065,25 @@ export default function BulkDocumentImportPage() {
       itemIds,
       branch,
       subCategory,
+      residenceId,
     }: {
       itemIds: string[];
       branch: BranchDestination;
       subCategory: string;
+      residenceId?: string | null;
     }) => {
+      const body: Record<string, unknown> = { branch, subCategory, itemIds };
+      // Only attach residenceId when the destination is residence_documents
+      // and the admin actually picked one — sending it for other branches
+      // would be ignored server-side anyway, but keeping the payload tight
+      // avoids ambiguity in the audit trail (Task #1084).
+      if (branch === 'residence_documents' && residenceId) {
+        body.residenceId = residenceId;
+      }
       const res = await apiRequest(
         'POST',
         `/api/admin/bulk-import/sessions/${sessionId}/items/reassign-bulk`,
-        { branch, subCategory, itemIds },
+        body,
       );
       return res.json() as Promise<{ updated: number; items: BulkImportItem[] }>;
     },
@@ -3424,6 +3440,23 @@ export default function BulkDocumentImportPage() {
                                         }
                                         const allowed = BRANCH_SUB_CATEGORIES[groupBranch];
                                         setGroupReassignSubCategory(allowed.includes(topSc) ? topSc : 'other');
+                                        // If every eligible item in the group already
+                                        // shares the same residence, pre-fill the picker
+                                        // with it so "Save" is a no-op-friendly default.
+                                        // Otherwise leave it blank — the admin must opt
+                                        // in to overriding mixed selections (Task #1084).
+                                        if (groupBranch === 'residence_documents') {
+                                          const residences = new Set<string>();
+                                          for (const it of section.items) {
+                                            if (it.status === 'rejected' || it.status === 'committed' || it.status === 'duplicate') continue;
+                                            if (it.residenceId) residences.add(it.residenceId);
+                                          }
+                                          setGroupReassignResidenceId(
+                                            residences.size === 1 ? residences.values().next().value as string : '',
+                                          );
+                                        } else {
+                                          setGroupReassignResidenceId('');
+                                        }
                                       }
                                     }}
                                     aria-expanded={isGroupPickerOpen}
@@ -3451,6 +3484,13 @@ export default function BulkDocumentImportPage() {
                                         setGroupReassignSubCategory(
                                           allowed.includes(groupReassignSubCategory) ? groupReassignSubCategory : 'other',
                                         );
+                                        // The residence picker only matters for the
+                                        // residence_documents branch; clear any pick
+                                        // when the admin switches away so we never
+                                        // POST a stale residenceId (Task #1084).
+                                        if (dest !== 'residence_documents') {
+                                          setGroupReassignResidenceId('');
+                                        }
                                       }}
                                     >
                                       <SelectTrigger
@@ -3489,6 +3529,51 @@ export default function BulkDocumentImportPage() {
                                       </SelectContent>
                                     </Select>
                                   </div>
+                                  {groupReassignBranch === 'residence_documents' && (
+                                    <div className="flex flex-col gap-1">
+                                      <Label className="text-xs">
+                                        {isFr ? 'Résidence' : 'Residence'}
+                                      </Label>
+                                      <Select
+                                        value={groupReassignResidenceId}
+                                        onValueChange={setGroupReassignResidenceId}
+                                      >
+                                        <SelectTrigger
+                                          className="h-8 w-[220px] text-xs"
+                                          data-testid={`group-reassign-residence-select-${section.key}`}
+                                        >
+                                          <SelectValue
+                                            placeholder={
+                                              isFr
+                                                ? 'Conserver les résidences actuelles…'
+                                                : 'Keep current residences…'
+                                            }
+                                          />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          {buildingResidences.length === 0 ? (
+                                            <SelectItem value="__none__" disabled className="text-xs text-muted-foreground">
+                                              {isFr ? 'Aucune résidence' : 'No residences'}
+                                            </SelectItem>
+                                          ) : (
+                                            buildingResidences.map((r) => (
+                                              <SelectItem key={r.id} value={r.id} className="text-xs">
+                                                {r.unitNumber}
+                                              </SelectItem>
+                                            ))
+                                          )}
+                                        </SelectContent>
+                                      </Select>
+                                      <span
+                                        className="text-[11px] text-muted-foreground"
+                                        data-testid={`group-reassign-residence-hint-${section.key}`}
+                                      >
+                                        {isFr
+                                          ? 'Optionnel — appliqué à tous les fichiers du groupe.'
+                                          : 'Optional — applied to every file in the group.'}
+                                      </span>
+                                    </div>
+                                  )}
                                   <div className="flex gap-2">
                                     <Button
                                       size="sm"
@@ -3498,6 +3583,7 @@ export default function BulkDocumentImportPage() {
                                           itemIds: eligibleIds,
                                           branch: groupReassignBranch,
                                           subCategory: groupReassignSubCategory,
+                                          residenceId: groupReassignResidenceId || null,
                                         })
                                       }
                                       disabled={reassignGroup.isPending || eligibleIds.length === 0}

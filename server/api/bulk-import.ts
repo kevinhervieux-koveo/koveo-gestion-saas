@@ -3018,6 +3018,11 @@ export function registerBulkImportRoutes(app: Express): void {
     ]),
     subCategory: z.string().min(1),
     itemIds: z.array(z.string().min(1)).min(1),
+    // Task #1084: optional residence applied to every eligible item
+    // when the destination is `residence_documents`. Mirrors the
+    // per-item /reassign endpoint's residenceId field. Ignored when
+    // branch !== 'residence_documents' so a stale value can't leak.
+    residenceId: z.string().min(1).optional().nullable(),
   });
   app.post(
     '/api/admin/bulk-import/sessions/:id/items/reassign-bulk',
@@ -3025,7 +3030,7 @@ export function registerBulkImportRoutes(app: Express): void {
     requireRole(['admin']),
     async (req: AuthenticatedRequest, res: Response) => {
       try {
-        const { branch, subCategory, itemIds } = bulkReassignSchema.parse(req.body);
+        const { branch, subCategory, itemIds, residenceId } = bulkReassignSchema.parse(req.body);
         const allowedSubCats = BRANCH_SUB_CATEGORIES[branch as BranchDestination] as readonly string[];
         if (!allowedSubCats.includes(subCategory)) {
           return res.status(400).json({
@@ -3034,6 +3039,26 @@ export function registerBulkImportRoutes(app: Express): void {
         }
         const session = await loadSession(req.params.id);
         if (!session) return res.status(404).json({ error: 'Session not found' });
+
+        // Task #1084: when an explicit residenceId is supplied AND the
+        // destination is residence_documents, validate it once up-front
+        // (org access + same building) so we never half-apply the bulk
+        // move. The per-file /reassign endpoint runs the same checks.
+        const applyResidence = branch === 'residence_documents' && !!residenceId;
+        if (applyResidence) {
+          const canAccess = await canUserAccessOrganization(req.user!.id, session.organizationId);
+          if (!canAccess) return res.status(403).json({ error: 'Forbidden' });
+          const [residence] = await db
+            .select({ id: schema.residences.id, buildingId: schema.residences.buildingId })
+            .from(schema.residences)
+            .where(eq(schema.residences.id, residenceId!));
+          if (!residence) return res.status(404).json({ error: 'Residence not found' });
+          if (residence.buildingId !== session.buildingId) {
+            return res.status(400).json({
+              error: "Residence does not belong to this session's building",
+            });
+          }
+        }
 
         const uniqueIds = Array.from(new Set(itemIds));
         const rows = await db
@@ -3077,10 +3102,30 @@ export function registerBulkImportRoutes(app: Express): void {
             delete updated_decision.residenceAiSuggestedId;
             delete updated_decision.residenceAiConfirmed;
           }
+          // Task #1084: stamp the chosen residence on every eligible
+          // row in a single move. Mirrors the per-file /reassign
+          // logic: an explicit pick that matches the AI suggestion
+          // is treated as a confirmation, anything else flips the
+          // manual-override flag, and the row is promoted to
+          // `branched` so it satisfies the residence-required gate.
+          let nextStatus: string | undefined;
+          if (applyResidence) {
+            const aiResidenceId =
+              (existing.residenceAiSuggestedId as string | null | undefined)
+              ?? null;
+            const isManualOverride = residenceId !== aiResidenceId;
+            const residenceAiConfirmed =
+              aiResidenceId !== null && residenceId === aiResidenceId;
+            updated_decision.residenceId = residenceId;
+            updated_decision.residenceManualOverride = isManualOverride;
+            updated_decision.residenceAiConfirmed = residenceAiConfirmed;
+            nextStatus = 'branched';
+          }
           const [u] = await db
             .update(schema.bulkImportItems)
             .set({
               branchDecision: updated_decision,
+              ...(nextStatus ? { status: nextStatus as 'branched' } : {}),
               updatedAt: now,
             })
             .where(eq(schema.bulkImportItems.id, row.id))
