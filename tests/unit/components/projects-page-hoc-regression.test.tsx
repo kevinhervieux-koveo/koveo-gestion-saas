@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { QueryClient, QueryClientProvider, QueryFunction } from '@tanstack/react-query';
 import { Router } from 'wouter';
@@ -123,5 +123,15 @@ describe('ProjectsPage HOC regression — withHierarchicalSelection + wouter mou
   it('mounts without throwing an Invalid hook call error', () => {
     wouter.__setLocation('/manager/maintenance/projects');
     expect(() => renderPage()).not.toThrow();
+  });
+
+  it('renders the inner projects page when org and building are in the URL', () => {
+    wouter.__setLocation('/manager/maintenance/projects');
+    wouter.__setSearch('organization=o1&building=b1');
+    expect(() => renderPage()).not.toThrow();
+    // The inner ProjectsPageInner renders a root container with this
+    // testid; the picker step does not, so it proves the wrapped page
+    // body (not just the picker) actually mounted.
+    expect(screen.getByTestId('projects-page')).toBeInTheDocument();
   });
 });

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { QueryClient, QueryClientProvider, QueryFunction } from '@tanstack/react-query';
 import { Router } from 'wouter';
@@ -94,5 +94,16 @@ describe('ResidencesPage HOC regression — withHierarchicalSelection + wouter m
   it('mounts without throwing an Invalid hook call error', () => {
     wouter.__setLocation('/manager/residences');
     expect(() => renderPage()).not.toThrow();
+  });
+
+  it('renders the inner residences page when org and building are in the URL', () => {
+    wouter.__setLocation('/manager/residences');
+    wouter.__setSearch('organization=o1&building=b1');
+    expect(() => renderPage()).not.toThrow();
+    // The inner ManagerResidences page always renders the search input
+    // when it mounts, while the picker step renders the org/building grid
+    // instead. Asserting on this testid proves the wrapped page body
+    // (not just the picker) actually mounted.
+    expect(screen.getByTestId('search-residences')).toBeInTheDocument();
   });
 });

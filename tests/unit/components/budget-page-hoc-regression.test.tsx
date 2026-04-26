@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { QueryClient, QueryClientProvider, QueryFunction } from '@tanstack/react-query';
 import { Router } from 'wouter';
@@ -88,11 +88,32 @@ describe('BudgetPage HOC regression — withHierarchicalSelection + wouter mount
       headers: { get: () => 'application/json' },
       json: async () => [{ id: 'o1', name: 'Test Org' }],
     });
+    // BudgetInner installs an IntersectionObserver in a useEffect to drive
+    // its floating refresh button. jsdom doesn't ship this API, so stub it
+    // out before the wrapped page body actually mounts.
+    (global as any).IntersectionObserver = class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+      takeRecords() {
+        return [];
+      }
+    };
     wouter.__resetMocks();
   });
 
   it('mounts without throwing an Invalid hook call error', () => {
     wouter.__setLocation('/manager/budget');
     expect(() => renderPage()).not.toThrow();
+  });
+
+  it('renders the inner budget page when org and building are in the URL', () => {
+    wouter.__setLocation('/manager/budget');
+    wouter.__setSearch('organization=o1&building=b1');
+    expect(() => renderPage()).not.toThrow();
+    // The "back to building" button is only rendered by BudgetInner once
+    // buildingId is present, so it proves the wrapped page body (not just
+    // the picker) actually mounted.
+    expect(screen.getByTestId('button-back-to-building')).toBeInTheDocument();
   });
 });

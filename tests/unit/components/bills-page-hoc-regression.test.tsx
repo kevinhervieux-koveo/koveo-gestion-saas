@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { QueryClient, QueryClientProvider, QueryFunction } from '@tanstack/react-query';
 import { Router } from 'wouter';
@@ -99,5 +99,15 @@ describe('BillsPage HOC regression — withHierarchicalSelection + wouter mount'
   it('mounts without throwing an Invalid hook call error', () => {
     wouter.__setLocation('/manager/bills');
     expect(() => renderPage()).not.toThrow();
+  });
+
+  it('renders the inner bills page when org and building are in the URL', () => {
+    wouter.__setLocation('/manager/bills');
+    wouter.__setSearch('organization=o1&building=b1');
+    expect(() => renderPage()).not.toThrow();
+    // The "back to building" button is only rendered by BillsPage once
+    // buildingId is present, so it proves the wrapped page body (not just
+    // the picker) actually mounted.
+    expect(screen.getByTestId('button-back-to-building')).toBeInTheDocument();
   });
 });
