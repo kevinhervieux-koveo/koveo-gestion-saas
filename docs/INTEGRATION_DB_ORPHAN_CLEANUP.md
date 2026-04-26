@@ -95,3 +95,9 @@ described above against a real Postgres database:
    with the env set the cleanup short-circuits and the previously
    seeded orphan is still present afterwards, so the documented
    debugging escape hatch keeps working.
+4. A controlled `SET NULL` FK orphan is seeded behind a third fixture
+   table (Task #1184). The cleanup runs, the orphan row is preserved
+   but its FK column is `NULL` afterwards, the result reports
+   `action: 'nulled'`, and the previously-`NOT VALID` constraint then
+   `VALIDATE`s cleanly — the same end-to-end shape as the cascade case
+   but exercising the third branch of `cleanOrphans`.

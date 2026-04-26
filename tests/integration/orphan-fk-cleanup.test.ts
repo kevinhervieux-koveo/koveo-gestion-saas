@@ -12,9 +12,9 @@
  *
  * The cleanup logic itself was verified manually against the live
  * integration DB during #1155 but had no automated coverage. This file
- * fixes that with three real-Postgres cases driven through scoped
- * fixture tables so we never have to mutate the actual application
- * schema to exercise the logic:
+ * fixes that with real-Postgres cases driven through scoped fixture
+ * tables so we never have to mutate the actual application schema to
+ * exercise the logic:
  *
  *   1. CASCADE FK orphan: the script must DELETE the orphan and the
  *      previously-`NOT VALID` FK constraint must then `VALIDATE`
@@ -30,6 +30,14 @@
  *      `docs/INTEGRATION_DB_ORPHAN_CLEANUP.md` for triaging the
  *      cleanup itself. With it set, the script must short-circuit
  *      and leave seeded orphans untouched.
+ *
+ *   4. SET NULL FK orphan (Task #1184): the third branch of
+ *      `cleanOrphans` runs in production every time a real `set null`
+ *      FK has orphans, but had no automated coverage. The fixture
+ *      seeds an orphan behind a `set null` FK, drives the cleanup,
+ *      and asserts the row is preserved with its FK column NULLed,
+ *      the result reports `action: 'nulled'`, and the previously
+ *      `NOT VALID` constraint then `VALIDATE`s cleanly.
  *
  * Skipped cleanly when `_INTEGRATION_DB_URL` is not set so unit-tier
  * runs stay lightweight, mirroring the convention used by the other
@@ -57,6 +65,7 @@ const TAG = `_t1164_${crypto.randomBytes(3).toString('hex')}`;
 const PARENT = `${TAG}_parent`;
 const CHILD_CASCADE = `${TAG}_child_cascade`;
 const CHILD_NOACTION = `${TAG}_child_noaction`;
+const CHILD_SETNULL = `${TAG}_child_setnull`;
 
 describeIfDb('orphan FK cleanup script — real Postgres (Task #1164)', () => {
   let client: pg.Client;
@@ -75,6 +84,7 @@ describeIfDb('orphan FK cleanup script — real Postgres (Task #1164)', () => {
     // assert the cleanup refuses to clear it.
     await client.query(`DROP TABLE IF EXISTS "${CHILD_CASCADE}" CASCADE`);
     await client.query(`DROP TABLE IF EXISTS "${CHILD_NOACTION}" CASCADE`);
+    await client.query(`DROP TABLE IF EXISTS "${CHILD_SETNULL}" CASCADE`);
     await client.query(`DROP TABLE IF EXISTS "${PARENT}" CASCADE`);
 
     await client.query(`
@@ -98,6 +108,19 @@ describeIfDb('orphan FK cleanup script — real Postgres (Task #1164)', () => {
           FOREIGN KEY (parent_id) REFERENCES "${PARENT}"(id) NOT VALID
       )
     `);
+    // The set-null fixture deliberately keeps `parent_id` nullable —
+    // a `set null` FK is illegal on a NOT NULL column, since the
+    // declared cleanup action would itself violate the NOT NULL
+    // constraint. Modelling it nullable here matches what production
+    // schemas with `onDelete: 'set null'` actually look like.
+    await client.query(`
+      CREATE TABLE "${CHILD_SETNULL}" (
+        id uuid PRIMARY KEY,
+        parent_id uuid,
+        CONSTRAINT "${CHILD_SETNULL}_parent_fk"
+          FOREIGN KEY (parent_id) REFERENCES "${PARENT}"(id) ON DELETE SET NULL
+      )
+    `);
   }, 60000);
 
   afterAll(async () => {
@@ -105,6 +128,7 @@ describeIfDb('orphan FK cleanup script — real Postgres (Task #1164)', () => {
     try {
       await client.query(`DROP TABLE IF EXISTS "${CHILD_CASCADE}" CASCADE`);
       await client.query(`DROP TABLE IF EXISTS "${CHILD_NOACTION}" CASCADE`);
+      await client.query(`DROP TABLE IF EXISTS "${CHILD_SETNULL}" CASCADE`);
       await client.query(`DROP TABLE IF EXISTS "${PARENT}" CASCADE`);
     } finally {
       await client.end().catch(() => undefined);
@@ -116,7 +140,7 @@ describeIfDb('orphan FK cleanup script — real Postgres (Task #1164)', () => {
     // Truncate (rather than drop+recreate) so each test starts from
     // an empty fixture without paying the DDL roundtrip cost.
     await client.query(
-      `TRUNCATE TABLE "${CHILD_CASCADE}", "${CHILD_NOACTION}", "${PARENT}" RESTART IDENTITY`,
+      `TRUNCATE TABLE "${CHILD_CASCADE}", "${CHILD_NOACTION}", "${CHILD_SETNULL}", "${PARENT}" RESTART IDENTITY`,
     );
   });
 
@@ -171,6 +195,33 @@ describeIfDb('orphan FK cleanup script — real Postgres (Task #1164)', () => {
     return orphanId;
   }
 
+  /**
+   * Same dance as the cascade fixture, but for a `set null` FK on a
+   * nullable column. We drop the FK, plant a row pointing at a
+   * non-existent parent, then re-add the FK as `NOT VALID` so the
+   * orphan slips past the up-front check — the exact production shape
+   * the cleanup is supposed to NULL out.
+   */
+  async function plantOrphanWithSetNullFk(): Promise<string> {
+    const orphanId = crypto.randomUUID();
+    const ghostParentId = crypto.randomUUID();
+    await client.query(
+      `ALTER TABLE "${CHILD_SETNULL}" DROP CONSTRAINT "${CHILD_SETNULL}_parent_fk"`,
+    );
+    await client.query(
+      `INSERT INTO "${CHILD_SETNULL}" (id, parent_id) VALUES ($1, $2)`,
+      [orphanId, ghostParentId],
+    );
+    await client.query(`
+      ALTER TABLE "${CHILD_SETNULL}"
+        ADD CONSTRAINT "${CHILD_SETNULL}_parent_fk"
+        FOREIGN KEY (parent_id) REFERENCES "${PARENT}"(id)
+        ON DELETE SET NULL
+        NOT VALID
+    `);
+    return orphanId;
+  }
+
   function cascadeFk(): FkInfo {
     return {
       childTable: CHILD_CASCADE,
@@ -188,6 +239,16 @@ describeIfDb('orphan FK cleanup script — real Postgres (Task #1164)', () => {
       parentTable: PARENT,
       parentColumns: ['id'],
       onDelete: 'no action',
+    };
+  }
+
+  function setNullFk(): FkInfo {
+    return {
+      childTable: CHILD_SETNULL,
+      childColumns: ['parent_id'],
+      parentTable: PARENT,
+      parentColumns: ['id'],
+      onDelete: 'set null',
     };
   }
 
@@ -365,6 +426,64 @@ describeIfDb('orphan FK cleanup script — real Postgres (Task #1164)', () => {
       [orphanId],
     );
     expect(stillThere.rows[0].n).toBe(1);
+  }, 60000);
+
+  it('NULLs the FK column behind a SET NULL FK, preserves the row, and lets the constraint validate afterwards (Task #1184)', async () => {
+    const orphanId = await plantOrphanWithSetNullFk();
+
+    // Sanity: the orphan really is there with a non-NULL ghost parent
+    // before the cleanup runs. Otherwise the test would pass trivially
+    // even if `cleanOrphans` never touched the row.
+    const before = await client.query<{ n: number; parent_id: string | null }>(
+      `SELECT count(*)::int AS n, max(parent_id::text) AS parent_id
+         FROM "${CHILD_SETNULL}" WHERE id = $1`,
+      [orphanId],
+    );
+    expect(before.rows[0].n).toBe(1);
+    expect(before.rows[0].parent_id).not.toBeNull();
+
+    // The FK is currently NOT VALID — validating it right now must
+    // fail with foreign_key_violation, otherwise the test isn't
+    // actually exercising the failure mode the cleanup is supposed to
+    // unblock for `set null` constraints.
+    await expect(
+      client.query(
+        `ALTER TABLE "${CHILD_SETNULL}" VALIDATE CONSTRAINT "${CHILD_SETNULL}_parent_fk"`,
+      ),
+    ).rejects.toMatchObject({ code: '23503' });
+
+    const result = await runCleanup({
+      client,
+      fks: [setNullFk()],
+      log: () => undefined,
+    });
+
+    expect(result.fatalReports).toEqual([]);
+    expect(result.cleanedTotal).toBe(1);
+    expect(result.perFk).toHaveLength(1);
+    expect(result.perFk[0]).toMatchObject({
+      action: 'nulled',
+      rows: 1,
+    });
+
+    // Row preserved (NOT deleted), FK column NULL — the contract of
+    // the `set null` branch.
+    const after = await client.query<{ n: number; parent_id: string | null }>(
+      `SELECT count(*)::int AS n, max(parent_id::text) AS parent_id
+         FROM "${CHILD_SETNULL}" WHERE id = $1`,
+      [orphanId],
+    );
+    expect(after.rows[0].n).toBe(1);
+    expect(after.rows[0].parent_id).toBeNull();
+
+    // And the previously-NOT VALID FK now validates cleanly — the
+    // exact precondition `drizzle-kit push --force` needs in CI for
+    // `set null` constraints, mirroring the cascade case above.
+    await expect(
+      client.query(
+        `ALTER TABLE "${CHILD_SETNULL}" VALIDATE CONSTRAINT "${CHILD_SETNULL}_parent_fk"`,
+      ),
+    ).resolves.toBeDefined();
   }, 60000);
 
   it('collectForeignKeys discovers at least one Drizzle-modeled FK so the introspection step still works', () => {
