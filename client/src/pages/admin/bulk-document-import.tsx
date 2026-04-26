@@ -2045,7 +2045,16 @@ export default function BulkDocumentImportPage() {
     );
   }, [filteredBuildings, organizationsById, isFr]);
 
-  const { data: payload, isLoading: loadingSession } = useQuery<SessionPayloadLite>({
+  const {
+    data: payload,
+    isLoading: loadingSession,
+    // Surface the timestamps so we can tell apart "last poll succeeded"
+    // from "last poll errored" — TanStack keeps the previous `data`
+    // around on a refetch failure so `data` alone can't tell us that
+    // the most recent poll cycle errored out (Task #1234).
+    errorUpdatedAt: liteErrorUpdatedAt,
+    dataUpdatedAt: liteDataUpdatedAt,
+  } = useQuery<SessionPayloadLite>({
     queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
     enabled: !!sessionId,
     // Poll faster while any AI step run-all loop is active so the
@@ -2096,6 +2105,41 @@ export default function BulkDocumentImportPage() {
   useEffect(() => {
     setHideReady(false);
   }, [currentStep]);
+
+  /**
+   * Track consecutive errored polls of the lite status endpoint so we
+   * can warn the admin when the counter has frozen because the server
+   * is repeatedly failing (Task #1234). Without this, TanStack Query
+   * keeps polling silently on its own retry schedule and the UI just
+   * shows the last known progress, making a stalled run indistinguishable
+   * from a healthy one.
+   *
+   * The counter increments whenever `errorUpdatedAt` advances (each
+   * advance == one settled poll attempt that ended in error, after the
+   * shared queryClient retries are exhausted) and resets to 0 whenever
+   * a successful poll lands (`dataUpdatedAt` advances). The threshold
+   * is intentionally low — once two settled polls in a row have failed
+   * we assume the connection is genuinely interrupted rather than a
+   * one-off hiccup.
+   */
+  const LITE_POLL_ERROR_THRESHOLD = 2;
+  const lastSeenLiteErrorAtRef = useRef(0);
+  const lastSeenLiteDataAtRef = useRef(0);
+  const [consecutiveLitePollErrors, setConsecutiveLitePollErrors] = useState(0);
+  useEffect(() => {
+    if (liteErrorUpdatedAt && liteErrorUpdatedAt > lastSeenLiteErrorAtRef.current) {
+      lastSeenLiteErrorAtRef.current = liteErrorUpdatedAt;
+      setConsecutiveLitePollErrors((c) => c + 1);
+    }
+  }, [liteErrorUpdatedAt]);
+  useEffect(() => {
+    if (liteDataUpdatedAt && liteDataUpdatedAt > lastSeenLiteDataAtRef.current) {
+      lastSeenLiteDataAtRef.current = liteDataUpdatedAt;
+      setConsecutiveLitePollErrors(0);
+    }
+  }, [liteDataUpdatedAt]);
+  const litePollInterrupted =
+    consecutiveLitePollErrors >= LITE_POLL_ERROR_THRESHOLD;
 
   const createSession = useMutation({
     mutationFn: async (targetBuildingId: string) => {
@@ -4187,6 +4231,37 @@ export default function BulkDocumentImportPage() {
                     </Button>
                   </CardHeader>
                   <CardContent>
+                    {/* Lite-status poll interruption banner (Task #1234) —
+                        the linking run is the long-tail step where the
+                        underlying DB-heavy lite endpoint is most likely
+                        to start returning JSON 500s mid-run (Task #1231
+                        switched it from a proxy 502 to a JSON 500 so the
+                        frontend no longer crashes). When that happens
+                        the counter freezes silently because TanStack
+                        keeps the previous payload around; this inline
+                        warning tells the admin the status updates have
+                        paused so they don't mistake a stalled connection
+                        for a stalled job. It auto-clears as soon as a
+                        successful poll comes back. Scoped to the linking
+                        step per the task brief — the wider fix can come
+                        later if other steps prove similarly flaky. */}
+                    {currentStep === 'linking' && litePollInterrupted && (
+                      <div
+                        className="mb-3 flex items-center gap-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200"
+                        data-testid="lite-poll-interrupted-banner"
+                        role="status"
+                      >
+                        <AlertTriangle
+                          className="h-4 w-4 shrink-0"
+                          aria-hidden="true"
+                        />
+                        <span>
+                          {isFr
+                            ? 'Mises à jour du statut interrompues — nouvelle tentative…'
+                            : 'Status updates paused — retrying…'}
+                        </span>
+                      </div>
+                    )}
                     {/* Auto-run progress (Task #592) — replaces the
                         per-file action buttons that used to live below.
                         Generalizes the screening-only progress UI from
