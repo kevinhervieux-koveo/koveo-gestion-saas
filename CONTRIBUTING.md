@@ -102,6 +102,31 @@ installed — if `server/route-manifest.json` is stale or missing, the build
 fails with the same remediation message shown locally. Regenerate the manifest
 and commit it to unblock the build.
 
+### Git maintenance: pruning `subrepl-*` refs
+
+Replit sub-agents auto-create a `subrepl-<id>` local branch and remote on
+every isolated task run. Nothing cleans them up, so over time `.git/config`
+and `.git/packed-refs` accumulate hundreds of stale refs and slow every git
+operation down.
+
+A safe cleanup script ships with the repo and runs automatically as part of
+the post-merge hook (`scripts/post-merge.sh`). To run it manually at any
+time:
+
+```bash
+# Preview what would be removed (no changes made)
+bash scripts/cleanup-subrepl-refs.sh --dry-run
+
+# Actually prune all subrepl-* local branches and remotes
+bash scripts/cleanup-subrepl-refs.sh
+```
+
+The script never touches the currently-checked-out branch and never fails
+the caller, so it is safe to wire into any hook or CI step. Note: matching
+local branches are removed with `git branch -D` (force delete) — this is
+intentional for stale agent refs, so do not use the `subrepl-*` namespace
+for any human work you care about keeping.
+
 ### TypeScript Guidelines
 
 ```typescript

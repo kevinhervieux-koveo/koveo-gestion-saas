@@ -31,3 +31,10 @@ fi
 # chain. New schema changes must ship as numbered migrations alongside
 # the schema.ts diff — see docs/migrations.md.
 RUN_DB_MIGRATIONS=true npm run migrate
+
+# Prune the `subrepl-*` local branches and remotes that Replit sub-agents
+# auto-create on every isolated task run. Without this they accumulate in
+# `.git/config` / `.git/packed-refs` and slow every git operation down
+# (Task #1124). The cleanup script never fails the caller, but we still
+# guard with `|| true` so a transient git issue can't break post-merge.
+bash scripts/cleanup-subrepl-refs.sh --quiet || true
