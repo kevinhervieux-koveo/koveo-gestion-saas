@@ -45,6 +45,35 @@ interface ItemWithStatus {
   status: BulkImportItem['status'];
 }
 
+/**
+ * Returns true when an item's AI fallback for the given step is still
+ * unresolved — i.e. it should count toward `fallbackPendingCount` and
+ * block the Next-step button.
+ *
+ * This must stay in sync with the manual-override logic inside
+ * `isItemReadyForNextStep` in bulk-document-import.tsx: both functions
+ * must agree on which overrides resolve a fallback so the gate count
+ * and the per-row ready check cannot drift apart.
+ *
+ * Identification: a manually entered effective date resolves the fallback.
+ * Branching: a manual branch override resolves the fallback.
+ * Screening / Linking: no manual-override flag exists, so every fallback counts.
+ */
+export function isFallbackPending(
+  step: BulkImportStep,
+  fallbackReason: string | null | undefined,
+  overrides: {
+    branchManualOverride?: boolean | null;
+    identificationEffectiveDateManualOverride?: boolean | null;
+  } = {},
+): boolean {
+  if (fallbackReason == null) return false;
+  if (step === 'branching' && overrides.branchManualOverride) return false;
+  if (step === 'identification' && overrides.identificationEffectiveDateManualOverride)
+    return false;
+  return true;
+}
+
 export function computeStillAnalyzingCount(
   items: ReadonlyArray<ItemWithStatus>,
   currentStep: BulkImportStep,

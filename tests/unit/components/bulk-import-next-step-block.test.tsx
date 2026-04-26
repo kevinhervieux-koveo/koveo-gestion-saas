@@ -7,6 +7,7 @@ import {
   STEP_ORDER,
   STEP_PRE_STATUS,
   computeStillAnalyzingCount,
+  isFallbackPending,
   type AutoStep,
 } from '../../../client/src/pages/admin/bulk-import-next-step-block';
 import type {
@@ -277,5 +278,151 @@ describe('NextStepBlock — sorting decision guard (Task #817)', () => {
     renderBlock([makeItem('sorted')], 'sorting');
     expect(screen.queryByTestId('sorting-pending-warning')).toBeNull();
     expect(screen.getByTestId('button-next-step')).toBeEnabled();
+  });
+});
+
+/**
+ * Task #1230 — unit tests for the `isFallbackPending` helper.
+ *
+ * This helper drives `fallbackPendingCount` in the parent page and must
+ * agree with the manual-override logic in `isItemReadyForNextStep`.
+ * Each case below corresponds to a scenario described in the task spec.
+ */
+describe('isFallbackPending', () => {
+  const REASON = 'api_error' as const;
+
+  describe('identification step', () => {
+    it('returns true when there is a fallback and no manual override', () => {
+      expect(isFallbackPending('identification', REASON, {})).toBe(true);
+    });
+
+    it('returns false when the admin has manually entered the effective date', () => {
+      expect(
+        isFallbackPending('identification', REASON, {
+          identificationEffectiveDateManualOverride: true,
+        }),
+      ).toBe(false);
+    });
+
+    it('returns false when there is no fallback reason (AI succeeded)', () => {
+      expect(isFallbackPending('identification', null, {})).toBe(false);
+      expect(isFallbackPending('identification', undefined, {})).toBe(false);
+    });
+  });
+
+  describe('branching step', () => {
+    it('returns true when there is a fallback and no manual override', () => {
+      expect(isFallbackPending('branching', REASON, {})).toBe(true);
+    });
+
+    it('returns false when the admin has manually overridden the branch', () => {
+      expect(
+        isFallbackPending('branching', REASON, { branchManualOverride: true }),
+      ).toBe(false);
+    });
+
+    it('returns false when there is no fallback reason (AI succeeded)', () => {
+      expect(isFallbackPending('branching', null, {})).toBe(false);
+    });
+  });
+
+  describe('screening step', () => {
+    it('returns true when there is a fallback (no manual override exists for screening)', () => {
+      expect(
+        isFallbackPending('screening', REASON, {
+          identificationEffectiveDateManualOverride: true,
+          branchManualOverride: true,
+        }),
+      ).toBe(true);
+    });
+
+    it('returns false when there is no fallback reason', () => {
+      expect(isFallbackPending('screening', null, {})).toBe(false);
+    });
+  });
+
+  describe('linking step', () => {
+    it('returns true when there is a fallback (no manual override exists for linking)', () => {
+      expect(
+        isFallbackPending('linking', REASON, {
+          identificationEffectiveDateManualOverride: true,
+          branchManualOverride: true,
+        }),
+      ).toBe(true);
+    });
+
+    it('returns false when there is no fallback reason', () => {
+      expect(isFallbackPending('linking', null, {})).toBe(false);
+    });
+  });
+
+  it('never counts rejected-status items — they are filtered upstream before isFallbackPending is called', () => {
+    // Rejected items are excluded by the `status !== "rejected"` guard
+    // in the fallbackPendingCount filter; isFallbackPending itself does
+    // not need to know about status.  Verify the helper still returns
+    // true for a fallback so the upstream guard remains the only gate.
+    expect(isFallbackPending('identification', REASON, {})).toBe(true);
+  });
+});
+
+/**
+ * Task #1230 — wizard-level regression test for the screenshot scenario.
+ *
+ * Two identification-step items:
+ *   1. Fully identified with one tag — no fallback.
+ *   2. AI identification failed (identificationFallback set), admin
+ *      manually entered the effective date, zero tags.
+ *
+ * Expected: Next step button is enabled and the fallback-pending warning
+ * is not rendered, because the manual date override resolves item 2's
+ * fallback for the gate count.
+ */
+describe('NextStepBlock — fallback-pending guard (Task #1230)', () => {
+  function renderWithFallbackCount(fallbackPendingCount: number) {
+    render(
+      <NextStepBlock
+        items={[makeItem('identified'), makeItem('identified')]}
+        currentStep="identification"
+        stepIndex={STEP_ORDER.indexOf('identification')}
+        isFr={false}
+        onNext={jest.fn()}
+        fallbackPendingCount={fallbackPendingCount}
+      />,
+    );
+  }
+
+  it('blocks Next step and shows the red warning when fallbackPendingCount > 0', () => {
+    renderWithFallbackCount(1);
+    expect(screen.getByTestId('button-next-step')).toBeDisabled();
+    const warning = screen.getByTestId('fallback-pending-warning');
+    expect(warning).toBeInTheDocument();
+    expect(warning).toHaveClass('text-red-700');
+    expect(warning).toHaveTextContent('1 file(s) need a manual assignment');
+  });
+
+  it('enables Next step and hides the warning when the only fallback has a manual date override (count = 0)', () => {
+    // Simulates: item 1 fully identified (no fallback), item 2 has an
+    // AI fallback but the admin manually set the effective date — the
+    // parent computes fallbackPendingCount = 0 via isFallbackPending.
+    renderWithFallbackCount(0);
+    expect(screen.getByTestId('button-next-step')).toBeEnabled();
+    expect(screen.queryByTestId('fallback-pending-warning')).toBeNull();
+  });
+
+  it('renders the French fallback-pending warning when isFr is true', () => {
+    render(
+      <NextStepBlock
+        items={[makeItem('identified')]}
+        currentStep="identification"
+        stepIndex={STEP_ORDER.indexOf('identification')}
+        isFr={true}
+        onNext={jest.fn()}
+        fallbackPendingCount={2}
+      />,
+    );
+    expect(screen.getByTestId('fallback-pending-warning')).toHaveTextContent(
+      "2 fichier(s) doivent être assignés manuellement",
+    );
+    expect(screen.getByTestId('button-next-step')).toBeDisabled();
   });
 });

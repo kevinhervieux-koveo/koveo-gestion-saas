@@ -88,6 +88,7 @@ import {
   STEP_ORDER,
   STEP_PRE_STATUS,
   isAutoStep,
+  isFallbackPending,
   type AutoStep,
 } from './bulk-import-next-step-block';
 import { DocumentInlineViewer } from '@/components/common/DocumentInlineViewer';
@@ -7873,15 +7874,17 @@ export default function BulkDocumentImportPage() {
                           : 0
                       }
                       fallbackPendingCount={
-                        // Task #1069: AI-failed files on the current step
+                        // Task #1069 / #1230: AI-failed files on the current step
                         // (screening / branching / identification / linking)
-                        // were auto-promoted with a default value but no
-                        // real human assignation. Block Next Step until the
-                        // admin retries, accepts, or excludes each one.
-                        // Sorting already gates on sortingDecisionState
-                        // (forced to 'pending' on AI failure) via
-                        // sortingPendingCount above. Complete has no AI
-                        // step, so the count is 0 there.
+                        // were auto-promoted with a default value but no real
+                        // human assignation. Block Next Step until the admin
+                        // retries, accepts, or excludes each one.
+                        // Manual overrides (date override on identification,
+                        // branch override on branching) are treated as
+                        // resolved — see isFallbackPending and
+                        // isItemReadyForNextStep, which must agree.
+                        // Sorting already gates on sortingDecisionState via
+                        // sortingPendingCount above. Complete has no AI step.
                         currentStep === 'screening' ||
                         currentStep === 'branching' ||
                         currentStep === 'identification' ||
@@ -7889,7 +7892,15 @@ export default function BulkDocumentImportPage() {
                           ? items.filter(
                               (i) =>
                                 i.status !== 'rejected' &&
-                                getItemStepDecision(i, currentStep)?.fallbackReason != null,
+                                isFallbackPending(
+                                  currentStep,
+                                  getItemStepDecision(i, currentStep)?.fallbackReason,
+                                  {
+                                    branchManualOverride: i.branchManualOverride,
+                                    identificationEffectiveDateManualOverride:
+                                      i.identificationEffectiveDateManualOverride,
+                                  },
+                                ),
                             ).length
                           : 0
                       }
