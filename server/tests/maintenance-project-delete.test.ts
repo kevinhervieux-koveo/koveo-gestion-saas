@@ -397,9 +397,23 @@ describeIfDb('DELETE /api/maintenance/projects/:id — integration (real Postgre
       isSent: false,
     });
 
+    // Task #1154: submission_vendors.vendor_name (varchar) was renamed
+    // to vendor_id (uuid FK to vendors.id). Seed a real vendor row in
+    // the same org and reference its id. This row is left behind for
+    // the run — it'll be cleaned up by demo-data resets and is harmless
+    // (no cross-test interference because each `runId` is unique).
+    const [seedVendor] = await db
+      .insert(schema.vendors)
+      .values({
+        organizationId: orgId,
+        name: `del-integ-vendor-${runId}`,
+        category: 'general_contractor',
+      })
+      .returning({ id: schema.vendors.id });
+
     await db.insert(schema.submissionVendors).values({
       projectId,
-      vendorName: 'Test Vendor',
+      vendorId: seedVendor.id,
       projectType: 'replacement',
       isSelected: false,
       preferred: false,

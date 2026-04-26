@@ -582,13 +582,29 @@ export const elementDocuments = pgTable('element_documents', {
 /**
  * Submission vendors table for managing vendor submissions during project submission phase.
  * Tracks vendor quotes, contact information, and selection status.
+ *
+ * Vendor FK note (Task #1154)
+ * ---------------------------
+ * `vendor_id` is a real foreign key to `vendors(id)` with
+ * `ON DELETE SET NULL`. Historically the column was `vendor_name`
+ * (varchar(255)) that opportunistically stored a vendor UUID as a
+ * string — readers had to `::uuid`-cast on every join, and a deleted
+ * vendor would leave a dangling text reference that silently dropped
+ * out of the joined response. Migration
+ * `migrations/0019_submission_vendors_vendor_id_fk.sql` renames the
+ * column, backfills it from the prior text values (UUID match first,
+ * then case-insensitive vendor-name lookup scoped to the project's
+ * building's organization), and adds the FK so an unknown
+ * `vendor_id` is now rejected up-front. Nullable so deleting a
+ * vendor demotes the submission to "vendor unknown" rather than
+ * cascading away the quote/payment plan.
  */
 export const submissionVendors = pgTable('submission_vendors', {
   id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
   projectId: uuid('project_id')
     .notNull()
     .references(() => maintenanceProjects.id, { onDelete: 'cascade' }),
-  vendorName: varchar('vendor_name', { length: 255 }).notNull(),
+  vendorId: uuid('vendor_id').references(() => vendors.id, { onDelete: 'set null' }),
   availableDate: date('available_date'),
   contactInfo: text('contact_info'),
   notes: text('notes'),
@@ -608,7 +624,7 @@ export const submissionVendors = pgTable('submission_vendors', {
 }, (table) => ({
   // Performance indexes
   projectIdIdx: index('submission_vendors_project_id_idx').on(table.projectId),
-  vendorNameIdx: index('submission_vendors_vendor_name_idx').on(table.vendorName),
+  vendorIdIdx: index('submission_vendors_vendor_id_idx').on(table.vendorId),
   // Date indexes for range queries
   availableDateIdx: index('submission_vendors_available_date_idx').on(table.availableDate),
   paymentPlanStartDateIdx: index('submission_vendors_payment_plan_start_date_idx').on(table.paymentPlanStartDate),
@@ -835,7 +851,7 @@ export const insertElementDocumentSchema = z.object({
 
 export const insertSubmissionVendorSchema = z.object({
   projectId: z.string().uuid(),
-  vendorName: z.string().min(1, 'Vendor name is required').max(255),
+  vendorId: z.string().uuid('Vendor ID must be a valid UUID'),
   availableDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   contactInfo: z.string().optional(),
   notes: z.string().optional(),
@@ -1087,6 +1103,10 @@ export const submissionVendorsRelations = relations(submissionVendors, ({ one })
   project: one(maintenanceProjects, {
     fields: [submissionVendors.projectId],
     references: [maintenanceProjects.id],
+  }),
+  vendor: one(vendors, {
+    fields: [submissionVendors.vendorId],
+    references: [vendors.id],
   }),
 }));
 

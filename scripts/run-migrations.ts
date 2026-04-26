@@ -30,9 +30,10 @@
  *    "No pending migrations.".
  *
  * Notes:
- * - Only files matching /^\d{4}_.+\.sql$/ are considered. Ad-hoc fix
- *   files (e.g. `fix_submission_vendors_schema.sql`) are intentionally
- *   ignored — they were one-off repairs and are not part of the chain.
+ * - Only files matching /^\d{4}_.+\.sql$/ are considered. Any ad-hoc
+ *   `fix_*.sql` repair scripts that may exist alongside the chain are
+ *   intentionally ignored — they are one-off repairs and are not part
+ *   of the canonical migration chain.
  * - `--baseline` forces the auto-baseline behaviour even if the
  *   `users`-table heuristic does not match. Useful to bootstrap a
  *   freshly-restored prod snapshot.

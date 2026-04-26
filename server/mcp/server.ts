@@ -6518,11 +6518,13 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
 
   server.tool(
     "assign_project_vendor",
-    "Attach a vendor submission (quote) to a project (admin/manager only). Mirrors POST /api/maintenance/projects/:id/vendors. Project's building must be inside an MCP-scoped organization.",
+    "Attach a vendor submission (quote) to a project (admin/manager only). Mirrors POST /api/maintenance/projects/:id/vendors. Project's building must be inside an MCP-scoped organization, and the vendor must belong to the same organization as the building.",
     {
       role: roleParam,
       projectId: z.string().describe("Maintenance project ID"),
-      vendorName: z.string().min(1).max(255).describe("Vendor name"),
+      // Task #1154: vendor link is now `vendor_id` (uuid FK to vendors.id),
+      // not a free-text name. Callers must supply a real vendor UUID.
+      vendorId: z.string().uuid("Vendor ID must be a valid UUID").describe("Vendor ID (uuid) — must belong to the project's organization"),
       projectType: z
         .enum(["repair", "minor_rehab", "major_rehab", "replacement", "not_sure"])
         .describe("Project type the quote is for"),
@@ -6533,18 +6535,32 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       notes: z.string().optional().describe("Submission notes"),
       preferred: z.boolean().optional().describe("Mark this submission as preferred"),
     },
-    async ({ role, projectId, vendorName, projectType, price, addedLifespan, availableDate, contactInfo, notes, preferred }) => {
+    async ({ role, projectId, vendorId, projectType, price, addedLifespan, availableDate, contactInfo, notes, preferred }) => {
       if (role === "tenant") {
         return { content: [{ type: "text" as const, text: "Access denied: tenants cannot assign vendors to projects" }] };
       }
       const scope = await loadMcpScopedProject(projectId);
       if (!scope.ok) return scope.response;
+      // Task #1154: enforce that the vendor lives in the same org as
+      // the project's building. The MCP scope check above only proves
+      // the *project* is reachable; without this second check, an MCP
+      // caller could attach any vendor UUID they happen to know to one
+      // of their projects and have the joined GET endpoint surface that
+      // foreign vendor's contact details back at them.
+      const [vendorRow] = await db
+        .select({ id: schema.vendors.id, organizationId: schema.vendors.organizationId })
+        .from(schema.vendors)
+        .where(eq(schema.vendors.id, vendorId))
+        .limit(1);
+      if (!vendorRow || vendorRow.organizationId !== scope.building.organizationId) {
+        return { content: [{ type: "text" as const, text: `Vendor not found or not in the project organization: ${vendorId}` }] };
+      }
       try {
         const [submission] = await withRetryableDbCall(() => db
           .insert(schema.submissionVendors)
           .values({
             projectId,
-            vendorName,
+            vendorId,
             projectType,
             ...(price !== undefined && { price: String(price) }),
             ...(addedLifespan !== undefined && { addedLifespan }),

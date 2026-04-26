@@ -99,12 +99,18 @@ describeIfDb('MCP project tools — Task #315 integration', () => {
     outsideOrgId: null as string | null,
     workflowTaskIds: new Set<string>(),
     submissionVendorIds: new Set<string>(),
+    // Task #1154: assign_project_vendor now demands a real vendor uuid
+    // belonging to the project's organization, so the suite seeds (and
+    // tears down) a vendor row in MCP-1 to point those calls at.
+    vendorIds: new Set<string>(),
     projectStepIds: new Set<string>(),
     projectIds: new Set<string>(),
     userOrgs: new Set<string>(),
     buildings: new Set<string>(),
     users: new Set<string>(),
   };
+
+  let vendorInScopeId: string;
 
   let mcpOrgId: string;
   let outsideOrgId: string;
@@ -249,6 +255,18 @@ describeIfDb('MCP project tools — Task #315 integration', () => {
       createdBy: adminUserId,
     });
     created.projectIds.add(outsideProjectId);
+
+    // 6. Task #1154: vendor row in the MCP-scoped org so
+    //    `assign_project_vendor` has a real FK target. The matching
+    //    afterAll cleanup deletes it before deleting the org.
+    vendorInScopeId = crypto.randomUUID();
+    await db.insert(schema.vendors).values({
+      id: vendorInScopeId,
+      organizationId: mcpOrgId,
+      name: `${TEST_TAG} vendor`,
+      category: 'general_contractor',
+    });
+    created.vendorIds.add(vendorInScopeId);
   }, 60000);
 
   afterAll(async () => {
@@ -266,6 +284,13 @@ describeIfDb('MCP project tools — Task #315 integration', () => {
       await db
         .delete(schema.submissionVendors)
         .where(inArray(schema.submissionVendors.id, [...created.submissionVendorIds]));
+    }
+    // Task #1154: vendors are now FK targets of submission_vendors. Delete
+    // them after the submissions and before the parent organization.
+    if (created.vendorIds.size) {
+      await db
+        .delete(schema.vendors)
+        .where(inArray(schema.vendors.id, [...created.vendorIds]));
     }
     if (created.projectStepIds.size) {
       await db
@@ -341,7 +366,9 @@ describeIfDb('MCP project tools — Task #315 integration', () => {
         {
           role: 'tenant',
           projectId: outsideProjectId,
-          vendorName: `${TEST_TAG} tenant vendor`,
+          // Task #1154: vendor link is now a uuid; tenant gate fires
+          // before any FK lookup, so a freshly minted UUID is fine.
+          vendorId: crypto.randomUUID(),
           projectType: 'repair',
         },
       ],
@@ -393,7 +420,9 @@ describeIfDb('MCP project tools — Task #315 integration', () => {
         args.taskName = `${TEST_TAG} oos`;
       }
       if (tool === 'assign_project_vendor') {
-        args.vendorName = `${TEST_TAG} oos`;
+        // Task #1154: vendor link is now a uuid; the project-scope
+        // guard fires before any FK lookup, so a fresh UUID suffices.
+        args.vendorId = crypto.randomUUID();
         args.projectType = 'repair';
       }
       if (tool === 'update_project') {
@@ -578,11 +607,14 @@ describeIfDb('MCP project tools — Task #315 integration', () => {
     expect(textOf(unknownTaskRes)).toMatch(/Task not found/i);
 
     // ── assign_project_vendor ──────────────────────────────────────
+    // Task #1154: vendor link is now a uuid pointing at a real
+    // `vendors` row in the project's organization. The vendor was
+    // pre-seeded in beforeAll under MCP-1.
     const assignVendorHandler = getToolHandler(adminSrv, 'assign_project_vendor');
     const assignRes = await assignVendorHandler({
       role: 'admin',
       projectId: project.id,
-      vendorName: `${TEST_TAG} vendor`,
+      vendorId: vendorInScopeId,
       projectType: 'repair',
       price: 999.99,
       contactInfo: 'vendor@example.test',
@@ -591,14 +623,14 @@ describeIfDb('MCP project tools — Task #315 integration', () => {
     const submission = parseJson<{
       id: string;
       projectId: string;
-      vendorName: string;
+      vendorId: string;
       projectType: string;
       price: string;
       preferred: boolean;
     }>(assignRes);
     expect(submission.id).toBeTruthy();
     expect(submission.projectId).toBe(project.id);
-    expect(submission.vendorName).toBe(`${TEST_TAG} vendor`);
+    expect(submission.vendorId).toBe(vendorInScopeId);
     expect(submission.projectType).toBe('repair');
     expect(Number(submission.price)).toBeCloseTo(999.99);
     expect(submission.preferred).toBe(true);

@@ -104,6 +104,8 @@ describeIfDb('MCP project workflow tools — Task #519 integration', () => {
     outsideOrgId: null as string | null,
     workflowTaskIds: new Set<string>(),
     submissionVendorIds: new Set<string>(),
+    // Task #1154: vendors seeded for submission_vendors.vendor_id FK.
+    vendorIds: new Set<string>(),
     notificationIds: new Set<string>(),
     projectIds: new Set<string>(),
     userOrgs: new Set<string>(),
@@ -119,6 +121,8 @@ describeIfDb('MCP project workflow tools — Task #519 integration', () => {
   let managerUserId: string;
   let adminUserId: string;
   let outsideProjectId: string;
+  // Task #1154: seeded vendor row used by the reopen-status test.
+  let sharedVendorId: string;
 
   function serverFor(role: 'admin' | 'manager' | 'tenant', userId: string) {
     return createMcpServer({ userId, role });
@@ -252,6 +256,18 @@ describeIfDb('MCP project workflow tools — Task #519 integration', () => {
       createdBy: adminUserId,
     });
     created.projectIds.add(outsideProjectId);
+
+    // Task #1154: submission_vendors.vendor_id is now an FK to vendors.id.
+    // Seed one vendor in the MCP-scoped org so the reopen suite can attach
+    // a real submission to its project. Cleaned up in afterAll below.
+    sharedVendorId = crypto.randomUUID();
+    await db.insert(schema.vendors).values({
+      id: sharedVendorId,
+      organizationId: mcpOrgId,
+      name: `${TEST_TAG} vendor`,
+      category: 'general_contractor',
+    });
+    created.vendorIds.add(sharedVendorId);
   }, 60000);
 
   afterAll(async () => {
@@ -274,6 +290,14 @@ describeIfDb('MCP project workflow tools — Task #519 integration', () => {
       await db
         .delete(schema.submissionVendors)
         .where(inArray(schema.submissionVendors.id, [...created.submissionVendorIds]));
+    }
+    // Task #1154: vendors are FK targets of submission_vendors and
+    // belong to the parent organization, so delete them after the
+    // submissions and before the org.
+    if (created.vendorIds.size) {
+      await db
+        .delete(schema.vendors)
+        .where(inArray(schema.vendors.id, [...created.vendorIds]));
     }
     if (created.projectIds.size) {
       await db
@@ -527,16 +551,19 @@ describeIfDb('MCP project workflow tools — Task #519 integration', () => {
     // Add a preferred submission vendor (would contribute to actualCost
     // *if* submission counted as completed after reopen — it won't,
     // because reopening to `submission` makes that the current status).
-    const vendorId = crypto.randomUUID();
+    // Task #1154: vendor link is now an FK uuid pointing at a real
+    // `vendors` row in the project's organization (seeded in beforeAll
+    // as `sharedVendorId`).
+    const submissionId = crypto.randomUUID();
     await db.insert(schema.submissionVendors).values({
-      id: vendorId,
+      id: submissionId,
       projectId,
-      vendorName: `${TEST_TAG} vendor`,
+      vendorId: sharedVendorId,
       projectType: 'repair',
       price: '1000.00',
       preferred: true,
     });
-    created.submissionVendorIds.add(vendorId);
+    created.submissionVendorIds.add(submissionId);
 
     // Add completed pre_work + in_progress tasks so we can prove the
     // reopen recalculation drops them (target is before pre_work in

@@ -311,16 +311,24 @@ export const submissionVendors = pgTable("submission_vendors", {
         paymentPlanCustomDates: date("payment_plan_custom_dates").array(),
         paymentPlanStartDate: date("payment_plan_start_date"),
         preferred: boolean().default(false).notNull(),
-        vendorName: varchar("vendor_name", { length: 255 }).notNull(),
+        // Task #1154: legacy `vendor_name` (varchar, NOT NULL) replaced by
+        // `vendor_id` (uuid, nullable, FK -> vendors.id ON DELETE SET NULL).
+        // Migration 0019 backfills, drops the old column, and adds the FK.
+        vendorId: uuid("vendor_id"),
         availableDate: date("available_date"),
 }, (table) => [
         index("submission_vendors_project_id_idx").using("btree", table.projectId.asc().nullsLast().op("uuid_ops")),
-        index("submission_vendors_vendor_name_idx").using("btree", table.vendorName.asc().nullsLast().op("text_ops")),
+        index("submission_vendors_vendor_id_idx").using("btree", table.vendorId.asc().nullsLast().op("uuid_ops")),
         foreignKey({
                         columns: [table.projectId],
                         foreignColumns: [maintenanceProjects.id],
                         name: "submission_vendors_project_id_maintenance_projects_id_fk"
                 }).onDelete("cascade"),
+        foreignKey({
+                        columns: [table.vendorId],
+                        foreignColumns: [vendors.id],
+                        name: "submission_vendors_vendor_id_vendors_id_fk"
+                }).onDelete("set null"),
         check("submission_vendors_price_check", sql`price >= (0)::numeric`),
         check("submission_vendors_added_lifespan_check", sql`added_lifespan >= 0`),
 ]);

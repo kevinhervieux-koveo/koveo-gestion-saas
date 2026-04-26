@@ -247,7 +247,16 @@ describe('MCP project tools — Task #315 mocked unit tests', () => {
       },
       {
         tool: 'assign_project_vendor',
-        args: { role: 'tenant', projectId: 'p-1', vendorName: 'V', projectType: 'repair' },
+        // Task #1154: vendor link is now a uuid; the role gate fires
+        // before any zod validation result reaches the DB, but the
+        // schema still rejects non-UUIDs at parse time, so use a real
+        // UUID shape here.
+        args: {
+          role: 'tenant',
+          projectId: 'p-1',
+          vendorId: '11111111-1111-1111-1111-111111111111',
+          projectType: 'repair',
+        },
         deny: /tenants cannot assign vendors to projects/i,
       },
       {
@@ -383,7 +392,14 @@ describe('MCP project tools — Task #315 mocked unit tests', () => {
       },
       {
         tool: 'assign_project_vendor',
-        args: { role: 'admin', projectId: 'p-1', vendorName: 'V', projectType: 'repair' },
+        // Task #1154: vendor link is now a uuid; scope check fires
+        // before the vendor lookup so any well-formed UUID works here.
+        args: {
+          role: 'admin',
+          projectId: 'p-1',
+          vendorId: '11111111-1111-1111-1111-111111111111',
+          projectType: 'repair',
+        },
       },
       {
         tool: 'reopen_project_status',
@@ -673,6 +689,16 @@ describe('MCP project tools — Task #315 mocked unit tests', () => {
             project: { id: 'p-1', buildingId: 'b-1', status: 'planned' },
             building: { id: 'b-1', organizationId: 'mcp-org-1' },
           });
+          // Task #1154: assign_project_vendor now also looks up the
+          // vendor row to verify it lives in the same org as the
+          // project's building. Queue a 4th `where` mock that returns
+          // a vendor in `mcp-org-1` so the FK insert (which is what we
+          // actually want to throw) is reached.
+          mockSelectChain.where.mockImplementationOnce(() =>
+            createWhereResult([
+              { id: '11111111-1111-1111-1111-111111111111', organizationId: 'mcp-org-1' },
+            ]),
+          );
         },
         'insert',
         PG_FK_VIOLATION,
@@ -682,7 +708,7 @@ describe('MCP project tools — Task #315 mocked unit tests', () => {
         {
           role: 'admin',
           projectId: 'p-1',
-          vendorName: 'Acme',
+          vendorId: '11111111-1111-1111-1111-111111111111',
           projectType: 'repair',
         },
         {},

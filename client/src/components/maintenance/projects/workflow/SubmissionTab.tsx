@@ -1,5 +1,6 @@
 // @ts-nocheck — Pre-existing type errors tracked in TYPE_CHECK_DEBT.md (task #769)
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -43,9 +44,12 @@ import {
   RotateCcw,
 } from 'lucide-react';
 
-// Form schema for new submission with payment plan (matching bills structure)
+// Form schema for new submission with payment plan (matching bills structure).
+// Task #1154: vendor link is now `vendorId` (uuid FK to vendors.id) — the
+// form picks an existing vendor from the org's vendor list rather than
+// accepting a free-text name.
 const newSubmissionSchema = z.object({
-  vendorName: z.string().min(1, 'Vendor name is required'),
+  vendorId: z.string().uuid('Please select a vendor'),
   availableDate: z.date().optional(),
   description: z.string().optional(),
   preferred: z.boolean(),
@@ -125,9 +129,10 @@ const newSubmissionSchema = z.object({
   }
 });
 
-// Form schema for editing existing vendor with payment plan
+// Form schema for editing existing vendor with payment plan.
+// Task #1154: vendor link is now `vendorId` (uuid FK to vendors.id).
 const editVendorSchema = z.object({
-  vendorName: z.string().min(1, 'Vendor name is required'),
+  vendorId: z.string().uuid('Please select a vendor'),
   availableDate: z.date().optional(),
   description: z.string().optional(),
   contactInfo: z.string().optional(),
@@ -269,11 +274,19 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
   const { mutate: reopenStep, isPending: isReopening } = useReopenWorkflowStep();
   const { createSubmissionVendor, updateSubmissionVendor, updatePreferredStatus, deleteSubmissionVendor } = useSubmissionVendorMutations();
 
+  // Task #1154: load vendors for the project's building org so the form
+  // Select can render real vendor options. The endpoint scopes by the
+  // caller's organization, so callers will only ever see in-scope rows.
+  const { data: vendorListResponse } = useQuery<{ vendors: Array<{ id: string; name: string }> }>({
+    queryKey: ['/api/maintenance/vendors'],
+  });
+  const vendorOptions = vendorListResponse?.vendors ?? [];
+
   // Form for new submission
   const submissionForm = useForm<NewSubmissionForm>({
     resolver: zodResolver(newSubmissionSchema),
     defaultValues: {
-      vendorName: '',
+      vendorId: '',
       availableDate: undefined,
       description: '',
       preferred: false,
@@ -295,7 +308,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
   const editVendorForm = useForm<EditVendorForm>({
     resolver: zodResolver(editVendorSchema),
     defaultValues: {
-      vendorName: '',
+      vendorId: '',
       availableDate: undefined,
       description: '',
       contactInfo: '',
@@ -420,9 +433,11 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
       }
     }
 
-    // Populate form with vendor data including payment plan
+    // Populate form with vendor data including payment plan.
+    // Task #1154: form now uses `vendorId` (uuid). The joined `vendor`
+    // object is what the API returns alongside each submission row.
     editVendorForm.reset({
-      vendorName: vendor.vendorName,
+      vendorId: vendor.vendorId ?? '',
       availableDate: vendor.availableDate ? new Date(vendor.availableDate) : undefined,
       description: vendor.notes || '',
       contactInfo: vendor.contactInfo || '',
@@ -496,7 +511,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
       projectId: project.id,
       vendorId: editingVendor.id,
       updates: {
-        vendorName: data.vendorName,
+        vendorId: data.vendorId,
         availableDate: data.availableDate ? format(data.availableDate, 'yyyy-MM-dd') : undefined,
         notes: data.description,
         contactInfo: data.contactInfo,
@@ -533,9 +548,12 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
     setEditUploadProgress({});
   };
 
-  // Handle deleting a vendor
+  // Handle deleting a vendor. Task #1154: pull display name from the
+  // joined `vendor` object now that there's no top-level vendorName, with
+  // a generic fallback for the rare ON-DELETE-SET-NULL case.
   const handleDeleteVendor = (vendorToDelete: SubmissionVendor) => {
-    if (!window.confirm(`Are you sure you want to delete the submission from ${vendorToDelete.vendorName}? This action cannot be undone.`)) {
+    const vendorDisplayName = vendorToDelete.vendor?.name ?? 'this vendor';
+    if (!window.confirm(`Are you sure you want to delete the submission from ${vendorDisplayName}? This action cannot be undone.`)) {
       return;
     }
 
@@ -689,9 +707,10 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
       }
     }
 
-    // Convert form data to the API format
+    // Convert form data to the API format. Task #1154: send `vendorId`
+    // (uuid) so the backend can record a real FK link to vendors(id).
     const vendorData = {
-      vendorName: data.vendorName,
+      vendorId: data.vendorId,
       availableDate: data.availableDate ? format(data.availableDate, 'yyyy-MM-dd') : undefined,
       price: data.price?.toString(), // Keep original price behavior
       description: data.description || '',
@@ -962,20 +981,33 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
               </DialogHeader>
               <Form {...submissionForm}>
                 <form onSubmit={submissionForm.handleSubmit(handleSubmissionSubmit)} className="space-y-4 pb-4">
-                  {/* Vendor Name */}
+                  {/* Vendor selection. Task #1154: replaced free-text
+                      vendor-name input with a Select fed from the org's
+                      real vendor list, so the submission stores a UUID FK
+                      to vendors(id) instead of an unverified name. */}
                   <FormField
                     control={submissionForm.control}
-                    name="vendorName"
+                    name="vendorId"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>{t('submissionVendorNameLabel')}</FormLabel>
-                        <FormControl>
-                          <Input
-                            placeholder={t('submissionVendorNamePlaceholder')}
-                            data-testid="input-vendor-name"
-                            {...field}
-                          />
-                        </FormControl>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value || undefined}
+                        >
+                          <FormControl>
+                            <SelectTrigger data-testid="select-vendor-id">
+                              <SelectValue placeholder={t('submissionVendorNamePlaceholder')} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {vendorOptions.map((v) => (
+                              <SelectItem key={v.id} value={v.id} data-testid={`option-vendor-${v.id}`}>
+                                {v.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -1530,7 +1562,12 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-3">
                     <div>
-                      <CardTitle className="text-lg">{vendor.vendorName}</CardTitle>
+                      {/* Task #1154: name comes from the joined vendor
+                          row (was a free-text column on the submission).
+                          Fallback covers the rare ON DELETE SET NULL case
+                          where the vendor row was removed after the
+                          submission was filed. */}
+                      <CardTitle className="text-lg">{vendor.vendor?.name ?? 'Unknown vendor'}</CardTitle>
                       <CardDescription className="flex items-center gap-4 mt-1">
                         {vendor.availableDate && (
                           <span className="flex items-center gap-1">
@@ -1689,7 +1726,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Settings className="h-5 w-5" />
-              {t('submissionEditPaymentPlanTitleTemplate').replace('{vendor}', editingPaymentPlan?.vendorName ?? '')}
+              {t('submissionEditPaymentPlanTitleTemplate').replace('{vendor}', editingPaymentPlan?.vendor?.name ?? '')}
             </DialogTitle>
             <div id="payment-plan-description" className="sr-only">
               {t('submissionEditPaymentPlanDescription')}
@@ -1722,7 +1759,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Edit className="h-5 w-5" />
-              {t('submissionEditVendorTitleTemplate').replace('{vendor}', editingVendor?.vendorName ?? '')}
+              {t('submissionEditVendorTitleTemplate').replace('{vendor}', editingVendor?.vendor?.name ?? '')}
             </DialogTitle>
             <div id="edit-vendor-description" className="sr-only">
               {t('submissionEditVendorDialogDescription')}
@@ -1732,15 +1769,32 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
           {editingVendor && (
             <Form {...editVendorForm}>
               <form onSubmit={editVendorForm.handleSubmit(handleSaveVendorEdit)} className="space-y-4">
+                {/* Task #1154: edit form's vendor link is also a Select
+                    over real vendor rows so re-binding a submission to a
+                    different vendor stores a valid uuid FK. */}
                 <FormField
                   control={editVendorForm.control}
-                  name="vendorName"
+                  name="vendorId"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>{t('submissionVendorNameLabelEdit')}</FormLabel>
-                      <FormControl>
-                        <Input placeholder={t('submissionVendorNamePlaceholder')} {...field} />
-                      </FormControl>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value || undefined}
+                      >
+                        <FormControl>
+                          <SelectTrigger data-testid="select-edit-vendor-id">
+                            <SelectValue placeholder={t('submissionVendorNamePlaceholder')} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {vendorOptions.map((v) => (
+                            <SelectItem key={v.id} value={v.id} data-testid={`option-edit-vendor-${v.id}`}>
+                              {v.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}

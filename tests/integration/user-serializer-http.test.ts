@@ -217,9 +217,11 @@ describeIfDb('User serializer HTTP — no password leak (all 8 endpoints)', () =
       })
       .returning();
 
+    // Task #1154: column was renamed `vendor_name` (varchar) → `vendor_id`
+    // (uuid FK to vendors.id). Use the real vendor row inserted above.
     await db.insert(submissionVendors).values({
       projectId: testProject.id,
-      vendorName: vendor.id,
+      vendorId: vendor.id,
       projectType: 'not_sure',
     });
   }, 30_000);

@@ -99,6 +99,8 @@ describeIfDb('MCP delete_project cascade — real Postgres (Task #279)', () => {
     projectStepIds: new Set<string>(),
     projectElementIds: new Set<string>(),
     submissionVendorIds: new Set<string>(),
+    // Task #1154: vendors referenced by submission_vendors.vendor_id (FK).
+    vendorIds: new Set<string>(),
     workflowTaskIds: new Set<string>(),
     projectNotificationIds: new Set<string>(),
     elementProjectUpdateIds: new Set<string>(),
@@ -137,6 +139,13 @@ describeIfDb('MCP delete_project cascade — real Postgres (Task #279)', () => {
       await db
         .delete(schema.submissionVendors)
         .where(inArray(schema.submissionVendors.id, [...created.submissionVendorIds]));
+    }
+    // Task #1154: vendors live in the org but are FK targets of
+    // submission_vendors. Delete after the submissions, before the org.
+    if (created.vendorIds.size) {
+      await db
+        .delete(schema.vendors)
+        .where(inArray(schema.vendors.id, [...created.vendorIds]));
     }
     if (created.projectElementIds.size) {
       await db
@@ -348,11 +357,25 @@ describeIfDb('MCP delete_project cascade — real Postgres (Task #279)', () => {
     });
     created.projectElementIds.add(projectElementId);
 
+    // Task #1154: submission_vendors.vendor_id is now a real FK to
+    // vendors.id (ON DELETE SET NULL). The cascade test only cares that
+    // the submission row goes away when its parent project is deleted —
+    // the vendor row itself stays in the org and is cleaned up in
+    // afterAll.
+    const vendorRowId = crypto.randomUUID();
+    await db.insert(schema.vendors).values({
+      id: vendorRowId,
+      organizationId: created.organizationId!,
+      name: `${TEST_TAG} vendor`,
+      category: 'general_contractor',
+    });
+    created.vendorIds.add(vendorRowId);
+
     const submissionVendorId = crypto.randomUUID();
     await db.insert(schema.submissionVendors).values({
       id: submissionVendorId,
       projectId,
-      vendorName: `${TEST_TAG} vendor`,
+      vendorId: vendorRowId,
       projectType: 'repair',
     });
     created.submissionVendorIds.add(submissionVendorId);

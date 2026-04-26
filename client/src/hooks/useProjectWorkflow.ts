@@ -536,7 +536,7 @@ export function useSubmissionVendorMutations() {
       vendorData 
     }: { 
       projectId: string; 
-      vendorData: Omit<SubmissionVendor, 'id' | 'projectId' | 'vendorName' | 'createdAt' | 'updatedAt'>;
+      vendorData: Omit<SubmissionVendor, 'id' | 'projectId' | 'createdAt' | 'updatedAt'>;
     }) => {
       const response = await apiRequest('POST', `/api/maintenance/projects/${projectId}/submission-vendors`, vendorData);
       if (!response.ok) {
@@ -572,7 +572,7 @@ export function useSubmissionVendorMutations() {
     }: { 
       projectId: string; 
       vendorId: string; 
-      updates: Partial<Omit<SubmissionVendor, 'id' | 'projectId' | 'vendorName' | 'createdAt' | 'updatedAt'>>;
+      updates: Partial<Omit<SubmissionVendor, 'id' | 'projectId' | 'createdAt' | 'updatedAt'>>;
     }) => {
       const response = await apiRequest('PATCH', `/api/maintenance/projects/${projectId}/submission-vendors/${vendorId}`, updates);
       if (!response.ok) {

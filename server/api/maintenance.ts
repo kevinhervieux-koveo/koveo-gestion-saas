@@ -351,7 +351,10 @@ const markCompleteSchema = z.object({
 });
 
 const submissionVendorCreateSchema = z.object({
-  vendorName: z.string().min(1, 'Vendor name is required').max(255),
+  // Task #1154: vendor_name (varchar) → vendor_id (uuid FK to vendors.id).
+  // Callers must now pass a real vendor UUID; the route enforces that the
+  // vendor belongs to the same organization as the project's building.
+  vendorId: z.string().uuid('Vendor ID must be a valid UUID'),
   availableDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   contactInfo: z.string().optional(),
   notes: z.string().optional(),
@@ -363,7 +366,10 @@ const submissionVendorCreateSchema = z.object({
 });
 
 const submissionVendorUpdateSchema = z.object({
-  vendorName: z.string().min(1, 'Vendor name is required').max(255).optional(),
+  // Optional on update so callers can edit notes / price / etc. without
+  // touching the vendor link, but if provided it must be a real UUID and
+  // the route re-checks the vendor's organization scope.
+  vendorId: z.string().uuid('Vendor ID must be a valid UUID').optional(),
   availableDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
   contactInfo: z.string().optional(),
   notes: z.string().optional(),
@@ -6608,8 +6614,31 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         return res.status(403).json({ error: 'No access to this project' });
       }
 
-      // Note: Removing vendor verification as vendorId is not part of the submission vendor schema
-      // Vendor submissions can reference vendor names without requiring existing vendor records
+      // Task #1154: vendor_id is now a real FK to vendors(id). Verify the
+      // referenced vendor exists AND belongs to the same organization as
+      // the project's building. Without this check, an attacker who knows
+      // a foreign vendor UUID could attach it to one of *their* projects
+      // and have the joined GET endpoint cheerfully render that other
+      // org's vendor (name, contact, phone, email) back at them.
+      const [building] = await db
+        .select({ organizationId: buildings.organizationId })
+        .from(buildings)
+        .where(eq(buildings.id, project[0].buildingId))
+        .limit(1);
+      if (!building) {
+        return res.status(404).json({ error: 'Project building not found' });
+      }
+      const [vendorRow] = await db
+        .select({ id: vendors.id, organizationId: vendors.organizationId })
+        .from(vendors)
+        .where(eq(vendors.id, validation.data.vendorId))
+        .limit(1);
+      if (!vendorRow || vendorRow.organizationId !== building.organizationId) {
+        return res.status(400).json({
+          error: 'Invalid vendor',
+          message: 'Vendor not found or not in the project organization',
+        });
+      }
 
       // Create submission vendor
       const newSubmissionVendor = await db
@@ -6666,12 +6695,19 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         return res.status(403).json({ error: 'No access to this project' });
       }
 
-      // Get submission vendors with vendor details
+      // Get submission vendors with vendor details. Task #1154 turned
+      // `submission_vendors.vendor_id` into a real uuid FK to
+      // `vendors(id)`, so the join is now a plain `uuid = uuid` equality
+      // (no more `::uuid` cast). It's a LEFT JOIN because the FK is
+      // ON DELETE SET NULL — a deleted vendor demotes the submission to
+      // "vendor unknown" rather than dropping the quote/payment plan
+      // out of the response (the previous INNER + ::uuid join silently
+      // hid those rows entirely).
       const submissionVendorsList = await db
         .select({
           id: submissionVendors.id,
           projectId: submissionVendors.projectId,
-          vendorId: submissionVendors.vendorName,
+          vendorId: submissionVendors.vendorId,
           contactInfo: submissionVendors.contactInfo,
           notes: submissionVendors.notes,
           price: submissionVendors.price,
@@ -6693,10 +6729,7 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
           }
         })
         .from(submissionVendors)
-        // `submission_vendors.vendor_name` is varchar(255) but stores the
-        // vendor UUID. Postgres refuses an implicit `uuid = varchar`
-        // comparison, so cast the varchar side to uuid in the join.
-        .innerJoin(vendors, sql`${vendors.id} = ${submissionVendors.vendorName}::uuid`)
+        .leftJoin(vendors, eq(vendors.id, submissionVendors.vendorId))
         .where(eq(submissionVendors.projectId, id))
         .orderBy(desc(submissionVendors.createdAt));
 
@@ -6737,15 +6770,19 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         });
       }
 
-      // Get submission vendor and project to check access
+      // Get submission vendor and project to check access. Pull
+      // organizationId in the same query so the optional vendorId-rebind
+      // below can verify cross-org safety without a second round trip.
       const submissionVendor = await db
         .select({
           id: submissionVendors.id,
           projectId: submissionVendors.projectId,
           buildingId: maintenanceProjects.buildingId,
+          organizationId: buildings.organizationId,
         })
         .from(submissionVendors)
         .innerJoin(maintenanceProjects, eq(maintenanceProjects.id, submissionVendors.projectId))
+        .innerJoin(buildings, eq(buildings.id, maintenanceProjects.buildingId))
         .where(eq(submissionVendors.id, vendorId))
         .limit(1);
 
@@ -6756,6 +6793,26 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
       const hasAccess = await checkBuildingAccess(user.id, submissionVendor[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({ error: 'No access to this vendor submission' });
+      }
+
+      // Task #1154: if the caller is rebinding the vendor link, re-check
+      // that the new vendor exists and lives inside the project's
+      // organization. Same defence as the create path — without it, an
+      // attacker who knew a foreign vendor UUID could PATCH it onto one
+      // of their submissions and get the joined GET endpoint to render
+      // that other org's vendor (name, contact, phone, email) back.
+      if (validation.data.vendorId !== undefined) {
+        const [vendorRow] = await db
+          .select({ id: vendors.id, organizationId: vendors.organizationId })
+          .from(vendors)
+          .where(eq(vendors.id, validation.data.vendorId))
+          .limit(1);
+        if (!vendorRow || vendorRow.organizationId !== submissionVendor[0].organizationId) {
+          return res.status(400).json({
+            error: 'Invalid vendor',
+            message: 'Vendor not found or not in the project organization',
+          });
+        }
       }
 
       // Update submission vendor
@@ -8302,12 +8359,20 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         return res.status(403).json({ error: 'No access to this project' });
       }
 
-      // Get submission vendors - no need to join with vendors table since vendorName is stored directly
+      // Task #1154: vendor_id is now a real FK to vendors(id). Left-join
+      // on vendors so the response includes the vendor display fields the
+      // SubmissionTab UI renders (name, contact, phone, email) — the
+      // legacy `vendorName` text column was the only source the frontend
+      // had, so dropping it without surfacing the joined name would have
+      // broken every "vendor X submitted a quote" line in the UI. Left
+      // join (not inner) because the FK is ON DELETE SET NULL, so a
+      // submission whose vendor was since deleted still appears with
+      // `vendor: null` rather than vanishing from the list.
       const submissions = await db
         .select({
           id: submissionVendors.id,
           projectId: submissionVendors.projectId,
-          vendorName: submissionVendors.vendorName,
+          vendorId: submissionVendors.vendorId,
           availableDate: submissionVendors.availableDate,
           contactInfo: submissionVendors.contactInfo,
           notes: submissionVendors.notes,
@@ -8323,8 +8388,18 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
           preferred: submissionVendors.preferred,
           createdAt: submissionVendors.createdAt,
           updatedAt: submissionVendors.updatedAt,
+          vendor: {
+            id: vendors.id,
+            name: vendors.name,
+            category: vendors.category,
+            contactPerson: vendors.contactPerson,
+            phone: vendors.phone,
+            email: vendors.email,
+            rating: vendors.rating,
+          },
         })
         .from(submissionVendors)
+        .leftJoin(vendors, eq(vendors.id, submissionVendors.vendorId))
         .where(eq(submissionVendors.projectId, id))
         .orderBy(desc(submissionVendors.createdAt));
 
@@ -8357,10 +8432,12 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         return res.status(400).json({ error: 'Project ID is required' });
       }
 
-      // Validate submission vendor data using the schema
+      // Task #1154: vendor_id is now a real FK to vendors(id). Callers
+      // must pass a vendor UUID; the route then re-checks the vendor's
+      // org against the project's building before inserting.
       const submissionVendorValidationSchema = z.object({
         projectId: z.string().uuid(),
-        vendorName: z.string().min(1, 'Vendor name is required'),
+        vendorId: z.string().uuid('Vendor ID must be a valid UUID'),
         availableDate: z.string().optional(),
         contactInfo: z.string().optional(),
         notes: z.string().optional(),
@@ -8388,13 +8465,15 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         });
       }
 
-      // Get project and check access
+      // Get project + building org and check access in one shot.
       const project = await db
         .select({
           id: maintenanceProjects.id,
           buildingId: maintenanceProjects.buildingId,
+          organizationId: buildings.organizationId,
         })
         .from(maintenanceProjects)
+        .innerJoin(buildings, eq(buildings.id, maintenanceProjects.buildingId))
         .where(eq(maintenanceProjects.id, id))
         .limit(1);
 
@@ -8407,12 +8486,27 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         return res.status(403).json({ error: 'No access to this project' });
       }
 
-      // Create submission vendor (no vendor lookup needed since vendorName is stored directly)
+      // Task #1154: enforce that the vendor belongs to the same org as
+      // the project's building. Skipping this would let a caller attach
+      // any vendor UUID they happen to know to one of their submissions.
+      const [vendorRow] = await db
+        .select({ id: vendors.id, organizationId: vendors.organizationId })
+        .from(vendors)
+        .where(eq(vendors.id, validation.data.vendorId))
+        .limit(1);
+      if (!vendorRow || vendorRow.organizationId !== project[0].organizationId) {
+        return res.status(400).json({
+          error: 'Invalid vendor',
+          message: 'Vendor not found or not in the project organization',
+        });
+      }
+
+      // Create submission vendor
       const insertData: any = {
         ...validation.data,
         projectType: validation.data.projectType as any,
       };
-      
+
       const submissionVendor = await db
         .insert(submissionVendors)
         .values(insertData)
@@ -8447,10 +8541,11 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         return res.status(400).json({ error: 'Project ID and Vendor ID are required' });
       }
 
-      // Temporary inline schema that matches the shared schema exactly
+      // Temporary inline schema that matches the shared schema exactly.
+      // Task #1154: vendor link is now `vendorId` (uuid FK to vendors.id).
       const submissionVendorValidationSchema = z.object({
         projectId: z.string().uuid(),
-        vendorName: z.string().min(1, 'Vendor name is required').max(255),
+        vendorId: z.string().uuid('Vendor ID must be a valid UUID'),
         availableDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
         contactInfo: z.string().optional(),
         notes: z.string().optional(),
@@ -8484,15 +8579,19 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         });
       }
 
-      // Get submission vendor and check access
+      // Get submission vendor and check access. Pull the building's
+      // organizationId in the same query so the optional vendorId-rebind
+      // below can verify cross-org safety without a second round trip.
       const submissionVendor = await db
         .select({
           id: submissionVendors.id,
           projectId: submissionVendors.projectId,
           buildingId: maintenanceProjects.buildingId,
+          organizationId: buildings.organizationId,
         })
         .from(submissionVendors)
         .innerJoin(maintenanceProjects, eq(maintenanceProjects.id, submissionVendors.projectId))
+        .innerJoin(buildings, eq(buildings.id, maintenanceProjects.buildingId))
         .where(and(
           eq(submissionVendors.id, vendorId),
           eq(submissionVendors.projectId, projectId)
@@ -8506,6 +8605,22 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
       const hasAccess = await checkBuildingAccess(user.id, submissionVendor[0].buildingId, user.role);
       if (!hasAccess) {
         return res.status(403).json({ error: 'No access to this submission vendor' });
+      }
+
+      // Task #1154: if the caller is rebinding the vendor link, re-check
+      // that the new vendor exists and lives in the project's org.
+      if (validation.data.vendorId !== undefined) {
+        const [vendorRow] = await db
+          .select({ id: vendors.id, organizationId: vendors.organizationId })
+          .from(vendors)
+          .where(eq(vendors.id, validation.data.vendorId))
+          .limit(1);
+        if (!vendorRow || vendorRow.organizationId !== submissionVendor[0].organizationId) {
+          return res.status(400).json({
+            error: 'Invalid vendor',
+            message: 'Vendor not found or not in the project organization',
+          });
+        }
       }
 
       // Update submission vendor

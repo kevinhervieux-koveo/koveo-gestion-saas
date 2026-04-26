@@ -590,22 +590,68 @@ type SeedVendorDocument = {
 type SubmissionVendorProjectType =
   (typeof schema.projectTypeEnum.enumValues)[number];
 
+// Task #1154: submission_vendors.vendor_id is a real FK to vendors(id),
+// so the seeder now needs concrete vendor rows in the project's org. We
+// upsert a small fixture set per organization on first use and cache the
+// resulting ids in-process; subsequent projects in the same org reuse
+// the same vendors instead of re-querying every time.
+const SEED_VENDORS_PER_ORG: Array<{ name: string; category: string; attach: boolean }> = [
+  { name: 'Construction Tremblay Inc.', category: 'general_contractor', attach: true },
+  { name: 'Rénovations Bélanger Ltée', category: 'general_contractor', attach: false },
+];
+
+const seedVendorIdsByOrg = new Map<string, string[]>();
+
+async function ensureSeedVendorsForOrg(organizationId: string): Promise<string[]> {
+  const cached = seedVendorIdsByOrg.get(organizationId);
+  if (cached) return cached;
+
+  const ids: string[] = [];
+  for (const fixture of SEED_VENDORS_PER_ORG) {
+    const [existing] = await db
+      .select({ id: schema.vendors.id })
+      .from(schema.vendors)
+      .where(
+        and(
+          eq(schema.vendors.organizationId, organizationId),
+          eq(schema.vendors.name, fixture.name),
+        ),
+      )
+      .limit(1);
+    if (existing) {
+      ids.push(existing.id);
+      continue;
+    }
+    const [created] = await db
+      .insert(schema.vendors)
+      .values({
+        organizationId,
+        name: fixture.name,
+        category: fixture.category as any,
+      })
+      .returning({ id: schema.vendors.id });
+    ids.push(created.id);
+  }
+  seedVendorIdsByOrg.set(organizationId, ids);
+  return ids;
+}
+
 async function seedVendorSubmissionsForProject(
   projectId: string,
   projectType: SubmissionVendorProjectType,
+  organizationId: string,
 ): Promise<void> {
   // Add 2 vendor submissions per project; attach a demo PDF to the first one
   // so the "download vendor document" flow has real bytes behind it. The
   // download handler recursively searches uploads/ for files whose name
   // contains the document id, so we write the PDF to
   // uploads/maintenance/seed/<docId>_placeholder.pdf.
-  const vendors = [
-    { vendorName: 'Construction Tremblay Inc.', attach: true },
-    { vendorName: 'Rénovations Bélanger Ltée', attach: false },
-  ];
-  for (const vendor of vendors) {
+  const vendorIds = await ensureSeedVendorsForOrg(organizationId);
+  for (let i = 0; i < SEED_VENDORS_PER_ORG.length; i++) {
+    const fixture = SEED_VENDORS_PER_ORG[i];
+    const vendorId = vendorIds[i];
     let documentsJson: SeedVendorDocument[] | null = null;
-    if (vendor.attach) {
+    if (fixture.attach) {
       const docId = randomUUID();
       const fileName = `soumission_${Date.now()}.pdf`;
       const absolutePath = path.join(
@@ -628,7 +674,7 @@ async function seedVendorSubmissionsForProject(
     }
     await db.insert(schema.submissionVendors).values({
       projectId,
-      vendorName: vendor.vendorName,
+      vendorId,
       price: randomAmount(3000, 80000).toString(),
       projectType,
       documents: documentsJson,
@@ -698,7 +744,9 @@ async function createInventoryAndProjects() {
         plannedEndDate: formatDateStr(endDate),
       }).returning({ id: schema.maintenanceProjects.id });
 
-      await seedVendorSubmissionsForProject(insertedProject.id, projectType.type);
+      // Task #1154: pass the building's organizationId so the seeder can
+      // upsert + link real vendor rows for the FK to point at.
+      await seedVendorSubmissionsForProject(insertedProject.id, projectType.type, building.organizationId);
     }
     console.log(`  ✓ Created ${projectCount} maintenance projects for ${building.name}`);
   }
