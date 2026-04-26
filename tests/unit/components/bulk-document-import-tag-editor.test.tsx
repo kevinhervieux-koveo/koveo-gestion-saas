@@ -242,7 +242,21 @@ interface SetTagsCall {
 
 const setTagsCalls: SetTagsCall[] = [];
 
-function makeFetchMock(items: ReturnType<typeof buildItem>[]) {
+interface SetTagsDeferred {
+  resolve: (value: Response) => void;
+  reject: (error: Error) => void;
+}
+
+// When `makeFetchMock` is given `{ deferSetTags: true }`, the next
+// /set-tags POST returns a pending Promise and stores its
+// resolve/reject handles here so the test can step the mutation
+// lifecycle (saving → saved/error) by hand.
+let deferredSetTags: SetTagsDeferred | null = null;
+
+function makeFetchMock(
+  items: ReturnType<typeof buildItem>[],
+  opts?: { deferSetTags?: boolean; setTagsStatus?: number },
+) {
   return jest.fn(async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
     const url =
       typeof input === 'string'
@@ -279,10 +293,19 @@ function makeFetchMock(items: ReturnType<typeof buildItem>[]) {
           ? (JSON.parse(init.body as string) as { tagIds: string[] })
           : { tagIds: [] };
         setTagsCalls.push({ itemId, body });
-        return jsonResponse({
-          id: itemId,
-          identification: { tags: body.tagIds },
-        });
+        if (opts?.deferSetTags) {
+          return new Promise<Response>((resolve, reject) => {
+            deferredSetTags = { resolve, reject };
+          });
+        }
+        const status = opts?.setTagsStatus ?? 200;
+        if (status >= 200 && status < 300) {
+          return jsonResponse({
+            id: itemId,
+            identification: { tags: body.tagIds },
+          });
+        }
+        return jsonResponse({ message: 'set-tags failed' }, status);
       }
       return jsonResponse({ ok: true });
     }
@@ -311,6 +334,7 @@ beforeEach(() => {
   originalFetch = global.fetch;
   window.localStorage.setItem('bulkImportActiveSessionId', SESSION_ID);
   setTagsCalls.length = 0;
+  deferredSetTags = null;
   queryClient.clear();
   jest.useFakeTimers({ doNotFake: ['queueMicrotask', 'nextTick'] });
 });
@@ -486,6 +510,226 @@ describe('BulkDocumentImportPage — IdentificationTagEditor (Task #1104)', () =
     expect(setTagsCalls[0]).toEqual({
       itemId,
       body: { tagIds: [] },
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Task #1117 — status-badge lifecycle coverage.
+  //
+  // The Identification step renders three tiny status icons next to the
+  // "Tags" label whose visibility is driven by the page-level
+  // `tagSaveStatus` map fed by the `setItemTags` mutation lifecycle:
+  //   - `identification-tags-saving-{id}` while a save is in flight
+  //     (set in `onMutate`);
+  //   - `identification-tags-saved-{id}` on success, auto-dismissed
+  //     1.5 s later (set in `onSuccess`, then back to `idle` via a
+  //     `setTimeout`);
+  //   - `identification-tags-error-{id}` on failure (set in `onError`,
+  //     stays put until the next save) accompanied by a destructive
+  //     toast.
+  //
+  // Both cases use the deferred-fetch hook so we can step the
+  // mutation through each phase deterministically and assert which
+  // badge is/isn't on screen at every transition.
+  // ---------------------------------------------------------------------------
+
+  it('cycles through saving → saved → idle status badges on a successful tag save (Task #1117)', async () => {
+    const itemId = 'item-tag-status-success';
+    const items = [
+      buildItem({
+        id: itemId,
+        originalName: 'lease.pdf',
+        branch: 'building_documents',
+        identificationTags: null,
+      }),
+    ];
+    setupTest(items);
+    // Override the fetch mock so /set-tags hangs until we resolve it
+    // by hand — that's how we observe the transient "saving" state.
+    global.fetch = makeFetchMock(items, { deferSetTags: true });
+
+    renderPage();
+
+    const editor = await screen.findByTestId(
+      `identification-tag-editor-${itemId}`,
+      undefined,
+      { timeout: 4000 },
+    );
+
+    // No badge is visible before the admin touches anything.
+    expect(
+      screen.queryByTestId(`identification-tags-saving-${itemId}`),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId(`identification-tags-saved-${itemId}`),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId(`identification-tags-error-${itemId}`),
+    ).not.toBeInTheDocument();
+
+    // Toggle a tag — opens the popover, picks Stationnement.
+    const trigger = editor.querySelector(
+      '[data-testid="button-tag-picker"]',
+    ) as HTMLElement | null;
+    expect(trigger).not.toBeNull();
+    await act(async () => {
+      fireEvent.click(trigger!);
+    });
+    const option = await screen.findByTestId(
+      `option-tag-${TAG_PARKING}`,
+      undefined,
+      { timeout: 4000 },
+    );
+    await act(async () => {
+      fireEvent.click(option);
+    });
+
+    // Drain the 300 ms debounce so the mutation fires. Because
+    // `deferSetTags` is on, the POST hangs and `onMutate` has had a
+    // chance to flip the status to 'saving'.
+    await act(async () => {
+      jest.advanceTimersByTime(350);
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId(`identification-tags-saving-${itemId}`),
+      ).toBeInTheDocument();
+    });
+    expect(
+      screen.queryByTestId(`identification-tags-saved-${itemId}`),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId(`identification-tags-error-${itemId}`),
+    ).not.toBeInTheDocument();
+
+    // The mutation is genuinely in flight.
+    expect(setTagsCalls).toHaveLength(1);
+    expect(deferredSetTags).not.toBeNull();
+
+    // Resolve the in-flight POST with success → onSuccess flips to
+    // 'saved' (then schedules a 1.5 s timer to flip back to 'idle').
+    await act(async () => {
+      deferredSetTags!.resolve(
+        jsonResponse({
+          id: itemId,
+          identification: { tags: [TAG_PARKING] },
+        }),
+      );
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId(`identification-tags-saved-${itemId}`),
+      ).toBeInTheDocument();
+    });
+    expect(
+      screen.queryByTestId(`identification-tags-saving-${itemId}`),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId(`identification-tags-error-${itemId}`),
+    ).not.toBeInTheDocument();
+    // No error toast on the happy path.
+    expect(mockToast).not.toHaveBeenCalled();
+
+    // Advance past the 1.5 s auto-dismiss window — the saved badge
+    // must disappear and no other badge should take its place.
+    await act(async () => {
+      jest.advanceTimersByTime(1600);
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.queryByTestId(`identification-tags-saved-${itemId}`),
+      ).not.toBeInTheDocument();
+    });
+    expect(
+      screen.queryByTestId(`identification-tags-saving-${itemId}`),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId(`identification-tags-error-${itemId}`),
+    ).not.toBeInTheDocument();
+    expect(mockToast).not.toHaveBeenCalled();
+  });
+
+  it('shows the saving → error badge transition and fires a destructive toast when the set-tags POST returns non-OK (Task #1117)', async () => {
+    const itemId = 'item-tag-status-error';
+    const items = [
+      buildItem({
+        id: itemId,
+        originalName: 'rules.pdf',
+        branch: 'building_documents',
+        identificationTags: null,
+      }),
+    ];
+    setupTest(items);
+    global.fetch = makeFetchMock(items, { deferSetTags: true });
+
+    renderPage();
+
+    const editor = await screen.findByTestId(
+      `identification-tag-editor-${itemId}`,
+      undefined,
+      { timeout: 4000 },
+    );
+
+    const trigger = editor.querySelector(
+      '[data-testid="button-tag-picker"]',
+    ) as HTMLElement | null;
+    expect(trigger).not.toBeNull();
+    await act(async () => {
+      fireEvent.click(trigger!);
+    });
+    const option = await screen.findByTestId(
+      `option-tag-${TAG_PARKING}`,
+      undefined,
+      { timeout: 4000 },
+    );
+    await act(async () => {
+      fireEvent.click(option);
+    });
+
+    await act(async () => {
+      jest.advanceTimersByTime(350);
+    });
+
+    // Saving badge is up while the POST is pending.
+    await waitFor(() => {
+      expect(
+        screen.getByTestId(`identification-tags-saving-${itemId}`),
+      ).toBeInTheDocument();
+    });
+    expect(
+      screen.queryByTestId(`identification-tags-error-${itemId}`),
+    ).not.toBeInTheDocument();
+    expect(mockToast).not.toHaveBeenCalled();
+
+    // Resolve the deferred POST with a 500. `apiRequest` throws
+    // (via `throwIfResNotOk`), the mutation lands in `onError`,
+    // and the status flips to 'error'.
+    expect(deferredSetTags).not.toBeNull();
+    await act(async () => {
+      deferredSetTags!.resolve(jsonResponse({ message: 'boom' }, 500));
+    });
+
+    await waitFor(() => {
+      expect(
+        screen.getByTestId(`identification-tags-error-${itemId}`),
+      ).toBeInTheDocument();
+    });
+    expect(
+      screen.queryByTestId(`identification-tags-saving-${itemId}`),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId(`identification-tags-saved-${itemId}`),
+    ).not.toBeInTheDocument();
+
+    // Destructive toast was raised so the admin actually sees the
+    // failure (the badge alone is intentionally tiny).
+    await waitFor(() => {
+      expect(mockToast).toHaveBeenCalledWith(
+        expect.objectContaining({ variant: 'destructive' }),
+      );
     });
   });
 
